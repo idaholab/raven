@@ -865,7 +865,8 @@ class ARMA(supervisedLearning):
     params = {'bins': edges,
               'counts':counts,
               'pdf' : counts * nBins,
-              'cdf' : cdf}
+              'cdf' : cdf,
+              'lens' : len(data)}
               #'binSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[b] for b in edges]),
               #'cdfSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])}
     return params
@@ -1286,6 +1287,10 @@ class ARMA(supervisedLearning):
       for target, cdfParam in self.cdfParams.items():
         # print('jz is adebugger inside thecdfpara',target,cdfParam['bins'])
         # print('jz is adebugger inside thecdfpara',target,cdfParam['counts'])
+        lenthOfData = cdfParam['lens']
+        feature = featureTemplate.format(target=target, metric='arma', id='len')
+        features[feature] = lenthOfData
+
         for e, edge in enumerate(cdfParam['bins']):
           # print('jz is a debugger inside the cdfpara',e,edge)
           feature = featureTemplate.format(target=target, metric='arma', id='bin_{}'.format(e))
@@ -1294,7 +1299,8 @@ class ARMA(supervisedLearning):
         for c, count in enumerate(cdfParam['counts']):
           # print('jz is a debugger inside the cdfpara',c,count)
           feature = featureTemplate.format(target=target, metric='arma', id='counts_{}'.format(c))
-          features[feature] = count        # for paraId,paraVal in cdfParam.items():
+          features[feature] = count
+        # for paraId,paraVal in cdfParam.items():
         #   print('jz is a debugger in gff cdfpara',paraId,paraVal)
     # CDF preservation if available
     for target, cdf in self._trainingCDF.items():
@@ -1442,6 +1448,9 @@ class ARMA(supervisedLearning):
             popFeatures.append(rq)
           elif rid.startswith('counts'):
             popFeatures.append(rq)
+          elif rid.startswith('l'):
+            popFeatures.append(rq)
+
       # print(popFeatures)
         # elif mtc=='arma':
       for p in popFeatures:
@@ -1472,6 +1481,8 @@ class ARMA(supervisedLearning):
       elif metric == 'arma':
         if ID == 'std':
           arma[target]['std'] = val
+        if ID == 'len':
+          arma[target]['len'] = val
         elif ID.startswith('AR_'):
           p = int(ID[3:])
           if 'AR' not in arma[target]:
@@ -1542,7 +1553,6 @@ class ARMA(supervisedLearning):
 
     self._setFourierResults(features.get('fourier', {}))
     self._setArmaResults(features.get('arma', {}))
-    print('lslslslslsllslslslslssl',features.get('arma', {}))
     self._setCDFResults(features.get('cdf', {}))
     self._setPeakResults(features.get('peak', {}))
 
@@ -1573,6 +1583,8 @@ class ARMA(supervisedLearning):
                                      'predict': predict}
 
   def _setArmaResults(self, paramDict):
+    # print('jz is very happy')
+    # pp.pprint(paramDict)
     for target, info in paramDict.items():
       if 'AR' in info:
         AR_keys, AR_vals = zip(*list(info['AR'].items()))
@@ -1581,17 +1593,41 @@ class ARMA(supervisedLearning):
       else:
         AR_vals = np.array([])
       if 'MA' in info:
-        print('kuhvcdshklmn')
         MA_keys, MA_vals = zip(*list(info['MA'].items()))
         MA_keys, MA_vals = zip(*sorted(zip(MA_keys, MA_vals), key=lambda x:x[0]))
         MA_vals = np.asarray(MA_vals)
       else:
         MA_vals = np.array([])
       if 'bin' in info:
-        print('jz is a heheheheh')
+        bin_keys, bin_vals = zip(*list(info['bin'].items()))
+        bin_keys, bin_vals = zip(*sorted(zip(bin_keys, bin_vals), key=lambda x:x[0]))
+        bin_vals = np.asarray(bin_vals)
+      # FIXME no else in here
+      # else:
+      #   bin_vals = np.array([])
+      if 'counts' in info:
+        counts_keys, counts_vals = zip(*list(info['counts'].items()))
+        counts_keys, counts_vals = zip(*sorted(zip(counts_keys, counts_vals), key=lambda x:x[0]))
+        counts_vals = np.asarray(counts_vals)
+        # print(counts_vals)
+      # FIXME no else
+      # else:
+      #   counts_vals = np.array([])
+
       sigma = info['std']
       result = armaResultsProxy(AR_vals, MA_vals, sigma)
       self.armaResult[target] = result
+      lengthOfData=info['len']
+      nBins=len(counts_vals)
+      cdf = np.cumsum(counts_vals)
+      cdf = np.insert(cdf, 0, 0)
+      counts_vals = np.array(counts_vals) * float(lengthOfData)
+      params = {'bins': bin_vals,
+              'counts':counts_vals,
+              'pdf' : counts_vals * nBins,
+              'cdf' : cdf,
+              'lens' : lengthOfData}
+      self.cdfParams[target] = params
 
   def _setCDFResults(self, paramDict):
     for target, info in paramDict.items():
@@ -1609,7 +1645,7 @@ class ARMA(supervisedLearning):
       self._trainingCDF[target] = (dist, histogram)
 
   def _setPeakResults(self, paramDict):
-    print('jz is a peakpicker')
+    # print('jz is a peakpicker')
     for target, info in paramDict.items():
       groupWin=[]
       for g, groupInfo in info.items():

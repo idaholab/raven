@@ -941,7 +941,7 @@ class Clusters(Segments):
     # print(counter,remainder)
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter)
-    print('jz is a debugger in _clusterSegments')
+    # print('jz is a debugger in _clusterSegments')
     print('DEBUGG cluster features:')
     pp.pprint(clusterFeatures.keys())
     # future: requested metrics
