@@ -499,8 +499,8 @@ class ARMA(supervisedLearning):
 
     # TODO when we have output printing for ROMs, the distinct signals here could be outputs!
     # leaving "debuggFile" as examples of this, in comments
-    #debuggFile = open('signal_bases.csv','w')
-    #debuggFile.writelines('Time,'+','.join(str(x) for x in self.pivotParameterValues)+'\n')
+    debuggFile = open('signal_bases.csv','w')
+    debuggFile.writelines('Time,'+','.join(str(x) for x in self.pivotParameterValues)+'\n')
     correlatedSample = None
     for target in self.target:
       # start with the random gaussian signal
@@ -580,16 +580,18 @@ class ARMA(supervisedLearning):
       signal = self._denormalizeThroughCDF(signal,self.cdfParams[target])
       # DEBUG adding arbitrary variables
       #returnEvaluation[target+'_1denorm'] = copy.copy(signal)
-      #debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
+      debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
 
       # Add fourier trends
       if target in self.fourierParams:
         signal += self.fourierResults[target]['predict']
         # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
-        #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
+        debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
       if target in self.peaks:
         signal = self._transformBackPeaks(signal,windowDict=self.peaks[target])
+        debuggFile.writelines('signal_peak,'+','.join(str(x) for x in signal)+'\n')
+
       # if enforcing the training data CDF, apply that transform now
       if self.preserveInputCDF:
         signal = self._transformThroughInputCDF(signal, self._trainingCDF[target])
@@ -618,7 +620,7 @@ class ARMA(supervisedLearning):
 
       # sanity check on the signal
       assert(signal.size == returnEvaluation[self.pivotParameterID].size)
-      #debuggFile.writelines('final,'+','.join(str(x) for x in signal)+'\n')
+      debuggFile.writelines('final,'+','.join(str(x) for x in signal)+'\n')
       returnEvaluation[target] = signal
     # END for target in targets
     return returnEvaluation
@@ -1383,6 +1385,9 @@ class ARMA(supervisedLearning):
               features[feature] = minAmp
             else:
               maxAmp=max(group['Amp'])
+              # print('jz is here here')
+              # print(group['Amp'])
+
               feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_maxAmp'.format(g))
               features[feature] = maxAmp
               minAmp=min(group['Amp'])
@@ -1398,6 +1403,8 @@ class ARMA(supervisedLearning):
               feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
               features[feature] = count
           else:
+            # print('jz is whwhwh')
+            # print(self._signalStorage[target]['original'])
             maxAmp=max(self._signalStorage[target]['original'])
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_maxAmp'.format(g))
             features[feature] = maxAmp
@@ -1411,6 +1418,7 @@ class ARMA(supervisedLearning):
               feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
               features[feature] = count
     # for target, peak in self.items():
+
     if requestedFeatures is not None:
       # print(requestedFeatures)
       popFeatures=[]
@@ -1438,7 +1446,7 @@ class ARMA(supervisedLearning):
         # elif mtc=='arma':
       for p in popFeatures:
         del features[p]
-    #   pp.pprint(features)
+    # pp.pprint(features)
     # cccccccccc
     return features
 
@@ -1474,6 +1482,18 @@ class ARMA(supervisedLearning):
           if 'MA' not in arma[target]:
             arma[target]['MA'] = {}
           arma[target]['MA'][p] = val
+        elif ID.startswith('bin_'):
+          p = int(ID[4:])
+          if 'bin' not in arma[target]:
+            arma[target]['bin'] = {}
+          # print('jz is setting the whiten part',val)
+          arma[target]['bin'][p] = val
+        elif ID.startswith('counts_'):
+          p = int(ID[7:])
+          if 'counts' not in arma[target]:
+            arma[target]['counts'] = {}
+          # print('jz is setting the whiten part two',val)
+          arma[target]['counts'][p] = val
 
       elif metric == 'cdf':
         if ID.startswith('counts_'):
@@ -1519,8 +1539,10 @@ class ARMA(supervisedLearning):
     """
     opposite of getFundamentalFeatures, expects results as from readFundamentalFeatures
     """
+
     self._setFourierResults(features.get('fourier', {}))
     self._setArmaResults(features.get('arma', {}))
+    print('lslslslslsllslslslslssl',features.get('arma', {}))
     self._setCDFResults(features.get('cdf', {}))
     self._setPeakResults(features.get('peak', {}))
 
@@ -1559,11 +1581,14 @@ class ARMA(supervisedLearning):
       else:
         AR_vals = np.array([])
       if 'MA' in info:
+        print('kuhvcdshklmn')
         MA_keys, MA_vals = zip(*list(info['MA'].items()))
         MA_keys, MA_vals = zip(*sorted(zip(MA_keys, MA_vals), key=lambda x:x[0]))
         MA_vals = np.asarray(MA_vals)
       else:
         MA_vals = np.array([])
+      if 'bin' in info:
+        print('jz is a heheheheh')
       sigma = info['std']
       result = armaResultsProxy(AR_vals, MA_vals, sigma)
       self.armaResult[target] = result
@@ -1584,6 +1609,7 @@ class ARMA(supervisedLearning):
       self._trainingCDF[target] = (dist, histogram)
 
   def _setPeakResults(self, paramDict):
+    print('jz is a peakpicker')
     for target, info in paramDict.items():
       groupWin=[]
       for g, groupInfo in info.items():
@@ -1637,14 +1663,17 @@ class ARMA(supervisedLearning):
     """
     trainingDict = copy.deepcopy(trainingDict) # otherwise we destructively tamper with the input data object
     settings = {}
-    targets = list(self.fourierParams.keys())
+    targets = self.target
 
     # set up for input CDF preservation on a global scale
     if self.preserveInputCDF:
+      # print('jz is sth preserve cdf')
+      # print(targets)
       inputDists = {}
       for target in targets:
         if target == self.pivotParameterID:
           continue
+        # print('jz is sth after preserve cdf',target)
         targetVals = trainingDict[target][0]
         nbins=max(self._minBins,int(np.sqrt(len(targetVals))))
 

@@ -37,7 +37,7 @@ from .SupervisedLearning import supervisedLearning
 import pprint
 pp=pprint.PrettyPrinter(indent=2)
 import pickle as pk # TODO remove me!
-
+import os
 warnings.simplefilter('default', DeprecationWarning)
 
 
@@ -247,6 +247,8 @@ class Segments(Collection):
     self._divisionInfo['delimiters'] = divisions[0] + divisions[1]
     # allow ROM to handle some global training
     self._romGlobalAdjustments, newTrainingDict = self._templateROM.getGlobalRomSegmentSettings(tdict, divisions)
+    # print('zj is in here')
+    # pp.pprint(self._romGlobalAdjustments)
     # train segments
     self._trainBySegments(divisions, newTrainingDict)
     self.amITrained = True
@@ -316,6 +318,9 @@ class Segments(Collection):
     for r, rom in enumerate(roms):
       self.raiseADebug('Evaluating ROM segment', r)
       subResults = rom.evaluate(evaluationDict)
+      year = getattr(self, 'DEBUGGYEAR', 0)
+#This is the place have debugg file
+      # os.system('mv signal_bases.csv year_{}_segment_{}_signals.csv'.format(year,r))
       # NOTE the pivot values for subResults will be wrong (shifted) if shifting is used in training
       ## however, we will set the pivotID values all at once after all results are gathered, so it's okay.
       # build "results" structure if not already done -> easier to do once we gather the first sample
@@ -613,7 +618,7 @@ class Clusters(Segments):
     #########
     self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
     self._clusterFeatures = None         # dict of lists, features to cluster on
-
+    self.DEBUGGYEAR = 0
     # check if ROM has methods to cluster on (errors out if not)
     if not self._templateROM.isClusterable():
       self.raiseAnError(NotImplementedError, 'Requested ROM "{}" does not yet have methods for clustering!'.format(self._romName))
@@ -627,7 +632,7 @@ class Clusters(Segments):
       userRequests = self._extrapolateRequestedClusterFeatures(inputRequests)
       # print('dasfskfhsehfglsegjlsegjlsbgljsbjlgbsjkbgjksdbgjksbgdjksgbs',userRequests)
     self._clusterFeatures = self._templateROM.checkRequestedClusterFeatures(userRequests)
-    # print('debuggggg_clusterFeatures',self._clusterFeatures)
+    print('debuggggg_clusterFeatures',self._clusterFeatures)
   def readAssembledObjects(self):
     """
       Collects the entities from the Assembler as needed.
@@ -1200,7 +1205,7 @@ class Interpolated(supervisedLearning):
       inputs = newRom.readFundamentalFeatures(params)
       # print('we are the input:')
       # pp.pprint(inputs)
-      # newRom.setFundamentalFeatures(inputs)
+      newRom.setFundamentalFeatures(inputs)
       # print('zj is a debugger in here:')
       segmentRoms.append(newRom)
 
@@ -1257,6 +1262,7 @@ class Interpolated(supervisedLearning):
       # model is the ClusterROM instance for this macro step
       macroIndexValues.append(macroStep)
       self.raiseADebug(' ... evaluating macro step "{}" of "{}"'.format(macroStep+1, numMacro))
+      model.DEBUGGYEAR = macroStep
       subResult = model.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
       indexMap = subResult.get('_indexMap', {})
       # if not set up yet, then frame results structure
