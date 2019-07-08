@@ -367,9 +367,13 @@ class ARMA(supervisedLearning):
 
         # rangeWindow = self.rangeWindow(windowDict=self.peaks[target])
         # self.peaks[target]['rangeWindow']=rangeWindow
+        # print('beforre train')
+        # pp.pprint(self.peaks)
         peakResults=self._trainPeak(timeSeriesData,windowDict=self.peaks[target])
         self.peaks[target].update(peakResults)
         maskPeakRes = peakResults['mask']
+        # pp.pprint(self.peaks)
+
 
 
         # print(peakResults)
@@ -589,6 +593,7 @@ class ARMA(supervisedLearning):
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
       if target in self.peaks:
+        # pp.pprint(self.peaks[target])
         signal = self._transformBackPeaks(signal,windowDict=self.peaks[target])
         debuggFile.writelines('signal_peak,'+','.join(str(x) for x in signal)+'\n')
 
@@ -903,6 +908,7 @@ class ARMA(supervisedLearning):
     peakResults['rangeWindow']=rangeWindow
     # print('gW',groupWin)
     # print('rW',rangeWindow)
+    print('jz after train peak results')
     return peakResults
 
   def _trainFourier(self, pivotValues, periods, values, masks=None,zeroFilter=False):
@@ -1212,6 +1218,8 @@ class ARMA(supervisedLearning):
     for picker in pickers:
       res = dict((target, signal['predict'][picker].mean()) for target, signal in settings['long Fourier signal'].items())
       results.append(res)
+    # print('jz is in _getMeanFromGlobal here here')
+    # print(results)
     return results
 
   def getLocalRomClusterFeatures(self, featureTemplate, settings, request, picker=None, **kwargs):
@@ -1676,7 +1684,10 @@ class ARMA(supervisedLearning):
         histogramInd = (indHisCs, np.arange(len(indHisCs)+1)+1)
 
         distInd = stats.rv_histogram(histogramInd)
-        indLocal=distInd.rvs(size=int(probExist*lenWin)).tolist()
+        indLocal=distInd.rvs(size=int(round(probExist*lenWin))).tolist()
+        # If the probability of exist is 0 then the indLocal is an empty list, size = 0
+        # if probability of exist is not 0 then the distInd will contain real number, so
+        # the rvs will not generate nan
         for indexOfIndex,valueOfIndex in enumerate(indLocal):
           valueOfIndex=int(valueOfIndex)
           indLocal[indexOfIndex]=valueOfIndex
@@ -1865,7 +1876,7 @@ class ARMA(supervisedLearning):
       results['input CDFs'][target] = (dist, histogram)
     return results
 
-  def adjustLocalRomSegment(self, settings):
+  def adjustLocalRomSegment(self, settings, picker):
     """
       Adjusts this ROM to account for it being a segment as a part of a larger ROM collection.
       Call this before training the subspace segment ROMs
@@ -1875,6 +1886,8 @@ class ARMA(supervisedLearning):
     """
     # some Fourier periods have already been handled, so reset the ones that actually are needed
     newFourier = settings.get('segment Fourier periods', None)
+    # for target in self.target:
+
     if newFourier is not None:
       for target in list(self.fourierParams.keys()):
         periods = newFourier.get(target, [])
@@ -1888,6 +1901,20 @@ class ARMA(supervisedLearning):
     ## Note that this might be a good candidate for a user option someday,
     ## but right now we can't imagine a use case that would turn it on
     self.preserveInputCDF = False
+    if 'long Fourier signal' in settings:
+      for target, peak in self.peaks.items():
+        # print('jz is a picker')
+        # print(picker)
+        # print('jz is a peaker')
+        # print(self.peaks)
+        subMean = self._getMeanFromGlobal(settings, picker)
+        subMean=subMean[0][target]
+        th = self.peaks[target]['threshold']
+        th = th - subMean
+        self.peaks[target]['threshold'] = th
+        # print('jz is a updater')
+        # print(self.peaks)
+
 
   def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker):
     """
@@ -2029,8 +2056,9 @@ class ARMA(supervisedLearning):
     """
     groupWin = windowDict['groupWin']
     windows  = windowDict['windows']
-    rangeWindow=self.rangeWindow(windowDict)
-    for i in range(len(windowDict['windows'])):
+    # rangeWindow = self.rangeWindow(windowDict)
+    rangeWindow = windowDict['rangeWindow']
+    for i in range(len(windows)):
       prbExist = len(groupWin[i]['Ind'])/len(rangeWindow[i]['bg'])
       # (amount of peaks that collected in the windows)/(the amount of windows)
       # this is the probability to check if we should add a peak in each type of window
