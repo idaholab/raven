@@ -300,6 +300,7 @@ class Segments(Collection):
   ###################
   # UTILITY METHODS #
   ###################
+  #This is the place have debugg file
   def _evaluateBySegments(self, evaluationDict):
     """
       Evaluate ROM by evaluating its segments
@@ -319,7 +320,6 @@ class Segments(Collection):
       self.raiseADebug('Evaluating ROM segment', r)
       subResults = rom.evaluate(evaluationDict)
       year = getattr(self, 'DEBUGGYEAR', 0)
-#This is the place have debugg file
       # os.system('mv signal_bases.csv year_{}_segment_{}_signals.csv'.format(year,r))
       # NOTE the pivot values for subResults will be wrong (shifted) if shifting is used in training
       ## however, we will set the pivotID values all at once after all results are gathered, so it's okay.
@@ -612,9 +612,9 @@ class Clusters(Segments):
     self._metricClassifiers = None       # Metrics for clustering subdomain ROMs
     self._clusterInfo = {}               # contains all the useful clustering results
     ##################
-    # self._evaluationMode = 'truncated'   # TODO make user option, whether returning full histories or truncated ones
+    self._evaluationMode = 'truncated'   # TODO make user option, whether returning full histories or truncated ones
 
-    self._evaluationMode = 'full'   # TODO changed here for Konor's case now
+    # self._evaluationMode = 'full'   # TODO changed here for Konor's case now
     #########
     self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
     self._clusterFeatures = None         # dict of lists, features to cluster on
@@ -726,6 +726,13 @@ class Clusters(Segments):
       modify.attrib['cluster'] = modify.attrib.pop('segment')
       modify.append(xmlUtils.newNode('segments_represented',
                                      text=', '.join(str(x) for x in np.arange(len(labels))[labels==i])))
+      # delimiters (since we can't really use the pointwise data for this)
+      indStart, _, pivStart, _ = self._getSegmentData()
+      print('DEBUGG delims?')
+      pprint.pprint(self._divisionInfo, indent=2)
+      starts = xmlUtils.newNode('starting_indices')
+      starts.text = ', '.join(str(x) for x in indStart)
+      modify.append(starts)
       # TODO pivot values, index delimiters as well?
 
   def getSegmentRoms(self, full=False):
@@ -1047,6 +1054,32 @@ class Interpolated(supervisedLearning):
     #   iS, iE, pS, pE = model._getSegmentData() # (i)ndex | (p)ivot, (S)tarts | (E)nds
     #   for i in range(len(iS)):
     #     print(i, iS[i], iE[i], pS[i], pE[i])
+
+  def writeXML(self, writeTo, targets=None, skip=None):
+    """
+      Write out ARMA information
+      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
+      @ In, targets, list, optional, unused
+      @ In, skip, list, optional, unused
+      @ Out, None
+    """
+    # write global information
+    newNode = xmlUtils.StaticXmlElement('InterpolatedMultiyearROM')
+    ## macro steps information
+    newNode.getRoot().append(xmlUtils.newNode('MacroParameterID', text=self._macroParameter))
+    newNode.getRoot().append(xmlUtils.newNode('MacroSteps', text=len(self._macroSteps)))
+    newNode.getRoot().append(xmlUtils.newNode('MacroFirstStep', text=min(self._macroSteps)))
+    newNode.getRoot().append(xmlUtils.newNode('MacroLastStep', text=max(self._macroSteps)))
+    writeTo.getRoot().append(newNode.getRoot())
+    # write info about EACH macro step
+    main = writeTo.getRoot()
+    for macroID, step in self._macroSteps.items():
+      newNode = xmlUtils.StaticXmlElement('MacroStepROM', attrib={self._macroParameter: str(macroID)})
+      step.writeXML(newNode, targets, skip)
+      main.append(newNode.getRoot())
+
+
+
   ############### TRAINING ####################
   def train(self, tdict):
     """
@@ -1164,12 +1197,12 @@ class Interpolated(supervisedLearning):
     interp['method'] = {}
     for header in params:
       interp['method'][header] = interp1d(df.index.values, df[header].values)
-    fname = 'debug_statepoints_{}.pk'.format(index)
+    #fname = 'debug_statepoints_{}.pk'.format(index)
     # DEBUGG
-    with open(fname, 'wb') as f:
-      df.index.name = 'year'
-      pk.dump(df, f)
-    print('DEBUGG interpolation data has been dumped to', fname)
+    #with open(fname, 'wb') as f:
+    #  df.index.name = 'year'
+    #  pk.dump(df, f)
+    #print('DEBUGG interpolation data has been dumped to', fname)
     #### OLD #### do it all at once
     #data = df.values
     #interp['headers'] = list(params.keys())
@@ -1188,10 +1221,10 @@ class Interpolated(supervisedLearning):
       # print('jz is a debugger params')
       # pp.pprint(params)
       # DEBUGG
-      fname = 'debugg_interp_y{}_s{}.pk'.format(index, segment)
-      with open(fname, 'wb') as f:
-        print('Dumping interpolated params to', fname)
-        pk.dump(params, f)
+      #fname = 'debugg_interp_y{}_s{}.pk'.format(index, segment)
+      #with open(fname, 'wb') as f:
+      #  print('Dumping interpolated params to', fname)
+      #  pk.dump(params, f)
       #### OLD #### do it all at once
       #for param, interp in segmentInterps[segment]['method'].items():
       #  params[param] = interp(index)

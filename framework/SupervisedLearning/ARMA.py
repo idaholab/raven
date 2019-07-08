@@ -1095,7 +1095,7 @@ class ARMA(supervisedLearning):
         root.append(targetNode)
       fourierNode = xmlUtils.newNode('Fourier')
       targetNode.append(fourierNode)
-      fourierNode.append(xmlUtils.newNode('SignalIntercept', text='{:1.9e}'.format(fourier['regression']['intercept'])))
+      fourierNode.append(xmlUtils.newNode('SignalIntercept', text='{:1.9e}'.format(float(fourier['regression']['intercept']))))
       for period in fourier['regression']['periods']:
         periodNode = xmlUtils.newNode('period', text='{:1.9e}'.format(period))
         fourierNode.append(periodNode)
