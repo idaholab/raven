@@ -320,6 +320,7 @@ class Segments(Collection):
       self.raiseADebug('Evaluating ROM segment', r)
       subResults = rom.evaluate(evaluationDict)
       year = getattr(self, 'DEBUGGYEAR', 0)
+      #This is the place have debugg file
       # os.system('mv signal_bases.csv year_{}_segment_{}_signals.csv'.format(year,r))
       # NOTE the pivot values for subResults will be wrong (shifted) if shifting is used in training
       ## however, we will set the pivotID values all at once after all results are gathered, so it's okay.
@@ -521,7 +522,7 @@ class Segments(Collection):
       # create a new ROM and train it!
       newROM = copy.deepcopy(templateROM)
       newROM.name = '{}_seg{}'.format(self._romName, i)
-      newROM.adjustLocalRomSegment(self._romGlobalAdjustments)
+      newROM.adjustLocalRomSegment(self._romGlobalAdjustments, picker)
       self.raiseADebug('Training segment', i, picker)
       newROM.train(data)
       roms.append(newROM)
