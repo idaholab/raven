@@ -493,18 +493,27 @@ class ROM(Dummy):
     rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),inRun.keys()))))
     return rlz
 
-  def crossValidation(self, trainingSet):
+  def convergence(self,trainingSet):
     """
-      The function performs cross validation on ROMs
+      This is to get the cross validation score of ROM
+      @ In, trainingSize, int, the size of current training size
+      @ Out, cvScore, dict, the dict containing the score of cross validation
+    """
+    if self.subType.lower() != 'scikitlearn':
+      self.raiseAnError(IOError, 'convergence calculation is not Implemented for ROM', self.name, 'with type', self.subType)
+    cvScore = self._crossValidationScore(trainingSet)
+    return cvScore
+
+  def _crossValidationScore(self, trainingSet):
+    """
+      The function calculates the cross validation score on ROMs
       @ In, trainingSize, int, the size of current training size
       @ Out, cvMetrics, dict, the calculated cross validation metrics
     """
-    if self.subType.lower() != 'scikitlearn':
-      self.raiseAnError(IOError, 'Cross Validation is not Implemented for ROM', self.name, 'with type', self.subType)
     if len(self.supervisedEngine.supervisedContainer) > 1:
       self.raiseAnError(IOError, "Cross Validation Method is not implemented for Clustered ROMs")
     cvMetrics = None
-    if self.checkCV(len(trainingSet)):
+    if self._checkCV(len(trainingSet)):
       # reset the ROM before perform cross validation
       cvMetrics = {}
       self.reset()
@@ -518,7 +527,7 @@ class ROM(Dummy):
         cvMetrics[self.name] = (info['metricType'], metricValues)
     return cvMetrics
 
-  def checkCV(self, trainingSize):
+  def _checkCV(self, trainingSize):
     """
       The function will check whether we can use Cross Validation or not
       @ In, trainingSize, int, the size of current training size

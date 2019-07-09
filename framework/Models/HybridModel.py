@@ -102,7 +102,6 @@ class HybridModel(Dummy):
     """
     Dummy.__init__(self,runInfoDict)
     self.modelInstance            = None             # Instance of given model
-
     self.targetEvaluationInstance = None             # Instance of data object used to store the inputs and outputs of HybridModel
     self.tempTargetEvaluation     = None             # Instance of data object that are used to store the training set
     self.romsDictionary        = {}                  # dictionary of models that is going to be employed, i.e. {'romName':Instance}
@@ -307,8 +306,6 @@ class HybridModel(Dummy):
         return (codeInput, samplerType, newKwargs)
     return (myInput, samplerType, newKwargs)
 
-
-  #FIXME swith to ROM method
   def trainRom(self, samplerType, kwargs):
     """
       This function will train all ROMs if they are not converged
@@ -319,7 +316,7 @@ class HybridModel(Dummy):
     """
     self.raiseADebug("Start to train roms")
     for romInfo in self.romsDictionary.values():
-      cvMetrics = romInfo['Instance'].crossValidation(self.tempTargetEvaluation)
+      cvMetrics = romInfo['Instance'].convergence(self.tempTargetEvaluation)
       if cvMetrics is not None:
         converged = self.isRomConverged(cvMetrics)
         romInfo['Converged'] = converged
@@ -347,7 +344,7 @@ class HybridModel(Dummy):
   def checkErrors(self, metricType, metricResults):
     """
       This function is used to compare the metric outputs with the tolerance for the rom convergence
-      @ In, metricType, string, the type of given metric
+      @ In, metricType, list, the list of metrics
       @ In, metricResults, list or dict
       @ Out, converged, bool, True if the metric outputs are less than the tolerance
     """
