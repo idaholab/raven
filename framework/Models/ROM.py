@@ -353,10 +353,10 @@ class ROM(Dummy):
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
       self.initializationOptionDict['pickled'] = True
+    self._initializeSupervisedGate(paramInput=paramInput, **self.initializationOptionDict)
     #the ROM is instanced and initialized
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
-    self._initializeSupervisedGate(**self.initializationOptionDict)
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
