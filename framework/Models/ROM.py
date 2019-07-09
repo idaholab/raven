@@ -500,12 +500,9 @@ class ROM(Dummy):
 
   def crossValidation(self, trainingSet):
     """
-    """
-    cvMetrics = self.supervisedEngine.crossValidation(trainingSet)
-    return cvMetrics
-
-  def crossValidation(self, trainingSet):
-    """
+      The function performs cross validation on ROMs
+      @ In, trainingSize, int, the size of current training size
+      @ Out, cvMetrics, dict, the calculated cross validation metrics
     """
     if self.subType.lower() != 'scikitlearn':
       self.raiseAnError(IOError, 'Cross Validation is not Implemented for ROM', self.name, 'with type', self.subType)
