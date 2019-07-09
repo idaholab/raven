@@ -122,6 +122,7 @@ class HybridModel(Dummy):
     self.oldTrainingSize       = 0                   # The size of training set that is previous used to train the rom
     self.modelIndicator        = {}                  # a dict i.e. {jobPrefix: 1 or 0} used to indicate the runs: model or rom. '1' indicates ROM run, and '0' indicates Code run
     self.crowdingDistance      = None
+    self.metricCategories      = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
     # assembler objects to be requested
     self.addAssemblerObject('Model','1',True)
     self.addAssemblerObject('ROM','n')
@@ -204,6 +205,8 @@ class HybridModel(Dummy):
       if romIn.amITrained:
         self.raiseAWarning("The provided rom ", romIn.name, " is already trained, we will reset it!")
         romIn.reset()
+      print('=====', inputs)
+      romIn.initialize(runInfo, inputs, initDict)
       romInputs = romIn.getInitParams()['Features']
       romOutputs = romIn.getInitParams()['Target']
       totalRomOutputs.extend(romOutputs)

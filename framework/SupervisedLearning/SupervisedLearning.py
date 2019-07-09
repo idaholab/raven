@@ -99,6 +99,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self._assembledObjects = None           # objects assembled by the ROM Model, passed through.
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None:
+      self.initializationOptionDict = copy.deepcopy(kwargs)
       self.initOptionDict = kwargs
     else:
       self.initOptionDict = {}

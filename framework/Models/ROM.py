@@ -337,6 +337,7 @@ class ROM(Dummy):
     for child in paramInput.subparts:
       if child.getName() == 'CV':
         self.cvInstance = child.value.strip()
+        print("=====", self.cvInstance)
         continue
       if len(child.parameterValues) > 0:
         if child.getName() == 'alias':
@@ -372,8 +373,8 @@ class ROM(Dummy):
     if self.cvInstance is not None:
       self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
       self.cvInstance.initialize(runInfo, inputs, initDict)
-      self.initializationOptionDict['cvInstance'] = self.cvInstance
-      self._initializeSupervisedGate(**self.initializationOptionDict)
+      print(self.cvInstance)
+    self.supervisedEngine.cvInstance = self.cvInstance
 
   def _initializeSupervisedGate(self,**initializationOptions):
     """

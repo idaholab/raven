@@ -36,6 +36,7 @@ import Files
 import Models
 import Runners
 import CrossValidations
+from SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CrossValidation(PostProcessor):
@@ -203,7 +204,17 @@ class CrossValidation(PostProcessor):
           cvEstimator = currentInput
         else:
           self.raiseAnError(IOError, "This postprocessor '%s' only accepts one input of Models.ROM!" %self.name)
+      elif isinstance(currentInput, supervisedLearning):
+        if currentInput.amITrained:
+          currentInput.raiseAnError(RuntimeError, "ROM model '%s' has been already trained! " %currentInput.name +\
+                                                  "Cross validation will not be performed")
+        if not cvEstimator:
+          cvEstimator = currentInput
+        else:
+          self.raiseAnError(IOError, "This postprocessor '%s' only accepts one input of ROM!" %self.name)
 
+    print(cvEstimator)
+    print(currentInputs)
     currentInputs.remove(cvEstimator)
 
     currentInput = copy.deepcopy(currentInputs[-1])
