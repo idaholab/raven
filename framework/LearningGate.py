@@ -60,10 +60,8 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     self.printTag = 'SupervisedGate'
     self.messageHandler = messageHandler
     self.initializationOptions = kwargs
-    self.cvInstance = None
     self.amITrained = False
     self.ROMclass = ROMclass
-    print(ROMclass)
     # members for clustered roms
     ### OLD ###
     #self._usingRomClustering = False    # are we using ROM clustering?
@@ -268,44 +266,6 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
           for key in resultsDict.keys():
             resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
     return resultsDict
-
-  def crossValidation(self, trainingSet):
-    """
-    """
-    if len(self.supervisedContainer) > 1:
-      self.raiseAnError(IOError, "Cross Validation Method is not implemented for Clustered ROMs")
-    cvMetrics = None
-    print(self.cvInstance)
-    if self.checkCV(len(trainingSet)):
-      # reset the ROM before perform cross validation
-      cvMetrics = {}
-      self.reset()
-      for rom in self.supervisedContainer:
-        outputMetrics = self.cvInstance.interface.run([rom, trainingSet])
-        exploredTargets = []
-        for cvKey, metricValues in outputMetrics.items():
-          info = self.cvInstance.interface._returnCharacteristicsOfCvGivenOutputName(cvKey)
-          if info['targetName'] in exploredTargets:
-            self.raiseAnError(IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name, "' for ROM '", rom.name,  "'!")
-          exploredTargets.append(info['targetName'])
-        # cvMetrics[rom.name] = (info['metricType'], metricValues)
-          cvMetrics['knr'] = (info['metricType'], metricValues)
-
-    return cvMetrics
-
-  def checkCV(self, trainingSize):
-    """
-      The function will check whether we can use Cross Validation or not
-      @ In, trainingSize, int, the size of current training size
-      @ Out, None
-    """
-    useCV = True
-    initDict =  self.cvInstance.interface.initializationOptionDict
-    if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
-      if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
-        useCV = False
-    return useCV
-
 
 __interfaceDict                         = {}
 __interfaceDict['SupervisedGate'      ] = supervisedLearningGate

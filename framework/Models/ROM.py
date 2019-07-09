@@ -374,7 +374,6 @@ class ROM(Dummy):
       self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
       self.cvInstance.initialize(runInfo, inputs, initDict)
       print(self.cvInstance)
-    self.supervisedEngine.cvInstance = self.cvInstance
 
   def _initializeSupervisedGate(self,**initializationOptions):
     """
@@ -504,6 +503,42 @@ class ROM(Dummy):
     """
     cvMetrics = self.supervisedEngine.crossValidation(trainingSet)
     return cvMetrics
+
+  def crossValidation(self, trainingSet):
+    """
+    """
+    if self.subType.lower() != 'scikitlearn':
+      self.raiseAnError(IOError, 'Cross Validation is not Implemented for ROM', self.name, 'with type', self.subType)
+    if len(self.supervisedEngine.supervisedContainer) > 1:
+      self.raiseAnError(IOError, "Cross Validation Method is not implemented for Clustered ROMs")
+    cvMetrics = None
+    print(self.cvInstance)
+    if self.checkCV(len(trainingSet)):
+      # reset the ROM before perform cross validation
+      cvMetrics = {}
+      self.reset()
+      outputMetrics = self.cvInstance.interface.run([self, trainingSet])
+      exploredTargets = []
+      for cvKey, metricValues in outputMetrics.items():
+        info = self.cvInstance.interface._returnCharacteristicsOfCvGivenOutputName(cvKey)
+        if info['targetName'] in exploredTargets:
+          self.raiseAnError(IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name, "' for ROM '", rom.name,  "'!")
+        exploredTargets.append(info['targetName'])
+        cvMetrics[self.name] = (info['metricType'], metricValues)
+    return cvMetrics
+
+  def checkCV(self, trainingSize):
+    """
+      The function will check whether we can use Cross Validation or not
+      @ In, trainingSize, int, the size of current training size
+      @ Out, None
+    """
+    useCV = True
+    initDict =  self.cvInstance.interface.initializationOptionDict
+    if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
+      if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
+        useCV = False
+    return useCV
 
   def writePointwiseData(self, writeTo):
     """
