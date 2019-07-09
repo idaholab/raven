@@ -44,6 +44,8 @@ try:
   from tensorflow.keras import layers as KerasLayers
   from tensorflow.keras import optimizers as KerasOptimizers
   from tensorflow.keras import utils as KerasUtils
+  from tensorflow.python.keras.backend import set_session
+  from tensorflow.python.keras.models import load_model
   _tensorflowAvailable = True
 except ImportError as e:
   _tensorflowAvailable = False
@@ -249,6 +251,7 @@ if isTensorflowAvailable():
       self._ROM = None
       # the training/testing history of ROM
       self._romHistory = None
+      self._sessionConf = None
       randomSeed = self.initOptionDict.pop('random_seed',None)
       # Set the seed for random number generation to obtain reproducible results
       # https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
@@ -262,14 +265,20 @@ if isTensorflowAvailable():
         # Force TensorFlow to use single thread.
         # Multiple threads are a potential source of non-reproducible results.
         # For further details, see: https://stackoverflow.com/questions/42022950/
-        session_conf = tf.ConfigProto(intra_op_parallelism_threads=1,
+        self._sessionConf = tf.ConfigProto(intra_op_parallelism_threads=1,
                                       inter_op_parallelism_threads=1)
         # The below tf.set_random_seed() will make random number generation
         # in the TensorFlow backend have a well-defined initial state.
         # For further details, see:
         # https://www.tensorflow.org/api_docs/python/tf/set_random_seed
         tf.set_random_seed(randomSeed)
-        tf.Session(graph=tf.get_default_graph(), config=session_conf)
+      self._session = tf.Session(graph=tf.get_default_graph(), config=self._sessionConf)
+      # Base on issue https://github.com/tensorflow/tensorflow/issues/28287
+      # The problem is that tensorflow graphs and sessions are not thread safe. So by default
+      # a new session (which) does not contain any previously loaded weights, models, and so on)
+      # is created for each thread, i.e. for each request. By saving the session that contains all
+      # the models and setting it to be used by keras in each thread.
+      set_session(self._session)
 
       modelName = self.initOptionDict.pop('name','')
       # number of classes for classifier
@@ -506,6 +515,7 @@ if isTensorflowAvailable():
       featureVals = self._preprocessInputs(featureVals)
       prediction = {}
       with self.graph.as_default():
+        set_session(self._session)
         outcome = self._ROM.predict(featureVals)
       if self.numClasses > 1 and self.lossFunction in ['categorical_crossentropy']:
         outcome = np.argmax(outcome,axis=1)
