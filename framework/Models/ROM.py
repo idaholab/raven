@@ -283,10 +283,7 @@ class ROM(Dummy):
     self.amITrained                = False      # boolean flag, is the ROM trained?
     self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
-
     self.cvInstance               = None             # Instance of provided cross validation
-    self.metricCategories      = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
-
     # for Clustered ROM
     self.addAssemblerObject('Classifier','-1',True)
     self.addAssemblerObject('Metric','-n',True)
@@ -337,7 +334,6 @@ class ROM(Dummy):
     for child in paramInput.subparts:
       if child.getName() == 'CV':
         self.cvInstance = child.value.strip()
-        print("=====", self.cvInstance)
         continue
       if len(child.parameterValues) > 0:
         if child.getName() == 'alias':
@@ -373,7 +369,6 @@ class ROM(Dummy):
     if self.cvInstance is not None:
       self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
       self.cvInstance.initialize(runInfo, inputs, initDict)
-      print(self.cvInstance)
 
   def _initializeSupervisedGate(self,**initializationOptions):
     """
@@ -509,7 +504,6 @@ class ROM(Dummy):
     if len(self.supervisedEngine.supervisedContainer) > 1:
       self.raiseAnError(IOError, "Cross Validation Method is not implemented for Clustered ROMs")
     cvMetrics = None
-    print(self.cvInstance)
     if self.checkCV(len(trainingSet)):
       # reset the ROM before perform cross validation
       cvMetrics = {}

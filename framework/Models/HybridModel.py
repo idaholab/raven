@@ -205,7 +205,6 @@ class HybridModel(Dummy):
       if romIn.amITrained:
         self.raiseAWarning("The provided rom ", romIn.name, " is already trained, we will reset it!")
         romIn.reset()
-      print('=====', inputs)
       romIn.initialize(runInfo, inputs, initDict)
       romInputs = romIn.getInitParams()['Features']
       romOutputs = romIn.getInitParams()['Target']
