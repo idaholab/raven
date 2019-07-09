@@ -1685,7 +1685,7 @@ class DataSet(DataObject):
       dtype = self.defaultDtype # set in subclasses if different
     return cached_ndarray.cNDarray(width=width,length=length,dtype=dtype)
 
-  def _readPandasCSV(self,fname,nullOK=None):
+  def _readPandasCSV(self, fname, nullOK=None):
     """
       Reads in a CSV and does some simple checking.
       @ In, fname, str, name of file to read in (WITH the .csv extension)

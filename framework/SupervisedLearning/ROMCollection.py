@@ -541,7 +541,7 @@ class Segments(Collection):
     segmentNames = range(len(self._divisionInfo['delimiters']))
     # pivot for all this stuff is the segment number
     rlz['segment_number'] = np.asarray(segmentNames)
-    iS, iE, pS, pE = self._getSegmentData() # (i)ndex | (p)ivot, (S)tarts | (E)nds
+    iS, iE, pS, pE = self._getSegmentData(full=True) # (i)ndex | (p)ivot, (S)tarts | (E)nds
     # start indices
     varName = 'seg_index_start'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
@@ -560,7 +560,9 @@ class Segments(Collection):
     rlz[varName] = pE
     return rlz
 
-  def _getSegmentData(self):
+  def _getSegmentData(self, full=None):
+    if full is None:
+      full = True # TODO this is just for clustered ....
     pivotID = self._templateROM.pivotParameterID
     pivot = self._indexValues[pivotID]
     indexStarts = np.asarray(list(d[0] for d in self._divisionInfo['delimiters']))
@@ -716,6 +718,7 @@ class Clusters(Segments):
     # do everything that Segments do
     Segments.writeXML(self, writeTo, targets, skip)
     # add some stuff specific to clustering
+    indStart, indEnd, pivStart, pivEnd = self._getSegmentData()
     main = writeTo.getRoot()
     labels = self._clusterInfo['labels']
     for i, repRom in enumerate(self._roms):
@@ -727,11 +730,8 @@ class Clusters(Segments):
       modify.append(xmlUtils.newNode('segments_represented',
                                      text=', '.join(str(x) for x in np.arange(len(labels))[labels==i])))
       # delimiters (since we can't really use the pointwise data for this)
-      indStart, _, pivStart, _ = self._getSegmentData()
-      print('DEBUGG delims?')
-      pprint.pprint(self._divisionInfo, indent=2)
-      starts = xmlUtils.newNode('starting_indices')
-      starts.text = ', '.join(str(x) for x in indStart)
+      starts = xmlUtils.newNode('indices')
+      starts.text = ', '.join(str(x) for x in (indStart[i], indEnd[i]))
       modify.append(starts)
       # TODO pivot values, index delimiters as well?
 
@@ -773,9 +773,11 @@ class Clusters(Segments):
     labelMap = self._clusterInfo['labels']
     clusters = sorted(list(set(labelMap)))
     pivotLen = 0
+    #pivotIndex = 0
+    #pivotIndices = []
     for cluster in clusters:
       # choose a ROM
-      chooseRomMode = 'first' # TODO user option? alternative is random
+      chooseRomMode = 'first' # TODO user option? alternative is random, or ? centroids ?
       if chooseRomMode == 'first':
         ## option 1: just take the first one
         segmentIndex, clusterIndex = self._getSegmentIndexFromClusterIndex(cluster, labelMap, clusterIndex=0)
@@ -789,7 +791,12 @@ class Clusters(Segments):
       #picker = slice(delimiter[0], delimiter[-1] + 1)
       # evaluate the ROM
       subResults = rom.evaluate(evaluationDict)
-      pivotLen += len(subResults[pivotID])
+      # TODO FIXME should add "cluster" as an indexMap dimension!
+      ## INSTEAD, for now, just pile the realizations together, with no regard.
+      newLen = len(subResults[pivotID])
+      pivotLen += newLen
+      #pivotIndices.append(pivotIndex)
+      #pivotIndex += newLen
       # if we're getting ND objects, identify indices and target-index dependence
       indexMap = subResults.pop('_indexMap', {})
       allIndices = set()
@@ -822,7 +829,7 @@ class Clusters(Segments):
     # combine history weights
     sampleWeights = np.hstack(sampleWeights)
     sampleWeights /= sum(sampleWeights)
-    return result, sampleWeights
+    return result, sampleWeights #, pivotIndices
 
   def _extrapolateRequestedClusterFeatures(self, requests):
     """
@@ -949,8 +956,8 @@ class Clusters(Segments):
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter)
     # print('jz is a debugger in _clusterSegments')
-    print('DEBUGG cluster features:')
-    pp.pprint(clusterFeatures.keys())
+    # print('DEBUGG cluster features:')
+    # pp.pprint(clusterFeatures.keys())
     # future: requested metrics
     ## TODO someday
     # store clustering info, unweighted
@@ -1011,6 +1018,34 @@ class Clusters(Segments):
     for f, feature in enumerate(features):
       clusterFeatures[feature] = clusterFeatures[feature] * weights[f]
     return clusterFeatures
+
+  def _getSegmentData(self, full=None):
+    """ TODO """
+    # default to the same segment data as the evaluation mode.
+    if full is None:
+      full = self._evaluationMode == 'full'
+    # if full segmentation data, then Segments knows how to do that.
+    if full:
+      return Segments._getSegmentData(self, full=True)
+    # otherwise, return the indices corresponding to the clustered roms
+    roms = self.getSegmentRoms(full=False)
+    pivotID = self._templateROM.pivotParameterID
+    indexEdges = np.zeros(len(roms)+1, dtype=int)
+    pivotEdges = np.zeros(len(roms)+1, dtype=int)
+    pivotVals = self._indexValues[pivotID]
+    pivotIndex = 0
+    for r, rom in enumerate(roms):
+      indexEdges[r] = pivotIndex
+      pivotEdges[r] = pivotVals[pivotIndex]
+      pivotIndex += len(rom.pivotParameterValues)
+    indexEdges[-1] = pivotIndex
+    pivotEdges[-1] = pivotVals[pivotIndex]
+    #print('DEBUGG indexes, values:')
+    #for r in range(len(indexEdges)):
+    #  print('  ', indexEdges[r], pivotEdges[r])
+    return indexEdges[:-1], indexEdges[1:], pivotEdges[:-1], pivotEdges[1:]
+
+
 
 
 
