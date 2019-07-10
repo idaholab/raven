@@ -222,7 +222,7 @@ class DataSet(DataObject):
       indexMap = indexMap[0] # [0] because everything is nested in a list by now, it seems
     # clean out entries that aren't desired
     try:
-      rlz = dict((var,rlz[var]) for var in self.getVars()+self.indexes)
+      rlz = dict((var, rlz[var]) for var in self.getVars() + self.indexes)
     except KeyError as e:
       self.raiseAWarning('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
@@ -788,8 +788,6 @@ class DataSet(DataObject):
       rlz['_indexMap'] = self.getDimensions()
     return rlz
 
-
-
   def _changeVariableValue(self,index,var,value):
     """
       Changes the value of a variable for a particular realization in the data object, in collector or data.
@@ -866,7 +864,14 @@ class DataSet(DataObject):
       @ In, rlz, dict, realization with {key:value} pairs.
       @ Out, okay, bool, True if acceptable or False if not
     """
-    # print('DEBUGG pre YEAR', rlz.get('Year', '(not applicable)'))
+    # check that indexMap and expected indexes line up
+    if indexMap is not None:
+      mapIndices = set()
+      mapIndices.udpate(*list(indexMap.values()))
+      if mapIndices != set(self.indexes):
+        self.raiseAWarning('Realization indexes do not match expected indexes!\n',
+                           'Extra from realization: {}\n'.format(mapIndices-set(self.indexes)),
+                           'Missing from realization: {}'.format(set(self.indexes - mapIndices)))
     if not isinstance(rlz, dict):
       self.raiseAWarning('Realization is not a "dict" instance!')
       return False
@@ -911,7 +916,10 @@ class DataSet(DataObject):
             return False
           # check that the realization is consistent
           ## TODO assumes indexes are single-dimensional, seems like a safe assumption for now
-          # print('DEBUGG rlzDimOrder:', rlzDimOrder)
+          print('DEBUGG rlz:')
+          import pprint
+          pprint.pprint(rlz, indent=2, depth=1)
+          print('DEBUGG rlzDimOrder:', rlzDimOrder)
           correctShape = tuple(rlz[idx].size for idx in rlzDimOrder)
           # print('DEBUGG shape:', correctShape)
           # print('DEBUGG rlz:')
