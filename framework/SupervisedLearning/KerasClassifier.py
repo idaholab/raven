@@ -47,6 +47,7 @@ try:
   from tensorflow.python.keras.backend import set_session
   from tensorflow.python.keras.models import load_model
   _tensorflowAvailable = True
+  # tf.enable_eager_execution()
 except ImportError as e:
   _tensorflowAvailable = False
 
@@ -220,6 +221,9 @@ if isTensorflowAvailable():
     # the self-normalizing property even after this dropout. Alpha Dropout fits well to Scaled Exponential Linear Units
     #  by randomly setting activations to the negative saturation value.
     #availNoise['alphadropout'] = KerasLayers.AlphaDropout
+    # Temp Model File that used to dump and load Keras Model
+    tempModelFile = "a_temporary_file_for_storing_a_keras_model.h5"
+    modelAttr = "the_model_all_serialized_and_turned_into_an_hdf5_file_and_stuff"
 
     def __init__(self,messageHandler,**kwargs):
       """
@@ -327,6 +331,38 @@ if isTensorflowAvailable():
       # This is needed to solve the thread issue in self._ROM.predict()
       # https://github.com/fchollet/keras/issues/2397#issuecomment-306687500
       self.graph = tf.get_default_graph()
+
+    def __getstate__(self):
+      """
+        This function return the state of the ROM
+        @ In, None
+        @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+      """
+      state = supervisedLearning.__getstate__(self)
+      KerasModels.save_model(self._ROM, KerasClassifier.tempModelFile)
+      # another method to save the TensorFlow model
+      # self._ROM.save(KerasClassifier.tempModelFile)
+      with open(KerasClassifier.tempModelFile, "rb") as f:
+        serialModelData = f.read()
+      state[KerasClassifier.modelAttr] = serialModelData
+      os.remove(KerasClassifier.tempModelFile)
+      del state["_ROM"]
+      state['initOptionDict'].pop('paramInput',None)
+      return state
+
+    def __setstate__(self, d):
+      """
+        Initialize the ROM with the data contained in newstate
+        @ In, d, dict, it contains all the information needed by the ROM to be initialized
+        @ Out, None
+      """
+      with open(KerasClassifier.tempModelFile, "wb") as f:
+        f.write(d[KerasClassifier.modelAttr])
+      del d[KerasClassifier.modelAttr]
+      set_session(self._session)
+      self._ROM = KerasModels.load_model(KerasClassifier.tempModelFile)
+      os.remove(KerasClassifier.tempModelFile)
+      self.__dict__.update(d)
 
     def _checkLayers(self):
       """
