@@ -1,0 +1,161 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>/Users/zhouj2/projects/raven/doc/workshop/ARMA/Inputs.ARMA5</name>
+    <author>zhouj</author>
+    <created>2019-07-10</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description> Workshop test: test ARMA and Fourier ensembled model</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>r5</WorkingDir>
+    <Sequence>read, trainwind,unpkload, sample, dump</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">windDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">windData</Output>
+    </IOStep>
+
+    <RomTrainer name="trainwind">
+      <Input class="DataObjects" type="HistorySet">windData</Input>
+      <Output class="Models" type="ROM">windarma</Output>
+    </RomTrainer>
+
+    <IOStep name="unpkload">
+        <Input class="Files" type="">...</Input> <!-- TODO:  your file entity name in Exercise 3-->
+        <Output class="Models" type="ROM">loadarma</Output>
+    </IOStep>
+
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">ens</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">final_out</Output>
+    </MultiRun>
+
+    <IOStep name='dump'>
+      <Input class="DataObjects" type="HistorySet">final_out</Input>
+      <Output class="OutStreams" type="Print">synData</Output>
+    </IOStep>
+
+  </Steps>
+
+  <Files>
+    <Input name="windDataFile">../r1/dataSet.csv</Input>
+    <Input name="...">../r3/...</Input> <!-- TODO:  your file entity name and actual file name in Exercise 3-->
+
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+      <constant name="turbinenumber">...</constant><!-- TODO:  Change the turbine number eg: 20000, 30000, 40000-->
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="loadarma" subType="pickledROM"/>
+
+    <ROM name="windarma" subType="ARMA">
+      <Target>Speed,Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <outTruncation domain="positive">Speed</outTruncation>
+      <P>1</P>
+      <Q>1</Q>
+    </ROM>
+
+    <ExternalModel name='after_arma' subType='' ModuleToLoad='after_arma'>
+      <variables>Speed, Load, Time, turbinenumber, CapF, engDiff</variables>
+    </ExternalModel>
+
+    <EnsembleModel name='ens' subType=''>
+
+      <Model class='Models' type='ROM'>windarma
+        <Input class='DataObjects' type='PointSet'>dataIn</Input>
+        <TargetEvaluation class='DataObjects' type='HistorySet'>windSynData</TargetEvaluation>
+      </Model>
+
+      <Model class='Models' type='ROM'>loadarma
+          <Input class='DataObjects' type='PointSet'>dataIn</Input>
+          <TargetEvaluation class='DataObjects' type='HistorySet'>loadSynData</TargetEvaluation>
+      </Model>
+
+      <Model class='Models' type='ExternalModel'>after_arma
+        <Input class='DataObjects' type='PointSet'>afterIn</Input>
+        <TargetEvaluation class='DataObjects' type='DataSet'>after_rom_data</TargetEvaluation>
+      </Model>
+
+    </EnsembleModel>
+  </Models>
+
+  <OutStreams>
+
+    <Print name="synData">
+      <type>csv</type>
+      <source>final_out</source>
+    </Print>
+
+  </OutStreams>
+
+  <DataObjects>
+
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+
+    <HistorySet name="windData">
+        <Input>scaling</Input>
+        <Output>Speed,Time</Output>
+        <options>
+          <pivotParameter>Time</pivotParameter>
+        </options>
+    </HistorySet>
+
+    <HistorySet name="loadSynData">
+      <Input>scaling</Input>
+      <Output>Load</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+
+    <HistorySet name="windSynData">
+      <Input>scaling</Input>
+      <Output>Speed</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+
+    <PointSet name="afterIn">
+      <Input>Load,Speed,Time</Input>
+      <Output>OutputPlaceHolder</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </PointSet>
+
+    <DataSet name="after_rom_data">
+      <Input>Speed, Load, turbinenumber</Input>
+      <Output>CapF,engDiff</Output>
+      <Index var ='Time'> Speed, Load </Index>
+    </DataSet>
+
+    <PointSet name="final_out">
+      <Input>scaling</Input>
+      <Output>CapF,engDiff</Output>
+    </PointSet>
+
+  </DataObjects>
+
+</Simulation>

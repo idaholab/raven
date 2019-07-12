@@ -1,0 +1,101 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>/Users/zhouj2/projects/raven/doc/workshop/ARMA/Inputs.ARMA1</name>
+    <author>zhouj</author>
+    <created>2019-07-09</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description> Workshop test: test ARMA Sampling capability to generate stochastic time series</description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>r1</WorkingDir>
+    <Sequence>read, train, print, sample, dump</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">rawData</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">synData</Output>
+    </MultiRun>
+    <IOStep name='dump'>
+      <Input class="DataObjects" type="HistorySet">synData</Input>
+      <Output class="OutStreams" type="Print">synData</Output>
+    </IOStep>
+
+  </Steps>
+
+  <Files>
+    <Input name="rawDataFile">dataSet.csv</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="arma" subType="ARMA">
+      <Target>Speed,Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <P>1</P>
+      <Q>1</Q>
+    </ROM>
+  </Models>
+
+  <OutStreams>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+    <Print name="synData">
+      <type>csv</type>
+      <source>synData</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="rawData">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synData">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+</Simulation>

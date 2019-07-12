@@ -1,0 +1,108 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>/Users/zhouj2/projects/raven/doc/workshop/ARMA/Inputs.ARMA3</name>
+    <author>zhouj</author>
+    <created>2019-07-09</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description> Workshop test: test multiple evaluations return different values and pickles the arma </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>r3</WorkingDir>
+    <Sequence>read,train,print,dump,sample,write</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="rawDataFile">dataSet.csv</Input>
+    <Input name="pk">arma.pk</Input>
+  </Files>
+
+  <Models>
+    <ROM name="arma" subType="ARMA">
+      <Target>Load,Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <reseedCopies>False</reseedCopies>
+      <Fourier>604800, 302400, 86400, 43200</Fourier>
+      <P>2</P>
+      <Q>1</Q>
+      <seed>901017</seed>
+      </ROM>
+  </Models>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">rawData</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">rawData</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+    <IOStep name="dump">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">synData</Output>
+    </MultiRun>
+    <IOStep name="write">
+      <Input class="DataObjects" type="HistorySet">synData</Input>
+      <Output class="OutStreams" type="Print">synData</Output>
+    </IOStep>
+  </Steps>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>4</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="rawData">
+      <Input>scaling</Input>
+      <Output>Load,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synData">
+      <Input>scaling</Input>
+      <Output>Load,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+  <OutStreams>
+      <Print name="romMeta">
+        <type>csv</type>
+        <source>romMeta</source>
+      </Print>
+      <Print name="synData">
+        <type>csv</type>
+        <source>synData</source>
+      </Print>
+  </OutStreams>
+
+</Simulation>

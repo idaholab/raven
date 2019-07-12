@@ -1,0 +1,73 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+      <name>/Users/zhouj2/projects/raven/doc/workshop/ARMA/Inputs.ARMA4</name>
+      <author>zhouj</author>
+      <created>2019-07-09</created>
+      <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>  Workshop test: test unpickled ARMA generate are identical samples </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>r4</WorkingDir>
+    <Sequence>read,sample,write</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="pk">../r3/arma.pk</Input>
+  </Files>
+
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>4</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ROM name="arma" subType="pickledROM"/>
+  </Models>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">unpksynData</Output>
+    </MultiRun>
+    <IOStep name="write">
+      <Input class="DataObjects" type="HistorySet">unpksynData</Input>
+      <Output class="OutStreams" type="Print">unpksynData</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="unpksynData">
+      <type>csv</type>
+      <source>unpksynData</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="unpksynData">
+      <Input>scaling</Input>
+      <Output>Load,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>
