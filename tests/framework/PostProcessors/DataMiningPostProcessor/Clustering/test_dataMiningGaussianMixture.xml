@@ -14,7 +14,7 @@
         the output data object will be renamed, and the variable name of labels will be explicitly defined.
       </revision>
       <revision author="alfoa" date="2019-06-25">
-          init\_param changed from wc to kmeans because the wc
+          init_param changed from wc to kmeans because the wc
           option has been removed in scikitlearn v. 0.21
       </revision>
     </revisions>
