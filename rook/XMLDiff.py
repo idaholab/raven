@@ -20,8 +20,8 @@ import os
 import xml.etree.ElementTree as ET
 from Tester import Differ
 import DiffUtils as DU
-#CSWF Defined because otherwise lines of code get too long.
-CSWF = DU.compare_strings_with_floats
+#cswf Defined because otherwise lines of code get too long.
+cswf = DU.compare_strings_with_floats
 
 
 
@@ -79,7 +79,7 @@ def compare_list_entry(a_list, b_list, **kwargs):
     a_item = a_list[i]
     b_item = b_list[i]
     #match tag
-    same, _ = CSWF(a_item.tag, b_item.tag,
+    same, _ = cswf(a_item.tag, b_item.tag,
                    rel_err=options["rel_err"],
                    zero_threshold=options["zero_threshold"],
                    remove_whitespace=options["remove_whitespace"],
@@ -92,7 +92,7 @@ def compare_list_entry(a_list, b_list, **kwargs):
       num_match += 1
     #match text
     #if (a_item.text is None or len(a_item.text)>0) and (b_item.text is None or len(b_item.text)>0):
-    same, _ = CSWF(a_item.text,
+    same, _ = cswf(a_item.text,
                    b_item.text,
                    rel_err=options["rel_err"],
                    zero_threshold=options["zero_threshold"],
@@ -113,7 +113,7 @@ def compare_list_entry(a_list, b_list, **kwargs):
         match = False
         diff.append((b_item, XMLDiff.missingAttribute, attrib, None))
         continue
-      same, _ = CSWF(a_item.attrib[attrib],
+      same, _ = cswf(a_item.attrib[attrib],
                      b_item.attrib[attrib],
                      rel_err=options["rel_err"],
                      zero_threshold=options["zero_threshold"],
@@ -171,7 +171,7 @@ def compare_unordered_element(a_element, b_element, **kwargs):
     args_expanded = " ".join([str(x) for x in print_args])
     message.append(args_expanded)
   if a_element.text != b_element.text:
-    succeeded, note = CSWF(a_element.text,
+    succeeded, note = cswf(a_element.text,
                            b_element.text,
                            rel_err=options["rel_err"],
                            zero_threshold=options["zero_threshold"],
@@ -293,7 +293,7 @@ def compare_ordered_element(a_element, b_element, *args, **kwargs):
   else:
     path += a_element.tag + "/"
   if a_element.text != b_element.text:
-    succeeded, note = CSWF(a_element.text,
+    succeeded, note = cswf(a_element.text,
                            b_element.text,
                            rel_err=options["rel_err"],
                            zero_threshold=options["zero_threshold"],

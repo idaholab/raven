@@ -66,7 +66,7 @@ class NumericText(Differ):
       test passes, or false if the test failes.  message should
       gives a human readable explaination of the differences.
       @ In, None
-      @ Out, (same, message), same is true if the tests passes.
+      @ Out, (same, message), (bool, str), same is true if the tests passes.
     """
     test_files = self._get_test_files()
     gold_files = self._get_gold_files()
