@@ -266,7 +266,7 @@ class ARMA(supervisedLearning):
     d['crow_rng_counts'] = randCounts
     return d
 
-  def __setstate__(self,d):
+  def __setstate__(self, d):
     """
       Sets state of object from pickling.
       @ In, d, dict, stateful dictionary
@@ -722,9 +722,9 @@ class ARMA(supervisedLearning):
     # pick an intial by sampling multinormal distribution
     init = np.array(initDist.rvs())
     obs, states = model.ssm.simulate(numSamples,
-                                     initial_state = init,
-                                     measurement_shocks = measureShocks,
-                                     state_shocks = stateShocks)
+                                     initial_state=init,
+                                     measurement_shocks=measureShocks,
+                                     state_shocks=stateShocks)
     return obs
 
   def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):

@@ -36,7 +36,7 @@ from utils import mathUtils, xmlUtils, randomUtils
 from .SupervisedLearning import supervisedLearning
 import pprint
 pp=pprint.PrettyPrinter(indent=2)
-import pickle as pk # TODO remove me!
+# import pickle as pk # TODO remove me!
 import os
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -70,9 +70,13 @@ class Collection(supervisedLearning):
       @ Out, d, dict, dictionary with class members
     """
     # construct a list of unpicklable entties and exclude them from pickling
-    # nope = ['_divisionClassifier', '_assembledObjects']
+    ## nope = ['_divisionClassifier', '_assembledObjects']
     nope = ['_assembledObjects']
-    d = dict((key, val) for key, val in self.__dict__.items() if key not in nope) # deepcopy needed
+    # base class
+    d = supervisedLearning.__getstate__(self)
+    # additional
+    for n in nope:
+      d.pop(n, None)
     return d
 
   @abc.abstractmethod
@@ -1283,8 +1287,8 @@ class Interpolated(supervisedLearning):
     segmentRoms = np.asarray(segmentRoms)
     # add global params
     params = dict((param, interp(index)) for param, interp in globalInterp['method'].items())
-    with open('debugg_interp_y{}_sglobal.pk'.format(index), 'wb') as f:
-      pk.dump(params, f)
+    #with open('debugg_interp_y{}_sglobal.pk'.format(index), 'wb') as f:
+    #  pk.dump(params, f)
 
     #### OLD #### do it all at once
     #data = globalInterp['method'](index)

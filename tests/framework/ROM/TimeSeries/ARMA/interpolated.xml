@@ -13,7 +13,7 @@
 
   <RunInfo>
     <WorkingDir>Interpolated</WorkingDir>
-    <Sequence>load, train, stats, sample</Sequence>
+    <Sequence>load, train, serialize, stats, sample</Sequence>
   </RunInfo>
 
   <Steps>
@@ -25,6 +25,10 @@
       <Input class="DataObjects" type="HistorySet">input</Input>
       <Output class="Models" type="ROM">arma</Output>
     </RomTrainer>
+    <IOStep name="serialize">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
     <IOStep name="stats">
       <Input class="Models" type="ROM">arma</Input>
       <Output class="DataObjects" type="DataSet">romMeta</Output>
@@ -41,6 +45,7 @@
 
   <Files>
     <Input name="input">head.csv</Input>
+    <Input name="pk">interpolated.pk</Input>
   </Files>
 
   <DataObjects>
