@@ -287,9 +287,8 @@ def parse_conda_for_os(libs, op_sys):
     pass # nothing special to do currently
   elif op_sys == 'linux':
     # add noMKL libraries to prevent Intel crash errors
-    pass
-    #libs.append(('nomkl', ''))
-    #libs.append(('numexpr', ''))
+    libs.append(('nomkl', ''))
+    libs.append(('numexpr', ''))
   return libs
 
 if __name__ == '__main__':
