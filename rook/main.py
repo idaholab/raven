@@ -77,7 +77,7 @@ parser.add_argument('--python-command', dest='python_command',
                     help='command to run python')
 
 parser.add_argument('--unkillable', action='store_true',
-                    help='Ignore SIGTERM so test running is harder to kill')
+                    help='Ignore SIGTERM so test running is harder to be killed')
 
 args = parser.parse_args()
 
