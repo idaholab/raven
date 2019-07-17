@@ -115,7 +115,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     #a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}
     #these need to be declared in the child classes!!!!
-    self.amITrained         = False
+    self.amITrained = False
 
   def __getstate__(self):
     """
@@ -127,7 +127,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     state['initOptionDict'].pop('paramInput', None)
     ## capture what is normally pickled
     if not self.amITrained:
-      supervisedEngineObj = state.pop("supervisedContainer",None)
+      supervisedEngineObj = state.pop("supervisedContainer", None)
       del supervisedEngineObj
     return state
 

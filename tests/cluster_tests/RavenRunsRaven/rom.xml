@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/CodeInterfaceTests.RAVENrunningRAVEN_ROM</name>
+    <name>framework/cluster_tests/RavenRunsRaven.ROM</name>
     <author>alfoa</author>
     <created>2017-09-16</created>
     <classesTested>Models.Code.RAVEN</classesTested>
@@ -13,7 +13,7 @@
   </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>
-    <WorkingDir>raven_running_raven_internal_models</WorkingDir>
+    <WorkingDir>Rom</WorkingDir>
     <Sequence>FirstMRun</Sequence>
     <!--<mode>mpi</mode>-->
     <batchSize>5</batchSize>
