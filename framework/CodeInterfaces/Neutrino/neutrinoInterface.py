@@ -34,14 +34,14 @@ class Neutrino(CodeInterfaceBase):
       Returns tuple of commands and base file name for run.
       Commands are a list of tuples, indicating parallel/serial and the execution command to use.
       @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have
-	        been added in the Step is running this code)
+            been added in the Step is running this code)
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input
-       	    (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
+            (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify
-     	    in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+            in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to
-     	     run the code (string), returnCommand[1] is the name of the output root
+            run the code (string), returnCommand[1] is the name of the output root
     """
     found = False
 
@@ -57,13 +57,12 @@ class Neutrino(CodeInterfaceBase):
     path = inputFiles[0].getAbsFile()
 
     #Creates the output file that saves information that is outputted to the command prompt
-	#The output file name is results + Neutrino input file name.
-	#Example: resultsNeutrinoInput
+    #The output file name of the Neutrino results
     outputfile = 'results'
 
     #Creates run command tuple (['executionType','execution command'], output file root)
-	#The path to the Neutrino executable is specified in the RAVEN input file as the executable
-	# since it must change directories to run
+    #The path to the Neutrino executable is specified in the RAVEN input file as the executable
+    # since it must change directories to run
     returnCommand = [('serial','cd ' + executable + ' && Neutrino.exe --nogui --file ' + str(path) \
     + ' --run')], outputfile
 
@@ -98,8 +97,8 @@ class Neutrino(CodeInterfaceBase):
       @ In , oriInputFiles, list, list of the original input files
       @ In , samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
       @ In , Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another
-	         dictionary called "SampledVars" where RAVEN stores the variables that got sampled
-			 (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+             dictionary called "SampledVars" where RAVEN stores the variables that got sampled
+             (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     # Look for the correct input file
@@ -146,23 +145,23 @@ class Neutrino(CodeInterfaceBase):
           #Search for the SaveDir property
           if elementBase.get('name') == 'SaveDir':
             #Create and set SaveDir
-			#NeutrinoInput.nescene needs to be changed to the Neutrino input file name
+            #NeutrinoInput.nescene needs to be changed to the Neutrino input file name
             savePath = originalPath.replace("NeutrinoInput.nescene","",1)
             elementBase.set('val',str(savePath))
 
           if elementBase.get('name') == 'CacheDir':
             #Create and set CacheDir
-			#NeutrinoInput.nescene needs to be changed to the Neutrino input file name
+            #NeutrinoInput.nescene needs to be changed to the Neutrino input file name
             cachePath = originalPath.replace("NeutrinoInput.nescene","",1)
             elementBase.set('val',str(cachePath))
 
         #Search for the Measurement field properties
-		#MeasurementField_1 name may need to be changed based on Neutrino input file
+        #MeasurementField_1 name may need to be changed based on Neutrino input file
         for elementMeas in root.findall('./properties/Scene/MeasurementField_1/'):
           #Search for the exportPath property
           if elementMeas.get('name') == 'exportPath':
             #Create and set the exportPath
-			#NeutrinoInput.nescene needs to be changed to the Neutrino input file name
+            #NeutrinoInput.nescene needs to be changed to the Neutrino input file name
             exportPath = originalPath.replace("NeutrinoInput.nescene","",1)
             exportPath = exportPath + "\\Measurements\\results.csv"
             elementMeas.set('val',str(exportPath))
@@ -184,11 +183,11 @@ class Neutrino(CodeInterfaceBase):
     @ Out, newOutputRoot, string, present in case the root of the output file gets changed in this method.
     """
     # create full path to the outputfile
-	# NeutrinoInput needs to be the name of the Neutrino Input file
-	# Name of results file name needs to be the same as in the createNewInput function
+    # NeutrinoInput needs to be the name of the Neutrino Input file
+    # Name of results file name needs to be the same as in the createNewInput function
     outputPath = workingDir + '\\NeutrinoInput\\Measurements\\results.csv'
 
-	#Change the output path so RAVEN can read the output
+    #Change the output path so RAVEN can read the output
     newOutputPath = workingDir + "\\" + output
 
     # check that the output file exists
@@ -204,11 +203,11 @@ class Neutrino(CodeInterfaceBase):
 
     lines = outputFile.readlines()
 
-	#Needed for RAVEN to read output
-	#These need to match RAVEN input file output names
+    #Needed for RAVEN to read output
+    #These need to match RAVEN input file output names
     resultsFile.write('time,result\n')
 
-	#Write Neutrino results to a new file for RAVEN
+    #Write Neutrino results to a new file for RAVEN
     for line in lines:
       resultsFile.write(line)
 
