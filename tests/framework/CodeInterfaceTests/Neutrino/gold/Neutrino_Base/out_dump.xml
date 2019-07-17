@@ -1,0 +1,14 @@
+<DataObjectMetadata name="resultSet">
+  <DataSet type="Static">
+    <dims>
+      <result>time</result>
+    </dims>
+    <general>
+      <inputs>ParticleSize</inputs>
+      <outputs>result</outputs>
+      <pointwise_meta>PointProbability,ProbabilityWeight,ProbabilityWeight-ParticleSize,prefix</pointwise_meta>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>
