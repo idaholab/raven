@@ -1,0 +1,945 @@
+<nescene version="0.4">
+    <creations>
+        <object name="NIISphSolver_1" parent="Scene" type="Neutrino IISPH Solver" />
+        <object name="SortedHashingCollider" parent="Scene" type="Sorted Hashing Collider" />
+        <object name="Fluid_1" parent="Scene" type="Fluid" />
+        <object name="RigidBox_1" parent="Scene" type="Rigid Box" />
+        <object name="FlowSource_1" parent="Scene" type="Flow Particle Emitter" />
+        <object name="MeasurementField_1" parent="Scene" type="Measurement Field" />
+    </creations>
+    <guicreations>
+        <guiobject name="OpenGL0" type="glwindow" />
+    </guicreations>
+    <connections>
+        <connect ToIndexOfSlot="0" from="DefaultGravity" fromIndexOfSlot="0" order="1" to="NIISphSolver_1" type="kIOForceField" />
+        <connect ToIndexOfSlot="0" from="NIISphSolver_1" fromIndexOfSlot="0" order="0" to="DefaultFluidMaterial" type="kIOParticles" />
+        <connect ToIndexOfSlot="0" from="NIISphSolver_1" fromIndexOfSlot="0" order="0" to="MeasurementField_1" type="kIOParticles" />
+        <connect ToIndexOfSlot="0" from="SortedHashingCollider" fromIndexOfSlot="0" order="0" to="NIISphSolver_1" type="kIOParticles" />
+        <connect ToIndexOfSlot="0" from="Fluid_1" fromIndexOfSlot="0" order="2" to="NIISphSolver_1" type="kIOFluid" />
+        <connect ToIndexOfSlot="0" from="RigidBox_1" fromIndexOfSlot="0" order="0" to="DefaultMaterial" type="kIOTriangleMesh" />
+        <connect ToIndexOfSlot="0" from="FlowSource_1" fromIndexOfSlot="0" order="3" to="NIISphSolver_1" type="kIOParticles" />
+    </connections>
+    <property_connections />
+    <properties>
+        <Base>
+            <property hidden="0" locked="0" name="objectName" val="Base" />
+            <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+            <property hidden="0" locked="0" name="Verbose" val="false" />
+            <property hidden="0" locked="0" name="Threads" val="6" />
+            <property hidden="0" locked="0" name="ServerPort" val="20200" />
+            <property hidden="0" locked="0" name="SceneFilePath" val="C:\msys64\home\RYANED\Emerald\projects\raven\tests\framework\CodeInterfaceTests\Neutrino\Neutrino_Base\sampleNeutrino\2\NeutrinoInput.nescene" />
+            <property hidden="0" locked="0" name="SaveDir" val="C:\msys64\home\RYANED\Emerald\projects\raven\tests\framework\CodeInterfaceTests\Neutrino\Neutrino_Base\sampleNeutrino\2\" />
+            <property hidden="0" locked="0" name="CacheDir" val="C:\msys64\home\RYANED\Emerald\projects\raven\tests\framework\CodeInterfaceTests\Neutrino\Neutrino_Base\sampleNeutrino\2\" />
+            <property hidden="0" locked="0" name="OptimizeNetCache" val="true" />
+            <property hidden="0" locked="0" name="CompressFluidCache" val="false" />
+            <Logger>
+                <property hidden="0" locked="0" name="objectName" val="Logger" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="logging" val="false" />
+                <property hidden="0" locked="0" name="loggingTop" val="false" />
+                <property hidden="0" locked="0" name="logsPerSecondTop" val="10" />
+                <property hidden="0" locked="0" name="loggingTopRight" val="false" />
+                <property hidden="0" locked="0" name="logsPerSecondTopRight" val="10" />
+                <property hidden="0" locked="0" name="loggingRight" val="false" />
+                <property hidden="0" locked="0" name="logsPerSecondRight" val="10" />
+                <property hidden="0" locked="0" name="loggingBottomRight" val="false" />
+                <property hidden="0" locked="0" name="logsPerSecondBottomRight" val="10" />
+                <property hidden="0" locked="0" name="loggingBottom" val="false" />
+                <property hidden="0" locked="0" name="logsPerSecondBottom" val="10" />
+                <property hidden="0" locked="0" name="loggingBottomLeft" val="false" />
+                <property hidden="0" locked="0" name="logsPerSecondBottomLeft" val="10" />
+                <property hidden="0" locked="0" name="loggingLeft" val="false" />
+                <property hidden="0" locked="0" name="logsPerSecondLeft" val="10" />
+                <property hidden="0" locked="0" name="loggingTopLeft" val="false" />
+                <property hidden="0" locked="0" name="logsPerSecondTopLeft" val="10" />
+            </Logger>
+        </Base>
+        <Scene>
+            <property hidden="0" locked="0" name="objectName" val="Scene" />
+            <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+            <property hidden="0" locked="0" name="Verbose" val="false" />
+            <property hidden="0" locked="0" name="ElapsedTime" val="0.1936799101660219" />
+            <property hidden="0" locked="0" name="RecordFrameRate" val="50" />
+            <property hidden="0" locked="0" name="CurrentFrame" val="9" />
+            <property hidden="0" locked="0" name="ResetFrame" val="0" />
+            <property hidden="0" locked="0" name="PlaybackStartFrame" val="0" />
+            <property hidden="0" locked="0" name="PlaybackEndFrame" val="300" />
+            <property hidden="0" locked="0" name="SimulationEndFrame" val="300" />
+            <property hidden="0" locked="0" name="PlaybackStartTime" val="0" />
+            <property hidden="0" locked="0" name="PlaybackEndTime" val="6" />
+            <property hidden="0" locked="0" name="SimulationEndTime" val="6" />
+            <property hidden="0" locked="0" name="CacheAllPhysicals" val="false" />
+            <property complete="1" first="0" hidden="0" last="9" locked="0" name="FrameInfo" />
+            <property hidden="0" locked="0" name="ForceGLUpdate" val="true" />
+            <RenderSettings>
+                <property name="objectName" val="RenderSettings" />
+                <property name="Renderer" val="" />
+                <property name="OutputDir" val="RenderData/" />
+                <property name="Camera" val="CamPersp" />
+                <property height="480" name="Resolution" width="720" />
+                <property name="Threads" val="8" />
+                <PovraySettings>
+                    <property name="objectName" val="PovraySettings" />
+                    <property name="Preset_Preset" val="" />
+                    <property name="General_Quality" val="9" />
+                    <property name="General_AA" val="0.30000001192092896" />
+                    <property name="General_Jitter" val="0" />
+                    <property name="General_Max_Trace_Level" val="16" />
+                    <property name="PhotonMapping_Photon_Mapping" val="true" />
+                    <property name="PhotonMapping_PhotonCount" val="10" />
+                    <property name="PhotonMapping_Autostop" val="0" />
+                    <property name="Radiosity_Radiosity" val="false" />
+                    <property name="Radiosity_Pretrace_Start" val="0.0799999982118607" />
+                    <property name="Radiosity_Pretrace_End" val="0.00999999977648258" />
+                    <property name="Radiosity_Count" val="320" />
+                    <property name="Radiosity_Error_Bound" val="0.25" />
+                    <property name="Radiosity_Recursion_Limit" val="1" />
+                </PovraySettings>
+            </RenderSettings>
+            <DefaultGravity>
+                <property hidden="0" locked="0" name="objectName" val="DefaultGravity" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="-1" hidden="0" last="0" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="Position" x="0" y="0" z="0" />
+                <property hidden="0" locked="0" name="Orientation" phi="0" psi="0" theta="0" />
+                <property hidden="0" locked="0" name="Scale" x="1" y="1" z="1" />
+                <property hidden="0" locked="0" name="Scale2D" x="1" y="1" />
+                <property hidden="0" locked="0" name="Radius" val="0.5" />
+                <property hidden="0" locked="0" name="Pivot" x="0" y="0" z="0" />
+                <property hidden="1" locked="0" name="CenterMethod" val="PolyhedralMass" />
+                <property hidden="1" locked="0" name="LocalizedTransforms" val="false" />
+                <property hidden="0" locked="0" name="DisplayMode" val="Self" />
+                <property hidden="0" locked="0" name="RenderMode" val="SmoothShaded" />
+                <property hidden="0" locked="0" name="DrawSolidWireframe" val="false" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="SolidWireframeColor" r="255" />
+                <property hidden="0" locked="0" name="SolidWireframeThickness" val="2" />
+                <property hidden="0" locked="0" name="ContourThreshold" val="5" />
+                <property hidden="0" locked="0" name="RenderPriority" val="100" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="Color" r="0" />
+                <property hidden="0" locked="0" name="OccludeShadows" val="true" />
+                <property hidden="0" locked="0" name="ReceiveShadows" val="true" />
+                <property hidden="0" locked="0" name="ExternalRender" val="true" />
+                <property hidden="0" locked="0" name="ShowBoundingBox" val="false" />
+                <property hidden="0" locked="0" name="BoundingBoxType" val="AxisAlignedBoundingBox" />
+                <property hidden="0" locked="0" name="ZeroCenterGrid" val="false" />
+                <property hidden="0" locked="0" name="StringScale" val="1" />
+                <property hidden="0" locked="0" name="NumbersFromWorldUnits" val="false" />
+                <property hidden="0" locked="0" name="ShowBoundingBoxCenter" val="false" />
+                <property a="255" b="0" g="0" hidden="0" locked="0" name="XAxisColor" r="255" />
+                <property a="255" b="0" g="255" hidden="0" locked="0" name="YAxisColor" r="0" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="ZAxisColor" r="0" />
+                <property hidden="0" locked="0" name="Gravity" x="0" y="-9.81" z="0" />
+            </DefaultGravity>
+            <DefaultLight>
+                <property hidden="0" locked="0" name="objectName" val="DefaultLight" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="-1" hidden="0" last="0" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="Position" x="3" y="1" z="1" />
+                <property hidden="0" locked="0" name="Orientation" phi="32.3115" psi="0" theta="-108.435" />
+                <property hidden="0" locked="0" name="Scale" x="1" y="1" z="1" />
+                <property hidden="0" locked="0" name="Scale2D" x="1" y="1" />
+                <property hidden="0" locked="0" name="Radius" val="0.5" />
+                <property hidden="0" locked="0" name="Pivot" x="0" y="0" z="0" />
+                <property hidden="1" locked="0" name="CenterMethod" val="PolyhedralMass" />
+                <property hidden="1" locked="0" name="LocalizedTransforms" val="false" />
+                <property hidden="0" locked="0" name="DisplayMode" val="Self" />
+                <property hidden="0" locked="0" name="RenderMode" val="SmoothShaded" />
+                <property hidden="0" locked="0" name="DrawSolidWireframe" val="false" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="SolidWireframeColor" r="255" />
+                <property hidden="0" locked="0" name="SolidWireframeThickness" val="2" />
+                <property hidden="0" locked="0" name="ContourThreshold" val="5" />
+                <property hidden="0" locked="0" name="RenderPriority" val="100" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="Color" r="255" />
+                <property hidden="1" locked="0" name="OccludeShadows" val="false" />
+                <property hidden="1" locked="0" name="ReceiveShadows" val="false" />
+                <property hidden="0" locked="0" name="ExternalRender" val="true" />
+                <property hidden="0" locked="0" name="ShowBoundingBox" val="false" />
+                <property hidden="0" locked="0" name="BoundingBoxType" val="AxisAlignedBoundingBox" />
+                <property hidden="0" locked="0" name="ZeroCenterGrid" val="false" />
+                <property hidden="0" locked="0" name="StringScale" val="1" />
+                <property hidden="0" locked="0" name="NumbersFromWorldUnits" val="false" />
+                <property hidden="0" locked="0" name="ShowBoundingBoxCenter" val="false" />
+                <property a="255" b="0" g="0" hidden="0" locked="0" name="XAxisColor" r="255" />
+                <property a="255" b="0" g="255" hidden="0" locked="0" name="YAxisColor" r="0" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="ZAxisColor" r="0" />
+                <property hidden="0" locked="0" name="PovrayColor" x="1" y="1" z="1" />
+                <property hidden="0" locked="0" name="LightIntensity" val="1" />
+                <property hidden="0" locked="0" name="ShadowMapSize" val="T2048" />
+                <property hidden="0" locked="0" name="ShadowMode" val="NoShadow" />
+                <property a="255" b="0" g="0" hidden="0" locked="0" name="ShadowColor" r="0" />
+                <property hidden="0" locked="0" name="LightSize" val="0.5" />
+                <property hidden="0" locked="0" name="Direction" x="3" y="2" z="1" />
+            </DefaultLight>
+            <DefaultMaterial>
+                <property hidden="0" locked="0" name="objectName" val="DefaultMaterial" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="-1" hidden="0" last="0" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="PerPixel" val="true" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="Color" r="255" />
+                <property hidden="0" locked="0" name="KAmbient" val="0.100000001490116" />
+                <property hidden="0" locked="0" name="KDiffuse" val="1" />
+                <property hidden="0" locked="0" name="KSpecular" val="0.5" />
+                <property a="255" b="128" g="128" hidden="0" locked="0" name="Ambient" r="128" />
+                <property a="0" b="0" g="0" hidden="0" locked="0" name="Specular" r="0" />
+                <property a="255" b="85" g="85" hidden="0" locked="0" name="Ambiance" r="85" />
+                <property hidden="0" locked="0" name="preset" val="MRMIA" />
+                <property hidden="0" locked="0" name="shininess" val="10" />
+                <property hidden="0" locked="0" name="flatShading" val="false" />
+                <property hidden="0" locked="0" name="textured" val="false" />
+                <property hidden="0" locked="0" name="imgName" val="" />
+                <property hidden="0" locked="0" name="flipU" val="false" />
+                <property hidden="0" locked="0" name="flipV" val="false" />
+                <property hidden="0" locked="0" name="swapUV" val="false" />
+                <property hidden="0" locked="0" name="RepeatX" val="1" />
+                <property hidden="0" locked="0" name="RepeatY" val="1" />
+            </DefaultMaterial>
+            <DefaultFluidMaterial>
+                <property hidden="0" locked="0" name="objectName" val="DefaultFluidMaterial" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="-1" hidden="0" last="0" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="PerPixel" val="true" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="Color" r="255" />
+                <property hidden="0" locked="0" name="KAmbient" val="0.1" />
+                <property hidden="0" locked="0" name="KDiffuse" val="1" />
+                <property hidden="0" locked="0" name="KSpecular" val="0.5" />
+                <property a="255" b="128" g="128" hidden="0" locked="0" name="Ambient" r="128" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="Specular" r="255" />
+                <property a="255" b="85" g="85" hidden="0" locked="0" name="Ambiance" r="85" />
+                <property hidden="0" locked="0" name="IndexOfRefraction" val="3.2264368848561033e-307" />
+                <property hidden="0" locked="0" name="Shininess" val="400" />
+                <property hidden="0" locked="0" name="SmoothingRadius" val="0.5" />
+                <property hidden="0" locked="0" name="MaxRadialSamples" val="5" />
+                <property hidden="0" locked="0" name="DepthEdgeFalloff" val="0.009999999776482582" />
+                <property hidden="0" locked="0" name="DepthBlurFalloff" val="5.5" />
+                <property hidden="0" locked="0" name="ThicknessParticleScale" val="4" />
+                <property hidden="0" locked="0" name="DepthParticleScale" val="1.5" />
+                <property hidden="0" locked="0" name="FresnelStrength" val="1" />
+                <property hidden="0" locked="0" name="RenderOptLevel" val="0" />
+                <property hidden="0" locked="0" name="WaterRendering" val="false" />
+                <property hidden="0" locked="0" name="FlatShading" val="false" />
+            </DefaultFluidMaterial>
+            <CamPersp>
+                <property hidden="0" locked="0" name="objectName" val="CamPersp" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="-1" hidden="0" last="0" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="Position" x="10" y="10" z="10" />
+                <property hidden="0" locked="0" name="Orientation" phi="-24.0327" psi="1.20217e-6" theta="44.7491" />
+                <property hidden="0" locked="0" name="Scale" x="1.5" y="1.5" z="1.5" />
+                <property hidden="0" locked="0" name="Scale2D" x="1" y="1" />
+                <property hidden="0" locked="0" name="Radius" val="0.5" />
+                <property hidden="0" locked="0" name="Pivot" x="0" y="0" z="0" />
+                <property hidden="1" locked="0" name="CenterMethod" val="PolyhedralMass" />
+                <property hidden="1" locked="0" name="LocalizedTransforms" val="false" />
+                <property hidden="0" locked="0" name="DisplayMode" val="Self" />
+                <property hidden="0" locked="0" name="RenderMode" val="SmoothShaded" />
+                <property hidden="0" locked="0" name="DrawSolidWireframe" val="false" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="SolidWireframeColor" r="255" />
+                <property hidden="0" locked="0" name="SolidWireframeThickness" val="2" />
+                <property hidden="0" locked="0" name="ContourThreshold" val="5" />
+                <property hidden="0" locked="0" name="RenderPriority" val="100" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="Color" r="0" />
+                <property hidden="0" locked="0" name="OccludeShadows" val="true" />
+                <property hidden="0" locked="0" name="ReceiveShadows" val="true" />
+                <property hidden="0" locked="0" name="ExternalRender" val="true" />
+                <property hidden="0" locked="0" name="ShowBoundingBox" val="false" />
+                <property hidden="0" locked="0" name="BoundingBoxType" val="AxisAlignedBoundingBox" />
+                <property hidden="0" locked="0" name="ZeroCenterGrid" val="false" />
+                <property hidden="0" locked="0" name="StringScale" val="1" />
+                <property hidden="0" locked="0" name="NumbersFromWorldUnits" val="false" />
+                <property hidden="0" locked="0" name="ShowBoundingBoxCenter" val="false" />
+                <property a="255" b="0" g="0" hidden="0" locked="0" name="XAxisColor" r="255" />
+                <property a="255" b="0" g="255" hidden="0" locked="0" name="YAxisColor" r="0" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="ZAxisColor" r="0" />
+                <property hidden="0" locked="0" name="Ortho" val="false" />
+                <property hidden="0" locked="0" name="OrthoType" val="" />
+                <property hidden="0" locked="0" name="Fov" val="45" />
+                <property hidden="0" locked="0" name="NearClip" val="1" />
+                <property hidden="0" locked="0" name="FarClip" val="5000" />
+                <property hidden="0" locked="0" name="LookAt" x="-1.76094" y="2.55067" z="-1.86438" />
+                <property hidden="0" locked="0" name="OrthoWidth" val="5" />
+                <property hidden="0" locked="0" name="FlipSide" val="false" />
+                <property hidden="0" locked="0" name="FlipUp" val="false" />
+                <property hidden="0" locked="0" name="FlipLook" val="false" />
+            </CamPersp>
+            <CamTop>
+                <property hidden="0" locked="0" name="objectName" val="CamTop" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="-1" hidden="0" last="0" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="Position" x="0" y="10" z="0" />
+                <property hidden="0" locked="0" name="Orientation" phi="-90" psi="0" theta="0" />
+                <property hidden="0" locked="0" name="Scale" x="1.5" y="1.5" z="1.5" />
+                <property hidden="0" locked="0" name="Scale2D" x="1" y="1" />
+                <property hidden="0" locked="0" name="Radius" val="0.5" />
+                <property hidden="0" locked="0" name="Pivot" x="0" y="0" z="0" />
+                <property hidden="1" locked="0" name="CenterMethod" val="PolyhedralMass" />
+                <property hidden="1" locked="0" name="LocalizedTransforms" val="false" />
+                <property hidden="0" locked="0" name="DisplayMode" val="Self" />
+                <property hidden="0" locked="0" name="RenderMode" val="SmoothShaded" />
+                <property hidden="0" locked="0" name="DrawSolidWireframe" val="false" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="SolidWireframeColor" r="255" />
+                <property hidden="0" locked="0" name="SolidWireframeThickness" val="2" />
+                <property hidden="0" locked="0" name="ContourThreshold" val="5" />
+                <property hidden="0" locked="0" name="RenderPriority" val="100" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="Color" r="0" />
+                <property hidden="0" locked="0" name="OccludeShadows" val="true" />
+                <property hidden="0" locked="0" name="ReceiveShadows" val="true" />
+                <property hidden="0" locked="0" name="ExternalRender" val="true" />
+                <property hidden="0" locked="0" name="ShowBoundingBox" val="false" />
+                <property hidden="0" locked="0" name="BoundingBoxType" val="AxisAlignedBoundingBox" />
+                <property hidden="0" locked="0" name="ZeroCenterGrid" val="false" />
+                <property hidden="0" locked="0" name="StringScale" val="1" />
+                <property hidden="0" locked="0" name="NumbersFromWorldUnits" val="false" />
+                <property hidden="0" locked="0" name="ShowBoundingBoxCenter" val="false" />
+                <property a="255" b="0" g="0" hidden="0" locked="0" name="XAxisColor" r="255" />
+                <property a="255" b="0" g="255" hidden="0" locked="0" name="YAxisColor" r="0" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="ZAxisColor" r="0" />
+                <property hidden="0" locked="0" name="Ortho" val="true" />
+                <property hidden="0" locked="0" name="OrthoType" val="Top" />
+                <property hidden="0" locked="0" name="Fov" val="45" />
+                <property hidden="0" locked="0" name="NearClip" val="-5000" />
+                <property hidden="0" locked="0" name="FarClip" val="5000" />
+                <property hidden="0" locked="0" name="LookAt" x="0" y="0" z="0" />
+                <property hidden="0" locked="0" name="OrthoWidth" val="5" />
+                <property hidden="0" locked="0" name="FlipSide" val="false" />
+                <property hidden="0" locked="0" name="FlipUp" val="false" />
+                <property hidden="0" locked="0" name="FlipLook" val="false" />
+            </CamTop>
+            <CamLeft>
+                <property hidden="0" locked="0" name="objectName" val="CamLeft" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="-1" hidden="0" last="0" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="Position" x="-10" y="0" z="0" />
+                <property hidden="0" locked="0" name="Orientation" phi="180" psi="0" theta="-90" />
+                <property hidden="0" locked="0" name="Scale" x="1.5" y="1.5" z="1.5" />
+                <property hidden="0" locked="0" name="Scale2D" x="1" y="1" />
+                <property hidden="0" locked="0" name="Radius" val="0.5" />
+                <property hidden="0" locked="0" name="Pivot" x="0" y="0" z="0" />
+                <property hidden="1" locked="0" name="CenterMethod" val="PolyhedralMass" />
+                <property hidden="1" locked="0" name="LocalizedTransforms" val="false" />
+                <property hidden="0" locked="0" name="DisplayMode" val="Self" />
+                <property hidden="0" locked="0" name="RenderMode" val="SmoothShaded" />
+                <property hidden="0" locked="0" name="DrawSolidWireframe" val="false" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="SolidWireframeColor" r="255" />
+                <property hidden="0" locked="0" name="SolidWireframeThickness" val="2" />
+                <property hidden="0" locked="0" name="ContourThreshold" val="5" />
+                <property hidden="0" locked="0" name="RenderPriority" val="100" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="Color" r="0" />
+                <property hidden="0" locked="0" name="OccludeShadows" val="true" />
+                <property hidden="0" locked="0" name="ReceiveShadows" val="true" />
+                <property hidden="0" locked="0" name="ExternalRender" val="true" />
+                <property hidden="0" locked="0" name="ShowBoundingBox" val="false" />
+                <property hidden="0" locked="0" name="BoundingBoxType" val="AxisAlignedBoundingBox" />
+                <property hidden="0" locked="0" name="ZeroCenterGrid" val="false" />
+                <property hidden="0" locked="0" name="StringScale" val="1" />
+                <property hidden="0" locked="0" name="NumbersFromWorldUnits" val="false" />
+                <property hidden="0" locked="0" name="ShowBoundingBoxCenter" val="false" />
+                <property a="255" b="0" g="0" hidden="0" locked="0" name="XAxisColor" r="255" />
+                <property a="255" b="0" g="255" hidden="0" locked="0" name="YAxisColor" r="0" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="ZAxisColor" r="0" />
+                <property hidden="0" locked="0" name="Ortho" val="true" />
+                <property hidden="0" locked="0" name="OrthoType" val="Left" />
+                <property hidden="0" locked="0" name="Fov" val="45" />
+                <property hidden="0" locked="0" name="NearClip" val="-5000" />
+                <property hidden="0" locked="0" name="FarClip" val="5000" />
+                <property hidden="0" locked="0" name="LookAt" x="0" y="0" z="0" />
+                <property hidden="0" locked="0" name="OrthoWidth" val="5" />
+                <property hidden="0" locked="0" name="FlipSide" val="false" />
+                <property hidden="0" locked="0" name="FlipUp" val="false" />
+                <property hidden="0" locked="0" name="FlipLook" val="false" />
+            </CamLeft>
+            <CamFront>
+                <property hidden="0" locked="0" name="objectName" val="CamFront" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="-1" hidden="0" last="0" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="Position" x="0" y="0" z="-10" />
+                <property hidden="0" locked="0" name="Orientation" phi="180" psi="0" theta="0" />
+                <property hidden="0" locked="0" name="Scale" x="1.5" y="1.5" z="1.5" />
+                <property hidden="0" locked="0" name="Scale2D" x="1" y="1" />
+                <property hidden="0" locked="0" name="Radius" val="0.5" />
+                <property hidden="0" locked="0" name="Pivot" x="0" y="0" z="0" />
+                <property hidden="1" locked="0" name="CenterMethod" val="PolyhedralMass" />
+                <property hidden="1" locked="0" name="LocalizedTransforms" val="false" />
+                <property hidden="0" locked="0" name="DisplayMode" val="Self" />
+                <property hidden="0" locked="0" name="RenderMode" val="SmoothShaded" />
+                <property hidden="0" locked="0" name="DrawSolidWireframe" val="false" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="SolidWireframeColor" r="255" />
+                <property hidden="0" locked="0" name="SolidWireframeThickness" val="2" />
+                <property hidden="0" locked="0" name="ContourThreshold" val="5" />
+                <property hidden="0" locked="0" name="RenderPriority" val="100" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="Color" r="0" />
+                <property hidden="0" locked="0" name="OccludeShadows" val="true" />
+                <property hidden="0" locked="0" name="ReceiveShadows" val="true" />
+                <property hidden="0" locked="0" name="ExternalRender" val="true" />
+                <property hidden="0" locked="0" name="ShowBoundingBox" val="false" />
+                <property hidden="0" locked="0" name="BoundingBoxType" val="AxisAlignedBoundingBox" />
+                <property hidden="0" locked="0" name="ZeroCenterGrid" val="false" />
+                <property hidden="0" locked="0" name="StringScale" val="1" />
+                <property hidden="0" locked="0" name="NumbersFromWorldUnits" val="false" />
+                <property hidden="0" locked="0" name="ShowBoundingBoxCenter" val="false" />
+                <property a="255" b="0" g="0" hidden="0" locked="0" name="XAxisColor" r="255" />
+                <property a="255" b="0" g="255" hidden="0" locked="0" name="YAxisColor" r="0" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="ZAxisColor" r="0" />
+                <property hidden="0" locked="0" name="Ortho" val="true" />
+                <property hidden="0" locked="0" name="OrthoType" val="Front" />
+                <property hidden="0" locked="0" name="Fov" val="45" />
+                <property hidden="0" locked="0" name="NearClip" val="-5000" />
+                <property hidden="0" locked="0" name="FarClip" val="5000" />
+                <property hidden="0" locked="0" name="LookAt" x="0" y="0" z="0" />
+                <property hidden="0" locked="0" name="OrthoWidth" val="5" />
+                <property hidden="0" locked="0" name="FlipSide" val="false" />
+                <property hidden="0" locked="0" name="FlipUp" val="false" />
+                <property hidden="0" locked="0" name="FlipLook" val="false" />
+            </CamFront>
+            <NIISphSolver_1>
+                <property hidden="0" locked="0" name="objectName" val="NIISphSolver_1" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="0" hidden="0" last="9" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="Position" x="0" y="0" z="0" />
+                <property hidden="0" locked="0" name="Orientation" phi="0" psi="0" theta="0" />
+                <property hidden="0" locked="0" name="Scale" x="1" y="1" z="1" />
+                <property hidden="0" locked="0" name="Scale2D" x="1" y="1" />
+                <property hidden="0" locked="0" name="Radius" val="0.5" />
+                <property hidden="0" locked="0" name="Pivot" x="0" y="0" z="0" />
+                <property hidden="1" locked="0" name="CenterMethod" val="PolyhedralMass" />
+                <property hidden="1" locked="0" name="LocalizedTransforms" val="false" />
+                <property hidden="0" locked="0" name="DisplayMode" val="Self" />
+                <property hidden="0" locked="0" name="RenderMode" val="SmoothShaded" />
+                <property hidden="0" locked="0" name="DrawSolidWireframe" val="false" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="SolidWireframeColor" r="255" />
+                <property hidden="0" locked="0" name="SolidWireframeThickness" val="2" />
+                <property hidden="0" locked="0" name="ContourThreshold" val="5" />
+                <property hidden="0" locked="0" name="RenderPriority" val="100" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="Color" r="0" />
+                <property hidden="0" locked="0" name="OccludeShadows" val="true" />
+                <property hidden="0" locked="0" name="ReceiveShadows" val="true" />
+                <property hidden="0" locked="0" name="ExternalRender" val="false" />
+                <property hidden="0" locked="0" name="ShowBoundingBox" val="false" />
+                <property hidden="0" locked="0" name="BoundingBoxType" val="AxisAlignedBoundingBox" />
+                <property hidden="0" locked="0" name="ZeroCenterGrid" val="false" />
+                <property hidden="0" locked="0" name="StringScale" val="1" />
+                <property hidden="0" locked="0" name="NumbersFromWorldUnits" val="false" />
+                <property hidden="0" locked="0" name="ShowBoundingBoxCenter" val="false" />
+                <property a="255" b="0" g="0" hidden="0" locked="0" name="XAxisColor" r="255" />
+                <property a="255" b="0" g="255" hidden="0" locked="0" name="YAxisColor" r="0" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="ZAxisColor" r="0" />
+                <property hidden="0" locked="0" name="Timestep" val="0.010193679482422209" />
+                <property hidden="0" locked="0" name="ShowStatistics" val="true" />
+                <property hidden="0" locked="0" name="ShowTimings" val="true" />
+                <property hidden="0" locked="0" name="ParticleSize" val="0.122466496314" />
+                <property hidden="0" locked="0" name="InterRadiusToPartSizeRatio" val="2" />
+                <property hidden="0" locked="0" name="ClearNeighborsFrameInterval" val="10" />
+                <property hidden="0" locked="0" name="MinColoringRange" val="0" />
+                <property hidden="0" locked="0" name="MaxColoringRange" val="2.772873598180342" />
+                <property hidden="0" locked="0" name="AutomaticRange" val="true" />
+                <property hidden="0" locked="0" name="Coloring" val="VelocityBased" />
+                <property hidden="0" locked="0" name="ColoringOptions" val="Fixed" />
+                <property a="255" b="189" g="126" hidden="0" locked="0" name="MinRangeColor" r="63" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="MaxRangeColor" r="255" />
+                <property hidden="0" locked="0" name="ColoringExponent" val="0.5" />
+                <property hidden="0" locked="0" name="InterpolateHues" val="false" />
+                <property a0="255" a1="255" a2="255" a3="255" b0="255" b1="0" b2="0" b3="0" g0="0" g1="255" g2="255" g3="0" hidden="1" locked="0" name="ColorRamp" pos0="0" pos1="0.3" pos2="0.6" pos3="1" r0="0" r1="0" r2="255" r3="255" size="4" />
+                <property hidden="0" locked="0" name="VisType" val="ParticleColor" />
+                <property hidden="0" locked="0" name="DrawParticleNormals" val="false" />
+                <property hidden="0" locked="0" name="DrawFluidNeighbors" val="false" />
+                <property hidden="0" locked="0" name="DrawRigidNeighbors" val="false" />
+                <property hidden="0" locked="0" name="DrawVelocity" val="false" />
+                <property hidden="0" locked="0" name="RenderRadiusScaling" val="1" />
+                <property hidden="0" locked="0" name="HideGhosts" val="false" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="InflowGhostColor" r="0" />
+                <property a="255" b="0" g="255" hidden="0" locked="0" name="InflowGhostExtColor" r="255" />
+                <property a="255" b="0" g="255" hidden="0" locked="0" name="InflowGhostFillColor" r="0" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="OutflowGhostColor" r="255" />
+                <property a="255" b="0" g="0" hidden="0" locked="0" name="PeriodicGhostColor" r="255" />
+                <property hidden="0" locked="0" name="ExportMethod" val="All" />
+                <property hidden="0" locked="0" name="MinNeighbors" val="2" />
+                <property hidden="0" locked="0" name="ExportMaterial" val="UniqueMaterial" />
+                <property hidden="0" locked="0" name="BinaryExport" val="true" />
+                <property hidden="0" locked="0" name="QueryNeighbors" val="Query_All" />
+                <property hidden="0" locked="0" name="CohesionModel" val="NadirPaper" />
+                <property hidden="0" locked="0" name="Cohesion" val="0.01" />
+                <property hidden="0" locked="0" name="AdhesionModel" val="NadirPaperAdhesion" />
+                <property hidden="0" locked="0" name="InterfaceTension" val="0" />
+                <property hidden="0" locked="0" name="ColorValue" val="1" />
+                <property hidden="0" locked="0" name="AdaptiveTimestep" val="true" />
+                <property hidden="0" locked="0" name="FixedTimeStep" val="0.01" />
+                <property hidden="0" locked="0" name="FirstUpdateTimestep" val="false" />
+                <property hidden="0" locked="0" name="CorrectDensity" val="true" />
+                <property hidden="0" locked="0" name="SmoothVelocities" val="false" />
+                <property hidden="1" locked="0" name="BoundaryCoefficient" val="1" />
+                <property hidden="0" locked="0" name="SphKernel" val="CubicBSplineKernel" />
+                <property hidden="0" locked="0" name="StuckPrevention" val="false" />
+                <property hidden="0" locked="0" name="ExtractSurfaceParticles" val="true" />
+                <property hidden="0" locked="0" name="BuoyancyModel" val="Isothermal" />
+                <property hidden="0" locked="0" name="DensityComputation" val="Interpolation" />
+                <property hidden="0" locked="0" name="SphLaplacienForVis" val="AngularMomentumPreserving" />
+                <property hidden="0" locked="0" name="WallPressureHandling" val="Extrapolation" />
+                <property hidden="0" locked="0" name="WallExtrapol" val="Shepard" />
+                <property hidden="1" locked="0" name="LeastSquareResolution" val="QR" />
+                <property hidden="0" locked="0" name="WallHydrostaticCorrection" val="true" />
+                <property hidden="0" locked="0" name="WallViscousCorrection" val="true" />
+                <property hidden="0" locked="0" name="OpenBoundaryExtrapol" val="Shepard" />
+                <property hidden="0" locked="0" name="LambdaCFL" val="0.4" />
+                <property hidden="0" locked="0" name="LambdaVis" val="0.125" />
+                <property hidden="0" locked="0" name="ClampToMultipleSolidSolverTimeStep" val="true" />
+                <property hidden="0" locked="0" name="TurbulenceModel" val="DirectNumericalSimulation" />
+                <property hidden="0" locked="0" name="LambdaIter" val="1" />
+                <property hidden="0" locked="0" name="NonStaticRefFrame" val="true" />
+                <property hidden="0" locked="0" name="PoissonSolver" val="RelaxedJacobi" />
+                <property hidden="0" locked="0" name="StopCriterion" val="AverageDensity" />
+                <property hidden="0" locked="0" name="StopThreshold" val="0.01" />
+                <property hidden="0" locked="0" name="MinNumIter" val="3" />
+                <property hidden="0" locked="0" name="MaxNumIter" val="100" />
+                <property hidden="0" locked="0" name="RelaxFactor" val="0.5" />
+                <property hidden="0" locked="0" name="OldPressureWeight" val="0.6" />
+                <property hidden="0" locked="0" name="LESModel" val="Smagorinsky" />
+                <property hidden="0" locked="0" name="SmagorinskyConst" val="1.7" />
+                <property hidden="0" locked="0" name="ParticleShifting" val="NoShifting" />
+                <property hidden="0" locked="0" name="DiffusionConstant" val="0.1" />
+                <property hidden="0" locked="0" name="LambdaDiff" val="0.01" />
+                <property hidden="0" locked="0" name="SurfaceIdentification" val="DivergencePosition" />
+            </NIISphSolver_1>
+            <SortedHashingCollider>
+                <property hidden="0" locked="0" name="objectName" val="SortedHashingCollider" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="-1" hidden="0" last="0" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="ShowTimings" val="true" />
+                <property hidden="0" locked="0" name="ShowStatistics" val="true" />
+                <property hidden="0" locked="0" name="FluidNeighborsVectorLimit" val="40" />
+                <property hidden="0" locked="0" name="nRing" val="1" />
+                <property hidden="0" locked="0" name="MaxExtent" x="-5000" y="-5000" z="-5000" />
+                <property hidden="0" locked="0" name="ZCurveReorder" val="true" />
+                <property hidden="0" locked="0" name="TableSize" val="12582917" />
+                <property hidden="0" locked="0" name="PostProcessSPH" val="false" />
+                <property hidden="0" locked="0" name="OptimizedDensityInit" val="true" />
+            </SortedHashingCollider>
+            <Fluid_1>
+                <property hidden="0" locked="0" name="objectName" val="Fluid_1" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="-1" hidden="0" last="0" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="FluidPreset" val="Water_293K" />
+                <property hidden="0" locked="1" name="RestDensity" val="998" />
+                <property hidden="0" locked="1" name="SoundSpeed" val="1480" />
+                <property hidden="0" locked="1" name="KinematicViscosity" val="1e-6" />
+                <property hidden="0" locked="1" name="IsobaricHeatCapacity" val="4184.4" />
+                <property hidden="0" locked="1" name="IsochoricHeatCapacity" val="4157" />
+                <property hidden="0" locked="1" name="ThermalDiffusivity" val="1.43e-7" />
+                <property hidden="0" locked="1" name="ThermalExpansionCoeff" val="0.000207" />
+            </Fluid_1>
+            <RigidBox_1>
+                <property hidden="0" locked="0" name="objectName" val="RigidBox_1" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="0" hidden="0" last="9" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="Position" x="0" y="0" z="0" />
+                <property hidden="0" locked="0" name="Orientation" phi="0" psi="0" theta="0" />
+                <property hidden="0" locked="0" name="Scale" x="1" y="1" z="1" />
+                <property hidden="0" locked="0" name="Scale2D" x="1" y="1" />
+                <property hidden="0" locked="0" name="Radius" val="0.5" />
+                <property hidden="0" locked="0" name="Pivot" x="0" y="0" z="0" />
+                <property hidden="1" locked="0" name="CenterMethod" val="PolyhedralMass" />
+                <property hidden="1" locked="0" name="LocalizedTransforms" val="false" />
+                <property hidden="0" locked="0" name="DisplayMode" val="Self" />
+                <property hidden="0" locked="0" name="RenderMode" val="SmoothShaded" />
+                <property hidden="0" locked="0" name="DrawSolidWireframe" val="false" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="SolidWireframeColor" r="255" />
+                <property hidden="0" locked="0" name="SolidWireframeThickness" val="2" />
+                <property hidden="0" locked="0" name="ContourThreshold" val="5" />
+                <property hidden="0" locked="0" name="RenderPriority" val="100" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="Color" r="0" />
+                <property hidden="0" locked="0" name="OccludeShadows" val="true" />
+                <property hidden="0" locked="0" name="ReceiveShadows" val="true" />
+                <property hidden="0" locked="0" name="ExternalRender" val="true" />
+                <property hidden="0" locked="0" name="ShowBoundingBox" val="false" />
+                <property hidden="0" locked="0" name="BoundingBoxType" val="AxisAlignedBoundingBox" />
+                <property hidden="0" locked="0" name="ZeroCenterGrid" val="false" />
+                <property hidden="0" locked="0" name="StringScale" val="1" />
+                <property hidden="0" locked="0" name="NumbersFromWorldUnits" val="false" />
+                <property hidden="0" locked="0" name="ShowBoundingBoxCenter" val="false" />
+                <property a="255" b="0" g="0" hidden="0" locked="0" name="XAxisColor" r="255" />
+                <property a="255" b="0" g="255" hidden="0" locked="0" name="YAxisColor" r="0" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="ZAxisColor" r="0" />
+                <property hidden="0" locked="0" name="Timestep" val="0.01" />
+                <property hidden="0" locked="0" name="ShowStatistics" val="true" />
+                <property hidden="0" locked="0" name="ShowTimings" val="true" />
+                <property hidden="0" locked="0" name="RigidType" val="Static" />
+                <property hidden="0" locked="0" name="Density" val="1000" />
+                <property hidden="0" locked="0" name="ThermalSetting" val="Adiabatic" />
+                <property hidden="1" locked="0" name="Temperature" val="293" />
+                <property hidden="0" locked="0" name="RigidFriction" val="0.5" />
+                <property hidden="0" locked="0" name="Viscosity" val="0.01" />
+                <property hidden="0" locked="0" name="Adhesion" val="0.001" />
+                <property hidden="0" locked="0" name="LinearVelocity" x="0" y="0" z="0" />
+                <property hidden="0" locked="0" name="AngularVelocity" x="0" y="0" z="0" />
+                <property hidden="0" locked="0" name="ExportPosition" val="false" />
+                <property hidden="0" locked="0" name="ExportLinVel" val="false" />
+                <property hidden="0" locked="0" name="ExportAngVel" val="false" />
+                <property hidden="0" locked="0" name="ExportForce" val="false" />
+                <property hidden="0" locked="0" name="ExportTorque" val="false" />
+                <property hidden="0" locked="0" name="ExportForceDecomposition" val="false" />
+                <property hidden="0" locked="0" name="ExportTorqueDecomposition" val="false" />
+                <property hidden="0" locked="0" name="ExportPath" val="" />
+                <property hidden="0" locked="0" name="FlipMesh" val="false" />
+                <property hidden="0" locked="0" name="VisType" val="MeshColor" />
+                <property hidden="0" locked="0" name="CollisionShapeType" val="gImpactMesh" />
+                <property hidden="0" locked="0" name="ComputePerVertexVelocity" val="false" />
+                <property hidden="0" locked="0" name="ShowParticles" val="false" />
+                <property hidden="0" locked="0" name="ShowColorFromParticles" val="false" />
+                <property hidden="0" locked="0" name="DrawSurfaceNormals" val="false" />
+                <property hidden="0" locked="0" name="TwoSidedLighting" val="true" />
+                <property hidden="0" locked="0" name="Coloring" val="None" />
+                <property hidden="0" locked="0" name="AutomaticRange" val="true" />
+                <property hidden="0" locked="0" name="ColoringOptions" val="Fixed" />
+                <property hidden="0" locked="0" name="MinColoringRange" val="0" />
+                <property hidden="0" locked="0" name="MaxColoringRange" val="0" />
+                <property hidden="0" locked="0" name="ColoringExponent" val="0.5" />
+                <property a="255" b="189" g="126" hidden="0" locked="0" name="MinRangeColor" r="63" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="MaxRangeColor" r="255" />
+                <property a0="255" a1="255" a2="255" a3="255" b0="255" b1="0" b2="0" b3="0" g0="0" g1="255" g2="255" g3="0" hidden="1" locked="0" name="ColorRamp" pos0="0" pos1="0.3" pos2="0.6" pos3="1" r0="0" r1="0" r2="255" r3="255" size="4" />
+                <property hidden="0" locked="0" name="SurfaceOffset" val="ExteriorOffset" />
+                <property hidden="1" locked="0" name="VolumeSampling" val="false" />
+                <property hidden="1" locked="0" name="SuperSampling" val="false" />
+                <property hidden="0" locked="0" name="OptimalNumParticleLayers" val="true" />
+                <property hidden="0" locked="1" name="NumParticleLayers" val="2" />
+                <property hidden="0" locked="0" name="ExportParticleForce" val="false" />
+                <property hidden="0" locked="0" name="ExportParticleForceDecomposition" val="false" />
+                <property hidden="0" locked="0" name="ExportParticlePath" val="" />
+                <property hidden="0" locked="0" name="ShowVolumeMark" val="false" />
+                <property hidden="0" locked="0" name="VolumeMark" val="1" />
+            </RigidBox_1>
+            <FlowSource_1>
+                <property hidden="0" locked="0" name="objectName" val="FlowSource_1" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="0" hidden="0" last="9" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="Position" x="0" y="0" z="0" />
+                <property hidden="0" locked="0" name="Orientation" phi="180" psi="0" theta="0" />
+                <property hidden="0" locked="0" name="Scale" x="0.5" y="1" z="0.5" />
+                <property hidden="0" locked="0" name="Scale2D" x="0.5" y="0.5" />
+                <property hidden="0" locked="0" name="Radius" val="0.5" />
+                <property hidden="0" locked="0" name="Pivot" x="0" y="0" z="0" />
+                <property hidden="1" locked="0" name="CenterMethod" val="PolyhedralMass" />
+                <property hidden="1" locked="0" name="LocalizedTransforms" val="false" />
+                <property hidden="0" locked="0" name="DisplayMode" val="Self" />
+                <property hidden="0" locked="0" name="RenderMode" val="SmoothShaded" />
+                <property hidden="0" locked="0" name="DrawSolidWireframe" val="false" />
+                <property a="255" b="45" g="57" hidden="0" locked="0" name="SolidWireframeColor" r="63" />
+                <property hidden="0" locked="0" name="SolidWireframeThickness" val="2" />
+                <property hidden="0" locked="0" name="ContourThreshold" val="5" />
+                <property hidden="0" locked="0" name="RenderPriority" val="100" />
+                <property a="30" b="181" g="228" hidden="0" locked="0" name="Color" r="255" />
+                <property hidden="0" locked="0" name="OccludeShadows" val="true" />
+                <property hidden="0" locked="0" name="ReceiveShadows" val="true" />
+                <property hidden="0" locked="0" name="ExternalRender" val="true" />
+                <property hidden="0" locked="0" name="ShowBoundingBox" val="false" />
+                <property hidden="0" locked="0" name="BoundingBoxType" val="AxisAlignedBoundingBox" />
+                <property hidden="0" locked="0" name="ZeroCenterGrid" val="false" />
+                <property hidden="0" locked="0" name="StringScale" val="1" />
+                <property hidden="0" locked="0" name="NumbersFromWorldUnits" val="false" />
+                <property hidden="0" locked="0" name="ShowBoundingBoxCenter" val="false" />
+                <property a="255" b="0" g="0" hidden="0" locked="0" name="XAxisColor" r="255" />
+                <property a="255" b="0" g="255" hidden="0" locked="0" name="YAxisColor" r="0" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="ZAxisColor" r="0" />
+                <property hidden="0" locked="0" name="Timestep" val="0.010193679482422209" />
+                <property hidden="0" locked="0" name="ShowStatistics" val="true" />
+                <property hidden="0" locked="0" name="ShowTimings" val="true" />
+                <property hidden="0" locked="0" name="particleType" val="NEFluidType" />
+                <property hidden="0" locked="0" name="viscosity" val="1" />
+                <property hidden="0" locked="0" name="finiteVolume" val="false" />
+                <property hidden="0" locked="0" name="volume" val="2e+6" />
+                <property hidden="0" locked="0" name="startFrame" val="0" />
+                <property hidden="0" locked="0" name="stopFrame" val="1" />
+                <property hidden="0" locked="0" name="velocityMag" val="4" />
+                <property hidden="0" locked="0" name="spherePacking" val="false" />
+                <property hidden="0" locked="0" name="Shape" val="Rectangular" />
+                <property hidden="0" locked="0" name="FlowSetting" val="FlowRateSetting" />
+                <property hidden="0" locked="0" name="ParticlesInput" val="" />
+                <property hidden="0" locked="0" name="FlowInput" val="" />
+                <property hidden="0" locked="0" name="FlowRate" val="0.25" />
+                <property hidden="0" locked="0" name="Speed" val="1" />
+                <property hidden="0" locked="1" name="FlowSpeedProfile" val="Uniform" />
+                <property hidden="0" locked="0" name="Temperature" val="293" />
+                <property hidden="0" locked="0" name="Delay" val="0" />
+                <property hidden="0" locked="0" name="Permeable" val="false" />
+                <property hidden="0" locked="0" name="OptimalNumGhostLayers" val="true" />
+                <property hidden="0" locked="0" name="NumGhostLayers" val="2" />
+                <property hidden="0" locked="0" name="AllowCompression" val="false" />
+            </FlowSource_1>
+            <MeasurementField_1>
+                <property hidden="0" locked="0" name="objectName" val="MeasurementField_1" />
+                <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+                <property hidden="0" locked="0" name="Verbose" val="false" />
+                <property hidden="0" locked="0" name="Behavior" val="Active" />
+                <property hidden="0" locked="0" name="CacheData" val="true" />
+                <property complete="0" first="-1" hidden="0" last="0" locked="0" name="FrameInfo" />
+                <property hidden="0" locked="0" name="Position" x="0" y="0" z="0" />
+                <property hidden="0" locked="0" name="Orientation" phi="0" psi="0" theta="0" />
+                <property hidden="0" locked="0" name="Scale" x="1" y="1" z="1" />
+                <property hidden="0" locked="0" name="Scale2D" x="1" y="1" />
+                <property hidden="0" locked="0" name="Radius" val="0.5" />
+                <property hidden="0" locked="0" name="Pivot" x="0" y="0" z="0" />
+                <property hidden="1" locked="0" name="CenterMethod" val="PolyhedralMass" />
+                <property hidden="1" locked="0" name="LocalizedTransforms" val="false" />
+                <property hidden="0" locked="0" name="DisplayMode" val="Self" />
+                <property hidden="0" locked="0" name="RenderMode" val="SmoothShaded" />
+                <property hidden="0" locked="0" name="DrawSolidWireframe" val="false" />
+                <property a="255" b="255" g="255" hidden="0" locked="0" name="SolidWireframeColor" r="255" />
+                <property hidden="0" locked="0" name="SolidWireframeThickness" val="2" />
+                <property hidden="0" locked="0" name="ContourThreshold" val="5" />
+                <property hidden="0" locked="0" name="RenderPriority" val="100" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="Color" r="0" />
+                <property hidden="0" locked="0" name="OccludeShadows" val="true" />
+                <property hidden="0" locked="0" name="ReceiveShadows" val="true" />
+                <property hidden="0" locked="0" name="ExternalRender" val="true" />
+                <property hidden="0" locked="0" name="ShowBoundingBox" val="false" />
+                <property hidden="0" locked="0" name="BoundingBoxType" val="AxisAlignedBoundingBox" />
+                <property hidden="0" locked="0" name="ZeroCenterGrid" val="false" />
+                <property hidden="0" locked="0" name="StringScale" val="1" />
+                <property hidden="0" locked="0" name="NumbersFromWorldUnits" val="false" />
+                <property hidden="0" locked="0" name="ShowBoundingBoxCenter" val="false" />
+                <property a="255" b="0" g="0" hidden="0" locked="0" name="XAxisColor" r="255" />
+                <property a="255" b="0" g="255" hidden="0" locked="0" name="YAxisColor" r="0" />
+                <property a="255" b="255" g="0" hidden="0" locked="0" name="ZAxisColor" r="0" />
+                <property hidden="0" locked="0" name="computeFlowRate" val="false" />
+                <property hidden="0" locked="0" name="flowPlaneNormal" x="1" y="0" z="0" />
+                <property hidden="0" locked="0" name="exportParticles" val="true" />
+                <property hidden="0" locked="0" name="exportPP" val="false" />
+                <property hidden="0" locked="0" name="exportInt" val="0.02" />
+                <property hidden="0" locked="0" name="exportPath" val="C:\msys64\home\RYANED\Emerald\projects\raven\tests\framework\CodeInterfaceTests\Neutrino\Neutrino_Base\sampleNeutrino\2\\Measurements\results.csv" />
+                <property hidden="0" locked="0" name="exportType" val="AvgHeight" />
+                <property hidden="0" locked="0" name="exportFormat" val="CSV" />
+                <property hidden="0" locked="0" name="plotType" val="" />
+                <property hidden="0" locked="0" name="subdivideMeasurementField" val="false" />
+                <property hidden="0" locked="0" name="subdiv" x="10" y="10" z="10" />
+                <property hidden="0" locked="0" name="sdArrowScale" val="10" />
+                <property hidden="0" locked="0" name="sdMaxArrowLength" val="0.05" />
+                <property hidden="0" locked="0" name="sdArrowDiameter" val="0.01" />
+                <property hidden="0" locked="0" name="sdCylinderDiameter" val="0.005" />
+                <property hidden="0" locked="0" name="sdNormalizeArrows" val="false" />
+                <property hidden="0" locked="0" name="reset" val="" />
+                <property a0="255" a1="255" a2="255" a3="255" b0="255" b1="0" b2="0" b3="0" g0="0" g1="255" g2="255" g3="0" hidden="0" locked="0" name="ColorRamp" pos0="0" pos1="0.3" pos2="0.6" pos3="1" r0="0" r1="0" r2="255" r3="255" size="4" />
+            </MeasurementField_1>
+        </Scene>
+        <GUI>
+            <property hidden="0" locked="0" name="objectName" val="GUI" />
+            <property hidden="0" locked="0" name="OsdMsgPos" val="Left" />
+            <property hidden="0" locked="0" name="Verbose" val="false" />
+            <property hidden="0" locked="0" name="TimelineUnits" val="Frames" />
+            <property hidden="0" locked="0" name="SaveGLFrames" val="false" />
+            <OpenGL0>
+                <property name="objectName" val="OpenGL0" />
+                <property name="camera" val="CamPersp" />
+                <property name="showOsd" val="true" />
+                <property a="255" b="255" g="255" name="osdTextColor" r="255" />
+                <property name="showFPS" val="true" />
+                <property name="manipSpace" val="Local" />
+                <property name="viewAxes" val="true" />
+                <property name="drawGrid" val="true" />
+                <property height="40" name="gridSize" width="40" />
+                <property name="cellSize" val="1" />
+                <property name="cellLineThickness" val="1" />
+                <property a="255" b="200" g="200" name="gridColor" r="200" />
+                <property name="overlayGrid" val="false" />
+                <property name="ssao" val="false" />
+                <property name="type" val="Hbao" />
+                <property name="intensity" val="1.5" />
+                <property name="radius" val="6.06125e-27" />
+                <property name="blurSharpness" val="1" />
+                <property name="aaType" val="None" />
+                <property name="msaaSampling" val="x4" />
+                <property name="csaaMode" val="mode8x" />
+                <property name="bfaaMode" val="multi2x" />
+                <property name="transparencyType" val="NoTransparency" />
+                <property name="depthPeelingIterations" val="6" />
+                <property name="backgroundType" val="Color" />
+                <property a="255" b="128" g="128" name="backgroundColor" r="128" />
+                <property name="backgroundGradient" val="true" />
+                <property a="255" b="0" g="0" name="backgroundGradColor" r="0" />
+                <property a="255" b="247" g="249" name="backgroundRealColor" r="252" />
+                <property name="backgroundTexture" val="" />
+                <property name="environmentType" val="NoEnvironment" />
+                <property name="environmentMap" val="" />
+                <property name="environmentRender" val="true" />
+                <property name="envRotation" val="0" />
+                <property name="rightEnv" val="" />
+                <property name="leftEnv" val="" />
+                <property name="topEnv" val="" />
+                <property name="bottomEnv" val="" />
+                <property name="frontEnv" val="" />
+                <property name="backEnv" val="" />
+                <property name="qualityProfile" val="HighQuality" />
+                <property name="drawRenderArea" val="false" />
+                <property name="saveGLFrames" val="false" />
+                <property height="600" name="savedFrameSize" width="800" />
+            </OpenGL0>
+            <Unknown>
+                <property name="objectName" val="" />
+            </Unknown>
+        </GUI>
+    </properties>
+    <GUI_STATE>
+        <PropertyEditor>
+            <expandedprops>
+                <OpenGL0>
+                    <drawGrid />
+                    <gridColor />
+                </OpenGL0>
+                <MeasurementField_1>
+                    <exportParticles />
+                </MeasurementField_1>
+                <Scene>
+                    <Timeline />
+                </Scene>
+                <FlowSource_1>
+                    <Advanced />
+                    <Orientation />
+                    <Scale2D />
+                </FlowSource_1>
+                <Scene>
+                    <Timeline />
+                </Scene>
+            </expandedprops>
+        </PropertyEditor>
+        <NodeGraphEditor>
+            <nodepositions>
+                <Fluid_1 x="-405.795" y="-147.898" />
+                <DefaultGravity x="-400" y="-400" />
+                <RigidBox_1 x="798.995" y="305.997" />
+                <DefaultLight x="-400" y="-400" />
+                <CamPersp x="-400" y="-400" />
+                <CamTop x="-400" y="-400" />
+                <CamLeft x="-400" y="-400" />
+                <CamFront x="-400" y="-400" />
+                <DefaultFluidMaterial x="29.9516" y="-203.983" />
+                <DefaultMaterial x="400" y="0" />
+                <FlowSource_1 x="803.069" y="923.066" />
+                <NIISphSolver_1 x="753.268" y="990.169" />
+                <SortedHashingCollider x="452.423" y="933.223" />
+                <MeasurementField_1 x="-670.574" y="715.975" />
+            </nodepositions>
+            <nodepositions>
+                <Fluid_1 x="-405.795" y="-147.898" />
+                <DefaultGravity x="-999.955" y="-829.935" />
+                <RigidBox_1 x="798.995" y="305.997" />
+                <DefaultLight x="202.705" y="783.223" />
+                <CamPersp x="-474.188" y="487.025" />
+                <CamTop x="-820.904" y="120.78" />
+                <CamLeft x="164.459" y="619.133" />
+                <CamFront x="0" y="0" />
+                <DefaultFluidMaterial x="29.9516" y="-203.983" />
+                <DefaultMaterial x="935.911" y="-620.62" />
+                <FlowSource_1 x="803.069" y="923.066" />
+                <NIISphSolver_1 x="753.268" y="990.169" />
+                <SortedHashingCollider x="452.423" y="933.223" />
+                <MeasurementField_1 x="-670.574" y="715.975" />
+            </nodepositions>
+            <nodepositions>
+                <Fluid_1 x="-405.795" y="-147.898" />
+                <DefaultGravity x="-999.955" y="-829.935" />
+                <RigidBox_1 x="798.995" y="305.997" />
+                <DefaultLight x="202.705" y="783.223" />
+                <CamPersp x="-474.188" y="487.025" />
+                <CamTop x="-820.904" y="120.78" />
+                <CamLeft x="164.459" y="619.133" />
+                <CamFront x="0" y="0" />
+                <DefaultFluidMaterial x="29.9516" y="-203.983" />
+                <DefaultMaterial x="935.911" y="-620.62" />
+                <FlowSource_1 x="803.069" y="923.066" />
+                <NIISphSolver_1 x="753.268" y="990.169" />
+                <SortedHashingCollider x="452.423" y="933.223" />
+                <MeasurementField_1 x="-670.574" y="715.975" />
+            </nodepositions>
+        </NodeGraphEditor>
+        <SceneInspector>
+            <expandednodes>
+                <Scene expanded="1" />
+                <DefaultGravity expanded="0" />
+                <DefaultLight expanded="0" />
+                <DefaultMaterial expanded="0" />
+                <DefaultFluidMaterial expanded="0" />
+                <CamPersp expanded="0" />
+                <CamTop expanded="0" />
+                <CamLeft expanded="0" />
+                <CamFront expanded="0" />
+                <NIISphSolver_1 expanded="0" />
+                <SortedHashingCollider expanded="0" />
+                <Fluid_1 expanded="0" />
+                <RigidBox_1 expanded="0" />
+                <FlowSource_1 expanded="0" />
+                <MeasurementField_1 expanded="0" />
+            </expandednodes>
+        </SceneInspector>
+    </GUI_STATE>
+    <dynaproperties>
+        <Base>
+            <Logger />
+        </Base>
+        <Scene>
+            <RenderSettings>
+                <PovraySettings />
+            </RenderSettings>
+            <DefaultGravity />
+            <DefaultLight />
+            <DefaultMaterial />
+            <DefaultFluidMaterial />
+            <CamPersp />
+            <CamTop />
+            <CamLeft />
+            <CamFront />
+            <NIISphSolver_1 />
+            <SortedHashingCollider />
+            <Fluid_1 />
+            <RigidBox_1 />
+            <FlowSource_1 />
+            <MeasurementField_1 />
+        </Scene>
+        <GUI>
+            <OpenGL0 />
+            <__NO_NAME__ />
+        </GUI>
+    </dynaproperties>
+    <keyframes />
+    <expressions>
+        <MeasurementField_1>
+            <propexpr expr="import timeit&#10;import os&#10;&#10;path = &quot;C:\msys64\home\RYANED\Neutrino\Coupling_Test\Working_Dir\run\times.csv&quot;&#10;&#10;frame = int(Scene.CurrentFrame)&#10;&#10;end = int(Scene.SimulationEndFrame)&#10;&#10;size = NIISphSolver_1.ParticleSize&#10;&#10;if frame == 0 and os.path.isfile(path) == False:&#10;    file = open(path, 'w')&#10;    writer = csv.writer(file, delimiter=',')&#10;    line = str(size) + &quot;,start,&quot; + str(timeit.timeit())&#10;    writer.writerow(line)&#10;elif frame == end:&#10;    file = open(path, 'w')&#10;    line = str(size) + &quot;,end,&quot; + str(timeit.timeit())&#10;    writer.writerow(line)&#10;" name="exportPath" />
+        </MeasurementField_1>
+    </expressions>
+    <propcbexprs />
+</nescene>
