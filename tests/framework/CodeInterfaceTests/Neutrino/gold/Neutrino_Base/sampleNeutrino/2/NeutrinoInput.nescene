@@ -27,9 +27,9 @@
             <property name="Verbose" hidden="0" locked="0" val="false"/>
             <property name="Threads" hidden="0" locked="0" val="6"/>
             <property name="ServerPort" hidden="0" locked="0" val="20200"/>
-            <property name="SceneFilePath" hidden="0" locked="0" val="C:\msys64\home\RYANED\Emerald\projects\raven\tests\framework\CodeInterfaceTests\Neutrino\Neutrino_Base\sampleNeutrino\2\NeutrinoInput.nescene"/>
-            <property name="SaveDir" hidden="0" locked="0" val="C:\msys64\home\RYANED\Emerald\projects\raven\tests\framework\CodeInterfaceTests\Neutrino\Neutrino_Base\sampleNeutrino\2\"/>
-            <property name="CacheDir" hidden="0" locked="0" val="C:\msys64\home\RYANED\Emerald\projects\raven\tests\framework\CodeInterfaceTests\Neutrino\Neutrino_Base\sampleNeutrino\2\"/>
+            <property name="SceneFilePath" hidden="0" locked="0" val="C:\msys64\home\RYANED\Neutrino\Submission_Test\Neutrino_Base\sampleNeutrino\2\NeutrinoInput.nescene"/>
+            <property name="SaveDir" hidden="0" locked="0" val="C:\msys64\home\RYANED\Neutrino\Submission_Test\Neutrino_Base\sampleNeutrino\2\"/>
+            <property name="CacheDir" hidden="0" locked="0" val="C:\msys64\home\RYANED\Neutrino\Submission_Test\Neutrino_Base\sampleNeutrino\2\"/>
             <property name="OptimizeNetCache" hidden="0" locked="0" val="true"/>
             <property name="CompressFluidCache" hidden="0" locked="0" val="false"/>
             <Logger>
@@ -742,7 +742,7 @@
                 <property name="exportParticles" hidden="0" locked="0" val="true"/>
                 <property name="exportPP" hidden="0" locked="0" val="false"/>
                 <property name="exportInt" hidden="0" locked="0" val="0.02"/>
-                <property name="exportPath" hidden="0" locked="0" val="C:\msys64\home\RYANED\Emerald\projects\raven\tests\framework\CodeInterfaceTests\Neutrino\Neutrino_Base\sampleNeutrino\2\\Measurements\results.csv"/>
+                <property name="exportPath" hidden="0" locked="0" val="C:\msys64\home\RYANED\Neutrino\Submission_Test\Neutrino_Base\sampleNeutrino\2\\Measurements\results.csv"/>
                 <property name="exportType" hidden="0" locked="0" val="AvgHeight"/>
                 <property name="exportFormat" hidden="0" locked="0" val="CSV"/>
                 <property name="plotType" hidden="0" locked="0" val=""/>
