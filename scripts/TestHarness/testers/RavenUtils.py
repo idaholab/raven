@@ -320,7 +320,7 @@ if __name__ == '__main__':
     else:
       print("-c conda-forge "+ __conda_forge_string(op_sys=op_sys_arg))
   elif '--pip-install' in sys.argv:
-    print("pip install", end=" ")
+    print("pip3 install", end=" ")
     for k, qa_version in __pipList:
       print(k+"=="+qa_version, end=" ")
     print()
