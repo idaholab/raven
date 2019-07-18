@@ -326,7 +326,10 @@ if __name__ == '__main__':
   elif '--pip-install' in sys.argv:
     print("pip3 install", end=" ")
     for k, qa_version in __pipList:
-      print(k+"=="+qa_version, end=" ")
+      if len(qa_version.strip()) > 0:
+        print(k+"=="+qa_version, end=" ")
+      else:
+        print(k, end=" ")
     print()
   elif '--manual-list' in sys.argv:
     print('\\begin{itemize}')
