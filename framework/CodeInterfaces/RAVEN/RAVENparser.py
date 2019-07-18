@@ -173,8 +173,7 @@ class RAVENparser():
       if os.path.exists(slaveInputFullPath):
         slaveInputBaseDir = os.path.dirname(slaveInput)
         slaveDir = os.path.join(currentDirName,slaveInputBaseDir.replace(currentDirName,""))
-        if not os.path.exists(slaveDir):
-          os.makedirs(slaveDir)
+        os.makedirs(slaveDir, exists_ok=True)
         shutil.copy(slaveInputFullPath,slaveDir)
       else:
         raise IOError(self.printTag+' ERROR: File "' +slaveInputFullPath+'" has not been found!!!')
