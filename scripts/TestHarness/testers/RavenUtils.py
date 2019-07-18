@@ -106,10 +106,10 @@ __pipList = [("numpy", __lookup_preferred_version("numpy")),
              ("statsmodels", __lookup_preferred_version("statsmodels")),
              ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
              ("pandas", __lookup_preferred_version("pandas")),
-             ("pylint", __lookup_preferred_version("pylint")),
-             ("psutil", __lookup_preferred_version("psutil")),
-             ("coverage", __lookup_preferred_version("coverage")),
-             ("lxml", __lookup_preferred_version("lxml"))]
+             ("pylint", ""),
+             ("psutil", ""),
+             ("coverage", ""),
+             ("lxml", "")]
 
 def module_report(module, version=''):
   """
