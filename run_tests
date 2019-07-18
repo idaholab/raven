@@ -22,12 +22,12 @@ for A in "$@"; do
             ;;
     esac
 done
-
+echo 'Loading libraries ...'
 if [[ ! $SKIP_CONDA == 0 ]]; then
-    echo 'Loading libraries ...'
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
 else
-    PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+    source $SCRIPT_DIR/scripts/establish_conda_env.sh --load --installation-manager PIP
+    #PYTHON_COMMAND=${PYTHON_COMMAND:=python}
 fi
 
 for A in "$@"; do
