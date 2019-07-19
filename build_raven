@@ -23,7 +23,7 @@ do
        LIBS_MODE=1
        ;;
      --jobs) MAKE_ARGS="-j $1 ${MAKE_ARGS}"; ;;
---skip-conda)
+     --skip-conda)
       NO_CONDA=1
       LIBS_MODE=2
 #    --help)     ECE_ARGS="${ECE_ARGS} --help"; ;;
@@ -68,6 +68,9 @@ if [[ $LIBS_MODE == 0 ]]; then
 elif  [[ $LIBS_MODE == 1 ]]; then
   echo Establishing Python libraries ...
   . scripts/establish_conda_env.sh --load ${ECE_ARGS}
+elif  [[ $LIBS_MODE == 2 ]]; then
+  echo Establishing Python libraries ...
+  . scripts/establish_conda_env.sh --load ${ECE_ARGS} --installation-manager PIP
 else
   echo No Conda Python libraries ...
 fi

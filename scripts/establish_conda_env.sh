@@ -314,7 +314,7 @@ then
     # check the RC file first
     PYTHON_COMMAND=$(read_ravenrc "PYTHON_COMMAND")
     #If not found through the RC file, will be empty string, so default python
-    PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+    PYTHON_COMMAND=${PYTHON_COMMAND:=python3}
 fi
 export PYTHON_COMMAND
 if [[ $ECE_VERBOSE == 0 ]];
