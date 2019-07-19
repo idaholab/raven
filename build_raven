@@ -4,6 +4,10 @@
 set -e
 
 RAVEN_BUILD_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# source read ravenrc script
+RAVEN_RC_SCRIPT=$RAVEN_BUILD_DIR/scripts/read_ravenrc.sh
+RAVEN_RC_SCRIPT="${RAVEN_RC_SCRIPT//\\//}"
+source $RAVEN_RC_SCRIPT
 
 echo Making RAVEN ...
 
@@ -13,7 +17,16 @@ LIBS_MODE=0 # 0 is "create", 1 is "load"
 #### FUTURE WORK:
 ####   combine "make" and "establish_conda_env.sh" into one installation command
 ECE_ARGS=" "
-NO_CONDA=0
+
+# check installation manager in ravenrc if present
+INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
+if [[ "$INSTALLATION_MANAGER" == "PIP" ]];
+  then
+  LIBS_MODE=2
+else
+  # conda
+  LIBS_MODE=1
+fi
 # read arguments
 while test $# -gt 0
 do
@@ -24,7 +37,6 @@ do
        ;;
      --jobs) MAKE_ARGS="-j $1 ${MAKE_ARGS}"; ;;
      --skip-conda)
-      NO_CONDA=1
       LIBS_MODE=2
 #    --help)     ECE_ARGS="${ECE_ARGS} --help"; ;;
 #    --optional) ECE_ARGS="${ECE_ARGS} --optional"; ;;
@@ -41,8 +53,6 @@ do
   shift
 done
 #### END FUTURE WORK
-# export no conda variable
-export NO_CONDA
 
 if [[ $LIBS_MODE == 0 ]]; then
   #### FUTURE WORK:
