@@ -35,7 +35,6 @@
       <Model class="Models" type="Code">raven_running_rom</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="HistorySet">testPrintHistorySet</Output>
-      <Output class="Databases" type="HDF5">RrunningR_db_test</Output>
       <Output class="OutStreams" type="Print">testPrintHistorySet_dump</Output>
       <Output class="DataObjects" type="PointSet">testPointSet</Output>
       <Output class="OutStreams" type="Print">testPointSet_dump</Output>
@@ -93,10 +92,6 @@
     </MonteCarlo>
   </Samplers>
 
-  <!-- DATABASES -->
-  <Databases>
-    <HDF5 name="RrunningR_db_test" readMode="overwrite"/>
-  </Databases>
 
   <!-- OUTSTREAMS -->
   <OutStreams>
