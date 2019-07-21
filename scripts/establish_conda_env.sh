@@ -12,7 +12,6 @@
 
 ECE_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 RAVEN_UTILS=${ECE_SCRIPT_DIR}/TestHarness/testers/RavenUtils.py
-
 # fail if ANYTHING this script fails (mostly, there are exceptions)
 set -e
 
@@ -39,31 +38,6 @@ function establish_OS ()
 			OSOPTION=""
 			;;
 	esac
-}
-
-function read_ravenrc ()
-{
-  # $1 should be the keyword we're looking for
-  # returns keyword argument through echo
-  ## note that "| xargs" trims leading and trailing whitespace
-  local TARGET=`echo $1 | xargs`
-  # location of the RC file
-  local RCNAME="${ECE_SCRIPT_DIR}/../.ravenrc"
-  # if the RC file exists, loop through it and read keyword arguments split by "="
-  if [ -f "$RCNAME" ]; then
-    while IFS='=' read -r KEY ARG || [[ -n "$keyarg" ]]; do
-      # trim whitespace
-      KEY=`echo $KEY | xargs`
-      ARG=`echo $ARG | xargs`
-      # check for key match
-      if [ "$KEY" = "$TARGET" ]; then
-        echo "$ARG"
-        return 0
-      fi
-    done < ${RCNAME}
-  fi
-  # if not found, return empty
-  echo ''
 }
 
 function find_conda_defs ()
@@ -224,7 +198,10 @@ function set_install_settings()
 
 
 # main
-
+# source read ravenrc script
+RAVEN_RC_SCRIPT=$ECE_SCRIPT_DIR/read_ravenrc.sh
+RAVEN_RC_SCRIPT="${RAVEN_RC_SCRIPT//\\//}"
+source $RAVEN_RC_SCRIPT
 # set default operation
 ECE_MODE=1 # 1 for loading, 2 for install, 0 for help
 INSTALL_OPTIONAL="" # --optional if installing optional, otherwise blank
@@ -313,8 +290,12 @@ if [ -z $PYTHON_COMMAND ];
 then
     # check the RC file first
     PYTHON_COMMAND=$(read_ravenrc "PYTHON_COMMAND")
+    local_py_command=python3
+    if ! python_com="$(type -p python3)" || [[ -z $python_com ]]; then
+      local_py_command=python
+    fi
     #If not found through the RC file, will be empty string, so default python
-    PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+    PYTHON_COMMAND=${PYTHON_COMMAND:=$local_py_command}
 fi
 export PYTHON_COMMAND
 if [[ $ECE_VERBOSE == 0 ]];
