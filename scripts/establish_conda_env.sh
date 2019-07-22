@@ -162,11 +162,11 @@ function display_usage()
 	echo '    --py3'
 	echo '    When installing, make raven_libraries use Python 3'
 	echo ''
-    echo ''
-    echo '    --py2'
-    echo '    When installing, make raven_libraries use Python 2'
-    echo ''
-    echo ''
+        echo ''
+        echo '    --py2'
+        echo '    DEPRECATED: When installing, make raven_libraries use Python 2'
+        echo ''
+        echo ''
 	echo '    --quiet'
 	echo '      Runs script with minimal output'
 	echo ''
@@ -269,7 +269,7 @@ then
   echo ...   Verbosity: $ECE_VERBOSE
   echo ...   Clean: $ECE_CLEAN
   echo ...    Mode: $INSTALL_MANAGER
-  if [[ "$INSTALL_MANAGER" != "CONDA" ]];
+  if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
     echo ...   Conda Defs: $CONDA_DEFS
   fi

@@ -296,9 +296,6 @@ def parse_conda_for_os(libs, op_sys):
   return libs
 
 if __name__ == '__main__':
-  #if not in_python_3():
-  #  raise EnvironmentError("Python 3.x not detected. RAVEN "+
-  #                         "deprecated Python 2.7! Please install Python 3.x distribution!")
   # allow the operating system to be specified
   op_sys_arg = None
   condaForge = False
