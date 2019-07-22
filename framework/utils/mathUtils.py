@@ -522,17 +522,21 @@ def numBinsDraconis(data, low=None, alternateOkay=True):
     @ Out, numBins, int, optimal number of bins
     @ Out, binEdges, np.array, location of the bins
   """
-  iqr = np.percentile(data, 75) - np.percentile(data, 25)
+  try:
+    iqr = np.percentile(data, 75) - np.percentile(data, 25)
   # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
-  if iqr > 0.0:
-    size = 2.0 * iqr / np.cbrt(data.size)
-    numBins = int(np.ceil((max(data) - min(data))/size))
+    if iqr > 0.0:
+      size = 2.0 * iqr / np.cbrt(data.size)
+      numBins = int(np.ceil((max(data) - min(data))/size))
+    else:
+      raise TypeError
+  except:
   # if there's not, with approval we can use the sqrt of the number of entries instead
-  elif alternateOkay:
-    numBins = int(np.ceil(np.sqrt(data.size)))
-  else:
-    raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
-  # if a minimum number of bins have been suggested, check that we use enough
+    if alternateOkay:
+      numBins = int(np.ceil(np.sqrt(data.size)))
+    else:
+      raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
+    # if a minimum number of bins have been suggested, check that we use enough
   if low is not None:
     numBins = max(numBins, low)
   # for convenience, find the edges of the bins as well
@@ -557,88 +561,6 @@ def diffWithInfinites(a,b):
   else:
     res = a-b
   return res
-
-def isSingleValued(val,nanOk=True):
-  """
-    Determine if a single-entry value (by traditional standards).
-    Single entries include strings, numbers, NaN, inf, None
-    NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAScalar, bool, result
-  """
-  # TODO most efficient order for checking?
-  return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
-
-def isAString(val):
-  """
-    Determine if a string value (by traditional standards).
-    @ In, val, object, check
-    @ Out, isAString, bool, result
-  """
-  return isinstance(val, six.string_types)
-
-def isAFloatOrInt(val,nanOk=True):
-  """
-    Determine if a float or integer value
-    Should be faster than checking (isAFloat || isAnInteger) due to checking against np.number
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAFloatOrInt, bool, result
-  """
-  if isinstance(val,six.integer_types) or  isinstance(val,(float,np.number)):
-    # bools are ints, unfortunately
-    if isABoolean(val):
-      return False
-    # nan and inf are floats
-    if nanOk:
-      return True
-    elif val not in [np.inf,np.nan]:
-      return True
-  return False
-
-def isAFloat(val,nanOk=True):
-  """
-    Determine if a float value (by traditional standards).
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAFloat, bool, result
-  """
-  if isinstance(val,(float,np.number)):
-    # exclude ints, which are np.number
-    if isAnInteger(val):
-      return False
-    # np.float32 (or 16) is niether a float nor a np.float (it is a np.number)
-    if nanOk:
-      return True
-    elif val not in [np.nan,np.inf]:
-      return True
-  return False
-
-def isAnInteger(val,nanOk=False):
-  """
-    Determine if an integer value (by traditional standards).
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAnInteger, bool, result
-  """
-  if isinstance(val,six.integer_types) or isinstance(val,np.integer):
-    # exclude booleans
-    if isABoolean(val):
-      return False
-    return True
-  # also include inf and nan, if requested
-  if nanOk and val in [np.nan,np.inf]:
-    return True
-  return False
-
-def isABoolean(val):
-  """
-    Determine if a boolean value (by traditional standards).
-    @ In, val, object, check
-    @ Out, isABoolean, bool, result
-  """
-  return isinstance(val,(bool,np.bool_))
 
 def computeTruncatedTotalLeastSquare(X, Y, truncationRank):
   """
@@ -751,3 +673,15 @@ def convertSinCosToSinPhase(A, B):
   p = np.arctan2(B, A)
   C = A / np.cos(p)
   return C, p
+
+def evalFourier(period,C,p,t):
+  """
+    Evaluate Fourier Singal by coefficients C, p, t for the equation C*sin(kt + p)
+    @ In, C, float, equivalent sine-only amplitude
+    @ In, p, float, phase shift of sine-only waveform
+    @ In, t, np.array, list of values for the time
+    @ Out fourier, np.array, results of the transfered signal
+  """
+  fourier = C * np.sin(2. * np.pi * t / period + p)
+  return fourier
+

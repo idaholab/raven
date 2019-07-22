@@ -45,6 +45,7 @@ class RavenErrors(Tester):
     params.add_param('skip_if_env', '', 'Skip test if this environmental variable is defined')
     params.add_param('test_interface_only', 'False',
                      'Test the interface only (without running the driven code')
+    params.add_param('python3_only', False, 'if true, then only use with Python3')
     return params
 
   def get_command(self):
@@ -56,9 +57,8 @@ class RavenErrors(Tester):
     ravenflag = ''
     if self.specs['test_interface_only'].lower() == 'true':
       ravenflag = 'interfaceCheck '
-    if RavenUtils.in_python_3():
-      return ' '.join(["python3", raven, ravenflag, self.specs["input"]])
-    return ' '.join(["python", raven, ravenflag, self.specs["input"]])
+    return ' '.join([self._get_python_command(), raven, ravenflag,
+                     self.specs["input"]])
 
 
   def __init__(self, name, params):
@@ -99,6 +99,9 @@ class RavenErrors(Tester):
       if not os.path.exists(lib):
         self.set_skip('skipped (Missing library: "'+lib+'")')
         return False
+    if self.specs['python3_only'] and not RavenUtils.in_python_3():
+      self.set_skip('Python 3 only')
+      return False
     if len(self.required_executable) > 0 and \
        not os.path.exists(self.required_executable):
       self.set_skip('skipped (Missing executable: "'+self.required_executable+'")')
@@ -130,3 +133,12 @@ class RavenErrors(Tester):
         self.set_success()
         return
     self.set_fail('The expected Error: ' +self.specs['expect_err']+' is not raised!')
+
+  def check_exit_code(self, _):
+    """
+      Allow any exit code (but this could be extended to have an expected exit
+      code in the parameters at some point)
+      @ In, exit_code, int, the exit code of the test command.
+      @ Out, check_exit_code, bool, always True since errors are expected
+    """
+    return True

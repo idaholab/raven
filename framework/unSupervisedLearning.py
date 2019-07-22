@@ -647,7 +647,6 @@ class SciKitLearn(unSupervisedLearning):
               covariance[row,col] = covariance[row,col] * rowSigma * colSigma
         self.metaDict['covars'] = covariance
     elif 'decomposition' == self.SKLtype:
-
       if 'embeddingVectors' not in self.outputDict['outputs']:
         if hasattr(self.Method, 'transform'):
           embeddingVectors = self.Method.transform(self.normValues)

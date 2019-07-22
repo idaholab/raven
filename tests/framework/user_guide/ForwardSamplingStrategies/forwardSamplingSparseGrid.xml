@@ -3,8 +3,8 @@
   <RunInfo>
     <JobName>RunDir/SparseGrid</JobName>
     <WorkingDir>RunDir/SparseGrid</WorkingDir>
-    <Sequence>sample,train,validateModel,validateROM,output_print,output_plot</Sequence>
-    <batchSize>8</batchSize>
+    <Sequence>sample,train,validateModel,validateROM,rom_stats,output_print,output_plot</Sequence>
+    <batchSize>3</batchSize>
   </RunInfo>
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/SparseGrid</name>
@@ -15,129 +15,61 @@
       This test is an example for the user guide to draw from.  It typifies a workflow for
       using the SparseGrid sampler, and constructing a corresponding ROM.
     </description>
+    <revisions>
+      <revision date="2019-05-08" author="burlip">modified file to replace the Analyticalbateman example with the projectile example</revision>
+    </revisions>
   </TestInfo>
 
-  <Files>
-    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
-  </Files>
-
   <Models>
-    <Code name="testModel" subType="GenericCode">
-      <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
-      <clargs arg="python" type="prepend"/>
-      <clargs arg="" extension=".xml" type="input"/>
-      <clargs arg="" extension=".csv" type="output"/>
-    </Code>
+    <ExternalModel subType="" name="projectile" ModuleToLoad="../../AnalyticModels/projectile.py">
+      <variables>x,y,v0,angle,r,t,timeOption</variables>
+    </ExternalModel>
     <ROM name="rom" subType="GaussPolynomialRom">
-      <Target>A,B,C,D</Target>
+      <Target>r,t</Target>
       <Features>
-        sigma-A,sigma-B,sigma-C,sigma-D,
-        decay-A,decay-B,decay-C,decay-D
+        v0,angle
       </Features>
+      <pivotParameter> t </pivotParameter>
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>2</PolynomialOrder>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">sigma-A</Interpolation>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">sigma-B</Interpolation>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">sigma-C</Interpolation>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">sigma-D</Interpolation>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">decay-A</Interpolation>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">decay-B</Interpolation>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">decay-C</Interpolation>
-      <Interpolation poly="Legendre" quad="Legendre" weight="1">decay-D</Interpolation>
+      <Interpolation poly="Legendre" quad="Legendre" weight="1">v0</Interpolation>
+      <Interpolation poly="Legendre" quad="Legendre" weight="1">angle</Interpolation>
     </ROM>
   </Models>
 
   <Distributions>
-    <Uniform name="sigmaA">
-      <lowerBound>6.9</lowerBound>
-      <upperBound>8.1</upperBound>
-    </Uniform>
-    <Uniform name="sigmaB">
-      <lowerBound>3.9</lowerBound>
-      <upperBound>5.1</upperBound>
-    </Uniform>
-    <Uniform name="sigmaC">
-      <lowerBound>1.9</lowerBound>
-      <upperBound>3.1</upperBound>
-    </Uniform>
-    <Uniform name="sigmaD">
-      <lowerBound>0.9</lowerBound>
-      <upperBound>1.1</upperBound>
-    </Uniform>
-    <Uniform name="decayConstantA">
-      <lowerBound>3.8e-9</lowerBound>
-      <upperBound>5.2e-9</upperBound>
-    </Uniform>
-    <Uniform name="decayConstantB">
-      <lowerBound>5.8e-9</lowerBound>
-      <upperBound>7.2e-9</upperBound>
-    </Uniform>
-    <Uniform name="decayConstantC">
-      <lowerBound>6.8e-9</lowerBound>
-      <upperBound>8.2e-9</upperBound>
-    </Uniform>
-    <Uniform name="decayConstantD">
-      <lowerBound>7.8e-9</lowerBound>
-      <upperBound>9.2e-9</upperBound>
+    <Normal name="vel_dist">
+      <mean>30</mean>
+      <sigma>5</sigma>
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
+    </Normal>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
     </Uniform>
   </Distributions>
 
   <Samplers>
     <MonteCarlo name="mc">
       <samplerInit>
-        <limit>20</limit>
+        <limit>100</limit>
         <initialSeed>42</initialSeed>
         <reseedEachIteration>True</reseedEachIteration>
       </samplerInit>
-      <variable name="sigma-A">
-        <distribution>sigmaA</distribution>
+      <variable name="v0">
+        <distribution>vel_dist</distribution>
       </variable>
-      <variable name="sigma-B">
-        <distribution>sigmaB</distribution>
-      </variable>
-      <variable name="sigma-C">
-        <distribution>sigmaC</distribution>
-      </variable>
-      <variable name="sigma-D">
-        <distribution>sigmaD</distribution>
-      </variable>
-      <variable name="decay-A">
-        <distribution>decayConstantA</distribution>
-      </variable>
-      <variable name="decay-B">
-        <distribution>decayConstantB</distribution>
-      </variable>
-      <variable name="decay-C">
-        <distribution>decayConstantC</distribution>
-      </variable>
-      <variable name="decay-D">
-        <distribution>decayConstantD</distribution>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
       </variable>
     </MonteCarlo>
     <SparseGridCollocation name="SG">
-      <variable name="sigma-A">
-        <distribution>sigmaA</distribution>
+      <variable name="v0">
+        <distribution>vel_dist</distribution>
       </variable>
-      <variable name="sigma-B">
-        <distribution>sigmaB</distribution>
-      </variable>
-      <variable name="sigma-C">
-        <distribution>sigmaC</distribution>
-      </variable>
-      <variable name="sigma-D">
-        <distribution>sigmaD</distribution>
-      </variable>
-      <variable name="decay-A">
-        <distribution>decayConstantA</distribution>
-      </variable>
-      <variable name="decay-B">
-        <distribution>decayConstantB</distribution>
-      </variable>
-      <variable name="decay-C">
-        <distribution>decayConstantC</distribution>
-      </variable>
-      <variable name="decay-D">
-        <distribution>decayConstantD</distribution>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
       </variable>
       <ROM class="Models" type="ROM">rom</ROM>
     </SparseGridCollocation>
@@ -146,58 +78,66 @@
   <DataObjects>
     <PointSet name="inputPlaceholder">
       <Input>
-        sigma-A,sigma-B,sigma-C,sigma-D,
-        decay-A,decay-B,decay-C,decay-D
+        v0,angle
       </Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="samplesModel">
       <Input>
-        sigma-A,sigma-B,sigma-C,sigma-D,
-        decay-A,decay-B,decay-C,decay-D
+        v0,angle
       </Input>
-      <Output>A,B,C,D</Output>
+      <Output>r,t</Output>
     </PointSet>
     <PointSet name="samplesROM">
       <Input>
-        sigma-A,sigma-B,sigma-C,sigma-D,
-        decay-A,decay-B,decay-C,decay-D
+        v0,angle
       </Input>
-      <Output>A,B,C,D</Output>
+      <Output>r,t</Output>
     </PointSet>
     <HistorySet name="histories">
       <Input>
-        sigma-A,sigma-B,sigma-C,sigma-D,
-        decay-A,decay-B,decay-C,decay-D
+        v0,angle
       </Input>
-      <Output>A,B,C,D,time</Output>
+      <Output>x,y,r,t</Output>
+      <options>
+      <pivotParameter> t </pivotParameter>
+      </options>
     </HistorySet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <Steps>
     <MultiRun name="sample">
-      <Input class="Files" type="input">referenceInput.xml</Input>
-      <Model class="Models" type="Code">testModel</Model>
+      <Input  class="DataObjects" type="PointSet" >inputPlaceholder</Input>
+      <Model  class="Models"       type="ExternalModel">projectile</Model>
       <Sampler class="Samplers" type="SparseGridCollocation">SG</Sampler>
       <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">histories</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
     <MultiRun name="validateModel">
-      <Input class="Files" type="input">referenceInput.xml</Input>
-      <Model class="Models" type="Code">testModel</Model>
+      <Input  class="DataObjects" type="PointSet" >inputPlaceholder</Input>
+      <Model  class="Models"       type="ExternalModel">projectile</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
-      <Output class="DataObjects" type="PointSet">samplesROM</Output>
+      <Output class="DataObjects" type="PointSet">samplesModel</Output>
     </MultiRun>
     <MultiRun name="validateROM">
       <Input class="DataObjects" type="PointSet">inputPlaceholder</Input>
       <Model class="Models" type="ROM">rom</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
-      <Output class="DataObjects" type="PointSet">samplesModel</Output>
+      <Output class="DataObjects" type="PointSet">samplesROM</Output>
     </MultiRun>
+    <IOStep name="rom_stats">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
     <IOStep name="output_print">
       <Input class="DataObjects" type="HistorySet">histories</Input>
       <Input class="DataObjects" type="PointSet">samplesModel</Input>
       <Input class="DataObjects" type="PointSet">samplesROM</Input>
-      <Input class="Models" type="ROM">rom</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">samplesModel</Output>
       <Output class="OutStreams" type="Print">samplesROM</Output>
       <Output class="OutStreams" type="Print">histories</Output>
@@ -211,10 +151,6 @@
       <Output class="OutStreams" type="Plot">samplesModelPlot3D</Output>
       <Output class="OutStreams" type="Plot">samplesROMPlot3D</Output>
     </IOStep>
-    <RomTrainer name="train">
-      <Input class="DataObjects" type="HistorySet">histories</Input>
-      <Output class="Models" type="ROM">rom</Output>
-    </RomTrainer>
   </Steps>
 
   <OutStreams>
@@ -231,62 +167,40 @@
       <source>histories</source>
     </Print>
     <Print name="rom_output">
-      <type>xml</type>
-      <source>rom</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
     <Plot name="historyPlot" overwrite="false" verbosity="debug">
         <plotSettings>
-            <gridSpace>2 2</gridSpace>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|A</y>
-                <color>blue</color>
-                <gridLocation>
-                  <x>0</x>
-                  <y>0</y>
-                </gridLocation>
-                <xlabel>time (s)</xlabel>
-                <ylabel>evolution A(kg)</ylabel>
-            </plot>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|B</y>
-                <color>red</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>time (s)</xlabel>
-                <ylabel>evolution B(kg)</ylabel>
-            </plot>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|C</y>
-                <color>yellow</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>time (s)</xlabel>
-                <ylabel>evolution C(kg)</ylabel>
-            </plot>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|D</y>
-                <color>black</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>time (s)</xlabel>
-                <ylabel>evolution D(kg)</ylabel>
-            </plot>
-
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>histories|Input|v0</x>
+          <y>histories|Output|r</y>
+          <kwargs>
+            <color>blue</color>
+          </kwargs>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>range</ylabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>histories|Input|angle</x>
+          <y>histories|Output|r</y>
+          <kwargs>
+            <color>orange</color>
+          </kwargs>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>angle</xlabel>
+          <ylabel>range</ylabel>
+        </plot>
         </plotSettings>
         <actions>
             <how>png</how>
@@ -297,66 +211,35 @@
     </Plot>
     <Plot name="samplesModelPlot3D" overwrite="false" verbosity="debug">
       <plotSettings>
-        <gridSpace>2 2</gridSpace>
-        <plot>
-          <type>scatter</type>
-          <x>samplesModel|Input|sigma-A</x>
-          <y>samplesModel|Input|decay-A</y>
-          <z>samplesModel|Output|A</z>
-          <color>blue</color>
-          <gridLocation>
-            <x>0</x>
-            <y>0</y>
-          </gridLocation>
-          <xlabel>sigma</xlabel>
-          <ylabel>decay</ylabel>
-          <zlabel>final A</zlabel>
-        </plot>
-        <plot>
-          <type>scatter</type>
-          <x>samplesModel|Input|sigma-B</x>
-          <y>samplesModel|Input|decay-B</y>
-          <z>samplesModel|Output|B</z>
-          <color>red</color>
-          <gridLocation>
-            <x>1</x>
-            <y>0</y>
-          </gridLocation>
-          <xlabel>sigma</xlabel>
-          <ylabel>decay</ylabel>
-          <zlabel>final B</zlabel>
-        </plot>
-        <plot>
-          <type>scatter</type>
-          <x>samplesModel|Input|sigma-C</x>
-          <y>samplesModel|Input|decay-C</y>
-          <z>samplesModel|Output|C</z>
-          <color>yellow</color>
-          <gridLocation>
-            <x>0</x>
-            <y>1</y>
-          </gridLocation>
-          <xlabel>sigma</xlabel>
-          <ylabel>decay</ylabel>
-          <zlabel>final C</zlabel>
-        </plot>
-        <plot>
-          <type>scatter</type>
-          <x>samplesModel|Input|sigma-D</x>
-          <y>samplesModel|Input|decay-D</y>
-          <z>samplesModel|Output|D</z>
-          <color>black</color>
-          <gridLocation>
-            <x>1</x>
-            <y>1</y>
-          </gridLocation>
-          <xlabel>sigma</xlabel>
-          <ylabel>decay</ylabel>
-          <zlabel>final D</zlabel>
-        </plot>
-        <xlabel>sigma</xlabel>
-        <ylabel>decay</ylabel>
-        <zlabel>final response</zlabel>
+        <gridSpace>2 1</gridSpace>
+             <plot>
+                <type>scatter</type>
+                <x>samplesModel|Input|v0</x>
+                <y>samplesModel|Input|angle</y>
+                <z>samplesModel|Output|r</z>
+                <c>blue</c>
+                <gridLocation>
+                  <x>0</x>
+                  <y>0</y>
+                </gridLocation>
+                <xlabel>velocity</xlabel>
+                <ylabel>angle</ylabel>
+                <zlabel>range</zlabel>
+            </plot>
+            <plot>
+                <type>scatter</type>
+                <x>samplesModel|Input|v0</x>
+                <y>samplesModel|Input|angle</y>
+                <z>samplesModel|Output|t</z>
+                <c>orange</c>
+                <gridLocation>
+                    <x>1</x>
+                    <y>0</y>
+                </gridLocation>
+                <xlabel>velocity</xlabel>
+                <ylabel>angle</ylabel>
+                <zlabel>time</zlabel>
+            </plot>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -367,66 +250,35 @@
     </Plot>
     <Plot name="samplesROMPlot3D" overwrite="false" verbosity="debug">
       <plotSettings>
-        <gridSpace>2 2</gridSpace>
-        <plot>
-          <type>scatter</type>
-          <x>samplesROM|Input|sigma-A</x>
-          <y>samplesROM|Input|decay-A</y>
-          <z>samplesROM|Output|A</z>
-          <color>blue</color>
-          <gridLocation>
-            <x>0</x>
-            <y>0</y>
-          </gridLocation>
-          <xlabel>sigma</xlabel>
-          <ylabel>decay</ylabel>
-          <zlabel>final A</zlabel>
-        </plot>
-        <plot>
-          <type>scatter</type>
-          <x>samplesROM|Input|sigma-B</x>
-          <y>samplesROM|Input|decay-B</y>
-          <z>samplesROM|Output|B</z>
-          <color>red</color>
-          <gridLocation>
-              <x>1</x>
-              <y>0</y>
-          </gridLocation>
-          <xlabel>sigma</xlabel>
-          <ylabel>decay</ylabel>
-          <zlabel>final B</zlabel>
-        </plot>
-        <plot>
-          <type>scatter</type>
-          <x>samplesROM|Input|sigma-C</x>
-          <y>samplesROM|Input|decay-C</y>
-          <z>samplesROM|Output|C</z>
-          <color>yellow</color>
-          <gridLocation>
-            <x>0</x>
-            <y>1</y>
-          </gridLocation>
-          <xlabel>sigma</xlabel>
-          <ylabel>decay</ylabel>
-          <zlabel>final C</zlabel>
-        </plot>
-        <plot>
-          <type>scatter</type>
-          <x>samplesROM|Input|sigma-D</x>
-          <y>samplesROM|Input|decay-D</y>
-          <z>samplesROM|Output|D</z>
-          <color>black</color>
-          <gridLocation>
-            <x>1</x>
-            <y>1</y>
-          </gridLocation>
-          <xlabel>sigma</xlabel>
-          <ylabel>decay</ylabel>
-          <zlabel>final D</zlabel>
-        </plot>
-        <xlabel>sigma</xlabel>
-        <ylabel>decay</ylabel>
-        <zlabel>final response</zlabel>
+        <gridSpace>2 1</gridSpace>
+             <plot>
+                <type>scatter</type>
+                <x>samplesROM|Input|v0</x>
+                <y>samplesROM|Input|angle</y>
+                <z>samplesROM|Output|r</z>
+                <c>blue</c>
+                <gridLocation>
+                  <x>0</x>
+                  <y>0</y>
+                </gridLocation>
+                <xlabel>velocity</xlabel>
+                <ylabel>angle</ylabel>
+                <zlabel>range</zlabel>
+            </plot>
+            <plot>
+                <type>scatter</type>
+                <x>samplesROM|Input|v0</x>
+                <y>samplesROM|Input|angle</y>
+                <z>samplesROM|Output|t</z>
+                <c>orange</c>
+                <gridLocation>
+                    <x>1</x>
+                    <y>0</y>
+                </gridLocation>
+                <xlabel>velocity</xlabel>
+                <ylabel>angle</ylabel>
+                <zlabel>time</zlabel>
+            </plot>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -436,5 +288,4 @@
       </actions>
     </Plot>
   </OutStreams>
-
 </Simulation>

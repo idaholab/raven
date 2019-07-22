@@ -1,0 +1,78 @@
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>sample_mirrow</WorkingDir>
+    <Sequence>sample, stats</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample" re-seeding="42">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">model</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+    </MultiRun>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="PointSet">stats</Output>
+      <Output class="OutStreams" type="Print">stats</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>x, y</Input>
+    </PointSet>
+    <PointSet name="samples">
+      <Input>x, y</Input>
+      <Output>x1</Output>
+    </PointSet>
+    <PointSet name="stats">
+      <Output>expectedValue_x, sigma_x, skewness_x, kurtosis_x, expectedValue_y, sigma_y, skewness_y, kurtosis_y, expectedValue_x1, sigma_x1, skewness_x1, kurtosis_x1</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <Normal name="x_dist">
+      <mean>100.0</mean>
+      <sigma>50.0</sigma>
+    </Normal>
+    <Normal name="y_dist">
+      <mean>100.0</mean>
+      <sigma>50.0</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>100</limit>
+      </samplerInit>
+      <variable name="x">
+        <distribution>x_dist</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>y_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../PostProcessors/BasicStatistics/simpleMirrowModel" name="model" subType="">
+      <variables>x, y, x1</variables>
+    </ExternalModel>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <expectedValue prefix="expectedValue">x, y, x1</expectedValue>
+      <sigma prefix="sigma">x, y, x1</sigma>
+      <skewness prefix="skewness">x, y, x1</skewness>
+      <kurtosis prefix="kurtosis">x, y, x1</kurtosis>
+    </PostProcessor>
+  </Models>
+
+  <OutStreams>
+    <Print name="stats">
+      <type>csv</type>
+      <source>stats</source>
+    </Print>
+  </OutStreams>
+</Simulation>

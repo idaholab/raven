@@ -12,9 +12,8 @@
         to the defect mitigation reported in the issue #704
     </description>
     <revisions>
-        <revision author="alfoa" date="2018-08-25">
-            Added the test for testing the mitigation for the issue #704
-        </revision>
+      <revision author="alfoa" date="2018-08-25">Added the test for testing the mitigation for the issue #704</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -76,7 +75,7 @@
       <ROM class="Models" type="ROM">accelerated_ROM</ROM>
       <Function class="Functions" type="External">decision</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">sampledPoints</TargetEvaluation>
-      <Convergence forceIteration="False" limit="3000" subGridTol="1e-4" persistence="10" weight="CDF">1e-3</Convergence>
+      <Convergence forceIteration="False" limit="3000" persistence="10" subGridTol="1e-4" weight="CDF">1e-3</Convergence>
       <variable name="x1">
         <distribution>x1_dst</distribution>
       </variable>
@@ -107,8 +106,7 @@
 
   <Functions>
     <External file="Adapt/adaptive_test_goal" name="decision">
-      <variable>y1</variable>
-      <variable>y2</variable>
+      <variables>y1,y2</variables>
     </External>
   </Functions>
 

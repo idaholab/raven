@@ -171,7 +171,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
     for key,val in first.items():
       if key in skip:
         continue
-      if isinstance(val,(float,int,np.int64)):
+      if isinstance(val,(float,int,np.int64,np.int32)):
         pres = checkFloat('',val,second[key][0],tol,update=False)
       elif type(val).__name__ in ('str','unicode','str_','unicode_'):
         pres = checkSame('',val,second[key][0],update=False)

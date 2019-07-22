@@ -6,6 +6,12 @@
     <created>2018-09-21</created>
     <classesTested>PostProcessors.DataMining, Metrics.DTW</classesTested>
     <description>Workshop test: Time dependent data mining with DTW metric analysis</description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -61,14 +67,14 @@
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="HistorySet">outMC</Output>
+      <Output class="DataObjects" type="HistorySet">outMCRaw</Output>
     </MultiRun>
     <IOStep name="plotAllHists">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Input class="DataObjects" type="HistorySet">outMCRaw</Input>
       <Output class="OutStreams" type="Plot">plot1</Output>
     </IOStep>
     <PostProcess name="clustering">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Input class="DataObjects" type="HistorySet">outMCRaw</Input>
       <Model class="Models" type="PostProcessor">hierarchical</Model>
       <Output class="DataObjects" type="HistorySet">outMC</Output>
     </PostProcess>
@@ -93,9 +99,9 @@
           <type>line</type>
           <interpolationType>cubic</interpolationType>
           <interpPointsX>100</interpPointsX>
-          <x>outMC|Output|time</x>
-          <y>outMC|Output|y</y>
-          <z>outMC|Output|z</z>
+          <x>outMCRaw|Output|time</x>
+          <y>outMCRaw|Output|y</y>
+          <z>outMCRaw|Output|z</z>
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
@@ -176,13 +182,17 @@
     </PointSet>
     <HistorySet name="outMC">
       <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
+      <Output>time,x,y,z,labels</Output>
     </HistorySet>
     <HistorySet name="outMC0">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="outMC1">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="outMCRaw">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>

@@ -191,7 +191,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("P", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Q", InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
     inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputData.BoolType))
     ### ARMA zero filter
@@ -208,6 +208,15 @@ class ROM(Dummy):
     specFourier.addParam("variables", InputData.StringListType, True)
     specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))
     inputSpecification.addSub(specFourier)
+    ### ARMA peaks
+    peaks = InputData.parameterInputFactory('Peaks')
+    window = InputData.parameterInputFactory('window',contentType=InputData.FloatListType)
+    window.addParam('width', InputData.FloatType, True)
+    peaks.addSub(window)
+    peaks.addParam('threshold', InputData.FloatType)
+    peaks.addParam('target', InputData.StringType)
+    peaks.addParam('period', InputData.FloatType)
+    inputSpecification.addSub(peaks)
     # inputs for neural_network
     inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("activation", InputData.StringType))

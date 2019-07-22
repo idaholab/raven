@@ -73,55 +73,6 @@ else:
   print('     ',msg[0])
 
 
-
-getpot = open(os.path.join('parse','example_getpot.i'),'r')
-gtree = TS.parse(getpot,dType='GetPot')
-#third test GetPot to XML
-print('Testing GetPot to XML ...')
-strTree = TS.tostring(gtree)
-fname = os.path.join('parse','fromGetpotToXml.xml')
-open(fname,'w').write(toString(strTree))
-same,msg = checkSameFile(open(fname,'r'),open(os.path.join('gold',fname),'r'))
-if same:
-  results['passed']+=1
-  print('  ... passed!')
-else:
-  results['failed']+=1
-  print('  ... failures in GetPot to XML:')
-  print('     ',msg[0])
-
-
-#finally test XML to GetPot
-print('Testing XML to GetPot ...')
-strTree = tree.printGetPot()
-fname = os.path.join('parse','fromXmltoGetpot.i')
-open(fname,'w').write(strTree)
-same,msg = checkSameFile(open(fname,'r'),open(os.path.join('gold',fname),'r'))
-if same:
-  results['passed']+=1
-  print('  ... passed!')
-else:
-  results['failed']+=1
-  print('  ... failures in GetPot to XML:')
-  print('     ',msg[0])
-
-
-#second test Getpot to GetPot
-print('Testing GetPot to GetPot ...')
-getpot = open(os.path.join('parse','example_getpot.i'),'r')
-gtree = TS.parse(getpot,dType='GetPot')
-strTree = gtree.printGetPot()
-fname = os.path.join('parse','fromGetpotToGetpot.i')
-open(fname,'w').write(strTree)
-same,msg = checkSameFile(open(fname,'r'),open(os.path.join('gold',fname),'r'))
-if same:
-  results['passed']+=1
-  print('  ... passed!')
-else:
-  results['failed']+=1
-  print('  ... failures in GetPot to Getpot:')
-  print('     ',msg[0])
-
 print('Results:', list('%s: %i' %(k,v) for k,v in results.items()))
 sys.exit(results['failed'])
 

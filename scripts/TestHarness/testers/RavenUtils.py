@@ -35,7 +35,9 @@ def in_python_3():
     @ In, None
     @ Out, in_python_3, boolean, True if should be using python3.
   """
-  return os.environ.get("CHECK_PYTHON3", "0") == "1"
+  if sys.version_info.major > 2:
+    return True
+  return False
 
 #This list is made of (module, how to check the version, minimum version,
 # quality assurance module version, maximum version)
@@ -125,7 +127,11 @@ def module_report(module, version=''):
      The version is the version number or "NA" if not known.
   """
   if in_python_3():
-    python = 'python3'
+    if os.name == "nt":
+      #Command is python on windows in conda and Python.org install
+      python = 'python'
+    else:
+      python = 'python3'
   else:
     python = 'python'
   try:
@@ -308,10 +314,10 @@ if __name__ == '__main__':
   if '--conda-forge' in sys.argv:
     # just install command is generated
     condaForge = True
-  if '--py3' in sys.argv:
+  if '--py3' in sys.argv or '--py2' not in sys.argv:
     pythonIndex = __condaList.index(("python", "2.7"))
     __condaList[pythonIndex] = ("python", "3")
-    __condaForgeList.append(("matplotlib", "2"))
+    __condaForgeList = [("pyside2", ""),]
 
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')

@@ -13,7 +13,7 @@ without exploiting, through learning approaches,
 the information made available from the outcomes of evaluation previously performed (adaptive sampling) and the
 common system evolution (patterns) that different sampled calculations can generate in the phase space (Dynamic Event Tree).
 
-As mentioned in Section~\ref{susub:OverviewSamplers}, RAVEN has
+As mentioned in Section~\ref{sub:tutorialMultiRun}, RAVEN has
 several different \textit{\textbf{Forward}} samplers:
 \begin{itemize}
   \item \textit{Monte-Carlo}
@@ -51,59 +51,43 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}{RunInfo}
-     As discussed in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} sets up the analysis
-     that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are sequentially run
-     using 12 processors (\xmlNode{batchSize}). This means that
-     12 instances of the driven code are run simultaneously. Every time a simulation ends, a new one is launched.
+     As discussed in Section~\ref{sub:singleRun}, the \textit{RunInfo} \textbf{Entity} sets up the analysis
+     that the user wants to perform. The number of steps specified in (\xmlNode{Sequence}) are sequentially run using the number of processors assigned in (\xmlNode{batchSize}). 
      Note that the \xmlNode{JobName} is not required, but is useful in identifying the input file.
-   \item \textbf{\textit{Files}}:
-     \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}{Files}
-     Since the driven code uses a single input file, in this section the original input is identified and
-     named. As detailed in the user manual, the attribute \xmlAttr{name} represents the alias that is used in
-     all the other input blocks in order to refer to this file.
    \item \textbf{\textit{Models}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}{Models}
-     The Model used in this example is the
-     \textbf{AnalyticalBateman} external model, which is defined in section \ref{sec:analyticalbateman}.  This model uses a keyword-based input file
-     and exports its output file in a CSV format, so the \textit{GenericCode} interface is used.
+     The Model used in this example is the \textbf{Projectile} external model, which is defined in section \ref{sec:analyticalbateman}.  
    \item \textbf{\textit{Distributions}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}{Distributions}
      In the \xmlNode{Distributions} block, the stochastic model for the uncertainties treated by the
      \xmlNode{Sampler} is defined. In this case two distributions are defined:
-     \begin{itemize}
-      \item $sigma \sim \mathbb{U}(1,10)$, used to model the uncertainties
-        associated with the \textit{sigma} Model variables
-      \item  $decayConstant \sim \mathbb{U}(0.5e-8,1e-8)$,  used to
-        model the uncertainties associated with the Model variable \textit{decay constants}.  Note that the
-        same distribution can be re-used for multiple input variables, while still keeping those variables
-        independent.
-     \end{itemize}
+  \begin{itemize}
+    \item $vel\_dist \sim \mathbb{N}(30,5)$, used to model the uncertainties
+    associated with  the \textit{velocity};
+    \item  $angle\_dist \sim \mathbb{U}(5,85)$,  used to
+    model the uncertainties associated with the \textit{angle}.
+  \end{itemize}
    \item \textbf{\textit{Samplers}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}{Samplers}
-      To employ the Monte-Carlo sampling strategy ($100$ samples), a
-      \xmlNode{MonteCarlo} node needs to be defined.  The
-      Monte-Carlo method is employed on $eight$ model variables, each of which are listed by name
-      and are associated with a distribution.
-      Note that all the \textit{decay-\*} and
-      \textit{sigma-\*} variables are associated with the distributions
-      $decayConstant$ and $sigma$, respectively.
+      To employ the Monte-Carlo sampling strategy, a
+      \xmlNode{MonteCarlo} node needs to be defined. The number of samples is defined within this node. The Monte-Carlo method is employed on model variables listed by name and are associated with a distribution.
    \item \textbf{\textit{DataObjects}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}{DataObjects}
-      In this block, two \textit{DataObjects} are defined to store results: 1) a PointSet named
-      ``samples'', 2) a HistorySet named ``histories''.
+      In this block, three \textit{DataObjects} are defined to store results: 1) a PointSet named
+      ``samples'', 2) a PointSet named ``dummyIN'' 3) a HistorySet named ``histories''.
       Note that in the \xmlNode{Input} node all the uncertainties
       perturbed through the Monte-Carlo strategy are listed. By this, any
       realization in the input space is linked in the DataObject to the outputs listed in the
-      \xmlNode{Output} node.
+      \xmlNode{Output} node. Furthermore, since we use an external model that does not have any input file, we define a pointset named ``dummyIN'' that is used as a dummy input in the multirun step.
    \item \textbf{\textit{OutStreams}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingMontecarlo.xml}{OutStreams}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure histories
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/MonteCarlo/1-historyPlot_line-line-line-line.png}
-  \caption{Plot of the histories generated by the Monte Carlo sampling for variables $A,B,C,D$.}
-  \label{fig:historiesMCPlotLine}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/MonteCarlo/1-historyPlot_scatter-scatter.png}
+  \caption{Plot of the histories generated by the Monte Carlo sampling.}
+  \label{fig:historiesMCPlotScatter}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  To see the results of the simulation, \xmlNode{OutStreams} are included in the input.
@@ -115,22 +99,16 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
                 (\xmlNode{source})
        \item ``histories'' connected with the \textit{DataObjects} \textbf{Entity} ``histories'' (\xmlNode{source})
      \end{itemize}
-     Note that in RAVEN, multiple entities can have the same name, as it takes a class, a type, and a name to
-     uniquely identify a RAVEN object.
-      When the two OutStream objects are used, all the information contained in the
-      linked \textit{DataObjects} are going
+     Note that in RAVEN, multiple entities can have the same name, as it takes a class, a type, and a name to uniquely identify a RAVEN object. When the two OutStream objects are used, all the information contained in the  linked \textit{DataObjects} are going
     to be exported in CSV files (\xmlNode{type}).
     \item \textit{Plot}:
     \begin{itemize}
       \item ``historiesPlot'' connected with the  \textit{DataObjects}
-      \textbf{Entity} ``samples''.  This plot will draw the final state of the
-      variables $A,B,C,D$ with respect to the input variables $sigma$(s)
-      and $decay$(s) .
+      \textbf{Entity} ``histories''.  This plot shows the variable $range$ with respect to the input variables $velocity$ and $angle$.
       \item ``samplesPlot3D'' connected with the
-      \textit{DataObjects} \textbf{Entity} ``histories''. This plot will draw the
-      evolution of the variables $A,B,C,D$.
+      \textit{DataObjects} \textbf{Entity} ``samples''. This plot shows the variables $range,time$ with respect to the input variables $velocity$ and $angle$.
     \end{itemize}
-     Note that both plots use gridded subplots. Four plots
+     Note that both plots use gridded subplots. Two plots
      are placed in each of the figures.
   \end{itemize}
    \item \textbf{\textit{Steps}}:
@@ -139,9 +117,9 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
  %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/MonteCarlo/1-samplesPlot3D_scatter-scatter-scatter-scatter.png}
-  \caption{Plot of the samples generated by the MC sampling for variables $A,B,C,D$.}
-  \label{fig:samplesMCPlotLine}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/MonteCarlo/1-samplesPlot3D_scatter-scatter.png}
+  \caption{Plot of the samples generated by the MC sampling.}
+  \label{fig:samplesMCPlotScatter}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    Once all the other entities are defined in the RAVEN input file, they must be combined in the
@@ -159,9 +137,8 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      \textbf{Entity} to a CSV file and 2) plot the data in the EPS file.
    \end{itemize}
 \end{enumerate}
- Figures~\ref{fig:historiesMCPlotLine} and ~\ref{fig:samplesMCPlotLine} show the report
- generated by RAVEN of the evolution of the
- variables $A,B,C,D$ and their final values, respectively.
+ Figures~\ref{fig:historiesMCPlotScatter} and ~\ref{fig:samplesMCPlotScatter} show the report
+ generated by RAVEN.
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%          GRID          %%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -180,56 +157,41 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingGrid.xml}{RunInfo}
-   As shown in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the desired analysis.
-   In this specific case, two steps (\xmlNode{Sequence}) are sequentially run
-   using 12 processors (\xmlNode{batchSize}). This means that
-   12 instances of the driven code are  run simultaneously.
-   Every time a simulation ends, a new one is launched.
-   \item \textbf{\textit{Files}}:
-     \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingGrid.xml}{Files}
-   Since the driven code uses a single input file, in this section the original input is placed. As described in the user manual~\cite{RAVENuserManual}
-   the attribute  \xmlAttr{name} represents the alias that is used in all the other input blocks in order to refer to this file.
+   As shown in Section~\ref{sub:singleRun}, the \textit{RunInfo} \textbf{Entity} is intended to set up the desired analysis. The number of steps specified in (\xmlNode{Sequence}) are sequentially run using the number of processors assigned in (\xmlNode{batchSize}). 
    \item \textbf{\textit{Models}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingGrid.xml}{Models}
- The Model here is represented by the
- \textbf{AnalyticalBateman}, which already dumps its output file in a
- CSV format (standard format that RAVEN can read). For this reason,
- the \textit{GenericCode} interface is used.
+ The Model here is represented by the \textbf{Projectile}, which already dumps its output file in a
+ CSV format (standard format that RAVEN can read). 
    \item \textbf{\textit{Distributions}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingGrid.xml}{Distributions}
   In the Distributions XML section, the stochastic model for the
   uncertainties  treated by the Grid sampling are reported. In
   this case two distributions are defined:
   \begin{itemize}
-    \item $sigma \sim \mathbb{U}(1,10)$, used to model the uncertainties
-    associated with  the Model \textit{sigma}(s)
-    \item  $decayConstant \sim \mathbb{U}(0.5e-8,1e-8)$,  used to
-    model the uncertainties
-    associated with  the Model \textit{decay constants}.
+    \item $vel\_dist \sim \mathbb{N}(30,5)$, used to model the uncertainties
+    associated with  the \textit{velocity};
+    \item  $angle\_dist \sim \mathbb{U}(5,85)$,  used to
+    model the uncertainties associated with the \textit{angle}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingGrid.xml}{Samplers}
   To employ the Grid sampling strategy, a
   \xmlNode{Grid} node needs to be specified. As shown above, in each variable section, the  \xmlNode{grid} is defined.
-  The number of samples finally requested are equal to $n_{samples} = \prod_{i=1}^{n} n_{steps_{i}+1} = 256$.
-  Note that, for each variable, can be defined either in probability (CDF) or in absolute value.
    \item \textbf{\textit{DataObjects}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingGrid.xml}{DataObjects}
-  Int this block, two \textit{DataObjects} are defined: 1) PointSet named
-  ``samples'', and 2) HistorySet named ``histories''.
-  In the \xmlNode{Input} node all the variables
-  perturbed through the Grid strategy are listed. In this way, any
-  realization in the input space is linked to the outputs listed in  the
-  \xmlNode{Output} node.
-   \item \textbf{\textit{OutStreams}}:
+  In this block, three \textit{DataObjects} are defined to store results: 1) a PointSet named
+      ``samples'', 2) a PointSet named ``dummyIN'' 3) a HistorySet named ``histories''.
+  In the \xmlNode{Input} node all the variables  perturbed through the Grid strategy are listed. In this way, any  realization in the input space is linked to the outputs listed in  the
+  \xmlNode{Output} node. As described earlier as well, since we use an external model that does not have any input file, we define a pointset named ``dummyIN'' that is used as a dummy input in the multirun step.
+    \item \textbf{\textit{OutStreams}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingGrid.xml}{OutStreams}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure histories
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/Grid/1-historyPlot_line-line-line-line.png}
-  \caption{Plot of the histories generated by the Grid sampling for variables $A,B,C,D$.}
-  \label{fig:historiesGridPlotLine}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/Grid/1-historyPlot_scatter-scatter.png}
+  \caption{Plot of the histories generated by the Grid sampling.}
+  \label{fig:historiesGridPlotScatter}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   In this block, both the Out-Stream types are constructed:
@@ -246,15 +208,10 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
     \item \textit{Plot}:
     \begin{itemize}
       \item named ``historiesPlot'' connected with the  \textit{DataObjects}
-      \textbf{Entity} ``samples''.  This plot will draw the final state of the
-      variables $A,B,C,D$ with respect to the input variables $sigma$(s)
-      and $decay$(s).
+      \textbf{Entity} ``histories''.  This plot shows the variable $range$ with respect to the input variables $velocity$ and $angle$.
       \item named ``samplesPlot3D'' connected with the
-      \textit{DataObjects} \textbf{Entity} ``histories''. This plot will draw the
-      evolution of the variables $A,B,C,D$.
+      \textit{DataObjects} \textbf{Entity} ``samples''. This plot shows the variables $range,time$ with respect to the input variables $velocity$ and $angle$.
     \end{itemize}
-     As it can be noticed, both plots are of type \textit{SubPlot}. Four plots
-     are placed in each of the figures.
   \end{itemize}
    \item \textbf{\textit{Steps}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingGrid.xml}{Steps}
@@ -262,9 +219,9 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
  %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/Grid/1-samplesPlot3D_scatter-scatter-scatter-scatter.png}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/Grid/1-samplesPlot3D_scatter-scatter.png}
   \caption{Plot of the samples generated by the Grid sampling for variables $A,B,C,D$.}
-  \label{fig:samplesGridPlotLine}
+  \label{fig:samplesGridPlotScatter}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    Finally, all the previously defined \textbf{Entities} can be combined in
@@ -279,12 +236,11 @@ In order to accomplish these tasks, the following RAVEN \textbf{Entities} (XML b
      be perturbed through the Grid sampling
      \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump
      the ``histories'' and ``samples'' \textit{DataObjects}
-     \textbf{Entity} in a CSV file and 2) plot the data in the EPS file and
+     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and
      on the screen.
    \end{itemize}
 \end{enumerate}
- Figures~\ref{fig:historiesGridPlotLine} and ~\ref{fig:samplesGridPlotLine}  report the evolution of the
- variables $A,B,C,D$ and their final values, respectively.
+ Figures~\ref{fig:historiesGridPlotScatter} and ~\ref{fig:samplesGridPlotScatter} display the report generated by RAVEN.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%    STRATIFIED    %%%%%%%%
@@ -314,59 +270,45 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingStratified.xml}{RunInfo}
-   As reported in Section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
-   that the user wants to perform. In this specific case, two steps (\xmlNode{Sequence}) are  run
-   using 12 processors (\xmlNode{batchSize}). This means that
-   12 instances of the driven code are run simultaneously.
-   Every time a simulation ends, a new one is launched.
-   \item \textbf{\textit{Files}}:
-     \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingStratified.xml}{Files}
-   Since the considered code uses a single input file, in this section the original input is placed.
-   The attribute  \xmlAttr{name} represents the alias that is going to be used in all the other input blocks in order to refer to this file.
+   As explained earlier, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis that the user wants to perform. The number of steps specified in (\xmlNode{Sequence}) are sequentially run using the number of processors assigned in (\xmlNode{batchSize}).
    \item \textbf{\textit{Models}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingStratified.xml}{Models}
  The Model here is represented by the
- \textbf{AnalyticalBateman}, which already dumps its output file in a
- CSV format (standard format that RAVEN can read). For this reason,
- the \textit{GenericCode} interface is used.
+ \textbf{Projectile}, which already dumps its output file in a
+ CSV format (standard format that RAVEN can read).
    \item \textbf{\textit{Distributions}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingStratified.xml}{Distributions}
   In the Distributions XML section, the stochastic model for the
   uncertainties  treated by the Stratified sampling are reported. In
   this case two distributions are defined:
   \begin{itemize}
-    \item $sigma \sim \mathbb{U}(1,10)$, used to model the uncertainties
-    associated with  the Model \textit{sigma}(s)
-    \item  $decayConstant \sim \mathbb{U}(0.5e-8,1e-8)$,  used to
-    model the uncertainties
-    associated with  the Model \textit{decay constants}.
+    \item $vel\_dist \sim \mathbb{N}(30,5)$, used to model the uncertainties
+    associated with  the \textit{velocity};
+    \item  $angle\_dist \sim \mathbb{U}(5,85)$,  used to
+    model the uncertainties associated with the \textit{angle}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingStratified.xml}{Samplers}
   To employ the Stratified sampling strategy, a
   \xmlNode{Stratified} node needs to be specified. In each variable section, the  \xmlNode{grid} is defined.
-  It is important to mention that the number of \xmlAttr{steps} needs to be the same for each of the variables,
-  since, as reported in previous section, the Stratified sampling strategy it discretizes the domain in strata.
+  It is important to mention that the number of \xmlAttr{steps} needs to be the same for each of the variables,  since, as reported in previous section, the Stratified sampling strategy it discretizes the domain in strata.
   The number of samples finally requested is equal to $n_{samples} = n_{steps} = 100$.
-  If the grid for each variables is defined in CDF and of  \xmlAttr{type} = ``equal'', the Stratified
-  sampling corresponds to the well-known Latin Hyper Cube sampling.
+  If the grid for each variables is defined in CDF and of  \xmlAttr{type} = ``equal'', the Stratified sampling corresponds to the well-known Latin Hyper Cube sampling.
    \item \textbf{\textit{DataObjects}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingStratified.xml}{DataObjects}
-  In this block, two \textit{DataObjects} are defined: 1) PointSet named
-  ``samples'', 2) HistorySet named ``histories''.
-  In the \xmlNode{Input} node all the variables
-  perturbed through the Stratified strategy are listed. In this way, any
-  realization in the input space is linked to the outputs listed in  the
-  \xmlNode{Output} node.
+  In this block, two \textit{DataObjects} are defined: 1) a PointSet named
+      ``samples'', 2) a PointSet named ``dummyIN'' 3) a HistorySet named ``histories''.
+  In the \xmlNode{Input} node all the variables perturbed through the Stratified strategy are listed. In this way, any realization in the input space is linked to the outputs listed in  the
+  \xmlNode{Output} node. Since we use an external model that does not have any input file, we define a pointset named ``dummyIN'' that is used as a dummy input in the multirun step.
    \item \textbf{\textit{OutStreams}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingStratified.xml}{OutStreams}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure histories
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/Stratified/1-historyPlot_line-line-line-line.png}
-  \caption{Plot of the histories generated by the Stratified sampling for variables $A,B,C,D$.}
-  \label{fig:historiesStratifiedPlotLine}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/Stratified/1-historyPlot_scatter-scatter.png}
+  \caption{Plot of the histories generated by the Stratified sampling.}
+  \label{fig:historiesStratifiedPlotScatter}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   In this block, both the Out-Stream types are constructed:
@@ -383,15 +325,10 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
     \item \textit{Plot}:
     \begin{itemize}
       \item named ``historiesPlot'' connected with the  \textit{DataObjects}
-      \textbf{Entity} ``samples''.  This plot will draw the final state of the
-      variables $A,B,C,D$ with respect to the input variables $sigma$(s)
-      and $decay$(s)
+      \textbf{Entity} ``histories''.  This plot shows the variable $range$ with respect to the input variables $velocity$ and $angle$.
       \item named ``samplesPlot3D'' connected with the
-      \textit{DataObjects} \textbf{Entity} ``histories''. This plot will draw the
-      evolution of the variables $A,B,C,D$.
+      \textit{DataObjects} \textbf{Entity} ``samples''. This plot shows the variables $range,time$ with respect to the input variables $velocity$ and $angle$.
     \end{itemize}
-     As it can be noticed, both plots are of type \textit{SubPlot}. Four plots
-     are going to be placed in each of the figures.
   \end{itemize}
    \item \textbf{\textit{Steps}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingStratified.xml}{Steps}
@@ -399,8 +336,8 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
  %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/Stratified/1-samplesPlot3D_scatter-scatter-scatter-scatter.png}
-  \caption{Plot of the samples generated by the Stratified sampling for variables $A,B,C,D$.}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/Stratified/1-samplesPlot3D_scatter-scatter.png}
+  \caption{Plot of the samples generated by the Stratified sampling.}
   \label{fig:samplesStratifiedPlotLine}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -416,12 +353,11 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
      be perturbed through the Stratified sampling.
      \item  \xmlNode{IOStep} named ``writeHistories'', used to 1) dump
      the ``histories'' and ``samples'' \textit{DataObjects}
-     \textbf{Entity} in a CSV file and 2) plot the data in the EPS file and
+     \textbf{Entity} in a CSV file and 2) plot the data in the PNG file and
      on the screen.
    \end{itemize}
 \end{enumerate}
- As previously mentioned, Figures~\ref{fig:historiesStratifiedPlotLine} and ~\ref{fig:samplesStratifiedPlotLine}  report the evolution of the
- variables $A,B,C,D$ and their final values, respectively.
+ As previously mentioned, Figures~\ref{fig:historiesStratifiedPlotScatter} and ~\ref{fig:samplesStratifiedPlotScatter}  display the report generated by RAVEN.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -439,84 +375,51 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
 \begin{enumerate}
    \item \textbf{\textit{RunInfo}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingSparseGrid.xml}{RunInfo}
-   As reported in section~\ref{sub:EntitiesAndFlow}, the \textit{RunInfo} \textbf{Entity} is intended to set up the analysis
-   that the user wants to perform. In this specific case, six steps (\xmlNode{Sequence}) are going to be sequentially run
-   using twelve processors (\xmlNode{batchSize}).  The first two steps build the ROM
+   AThe \textit{RunInfo} \textbf{Entity} is intended to set up the analysis  that the user wants to perform. The steps listed in (\xmlNode{Sequence}) are going to be sequentially run using the number of processors specified in  (\xmlNode{batchSize}).  The first two steps build the ROM
    (\xmlString{sample}, \xmlString{train}), the next two validate
    the ROM against the original Code Model (\xmlString{validateModel}, \xmlString{validateROM}),
+   \xmlString{rom\_stats} stores ROM-related information into DataObject,
    and the last two produce plots and print data (\xmlString{output\_print}, \xmlString{output\_plot}).
-   \item \textbf{\textit{Files}}:
-     \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingSparseGrid.xml}{Files}
-   Since the driven code uses a single input file, in this section the original input is placed. As detailed in the user manual
-   the attribute  \xmlAttr{name} represents the alias that is going to be used in all the other input blocks in order to refer to this file.
    \item \textbf{\textit{Models}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingSparseGrid.xml}{Models}
  The goal of this example is the generation of a \text{GaussPolynomialRom}
- for subsequent usage instead of the original code.  In addition to the previously explained Code model,
- the ROM of type \textit{GaussPolynomialRom} is specified here. The ROM is generated through a Sparse Grid
- Collocation sampling strategy. All 4 targets $A,B,C,D$ are modeled through this ROM as function
- of the uncertain $sigma$ and $decay$ parameters.  Note that the \xmlNode{Interpolation} nodes are not
- required, but are included for the sake of demonstration.
+ for subsequent usage.  In addition to the previously explained External model, the ROM of type \textit{GaussPolynomialRom} is specified here. The ROM is generated through a Sparse Grid Collocation sampling strategy. Note that the \xmlNode{Interpolation} nodes are not required, but are included for the sake of demonstration.
    \item \textbf{\textit{Distributions}}:
      \xmlExample{framework/user_guide/ForwardSamplingStrategies/forwardSamplingSparseGrid.xml}{Distributions}
   In the Distributions XML section, the stochastic model for the
   uncertainties  treated by the Sparse Grid Collocation sampling are reported. In
-  this case eight distributions are defined:
+  this case two distributions are defined:
   \begin{itemize}
-    \item $sigmaA \sim \mathbb{U}(6.9,8.1)$, used to model the uncertainty
-    associated with  the Model \textit{sigma-A}
-    \item $sigmaB \sim \mathbb{U}(3.9,5.1)$, used to model the uncertainty
-    associated with  the Model \textit{sigma-B}
-    \item $sigmaC \sim \mathbb{U}(1.9,3.1)$, used to model the uncertainty
-    associated with  the Model \textit{sigma-C}
-    \item $sigmaD \sim \mathbb{U}(0.9,1.1)$, used to model the uncertainty
-    associated with  the Model \textit{sigma-D}
-    \item  $decayConstantA \sim \mathbb{U}(3.8e-9,5.2e-9)$,  used to
-    model the uncertainty
-    associated with  the Model \textit{decay-A}
-    \item  $decayConstantB \sim \mathbb{U}(5.8e-9,7.2e-9)$,  used to
-    model the uncertainty
-    associated with  the Model \textit{decay-B}
-    \item  $decayConstantC \sim \mathbb{U}(6.8e-9,8.2e-9)$,  used to
-    model the uncertainty
-    associated with  the Model \textit{decay-C}
-    \item  $decayConstantD \sim \mathbb{U}(7.8e-9,9.2e-9)$,  used to
-    model the uncertainty
-    associated with  the Model \textit{decay-D}.
+    \item $vel\_dist \sim \mathbb{N}(30,5)$, used to model the uncertainties
+    associated with  the \textit{velocity};
+    \item  $angle\_dist \sim \mathbb{U}(5,85)$,  used to
+    model the uncertainties associated with the \textit{angle}.
   \end{itemize}
    \item \textbf{\textit{Samplers}}:
      \xmlExample[rom,ROM,SparseGridCollocation,MonteCarlo]{framework/user_guide/ForwardSamplingStrategies/forwardSamplingSparseGrid.xml}{Samplers}
   In order to employ the Sparse Grid Collocation sampling strategy, a
   \xmlNode{SparseGridCollocation} node needs to be defined.
-  As can be
-  seen from above, each variable is associated with a different distribution,
+  As can be  seen from above, each variable is associated with a different distribution,
   defined in the  \xmlNode{Distributions} block.
-  In addition, the \textit{GaussPolynomialRom} \xmlNode{ROM} is linked to the \xmlNode{SparseGridCollocation}
-  sampler.  Because this sampler is used exclusively to build the ROM, some of the parameters of the ROM are
-  needed by the sampler, and this connection makes that communication possible.  The setting of this ROM
-  (e.g. polynomial order, Index set method, etc.) determines how the Stochastic Collocation Method is
-  employed.
+  In addition, the \textit{GaussPolynomialRom} \xmlNode{ROM} is linked to the \xmlNode{SparseGridCollocation} sampler.  Because this sampler is used exclusively to build the ROM, some of the parameters of the ROM are  needed by the sampler, and this connection makes that communication possible.  The setting of this ROM (e.g. polynomial order, Index set method, etc.) determines how the Stochastic Collocation Method is employed.
 
-  Additionally, a \xmlNode{MonteCarlo} sampler is set up for validating the ROM against the original Code.  The random
-  number generation seed (\xmlNode{initialSeed}) is specified and set to reset on each use
-  (\xmlNode{reseedEachIteration}) so that the Monte Carlo sampler can be used to compare the ROM against the
-  original model.  We use twenty samples (\xmlNode{limit}) to sample the ROM and the model, and then print and
-  plot both data sets to compare them.
+  Additionally, a \xmlNode{MonteCarlo} sampler is set up for validating the ROM against the original Code.  The random number generation seed (\xmlNode{initialSeed}) is specified and set to reset on each use (\xmlNode{reseedEachIteration}) so that the Monte Carlo sampler can be used to compare the ROM against the  original model.  We use 100 samples (\xmlNode{limit}) to sample the ROM and the model, and then print and plot both data sets to compare them.
    \item \textbf{\textit{DataObjects}}:
      \xmlExample[rom,SparseGridCollocation]{framework/user_guide/ForwardSamplingStrategies/forwardSamplingSparseGrid.xml}{DataObjects}
-  In this block, four \textit{DataObjects} are defined:
+  In this block, five \textit{DataObjects} are defined:
   1) a PointSet named ``inputPlaceholder'' used as a placeholder input for the ROM sampling step,
-  2) a HistorySet named ``histories'' used to collect the samples needed to train the ROM,
-  3) a PointSet named ``samplesModel'' to store the Code responses from Monte Carlo samples, and
-  4) a PointSet named ``samplesROM'' to store the ROM responses from Monte Carlo samples.
+  2) a PointSet named ``samplesModel'' to store the Code responses from Monte Carlo samples,
+  3) a PointSet named ``samplesROM'' to store the ROM responses from Monte Carlo samples,
+  4) a HistorySet named ``histories'' used to collect the samples needed to train the ROM, and
+  5) a DataSet named ``rom\_stats'' to store information from the ROM.
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %figure histories
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/SparseGrid/1-historyPlot_line-line-line-line.png}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/SparseGrid/1-historyPlot_scatter-scatter.png}
   \caption{Plot of the training samples generated by the SparseGridCollocation sampling for variables $A,B,C,D$.}
-  \label{fig:historiesSparseGridPlotLine}
+  \label{fig:historiesSparseGridPlotScatter}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -539,18 +442,15 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
     \item \textit{Plot}:
     \begin{itemize}
       \item named ``historyPlot'' connected with the  \textit{DataObjects}
-      \textbf{Entity} ``histories''.  This plot will draw the time-dependent state of the
-      variables $A,B,C,D$ with respect to the input variables $sigma$(s)
-      and $decay$(s)
+      \textbf{Entity} ``histories''.  This plots the
+      variable $range$ with respect to the input variables $velocity$ and $angle$.
       \item named ``samplesModelPlot3D'' connected with the
       \textit{DataObjects} \textbf{Entity} ``samplesModel''. This plot will draw the
-      variables $A,B,C,D$ as Monte Carlo sampled on the Code.
+      variables $range,time$ as Monte Carlo sampled on the Code.
       \item named ``samplesROMPlot3D'' connected with the
       \textit{DataObjects} \textbf{Entity} ``samplesROM''. This plot will draw the
-      variables $A,B,C,D$ as Monte Carlo sampled on the ROM.
+      variables $range,time$ as Monte Carlo sampled on the ROM.
     \end{itemize}
-     As it can be noticed, both plots are of type \textit{SubPlot}. Four plots
-     are going to be placed in each of the figures.
   \end{itemize}
    \item \textbf{\textit{Steps}}:
      \xmlExample[rom,SparseGridCollocation]{framework/user_guide/ForwardSamplingStrategies/forwardSamplingSparseGrid.xml}{Steps}
@@ -558,8 +458,8 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
  %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/SparseGrid/1-samplesModelPlot3D_scatter-scatter-scatter-scatter.png}
-  \caption{Plot of validation samples generated by Monte Carlo sampling on the Code for variables $A,B,C,D$.}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/SparseGrid/1-samplesModelPlot3D_scatter-scatter.png}
+  \caption{Plot of validation samples generated by Monte Carlo sampling on the Code.}
   \label{fig:samplesSparseGridPlotModel}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -582,6 +482,7 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
      \item \xmlNode{MultiRun} named ``sampleROM'', used to run the
      Monte Carlo perturbed samples of the previously constructed ROM for use in verificaiton.  The results are
      collected in the \textit{samplesROM} \textit{DataObjects}.
+     \item \xmlNode{IOStep} named ``rom\_stas'', used to dump rom-related information into \textit{DataObject },
      \item  \xmlNode{IOStep} named ``output\_print'', used to dump
      the ``histories'', ``samplesModel'' and ``samplesROM'' \textit{DataObjects}
      \textbf{Entity} in a CSV file,
@@ -590,12 +491,13 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
      on the screen.
    \end{itemize}
 \end{enumerate}
- As previously mentioned, Figure~\ref{fig:historiesSparseGridPlotLine}
- shows the evolution of the outputs $A,B,C,D$ under uncertainties.
- Figures~\ref{fig:samplesSparseGridPlotModel} and
- \ref{fig:samplesROMSparseGridPlotROM} show the final responses
- of the sampling employed using the driven code and the ROM,
- respectively. As it can be seen, the constructed ROM can accurately
+ % As previously mentioned, Figure~\ref{fig:historiesSparseGridPlotScatter}
+ % shows the evolution of the outputs $A,B,C,D$ under uncertainties.
+ % Figures~\ref{fig:samplesSparseGridPlotModel} and
+ % \ref{fig:samplesROMSparseGridPlot} show the final responses
+ % of the sampling employed using the driven code and the ROM,
+ % respectively. 
+ As it can be seen, the constructed ROM can accurately
  represent the response of the driven code. This example shows the
  potential of reduced order modeling, in general, and of the
  \textit{GaussPolynomialRom}, in particular.
@@ -604,8 +506,8 @@ To accomplish these tasks, the following RAVEN \textbf{Entities} (XML blocks in 
  %figure samples
  \begin{figure}[h!]
   \centering
-  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/SparseGrid/1-samplesROMPlot3D_scatter-scatter-scatter-scatter.png}
-  \caption{Plot of validation samples generated by Monte Carlo sampling on the ROM for variables $A,B,C,D$.}
+  \includegraphics[scale=0.7]{../../tests/framework/user_guide/ForwardSamplingStrategies/gold/RunDir/SparseGrid/1-samplesROMPlot3D_scatter-scatter.png}
+  \caption{Plot of validation samples generated by Monte Carlo sampling on the ROM.}
   \label{fig:samplesROMSparseGridPlot}
  \end{figure}
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

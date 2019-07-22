@@ -8,7 +8,14 @@
     <description>
       Tests clustering with the KMeans model.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>KMeans</WorkingDir>
     <Sequence>input,cluster,output</Sequence>
@@ -36,7 +43,7 @@
   <Steps>
     <IOStep name="input" pauseAtEnd="True">
       <Input class="Files" type="">dataFile</Input>
-      <Output class="DataObjects" type="PointSet">data</Output>
+      <Output class="DataObjects" type="PointSet">dataRaw</Output>
     </IOStep>
     <IOStep name="output" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">data</Input>
@@ -45,7 +52,7 @@
       <Output class="OutStreams" type="Print">info</Output>
     </IOStep>
     <PostProcess name="cluster" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">data</Input>
+      <Input class="DataObjects" type="PointSet">dataRaw</Input>
       <Model class="Models" type="PostProcessor">kMeans</Model>
       <SolutionExport class="DataObjects" type="PointSet">clusterInfo</SolutionExport>
       <Output class="DataObjects" type="PointSet">data</Output>
@@ -63,7 +70,7 @@
       <source>data</source>
       <what>Output|kMeansLabels</what>
     </Print>
-    <Plot  name="plot" overwrite="false">
+    <Plot name="plot" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -96,11 +103,15 @@
   <DataObjects>
     <PointSet name="data">
       <Input>x1,x2,y1,y2,z1,z2</Input>
-      <Output>Output</Output>
+      <Output>Output,kMeansLabels</Output>
     </PointSet>
     <PointSet name="clusterInfo">
       <Input>kMeansLabels</Input>
       <Output>x1,x2</Output>
+    </PointSet>
+    <PointSet name="dataRaw">
+      <Input>x1,x2,y1,y2,z1,z2</Input>
+      <Output>Output</Output>
     </PointSet>
   </DataObjects>
 

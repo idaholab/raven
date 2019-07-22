@@ -25,15 +25,53 @@
   [./ARMAreseedPrecursor]
    type = 'RavenFramework'
    input = 'arma_reseed_precursor.xml'
-   output = 'ARMAparallel/arma.pk'
+   output = 'ARMAreseed/arma.pk'
+    [./romcsv]
+      type = OrderedCSV
+      output = 'ARMAreseed/rommeta.csv'
+      rel_err = 1e-5
+    [../]
+    [./romxml]
+      type = XML
+      unordered = true
+      output = 'ARMAreseed/rommeta.xml'
+      rel_err = 1e-5
+    [../]
+    [./signalexist]
+      type = Exists
+      output = 'ARMAreseed/signals_0.csv ARMAreseed/signals_1.csv ARMAreseed/signals_2.csv ARMAreseed/signals_3.csv ARMAreseed/signals.csv '
+    [../]
   [../]
   [./ARMAreseedTest]
    type = 'RavenFramework'
    input = 'arma_reseed_test.xml'
-   csv = 'ARMAparallel/results_0.csv'
-   expected_fail = true
+   output = 'ARMAreseed/results.csv '
+
    prereq = ARMAreseedPrecursor
-   skip = 'needs the new RNG entity'
+    [./romcsv0]
+      type = OrderedCSV
+      output = 'ARMAreseed/results_0.csv'
+      gold_files = 'ARMAreseed/signals_0.csv'
+      rel_err = 1e-5
+    [../]
+    [./romcsv1]
+      type = OrderedCSV
+      output = 'ARMAreseed/results_1.csv'
+      gold_files = 'ARMAreseed/signals_1.csv'
+      rel_err = 1e-5
+    [../]
+    [./romcsv2]
+      type = OrderedCSV
+      output = 'ARMAreseed/results_2.csv'
+      gold_files = 'ARMAreseed/signals_2.csv'
+      rel_err = 1e-5
+    [../]
+    [./romcsv3]
+      type = OrderedCSV
+      output = 'ARMAreseed/results_3.csv'
+      gold_files = 'ARMAreseed/signals_3.csv'
+      rel_err = 1e-5
+    [../]
   [../]
 
  [./SingleFourier]
@@ -62,10 +100,13 @@
   [./VARMA]
    type = 'RavenFramework'
    input = 'varma.xml'
-   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/samples.csv VARMA/samples_0.csv VARMA/stats.xml'
-   csv = 'VARMA/stats.csv'
-   rel_err = 1e-1
+   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/stats.xml VARMA/rommeta.xml VARMA/rommeta.csv VARMA/samples_0.csv'
    max_time = 500
+    [./stats]
+      type = OrderedCSV
+      output = 'VARMA/stats.csv'
+      rel_err = 1e-1
+    [../]
   [../]
 
   [./ZeroFilter]
@@ -80,9 +121,23 @@
   [./Segmented]
     type = 'RavenFramework'
     input = 'segmented.xml'
-    output = 'Segmented/synthetic.csv Segmented/synthetic_0.csv Segmented/synthetic.xml Segmented/stats.xml'
-    csv = 'Segmented/stats.csv'
-    rel_err = 1e-2
+    output = 'Segmented/synthetic.csv Segmented/synthetic.xml Segmented/synthetic_0.csv'
+    [./stats]
+      type = OrderedCSV
+      output = 'Segmented/stats.csv'
+      rel_err = 1e-2
+    [../]
+    [./romcsv]
+      type = OrderedCSV
+      output = 'Segmented/rommeta.csv'
+      rel_err = 1e-5
+    [../]
+    [./romxml]
+      type = XML
+      unordered = true
+      output = 'Segmented/rommeta.xml'
+      rel_err = 1e-5
+    [../]
   [../]
   [./Clustered]
     type = 'RavenFramework'
@@ -107,9 +162,27 @@
       rel_err = 1e-5
     [../]
     [./sample_ldc]
+      # Even with identical seeds and inputs, the Fourier linear regressor fit produces
+      # different coefficients and intercept values on different operating systems, even
+      # multiple linux-based systems. Windows seems to be the most different, and as a
+      # result the CDF bin metric can be sufficiently different on Windows as to not pass
+      # the test.
+      # This is exacerbated by the fact that manually performing the y=Ax+b calculation
+      # (where b is the intercept, x is the Fourier signal, and A is the amplitudes matrix)
+      # yields a slightly (1e-6 rel err) difference from using the linear engine's
+      # prediction for the same. That change in this PR resulted in a change in the "metric"
+      # between the expected and actual CDF bins on Windows from 0.63 to 0.65.
+
       type = OrderedCSV
       output = 'PreserveCdf/metric.csv'
-      rel_err = 1e-6
+      rel_err = 5e-2
     [../]
+  [../]
+   [./Peaks]
+   type = 'RavenFramework'
+   input = 'peaks.xml'
+   output = 'Peaks/romMeta.csv'
+   UnorderedXml = 'Peaks/romMeta.xml'
+   rel_err = 1e-6
   [../]
 []

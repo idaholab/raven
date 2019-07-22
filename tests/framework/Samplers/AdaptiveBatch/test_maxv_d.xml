@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
-
   <TestInfo>
     <name>framework/Samplers/AdaptiveBatch.MaxVDistance</name>
     <author>maljdan</author>
@@ -13,7 +12,6 @@
        terms of distance from already sampled points. This differs from the
        maximum persistence maxima as this looks at distinct local maxima with
        the highest value.
-
        Note, all of the tests in AdaptiveBatch operate on a 2D input domain with
        the goal of extracting a circular limit surface with radius 0.5 and
        centered at the origin, (0,0).
@@ -23,6 +21,7 @@
       <revision author="talbpaul" date="2016-02-08">First update, looking for more failing tests to add.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="maljdan" date="2017-01-18">Adding test description.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -132,7 +131,7 @@
 
   <Functions>
     <External file="goal" name="label">
-      <variable>y</variable>
+      <variables>y</variables>
     </External>
   </Functions>
 
