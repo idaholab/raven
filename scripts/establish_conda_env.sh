@@ -112,7 +112,7 @@ function create_libraries()
     ${COMMAND}
   else
     #pip create virtual enviroment
-    local COMMAND=`echo virtualenv $PIP_ENV_LOCATION`
+    local COMMAND=`echo virtualenv $PIP_ENV_LOCATION --python=python`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... virtual enviroment command: ${COMMAND}; fi
     ${COMMAND}
     # activate the enviroment
