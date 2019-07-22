@@ -375,7 +375,7 @@ if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   fi
 else
   # debug output pip version
-  if [[ $ECE_VERBOSE == 0 ]]; then echo `pip -V`; fi
+  if [[ $ECE_VERBOSE == 0 ]]; then echo `pip3 -V`; fi
   # find RAVEN libraries environment
   PIP_ENV_LOCATION="$PIP_ENV_LOCATION/${RAVEN_LIBS_NAME}"
   if [ -d "$PIP_ENV_LOCATION" ]
