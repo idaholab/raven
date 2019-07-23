@@ -1761,6 +1761,7 @@ class ARMA(supervisedLearning):
                                                              zeroFilter=zeroFiltering)
             # remove longer signal from training data
             signal = self.fourierResults[target]['predict']
+            targetVals = np.array(targetVals, dtype=np.float64)
             targetVals -= signal
             trainingDict[target][0] = targetVals
       # store the segment-based periods in the settings to return
