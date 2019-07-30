@@ -342,8 +342,9 @@ class ARMA(supervisedLearning):
       if self.preserveInputCDF:
         self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=self._minBins)
       # if this target governs the zero filter, extract it now
-      if self.zeroFilterMask.all()== None:
-        print('jz is inside zfff')
+
+      zeroFiltering = target == self.zeroFilterTarget
+      if not zeroFiltering:
         if target == self.zeroFilterTarget:
           self.zeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
           self.notZeroFilterMask = np.logical_not(self.zeroFilterMask) # where data are
@@ -483,12 +484,7 @@ class ARMA(supervisedLearning):
         # apply growth factor
         vals = copy.deepcopy(featureVals) # without deepcopy, the vals are modified in-place
         for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
-          growth = growthInfo['value']/100. # given in percentage
-          mode = growthInfo['mode']
-          if mode == 'exponential':
-            scale = (1.0 + growth) ** y
-          else:
-            scale = 1.0 + y * growth
+          scale =self._evaluateScale(growthInfo,y)
           vals[t] *= scale
         result = self._evaluateYear(vals)
         for target, value in result.items():
@@ -501,6 +497,18 @@ class ARMA(supervisedLearning):
 
     else:
       return self._evaluateYear(featureVals)
+
+  def _evaluateScale(self, growthInfo,year):
+    """
+    """
+    growth = growthInfo['value']/100. # given in percentage
+    mode = growthInfo['mode']
+    if mode == 'exponential':
+      scale = (1.0 + growth) ** year
+    else:
+      scale = 1.0 + year * growth
+    # print('jialock holmes is growing',scale)
+    return scale
 
   def _evaluateYear(self, featureVals):
     """
@@ -758,7 +766,8 @@ class ARMA(supervisedLearning):
     ## mask
     divZero = Xlow == Xhigh
     ## careful when using double masks
-    y[[a[divZero] for a in np.where(inMask)]] =  0.5*(Yhigh[divZero] + Ylow[divZero])
+    zMask=[a[divZero] for a in np.where(inMask)]
+    y[tuple(zMask)] =  0.5*(Yhigh[divZero] + Ylow[divZero])
     # interpolate all other points as y = low + slope*frac
     ## mask
     okay = np.logical_not(divZero)
@@ -768,7 +777,10 @@ class ARMA(supervisedLearning):
     ## distance from x to low is fraction through dx
     frac = x[inMask][okay] - Xlow[okay]
     ## careful when using double masks
-    y[[a[okay] for a in np.where(inMask)]] = Ylow[okay] + dy/dx * frac
+    ## Adding tuple to the mask for future warning
+    # FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+    okayMask=[a[okay] for a in np.where(inMask)]
+    y[tuple(okayMask)] = Ylow[okay] + dy/dx * frac
     return y
 
   def _normalizeThroughCDF(self, data, params):
@@ -1911,10 +1923,11 @@ class ARMA(supervisedLearning):
     """
     # some Fourier periods have already been handled, so reset the ones that actually are needed
     newFourier = settings.get('segment Fourier periods', None)
-    # for target in self.target:
-    if self.zeroFilterMask.all()!= None:
-      self.zeroFilterMask = self.zeroFilterMask[picker]
-      self.notZeroFilterMask = self.notZeroFilterMask[picker]
+    for t,target in enumerate(self.target):
+      zeroFiltering = target == self.zeroFilterTarget
+      if zeroFiltering:
+        self.zeroFilterMask = self.zeroFilterMask[picker]
+        self.notZeroFilterMask = self.notZeroFilterMask[picker]
     if newFourier is not None:
       for target in list(self.fourierParams.keys()):
         periods = newFourier.get(target, [])
@@ -1942,8 +1955,7 @@ class ARMA(supervisedLearning):
         # print('jz is a updater')
         # print(self.peaks)
 
-
-  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker):
+  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker,bgId=None):
     """
       Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
       Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
@@ -1957,7 +1969,37 @@ class ARMA(supervisedLearning):
       for target, signal in settings['long Fourier signal'].items():
         ## NOTE might need to put zero filter back into it
         sig = signal['predict'][picker]
-        evaluation[target][picker] += sig
+        # print('jialock holmes is inside finalize local rom segment',target,picker)
+        # print('jialock holmes is inside finalize local rom segment',len(evaluation['GHI'][0]))
+        # sigLen=picker.stop-picker.start
+        ## create storage for the sampled result
+        if self.multiyear:
+          if bgId is not None:
+            sigLen=picker.stop-picker.start
+            bgInd = bgId
+            endInd = bgInd+sigLen
+            for y in range(len(evaluation[target])):
+              evaluation[target][y][bgInd:endInd] += sig
+          else:
+            for y in range(len(evaluation[target])):
+              evaluation[target][y][picker] += sig
+        # pp.pprint(evaluation)
+        # if multiyear
+        else:
+          # print('lalalallalaal')
+
+          if bgId is not None:
+            # print(picker)
+            # print(len(evaluation[target]))
+            sigLen=picker.stop-picker.start
+            bgInd = bgId
+            endInd = bgInd+sigLen
+            # print(sigLen)
+            # print(bgInd,endInd)
+            evaluation[target][bgInd:endInd] += sig
+          else:
+            evaluation[target][picker] += sig
+
     return evaluation
 
   def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None):
@@ -1972,8 +2014,17 @@ class ARMA(supervisedLearning):
     # backtransform signal
     ## how nicely does this play with zerofiltering?
     if self.preserveInputCDF:
+      # print('jialock holmes is detecting pcdf',settings['input CDFs'])
       for target, dist in settings['input CDFs'].items():
-        evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
+        if self.multiyear:
+          years = np.arange(self.numYears)
+          for y in years:
+            for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
+              scale =self._evaluateScale(growthInfo,y)
+              dist[1][1]=dist[1][1]*scale
+              evaluation[target][y] = self._transformThroughInputCDF(evaluation[target][y], dist, weights)
+        else:
+          evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
     return evaluation
 
   ### Peak Picker ###
