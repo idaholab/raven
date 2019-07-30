@@ -1969,9 +1969,6 @@ class ARMA(supervisedLearning):
       for target, signal in settings['long Fourier signal'].items():
         ## NOTE might need to put zero filter back into it
         sig = signal['predict'][picker]
-        # print('jialock holmes is inside finalize local rom segment',target,picker)
-        # print('jialock holmes is inside finalize local rom segment',len(evaluation['GHI'][0]))
-        # sigLen=picker.stop-picker.start
         ## create storage for the sampled result
         if self.multiyear:
           if bgId is not None:
@@ -1979,27 +1976,22 @@ class ARMA(supervisedLearning):
             bgInd = bgId
             endInd = bgInd+sigLen
             for y in range(len(evaluation[target])):
-              evaluation[target][y][bgInd:endInd] += sig
+              # apply growth factor
+              for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
+                scale =self._evaluateScale(growthInfo,y)
+                evaluation[target][y][bgInd:endInd] += sig*scale
           else:
             for y in range(len(evaluation[target])):
-              evaluation[target][y][picker] += sig
-        # pp.pprint(evaluation)
-        # if multiyear
+              for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
+                evaluation[target][y][picker] += sig*scale
         else:
-          # print('lalalallalaal')
-
           if bgId is not None:
-            # print(picker)
-            # print(len(evaluation[target]))
             sigLen=picker.stop-picker.start
             bgInd = bgId
             endInd = bgInd+sigLen
-            # print(sigLen)
-            # print(bgInd,endInd)
             evaluation[target][bgInd:endInd] += sig
           else:
             evaluation[target][picker] += sig
-
     return evaluation
 
   def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None):
@@ -2016,12 +2008,13 @@ class ARMA(supervisedLearning):
     if self.preserveInputCDF:
       # print('jialock holmes is detecting pcdf',settings['input CDFs'])
       for target, dist in settings['input CDFs'].items():
-        if self.multiyear:
-          years = np.arange(self.numYears)
-          for y in years:
+        if len(evaluation[target])>1:
+          for y in range(len(evaluation[target])):
             for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
               scale =self._evaluateScale(growthInfo,y)
-              dist[1][1]=dist[1][1]*scale
+              objectDist=dist[0]
+              histDist=tuple([dist[1][0],dist[1][1]*scale])
+              dist = tuple([dist[0],histDist])
               evaluation[target][y] = self._transformThroughInputCDF(evaluation[target][y], dist, weights)
         else:
           evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)

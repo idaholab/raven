@@ -232,7 +232,7 @@ class Segments(Collection):
       @ Out, None
     """
     Collection.setAdditionalParams(self, params)
-    for rom in self._roms:
+    for rom in self._roms + [self._templateROM]:
       rom.setAdditionalParams(params)
 
   def train(self, tdict, skipAssembly=False):
@@ -270,8 +270,6 @@ class Segments(Collection):
     for s, segment in enumerate(self._getSequentialRoms()):
       delim = self._divisionInfo['delimiters'][s]
       picker = slice(delim[0], delim[-1] + 1)
-      print('llLlLlLLlalalalala')
-      #FIXME this this line is strange
       result = segment.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker)
     result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result)
     return result
@@ -693,8 +691,12 @@ class Clusters(Segments):
         # print('jialock holmes is inside clster segment rom id',r)
         # print(bgId)
         result = rom.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker, bgId=bgId[-1])
+        # print('jialock in segment rom clolection amy',rom.multiyear,rom.growthFactors)
         bgId.append(bgId[-1]+picker.stop-picker.start)
       # make global modifications based on global settings
+      # print('jialock in segment rom clolection amy after',self._templateROM.multiyear,self._templateROM.growthFactors)
+      # print(len(result['GHI']))
+
       result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
     return result
 
