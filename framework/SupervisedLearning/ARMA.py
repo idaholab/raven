@@ -274,9 +274,9 @@ class ARMA(supervisedLearning):
     """
     rngCounts = d.pop('crow_rng_counts')
     self.__dict__.update(d)
-    self.setEngine(randomUtils.newRNG(),seed=None,count=rngCounts)
+    self.setEngine(randomUtils.newRNG(), seed=None, count=rngCounts)
     if self.reseedCopies:
-      randd = np.random.randint(1,2e9)
+      randd = np.random.randint(1, 2e9)
       self.reseed(randd)
 
   def setMultiyearParams(self, node):
@@ -630,14 +630,15 @@ class ARMA(supervisedLearning):
     # END for target in targets
     return returnEvaluation
 
-  def reseed(self,seed):
+  def reseed(self, seed):
     """
       Used to set the underlying random seed.
       @ In, seed, int, new seed to use
       @ Out, None
     """
-    randomUtils.randomSeed(seed,engine=self.randomEng)
-    self.seed=seed
+    #self.raiseADebug('Reseeding ARMA with seed "{}"'.format(seed))
+    randomUtils.randomSeed(seed, engine=self.randomEng)
+    self.seed = seed
 
   ### UTILITY METHODS ###
   def _computeNumberOfBins(self,data,binOps=None):
