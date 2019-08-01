@@ -188,7 +188,7 @@ class Neutrino(CodeInterfaceBase):
     outputPath = workingDir + r'\NeutrinoInput\Measurements\results.csv'
 
     #Change the output path so RAVEN can read the output
-    newOutputPath = workingDir + '\?' + output
+    newOutputPath = workingDir + r'\?' + output
     newOutputPath = newOutputPath.replace('?', '')
 
     # check that the output file exists
