@@ -163,7 +163,7 @@ class Neutrino(CodeInterfaceBase):
             #Create and set the exportPath
             #NeutrinoInput.nescene needs to be changed to the Neutrino input file name
             exportPath = originalPath.replace("NeutrinoInput.nescene","",1)
-            exportPath = exportPath + "\\Measurements\\results.csv"
+            exportPath = exportPath + r"\Measurements\results.csv"
             elementMeas.set('val',str(exportPath))
 
 
@@ -185,10 +185,11 @@ class Neutrino(CodeInterfaceBase):
     # create full path to the outputfile
     # NeutrinoInput needs to be the name of the Neutrino Input file
     # Name of results file name needs to be the same as in the createNewInput function
-    outputPath = workingDir + '\\NeutrinoInput\\Measurements\\results.csv'
+    outputPath = workingDir + r'\NeutrinoInput\Measurements\results.csv'
 
     #Change the output path so RAVEN can read the output
-    newOutputPath = workingDir + "\\" + output
+    newOutputPath = workingDir + '\?' + output
+    newOutputPath = newOutputPath.replace('?', '')
 
     # check that the output file exists
     if not os.path.exists(outputPath):
