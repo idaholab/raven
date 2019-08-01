@@ -111,6 +111,7 @@ class Neutrino(CodeInterfaceBase):
       raise Exception('No correct input file has been found. Got: '+' '.join(oriInputFiles))
 
     originalPath = currentInputFiles[index].getAbsFile()
+    originalPath = os.path.abspath(originalPath)
 
     # Since the input file is XML we can load and edit it directly using etree
     # Load the XML into a tree:
@@ -168,7 +169,7 @@ class Neutrino(CodeInterfaceBase):
 
 
     # Now we can re-write the input file
-    tree.write(currentInputFiles[index].getAbsFile())
+    tree.write(originalPath)
 
     return currentInputFiles
 
