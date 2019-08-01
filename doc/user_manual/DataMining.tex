@@ -137,14 +137,11 @@ Number of EM iterations to perform. \default{100}
 	\item \xmlNode{n\_init}, \xmlDesc{integer, optional},
 Number of initializations to perform. the best results is kept.
 \default{1}
-	\item \xmlNode{params}, \xmlDesc{string, optional field},
- Controls which parameters are updated in the training process.
-Can contain any combination of ‘w’ for weights, ‘m’ for means, and
-‘c’ for covars. \default{‘wmc’}
 	\item \xmlNode{init\_params}, \xmlDesc{string, optional
-field}, Controls which parameters are updated in the initialization
-process. Can contain any combination of ‘w’ for weights, ‘m’ for means,
- and ‘c’ for covars. \default{‘wmc’}.
+field},  The method used to initialize the weights, the means and the precisions. Must be one of 
+ ``kmeans'' (responsibilities are initialized using kmeans) or ``random'' (responsibilities are 
+ initialized randomly)
+ \default{kmeans}
 \end{itemize}
 
 \textbf{Example:}
