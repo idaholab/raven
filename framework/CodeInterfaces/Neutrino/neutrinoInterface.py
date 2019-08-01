@@ -133,8 +133,6 @@ class Neutrino(CodeInterfaceBase):
           #Set the radius value to the sampled value
           element.set('val',str(varDict[var]))
 
-
-
         #Change where the measurements and the output data is stored in the input file to match RAVEN location
         #Search for the Base properties
         for elementBase in root.findall('./properties/Base/'):
