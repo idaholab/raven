@@ -364,7 +364,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     if newMH:
       self.messageHandler = newMH
     # reseeding is common to many
-    seed = params.pop('reseedValue', None)
+    seed = params.pop('seed', None)
     if seed:
       self.reseed(seed)
     # overload this method in subclasses to load other parameters

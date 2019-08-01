@@ -999,7 +999,13 @@ class DataSet(DataObject):
     i = -1
     while dataType is type(None):
       i += 1
-      dataType = type(data[i])
+      try:
+        dataType = type(data[i])
+      except IndexError:
+        self.raiseADebug('Could not find a type for "{}"; using None.'.format(var))
+        dataType = type(None)
+        i = 0
+        break
     # if "type" predetermined, override it (but we still needed "i" so always do the loop above)
     # TODO this can be sped up probably, by checking the "type" directly with dtype; but we ALSO need to know if
     #   it's a history or not, so we need to check the first non-NaN entry....

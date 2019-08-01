@@ -709,7 +709,7 @@ class ARMA(supervisedLearning):
       @ Out, hist, np.array(float), synthetic ARMA signal
     """
     if numSamples is None:
-      numSamples =  len(self.pivotParameterValues)
+      numSamples = len(self.pivotParameterValues)
     # sample measure, state shocks
     ## TODO it appears that measure shock always has a 0 variance multivariate normal, so just create it
     measureShocks = np.zeros([numSamples,len(self.correlations)])
@@ -1009,7 +1009,7 @@ class ARMA(supervisedLearning):
     """
     model = sm.tsa.VARMAX(endog=data, order=(self.P, self.Q))
     self.raiseADebug('... ... ... fitting VARMA ...')
-    results = model.fit(disp=False,maxiter=1000)
+    results = model.fit(disp=False, maxiter=1000)
     lenHist,numVars = data.shape
     # train multivariate normal distributions using covariances, keep it around so we can control the RNG
     ## it appears "measurement" always has 0 covariance, and so is all zeros (see _generateVARMASignal)
