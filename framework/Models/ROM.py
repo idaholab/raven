@@ -64,11 +64,13 @@ class ROM(Dummy):
     segment = InputData.parameterInputFactory("Segment", strictMode=True)
     segmentGroups = InputData.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
     segment.addParam('grouping', segmentGroups)
-    subspace = InputData.parameterInputFactory('subspace', InputData.StringType)
+    subspace = InputData.parameterInputFactory('subspace', contentType=InputData.StringType)
     subspace.addParam('divisions', InputData.IntegerType, False)
     subspace.addParam('pivotLength', InputData.FloatType, False)
     subspace.addParam('shift', InputData.StringType, False)
     segment.addSub(subspace)
+    clusterEvalModeEnum = InputData.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['truncated', 'full'])
+    segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum))
     ## clusterFeatures
     segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputData.StringListType))
     ## classifier
@@ -87,6 +89,8 @@ class ROM(Dummy):
     segment.addSub(feature)
     segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputData.StringType))
     inputSpecification.addSub(segment)
+    # pickledROM
+    inputSpecification.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum))
     # unsorted
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("gradient", InputData.StringType))
@@ -193,11 +197,11 @@ class ROM(Dummy):
     InterpolationInput.addParam("weight", InputData.FloatType, False)
     inputSpecification.addSub(InterpolationInput)
     # ARMA
-    inputSpecification.addSub(InputData.parameterInputFactory('correlate', InputData.StringListType))
-    inputSpecification.addSub(InputData.parameterInputFactory("P", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Q", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("seed", InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory('correlate', contentType=InputData.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("P", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("Q", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("seed", contentType=InputData.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputData.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
     inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputData.BoolType))
     ### ARMA zero filter

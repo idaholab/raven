@@ -293,6 +293,15 @@ class EnumBaseType(InputType):
     cls.enumList = enumList
 
   @classmethod
+  def convert(cls, value):
+    # TODO is this the right place for checking?
+    ## TODO need to provide the offending XML node somehow ...
+    ## TODO should these by caught and handled by the parseNode?
+    if value not in cls.enumList:
+      raise IOError('Value "{}" unrecognized! Expected one of {}.'.format(value, cls.enumList))
+    return value
+
+  @classmethod
   def generateXML(cls, xsdNode):
     """
       Generates the xml data.
@@ -326,8 +335,10 @@ class BoolType(EnumBaseType):
     """
     if value.lower() in utils.stringsThatMeanTrue():
       return True
-    else:
+    elif value.lower() in utils.stringsThatMeanFalse():
       return False
+    else:
+      raise IOError('Unrecognized boolean value: "{}"! Expected "True" or "False", or similar.'.format(value))
 
 boolTypeList = utils.stringsThatMeanTrue() + utils.stringsThatMeanFalse()
 BoolType.createClass("bool","boolType", boolTypeList + [elm.capitalize() for elm in boolTypeList])
@@ -527,33 +538,46 @@ class ParameterInput(object):
         Handles the error, either by throwing IOError or adding to the errorlist
         @ In, s, string, string describing error.
       """
+      # TODO give the offending XML! Use has no idea where they went wrong.
       if errorList == None:
         raise IOError(s)
       else:
         errorList.append(s)
 
+    # check specs vs tag name
     if node.tag != self.name:
       #should this be an error or a warning? Or even that?
       #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
-      print('Using param spec "{}" to read XML node "{}.'.format(self.name,node.tag))
+      print('InputData: Using param spec "{}" to read XML node "{}.'.format(self.name,node.tag))
+
+    # check content type
     if self.contentType:
-      self.value = self.contentType.convert(node.text)
+      try:
+        self.value = self.contentType.convert(node.text)
+      except Exception as e:
+        handleError(str(e))
     else:
       self.value = node.text
+
+    # check attributes
     for parameter in self.parameters:
       if parameter in node.attrib:
         param_type = self.parameters[parameter]["type"]
         self.parameterValues[parameter] = param_type.convert(node.attrib[parameter])
       elif self.parameters[parameter]["required"]:
         handleError("Required parameter " + parameter + " not in " + node.tag)
+    # if strict, force parameter checking
     if self.strictMode:
       for parameter in node.attrib:
         if not parameter in self.parameters:
           handleError(parameter + " not in attributes and strict mode on in "+node.tag)
+
+    # handle ordering of subnodes
     if self.subOrder is not None:
       subs = [sub[0] for sub in self.subOrder]
     else:
       subs = self.subs
+    # read in subnodes
     subNames = set()
     for sub in subs:
       subName = sub.getName()

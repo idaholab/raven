@@ -32,7 +32,7 @@ import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
 # internal libraries
-from utils import mathUtils, xmlUtils, randomUtils
+from utils import utils, mathUtils, xmlUtils, randomUtils
 from .SupervisedLearning import supervisedLearning
 import pprint
 pp=pprint.PrettyPrinter(indent=2)
@@ -323,7 +323,7 @@ class Segments(Collection):
     for r, rom in enumerate(roms):
       self.raiseADebug('Evaluating ROM segment', r)
       subResults = rom.evaluate(evaluationDict)
-      year = getattr(self, 'DEBUGGYEAR', 0)
+      # year = getattr(self, 'DEBUGGYEAR', 0)
       #This is the place have debugg file
       # os.system('mv signal_bases.csv year_{}_segment_{}_signals.csv'.format(year,r))
       # NOTE the pivot values for subResults will be wrong (shifted) if shifting is used in training
@@ -618,20 +618,25 @@ class Clusters(Segments):
     self._divisionClassifier = None      # Classifier to cluster subdomain ROMs
     self._metricClassifiers = None       # Metrics for clustering subdomain ROMs
     self._clusterInfo = {}               # contains all the useful clustering results
-    ##################
-    self._evaluationMode = 'truncated'   # TODO make user option, whether returning full histories or truncated ones
-
-    # self._evaluationMode = 'full'   # TODO changed here for Konor's case now
-    #########
-    self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
+    self._evaluationMode = None          # evaluations returning full histories or truncated ones?
     self._clusterFeatures = None         # dict of lists, features to cluster on
-    self.DEBUGGYEAR = 0
+    self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
     # check if ROM has methods to cluster on (errors out if not)
     if not self._templateROM.isClusterable():
       self.raiseAnError(NotImplementedError, 'Requested ROM "{}" does not yet have methods for clustering!'.format(self._romName))
 
+    segmentNode = kwargs['paramInput'].findFirst('Segment')
+    # evaluation mode
+    evalModeNode = segmentNode.findFirst('evalMode')
+    if evalModeNode is not None:
+      self._evaluationMode = evalModeNode.value
+    else:
+      self.raiseAMessage('No evalMode specified for clustered ROM, so defaulting to "truncated".')
+      self._evaluatoinMode = 'truncated'
+    self.raiseADebug('Clustered ROM evaluation mode set to "{}"'.format(self._evaluationMode))
+
     # interpret clusterable parameter requests, if any
-    inputRequestsNode = kwargs['paramInput'].findFirst('Segment').findFirst('clusterFeatures')
+    inputRequestsNode = segmentNode.findFirst('clusterFeatures')
     if inputRequestsNode is None:
       userRequests = None
     else:
@@ -640,6 +645,7 @@ class Clusters(Segments):
       # print('dasfskfhsehfglsegjlsegjlsbgljsbjlgbsjkbgjksdbgjksbgdjksgbs',userRequests)
     self._clusterFeatures = self._templateROM.checkRequestedClusterFeatures(userRequests)
     print('debuggggg_clusterFeatures',self._clusterFeatures)
+
   def readAssembledObjects(self):
     """
       Collects the entities from the Assembler as needed.
@@ -658,6 +664,17 @@ class Clusters(Segments):
     self._metricClassifiers = self._assembledObjects.get('Metric', None)
 
   ## API ##
+  def setAdditionalParams(self, params):
+    """
+      Stores (and later passes through) additional parameters to the sub-roms
+      @ In, params, dict, parameters to set, dependent on ROM
+      @ Out, None
+    """
+    evalMode = params.pop('clusterEvalMode', None)
+    if evalMode:
+      self._evaluationMode = evalMode
+    Segments.setAdditionalParams(self, params)
+
   def evaluate(self, edict):
     """
       Method to evaluate a point or set of points via surrogate.
@@ -1335,7 +1352,6 @@ class Interpolated(supervisedLearning):
       # model is the ClusterROM instance for this macro step
       macroIndexValues.append(macroStep)
       self.raiseADebug(' ... evaluating macro step "{}" of "{}"'.format(macroStep+1, numMacro))
-      model.DEBUGGYEAR = macroStep
       subResult = model.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
       indexMap = subResult.get('_indexMap', {})
       # if not set up yet, then frame results structure
