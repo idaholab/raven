@@ -185,11 +185,12 @@ class Neutrino(CodeInterfaceBase):
     # create full path to the outputfile
     # NeutrinoInput needs to be the name of the Neutrino Input file
     # Name of results file name needs to be the same as in the createNewInput function
-    outputPath = workingDir + r'\NeutrinoInput\Measurements\results.csv'
+    outputPath = os.path.join(workingDir, "NeutrinoInput")
+    outputPath = os.path.join(outputPath, "Measurements")
+    outputPath = os.path.join(outputPath, "results.csv")
 
     #Change the output path so RAVEN can read the output
-    newOutputPath = workingDir + r'\?' + output
-    newOutputPath = newOutputPath.replace('?', '')
+    newOutputPath = os.path.join(workingDir, output)
 
     # check that the output file exists
     if not os.path.exists(outputPath):
