@@ -44,7 +44,9 @@ import RavenUtils,utils
 #print(missing,too_old)
 report_list = RavenUtils.modules_report()
 amsc_report = RavenUtils.module_report('AMSC')
+tensorflow_report = RavenUtils.module_report('tensorflow',version='tensorflow.__version__')
 report_list.append(('AMSC',amsc_report[0],amsc_report[1],""))
+report_list.append(('tensorflow',) + tensorflow_report)
 print("\nLibraries report:\n")
 for module, found, message, version in report_list:
   if found:

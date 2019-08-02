@@ -135,6 +135,8 @@ class hdf5Database(MessageHandler.MessageUser):
       self.firstRootGroup = True
     else:
       # self.h5FileW is the HDF5 object. Open the database in "write only" mode
+      if os.path.exists(self.filenameAndPath):
+        os.remove(self.filenameAndPath)
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'w')
       # Add the root as first group
       self.allGroupPaths.append(b"/")
