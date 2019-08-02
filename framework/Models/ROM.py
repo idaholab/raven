@@ -1491,6 +1491,8 @@ class ROM(Dummy):
     if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
       if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
         useCV = False
+    else:
+      useCV = False
     return useCV
 
   def writePointwiseData(self, writeTo):
