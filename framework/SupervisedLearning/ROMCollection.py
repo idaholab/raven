@@ -22,7 +22,6 @@ from __future__ import division, print_function, absolute_import
 import copy
 import warnings
 from collections import defaultdict, OrderedDict
-import random
 import pprint
 pp = pprint.PrettyPrinter(indent=2)
 

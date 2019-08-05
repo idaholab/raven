@@ -343,8 +343,6 @@ class ARMA(supervisedLearning):
         self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=self._minBins)
       # if this target governs the zero filter, extract it now
 
-      # zeroFiltering = target == self.zeroFilterTarget
-      # if not zeroFiltering:
       if target == self.zeroFilterTarget:
         self.zeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
         self.notZeroFilterMask = np.logical_not(self.zeroFilterMask) # where data are
@@ -471,6 +469,9 @@ class ARMA(supervisedLearning):
 
   def _evaluateScale(self, growthInfo,year):
     """
+      @ In, growthInfo, dictionary of growth value and for each target
+      @ In, year, int, year index in multiyear
+      @ Out, scale, float, scaling factor for each year
     """
     growth = growthInfo['value']/100. # given in percentage
     mode = growthInfo['mode']
@@ -932,9 +933,6 @@ class ARMA(supervisedLearning):
 
     # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
     if zeroFilter:
-      # values = values[self.notZeroFilterMask]
-      # fourierSignals = fourierSignalsFull[self.notZeroFilterMask, :]
-
       values = values[self.notZeroFilterMask]
       fourierSignals = fourierSignalsFull[self.notZeroFilterMask, :]
       # values = values[0]
@@ -1877,6 +1875,7 @@ class ARMA(supervisedLearning):
       @ In, settings, dict, as from getGlobalRomSegmentSettings
       @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
       @ In, picker, slice, indexer for data range of this segment
+      @ In, bgId, int, index for the begining index for truncated mode evaluation
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
     # add back in Fourier
@@ -1923,6 +1922,7 @@ class ARMA(supervisedLearning):
     if self.preserveInputCDF:
       for target, dist in settings['input CDFs'].items():
         if len(evaluation[target])>1:
+          # multiyear option
           for y in range(len(evaluation[target])):
             for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
               scale =self._evaluateScale(growthInfo,y)
