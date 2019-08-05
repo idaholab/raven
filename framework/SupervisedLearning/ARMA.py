@@ -343,11 +343,11 @@ class ARMA(supervisedLearning):
         self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=self._minBins)
       # if this target governs the zero filter, extract it now
 
-      zeroFiltering = target == self.zeroFilterTarget
-      if not zeroFiltering:
-        if target == self.zeroFilterTarget:
-          self.zeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
-          self.notZeroFilterMask = np.logical_not(self.zeroFilterMask) # where data are
+      # zeroFiltering = target == self.zeroFilterTarget
+      # if not zeroFiltering:
+      if target == self.zeroFilterTarget:
+        self.zeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
+        self.notZeroFilterMask = np.logical_not(self.zeroFilterMask) # where data are
       # if we're removing Fourier signal, do that now.
 
       maskPeakRes = np.ones(len(timeSeriesData), dtype=bool)
@@ -386,7 +386,11 @@ class ARMA(supervisedLearning):
         # print('jhl',self.pivotParameterValues)
         # print('jjj',self.fourierParams[target])
         # print('ccc',timeSeriesData)
-
+        # # print(target)
+        # print('lalalala')
+        # # print(self.zeroFilterTarget)
+        # print(self.zeroFilterMask)
+        # print(self.notZeroFilterMask)
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
                                                          self.fourierParams[target],
                                                          timeSeriesData,
@@ -970,16 +974,21 @@ class ARMA(supervisedLearning):
 
     # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
     if zeroFilter:
+      print('yeszf')
       # values = values[self.notZeroFilterMask]
       # fourierSignals = fourierSignalsFull[self.notZeroFilterMask, :]
+      # print('JZ is a debugger ', self.notZeroFilterMask)
+
       values = values[self.notZeroFilterMask]
       fourierSignals = fourierSignalsFull[self.notZeroFilterMask, :]
+      # values = values[0]
+      # fourierSignals = fourierSignals[0]
     else:
       fourierSignals = fourierSignalsFull
 
     # fit the signal
-    # print('JZ is a debugger ', values)
-    # print('JZ is a debugger fourierSignals', self.zeroFilterMask)
+    # print('JZ is a debugger ', self.notZeroFilterMask)
+    # print('JZ is a debugger fourierSignals', fourierSignals)
 
     fourierEngine.fit(fourierSignals, values)
 
@@ -1062,11 +1071,16 @@ class ARMA(supervisedLearning):
     q = smoother['state_cov',:,:,0]
     selCov = r.dot(q).dot(r.T)
     cov = solve_discrete_lyapunov(smoother['transition',:,:,0], selCov)
-    # print('Here is the cov: \n',cov)
+    print('Here is the smoother: \n',smoother)
+    print('Here is the mean: \n',mean)
+    print('Here is the r: \n',r)
+    print('Here is the q: \n',q)
+    print('Here is the selCov: \n',selCov)
+    print('Here is the cov: \n',cov)
     # FIXME it appears this is always resulting in a lowest-value initial state.  Why?
     initDist = self._trainMultivariateNormal(len(mean),mean,cov)
     # NOTE: uncomment this line to get a printed summary of a lot of information about the fitting.
-    # self.raiseADebug('VARMA model training summary:\n',results.summary())
+    self.raiseADebug('VARMA model training summary:\n',results.summary())
     return model, stateDist, initDist
 
   def _trainZeroRemoval(self, data, tol=1e-10):
