@@ -232,7 +232,7 @@ class Segments(Collection):
       @ Out, None
     """
     Collection.setAdditionalParams(self, params)
-    for rom in self._roms:
+    for rom in self._roms + [self._templateROM]:
       rom.setAdditionalParams(params)
 
   def train(self, tdict, skipAssembly=False):
@@ -689,17 +689,31 @@ class Clusters(Segments):
       result = Segments.evaluate(self, edict)
     elif self._evaluationMode == 'truncated':
       result, weights = self._createTruncatedEvaluation(edict)
+      # print('jialock holmes is watching this edict',edict)
+
+      # print('jialock holmes is watching this results',result)
+      # print(self._clusterInfo['labels'])
+      bgId=[0]
       for r, rom in enumerate(self._roms):
         # "r" is the cluster label
         # find ROM in cluster
-        #clusterIndex = list(self._clusterInfo['map'][r]).index(rom)
+        clusterIndex = list(self._clusterInfo['map'][r]).index(rom)
+
         # find ROM in full history
-        #segmentIndex = self._getSegmentIndexFromClusterIndex(r, self._clusterInfo['labels'], clusterIndex=clusterIndex)
+        segmentIndex = self._getSegmentIndexFromClusterIndex(r, self._clusterInfo['labels'], clusterIndex=clusterIndex)
         # make local modifications based on global settings
-        delim = self._divisionInfo['delimiters'][r]
+        delim = self._divisionInfo['delimiters'][segmentIndex[0]]
         picker = slice(delim[0], delim[-1] + 1)
-        result = rom.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker)
+        # pp.pprint(self._romGlobalAdjustments)
+        # print('jialock holmes is inside clster segment rom id',r)
+        # print(bgId)
+        result = rom.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker, bgId=bgId[-1])
+        # print('jialock in segment rom clolection amy',rom.multiyear,rom.growthFactors)
+        bgId.append(bgId[-1]+picker.stop-picker.start)
       # make global modifications based on global settings
+      # print('jialock in segment rom clolection amy after',self._templateROM.multiyear,self._templateROM.growthFactors)
+      # print(len(result['GHI']))
+
       result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
     elif self._evaluationMode == 'clustered':
       result, weights = self._createNDEvaluation(edict)
@@ -859,6 +873,7 @@ class Clusters(Segments):
 
     # combine histories (we stored each one as a distinct array during collecting)
     for target, values in result.items():
+      # print('jialock holmes is watching this values',target,values)
       stackIndex = indexMap.get(target, [pivotID]).index(pivotID)
       result[target] = np.concatenate(values, axis=stackIndex)
     # put in the indexes
