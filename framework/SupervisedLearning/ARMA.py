@@ -469,7 +469,7 @@ class ARMA(supervisedLearning):
 
   def _evaluateScale(self, growthInfo,year):
     """
-      @ In, growthInfo, dictionary of growth value and for each target
+      @ In, growthInfo, dictionary of growth value for each target
       @ In, year, int, year index in multiyear
       @ Out, scale, float, scaling factor for each year
     """
@@ -1886,6 +1886,8 @@ class ARMA(supervisedLearning):
         ## create storage for the sampled result
         if self.multiyear:
           if bgId is not None:
+            # calculate the slice where adding back the long Fourier signal
+            # if clusterd and truncated mode
             sigLen=picker.stop-picker.start
             bgInd = bgId
             endInd = bgInd+sigLen
@@ -1893,13 +1895,16 @@ class ARMA(supervisedLearning):
               # apply growth factor
               for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
                 scale =self._evaluateScale(growthInfo,y)
+                # adding Fourier with scale based on each year
                 evaluation[target][y][bgInd:endInd] += sig*scale
           else:
             for y in range(len(evaluation[target])):
               for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
                 evaluation[target][y][picker] += sig*scale
         else:
+          # single year
           if bgId is not None:
+            # if cluterd and truncated mode
             sigLen=picker.stop-picker.start
             bgInd = bgId
             endInd = bgInd+sigLen
