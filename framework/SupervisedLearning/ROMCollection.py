@@ -701,6 +701,11 @@ class Clusters(Segments):
         result = rom.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker)
       # make global modifications based on global settings
       result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
+    elif self._evaluationMode == 'clustered':
+      result, weights = self._createNDEvaluation(edict)
+      eeeeeee # how to fix ARMA finalizeLocalRomSegmentEvaluation to work with both modes?
+      eeeeeee # how to fix ARMA finalizeGlobalRomSegmentEvaluation to work with both modes?
+    # TODO add clusterWeights to "result" as meta to the output? This would be handy!
     return result
 
   def writePointwiseData(self, writeTo):
@@ -781,16 +786,18 @@ class Clusters(Segments):
     labels = classifier.evaluate(clusterFeatures)
     return labels
 
-  def _createTruncatedEvaluation(self, evaluationDict):
+  def _collectClusteredEvaluations(self, evaluationDict, pivotID):
     """
-      Evaluates truncated representation of ROM
+      Collect evaluations from each clustered ROM and return them.
       @ In, evaluationDict, dict, realization to evaluate
-      @ Out, result, dict, dictionary of results
+      @ In, pivotID, str, name of pivot variable
+      @ Out, result, dict, dictionary of results (arrays of nparrays)
+      @ Out, indexMap, dict, example index map from one sample
       @ Out, sampleWeights, np.array, array of cluster weights (normalized)
+      @ Out, pivotLen, int, total length of sampled ROMs (for truncated expression)
     """
     result = None       # populate on first sample -> could use defaultdict, but that's more lenient
     sampleWeights = []  # importance of each cluster
-    pivotID = self._templateROM.pivotParameterID
     # sample signal, one piece for each segment
     labelMap = self._clusterInfo['labels']
     clusters = sorted(list(set(labelMap)))
@@ -827,17 +834,32 @@ class Clusters(Segments):
       # populate results storage
       if result is None:
         result = dict((target, []) for target in subResults if target not in allIndices)
+        indexValues = dict((index, subResults[index]) for index in allIndices if index != pivotID)
       # populate weights
       sampleWeights.append(np.ones(len(subResults[pivotID])) * len(self._clusterInfo['map'][cluster]))
       for target, values in subResults.items():
         if target in allIndices:
           continue
         result[target].append(values)
+    # TODO can we reduce the number of things we return? This is a little ridiculous.
+    return result, indexMap, indexValues, sampleWeights, pivotLen
+
+  def _createTruncatedEvaluation(self, evaluationDict):
+    """
+      Evaluates truncated representation of ROM
+      @ In, evaluationDict, dict, realization to evaluate
+      @ Out, result, dict, dictionary of results
+      @ Out, sampleWeights, np.array, array of cluster weights (normalized)
+    """
+    pivotID = self._templateROM.pivotParameterID
+    result, indexMap, indexValues, sampleWeights, pivotLen = self._collectClusteredEvaluations(evaluationDict, pivotID)
+    allIndices = set()
+    for target, indices in indexMap.items():
+      allIndices.update(indices)
+
     # combine histories (we stored each one as a distinct array during collecting)
     for target, values in result.items():
       stackIndex = indexMap.get(target, [pivotID]).index(pivotID)
-      # if target in indexMap:
-      #   stackIndex = indexMap[target].index(pivotID)
       result[target] = np.concatenate(values, axis=stackIndex)
     # put in the indexes
     for index in allIndices:
@@ -845,13 +867,36 @@ class Clusters(Segments):
         result[pivotID] = self._indexValues[pivotID][:pivotLen]
       else:
         # NOTE this assumes all the non-pivot dimensions are synchronized between segments!!
-        result[index] = subResults[index]
+        result[index] = indexValues[index]
     if indexMap:
       result['_indexMap'] = indexMap
     # combine history weights
     sampleWeights = np.hstack(sampleWeights)
     sampleWeights /= sum(sampleWeights)
-    return result, sampleWeights #, pivotIndices
+    return result, sampleWeights
+
+  def _createNDEvaluation(self, evaluationDict):
+    """
+      Evaluates truncated representation of ROM
+      @ In, evaluationDict, dict, realization to evaluate
+      @ Out, result, dict, dictionary of results
+      @ Out, sampleWeights, np.array, array of cluster weights (normalized)
+    """
+    pivotID = self._templateROM.pivotParameterID
+    result, indexMap, indexValues, sampleWeights, pivotLen = self._collectClusteredEvaluations(evaluationDict, pivotID)
+    allIndices = set()
+    for target, indices in indexMap.items():
+      allIndices.update(indices)
+
+    for target, values in result.items():
+      indexMap[target] = np.asarray(['_Cluster'] + list(indexMap.get(target, [pivotID])))
+      result[target] = np.asarray(values)
+    for index in allIndices:
+      result[index] = indexValues[index] # TODO what are these pivot vals? Is it ok as is?
+    result['_indexMap'] = indexMap
+    # TODO how to handle sampleWeights in this cluster-style formatting?
+    ## for now, let's just return them.
+    return result, sampleWeights
 
   def _extrapolateRequestedClusterFeatures(self, requests):
     """

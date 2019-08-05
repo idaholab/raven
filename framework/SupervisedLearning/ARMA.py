@@ -1916,7 +1916,6 @@ class ARMA(supervisedLearning):
         # print('jz is a updater')
         # print(self.peaks)
 
-
   def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker):
     """
       Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
