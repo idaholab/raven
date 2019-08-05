@@ -935,8 +935,6 @@ class ARMA(supervisedLearning):
     if zeroFilter:
       values = values[self.notZeroFilterMask]
       fourierSignals = fourierSignalsFull[self.notZeroFilterMask, :]
-      # values = values[0]
-      # fourierSignals = fourierSignals[0]
     else:
       fourierSignals = fourierSignalsFull
 
