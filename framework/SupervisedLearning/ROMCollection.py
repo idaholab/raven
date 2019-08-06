@@ -23,7 +23,6 @@ import copy
 import warnings
 from collections import defaultdict, OrderedDict
 import pprint
-pp = pprint.PrettyPrinter(indent=2)
 
 # external libraries
 import abc
@@ -33,8 +32,6 @@ from scipy.interpolate import interp1d
 # internal libraries
 from utils import utils, mathUtils, xmlUtils, randomUtils
 from .SupervisedLearning import supervisedLearning
-import pprint
-pp=pprint.PrettyPrinter(indent=2)
 # import pickle as pk # TODO remove me!
 import os
 warnings.simplefilter('default', DeprecationWarning)
@@ -231,7 +228,9 @@ class Segments(Collection):
       @ Out, None
     """
     Collection.setAdditionalParams(self, params)
-    for rom in self._roms + [self._templateROM]:
+    #print('DEBUGG roms:', self._roms, type(self._roms))
+    #print('DEBUGG template:', self._templateROM, type(self._templateROM))
+    for rom in self._roms.tolist() + [self._templateROM]:
       rom.setAdditionalParams(params)
 
   def train(self, tdict, skipAssembly=False):
@@ -640,11 +639,7 @@ class Clusters(Segments):
       inputRequests = inputRequestsNode.value
       userRequests = self._extrapolateRequestedClusterFeatures(inputRequests)
     self._clusterFeatures = self._templateROM.checkRequestedClusterFeatures(userRequests)
-<<<<<<< HEAD
-    print('debuggggg_clusterFeatures',self._clusterFeatures)
 
-=======
->>>>>>> be0aab29b1fb2103f559546c8afe18732e9f47bf
   def readAssembledObjects(self):
     """
       Collects the entities from the Assembler as needed.
@@ -887,7 +882,7 @@ class Clusters(Segments):
       @ Out, sampleWeights, np.array, array of cluster weights (normalized)
     """
     pivotID = self._templateROM.pivotParameterID
-    result, indexMap, indexValues, sampleWeights, pivotLen = self._collectClusteredEvaluations(evaluationDict, pivotID)
+    result, indexMap, indexValues, sampleWeights, _ = self._collectClusteredEvaluations(evaluationDict, pivotID)
     allIndices = set()
     for target, indices in indexMap.items():
       allIndices.update(indices)
