@@ -342,50 +342,21 @@ class ARMA(supervisedLearning):
       if self.preserveInputCDF:
         self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=self._minBins)
       # if this target governs the zero filter, extract it now
-      if self.zeroFilterMask.all()== None:
-        print('jz is inside zfff')
-        if target == self.zeroFilterTarget:
-          self.zeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
-          self.notZeroFilterMask = np.logical_not(self.zeroFilterMask) # where data are
+
+      if target == self.zeroFilterTarget:
+        self.zeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
+        self.notZeroFilterMask = np.logical_not(self.zeroFilterMask) # where data are
       # if we're removing Fourier signal, do that now.
 
       maskPeakRes = np.ones(len(timeSeriesData), dtype=bool)
       # Make a full mask
       if target in self.peaks:
-        # print(self.peaks)
-        # deltaT=self.pivotParameterValues[-1]-self.pivotParameterValues[0]
-        # deltaT=deltaT/(len(self.pivotParameterValues)-1)
-        # print(deltaT)
-        # # change the peak information in self.peak from time unit into index by divided the timestep
-        # # deltaT is the time step calculated by (ending point - stating point in time)/(len(time)-1)
-        # self.peaks[target]['period']=int(self.peaks[target]['period']/deltaT)
-        # for i in range(len(self.peaks[target]['windows'])):
-        #   self.peaks[target]['windows'][i]['window'][0]=int(self.peaks[target]['windows'][i]['window'][0]/deltaT)
-        #   self.peaks[target]['windows'][i]['window'][1]=int(self.peaks[target]['windows'][i]['window'][1]/deltaT)
-        #   self.peaks[target]['windows'][i]['width']=int(self.peaks[target]['windows'][i]['width']/deltaT)
-        # groupWin , maskPeakRes=self._peakGroupWindow(timeSeriesData, windowDict=self.peaks[target] )
-        # self.peaks[target]['groupWin']=groupWin
-        # self.peaks[target]['mask']=maskPeakRes
-
-        # rangeWindow = self.rangeWindow(windowDict=self.peaks[target])
-        # self.peaks[target]['rangeWindow']=rangeWindow
-        # print('beforre train')
-        # pp.pprint(self.peaks)
         peakResults=self._trainPeak(timeSeriesData,windowDict=self.peaks[target])
         self.peaks[target].update(peakResults)
         maskPeakRes = peakResults['mask']
-        # pp.pprint(self.peaks)
 
-
-
-        # print(peakResults)
       if target in self.fourierParams:
         self.raiseADebug('... analyzing Fourier signal  for target "{}" ...'.format(target))
-        # print('JZ is a debugger')
-        # print('jhl',self.pivotParameterValues)
-        # print('jjj',self.fourierParams[target])
-        # print('ccc',timeSeriesData)
-
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
                                                          self.fourierParams[target],
                                                          timeSeriesData,
@@ -461,7 +432,6 @@ class ARMA(supervisedLearning):
         self.varmaNoise = (unzNoise, zNoise)
         self.varmaInit = (unzInit, zInit)
       else:
-        # print('jz is a debugger correlation',correlationData)
         varma, noiseDist, initDist = self._trainVARMA(correlationData)
         # FUTURE if extending to multiple VARMA per training, these will need to be dictionaries
         self.varmaResult = (varma,)
@@ -483,12 +453,7 @@ class ARMA(supervisedLearning):
         # apply growth factor
         vals = copy.deepcopy(featureVals) # without deepcopy, the vals are modified in-place
         for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
-          growth = growthInfo['value']/100. # given in percentage
-          mode = growthInfo['mode']
-          if mode == 'exponential':
-            scale = (1.0 + growth) ** y
-          else:
-            scale = 1.0 + y * growth
+          scale =self._evaluateScale(growthInfo,y)
           vals[t] *= scale
         result = self._evaluateYear(vals)
         for target, value in result.items():
@@ -501,6 +466,20 @@ class ARMA(supervisedLearning):
 
     else:
       return self._evaluateYear(featureVals)
+
+  def _evaluateScale(self, growthInfo,year):
+    """
+      @ In, growthInfo, dictionary of growth value for each target
+      @ In, year, int, year index in multiyear
+      @ Out, scale, float, scaling factor for each year
+    """
+    growth = growthInfo['value']/100. # given in percentage
+    mode = growthInfo['mode']
+    if mode == 'exponential':
+      scale = (1.0 + growth) ** year
+    else:
+      scale = 1.0 + year * growth
+    return scale
 
   def _evaluateYear(self, featureVals):
     """
@@ -608,7 +587,6 @@ class ARMA(supervisedLearning):
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
       if target in self.peaks:
-        # pp.pprint(self.peaks[target])
         signal = self._transformBackPeaks(signal,windowDict=self.peaks[target])
         debuggFile.writelines('signal_peak,'+','.join(str(x) for x in signal)+'\n')
 
@@ -758,7 +736,8 @@ class ARMA(supervisedLearning):
     ## mask
     divZero = Xlow == Xhigh
     ## careful when using double masks
-    y[[a[divZero] for a in np.where(inMask)]] =  0.5*(Yhigh[divZero] + Ylow[divZero])
+    zMask=[a[divZero] for a in np.where(inMask)]
+    y[tuple(zMask)] =  0.5*(Yhigh[divZero] + Ylow[divZero])
     # interpolate all other points as y = low + slope*frac
     ## mask
     okay = np.logical_not(divZero)
@@ -768,7 +747,10 @@ class ARMA(supervisedLearning):
     ## distance from x to low is fraction through dx
     frac = x[inMask][okay] - Xlow[okay]
     ## careful when using double masks
-    y[[a[okay] for a in np.where(inMask)]] = Ylow[okay] + dy/dx * frac
+    ## Adding tuple to the mask for future warning
+    # FutureWarning: Using a non-tuple sequence for multidimensional indexing is deprecated; use `arr[tuple(seq)]` instead of `arr[seq]`. In the future this will be interpreted as an array index, `arr[np.array(seq)]`, which will result either in an error or a different result.
+    okayMask=[a[okay] for a in np.where(inMask)]
+    y[tuple(okayMask)] = Ylow[okay] + dy/dx * frac
     return y
 
   def _normalizeThroughCDF(self, data, params):
@@ -856,9 +838,7 @@ class ARMA(supervisedLearning):
       data=data[fullMask]
     elif len(masks)==1:
       fullMask =masks[0]
-      # print('jz is full mask', fullMask)
       data = data[fullMask]
-      # print('data',data)
     results = smARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
@@ -871,7 +851,6 @@ class ARMA(supervisedLearning):
     # caluclate number of bins
     # binOps=Length or value
     nBins = self._computeNumberOfBins(data,binOps=binOps)
-    # print('jz is a debugger inside _trainCDF nbins',nBins)
     # construct histogram
     counts, edges = np.histogram(data, bins = nBins, density = False)
     counts = np.array(counts) / float(len(data))
@@ -907,7 +886,6 @@ class ARMA(supervisedLearning):
     # deltaT is the time step calculated by (ending point - stating point in time)/(len(time)-1)
     peakResults['period']=int(round(windowDict['period']/deltaT))
     windows=[]
-    # pp.pprint(windowDict['windows'])
     for i in range(len(windowDict['windows'])):
       window={}
       a = windowDict['windows'][i]['window'][0]
@@ -923,9 +901,6 @@ class ARMA(supervisedLearning):
     peakResults['nbin']=windowDict['nbin']
     rangeWindow = self.rangeWindow(windowDict=peakResults)
     peakResults['rangeWindow']=rangeWindow
-    # print('gW',groupWin)
-    # print('rW',rangeWindow)
-    # print('jz after train peak results')
     return peakResults
 
   def _trainFourier(self, pivotValues, periods, values, masks=None,zeroFilter=False):
@@ -958,16 +933,12 @@ class ARMA(supervisedLearning):
 
     # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
     if zeroFilter:
-      # values = values[self.notZeroFilterMask]
-      # fourierSignals = fourierSignalsFull[self.notZeroFilterMask, :]
       values = values[self.notZeroFilterMask]
       fourierSignals = fourierSignalsFull[self.notZeroFilterMask, :]
     else:
       fourierSignals = fourierSignalsFull
 
     # fit the signal
-    # print('JZ is a debugger ', values)
-    # print('JZ is a debugger fourierSignals', self.zeroFilterMask)
 
     fourierEngine.fit(fourierSignals, values)
 
@@ -1029,7 +1000,6 @@ class ARMA(supervisedLearning):
       @ Out, initDist, Distributions.MultivariateNormal, MVN from which VARMA initial state is taken
     """
     model = sm.tsa.VARMAX(endog=data, order=(self.P, self.Q))
-    # print(data)
     self.raiseADebug('... ... ... fitting VARMA ...')
     results = model.fit(disp=False,maxiter=1000)
     lenHist,numVars = data.shape
@@ -1050,7 +1020,6 @@ class ARMA(supervisedLearning):
     q = smoother['state_cov',:,:,0]
     selCov = r.dot(q).dot(r.T)
     cov = solve_discrete_lyapunov(smoother['transition',:,:,0], selCov)
-    # print('Here is the cov: \n',cov)
     # FIXME it appears this is always resulting in a lowest-value initial state.  Why?
     initDist = self._trainMultivariateNormal(len(mean),mean,cov)
     # NOTE: uncomment this line to get a printed summary of a lot of information about the fitting.
@@ -1242,8 +1211,6 @@ class ARMA(supervisedLearning):
     for picker in pickers:
       res = dict((target, signal['predict'][picker].mean()) for target, signal in settings['long Fourier signal'].items())
       results.append(res)
-    # print('jz is in _getMeanFromGlobal here here')
-    # print(results)
     return results
 
   def getLocalRomClusterFeatures(self, featureTemplate, settings, request, picker=None, **kwargs):
@@ -1258,7 +1225,6 @@ class ARMA(supervisedLearning):
       @ Out, features, dict, {target_metric: np.array(floats)} features to cluster on
     """
     # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
-    # print('jz is inside arma getLocalRomClusterFeatures request', request)
     features = self.getFundamentalFeatures(request, featureTemplate=featureTemplate)
     # segment means
     # since we've already detrended globally, get the means from that (if present)
@@ -1317,23 +1283,17 @@ class ARMA(supervisedLearning):
         feature = featureTemplate.format(target=target, metric='arma', id='MA_{}'.format(q))
         features[feature] = val
       for target, cdfParam in self.cdfParams.items():
-        # print('jz is adebugger inside thecdfpara',target,cdfParam['bins'])
-        # print('jz is adebugger inside thecdfpara',target,cdfParam['counts'])
         lenthOfData = cdfParam['lens']
         feature = featureTemplate.format(target=target, metric='arma', id='len')
         features[feature] = lenthOfData
 
         for e, edge in enumerate(cdfParam['bins']):
-          # print('jz is a debugger inside the cdfpara',e,edge)
           feature = featureTemplate.format(target=target, metric='arma', id='bin_{}'.format(e))
           features[feature] = edge
-        # print('jz is adebugger inside thecdfpara',target,cdfParam[1])
         for c, count in enumerate(cdfParam['counts']):
-          # print('jz is a debugger inside the cdfpara',c,count)
           feature = featureTemplate.format(target=target, metric='arma', id='counts_{}'.format(c))
           features[feature] = count
         # for paraId,paraVal in cdfParam.items():
-        #   print('jz is a debugger in gff cdfpara',paraId,paraVal)
     # CDF preservation if available
     for target, cdf in self._trainingCDF.items():
       _, (counts, edges) = cdf
@@ -1345,8 +1305,6 @@ class ARMA(supervisedLearning):
         features[feature] = edge
 
     for target, peak in self.peaks.items():
-      # print('啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦 我是分界线1 啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦啦')
-      # pp.pprint(self.peaks)
       nBin = self.peaks[target]['nbin']
       period = self.peaks[target]['period']
       if 'groupWin' in peak.keys() and 'rangeWindow' in peak.keys():
@@ -1387,7 +1345,6 @@ class ARMA(supervisedLearning):
           #mean
           if len(group['Amp']):
             if np.isnan((group['Amp'][0])):
-              print('nanan')
               meanAmp = np.mean(self._signalStorage[target]['original'])
             else:
               # meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
@@ -1397,8 +1354,6 @@ class ARMA(supervisedLearning):
             features[feature] = meanAmp
 
           else:
-            # print(g)
-            # print('  No group found')
             meanAmp = np.mean(self._signalStorage[target]['original'])
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
             features[feature] = meanAmp
@@ -1423,9 +1378,6 @@ class ARMA(supervisedLearning):
               features[feature] = minAmp
             else:
               maxAmp=max(group['Amp'])
-              # print('jz is here here')
-              # print(group['Amp'])
-
               feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_maxAmp'.format(g))
               features[feature] = maxAmp
               minAmp=min(group['Amp'])
@@ -1441,8 +1393,6 @@ class ARMA(supervisedLearning):
               feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
               features[feature] = count
           else:
-            # print('jz is whwhwh')
-            # print(self._signalStorage[target]['original'])
             maxAmp=max(self._signalStorage[target]['original'])
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_maxAmp'.format(g))
             features[feature] = maxAmp
@@ -1458,7 +1408,6 @@ class ARMA(supervisedLearning):
     # for target, peak in self.items():
 
     if requestedFeatures is not None:
-      # print(requestedFeatures)
       popFeatures=[]
       for rq in features.keys():
         tg, mtc, rid =rq.split('|')
@@ -1483,12 +1432,9 @@ class ARMA(supervisedLearning):
           elif rid.startswith('l'):
             popFeatures.append(rq)
 
-      # print(popFeatures)
-        # elif mtc=='arma':
+
       for p in popFeatures:
         del features[p]
-    # pp.pprint(features)
-    # cccccccccc
     return features
 
   def readFundamentalFeatures(self, features):
@@ -1529,13 +1475,11 @@ class ARMA(supervisedLearning):
           p = int(ID[4:])
           if 'bin' not in arma[target]:
             arma[target]['bin'] = {}
-          # print('jz is setting the whiten part',val)
           arma[target]['bin'][p] = val
         elif ID.startswith('counts_'):
           p = int(ID[7:])
           if 'counts' not in arma[target]:
             arma[target]['counts'] = {}
-          # print('jz is setting the whiten part two',val)
           arma[target]['counts'][p] = val
 
       elif metric == 'cdf':
@@ -1569,10 +1513,7 @@ class ARMA(supervisedLearning):
 
       else:
         raise KeyError('Unrecognized metric: "{}"'.format(metric))
-      # print('debuggggggg')
-      # pp.pprint(features)
-      # print('debuggggggggg')
-      # pp.pprint(peak)
+
     return {'fourier': fourier,
             'arma': arma,
             'cdf': cdf,
@@ -1615,8 +1556,6 @@ class ARMA(supervisedLearning):
                                      'predict': predict}
 
   def _setArmaResults(self, paramDict):
-    # print('jz is very happy')
-    # pp.pprint(paramDict)
     for target, info in paramDict.items():
       if 'AR' in info:
         AR_keys, AR_vals = zip(*list(info['AR'].items()))
@@ -1641,10 +1580,7 @@ class ARMA(supervisedLearning):
         counts_keys, counts_vals = zip(*list(info['counts'].items()))
         counts_keys, counts_vals = zip(*sorted(zip(counts_keys, counts_vals), key=lambda x:x[0]))
         counts_vals = np.asarray(counts_vals)
-        # print(counts_vals)
       # FIXME no else
-      # else:
-      #   counts_vals = np.array([])
 
       sigma = info['std']
       result = armaResultsProxy(AR_vals, MA_vals, sigma)
@@ -1677,7 +1613,6 @@ class ARMA(supervisedLearning):
       self._trainingCDF[target] = (dist, histogram)
 
   def _setPeakResults(self, paramDict):
-    # print('jz is a peakpicker')
     for target, info in paramDict.items():
       groupWin=[]
       for g, groupInfo in info.items():
@@ -1694,7 +1629,6 @@ class ARMA(supervisedLearning):
 
         if maxAmp>minAmp:
           ampHisEg=np.linspace(minAmp, maxAmp, num=len(ampHisCs)+1)
-        # print('dshflshfahlfhalhflasfhi',ampHisCs)
           histogram = (ampHisCs, ampHisEg)
           dist = stats.rv_histogram(histogram)
           ampLocal=dist.rvs(size=int(round(probExist*lenWin))).tolist()
@@ -1715,10 +1649,7 @@ class ARMA(supervisedLearning):
         for indexOfIndex,valueOfIndex in enumerate(indLocal):
           valueOfIndex=int(valueOfIndex)
           indLocal[indexOfIndex]=valueOfIndex
-        # print('we are inside arma set peak results his',g,histogram)
-        # print('pb',int(probExist*lenWin))
-        # print('we are inside arma set peak results ind',g,indLocal)
-        # print('we are inside arma set peak results amp',g,ampLocal)
+
         groupWin[g]['Ind']=indLocal
         groupWin[g]['Amp']=ampLocal
       self.peaks[target]['groupWin']=groupWin
@@ -1738,13 +1669,10 @@ class ARMA(supervisedLearning):
 
     # set up for input CDF preservation on a global scale
     if self.preserveInputCDF:
-      # print('jz is sth preserve cdf')
-      # print(targets)
       inputDists = {}
       for target in targets:
         if target == self.pivotParameterID:
           continue
-        # print('jz is sth after preserve cdf',target)
         targetVals = trainingDict[target][0]
         nbins=max(self._minBins,int(np.sqrt(len(targetVals))))
 
@@ -1911,10 +1839,11 @@ class ARMA(supervisedLearning):
     """
     # some Fourier periods have already been handled, so reset the ones that actually are needed
     newFourier = settings.get('segment Fourier periods', None)
-    # for target in self.target:
-    if self.zeroFilterMask.all()!= None:
-      self.zeroFilterMask = self.zeroFilterMask[picker]
-      self.notZeroFilterMask = self.notZeroFilterMask[picker]
+    for t,target in enumerate(self.target):
+      zeroFiltering = target == self.zeroFilterTarget
+      if zeroFiltering:
+        self.zeroFilterMask = self.zeroFilterMask[picker]
+        self.notZeroFilterMask = self.notZeroFilterMask[picker]
     if newFourier is not None:
       for target in list(self.fourierParams.keys()):
         periods = newFourier.get(target, [])
@@ -1930,26 +1859,21 @@ class ARMA(supervisedLearning):
     self.preserveInputCDF = False
     if 'long Fourier signal' in settings:
       for target, peak in self.peaks.items():
-        # print('jz is a picker')
-        # print(picker)
-        # print('jz is a peaker')
-        # print(self.peaks)
         subMean = self._getMeanFromGlobal(settings, picker)
         subMean=subMean[0][target]
         th = self.peaks[target]['threshold']
         th = th - subMean
         self.peaks[target]['threshold'] = th
-        # print('jz is a updater')
-        # print(self.peaks)
 
 
-  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker):
+  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker,bgId=None):
     """
       Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
       Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
       @ In, settings, dict, as from getGlobalRomSegmentSettings
       @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
       @ In, picker, slice, indexer for data range of this segment
+      @ In, bgId, int, index for the begining index for truncated mode evaluation
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
     # add back in Fourier
@@ -1957,7 +1881,34 @@ class ARMA(supervisedLearning):
       for target, signal in settings['long Fourier signal'].items():
         ## NOTE might need to put zero filter back into it
         sig = signal['predict'][picker]
-        evaluation[target][picker] += sig
+        ## create storage for the sampled result
+        if self.multiyear:
+          if bgId is not None:
+            # calculate the slice where adding back the long Fourier signal
+            # if clusterd and truncated mode
+            sigLen=picker.stop-picker.start
+            bgInd = bgId
+            endInd = bgInd+sigLen
+            for y in range(len(evaluation[target])):
+              # apply growth factor
+              for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
+                scale =self._evaluateScale(growthInfo,y)
+                # adding Fourier with scale based on each year
+                evaluation[target][y][bgInd:endInd] += sig*scale
+          else:
+            for y in range(len(evaluation[target])):
+              for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
+                evaluation[target][y][picker] += sig*scale
+        else:
+          # single year
+          if bgId is not None:
+            # if cluterd and truncated mode
+            sigLen=picker.stop-picker.start
+            bgInd = bgId
+            endInd = bgInd+sigLen
+            evaluation[target][bgInd:endInd] += sig
+          else:
+            evaluation[target][picker] += sig
     return evaluation
 
   def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None):
@@ -1973,7 +1924,17 @@ class ARMA(supervisedLearning):
     ## how nicely does this play with zerofiltering?
     if self.preserveInputCDF:
       for target, dist in settings['input CDFs'].items():
-        evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
+        if len(evaluation[target])>1:
+          # multiyear option
+          for y in range(len(evaluation[target])):
+            for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
+              scale =self._evaluateScale(growthInfo,y)
+              objectDist=dist[0]
+              histDist=tuple([dist[1][0],dist[1][1]*scale])
+              dist = tuple([dist[0],histDist])
+              evaluation[target][y] = self._transformThroughInputCDF(evaluation[target][y], dist, weights)
+        else:
+          evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
     return evaluation
 
   ### Peak Picker ###
