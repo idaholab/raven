@@ -22,7 +22,6 @@ from __future__ import division, print_function, absolute_import
 import copy
 import warnings
 from collections import defaultdict, OrderedDict
-
 import pprint
 
 # external libraries
@@ -248,8 +247,6 @@ class Segments(Collection):
     self._divisionInfo['delimiters'] = divisions[0] + divisions[1]
     # allow ROM to handle some global training
     self._romGlobalAdjustments, newTrainingDict = self._templateROM.getGlobalRomSegmentSettings(tdict, divisions)
-    # print('zj is in here')
-    # pp.pprint(self._romGlobalAdjustments)
     # train segments
     self._trainBySegments(divisions, newTrainingDict)
     self.amITrained = True
@@ -639,10 +636,7 @@ class Clusters(Segments):
     else:
       inputRequests = inputRequestsNode.value
       userRequests = self._extrapolateRequestedClusterFeatures(inputRequests)
-      # print('dasfskfhsehfglsegjlsegjlsbgljsbjlgbsjkbgjksdbgjksbgdjksgbs',userRequests)
     self._clusterFeatures = self._templateROM.checkRequestedClusterFeatures(userRequests)
-    print('debuggggg_clusterFeatures',self._clusterFeatures)
-
   def readAssembledObjects(self):
     """
       Collects the entities from the Assembler as needed.
@@ -686,10 +680,6 @@ class Clusters(Segments):
       result = Segments.evaluate(self, edict)
     elif self._evaluationMode == 'truncated':
       result, weights = self._createTruncatedEvaluation(edict)
-      # print('jialock holmes is watching this edict',edict)
-
-      # print('jialock holmes is watching this results',result)
-      # print(self._clusterInfo['labels'])
       bgId=[0]
       for r, rom in enumerate(self._roms):
         # "r" is the cluster label
@@ -701,15 +691,10 @@ class Clusters(Segments):
         # make local modifications based on global settings
         delim = self._divisionInfo['delimiters'][segmentIndex[0]]
         picker = slice(delim[0], delim[-1] + 1)
-        # pp.pprint(self._romGlobalAdjustments)
-        # print('jialock holmes is inside clster segment rom id',r)
-        # print(bgId)
+
         result = rom.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker, bgId=bgId[-1])
-        # print('jialock in segment rom clolection amy',rom.multiyear,rom.growthFactors)
         bgId.append(bgId[-1]+picker.stop-picker.start)
       # make global modifications based on global settings
-      # print('jialock in segment rom clolection amy after',self._templateROM.multiyear,self._templateROM.growthFactors)
-      # print(len(result['GHI']))
 
       result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
     elif self._evaluationMode == 'clustered':
@@ -870,7 +855,6 @@ class Clusters(Segments):
 
     # combine histories (we stored each one as a distinct array during collecting)
     for target, values in result.items():
-      # print('jialock holmes is watching this values',target,values)
       stackIndex = indexMap.get(target, [pivotID]).index(pivotID)
       result[target] = np.concatenate(values, axis=stackIndex)
     # put in the indexes
@@ -975,23 +959,15 @@ class Clusters(Segments):
     targets.remove(pivotID)
     clusterFeatures = defaultdict(list)
 
-    # print('zj is a debugger inside _gatherClusterFeatures ')
     for r, rom in enumerate(roms):
-      # print('rom',rom.peaks)
       # select pertinent data
       ## NOTE assuming only "leftover" roms are at the end, so the rest are sequential and match "counters"
       picker = slice(counter[r][0], counter[r][-1]+1)
       # get ROM-specific metrics
-      # print('zj is in _gatherClusterFeatures self._clusterFeatures')
-      # print(self._clusterFeatures)
       romData = rom.getLocalRomClusterFeatures(self._featureTemplate, self._romGlobalAdjustments, self._clusterFeatures, picker=picker)
 
-      # print('zj is a debugger inside _gatherClusterFeatures 2')
-      # print('r',r)
-      # pp.pprint(romData.items())
       for feature, val in romData.items():
         clusterFeatures[feature].append(val)
-      # print('end of the _gatherClusterFeatures')
     return clusterFeatures
 
   def _getSequentialRoms(self):
@@ -1030,13 +1006,8 @@ class Clusters(Segments):
 
   def _clusterSegments(self, roms, divisions):
     counter, remainder = divisions
-    # print('zj is inside the _clusterSegments')
-    # print(counter,remainder)
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter)
-    # print('jz is a debugger in _clusterSegments')
-    # print('DEBUGG cluster features:')
-    # pp.pprint(clusterFeatures.keys())
     # future: requested metrics
     ## TODO someday
     # store clustering info, unweighted
@@ -1263,8 +1234,6 @@ class Interpolated(supervisedLearning):
         # store interpolators, by segment
         interps.append(interp)
     self.raiseADebug('Interpolator trained')
-    # print('jz is a debugger interps')
-    # pp.pprint(interps)
     # interpolate new data
     ## now we have interpolators for every segment, so for each missing segment, we
     ## need to make a new Cluster model and assign its subsequence ROMs (pre-clustering).
@@ -1280,7 +1249,6 @@ class Interpolated(supervisedLearning):
       # otherwise, create new instances
       else:
         self.raiseADebug('Interpolating year {}'.format(y))
-        # print('zj is inside _interpolateSteps')
         newModel = self._interpolateSVL(trainingDict, exampleRoms, exampleModel, self._macroTemplate, numSegments, globalInterp, interps, y)
         models.append(newModel)
         self._macroSteps[y] = newModel
@@ -1327,13 +1295,9 @@ class Interpolated(supervisedLearning):
     """ interpolates a single engine for a single macro step (e.g. a single year) """
     newModel = copy.deepcopy(exampleModel) #copy.deepcopy(template)
     segmentRoms = [] # FIXME speedup, make it a numpy array from the start
-    # print('jz is debugger level 0 in _interpolateSVL')
     for segment in range(N):
-      # print('we are now inside segment', segment)
 
       params = dict((param, interp(index)) for param, interp in segmentInterps[segment]['method'].items())
-      # print('jz is a debugger params')
-      # pp.pprint(params)
       # DEBUGG
       #fname = 'debugg_interp_y{}_s{}.pk'.format(index, segment)
       #with open(fname, 'wb') as f:
@@ -1350,14 +1314,9 @@ class Interpolated(supervisedLearning):
 
       newRom = copy.deepcopy(exampleRoms[segment])
       inputs = newRom.readFundamentalFeatures(params)
-      # print('we are the input:')
-      # pp.pprint(inputs)
       newRom.setFundamentalFeatures(inputs)
-      # print('zj is a debugger in here:')
       segmentRoms.append(newRom)
 
-    # print('we are inside _interpolateSVL after collect the segment rom')
-    # print(segmentRoms[1].getFundamentalFeatures(None))
     segmentRoms = np.asarray(segmentRoms)
     # add global params
     params = dict((param, interp(index)) for param, interp in globalInterp['method'].items())
@@ -1372,14 +1331,10 @@ class Interpolated(supervisedLearning):
     # TODO assuming histories!
     pivotID = exampleModel._templateROM.pivotParameterID
     pivotValues = trainingDict[pivotID][0] # FIXME assumes pivot is the same for each year
-    # print('DEBUGG setting global rom features:')
     params = exampleModel._roms[0].setGlobalRomFeatures(params, pivotValues)
     newModel._romGlobalAdjustments = params
-    # print('newModel',newModel)
     # finish training by clustering
-    # print('zj is debugger inside _interpolateSVL')
     newModel._clusterSegments(segmentRoms, exampleModel.divisions)
-    # print('zj is after newModel._clusterSegments')
     newModel.amITrained = True # template.amITrained
     return newModel
 
@@ -1520,7 +1475,6 @@ def _plotSignalsClustered(labels, clusterFeatures, slices, trainingSet):
   for target in trainingSet:
     if target in ['Time', 'scaling']:
       continue
-    # print('')
     print('DEBUGG plotting target "{}"'.format(target))
     fig, ax = plt.subplots(figsize=(12, 10))
     ymin = trainingSet[target][0].min()
