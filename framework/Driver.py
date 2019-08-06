@@ -128,10 +128,11 @@ if __name__ == '__main__':
   printStatement()
 
   checkVersions()
-
+  ## Initializing command line options
   verbosity      = 'all'
   interfaceCheck = False
   interactive = Interaction.No
+  
   workingDir = os.getcwd()
 
   ## Remove duplicate command line options and preserve order so if they try
