@@ -480,6 +480,13 @@ class ROM(Dummy):
       @ Out, outputEvaluation, dict, the dict containing the outputs for each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
     """
     inputToROM       = self._inputToInternal(request)
+    # Check if the inputs sent to the ROM are consistent what what is expected (Addressing issue #1027 )
+    
+    # Right now, the fix is to give a more informative error message that alerts the user of the inconsistancy
+    # between the passed inputs and the expected ones.
+    ## TODO: This method can be made smart enough to extract the needed inputs and ignore any additional ones.
+    if  not all(input in self.initializationOptionDict['Features'] for input in inputToROM.keys()):
+          self.raiseAnError(IOError, "Inputs passed to ROM are: ",inputToROM.keys(), ", while expected are: ",self.initializationOptionDict['Features'], ". Please check your inputs!")
     outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
     # assure numpy array formatting # TODO can this be done in the supervised engine instead?
     for k,v in outputEvaluation.items():
