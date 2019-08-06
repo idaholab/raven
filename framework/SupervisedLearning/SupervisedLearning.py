@@ -255,6 +255,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
       NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires.
+      
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluate, dict, {target: evaluated points}
     """
