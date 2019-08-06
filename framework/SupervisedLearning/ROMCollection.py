@@ -24,7 +24,6 @@ import warnings
 from collections import defaultdict, OrderedDict
 
 import pprint
-pp = pprint.PrettyPrinter(indent=2)
 
 # external libraries
 import abc
@@ -34,8 +33,6 @@ from scipy.interpolate import interp1d
 # internal libraries
 from utils import utils, mathUtils, xmlUtils, randomUtils
 from .SupervisedLearning import supervisedLearning
-import pprint
-pp=pprint.PrettyPrinter(indent=2)
 # import pickle as pk # TODO remove me!
 import os
 warnings.simplefilter('default', DeprecationWarning)
@@ -898,7 +895,7 @@ class Clusters(Segments):
       @ Out, sampleWeights, np.array, array of cluster weights (normalized)
     """
     pivotID = self._templateROM.pivotParameterID
-    result, indexMap, indexValues, sampleWeights, pivotLen = self._collectClusteredEvaluations(evaluationDict, pivotID)
+    result, indexMap, indexValues, sampleWeights, _ = self._collectClusteredEvaluations(evaluationDict, pivotID)
     allIndices = set()
     for target, indices in indexMap.items():
       allIndices.update(indices)

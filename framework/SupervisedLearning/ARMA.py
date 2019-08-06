@@ -58,13 +58,13 @@ class ARMA(supervisedLearning):
   """
   # class attribute
   ## define the clusterable features for this ROM.
-  _clusterableFeatures =   {'global':['miu'],
-                            'fourier': ['equal','shorter'],
-                            #FIXME shorter fourier intepolation\\
-                            'arma': ['sigma', 'p', 'q'],
-                            # NO CDF
-                            'peak': ['probability', 'mean', 'sigma', 'index'],
-                            }
+  _clusterableFeatures = {'global':['miu'],
+                          'fourier': ['equal','shorter'],
+                          #FIXME shorter fourier intepolation\\
+                          'arma': ['sigma', 'p', 'q'],
+                          # NO CDF
+                          'peak': ['probability', 'mean', 'sigma', 'index'],
+                          }
 
   ### INHERITED METHODS ###
   def __init__(self, messageHandler, **kwargs):
@@ -310,7 +310,7 @@ class ARMA(supervisedLearning):
     if myNode:
       self.setMultiyearParams(myNode)
 
-  def __trainLocal__(self,featureVals,targetVals):
+  def __trainLocal__(self, featureVals, targetVals):
     """
       Perform training on input database stored in featureVals.
 
@@ -502,7 +502,7 @@ class ARMA(supervisedLearning):
     else:
       return self._evaluateYear(featureVals)
 
-  def _evaluateScale(self, growthInfo,year):
+  def _evaluateScale(self, growthInfo, year):
     """
     """
     growth = growthInfo['value']/100. # given in percentage
@@ -1969,8 +1969,8 @@ class ARMA(supervisedLearning):
         self.peaks[target]['threshold'] = th
         # print('jz is a updater')
         # print(self.peaks)
-  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker, bgId=None):
 
+  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker, bgId=None):
     """
       Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
       Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
@@ -1987,9 +1987,9 @@ class ARMA(supervisedLearning):
         ## create storage for the sampled result
         if self.multiyear:
           if bgId is not None:
-            sigLen=picker.stop-picker.start
+            sigLen = picker.stop - picker.start
             bgInd = bgId
-            endInd = bgInd+sigLen
+            endInd = bgInd + sigLen
             for y in range(len(evaluation[target])):
               # apply growth factor
               for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
