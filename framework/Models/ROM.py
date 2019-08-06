@@ -481,7 +481,7 @@ class ROM(Dummy):
     """
     inputToROM       = self._inputToInternal(request)
     # Check if the inputs sent to the ROM are consistent what what is expected (Addressing issue #1027 )
-    
+
     # Right now, the fix is to give a more informative error message that alerts the user of the inconsistancy
     # between the passed inputs and the expected ones.
     ## TODO: This method can be made smart enough to extract the needed inputs and ignore any additional ones.
