@@ -342,10 +342,10 @@ class ARMA(supervisedLearning):
       if self.preserveInputCDF:
         self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=self._minBins)
       # if this target governs the zero filter, extract it now
-
       if target == self.zeroFilterTarget:
-        self.zeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
-        self.notZeroFilterMask = np.logical_not(self.zeroFilterMask) # where data are
+        if self.notZeroFilterMask is None:
+          self.zeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
+          self.notZeroFilterMask = np.logical_not(self.zeroFilterMask) # where data are
       # if we're removing Fourier signal, do that now.
 
       maskPeakRes = np.ones(len(timeSeriesData), dtype=bool)
@@ -360,7 +360,7 @@ class ARMA(supervisedLearning):
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
                                                          self.fourierParams[target],
                                                          timeSeriesData,
-                                                         masks=[maskPeakRes],  # In future, a consolidated masking system for multiple signal processors can be implemented.
+                                                         masks=np.logical_and(maskPeakRes,self.notZeroFilterMask),  # In future, a consolidated masking system for multiple signal processors can be implemented.
                                                          zeroFilter = target == self.zeroFilterTarget)
         self._signalStorage[target]['fourier'] = copy.deepcopy(self.fourierResults[target]['predict'])
         timeSeriesData -= self.fourierResults[target]['predict']
@@ -915,7 +915,7 @@ class ARMA(supervisedLearning):
     """
     # XXX fix for no order
     if masks is None:
-      masks = []
+      masks = np.ones(len(values), dtype=bool)
 
     fourierSignalsFull = self._generateFourierSignal(pivotValues, periods)
     # fourierSignals dimensions, for each key (base):
@@ -926,19 +926,8 @@ class ARMA(supervisedLearning):
     #                 2:   sin(2pi*t/period[1]),
     #                 3:   cos(2pi*t/period[1]), ...
     fourierEngine = linear_model.LinearRegression(normalize=False)
-    for mask in masks:
-      fourierSignalsFull = fourierSignalsFull[mask, :]
-      values = values[mask]
-
-
-    # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
-    if zeroFilter:
-      values = values[self.notZeroFilterMask]
-      fourierSignals = fourierSignalsFull[self.notZeroFilterMask, :]
-    else:
-      fourierSignals = fourierSignalsFull
-
-    # fit the signal
+    fourierSignals = fourierSignalsFull[masks, :]
+    values = values[masks]
 
     fourierEngine.fit(fourierSignals, values)
 
