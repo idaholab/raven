@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
 
   <RunInfo>
     <WorkingDir>test_rom_trainer</WorkingDir>
@@ -92,26 +92,26 @@
     </MonteCarlo>
   </Samplers>
 
-  <Steps verbosity="debug">
-    <MultiRun name="MC_for_rom_trainer" verbosity="debug">
+  <Steps verbosity="silent">
+    <MultiRun name="MC_for_rom_trainer" verbosity="silent">
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">PythonModule</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmcCode3</Sampler>
-      <Output class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Output>
+      <Output class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER_in_RrR</Output>
     </MultiRun>
-    <IOStep name="test_extract_for_rom_trainer" verbosity="debug">
-      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
-      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER</Input>
+    <IOStep name="test_extract_for_rom_trainer" verbosity="silent">
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER_in_RrR</Input>
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER_in_RrR</Input>
       <Output class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Output>
       <Output class="DataObjects" type="HistorySet">Historyset_from_database_for_rom_trainer</Output>
       <Output class="OutStreams" type="Print">ciccio</Output>
       <Output class="OutStreams" type="Print">ciccioHS</Output>
     </IOStep>
-    <RomTrainer name="test_rom_trainer" verbosity="debug">
+    <RomTrainer name="test_rom_trainer" verbosity="silent">
       <Input class="DataObjects" type="PointSet">Pointset_from_database_for_rom_trainer</Input>
       <Output class="Models" type="ROM">ROM1</Output>
     </RomTrainer>
-    <RomTrainer name="test_rom_trainerHS" verbosity="debug">
+    <RomTrainer name="test_rom_trainerHS" verbosity="silent">
       <Input class="DataObjects" type="HistorySet">Historyset_from_database_for_rom_trainer</Input>
       <Output class="Models" type="ROM">ROMHS</Output>
     </RomTrainer>
@@ -166,7 +166,7 @@
   </OutStreams>
 
   <Databases>
-    <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER" readMode="overwrite"/>
+    <HDF5 name="MC_TEST_EXTRACT_STEP_FOR_ROM_TRAINER_in_RrR" readMode="overwrite"/>
   </Databases>
 
   <ExternalXML node="DataObjects" xmlToLoad="../ext_dataobjects.xml"/>
