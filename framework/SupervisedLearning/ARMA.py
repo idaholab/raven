@@ -90,7 +90,7 @@ class ARMA(supervisedLearning):
     self.Q                 = kwargs.get('Q', 3) # moving average lag
     self.segments          = kwargs.get('segments', 1)
     # data manipulation
-    reseed = kwargs.get('reseedCopies', str(True)).lower()
+    reseed = str(kwargs.get('reseedCopies', True)).lower()
     self.reseedCopies      = reseed not in utils.stringsThatMeanFalse()
     self.outTruncation     = {'positive':set(), 'negative':set()} # store truncation requests
     self.pivotParameterID  = kwargs['pivotParameter']
@@ -149,7 +149,8 @@ class ARMA(supervisedLearning):
     if correlated is not None:
       np.random.seed(self.seed)
       # store correlated targets
-      corVars = [x.strip() for x in correlated.split(',')]
+      assert not utils.isAString(correlated)
+      corVars = correlated #[x.strip() for x in correlated.split(',')]
       for var in corVars:
         if var not in self.target:
           self.raiseAnError(IOError,'Variable "{}" requested in "correlate" but not found among the targets!'.format(var))
@@ -634,7 +635,7 @@ class ARMA(supervisedLearning):
     self.seed = seed
 
   ### UTILITY METHODS ###
-  def _computeNumberOfBins(self,data,binOps=None):
+  def _computeNumberOfBins(self, data, binOps=None):
     """
       Uses the Freedman-Diaconis rule for histogram binning
       -> For relatively few samples, this can cause unnatural flat-lining on low, top end of CDF
@@ -1866,14 +1867,13 @@ class ARMA(supervisedLearning):
         th = th - subMean
         self.peaks[target]['threshold'] = th
 
-
-  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker, bgId=None):
+  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, globalPicker, bgId=None):
     """
       Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
       Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
       @ In, settings, dict, as from getGlobalRomSegmentSettings
       @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
-      @ In, picker, slice, indexer for data range of this segment
+      @ In, globalPicker, slice, indexer for data range of this segment FROM GLOBAL SIGNAL
       @ In, bgId, int, index for the begining index for truncated mode evaluation
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
@@ -1881,35 +1881,35 @@ class ARMA(supervisedLearning):
     if 'long Fourier signal' in settings:
       for target, signal in settings['long Fourier signal'].items():
         ## NOTE might need to put zero filter back into it
-        sig = signal['predict'][picker]
         ## create storage for the sampled result
+        sig = signal['predict'][globalPicker]
         if self.multiyear:
           if bgId is not None:
             # calculate the slice where adding back the long Fourier signal
             # if clusterd and truncated mode
-            sigLen=picker.stop-picker.start
+            sigLen = globalPicker.stop - globalPicker.start
             bgInd = bgId
             endInd = bgInd + sigLen
             for y in range(len(evaluation[target])):
               # apply growth factor
               for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
-                scale =self._evaluateScale(growthInfo,y)
+                scale = self._evaluateScale(growthInfo,y)
                 # adding Fourier with scale based on each year
                 evaluation[target][y][bgInd:endInd] += sig*scale
           else:
             for y in range(len(evaluation[target])):
               for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
-                evaluation[target][y][picker] += sig*scale
+                evaluation[target][y][globalPicker] += sig*scale
         else:
           # single year
           if bgId is not None:
             # if cluterd and truncated mode
-            sigLen=picker.stop-picker.start
+            sigLen = globalPicker.stop - globalPicker.start
             bgInd = bgId
-            endInd = bgInd+sigLen
+            endInd = bgInd + sigLen
             evaluation[target][bgInd:endInd] += sig
           else:
-            evaluation[target][picker] += sig
+            evaluation[target][globalPicker] += sig
     return evaluation
 
   def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None):

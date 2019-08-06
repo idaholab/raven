@@ -228,7 +228,9 @@ class Segments(Collection):
       @ Out, None
     """
     Collection.setAdditionalParams(self, params)
-    for rom in self._roms + [self._templateROM]:
+    #print('DEBUGG roms:', self._roms, type(self._roms))
+    #print('DEBUGG template:', self._templateROM, type(self._templateROM))
+    for rom in self._roms.tolist() + [self._templateROM]:
       rom.setAdditionalParams(params)
 
   def train(self, tdict, skipAssembly=False):
