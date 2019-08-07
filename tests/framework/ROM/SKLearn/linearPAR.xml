@@ -44,7 +44,7 @@
       <C>1.0</C>
       <epsilon>0.1</epsilon>
       <fit_intercept>True</fit_intercept>
-      <n_iter>5</n_iter>
+      <n_iter_no_change>5</n_iter_no_change>
       <shuffle>True</shuffle>
       <random_state>1</random_state>
       <verbose>0</verbose>

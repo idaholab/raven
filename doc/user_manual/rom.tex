@@ -100,6 +100,7 @@ one of the following:
   \item \xmlString{ARMA}, for time-dependent stochastic regression (time series generator)
   \item \xmlString{PolyExponential}, for time-dependent regression
   \item \xmlString{DMD}, for time-dependent regression
+  \item \xmlString{KerasMLPClassifier}, for deep neuron network
 \end{itemize}
 
 \specBlock{a}{ROM}
@@ -1368,8 +1369,8 @@ Classifier}{linear\_model|PassiveAggressiveClassifier}
   \default{1.0}
   %
   \item \fitInterceptDescription{True}
-  \item \nIterDescriptionB{5}
   \item \shuffleDescription{True}
+  \item \nIterNoChangeDescriptionA{5}
   \item \randomStateDescription{None}
   \item \verDescriptionB{0}
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, the loss function to
@@ -1449,7 +1450,7 @@ training set one at a time.
   %
   \default{0.0001}
   \item \fitInterceptDescription{True}
-  \item \nIterDescriptionB{5}
+  \item \nIterNoChangeDescriptionA{5}
   \item \shuffleDescription{True}
   \item \randomStateDescription{0}
   \item \verDescriptionB{0}
@@ -1497,6 +1498,7 @@ is a 2d-array of shape [n\_samples, n\_targets]).
   \default{1.0}
   %
   \item \fitInterceptDescription{True}
+  \item \nIterNoChangeDescriptionA{5}
   \item \maxIterDescription{determined by scipy.sparse.linalg.}
   \item \normalizeDescription{False}
   \item \solverDescription
@@ -1715,7 +1717,7 @@ training}{linear\_model|SGDClassifier}
   \default{0.15}
   %
   \item \fitInterceptDescription{True}
-  \item \nIterDescriptionB{5}
+  \item \nIterNoChangeDescriptionA{5}
   \item \shuffleDescription{True}
   \item \randomStateSVMDescription{None}
   \item \verDescriptionB{0}
@@ -1830,7 +1832,7 @@ floating point values for the features.
   \default{0.15}
   %
   \item \fitInterceptDescription{True}
-  \item \nIterDescriptionB{5}
+  \item \nIterNoChangeDescriptionA{5}
   \item \shuffleDescription{True}
   \item \randomStateDescription{None}
   \item \verDescriptionB{0}
@@ -2753,99 +2755,40 @@ The disadvantages of Gaussian Processes for Machine Learning include:
 \skltype{Gaussian Process Regressor}{GaussianProcess|GaussianProcess}
 
 \begin{itemize}
-  \item \xmlNode{regr}, \xmlDesc{string, optional field}, is a regression
-  function returning an array of outputs of the linear regression functional
-  basis.
-  %
-  The number of observations n\_samples should be greater than the size p of
-  this basis.
-  %
-  Available built-in regression models are `constant,' `linear,' and
-  `quadratic.'
-  %
-  \default{constant}
-  \item \xmlNode{corr}, \xmlDesc{string, optional field}, is a stationary
-  autocorrelation function returning the autocorrelation between two points $x$
-  and $x'$.
-  %
-  Default assumes a squared-exponential autocorrelation model.
-  %
-  Built-in correlation models are `absolute\_exponential,'
-  `squared\_exponential,' `generalized\_exponential,' `cubic,' and `linear.'
-  %
-  \default{squared\_exponential}
-  \item \xmlNode{beta0}, \xmlDesc{float, array-like, optional field}, specifies
-  the regression weight vector to perform Ordinary Kriging (OK).
-  %
-  \default{None}
-  \item \xmlNode{storage\_mode}, \xmlDesc{string, optional field}, specifies
-  whether the Cholesky decomposition of the correlation matrix should be stored
-  in the class (storage\_mode = `full') or not (storage\_mode = `light').
-  %
-  \default{full}
-  \item \verDescriptionA{False}
-  \item \xmlNode{theta0}, \xmlDesc{float, array-like, optional field}, is an
-  array with shape (n\_features, ) or (1, ).
-  %
-  This represents the parameters in the autocorrelation model.
-  %
-  If thetaL and thetaU are also specified, theta0 is considered as the starting
-  point for the maximum likelihood estimation of the best set of parameters.
-  %
-  \default{[1e-1]}
-  \item \xmlNode{thetaL}, \xmlDesc{float, array-like, optional field}, is an
-  array with shape matching that defined by \xmlNode{theta0}.
-  %
-  Lower bound on the autocorrelation parameters for maximum likelihood
-  estimation.
-  %
-  \default{None}
-  \item \xmlNode{thetaU}, \xmlDesc{float, array-like, optional field}, is an
-  array with shape matching that defined by \xmlNode{theta0}.
-  %
-  Upper bound on the autocorrelation parameters for maximum likelihood
-  estimation.
-  %
-  \default{None}
-  \item \xmlNode{normalize}, \xmlDesc{boolean, optional field}, if True, the
-  input $X$ and observations $y$ are centered and reduced w.r.t. means and
+  \item \xmlNode{normalize\_y}, \xmlDesc{boolean, optional field}, if True, the
+  observations $y$ are centered and reduced w.r.t. means and
   standard deviations estimated from the n\_samples observations provided.
   %
   \default{True}
-  \item \xmlNode{nugget}, \xmlDesc{float, optional field},specifies a nugget
-  effect to allow smooth predictions from noisy data.
-  %
-  The nugget is added to the diagonal of the assumed training covariance.
-  %
-  In this way it acts as a Tikhonov regularization in the problem.
-  %
-  In the special case of the squared exponential correlation function, the
-  nugget mathematically represents the variance of the input values.
-  %
-  \default{10 * MACHINE\_EPSILON}
   \item \xmlNode{optimizer}, \xmlDesc{string, optional field}, specifies the
   optimization algorithm to be used.
   %
   Available optimizers are: 'fmin\_cobyla', 'Welch'.
   %
   \default{fmin\_cobyla}
-  \item \xmlNode{random\_start}, \xmlDesc{integer, optional field}, sets the
-  number of times the Maximum Likelihood Estimation should be performed from
-  a random starting point.
-  %
-  The first MLE always uses the specified starting point (theta0), the next
-  starting points are picked at random according to an exponential distribution
-  (log-uniform on [thetaL, thetaU]).
-  %
-  \default{1}
   \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, is the seed
   of the internal random number generator.
   %
   \default{None}
+  \item \xmlNode{n\_restarts\_optimizer }, \xmlDesc{integer, optional field}, The number of restarts of the optimizer for finding 
+the kernel’s parameters which maximize the log-marginal likelihood. The first run of the optimizer is performed from th
+e kernel’s initial parameters, the remaining ones (if any) from thetas sampled log-uniform randomly from the space of 
+allowed theta-values. If greater than 0, all bounds must be finite. Note that n\_restarts\_optimizer $== 0$ implies that one run is performed.
+  %
+  \default{0}
+  %
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field}, Value added to the diagonal of the kernel matrix during fitting.
+ Larger values correspond to increased noise level in the observations. This can also prevent a potential numerical issue
+ during fitting, by ensuring that the calculated values form a positive definite matrix. If an array is passed, it must have the
+ same number of entries as the data used for fitting and is used as datapoint-dependent noise level. Note that this is
+ equivalent to adding a WhiteKernel with c=alpha. Allowing to specify the noise level directly as a parameter is mainly for
+ convenience and for consistency with Ridge.
+  %
+  \default{1e-10}
   %
 \end{itemize}
 
-\zNormalizationNotPerformed{GaussianProcess}
+\zNormalizationNotPerformed{GaussianProcessRegressor}
 
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
@@ -3049,6 +2992,43 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
     domain is strictly positive, the absolute value of the original negative value will be used instead, and
     similarly for the negative domain.
   \default{None}
+  
+  
+   \item \xmlNode{Peaks}, \xmlDesc{node, optional}, designed to estimate the peaks in signals that repeat with some frequency, 
+   often in periodic data. The \xmlNode{Peaks} node has the following attributes:  
+  	\begin{itemize}
+    		\item \xmlAttr{target}, \xmlDesc{required string attribute}, defines the name of one target (besides the 
+		pivot parameter) expected to have periodic peaks.
+    		\item \xmlAttr{threshold}, \xmlDesc{required float attribute}, user-defined minimum required 
+		height of peaks (absolute value).
+    		\item \xmlAttr{period}, \xmlDesc{required float attribute}, user-defined expected period for target variable.		
+	\end{itemize}
+
+    	For example, 
+	\begin{lstlisting}[style=XML,morekeywords={target,threshold,period}]
+	<Peaks target='Speed' threshold='0' period='86400'>
+	\end{lstlisting}
+	This means the \xmlString{Speed} signal is a daily signal, and the minimal height required to define a peak is 0.
+    Additionally, the \xmlNode{Peaks} requires the sub-node:
+    	\begin{itemize}
+      		 \item \xmlNode{window}, \xmlDesc{comma-separated floats, required field}, 
+		 lists the window of time within each period in which a peak should be discovered. 
+		 The text of this node is the upper and lower boundary of this 
+		 window \emph{relative to} the start of the period, separated by a comma.
+		 User can define the lower bound to be a negative
+		 number if the window passes through one side of one period. For example, if the period is 24
+		 hours, the window can be -2,2 which is equivalent to 22, 2.
+		 This node has one attribute:
+		 \begin{itemize}
+		  \item \xmlAttr{width}, \xmlDesc{required float attribute} which is the 
+		 user defined  width of peaks in that window. The width is in the unit of the signal as well.
+		 \end{itemize}
+		 The number of \xmlNode{window} is unlimited.
+       	\end{itemize}
+        
+
+  
+  
   \item \xmlNode{preserveInputCDF}, \xmlDesc{boolean, optional field}, enables a final transform on sampled
     data coercing it to have the same distribution as the original data. If \xmlString{True}, then every
     sample generated by this ARMA after training will have a distribution of values that conforms within
@@ -3081,7 +3061,7 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
 \end{itemize}
 
 \textbf{Example:}
-\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+\begin{lstlisting}[style=XML,morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
 <Simulation>
   ...
   <Models>
@@ -3092,8 +3072,16 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
       <Target>Speed1,Speed2</Target>
       <P>5</P>
       <Q>4</Q>
+      <Segment>
+        <subspace pivotLength="1296000" shift="first">Time</subspace>
+      </Segment>
+      <preserveInputCDF>True</preserveInputCDF>
       <Fourier>604800,86400</Fourier>
       <FourierOrder>2, 4</FourierOrder>
+      <Peaks target='Speed1' threshold='0.1' period='86400'>
+        <window width='14400' >-7200,10800</window>
+        <window width='18000' >64800,75600</window>
+      </Peaks>
      </ROM>
     ...
   </Models>
@@ -3280,6 +3268,7 @@ below).
   ...
 </Simulation>
 \end{lstlisting}
+
 Once the ROM  is trained (\textbf{Step} \xmlNode{RomTrainer}), its parameters/coefficients can be exported into an XML file
 via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
 in \xmlNode{OutStream} of type \xmlAttr{Print}):
@@ -3323,3 +3312,8 @@ in \xmlNode{OutStream} of type \xmlAttr{Print}):
   ...
 </Simulation>
 \end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% ROM Model - TensorFlow-Keras Interface  %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{kerasROM.tex}
