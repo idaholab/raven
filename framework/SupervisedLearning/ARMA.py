@@ -909,7 +909,7 @@ class ARMA(supervisedLearning):
       @ In, periods, list, list of the base periods
       @ In, values, np.array, list of values for the dependent variable (signal to take fourier from)
       @ In, masks, np.array, optional, boolean mask where is the signal should be train by Fourier
-      @ In, target, string, optional, target of the trainging
+      @ In, target, string, optional, target of the training
       @ Out, fourierResult, dict, results of this training in keys 'residues', 'fourierSet', 'predict', 'regression'
     """
     # XXX fix for no order
