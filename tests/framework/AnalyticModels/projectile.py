@@ -113,7 +113,7 @@ if __name__=="__main__":
   Input = {}
   for line in open(inFile,'r'):
     arg,val = (a.strip() for a in line.split('='))
-    Input[arg] = float(val)
+    Input[arg] = np.atleast_1d(float(val))
   #make a dummy class to hold values
   class IO:
     """
