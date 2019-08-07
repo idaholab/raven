@@ -100,8 +100,7 @@ class ARMA(supervisedLearning):
     self._trainingCDF      = {} # if preserveInputCDF, these CDFs are scipy.stats.rv_histogram objects for the training data
     self.zeroFilterTarget  = None # target for whom zeros should be filtered out
     self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
-    self.zeroFilterMask    = None # mask of places where zftarget is zero, or None if unused
-    self.notZeroFilterMask = None # mask of places where zftarget is NOT zero, or None if unused
+    self._masks            = {}   # dictionay of masks, inclusding zeroFilterMask(where zero), notZeroFilterMask(Where non zero), and maskPeakRes.
     self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
     #peaks
     self.peaks             = {} # dictionary of peaks information, by target
@@ -342,26 +341,35 @@ class ARMA(supervisedLearning):
       if self.preserveInputCDF:
         self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=self._minBins)
       # if this target governs the zero filter, extract it now
-
       if target == self.zeroFilterTarget:
-        self.zeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
-        self.notZeroFilterMask = np.logical_not(self.zeroFilterMask) # where data are
+
+      # # if we're removing Fourier signal, do that now.
+        if 'notZeroFilterMask' not in self._masks[target]:
+          self._masks[target]['zeroFilterMask']= self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
+          self._masks[target]['notZeroFilterMask'] = np.logical_not(self._masks[target]['zeroFilterMask']) # where data are
       # if we're removing Fourier signal, do that now.
 
-      maskPeakRes = np.ones(len(timeSeriesData), dtype=bool)
-      # Make a full mask
       if target in self.peaks:
         peakResults=self._trainPeak(timeSeriesData,windowDict=self.peaks[target])
         self.peaks[target].update(peakResults)
-        maskPeakRes = peakResults['mask']
+        if target not in self._masks.keys():
+          self._masks[target] = {}
+        self._masks[target]['maskPeakRes']= peakResults['mask']
+      # Make a full mask
+
 
       if target in self.fourierParams:
+        # Make a full mask
+        fullMask = np.ones(len(timeSeriesData), dtype=bool)
+        if target in self._masks.keys():
+          fullMask = self._combineMask(self._masks[target])
+
         self.raiseADebug('... analyzing Fourier signal  for target "{}" ...'.format(target))
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
                                                          self.fourierParams[target],
                                                          timeSeriesData,
-                                                         masks=[maskPeakRes],  # In future, a consolidated masking system for multiple signal processors can be implemented.
-                                                         zeroFilter = target == self.zeroFilterTarget)
+                                                         masks=fullMask,  # In future, a consolidated masking system for multiple signal processors can be implemented.
+                                                         target=target)
         self._signalStorage[target]['fourier'] = copy.deepcopy(self.fourierResults[target]['predict'])
         timeSeriesData -= self.fourierResults[target]['predict']
         self._signalStorage[target]['nofourier'] = copy.deepcopy(timeSeriesData)
@@ -370,7 +378,8 @@ class ARMA(supervisedLearning):
       if target == self.zeroFilterTarget:
 
         # artifically force signal to 0 post-fourier subtraction where it should be zero
-        targetVals[:,t][self.zeroFilterMask] = 0.0
+        zfMask= self._masks[target]['zeroFilterMask']
+        targetVals[:,t][zfMask] = 0.0
         self._signalStorage[target]['zerofilter'] = copy.deepcopy(timeSeriesData)
 
     # Transform data to obatain normal distrbuted series. See
@@ -392,18 +401,12 @@ class ARMA(supervisedLearning):
       else:
         # go ahead and train it now
         ## if using zero filtering and target is the zero-filtered, only train on the masked part
-        # if target == self.zeroFilterTarget:
-        #   # don't bother training the part that's all zeros; it'll still be all zeros
-        #   # just train the data portions
-        #   normed = normed[self.notZeroFilterMask]
         self.raiseADebug('... ... training "{}"...'.format(target))
         if target == self.zeroFilterTarget:
-          sumMask = np.logical_and(maskPeakRes,self.notZeroFilterMask)
+          fullMask = self._combineMask(self._masks[target])
         else:
-          sumMask = maskPeakRes
-        self.armaResult[target] = self._trainARMA(normed,masks=[sumMask])
-        # self.armaResult[target] = self._trainARMA(normed,masks=np.logical_and(maskPeakRes,self.notZeroFilterMask))
-
+          fullMask = np.ones(len(timeSeriesData), dtype=bool)
+        self.armaResult[target] = self._trainARMA(normed,masks=fullMask)
         self.raiseADebug('... ... finished training target "{}"'.format(target))
 
     # now handle the training of the correlated armas
@@ -412,8 +415,10 @@ class ARMA(supervisedLearning):
       # if zero filtering, then all the correlation data gets split
       if self.zeroFilterTarget in self.correlations:
         # split data into the zero-filtered and non-zero filtered
-        unzeroed = correlationData[self.notZeroFilterMask]
-        zeroed = correlationData[self.zeroFilterMask]
+        notZeroFilterMask = self._masks[target]['notZeroFilterMask']
+        zeroFilterMask = self._masks[target]['zeroFilterMask']
+        unzeroed = correlationData[notZeroFilterMask]
+        zeroed = correlationData[zeroFilterMask]
         ## throw out the part that's all zeros (axis 1, row corresponding to filter target)
         zeroed = np.delete(zeroed, self.correlations.index(self.zeroFilterTarget), 1)
         self.raiseADebug('... ... ... training unzeroed ...')
@@ -514,33 +519,33 @@ class ARMA(supervisedLearning):
           if correlatedSample is None:
             # if not, take the samples now
             unzeroedSample = self._generateVARMASignal(self.varmaResult[0],
-                                                       numSamples = self.notZeroFilterMask.sum(),
+                                                       numSamples = self._masks[target]['notZeroFilterMask'].sum(),
                                                        randEngine = self.normEngine.rvs,
                                                        rvsIndex = 0)
             ## zero sampling is dependent on whether the trained model is a VARMA or ARMA
             if self.varmaNoise[1] is not None:
               zeroedSample = self._generateVARMASignal(self.varmaResult[1],
-                                                       numSamples = self.zeroFilterMask.sum(),
+                                                       numSamples = self._masks[target]['zeroFilterMask'].sum(),
                                                        randEngine = self.normEngine.rvs,
                                                        rvsIndex = 1)
             else:
               result = self.varmaResult[1]
               sample = self._generateARMASignal(result,
-                                                numSamples = self.zeroFilterMask.sum(),
+                                                numSamples = self._masks[target]['zeroFilterMask'].sum(),
                                                 randEngine = self.randomEng)
-              zeroedSample = np.zeros((self.zeroFilterMask.sum(),1))
+              zeroedSample = np.zeros((self._masks[target]['zeroFilterMask'].sum(),1))
               zeroedSample[:, 0] = sample
             correlatedSample = True # placeholder, signifies we've sampled the correlated distribution
           # reconstruct base signal from samples
           ## initialize
           signal = np.zeros(len(self.pivotParameterValues))
           ## first the data from the non-zero portions of the original signal
-          signal[self.notZeroFilterMask] = unzeroedSample[:,corrIndex]
+          signal[self._masks[target]['notZeroFilterMask']] = unzeroedSample[:,corrIndex]
           ## then the data from the zero portions (if the filter target, don't bother because they're zero anyway)
           if target != self.zeroFilterTarget:
             # fix offset since we didn't include zero-filter target in zeroed correlated arma
             indexOffset = 0 if corrIndex < filterTargetIndex else -1
-            signal[self.zeroFilterMask] = zeroedSample[:,corrIndex+indexOffset]
+            signal[self._masks[target]['zeroFilterMask']] = zeroedSample[:,corrIndex+indexOffset]
         # if no zero-filtering (but still correlated):
         else:
           ## check if sample taken yet
@@ -559,12 +564,12 @@ class ARMA(supervisedLearning):
         # are we zero-filtering?
         if target == self.zeroFilterTarget:
           sample = self._generateARMASignal(result,
-                                            numSamples = self.notZeroFilterMask.sum(),
+                                            numSamples = self._masks[target]['notZeroFilterMask'].sum(),
                                             randEngine = self.randomEng)
 
           ## if so, then expand result into signal space (functionally, put back in all the zeros)
           signal = np.zeros(len(self.pivotParameterValues))
-          signal[self.notZeroFilterMask] = sample
+          signal[self._masks[target]['notZeroFilterMask']] = sample
         else:
           ## if not, no extra work to be done here!
           sample = self._generateARMASignal(result,
@@ -598,7 +603,7 @@ class ARMA(supervisedLearning):
       if target == self.zeroFilterTarget:
         # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_3zerofilter'] = copy.copy(signal)
-        signal[self.zeroFilterMask] = 0.0
+        signal[self._masks[target]['zeroFilterMask']] = 0.0
 
       # Domain limitations
       for domain,requests in self.outTruncation.items():
@@ -831,14 +836,8 @@ class ARMA(supervisedLearning):
       @ In, masks, np.array, optional, boolean mask where is the signal should be train by ARMA
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
     """
-    if masks == None:
-      masks = []
-    if len(masks)>1:
-      fullMask = np.logical_and.reduce(*masks)
-      data=data[fullMask]
-    elif len(masks)==1:
-      fullMask =masks[0]
-      data = data[fullMask]
+    if masks is not None:
+      data = data[masks]
     results = smARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
@@ -903,19 +902,19 @@ class ARMA(supervisedLearning):
     peakResults['rangeWindow']=rangeWindow
     return peakResults
 
-  def _trainFourier(self, pivotValues, periods, values, masks=None,zeroFilter=False):
+  def _trainFourier(self, pivotValues, periods, values, masks=None,target=None):
     """
       Perform fitting of Fourier series on self.timeSeriesDatabase
       @ In, pivotValues, np.array, list of values for the independent variable (e.g. time)
       @ In, periods, list, list of the base periods
       @ In, values, np.array, list of values for the dependent variable (signal to take fourier from)
       @ In, masks, np.array, optional, boolean mask where is the signal should be train by Fourier
-      @ In, zeroFilter, bool, optional, if True then apply zero-filtering for fourier fitting
+      @ In, target, string, optional, target of the training
       @ Out, fourierResult, dict, results of this training in keys 'residues', 'fourierSet', 'predict', 'regression'
     """
     # XXX fix for no order
     if masks is None:
-      masks = []
+      masks = np.ones(len(values), dtype=bool)
 
     fourierSignalsFull = self._generateFourierSignal(pivotValues, periods)
     # fourierSignals dimensions, for each key (base):
@@ -926,19 +925,8 @@ class ARMA(supervisedLearning):
     #                 2:   sin(2pi*t/period[1]),
     #                 3:   cos(2pi*t/period[1]), ...
     fourierEngine = linear_model.LinearRegression(normalize=False)
-    for mask in masks:
-      fourierSignalsFull = fourierSignalsFull[mask, :]
-      values = values[mask]
-
-
-    # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
-    if zeroFilter:
-      values = values[self.notZeroFilterMask]
-      fourierSignals = fourierSignalsFull[self.notZeroFilterMask, :]
-    else:
-      fourierSignals = fourierSignalsFull
-
-    # fit the signal
+    fourierSignals = fourierSignalsFull[masks, :]
+    values = values[masks]
 
     fourierEngine.fit(fourierSignals, values)
 
@@ -962,9 +950,8 @@ class ARMA(supervisedLearning):
       coefMap[period] = {'amplitude': C, 'phase': s}
       signal+=mathUtils.evalFourier(period,C,s,pivotValues)
     # re-add zero-filtered
-    if zeroFilter:
-      signal[self.zeroFilterMask] = 0.0
-
+    if target == self.zeroFilterTarget:
+      signal[self._masks[target]['zeroFilterMask']] = 0.0
 
     # store results
     fourierResult = {'regression': {'intercept':intercept,
@@ -1140,6 +1127,24 @@ class ARMA(supervisedLearning):
     new = originalDist[0].ppf(dist.cdf(signal))
     return new
 
+  def _combineMask(self,masks):
+    """
+    Combine different masks, remove zerofiletermask and combine other masks
+    @ In, masks, dictionay, dictionary of all the mask need to be combined
+    @ Out, combMask, np.ndarray(bool) or None, one mask contain all the False in the masks
+    """
+    if masks == None:
+      combMask = None
+    else:
+      woZFMask = copy.copy(masks)
+      rmZFMask = woZFMask.pop("zeroFilterMask", None)
+      if len(woZFMask) ==0:
+        combMask= None
+      else:
+        combMask = True
+        for key, val in woZFMask.items():
+          combMask = np.logical_and(combMask, val)
+    return combMask
   ### Segmenting and Clustering ###
   def checkRequestedClusterFeatures(self, request):
     """
@@ -1700,8 +1705,11 @@ class ARMA(supervisedLearning):
           ## TODO I'm not particularly happy with having to remember to do this; can we automate it more?
           zeroFiltering = target == self.zeroFilterTarget
           if zeroFiltering:
-            self.zeroFilterMask = self._trainZeroRemoval(targetVals, tol=self.zeroFilterTol) # where zeros are not
-            self.notZeroFilterMask = np.logical_not(self.zeroFilterMask) # where zeroes are
+            if target not in self._masks.keys():
+              self._masks[target]={}
+            self._masks[target]['zeroFilterMask'] = self._trainZeroRemoval(targetVals, tol=self.zeroFilterTol) # where zeros are not
+            self._masks[target]['notZeroFilterMask'] = np.logical_not(self._masks[target]['zeroFilterMask']) # where zeroes are
+
           periods = np.asarray(self.fourierParams[target])
           full = periods[periods > delta]
           segment[target] = periods[np.logical_not(periods > delta)]
@@ -1710,7 +1718,7 @@ class ARMA(supervisedLearning):
             self.fourierResults[target] = self._trainFourier(pivotValues,
                                                              full,
                                                              targetVals,
-                                                             zeroFilter=zeroFiltering)
+                                                             target=target)
             # remove longer signal from training data
             signal = self.fourierResults[target]['predict']
             targetVals = np.array(targetVals, dtype=np.float64)
@@ -1842,8 +1850,8 @@ class ARMA(supervisedLearning):
     for t,target in enumerate(self.target):
       zeroFiltering = target == self.zeroFilterTarget
       if zeroFiltering:
-        self.zeroFilterMask = self.zeroFilterMask[picker]
-        self.notZeroFilterMask = self.notZeroFilterMask[picker]
+        self._masks[target]['zeroFilterMask'] = self._masks[target]['zeroFilterMask'][picker]
+        self._masks[target]['notZeroFilterMask'] = self._masks[target]['notZeroFilterMask'][picker]
     if newFourier is not None:
       for target in list(self.fourierParams.keys()):
         periods = newFourier.get(target, [])
