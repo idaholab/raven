@@ -67,6 +67,24 @@
         \xmlAttr{type}=\xmlString{PostProcessor} must be set, and the text of this node is the \xmlAttr{name}
         of the requested Classifier. Note this Classifier must be a valid Classifier; not all PostProcessors
         are suitable. For example, see the DataMining PostProcessor subtype Clustering.
+      \item \xmlNode{clusterFeatures}, \xmlDesc{string, optional field}, if clustering then delineates
+        the fundamental ROM features that should be considered while clustering. The available features are
+        ROM-dependent, and an exception is raised if an unrecognized request is given. See individual ROMs
+        for options. \default All ROM-specific options.
+      \item \xmlNode{evalMode}, \xmlDesc{string, optional field}, one of \xmlString{truncated},
+        \xmlString{full}, or \xmlString{clustered}, determines how the evaluations are
+        represented, as follows:
+        \begin{itemize}
+          \item \xmlString{full}, reproduce the full signal using representative cluster segments,
+          \item \xmlString{truncated}, reproduce a history containing exactly segment from each
+            cluster placed back-to-back, with the \xmlNode{pivotParameter} spanning the clustered
+            dimension. Note this will almost surely not be the same length as the original signal;
+            information about indexing can be found in the ROM's XML metadata.
+          \item \xmlString{clustered}, reproduce a N-dimensional object with the variable
+            \texttt{_ROM_cluster} as one of the indexes for the ROM's sampled variables. Note that
+            in order to use the option, the receiving \xmlNode{DataObject} should be of type
+            \xmlNode{DataSet} with one of the indices being \texttt{_ROM_cluster}.
+        \end{itemize}
     \end{itemize}
 }
 
@@ -3049,43 +3067,43 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
     domain is strictly positive, the absolute value of the original negative value will be used instead, and
     similarly for the negative domain.
   \default{None}
-  
-  
-   \item \xmlNode{Peaks}, \xmlDesc{node, optional}, designed to estimate the peaks in signals that repeat with some frequency, 
-   often in periodic data. The \xmlNode{Peaks} node has the following attributes:  
+
+
+   \item \xmlNode{Peaks}, \xmlDesc{node, optional}, designed to estimate the peaks in signals that repeat with some frequency,
+   often in periodic data. The \xmlNode{Peaks} node has the following attributes:
   	\begin{itemize}
-    		\item \xmlAttr{target}, \xmlDesc{required string attribute}, defines the name of one target (besides the 
+    		\item \xmlAttr{target}, \xmlDesc{required string attribute}, defines the name of one target (besides the
 		pivot parameter) expected to have periodic peaks.
-    		\item \xmlAttr{threshold}, \xmlDesc{required float attribute}, user-defined minimum required 
+    		\item \xmlAttr{threshold}, \xmlDesc{required float attribute}, user-defined minimum required
 		height of peaks (absolute value).
-    		\item \xmlAttr{period}, \xmlDesc{required float attribute}, user-defined expected period for target variable.		
+    		\item \xmlAttr{period}, \xmlDesc{required float attribute}, user-defined expected period for target variable.
 	\end{itemize}
 
-    	For example, 
+    	For example,
 	\begin{lstlisting}[style=XML,morekeywords={target,threshold,period}]
 	<Peaks target='Speed' threshold='0' period='86400'>
 	\end{lstlisting}
 	This means the \xmlString{Speed} signal is a daily signal, and the minimal height required to define a peak is 0.
     Additionally, the \xmlNode{Peaks} requires the sub-node:
     	\begin{itemize}
-      		 \item \xmlNode{window}, \xmlDesc{comma-separated floats, required field}, 
-		 lists the window of time within each period in which a peak should be discovered. 
-		 The text of this node is the upper and lower boundary of this 
+      		 \item \xmlNode{window}, \xmlDesc{comma-separated floats, required field},
+		 lists the window of time within each period in which a peak should be discovered.
+		 The text of this node is the upper and lower boundary of this
 		 window \emph{relative to} the start of the period, separated by a comma.
 		 User can define the lower bound to be a negative
 		 number if the window passes through one side of one period. For example, if the period is 24
 		 hours, the window can be -2,2 which is equivalent to 22, 2.
 		 This node has one attribute:
 		 \begin{itemize}
-		  \item \xmlAttr{width}, \xmlDesc{required float attribute} which is the 
+		  \item \xmlAttr{width}, \xmlDesc{required float attribute} which is the
 		 user defined  width of peaks in that window. The width is in the unit of the signal as well.
 		 \end{itemize}
 		 The number of \xmlNode{window} is unlimited.
        	\end{itemize}
-        
 
-  
-  
+
+
+
   \item \xmlNode{preserveInputCDF}, \xmlDesc{boolean, optional field}, enables a final transform on sampled
     data coercing it to have the same distribution as the original data. If \xmlString{True}, then every
     sample generated by this ARMA after training will have a distribution of values that conforms within
@@ -3162,10 +3180,30 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
     \romClusterOption
 \end{itemize}
 
-Note that when loading the ARMA model from a serialized file as a \xmlNode{pickledROM}, the \xmlNode{seed}
+Note that when loading the ARMA model from a serialized file as a \xmlNode{pickledROM},
+several nodes can be used to modify the evaluation behavior:
+\begin{itemize}
+  \item \xmlNode{reseed}, \xmlDesc{integer, optional},
+  \item \xmlNode{Multiyear}, \xmlDesc{node, optional}, as \xmlNode{MultiYear} above, allows resetting
+    a growth factor and number of years to sample.
+  \item \xmlNode{clusterEvalMode}, \xmlDesc{string, optional}, one of \xmlString{truncated},
+    \xmlString{full}, or \xmlString{clustered}, changes the structure of the samples for Clustered
+    Segmented ROMs. These are identical to the options for \xmlNode{evalMode} node under \xmlNode{Segmented}
+    as described above.
+\end{itemize}
+the \xmlNode{seed}
 as well as the \xmlNode{Multiyear} nodes can be added to change the behavior of the ARMA ROM.
 
-\textbf{Example:}
+When using ROM segmentation/clustering, the ARMA provides the following classes of features that can
+be used for clustering:
+\begin{itemize}
+   \item \xmlString{global}, the segment-long mean values of the signal;
+   \item \xmlString{fourier}, the fundamental Fourier frequency amplitudes discovered during training;
+   \item \xmlString{arma}, the standard deviation, $p$, and $q$ coefficients obtained during training;
+   \item \xmlString{peak}, the peak probability, mean, standard deviation, and most probable index discovered during training.
+\end{itemize}
+
+\textbf{General ARMA Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
 <Simulation>
   ...

@@ -69,7 +69,7 @@ class ROM(Dummy):
     subspace.addParam('pivotLength', InputData.FloatType, False)
     subspace.addParam('shift', InputData.StringType, False)
     segment.addSub(subspace)
-    clusterEvalModeEnum = InputData.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['truncated', 'full'])
+    clusterEvalModeEnum = InputData.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
     segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum))
     ## clusterFeatures
     segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputData.StringListType))

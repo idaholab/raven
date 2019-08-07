@@ -513,7 +513,7 @@ def NDInArray(findIn,val,tol=1e-12):
     return False,None,None
   return found,idx,looking
 
-def numBinsDraconis(data, low=None, alternateOkay=True,binOps=None):
+def numBinsDraconis(data, low=None, alternateOkay=True, binOps=None):
   """
     Determine  Bin size and number of bins determined by Freedman Diaconis rule (https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule)
     @ In, data, np.array, data to be binned
@@ -536,14 +536,13 @@ def numBinsDraconis(data, low=None, alternateOkay=True,binOps=None):
       numBins = int(np.ceil(np.sqrt(data.size)))
     else:
       raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
-  if binOps== 2:
+  if binOps == 2:
     numBins = int(np.ceil(np.sqrt(data.size)))
-
     # if a minimum number of bins have been suggested, check that we use enough
   if low is not None:
     numBins = max(numBins, low)
   # for convenience, find the edges of the bins as well
-  binEdges = np.linspace(start=min(data), stop=max(data), num=numBins+1)
+  binEdges = np.linspace(start=np.asarray(data).min(), stop=np.asarray(data).max(), num=numBins+1)
   return numBins, binEdges
 
 def diffWithInfinites(a, b):

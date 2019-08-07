@@ -230,7 +230,7 @@ class Segments(Collection):
     Collection.setAdditionalParams(self, params)
     #print('DEBUGG roms:', self._roms, type(self._roms))
     #print('DEBUGG template:', self._templateROM, type(self._templateROM))
-    for rom in self._roms.tolist() + [self._templateROM]:
+    for rom in list(self._roms) + [self._templateROM]:
       rom.setAdditionalParams(params)
 
   def train(self, tdict, skipAssembly=False):
@@ -617,6 +617,7 @@ class Clusters(Segments):
     self._evaluationMode = None          # evaluations returning full histories or truncated ones?
     self._clusterFeatures = None         # dict of lists, features to cluster on
     self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
+    self._clusterVariableID = '_ROM_Cluster' # name by which clustering dimension shall be known
     # check if ROM has methods to cluster on (errors out if not)
     if not self._templateROM.isClusterable():
       self.raiseAnError(NotImplementedError, 'Requested ROM "{}" does not yet have methods for clustering!'.format(self._romName))
@@ -681,29 +682,39 @@ class Clusters(Segments):
       ## It has been manually tested, but needs a regression tests once this is opened up.
       ## Right now consider it as if it wasn't an available feature, cuz it kinda isn't.
       result = Segments.evaluate(self, edict)
-    elif self._evaluationMode == 'truncated':
-      result, weights = self._createTruncatedEvaluation(edict)
-      bgId=[0]
+    elif self._evaluationMode in ['truncated', 'clustered']:
+      # NOTE: the needs of "truncated" and "clustered" are very similar, so they are only
+      ## differentiated by a couple small differences in this "elif".
+      if self._evaluationMode == 'truncated':
+        result, weights = self._createTruncatedEvaluation(edict)
+      else:
+        result, weights = self._createNDEvaluation(edict)
+      clusterStartIndex = 0 # what index does this cluster start on in the truncated signal?
       for r, rom in enumerate(self._roms):
         # "r" is the cluster label
         # find ROM in cluster
         clusterIndex = list(self._clusterInfo['map'][r]).index(rom)
-
         # find ROM in full history
-        segmentIndex = self._getSegmentIndexFromClusterIndex(r, self._clusterInfo['labels'], clusterIndex=clusterIndex)
+        segmentIndex, _ = self._getSegmentIndexFromClusterIndex(r, self._clusterInfo['labels'], clusterIndex=clusterIndex)
         # make local modifications based on global settings
-        delim = self._divisionInfo['delimiters'][segmentIndex[0]]
-        picker = slice(delim[0], delim[-1] + 1)
-
-        result = rom.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, picker, bgId=bgId[-1])
-        bgId.append(bgId[-1]+picker.stop-picker.start)
-      # make global modifications based on global settings
-
+        delim = self._divisionInfo['delimiters'][segmentIndex]
+        #where in the original signal does this cluster-representing segment come from
+        globalPicker = slice(delim[0], delim[-1] + 1)
+        segmentLen = globalPicker.stop - globalPicker.start
+        # where in the truncated signal does this cluster sit?
+        if self._evaluationMode == 'truncated':
+          localPicker = slice(clusterStartIndex, segmentLen)
+        else:
+          localPicker = slice(None, None, None)
+        # make final local modifications to truncated evaluation
+        result = rom.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, globalPicker, localPicker)
+        # update the cluster start index
+        clusterStartIndex += segmentLen
+      # make final modifications to full signal based on global settings
+      ## for truncated mode, this is trivial.
+      #if self._evaluationMode == 'truncated':
       result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
-    elif self._evaluationMode == 'clustered':
-      result, weights = self._createNDEvaluation(edict)
-      eeeeeee # how to fix ARMA finalizeLocalRomSegmentEvaluation to work with both modes?
-      eeeeeee # how to fix ARMA finalizeGlobalRomSegmentEvaluation to work with both modes?
+      ## for clustered mode, this is complicated.
     # TODO add clusterWeights to "result" as meta to the output? This would be handy!
     return result
 
@@ -827,21 +838,21 @@ class Clusters(Segments):
       #pivotIndex += newLen
       # if we're getting ND objects, identify indices and target-index dependence
       indexMap = subResults.pop('_indexMap', {})
-      allIndices = set()
+      allIndices = set([pivotID])
       for target, indices in indexMap.items():
         allIndices.update(indices)
       # populate results storage
       if result is None:
-        result = dict((target, []) for target in subResults if target not in allIndices)
-        indexValues = dict((index, subResults[index]) for index in allIndices if index != pivotID)
+        result = dict((target, subResults[target] if target in allIndices else []) for target in subResults)
       # populate weights
       sampleWeights.append(np.ones(len(subResults[pivotID])) * len(self._clusterInfo['map'][cluster]))
+      print('DEBUGG indices:', allIndices)
       for target, values in subResults.items():
         if target in allIndices:
           continue
         result[target].append(values)
     # TODO can we reduce the number of things we return? This is a little ridiculous.
-    return result, indexMap, indexValues, sampleWeights, pivotLen
+    return result, indexMap, sampleWeights, pivotLen
 
   def _createTruncatedEvaluation(self, evaluationDict):
     """
@@ -851,7 +862,7 @@ class Clusters(Segments):
       @ Out, sampleWeights, np.array, array of cluster weights (normalized)
     """
     pivotID = self._templateROM.pivotParameterID
-    result, indexMap, indexValues, sampleWeights, pivotLen = self._collectClusteredEvaluations(evaluationDict, pivotID)
+    result, indexMap, sampleWeights, pivotLen = self._collectClusteredEvaluations(evaluationDict, pivotID)
     allIndices = set()
     for target, indices in indexMap.items():
       allIndices.update(indices)
@@ -882,17 +893,28 @@ class Clusters(Segments):
       @ Out, sampleWeights, np.array, array of cluster weights (normalized)
     """
     pivotID = self._templateROM.pivotParameterID
-    result, indexMap, indexValues, sampleWeights, _ = self._collectClusteredEvaluations(evaluationDict, pivotID)
+    # collect cluster evaluations
+    result, indexMap, sampleWeights, _ = self._collectClusteredEvaluations(evaluationDict, pivotID)
+    # create index list for checking against
     allIndices = set()
     for target, indices in indexMap.items():
       allIndices.update(indices)
-
+    # update shapes for sampled variables
     for target, values in result.items():
-      indexMap[target] = np.asarray(['_Cluster'] + list(indexMap.get(target, [pivotID])))
+      if target in allIndices:
+        # indices shouldn't be shaped
+        continue
+      # Update the indexMap.
+      ## first dimention is the cluster ID, then others after.
+      indexMap[target] = np.asarray([self._clusterVariableID] + list(indexMap.get(target, [pivotID])))
+      # convert the list of arrays to a pure array
       result[target] = np.asarray(values)
-    for index in allIndices:
-      result[index] = indexValues[index] # TODO what are these pivot vals? Is it ok as is?
+    # store the index map results
     result['_indexMap'] = indexMap
+    # also store the unique cluster label values
+    ## TODO is this correctly preserving the order???
+    labels = self._clusterInfo['labels']
+    result[self._clusterVariableID] = np.asarray(range(min(labels), max(labels) + 1))
     # TODO how to handle sampleWeights in this cluster-style formatting?
     ## for now, let's just return them.
     return result, sampleWeights

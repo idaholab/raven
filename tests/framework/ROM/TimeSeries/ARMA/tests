@@ -17,11 +17,13 @@
    UnorderedXml = 'Basic/romMeta.xml'
    rel_err = 1e-6
   [../]
+
   [./ARMAparallel]
    type = 'RavenFramework'
    input = 'test_ARMA_parallel.xml'
    output = 'ARMAparallel/writeSynDataOut.csv ARMAparallel/writeSynDataOut.xml'
   [../]
+
   [./ARMAreseedPrecursor]
    type = 'RavenFramework'
    input = 'arma_reseed_precursor.xml'
@@ -42,6 +44,7 @@
       output = 'ARMAreseed/signals_0.csv ARMAreseed/signals_1.csv ARMAreseed/signals_2.csv ARMAreseed/signals_3.csv ARMAreseed/signals.csv '
     [../]
   [../]
+
   [./ARMAreseedTest]
    type = 'RavenFramework'
    input = 'arma_reseed_test.xml'
@@ -139,9 +142,22 @@
       rel_err = 1e-5
     [../]
   [../]
+
   [./Clustered]
     type = 'RavenFramework'
     input = 'clustered.xml'
+    # TODO signal test!
+    [./rom_meta]
+      type = XML
+      output = 'Clustered/romMeta.xml'
+      rel_err = 1e-5
+    [../]
+  [../]
+
+  [./Clustered_Truncated]
+    type = 'RavenFramework'
+    input = 'clustered_truncated.xml'
+    # TODO signal test!
     [./rom_meta]
       type = XML
       output = 'Clustered/romMeta.xml'
@@ -194,6 +210,7 @@
       rel_err = 1e-3
     [../]
   [../]
+
   [./MultiyearReseed]
     type = 'RavenFramework'
     input = 'multiyear_reseed.xml'

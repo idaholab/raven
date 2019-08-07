@@ -1867,49 +1867,49 @@ class ARMA(supervisedLearning):
         th = th - subMean
         self.peaks[target]['threshold'] = th
 
-  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, globalPicker, bgId=None):
+  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, globalPicker, localPicker=None):
     """
       Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
       Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
       @ In, settings, dict, as from getGlobalRomSegmentSettings
       @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
       @ In, globalPicker, slice, indexer for data range of this segment FROM GLOBAL SIGNAL
-      @ In, bgId, int, index for the begining index for truncated mode evaluation
+      @ In, localPicker, slice, optional, indexer for part of signal that should be adjusted IN LOCAL SIGNAL
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
-    # add back in Fourier
+    # globalPicker always says where segment is within GLOBAL signal
+    ## -> anyGlobalSignal[picker] is the portion of the global signal which represents this segment.
+    # localPicker, if present, means that the evaluation is part of a larger history
+    ## -> in this case, evaluation[localPicker] gives the location of this segment's values
+    # Examples:
+    ## - full evaluation: localPicker = globalPicker # NOTE: this is (default)
+    ## - truncated evaluation: localPicker = slice(start, end, None)
+    ## - ND clustered evaluation: localPicker = slice(None, None, None)
+    print('DEBUGG LRSE globalPicker:', globalPicker)
+    print('DEBUGG LRSE localPicker:', localPicker)
+    if localPicker is None:
+      # TODO assertion that signal and evaluation are same length?
+      # This should only occur when performing a full, unclustered evaluation
+      # TODO should this not be optional? Should we always take both?
+      localPicker = globalPicker
+    # add global Fourier to evaluated signals
     if 'long Fourier signal' in settings:
       for target, signal in settings['long Fourier signal'].items():
-        ## NOTE might need to put zero filter back into it
-        ## create storage for the sampled result
+        # NOTE might need to put zero filter back into it
+        # "sig" is variable for the sampled result
         sig = signal['predict'][globalPicker]
+        print('DEBUGG LRSE predict:', sig)
+        # if multidimensional, need to scale by growth factor over years.
         if self.multiyear:
-          if bgId is not None:
-            # calculate the slice where adding back the long Fourier signal
-            # if clusterd and truncated mode
-            sigLen = globalPicker.stop - globalPicker.start
-            bgInd = bgId
-            endInd = bgInd + sigLen
-            for y in range(len(evaluation[target])):
-              # apply growth factor
-              for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
-                scale = self._evaluateScale(growthInfo,y)
-                # adding Fourier with scale based on each year
-                evaluation[target][y][bgInd:endInd] += sig*scale
-          else:
-            for y in range(len(evaluation[target])):
-              for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
-                evaluation[target][y][globalPicker] += sig*scale
+          print('DEBUGG m.y.')
+          # TODO can we do this all at once with a vector operation?
+          for y, vals in enumerate(evaluation[target]):
+            for target, growthInfo in self.growthFactors.items():
+              scale = self._evaluateScale(growthInfo, y)
+              evaluation[target][y][localPicker] += sig * scale
         else:
-          # single year
-          if bgId is not None:
-            # if cluterd and truncated mode
-            sigLen = globalPicker.stop - globalPicker.start
-            bgInd = bgId
-            endInd = bgInd + sigLen
-            evaluation[target][bgInd:endInd] += sig
-          else:
-            evaluation[target][globalPicker] += sig
+          print('DEBUGG not m.y.')
+          evaluation[target][localPicker] += sig
     return evaluation
 
   def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None):
@@ -1921,22 +1921,82 @@ class ARMA(supervisedLearning):
       @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
-    # backtransform signal
+    # backtransform signal to preserve CDF
     ## how nicely does this play with zerofiltering?
+    evaluation = self._finalizeGlobalRSE_preserveCDF(settings, evaluation, weights)
+    return evaluation
+
+  def _finalizeGlobalRSE_preserveCDF(self, settings, evaluation, weights):
+    """
+      Helper method for finalizeGlobalRomSegmentEvaluation,
+      particularly for "full" or "truncated" representation.
+      -> it turns out, this works for "clustered" too because of how element-wise numpy works.
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
+      @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
     if self.preserveInputCDF:
       for target, dist in settings['input CDFs'].items():
-        if len(evaluation[target])>1:
+        if self.multiyear: #TODO check this gets caught correctly by the templateROM.
           # multiyear option
           for y in range(len(evaluation[target])):
             for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
-              scale =self._evaluateScale(growthInfo,y)
-              objectDist=dist[0]
-              histDist=tuple([dist[1][0],dist[1][1]*scale])
+              scale = self._evaluateScale(growthInfo,y)
+              objectDist = dist[0]
+              histDist = tuple([dist[1][0],dist[1][1]*scale])
               dist = tuple([dist[0],histDist])
               evaluation[target][y] = self._transformThroughInputCDF(evaluation[target][y], dist, weights)
         else:
           evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
     return evaluation
+
+  def _finalizeGlobalRSE_cluster(self, settings, evaluation, weights):
+    """
+      Helper method for finalizeGlobalRomSegmentEvaluation,
+      particularly for "clustered" representation
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
+      @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    assert False
+    if self.preserveInputCDF:
+      weights = np.asarray(weights)
+      for target, dist in settings['input CDFs'].items():
+        values = evaluation[target]
+        #dist, (counts, edges) = mathUtils.trainEmpiricalFunction(values, minBins=self._minBins, weights=weights)
+        #print('counts:', counts)
+        #print('edges:', edges)
+        print('DEBUGG original:')
+        print(values)
+        new = self._transformThroughInputCDF(values, dist, weights)
+        print('\n\nDEBUGG transformed:')
+        print(new)
+
+        aaaaaaa
+        #### OLD ###
+        valueLow = values.min()
+        valueHigh = values.max()
+        indexMap = evaluation['_indexMap'][target].tolist()
+        pivotIndex = indexMap.index(self.pivotParameterID)
+        clusterIndex = indexMap.index('_ROM_Cluster') # TODO hard-coded to match ROMCollection.Clusters!
+        print('DEBUGG shape:', values.shape)
+        numClusters = values.shape[clusterIndex]
+        numPivots = values.shape[pivotIndex]
+        numBins = int(np.ceil(np.sqrt(numPivots * numClusters)))
+        binEdges = np.linspace(start=valueLow, stop=valueHigh, num=numBins+1)
+        # create collection of histograms based on each cluster
+        counts = np.zeros(numBins)
+        for c in range(numClusters):
+          selector = [None]*len(indexMap)
+          selector[clusterIndex] = c
+          clusterValues = values[selector].squeeze()
+          clusterCounts, _ = np.histogram(clusterValues, bins=binEdges, density=False, weights=weights[c])
+          counts += clusterCounts
+          print('countrs:', counts)
+
+
 
   ### Peak Picker ###
   def _peakPicker(self,signal,low):

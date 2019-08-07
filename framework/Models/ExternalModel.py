@@ -130,7 +130,6 @@ class ExternalModel(Dummy):
     else:
       newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
     if 'SampledVars' in kwargs.keys():
-      print('DEBUGG loading up vars', list(kwargs['SampledVars'].keys()))
       modelVariableValues.update(kwargs['SampledVars'])
       #for key, val in kwargs['SampledVars'].items():
       #  modelVariableValues[key] = val
