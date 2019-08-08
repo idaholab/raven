@@ -266,7 +266,7 @@ class FitnessView(BaseTopologicalView):
           fontWidth = fm.width(numTxtItem.text())
 
           numTxtItem.setPos(x+(w-fontHeight)/2.,y-plotHeight+fontWidth)
-          numTxtItem.rotate(285)
+          #numTxtItem.rotate(285) #XXX not in qt5
           numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
           numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
           numTxtItem.setZValue(2)
@@ -280,7 +280,7 @@ class FitnessView(BaseTopologicalView):
         fontHeight = fm.height()
         fontWidth = fm.width(name)
         txtItem.setPos(x+(w-fontHeight)/2.,y)
-        txtItem.rotate(270)
+        #txtItem.rotate(270) #XXX not in qt5
         txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
         txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
         txtItem.setZValue(2)
