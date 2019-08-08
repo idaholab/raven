@@ -540,7 +540,7 @@ class SensitivityView(BaseTopologicalView):
         self.bundledAction.setChecked(False)
         self.fillAction.setChecked(False)
         self.updateScene()
-        pair = self.amsc.GetCurrentLabels()[0]
+        pair = list(self.amsc.GetCurrentLabels())[0]
         self.amsc.SetSelection([pair,pair[0],pair[1]])
         self.updateScene()
 

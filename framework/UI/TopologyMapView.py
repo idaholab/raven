@@ -98,9 +98,9 @@ class CustomPathItem(qtw.QGraphicsPathItem):
     """
     #super(CustomPathItem, self).__init__(path,parent,scene)
     super(CustomPathItem, self).__init__(path,parent)
+    self.graphics = []
     if scene is not None:
       scene.addItem(self)
-    self.graphics = []
     self.tipSize = qtc.QSize(0,0)
 
     font = qtg.QFont('Courier New',2)
@@ -358,7 +358,7 @@ class CustomPathItem(qtw.QGraphicsPathItem):
 
     """
     if change == qtw.QGraphicsItem.ItemSceneHasChanged:
-      for graphic,path in zip(self.graphics,self.paths):
+      for graphic in self.graphics:
         if graphic not in self.scene().items():
           self.scene().addItem(graphic)
     return super(CustomPathItem,self).itemChange(change,value)
@@ -929,7 +929,7 @@ class TopologyMapView(BaseTopologicalView):
     self.saveImage(self.windowTitle()+'.png')
 
     self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
-    pair = self.amsc.GetCurrentLabels()[0]
+    pair = list(self.amsc.GetCurrentLabels())[0]
     self.amsc.SetSelection([pair,pair[0],pair[1]])
     self.colorAction.setChecked(True)
     self.fillAction.setChecked(True)
@@ -943,7 +943,7 @@ class TopologyMapView(BaseTopologicalView):
       action.setChecked(True)
       self.updateScene()
 
-    pair = self.amsc.GetCurrentLabels()[0]
+    pair = list(self.amsc.GetCurrentLabels())[0]
     self.amsc.SetSelection([pair,pair[0],pair[1]])
 
     genericMouseEvent = qtg.QMouseEvent(qtc.QEvent.MouseMove, qtc.QPoint(0,0), qtc.Qt.MiddleButton, qtc.Qt.MiddleButton, qtc.Qt.NoModifier)
