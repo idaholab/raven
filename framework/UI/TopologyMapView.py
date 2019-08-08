@@ -98,6 +98,8 @@ class CustomPathItem(qtw.QGraphicsPathItem):
     """
     #super(CustomPathItem, self).__init__(path,parent,scene)
     super(CustomPathItem, self).__init__(path,parent)
+    if scene is not None:
+      scene.addItem(self)
     self.graphics = []
     self.tipSize = qtc.QSize(0,0)
 
