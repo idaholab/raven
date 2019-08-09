@@ -220,9 +220,11 @@ class ROM(Dummy):
     inputSpecification.addSub(specFourier)
     ### ARMA multiyear
     multiYear = InputData.parameterInputFactory('Multiyear')
-    multiYear.addSub(InputData.parameterInputFactory('years', contentType=InputData.IntegerType))
-    growth = InputData.parameterInputFactory('growth', contentType=InputData.FloatType)
+    # OLD multiYear.addSub(InputData.parameterInputFactory('years', contentType=InputData.IntegerType))
+    growth = InputData.parameterInputFactory('growth', contentType=InputData.FloatListType)
     growth.addParam('targets', InputData.StringListType, True)
+    growth.addParam('start_index', InputData.IntegerType, True)
+    growth.addParam('end_index', InputData.IntegerType, True)
     growthEnumType = InputData.makeEnumType('growth', 'armaGrowthType', ['exponential', 'linear'])
     growth.addParam('mode', growthEnumType, True)
     multiYear.addSub(growth)

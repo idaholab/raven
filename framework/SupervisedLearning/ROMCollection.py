@@ -629,7 +629,7 @@ class Clusters(Segments):
       self._evaluationMode = evalModeNode.value
     else:
       self.raiseAMessage('No evalMode specified for clustered ROM, so defaulting to "truncated".')
-      self._evaluatoinMode = 'truncated'
+      self._evaluationMode = 'truncated'
     self.raiseADebug('Clustered ROM evaluation mode set to "{}"'.format(self._evaluationMode))
 
     # interpret clusterable parameter requests, if any
@@ -1140,11 +1140,22 @@ class Interpolated(supervisedLearning):
     # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
     #           "macroParameter" is for macro-steps (e.g. from year to year)
     inputSpecs = kwargs['paramInput'].findFirst('Segment')
-    self._macroParameter = inputSpecs.findFirst('macroParameter').value # pivot parameter for macro steps (e.g. years)
+    try:
+      self._macroParameter = inputSpecs.findFirst('macroParameter').value # pivot parameter for macro steps (e.g. years)
+    except AttributeError:
+      self.raiseAnError(IOError, '"interpolate" grouping requested but no <macroParameter> provided!')
     self._macroTemplate = Clusters(messageHandler, **kwargs)            # example "yearly" SVL engine collection
     self._macroSteps = {}                                               # collection of macro steps (e.g. each year)
 
   # passthrough to template
+  def setAdditionalParams(self, params):
+    mh = params.get('messageHandler', None)
+    if mh:
+      for step, collection in self._macroSteps.items():
+        collection.messageHandler = mh
+      self._macroTemplate.messageHandler = mh
+    return super().setAdditionalParams(params)
+
   def setAssembledObjects(self, *args, **kwargs):
     self._macroTemplate.setAssembledObjects(*args, **kwargs)
 
@@ -1188,8 +1199,6 @@ class Interpolated(supervisedLearning):
       step.writeXML(newNode, targets, skip)
       main.append(newNode.getRoot())
 
-
-
   ############### TRAINING ####################
   def train(self, tdict):
     """
@@ -1211,7 +1220,7 @@ class Interpolated(supervisedLearning):
 
     # train the existing steps
     for s, step in enumerate(self._macroSteps.values()):
-      self.raiseADebug('Training Statepoinp t Year {} ...'.format(s))
+      self.raiseADebug('Training Statepoint Year {} ...'.format(s))
       trainingData = dict((var, [tdict[var][s]]) for var in tdict.keys())
       step.train(trainingData, skipAssembly=True)
     self.raiseADebug('  Statepoints trained ')
@@ -1427,7 +1436,6 @@ class Interpolated(supervisedLearning):
     results[self._macroParameter] = macroIndexValues
     return results
 
-
   ############### DUMMY ####################
   # dummy methods that are required by SVL and not generally used
   def __confidenceLocal__(self, featureVals):
@@ -1481,65 +1489,3 @@ class Interpolated(supervisedLearning):
         associated with the corresponding points in featureVals
     """
     pass
-
-
-
-#
-#
-#
-#
-# DEBUGGING TOOLS
-def _plotSignalsClustered(labels, clusterFeatures, slices, trainingSet):
-  # dump training parameters
-  import pandas as pd
-  trainDF = pd.DataFrame(clusterFeatures)
-  trainDF['labels'] = labels
-  trainDF.to_csv('debug_clustering.csv')
-  # plot
-  import matplotlib.pyplot as plt
-  for target in trainingSet:
-    if target in ['Time', 'scaling']:
-      continue
-    print('DEBUGG plotting target "{}"'.format(target))
-    fig, ax = plt.subplots(figsize=(12, 10))
-    ymin = trainingSet[target][0].min()
-    ymax = trainingSet[target][0].max()
-    lim = (ymin, ymax)
-    cluster_hist = list(np.zeros(len(trainingSet['Time'][0]))*np.nan for _ in range(max(labels)+1))
-    for l, label in enumerate(labels):
-      picker = slice(slices[l][0], slices[l][-1]+1)
-      data = dict((var, [trainingSet[var][0][picker]]) for var in trainingSet)
-      end = data['Time'][0][1]
-      ax.plot([end, end], lim, 'k:', alpha=0.2)
-      if l == 0:
-        start = data['Time'][0][0]
-        ax.plot([start, start], lim, 'k:', alpha=0.2)
-      ax.plot(data['Time'][0], data[target][0], '-', color='C{}'.format(label%10), label='C {}'.format(label))
-      cluster_hist[label][picker] = data[target][0]
-    ax.set_ylabel(target)
-    ax.set_xlabel('Time (s)')
-    ax.set_title('{} Clustered Training Data'.format(target))
-    xlims = ax.get_xlim()
-    ylims = ax.get_ylim()
-    ax.legend(loc=0)
-    fig.savefig('{}_all_clusters.png'.format(target))
-
-    # plot cluster histories, by cluster
-    for l in range(max(labels)):
-      fig, ax = plt.subplots(figsize=(12, 10))
-      ax.plot(trainingSet['Time'][0], cluster_hist[l], color='C{}'.format(l%10), label=str(l))
-      ax.legend(loc=0)
-      ax.set_xlim(xlims)
-      ax.set_ylim(ylims)
-      ax.set_xlabel('Time (s)')
-      ax.set_ylabel(target)
-      ax.set_title('{} cluster {}'.format(target, l))
-      fig.savefig('{}_cluster_{}.png'.format(target, l))
-
-
-    #print('DEBUGG showing plot (close to continue) ...')
-    #plt.show()
-
-
-
-

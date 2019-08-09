@@ -110,15 +110,11 @@ class ARMA(supervisedLearning):
     # multiyear
     self.multiyear = False # if True, then multiple years per sample are going to be taken
     self.numYears = None # if self.multiyear, this is the number of years per sample
-    self.growthFactors = {} # by target, this is how to scale the signal over successive years
+    self.growthFactors = collections.defaultdict([]) # by target, this is how to scale the signal over successive years
 
     multiyearNode = kwargs['paramInput'].findFirst('Multiyear')
     if multiyearNode is not None:
       self.setMultiyearParams(multiyearNode)
-
-    # check zeroFilterTarget is one of the targets given
-    if self.zeroFilterTarget is not None and self.zeroFilterTarget not in self.target:
-      self.raiseAnError('Requested ZeroFilter on "{}" but this target was not found among the ROM targets!'.format(self.zeroFilterTarget))
 
     # get seed if provided
     ## FIXME only applies to VARMA sampling right now, since it has to be sampled through Numpy!
@@ -287,15 +283,48 @@ class ARMA(supervisedLearning):
       @ Out, None
     """
     self.multiyear = True
-    numYearsNode = node.findFirst('years')
-    if numYearsNode is None:
-      self.raiseAnError(IOError, 'The number of ARMA sample years was not specified in <Multiyear><years> node!')
-    self.numYears = numYearsNode.value
     growthNodes = node.findAll('growth')
+    numYearsNode = node.findFirst('years')
+    # if <years> given, then we use that as the baseline default duration range(0, years) (not inclusive)
+    if numYearsNode is not None:
+      defaultIndices = [0, numYearsNode.value - 1]
+    else:
+      defaultIndices = [None, None]
+    # read in settings from each <growth> node
+    ## NOTE that each target may have multiple <growth> nodes.
+    checkOverlap = collections.defaultdict(set)
     for gNode in growthNodes:
-      settings = {'mode': gNode.parameterValues['mode'], 'value': gNode.value}
+      targets = gNode.parameterValues['targets']
+      # sanity check ...
+      for target in targets:
+        if target not in self.target:
+          self.raiseAnError('Growth parameters were given for "{}" but "{}" is not '.format(target) +
+                            'among the targets of this ROM!')
+      settings = {'mode': gNode.parameterValues['mode'],
+                  'start': gNode.parameterValues.get('start_index', defaultIndices[0]),
+                  'end': gNode.parameterValues.get('end_index', defaultIndices[1]),
+                  'value': gNode.value}
+      # check that a valid index set has been supplied
+      if settings['start'] is None:
+        self.raiseAnError(IOError, 'No start index for Multiyear <growth> attribute "start_index" ' +
+                          'for targets {} was specified, '.format(gNode.parameterValues['targets'])+
+                          'and no default <years> given!')
+      if settings['end'] is None:
+        self.raiseAnError(IOError, 'No end index for Multiyear <growth> attribute "end_index" ' +
+                          'for targets {} was specified, '.format(gNode.parameterValues['targets'])+
+                          'and no default <years> given!')
+      # check for overlapping coverage
+      newCoverage = range(settings['start'], settings['end']+1)
+      settings['range'] = newCoverage
+      # store results by target
       for target in gNode.parameterValues['targets']:
-        self.growthFactors[target] = settings
+        for existing in self.growthFactors[target]:
+          overlap = range(max(existing['range'].start, newCoverage['range'].start),
+                          min(existing['range'].stop, newCoverate['range'].stop)+1)
+          if overlap:
+            self.raiseAnError(IOError, 'Target "{}" has overlapping growth factors for years with index',
+                               ' {} to {} (inclusive)!'.format(overlap.start, overlap.stop - 1))
+        self.growthFactors[target].append(settings)
 
   def setAdditionalParams(self, params):
     """
@@ -453,9 +482,11 @@ class ARMA(supervisedLearning):
       for y in years:
         # apply growth factor
         vals = copy.deepcopy(featureVals) # without deepcopy, the vals are modified in-place
-        for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
-          scale =self._evaluateScale(growthInfo,y)
-          vals[t] *= scale
+        for t, (target, growthInfos) in enumerate(self.growthFactors.items()):
+          for growthInfo in growthInfos:
+            if y in growthInfo['range']:
+              scale = self._evaluateScale(growthInfo, y)
+              vals[t] *= scale
         result = self._evaluateYear(vals)
         for target, value in result.items():
           if target == self.pivotParameterID:
@@ -1885,8 +1916,6 @@ class ARMA(supervisedLearning):
     ## - full evaluation: localPicker = globalPicker # NOTE: this is (default)
     ## - truncated evaluation: localPicker = slice(start, end, None)
     ## - ND clustered evaluation: localPicker = slice(None, None, None)
-    print('DEBUGG LRSE globalPicker:', globalPicker)
-    print('DEBUGG LRSE localPicker:', localPicker)
     if localPicker is None:
       # TODO assertion that signal and evaluation are same length?
       # This should only occur when performing a full, unclustered evaluation
@@ -1898,17 +1927,16 @@ class ARMA(supervisedLearning):
         # NOTE might need to put zero filter back into it
         # "sig" is variable for the sampled result
         sig = signal['predict'][globalPicker]
-        print('DEBUGG LRSE predict:', sig)
         # if multidimensional, need to scale by growth factor over years.
         if self.multiyear:
-          print('DEBUGG m.y.')
           # TODO can we do this all at once with a vector operation?
           for y, vals in enumerate(evaluation[target]):
-            for target, growthInfo in self.growthFactors.items():
-              scale = self._evaluateScale(growthInfo, y)
-              evaluation[target][y][localPicker] += sig * scale
+            for target, growthInfos in self.growthFactors.items():
+              for growthInfo in growthInfos:
+                if y in growthInfo['range']:
+                  scale = self._evaluateScale(growthInfo, y)
+                  evaluation[target][y][localPicker] += sig * scale
         else:
-          print('DEBUGG not m.y.')
           evaluation[target][localPicker] += sig
     return evaluation
 
@@ -1941,12 +1969,14 @@ class ARMA(supervisedLearning):
         if self.multiyear: #TODO check this gets caught correctly by the templateROM.
           # multiyear option
           for y in range(len(evaluation[target])):
-            for t, (target, growthInfo) in enumerate(self.growthFactors.items()):
-              scale = self._evaluateScale(growthInfo,y)
-              objectDist = dist[0]
-              histDist = tuple([dist[1][0],dist[1][1]*scale])
-              dist = tuple([dist[0],histDist])
-              evaluation[target][y] = self._transformThroughInputCDF(evaluation[target][y], dist, weights)
+            for t, (target, growthInfos) in enumerate(self.growthFactors.items()):
+              for growthInfo in growthInfos:
+                if y in growthInfo['range']:
+                  scale = self._evaluateScale(growthInfo,y)
+                  objectDist = dist[0]
+                  histDist = tuple([dist[1][0],dist[1][1]*scale])
+                  dist = tuple([dist[0],histDist])
+                  evaluation[target][y] = self._transformThroughInputCDF(evaluation[target][y], dist, weights)
         else:
           evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
     return evaluation

@@ -126,9 +126,13 @@ class HistorySet(DataSet):
     # load in main CSV
     ## read into dataframe
     main = self._readPandasCSV(fileName+'.csv')
+    print('DEBUGG')
+    print(main)
     nSamples = len(main.index)
     ## collect input space data
     for inp in self._inputs + self._inputMetaVars:
+      print('DEBUGG inp: "{}"'.format(inp))
+      print(main.keys())
       data[inp] = main[inp].values
     ## get the sampleTag values if they're present, in case it's not just range
     if self.sampleTag in main:
