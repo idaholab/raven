@@ -20,6 +20,10 @@ import warnings
 import os
 import sys
 import argparse
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 import re
 import inspect
 import time
@@ -78,7 +82,22 @@ parser.add_argument('--command-prefix', dest='command_prefix',
 parser.add_argument('--python-command', dest='python_command',
                     help='command to run python')
 
+parser.add_argument('--config-file', dest='config_file',
+                    help='Configuration file location')
+
 args = parser.parse_args()
+
+if args.config_file is not None:
+  config = configparser.ConfigParser()
+  config.read(args.config_file)
+
+  if 'rook' in config:
+    for key in config['rook']:
+        if key in args and args.__getattribute__(key) is None:
+            args.__setattr__(key, config['rook'][key])
+  else:
+    print("No section [rook] in config file ",args.config_file)
+
 
 class LoadClass(threading.Thread):
   """
