@@ -219,7 +219,7 @@ class HierarchyWindow(qtw.QMainWindow):
 
     linkage = self.engine.linkage
 
-    self.labels = np.zeros(len(list(self.engine.features.values())[0]))
+    self.labels = np.zeros(len(self.engine.outputDict['outputs']['labels']))
 
     heads = {}
 
@@ -269,7 +269,7 @@ class HierarchyWindow(qtw.QMainWindow):
     """
     if idx not in self.colorMap:
       # self.colorMap[idx] = qtg.QColor(*tuple(255*np.random.rand(3)))
-      self.colorMap[idx] = qtg.QColor(colors.colorCycle.next())
+      self.colorMap[idx] = qtg.QColor(next(colors.colorCycle))
 
     return self.colorMap[idx]
 
@@ -279,8 +279,9 @@ class HierarchyWindow(qtw.QMainWindow):
       @ In, None
       @ Out, data, nparray, the data being used by this window.
     """
-    data = np.zeros((len(list(self.engine.features.values())[0]),len(self.engine.features.keys())))
-    for col,value in enumerate(self.engine.features.values()):
+    data = np.zeros((len(self.engine.features),
+                     len(self.engine.outputDict['inputs'])))
+    for col,value in enumerate(self.engine.outputDict['inputs']):
       data[:,col] = value
     return data
 
@@ -288,9 +289,9 @@ class HierarchyWindow(qtw.QMainWindow):
     """
       Get the dimensionality of the underlying data.
       @ In, None
-      @ Out, dimensionality, int, the dimensionality of the data being used.
+      @ Out, dimensionality, string list, the dimensions of the data being used.
     """
-    return self.engine.features.keys()
+    return self.engine.features
 
   def getSelectedIndices(self):
     """

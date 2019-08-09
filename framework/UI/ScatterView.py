@@ -187,12 +187,13 @@ class ScatterView(BaseHierarchicalView):
 
     specialColorKeywords = ['Cluster']
 
+    string_type = '|U7' #If python 2 compatibility is needed, use '|S7'
     for key,cmb in self.cmbVars.items():
       if dimensionality == 2 and key == 'Z':
         continue
       if cmb.currentText() == 'Cluster':
         labels = self.mainWindow.getLabels()
-        allValues[key] = np.array([self.mainWindow.getColor(label).name() for label in labels], dtype='|S7')
+        allValues[key] = np.array([self.mainWindow.getColor(label).name() for label in labels], dtype=string_type)
         values[key] = allValues[key][rows]
         self.lblColorMaps.setEnabled(False)
         self.cmbColorMaps.setEnabled(False)
