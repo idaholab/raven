@@ -147,6 +147,8 @@
     input = 'gp.xml'
     csv = 'data/outGP.csv'
     output = 'data/outGP.xml'
+    # rel_err was updated from 1.0e-6 to 5.0e-6 due to the small changes in the outputs
+    # from all linux related test machines.
     rel_err = 5.0e-6
   [../]
   [./linearARD]
