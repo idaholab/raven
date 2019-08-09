@@ -21,9 +21,9 @@ import os
 import sys
 import argparse
 try:
-    import configparser
+  import configparser
 except ImportError:
-    import ConfigParser as configparser
+  import ConfigParser as configparser
 import re
 import inspect
 import time
@@ -93,10 +93,10 @@ if args.config_file is not None:
 
   if 'rook' in config:
     for key in config['rook']:
-        if key in args and args.__getattribute__(key) is None:
-            args.__setattr__(key, config['rook'][key])
+      if key in args and args.__getattribute__(key) is None:
+        args.__setattr__(key, config['rook'][key])
   else:
-    print("No section [rook] in config file ",args.config_file)
+    print("No section [rook] in config file ", args.config_file)
 
 
 class LoadClass(threading.Thread):
