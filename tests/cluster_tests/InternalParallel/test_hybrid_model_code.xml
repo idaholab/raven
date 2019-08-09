@@ -13,11 +13,11 @@
     <Input name="gen.one" type="">gen.one</Input>
     <Input name="gen.two" type="">gen.two</Input>
   </Files>
-  
+
   <Metrics>
-      <SKL name="m1">
-          <metricType>regression|mean_absolute_error</metricType>
-      </SKL>
+    <SKL name="m1">
+      <metricType>regression|mean_absolute_error</metricType>
+    </SKL>
   </Metrics>
 
   <Models>
@@ -42,29 +42,29 @@
       <cache_size>200</cache_size>
       <verbose>False</verbose>
       <max_iter>-1</max_iter>
+      <CV class="Models" type="PostProcessor">pp1</CV>
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
-        <SciKitLearn>
-            <SKLtype>KFold</SKLtype>
-            <n_splits>10</n_splits>
-            <shuffle>False</shuffle>
-            <scores>average</scores>
-        </SciKitLearn>
-        <Metric class="Metrics" type="SKL">m1</Metric>
+      <SciKitLearn>
+        <SKLtype>KFold</SKLtype>
+        <n_splits>10</n_splits>
+        <shuffle>False</shuffle>
+        <scores>average</scores>
+      </SciKitLearn>
+      <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
-        <Model class="Models" type="Code">poly</Model>
-        <ROM class="Models" type="ROM">svr</ROM>
-        <TargetEvaluation class="DataObjects" type="PointSet">samples</TargetEvaluation>
-        <CV class="Models" type="PostProcessor">pp1</CV>
-        <settings>
-            <tolerance>0.06</tolerance>
-            <maxTrainSize>1000</maxTrainSize>
-            <minInitialTrainSize>10</minInitialTrainSize>
-        </settings>
-        <validationMethod name="CrowdingDistance">
-            <threshold>0.5</threshold>
-        </validationMethod>
+      <Model class="Models" type="Code">poly</Model>
+      <ROM class="Models" type="ROM">svr</ROM>
+      <TargetEvaluation class="DataObjects" type="PointSet">samples</TargetEvaluation>
+      <settings>
+        <tolerance>0.06</tolerance>
+        <maxTrainSize>1000</maxTrainSize>
+        <minInitialTrainSize>10</minInitialTrainSize>
+      </settings>
+      <validationMethod name="CrowdingDistance">
+        <threshold>0.5</threshold>
+      </validationMethod>
     </HybridModel>
   </Models>
 
