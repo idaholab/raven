@@ -1,0 +1,28 @@
+[Tests]
+  [./tf_mlpc]
+    type  = 'RavenFramework'
+    input = 'custom_dataset.xml'
+    output = 'diabetes/romXML.xml'
+    csv = 'diabetes/outMLPClassifier.csv'
+    required_libraries = 'tensorflow'
+  [../]
+  # Disable test for pickling, currently, we could not pickle the DNN ROMs
+  #[./tf_cnn_dump]
+  #  type  = 'RavenFramework'
+  #  input = 'keras_cnn_1d.xml'
+  #  output = 'data/cnn1d.pk'
+  #  required_libraries = 'tensorflow'
+  #[../]
+  [./tf_cnn1d]
+    type  = 'RavenFramework'
+    input = 'cnn1d.xml'
+    csv = 'data/outCon1DClassifier.csv'
+    required_libraries = 'tensorflow'
+  [../]
+  [./tf_lstm]
+    type  = 'RavenFramework'
+    input = 'lstm.xml'
+    csv = 'data/outLSTMClassifier.csv'
+    required_libraries = 'tensorflow'
+  [../]
+[]

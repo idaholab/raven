@@ -80,14 +80,9 @@
       <Input class="Files" type="">simple_gp_test.i</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
-      <Output class="Databases" type="HDF5">testDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
     </MultiRun>
   </Steps>
-
-  <Databases>
-    <HDF5 name="testDatabase" readMode="overwrite"/>
-  </Databases>
 
   <DataObjects>
     <HistorySet name="stories">

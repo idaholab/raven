@@ -1,5 +1,5 @@
-enrichment,burnup,ProbabilityWeight,ProbabilityWeight-enrichment,prefix,PointProbability,ProbabilityWeight-burnup,filename
-8.68448349512,16.7822437004,1.0,1.0,1,0.015538446,1.0,outputPolySpline_0.csv
-8.56128950686,21.100096748,1.0,1.0,2,0.015538446,1.0,outputPolySpline_1.csv
-9.33154869402,24.0208879996,1.0,1.0,3,0.015538446,1.0,outputPolySpline_2.csv
-4.68685292422,23.8371938873,1.0,1.0,4,0.015538446,1.0,outputPolySpline_3.csv
+enrichment,burnup,ProbabilityWeight,prefix,ProbabilityWeight-burnup,PointProbability,ProbabilityWeight-enrichment,filename
+8.68448349512,16.7822437004,1.0,1,1.0,0.015538446,1.0,outputPolySpline_0.csv
+8.56128950686,21.100096748,1.0,2,1.0,0.015538446,1.0,outputPolySpline_1.csv
+9.33154869402,24.0208879996,1.0,3,1.0,0.015538446,1.0,outputPolySpline_2.csv
+4.68685292422,23.8371938873,1.0,4,1.0,0.015538446,1.0,outputPolySpline_3.csv
