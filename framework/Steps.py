@@ -667,6 +667,12 @@ class MultiRun(SingleRun):
         sampler.finalizeActualSampling(finishedJob,model,inputs)
         finishedJob.trackTime('step_finished')
 
+        # terminate jobs as requested by the sampler, in case they're not needed anymore
+        ## TODO is this a safe place to put this?
+        ## If it's placed after adding new jobs and IDs are re-used i.e. for failed tests,
+        ## -> then the new jobs will be killed if this is placed after new job submission!
+        jobHandler.terminateJobs(sampler.getJobsToEnd(clear=True))
+
         # add new jobs
         isEnsemble = isinstance(model, Models.EnsembleModel)
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
@@ -686,9 +692,6 @@ class MultiRun(SingleRun):
               break
           else:
             break
-      # terminate jobs as requested by the sampler, in case they're not needed anymore
-      num = len(sampler.getJobsToEnd(clear=False))
-      jobHandler.terminateJobs(sampler.getJobsToEnd(clear=True))
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():

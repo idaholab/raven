@@ -602,8 +602,9 @@ class SPSA(GradientBasedOptimizer):
     """
     stepSize = self._computeStepSize(self.paramDict, self.counter['varsUpdate'][traj], traj)
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
+    print('DEBUGG recent:', self.counter['recentOptHist'][traj][0])
     varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars())
-    varKPlus,modded = self._generateVarsUpdateConstrained(traj, stepSize, gradient, varK)
+    varKPlus, modded = self._generateVarsUpdateConstrained(traj, stepSize, gradient, varK)
     #check for redundant paths
     if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
       removed = self._removeRedundantTraj(traj, varKPlus)
