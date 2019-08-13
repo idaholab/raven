@@ -405,12 +405,12 @@ class SciKitLearn(unSupervisedLearning):
   #  availImpl['bicluster']['SpectralCoclustering'] = (cluster.bicluster.SpectralCoclustering, 'float')  # Spectral Co-Clustering algorithm (Dhillon, 2001).
 
   availImpl['mixture'] = {}  # Generalized Gaussion Mixture Models (Classification)
-  availImpl['mixture']['GMM'  ] = (mixture.GMM  , 'float')  # Gaussian Mixture Model
+  availImpl['mixture']['GMM'  ] = (mixture.GaussianMixture  , 'float')  # Gaussian Mixture Model
   ## Comment is not even right on it, but the DPGMM is being deprecated by SKL who
   ## admits that it is not working correctly which also explains why it is buried in
   ## their documentation.
   # availImpl['mixture']['DPGMM'] = (mixture.DPGMM, 'float')  # Variational Inference for the Infinite Gaussian Mixture Model.
-  availImpl['mixture']['VBGMM'] = (mixture.VBGMM, 'float')  # Variational Inference for the Gaussian Mixture Model
+  availImpl['mixture']['VBGMM'] = (mixture.BayesianGaussianMixture, 'float')  # Variational Inference for the Gaussian Mixture Model
 
   availImpl['manifold'] = {}  # Manifold Learning (Embedding techniques)
   availImpl['manifold']['LocallyLinearEmbedding'  ] = (manifold.LocallyLinearEmbedding  , 'float')  # Locally Linear Embedding
@@ -423,7 +423,7 @@ class SciKitLearn(unSupervisedLearning):
   availImpl['decomposition'] = {}  # Matrix Decomposition
   availImpl['decomposition']['PCA'                 ] = (decomposition.PCA                 , 'float')  # Principal component analysis (PCA)
  # availImpl['decomposition']['ProbabilisticPCA'    ] = (decomposition.ProbabilisticPCA    , 'float')  # Additional layer on top of PCA that adds a probabilistic evaluationPrincipal component analysis (PCA)
-  availImpl['decomposition']['RandomizedPCA'       ] = (decomposition.RandomizedPCA       , 'float')  # Principal component analysis (PCA) using randomized SVD
+  availImpl['decomposition']['RandomizedPCA'       ] = (decomposition.PCA       , 'float')  # Principal component analysis (PCA) using randomized SVD
   availImpl['decomposition']['KernelPCA'           ] = (decomposition.KernelPCA           , 'float')  # Kernel Principal component analysis (KPCA)
   availImpl['decomposition']['FastICA'             ] = (decomposition.FastICA             , 'float')  # FastICA: a fast algorithm for Independent Component Analysis.
   availImpl['decomposition']['TruncatedSVD'        ] = (decomposition.TruncatedSVD        , 'float')  # Dimensionality reduction using truncated SVD (aka LSA).
@@ -646,8 +646,8 @@ class SciKitLearn(unSupervisedLearning):
             center[cnt] = center[cnt] * sigma + mu
         self.metaDict['means'] = means
 
-      if hasattr(self.Method, 'covars_') :
-        covariance = copy.deepcopy(self.Method.covars_)
+      if hasattr(self.Method, 'covariances_') :
+        covariance = copy.deepcopy(self.Method.covariances_)
 
         for row, rowFeature in enumerate(self.features):
           rowSigma = self.muAndSigmaFeatures[rowFeature][1]
@@ -728,9 +728,10 @@ class SciKitLearn(unSupervisedLearning):
         self.outputDict['confidence']['adjustedRandIndex'        ] =        metrics.adjusted_rand_score(self.labelValues, labels)
         self.outputDict['confidence']['adjustedMutualInformation'] = metrics.adjusted_mutual_info_score(self.labelValues, labels)
     elif 'mixture' == self.SKLtype:
-      self.outputDict['confidence']['aic'  ] = self.Method.aic(self.normValues)   ## Akaike Information Criterion
-      self.outputDict['confidence']['bic'  ] = self.Method.bic(self.normValues)   ## Bayesian Information Criterion
-      self.outputDict['confidence']['score'] = self.Method.score(self.normValues) ## log probabilities of each data point
+      if hasattr(self.Method, 'aic'):
+        self.outputDict['confidence']['aic'  ] = self.Method.aic(self.normValues)   ## Akaike Information Criterion
+        self.outputDict['confidence']['bic'  ] = self.Method.bic(self.normValues)   ## Bayesian Information Criterion
+        self.outputDict['confidence']['score'] = self.Method.score(self.normValues) ## log probabilities of each data point
 
     return self.outputDict['confidence']
 

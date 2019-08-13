@@ -10,7 +10,7 @@
   type = 'RavenFramework'
   input = 'test_raven_running_raven_plugin.xml'
   csv = 'ravenRunningRavenPlugin/testPointSet_dump.csv'
-  max_time = 100
+  max_time = 120
   rel_err = 0.0001
  [../]
 []

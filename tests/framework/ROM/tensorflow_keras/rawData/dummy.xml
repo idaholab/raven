@@ -1,0 +1,15 @@
+<DataObjectMetadata name="mData">
+  <DataSet type="Static">
+    <dims>
+      <x2>Time</x2>
+      <x1>Time</x1>
+      <labels>Time</labels>
+    </dims>
+    <general>
+      <inputs>n</inputs>
+      <outputs>x1,x2,labels</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

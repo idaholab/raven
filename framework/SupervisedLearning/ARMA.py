@@ -150,7 +150,7 @@ class ARMA(supervisedLearning):
         if var not in self.target:
           self.raiseAnError(IOError,'Variable "{}" requested in "correlate" but not found among the targets!'.format(var))
       # NOTE: someday, this could be expanded to include multiple sets of correlated variables.
-      self.correlations = corVars
+      self.correlations = correlated
 
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
@@ -388,7 +388,6 @@ class ARMA(supervisedLearning):
           self._masks[target] = {}
         self._masks[target]['maskPeakRes']= peakResults['mask']
       # Make a full mask
-
 
       if target in self.fourierParams:
         # Make a full mask
