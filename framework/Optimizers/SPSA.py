@@ -602,8 +602,12 @@ class SPSA(GradientBasedOptimizer):
     """
     stepSize = self._computeStepSize(self.paramDict, self.counter['varsUpdate'][traj], traj)
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
-    print('DEBUGG recent:', self.counter['recentOptHist'][traj][0])
-    varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars())
+    # use the last viable point to make a new one
+    if self.counter['recentOptHist'][traj][0]:
+      varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars())
+    # if no last viable point exists, use the original point
+    else:
+      varK = dict((var, self.optVarsInit['initial'][var][traj]) for var in self.getOptVars())
     varKPlus, modded = self._generateVarsUpdateConstrained(traj, stepSize, gradient, varK)
     #check for redundant paths
     if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
