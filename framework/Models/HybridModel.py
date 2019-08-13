@@ -66,10 +66,7 @@ class HybridModel(Dummy):
     targetEvaluationInput.addParam("class", InputData.StringType)
     targetEvaluationInput.addParam("type", InputData.StringType)
     inputSpecification.addSub(targetEvaluationInput)
-    cvInput = InputData.parameterInputFactory("CV", contentType=InputData.StringType)
-    cvInput.addParam("class", InputData.StringType)
-    cvInput.addParam("type", InputData.StringType)
-    inputSpecification.addSub(cvInput)
+
     # add settings block
     tolInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
     maxTrainStepInput = InputData.parameterInputFactory("maxTrainSize", contentType=InputData.IntegerType)
@@ -105,7 +102,6 @@ class HybridModel(Dummy):
     """
     Dummy.__init__(self,runInfoDict)
     self.modelInstance            = None             # Instance of given model
-    self.cvInstance               = None             # Instance of provided cross validation
     self.targetEvaluationInstance = None             # Instance of data object used to store the inputs and outputs of HybridModel
     self.tempTargetEvaluation     = None             # Instance of data object that are used to store the training set
     self.romsDictionary        = {}                  # dictionary of models that is going to be employed, i.e. {'romName':Instance}
@@ -124,12 +120,11 @@ class HybridModel(Dummy):
     self.tempOutputs           = {}                  # Indicators used to collect model inputs/outputs for rom training
     self.oldTrainingSize       = 0                   # The size of training set that is previous used to train the rom
     self.modelIndicator        = {}                  # a dict i.e. {jobPrefix: 1 or 0} used to indicate the runs: model or rom. '1' indicates ROM run, and '0' indicates Code run
-    self.metricCategories      = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
     self.crowdingDistance      = None
+    self.metricCategories      = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
     # assembler objects to be requested
     self.addAssemblerObject('Model','1',True)
     self.addAssemblerObject('ROM','n')
-    self.addAssemblerObject('CV','1')
     self.addAssemblerObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode):
@@ -147,8 +142,6 @@ class HybridModel(Dummy):
         self.modelInstance = child.value.strip()
         if child.parameterValues['type'] == 'Code':
           self.createWorkingDir = True
-      if child.getName() == 'CV':
-        self.cvInstance = child.value.strip()
       if child.getName() == 'TargetEvaluation':
         self.targetEvaluationInstance = child.value.strip()
       if child.getName() == 'ROM':
@@ -188,8 +181,7 @@ class HybridModel(Dummy):
         if isinstance(elem, Files.File):
           codeInput.append(elem)
       self.modelInstance.initialize(runInfo, codeInput, initDict)
-    self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
-    self.cvInstance.initialize(runInfo, inputs, initDict)
+
     self.targetEvaluationInstance = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self.targetEvaluationInstance)
     if len(self.targetEvaluationInstance):
       self.raiseAWarning("The provided TargetEvaluation data object is not empty, the existing data will also be used to train the ROMs!")
@@ -197,8 +189,6 @@ class HybridModel(Dummy):
     self.tempTargetEvaluation = copy.deepcopy(self.targetEvaluationInstance)
     if self.modelInstance is None:
       self.raiseAnError(IOError,'Model XML block needs to be inputted!')
-    if self.cvInstance is None:
-      self.raiseAnError(IOError, 'CV XML block needs to be inputted!')
     if self.targetEvaluationInstance is None:
       self.raiseAnError(IOError, 'TargetEvaluation XML block needs to be inputted!')
     for romName, romInfo in self.romsDictionary.items():
@@ -214,6 +204,7 @@ class HybridModel(Dummy):
       if romIn.amITrained:
         self.raiseAWarning("The provided rom ", romIn.name, " is already trained, we will reset it!")
         romIn.reset()
+      romIn.initialize(runInfo, inputs, initDict)
       romInputs = romIn.getInitParams()['Features']
       romOutputs = romIn.getInitParams()['Target']
       totalRomOutputs.extend(romOutputs)
@@ -325,38 +316,17 @@ class HybridModel(Dummy):
     """
     self.raiseADebug("Start to train roms")
     for romInfo in self.romsDictionary.values():
-      # Should we check the size of existing data object self.tempTargetEvaluation
-      # and compared to the size of trainingSet in the ROM, the reason is that
-      # we may end up using the same data to train the rom, the outputs may not be
-      # collected yet!
-      # reset the rom
-      romInfo['Instance'].reset()
-      useCV = self.checkCV(len(self.tempTargetEvaluation))
-      if useCV:
-        # always train the rom even if the rom is converged, we assume the cross validation and rom train are relative cheap
-        outputMetrics = self.cvInstance.evaluateSample([romInfo['Instance'], self.tempTargetEvaluation], samplerType, kwargs)[1]
-        converged = self.isRomConverged(outputMetrics)
+      cvMetrics = romInfo['Instance'].convergence(self.tempTargetEvaluation)
+      if cvMetrics is not None:
+        converged = self.isRomConverged(cvMetrics)
         romInfo['Converged'] = converged
         if converged:
+          romInfo['Instance'].reset()
           romInfo['Instance'].train(self.tempTargetEvaluation)
           self.raiseADebug("ROM ", romInfo['Instance'].name, " is converged!")
       else:
         self.raiseAMessage("Minimum initial training size is met, but the training size is not enough to be used to perform cross validation")
     self.oldTrainingSize = len(self.tempTargetEvaluation)
-
-  def checkCV(self, trainingSize):
-    """
-      The function will check whether we can use Cross Validation or not
-      @ In, trainingSize, int, the size of current training size
-      @ Out, None
-    """
-    useCV = True
-    initDict =  self.cvInstance.interface.initializationOptionDict
-    if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
-      if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
-        useCV = False
-
-    return useCV
 
   def isRomConverged(self, outputDict):
     """
@@ -367,22 +337,14 @@ class HybridModel(Dummy):
     """
     converged = True
     # very temporary solution
-    exploredTargets = []
-    for cvKey, metricValues in outputDict.items():
-      #for targetName, metricInfo in outputDict.items():
-      # very temporary solution
-      info = self.cvInstance.interface._returnCharacteristicsOfCvGivenOutputName(cvKey)
-      if info['targetName'] in exploredTargets:
-        self.raiseAnError(IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name, "'. Currently, this can not be processed by the HybridModel '", self.name, "'!")
-      exploredTargets.append(info['targetName'])
-      name = utils.first(self.cvInstance.interface.metricsDict.keys())
-      converged = self.checkErrors(info['metricType'], metricValues)
+    for romName, metricInfo in outputDict.items():
+      converged = self.checkErrors(metricInfo[0], metricInfo[1])
     return converged
 
   def checkErrors(self, metricType, metricResults):
     """
       This function is used to compare the metric outputs with the tolerance for the rom convergence
-      @ In, metricType, string, the type of given metric
+      @ In, metricType, list, the list of metrics
       @ In, metricResults, list or dict
       @ Out, converged, bool, True if the metric outputs are less than the tolerance
     """
