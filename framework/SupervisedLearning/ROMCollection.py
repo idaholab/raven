@@ -846,7 +846,6 @@ class Clusters(Segments):
         result = dict((target, subResults[target] if target in allIndices else []) for target in subResults)
       # populate weights
       sampleWeights.append(np.ones(len(subResults[pivotID])) * len(self._clusterInfo['map'][cluster]))
-      print('DEBUGG indices:', allIndices)
       for target, values in subResults.items():
         if target in allIndices:
           continue

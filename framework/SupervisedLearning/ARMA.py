@@ -109,7 +109,7 @@ class ARMA(supervisedLearning):
     # multiyear
     self.multiyear = False # if True, then multiple years per sample are going to be taken
     self.numYears = None # if self.multiyear, this is the number of years per sample
-    self.growthFactors = collections.defaultdict([]) # by target, this is how to scale the signal over successive years
+    self.growthFactors = collections.defaultdict(list) # by target, this is how to scale the signal over successive years
 
     multiyearNode = kwargs['paramInput'].findFirst('Multiyear')
     if multiyearNode is not None:
@@ -282,6 +282,7 @@ class ARMA(supervisedLearning):
       @ Out, None
     """
     self.multiyear = True
+    self.numYears = 0 # minimum
     growthNodes = node.findAll('growth')
     numYearsNode = node.findFirst('years')
     # if <years> given, then we use that as the baseline default duration range(0, years) (not inclusive)
@@ -312,6 +313,7 @@ class ARMA(supervisedLearning):
         self.raiseAnError(IOError, 'No end index for Multiyear <growth> attribute "end_index" ' +
                           'for targets {} was specified, '.format(gNode.parameterValues['targets'])+
                           'and no default <years> given!')
+      self.numYears = max(self.numYears, settings['end']+1)
       # check for overlapping coverage
       newCoverage = range(settings['start'], settings['end']+1)
       settings['range'] = newCoverage
@@ -492,11 +494,13 @@ class ARMA(supervisedLearning):
             if y in growthInfo['range']:
               scale = self._evaluateScale(growthInfo, y)
               vals[t] *= scale
+        # TODO is adjusting the scaling factor the right choice for multiyear evaluations???
         result = self._evaluateYear(vals)
         for target, value in result.items():
           if target == self.pivotParameterID:
             continue
           finalResult[target][y][:] = value # [:] is a size checker
+          # TODO should "scale" be applied here instead??
         # high-dimensional indexing information
         finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
       return finalResult
@@ -510,7 +514,8 @@ class ARMA(supervisedLearning):
       @ In, year, int, year index in multiyear
       @ Out, scale, float, scaling factor for each year
     """
-    growth = growthInfo['value']/100. # given in percentage
+    assert year in growthInfo['range']
+    growth = growthInfo.get('value', 100)/100. # given in percentage
     mode = growthInfo['mode']
     if mode == 'exponential':
       scale = (1.0 + growth) ** year
@@ -1102,8 +1107,12 @@ class ARMA(supervisedLearning):
       myNode = xmlUtils.newNode('Multiyear')
       myNode.append(xmlUtils.newNode('num_years', text=self.numYears))
       gNode = xmlUtils.newNode('growth_factors')
-      for target, info in self.growthFactors.items():
-        gNode.append(xmlUtils.newNode(target, attrib={'mode': info['mode']}, text=info['value']))
+      for target, infos in self.growthFactors.items():
+        for info in infos:
+          tag = target
+          attrib = {'mode': info['mode'], 'start_index': info['start'], 'end_index': info['end']}
+          text = '{}'.format(info['value'])
+          gNode.append(xmlUtils.newNode(tag, attrib=attrib, text=text))
       myNode.append(gNode)
       root.append(myNode)
     # - Fourier coefficients (by period, waveform)
