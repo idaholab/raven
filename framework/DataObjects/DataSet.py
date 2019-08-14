@@ -228,7 +228,6 @@ class DataSet(DataObject):
       self.raiseAWarning('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
     # check consistency, but make it an assertion so it can be passed over
-    # print('DEBUGG add rlz precheck:', rlz.get('Year', None))
     if not self._checkRealizationFormat(rlz, indexMap=indexMap):
       self.raiseAnError(SyntaxError,'Realization was not formatted correctly for "{}"! See warnings above.'.format(self.name))
     # format the data
@@ -874,9 +873,6 @@ class DataSet(DataObject):
         self.raiseAWarning('Realization indexes do not match expected indexes!\n',
                            'Extra from realization: {}\n'.format(mapIndices-set(self.indexes)),
                            'Missing from realization: {}'.format(set(self.indexes) - mapIndices))
-        print('DEBUGG indexmap:')
-        import pprint
-        pprint.pprint(indexMap, indent=2)
         return False
     if not isinstance(rlz, dict):
       self.raiseAWarning('Realization is not a "dict" instance!')
@@ -923,9 +919,6 @@ class DataSet(DataObject):
           # check that the realization is consistent
           ## TODO assumes indexes are single-dimensional, seems like a safe assumption for now
           correctShape = tuple(rlz[idx].size for idx in rlzDimOrder)
-          # print('DEBUGG shape:', correctShape)
-          # print('DEBUGG rlz:')
-          # print('YEAR????', rlz['Year'])
           if rlz[var].shape != correctShape:
             self.raiseAWarning(('Variable "{}" with shape {} '+
                                 'is not consistent with respect its indices "{}" with shapes {}!')

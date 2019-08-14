@@ -205,9 +205,7 @@ class ExternalModel(Dummy):
     if '_indexMap' in Input.keys():
       additionalKeys.append('_indexMap')
     for key in Input.keys():
-      print('DEBUGG checking Input:', key)
       if key in modelVariables.keys() or key in additionalKeys:
-        print('DEBUGG   -> added key:', key)
         modelVariableValues[key] = copy.copy(Input[key])
     for key in list(self.modelVariableType.keys()) + additionalKeys:
       # add the variable as a member of "self"
@@ -255,9 +253,7 @@ class ExternalModel(Dummy):
     indexMap = getattr(externalSelf, '_indexMap', None)
     if indexMap:
       outcomes['_indexMap'] = indexMap
-      print('DEBUGG extmod got index map!')
     else:
-      print('DEBUGG extmod no index map!')
     # TODO slow conversion, but provides type consistency --> TODO this doesn't mach up well with other models!
     outcomes = dict((k, np.atleast_1d(val)) for k, val in outcomes.items())
     return outcomes, self

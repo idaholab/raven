@@ -2014,11 +2014,7 @@ class ARMA(supervisedLearning):
         #dist, (counts, edges) = mathUtils.trainEmpiricalFunction(values, minBins=self._minBins, weights=weights)
         #print('counts:', counts)
         #print('edges:', edges)
-        print('DEBUGG original:')
-        print(values)
         new = self._transformThroughInputCDF(values, dist, weights)
-        print('\n\nDEBUGG transformed:')
-        print(new)
 
         aaaaaaa
         #### OLD ###

@@ -1000,7 +1000,6 @@ class IOStep(Step):
         outputs[i].train(unpickledObj)
         # reseed as requested
         loadSettings['messageHandler'] = self.messageHandler
-        print('DEBUGG load settings??', loadSettings.keys())
         outputs[i].setAdditionalParams(loadSettings)
 
       elif self.actionType[i] == 'FILES-dataObjects':

@@ -228,8 +228,6 @@ class Segments(Collection):
       @ Out, None
     """
     Collection.setAdditionalParams(self, params)
-    #print('DEBUGG roms:', self._roms, type(self._roms))
-    #print('DEBUGG template:', self._templateROM, type(self._templateROM))
     for rom in list(self._roms) + [self._templateROM]:
       rom.setAdditionalParams(params)
 
@@ -1114,9 +1112,6 @@ class Clusters(Segments):
       pivotIndex += len(rom.pivotParameterValues)
     indexEdges[-1] = pivotIndex
     pivotEdges[-1] = pivotVals[pivotIndex]
-    #print('DEBUGG indexes, values:')
-    #for r in range(len(indexEdges)):
-    #  print('  ', indexEdges[r], pivotEdges[r])
     return indexEdges[:-1], indexEdges[1:], pivotEdges[:-1], pivotEdges[1:]
 
 
