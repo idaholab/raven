@@ -455,8 +455,10 @@ class SPSA(GradientBasedOptimizer):
     loopCounter = 0
     foundPendVector = False
     # search for the perpendicular vector
+    print('DEBUGG traj rotate loop limit:')
     while not foundPendVector and loopCounter < innerLoopLimit:
       loopCounter += 1
+      print('DEBUGG loop counter:', loopCounter)
       # randomly choose the index of a variable to be the dependent? pivot
       depVarPos = randomUtils.randomIntegers(0,len(self.getOptVars())-1,self)
       # if that variable is multidimensional, pick a dimension -> this is not precisely equal probability of picking, but that should be okay.
