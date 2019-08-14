@@ -253,7 +253,6 @@ class ExternalModel(Dummy):
     indexMap = getattr(externalSelf, '_indexMap', None)
     if indexMap:
       outcomes['_indexMap'] = indexMap
-    else:
     # TODO slow conversion, but provides type consistency --> TODO this doesn't mach up well with other models!
     outcomes = dict((k, np.atleast_1d(val)) for k, val in outcomes.items())
     return outcomes, self
