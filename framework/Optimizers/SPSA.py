@@ -440,10 +440,12 @@ class SPSA(GradientBasedOptimizer):
     # Try to find varKPlus by shorten the gradient vector
     self.raiseADebug(' ... Trajectory "{}" hit constraints ...'.format(traj))
     self.raiseADebug(' ... Attempting to shorten step length ...')
-    foundVarsUpdate, varKPlus = self._bisectionForConstrainedInput(traj,varK, ak, gradient)
+    foundVarsUpdate, varKPlus = self._bisectionForConstrainedInput(traj, varK, ak, gradient)
     if foundVarsUpdate:
       self.raiseADebug(' ... successfully found new point by shortening length.')
       return varKPlus, True
+    else:
+      self.raiseADebug(' ... bisection failed to resolve constraint problems ...')
 
     self.raiseADebug('Attempting to fix constraint violation by rotating towards orthogonal ...')
     # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
@@ -484,7 +486,7 @@ class SPSA(GradientBasedOptimizer):
             pendVector[var] = -npDot/gradient[var]
           else:
             pendVector[var][depVarIdx] = -npDot/gradient[var][depVarIdx]
-
+      print('DEBUGG ... rotate calcing grad, pendvector ...')
       r  = self.calculateMultivectorMagnitude([  gradient[var] for var in self.getOptVars()])
       r /= self.calculateMultivectorMagnitude([pendVector[var] for var in self.getOptVars()])
       for var in self.getOptVars():
@@ -503,12 +505,15 @@ class SPSA(GradientBasedOptimizer):
           index += 1
         varKPlus[var] = new
 
+      print('DEBUGG ... rotate checking constraints ...')
       foundPendVector, activeConstraints = self.checkConstraint(self.denormalizeData(varKPlus))
       if not foundPendVector:
-        foundPendVector, varKPlus = self._bisectionForConstrainedInput(traj,varK, gain, pendVector)
+        print('DEBUGG ... rotate bisecting ...')
+        foundPendVector, varKPlus = self._bisectionForConstrainedInput(traj, varK, gain, pendVector)
       gain = gain/2.
 
     if foundPendVector:
+      self.raiseADebug('Found perpendicular vector, rotating ...')
       lenPendVector = 0
       for var in self.getOptVars():
         lenPendVector += np.sum(pendVector[var]**2)
@@ -516,6 +521,7 @@ class SPSA(GradientBasedOptimizer):
 
       rotateDegreeUpperLimit = 2
       while self.angleBetween(traj,gradient, pendVector) > rotateDegreeUpperLimit:
+        self.raiseADebug('... trying', self.angleBetween(traj, gradient, pendVector))
         sumVector = {}
         lenSumVector = 0
         for var in self.getOptVars():
@@ -535,6 +541,7 @@ class SPSA(GradientBasedOptimizer):
               new[i] = copy.copy(varK[var][i]-gain[index]*sumVector[var][i]*1.0)
             index += 1
           tempTempVarKPlus[var] = new
+        print('DEBUGG ... rotate ... rotating, checking constraints ...')
         satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempTempVarKPlus))
         if satisfied:
           varKPlus = copy.deepcopy(tempTempVarKPlus)
