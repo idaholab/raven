@@ -326,6 +326,8 @@ class ARMA(supervisedLearning):
             self.raiseAnError(IOError, 'Target "{}" has overlapping growth factors for years with index',
                                ' {} to {} (inclusive)!'.format(overlap.start, overlap.stop - 1))
         self.growthFactors[target].append(settings)
+    else:
+      self.numYears = numYearsNode.value
 
   def setAdditionalParams(self, params):
     """
