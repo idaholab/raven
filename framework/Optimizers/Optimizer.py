@@ -595,6 +595,8 @@ class Optimizer(Sampler):
       constraintVars.update(self.constants)
       satisfied = True if self.constraintFunction.evaluate("constrain", constraintVars) == 1 else False
       if not satisfied:
+        self.raiseAWarning('The proposed evaluation point violates the constraint function!')
+        self.raiseADebug('Offending point:', constraintVars)
         violatedConstrains['external'].append(self.constraintFunction.name)
     for var in optVars:
       varSatisfy=True

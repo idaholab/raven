@@ -240,7 +240,9 @@ class SPSA(GradientBasedOptimizer):
     bounds = [0, 1.0]
     tempVarNew = {}
     frac = 0.5
+    print('DEBUGG bisection threshold:', innerBisectionThreshold)
     while np.absolute(bounds[1]-bounds[0]) >= innerBisectionThreshold:
+      print('DEBUGG delta:', np.absolute(bounds[1]-bounds[0]), 'vs', innerBisectionThreshold)
       index = 0
       for var in self.getOptVars():
         numSamples = np.prod(self.variableShapes[var])
@@ -253,7 +255,7 @@ class SPSA(GradientBasedOptimizer):
           index += 1
         tempVarNew[var] = new
 
-      satisfied,_ = self.checkConstraint(tempVarNew)
+      satisfied, _ = self.checkConstraint(tempVarNew)
       if satisfied:
         bounds[0] = copy.deepcopy(frac)
         if np.absolute(bounds[1]-bounds[0]) >= innerBisectionThreshold:
@@ -263,6 +265,7 @@ class SPSA(GradientBasedOptimizer):
       else:
         bounds[1] = copy.deepcopy(frac)
         frac = copy.deepcopy(bounds[1]+bounds[0])/2.0
+    self.raiseADebug('No acceptable unconstrained point was found through bisection.')
     return False, None
 
   def _checkBoundariesAndModify(self,upperBound,lowerBound,varRange,currentValue,pertUp,pertLow):
@@ -435,11 +438,11 @@ class SPSA(GradientBasedOptimizer):
 
     self.raiseADebug('Attempting to fix constraint violation by shortening gradient vector ...')
     # Try to find varKPlus by shorten the gradient vector
-    self.raiseADebug('Trajectory "{}" hit constraints ...'.format(traj))
-    self.raiseADebug('  Attempting to shorten step length ...')
+    self.raiseADebug(' ... Trajectory "{}" hit constraints ...'.format(traj))
+    self.raiseADebug(' ... Attempting to shorten step length ...')
     foundVarsUpdate, varKPlus = self._bisectionForConstrainedInput(traj,varK, ak, gradient)
     if foundVarsUpdate:
-      self.raiseADebug('   ... successfully found new point by shortening length.')
+      self.raiseADebug(' ... successfully found new point by shortening length.')
       return varKPlus, True
 
     self.raiseADebug('Attempting to fix constraint violation by rotating towards orthogonal ...')
