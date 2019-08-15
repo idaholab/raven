@@ -158,7 +158,7 @@ class SPSA(GradientBasedOptimizer):
   ###############
   # Run Methods #
   ###############
-  def localStillReady(self, ready, convergence = False):
+  def localStillReady(self, ready, convergence=False):
     """
       Determines if optimizer is ready to provide another input.  If not, and if jobHandler is finished, this will end sampling.
       @ In, ready, bool, variable indicating whether the caller is prepared for another input.
@@ -172,14 +172,14 @@ class SPSA(GradientBasedOptimizer):
       return True
     return False
 
-  def localGenerateInput(self,model,oldInput):
+  def localGenerateInput(self, model, oldInput):
     """
       Method to generate input for model to run
       @ In, model, model instance, it is the instance of a RAVEN model
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
       @ Out, None
     """
-    GradientBasedOptimizer.localGenerateInput(self,model,oldInput)
+    GradientBasedOptimizer.localGenerateInput(self, model, oldInput)
     # find something to submit
     for _ in self.optTraj:
       # get next trajectory in line, which assures each gets fair treatment in submissions
@@ -192,10 +192,11 @@ class SPSA(GradientBasedOptimizer):
         self.inputInfo['prefix'] = prefix
         self.inputInfo['trajID'] = traj+1
         self.inputInfo['varsUpdate'] = self.counter['varsUpdate'][traj]
+        self.raiseADebug('Providing new queued run with prefix', prefix)
         # if we found a submission, cease looking for submissions
         return
     # if no submissions were found, then we shouldn't have flagged ourselves as Ready or there's a bigger issue!
-    self.raiseAnError(RuntimeError,'Attempted to generate an input but there are none queued to provide!')
+    self.raiseAnError(RuntimeError, 'Attempted to generate an input but there are none queued to provide!')
 
   ###################
   # Utility Methods #
@@ -212,12 +213,15 @@ class SPSA(GradientBasedOptimizer):
     v1, v2 = np.zeros(shape=[nVar,]), np.zeros(shape=[nVar,])
     for cnt, var in enumerate(self.getOptVars()):
       v1[cnt], v2[cnt] = copy.deepcopy(d1[var]), copy.deepcopy(d2[var])
-    angle = np.arccos(np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2))
-    if np.isnan(angle):
-      if (v1 == v2).all():
-        angle = 0.0
-      else:
-        angle = np.pi
+    # if either vector is all zeros, then the angle between them is zero
+    ## TODO what if both are?
+    if np.linalg.norm(v1) == 0:
+      angle = 0
+    elif np.linalg.norm(v2) == 0:
+      angle = 0
+    else:
+      dot = np.dot(v1, v2)/np.linalg.norm(v1)/np.linalg.norm(v2)
+      angle = np.arccos(np.clip(dot, -1, 1))
     angleD = np.rad2deg(angle)
     return angleD
 
@@ -233,16 +237,15 @@ class SPSA(GradientBasedOptimizer):
     """
     try:
       gain = ak[:]
-    except (TypeError,IndexError):
+    except (TypeError, IndexError):
       gain = [ak]*self._numberOfSamples() #technically incorrect, but missing ones will be *0 anyway just below here
+    print('DEBUGG gain:', gain)
 
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
     bounds = [0, 1.0]
     tempVarNew = {}
     frac = 0.5
-    print('DEBUGG bisection threshold:', innerBisectionThreshold)
     while np.absolute(bounds[1]-bounds[0]) >= innerBisectionThreshold:
-      print('DEBUGG delta:', np.absolute(bounds[1]-bounds[0]), 'vs', innerBisectionThreshold)
       index = 0
       for var in self.getOptVars():
         numSamples = np.prod(self.variableShapes[var])
@@ -254,7 +257,7 @@ class SPSA(GradientBasedOptimizer):
             new = copy.copy(varK[var]-gain[index]*vector[var]*1.0*frac) # FIXME is this copy needed?
           index += 1
         tempVarNew[var] = new
-
+      self.raiseADebug('... trying cut by {}:'.format(frac), tempVarNew)
       satisfied, _ = self.checkConstraint(tempVarNew)
       if satisfied:
         bounds[0] = copy.deepcopy(frac)
@@ -438,7 +441,7 @@ class SPSA(GradientBasedOptimizer):
 
     self.raiseADebug('Attempting to fix constraint violation by shortening gradient vector ...')
     # Try to find varKPlus by shorten the gradient vector
-    self.raiseADebug(' ... Trajectory "{}" hit constraints ...'.format(traj))
+    self.raiseADebug(' ... fyi, trajectory "{}" is the one that hit constraints ...'.format(traj))
     self.raiseADebug(' ... Attempting to shorten step length ...')
     foundVarsUpdate, varKPlus = self._bisectionForConstrainedInput(traj, varK, ak, gradient)
     if foundVarsUpdate:
@@ -483,14 +486,16 @@ class SPSA(GradientBasedOptimizer):
         if varID == depVarPos:
           varSize = np.prod(self.variableShapes[var])
           if varSize == 1:
-            pendVector[var] = -npDot/gradient[var]
+            pendVector[var] = -npDot/(gradient[var] if gradient[var] > 0 else 1)
           else:
-            pendVector[var][depVarIdx] = -npDot/gradient[var][depVarIdx]
-      print('DEBUGG ... rotate calcing grad, pendvector ...')
+            pendVector[var][depVarIdx] = -npDot/(gradient[var][depVarIdx] if gradient[var][depVarIdx] > 0 else 1)
       r  = self.calculateMultivectorMagnitude([  gradient[var] for var in self.getOptVars()])
-      r /= self.calculateMultivectorMagnitude([pendVector[var] for var in self.getOptVars()])
+      pendMagnitude = self.calculateMultivectorMagnitude([pendVector[var] for var in self.getOptVars()])
+      if abs(pendMagnitude - 0) > 1e-16:
+        r /= pendMagnitude
       for var in self.getOptVars():
         pendVector[var] = copy.deepcopy(pendVector[var])*r
+      assert not np.isnan(np.asarray(list(x for x in pendVector.values()), dtype=float)).sum(), 'NaNs in pendVector: {}'.format(pendVector)
 
       varKPlus = {}
       index = 0
@@ -506,7 +511,7 @@ class SPSA(GradientBasedOptimizer):
         varKPlus[var] = new
 
       print('DEBUGG ... rotate checking constraints ...')
-      foundPendVector, activeConstraints = self.checkConstraint(self.denormalizeData(varKPlus))
+      foundPendVector, _ = self.checkConstraint(self.denormalizeData(varKPlus))
       if not foundPendVector:
         print('DEBUGG ... rotate bisecting ...')
         foundPendVector, varKPlus = self._bisectionForConstrainedInput(traj, varK, gain, pendVector)
@@ -520,8 +525,10 @@ class SPSA(GradientBasedOptimizer):
       lenPendVector = np.sqrt(lenPendVector)
 
       rotateDegreeUpperLimit = 2
-      while self.angleBetween(traj,gradient, pendVector) > rotateDegreeUpperLimit:
-        self.raiseADebug('... trying', self.angleBetween(traj, gradient, pendVector))
+      angle = self.angleBetween(traj,gradient, pendVector)
+      foundAngle = False
+      while angle > rotateDegreeUpperLimit:
+        self.raiseADebug('... trying angle {} (limit {})'.format(angle, rotateDegreeUpperLimit))
         sumVector = {}
         lenSumVector = 0
         for var in self.getOptVars():
@@ -542,15 +549,21 @@ class SPSA(GradientBasedOptimizer):
             index += 1
           tempTempVarKPlus[var] = new
         print('DEBUGG ... rotate ... rotating, checking constraints ...')
-        satisfied, activeConstraints = self.checkConstraint(self.denormalizeData(tempTempVarKPlus))
+        satisfied, _ = self.checkConstraint(self.denormalizeData(tempTempVarKPlus))
         if satisfied:
           varKPlus = copy.deepcopy(tempTempVarKPlus)
           pendVector = copy.deepcopy(sumVector)
-        else:
-          gradient = copy.deepcopy(sumVector)
-      self.raiseADebug('   ... successfully found new point by rotating trajectory.')
-      return varKPlus, True
-    varKPlus = varK
+          foundAngle = True
+          break
+        gradient = copy.deepcopy(sumVector)
+        angle = self.angleBetween(traj, gradient, pendVector)
+      else:
+          self.raiseADebug(' ... was not able to find an acceptable angle along the constraint. Final angle attempted:', angle)
+      if foundAngle:
+        self.raiseADebug('   ... successfully found new point by rotating trajectory {} degrees.'.format(angle))
+        self.raiseADebug('')
+        return varKPlus, True
+    # finally, after all else fails ...
     self.raiseADebug('   ... did not successfully find new point.')
     return varKPlus, False
 
