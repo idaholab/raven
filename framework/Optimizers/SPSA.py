@@ -225,7 +225,7 @@ class SPSA(GradientBasedOptimizer):
     angleD = np.rad2deg(angle)
     return angleD
 
-  def _bisectionForConstrainedInput(self,traj,varK,ak,vector):
+  def _bisectionForConstrainedInput(self, traj, varK, ak, vector):
     """
       Method to find the maximum fraction of the step size "ak" such that taking a step of size "ak" in
       the direction of "vector" starting from current input point "varK" will not violate the constraint function.
@@ -239,12 +239,12 @@ class SPSA(GradientBasedOptimizer):
       gain = ak[:]
     except (TypeError, IndexError):
       gain = [ak]*self._numberOfSamples() #technically incorrect, but missing ones will be *0 anyway just below here
-    print('DEBUGG gain:', gain)
 
     innerBisectionThreshold = self.constraintHandlingPara['innerBisectionThreshold']
     bounds = [0, 1.0]
     tempVarNew = {}
     frac = 0.5
+    self.raiseADebug(' ... original offending point:', self.denormalizeData(varK))
     while np.absolute(bounds[1]-bounds[0]) >= innerBisectionThreshold:
       index = 0
       for var in self.getOptVars():
@@ -252,12 +252,12 @@ class SPSA(GradientBasedOptimizer):
         new = np.zeros(numSamples)
         for i in range(numSamples):
           if numSamples > 1:
-            new[i] = copy.copy(varK[var][i] - gain[index] * vector[var][i]*1.0*frac) # FIXME is this copy needed?
+            new[i] = copy.copy(varK[var][i] - gain[index] * vector[var][i] * frac) # FIXME is this copy needed?
           else:
-            new = copy.copy(varK[var]-gain[index]*vector[var]*1.0*frac) # FIXME is this copy needed?
+            new = copy.copy(varK[var] - gain[index] * vector[var] * frac) # FIXME is this copy needed?
           index += 1
         tempVarNew[var] = new
-      self.raiseADebug('... trying cut by {}:'.format(frac), tempVarNew)
+      self.raiseADebug(' ... considering cutting step by {}%:'.format(frac*100), self.denormalizeData(tempVarNew))
       satisfied, _ = self.checkConstraint(tempVarNew)
       if satisfied:
         bounds[0] = copy.deepcopy(frac)
@@ -384,7 +384,65 @@ class SPSA(GradientBasedOptimizer):
         self.submissionQueue[traj].append({'inputs':point, 'prefix':prefix})
     return points
 
-  def _generateVarsUpdateConstrained(self,traj,ak,gradient,varK):
+  # TODO MOVEME
+  def _findNewPoint(self, gain, startPoint, gradient):
+    """
+      Using the starting point, the gradient, and a step size (gain), find
+      a new point to move to.
+      @ In, gain, array, step size per variable (usually the same value for all)
+      @ In, startPoint, dict, starting point as {var: float}
+      @ In, gradient, dict, direction to move in as {var:float}
+      @ Out, newPoint, dict, new point as {var:float}
+    """
+    newPoint = {}
+    index = 0
+    for var in self.getOptVars():
+      numSamples = np.prod(self.variableShapes[var])
+      if numSamples == 1:
+        new = startPoint[var]-gain[index]*gradient.get(var, 0.0)
+        index += 1
+      else:
+        new = np.zeros(numSamples)
+        for i in range(numSamples):
+          new[i] = varK[var][i] - gain[index] * gradient.get(var, [0.0]*i)[i]
+          index += 1
+      newPoint[var] = new
+    return newPoint
+
+  # TODO MOVEME
+  def _handleBoundaryConstraint(self, violations, gradient, suggestedPoint):
+    """
+      Fixes boundary constraint violations for suggestedPoint by projecting along
+      the known boundary. Note this does NOT handle functional constraints!
+      @ In, violations, list, information about boundary constraint violations by variable
+      @ In, gradient, dictionary, contains the gradient information for variable update
+      @ In, suggestedPoint, dictionary, variable values for next iteration.
+      @ Out, suggestedPoint, dictionary, variable values for next iteration.
+      @ Out, modded, bool, if True the point was modified by the constraint
+      @ Out, gradient, dictionary, contains the gradient information for variable update
+    """
+    self.raiseADebug('Attempting to fix boundary violation with gradient projection ...')
+    modded = True
+    projectedOnBoundary = {}
+    for var, under, over in violations:
+      if np.prod(self.variableShapes[var]) == 1:
+        if np.sum(over) > 0:
+          projectedOnBoundary[var] = self.optVarsInit['upperBound'][var]
+        elif np.sum(under) > 0:
+          projectedOnBoundary[var] = self.optVarsInit['lowerBound'][var]
+        gradient[var] = 0.0
+      else:
+        projectedOnBoundary[var] = self.denormalizeData({var: suggestedPoint[var]})[var]
+        projectedOnBoundary[var][under] = self.optVarsInit['lowerBound'][var]
+        projectedOnBoundary[var][over] = self.optVarsInit['upperBound'][var]
+        gradient[var][np.logical_or(under, over)] = 0.0
+    suggestedPoint.update(self.normalizeData(projectedOnBoundary))
+    newNormWithoutComponents = self.calculateMultivectorMagnitude(gradient.values())
+    for var in gradient.keys():
+      gradient[var] = (gradient[var]/newNormWithoutComponents) if newNormWithoutComponents != 0.0 else gradient[var]
+    return suggestedPoint, modded, gradient
+
+  def _generateVarsUpdateConstrained(self, traj, ak, gradient, varK):
     """
       Method to generate input for model to run, considering also that the input satisfies the constraint
       @ In, traj, int, trajectory label for whom we are generating variables with constraint consideration
@@ -394,65 +452,47 @@ class SPSA(GradientBasedOptimizer):
       @ Out, varKPlus, dictionary, variable values for next iteration.
       @ Out, modded, bool, if True the point was modified by the constraint
     """
-    varKPlus = {}
-    gain = [ak]*self._numberOfSamples() #technically too many entries, but unneeded ones will be *0 anyway just below here
-    gain = np.asarray(gain)
-    index = 0
-    for var in self.getOptVars():
-      numSamples = np.prod(self.variableShapes[var])
-      if numSamples == 1:
-        new = varK[var]-gain[index]*gradient.get(var,0.0)
-        index += 1
-      else:
-        new = np.zeros(numSamples)
-        for i in range(numSamples):
-          new[i] = varK[var][i] - gain[index] * gradient.get(var,[0.0]*i)[i]
-          index += 1
-      varKPlus[var] = new
+    # extend the step size into more dimensions TODO why?
+    gain = np.asarray([ak]*self._numberOfSamples()) #technically too many entries, but unneeded ones will be *0 anyway just below here
+    # find a new suggested point
+    varKPlus = self._findNewPoint(gain, varK, gradient)
+    # check this point against the boundary and functional constraints
+    satisfied, activeViolations = self.checkConstraint(self.denormalizeData(varKPlus))
+    # have we modified the suggested point to meet constraints?
+    modded = False
+    # if no violations, then keep this point
+    if satisfied:
+      return varKPlus, modded
+    # if not satisfied ...
+
+    # check for boundary constraint violations.
+    if len(activeViolations['internal']) > 0:
+      varKPlus, modded, gradient = self._handleBoundaryConstraint(activeViolations['internal'], gradient, varKPlus)
+    # check the new point isn't in violation. It should NOT have internal, but might have external
     satisfied, activeViolations = self.checkConstraint(self.denormalizeData(varKPlus))
     if satisfied:
-      return varKPlus, False
-    # else if not satisfied ...
-    # check if the active constraints are the boundary ones. In this case, try to project the gradient at an angle
-    modded = False
-    if len(activeViolations['internal']) > 0:
-      self.raiseADebug('Attempting to fix constraint violation with gradient projection ...')
-      modded = True
-      projectedOnBoundary= {}
-      for var,under,over in activeViolations['internal']:
-        if np.prod(self.variableShapes[var]) == 1:
-          if np.sum(over) > 0:
-            projectedOnBoundary[var] = self.optVarsInit['upperBound'][var]
-          elif np.sum(under) > 0:
-            projectedOnBoundary[var] = self.optVarsInit['lowerBound'][var]
-          gradient[var] = 0.0
-        else:
-          projectedOnBoundary[var] = self.denormalizeData({var:varKPlus[var]})[var]
-          projectedOnBoundary[var][under] = self.optVarsInit['lowerBound'][var]
-          projectedOnBoundary[var][over] = self.optVarsInit['upperBound'][var]
-          gradient[var][np.logical_or(under,over)] = 0.0
-      varKPlus.update(self.normalizeData(projectedOnBoundary))
-      newNormWithoutComponents = self.calculateMultivectorMagnitude(gradient.values())
-      for var in gradient.keys():
-        gradient[var] = gradient[var]/newNormWithoutComponents if newNormWithoutComponents != 0.0 else gradient[var]
-
-    if len(activeViolations['external']) == 0:
       return varKPlus, modded
+    if activeViolations['internal']:
+      self.raiseAnError(RuntimeError, 'A supposedly "fixed" boundary violation is still in violation!', varKPlus, activeViolations)
 
-    self.raiseADebug('Attempting to fix constraint violation by shortening gradient vector ...')
+    # if we got here, there are still external function constraint violations ...
+
     # Try to find varKPlus by shorten the gradient vector
-    self.raiseADebug(' ... fyi, trajectory "{}" is the one that hit constraints ...'.format(traj))
+    self.raiseADebug('Attempting to fix functional constraint violation by shortening gradient vector ...')
     self.raiseADebug(' ... Attempting to shorten step length ...')
-    foundVarsUpdate, varKPlus = self._bisectionForConstrainedInput(traj, varK, ak, gradient)
-    if foundVarsUpdate:
+    found, varKPlus = self._bisectionForConstrainedInput(traj, varK, ak, gradient)
+    if found:
+      modded = True
       self.raiseADebug(' ... successfully found new point by shortening length.')
-      return varKPlus, True
+      return varKPlus, modded
     else:
       self.raiseADebug(' ... bisection failed to resolve constraint problems ...')
 
-    self.raiseADebug('Attempting to fix constraint violation by rotating towards orthogonal ...')
-    # Try to find varKPlus by rotate the gradient towards its orthogonal, since we consider the gradient as perpendicular
+    # Try to find varKPlus by rotating the gradient towards its orthogonal, since we consider the gradient as perpendicular
     # with respect to the constraints hyper-surface
+    ## TODO that's not quite what this is doing ... this was probably originally written ASSUMING a boundary violation!
+    ## -> needs to be rethought for functional constraints, but it sort of runs fine for now. So does a burning bus.
+    self.raiseADebug('Attempting to fix constraint violation by rotating towards orthogonal ...')
     self.raiseADebug('  Attempting instead to rotate trajectory ...')
     innerLoopLimit = self.constraintHandlingPara['innerLoopLimit']
     if innerLoopLimit < 0:
@@ -460,14 +500,12 @@ class SPSA(GradientBasedOptimizer):
     loopCounter = 0
     foundPendVector = False
     # search for the perpendicular vector
-    print('DEBUGG traj rotate loop limit:')
     while not foundPendVector and loopCounter < innerLoopLimit:
       loopCounter += 1
-      print('DEBUGG loop counter:', loopCounter)
       # randomly choose the index of a variable to be the dependent? pivot
       depVarPos = randomUtils.randomIntegers(0,len(self.getOptVars())-1,self)
       # if that variable is multidimensional, pick a dimension -> this is not precisely equal probability of picking, but that should be okay.
-      varSize = np.prod(self.variableShapes[var])
+      varSize = np.prod(self.variableShapes[self.getOptVars()[depVarPos]])
       if varSize > 1:
         depVarIdx = randomUtils.randomIntegers(0,varSize-1,self)
       pendVector = {}
@@ -510,10 +548,8 @@ class SPSA(GradientBasedOptimizer):
           index += 1
         varKPlus[var] = new
 
-      print('DEBUGG ... rotate checking constraints ...')
       foundPendVector, _ = self.checkConstraint(self.denormalizeData(varKPlus))
       if not foundPendVector:
-        print('DEBUGG ... rotate bisecting ...')
         foundPendVector, varKPlus = self._bisectionForConstrainedInput(traj, varK, gain, pendVector)
       gain = gain/2.
 
@@ -548,7 +584,6 @@ class SPSA(GradientBasedOptimizer):
               new[i] = copy.copy(varK[var][i]-gain[index]*sumVector[var][i]*1.0)
             index += 1
           tempTempVarKPlus[var] = new
-        print('DEBUGG ... rotate ... rotating, checking constraints ...')
         satisfied, _ = self.checkConstraint(self.denormalizeData(tempTempVarKPlus))
         if satisfied:
           varKPlus = copy.deepcopy(tempTempVarKPlus)
@@ -642,14 +677,17 @@ class SPSA(GradientBasedOptimizer):
     if removed:
       return None
     #if the new point was modified by the constraint, reset the step size
+    ## is that really a good idea? FIXME
     if modded:
-      self.counter['lastStepSize'][traj] = self.paramDict['initialStepSize']
-      self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
-    self.queueUpOptPointRuns(traj,varKPlus)
+      self.recommendToGain[traj] = 'cut'
+      self.raiseADebug('Recommending trajectory "{}" cut size due to hitting constraints!'.format(traj))
+    #  self.counter['lastStepSize'][traj] = self.paramDict['initialStepSize']
+    #  self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
+    self.queueUpOptPointRuns(traj, varKPlus)
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = varKPlus
     return varKPlus
 
-  def _setAlgorithmState(self,traj,state):
+  def _setAlgorithmState(self, traj, state):
     """
       @ In, traj, int, the trajectory being saved
       @ In, state, dict, keys:values this algorithm cares about saving for this trajectory
