@@ -326,6 +326,8 @@ class ARMA(supervisedLearning):
             self.raiseAnError(IOError, 'Target "{}" has overlapping growth factors for years with index',
                                ' {} to {} (inclusive)!'.format(overlap.start, overlap.stop - 1))
         self.growthFactors[target].append(settings)
+    else:
+      self.numYears = numYearsNode.value
 
   def setAdditionalParams(self, params):
     """
@@ -1947,11 +1949,14 @@ class ARMA(supervisedLearning):
         if self.multiyear:
           # TODO can we do this all at once with a vector operation?
           for y, vals in enumerate(evaluation[target]):
-            for target, growthInfos in self.growthFactors.items():
-              for growthInfo in growthInfos:
-                if y in growthInfo['range']:
-                  scale = self._evaluateScale(growthInfo, y)
-                  evaluation[target][y][localPicker] += sig * scale
+            if len(self.growthFactors) !=0:            
+              for target, growthInfos in self.growthFactors.items():
+                for growthInfo in growthInfos:
+                  if y in growthInfo['range']:
+                    scale = self._evaluateScale(growthInfo, y)
+                    evaluation[target][y][localPicker] += sig * scale
+            else:
+              evaluation[target][y][localPicker] += sig 
         else:
           evaluation[target][localPicker] += sig
     return evaluation
@@ -1980,19 +1985,24 @@ class ARMA(supervisedLearning):
       @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
+
     if self.preserveInputCDF:
       for target, dist in settings['input CDFs'].items():
+
         if self.multiyear: #TODO check this gets caught correctly by the templateROM.
           # multiyear option
           for y in range(len(evaluation[target])):
-            for t, (target, growthInfos) in enumerate(self.growthFactors.items()):
-              for growthInfo in growthInfos:
-                if y in growthInfo['range']:
-                  scale = self._evaluateScale(growthInfo,y)
-                  objectDist = dist[0]
-                  histDist = tuple([dist[1][0],dist[1][1]*scale])
-                  dist = tuple([dist[0],histDist])
-                  evaluation[target][y] = self._transformThroughInputCDF(evaluation[target][y], dist, weights)
+            if len(self.growthFactors) !=0:
+              for t, (target, growthInfos) in enumerate(self.growthFactors.items()):
+                for growthInfo in growthInfos:
+                  if y in growthInfo['range']:
+                    scale = self._evaluateScale(growthInfo,y)
+                    objectDist = dist[0]
+                    histDist = tuple([dist[1][0],dist[1][1]*scale])
+                    dist = tuple([dist[0],histDist])
+                    evaluation[target][y] = self._transformThroughInputCDF(evaluation[target][y], dist, weights)
+            else:
+              evaluation[target][y] = self._transformThroughInputCDF(evaluation[target][y], dist, weights)
         else:
           evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
     return evaluation
