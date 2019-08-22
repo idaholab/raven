@@ -262,7 +262,7 @@ class Segments(Collection):
     """
     # write global information
     newNode = xmlUtils.StaticXmlElement('GlobalROM', attrib={'segment':'all'})
-    self._templateROM.writeXML(newNode, targets, skip)
+    #self._templateROM.writeXML(newNode, targets, skip)
     writeTo.getRoot().append(newNode.getRoot())
     # write subrom information
     for i, rom in enumerate(self._roms):
@@ -413,7 +413,7 @@ class Segments(Collection):
       # slicer for data selection
       picker = slice(subdiv[0], subdiv[-1] + 1)
       ## TODO we need to be slicing all the data, not just one realization, once we support non-ARMA segmentation.
-      data = dict((var, [copy.deepcopy(trainingSet[var][0][picker])]) for var in trainingSet)
+      data = dict((var, copy.deepcopy(np.array(trainingSet[var])[:,picker])) for var in trainingSet)
       # renormalize the pivot if requested, e.g. by shifting values
       norm = self._divisionPivotShift[pivotID]
       if norm:

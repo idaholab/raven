@@ -72,7 +72,8 @@ class DynamicModeDecomposition(supervisedLearning):
     self.pivotValues                 = None                                 # pivot values (e.g. time)
     self.KDTreeFinder                = None                                 # kdtree weighting model
     self.timeScales                  = {}                                   # time-scales (training and dmd). {'training' and 'dmd':{t0:float,'dt':float,'intervals':int}}
-
+    #self.segments                    = kwargs.get('segments', 1)            # Defaulting to 1 segment. i.e., no segmentation accured.
+    #self.featureVals                 = {}
     # some checks
     if self.dmdParams['rankSVD'] is not None and self.dmdParams['energyRankSVD'] is not None:
       self.raiseAWarning('Both "rankSVD" and "energyRankSVD" have been inputted. "energyRankSVD" is predominant and will be used!')
@@ -89,7 +90,8 @@ class DynamicModeDecomposition(supervisedLearning):
       @ Out, None
     """
     self.__dict__.update(state)
-    self.KDTreeFinder = spatial.KDTree(self.featureVals)
+    if self.amITrained:
+      self.KDTreeFinder = spatial.KDTree(self.featureVals)
 
   def _localNormalizeData(self,values,names,feat):
     """
