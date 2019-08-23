@@ -43,7 +43,7 @@
       <penalty>None</penalty>
       <alpha>0.0001</alpha>
       <fit_intercept>True</fit_intercept>
-      <n_iter>5</n_iter>
+      <n_iter_no_change>5</n_iter_no_change>
       <shuffle>True</shuffle>
       <random_state>0</random_state>
       <verbose>0</verbose>
