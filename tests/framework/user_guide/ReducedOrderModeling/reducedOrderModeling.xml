@@ -33,8 +33,6 @@
       <Features>v0,angle</Features>
       <Target>r,t</Target>
       <SKLtype>GaussianProcess|GaussianProcess</SKLtype>
-      <regr>quadratic</regr>
-      <theta0>10</theta0>
     </ROM>
     <ROM name="ROMsvm" subType="SciKitLearn">
       <Features>v0,angle</Features>

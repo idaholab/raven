@@ -91,15 +91,6 @@
   skip_if_env = BUILD_ROOT
  [../]
 
- [./testLHSFerret]
-  type = 'RavenFramework'
-  input = 'test_LHS_Sampler_ferret.xml'
-  output = 'LHStestFerret/myLHS/out~1~simple_diffusion'
-  csv = 'LHStestFerret/myLHS/out~1~simple_diffusion.csv'
-  required_executable = '../../../../ferret/ferret-%METHOD%'
-  skip = "Has not been updated for new ferret"
- [../]
-
  [./testMC]
    type = 'RavenFramework'
    input = 'test_mc_rattlesnake.xml'

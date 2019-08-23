@@ -11,6 +11,19 @@ fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
 SKIP_CONDA=1 # 0 for skipping conda, 1 for not skipping
+# source read ravenrc script
+RAVEN_RC_SCRIPT=$SCRIPT_DIR/scripts/read_ravenrc.sh
+RAVEN_RC_SCRIPT="${RAVEN_RC_SCRIPT//\\//}"
+source $RAVEN_RC_SCRIPT
+INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
+if [[ "$INSTALLATION_MANAGER" == "PIP" ]];
+  then
+  SKIP_CONDA=0
+else
+  # conda
+  SKIP_CONDA=1
+fi
+
 ARGS=()
 for A in "$@"; do
     case $A in
@@ -22,12 +35,12 @@ for A in "$@"; do
             ;;
     esac
 done
-
+echo 'Loading libraries ...'
 if [[ ! $SKIP_CONDA == 0 ]]; then
-    echo 'Loading libraries ...'
     source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
 else
-    PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+    source $SCRIPT_DIR/scripts/establish_conda_env.sh --load --installation-manager PIP
+    #PYTHON_COMMAND=${PYTHON_COMMAND:=python}
 fi
 
 for A in "$@"; do

@@ -33,7 +33,7 @@
         <SKLtype>mixture|VBGMM</SKLtype>
         <covariance_type>diag</covariance_type>
         <random_state>0</random_state>
-        <n_components>3</n_components>
+        <n_components>2</n_components>
         <n_iter>10000</n_iter>
         <alpha>1</alpha>
       </KDD>
