@@ -203,8 +203,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
 
-        # I think this is not even needed because valueToUse is already an array. I suggest adding assert statements to check types and more importantly dimensions when a specific type/dim is a must.
-        #valueToUse = np.asarray(valueToUse)
+        valueToUse = np.asarray(valueToUse)
 
         if np.shape(valueToUse)[0] != featureValues[:,0].size:
           self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
@@ -366,6 +365,16 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     # only true if overridden.
     return False
+
+  def writeGlobalXML(self, writeTo, targets=None, skip=None):
+    """
+      Write out Global Segment information
+      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
+      @ In, targets, list, optional, unused
+      @ In, skip, list, optional, unused
+      @ Out, None
+    """
+    pass # Override as neede
 
   def getLocalRomClusterFeatures(self, *args, **kwargs):
     """

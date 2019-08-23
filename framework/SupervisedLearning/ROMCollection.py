@@ -262,7 +262,7 @@ class Segments(Collection):
     """
     # write global information
     newNode = xmlUtils.StaticXmlElement('GlobalROM', attrib={'segment':'all'})
-    #self._templateROM.writeXML(newNode, targets, skip)
+    self._templateROM.writeGlobalXML(newNode, targets, skip)
     writeTo.getRoot().append(newNode.getRoot())
     # write subrom information
     for i, rom in enumerate(self._roms):

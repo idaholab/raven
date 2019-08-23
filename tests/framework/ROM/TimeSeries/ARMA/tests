@@ -183,6 +183,6 @@
    input = 'peaks.xml'
    output = 'Peaks/romMeta.csv'
    UnorderedXml = 'Peaks/romMeta.xml'
-   rel_err = 1e-6
+   rel_err = 1e-5
   [../]
 []
