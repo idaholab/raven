@@ -44,10 +44,6 @@ import Distributions
 from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
-
-import pprint
-pp = pprint.PrettyPrinter(indent=2)
-
 class ARMA(supervisedLearning):
   r"""
     Autoregressive Moving Average model for time series analysis. First train then evaluate.
@@ -100,7 +96,7 @@ class ARMA(supervisedLearning):
     self._trainingCDF      = {} # if preserveInputCDF, these CDFs are scipy.stats.rv_histogram objects for the training data
     self.zeroFilterTarget  = None # target for whom zeros should be filtered out
     self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
-    self._masks            = {}   # dictionay of masks, inclusding zeroFilterMask(where zero), notZeroFilterMask(Where non zero), and maskPeakRes.
+    self._masks            = collections.defaultdict(dict)   # dictionay of masks, including zeroFilterMask(where zero), notZeroFilterMask(Where non zero), and maskPeakRes.
     self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
     #peaks
     self.peaks             = {} # dictionary of peaks information, by target
@@ -298,7 +294,7 @@ class ARMA(supervisedLearning):
       # sanity check ...
       for target in targets:
         if target not in self.target:
-          self.raiseAnError('Growth parameters were given for "{}" but "{}" is not '.format(target) +
+          self.raiseAnError(IOError, 'Growth parameters were given for "{t}" but "{t}" is not '.format(t=target),
                             'among the targets of this ROM!')
       settings = {'mode': gNode.parameterValues['mode'],
                   'start': gNode.parameterValues.get('start_index', defaultIndices[0]),
@@ -320,10 +316,10 @@ class ARMA(supervisedLearning):
       # store results by target
       for target in gNode.parameterValues['targets']:
         for existing in self.growthFactors[target]:
-          overlap = range(max(existing['range'].start, newCoverage['range'].start),
-                          min(existing['range'].stop, newCoverate['range'].stop)+1)
+          overlap = range(max(existing['range'].start, newCoverage.start),
+                          min(existing['range'].stop-1, newCoverage.stop-1) + 1)
           if overlap:
-            self.raiseAnError(IOError, 'Target "{}" has overlapping growth factors for years with index',
+            self.raiseAnError(IOError, 'Target "{}" has overlapping growth factors for years with index'.format(target),
                                ' {} to {} (inclusive)!'.format(overlap.start, overlap.stop - 1))
         self.growthFactors[target].append(settings)
     else:
@@ -376,11 +372,17 @@ class ARMA(supervisedLearning):
         self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=self._minBins)
       # if this target governs the zero filter, extract it now
       if target == self.zeroFilterTarget:
-
       # # if we're removing Fourier signal, do that now.
         if 'notZeroFilterMask' not in self._masks[target]:
           self._masks[target]['zeroFilterMask']= self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
           self._masks[target]['notZeroFilterMask'] = np.logical_not(self._masks[target]['zeroFilterMask']) # where data are
+          # if correlated, then all the correlated variables share the same masks
+          if target in self.correlations:
+            for cor in self.correlations:
+              if cor == target:
+                continue
+              self._masks[cor]['zeroFilterMask'] = self._masks[target]['zeroFilterMask']
+              self._masks[cor]['notZeroFilterMask'] = self._masks[target]['notZeroFilterMask']
       # if we're removing Fourier signal, do that now.
 
       if target in self.peaks:
@@ -448,11 +450,12 @@ class ARMA(supervisedLearning):
       # if zero filtering, then all the correlation data gets split
       if self.zeroFilterTarget in self.correlations:
         # split data into the zero-filtered and non-zero filtered
-        notZeroFilterMask = self._masks[target]['notZeroFilterMask']
-        zeroFilterMask = self._masks[target]['zeroFilterMask']
+        notZeroFilterMask = self._masks[self.zeroFilterTarget]['notZeroFilterMask']
+        zeroFilterMask = self._masks[self.zeroFilterTarget]['zeroFilterMask']
         unzeroed = correlationData[notZeroFilterMask]
         zeroed = correlationData[zeroFilterMask]
         ## throw out the part that's all zeros (axis 1, row corresponding to filter target)
+        #print('mask:', self._masks[self.zeroFilterTarget]['zeroFilterMask'])
         zeroed = np.delete(zeroed, self.correlations.index(self.zeroFilterTarget), 1)
         self.raiseADebug('... ... ... training unzeroed ...')
         unzVarma, unzNoise, unzInit = self._trainVARMA(unzeroed)
@@ -486,43 +489,47 @@ class ARMA(supervisedLearning):
       finalResult = dict((target, np.zeros((self.numYears, len(self.pivotParameterValues)))) for target in self.target if target != self.pivotParameterID)
       finalResult[self.pivotParameterID] = self.pivotParameterValues
       years = np.arange(self.numYears)
-      finalResult['Year'] = years
+      # calculate scaling factors for targets
+      scaling = {}
+      for target in (t for t in self.target if t != self.pivotParameterID):
+        scaling[target] = self._evaluateScales(self.growthFactors[target], years)
+        #self.raiseADebug('Yearly growth multipliers for "{}": {}'.format(target, scaling[target]))
+      # create synthetic history for each year
       for y in years:
-        # apply growth factor
-        vals = copy.deepcopy(featureVals) # without deepcopy, the vals are modified in-place
-        for t, (target, growthInfos) in enumerate(self.growthFactors.items()):
-          for growthInfo in growthInfos:
-            if y in growthInfo['range']:
-              scale = self._evaluateScale(growthInfo, y)
-              vals[t] *= scale
-        # TODO is adjusting the scaling factor the right choice for multiyear evaluations???
+        self.raiseADebug('Evaluating year', y)
+        vals = copy.deepcopy(featureVals) # without deepcopy, the vals are modified in-place -> why should this matter?
         result = self._evaluateYear(vals)
-        for target, value in result.items():
-          if target == self.pivotParameterID:
-            continue
+        for target, value in ((t, v) for (t, v) in result.items() if t != self.pivotParameterID): #, growthInfos in self.growthFactors.items():
           finalResult[target][y][:] = value # [:] is a size checker
-          # TODO should "scale" be applied here instead??
-        # high-dimensional indexing information
-        finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
+      # apply growth factors
+      for target in (t for t in finalResult if t != self.pivotParameterID):
+        scaling = self._evaluateScales(self.growthFactors[target], years)
+        finalResult[target][:] = (finalResult[target].T * scaling).T # -> people say this is as fast as any way to multiply columns by a vector of scalars
+      # high-dimensional indexing information
+      finalResult['Year'] = years
+      finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
       return finalResult
-
     else:
       return self._evaluateYear(featureVals)
 
-  def _evaluateScale(self, growthInfo, year):
+  def _evaluateScales(self, growthInfos, years):
     """
       @ In, growthInfo, dictionary of growth value for each target
       @ In, year, int, year index in multiyear
       @ Out, scale, float, scaling factor for each year
     """
-    assert year in growthInfo['range']
-    growth = growthInfo.get('value', 100)/100. # given in percentage
-    mode = growthInfo['mode']
-    if mode == 'exponential':
-      scale = (1.0 + growth) ** year
-    else:
-      scale = 1.0 + year * growth
-    return scale
+    scales = np.ones(len(years))
+    for y, year in enumerate(years):
+      old = scales[y-1] if y > 0 else 1
+      for growthInfo in growthInfos:
+        if year in growthInfo['range']:
+          mode = growthInfo['mode']
+          growth = growthInfo['value'] / 100
+          scales[y] = (old * (1 + growth)) if mode == 'exponential' else (old + growth)
+          break
+      else:
+        scales[y] = old
+    return scales
 
   def _evaluateYear(self, featureVals):
     """
@@ -540,8 +547,8 @@ class ARMA(supervisedLearning):
 
     # TODO when we have output printing for ROMs, the distinct signals here could be outputs!
     # leaving "debuggFile" as examples of this, in comments
-    debuggFile = open('signal_bases.csv','w')
-    debuggFile.writelines('Time,'+','.join(str(x) for x in self.pivotParameterValues)+'\n')
+    #debuggFile = open('signal_bases.csv','w')
+    #debuggFile.writelines('Time,'+','.join(str(x) for x in self.pivotParameterValues)+'\n')
     correlatedSample = None
     for target in self.target:
       # start with the random gaussian signal
@@ -557,15 +564,15 @@ class ARMA(supervisedLearning):
           if correlatedSample is None:
             # if not, take the samples now
             unzeroedSample = self._generateVARMASignal(self.varmaResult[0],
-                                                       numSamples = self._masks[target]['notZeroFilterMask'].sum(),
-                                                       randEngine = self.normEngine.rvs,
-                                                       rvsIndex = 0)
+                                                       numSamples=self._masks[target]['notZeroFilterMask'].sum(),
+                                                       randEngine=self.normEngine.rvs,
+                                                       rvsIndex=0)
             ## zero sampling is dependent on whether the trained model is a VARMA or ARMA
             if self.varmaNoise[1] is not None:
               zeroedSample = self._generateVARMASignal(self.varmaResult[1],
-                                                       numSamples = self._masks[target]['zeroFilterMask'].sum(),
-                                                       randEngine = self.normEngine.rvs,
-                                                       rvsIndex = 1)
+                                                       numSamples=self._masks[target]['zeroFilterMask'].sum(),
+                                                       randEngine=self.normEngine.rvs,
+                                                       rvsIndex=1)
             else:
               result = self.varmaResult[1]
               sample = self._generateARMASignal(result,
@@ -578,12 +585,12 @@ class ARMA(supervisedLearning):
           ## initialize
           signal = np.zeros(len(self.pivotParameterValues))
           ## first the data from the non-zero portions of the original signal
-          signal[self._masks[target]['notZeroFilterMask']] = unzeroedSample[:,corrIndex]
+          signal[self._masks[self.zeroFilterTarget]['notZeroFilterMask']] = unzeroedSample[:,corrIndex]
           ## then the data from the zero portions (if the filter target, don't bother because they're zero anyway)
           if target != self.zeroFilterTarget:
             # fix offset since we didn't include zero-filter target in zeroed correlated arma
             indexOffset = 0 if corrIndex < filterTargetIndex else -1
-            signal[self._masks[target]['zeroFilterMask']] = zeroedSample[:,corrIndex+indexOffset]
+            signal[self._masks[self.zeroFilterTarget]['zeroFilterMask']] = zeroedSample[:,corrIndex+indexOffset]
         # if no zero-filtering (but still correlated):
         else:
           ## check if sample taken yet
@@ -618,20 +625,20 @@ class ARMA(supervisedLearning):
       # DEBUG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
       #returnEvaluation[target+'_0base'] = copy.copy(signal)
       # denoise
-      signal = self._denormalizeThroughCDF(signal,self.cdfParams[target])
+      signal = self._denormalizeThroughCDF(signal, self.cdfParams[target])
       # DEBUG adding arbitrary variables
       #returnEvaluation[target+'_1denorm'] = copy.copy(signal)
-      debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
+      #debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
 
       # Add fourier trends
       if target in self.fourierParams:
         signal += self.fourierResults[target]['predict']
         # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
-        debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
+        #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
       if target in self.peaks:
         signal = self._transformBackPeaks(signal,windowDict=self.peaks[target])
-        debuggFile.writelines('signal_peak,'+','.join(str(x) for x in signal)+'\n')
+        #debuggFile.writelines('signal_peak,'+','.join(str(x) for x in signal)+'\n')
 
       # if enforcing the training data CDF, apply that transform now
       if self.preserveInputCDF:
@@ -661,7 +668,7 @@ class ARMA(supervisedLearning):
 
       # sanity check on the signal
       assert(signal.size == returnEvaluation[self.pivotParameterID].size)
-      debuggFile.writelines('final,'+','.join(str(x) for x in signal)+'\n')
+      #debuggFile.writelines('final,'+','.join(str(x) for x in signal)+'\n')
       returnEvaluation[target] = signal
     # END for target in targets
     return returnEvaluation
@@ -748,23 +755,34 @@ class ARMA(supervisedLearning):
       numSamples = len(self.pivotParameterValues)
     # sample measure, state shocks
     ## TODO it appears that measure shock always has a 0 variance multivariate normal, so just create it
-    measureShocks = np.zeros([numSamples,len(self.correlations)])
+    numVariables = len(self.correlations)
+    if rvsIndex == 1:
+      # TODO implicit; this indicates that we're sampling ZEROED correlated variables,
+      # -> so the dimensionality is actually one less (since we don't train the VARMA coupled to the all-zeroes variable)
+      numVariables -= 1
+    measureShocks = np.zeros([numSamples, numVariables])
     ## state shocks come from sampling multivariate
     noiseDist = self.varmaNoise
     initDist = self.varmaInit
     if rvsIndex is not None:
       noiseDist = noiseDist[rvsIndex]
       initDist = initDist[rvsIndex]
-    stateShocks = np.array([noiseDist.rvs() for _ in range(numSamples)])
+    # with NUMPY:
+    mean = noiseDist.mu
+    cov = noiseDist.covariance.reshape([len(mean)]*2)
+    stateShocks = np.random.multivariate_normal(mean, cov, numSamples)
+    # with CROW:
+    #stateShocks = np.array([noiseDist.rvs() for _ in range(numSamples)])
     # pick an intial by sampling multinormal distribution
     init = np.array(initDist.rvs())
     obs, states = model.ssm.simulate(numSamples,
                                      initial_state=init,
                                      measurement_shocks=measureShocks,
                                      state_shocks=stateShocks)
+    # add zeros back in for zeroed variable, if necessary? FIXME -> looks like no, this is done later in _evaluateYear
     return obs
 
-  def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):
+  def _interpolateDist(self, x, y, Xlow, Xhigh, Ylow, Yhigh, inMask):
     """
       Interplotes values for samples "x" to get dependent values "y" given bins
       @ In, x, np.array, sampled points (independent var)
@@ -880,7 +898,7 @@ class ARMA(supervisedLearning):
     results = smARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
-  def _trainCDF(self, data,binOps=None):
+  def _trainCDF(self, data, binOps=None):
     """
       Constructs a CDF from the given data
       @ In, data, np.array(float), values to fit to
@@ -910,7 +928,7 @@ class ARMA(supervisedLearning):
               #'cdfSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])}
     return params
 
-  def _trainPeak(self,timeSeriesData,windowDict):
+  def _trainPeak(self, timeSeriesData, windowDict):
     """
       Generate peaks results from each target data
       @ In, timeSeriesData, np.array, list of values for the dependent variable (signal to take fourier from)
@@ -999,7 +1017,7 @@ class ARMA(supervisedLearning):
                      'predict': signal}
     return fourierResult
 
-  def _trainMultivariateNormal(self,dim,means,cov):
+  def _trainMultivariateNormal(self, dim, means, cov):
     """
       Trains multivariate normal distribution for future sampling
       @ In, dim, int, number of dimensions
@@ -1017,7 +1035,7 @@ class ARMA(supervisedLearning):
     dist.initializeDistribution()
     return dist
 
-  def _trainVARMA(self,data):
+  def _trainVARMA(self, data):
     """
       Train correlated ARMA model on white noise ARMA, with Fourier already removed
       @ In, data, np.array(np.array(float)), data on which to train with shape (# pivot values, # targets)
@@ -1028,11 +1046,11 @@ class ARMA(supervisedLearning):
     model = sm.tsa.VARMAX(endog=data, order=(self.P, self.Q))
     self.raiseADebug('... ... ... fitting VARMA ...')
     results = model.fit(disp=False, maxiter=1000)
-    lenHist,numVars = data.shape
+    lenHist, numVars = data.shape
     # train multivariate normal distributions using covariances, keep it around so we can control the RNG
     ## it appears "measurement" always has 0 covariance, and so is all zeros (see _generateVARMASignal)
     ## all the noise comes from the stateful properties
-    stateDist = self._trainMultivariateNormal(numVars,np.zeros(numVars),model.ssm['state_cov'])
+    stateDist = self._trainMultivariateNormal(numVars, np.zeros(numVars),model.ssm['state_cov'])
     # train initial state sampler
     ## Used to pick an initial state for the VARMA by sampling from the multivariate normal noise
     #    and using the AR and MA initial conditions.  Implemented so we can control the RNG internally.
@@ -1723,9 +1741,22 @@ class ARMA(supervisedLearning):
           continue
         targetVals = trainingDict[target][0]
         nbins=max(self._minBins,int(np.sqrt(len(targetVals))))
-
         inputDists[target] = mathUtils.trainEmpiricalFunction(targetVals, bins=nbins)
       settings['input CDFs'] = inputDists
+    # zero filtering
+    if self.zeroFilterTarget:
+      self._masks[self.zeroFilterTarget]['zeroFilterMask'] = self._trainZeroRemoval(trainingDict[self.zeroFilterTarget][0], tol=self.zeroFilterTol) # where zeros are not
+      self._masks[self.zeroFilterTarget]['notZeroFilterMask'] = np.logical_not(self._masks[self.zeroFilterTarget]['zeroFilterMask']) # where zeroes are
+      print('DEBUGG setting ZF masks!', self.zeroFilterTarget, self._masks[self.zeroFilterTarget]['zeroFilterMask'].sum(), self._masks[self.zeroFilterTarget]['notZeroFilterMask'].sum())
+      # if the zero filter target is correlated, the same masks apply to the correlated vars
+      if self.zeroFilterTarget in self.correlations:
+        for cor in (c for c in self.correlations if c != self.zeroFilterTarget):
+          print('DEBUGG setting ZF masks c!', cor)
+          self._masks[cor]['zeroFilterMask'] = self._masks[self.zeroFilterTarget]['zeroFilterMask']
+          self._masks[cor]['notZeroFilterMask'] = self._masks[self.zeroFilterTarget]['notZeroFilterMask']
+    else:
+      print('DEBUGG no ZF here!')
+
     # do global Fourier analysis on combined signal for all periods longer than the segment
     if self.fourierParams:
       # determine the Nyquist length for the clustered params
@@ -1737,31 +1768,17 @@ class ARMA(supervisedLearning):
       #    to be specific to individual ROMs
       full = {}      # train these periods on the full series
       segment = {}   # train these periods on the segments individually
-      for target in targets:
-        if target == self.pivotParameterID:
-          continue
+      for target in (t for t in targets if t != self.pivotParameterID):
         # only do separation for targets for whom there's a Fourier request
         if target in self.fourierParams:
           # NOTE: assuming training on only one history!
           targetVals = trainingDict[target][0]
-          # if zero filtering in play, set the masks now
-          ## TODO I'm not particularly happy with having to remember to do this; can we automate it more?
-          zeroFiltering = target == self.zeroFilterTarget
-          if zeroFiltering:
-            if target not in self._masks.keys():
-              self._masks[target]={}
-            self._masks[target]['zeroFilterMask'] = self._trainZeroRemoval(targetVals, tol=self.zeroFilterTol) # where zeros are not
-            self._masks[target]['notZeroFilterMask'] = np.logical_not(self._masks[target]['zeroFilterMask']) # where zeroes are
-
           periods = np.asarray(self.fourierParams[target])
           full = periods[periods > delta]
           segment[target] = periods[np.logical_not(periods > delta)]
           if len(full):
             # train Fourier on longer periods
-            self.fourierResults[target] = self._trainFourier(pivotValues,
-                                                             full,
-                                                             targetVals,
-                                                             target=target)
+            self.fourierResults[target] = self._trainFourier(pivotValues, full, targetVals, target=target)
             # remove longer signal from training data
             signal = self.fourierResults[target]['predict']
             targetVals = np.array(targetVals, dtype=np.float64)
@@ -1888,13 +1905,19 @@ class ARMA(supervisedLearning):
       @ In, settings, object, arbitrary information about ROM clustering settings from getGlobalRomSegmentSettings
       @ Out, None
     """
+    if self.zeroFilterTarget:
+      print('DEBUGG adj local rom seg, zerofiltering!', self.zeroFilterTarget)
+      print(' ... ZF:', self._masks[self.zeroFilterTarget]['zeroFilterMask'][picker].sum())
+      # FIXME is self._masks really correct? Did that copy down from the templateROM?
+      self._masks[self.zeroFilterTarget]['zeroFilterMask'] = self._masks[self.zeroFilterTarget]['zeroFilterMask'][picker]
+      self._masks[self.zeroFilterTarget]['notZeroFilterMask'] = self._masks[self.zeroFilterTarget]['notZeroFilterMask'][picker]
+      # also correlated targets
+      if self.zeroFilterTarget in self.correlations:
+        for cor in (c for c in self.correlations if c != self.zeroFilterTarget):
+          self._masks[cor]['zeroFilterMask'] = self._masks[self.zeroFilterTarget]['zeroFilterMask']
+          self._masks[cor]['notZeroFilterMask'] = self._masks[self.zeroFilterTarget]['notZeroFilterMask']
     # some Fourier periods have already been handled, so reset the ones that actually are needed
     newFourier = settings.get('segment Fourier periods', None)
-    for t,target in enumerate(self.target):
-      zeroFiltering = target == self.zeroFilterTarget
-      if zeroFiltering:
-        self._masks[target]['zeroFilterMask'] = self._masks[target]['zeroFilterMask'][picker]
-        self._masks[target]['notZeroFilterMask'] = self._masks[target]['notZeroFilterMask'][picker]
     if newFourier is not None:
       for target in list(self.fourierParams.keys()):
         periods = newFourier.get(target, [])
@@ -1942,21 +1965,17 @@ class ARMA(supervisedLearning):
     # add global Fourier to evaluated signals
     if 'long Fourier signal' in settings:
       for target, signal in settings['long Fourier signal'].items():
+        scales = self._evaluateScales(self.growthFactors[target], np.arange(self.numYears))
         # NOTE might need to put zero filter back into it
         # "sig" is variable for the sampled result
         sig = signal['predict'][globalPicker]
         # if multidimensional, need to scale by growth factor over years.
         if self.multiyear:
-          # TODO can we do this all at once with a vector operation?
-          for y, vals in enumerate(evaluation[target]):
-            if len(self.growthFactors) !=0:            
-              for target, growthInfos in self.growthFactors.items():
-                for growthInfo in growthInfos:
-                  if y in growthInfo['range']:
-                    scale = self._evaluateScale(growthInfo, y)
-                    evaluation[target][y][localPicker] += sig * scale
-            else:
-              evaluation[target][y][localPicker] += sig 
+          # do multiyear signal (m.y.Sig) all at once
+          mySig = np.tile(sig, (self.numYears, 1))
+          mySig = (mySig.T * scales).T
+          # TODO can we do this all at once with a vector operation? -> you betcha
+          evaluation[target][:, localPicker] += mySig
         else:
           evaluation[target][localPicker] += sig
     return evaluation
@@ -1973,6 +1992,7 @@ class ARMA(supervisedLearning):
     # backtransform signal to preserve CDF
     ## how nicely does this play with zerofiltering?
     evaluation = self._finalizeGlobalRSE_preserveCDF(settings, evaluation, weights)
+    evaluation = self._finalizeGlobalRSE_zeroFilter(settings, evaluation, weights)
     return evaluation
 
   def _finalizeGlobalRSE_preserveCDF(self, settings, evaluation, weights):
@@ -1985,68 +2005,47 @@ class ARMA(supervisedLearning):
       @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
-
+    # TODO FIXME
+    import scipy.stats as stats
     if self.preserveInputCDF:
       for target, dist in settings['input CDFs'].items():
-
         if self.multiyear: #TODO check this gets caught correctly by the templateROM.
+          years = range(len(evaluation[target]))
+          scaling = self._evaluateScales(self.growthFactors[target], years)
           # multiyear option
           for y in range(len(evaluation[target])):
-            if len(self.growthFactors) !=0:
-              for t, (target, growthInfos) in enumerate(self.growthFactors.items()):
-                for growthInfo in growthInfos:
-                  if y in growthInfo['range']:
-                    scale = self._evaluateScale(growthInfo,y)
-                    objectDist = dist[0]
-                    histDist = tuple([dist[1][0],dist[1][1]*scale])
-                    dist = tuple([dist[0],histDist])
-                    evaluation[target][y] = self._transformThroughInputCDF(evaluation[target][y], dist, weights)
+            scale = scaling[y]
+            if scale != 1:
+              # apply it to the preserve CDF histogram BOUNDS (bin edges)
+              objectDist = dist[0]
+              histDist = tuple([dist[1][0], dist[1][1]*scale])
+              newObject = stats.rv_histogram(histDist)
+              newDist = tuple([newObject, histDist])
+              evaluation[target][y] = self._transformThroughInputCDF(evaluation[target][y], newDist, weights)
             else:
               evaluation[target][y] = self._transformThroughInputCDF(evaluation[target][y], dist, weights)
         else:
           evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
     return evaluation
 
-  def _finalizeGlobalRSE_cluster(self, settings, evaluation, weights):
+  def _finalizeGlobalRSE_zeroFilter(self, settings, evaluation, weights):
     """
       Helper method for finalizeGlobalRomSegmentEvaluation,
-      particularly for "clustered" representation
+      particularly for zerofiltering
       @ In, settings, dict, as from getGlobalRomSegmentSettings
       @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
       @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
-    assert False
-    if self.preserveInputCDF:
-      weights = np.asarray(weights)
-      for target, dist in settings['input CDFs'].items():
-        values = evaluation[target]
-        #dist, (counts, edges) = mathUtils.trainEmpiricalFunction(values, minBins=self._minBins, weights=weights)
-        #print('counts:', counts)
-        #print('edges:', edges)
-        new = self._transformThroughInputCDF(values, dist, weights)
-
-        aaaaaaa
-        #### OLD ###
-        valueLow = values.min()
-        valueHigh = values.max()
-        indexMap = evaluation['_indexMap'][target].tolist()
-        pivotIndex = indexMap.index(self.pivotParameterID)
-        clusterIndex = indexMap.index('_ROM_Cluster') # TODO hard-coded to match ROMCollection.Clusters!
-        print('DEBUGG shape:', values.shape)
-        numClusters = values.shape[clusterIndex]
-        numPivots = values.shape[pivotIndex]
-        numBins = int(np.ceil(np.sqrt(numPivots * numClusters)))
-        binEdges = np.linspace(start=valueLow, stop=valueHigh, num=numBins+1)
-        # create collection of histograms based on each cluster
-        counts = np.zeros(numBins)
-        for c in range(numClusters):
-          selector = [None]*len(indexMap)
-          selector[clusterIndex] = c
-          clusterValues = values[selector].squeeze()
-          clusterCounts, _ = np.histogram(clusterValues, bins=binEdges, density=False, weights=weights[c])
-          counts += clusterCounts
-          print('countrs:', counts)
+    for target, vals in evaluation.items():
+      if target in self._masks and 'zeroFilterMask' in self._masks[target]:
+        mask = self._masks[target]['zeroFilterMask']
+        if self.multiyear:
+          mask = np.tile(mask, (self.numYears, 1))
+          evaluation[target][:][mask] = 0
+        else:
+          evaluation[target][mask] = 0
+    return evaluation
 
 
 
