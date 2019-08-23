@@ -1124,6 +1124,12 @@ class ROM(Dummy):
     EstimatorInput.addParam("name", InputData.StringType, False)
     inputSpecification.addSub(EstimatorInput)
 
+    # inputs for cross validations
+    cvInput = InputData.parameterInputFactory("CV", contentType=InputData.StringType)
+    cvInput.addParam("class", InputData.StringType)
+    cvInput.addParam("type", InputData.StringType)
+    inputSpecification.addSub(cvInput)
+
     return inputSpecification
 
   @classmethod
@@ -1149,6 +1155,7 @@ class ROM(Dummy):
     self.amITrained                = False      # boolean flag, is the ROM trained?
     self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
+    self.cvInstance               = None             # Instance of provided cross validation
     # Dictionary of Keras Neural Network Core layers
     self.kerasDict = {}
 
@@ -1234,6 +1241,7 @@ class ROM(Dummy):
     # for Clustered ROM
     self.addAssemblerObject('Classifier','-1',True)
     self.addAssemblerObject('Metric','-n',True)
+    self.addAssemblerObject('CV','-1',True)
 
   def __getstate__(self):
     """
@@ -1271,6 +1279,9 @@ class ROM(Dummy):
     paramInput.parseNode(xmlNode)
 
     for child in paramInput.subparts:
+      if child.getName() == 'CV':
+        self.cvInstance = child.value.strip()
+        continue
       if len(child.parameterValues) > 0 and child.getName().lower() not in self.kerasLayersList:
         if child.getName() == 'alias':
           continue
@@ -1300,6 +1311,18 @@ class ROM(Dummy):
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
 
+  def initialize(self,runInfo,inputs,initDict=None):
+    """
+      Method to initialize this class
+      @ In, runInfo, dict, it is the run info from the jobHandler
+      @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
+      @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
+    """
+    # retrieve cross validation object
+    if self.cvInstance is not None:
+      self.cvInstance = self.retrieveObjectFromAssemblerDict('CV', self.cvInstance)
+      self.cvInstance.initialize(runInfo, inputs, initDict)
+
   def _initializeSupervisedGate(self,**initializationOptions):
     """
       Method to initialize the supervisedGate class
@@ -1307,65 +1330,6 @@ class ROM(Dummy):
       @ Out, None
     """
     self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
-
-  def writePointwiseData(self, writeTo):
-    """
-      Called by the OutStreamPrint object to cause the ROM to print information about itself
-      @ In, writeTo, DataObject, data structure to add data to
-      @ Out, None
-    """
-    # TODO handle statepoint ROMs (dynamic, but rom doesn't handle intrinsically)
-    ## should probably let the LearningGate handle this! It knows how to stitch together pieces, sort of.
-    engines = self.supervisedEngine.supervisedContainer
-    for engine in engines:
-      engine.writePointwiseData(writeTo)
-
-  def writeXML(self, what='all'):
-    """
-      Called by the OutStreamPrint object to cause the ROM to print itself
-      @ In, what, string, optional, keyword requesting what should be printed
-      @ Out, xml, xmlUtils.StaticXmlElement, written meta
-    """
-    #determine dynamic or static
-    dynamic = self.supervisedEngine.isADynamicModel
-    # determine if it can handle dynamic data
-    handleDynamicData = self.supervisedEngine.canHandleDynamicData
-    # get pivot parameter
-    pivotParameterId = self.supervisedEngine.pivotParameterId
-    # find some general settings needed for either dynamic or static handling
-    ## get all the targets the ROMs have
-    ROMtargets = self.supervisedEngine.initializationOptions['Target'].split(",")
-    ## establish requested targets
-    targets = ROMtargets if what=='all' else what.split(',')
-    ## establish sets of engines to work from
-    engines = self.supervisedEngine.supervisedContainer
-    # if the ROM is "dynamic" (e.g. time-dependent targets), then how we print depends
-    #    on whether the engine is naturally dynamic or whether we need to handle that part.
-    if dynamic and not handleDynamicData:
-      # time-dependent, but we manage the output (chopped)
-      xml = xmlUtils.DynamicXmlElement('ROM', pivotParam = pivotParameterId)
-      ## pre-print printing
-      engines[0].writeXMLPreamble(xml) #let the first engine write the preamble
-      for s,rom in enumerate(engines):
-        pivotValue = self.supervisedEngine.historySteps[s]
-        #for target in targets: # should be handled by SVL engine or here??
-        #  #skip the pivot param
-        #  if target == pivotParameterId:
-        #    continue
-        #otherwise, call engine's print method
-        self.raiseAMessage('Printing time-like',pivotValue,'ROM XML')
-        subXML = xmlUtils.StaticXmlElement(self.supervisedEngine.supervisedContainer[0].printTag)
-        rom.writeXML(subXML, skip = [pivotParameterId])
-        for element in subXML.getRoot():
-          xml.addScalarNode(element, pivotValue)
-        #xml.addScalarNode(subXML.getRoot(), pivotValue)
-    else:
-      # directly accept the results from the engine
-      xml = xmlUtils.StaticXmlElement(self.name)
-      ## pre-print printing
-      engines[0].writeXMLPreamble(xml)
-      engines[0].writeXML(xml)
-    return xml
 
   def reset(self):
     """
@@ -1375,6 +1339,14 @@ class ROM(Dummy):
     """
     self.supervisedEngine.reset()
     self.amITrained   = False
+
+  def reseed(self,seed):
+    """
+      Used to reset the seed of the underlying ROM.
+      @ In, seed, int, new seed to use
+      @ Out, None
+    """
+    self.supervisedEngine.reseed(seed)
 
   def getInitParams(self):
     """
@@ -1474,10 +1446,110 @@ class ROM(Dummy):
     rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),inRun.keys()))))
     return rlz
 
-  def reseed(self,seed):
+  def convergence(self,trainingSet):
     """
-      Used to reset the seed of the underlying ROM.
-      @ In, seed, int, new seed to use
+      This is to get the cross validation score of ROM
+      @ In, trainingSize, int, the size of current training size
+      @ Out, cvScore, dict, the dict containing the score of cross validation
+    """
+    if self.subType.lower() != 'scikitlearn':
+      self.raiseAnError(IOError, 'convergence calculation is not Implemented for ROM', self.name, 'with type', self.subType)
+    cvScore = self._crossValidationScore(trainingSet)
+    return cvScore
+
+  def _crossValidationScore(self, trainingSet):
+    """
+      The function calculates the cross validation score on ROMs
+      @ In, trainingSize, int, the size of current training size
+      @ Out, cvMetrics, dict, the calculated cross validation metrics
+    """
+    if len(self.supervisedEngine.supervisedContainer) > 1:
+      self.raiseAnError(IOError, "Cross Validation Method is not implemented for Clustered ROMs")
+    cvMetrics = None
+    if self._checkCV(len(trainingSet)):
+      # reset the ROM before perform cross validation
+      cvMetrics = {}
+      self.reset()
+      outputMetrics = self.cvInstance.interface.run([self, trainingSet])
+      exploredTargets = []
+      for cvKey, metricValues in outputMetrics.items():
+        info = self.cvInstance.interface._returnCharacteristicsOfCvGivenOutputName(cvKey)
+        if info['targetName'] in exploredTargets:
+          self.raiseAnError(IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name, "' for ROM '", rom.name,  "'!")
+        exploredTargets.append(info['targetName'])
+        cvMetrics[self.name] = (info['metricType'], metricValues)
+    return cvMetrics
+
+  def _checkCV(self, trainingSize):
+    """
+      The function will check whether we can use Cross Validation or not
+      @ In, trainingSize, int, the size of current training size
       @ Out, None
     """
-    self.supervisedEngine.reseed(seed)
+    useCV = True
+    initDict =  self.cvInstance.interface.initializationOptionDict
+    if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
+      if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
+        useCV = False
+    else:
+      useCV = False
+    return useCV
+
+  def writePointwiseData(self, writeTo):
+    """
+      Called by the OutStreamPrint object to cause the ROM to print information about itself
+      @ In, writeTo, DataObject, data structure to add data to
+      @ Out, None
+    """
+    # TODO handle statepoint ROMs (dynamic, but rom doesn't handle intrinsically)
+    ## should probably let the LearningGate handle this! It knows how to stitch together pieces, sort of.
+    engines = self.supervisedEngine.supervisedContainer
+    for engine in engines:
+      engine.writePointwiseData(writeTo)
+
+  def writeXML(self, what='all'):
+    """
+      Called by the OutStreamPrint object to cause the ROM to print itself
+      @ In, what, string, optional, keyword requesting what should be printed
+      @ Out, xml, xmlUtils.StaticXmlElement, written meta
+    """
+    #determine dynamic or static
+    dynamic = self.supervisedEngine.isADynamicModel
+    # determine if it can handle dynamic data
+    handleDynamicData = self.supervisedEngine.canHandleDynamicData
+    # get pivot parameter
+    pivotParameterId = self.supervisedEngine.pivotParameterId
+    # find some general settings needed for either dynamic or static handling
+    ## get all the targets the ROMs have
+    ROMtargets = self.supervisedEngine.initializationOptions['Target'].split(",")
+    ## establish requested targets
+    targets = ROMtargets if what=='all' else what.split(',')
+    ## establish sets of engines to work from
+    engines = self.supervisedEngine.supervisedContainer
+    # if the ROM is "dynamic" (e.g. time-dependent targets), then how we print depends
+    #    on whether the engine is naturally dynamic or whether we need to handle that part.
+    if dynamic and not handleDynamicData:
+      # time-dependent, but we manage the output (chopped)
+      xml = xmlUtils.DynamicXmlElement('ROM', pivotParam = pivotParameterId)
+      ## pre-print printing
+      engines[0].writeXMLPreamble(xml) #let the first engine write the preamble
+      for s,rom in enumerate(engines):
+        pivotValue = self.supervisedEngine.historySteps[s]
+        #for target in targets: # should be handled by SVL engine or here??
+        #  #skip the pivot param
+        #  if target == pivotParameterId:
+        #    continue
+        #otherwise, call engine's print method
+        self.raiseAMessage('Printing time-like',pivotValue,'ROM XML')
+        subXML = xmlUtils.StaticXmlElement(self.supervisedEngine.supervisedContainer[0].printTag)
+        rom.writeXML(subXML, skip = [pivotParameterId])
+        for element in subXML.getRoot():
+          xml.addScalarNode(element, pivotValue)
+        #xml.addScalarNode(subXML.getRoot(), pivotValue)
+    else:
+      # directly accept the results from the engine
+      xml = xmlUtils.StaticXmlElement(self.name)
+      ## pre-print printing
+      engines[0].writeXMLPreamble(xml)
+      engines[0].writeXML(xml)
+    return xml

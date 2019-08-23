@@ -83,7 +83,10 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("statsmodels", __lookup_preferred_version("statsmodels")),
                ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
                ("cloudpickle", __lookup_preferred_version("cloudpickle", optional=True)),
-               ("python", "3"),
+               ## TODO: Bad python3.7.4 build on Conda will cause module import error
+               ## (crow_modules._distribution1Dpy3.py). We will currently fix the python
+               ## versions until the issue in python3.7.4 is resolved.
+               ("python", "3.7.3"),
                ("hdf5", "1.10.4"),
                ("swig", ""),
                ("pylint", ""),
