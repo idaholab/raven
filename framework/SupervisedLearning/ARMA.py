@@ -411,7 +411,6 @@ class ARMA(supervisedLearning):
       # zero filter application
       ## find the mask for the requested target where values are nonzero
       if target == self.zeroFilterTarget:
-
         # artifically force signal to 0 post-fourier subtraction where it should be zero
         zfMask= self._masks[target]['zeroFilterMask']
         targetVals[:,t][zfMask] = 0.0
@@ -433,6 +432,7 @@ class ARMA(supervisedLearning):
         # store the data and train it separately in a moment
         ## keep data in order of self.correlations
         correlationData[:,self.correlations.index(target)] = normed
+        self.raiseADebug('... ... saving to train with other correlated variables.')
       else:
         # go ahead and train it now
         ## if using zero filtering and target is the zero-filtered, only train on the masked part
@@ -2037,14 +2037,13 @@ class ARMA(supervisedLearning):
       @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
       @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
     """
-    for target, vals in evaluation.items():
-      if target in self._masks and 'zeroFilterMask' in self._masks[target]:
-        mask = self._masks[target]['zeroFilterMask']
-        if self.multiyear:
-          mask = np.tile(mask, (self.numYears, 1))
-          evaluation[target][:][mask] = 0
-        else:
-          evaluation[target][mask] = 0
+    if self.zeroFilterTarget:
+      mask = self._masks[self.zeroFilterTarget]['zeroFilterMask']
+      if self.multiyear:
+        #mask = np.tile(mask, (self.numYears, 1))
+        evaluation[self.zeroFilterTarget][:, mask] = 0
+      else:
+        evaluation[self.zeroFilterTarget][mask] = 0
     return evaluation
 
 
