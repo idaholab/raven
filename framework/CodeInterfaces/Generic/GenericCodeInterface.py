@@ -169,15 +169,13 @@ class GenericCode(CodeInterfaceBase):
             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    indexes=[]
     infiles=[]
     origfiles=[]
     #FIXME possible danger here from reading binary files
-    for index,inputFile in enumerate(currentInputFiles):
+    for inputFile in currentInputFiles:
       if inputFile.getExt() in self.getInputExtension():
-        indexes.append(index)
         infiles.append(inputFile)
-    for index,inputFile in enumerate(origInputFiles):
+    for inputFile in origInputFiles:
       if inputFile.getExt() in self.getInputExtension():
         origfiles.append(inputFile)
     parser = GenericParser.GenericParser(infiles)
