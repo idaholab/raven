@@ -26,9 +26,14 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import xml.etree.ElementTree as ET
-
+import numpy as np
 # import CodeInterfaceBaseClass
 from CodeInterfaceBaseClass import CodeInterfaceBase
+
+# numpy with version 1.14.0 and upper will change the floating point type and print
+# https://docs.scipy.org/doc/numpy-1.14.0/release.html
+if int(np.__version__.split('.')[1]) > 13:
+  np.set_printoptions(**{'legacy':'1.13'})
 
 class BatemanSimple(CodeInterfaceBase):
   """

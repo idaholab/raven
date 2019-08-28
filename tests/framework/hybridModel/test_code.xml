@@ -8,7 +8,11 @@
     <description>
        This test is aimed to test the HybridModel system with the generic code system.
     </description>
+    <revisions>
+      <revision author="wangc" date="2019-07-09">Move cross validation asssemble from HybridModel to ROM</revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <JobName>testGenericCode</JobName>
     <Sequence>hybridModelCode</Sequence>
@@ -20,11 +24,11 @@
     <Input name="gen.one" type="">gen.one</Input>
     <Input name="gen.two" type="">gen.two</Input>
   </Files>
-  
+
   <Metrics>
-      <SKL name="m1">
-          <metricType>regression|mean_squared_error</metricType>
-      </SKL>
+    <SKL name="m1">
+      <metricType>regression|mean_squared_error</metricType>
+    </SKL>
   </Metrics>
 
   <Models>
@@ -45,28 +49,28 @@
       <leaf_size>30</leaf_size>
       <metric>minkowski</metric>
       <p>2</p>
+      <CV class="Models" type="PostProcessor">pp1</CV>
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
-        <SciKitLearn>
-            <SKLtype>KFold</SKLtype>
-            <n_splits>10</n_splits>
-            <shuffle>False</shuffle>
-        </SciKitLearn>
-        <Metric class="Metrics" type="SKL">m1</Metric>
+      <SciKitLearn>
+        <SKLtype>KFold</SKLtype>
+        <n_splits>10</n_splits>
+        <shuffle>False</shuffle>
+      </SciKitLearn>
+      <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
-        <Model class="Models" type="Code">poly</Model>
-        <ROM class="Models" type="ROM">knr</ROM>
-        <TargetEvaluation class="DataObjects" type="PointSet">samples</TargetEvaluation>
-        <CV class="Models" type="PostProcessor">pp1</CV>
-        <settings>
-            <tolerance>0.02</tolerance>
-            <maxTrainSize>1000</maxTrainSize>
-            <minInitialTrainSize>10</minInitialTrainSize>
-        </settings>
-        <validationMethod name="CrowdingDistance">
-            <threshold>0.2</threshold>
-        </validationMethod>
+      <Model class="Models" type="Code">poly</Model>
+      <ROM class="Models" type="ROM">knr</ROM>
+      <TargetEvaluation class="DataObjects" type="PointSet">samples</TargetEvaluation>
+      <settings>
+        <tolerance>0.02</tolerance>
+        <maxTrainSize>1000</maxTrainSize>
+        <minInitialTrainSize>10</minInitialTrainSize>
+      </settings>
+      <validationMethod name="CrowdingDistance">
+        <threshold>0.2</threshold>
+      </validationMethod>
     </HybridModel>
   </Models>
 

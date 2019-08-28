@@ -35,11 +35,11 @@
       <SKLtype>neural_network|MLPRegressor</SKLtype>
       <Features>X,Y</Features>
       <Target>Z</Target>
-      <hidden_layer_sizes>(5,2)</hidden_layer_sizes>
+      <hidden_layer_sizes>5,2</hidden_layer_sizes>
       <activation>tanh</activation>
       <solver>lbfgs</solver>
       <alpha>0.0001</alpha>
-      <batch_size>auto</batch_size>
+      <batch_size>100</batch_size>
       <learning_rate>constant</learning_rate>
       <learning_rate_init>0.001</learning_rate_init>
       <power_t>0.5</power_t>

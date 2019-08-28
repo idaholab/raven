@@ -1,0 +1,222 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='debug'>
+  <TestInfo>
+    <name>framework/Samplers/ROM/tensorflow_keras.tf_cnn1d</name>
+    <author>wangc</author>
+    <created>2019-02-07</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>
+      Test the capability of convolutional neural network (CNN) 1D using TensorFlow/Keras
+      Multilayers is used, the CNN-1D will accept (numSamples,timeSteps,Features) as training
+      input, and accept (timeSteps, Features) as prediction input. Ensemble model is used
+      in order to generate time-dependent input for CNN models.
+    </description>
+  </TestInfo>
+  
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resample,
+      print
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./learnAlphabet" name="learnAlphabet" subType="">
+      <variables>x,y,time,index,seqLength</variables>
+    </ExternalModel>
+    <ROM name="con1dROM" subType="KerasConvNetClassifier">
+      <!-- Common setups -->
+      <Features>x</Features>
+      <Target>y</Target>
+      <loss>categorical_crossentropy</loss>
+      <pivotParameter>time</pivotParameter>
+      <metrics>accuracy</metrics>
+      <batch_size>10</batch_size>
+      <epochs>100</epochs>
+      <plot_model>False</plot_model>
+      <validation_split>0.25</validation_split>
+      <num_classes>18</num_classes>
+      <random_seed>1986</random_seed>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <!-- Setups for CNN -->
+      <Conv1D name="firstConv1D">
+        <activation>relu</activation>
+        <strides>1</strides>
+        <kernel_size>2</kernel_size>
+        <padding>valid</padding>
+        <dim_out>32</dim_out>
+      </Conv1D>
+      <MaxPooling1D name="pooling1">
+        <strides>2</strides>
+        <pool_size>2</pool_size>
+      </MaxPooling1D>
+      <Conv1D name="SecondConv1D">
+        <activation>relu</activation>
+        <strides>1</strides>
+        <kernel_size>2</kernel_size>
+        <padding>valid</padding>
+        <dim_out>32</dim_out>
+      </Conv1D>
+      <MaxPooling1D name="pooling2">
+        <strides>2</strides>
+        <pool_size>2</pool_size>
+      </MaxPooling1D>
+      <Flatten name="flatten">
+      </Flatten>
+      <Dense name="dense1">
+        <activation>relu</activation>
+        <dim_out>10</dim_out>
+      </Dense>
+      <Dropout name="dropout1">
+        <rate>0.25</rate>
+      </Dropout>
+      <Dropout name="dropout2">
+        <rate>0.25</rate>
+      </Dropout>
+      <Dense name="dense2">
+        <activation>sigmoid</activation>
+      </Dense>
+      <layer_layout>firstConv1D, pooling1, dropout1, SecondConv1D, pooling2, dropout2, flatten, dense1, dense2</layer_layout>
+    </ROM>
+    <EnsembleModel name="ensembleModel" subType="">
+      <Model class="Models" type="ExternalModel">
+        learnAlphabet      
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="HistorySet">learnAlphabetDS</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ROM">
+        con1dROM
+        <Input class="DataObjects" type="PointSet">inputHolderROM</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet">con1dDS</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+  
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>200</limit>
+        <initialSeed>888</initialSeed>
+      </samplerInit>
+      <variable name="index">
+        <distribution>categ</distribution>
+      </variable>
+      <constant name="seqLength">8</constant>
+    </MonteCarlo>
+    <MonteCarlo name="mcTest">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>111</initialSeed>
+      </samplerInit>
+      <variable name="index">
+        <distribution>categ</distribution>
+      </variable>
+      <constant name="seqLength">8</constant>
+    </MonteCarlo>
+  </Samplers>
+  
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">learnAlphabet</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">trainingData</Output>
+    </MultiRun>
+    <MultiRun name="resample">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="EnsembleModel">ensembleModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcTest</Sampler>
+      <Output class="DataObjects" type="DataSet">outputDS</Output>
+      <Output class="DataObjects" type="HistorySet">learnAlphabetDS</Output>
+      <Output class="DataObjects" type="DataSet">con1dDS</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="DataSet">outputDS</Input>
+      <Output class="OutStreams" type="Print">outPrint</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">trainingData</Input>
+      <Output class="Models" type="ROM">con1dROM</Output>
+    </RomTrainer>
+  </Steps>
+
+  <Distributions>
+    <Categorical name="categ">
+      <state outcome="0">0.055</state>
+      <state outcome="1">0.055</state>
+      <state outcome="2">0.055</state>
+      <state outcome="3">0.055</state>
+      <state outcome="4">0.055</state>
+      <state outcome="5">0.055</state>
+      <state outcome="6">0.055</state>
+      <state outcome="7">0.055</state>
+      <state outcome="8">0.055</state>
+      <state outcome="9">0.055</state>
+      <state outcome="10">0.055</state>
+      <state outcome="11">0.055</state>
+      <state outcome="12">0.055</state>
+      <state outcome="13">0.055</state>
+      <state outcome="14">0.055</state>
+      <state outcome="15">0.055</state>
+      <state outcome="16">0.055</state>
+      <state outcome="17">0.065</state>
+    </Categorical>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>index,seqLength</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputHolder">
+      <Input>index,seqLength</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputHolderROM">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="trainingData">
+      <Input>index</Input>
+      <Output>x,y</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="learnAlphabetDS">
+      <Input>index, seqLength</Input>
+      <Output>x</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="outputDS">
+      <Output>x,y</Output>
+      <Index var="time">x</Index>
+    </DataSet>
+    <DataSet name="con1dDS">
+      <Input>x</Input>
+      <Output>y</Output>
+      <Index var="time">x</Index>
+    </DataSet> 
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outPrint">
+      <type>csv</type>
+      <source>outputDS</source>
+      <filename>outCon1DClassifier</filename>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+</Simulation>
