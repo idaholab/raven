@@ -20,6 +20,10 @@ import warnings
 import os
 import sys
 import argparse
+try:
+  import configparser
+except ImportError:
+  import ConfigParser as configparser
 import re
 import inspect
 import time
@@ -69,6 +73,9 @@ parser.add_argument('--run-types', dest='add_run_types',
                     help='add run types to the ones to be run')
 parser.add_argument('--only-run-types', dest='only_run_types',
                     help='only run the listed types')
+parser.add_argument('--add-non-default-run-types',
+                    dest='add_non_default_run_types',
+                    help='add a run type that is not run by default')
 
 parser.add_argument('--command-prefix', dest='command_prefix',
                     help='prefix for the test commands')
@@ -76,10 +83,25 @@ parser.add_argument('--command-prefix', dest='command_prefix',
 parser.add_argument('--python-command', dest='python_command',
                     help='command to run python')
 
+parser.add_argument('--config-file', dest='config_file',
+                    help='Configuration file location')
+
 parser.add_argument('--unkillable', action='store_true',
                     help='Ignore SIGTERM so test running is harder to be killed')
 
 args = parser.parse_args()
+
+if args.config_file is not None:
+  config = configparser.ConfigParser()
+  config.read(args.config_file)
+
+  if 'rook' in config:
+    for key in config['rook']:
+      if key in args and args.__getattribute__(key) is None:
+        args.__setattr__(key, config['rook'][key])
+  else:
+    print("No section [rook] in config file ", args.config_file)
+
 
 class LoadClass(threading.Thread):
   """
@@ -283,7 +305,10 @@ if __name__ == "__main__":
   testers.update(base_testers)
   differs.update(base_differs)
   Tester.add_non_default_run_type("heavy")
-  Tester.add_non_default_run_type("qsub")
+  if args.add_non_default_run_types is not None:
+    non_default_run_types = args.add_non_default_run_types.split(",")
+    for ndrt in non_default_run_types:
+      Tester.add_non_default_run_type(ndrt)
 
   if args.list_testers:
     print("Testers:")
