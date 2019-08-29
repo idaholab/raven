@@ -55,7 +55,7 @@ class Grid(ForwardSampler):
     """
     inputSpecification = super(Grid, cls).getInputSpecification()
     # grid input
-    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.FloatListType)
     gridInput.addParam("type", InputData.StringType)
     gridInput.addParam("construction", InputData.StringType)
     gridInput.addParam("steps", InputData.IntegerType)
@@ -100,6 +100,7 @@ class Grid(ForwardSampler):
     if 'limit' in paramInput.parameterValues:
       self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
+    ##FIXME: THIS READ MORE XML MUST BE CONVERTED IN THE INPUTPARAMETER COLLECTOR!!!!!!!
     self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable","Distribution"],messageHandler=self.messageHandler, dimTagsPrefix={"Distribution":"<distribution>"})
     grdInfo = self.gridEntity.returnParameter("gridInfo")
     for axis, value in grdInfo.items():
