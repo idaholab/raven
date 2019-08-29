@@ -28,6 +28,7 @@ import re
 import inspect
 import time
 import threading
+import signal
 
 try:
   import psutil
@@ -84,6 +85,9 @@ parser.add_argument('--python-command', dest='python_command',
 
 parser.add_argument('--config-file', dest='config_file',
                     help='Configuration file location')
+
+parser.add_argument('--unkillable', action='store_true',
+                    help='Ignore SIGTERM so test running is harder to be killed')
 
 args = parser.parse_args()
 
@@ -266,6 +270,17 @@ def process_result(index, _input_data, output_data):
                 time=sec_format(output_data.runtime),
                 test=process_test_name))
 if __name__ == "__main__":
+  if args.unkillable:
+    def term_handler(signum, _):
+      """
+        Ignores the termination signal
+        @ In, signum, integer, the signal sent in
+        @ Out, None
+      """
+      print("termination signal("+str(signum)+") ignored")
+
+    signal.signal(signal.SIGTERM, term_handler)
+
 
   test_re = re.compile(args.test_re_raw)
 
