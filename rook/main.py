@@ -290,7 +290,6 @@ if __name__ == "__main__":
   testers.update(base_testers)
   differs.update(base_differs)
   Tester.add_non_default_run_type("heavy")
-  Tester.add_non_default_run_type("qsub")
   if args.add_non_default_run_types is not None:
     non_default_run_types = args.add_non_default_run_types.split(",")
     for ndrt in non_default_run_types:
