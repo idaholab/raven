@@ -55,7 +55,7 @@ class Grid(ForwardSampler):
     """
     inputSpecification = super(Grid, cls).getInputSpecification()
     # grid input
-    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.FloatListType)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
     gridInput.addParam("type", InputData.StringType)
     gridInput.addParam("construction", InputData.StringType)
     gridInput.addParam("steps", InputData.IntegerType)
