@@ -8,7 +8,11 @@
     <description>
        This test is intended to check the rom train capability of the Hybrid Model.
     </description>
+    <revisions>
+      <revision author="wangc" date="2019-07-09">Move cross validation asssemble from HybridModel to ROM</revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>reuseData</WorkingDir>
     <Sequence>runModel, runHybridModel</Sequence>
@@ -28,9 +32,9 @@
   </Distributions>
 
   <Metrics>
-      <SKL name="m1">
-          <metricType>regression|explained_variance_score</metricType>
-      </SKL>
+    <SKL name="m1">
+      <metricType>regression|explained_variance_score</metricType>
+    </SKL>
   </Metrics>
 
   <Models>
@@ -47,29 +51,29 @@
       <leaf_size>30</leaf_size>
       <metric>minkowski</metric>
       <p>2</p>
+      <CV class="Models" type="PostProcessor">pp1</CV>
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
-        <SciKitLearn>
-            <SKLtype>KFold</SKLtype>
-            <n_splits>10</n_splits>
-            <shuffle>False</shuffle>
-            <scores>average</scores>
-        </SciKitLearn>
-        <Metric class="Metrics" type="SKL">m1</Metric>
+      <SciKitLearn>
+        <SKLtype>KFold</SKLtype>
+        <n_splits>10</n_splits>
+        <shuffle>False</shuffle>
+        <scores>average</scores>
+      </SciKitLearn>
+      <Metric class="Metrics" type="SKL">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
-        <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>
-        <ROM class="Models" type="ROM">knr</ROM>
-        <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
-        <CV class="Models" type="PostProcessor">pp1</CV>
-        <settings>
-            <tolerance>0.1</tolerance>
-            <maxTrainSize>1000</maxTrainSize>
-            <minInitialTrainSize>10</minInitialTrainSize>
-        </settings>
-        <validationMethod name="CrowdingDistance">
-            <threshold>0.2</threshold>
-        </validationMethod>
+      <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>
+      <ROM class="Models" type="ROM">knr</ROM>
+      <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
+      <settings>
+        <tolerance>0.1</tolerance>
+        <maxTrainSize>1000</maxTrainSize>
+        <minInitialTrainSize>10</minInitialTrainSize>
+      </settings>
+      <validationMethod name="CrowdingDistance">
+        <threshold>0.2</threshold>
+      </validationMethod>
     </HybridModel>
   </Models>
 
@@ -87,12 +91,12 @@
     </MonteCarlo>
     <Stratified name="LHS">
       <variable name="leftTemperature">
-          <distribution>leftTemperatureDist</distribution>
-          <grid type='CDF' construction='equal' steps='30'>0.05 0.95</grid>
+        <distribution>leftTemperatureDist</distribution>
+        <grid construction="equal" steps="30" type="CDF">0.05 0.95</grid>
       </variable>
       <variable name="rightTemperature">
         <distribution>rightTemperatureDist</distribution>
-          <grid type='CDF' construction='equal' steps='30'>0.05 0.95</grid>
+        <grid construction="equal" steps="30" type="CDF">0.05 0.95</grid>
       </variable>
     </Stratified>
   </Samplers>

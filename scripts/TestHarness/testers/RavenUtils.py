@@ -42,32 +42,23 @@ def in_python_3():
 #This list is made of (module, how to check the version, minimum version,
 # quality assurance module version, maximum version)
 # Deep learning requires Scikit-Learn version at least 0.18
-
 ## working Conda 4.5.4, May 2018
-modules_to_try = [("h5py", 'h5py.__version__', '2.4.0', '2.7.1', None), # 2.6.0
-                  ("numpy", 'numpy.__version__', "1.8.0", "1.12.1", None),
-                  ("scipy", 'scipy.__version__', "1.1.0", "1.1.0", None),
-                  ("sklearn", 'sklearn.__version__', "0.19.1", "0.19.1", None),
-                  ("pandas", 'pandas.__version__', "0.20.0", "0.20.3", None),
-                  ("xarray", 'xarray.__version__', "0.9.5", "0.10.3", None),
-                  ("netCDF4", 'netCDF4.__version__', "1.2.3", "1.4.0", None), # 1.2.4
-                  ## NOTE there is a known bug in netCDF4 prior to 1.3.1 where
-                  # having a path length of exactly 88 characters can create a
-                  # seg fault.  However, h5py has no new libraries
-                  # after 2.7 and is not compatible with hdf5 greater than
-                  # 1.8.17, while netCDF4 requires hdf5 of at least 1.10.1.
-                  # For now, we avoid using netCDF
-                  # until we transition from
-                  # HDF5 databases and drop them like hot rocks.
-                  #
-                  #("tensorflow",'tensorflow.__version__',"1.1.0" ,"1.1.0" ,None   ),
-                  # On Windows conda, there are no Python 2.7-compatible
-                  ## versions of TensorFlow, although
-                  ## these exist on Mac and Linux condas.  Darn.
-                  ("statsmodels", 'statsmodels.__version__', "0.8.0", "0.8.0", None),
-                  ("matplotlib", 'matplotlib.__version__', "1.3.1", "2.1.1", None)]
+modules_to_try = [("h5py", 'h5py.__version__', "2.9.0", "2.9.0", None), # 2.9.0
+                  ("numpy", 'numpy.__version__', "1.16.4", "1.16.4", None),
+                  ("scipy", 'scipy.__version__', "1.2.1", "1.2.1", None),
+                  ("sklearn", 'sklearn.__version__', "0.21.2", "0.21.2", None),
+                  ("pandas", 'pandas.__version__', "0.24.2", "0.24.2", None),
+                  ("xarray", 'xarray.__version__', "0.12.1", "0.12.1", None),
+                  ("netCDF4", 'netCDF4.__version__', "1.4.2", "1.4.2", None),
+                  ("statsmodels", 'statsmodels.__version__', "0.9.0", "0.9.0", None),
+                  ("matplotlib", 'matplotlib.__version__', "3.0.3", "3.0.3", None),
+                  ("cloudpickle", 'cloudpickle.__version__', "1.1.1", "1.2.1", None)]
 
-optional_test_libraries = [('pillow', 'PIL.__version__', "5.0.0", "5.1.0", None)]
+optional_test_libraries = [('pillow', 'PIL.__version__', "6.0.0", "6.0.0", None),
+                           # On Windows conda, there are no Python 2.7-compatible
+                           ## versions of TensorFlow, although
+                           ## these exist on Mac and Linux condas.  Darn.
+                           ("tensorflow", 'tensorflow.__version__', "1.13.1", "1.13.1", None)]
 
 def __lookup_preferred_version(name, optional=False):
   """
@@ -90,22 +81,25 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("netcdf4", __lookup_preferred_version("netCDF4")),
                ("matplotlib", __lookup_preferred_version("matplotlib")),
                ("statsmodels", __lookup_preferred_version("statsmodels")),
-               #("tensorflow", __lookup_preferred_version("tensorflow")),
-               ("python", "2.7"),
-               ("hdf5", "1.8.18"),
+               ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
+               ("cloudpickle", __lookup_preferred_version("cloudpickle", optional=True)),
+               ## TODO: Bad python3.7.4 build on Conda will cause module import error
+               ## (crow_modules._distribution1Dpy3.py). We will currently fix the python
+               ## versions until the issue in python3.7.4 is resolved.
+               ("python", "3.7.3"),
+               ("hdf5", "1.10.4"),
                ("swig", ""),
                ("pylint", ""),
                ("coverage", ""),
                ("lxml", ""),
                ("psutil", "")]
-
 # libraries to install with conda-forge
-__condaForgeList = [("pyside", ""),]
+__condaForgeList = [("pyside2", ""),]
 # optional conda libraries
 __condaOptional = [('pillow', __lookup_preferred_version("pillow"))]
 
-
 __pipList = [("numpy", __lookup_preferred_version("numpy")),
+             ("cloudpickle", __lookup_preferred_version("cloudpickle")),
              ("h5py", __lookup_preferred_version("h5py")),
              ("scipy", __lookup_preferred_version("scipy")),
              ("scikit-learn", __lookup_preferred_version("sklearn")),
@@ -113,8 +107,12 @@ __pipList = [("numpy", __lookup_preferred_version("numpy")),
              ("xarray", __lookup_preferred_version("xarray")),
              ("netCDF4", __lookup_preferred_version("netCDF4")),
              ("statsmodels", __lookup_preferred_version("statsmodels")),
-             #("tensorflow", __lookup_preferred_version("tensorflow")),
-             ("pandas", __lookup_preferred_version("pandas"))]
+             ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
+             ("pandas", __lookup_preferred_version("pandas")),
+             ("pylint", ""),
+             ("psutil", ""),
+             ("coverage", ""),
+             ("lxml", "")]
 
 def module_report(module, version=''):
   """
@@ -300,7 +298,6 @@ def parse_conda_for_os(libs, op_sys):
     libs.append(('numexpr', ''))
   return libs
 
-
 if __name__ == '__main__':
   # allow the operating system to be specified
   op_sys_arg = None
@@ -314,11 +311,6 @@ if __name__ == '__main__':
   if '--conda-forge' in sys.argv:
     # just install command is generated
     condaForge = True
-  if '--py3' in sys.argv or '--py2' not in sys.argv:
-    pythonIndex = __condaList.index(("python", "2.7"))
-    __condaList[pythonIndex] = ("python", "3")
-    __condaForgeList = [("pyside2", ""),]
-
   # check for environemnt definition of raven libs
   libName = os.getenv('RAVEN_LIBS_NAME', 'raven_libraries')
   # what did the caller ask to do?
@@ -332,9 +324,12 @@ if __name__ == '__main__':
     else:
       print("-c conda-forge "+ __conda_forge_string(op_sys=op_sys_arg))
   elif '--pip-install' in sys.argv:
-    print("pip install", end=" ")
+    print("pip3 install", end=" ")
     for k, qa_version in __pipList:
-      print(k+"=="+qa_version, end=" ")
+      if len(qa_version.strip()) > 0:
+        print(k+"=="+qa_version, end=" ")
+      else:
+        print(k, end=" ")
     print()
   elif '--manual-list' in sys.argv:
     print('\\begin{itemize}')

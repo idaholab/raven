@@ -1110,6 +1110,26 @@ def getAllSubclasses(cls):
   """
   return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in getAllSubclasses(s)]
 
+def displayAvailable():
+  """
+    The return variable for backend default setting of whether a display is
+    available or not. For instance, if we are running on the HPC without an X11
+    instance, then we don't have the ability to display the plot, only to save it
+    to a file
+    @ In, None
+    @ Out, dispaly, bool, return True if platform is Windows or environment varialbe
+      'DISPLAY' is available, otherwise return False
+  """
+  display = False
+  if platform.system() == 'Windows':
+    display = True
+  else:
+    if os.getenv('DISPLAY'):
+      display = True
+    else:
+      display = False
+  return display
+
 def which(cmd):
   """
     Emulate the which method in shutil.

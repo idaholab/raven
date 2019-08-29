@@ -189,7 +189,9 @@ def fracfact(gen):
        
     """
     # Recognize letters and combinations
-    A = [item for item in re.split('\-?\s?\+?', gen) if item]  # remove empty strings
+    #### fixed for python 3.7 by alfoa
+    A = [item for item in re.split('\-|\s|\+', gen) if item] # remove empty strings
+    
     C = [len(item) for item in A]
     
     # Indices of single letters (main factors)

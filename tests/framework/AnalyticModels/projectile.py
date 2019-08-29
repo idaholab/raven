@@ -73,14 +73,19 @@ def run(self,Input):
   """
     Method require by RAVEN to run this as an external model.
     @ In, self, object, object to store members on
-    @ In, Input, dict, dictionary containing inputs from RAVEN
+    @ In, Input, dict, i.e. {string:numpy.array}, dictionary containing inputs from RAVEN
     @ Out, None
   """
-  x0 = Input.get('x0',0.0)
-  y0 = Input.get('y0',0.0)
-  v0 = Input.get('v0',1.0)
-  ang = Input.get('angle',45.)*np.pi/180.
-  timeOption = Input.get('timeOption', 0)
+  x0 = Input.get('x0')
+  y0 = Input.get('y0')
+  v0 = Input.get('v0')
+  ang = Input.get('angle')
+  timeOption = Input.get('timeOption')
+  x0 = 0. if x0 is None else x0[0]
+  y0 = 0. if y0 is None else y0[0]
+  v0 = 1. if v0 is None else v0[0]
+  ang = 45.*np.pi/180. if ang is None else ang[0]*np.pi/180.
+  timeOption = 0 if timeOption is None else timeOption[0]
   self.x0 = x0
   self.y0 = y0
   self.v0 = v0
@@ -89,6 +94,8 @@ def run(self,Input):
   if timeOption == 0:
     ts = np.linspace(0,1,10) #time_to_ground(v0,ang,y0),10)
   else:
+    # due to numpy library update, the return shape of np.linspace
+    # is changed when an array-like input is provided, i.e. return from time_to_ground
     ts = np.linspace(0,time_to_ground(v0,ang,y0),50)
 
   vx0 = np.cos(ang)*v0
@@ -113,7 +120,7 @@ if __name__=="__main__":
   Input = {}
   for line in open(inFile,'r'):
     arg,val = (a.strip() for a in line.split('='))
-    Input[arg] = float(val)
+    Input[arg] = np.atleast_1d(float(val))
   #make a dummy class to hold values
   class IO:
     """
