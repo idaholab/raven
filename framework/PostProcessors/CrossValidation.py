@@ -203,9 +203,7 @@ class CrossValidation(PostProcessor):
           cvEstimator = currentInput
         else:
           self.raiseAnError(IOError, "This postprocessor '%s' only accepts one input of Models.ROM!" %self.name)
-
     currentInputs.remove(cvEstimator)
-
     currentInput = copy.deepcopy(currentInputs[-1])
     inputType = None
     if hasattr(currentInput, 'type'):

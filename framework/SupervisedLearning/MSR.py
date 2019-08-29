@@ -28,12 +28,12 @@ warnings.simplefilter('default',DeprecationWarning)
 import numpy as np
 import math
 import sys
+from sklearn import neighbors, svm
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .NDinterpolatorRom import NDinterpolatorRom
 from .SupervisedLearning import supervisedLearning
-from sklearn import neighbors, svm
 #Internal Modules End--------------------------------------------------------------------------------
 
 def _toStr(s):
@@ -589,4 +589,3 @@ class MSR(NDinterpolatorRom):
     self.Y      = []
     self.__amsc = []
     self.kdTree = None
-

@@ -1046,7 +1046,7 @@ class BasicStatistics(PostProcessor):
 
 
     for metric, ds in calculations.items():
-      if metric in self.scalarVals + self.steVals and metric !='samples':
+      if metric in self.scalarVals + self.steVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations)
     if self.outputDataset:

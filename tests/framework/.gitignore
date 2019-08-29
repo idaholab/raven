@@ -166,3 +166,5 @@ hybridModel/runCode/hybridModelCode/
 unit_tests/utils/parse/fromGetpotToGetpot.i
 unit_tests/utils/parse/fromXmltoGetpot.i
 user_guide/EnsembleModel/run_basic/sample/
+ROM/TimeSeries/ARMA/ARMAreseed/
+ROM/TimeSeries/ARMA/Segmented/arma.pk
