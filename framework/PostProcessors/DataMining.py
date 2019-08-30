@@ -890,7 +890,15 @@ class DataMining(PostProcessor):
 
 try:
   import PySide.QtCore as qtc
+  __QtAvailable = True
+except ImportError as e:
+  try:
+    import PySide2.QtCore as qtc
+    __QtAvailable = True
+  except ImportError as e:
+    __QtAvailable = False
 
+if __QtAvailable:
   class QDataMining(DataMining,qtc.QObject):
     """
       DataMining class - Computes a hierarchical clustering from an input point
@@ -966,7 +974,7 @@ try:
 
         ## Give this UI a unique id in case other threads are requesting UI
         ##  elements
-        uiID = unicode(id(self))
+        uiID = str(id(self))
 
         ## Send the request for a UI thread to the main application
         self.requestUI.emit('HierarchyWindow', uiID,
@@ -993,7 +1001,5 @@ try:
             until the correct one has signaled it is done.
         @Out, None
       """
-      if uiID == unicode(id(self)):
+      if uiID == str(id(self)):
         self.uiDone = True
-except ImportError as e:
-  pass

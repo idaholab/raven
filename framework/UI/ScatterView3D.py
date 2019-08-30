@@ -22,14 +22,20 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
-from PySide import QtGui as qtw
+try:
+  from PySide import QtCore as qtc
+  from PySide import QtGui as qtg
+  from PySide import QtGui as qtw
+except ImportError as e:
+  from PySide2 import QtCore as qtc
+  from PySide2 import QtGui as qtg
+  from PySide2 import QtWidgets as qtw
+
 
 from .BaseTopologicalView import BaseTopologicalView
 
 import matplotlib
-matplotlib.use('Qt4Agg')
+matplotlib.use('Qt5Agg')
 
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -251,6 +257,7 @@ class ScatterView3D(BaseTopologicalView):
 
     specialColorKeywords = ['Segment','Minimum Flow', 'Maximum Flow']
 
+    string_type = '|U7' #If python 2 compatibility is needed, use '|S7'
     for key,cmb in self.cmbVars.items():
       if cmb.currentText() == 'Predicted from Linear Fit':
         allValues[key] = self.amsc.PredictY(None)
@@ -269,7 +276,7 @@ class ScatterView3D(BaseTopologicalView):
       elif cmb.currentText() == 'Segment':
         colorMap = self.amsc.GetColors()
         partitions = self.amsc.Partitions()
-        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype='|S7')
+        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype=string_type)
         for extPair,items in partitions.items():
           for item in items:
             allValues[key][item] = colorMap[extPair]
@@ -279,7 +286,7 @@ class ScatterView3D(BaseTopologicalView):
       elif cmb.currentText() == 'Maximum Flow':
         colorMap = self.amsc.GetColors()
         partitions = self.amsc.Partitions()
-        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype='|S7')
+        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype=string_type)
         for extPair,items in partitions.items():
           for item in items:
             allValues[key][item] = colorMap[extPair[1]]
@@ -289,7 +296,7 @@ class ScatterView3D(BaseTopologicalView):
       elif cmb.currentText() == 'Minimum Flow':
         colorMap = self.amsc.GetColors()
         partitions = self.amsc.Partitions()
-        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype='|S7')
+        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype=string_type)
         for extPair,items in partitions.items():
           for item in items:
             allValues[key][item] = colorMap[extPair[0]]
@@ -319,7 +326,7 @@ class ScatterView3D(BaseTopologicalView):
       lines2 = []
       lineIdxs = []
       for row in rows + minIdxs + maxIdxs:
-        cols = self.amsc.GetNeighbors(row)
+        cols = self.amsc.GetNeighbors(int(row))
         for col in cols:
           if col in rows + minIdxs + maxIdxs:
             if row < col:
@@ -476,7 +483,7 @@ class ScatterView3D(BaseTopologicalView):
     self.updateScene()
 
     self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
-    pair = self.amsc.GetCurrentLabels()[0]
+    pair = list(self.amsc.GetCurrentLabels())[0]
     self.amsc.SetSelection([pair,pair[0],pair[1]])
     self.updateScene()
 
