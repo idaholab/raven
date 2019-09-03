@@ -2040,7 +2040,6 @@ class ARMA(supervisedLearning):
     if self.zeroFilterTarget:
       mask = self._masks[self.zeroFilterTarget]['zeroFilterMask']
       if self.multiyear:
-        #mask = np.tile(mask, (self.numYears, 1))
         evaluation[self.zeroFilterTarget][:, mask] = 0
       else:
         evaluation[self.zeroFilterTarget][mask] = 0
