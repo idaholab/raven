@@ -39,6 +39,9 @@ import traceback
 os.environ["MV2_ENABLE_AFFINITY"]="0"
 
 frameworkDir = os.path.dirname(os.path.abspath(__file__))
+# lazy import of the modules
+import lazyImportModuleList
+# utils
 from utils import utils
 import utils.TreeStructure as TS
 utils.find_crow(frameworkDir)

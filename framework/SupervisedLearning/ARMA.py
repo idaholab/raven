@@ -28,9 +28,10 @@ warnings.simplefilter('default',DeprecationWarning)
 import copy
 import collections
 import numpy as np
-import statsmodels.api as sm # VARMAX is in sm.tsa
 import functools
-from statsmodels.tsa.arima_model import ARMA as smARMA
+import lazy_import
+sm = lazy_import.lazy_module("statsmodels.api") # VARMAX is in sm.tsa
+smARMA = lazy_import.lazy_module("statsmodels.tsa.arima_model.ARMA")
 from scipy.linalg import solve_discrete_lyapunov
 from sklearn import linear_model
 from scipy.signal import find_peaks

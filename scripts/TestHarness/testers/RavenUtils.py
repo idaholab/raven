@@ -52,7 +52,8 @@ modules_to_try = [("h5py", 'h5py.__version__', "2.9.0", "2.9.0", None), # 2.9.0
                   ("netCDF4", 'netCDF4.__version__', "1.4.2", "1.4.2", None),
                   ("statsmodels", 'statsmodels.__version__', "0.9.0", "0.9.0", None),
                   ("matplotlib", 'matplotlib.__version__', "3.0.3", "3.0.3", None),
-                  ("cloudpickle", 'cloudpickle.__version__', "1.1.1", "1.2.1", None)]
+                  ("cloudpickle", 'cloudpickle.__version__', "1.1.1", "1.2.1", None),
+                  ("lazy_import", 'lazy_import.__version__', "0.2.2", "0.2.2", None)]
 
 optional_test_libraries = [('pillow', 'PIL.__version__', "6.0.0", "6.0.0", None),
                            # On Windows conda, there are no Python 2.7-compatible
@@ -113,6 +114,8 @@ __pipList = [("numpy", __lookup_preferred_version("numpy")),
              ("psutil", ""),
              ("coverage", ""),
              ("lxml", "")]
+
+__pipOnlyList = [("lazy_import", "0.2.2")]
 
 def module_report(module, version=''):
   """
@@ -325,7 +328,15 @@ if __name__ == '__main__':
       print("-c conda-forge "+ __conda_forge_string(op_sys=op_sys_arg))
   elif '--pip-install' in sys.argv:
     print("pip3 install", end=" ")
-    for k, qa_version in __pipList:
+    for k, qa_version in __pipList+__pipOnlyList:
+      if len(qa_version.strip()) > 0:
+        print(k+"=="+qa_version, end=" ")
+      else:
+        print(k, end=" ")
+    print()
+  elif '--pip-only-install' in sys.argv:
+    print("pip install", end=" ")
+    for k, qa_version in __pipOnlyList:
       if len(qa_version.strip()) > 0:
         print(k+"=="+qa_version, end=" ")
       else:
@@ -333,6 +344,6 @@ if __name__ == '__main__':
     print()
   elif '--manual-list' in sys.argv:
     print('\\begin{itemize}')
-    for k, qa_version in __condaList+__condaForgeList+__condaOptional:
+    for k, qa_version in __condaList+__condaForgeList+__condaOptional+__pipOnlyList:
       print("  \\item", k+ (("-"+qa_version) if len(qa_version.strip()) > 0 else ""))
     print("\\end{itemize}")
