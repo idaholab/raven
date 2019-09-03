@@ -211,6 +211,10 @@ class BasicStatistics(PostProcessor):
         if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
           self.raiseAnError(IOError, "The data provided by the data objects", currentInput.name, "is not synchronized!")
         self.pivotValue = inputDataset[self.pivotParameter].values
+        if self.pivotValue.size != len(inputDataset.groupby(self.pivotParameter)):
+          msg = "Duplicated values were identified in pivot parameter, please use the 'HistorySetSync'" + \
+          " PostProcessor to syncronize your data before running 'BasicStatistics' PostProcessor."
+          self.raiseAnError(IOError, msg)
     # extract all required meta data
     metaVars = currentInput.getVars('meta')
     self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
@@ -1042,7 +1046,7 @@ class BasicStatistics(PostProcessor):
 
 
     for metric, ds in calculations.items():
-      if metric in self.scalarVals + self.steVals and metric !='samples':
+      if metric in self.scalarVals + self.steVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations)
     if self.outputDataset:

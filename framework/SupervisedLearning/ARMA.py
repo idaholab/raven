@@ -33,6 +33,8 @@ import functools
 from statsmodels.tsa.arima_model import ARMA as smARMA
 from scipy.linalg import solve_discrete_lyapunov
 from sklearn import linear_model
+from scipy.signal import find_peaks
+from scipy.stats import rv_histogram
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -87,6 +89,8 @@ class ARMA(supervisedLearning):
     self.zeroFilterMask    = None # mask of places where zftarget is zero, or None if unused
     self.notZeroFilterMask = None # mask of places where zftarget is NOT zero, or None if unused
     self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
+    #peaks
+    self.peaks             = {} # dictionary of peaks information, by target
     # signal storage
     self._signalStorage    = collections.defaultdict(dict) # various signals obtained in the training process
 
@@ -123,12 +127,11 @@ class ARMA(supervisedLearning):
     if correlated is not None:
       np.random.seed(self.seed)
       # store correlated targets
-      corVars = [x.strip() for x in correlated.split(',')]
-      for var in corVars:
+      for var in correlated:
         if var not in self.target:
           self.raiseAnError(IOError,'Variable "{}" requested in "correlate" but not found among the targets!'.format(var))
       # NOTE: someday, this could be expanded to include multiple sets of correlated variables.
-      self.correlations = corVars
+      self.correlations = correlated
 
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
@@ -181,6 +184,32 @@ class ARMA(supervisedLearning):
                                .format(v))
             continue
           self.fourierParams[v] = periods
+      elif child.getName() == 'Peaks':
+        # read peaks information for each target
+        peak={}
+        # creat an empty list for each target
+        threshold = child.parameterValues['threshold']
+        peak['threshold']=threshold
+        # read the threshold for the peaks and store it in the dict
+        period = child.parameterValues['period']
+        peak['period']=period
+        # read the period for the peaks and store it in the dict
+        windows=[]
+        # creat an empty list to store the windows' information
+        for cchild in child.subparts:
+          if cchild.getName() == 'window':
+            tempDict={}
+            window = cchild.value
+            width = cchild.parameterValues['width']
+            tempDict['window']=window
+            tempDict['width']=width
+            # for each window in the windows, we create a dictionary. Then store the
+            # peak's width, the index of stating point and ending point in time unit
+            windows.append(tempDict)
+        peak['windows']=windows
+        target = child.parameterValues['target']
+        # target is the key to reach each peak information
+        self.peaks[target]=peak
 
     # read GENERAL parameters for Fourier detrending
     ## these apply to everyone without SpecificFourier nodes
@@ -254,14 +283,32 @@ class ARMA(supervisedLearning):
         self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=self._minBins)
       # if this target governs the zero filter, extract it now
       if target == self.zeroFilterTarget:
-        self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros are not
-        self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where zeroes are
+        self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
+        self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where data are
       # if we're removing Fourier signal, do that now.
+
+      maskPeakRes = np.ones(len(timeSeriesData), dtype=bool)
+      # Make a full mask
+      if target in self.peaks:
+        deltaT=self.pivotParameterValues[-1]-self.pivotParameterValues[0]
+        deltaT=deltaT/(len(self.pivotParameterValues)-1)
+        # change the peak information in self.peak from time unit into index by divided the timestep
+        # deltaT is the time step calculated by (ending point - stating point in time)/(len(time)-1)
+        self.peaks[target]['period']=int(self.peaks[target]['period']/deltaT)
+        for i in range(len(self.peaks[target]['windows'])):
+          self.peaks[target]['windows'][i]['window'][0]=int(self.peaks[target]['windows'][i]['window'][0]/deltaT)
+          self.peaks[target]['windows'][i]['window'][1]=int(self.peaks[target]['windows'][i]['window'][1]/deltaT)
+          self.peaks[target]['windows'][i]['width']=int(self.peaks[target]['windows'][i]['width']/deltaT)
+        groupWin , maskPeakRes=self._peakGroupWindow(timeSeriesData, windowDict=self.peaks[target] )
+        self.peaks[target]['groupWin']=groupWin
+        self.peaks[target]['mask']=maskPeakRes
+
       if target in self.fourierParams:
         self.raiseADebug('... analyzing Fourier signal  for target "{}" ...'.format(target))
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
                                                          self.fourierParams[target],
                                                          timeSeriesData,
+                                                         masks=[maskPeakRes],  # In future, a consolidated masking system for multiple signal processors can be implemented.
                                                          zeroFilter = target == self.zeroFilterTarget)
         self._signalStorage[target]['fourier'] = copy.deepcopy(self.fourierResults[target]['predict'])
         timeSeriesData -= self.fourierResults[target]['predict']
@@ -272,7 +319,6 @@ class ARMA(supervisedLearning):
         # artifically force signal to 0 post-fourier subtraction where it should be zero
         targetVals[:,t][self.notZeroFilterMask] = 0.0
         self._signalStorage[target]['zerofilter'] = copy.deepcopy(timeSeriesData)
-
 
     # Transform data to obatain normal distrbuted series. See
     # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
@@ -298,7 +344,7 @@ class ARMA(supervisedLearning):
           # just train the data portions
           normed = normed[self.zeroFilterMask]
         self.raiseADebug('... ... training "{}"...'.format(target))
-        self.armaResult[target] = self._trainARMA(normed)
+        self.armaResult[target] = self._trainARMA(normed,masks=[maskPeakRes])
         self.raiseADebug('... ... finished training target "{}"'.format(target))
 
     # now handle the training of the correlated armas
@@ -318,7 +364,7 @@ class ARMA(supervisedLearning):
         ## -> instead of a VARMA
         if zeroed.shape[1] == 1:
           # then actually train an ARMA instead
-          zVarma = self._trainARMA(zeroed)
+          zVarma = self._trainARMA(zeroed,masks=None)
           zNoise = None # NOTE this is used to check whether an ARMA was trained later!
           zInit = None
         else:
@@ -422,7 +468,6 @@ class ARMA(supervisedLearning):
           sample = self._generateARMASignal(result,
                                             numSamples = len(self.pivotParameterValues),
                                             randEngine = self.randomEng)
-
           signal = sample
       # END creating base signal
       # DEBUG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
@@ -439,7 +484,8 @@ class ARMA(supervisedLearning):
         # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
-
+      if target in self.peaks:
+        signal = self._transformBackPeaks(signal,windowDict=self.peaks[target])
       # if enforcing the training data CDF, apply that transform now
       if self.preserveInputCDF:
         signal = self._transformThroughInputCDF(signal, self._trainingCDF[target])
@@ -670,12 +716,21 @@ class ARMA(supervisedLearning):
     y = self._interpolateDist(x,y,Xlow,Xhigh,Ylow,Yhigh,inMask)
     return y
 
-  def _trainARMA(self,data):
+  def _trainARMA(self,data,masks=None):
     r"""
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
       @ In, data, np.array(float), data on which to train
+      @ In, masks, np.array, optional, boolean mask where is the signal should be train by ARMA
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
     """
+    if masks == None:
+      masks = []
+    if len(masks)>1:
+      fullMask = np.logical_and.reduce(*masks)
+      data=data[fullMask]
+    elif len(masks)==1:
+      fullMask =masks[0]
+      data=data[fullMask]
     results = smARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
@@ -704,16 +759,20 @@ class ARMA(supervisedLearning):
               #'cdfSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])}
     return params
 
-  def _trainFourier(self, pivotValues, periods, values, zeroFilter=False):
+  def _trainFourier(self, pivotValues, periods, values, masks=None,zeroFilter=False):
     """
       Perform fitting of Fourier series on self.timeSeriesDatabase
       @ In, pivotValues, np.array, list of values for the independent variable (e.g. time)
       @ In, periods, list, list of the base periods
       @ In, values, np.array, list of values for the dependent variable (signal to take fourier from)
+      @ In, masks, np.array, optional, boolean mask where is the signal should be train by Fourier
       @ In, zeroFilter, bool, optional, if True then apply zero-filtering for fourier fitting
       @ Out, fourierResult, dict, results of this training in keys 'residues', 'fourierSet', 'predict', 'regression'
     """
     # XXX fix for no order
+    if masks is None:
+      masks = []
+
     fourierSignalsFull = self._generateFourierSignal(pivotValues, periods)
     # fourierSignals dimensions, for each key (base):
     #   0: length of history
@@ -723,6 +782,10 @@ class ARMA(supervisedLearning):
     #                 2:   sin(2pi*t/period[1]),
     #                 3:   cos(2pi*t/period[1]), ...
     fourierEngine = linear_model.LinearRegression(normalize=False)
+    for mask in masks:
+      fourierSignalsFull = fourierSignalsFull[mask, :]
+      values = values[mask]
+
 
     # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
     if zeroFilter:
@@ -734,8 +797,6 @@ class ARMA(supervisedLearning):
     # fit the signal
     fourierEngine.fit(fourierSignals, values)
 
-    # get Fourier superimposed signal
-    fitSignal = np.asarray(fourierEngine.predict(fourierSignals))
     # get signal intercept
     intercept = fourierEngine.intercept_
     # get coefficient map for A*sin(ft) + B*cos(ft)
@@ -748,18 +809,17 @@ class ARMA(supervisedLearning):
     ## since we use fitting to get A and B, the magnitudes can be deceiving.
     ## this conversion makes "C" a useful value to know the contribution from a period
     coefMap = {}
+    signal=np.ones(len(pivotValues)) * intercept
     for period, coefs in waveCoefMap.items():
       A = coefs['sin']
       B = coefs['cos']
       C, s = mathUtils.convertSinCosToSinPhase(A, B)
       coefMap[period] = {'amplitude': C, 'phase': s}
-
+      signal+=mathUtils.evalFourier(period,C,s,pivotValues)
     # re-add zero-filtered
     if zeroFilter:
-      signal = np.zeros(pivotValues.size)
-      signal[self.zeroFilterMask] = fitSignal
-    else:
-      signal = fitSignal
+      signal[self.notZeroFilterMask] = 0.0
+
 
     # store results
     fourierResult = {'regression': {'intercept':intercept,
@@ -897,6 +957,22 @@ class ARMA(supervisedLearning):
       targetNode.append(armaNode)
       armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.sigma2)))
       # TODO covariances, P and Q, etc
+    for target,peakInfo in self.peaks.items():
+      targetNode = root.find(target)
+      if targetNode is None:
+        targetNode = xmlUtils.newNode(target)
+        root.append(targetNode)
+      peakNode = xmlUtils.newNode('Peak_params')
+      targetNode.append(peakNode)
+      if 'groupWin' in peakInfo.keys():
+        for group in peakInfo['groupWin']:
+          groupnode=xmlUtils.newNode('peak')
+          groupnode.append(xmlUtils.newNode('Amplitude', text='{}'.format(np.array(group['Amp']).mean())))
+          groupnode.append(xmlUtils.newNode('Index', text='{}'.format(np.array(group['Ind']).mean())))
+          peakNode.append(groupnode)
+
+
+
 
   def _transformThroughInputCDF(self, signal, originalDist, weights=None):
     """
@@ -1101,6 +1177,137 @@ class ARMA(supervisedLearning):
       for target, dist in settings['input CDFs'].items():
         evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
     return evaluation
+
+  ### Peak Picker ###
+  def _peakPicker(self,signal,low):
+    """
+      Peak picker, this method find the local maxima index inside the signal by comparing the
+      neighboring values. Threshold of peaks is required to output the height of each peak.
+      @ In, signal, np.array(float), signal to transform
+      @ In, low, float, required height of peaks.
+      @ Out, peaks, np.array, indices of peaks in x that satisfy all given conditions
+      @ Out, heights, np.array, boolean mask where is the residual signal
+    """
+    peaks, properties = find_peaks(signal, height=low)
+    heights = properties['peak_heights']
+    return peaks,heights
+
+  def rangeWindow(self,windowDict):
+    """
+      Collect the window index in to groups and store the information in dictionariy for each target
+      @ In, windowDict, dict, dictionary for specefic target peaks
+      @ Out, rangeWindow, list, list of dictionaries which store the window index for each target
+    """
+    rangeWindow = []
+    windowType = len(windowDict['windows'])
+    windows = windowDict['windows']
+    period = windowDict['period']
+    for i in range(windowType):
+      windowRange={}
+      bgP=(windows[i]['window'][0]-1)%period
+      endP=(windows[i]['window'][1]+2)%period
+      timeInd=np.arange(len(self.pivotParameterValues))
+      bgPInd  = np.where(timeInd%period==bgP )[0].tolist()
+      endPInd = np.where(timeInd%period==endP)[0].tolist()
+      if bgPInd[0]>endPInd[0]:
+        tail=endPInd[0]
+        endPInd.pop(0)
+        endPInd.append(tail)
+      windowRange['bg']=bgPInd
+      windowRange['end']=endPInd
+      rangeWindow.append(windowRange)
+    return rangeWindow
+
+  def _peakGroupWindow(self,signal,windowDict):
+    """
+      Collect the peak information in to groups, define the residual signal.
+      Including the index and amplitude of each peak found in the window.
+      @ In, signal, np.array(float), signal to transform
+      @ In, windowDict, dict, dictionary for specefic target peaks
+      @ Out, groupWin, list, list of dictionaries which store the peak information
+      @ Out, maskPeakRes, np.array, boolean mask where is the residual signal
+    """
+    groupWin = []
+    maskPeakRes = np.ones(len(signal), dtype=bool)
+    rangeWindow = self.rangeWindow(windowDict)
+    low = windowDict['threshold']
+    windows = windowDict['windows']
+    for i in range(len(windowDict['windows'])):
+      bg  = rangeWindow[i]['bg']
+      end = rangeWindow[i]['end']
+      peakInfo   = {}
+      indLocal   = []
+      ampLocal   = []
+      for j in range(min(len(bg), len(end))):
+        ##FIXME this might ignore one window, because the amount of the
+        # staring points and the ending points might be different here,
+        # we choose the shorter one to make sure each window is complete.
+        # Future developer can extend the head and tail of the signal to
+        # include all the posible windows
+        bgLocal = bg[j]
+        endLocal = end[j]
+        peak, height = self._peakPicker(signal[bgLocal:endLocal], low=low)
+        if len(peak) ==1:
+          indLocal.append(int(peak))
+          ampLocal.append(float(height))
+          maskBg=int(peak)+bgLocal-int(np.floor(windows[i]['width']/2))
+          maskEnd=int(peak)+bgLocal+int(np.ceil(windows[i]['width']/2))
+          maskPeakRes[maskBg:maskEnd]=False
+        elif len(peak) >1:
+          indLocal.append(int(peak[np.argmax(height)]))
+          ampLocal.append(float(height[np.argmax(height)]))
+          maskBg=int(peak[np.argmax(height)])+bgLocal-int(np.floor(windows[i]['width']/2))
+          maskEnd=int(peak[np.argmax(height)])+bgLocal+int(np.ceil(windows[i]['width']/2))
+          maskPeakRes[maskBg:maskEnd]=False
+      peakInfo['Ind'] = indLocal
+      peakInfo['Amp'] = ampLocal
+      groupWin.append(peakInfo)
+    return groupWin , maskPeakRes
+
+  def _transformBackPeaks(self,signal,windowDict):
+    """
+      Transforms a signal by regenerate the peaks signal
+      @ In, signal, np.array(float), signal to transform
+      @ In, windowDict, dict, dictionary for specefic target peaks
+      @ Out, signal, np.array(float), new signal after transformation
+    """
+    groupWin = windowDict['groupWin']
+    windows  = windowDict['windows']
+    rangeWindow=self.rangeWindow(windowDict)
+    for i in range(len(windowDict['windows'])):
+      prbExist = len(groupWin[i]['Ind'])/len(rangeWindow[i]['bg'])
+      # (amount of peaks that collected in the windows)/(the amount of windows)
+      # this is the probability to check if we should add a peak in each type of window
+      histAmp = np.histogram(groupWin[i]['Amp'])
+      # generate the distribution of the amplitude for this type of peak
+      histInd = np.histogram(groupWin[i]['Ind'])
+      # generate the distribution of the position( relative index) in the window
+      for j in range(min(len(rangeWindow[i]['bg']),len(rangeWindow[i]['end']))):
+        # the length of the starting points and ending points might be different
+        bgLocal = rangeWindow[i]['bg'][j]
+        # choose the starting index for specific window
+        exist = np.random.choice(2, 1, p=[1-prbExist,prbExist])
+        # generate 1 or 0 base on the prbExist
+        if exist == 1:
+          Amp = rv_histogram(histAmp).rvs()
+          Ind = int(rv_histogram(histInd).rvs())
+          # generate the amplitude and the relative position base on the distribution
+          SigInd = bgLocal+Ind
+          SigInd = int(SigInd%len(self.pivotParameterValues))
+          signal[SigInd] = Amp
+          # replace the signal with peak in this window
+          maskBg = SigInd-int(np.floor(windows[i]['width']/2))
+          maskEnd = SigInd+int(np.ceil(windows[i]['width']/2))
+          # replace the signal inside the width of this peak by interpolation
+          if maskBg > 0 and maskEnd < len(self.pivotParameterValues)-1:
+            # make sure the window is inside the range of the signal
+            bgValue = signal[maskBg-1]
+            endVaue = signal[maskEnd+1]
+            valueBg=np.interp(range(maskBg,SigInd), [maskBg-1,SigInd], [bgValue,  Amp])
+            signal[maskBg:SigInd]=valueBg
+            valueEnd=np.interp(range(SigInd+1,maskEnd+1), [SigInd,maskEnd+1],   [Amp,endVaue])
+            signal[SigInd+1:maskEnd+1]=valueEnd
+      return signal
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):

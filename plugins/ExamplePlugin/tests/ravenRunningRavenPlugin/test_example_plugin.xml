@@ -43,7 +43,7 @@
   <Samplers>
     <MonteCarlo name="test_MC">
       <samplerInit>
-        <limit>2</limit>
+        <limit>1</limit>
       </samplerInit>
       <constant name="a">0.0001</constant>
       <constant name="b">-0.5</constant>

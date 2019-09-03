@@ -24,6 +24,10 @@ import os
 import sys
 import numpy as np
 from utils import utils
+# numpy with version 1.14.0 and upper will change the floating point type and print
+# https://docs.scipy.org/doc/numpy-1.14.0/release.html
+if int(np.__version__.split('.')[1]) > 13:
+  np.set_printoptions(**{'legacy':'1.13'})
 
 def _reprIfFloat(value):
   """

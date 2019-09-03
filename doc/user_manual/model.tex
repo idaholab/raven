@@ -105,6 +105,13 @@
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
 
+\newcommand{\nIterNoChangeDescriptionA}[1]
+{
+  \xmlNode{n\_iter\_no\_change}, \xmlDesc{integer, optional field}, number of iterations with no improvement to wait before early stopping. 
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+}
+
 \newcommand{\tolDescriptionA}[1]
 {
   \xmlNode{tol}, \xmlDesc{float, optional field}, stop the algorithm if the convergence error felt below the tolerance specified here.
@@ -705,9 +712,9 @@
 
 \newcommand{\batchSizeMLPDescription}[1]
 {
-  \xmlNode{batch\_size}, \xmlDesc{int or `auto', optional field}, Size of minibatches for stochastic
-  optimizers. If the solver is \textit{lbfgs}, the classifier will not use minibatch. When
-  set to \textit{auto}, batch\_size = min(200, n\_samples)
+  \xmlNode{batch\_size}, \xmlDesc{int, optional field}, Size of minibatches for stochastic
+  optimizers. If the solver is \textit{lbfgs}, the classifier will not use minibatch.
+  \default{min(200, n\_samples)}
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
