@@ -89,7 +89,7 @@ if isTensorflowAvailable():
     # An optimizer is required for compiling a Keras model
     availOptimizer = {}
     # stochastic gradient descent optimizer, includes support for momentum,learning rate decay, and Nesterov momentum
-    availOptimizer['sgd'] = lazy_import.lazy_module("KerasOptimizers.SGD") 
+    availOptimizer['sgd'] = lazy_import.lazy_module("KerasOptimizers.SGD")
     # RMSprop optimizer, usually a good choice for recurrent neural network
     availOptimizer['rmsprop'] = lazy_import.lazy_module("KerasOptimizers.RMSprop")
     # Adagrad is an optimzer with parameter-specific learning rates, which are adapted relative to
