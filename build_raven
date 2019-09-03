@@ -54,7 +54,12 @@ do
 done
 #### END FUTURE WORK
 
+# clean up to assure library matching
+echo Cleaning old build ...
+${RAVEN_BUILD_DIR}/clean_raven
+
 if [[ $LIBS_MODE == 0 ]]; then
+  # this mode can not be called currently 
   #### FUTURE WORK:
   # clear .ravenrc
   #if [[ -f "$RAVEN_BUILD_DIR/.ravenrc" ]]; then
@@ -72,9 +77,6 @@ if [[ $LIBS_MODE == 0 ]]; then
   echo Establishing Python libraries ...
   . scripts/establish_conda_env.sh --load ${ECE_ARGS}
 
-  # clean up to assure library matching
-  echo Cleaning old build ...
-  ${RAVEN_BUILD_DIR}/clean_raven
 elif  [[ $LIBS_MODE == 1 ]]; then
   echo Establishing Python libraries ...
   . scripts/establish_conda_env.sh --load ${ECE_ARGS}

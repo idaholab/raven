@@ -23,10 +23,16 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
-from PySide import QtGui as qtw
-from PySide import QtSvg as qts
+try:
+  from PySide import QtCore as qtc
+  from PySide import QtGui as qtg
+  from PySide import QtGui as qtw
+  from PySide import QtSvg as qts
+except ImportError as e:
+  from PySide2 import QtCore as qtc
+  from PySide2 import QtGui as qtg
+  from PySide2 import QtWidgets as qtw
+  from PySide2 import QtSvg as qts
 
 from .BaseTopologicalView import BaseTopologicalView
 
@@ -260,7 +266,7 @@ class FitnessView(BaseTopologicalView):
           fontWidth = fm.width(numTxtItem.text())
 
           numTxtItem.setPos(x+(w-fontHeight)/2.,y-plotHeight+fontWidth)
-          numTxtItem.rotate(285)
+          #numTxtItem.rotate(285) #XXX not in qt5
           numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
           numTxtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
           numTxtItem.setZValue(2)
@@ -274,7 +280,7 @@ class FitnessView(BaseTopologicalView):
         fontHeight = fm.height()
         fontWidth = fm.width(name)
         txtItem.setPos(x+(w-fontHeight)/2.,y)
-        txtItem.rotate(270)
+        #txtItem.rotate(270) #XXX not in qt5
         txtItem.setFlag(qtw.QGraphicsItem.ItemIsMovable)
         txtItem.setFlag(qtw.QGraphicsItem.ItemIsSelectable)
         txtItem.setZValue(2)
