@@ -58,7 +58,7 @@ $PYTHON_COMMAND $SCRIPT_DIR/scripts/copy_plugins_tests.py
 # run the tests
 echo 'Running tests ...'
 
-$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py "${ARGS[@]}"
+$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
 
 # grep return code
 rc=$?

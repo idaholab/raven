@@ -37,8 +37,8 @@ import numpy as np
 import abc
 import ast
 import copy
-import pprint
-pp = pprint.PrettyPrinter(indent=2)
+import matplotlib
+import platform
 #External Modules End-----------------------------------------------------------
 #Internal Modules---------------------------------------------------------------
 from utils import utils
@@ -46,6 +46,9 @@ from utils import mathUtils
 import MessageHandler
 import DataObjects
 #Internal Modules End-----------------------------------------------------------
+
+if platform.system() == 'Windows':
+  matplotlib.use('Agg')
 
 class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
   """
@@ -152,10 +155,6 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, tdict, dict, training dictionary
       @ Out, None
     """
-    # print('jz is a debugger tdict.keys()')
-    # # pp.pprint(tdict)
-    # print('jz is a debugger self.features')
-    # # pp.pprint(self.features)
     self.metric = metric
     if not isinstance(tdict, dict):
       self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
@@ -182,8 +181,6 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     ## Check that all of the values have the same length
     if not isinstance(utils.first(tdict.values()), dict):
-      # print('jz is a debugger self.features')
-      # pp.pprint(self.features)
       for name, val in tdict.items():
         if name in self.features and realizationCount != val.size:
           self.raiseAnError(IOError, ' In training set, the number of realizations are inconsistent among the requested features.')
@@ -1326,16 +1323,16 @@ class Scipy(unSupervisedLearning):
       self.linkage = self.Method.linkage(self.normValues,self.initOptionDict['method'],self.initOptionDict['metric'])
 
       if 'dendrogram' in self.initOptionDict and self.initOptionDict['dendrogram'] == 'true':
-        self.ddata = self.advDendrogram(self.linkage,
-                                        p                = float(self.initOptionDict['p']),
-                                        leaf_rotation    = 90.,
-                                        leaf_font_size   = 12.,
-                                        truncate_mode    = self.initOptionDict['truncationMode'],
-                                        show_leaf_counts = self.initOptionDict['leafCounts'],
-                                        show_contracted  = self.initOptionDict['showContracted'],
-                                        annotate_above   = self.initOptionDict['annotatedAbove'],
-                                        #orientation      = self.initOptionDict['orientation'],
-                                        max_d            = self.initOptionDict['level'])
+        self.advDendrogram(self.linkage,
+                           p                = float(self.initOptionDict['p']),
+                           leaf_rotation    = 90.,
+                           leaf_font_size   = 12.,
+                           truncate_mode    = self.initOptionDict['truncationMode'],
+                           show_leaf_counts = self.initOptionDict['leafCounts'],
+                           show_contracted  = self.initOptionDict['showContracted'],
+                           annotate_above   = self.initOptionDict['annotatedAbove'],
+                           #orientation      = self.initOptionDict['orientation'],
+                           max_d            = self.initOptionDict['level'])
 
       self.labels_ = hier.hierarchy.fcluster(self.linkage, self.initOptionDict['level'],self.initOptionDict['criterion'])
       self.outputDict['outputs']['labels'] = self.labels_
@@ -1375,7 +1372,6 @@ class Scipy(unSupervisedLearning):
       title = 'dendrogram.pdf'
     plt.savefig(title)
     plt.close()
-    return ddata
 
   def __evaluateLocal__(self,*args, **kwargs):
     """
