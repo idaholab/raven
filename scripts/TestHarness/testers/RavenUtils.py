@@ -91,7 +91,11 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("lxml", ""),
                ("psutil", "")]
 # libraries to install with conda-forge
-__condaForgeList = [("pyside2", ""),]
+__condaForgeList = [("pyside2", ""),
+                    ("pyomo", ""),
+                    ("coincbc", ""),
+                    ("glpk", ""),
+                    ("ipopt", "")]
 # optional conda libraries
 __condaOptional = [('pillow', __lookup_preferred_version("pillow"))]
 
