@@ -45,9 +45,12 @@ for c,case in enumerate(cases):
 points = []
 trails = []
 rejects = []
-clr = ax._get_lines.prop_cycler
+# clr = ax._get_lines.prop_cycler
+col=['r','c','m','y','k']
 for case in cases:
-  c = next(clr)['color']
+
+  # c = next(clr)['color']
+  c = ax._get_lines.prop_cycler.next()['color']
   point, = ax.plot([data[case]['x'][0]],[data[case]['y'][0]],color=c,marker='${}$'.format(case))
   trail, = ax.plot([data[case]['x'][0]],[data[case]['y'][0]],'.-',color=c,alpha=0.5)
   reject, = ax.plot([],[],'x',color=c,alpha=0.5)
