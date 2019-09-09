@@ -47,7 +47,9 @@ import MessageHandler
 import DataObjects
 #Internal Modules End-----------------------------------------------------------
 
-if platform.system() == 'Windows':
+#if platform.system() == 'Windows':
+display = utils.displayAvailable()
+if not display:
   matplotlib.use('Agg')
 
 class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
