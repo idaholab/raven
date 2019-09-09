@@ -678,13 +678,13 @@ class OutStreamPlot(OutStreamManager):
       ## This seems a bit hacky, but we need the ginput in order to block
       ## execution of raven until this is over, however closing the window can
       ## cause this thing to fail.
-      #try:
-      self.fig.ginput(n = -1, timeout = 0, show_clicks = False)
-      #except:
+      try:
+        self.fig.ginput(n = -1, timeout = 0, show_clicks = False)
+      except:
         ## I know this is bad, but it is a single line of code outside our
         ## control, if it fails for any reason it should not be a huge deal, we
         ## just want RAVEN to continue on its merry way when a figure closes.
-      #  pass
+        pass
       ## We may want to catch a more generic exception since this may be depedent
       ## on the backend used, hence the code replacement above
       # except _tkinter.TclError:
