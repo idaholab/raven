@@ -257,6 +257,8 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
       @ Out, None
     """
+    print('jz is looking at this ')
+
     # collect finished jobs
     prefix = jobObject.getMetadata()['prefix']
     traj, step, identifier = [int(x) for x in prefix.split('_')] # FIXME This isn't generic for any prefixing system
