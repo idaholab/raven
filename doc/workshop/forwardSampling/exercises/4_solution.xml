@@ -1,13 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation>
-  <TestInfo>
-    <name>doc/workshop/forwardSampling/Inputs.FW4</name>
-    <author>wangc</author>
-    <created>2018-09-21</created>
-    <classesTested>Samplers.Grid</classesTested>
-    <description>Workshop test: test Forward Sampling Capabilities</description>
-  </TestInfo>
-
   <RunInfo>
     <WorkingDir>r4</WorkingDir>
     <Sequence>generate_data,plot</Sequence>
