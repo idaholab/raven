@@ -46,9 +46,10 @@ from .OutStreamManager import OutStreamManager
 from ClassProperty import ClassProperty
 ## Internal Modules End---------------------------------------------------------
 
-display = utils.displayAvailable()
-if not display:
-  matplotlib.use('Agg')
+display = True
+#display = utils.displayAvailable()
+#if not display:
+#  matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 

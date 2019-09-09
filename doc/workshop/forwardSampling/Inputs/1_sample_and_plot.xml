@@ -92,7 +92,7 @@
         <zlabel>r</zlabel>
       </plotSettings>
       <actions>
-        <how>png</how>
+        <how>screen, png</how>
       </actions>
     </Plot>
   </OutStreams>
