@@ -86,8 +86,8 @@ def run(raven, inputs):
   vars = {'x0': get_from_raven('x0', raven, 0),
           'y0': get_from_raven('y0', raven, 0),
           'v0': get_from_raven('v0', raven, 1),
-          'ang': get_from_raven('v0', raven, 45),
-          'timeOption': get_from_raven('v0', raven, 0)}
+          'angle': get_from_raven('angle', raven, 45),
+          'timeOption': get_from_raven('timeOption', raven, 0)}
   res = main(vars)
   raven.x = res['x']
   raven.y = res['y']
@@ -129,8 +129,9 @@ def main(Input):
     v[i] = vm
     a[i] = current_angle(v0, ang, vm)
   t = ts
-  return {'x': x, 'y': y, 'r': r, 't': ts, 'v': v, 'a': a,
-    'x0': x0, 'y0': y0, 'v0': v0, 'ang': ang, 'timeOption': timeOption}
+  res = {'x': x, 'y': y, 'r': r, 't': ts, 'v': v, 'a': a,
+         'x0': x0, 'y0': y0, 'v0': v0, 'ang': ang, 'timeOption': timeOption}
+  return res
 
 #can be used as a code as well
 if __name__=="__main__":
