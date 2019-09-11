@@ -61,6 +61,7 @@ def interpret_distribution(key, value):
   return converted
 
 if __name__ == '__main__':                            # this is how this file gets run
+  print('Welcome to the Projectile Templated UQ RAVEN Runner!')
   if len(sys.argv) != 2:                              # read the input file from the call arguments, as "python <script> <inputfile>"
     raise IOError('Expected 1 argument for interface (the name of the input file)!')
   # read inputs
@@ -70,9 +71,17 @@ if __name__ == '__main__':                            # this is how this file ge
   # create template class instance
   templateClass = ProjectileTemplateClass()
   # load template
-  templateClass.loadTemplate('2_soln_template.xml', os.path.dirname(__file__))
+  here = os.path.abspath(os.path.dirname(__file__))
+  print(' ... working directory:', here)
+  templateClass.loadTemplate('2_soln_template.xml', here)
+  print(' ... workflow successfully loaded ...')
   # create modified template
   template = templateClass.createWorkflow(inp)
+  print(' ... workflow successfully modified ...')
   # write files
-  templateClass.writeWorkflow(template, 'ProjUQInput.xml')
+  templateClass.writeWorkflow(template, os.path.join(here, '6_ProjUQInput.xml'), run=True)
+  print('')
+  print(' ... workflow successfully created and run ...')
+  print(' ... Complete!')
+  print('This is the end of the Projectile Templated UQ Raven Runner. Have a good one!')
 
