@@ -136,6 +136,13 @@ def main(Input):
 #can be used as a code as well
 if __name__=="__main__":
   import sys
+  textOutput = False
+  if '-i' not in sys.argv:
+    raise IOError("INPUT MUST BE PROVIDED WITH THE -i nomenclature")
+  if '-o' not in sys.argv:
+    raise IOError("OUTPUT MUST BE PROVIDED WITH THE -o nomenclature")
+  if '-text' in sys.argv:
+    textOutput = True
   inFile = sys.argv[sys.argv.index('-i')+1]
   outFile = sys.argv[sys.argv.index('-o')+1]
   #construct the input
@@ -146,11 +153,15 @@ if __name__=="__main__":
   #run the code
   res = main(Input)
   #write output
-  outName = outFile+'.csv'
+  outName = outFile+ ('.txt' if textOutput else '.csv')
+  delm = ' ' if textOutput else ','
   with open(outName, 'w') as outFile:
-    outFile.writelines(','.join(in_vars) + ',' + ','.join(out_vars) + '\n')
-    template = ','.join('{{}}'.format(v) for v in in_vars + out_vars) + '\n'
+    outFile.writelines(delm.join(in_vars) + delm + delm.join(out_vars) + '\n')
+    template = delm.join('{{}}'.format(v) for v in in_vars + out_vars) + '\n'
     for i in range(len(res['t'])):
       this = [(res[v][i] if len(np.shape(res[v])) else res[v]) for v in in_vars + out_vars]
       outFile.writelines(template.format(*this))
+    if textOutput:
+      outFile.write('\n')
+      outFile.write('SUCCESS\n')
   print('Wrote results to "{}"'.format(outName))

@@ -20,7 +20,7 @@
 
   <Models>
     <Code name="myWorkshopCode" subType="GenericCode">
-      <executable>../../ExternalModels/Bateman/AnalyticalDplMain.py</executable>
+      <executable>../../ExternalModels/projectile.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
