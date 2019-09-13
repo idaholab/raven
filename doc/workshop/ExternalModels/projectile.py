@@ -162,6 +162,6 @@ if __name__=="__main__":
       this = [(res[v][i] if len(np.shape(res[v])) else res[v]) for v in in_vars + out_vars]
       outFile.writelines(template.format(*this))
     if textOutput:
-      outFile.write('\n')
+      outFile.write('---------------------------------------------------------------------------\n')
       outFile.write('SUCCESS\n')
   print('Wrote results to "{}"'.format(outName))
