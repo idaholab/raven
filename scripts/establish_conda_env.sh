@@ -87,6 +87,7 @@ function install_libraries()
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
     ${COMMAND}
     # pip only
+    activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --pip-only-list ${INSTALL_OPTIONAL} ${OSOPTION})`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
@@ -116,6 +117,7 @@ function create_libraries()
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
     ${COMMAND}
     # pip only
+    activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --pip-only-list ${INSTALL_OPTIONAL} ${OSOPTION})`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
