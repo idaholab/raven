@@ -26,7 +26,6 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import copy
-import abc
 import numpy as np
 import random as rn
 import matplotlib
@@ -50,14 +49,6 @@ try:
   # tf.enable_eager_execution()
 except ImportError as e:
   _tensorflowAvailable = False
-
-from utils import utils
-display = utils.displayAvailable()
-if not display:
-  matplotlib.use('Agg')
-
-import matplotlib.pyplot as plt
-
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
