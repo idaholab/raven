@@ -18,7 +18,17 @@
  created on 09/13/2019
  @author: alfoa
 """
+#----- python 2 - 3 compatibility
+from __future__ import division, print_function, absolute_import
+import warnings
+warnings.simplefilter('default',DeprecationWarning)
+#----- end python 2 - 3 compatibility
+
+#External Modules------------------------------------------------------------------------------------
 import lazy_import
+#External Modules End--------------------------------------------------------------------------------
+#Internal Modules------------------------------------------------------------------------------------
+#Internal Modules End--------------------------------------------------------------------------------
 
 def import_module_lazy(moduleString):
   """
