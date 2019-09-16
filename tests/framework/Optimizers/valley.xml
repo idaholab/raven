@@ -21,7 +21,7 @@
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">valley</Model>
-      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <Optimizer class="Optimizers" type="FiniteDifference">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
@@ -32,33 +32,43 @@
   </Steps>
 
   <Optimizers>
-    <SPSA name="opter">
+    <FiniteDifference name="opter">
       <initialization>
-        <limit>2000</limit>
+        <limit>20000</limit>
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-2</thresholdTrajRemoval>
         <writeSteps>every</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
+        <centralDifference>True</centralDifference>
         <gradientThreshold>1e-7</gradientThreshold>
         <absoluteThreshold>0</absoluteThreshold>
-        <relativeThreshold>1e-7</relativeThreshold>
-        <gainGrowthFactor>1.5</gainGrowthFactor>
-        <gainShrinkFactor>1.25</gainShrinkFactor>
+        <relativeThreshold>1e-12</relativeThreshold>
+        <gainGrowthFactor>1.2</gainGrowthFactor>
+        <gainShrinkFactor>1.1</gainShrinkFactor>
+        <minStepSize>1e-13</minStepSize>
+        <persistence>5</persistence>
       </convergence>
+      <!--parameter>
+        <numGradAvgIterations>5</numGradAvgIterations>
+      </parameter-->
       <variable name="x">
         <upperBound>1</upperBound>
         <lowerBound>-1</lowerBound>
-        <initial>0.9,0.5,-0.5,-0.9</initial>
+        <initial>0</initial>
+        <!--initial>-0.9,0.5,-0.5,0.9</initial-->
+
       </variable>
       <variable name="y">
         <upperBound>1</upperBound>
         <lowerBound>-1</lowerBound>
-        <initial>0.9,-0.5,0.5,-0.9</initial>
+        <!--initial>0.9,0.5,-0.5,-0.9</initial-->
+        <initial>-0.2</initial>
+
       </variable>
       <objectVar>ans</objectVar>
-    </SPSA>
+    </FiniteDifference>
   </Optimizers>
 
   <Models>

@@ -111,8 +111,10 @@ class Optimizer(Sampler):
     init.addSub(thresh)
     init.addSub(write)
     inputSpecification.addSub(init)
-
     # convergence
+
+    # central difference
+    cendiff = InputData.parameterInputFactory('centralDifference', contentType=InputData.BoolType)
     conv = InputData.parameterInputFactory('convergence', strictMode=True)
     itLim   = InputData.parameterInputFactory('iterationLimit'   , contentType=InputData.IntegerType)
     pers    = InputData.parameterInputFactory('persistence'      , contentType=InputData.IntegerType)
@@ -122,6 +124,7 @@ class Optimizer(Sampler):
     minstep = InputData.parameterInputFactory('minStepSize'      , contentType=InputData.FloatType  )
     grow    = InputData.parameterInputFactory('gainGrowthFactor' , contentType=InputData.FloatType  )
     shrink  = InputData.parameterInputFactory('gainShrinkFactor' , contentType=InputData.FloatType  )
+    conv.addSub(cendiff)
     conv.addSub(itLim)
     conv.addSub(pers)
     conv.addSub(rel)

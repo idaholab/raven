@@ -355,7 +355,7 @@ class SPSA(GradientBasedOptimizer):
     points = []
     distance = self._computePerturbationDistance(traj,self.paramDict,self.counter['varsUpdate'][traj]+1)
     for i in self.perturbationIndices:
-      direction = self._getPerturbationDirection(i)
+      direction = self._getPerturbationDirection(i, step = self.counter['varsUpdate'][traj])
       point = {}
       index = 0
       for var in self.getOptVars():
@@ -554,7 +554,7 @@ class SPSA(GradientBasedOptimizer):
     state['recommendToGain'] = copy.deepcopy(self.recommendToGain           .get(traj,None))
     return state
 
-  def _getPerturbationDirection(self,perturbationIndex):
+  def _getPerturbationDirection(self,perturbationIndex,step = None):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
       @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
@@ -578,9 +578,15 @@ class SPSA(GradientBasedOptimizer):
     # denoising has already been performed, so get the results
     opt = self.realizations[traj]['denoised']['opt'][0]   # opt point is only one point
     pert = self.realizations[traj]['denoised']['grad'][0] # SPSA CURRENTLY only has one grad point
+    # #{'ans': 17.071067811865476, 'x': 0.5, 'y': -0.5} {'ans': 17.05860949607224, 'x': 0.49864582854255124, 'y': -0.49959229954153661}
+    # print('inside the gradient',opt,pert)
+    # print(self.objVar) #ans
+    # print(self.getOptVars()) # x y
+    # print(pert[self.objVar], opt[self.objVar])
     gradient = {}
     # difference in objective variable
     lossDiff = mathUtils.diffWithInfinites(pert[self.objVar], opt[self.objVar])
+    #gives pert[ans] - opt[ans]
     # we only need the +/- 1, we don't need the gradient value at all.
     lossDiff = 1.0 if lossDiff > 0.0 else -1.0
     # force gradient descent

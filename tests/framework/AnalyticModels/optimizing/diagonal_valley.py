@@ -14,14 +14,15 @@
 import numpy as np
 
 def run(raven, Inputs):
-  coeffs = [1, -1, 0] # ax + by + c = 0 -> x = y
+  coeffs = [1, 1, 0] # ax + by + c = 0 -> x = y
   raven.ans = main(coeffs, raven.x, raven.y)
 
 def main(coeffs, x, y, thresh=0.01):
   distance = dist_to_line(coeffs, x, y)
-  z = (x-0.5)**2 + (y-0.5)**2
-  mask = distance > thresh
-  z[mask] = 10 + distance[mask] * 10
+  z = (x+0.5)**2 + (y-0.5)**2
+  #mask = distance > thresh
+  #z[mask] = 10 + distance[mask] * 10
+  z += distance * 100
   return z
 
 def dist_to_line(coeffs, x0, y0):

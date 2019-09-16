@@ -62,9 +62,9 @@ class GradientBasedOptimizer(Optimizer):
     self.constraintHandlingPara      = {}              # Dict containing parameters for parameters related to constraints handling
     self.gradientNormTolerance       = 1.e-3           # tolerance on the L2 norm of the gradient
     self.gradDict                    = {}              # Dict containing information for gradient related operations
-    self.gradDict['numIterForAve'  ] = 1               # Number of iterations for gradient estimation averaging
-    self.gradDict['pertNeeded'     ] = 1               # Number of perturbation needed to evaluate gradient (globally, considering denoising)
-    self.paramDict['pertSingleGrad'] = 1               # Number of perturbation needed to evaluate a single gradient
+    self.gradDict['numIterForAve'  ] = 1               # Number of iterations for gradient estimation averaging, denoising 3
+    self.gradDict['pertNeeded'     ] = 1               # Number of perturbation needed to evaluate gradient (globally, considering denoising) dimention * 1* denoise for FD
+    self.paramDict['pertSingleGrad'] = 1               # Number of perturbation needed to evaluate a single gradient denoised points needed to evaluate gradient, eg, 1 for SPSA, dim for FD w/o central diff, 2*dim for central diff
     self.gradDict['pertPoints'     ] = {}              # Dict containing normalized inputs sent to model for gradient evaluation
     self.readyVarsUpdate             = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
     self.counter['perturbation'    ] = {}              # Counter for the perturbation performed.
@@ -73,6 +73,10 @@ class GradientBasedOptimizer(Optimizer):
     self.counter['varsUpdate'      ] = {}
     self.counter['solutionUpdate'  ] = {}
     self.counter['lastStepSize'    ] = {}              # counter to track the last step size taken, by trajectory
+    self.localGradEvals              = {}              #
+
+
+
     self.convergeTraj                = {}
     self.convergenceProgress         = {}              #tracks the convergence progress, by trajectory
     self.trajectoriesKilled          = {}              # by traj, store traj killed, so that there's no mutual destruction
@@ -81,7 +85,7 @@ class GradientBasedOptimizer(Optimizer):
     self.gainShrinkFactor            = 2.              # max step shrinking factor
     self.optPointIndices             = []              # in this list we store the indeces that correspond to the opt point
     self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation.
-
+    self.useCentralDiff              = None            # whether to use central differencing
     # REWORK 2018-10 for simultaneous point-and-gradient evaluations
     self.realizations                = {}    # by trajectory, stores the results obtained from the jobs running, see setupNewStorage for structure
 
@@ -115,6 +119,12 @@ class GradientBasedOptimizer(Optimizer):
         self.gainShrinkFactor = float(gainShrinkFactor.text) if gainShrinkFactor is not None else 2.0
       except ValueError:
         self.raiseAnError(ValueError, 'Not able to convert <gainShrinkFactor> into a float.')
+
+      centralDiff = convergence.find('centralDifference')
+      try:
+        self.useCentralDiff = (centralDiff.text.strip().lower() in utils.stringsThatMeanTrue()) if centralDiff is not None else False
+      except ValueError:
+        self.raiseAnError(ValueError, 'Not able to convert <centralDifference> into a boolean.')
       self.raiseADebug('Gain growth factor is set at',self.gainGrowthFactor)
       self.raiseADebug('Gain shrink factor is set at',self.gainShrinkFactor)
     self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
@@ -133,6 +143,7 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['gradientHistory'][traj]  = [{},{}]
       self.counter['gradNormHistory'][traj]  = [0.0,0.0]
       self.counter['persistence'][traj]      = 0
+      self.localGradEvals[traj]              = [None]
       self.optVarsHist[traj]                 = {}
       self.readyVarsUpdate[traj]             = False
       self.convergeTraj[traj]                = False
@@ -169,6 +180,23 @@ class GradientBasedOptimizer(Optimizer):
     """
     # let the local do the main gradient evaluation
     gradient = self.localEvaluateGradient(traj)
+    print(gradient)
+    if True: #conjugate gradient
+      try:
+        self.localGradEvals[traj][1] = self.localGradEvals[traj][0]
+      except IndexError:
+        pass
+      self.localGradEvals[traj][0] = gradient
+      useGrad = {}
+      for var in self.getOptVars():
+        if len(self.localGradEvals[traj]) == 2:
+          useGrad[var] = 0.7 * self.localGradEvals[traj][0][var] + 0.3 * self.localGradEvals[traj][1][var]
+        elif len(self.localGradEvals[traj]) == 1:
+          useGrad[var] = self.localGradEvals[traj][0][var]
+      gradient = useGrad
+
+    print('jz is looking at the gradient')
+    print(gradient)
     # we intend for gradient to give direction only, so get the versor
     ## NOTE this assumes gradient vectors are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
     gradientNorm = self.calculateMultivectorMagnitude(gradient.values())
@@ -198,6 +226,8 @@ class GradientBasedOptimizer(Optimizer):
     except IndexError:
       pass # don't have a history on the first pass
     self.counter['gradientHistory'][traj][0] = gradient
+
+
     return gradient
 
   def finalizeSampler(self,failedRuns):
@@ -257,7 +287,12 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
       @ Out, None
     """
-    print('jz is looking at this ')
+    #print(self.counter)
+    # {'mdlEval': 3, 'varsUpdate': [1], 'recentOptHist': {0: [{'ans': 17.071067811865476, 'x': 0.75, 'y': 0.25}, {}]}, 'persistence': {0: 0}, 'perturbation': {0: 0}, 'gradientHistory': {0: [{'x': 0.9575438204512511, 'y': -0.28828775887231545}, {}]}, 'gradNormHistory': {0: [0.001414213562373151, 0.0]}, 'solutionUpdate': {0: 1}, 'lastStepSize': {0: 0.070710678118654766}}
+
+    #
+    # print(jobObject.getMetadata())
+    # {'SampledVars': {'x': 0.36458285425512926, 'y': -0.45922995415366263}, 'SampledVarsPb': {}, 'crowDist': {}, 'prefix': '0_1_0', 'trajID': 1, 'varsUpdate': 1}
 
     # collect finished jobs
     prefix = jobObject.getMetadata()['prefix']
@@ -277,18 +312,27 @@ class GradientBasedOptimizer(Optimizer):
       self._setupNewStorage(traj)
     else:
       # update self.realizations dictionary for the right trajectory
-      # is this point an "opt" or a "grad" evaluations?
-      category, number = self._identifierToLabel(identifier)
+      # category: is this point an "opt" or a "grad" evaluations?
+      # number is which variable is being perturbed, ie which dimention 0 indexed
+      category, number, _, cdId = self._identifierToLabel(identifier)
+      # done is whether the realization finished
+      # index: where is it in the dataObject
       # find index of sample in the target evaluation data object
       done, index = self._checkModelFinish(str(traj), str(step), str(identifier))
+      # print('hit indexing',index)
+      #  {0: {'collect': {'opt': [[8]], 'grad': [[]]}, 'denoised': {'opt': [{'ans': 12.486685648202339, 'x': 0.065133939385324968, 'y': -0.28653651751930309}], 'grad': [[]]}, 'need': 1, 'accepted': True}}
       # sanity check
       if not done:
         self.raiseAnError(RuntimeError,'Trying to collect "{}" but identifies as not done!'.format(prefix))
       # store index for future use
+      # number is the varID
+      number = number + (cdId * len(self.fullOptVars))
       self.realizations[traj]['collect'][category][number].append(index)
-
+      # print('lueluelue')
+      # print(self.realizations[traj])
       # check if any further action needed because we have all the points we need for opt or grad
       if len(self.realizations[traj]['collect'][category][number]) == self.realizations[traj]['need']:
+        # print('hghgghjhh')
         # get the output space (input space included as well)
         outputs = self._averageCollectedOutputs(self.realizations[traj]['collect'][category][number])
         # store denoised results
@@ -299,7 +343,6 @@ class GradientBasedOptimizer(Optimizer):
           converged = self._finalizeOptimalCandidate(traj,outputs)
         else:
           converged = False
-
         # if both opts and grads are now done, then we can do an evaluation
         ## note that by now we've ALREADY accepted the point; if it was rejected, it would have been reset by now.
         optDone = bool(len(self.realizations[traj]['denoised']['opt'][0]))
@@ -360,6 +403,11 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, outputs, dict, dictionary of average values
     """
     # make a place to store distinct evaluation values
+    # print('inside collectionoptput')
+    # # print(collection)
+    # # print(self.gradDict)
+    # print(self.solutionExport.asDataset())
+    # # print(self.getOptVars()) x y
     outputs = dict((var,np.zeros(self.gradDict['numIterForAve'],dtype=object))
                       for var in self.solutionExport.getVars('output')
                       if var in self.mdlEvalHist.getVars('output'))
@@ -378,6 +426,7 @@ class GradientBasedOptimizer(Optimizer):
     for var,vals in outputs.items():
       outputs[var] = vals.mean()
     outputs.update(inputs)
+    print(outputs)
     return outputs
 
   def calculateMultivectorMagnitude(self,values):
@@ -563,11 +612,20 @@ class GradientBasedOptimizer(Optimizer):
     """
     if identifier in self.perturbationIndices:
       category = 'grad'
-      number = (identifier-1) % self.paramDict['pertSingleGrad']
+      pertPerVar = self.paramDict['pertSingleGrad'] // (1+self.useCentralDiff)
+      varId = (identifier - self.gradDict['numIterForAve']) % pertPerVar
+      denoId = (identifier - self.gradDict['numIterForAve'])// self.paramDict['pertSingleGrad']
+      # for cdId 0 is the first cdID 1 is the second side of central Diff
+      cdId = ((identifier - self.gradDict['numIterForAve'])// pertPerVar) % len(self.fullOptVars)
+      if not self.useCentralDiff:
+        cdId = 0
+      # print('jz cdid',identifier,varId,denoId,cdId,category)
     else:
       category = 'opt'
-      number = 0
-    return category,number
+      varId = 0
+      denoId = identifier
+      cdId = 0
+    return category, varId, denoId, cdId
 
   def localCheckConstraint(self, optVars, satisfaction = True):
     """

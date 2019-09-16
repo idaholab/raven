@@ -62,7 +62,7 @@ The Gradient Based Optimizer category collects all the strategies that perform t
  category are:
 \begin{itemize}
 \item \textbf{Simultaneous Perturbation Stochastic Approximation (SPSA)}
-\item \textbf{Finite Difference Gradient Optimizer Forward (FiniteDifferenceGradientOptimizer)}
+\item \textbf{Finite Difference Gradient Optimizer Forward (FiniteDifference)}
 \end{itemize}
 
 From a practical point of view, these optimization strategies represent different ways to estimate the gradient based on information
@@ -308,6 +308,8 @@ specified:
 \item \xmlNode{convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization
 convergence. This node accepts the following sub-nodes:
   \begin{itemize}
+  \item \xmlNode{centralDifference}, \xmlDesc{boolean, optional field},  boolean
+flag that controls the central difference gradient option, when True, central differencing is activated.  \default{False}
   \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations. \default{650}.
   \item \xmlNode{persistence}, \xmlDesc{integer, optional field}, number of consecutive successful
     convergences required before completing calculation (per trajectory). Any value less than 1 will be
@@ -405,16 +407,16 @@ Example:
 </Optimizers>
 \end{lstlisting}
 
-%%% Gradient Based Optimizers: FiniteDifferenceGradientOptimizer
-\subsubsection{Finite Difference Gradient Optimizer (FiniteDifferenceGradientOptimizer)}
-\label{subsubsubsec:FiniteDifferenceGradientOptimizer}
-The \textbf{FiniteDifferenceGradientOptimizer} optimization approach is  the simplest Gradient based approach since it is based on the
+%%% Gradient Based Optimizers: FiniteDifference
+\subsubsection{Finite Difference Gradient Optimizer (FiniteDifference)}
+\label{subsubsubsec:FiniteDifference}
+The \textbf{FiniteDifference} optimization approach is  the simplest Gradient based approach since it is based on the
 first order evaluation of the Gradient.  A minimal number of $n variable$
 model evaluations are required in order to get a first order approximation of the gradient.
 
-Current implementation of \textbf{FiniteDifferenceGradientOptimizer} can also handles
+Current implementation of \textbf{FiniteDifference} can also handles
 constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the
-constraints. When when updating the variables (not perturbing), if constraint is violated, \textbf{FiniteDifferenceGradientOptimizer} does the following in
+constraints. When when updating the variables (not perturbing), if constraint is violated, \textbf{FiniteDifference} does the following in
 sequence:
 \begin{itemize}
 \item Try to find, through bisection method, the longest fraction of gradient vector so that the variable update satisfies the
@@ -422,7 +424,7 @@ constraints;
 \item When such fraction cannot be found, then find a random vector orthogonal to gradient vector so that, by using this
 orthogonal vector as gradient, the variable update satisfies the constraints. Rotate the orthogonal vector towards the gradient,
 through bisection methods, until constraints can no longer be satisfied;
-\item If all above cannot return a constraint satisfying variable update, then do not update the variables and the \textbf{FiniteDifferenceGradientOptimizer} will
+\item If all above cannot return a constraint satisfying variable update, then do not update the variables and the \textbf{FiniteDifference} will
 terminate.
 \end{itemize}
 
@@ -432,7 +434,7 @@ magnitude of the gradient, but just on its ``direction'' information content. Al
 should be calibrated with this information in mind.
 %
 
-\specBlock{a}{FiniteDifferenceGradientOptimizer}
+\specBlock{a}{FiniteDifference}
 %
 \attrsIntro
 \vspace{-5mm}
@@ -443,7 +445,7 @@ the name that can be used to refer to this specific entity from other input bloc
 \end{itemize}
 \vspace{-5mm}
 
-In the \xmlNode{FiniteDifferenceGradientOptimizer} input block, the user needs to specify the objective variable to be optimized, the decision variables, the
+In the \xmlNode{FiniteDifference} input block, the user needs to specify the objective variable to be optimized, the decision variables, the
 DataObject storing previously performed model evaluation, as well as convergence criteria. In addition, the settings for this
 optimization can be specified in the \xmlNode{initialization} and \xmlNode{parameter} XML blocks:
 \begin{itemize}
@@ -458,7 +460,7 @@ specified:
     or minimization. Available options are \xmlString{max} and \xmlString{min}.
     \default{Min};
     \item \xmlNode{thresholdTrajRemoval}, \xmlDesc{float, optional field}, this will be used to determine the convergence of different
-    optimization trajectories on each other when multiple trajectories is handled by \xmlNode{FiniteDifferenceGradientOptimizer}.  When one
+    optimization trajectories on each other when multiple trajectories is handled by \xmlNode{FiniteDifference}.  When one
     trajectory comes within tolerance of a point on another trajectory, the first will be removed in interest
     of the second.  Note that this value is
     calculated as Euclidean distance in a normalized 0 to 1 cubic domain, not the original input space domain.
@@ -474,7 +476,7 @@ specified:
         Section~\ref{sec:DataObjects}). The object here specified must be
         input as  \xmlNode{Output} in the Steps that employ this optimization strategy.
         %
-        The \xmlNode{FiniteDifferenceGradientOptimizer} optimizer accepts ``DataObjects'' of type ``PointSet'' only;
+        The \xmlNode{FiniteDifference} optimizer accepts ``DataObjects'' of type ``PointSet'' only;
         \item \xmlNode{objectVar}, \xmlDesc{XML node, required parameter}. The objective variable to be optimized. This variable must be
           output of the DataObject specified in \xmlNode{TargetEvaluation}.
 \item \xmlNode{Sampler}, \xmlDesc{XML node, optional parameter},
@@ -571,7 +573,7 @@ specified:
     \item \xmlNode{lowerBound}, \xmlDesc{float, required field}, the lower bound of this variable;
     \item \xmlNode{initial}, \xmlDesc{comma separated strings, optional field}, the initial value(s) for this variable. If there are more
     than one initial values specified for a variable, then all the variables need to have the same number of initial values. In this case,
-    \xmlNode{FiniteDifferenceGradientOptimizer} optimizer will maintain multiple trajectories to fully utilize potential parallel computing capability.
+    \xmlNode{FiniteDifference} optimizer will maintain multiple trajectories to fully utilize potential parallel computing capability.
     Every input variable must have an initial value specified either through this node, or through a
     preconditioner in multilevel optimization or through a linked Sampler (see above).
   \end{itemize}
@@ -587,11 +589,11 @@ convergence. This node accepts the following sub-nodes:
     treated as 1.  Float values are rounded down to the nearest integer. \default{1}.
   \item \xmlNode{relativeThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality
   in a ``relative'' sense: when the relative change of the objective variable in two successive model evaluations is smaller than
-  this specified threshold, the \xmlNode{FiniteDifferenceGradientOptimizer} optimizer is in convergence and terminates the simulation.
+  this specified threshold, the \xmlNode{FiniteDifference} optimizer is in convergence and terminates the simulation.
       \default{1e-3}
   \item \xmlNode{absoluteThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality,
   in an ``absolute'' sense: when the absolute change of objective variable in two successive model evaluations is smaller
-  than this specified threshold, the \xmlNode{FiniteDifferenceGradientOptimizer} optimizer is in convergence and terminates the simulation.
+  than this specified threshold, the \xmlNode{FiniteDifference} optimizer is in convergence and terminates the simulation.
       \default{0.0}
   \item \xmlNode{minStepSize}, \xmlDesc{float, optional field}, specifies the minimum allowable step size in
     the normalized input space, ranging from 0 (no movement) to 1 (spans any dimension).
@@ -642,7 +644,7 @@ Example:
 \begin{lstlisting}[style=XML]
 <Optimizers>
   ...
-  <FiniteDifferenceGradientOptimizer name="SPSAname">
+  <FiniteDifference name="FDname">
     <initialization>
       <limit>300</limit>
       <type>min</type>
@@ -651,6 +653,7 @@ Example:
     <TargetEvaluation class="DataObjects" type="PointSet">dataObjectName</TargetEvaluation>
     <convergence>
       <iterationLimit>50</iterationLimit>
+      <centralDifference>True</centralDifference>,
       <relativeThreshold>1e-3</relativeThreshold>
       <absoluteThreshold>1e-1</absoluteThreshold>
       <persistence>1</persistence>
@@ -664,7 +667,7 @@ Example:
       <initial>0</initial>
     </variable>
     <objectVar>c</objectVar>
-  </FiniteDifferenceGradientOptimizer>
+  </FiniteDifference>
   ...
 </Optimizers>
 \end{lstlisting}
