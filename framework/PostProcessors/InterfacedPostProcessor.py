@@ -133,12 +133,19 @@ class InterfacedPostProcessor(PostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDic, dict, dict containing the post-processed results
     """
-    inputTypes = set([inp.type for inp in inputIn])
-    for inp in inputIn:
-      if not inputTypes <= set(self.returnFormat("input").split("|")):
-        self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor named "'+ self.name +
-                              '" : The input object "'+ inp.name +'" provided is of the wrong type. Got "'+
-                              inp.type + '" but expected "'+self.returnFormat("input") + '"!')
+    #FIXME THIS IS NOT CORRECT!!!!
+    try:
+      inputTypes = set([inp.type for inp in inputIn])
+      check=True
+    except AttributeError:
+      check=False
+    if check:
+      for inp in inputIn:
+        if not inputTypes <= set(self.returnFormat("input").split("|")):
+          self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor named "'+ self.name +
+                            '" : The input object "'+ inp.name +'" provided is of the wrong type. Got "'+
+                            inp.type + '" but expected "'+self.returnFormat("input") + '"!')
+
     inputDic= self.inputToInternal(inputIn)
     self.raiseADebug('InterfacedPostProcessor Post-Processor '+ self.name +' : start to run')
     outputDic = self.postProcessor.run(inputDic)

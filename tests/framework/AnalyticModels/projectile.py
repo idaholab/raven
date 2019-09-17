@@ -27,6 +27,9 @@
 #
 import numpy as np
 
+in_vars = ['x0', 'y0', 'v0', 'ang', 'timeOption']
+out_vars = ['x', 'y', 'r', 't', 'v', 'a']
+
 def prange(v,th,y0=0,g=9.8):
   """
     Calculates the analytic range.
@@ -69,47 +72,65 @@ def y_pos(y0,v,t):
   """
   return y0 + v*t - 4.9*t*t
 
-def run(self,Input):
-  """
-    Method require by RAVEN to run this as an external model.
-    @ In, self, object, object to store members on
-    @ In, Input, dict, i.e. {string:numpy.array}, dictionary containing inputs from RAVEN
-    @ Out, None
-  """
-  x0 = Input.get('x0')
-  y0 = Input.get('y0')
-  v0 = Input.get('v0')
-  ang = Input.get('angle')
-  timeOption = Input.get('timeOption')
-  x0 = 0. if x0 is None else x0[0]
-  y0 = 0. if y0 is None else y0[0]
-  v0 = 1. if v0 is None else v0[0]
-  ang = 45.*np.pi/180. if ang is None else ang[0]*np.pi/180.
-  timeOption = 0 if timeOption is None else timeOption[0]
-  self.x0 = x0
-  self.y0 = y0
-  self.v0 = v0
-  self.ang = ang
-  self.timeOption = timeOption
+def calc_vel(y0, y, v0, ang, g=9.8):
+  E_m = 0.5 * v0*v0 + g*y0
+  vel = np.sqrt(v0*v0 - 2*g*(y-y0))
+  x_vel = v0 * np.cos(ang)
+  y_vel = np.sqrt(vel*vel - x_vel*x_vel)
+  return x_vel, y_vel, vel
+
+def current_angle(v0, ang, vel):
+  return np.arccos(v0 * np.cos(ang) / vel)
+
+def run(raven, inputs):
+  vars = {'x0': get_from_raven(raven,'x0', 0),
+          'y0': get_from_raven(raven,'y0', 0),
+          'v0': get_from_raven(raven,'v0', 1),
+          'ang': get_from_raven(raven,'v0', 45),
+          'timeOption': get_from_raven(raven,'v0', 0)}
+  res = main(vars)
+  raven.x = res['x']
+  raven.y = res['y']
+  raven.t = res['t']
+  raven.r = res['r'] * np.ones(len(raven.x))
+  raven.v = res['v']
+  raven.a = res['a']
+
+def get_from_raven(raven, attr, default=None):
+  return np.squeeze(getattr(raven, attr, default))
+
+def main(Input):
+  x0 = Input.get('x0', 0)
+  y0 = Input.get('y0', 0)
+  v0 = Input.get('v0', 1)
+  ang = Input.get('angle', 45)
+  g = Input.get('g', 9.8)
+  timeOption = Input.get('timeOption', 0)
+  ang = ang * np.pi / 180
   if timeOption == 0:
-    ts = np.linspace(0,1,10) #time_to_ground(v0,ang,y0),10)
+    ts = np.linspace(0,1,10)
   else:
     # due to numpy library update, the return shape of np.linspace
     # is changed when an array-like input is provided, i.e. return from time_to_ground
-    ts = np.linspace(0,time_to_ground(v0,ang,y0),50)
+    ts = np.linspace(0,time_to_ground(v0,ang,y0),10)
 
   vx0 = np.cos(ang)*v0
   vy0 = np.sin(ang)*v0
   r = prange(v0,ang,y0)
 
-  self.x = np.zeros(len(ts))
-  self.y = np.zeros(len(ts))
-  self.r = np.zeros(len(ts))
+  x = np.zeros(len(ts))
+  y = np.zeros(len(ts))
+  v = np.zeros(len(ts))
+  a = np.zeros(len(ts))
   for i,t in enumerate(ts):
-    self.x[i] = x_pos(x0,vx0,t)
-    self.y[i] = y_pos(y0,vy0,t)
-    self.r[i] = r
-  self.t = ts
+    x[i] = x_pos(x0,vx0,t)
+    y[i] = y_pos(y0,vy0,t)
+    vx, vy, vm = calc_vel(y0, y[i], v0, ang, g)
+    v[i] = vm
+    a[i] = current_angle(v0, ang, vm)
+  t = ts
+  return {'x': x, 'y': y, 'r': r, 't': ts, 'v': v, 'a': a,
+    'x0': x0, 'y0': y0, 'v0': v0, 'ang': ang, 'timeOption': timeOption}
 
 #can be used as a code as well
 if __name__=="__main__":
@@ -119,21 +140,16 @@ if __name__=="__main__":
   #construct the input
   Input = {}
   for line in open(inFile,'r'):
-    arg,val = (a.strip() for a in line.split('='))
-    Input[arg] = np.atleast_1d(float(val))
-  #make a dummy class to hold values
-  class IO:
-    """
-      Dummy class to hold values like RAVEN does
-    """
-    pass
-  io = IO()
+    arg, val = (a.strip() for a in line.split('='))
+    Input[arg] = float(val)
   #run the code
-  run(io,Input)
+  res = main(Input)
   #write output
   outFile = open(outFile+'.csv','w')
-  outFile.writelines('x0,y0,v0,ang,r,t,x,y\n')
-  inpstr = ','.join(str(i) for i in (io.x0,io.y0,io.v0,io.ang))
-  for i in range(len(io.t)):
-    outFile.writelines(inpstr+',%f,%f,%f,%f\n' %(io.r[i],io.x[i],io.y[i],io.t[i]))
+  outFile.writelines(','.join(in_vars) + ',' + ','.join(out_vars) + '\n')
+  template = ','.join('{{}}'.format(v) for v in in_vars + out_vars) + '\n'
+  print('template:', template)
+  for i in range(len(res['t'])):
+    this = [(res[v][i] if len(np.shape(res[v])) else res[v]) for v in in_vars + out_vars]
+    outFile.writelines(template.format(*this))
   outFile.close()

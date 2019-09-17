@@ -1452,7 +1452,7 @@ class ROM(Dummy):
       @ In, trainingSize, int, the size of current training size
       @ Out, cvScore, dict, the dict containing the score of cross validation
     """
-    if self.subType.lower() != 'scikitlearn':
+    if self.subType.lower() not in ['scikitlearn','ndinvdistweight']:
       self.raiseAnError(IOError, 'convergence calculation is not Implemented for ROM', self.name, 'with type', self.subType)
     cvScore = self._crossValidationScore(trainingSet)
     return cvScore

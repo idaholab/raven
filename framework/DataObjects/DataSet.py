@@ -1535,7 +1535,7 @@ class DataSet(DataObject):
       @ In, fileName, str, name of file without extension
       @ Out, varList, list(str), list of variables
     """
-    with open(fileName+'.csv','rU') as f:
+    with open(fileName+'.csv','r') as f:
       provided = list(s.strip() for s in f.readline().split(','))
     return provided
 
