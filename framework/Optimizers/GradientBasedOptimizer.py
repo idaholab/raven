@@ -180,23 +180,20 @@ class GradientBasedOptimizer(Optimizer):
     """
     # let the local do the main gradient evaluation
     gradient = self.localEvaluateGradient(traj)
-    print(gradient)
-    if True: #conjugate gradient
-      try:
-        self.localGradEvals[traj][1] = self.localGradEvals[traj][0]
-      except IndexError:
-        pass
-      self.localGradEvals[traj][0] = gradient
-      useGrad = {}
-      for var in self.getOptVars():
-        if len(self.localGradEvals[traj]) == 2:
-          useGrad[var] = 0.7 * self.localGradEvals[traj][0][var] + 0.3 * self.localGradEvals[traj][1][var]
-        elif len(self.localGradEvals[traj]) == 1:
-          useGrad[var] = self.localGradEvals[traj][0][var]
-      gradient = useGrad
+    # if True: #conjugate gradient
+    #   try:
+    #     self.localGradEvals[traj][1] = self.localGradEvals[traj][0]
+    #   except IndexError:
+    #     pass
+    #   self.localGradEvals[traj][0] = gradient
+    #   useGrad = {}
+    #   for var in self.getOptVars():
+    #     if len(self.localGradEvals[traj]) == 2:
+    #       useGrad[var] = 0.7 * self.localGradEvals[traj][0][var] + 0.3 * self.localGradEvals[traj][1][var]
+    #     elif len(self.localGradEvals[traj]) == 1:
+    #       useGrad[var] = self.localGradEvals[traj][0][var]
+    #   gradient = useGrad
 
-    print('jz is looking at the gradient')
-    print(gradient)
     # we intend for gradient to give direction only, so get the versor
     ## NOTE this assumes gradient vectors are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
     gradientNorm = self.calculateMultivectorMagnitude(gradient.values())
@@ -226,7 +223,6 @@ class GradientBasedOptimizer(Optimizer):
     except IndexError:
       pass # don't have a history on the first pass
     self.counter['gradientHistory'][traj][0] = gradient
-
 
     return gradient
 
@@ -426,7 +422,7 @@ class GradientBasedOptimizer(Optimizer):
     for var,vals in outputs.items():
       outputs[var] = vals.mean()
     outputs.update(inputs)
-    print(outputs)
+    print('average output',outputs)
     return outputs
 
   def calculateMultivectorMagnitude(self,values):
