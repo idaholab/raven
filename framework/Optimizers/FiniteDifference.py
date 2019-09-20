@@ -115,8 +115,6 @@ class FiniteDifference(SPSA):
     inVars = self.getOptVars()
     opt = self.realizations[traj]['denoised']['opt'][0]
     allGrads = self.realizations[traj]['denoised']['grad']
-    print('opt',opt)
-    print('allGrad',allGrads)
     for g,pert in enumerate(allGrads):
       varId = g % len(inVars)
       var = inVars[varId]
@@ -130,9 +128,10 @@ class FiniteDifference(SPSA):
         self.raiseADebug('Opt point   :',opt)
         self.raiseADebug('Grad point  :',pert)
         self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
-      if var in gradient:
-        gradient[var] += np.atleast_1d(lossDiff / dh)
-      else:
+      if gradient.get(var) == None:
+        gi[var] = 0
         gradient[var] = np.atleast_1d(lossDiff / dh)
-    print('gggggggggg',gradient)
+      else:
+        gi[var] += 1
+        gradient[var] = (gradient[var] + np.atleast_1d(lossDiff / dh))/(gi[var]  + 1)
     return gradient

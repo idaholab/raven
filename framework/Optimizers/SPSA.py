@@ -373,6 +373,7 @@ class SPSA(GradientBasedOptimizer):
           index += 1
           point[var] = val
       points.append(point)
+
       if submit:
         prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i)
         self.submissionQueue[traj].append({'inputs':point, 'prefix':prefix})

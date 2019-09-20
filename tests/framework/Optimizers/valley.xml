@@ -51,7 +51,7 @@
         <persistence>5</persistence>
       </convergence>
       <!--parameter>
-        <numGradAvgIterations>5</numGradAvgIterations>
+        <numGradAvgIterations>2</numGradAvgIterations>
       </parameter-->
       <variable name="x">
         <upperBound>1</upperBound>

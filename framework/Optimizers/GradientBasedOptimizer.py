@@ -399,11 +399,6 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, outputs, dict, dictionary of average values
     """
     # make a place to store distinct evaluation values
-    # print('inside collectionoptput')
-    # # print(collection)
-    # # print(self.gradDict)
-    # print(self.solutionExport.asDataset())
-    # # print(self.getOptVars()) x y
     outputs = dict((var,np.zeros(self.gradDict['numIterForAve'],dtype=object))
                       for var in self.solutionExport.getVars('output')
                       if var in self.mdlEvalHist.getVars('output'))
@@ -422,7 +417,7 @@ class GradientBasedOptimizer(Optimizer):
     for var,vals in outputs.items():
       outputs[var] = vals.mean()
     outputs.update(inputs)
-    print('average output',outputs)
+    # print('average output',outputs)
     return outputs
 
   def calculateMultivectorMagnitude(self,values):
@@ -655,6 +650,7 @@ class GradientBasedOptimizer(Optimizer):
       #entries into the queue are as {'inputs':{var:val}, 'prefix':runid} where runid is <traj>_<varUpdate>_<evalNumber> as 0_0_2
       nPoint = {'inputs':copy.deepcopy(point)} #deepcopy to prevent simultaneous alteration
       nPoint['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) # from 0 to self.gradDict['numIterForAve'] are opt point evals
+      # this submission queue only have the denoise number of opt point
       self.submissionQueue[traj].append(nPoint)
 
   def _removeRedundantTraj(self, trajToRemove, currentInput):
