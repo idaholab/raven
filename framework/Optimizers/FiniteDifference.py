@@ -133,5 +133,5 @@ class FiniteDifference(SPSA):
         gradient[var] = np.atleast_1d(lossDiff / dh)
       else:
         gi[var] += 1
-        gradient[var] = (gradient[var] + np.atleast_1d(lossDiff / dh))/(gi[var]  + 1)
+        gradient[var] = (gradient[var] + np.atleast_1d(lossDiff / dh))* gi[var]/(gi[var]  + 1)
     return gradient

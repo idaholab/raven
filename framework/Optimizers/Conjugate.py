@@ -171,58 +171,58 @@ class ConjugateGradient(SPSA):
             print('old_old_fval =',old_old_fval)
             # print([gfk])
 
-            # while (gnorm > gtol) and (k < maxiter):
-            #   print('inside while')
-            #   deltak = np.dot(gfk, gfk)
-            #   print(deltak)
-            # # try:
-            #   # alpha_k, fc, gc, old_fval, old_old_fval, gfkp1 = \
-            #   #         _line_search_wolfe12(f, myfprime, xk, pk, gfk, old_fval,
-            #   #                               old_old_fval, c2=0.4, amin=1e-100, amax=1e100,
-            #   #                               extra_condition=descent_condition)
-            #   # extra_condition = self.descentCondition(alpha, xkp1, fp1, gfkp1)
-            #   # alpha_k, fc, gc, old_fval, old_old_fval, gfkp1  = line_search_wolfe1(f, fprime, xk, pk, gfk,
-            #   #                                                   old_fval, old_old_fval,**kwargs)
-            #   # newargs = args
-            #   gradient = True
-            #   gval = [gfk]
-            #   derphi0 = np.dot(gfk, pk)
-            #   # def phi(s):
-            #   #   return f(xk + s*pk)
-            #   # def derphi(s):
-            #   #   gval[0] = fprime(xk + s*pk, *newargs)
-            #   #   return np.dot(gval[0], pk)
+            while (gnorm > gtol) and (k < maxiter):
+              print('inside while')
+              deltak = np.dot(gfk, gfk)
+              print(deltak)
+            # try:
+              # alpha_k, fc, gc, old_fval, old_old_fval, gfkp1 = \
+              #         _line_search_wolfe12(f, myfprime, xk, pk, gfk, old_fval,
+              #                               old_old_fval, c2=0.4, amin=1e-100, amax=1e100,
+              #                               extra_condition=descent_condition)
+              # extra_condition = self.descentCondition(alpha, xkp1, fp1, gfkp1)
+              # alpha_k, fc, gc, old_fval, old_old_fval, gfkp1  = line_search_wolfe1(f, fprime, xk, pk, gfk,
+              #                                                   old_fval, old_old_fval,**kwargs)
+              # newargs = args
+              gradient = True
+              gval = [gfk]
+              derphi0 = np.dot(gfk, pk)
+              # def phi(s):
+              #   return f(xk + s*pk)
+              # def derphi(s):
+              #   gval[0] = fprime(xk + s*pk, *newargs)
+              #   return np.dot(gval[0], pk)
 
-            #   # stp, fval, old_fval = scalar_search_wolfe1(
-            #   #                     phi, derphi, old_fval, old_old_fval, derphi0,
-            #   #                     c1=c1, c2=c2, amax=amax, amin=amin, xtol=xtol)
-            #   alpha1 = min(1.0, 1.01*2*(old_fval - old_old_fval)/derphi0)
-            #   phi1 = old_fval
-            #   derphi1 = derphi0
-            #   isave = np.zeros((2,), np.intc)
-            #   dsave = np.zeros((13,), float)
-            #   task = b'START'
-            #   maxiter = 10
-            #   print('ok here')
-            #   for i in range(maxiter):
-            #     print(alpha1)
-            #     print(phi1)
-            #     print(derphi1)
-            #     stp, phi1, derphi1, task = minpack2.dcsrch(alpha1, phi1, derphi1,
-            #                                       ftol=1e-4, gtol=0.4, xtol=1e-14, task = task,
-            #                                       stpmin=1e-100, stpmax=1e100, isave = isave , dsave=dsave)
-            #     print('lulueluelueluleuleuleuleuleu',stp, phi1, derphi1, task[:2])
-            #     i+=1
-            #     # if task[:2] == b'FG':
-            #     #   alpha1 = stp
-            #     #   newx = xk + stp*pk
-            #     #   phi1 = f(newx)
-            #     #   derphi1 = np.dot(fprime(newx), pk)
-            #     # else:
-            #     #   break
-            #   k += 100
-            #   # except:
-            #   #   print("An exception occurred")
+              # stp, fval, old_fval = scalar_search_wolfe1(
+              #                     phi, derphi, old_fval, old_old_fval, derphi0,
+              #                     c1=c1, c2=c2, amax=amax, amin=amin, xtol=xtol)
+              alpha1 = min(1.0, 1.01*2*(old_fval - old_old_fval)/derphi0)
+              phi1 = old_fval
+              derphi1 = derphi0
+              isave = np.zeros((2,), np.intc)
+              dsave = np.zeros((13,), float)
+              task = b'START'
+              maxiter = 10
+              print('ok here')
+              for i in range(maxiter):
+                print(alpha1)
+                print(phi1)
+                print(derphi1)
+                stp, phi1, derphi1, task = minpack2.dcsrch(alpha1, phi1, derphi1,
+                                                  ftol=1e-4, gtol=0.4, xtol=1e-14, task = task,
+                                                  stpmin=1e-100, stpmax=1e100, isave = isave , dsave=dsave)
+                print('lulueluelueluleuleuleuleuleu',stp, phi1, derphi1, task[:2],dsave)
+                i+=1
+                # if task[:2] == b'FG':
+                #   alpha1 = stp
+                #   newx = xk + stp*pk
+                #   phi1 = f(newx)
+                #   derphi1 = np.dot(fprime(newx), pk)
+                # else:
+                #   break
+              k += 100
+              # except:
+              #   print("An exception occurred")
 
 
 
