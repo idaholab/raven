@@ -35,7 +35,12 @@ try:
   import PySide.QtCore as qtc
   __QtAvailable = True
 except ImportError as e:
-  __QtAvailable = False
+  try:
+    import PySide2.QtWidgets as qtw
+    import PySide2.QtCore as qtc
+    __QtAvailable = True
+  except ImportError as e:
+    __QtAvailable = False
 
 if __QtAvailable:
   class InteractiveApplication(qtw.QApplication, MessageHandler.MessageUser):

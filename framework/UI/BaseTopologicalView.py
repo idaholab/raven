@@ -22,9 +22,12 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
 
-
-from PySide.QtCore import QSize
-from PySide.QtGui import QWidget
+try:
+  from PySide.QtCore import QSize
+  from PySide.QtGui import QWidget
+except ImportError as e:
+  from PySide2.QtCore import QSize
+  from PySide2.QtWidgets import QWidget
 
 class BaseTopologicalView(QWidget):
   """
