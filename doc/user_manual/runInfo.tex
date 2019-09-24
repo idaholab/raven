@@ -79,7 +79,7 @@ the settings of the calculation flow that is being performed through RAVEN:
   Since the main thread is also responsible for collecting the results of
   previously finished jobs, it is possible that faster jobs may complete before
   the main thread can replenish the queue.
-  By increasing this value, you are allowing RAVEN to consume more memory 
+  By increasing this value, you are allowing RAVEN to consume more memory
   in order to stage more jobs, placing them in a pending job queue, with the
   benefit that slower job collection times will be masked as the job handler
   will flush the complete jobs and run whatever is available on the pending
@@ -246,7 +246,7 @@ of protocol the parallel enviroment should use.
 %
 RAVEN currently supports one pre-defined ``mode'':
   \begin{itemize}
-    \item \textbf{mpi}: this ``mode'' uses \xmlNode{MPIExec}  command (default: \texttt{mpiexec}) 
+    \item \textbf{mpi}: this ``mode'' uses \xmlNode{MPIExec}  command (default: \texttt{mpiexec})
       to distribute the running program; more information regarding this protocol can be found
       in~\cite{MPI}.
       Mode ``MPI''  can either generate a \texttt{qsub} command or can execute
@@ -332,7 +332,7 @@ PROFESSIONAL, etc.).
 \default{PBS PROFESSIONAL}
 
 %%%%%% EXPECTED TIME
-\item \xmlNode{expectedTime}, \xmlDesc{colum separated string, optional field
+\item \xmlNode{expectedTime}, \xmlDesc{colon separated string, optional field
 (mpi or custom mode)}, specifies the time the whole calculation is expected to
 last.
 %
