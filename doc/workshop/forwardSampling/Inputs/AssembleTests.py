@@ -20,6 +20,11 @@ sys.path.append(frameworkPath)
 from utils import xmlUtils
 
 def write1():
+  """
+    Writes the corresponding test.
+    @ In, None
+    @ Out, None
+  """
   name = '1_sample_and_plot.xml'
   root, _ = xmlUtils.loadToTree('../exercises/{}'.format(name))
   # remove interactive plot
@@ -28,6 +33,11 @@ def write1():
   xmlUtils.toFile('test_'+name, root)
 
 def write2():
+  """
+    Writes the corresponding test.
+    @ In, None
+    @ Out, None
+  """
   name = '2_normal_distribution.xml'
   root, _ = xmlUtils.loadToTree('../exercises/{}'.format(name))
   # add normal distribution node
@@ -41,6 +51,11 @@ def write2():
   xmlUtils.toFile('test_'+name, root)
 
 def write3():
+  """
+    Writes the corresponding test.
+    @ In, None
+    @ Out, None
+  """
   fromName = 'test_2_normal_distribution.xml'
   toName = '3_initial_height.xml'
   root, _ = xmlUtils.loadToTree(fromName)
@@ -73,6 +88,11 @@ def write3():
   xmlUtils.toFile('test_'+toName, root)
 
 def write4():
+  """
+    Writes the corresponding test.
+    @ In, None
+    @ Out, None
+  """
   fromName = 'test_3_initial_height.xml'
   toName = '4_grid_sampler.xml'
   root, _ = xmlUtils.loadToTree(fromName)
@@ -94,6 +114,11 @@ def write4():
   xmlUtils.toFile('test_'+toName, root)
 
 def write5():
+  """
+    Writes the corresponding test.
+    @ In, None
+    @ Out, None
+  """
   fromName = 'test_4_grid_sampler.xml'
   toName = '5_basic_stats.xml'
   root, _ = xmlUtils.loadToTree(fromName)
@@ -128,9 +153,102 @@ def write5():
   # write
   xmlUtils.toFile('test_'+toName, root)
 
+def write6():
+  """
+    Writes the corresponding test.
+    @ In, None
+    @ Out, None
+  """
+  fromName = '../exercises/6_point_sets.xml'
+  toName = '6_point_sets.xml'
+  root, _ = xmlUtils.loadToTree(fromName)
+  # write
+  xmlUtils.toFile('test_'+toName, root)
+
+def write7():
+  """
+    Writes the corresponding test.
+    @ In, None
+    @ Out, None
+  """
+  fromName = 'test_6_point_sets.xml'
+  toName = '7_history_sets.xml'
+  root, _ = xmlUtils.loadToTree(fromName)
+  # workdir
+  xmlUtils.findPath(root, 'RunInfo/WorkingDir').text = 'r7'
+  # step
+  xmlUtils.findPath(root, 'Steps/MultiRun/Output').attrib['type'] = 'HistorySet'
+  xmlUtils.findPath(root, 'Steps/IOStep/Input').attrib['type'] = 'HistorySet'
+  # model
+  xmlUtils.findPath(root, 'Models/ExternalModel/variables').text = 'v0,y0,angle,timeOption,x,y,t'
+  # data object
+  data = xmlUtils.findPath(root, 'DataObjects/PointSet[@name=\'results\']')
+  data.tag = 'HistorySet'
+  data.find('Output').text = 'x,y,t'
+  opts = xmlUtils.newNode('options')
+  data.append(opts)
+  opts.append(xmlUtils.newNode('pivotParameter', text='t'))
+  # write
+  xmlUtils.toFile('test_'+toName, root)
+
+def write8():
+  """
+    Writes the corresponding test.
+    @ In, None
+    @ Out, None
+  """
+  fromName = '../exercises/8_soln.xml'
+  toName = '8_history_sync.xml'
+  root, _ = xmlUtils.loadToTree(fromName)
+  # write
+  xmlUtils.toFile('test_'+toName, root)
+
+def write9():
+  fromName = 'test_8_history_sync.xml'
+  toName = '9_time_stats.xml'
+  root, _ = xmlUtils.loadToTree(fromName)
+  # workdir
+  xmlUtils.findPath(root, 'RunInfo/WorkingDir').text = 'r9'
+  xmlUtils.findPath(root, 'RunInfo/Sequence').text += ',stats'
+  # step
+  step = xmlUtils.newNode('PostProcess', attrib={'name':'stats'})
+  root.find('Steps').append(step)
+  step.append(xmlUtils.newNode('Input', attrib={'class':'DataObjects', 'type':'HistorySet'}, text='synced'))
+  step.append(xmlUtils.newNode('Model', attrib={'class':'Models', 'type':'PostProcessor'}, text='stats_pp'))
+  step.append(xmlUtils.newNode('Output', attrib={'class':'DataObjects', 'type':'HistorySet'}, text='stats_data'))
+  step.append(xmlUtils.newNode('Output', attrib={'class':'OutStreams', 'type':'Print'}, text='stats_file'))
+  # postprocessor
+  pp = xmlUtils.newNode('PostProcessor', attrib={'name':'stats_pp', 'subType':'BasicStatistics'})
+  root.find('Models').append(pp)
+  pp.append(xmlUtils.newNode('pivotParameter', text='t'))
+  pp.append(xmlUtils.newNode('expectedValue', attrib={'prefix':'mean'}, text='x,y'))
+  pp.append(xmlUtils.newNode('variance', attrib={'prefix':'var'}, text='x,y'))
+  sens = xmlUtils.newNode('sensitivity', attrib={'prefix':'sens'})
+  pp.append(sens)
+  sens.append(xmlUtils.newNode('features', text='x,y'))
+  sens.append(xmlUtils.newNode('targets', text='v0,y0,angle'))
+  # data object
+  data = xmlUtils.newNode('HistorySet', attrib={'name':'stats_data'})
+  root.find('DataObjects').append(data)
+  data.append(xmlUtils.newNode('Output', text='mean_x,var_x,mean_y,var_y,sens_y0_x,sens_angle_x,sens_v0_x,sens_y0_y,sens_angle_y,sens_v0_y'))
+  opts = xmlUtils.newNode('options')
+  data.append(opts)
+  opts.append(xmlUtils.newNode('pivotParameter', text='t'))
+  # out stream
+  print = xmlUtils.newNode('Print', attrib={'name':'stats_file'})
+  root.find('OutStreams').append(print)
+  print.append(xmlUtils.newNode('type', text='csv'))
+  print.append(xmlUtils.newNode('source', text='stats_data'))
+  # write
+  xmlUtils.toFile('test_'+toName, root)
+
 if __name__ == '__main__':
   write1()
   write2()
   write3()
   write4()
   write5()
+  write6()
+  write7()
+  write8()
+  write9()
