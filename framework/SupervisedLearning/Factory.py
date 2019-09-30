@@ -22,27 +22,48 @@ import warnings
 warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
-################################################################################
+#Internal Module Lazy Import-------------------------------------------------------------------------
+from utils.lazyImporterUtils import import_collable_lazy
+#Internal Module Lazy Import End---------------------------------------------------------------------
 
+################################################################################
 from SupervisedLearning.SupervisedLearning import supervisedLearning
-# Forward Samplers
-from SupervisedLearning.ARMA               import ARMA
-from SupervisedLearning.GaussPolynomialRom import GaussPolynomialRom
-from SupervisedLearning.HDMRRom            import HDMRRom
-from SupervisedLearning.MSR                import MSR
-from SupervisedLearning.NDinterpolatorRom  import NDinterpolatorRom
-from SupervisedLearning.NDinvDistWeight    import NDinvDistWeight
-from SupervisedLearning.NDsplineRom        import NDsplineRom
-from SupervisedLearning.SciKitLearn        import SciKitLearn
-from SupervisedLearning.pickledROM         import pickledROM
-from SupervisedLearning.PolyExponential    import PolyExponential
-from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
-from .KerasClassifier import isTensorflowAvailable
-if isTensorflowAvailable():
-  from .KerasClassifier import KerasClassifier
-  from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
-  from SupervisedLearning.KerasConvNetClassifier import KerasConvNetClassifier
-  from SupervisedLearning.KerasLSTMClassifier import KerasLSTMClassifier
+# ROMS (LAZY IMPORTS)
+ARMA                     = import_collable_lazy("SupervisedLearning.ARMA.ARMA")
+GaussPolynomialRom       = import_collable_lazy("SupervisedLearning.GaussPolynomialRom.GaussPolynomialRom")
+HDMRRom                  = import_collable_lazy("SupervisedLearning.HDMRRom.HDMRRom")
+MSR                      = import_collable_lazy("SupervisedLearning.MSR.MSR")
+NDinterpolatorRom        = import_collable_lazy("SupervisedLearning.NDinterpolatorRom.NDinterpolatorRom")
+NDinvDistWeight          = import_collable_lazy("SupervisedLearning.NDinvDistWeight.NDinvDistWeight")
+NDsplineRom              = import_collable_lazy("SupervisedLearning.NDsplineRom.NDsplineRom")
+SciKitLearn              = import_collable_lazy("SupervisedLearning.SciKitLearn.SciKitLearn")
+pickledROM               = import_collable_lazy("SupervisedLearning.pickledROM.pickledROM")
+PolyExponential          = import_collable_lazy("SupervisedLearning.PolyExponential.PolyExponential")
+DynamicModeDecomposition = import_collable_lazy("SupervisedLearning.DynamicModeDecomposition.DynamicModeDecomposition")
+KerasClassifier          = import_collable_lazy("KerasClassifier.KerasClassifier")
+KerasMLPClassifier       = import_collable_lazy("SupervisedLearning.KerasMLPClassifier.KerasMLPClassifier")
+KerasConvNetClassifier   = import_collable_lazy("SupervisedLearning.KerasConvNetClassifier.KerasConvNetClassifier")
+KerasLSTMClassifier      = import_collable_lazy("SupervisedLearning.KerasLSTMClassifier.KerasLSTMClassifier")
+#Collection               = import_collable_lazy("SupervisedLearning.ROMCollection.Collection")
+#Segments                 = import_collable_lazy("SupervisedLearning.ROMCollection.Segments")
+#Clusters                 = import_collable_lazy("SupervisedLearning.ROMCollection.Clusters")
+#from SupervisedLearning.ARMA               import ARMA
+#from SupervisedLearning.GaussPolynomialRom import GaussPolynomialRom
+#from SupervisedLearning.HDMRRom            import HDMRRom
+#from SupervisedLearning.MSR                import MSR
+#from SupervisedLearning.NDinterpolatorRom  import NDinterpolatorRom
+#from SupervisedLearning.NDinvDistWeight    import NDinvDistWeight
+#from SupervisedLearning.NDsplineRom        import NDsplineRom
+#from SupervisedLearning.SciKitLearn        import SciKitLearn
+#from SupervisedLearning.pickledROM         import pickledROM
+#from SupervisedLearning.PolyExponential    import PolyExponential
+#from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
+#from .KerasClassifier import isTensorflowAvailable
+#if isTensorflowAvailable():
+#  from .KerasClassifier import KerasClassifier
+#  from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
+#  from SupervisedLearning.KerasConvNetClassifier import KerasConvNetClassifier
+#  from SupervisedLearning.KerasLSTMClassifier import KerasLSTMClassifier
 from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters
 
 ## [ Add new class here ]
@@ -55,24 +76,23 @@ from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters
 # This machinery will automatically populate the "knownTypes" given the
 # imports defined above.
 __base = 'supervisedLearning'
-__interfaceDict                         = {}
-__interfaceDict['NDspline'            ] = NDsplineRom
-__interfaceDict['NDinvDistWeight'     ] = NDinvDistWeight
-__interfaceDict['NDsplineRom'         ] = NDsplineRom
-__interfaceDict['SciKitLearn'         ] = SciKitLearn
-__interfaceDict['GaussPolynomialRom'  ] = GaussPolynomialRom
-__interfaceDict['HDMRRom'             ] = HDMRRom
-__interfaceDict['MSR'                 ] = MSR
-__interfaceDict['ARMA'                ] = ARMA
-__interfaceDict['pickledROM'          ] = pickledROM
-__interfaceDict['PolyExponential'     ] = PolyExponential
-__interfaceDict['DMD'                 ] = DynamicModeDecomposition
-__interfaceDict['Segments'            ] = Segments
-__interfaceDict['Clusters'            ] = Clusters
-if isTensorflowAvailable():
-  __interfaceDict['KerasMLPClassifier'    ] = KerasMLPClassifier
-  __interfaceDict['KerasConvNetClassifier'] = KerasConvNetClassifier
-  __interfaceDict['KerasLSTMClassifier'   ] = KerasLSTMClassifier
+__interfaceDict                           = {}
+__interfaceDict['NDspline'              ] = NDsplineRom
+__interfaceDict['NDinvDistWeight'       ] = NDinvDistWeight
+__interfaceDict['NDsplineRom'           ] = NDsplineRom
+__interfaceDict['SciKitLearn'           ] = SciKitLearn
+__interfaceDict['GaussPolynomialRom'    ] = GaussPolynomialRom
+__interfaceDict['HDMRRom'               ] = HDMRRom
+__interfaceDict['MSR'                   ] = MSR
+__interfaceDict['ARMA'                  ] = ARMA
+__interfaceDict['pickledROM'            ] = pickledROM
+__interfaceDict['PolyExponential'       ] = PolyExponential
+__interfaceDict['DMD'                   ] = DynamicModeDecomposition
+__interfaceDict['Segments'              ] = Segments
+__interfaceDict['Clusters'              ] = Clusters
+__interfaceDict['KerasMLPClassifier'    ] = KerasMLPClassifier
+__interfaceDict['KerasConvNetClassifier'] = KerasConvNetClassifier
+__interfaceDict['KerasLSTMClassifier'   ] = KerasLSTMClassifier
 
 def knownTypes():
   """

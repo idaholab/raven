@@ -29,23 +29,20 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
-from numpy import average
-import sys
-if sys.version_info.major > 2:
-  from crow_modules.distribution1Dpy3 import CDF
-else:
-  from crow_modules.distribution1Dpy2 import CDF
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import abc
 import copy
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+if sys.version_info.major > 2:
+  from crow_modules.distribution1Dpy3 import CDF
+else:
+  from crow_modules.distribution1Dpy2 import CDF
 from utils import utils, mathUtils, xmlUtils
 import MessageHandler
-
 interpolationND = utils.findCrowModule('interpolationND')
 #Internal Modules End--------------------------------------------------------------------------------
 
