@@ -391,16 +391,20 @@ def toBytes(s):
   else:
     return s
 
-def isSingleValued(val,nanOk=True):
+def isSingleValued(val,zeroDOk=True,nanOk=True):
   """
     Determine if a single-entry value (by traditional standards).
     Single entries include strings, numbers, NaN, inf, None
     NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
     @ In, val, object, check
+    @ In, zeroDOk, bool, optional, if True then a zero-d numpy array with a single-valued entry is A-OK
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
     @ Out, isSingleValued, bool, result
   """
   # TODO most efficient order for checking?
+  if zeroDOk:
+    # if a zero-d numpy array, then technically it's single-valued, but we need to get into the array
+    val = npZeroDToEntry(val)
   return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
 
 def isAString(val):
@@ -463,6 +467,17 @@ def isABoolean(val):
     @ Out, isABoolean, bool, result
   """
   return isinstance(val,(bool,numpy.bool_))
+
+def npZeroDToEntry(a):
+  """
+    Cracks the shell of the numpy array and gets the sweet sweet value inside
+    @ In, a, object, thing to crack open (might be anything, hopefully a zero-d numpy array)
+    @ Out, a, object, thing that was inside the thing in the first place
+  """
+  if isinstance(a, numpy.ndarray) and a.shape == ():
+    # make the thing we're checking the thing inside to the numpy array
+    a = a.item()
+  return a
 
 def toBytesIterative(s):
   """
