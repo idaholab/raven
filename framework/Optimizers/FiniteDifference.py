@@ -115,6 +115,7 @@ class FiniteDifference(SPSA):
     inVars = self.getOptVars()
     opt = self.realizations[traj]['denoised']['opt'][0]
     allGrads = self.realizations[traj]['denoised']['grad']
+    gi = {}
     for g,pert in enumerate(allGrads):
       varId = g % len(inVars)
       var = inVars[varId]

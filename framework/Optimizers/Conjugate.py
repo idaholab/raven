@@ -112,16 +112,14 @@ class ConjugateGradient(SPSA):
 
       if self.task[:5] == b'START':
         prefix = jobObject.getMetadata()['prefix']
-        traj, step, identifier = [int(x) for x in prefix.split('_')] # FIXME This isn't generic for any prefixing
+        traj, step, identifier = [int(x) for x in prefix.split('_')]
+        self.raiseADebug('Collected sample "{}"'.format(prefix))
         category, number, _, cdId = self._identifierToLabel(identifier)
         done, index = self._checkModelFinish(str(traj), str(step), str(identifier))
         number = number + (cdId * len(self.fullOptVars))
         self.realizations[traj]['collect'][category][number].append(index)
-        # check if any further action needed because we have all the points we need for opt or grad
         if len(self.realizations[traj]['collect'][category][number]) == self.realizations[traj]['need']:
-          # get the output space (input space included as well)
           outputs = self._averageCollectedOutputs(self.realizations[traj]['collect'][category][number])
-          # store denoised results
           self.realizations[traj]['denoised'][category][number] = outputs
           if category == 'opt':
             converged = self._finalizeOptimalCandidate(traj,outputs)
@@ -131,6 +129,18 @@ class ConjugateGradient(SPSA):
           gradDone = all( len(self.realizations[traj]['denoised']['grad'][i]) for i in range(self.paramDict['pertSingleGrad']))
           if not converged and optDone and gradDone:
             optCandidate = self.normalizeData(self.realizations[traj]['denoised']['opt'][0])
+            if self.writeSolnExportOn == 'every':
+              self.writeToSolutionExport(traj, optCandidate, self.realizations[traj]['accepted'])
+            # whether we wrote to solution export or not, update the counter
+            self.counter['solutionUpdate'][traj] += 1
+            self.counter['varsUpdate'][traj] += 1
+            ## since accepted, update history
+            try:
+              self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
+            except KeyError:
+              # this means we don't have an entry for this trajectory yet, so don't copy anything
+              pass
+            # store realization of most recent developments
             self.counter['recentOptHist'][traj][0] = optCandidate
             indexmap = self.getOptVars()
             # change xk into array with index matching the index map
@@ -156,200 +166,92 @@ class ConjugateGradient(SPSA):
                                                     stpmax=1e100, isave = self.isave , dsave=self.dsave)
             if self.task[:2] == b'FG':
               self.alpha1 = self.stp
-              newx = self.xk + self.stp*self.pk
-              # need to submit this to get phi1, derphi1
               grad= dict((var,self.gfk[ind]/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])) for ind,var in enumerate(indexmap))
               new = self._newOptPointAdd(grad, traj)
+              if new is not None:
+                # add new gradient points
+                self._createPerturbationPoints(traj, new)
+              # reset storage
+              self._setupNewStorage(traj)
+            else:
+              self.stp = None
+              self.raiseAnError(ValueError, 'Not able to calculate the first step')
 
+      elif self.task[:2] == b'FG':
+        prefix = jobObject.getMetadata()['prefix']
+        traj, step, identifier = [int(x) for x in prefix.split('_')]
+        self.raiseADebug('Collected sample "{}"'.format(prefix))
+        category, number, _, cdId = self._identifierToLabel(identifier)
+        done, index = self._checkModelFinish(str(traj), str(step), str(identifier))
+        number = number + (cdId * len(self.fullOptVars))
+        self.realizations[traj]['collect'][category][number].append(index)
+        if len(self.realizations[traj]['collect'][category][number]) == self.realizations[traj]['need']:
+          outputs = self._averageCollectedOutputs(self.realizations[traj]['collect'][category][number])
+          print('outputoutputoutput',outputs)
+          self.realizations[traj]['denoised'][category][number] = outputs
+          if category == 'opt':
+            converged = self._finalizeOptimalCandidate(traj,outputs)
+          else:
+            converged = False
+          optDone = bool(len(self.realizations[traj]['denoised']['opt'][0]))
+          gradDone = all( len(self.realizations[traj]['denoised']['grad'][i]) for i in range(self.paramDict['pertSingleGrad']))
+          if not converged and optDone and gradDone:
+            optCandidate = self.normalizeData(self.realizations[traj]['denoised']['opt'][0])
+            if self.writeSolnExportOn == 'every':
+              print('everyeveryevery')
+              self.writeToSolutionExport(traj, optCandidate, self.realizations[traj]['accepted'])
+            # whether we wrote to solution export or not, update the counter
+            self.counter['solutionUpdate'][traj] += 1
+            self.counter['varsUpdate'][traj] += 1
+            ## since accepted, update history
+            try:
+              self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
+            except KeyError:
+              # this means we don't have an entry for this trajectory yet, so don't copy anything
+              pass
+            indexmap = self.getOptVars()
+            newGrad = dict((var,self.localEvaluateGradient(traj)[var][0]) for var in indexmap)
+            newGrad = np.asarray(list(newGrad.values()))
+            # after step
 
+            phi1 = self.realizations[traj]['denoised']['opt'][0][self.objVar]
+            derphi1 = np.dot(newGrad, self.pk)
+            print('youyouchecking self.alpha1,phi1,derphi1',self.alpha1,phi1,derphi1)
+            self.stp, _, _, self.task = minpack2.dcsrch(self.alpha1, phi1, derphi1, ftol=1e-4, gtol=0.4,
+                                                    xtol=1e-14, task = self.task, stpmin=1e-100,
+                                                    stpmax=1e100, isave = self.isave , dsave=self.dsave)
 
+            if self.task[:2] == b'FG':
+              self.alpha1 = self.stp
+              grad= dict((var,self.gfk[ind]/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])) for ind,var in enumerate(indexmap))
+              new = self._newOptPointAdd(grad, traj)
+              if new is not None:
+                # add new gradient points
+                self._createPerturbationPoints(traj, new)
+              # reset storage
+              self._setupNewStorage(traj)
+            elif self.task[:11] == b'CONVERGENCE' :
+              self.task = b'START'
+              self.alpha1 = self.stp
+              grad= dict((var,self.gfk[ind]/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])) for ind,var in enumerate(indexmap))
+              new = self._newOptPointAdd(grad, traj)
+              if new is not None:
+                # add new gradient points
+                self._createPerturbationPoints(traj, new)
+              # reset storage
+              self._setupNewStorage(traj)
+            elif self.task[:7] == b'WARNING' :
+              self.raiseAWarning('Desired error not necessarily achieved due to precision loss.')
+            else:
+              self.stp = None
+              print(self.task)
+              self.raiseAnError(ValueError, 'Not able to calculate the fw step')
 
+      else:
+        print(self.task)
+        self.raiseAnError(ValueError, 'Not able to calculate the do what')
+        pass
 
-              # print(graddddd)
-              # print(self.counter['varsUpdate'][traj])
-              #print(self.realizations[traj]['denoised']['opt'][0])
-              # {'ans': 2.9171067811865474, 'x': 0.5, 'y': -0.59999999999999998}
-
-            # else:
-            #   break
-
-      pass
-
-
-
-    # # prefix = jobObject.getMetadata()['prefix']
-      # traj, step, identifier = [int(x) for x in prefix.split('_')] # FIXME This isn't generic for any prefixing system
-      # self.raiseADebug('Collected sample "{}"'.format(prefix))
-      # failed = jobObject.getReturnCode() != 0
-      # if failed:
-      #   self.raiseADebug(' ... sample "{}" FAILED. Cutting step and re-queueing.'.format(prefix))
-      #   # since run failed, cut the step and requeue
-      #   ## cancel any further runs at this point
-      #   self.cancelJobs([self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) for i in range(self.perturbationIndices[-1])])
-      #   self.recommendToGain[traj] = 'cut'
-      #   grad = self.counter['gradientHistory'][traj][0]
-      #   new = self._newOptPointAdd(grad, traj)
-      #   if new is not None:
-      #     self._createPerturbationPoints(traj, new)
-      #   self._setupNewStorage(traj)
-      # else:
-      #   # update self.realizations dictionary for the right trajectory
-      #   # category: is this point an "opt" or a "grad" evaluations?
-      #   # number is which variable is being perturbed, ie which dimention 0 indexed
-      #   category, number, _, cdId = self._identifierToLabel(identifier)
-      #   # done is whether the realization finished
-      #   # index: where is it in the dataObject
-      #   # find index of sample in the target evaluation data object
-      #   done, index = self._checkModelFinish(str(traj), str(step), str(identifier))
-      #   # sanity check
-      #   if not done:
-      #     self.raiseAnError(RuntimeError,'Trying to collect "{}" but identifies as not done!'.format(prefix))
-      #   # store index for future use
-      #   # number is the varID
-      #   number = number + (cdId * len(self.fullOptVars))
-      #   self.realizations[traj]['collect'][category][number].append(index)
-      #   # check if any further action needed because we have all the points we need for opt or grad
-      #   if len(self.realizations[traj]['collect'][category][number]) == self.realizations[traj]['need']:
-      #     # get the output space (input space included as well)
-      #     outputs = self._averageCollectedOutputs(self.realizations[traj]['collect'][category][number])
-      #     # store denoised results
-      #     self.realizations[traj]['denoised'][category][number] = outputs
-
-      #     # if we just finished "opt", check some acceptance and convergence checking
-      #     if category == 'opt':
-      #       converged = self._finalizeOptimalCandidate(traj,outputs)
-      #     else:
-      #       converged = False
-      #     # if both opts and grads are now done, then we can do an evaluation
-      #     ## note that by now we've ALREADY accepted the point; if it was rejected, it would have been reset by now.
-      #     optDone = bool(len(self.realizations[traj]['denoised']['opt'][0]))
-      #     gradDone = all( len(self.realizations[traj]['denoised']['grad'][i]) for i in range(self.paramDict['pertSingleGrad']))
-
-
-      #     if not converged and optDone and gradDone:
-      #       print(self.realizations[traj]['denoised'])
-      #       localmaxiter=100
-      #       # return_all=True
-      #       indexmap = self.getOptVars()
-      #       # change xk into array with index matching the index map
-      #       xk = dict((var,self.realizations[traj]['denoised']['opt'][0][var]) for var in indexmap)
-      #       xk = np.asarray(list(xk.values()))
-      #       gfk = dict((var,self.localEvaluateGradient(traj)[var][0]) for var in indexmap)
-      #       gfk = np.asarray(list(gfk.values()))
-
-      #       k =0
-      #       old_fval = self.realizations[traj]['denoised']['opt'][0][self.objVar]
-
-      #       old_old_fval = old_fval + np.linalg.norm(gfk) / 2
-      #       allvecs = [xk]
-      #       pk = -gfk
-      #       gnorm = np.amax(np.abs(gfk))
-      #       sigma_3 = 0.01
-
-
-      #       # print('this is a test jz')
-      #       # print('need f')
-      #       # print('need fprime')
-      #       print('xk',xk)
-      #       print('gfk',gfk)
-      #       print('k=',k)
-      #       print('old_fval =',old_fval)
-      #       print('old_old_fval =',old_old_fval)
-      #       # print([gfk])
-
-      #       while (gnorm > self.gtol) and (k < self.maxiter):
-      #         print('inside while')
-      #         deltak = np.dot(gfk, gfk)
-      #         print(deltak)
-      #       # try:
-      #         # alpha_k, fc, gc, old_fval, old_old_fval, gfkp1 = \
-      #         #         _line_search_wolfe12(f, myfprime, xk, pk, gfk, old_fval,
-      #         #                               old_old_fval, c2=0.4, amin=1e-100, amax=1e100,
-      #         #                               extra_condition=descent_condition)
-      #         # extra_condition = self.descentCondition(alpha, xkp1, fp1, gfkp1)
-      #         # alpha_k, fc, gc, old_fval, old_old_fval, gfkp1  = line_search_wolfe1(f, fprime, xk, pk, gfk,
-      #         #                                                   old_fval, old_old_fval,**kwargs)
-      #       #  # newargs = args
-
-      #         gradient = True
-      #         gval = [gfk]
-      #         derphi0 = np.dot(gfk, pk)
-      #       #  # def phi(s):
-      #         #   return f(xk + s*pk)
-      #         # def derphi(s):
-      #         #   gval[0] = fprime(xk + s*pk, *newargs)
-      #         #   return np.dot(gval[0], pk)
-
-      #         # stp, fval, old_fval = scalar_search_wolfe1(
-      #         #                     phi, derphi, old_fval, old_old_fval, derphi0,
-      #       # #                     c1=c1, c2=c2, amax=amax, amin=amin, xtol=xtol)
-      #         alpha1 = min(1.0, 1.01*2*(old_fval - old_old_fval)/derphi0)
-      #         phi1 = old_fval
-      #         derphi1 = derphi0
-      #       ##
-      #         # isave = np.zeros((2,), np.intc)
-      #         # dsave = np.zeros((13,), float)
-      #         # task = b'START'
-      #         # maxiter = 10
-      #       ##
-      #         print('ok here')
-      #         for i in range(self.localmaxiter):
-      #           print(alpha1)
-      #           print(phi1)
-      #           print(derphi1)
-      #           stp, phi1, derphi1, task = minpack2.dcsrch(alpha1, phi1, derphi1,
-      #                                             ftol=1e-4, gtol=0.4, xtol=1e-14, task = self.task,
-      #                                             stpmin=1e-100, stpmax=1e100, isave = self.isave , dsave=self.dsave)
-      #           # self.isave = isave
-      #           # self.dsave = dsave
-      #           # self.task  = task
-      #           print('lulueluelueluleuleuleuleuleu',stp, phi1, derphi1, task[:2],self.dsave,self.isave)
-      #           i+=1
-      #           # if task[:2] == b'FG':
-      #           #   alpha1 = stp
-      #           #   newx = xk + stp*pk
-      #           #   phi1 = f(newx)
-      #           #   derphi1 = np.dot(fprime(newx), pk)
-      #           # else:
-      #           #   break
-      #         k += 100
-      #         # except:
-      #         #   print("An exception occurred")
-
-
-
-
-
-      #     # if not converged and optDone and gradDone:
-      #     #   print('this is not a test jz')
-      #     #   optCandidate = self.normalizeData(self.realizations[traj]['denoised']['opt'][0])
-      #     #   print('not converged and optDone and gradDone optdenoised and normaled',self.realizations[traj]['denoised']['opt'][0],optCandidate)
-      #     #   # update solution export
-      #     #   ## only write here if we want to write on EVERY optimizer iteration (each new optimal point)
-      #     #   if self.writeSolnExportOn == 'every':
-      #     #     self.writeToSolutionExport(traj, optCandidate, self.realizations[traj]['accepted'])
-      #     #   # whether we wrote to solution export or not, update the counter
-      #     #   self.counter['solutionUpdate'][traj] += 1
-      #     #   self.counter['varsUpdate'][traj] += 1
-      #     #   ## since accepted, update history
-      #     #   try:
-      #     #     self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
-      #     #   except KeyError:
-      #     #     # this means we don't have an entry for this trajectory yet, so don't copy anything
-      #     #     pass
-      #     #   # store realization of most recent developments
-      #     #   self.counter['recentOptHist'][traj][0] = optCandidate
-      #     #   # find the new gradient for this trajectory at the new opt point
-      #     #   grad = self.evaluateGradient(traj)
-      #     #   # grad = self.localEvaluateGradient(traj)
-      #     #   # get a new candidate
-      #     #   new = self._newOptPointAdd(grad, traj)
-
-      #     #   if new is not None:
-      #     #     # add new gradient points
-      #     #     self._createPerturbationPoints(traj, new)
-      #     #   # reset storage
-      #     #   self._setupNewStorage(traj)
 
   ###################
   # Utility Methods #
@@ -468,6 +370,7 @@ class ConjugateGradient(SPSA):
         prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i)
         self.submissionQueue[traj].append({'inputs':point, 'prefix':prefix})
     print('points',points)
+
     return points
 
 
@@ -552,3 +455,36 @@ class ConjugateGradient(SPSA):
 
     # Accept step if sufficient descent condition applies.
     return np.dot(pk, gfk) <= -sigma_3 * np.dot(gfk, gfk)
+
+  def _finalizeOptimalCandidate(self,traj,outputs):
+    """
+      Once all the data for an opt point has been collected:
+       - determine convergence
+       - determine redundancy
+       - determine acceptability
+       - queue new points (if rejected)
+      @ In, traj, int, the trajectory we are currently considering
+      @ In, outputs, dict, denoised new optimal point
+      @ Out, converged, bool, if True then indicates convergence has been reached
+    """
+    # check convergence and check if new point is accepted (better than old point)
+    accepted = self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputs)
+    # if converged, we can wrap up this trajectory
+    if self.convergeTraj[traj]:
+      # end any excess gradient evaluation jobs
+      self.cancelJobs([self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) for i in self.perturbationIndices])
+      return True #converged
+    # if not accepted, we need to scrap this run and set up a new one
+    if accepted:
+      # store acceptance for later
+      self.realizations[traj]['accepted'] = accepted
+    else:
+      # update solution export
+      optCandidate = self.normalizeData(self.realizations[traj]['denoised']['opt'][0])
+      ## only write here if we want to write on EVERY optimizer iteration (each new optimal point)
+      if self.writeSolnExportOn == 'every':
+        self.writeToSolutionExport(traj, optCandidate, self.realizations[traj]['accepted'])
+      # whether we wrote to solution export or not, update the counter
+      self.counter['solutionUpdate'][traj] += 1
+      self.counter['varsUpdate'][traj] += 1
+    return False #not converged

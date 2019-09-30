@@ -7,6 +7,7 @@
         <xsd:sequence>
             <xsd:element name="SPSA"             type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="FiniteDifference" type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="ConjugateGradient" type="SPSAOptimizer"            minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>

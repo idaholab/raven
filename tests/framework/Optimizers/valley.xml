@@ -21,7 +21,7 @@
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">valley</Model>
-      <Optimizer class="Optimizers" type="FiniteDifference">opter</Optimizer>
+      <Optimizer class="Optimizers" type="ConjugateGradient">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
