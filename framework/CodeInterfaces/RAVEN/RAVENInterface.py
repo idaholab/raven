@@ -261,7 +261,6 @@ class RAVEN(CodeInterfaceBase):
     # modify tree
     if self.inputManipulationModule is not None:
       module = utils.importFromPath(self.inputManipulationModule)
-      print(modifDict)
       modifiedRoot = module.modifyInput(modifiedRoot,modifDict)
     # write input file
     parser.printInput(modifiedRoot,currentInputFiles[index].getAbsFile())
