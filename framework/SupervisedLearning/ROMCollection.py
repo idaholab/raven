@@ -66,6 +66,8 @@ class Collection(supervisedLearning):
       @ Out, d, dict, dictionary with class members
     """
     # construct a list of unpicklable entties and exclude them from pickling
+    ## previously, divisionClassifier was a problem, but it seems not to be now
+    ## save this for future debugging
     ## nope = ['_divisionClassifier', '_assembledObjects']
     nope = ['_assembledObjects']
     # base class
@@ -317,9 +319,11 @@ class Segments(Collection):
     for r, rom in enumerate(roms):
       self.raiseADebug('Evaluating ROM segment', r)
       subResults = rom.evaluate(evaluationDict)
+      ## DEBUGGING OPTIONS
       # year = getattr(self, 'DEBUGGYEAR', 0)
       #This is the place have debugg file
       # os.system('mv signal_bases.csv year_{}_segment_{}_signals.csv'.format(year,r))
+      ## END DEBUGG
       # NOTE the pivot values for subResults will be wrong (shifted) if shifting is used in training
       ## however, we will set the pivotID values all at once after all results are gathered, so it's okay.
       # build "results" structure if not already done -> easier to do once we gather the first sample
@@ -437,7 +441,6 @@ class Segments(Collection):
         # TODO speedup; can we do this without looping?
         dt = pivot[1] - pivot[0]
         while floor < dataLen - 1:
-
           cross = np.searchsorted(pivot, nextOne-0.5*dt) # half dt if for machine percision error
           # if the next crossing point is past the end, put the remainder piece
           ## into the "unclustered" grouping, since it might be very oddly sized
@@ -458,9 +461,6 @@ class Segments(Collection):
           if floor >= len(pivot):
             break
           nextOne = pivot[floor] + segmentValue
-        # #
-        # if counter[-1][1] == dataLen-2:
-        #   counter[-1]=(counter[-1][0],counter[-1][1]+1)
 
       self.raiseADebug('Dividing {:^20s} into {:^5d} divisions for training ...'.format(subspace, len(counter) + len(unclustered)))
     # return the counter indicies as well as any odd-piece-out parts
@@ -560,6 +560,14 @@ class Segments(Collection):
     return rlz
 
   def _getSegmentData(self, full=None):
+    """
+      Provides information about segmenting.
+      @ In, full, bool, optional, if True then use full representation (not clustered)
+      @ Out, indexStarts, np.array, array of indices where segments start
+      @ Out, indexEnds, np.array, array of indices where segments end
+      @ Out, pivotStarts, np.array, array of VALUES where segments start
+      @ Out, pivotEnds, np.array, array of VALUES where segments end
+    """
     if full is None:
       full = True # TODO this is just for clustered ....
     pivotID = self._templateROM.pivotParameterID
@@ -710,9 +718,8 @@ class Clusters(Segments):
         clusterStartIndex += segmentLen
       # make final modifications to full signal based on global settings
       ## for truncated mode, this is trivial.
-      #if self._evaluationMode == 'truncated':
-      result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
       ## for clustered mode, this is complicated.
+      result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
     # TODO add clusterWeights to "result" as meta to the output? This would be handy!
     return result
 
@@ -771,6 +778,11 @@ class Clusters(Segments):
       # TODO pivot values, index delimiters as well?
 
   def getSegmentRoms(self, full=False):
+    """
+      Provide list of the segment ROMs depending on how they're desired
+      @ In, full, bool, if True then give all roms not just clusters
+      @ Out, getSegmentRoms, list, list of roms
+    """
     if full:
       return list(self._roms[label] for label in self._clusterInfo['labels'])
     else:
@@ -810,8 +822,6 @@ class Clusters(Segments):
     labelMap = self._clusterInfo['labels']
     clusters = sorted(list(set(labelMap)))
     pivotLen = 0
-    #pivotIndex = 0
-    #pivotIndices = []
     for cluster in clusters:
       # choose a ROM
       chooseRomMode = 'first' # TODO user option? alternative is random, or ? centroids ?
@@ -823,17 +833,12 @@ class Clusters(Segments):
         segmentIndex, clusterIndex = self._getSegmentIndexFromClusterIndex(cluster, labelMap, chooseRandom=True)
       # grab the Chosen ROM to represent this cluster
       rom = self._clusterInfo['map'][cluster][clusterIndex] # the Chosen ROM
-      # get the slice opject that picks out the history range associated to the Chosen Segment
-      #delimiter = self._divisionInfo['delimiters'][segmentIndex]
-      #picker = slice(delimiter[0], delimiter[-1] + 1)
       # evaluate the ROM
       subResults = rom.evaluate(evaluationDict)
       # TODO FIXME should add "cluster" as an indexMap dimension!
       ## INSTEAD, for now, just pile the realizations together, with no regard.
       newLen = len(subResults[pivotID])
       pivotLen += newLen
-      #pivotIndices.append(pivotIndex)
-      #pivotIndex += newLen
       # if we're getting ND objects, identify indices and target-index dependence
       indexMap = subResults.pop('_indexMap', {})
       allIndices = set([pivotID])
@@ -1011,7 +1016,6 @@ class Clusters(Segments):
     # subdivide domain and train subdomain ROMs, as with the segmentation
     ## TODO can we increase the inheritance more here, or is this the minimum cutset?
     counter, remainder = divisions
-    #self.divisions = divisions
     # store delimiters
     if len(remainder):
       self.raiseADebug('"{}" division(s) are being excluded from clustering consideration.'.format(len(remainder)))
@@ -1027,6 +1031,12 @@ class Clusters(Segments):
     self._clusterInfo['map']['unclustered'] = unclusteredROMs
 
   def _clusterSegments(self, roms, divisions):
+    """
+      Perform clustering for segment ROMs
+      @ In, roms, list, list of ROMs to cluster
+      @ In, divisions, tuple, segmentation information
+      @ Out, None
+    """
     counter, remainder = divisions
     # collect ROM features (basic stats, etc)
     clusterFeatures = self._gatherClusterFeatures(roms, counter)
@@ -1092,7 +1102,14 @@ class Clusters(Segments):
     return clusterFeatures
 
   def _getSegmentData(self, full=None):
-    """ TODO """
+    """
+      Provides information about segmenting, extended from base class.
+      @ In, full, bool, optional, if True then use full representation (not clustered)
+      @ Out, indexStarts, np.array, array of indices where segments start
+      @ Out, indexEnds, np.array, array of indices where segments end
+      @ Out, pivotStarts, np.array, array of VALUES where segments start
+      @ Out, pivotEnds, np.array, array of VALUES where segments end
+    """
     # default to the same segment data as the evaluation mode.
     if full is None:
       full = self._evaluationMode == 'full'
@@ -1129,6 +1146,12 @@ class Clusters(Segments):
 class Interpolated(supervisedLearning):
   """ In addition to clusters for each history, interpolates between histories. """
   def __init__(self, messageHandler, **kwargs):
+    """
+      Constructor.
+      @ In, messageHandler, MessageHandler instance, message handler
+      @ In, kwargs, dict, initialization options
+      @ Out, None
+    """
     supervisedLearning.__init__(self, messageHandler, **kwargs)
     self.printTag = 'Interp. Cluster ROM'
     # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
@@ -1143,6 +1166,11 @@ class Interpolated(supervisedLearning):
 
   # passthrough to template
   def setAdditionalParams(self, params):
+    """
+      Sets additional parameters, usually when pickling or similar
+      @ In, params, dict, params to set
+      @ Out, setAdditionalParams, dict, additional params set
+    """
     mh = params.get('messageHandler', None)
     if mh:
       for step, collection in self._macroSteps.items():
@@ -1151,18 +1179,31 @@ class Interpolated(supervisedLearning):
     return super().setAdditionalParams(params)
 
   def setAssembledObjects(self, *args, **kwargs):
+    """
+      Sets up the assembled objects for this class.
+      @ In, args, list, list of arguments
+      @ In, kwargs, dict, dict of keyword arguments
+      @ Out, None
+    """
     self._macroTemplate.setAssembledObjects(*args, **kwargs)
 
   def readAssembledObjects(self):
+    """
+      Reads in assembled objects
+      @ In, None
+      @ Out, None
+    """
     for step in self._macroSteps.values():
       step.readAssembledObjects()
 
   def writePointwiseData(self, writeTo):
     """
-    Writes pointwise data about this ROM to the data object.
-    @ In, writeTo, DataObject, data structure into which data should be written
-    @ Out, None
+      Writes pointwise data about this ROM to the data object.
+      @ In, writeTo, DataObject, data structure into which data should be written
+      @ Out, None
     """
+    pass # we don't have a good way to write any info right now
+    # TODO this may be useful in the future
     # for year, model in self._macroSteps.items():
     #   print('')
     #   print('year indices',year)
@@ -1223,7 +1264,11 @@ class Interpolated(supervisedLearning):
     self.amITrained = True
 
   def _interpolateSteps(self, trainingDict):
-    """ Master method for interpolating missing ROMs for steps """
+    """
+      Master method for interpolating missing ROMs for steps
+      @ In, trainingDict, dict, training information
+      @ Out, None
+    """
     # acquire interpolatable information
     exampleModel = list(self._macroSteps.values())[0] # example MACRO model (e.g. example year)
     ### TODO FIXME WORKING
@@ -1280,9 +1325,14 @@ class Interpolated(supervisedLearning):
         newModel = self._interpolateSVL(trainingDict, exampleRoms, exampleModel, self._macroTemplate, numSegments, globalInterp, interps, y)
         models.append(newModel)
         self._macroSteps[y] = newModel
-    # now what?
 
   def _createSVLInterpolater(self, modelDict, index=None):
+    """
+      Generates an interpolation object for a supervised engine
+      @ In, modelDict, dict, models to interpolate
+      @ In, index, int, optional, segment under consideration
+      @ Out, interp, scipy.interp1d instance, interpolater
+    """
     # index is the segment
     interp = {}
     df = None
@@ -1307,39 +1357,37 @@ class Interpolated(supervisedLearning):
     interp['method'] = {}
     for header in params:
       interp['method'][header] = interp1d(df.index.values, df[header].values)
+    # DEBUGG tools
     #fname = 'debug_statepoints_{}.pk'.format(index)
-    # DEBUGG
     #with open(fname, 'wb') as f:
     #  df.index.name = 'year'
     #  pk.dump(df, f)
     #print('DEBUGG interpolation data has been dumped to', fname)
-    #### OLD #### do it all at once
-    #data = df.values
-    #interp['headers'] = list(params.keys())
-    #interp['method'] = interp1d(df.index.values, data.transpose())
+    # END debugg
     return interp
 
   def _interpolateSVL(self, trainingDict, exampleRoms, exampleModel, template, N, globalInterp, segmentInterps, index):
-    """ interpolates a single engine for a single macro step (e.g. a single year) """
-    newModel = copy.deepcopy(exampleModel) #copy.deepcopy(template)
+    """
+      interpolates a single engine for a single macro step (e.g. a single year)
+      @ In, trainingDict, dict, dictionary with training data
+      @ In, exampleRoms, list, segment roms from an interpolation setpoint year
+      @ In, exampleModel, ROMCollection instance, master model from an interpolation setpoint year
+      @ In, template, SupervisedLearning instance, template ROM for constructing new ones
+      @ In, N, int, number of segments in play
+      @ In, globalInterp, scipy.interp1d instance, interpolator for global settings
+      @ In, segmentInterps, scipy.interp1d instance, interpolator for local settings
+      @ In, index, int, year for which interpolation is being performed
+      @ Out, newModel, SupervisedEngine instance, interpolated model
+    """
+    newModel = copy.deepcopy(exampleModel)
     segmentRoms = [] # FIXME speedup, make it a numpy array from the start
     for segment in range(N):
-
       params = dict((param, interp(index)) for param, interp in segmentInterps[segment]['method'].items())
-      # DEBUGG
+      # DEBUGG, leave for future development
       #fname = 'debugg_interp_y{}_s{}.pk'.format(index, segment)
       #with open(fname, 'wb') as f:
       #  print('Dumping interpolated params to', fname)
       #  pk.dump(params, f)
-      #### OLD #### do it all at once
-      #for param, interp in segmentInterps[segment]['method'].items():
-      #  params[param] = interp(index)
-
-      #data = segmentInterps[segment]['method'](index)
-      #data = data.transpose()
-      #headers = segmentInterps[segment]['headers']
-      #params = dict((headers[d], data[d]) for d in range(len(data)))
-
       newRom = copy.deepcopy(exampleRoms[segment])
       inputs = newRom.readFundamentalFeatures(params)
       newRom.setFundamentalFeatures(inputs)
@@ -1348,14 +1396,10 @@ class Interpolated(supervisedLearning):
     segmentRoms = np.asarray(segmentRoms)
     # add global params
     params = dict((param, interp(index)) for param, interp in globalInterp['method'].items())
+    # DEBUGG, leave for future development
     #with open('debugg_interp_y{}_sglobal.pk'.format(index), 'wb') as f:
     #  pk.dump(params, f)
 
-    #### OLD #### do it all at once
-    #data = globalInterp['method'](index)
-    #data = data.transpose()
-    #headers = globalInterp['headers']
-    #params = dict((headers[d], data[d]) for d in range(len(data)))
     # TODO assuming histories!
     pivotID = exampleModel._templateROM.pivotParameterID
     pivotValues = trainingDict[pivotID][0] # FIXME assumes pivot is the same for each year
@@ -1363,13 +1407,17 @@ class Interpolated(supervisedLearning):
     newModel._romGlobalAdjustments = params
     # finish training by clustering
     newModel._clusterSegments(segmentRoms, exampleModel.divisions)
-    newModel.amITrained = True # template.amITrained
+    newModel.amITrained = True
     return newModel
 
   def _copyAssembledModel(self, model):
+    """
+      Makes a copy of assembled model and re-performs assembling
+      @ In, model, object, entity to copy
+      @ Out, new, object, deepcopy of model
+    """
     new = copy.deepcopy(model)
     # because assembled objects are excluded from deepcopy, add them back here
-    # new.setAssembledObjects(copy.deepcopy(self._macroTemplate._assembledObjects))
     new.setAssembledObjects({})
     return new
 
@@ -1377,6 +1425,8 @@ class Interpolated(supervisedLearning):
   def evaluate(self, edict):
     """
       Evaluate the set of interpolated models
+      @ In, edict, dict, dictionary of evaluation parameters
+      @ Out, result, dict, result of evaluation
     """
     # can we run SupervisedLearning.evaluate? Should this be an evaluateLocal?
     ## set up the results dict with the correct dimensionality

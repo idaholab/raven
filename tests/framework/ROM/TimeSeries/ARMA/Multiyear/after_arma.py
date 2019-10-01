@@ -15,9 +15,15 @@
 
 import numpy as np
 
-def run(self,Input):
-  indexOrder = self._indexMap[0]['Speed']
+def run(raven, Input):
+  """
+    RAVEN hook, simple test model
+    @ In, raven, object, object with variable data
+    @ In, Input, dict, dictionary with info
+    @ Out, None
+  """
+  indexOrder = raven._indexMap[0]['Speed']
   timeDimIndex = indexOrder.index('Time')
-  self.yearly_aggregate = self.Speed.mean(axis=timeDimIndex)
+  raven.yearly_aggregate = raven.Speed.mean(axis=timeDimIndex)
 
 

@@ -337,6 +337,11 @@ class EnumBaseType(InputType):
 
   @classmethod
   def convert(cls, value):
+    """
+      Error checking for reading in enum entries
+      @ In, value, object, user-requested enum value
+      @ Out, value, object, adjusted enum value
+    """
     # TODO is this the right place for checking?
     ## TODO need to provide the offending XML node somehow ...
     ## TODO should these by caught and handled by the parseNode?

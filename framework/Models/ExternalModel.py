@@ -131,8 +131,6 @@ class ExternalModel(Dummy):
       newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
     if 'SampledVars' in kwargs.keys():
       modelVariableValues.update(kwargs['SampledVars'])
-      #for key, val in kwargs['SampledVars'].items():
-      #  modelVariableValues[key] = val
     return newInput, copy.copy(modelVariableValues)
 
   def localInputAndChecks(self,xmlNode):

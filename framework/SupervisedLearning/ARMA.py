@@ -1170,7 +1170,6 @@ class ARMA(supervisedLearning):
         for group in peakInfo['groupWin']:
           groupnode=xmlUtils.newNode('peak')
           groupnode.append(xmlUtils.newNode('Amplitude', text='{}'.format(np.array(group['Amp']).mean())))
-          #FIXME
           groupnode.append(xmlUtils.newNode('Index', text='{}'.format(np.array(group['Ind']).mean())))
           peakNode.append(groupnode)
 
@@ -1352,15 +1351,14 @@ class ARMA(supervisedLearning):
         lenthOfData = cdfParam['lens']
         feature = featureTemplate.format(target=target, metric='arma', id='len')
         features[feature] = lenthOfData
-
         for e, edge in enumerate(cdfParam['bins']):
           feature = featureTemplate.format(target=target, metric='arma', id='bin_{}'.format(e))
           features[feature] = edge
         for c, count in enumerate(cdfParam['counts']):
           feature = featureTemplate.format(target=target, metric='arma', id='counts_{}'.format(c))
           features[feature] = count
-        # for paraId,paraVal in cdfParam.items():
-    # CDF preservation if available
+
+    # CDF preservation
     for target, cdf in self._trainingCDF.items():
       _, (counts, edges) = cdf
       for c, count in enumerate(counts):
@@ -1370,6 +1368,7 @@ class ARMA(supervisedLearning):
         feature = featureTemplate.format(target=target, metric='cdf', id='edges_{}'.format(e))
         features[feature] = edge
 
+    # Peaks
     for target, peak in self.peaks.items():
       nBin = self.peaks[target]['nbin']
       period = self.peaks[target]['period']
@@ -1378,6 +1377,7 @@ class ARMA(supervisedLearning):
           ## prbExit
           # g is the group of the peaks probExist is the exist probability for this type of peak
           lenWin=min(len(peak['rangeWindow'][g]['bg']),len(peak['rangeWindow'][g]['end']))
+          ## This might be used in the future.
           # ID = 'gp_{}_lenWin'.format(g)
           # feature = featureTemplate.format(target=target, metric='peak', id=ID)
           # features[feature] = lenWin
@@ -1413,8 +1413,7 @@ class ARMA(supervisedLearning):
             if np.isnan((group['Amp'][0])):
               meanAmp = np.mean(self._signalStorage[target]['original'])
             else:
-              # meanAmp=rv_histogram(np.histogram(group['Amp'])).mean()
-              meanAmp=np.mean(group['Amp'])
+              meanAmp = np.mean(group['Amp'])
 
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_meanAmp'.format(g))
             features[feature] = meanAmp
@@ -1425,7 +1424,7 @@ class ARMA(supervisedLearning):
             features[feature] = meanAmp
 
           ##std
-          if len(group['Amp'])>1:
+          if len(group['Amp']) > 1:
             stdAmp = rv_histogram(np.histogram(group['Amp'])).std()
             feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_stdAmp'.format(g))
             features[feature] = stdAmp
@@ -1454,7 +1453,6 @@ class ARMA(supervisedLearning):
               ampCounts, _ = np.histogram([], range=(minAmp,maxAmp),density = False)
             else:
               ampCounts, _ = np.histogram(group['Amp'], bins = nBin,density = False)
-            #retn=np.linspace(minAmp, maxAmp, num=nBin+1)
             for c, count in enumerate(ampCounts):
               feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
               features[feature] = count
@@ -1467,12 +1465,12 @@ class ARMA(supervisedLearning):
             features[feature] = minAmp
             ## distribution on the Amp
             ampCounts, _ = np.histogram(group['Amp'], bins = nBin,density = False)
-            #retn=np.linspace(minAmp, maxAmp, num=nBin+1)
             for c, count in enumerate(ampCounts):
               feature = featureTemplate.format(target=target, metric='peak', id='gp_{}_amp {}'.format(g,c))
               features[feature] = count
-    # for target, peak in self.items():
 
+    # Remove features that were not requested, if selective.
+    ## TODO this could be sped up by not calculating them in the first place maybe
     if requestedFeatures is not None:
       popFeatures=[]
       for rq in features.keys():
@@ -1497,13 +1495,16 @@ class ARMA(supervisedLearning):
             popFeatures.append(rq)
           elif rid.startswith('l'):
             popFeatures.append(rq)
-
-
       for p in popFeatures:
         del features[p]
     return features
 
   def readFundamentalFeatures(self, features):
+    """
+      Reads in the requested ARMA model properties from a feature dictionary
+      @ In, features, dict, dictionary of fundamental features
+      @ Out, readFundamentalFeatures, dict, more clear list of features for construction
+    """
     # collect all the data
     fourier = collections.defaultdict(dict)
     arma = collections.defaultdict(dict)
@@ -1587,17 +1588,23 @@ class ARMA(supervisedLearning):
 
   def setFundamentalFeatures(self, features):
     """
-    opposite of getFundamentalFeatures, expects results as from readFundamentalFeatures
+      opposite of getFundamentalFeatures, expects results as from readFundamentalFeatures
+      Constructs this ROM by setting fundamental features from "features"
+      @ In, features, dict, dictionary of info as from readFundamentalFeatures
+      @ Out, None
     """
-
     self._setFourierResults(features.get('fourier', {}))
     self._setArmaResults(features.get('arma', {}))
     self._setCDFResults(features.get('cdf', {}))
     self._setPeakResults(features.get('peak', {}))
-
     self.amITrained = True
 
   def _setFourierResults(self, paramDict):
+    """
+      Sets Fourier fundamental parameters
+      @ In, paramDict, dictionary of parameters to set
+      @ Out, None
+    """
     for target, info in paramDict.items():
       predict = np.ones(len(self.pivotParameterValues)) * info['intercept']
       params = {'coeffs': {}}
@@ -1622,6 +1629,11 @@ class ARMA(supervisedLearning):
                                      'predict': predict}
 
   def _setArmaResults(self, paramDict):
+    """
+      Sets ARMA fundamental parameters
+      @ In, paramDict, dictionary of parameters to set
+      @ Out, None
+    """
     for target, info in paramDict.items():
       if 'AR' in info:
         AR_keys, AR_vals = zip(*list(info['AR'].items()))
@@ -1664,6 +1676,11 @@ class ARMA(supervisedLearning):
       self.cdfParams[target] = params
 
   def _setCDFResults(self, paramDict):
+    """
+      Sets CDF preservation fundamental parameters
+      @ In, paramDict, dictionary of parameters to set
+      @ Out, None
+    """
     for target, info in paramDict.items():
       # counts
       cs = list(info['counts'].items())
@@ -1679,6 +1696,11 @@ class ARMA(supervisedLearning):
       self._trainingCDF[target] = (dist, histogram)
 
   def _setPeakResults(self, paramDict):
+    """
+      Sets Peaks fundamental parameters
+      @ In, paramDict, dictionary of parameters to set
+      @ Out, None
+    """
     for target, info in paramDict.items():
       groupWin=[]
       for g, groupInfo in info.items():
@@ -1790,6 +1812,11 @@ class ARMA(supervisedLearning):
     return settings, trainingDict
 
   def parametrizeGlobalRomFeatures(self, featureDict):
+    """
+      Parametrizes the GLOBAL features of the ROM (assumes this is the templateROM and segmentation is active)
+      @ In, featureDict, dictionary of features to parametrize
+      @ Out, params, dict, dictionary of collected parametrized features
+    """
     t = 'GLOBAL_{target}|{metric}|{ID}'
     params = {}
     ## TODO FIXME duplicated code with getFundamentalFeatures! Extract for commonality!
@@ -1822,6 +1849,13 @@ class ARMA(supervisedLearning):
     return params
 
   def setGlobalRomFeatures(self, params, pivotValues):
+    """
+      Sets global ROM properties for a templateROM when using segmenting
+      Returns settings rather than "setting" them for use in ROMCollection classes
+      @ In, params, dict, dictionary of parameters to set
+      @ In, pivotValues, np.array, values of time parameter
+      @ Out, results, dict, global ROM feature set
+    """
     results = {}
     # TODO FIXME duplicate algorithm with readFundamentalFeatures!!
     cdf = collections.defaultdict(dict)

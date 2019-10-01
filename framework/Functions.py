@@ -184,7 +184,6 @@ class External(BaseType):
       if name in inDict.keys():
         execCommand('self.'+name+'=object["'+name+'"]',self=self,object=inDict)
       else:
-        # try to get it from the constants
         self.raiseAnError(IOError,'The input variable '+name+' in external function seems not to be passed in')
 
   def evaluate(self,what,myInput):

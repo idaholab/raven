@@ -214,7 +214,6 @@ class SPSA(GradientBasedOptimizer):
     for cnt, var in enumerate(self.getOptVars()):
       v1[cnt], v2[cnt] = copy.deepcopy(d1[var]), copy.deepcopy(d2[var])
     # if either vector is all zeros, then the angle between them is zero
-    ## TODO what if both are?
     if np.linalg.norm(v1) == 0:
       angle = 0
     elif np.linalg.norm(v2) == 0:
@@ -325,7 +324,6 @@ class SPSA(GradientBasedOptimizer):
       @ In, iterNum, int, current iteration index
       @ Out, new, float, current value for gain ak
     """
-    #TODO FIXME is this a good idea?
     try:
       size = self.counter['lastStepSize'][traj]
     except KeyError:
@@ -384,7 +382,6 @@ class SPSA(GradientBasedOptimizer):
         self.submissionQueue[traj].append({'inputs':point, 'prefix':prefix})
     return points
 
-  # TODO MOVEME
   def _findNewPoint(self, gain, startPoint, gradient):
     """
       Using the starting point, the gradient, and a step size (gain), find
@@ -408,39 +405,6 @@ class SPSA(GradientBasedOptimizer):
           index += 1
       newPoint[var] = new
     return newPoint
-
-  # TODO MOVEME
-  def _handleBoundaryConstraint(self, violations, gradient, suggestedPoint):
-    """
-      Fixes boundary constraint violations for suggestedPoint by projecting along
-      the known boundary. Note this does NOT handle functional constraints!
-      @ In, violations, list, information about boundary constraint violations by variable
-      @ In, gradient, dictionary, contains the gradient information for variable update
-      @ In, suggestedPoint, dictionary, variable values for next iteration.
-      @ Out, suggestedPoint, dictionary, variable values for next iteration.
-      @ Out, modded, bool, if True the point was modified by the constraint
-      @ Out, gradient, dictionary, contains the gradient information for variable update
-    """
-    self.raiseADebug('Attempting to fix boundary violation with gradient projection ...')
-    modded = True
-    projectedOnBoundary = {}
-    for var, under, over in violations:
-      if np.prod(self.variableShapes[var]) == 1:
-        if np.sum(over) > 0:
-          projectedOnBoundary[var] = self.optVarsInit['upperBound'][var]
-        elif np.sum(under) > 0:
-          projectedOnBoundary[var] = self.optVarsInit['lowerBound'][var]
-        gradient[var] = 0.0
-      else:
-        projectedOnBoundary[var] = self.denormalizeData({var: suggestedPoint[var]})[var]
-        projectedOnBoundary[var][under] = self.optVarsInit['lowerBound'][var]
-        projectedOnBoundary[var][over] = self.optVarsInit['upperBound'][var]
-        gradient[var][np.logical_or(under, over)] = 0.0
-    suggestedPoint.update(self.normalizeData(projectedOnBoundary))
-    newNormWithoutComponents = self.calculateMultivectorMagnitude(gradient.values())
-    for var in gradient.keys():
-      gradient[var] = (gradient[var]/newNormWithoutComponents) if newNormWithoutComponents != 0.0 else gradient[var]
-    return suggestedPoint, modded, gradient
 
   def _generateVarsUpdateConstrained(self, traj, ak, gradient, varK):
     """
@@ -628,6 +592,38 @@ class SPSA(GradientBasedOptimizer):
       direction = self.currentDirection
     return direction
 
+  def _handleBoundaryConstraint(self, violations, gradient, suggestedPoint):
+    """
+      Fixes boundary constraint violations for suggestedPoint by projecting along
+      the known boundary. Note this does NOT handle functional constraints!
+      @ In, violations, list, information about boundary constraint violations by variable
+      @ In, gradient, dictionary, contains the gradient information for variable update
+      @ In, suggestedPoint, dictionary, variable values for next iteration.
+      @ Out, suggestedPoint, dictionary, variable values for next iteration.
+      @ Out, modded, bool, if True the point was modified by the constraint
+      @ Out, gradient, dictionary, contains the gradient information for variable update
+    """
+    self.raiseADebug('Attempting to fix boundary violation with gradient projection ...')
+    modded = True
+    projectedOnBoundary = {}
+    for var, under, over in violations:
+      if np.prod(self.variableShapes[var]) == 1:
+        if np.sum(over) > 0:
+          projectedOnBoundary[var] = self.optVarsInit['upperBound'][var]
+        elif np.sum(under) > 0:
+          projectedOnBoundary[var] = self.optVarsInit['lowerBound'][var]
+        gradient[var] = 0.0
+      else:
+        projectedOnBoundary[var] = self.denormalizeData({var: suggestedPoint[var]})[var]
+        projectedOnBoundary[var][under] = self.optVarsInit['lowerBound'][var]
+        projectedOnBoundary[var][over] = self.optVarsInit['upperBound'][var]
+        gradient[var][np.logical_or(under, over)] = 0.0
+    suggestedPoint.update(self.normalizeData(projectedOnBoundary))
+    newNormWithoutComponents = self.calculateMultivectorMagnitude(gradient.values())
+    for var in gradient.keys():
+      gradient[var] = (gradient[var]/newNormWithoutComponents) if newNormWithoutComponents != 0.0 else gradient[var]
+    return suggestedPoint, modded, gradient
+
   def localEvaluateGradient(self, traj):
     """
       Local method to evaluate gradient.
@@ -681,8 +677,6 @@ class SPSA(GradientBasedOptimizer):
     if modded:
       self.recommendToGain[traj] = 'cut'
       self.raiseADebug('Recommending trajectory "{}" cut size due to hitting constraints!'.format(traj))
-    #  self.counter['lastStepSize'][traj] = self.paramDict['initialStepSize']
-    #  self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
     self.queueUpOptPointRuns(traj, varKPlus)
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = varKPlus
     return varKPlus

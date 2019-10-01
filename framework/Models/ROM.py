@@ -84,10 +84,6 @@ class ROM(Dummy):
     metric.addParam('class', InputData.StringType, True)
     metric.addParam('type', InputData.StringType, True)
     segment.addSub(metric)
-    ## unused FIXME
-    feature = InputData.parameterInputFactory('feature', strictMode=True, contentType=InputData.StringType)
-    feature.addParam('weight', InputData.FloatType)
-    segment.addSub(feature)
     segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputData.StringType))
     inputSpecification.addSub(segment)
     # pickledROM

@@ -40,7 +40,7 @@
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
-        <writeSteps>every</writeSteps>
+        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
@@ -79,7 +79,7 @@
       <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Output>trajID, varsUpdate, x, y, ans</Output>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 

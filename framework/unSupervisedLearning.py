@@ -54,6 +54,7 @@ import DataObjects
 #if not display:
 #  matplotlib.use('Agg')
 
+import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pylab as plt
 
@@ -147,10 +148,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, features, list(str), list of new features
       @ Out, None
     """
-    #if self.amITrained:
     self.raiseAWarning('Features for learning engine type "{}" have been reset, so ROM is untrained!'.format(self.printTag))
     self.amITrained = False
-    #  self.raiseAnError(RuntimeError,'Trying to change the <Features> of an already-trained ROM!')
     self.features = features
 
   def train(self, tdict, metric = None):

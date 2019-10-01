@@ -23,7 +23,7 @@ def run(raven, inputs):
 
 def constrain(raven):
   """
-    Evaluate.
+    Constrain.
     @ In, raven, object, raven self
     @ Out, constrain, point ok or not?
   """

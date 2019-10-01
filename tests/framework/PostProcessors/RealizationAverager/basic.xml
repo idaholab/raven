@@ -7,7 +7,7 @@
     <classesTested>PostProcessors.RealizationAverager</classesTested>
     <description>
       This test checks basic functionalities of the Realization Averager.
-      The data is samples from a multiyear ARMA, with dimensions of 3 years and 100 time steps each.
+      The data is samples from a multiyear ARMA, with dimensions of 3 years and 10 time steps each.
       The RealizationAverager simply averages the three samples, maintaining the year and time dimensions.
       This test was checked analytically at creation to assure the average of the three samples is the resulting averaged values.
     </description>

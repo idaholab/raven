@@ -113,9 +113,6 @@ class RealizationAverager(PostProcessor):
     averaged = dataSet.mean(dim='RAVEN_sample_ID')
     averaged = averaged.expand_dims('RAVEN_sample_ID')
     averaged['RAVEN_sample_ID'] = [0]
-    print(averaged)
-    #values = np.asarray([averaged.values])
-    #dims = ['RAVEN_sample_ID'] + averaged.dims
     return averaged
 
 
