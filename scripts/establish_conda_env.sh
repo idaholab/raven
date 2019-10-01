@@ -86,6 +86,12 @@ function install_libraries()
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
     ${COMMAND}
+    # pip only
+    activate_env
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --pip-only-list ${INSTALL_OPTIONAL} ${OSOPTION})`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
+    ${COMMAND}
   else
     # activate the enviroment
     activate_env
@@ -109,6 +115,12 @@ function create_libraries()
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
+    ${COMMAND}
+    # pip only
+    activate_env
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --pip-only-list ${INSTALL_OPTIONAL} ${OSOPTION})`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
   else
     #pip create virtual enviroment
@@ -162,11 +174,11 @@ function display_usage()
 	echo '    --py3'
 	echo '    When installing, make raven_libraries use Python 3'
 	echo ''
-        echo ''
-        echo '    --py2'
-        echo '    DEPRECATED: When installing, make raven_libraries use Python 2'
-        echo ''
-        echo ''
+    echo ''
+    echo '    --py2'
+    echo '    DEPRECATED: When installing, make raven_libraries use Python 2'
+    echo ''
+    echo ''
 	echo '    --quiet'
 	echo '      Runs script with minimal output'
 	echo ''

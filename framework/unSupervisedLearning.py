@@ -46,6 +46,16 @@ import MessageHandler
 import DataObjects
 #Internal Modules End-----------------------------------------------------------
 
+# FIXME: temporarily force to use Agg backend for now, otherwise it will cause segmental fault for test:
+# test_dataMiningHierarchical.xml in tests/framework/PostProcessors/DataMiningPostProcessor/Clustering
+# For the record, when using dendrogram, we have to force matplotlib.use('Agg')
+# In the future, I think all the plots should moved to OutStreamPlots -- wangc
+#display = utils.displayAvailable()
+#if not display:
+#  matplotlib.use('Agg')
+
+matplotlib.use('Agg')
+import matplotlib.pylab as plt
 
 class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
   """
@@ -1341,7 +1351,6 @@ class Scipy(unSupervisedLearning):
       @ In, None
       @ Out, None
     """
-    import matplotlib.pylab as plt
     plt.figure()
     max_d = kwargs.pop('max_d', None)
     if max_d and 'color_threshold' not in kwargs:

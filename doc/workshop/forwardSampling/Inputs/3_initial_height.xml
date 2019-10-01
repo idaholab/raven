@@ -30,7 +30,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
-      <variables>y0,angle,r,t</variables>
+      <variables>v0,y0,angle,r,t,timeOption</variables>
     </ExternalModel>
   </Models>
 
@@ -48,6 +48,7 @@
       </variable>
       <constant name="x0">0</constant>
       <constant name="v0">30</constant>
+      <constant name="timeOption">1</constant>
     </MonteCarlo>
   </Samplers>
 
