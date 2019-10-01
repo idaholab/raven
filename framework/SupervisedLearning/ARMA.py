@@ -1205,6 +1205,7 @@ class ARMA(supervisedLearning):
         for key, val in woZFMask.items():
           combMask = np.logical_and(combMask, val)
     return combMask
+
   ### Segmenting and Clustering ###
   def checkRequestedClusterFeatures(self, request):
     """
@@ -1999,12 +2000,12 @@ class ARMA(supervisedLearning):
     # add global Fourier to evaluated signals
     if 'long Fourier signal' in settings:
       for target, signal in settings['long Fourier signal'].items():
-        scales = self._evaluateScales(self.growthFactors[target], np.arange(self.numYears))
         # NOTE might need to put zero filter back into it
         # "sig" is variable for the sampled result
         sig = signal['predict'][globalPicker]
         # if multidimensional, need to scale by growth factor over years.
         if self.multiyear:
+          scales = self._evaluateScales(self.growthFactors[target], np.arange(self.numYears))
           # do multiyear signal (m.y.Sig) all at once
           mySig = np.tile(sig, (self.numYears, 1))
           mySig = (mySig.T * scales).T

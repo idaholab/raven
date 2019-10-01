@@ -19,36 +19,46 @@
     <Multiyear>
       <num_years>3</num_years>
       <growth_factors>
-        <Speed mode="exponential">50.0</Speed>
+        <Speed end_index="2" mode="exponential" start_index="0">50.0</Speed>
       </growth_factors>
     </Multiyear>
     <Speed>
       <Fourier>
-        <SignalIntercept>-9.163940265e+05</SignalIntercept>
+        <SignalIntercept>-2.507612410e+13</SignalIntercept>
         <period>6.048000000e+05
           <frequency>1.653439153e-06</frequency>
-          <amplitude>1.257530359e+06</amplitude>
-          <phase>1.243546266e+00</phase>
+          <amplitude>3.821513997e+13</amplitude>
+          <phase>1.105477366e+00</phase>
         </period>
         <period>3.024000000e+05
           <frequency>3.306878307e-06</frequency>
-          <amplitude>3.436967049e+05</amplitude>
-          <phase>-2.225337307e+00</phase>
+          <amplitude>1.301927012e+13</amplitude>
+          <phase>-2.365054635e+00</phase>
         </period>
         <period>8.640000000e+04
           <frequency>1.157407407e-05</frequency>
-          <amplitude>2.630212337e+03</amplitude>
-          <phase>-7.218607937e-01</phase>
+          <amplitude>2.215915641e+11</amplitude>
+          <phase>2.195910589e-01</phase>
         </period>
         <period>4.320000000e+04
           <frequency>2.314814815e-05</frequency>
-          <amplitude>6.136683325e+01</amplitude>
-          <phase>9.140306885e-02</phase>
+          <amplitude>6.207356764e+09</amplitude>
+          <phase>-3.124413119e+00</phase>
         </period>
       </Fourier>
       <ARMA_params>
-        <std>1.39080377483</std>
+        <std>0.894429053503</std>
       </ARMA_params>
+      <Peak_params>
+        <peak>
+          <Amplitude>10.407125503067416</Amplitude>
+          <Index>2.2247191011235956</Index>
+        </peak>
+        <peak>
+          <Amplitude>8.002539253910113</Amplitude>
+          <Index>2.752808988764045</Index>
+        </peak>
+      </Peak_params>
     </Speed>
   </arma>
   

@@ -401,7 +401,7 @@ class SPSA(GradientBasedOptimizer):
       else:
         new = np.zeros(numSamples)
         for i in range(numSamples):
-          new[i] = varK[var][i] - gain[index] * gradient.get(var, [0.0]*i)[i]
+          new[i] = startPoint[var][i] - gain[index] * gradient.get(var, [0.0]*i)[i]
           index += 1
       newPoint[var] = new
     return newPoint

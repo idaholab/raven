@@ -709,7 +709,7 @@ class Clusters(Segments):
         segmentLen = globalPicker.stop - globalPicker.start
         # where in the truncated signal does this cluster sit?
         if self._evaluationMode == 'truncated':
-          localPicker = slice(clusterStartIndex, segmentLen)
+          localPicker = slice(clusterStartIndex, clusterStartIndex + segmentLen)
         else:
           localPicker = slice(None, None, None)
         # make final local modifications to truncated evaluation
@@ -868,9 +868,13 @@ class Clusters(Segments):
     allIndices = set()
     for target, indices in indexMap.items():
       allIndices.update(indices)
+    if not allIndices:
+      allIndices.update([pivotID])
 
     # combine histories (we stored each one as a distinct array during collecting)
     for target, values in result.items():
+      if target == pivotID:
+        continue
       stackIndex = indexMap.get(target, [pivotID]).index(pivotID)
       result[target] = np.concatenate(values, axis=stackIndex)
     # put in the indexes

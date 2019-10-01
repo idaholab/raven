@@ -48,8 +48,8 @@ mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 from Models import ROM
 
 # find location of ARMA
-sys.path.append(os.path.join(frameworkDir,'SupervisedLearning'))
-import ARMA
+#sys.path.append(os.path.join(frameworkDir,'SupervisedLearning'))
+from SupervisedLearning import ARMA
 
 print('Module undergoing testing:')
 print(ARMA)

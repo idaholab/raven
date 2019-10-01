@@ -52,12 +52,13 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
-    <DataSet name="synthetic">
+    <HistorySet name="synthetic">
       <Input>scaling</Input>
       <Output>Signal</Output>
-      <Index var="Time">Signal</Index>
-      <Index var="_ROM_Cluster">Signal</Index>
-    </DataSet>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
     <DataSet name="romMeta"/>
   </DataObjects>
 
@@ -72,14 +73,16 @@
       <preserveInputCDF>True</preserveInputCDF>
       <Segment grouping='cluster'>
         <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
-        <subspace divisions='10' shift='first'>Time</subspace>
+        <subspace divisions='10'>Time</subspace>
+        <clusterFeatures>fourier</clusterFeatures>
         <evalMode>truncated</evalMode>
       </Segment>
     </ROM>
     <PostProcessor name="classifier" subType="DataMining">
       <KDD labelFeature="labels" lib="SciKitLearn">
         <Features>Signal</Features>
-        <SKLtype>cluster|AffinityPropogation</SKLtype>
+        <SKLtype>cluster|KMeans</SKLtype>
+        <n_clusters>3</n_clusters>
       </KDD>
     </PostProcessor>
   </Models>
