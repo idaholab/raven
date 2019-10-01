@@ -37,7 +37,6 @@ import numpy as np
 import abc
 import ast
 import copy
-import matplotlib
 import platform
 #External Modules End-----------------------------------------------------------
 #Internal Modules---------------------------------------------------------------
@@ -47,8 +46,6 @@ import MessageHandler
 import DataObjects
 #Internal Modules End-----------------------------------------------------------
 
-if platform.system() == 'Windows':
-  matplotlib.use('Agg')
 
 class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
   """
