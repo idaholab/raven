@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This module contains the Finite Difference Gradient Optimization strategy
+  This module contains the Conjugate Gradient Optimization strategy
 
-  Created on Sept 10, 2017
-  @ author: alfoa
+  Created on Sept 17, 2019
+  @ author: ZHOUJ2
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -29,8 +29,8 @@ import os
 import copy
 import numpy as np
 from numpy import linalg as LA
-from numpy import (atleast_1d, eye, mgrid, argmin, zeros, shape, squeeze,
-                   asarray, sqrt, Inf, asfarray, isinf)
+# from numpy import (atleast_1d, eye, mgrid, argmin, zeros, shape, squeeze,
+#                    asarray, sqrt, Inf, asfarray, isinf)
 import scipy
 from scipy.optimize import minpack2
 #External Modules End--------------------------------------------------------------------------------
@@ -38,6 +38,8 @@ from scipy.optimize import minpack2
 #Internal Modules------------------------------------------------------------------------------------
 from .SPSA import SPSA
 from utils import mathUtils,randomUtils
+import pprint
+pp = pprint.PrettyPrinter(indent=2)
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ConjugateGradient(SPSA):
@@ -56,31 +58,6 @@ class ConjugateGradient(SPSA):
     """
     SPSA.__init__(self)
 
-    self.isave = np.zeros((2,), np.intc)
-    self.dsave = np.zeros((13,), float)
-    self.task = b'START'
-    self.maxiter = 10
-
-    # self.maxiter = self.limit['mdlEval']
-    self.gtol=1e-08
-    self.eps=1.4901161193847656e-08
-    self.disp=True
-    self.maxiter=2000
-    self.return_all=True
-    self.localmaxiter=100
-    self.xk = None
-    self.gfk = None
-    self.pk = None
-    self.k =0
-    self.old_fval = None
-    self.old_old_fval = None
-    self.allvecs = None
-    self.gnorm = None
-    self.sigma_3 = 0.01
-    self.deltak = None
-    self.derphi0 = None
-    self.alpha1 =  None
-    self.stp = None
 
   def localInputAndChecks(self, xmlNode):
     """
@@ -91,10 +68,11 @@ class ConjugateGradient(SPSA):
     SPSA.localInputAndChecks(self, xmlNode)
     # need extra eval for central Diff, using boolean in math
 
-    self.useCentralDiff = True
-    self.paramDict['pertSingleGrad'] = 2 * len(self.fullOptVars)
+    self.useGradHist = False
+    self.paramDict['pertSingleGrad'] = (1 + self.useCentralDiff) * len(self.fullOptVars)
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
-    self.raiseADebug('Central differencing activated!')
+    if self.useCentralDiff:
+      self.raiseADebug('Central differencing activated!')
 
   ###############
   # Run Methods #
@@ -109,31 +87,33 @@ class ConjugateGradient(SPSA):
         @ Out, None
       """
       #collect first output
+      prefix = jobObject.getMetadata()['prefix']
+      traj, step, identifier = [int(x) for x in prefix.split('_')]
+      self.raiseADebug('Collected sample "{}"'.format(prefix))
+      category, number, _, cdId = self._identifierToLabel(identifier)
+      done, index = self._checkModelFinish(str(traj), str(step), str(identifier))
+      if not done:
+        self.raiseAnError(RuntimeError,'Trying to collect "{}" but identifies as not done!'.format(prefix))
+      number = number + (cdId * len(self.fullOptVars))
+      self.realizations[traj]['collect'][category][number].append(index)
+      if len(self.realizations[traj]['collect'][category][number]) == self.realizations[traj]['need']:
+        outputs = self._averageCollectedOutputs(self.realizations[traj]['collect'][category][number])
+        self.realizations[traj]['denoised'][category][number] = outputs
+        if category == 'opt':
+          converged = self._finalizeOptimalCandidate(traj,outputs)
+        else:
+          converged = False
+        optDone = bool(len(self.realizations[traj]['denoised']['opt'][0]))
+        gradDone = all( len(self.realizations[traj]['denoised']['grad'][i]) for i in range(self.paramDict['pertSingleGrad']))
+        if not converged and optDone and gradDone:
+          optCandidate = self.normalizeData(self.realizations[traj]['denoised']['opt'][0])
+          if self.writeSolnExportOn == 'every':
+            self.writeToSolutionExport(traj, optCandidate, self.realizations[traj]['accepted'])
+          # whether we wrote to solution export or not, update the counter
+          self.counter['solutionUpdate'][traj] += 1
+          self.counter['varsUpdate'][traj] += 1
 
-      if self.task[:5] == b'START':
-        prefix = jobObject.getMetadata()['prefix']
-        traj, step, identifier = [int(x) for x in prefix.split('_')]
-        self.raiseADebug('Collected sample "{}"'.format(prefix))
-        category, number, _, cdId = self._identifierToLabel(identifier)
-        done, index = self._checkModelFinish(str(traj), str(step), str(identifier))
-        number = number + (cdId * len(self.fullOptVars))
-        self.realizations[traj]['collect'][category][number].append(index)
-        if len(self.realizations[traj]['collect'][category][number]) == self.realizations[traj]['need']:
-          outputs = self._averageCollectedOutputs(self.realizations[traj]['collect'][category][number])
-          self.realizations[traj]['denoised'][category][number] = outputs
-          if category == 'opt':
-            converged = self._finalizeOptimalCandidate(traj,outputs)
-          else:
-            converged = False
-          optDone = bool(len(self.realizations[traj]['denoised']['opt'][0]))
-          gradDone = all( len(self.realizations[traj]['denoised']['grad'][i]) for i in range(self.paramDict['pertSingleGrad']))
-          if not converged and optDone and gradDone:
-            optCandidate = self.normalizeData(self.realizations[traj]['denoised']['opt'][0])
-            if self.writeSolnExportOn == 'every':
-              self.writeToSolutionExport(traj, optCandidate, self.realizations[traj]['accepted'])
-            # whether we wrote to solution export or not, update the counter
-            self.counter['solutionUpdate'][traj] += 1
-            self.counter['varsUpdate'][traj] += 1
+          if self.counter['task'][traj][:5] == b'START':
             ## since accepted, update history
             try:
               self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
@@ -142,120 +122,83 @@ class ConjugateGradient(SPSA):
               pass
             # store realization of most recent developments
             self.counter['recentOptHist'][traj][0] = optCandidate
-            indexmap = self.getOptVars()
             # change xk into array with index matching the index map
-            xk = dict((var,self.realizations[traj]['denoised']['opt'][0][var]) for var in indexmap)
-            self.xk = np.asarray(list(xk.values()))
-            gfk = dict((var,self.localEvaluateGradient(traj)[var][0]) for var in indexmap)
-            self.gfk = np.asarray(list(gfk.values()))
-            self.old_fval = self.realizations[traj]['denoised']['opt'][0][self.objVar]
-            self.old_old_fval = self.old_fval + np.linalg.norm(self.gfk) / 2
-            self.allvecs = [self.xk]
-            self.pk = -(self.gfk)
-            self.gnorm = np.amax(np.abs(self.gfk))
-            # first step
-
-            self.deltak = np.dot(self.gfk, self.gfk)
-            self.derphi0 = np.dot(self.gfk, self.pk)
-            self.alpha1 = min(1.0, 1.01*2*(self.old_fval - self.old_old_fval)/self.derphi0)
-
-            phi1 = self.old_fval
-            derphi1 = self.derphi0
-            self.stp, _, _, self.task = minpack2.dcsrch(self.alpha1, phi1, derphi1, ftol=1e-4, gtol=0.4,
-                                                    xtol=1e-14, task = self.task, stpmin=1e-100,
-                                                    stpmax=1e100, isave = self.isave , dsave=self.dsave)
-            if self.task[:2] == b'FG':
-              self.alpha1 = self.stp
-              grad= dict((var,self.gfk[ind]/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])) for ind,var in enumerate(indexmap))
-              new = self._newOptPointAdd(grad, traj)
-              if new is not None:
-                # add new gradient points
-                self._createPerturbationPoints(traj, new)
-              # reset storage
-              self._setupNewStorage(traj)
+            xk = dict((var,self.realizations[traj]['denoised']['opt'][0][var]) for var in self.getOptVars())
+            self.counter['xk'][traj] = np.asarray(list(xk.values()))
+            self.counter['oldGradK'][traj] = self.counter['gfk'][traj]
+            gfk = dict((var,self.localEvaluateGradient(traj)[var][0]) for var in self.getOptVars())
+            self.counter['gfk'][traj] = np.asarray(list(gfk.values()))
+            if self.useGradHist and self.counter['oldFVal'][traj]:
+              self.counter['oldOldFVal'][traj] = self.counter['oldFVal'][traj]
+              self.counter['oldFVal'][traj] = self.realizations[traj]['denoised']['opt'][0][self.objVar]
+              self.counter['gNorm'][traj] = self.polakRibierePowellStep(traj,self.counter['lastStepSize'][traj], self.counter['gfk'][traj])
             else:
-              self.stp = None
-              self.raiseAnError(ValueError, 'Not able to calculate the first step')
+              self.counter['oldFVal'][traj] = self.realizations[traj]['denoised']['opt'][0][self.objVar]
+              self.counter['oldOldFVal'][traj] = self.counter['oldFVal'][traj] + np.linalg.norm(self.counter['gfk'][traj]) / 2
+              self.counter['pk'][traj] = -(self.counter['gfk'][traj])
+              self.counter['gNorm'][traj] = np.amax(np.abs(self.counter['gfk'][traj]))
 
-      elif self.task[:2] == b'FG':
-        prefix = jobObject.getMetadata()['prefix']
-        traj, step, identifier = [int(x) for x in prefix.split('_')]
-        self.raiseADebug('Collected sample "{}"'.format(prefix))
-        category, number, _, cdId = self._identifierToLabel(identifier)
-        done, index = self._checkModelFinish(str(traj), str(step), str(identifier))
-        number = number + (cdId * len(self.fullOptVars))
-        self.realizations[traj]['collect'][category][number].append(index)
-        if len(self.realizations[traj]['collect'][category][number]) == self.realizations[traj]['need']:
-          outputs = self._averageCollectedOutputs(self.realizations[traj]['collect'][category][number])
-          print('outputoutputoutput',outputs)
-          self.realizations[traj]['denoised'][category][number] = outputs
-          if category == 'opt':
-            converged = self._finalizeOptimalCandidate(traj,outputs)
+            # first step
+            self.counter['deltaK'][traj] = np.dot(self.counter['gfk'][traj], self.counter['gfk'][traj])
+            self.counter['derPhi0'][traj] = np.dot(self.counter['gfk'][traj], self.counter['pk'][traj])
+            self.counter['alpha'][traj] = min(1.0, 1.01*2*(self.counter['oldFVal'][traj] - self.counter['oldOldFVal'][traj])/self.counter['derPhi0'][traj])
+
+            phi1 = self.counter['oldFVal'][traj]
+            derPhi1 = self.counter['derPhi0'][traj]
           else:
-            converged = False
-          optDone = bool(len(self.realizations[traj]['denoised']['opt'][0]))
-          gradDone = all( len(self.realizations[traj]['denoised']['grad'][i]) for i in range(self.paramDict['pertSingleGrad']))
-          if not converged and optDone and gradDone:
-            optCandidate = self.normalizeData(self.realizations[traj]['denoised']['opt'][0])
-            if self.writeSolnExportOn == 'every':
-              print('everyeveryevery')
-              self.writeToSolutionExport(traj, optCandidate, self.realizations[traj]['accepted'])
-            # whether we wrote to solution export or not, update the counter
-            self.counter['solutionUpdate'][traj] += 1
-            self.counter['varsUpdate'][traj] += 1
-            ## since accepted, update history
-            try:
-              self.counter['recentOptHist'][traj][1] = copy.deepcopy(self.counter['recentOptHist'][traj][0])
-            except KeyError:
-              # this means we don't have an entry for this trajectory yet, so don't copy anything
-              pass
-            indexmap = self.getOptVars()
-            newGrad = dict((var,self.localEvaluateGradient(traj)[var][0]) for var in indexmap)
+            newGrad = dict((var,self.localEvaluateGradient(traj)[var][0]) for var in self.getOptVars())
             newGrad = np.asarray(list(newGrad.values()))
             # after step
 
             phi1 = self.realizations[traj]['denoised']['opt'][0][self.objVar]
-            derphi1 = np.dot(newGrad, self.pk)
-            print('youyouchecking self.alpha1,phi1,derphi1',self.alpha1,phi1,derphi1)
-            self.stp, _, _, self.task = minpack2.dcsrch(self.alpha1, phi1, derphi1, ftol=1e-4, gtol=0.4,
-                                                    xtol=1e-14, task = self.task, stpmin=1e-100,
-                                                    stpmax=1e100, isave = self.isave , dsave=self.dsave)
+            derPhi1 = np.dot(newGrad, self.counter['pk'][traj])
 
-            if self.task[:2] == b'FG':
-              self.alpha1 = self.stp
-              grad= dict((var,self.gfk[ind]/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])) for ind,var in enumerate(indexmap))
-              new = self._newOptPointAdd(grad, traj)
-              if new is not None:
-                # add new gradient points
-                self._createPerturbationPoints(traj, new)
-              # reset storage
-              self._setupNewStorage(traj)
-            elif self.task[:11] == b'CONVERGENCE' :
-              self.task = b'START'
-              self.alpha1 = self.stp
-              grad= dict((var,self.gfk[ind]/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])) for ind,var in enumerate(indexmap))
-              new = self._newOptPointAdd(grad, traj)
-              if new is not None:
-                # add new gradient points
-                self._createPerturbationPoints(traj, new)
-              # reset storage
-              self._setupNewStorage(traj)
-            elif self.task[:7] == b'WARNING' :
-              self.raiseAWarning('Desired error not necessarily achieved due to precision loss.')
+          self.counter['lastStepSize'][traj], self.counter['newFVal'][traj], _, self.counter['task'][traj] = minpack2.dcsrch(self.counter['alpha'][traj], phi1, derPhi1, ftol=1e-4, gtol=0.4,
+                                                  xtol=1e-14, task = self.counter['task'][traj], stpmin=1e-100,
+                                                  stpmax=1e100, isave = self.counter['iSave'][traj] , dsave=self.counter['dSave'][traj])
+          if self.counter['task'][traj][:2] == b'FG':
+            pass
+          elif self.counter['task'][traj][:11] == b'CONVERGENCE' :
+            self.raiseADebug('Local minimal reached, start new line search')
+            self.counter['task'][traj] = b'START'
+
+          elif self.counter['task'][traj][:7] == b'WARNING' :
+            self.raiseAWarning(self.counter['task'][traj][9:].decode().lower())
+            self.counter['persistence'][traj] += 1
+            if self.counter['persistence'][traj] >= self.convergencePersistence:
+              self.raiseAMessage(' ... Trajectory "{}" converged {} times consecutively!'.format(traj,self.counter['persistence'][traj]))
+              self.convergeTraj[traj] = True
+              self.removeConvergedTrajectory(traj)
             else:
-              self.stp = None
-              print(self.task)
-              self.raiseAnError(ValueError, 'Not able to calculate the fw step')
+              self.raiseAMessage(' ... converged Traj "{}" {} times, required persistence is {}.'.format(traj,self.counter['persistence'][traj],self.convergencePersistence))
 
-      else:
-        print(self.task)
-        self.raiseAnError(ValueError, 'Not able to calculate the do what')
-        pass
+          else:
+            self.counter['lastStepSize'][traj] = None
+            self.raiseAnError(ValueError, 'Not able to calculate the froward step')
+
+
+          self.counter['alpha'][traj] = self.counter['lastStepSize'][traj]
+
+          grad = dict((var,self.counter['gfk'][traj][ind]/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])) for ind,var in enumerate(self.getOptVars()))
+
+          try:
+            self.counter['gradNormHistory'][traj][1] = self.counter['gradNormHistory'][traj][0]
+          except IndexError:
+            pass # don't have a history on the first pass
+          self.counter['gradNormHistory'][traj][0] = grad
+
+          new = self._newOptPointAdd(grad, traj)
+          if new is not None:
+            # add new gradient points
+            self._createPerturbationPoints(traj, new)
+          # reset storage
+          self._setupNewStorage(traj)
 
 
   ###################
   # Utility Methods #
   ###################
+
   def _getPerturbationDirection(self, perturbationIndex, step = None):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
@@ -269,6 +212,20 @@ class ConjugateGradient(SPSA):
       direction[varId] = 1.0
     else:
       direction[varId] = -1.0
+    if step:
+      if step % 2 == 0:
+        factor = 1.0
+      else:
+        # flip the sign of the direction, this step will not affect central differancing
+        # but will make the direction between forward and backward
+        # for example of 2 variables 3 denoise W/O central diff:
+        # step 0 directions are ([1 0],[0 1])*3
+        # step 1 directions are ([-1 0],[0 -1])*3
+        # with central diff:
+        # step 0 directions are ([1 0],[0 1],[-1,0],[0,-1])*3
+        # step 1 directions are ([-1,0],[0,-1],[1 0],[0 1])*3
+        factor = -1.0
+      direction = [var * factor for var in direction]
 
     self.currentDirection = direction
     return direction
@@ -303,6 +260,12 @@ class ConjugateGradient(SPSA):
       else:
         gi[var] += 1
         gradient[var] = (gradient[var] + np.atleast_1d(lossDiff / dh))/(gi[var]  + 1)
+    try:
+      self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][traj][0]
+    except IndexError:
+      pass # don't have a history on the first pass
+    self.counter['gradientHistory'][traj][0] = gradient
+
     return gradient
 
   def _newOptPointAdd(self, gradient, traj):
@@ -312,12 +275,10 @@ class ConjugateGradient(SPSA):
       @ In, traj, int, trajectory
       @ Out, varKPlus, dict, new point that has been queued (or None if no new points should be run for this traj)
     """
-    stepSize = self.stp
+    stepSize = self.counter['lastStepSize'][traj]
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
     varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars())
-    print('jz is looking into this traj, stepSize, gradient, varK', traj, stepSize, gradient, varK)
     varKPlus,modded = self._generateVarsUpdateConstrained(traj, stepSize, gradient, varK)
-    print('what is this what is this',varKPlus)    #check for redundant paths
     if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
       removed = self._removeRedundantTraj(traj, varKPlus)
     else:
@@ -340,12 +301,10 @@ class ConjugateGradient(SPSA):
       @ In, submit, bool, optional, if True then submit perturbation points to queue
       @ Out, points, list(dict), perturbation points
     """
-    print('trajtrajtrajtraj, optPoint, submit',traj, optPoint, submit)
     points = []
+    # distance = self.paramDict['pertDist'] * self.paramDict['initialStepSize']
+    distance = self.paramDict['pertDist'] * max(self.counter['lastStepSize'][traj],self.paramDict['initialStepSize'])
 
-    distance = self.paramDict['pertDist'] * self.counter['lastStepSize'][traj]
-    # distance = self._computePerturbationDistance(traj,self.paramDict,self.counter['varsUpdate'][traj]+1)
-    # print(' distance self.perturbationIndices',distance,self.perturbationIndices distance 2...8)
     for i in self.perturbationIndices:
       direction = self._getPerturbationDirection(i, step = self.counter['varsUpdate'][traj])
       point = {}
@@ -369,92 +328,16 @@ class ConjugateGradient(SPSA):
       if submit:
         prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i)
         self.submissionQueue[traj].append({'inputs':point, 'prefix':prefix})
-    print('points',points)
-
     return points
 
+  def polakRibierePowellStep(self, traj,alpha, gfkp1=None):
+    xkp1 = self.counter['xk'][traj]
+    yk = gfkp1 - self.counter['oldGradK'][traj]
+    betaK = max(0, np.dot(yk, gfkp1) / self.counter['deltaK'][traj])
+    self.counter['pk'][traj] = -gfkp1 + betaK * self.counter['pk'][traj]
+    gNorm = np.amax(np.abs(gfkp1))
+    return gNorm
 
-  def localGenerateInput(self,model,oldInput):
-    """
-      Method to generate input for model to run
-      @ In, model, model instance, it is the instance of a RAVEN model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc. etc)
-      @ Out, None
-    """
-    self.readyVarsUpdate = {traj:False for traj in self.optTrajLive}
-    # GradientBasedOptimizer.localGenerateInput(self,model,oldInput)
-    # print('model, self.optTraj, self.trajCycle',model,self.optTraj,self.trajCycle)
-    # find something to submit
-    for _ in self.optTraj:
-      # get next trajectory in line, which assures each gets fair treatment in submissions
-      traj = next(self.trajCycle)
-      # if this trajectory has a run to submit, populate the submission dictionaries
-      if len(self.submissionQueue[traj]):
-        prefix, point = self.getQueuedPoint(traj)
-        for var in self.getOptVars():
-          self.values[var] = point[var]
-        self.inputInfo['prefix'] = prefix
-        self.inputInfo['trajID'] = traj+1
-        self.inputInfo['varsUpdate'] = self.counter['varsUpdate'][traj]
-        print('insisde localGenerateInput')#,self.inputInfo)
-        # if we found a submission, cease looking for submissions
-        return
-    # if no submissions were found, then we shouldn't have flagged ourselves as Ready or there's a bigger issue!
-    self.raiseAnError(RuntimeError,'Attempted to generate an input but there are none queued to provide!')
-
-  def getQueuedPoint(self,traj,denorm=True):
-    """
-      Pops the first point off the submission queue (or errors if empty).  By default denormalized the point before returning.
-      @ In, traj, int, the trajectory from whose queue we should obtain an entry
-      @ In, denorm, bool, optional, if True the input data will be denormalized before returning
-      @ Out, prefix, #_#_#
-      @ Out, point, dict, {var:val}
-    """
-    try:
-      entry = self.submissionQueue[traj].popleft()
-    except IndexError:
-      self.raiseAnError(RuntimeError,'Tried to get a point from submission queue of trajectory "{}" but it is empty!'.format(traj))
-    prefix = entry['prefix']
-    point = entry['inputs']
-    print('inside getQueuedPoint')
-    if denorm:
-      point = self.denormalizeData(point)
-    return prefix,point
-
-
-
-
-  def polakRibierePowellStep(self, alpha, gfkp1=None):
-    print('polak_ribiere_powell_step')
-    xkp1 = xk + alpha * pk
-    if gfkp1 is None:
-      # gfkp1 = myfprime(xkp1)
-      gfkp1 = approx_fprime(xkp1, f, self.eps)
-    yk = gfkp1 - gfk
-    beta_k = max(0, np.dot(yk, gfkp1) / deltak)
-    pkp1 = -gfkp1 + beta_k * pk
-    gnorm = np.amax(np.abs(gfkp1))
-    return (alpha, xkp1, pkp1, gfkp1, gnorm)
-
-  def descentCondition(self, alpha, xkp1, fp1, gfkp1):
-    print('descent_condition')
-    print(alpha, xkp1, fp1, gfkp1)
-    # Polak-Ribiere+ needs an explicit check of a sufficient
-    # descent condition, which is not guaranteed by strong Wolfe.
-    #
-    # See Gilbert & Nocedal, "Global convergence properties of
-    # conjugate gradient methods for optimization",
-    # SIAM J. Optimization 2, 21 (1992).
-    cached_step[:] = self.polakRibierePowellStep(alpha, gfkp1)
-    alpha, xk, pk, gfk, gnorm = cached_step
-
-    # Accept step if it leads to convergence.
-    if gnorm <= gtol:
-      print('acetptingac')
-      return True
-
-    # Accept step if sufficient descent condition applies.
-    return np.dot(pk, gfk) <= -sigma_3 * np.dot(gfk, gfk)
 
   def _finalizeOptimalCandidate(self,traj,outputs):
     """
@@ -468,7 +351,7 @@ class ConjugateGradient(SPSA):
       @ Out, converged, bool, if True then indicates convergence has been reached
     """
     # check convergence and check if new point is accepted (better than old point)
-    accepted = self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputs)
+    accepted = self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputs,conj=True)
     # if converged, we can wrap up this trajectory
     if self.convergeTraj[traj]:
       # end any excess gradient evaluation jobs
@@ -478,6 +361,7 @@ class ConjugateGradient(SPSA):
     if accepted:
       # store acceptance for later
       self.realizations[traj]['accepted'] = accepted
+      self.counter['recentOptHist'][traj][1] = self.normalizeData(self.realizations[traj]['denoised']['opt'][0])
     else:
       # update solution export
       optCandidate = self.normalizeData(self.realizations[traj]['denoised']['opt'][0])
@@ -488,3 +372,43 @@ class ConjugateGradient(SPSA):
       self.counter['solutionUpdate'][traj] += 1
       self.counter['varsUpdate'][traj] += 1
     return False #not converged
+
+
+  def finalizeSampler(self,failedRuns):
+    """
+      Method called at the end of the Step when no more samples will be taken.  Closes out optimizer.
+      @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
+      @ Out, None
+    """
+    SPSA.handleFailedRuns(self,failedRuns)
+    # get the most optimal point among the trajectories
+    bestValue = None
+    bestTraj = None
+    for traj in self.counter['recentOptHist'].keys():
+      try:
+        value = self.counter['recentOptHist'][traj][1][self.objVar]
+      except KeyError:
+        value = self.counter['recentOptHist'][traj][0][self.objVar]
+
+      self.raiseADebug('For trajectory "{}" the best value was'.format(traj+1),value)
+      if bestTraj is None:
+        bestTraj = traj
+        bestValue = value
+        continue
+      if self.checkIfBetter(value,bestValue):
+        bestTraj = traj
+        bestValue = value
+    # now have the best trajectory, so write solution export
+    bestPoint = self.denormalizeData(self.counter['recentOptHist'][bestTraj][0])
+    self.raiseADebug('The best overall trajectory ending was for trajectory "{}".'.format(bestTraj+1))
+    self.raiseADebug('    The optimal location is at:')
+    for v in self.getOptVars():
+      self.raiseADebug('                {} = {}'.format(v,bestPoint[v]))
+    self.raiseADebug('    The objective value there: {}'.format(bestValue))
+    self.raiseADebug('====================')
+    self.raiseADebug('| END OPTIMIZATION |')
+    self.raiseADebug('====================')
+    # _always_ re-add the last point to the solution export, but use a new varsUpdate value
+    overwrite = {'varsUpdate': self.counter['varsUpdate'][traj]}
+
+    self.writeToSolutionExport(bestTraj, self.normalizeData(bestPoint), True, overwrite=overwrite)

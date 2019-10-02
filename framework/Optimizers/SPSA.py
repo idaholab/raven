@@ -579,11 +579,6 @@ class SPSA(GradientBasedOptimizer):
     # denoising has already been performed, so get the results
     opt = self.realizations[traj]['denoised']['opt'][0]   # opt point is only one point
     pert = self.realizations[traj]['denoised']['grad'][0] # SPSA CURRENTLY only has one grad point
-    # #{'ans': 17.071067811865476, 'x': 0.5, 'y': -0.5} {'ans': 17.05860949607224, 'x': 0.49864582854255124, 'y': -0.49959229954153661}
-    # print('inside the gradient',opt,pert)
-    # print(self.objVar) #ans
-    # print(self.getOptVars()) # x y
-    # print(pert[self.objVar], opt[self.objVar])
     gradient = {}
     # difference in objective variable
     lossDiff = mathUtils.diffWithInfinites(pert[self.objVar], opt[self.objVar])

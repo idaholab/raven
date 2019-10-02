@@ -73,9 +73,23 @@ class GradientBasedOptimizer(Optimizer):
     self.counter['varsUpdate'      ] = {}
     self.counter['solutionUpdate'  ] = {}
     self.counter['lastStepSize'    ] = {}              # counter to track the last step size taken, by trajectory
+    self.counter['iSave']            = {}
+    self.counter['dSave']            = {}
+    self.counter['task']             = {}
+    self.counter['gtol']             = {}
+    self.counter['xk']               = {}
+    self.counter['gfk']              = {}
+    self.counter['pk']               = {}
+    self.counter['newFVal']         = {}
+    self.counter['oldFVal']         = {}
+    self.counter['oldOldFVal']     = {}
+    self.counter['oldGradK']          = {}
+    self.counter['gNorm']            = {}
+    self.counter['deltaK']           = {}
+    self.counter['derPhi0']          = {}
+    self.counter['alpha']           = {}
+
     self.localGradEvals              = {}              #
-
-
 
     self.convergeTraj                = {}
     self.convergenceProgress         = {}              #tracks the convergence progress, by trajectory
@@ -143,6 +157,21 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['gradientHistory'][traj]  = [{},{}]
       self.counter['gradNormHistory'][traj]  = [0.0,0.0]
       self.counter['persistence'][traj]      = 0
+      self.counter['iSave'][traj]            = np.zeros((2,), np.intc)
+      self.counter['dSave'][traj]            = np.zeros((13,), float)
+      self.counter['task'][traj]             = b'START'
+      self.counter['gtol'][traj]             = 1e-08
+      self.counter['xk'][traj]               = None
+      self.counter['gfk'][traj]              = None
+      self.counter['pk'][traj]               = None
+      self.counter['newFVal'][traj]          = None
+      self.counter['oldFVal'][traj]          = None
+      self.counter['oldOldFVal'][traj]       = None
+      self.counter['oldGradK'][traj]         = None
+      self.counter['gNorm'][traj]            = None
+      self.counter['deltaK'][traj]           = None
+      self.counter['derPhi0'][traj]          = None
+      self.counter['alpha'][traj]            = None
       self.localGradEvals[traj]              = [None]
       self.optVarsHist[traj]                 = {}
       self.readyVarsUpdate[traj]             = False
@@ -283,13 +312,6 @@ class GradientBasedOptimizer(Optimizer):
       @ In, myInput, list, the generating input
       @ Out, None
     """
-    #print(self.counter)
-    # {'mdlEval': 3, 'varsUpdate': [1], 'recentOptHist': {0: [{'ans': 17.071067811865476, 'x': 0.75, 'y': 0.25}, {}]}, 'persistence': {0: 0}, 'perturbation': {0: 0}, 'gradientHistory': {0: [{'x': 0.9575438204512511, 'y': -0.28828775887231545}, {}]}, 'gradNormHistory': {0: [0.001414213562373151, 0.0]}, 'solutionUpdate': {0: 1}, 'lastStepSize': {0: 0.070710678118654766}}
-
-    #
-    # print(jobObject.getMetadata())
-    # {'SampledVars': {'x': 0.36458285425512926, 'y': -0.45922995415366263}, 'SampledVarsPb': {}, 'crowDist': {}, 'prefix': '0_1_0', 'trajID': 1, 'varsUpdate': 1}
-
     # collect finished jobs
     prefix = jobObject.getMetadata()['prefix']
     traj, step, identifier = [int(x) for x in prefix.split('_')] # FIXME This isn't generic for any prefixing system
@@ -315,8 +337,6 @@ class GradientBasedOptimizer(Optimizer):
       # index: where is it in the dataObject
       # find index of sample in the target evaluation data object
       done, index = self._checkModelFinish(str(traj), str(step), str(identifier))
-      # print('hit indexing',index)
-      #  {0: {'collect': {'opt': [[8]], 'grad': [[]]}, 'denoised': {'opt': [{'ans': 12.486685648202339, 'x': 0.065133939385324968, 'y': -0.28653651751930309}], 'grad': [[]]}, 'need': 1, 'accepted': True}}
       # sanity check
       if not done:
         self.raiseAnError(RuntimeError,'Trying to collect "{}" but identifies as not done!'.format(prefix))
@@ -324,11 +344,8 @@ class GradientBasedOptimizer(Optimizer):
       # number is the varID
       number = number + (cdId * len(self.fullOptVars))
       self.realizations[traj]['collect'][category][number].append(index)
-      # print('lueluelue')
-      # print(self.realizations[traj])
       # check if any further action needed because we have all the points we need for opt or grad
       if len(self.realizations[traj]['collect'][category][number]) == self.realizations[traj]['need']:
-        # print('hghgghjhh')
         # get the output space (input space included as well)
         outputs = self._averageCollectedOutputs(self.realizations[traj]['collect'][category][number])
         # store denoised results
@@ -417,7 +434,6 @@ class GradientBasedOptimizer(Optimizer):
     for var,vals in outputs.items():
       outputs[var] = vals.mean()
     outputs.update(inputs)
-    # print('average output',outputs)
     return outputs
 
   def calculateMultivectorMagnitude(self,values):
@@ -610,7 +626,6 @@ class GradientBasedOptimizer(Optimizer):
       cdId = ((identifier - self.gradDict['numIterForAve'])// pertPerVar) % len(self.fullOptVars)
       if not self.useCentralDiff:
         cdId = 0
-      # print('jz cdid',identifier,varId,denoId,cdId,category)
     else:
       category = 'opt'
       varId = 0
@@ -735,7 +750,7 @@ class GradientBasedOptimizer(Optimizer):
       self.realizations[traj]['denoised']['opt'] = den
       self.realizations[traj]['accepted'] = True
 
-  def _updateConvergenceVector(self, traj, varsUpdate, currentPoint):
+  def _updateConvergenceVector(self, traj, varsUpdate, currentPoint,conj=False):
     """
       Local method to update convergence vector.
       @ In, traj, int, identifier of the trajector to update
@@ -850,7 +865,8 @@ class GradientBasedOptimizer(Optimizer):
       else:
         self.raiseAMessage(' ... converged Traj "{}" {} times, required persistence is {}.'.format(traj,self.counter['persistence'][traj],self.convergencePersistence))
     else:
-      self.counter['persistence'][traj] = 0
+      if not conj:
+        self.counter['persistence'][traj] = 0
       self.raiseAMessage(' ... continuing trajectory "{}".'.format(traj))
     return newerIsBetter
 

@@ -7,8 +7,8 @@
     <classesTested>Optimizer</classesTested>
     <description>
       This test runs the optimization on a diagonal valley. This is a goal function whose value is linear and very high
-      when it is more than 0.01 away from $x=y$ and parabolic as $x^2+y^2$ within the valley. Minimum solution
-      is at 0, 0 with a value of 0.
+      when it is away from $x+y=0$ and parabolic as $x^2+y^2$ within the valley. Minimum solution
+      is at (-0.5, 0.5) with a value of 0.
     </description>
   </TestInfo>
 
@@ -34,38 +34,29 @@
   <Optimizers>
     <ConjugateGradient name="opter">
       <initialization>
-        <limit>20</limit>
+        <limit>20000</limit>
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-2</thresholdTrajRemoval>
         <writeSteps>every</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
-        <centralDifference>False</centralDifference>
+        <centralDifference>True</centralDifference>
         <gradientThreshold>1e-7</gradientThreshold>
         <absoluteThreshold>0</absoluteThreshold>
         <relativeThreshold>1e-12</relativeThreshold>
-        <gainGrowthFactor>1.3</gainGrowthFactor>
-        <gainShrinkFactor>1.2</gainShrinkFactor>
         <minStepSize>1e-13</minStepSize>
-        <persistence>5</persistence>
+        <persistence>3</persistence>
       </convergence>
-      <!--parameter>
-        <numGradAvgIterations>2</numGradAvgIterations>
-      </parameter-->
       <variable name="x">
         <upperBound>1</upperBound>
         <lowerBound>-1</lowerBound>
-        <initial>0.55,0.5</initial>
-        <!--initial>-0.9,0.5,-0.5,0.9</initial-->
-
+        <initial>0.5,0.2,0.6</initial>
       </variable>
       <variable name="y">
         <upperBound>1</upperBound>
         <lowerBound>-1</lowerBound>
-        <!--initial>0.9,0.5,-0.5,-0.9</initial-->
-        <initial>0.2,-0.6</initial>
-
+        <initial>-0.6,-0.9,0.3</initial>
       </variable>
       <objectVar>ans</objectVar>
     </ConjugateGradient>
