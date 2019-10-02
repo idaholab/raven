@@ -172,9 +172,14 @@ class ConjugateGradient(SPSA):
               self.raiseAMessage(' ... converged Traj "{}" {} times, required persistence is {}.'.format(traj,self.counter['persistence'][traj],self.convergencePersistence))
 
           else:
-            self.counter['lastStepSize'][traj] = None
-            self.raiseAnError(ValueError, 'Not able to calculate the froward step')
-
+            self.raiseAWarning('Not able to calculate the froward step')
+            self.counter['persistence'][traj] += 1
+            if self.counter['persistence'][traj] >= self.convergencePersistence:
+              self.raiseAMessage(' ... Trajectory "{}" converged {} times consecutively!'.format(traj,self.counter['persistence'][traj]))
+              self.convergeTraj[traj] = True
+              self.removeConvergedTrajectory(traj)
+            else:
+              self.raiseAMessage(' ... converged Traj "{}" {} times, required persistence is {}.'.format(traj,self.counter['persistence'][traj],self.convergencePersistence))
 
           self.counter['alpha'][traj] = self.counter['lastStepSize'][traj]
 

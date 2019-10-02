@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers.ValleyConjugate</name>
+    <name>framework/Optimizers.Conjugate</name>
     <author>ZHOUJ</author>
     <created>2019-10-02</created>
     <classesTested>Optimizer</classesTested>
@@ -13,7 +13,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>ValleyConjugate</WorkingDir>
+    <WorkingDir>Conjugate</WorkingDir>
     <Sequence>optimize, print</Sequence>
   </RunInfo>
 
@@ -37,7 +37,7 @@
         <limit>20000</limit>
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-2</thresholdTrajRemoval>
-        <writeSteps>every</writeSteps>
+        <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
@@ -77,7 +77,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate,accepted</Output>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 
