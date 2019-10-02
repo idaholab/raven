@@ -1,0 +1,9 @@
+def evaluate(self):
+    if self.N_HPI==0:
+        return 86400.0
+    elif self.N_HPI==1:
+        return 86400.0
+    elif self.N_HPI==2:
+        return self.HPI_B_time
+    elif self.N_HPI==3:
+        return self.HPI_B_time

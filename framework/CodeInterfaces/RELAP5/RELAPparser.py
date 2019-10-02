@@ -19,6 +19,7 @@ Created on July 11, 2013
 import os
 import fileinput
 import re
+import math
 from collections import defaultdict
 
 def _splitRecordAndRemoveComments(line, delimiter=None):
@@ -50,23 +51,23 @@ class RELAPparser():
     self.printTag = 'RELAP5 PARSER'
     if not os.path.exists(inputFile):
       raise IOError(self.printTag+'ERROR: not found RELAP input file')
-    IOfile = open(inputFile,'r')
-    self.inputfile = inputFile
-    self.inputTrips = {1:{'variableTrips':{},'logicalTrips':{}}}
+    lines                 = open(inputFile,'r').readlines()
+    self.inputfile        = inputFile
+    self.inputTrips       = {}    #  {deckNumber:{'variableTrips':{},'logicalTrips':{}}}
     self.inputMinorEdits  = {}
     self.inputControlVars = {}
     self.hasLogicalTrips  = False
     self.hasVariableTrips = False
     self.inputStopTrips   = None
-    self.lastTripLine     = {1:-1}
-    self.lastCntrLine     = {1:-1}
-    self.lastMinorEditLine= {1:-1}
-    self.controlVarType   = {1:1}    # {deckNum:1 CCC format or 2 CCCC format}
+    self.lastTripLine     = {}
+    self.lastCntrLine     = {}
+    self.lastMinorEditLine= {}
+    self.controlVarType   = {}    # {deckNum:1 CCC format or 2 CCCC format}
     self.deckLines        = {}
     self.maxNumberOfDecks = 0
     prevDeckLineNum       = 0
     self.addMinorEdits    = addMinorEdits
-    lines                 = IOfile.readlines()
+    
     for lineNum, line in enumerate(lines):
       if line.strip().startswith("."):
         self.maxNumberOfDecks += 1
@@ -98,7 +99,7 @@ class RELAPparser():
       if len(availableControlVars) < len(monitoredTrips)+1: raise IOError("Not enough control variables' slots are available. We need at least "+str(len(monitoredTrips)+1)+" free slots!")
 
       presentTrips, cnt = self.inputTrips[deckNum]['variableTrips'].keys(), 501
-      while str(cnt) in presentTrips and cnt < 600: cnt+=1
+      while any([str(cnt) in s for s in presentTrips]) and cnt < 600: cnt+=1
       if cnt == 600: raise IOError("All the Trip slots are used! We need at least " +str(len(monitoredTrips)+1)+" slots to specify the stop conditions!!!!")
       else         : stopTripNumber, stopCntrVar = str(max(cnt,599)), availableControlVars.pop()
       self.deckLines[deckNum].append("* START -- CONTROL VARIABLES ADDED BY RAVEN *\n")
@@ -110,7 +111,7 @@ class RELAPparser():
         controlVar = availableControlVars.pop()
         controlledControlVars.append(controlVar)
         self.deckLines[deckNum].append("205"+controlVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " raven"+str(cnt)+" tripunit 1.0 0.0 0 \n")
-        self.deckLines[deckNum].append("205"+controlVar.strip()+"1".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " " + str(monitoredTrips[deckNum][cnt])+" \n")
+        self.deckLines[deckNum].append("205"+controlVar.strip()+"1".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " " + str(list(monitoredTrips[deckNum])[cnt])+" \n")
       # to fix. the following can handle only 50 trips
       self.lastCntrLine[deckNum]+=2
       self.deckLines[deckNum].append("205"+stopCntrVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) +" tripstop sum 1.0 0.0 0 \n")
@@ -155,7 +156,10 @@ class RELAPparser():
       @ In, None
       @ Out, None
     """
-    for deckNum in self.deckLines.keys():
+    for deckNum in self.deckLines.keys(): 
+      self.lastTripLine[deckNum]     = -1
+      self.lastCntrLine[deckNum]     = -1
+      self.lastMinorEditLine[deckNum]= -1      
       for lineNum, line in enumerate(self.deckLines[deckNum]):
         splitted = _splitRecordAndRemoveComments(line)
         if len(splitted) > 0 and splitted[0].strip().isdigit():
@@ -188,6 +192,7 @@ class RELAPparser():
       return isCntr
     if deckNum not in self.inputControlVars.keys():
       self.inputControlVars[deckNum] = {}
+      self.controlVarType[deckNum] = 1
     if 20500010 <= int(splitted[0]) <= 20599990:
       isCntr = True
       if splitted[0].endswith('0'):
@@ -214,6 +219,8 @@ class RELAPparser():
     """
     """
     isTrip = False
+    if deckNum not in self.inputTrips.keys():
+      self.inputTrips[deckNum] = {'variableTrips':{},'logicalTrips':{}} 
     if (401 <= int(splitted[0]) <= 599) or (20600010 <= int(splitted[0]) <= 20610000):
       if  not (8 <= len(splitted)<= 9):
         raise IOError(self.printTag+ "ERROR: in RELAP5 input file the number of words in variable trip section needs to be 7 or 8 . Trip= "+splitted[0])
@@ -360,11 +367,13 @@ class RELAPparser():
       temp+=self.deckLines[deckNum]
       cardLines = {}
       foundAllCards = dict.fromkeys(modiDictionaryList.keys(),False)
+      cnt = 0
       for lineNum, line in enumerate(temp):
         if all(foundAllCards.values()):
           break
-        if not re.match('^\s*\n',line):
-          card = _splitRecordAndRemoveComments(line)[0].strip()
+        if not re.match(r'^\s*\n',line):
+          splitted = _splitRecordAndRemoveComments(line)
+          card = splitted[0].strip() if len(splitted) > 0 else '*-None-*'
           if card in modiDictionaryList.keys():
             cardLines[card] = {'lineNumber':lineNum,'numberOfLevels':1,'numberOfAvailableWords':self.countNumberOfWords(line)}
             foundAllCards[card] = True

@@ -1,0 +1,9 @@
+def evaluate(self):
+    if self.N_ACC==0:
+        return 86400.0
+    elif self.N_ACC==1:
+        return 5.0
+    elif self.N_ACC==2:
+        return 5.0
+    elif self.N_ACC==3:
+        return 5.0

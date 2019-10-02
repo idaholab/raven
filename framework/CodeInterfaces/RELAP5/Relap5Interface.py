@@ -302,7 +302,7 @@ class Relap5(CodeInterfaceBase):
         if deckActivated:
           raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
     modifDict['decks']=deckList
-    listDict.append(modifDict)
+    listDict.append(modifDict) 
     return listDict
 
   def DynamicEventTreeForRELAP5(self,**Kwargs):
@@ -313,130 +313,155 @@ class Relap5(CodeInterfaceBase):
       @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
       @ Out, listDict, list, list of dictionaries used by the parser to change the input file
     """
-    listDict =[]
-    deckList={1:{}}   #  List of decks with the cards to be modified in RELAP5 Input File
+    listDict = []
+    modifDict = {}
+    deckList = {1:{}}
     deckActivated = False
-    # Check the initiator distributions and add the next threshold
-    if 'initiator_distribution' in Kwargs.keys():
-      for i in range(len(Kwargs['initiator_distribution'])):
-        modifDict = {}
-        modifDict['name'] = ['Distributions',Kwargs['initiator_distribution'][i]]
-        modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
-        listDict.append(modifDict)
-        del modifDict
-    # add the initial time for this new branch calculation
-    if 'startTime' in Kwargs.keys():
-      if Kwargs['startTime'] != 'Initial':
-        modifDict = {}
-        st_time = Kwargs['startTime']
-        modifDict['name'] = ['Executioner']
-        modifDict['startTime'] = st_time
-        listDict.append(modifDict)
-        del modifDict
-    # create the restart file name root from the parent branch calculation
-    # in order to restart the calc from the last point in time
-    if 'end_ts' in Kwargs.keys():
-      #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
-      if str(Kwargs['startTime']) != 'Initial':
-        modifDict = {}
-        #restart_parent = Kwargs['RAVEN_parentID']+'~restart.r'
-        #new_restart = Kwargs['prefix']+'~restart.r'
-        #shutil.copyfile(restart_parent,new_restart)
-        modifDict['name'] = ['Executioner']
-        #modifDict['restart_file_base'] = new_restart
-        #print('CODE INTERFACE: Restart file name base is "' + new_restart + '"')
-        listDict.append(modifDict)
-        del modifDict
-    # max simulation time (if present)
-    if 'end_time' in Kwargs.keys():
-      modifDict = {}
-      end_time = Kwargs['end_time']
-      modifDict['name'] = ['Executioner']
-      modifDict['end_time'] = end_time
-      listDict.append(modifDict)
-      del modifDict
-
-    modifDict = {}
-    modifDict['name'] = ['Output']
-    modifDict['num_restart_files'] = 1
-    listDict.append(modifDict)
-    del modifDict
-    # in this way we erase the whole block in order to neglect eventual older info
-    # remember this "command" must be added before giving the info for refilling the block
-    modifDict = {}
-    modifDict['name'] = ['RestartInitialize']
-    modifDict['erase_block'] = True
-    listDict.append(modifDict)
-
-    del modifDict
-    # check and add the variables that have been changed by a distribution trigger
-    # add them into the RestartInitialize block
-  #     if 'branch_changed_param' in Kwargs.keys():
-  #       if Kwargs['branch_changed_param'][0] not in ('None',b'None'):
-  #         for i in range(len(Kwargs['branch_changed_param'])):
-  #           modifDict = {}
-  #           modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
-  #           modifDict['value'] = Kwargs['branch_changed_param_value'][i]
-  #           listDict.append(modifDict)
-  #           del modifDict
-    modifDict={}
     for keys in Kwargs['SampledVars']:
-      key = keys.split(':')
-      deck = None
-      multiDeck = key[0].split("|")
-      if len(multiDeck) > 1:
-        card = multiDeck[1]
-        deck = multiDeck[0]
-        try   : deck = int(deck)
-        except: raise IOError("RELAP5 interface: activated multi-deck/case approach but the deck number is not an integer (first word followed by '|' symbol). Got "+str(deck))
-        deckActivated = True
-        if deck not in deckList.keys():deckList[deck] = {}
+      deck, card, word = self._convertVariablNameInInfo(keys)
+      deckActivated = deck > 1
+      if deck not in deckList:
+        deckList[deck] = {}
+      if card not in deckList[deck]:
+        deckList[deck][card] = [{'position':word,'value':Kwargs['SampledVars'][keys]}]
       else:
-        deck = 1
-        card = key[0]
-      if len(key) > 1:
+        deckList[deck][card].append({'position':word,'value':Kwargs['SampledVars'][keys]})
 
-        if Kwargs['startTime'] != 'Initial':
-          if card not in deckList[deck].keys(): deckList[deck][card] = [{'position':int(key[1]),'value':float(Kwargs['SampledVars'][keys])}]
-          else                                : deckList[deck][card].append({'position':int(key[1]),'value':float(Kwargs['SampledVars'][keys])})
-        else:
-          if card not in deckList[deck].keys(): deckList[deck][card] = [{'position':int(key[1]),'value':Kwargs['SampledVars'][keys]}]
-          else                                : deckList[deck][card].append({'position':int(key[1]),'value':Kwargs['SampledVars'][keys]})
-      else:
-        if Kwargs['startTime'] != 'Initial':
-          if card not in deckList[deck].keys(): deckList[deck][card]=[{'position':0,'value':float(Kwargs['SampledVars'][keys])}]
-          else                                : deckList[deck][card].append({'position':0,'value':float(Kwargs['SampledVars'][keys])})
-        else:
-          if card not in deckList[deck].keys(): deckList[deck][card]=[{'position':0,'value':float(Kwargs['SampledVars'][keys])}]
-          else                                : deckList[deck][card].append({'position':0,'value':float(Kwargs['SampledVars'][keys])})
       if deck is None:
         # check if other variables have been defined with a deck ID, in case...error out
-        if deckActivated: raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
+        if deckActivated:
+          raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
     modifDict['decks']=deckList
-    if 'aux_vars' in Kwargs.keys():
-      for keys in Kwargs['aux_vars']:
-        deck = None
-        key = keys.split(':')
-        multiDeck = key[0].split("|")
-        if len(multiDeck) > 1:
-          card = multiDeck[1]
-          deck = multiDeck[0]
-          try   : deck = int(deck)
-          except: raise IOError("RELAP5 interface: activated multi-deck/case approach but the deck number is not an integer (first word followed by '|' symbol). Got "+str(deck))
-          deckActivated = True
-          if deck not in deckList.keys():deckList[deck] = {}
-        else:
-          card = key[0]
-        if len(key) > 1:
-          if card not in deckList[deck].keys(): deckList[deck][card]=[{'position':int(key[1]),'value':Kwargs['aux_vars'][keys]}]
-          else                                : deckList[deck][card].append({'position':int(key[1]),'value':Kwargs['aux_vars'][keys]})
-        else:
-          if card not in deckList[deck].keys(): deckList[deck][card]=[{'position':0,'value':Kwargs['aux_vars'][keys]}]
-          else                                : deckList[deck][card].append({'position':0,'value':Kwargs['aux_vars'][keys]})
-        if deck is None:
-          # check if other variables have been defined with a deck ID, in case...error out
-          if deckActivated: raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
-        modifDict['cards']=deckList
-    listDict.append(modifDict)
-    del modifDict
-    return listDict
+    listDict.append(modifDict) 
+    return listDict    
+    
+    
+    
+    
+    #listDict =[]
+    #deckList={1:{}}   #  List of decks with the cards to be modified in RELAP5 Input File
+    #deckActivated = False
+    ## Check the initiator distributions and add the next threshold
+    #if 'initiator_distribution' in Kwargs.keys():
+      #for i in range(len(Kwargs['initiator_distribution'])):
+        #modifDict = {}
+        #modifDict['name'] = ['Distributions',Kwargs['initiator_distribution'][i]]
+        #modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
+        #listDict.append(modifDict)
+        #del modifDict
+    ## add the initial time for this new branch calculation
+    #if 'startTime' in Kwargs.keys():
+      #if Kwargs['startTime'] != 'Initial':
+        #modifDict = {}
+        #st_time = Kwargs['startTime']
+        #modifDict['name'] = ['Executioner']
+        #modifDict['startTime'] = st_time
+        #listDict.append(modifDict)
+        #del modifDict
+    ## create the restart file name root from the parent branch calculation
+    ## in order to restart the calc from the last point in time
+    #if 'end_ts' in Kwargs.keys():
+      ##if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
+      #if str(Kwargs['startTime']) != 'Initial':
+        #modifDict = {}
+        ##restart_parent = Kwargs['RAVEN_parentID']+'~restart.r'
+        ##new_restart = Kwargs['prefix']+'~restart.r'
+        ##shutil.copyfile(restart_parent,new_restart)
+        #modifDict['name'] = ['Executioner']
+        ##modifDict['restart_file_base'] = new_restart
+        ##print('CODE INTERFACE: Restart file name base is "' + new_restart + '"')
+        #listDict.append(modifDict)
+        #del modifDict
+    ## max simulation time (if present)
+    #if 'end_time' in Kwargs.keys():
+      #modifDict = {}
+      #end_time = Kwargs['end_time']
+      #modifDict['name'] = ['Executioner']
+      #modifDict['end_time'] = end_time
+      #listDict.append(modifDict)
+      #del modifDict
+
+    #modifDict = {}
+    #modifDict['name'] = ['Output']
+    #modifDict['num_restart_files'] = 1
+    #listDict.append(modifDict)
+    #del modifDict
+    ## in this way we erase the whole block in order to neglect eventual older info
+    ## remember this "command" must be added before giving the info for refilling the block
+    #modifDict = {}
+    #modifDict['name'] = ['RestartInitialize']
+    #modifDict['erase_block'] = True
+    #listDict.append(modifDict)
+
+    #del modifDict
+    ## check and add the variables that have been changed by a distribution trigger
+    ## add them into the RestartInitialize block
+  ##     if 'branch_changed_param' in Kwargs.keys():
+  ##       if Kwargs['branch_changed_param'][0] not in ('None',b'None'):
+  ##         for i in range(len(Kwargs['branch_changed_param'])):
+  ##           modifDict = {}
+  ##           modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
+  ##           modifDict['value'] = Kwargs['branch_changed_param_value'][i]
+  ##           listDict.append(modifDict)
+  ##           del modifDict
+    #modifDict={}
+    #for keys in Kwargs['SampledVars']:
+      #key = keys.split(':')
+      #deck = None
+      #multiDeck = key[0].split("|")
+      #if len(multiDeck) > 1:
+        #card = multiDeck[1]
+        #deck = multiDeck[0]
+        #try   : deck = int(deck)
+        #except: raise IOError("RELAP5 interface: activated multi-deck/case approach but the deck number is not an integer (first word followed by '|' symbol). Got "+str(deck))
+        #deckActivated = True
+        #if deck not in deckList.keys():deckList[deck] = {}
+      #else:
+        #deck = 1
+        #card = key[0]
+      #if len(key) > 1:
+
+        #if Kwargs['startTime'] != 'Initial':
+          #if card not in deckList[deck].keys(): deckList[deck][card] = [{'position':int(key[1]),'value':float(Kwargs['SampledVars'][keys])}]
+          #else                                : deckList[deck][card].append({'position':int(key[1]),'value':float(Kwargs['SampledVars'][keys])})
+        #else:
+          #if card not in deckList[deck].keys(): deckList[deck][card] = [{'position':int(key[1]),'value':Kwargs['SampledVars'][keys]}]
+          #else                                : deckList[deck][card].append({'position':int(key[1]),'value':Kwargs['SampledVars'][keys]})
+      #else:
+        #if Kwargs['startTime'] != 'Initial':
+          #if card not in deckList[deck].keys(): deckList[deck][card]=[{'position':0,'value':float(Kwargs['SampledVars'][keys])}]
+          #else                                : deckList[deck][card].append({'position':0,'value':float(Kwargs['SampledVars'][keys])})
+        #else:
+          #if card not in deckList[deck].keys(): deckList[deck][card]=[{'position':0,'value':float(Kwargs['SampledVars'][keys])}]
+          #else                                : deckList[deck][card].append({'position':0,'value':float(Kwargs['SampledVars'][keys])})
+      #if deck is None:
+        ## check if other variables have been defined with a deck ID, in case...error out
+        #if deckActivated: raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
+    #modifDict['decks']=deckList
+    #if 'aux_vars' in Kwargs.keys():
+      #for keys in Kwargs['aux_vars']:
+        #deck = None
+        #key = keys.split(':')
+        #multiDeck = key[0].split("|")
+        #if len(multiDeck) > 1:
+          #card = multiDeck[1]
+          #deck = multiDeck[0]
+          #try   : deck = int(deck)
+          #except: raise IOError("RELAP5 interface: activated multi-deck/case approach but the deck number is not an integer (first word followed by '|' symbol). Got "+str(deck))
+          #deckActivated = True
+          #if deck not in deckList.keys():deckList[deck] = {}
+        #else:
+          #card = key[0]
+        #if len(key) > 1:
+          #if card not in deckList[deck].keys(): deckList[deck][card]=[{'position':int(key[1]),'value':Kwargs['aux_vars'][keys]}]
+          #else                                : deckList[deck][card].append({'position':int(key[1]),'value':Kwargs['aux_vars'][keys]})
+        #else:
+          #if card not in deckList[deck].keys(): deckList[deck][card]=[{'position':0,'value':Kwargs['aux_vars'][keys]}]
+          #else                                : deckList[deck][card].append({'position':0,'value':Kwargs['aux_vars'][keys]})
+        #if deck is None:
+          ## check if other variables have been defined with a deck ID, in case...error out
+          #if deckActivated: raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
+        #modifDict['cards']=deckList
+    #listDict.append(modifDict)
+    #del modifDict
+    #return listDict

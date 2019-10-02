@@ -450,6 +450,9 @@ class DynamicEventTree(Grid):
     self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
     self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
 
+    ##### REDUNDANT FUNCTIONALS #####
+    self._functionalVariables()
+
     if(self.maxSimulTime):
       self.inputInfo['endTime'] = self.maxSimulTime
     # Add the new input path into the RunQueue system
@@ -457,7 +460,7 @@ class DynamicEventTree(Grid):
     for key,value in self.inputInfo.items():
       rootnode.add(key,copy.copy(value))
     self.RunQueue['queue'].append(newInputs)
-    print(self.inputInfo['prefix'])
+    
     self.RunQueue['identifiers'].append(self.inputInfo['prefix'])
     self.rootToJob[self.inputInfo['prefix']] = rname
     del newInputs
@@ -787,7 +790,7 @@ class DynamicEventTree(Grid):
       self.standardDETvariables.append(keyk)
       if self.gridInfo[keyk] == 'CDF':
         self.branchProbabilities[keyk] = gridInfo[keyk][2]
-        self.branchProbabilities[keyk].sort(key=float)
+        self.branchProbabilities[keyk].sort()
         if max(self.branchProbabilities[keyk]) > 1:
           errorMsgs += "One of the Thresholds for distribution " + str(gridInfo[keyk][2]) + " is > 1 \n"
           errorFound = True
@@ -808,7 +811,7 @@ class DynamicEventTree(Grid):
 #               errorFound = True
       else:
         self.branchValues[keyk] = gridInfo[keyk][2]
-        self.branchValues[keyk].sort(key=float)
+        self.branchValues[keyk].sort()
         valueMultiplicities = Counter(self.branchValues[keyk])
         multiples = [value for value,mult in valueMultiplicities.items() if mult > 1]
         ## Only the multiple variables remain

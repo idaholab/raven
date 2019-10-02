@@ -1,0 +1,242 @@
+<Simulation verbosity="debug">
+
+  <RunInfo>
+    <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/CodeInterfaceTests/RELAP5/RELAP5interfaceDET</WorkingDir>
+    <Sequence>Run</Sequence>
+    <batchSize>4</batchSize>
+    <!-- <RemoteRunCommand>raven_qsub_command_legacy.sh</RemoteRunCommand>
+    <mode>mpi<runQSUB/>
+      <memory>12gb</memory>
+    </mode>
+    <clusterParameters>-P lwrs</clusterParameters>
+    <expectedTime>18:00:00</expectedTime>
+    <deleteOutExtension>.plt,.o,plotfl,restrt</deleteOutExtension>
+    <maxQueueSize>512</maxQueueSize> -->
+  </RunInfo>
+
+  <Files>
+    <Input name="inputFile_PWR"     type=""   >SURRY2_A6j_MD_2A_1A1H1L_tr.i</Input>
+    <Input name="tpfh2o"            type=""   >tpfh2o</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name='LOCA_PS'>
+        <Input>ACC1,ACC2,ACC3,
+               HPI_A_time_act,HPI_B_time_act,HPI_C_time_act,
+               HPR_A_time_act,HPR_B_time_act,HPR_C_time_act,
+               LPI_A_time_act,LPI_B_time_act,
+               LPR_A_time_act,LPR_B_time_act</Input>
+        <Output>cntrlvar_497,time</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Steps>
+    <MultiRun name="Run">
+      <Input     class="Files"         type=""             >inputFile_PWR</Input>
+      <Input     class="Files"         type=""             >tpfh2o</Input>
+      <Model     class="Models"        type="Code"         >relap</Model>
+      <Sampler   class="Samplers"      type="DynamicEventTree"   >DET</Sampler>
+      <Output    class="Databases"     type="HDF5"         >DB_LOCA</Output>
+      <Output    class="DataObjects"   type="PointSet"     >LOCA_PS</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="DB_LOCA" readMode="overwrite"/>
+  </Databases>
+
+  <Distributions>
+    <Categorical name='systemsAvailable3'>
+      <state outcome="0.0" >0.25</state>
+      <state outcome="1.0" >0.25</state>
+      <state outcome="2.0" >0.25</state>
+      <state outcome="3.0" >0.25</state>
+    </Categorical>
+    <Categorical name='systemsAvailable2'>
+      <state outcome="0.0" >0.34</state>
+      <state outcome="1.0" >0.33</state>
+      <state outcome="2.0" >0.33</state>
+    </Categorical>
+    <Uniform name='timeActivation'>
+      <lowerBound>2.</lowerBound>
+      <upperBound>5.</upperBound>
+    </Uniform>
+    <Uniform name='timeSwitch'>
+      <lowerBound>100.</lowerBound>
+      <upperBound>150.</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <DynamicEventTree name="DET">
+      <variable name="HPI_A_time">
+        <distribution>timeActivation</distribution>
+        <grid construction="equal" type="CDF" steps="3">0.1 0.9</grid>
+      </variable>
+      <variable name="HPI_B_time">
+        <distribution>timeActivation</distribution>
+        <grid construction="equal" type="CDF" steps="3">0.1 0.9</grid>
+      </variable>
+      <variable name="HPI_C_time">
+        <distribution>timeActivation</distribution>
+        <grid construction="equal" type="CDF" steps="3">0.1 0.9</grid>
+      </variable>
+      <variable name="HPR_A_time">
+        <distribution>timeSwitch</distribution>
+        <grid construction="equal" type="value" steps="3">100 150</grid>
+      </variable>
+      <variable name="HPR_B_time">
+        <distribution>timeSwitch</distribution>
+        <grid construction="equal" type="value" steps="3">100 150</grid>
+      </variable>
+      <variable name="HPR_C_time">
+        <distribution>timeSwitch</distribution>
+        <grid construction="equal" type="value" steps="3">100 150</grid>
+      </variable>
+      <variable name="LPI_A_time">
+        <distribution>timeActivation</distribution>
+        <grid construction="equal" type="CDF" steps="3">0.1 0.9</grid>
+      </variable>
+      <variable name="LPI_B_time">
+        <distribution>timeActivation</distribution>
+        <grid construction="equal" type="CDF" steps="3">0.1 0.9</grid>
+      </variable>
+      <variable name="LPR_A_time">
+        <distribution>timeSwitch</distribution>
+        <grid construction="equal" type="value" steps="3">100 150</grid>
+      </variable>
+      <variable name="LPR_B_time">
+        <distribution>timeSwitch</distribution>
+        <grid construction="equal" type="value" steps="3">100 150</grid>
+      </variable>
+      <variable name="N_ACC">
+        <distribution>systemsAvailable3</distribution>
+        <grid construction="custom" type="value">0.0 1.0 2.0 3.0</grid>
+      </variable>
+      <variable name="N_HPI">
+        <distribution>systemsAvailable3</distribution>
+        <grid construction="custom" type="value">0.0 1.0 2.0 3.0</grid>
+      </variable>
+      <variable name="N_HPR">
+        <distribution>systemsAvailable3</distribution>
+        <grid construction="custom" type="value">0.0 1.0 2.0 3.0</grid>
+      </variable>
+      <variable name="N_LPI">
+        <distribution>systemsAvailable2</distribution>
+        <grid construction="custom" type="value">0.0 1.0 2.0</grid>
+      </variable>
+      <variable name="N_LPR">
+        <distribution>systemsAvailable2</distribution>
+        <grid construction="custom" type="value">0.0 1.0 2.0</grid>
+      </variable>
+      
+      <!-- functions -->
+      <variable name="ACC1">
+        <function>ACC1_act</function>
+      </variable>
+      <variable name="ACC2">
+        <function>ACC2_act</function>
+      </variable>
+      <variable name="ACC3">
+        <function>ACC3_act</function>
+      </variable>
+      <variable name="HPI_A_time_act">
+        <function>HPI_A_time_act</function>
+      </variable>
+      <variable name="HPI_B_time_act">
+        <function>HPI_B_time_act</function>
+      </variable>
+      <variable name="HPI_C_time_act">
+        <function>HPI_C_time_act</function>
+      </variable>
+      <variable name="HPR_A_time_act">
+        <function>HPR_A_time_act</function>
+      </variable>
+      <variable name="HPR_B_time_act">
+        <function>HPR_B_time_act</function>
+      </variable>
+      <variable name="HPR_C_time_act">
+        <function>HPR_C_time_act</function>
+      </variable>
+      <variable name="LPI_A_time_act">
+        <function>LPI_A_time_act</function>
+      </variable>
+      <variable name="LPI_B_time_act">
+        <function>LPI_B_time_act</function>
+      </variable>
+      <variable name="LPR_A_time_act">
+        <function>LPR_A_time_act</function>
+      </variable>
+      <variable name="LPR_B_time_act">
+        <function>LPR_B_time_act</function>
+      </variable>
+    </DynamicEventTree>
+  </Samplers>
+
+  <Models>
+    <Code name="relap" subType="Relap5">
+      <executable>/home/mandd/projects/LOCA2018/2A/relap5.x</executable>
+      <walltime>10800.</walltime>
+      <alias variable="ACC1"                type="input"  >1|0000527:6</alias>
+      <alias variable="ACC2"                type="input"  >1|0000556:6</alias>
+      <alias variable="ACC3"                type="input"  >1|0000557:6</alias>
+      <alias variable="HPI_A_time_act"      type="input"  >1|0000553:6</alias>
+      <alias variable="HPI_B_time_act"      type="input"  >1|0000554:6</alias>
+      <alias variable="HPI_C_time_act"      type="input"  >1|0000555:6</alias>
+      <alias variable="HPR_A_time_act"      type="input"  >1|0000568:6</alias>
+      <alias variable="HPR_B_time_act"      type="input"  >1|0000569:6</alias>
+      <alias variable="HPR_C_time_act"      type="input"  >1|0000570:6</alias>
+      <alias variable="LPI_A_time_act"      type="input"  >1|0000551:6</alias>
+      <alias variable="LPI_B_time_act"      type="input"  >1|0000552:6</alias>
+      <alias variable="LPR_A_time_act"      type="input"  >1|0000566:6</alias>
+      <alias variable="LPR_B_time_act"      type="input"  >1|0000567:6</alias>
+    </Code>
+  </Models>
+
+  <Functions>
+    <External name='ACC1_act' file='ACC1.py'>
+      <variables>N_ACC</variables>
+    </External>
+    <External name='ACC2_act' file='ACC2.py'>
+      <variables>N_ACC</variables>
+    </External>
+    <External name='ACC3_act' file='ACC3.py'>
+      <variables>N_ACC</variables>
+    </External>
+
+    <External name='HPI_A_time_act' file='HPI_A_time.py'>
+      <variables>N_HPI, HPI_A_time </variables>
+    </External>
+    <External name='HPI_B_time_act' file='HPI_B_time.py'>
+      <variables>N_HPI, HPI_B_time </variables>
+    </External>
+    <External name='HPI_C_time_act' file='HPI_C_time.py'>
+      <variables>N_HPI, HPI_C_time </variables>
+    </External>
+
+    <External name='HPR_A_time_act' file='HPR_A_time.py'>
+      <variables>N_HPR, N_HPI, HPR_A_time </variables>
+    </External>
+    <External name='HPR_B_time_act' file='HPR_B_time.py'>
+      <variables>N_HPR, N_HPI, HPR_B_time </variables>
+    </External>
+    <External name='HPR_C_time_act' file='HPR_C_time.py'>
+      <variables>N_HPR, N_HPI, HPR_C_time </variables>
+    </External>
+
+    <External name='LPI_A_time_act' file='LPI_A_time.py'>
+      <variables>N_LPI, LPI_A_time </variables>
+    </External>
+    <External name='LPI_B_time_act' file='LPI_B_time.py'>
+      <variables>N_LPI, LPR_B_time </variables>
+    </External>
+
+    <External name='LPR_A_time_act' file='LPR_A_time.py'>
+      <variables>N_LPR, N_LPI, LPR_B_time </variables>
+    </External>
+    <External name='LPR_B_time_act' file='LPR_B_time.py'>
+      <variables>N_LPR, N_LPI,LPR_B_time </variables>
+    </External>
+  </Functions>
+
+</Simulation>
