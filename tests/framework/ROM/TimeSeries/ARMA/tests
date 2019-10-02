@@ -160,7 +160,7 @@
     # TODO signal test!
     [./rom_meta]
       type = XML
-      output = 'Clustered/romMeta.xml'
+      output = 'ClusteredTruncated/romMeta.xml'
       rel_err = 1e-5
     [../]
   [../]
