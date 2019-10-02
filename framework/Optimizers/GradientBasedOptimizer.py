@@ -99,8 +99,8 @@ class GradientBasedOptimizer(Optimizer):
     self.gainShrinkFactor            = 2.              # max step shrinking factor
     self.optPointIndices             = []              # in this list we store the indeces that correspond to the opt point
     self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation.
-    self.useCentralDiff              = None            # whether to use central differencing
-    self.useGradHist              = None            # whether to use central differencing
+    self.useCentralDiff              = False            # whether to use central differencing
+    self.useGradHist                 = False            # whether to use Gradient hisory
     # REWORK 2018-10 for simultaneous point-and-gradient evaluations
     self.realizations                = {}    # by trajectory, stores the results obtained from the jobs running, see setupNewStorage for structure
 
