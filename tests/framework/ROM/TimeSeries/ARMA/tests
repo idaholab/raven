@@ -202,7 +202,7 @@
       type = XML
       unordered = true
       output = 'Multiyear/romMeta.xml'
-      rel_err = 1e-7
+      rel_err = 1e-3
     [../]
     [./samples]
       type = OrderedCSV
