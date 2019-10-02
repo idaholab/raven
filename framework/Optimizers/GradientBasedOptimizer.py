@@ -100,6 +100,7 @@ class GradientBasedOptimizer(Optimizer):
     self.optPointIndices             = []              # in this list we store the indeces that correspond to the opt point
     self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation.
     self.useCentralDiff              = None            # whether to use central differencing
+    self.useGradHist              = None            # whether to use central differencing
     # REWORK 2018-10 for simultaneous point-and-gradient evaluations
     self.realizations                = {}    # by trajectory, stores the results obtained from the jobs running, see setupNewStorage for structure
 
@@ -139,6 +140,13 @@ class GradientBasedOptimizer(Optimizer):
         self.useCentralDiff = (centralDiff.text.strip().lower() in utils.stringsThatMeanTrue()) if centralDiff is not None else False
       except ValueError:
         self.raiseAnError(ValueError, 'Not able to convert <centralDifference> into a boolean.')
+
+      useGradHist = convergence.find('useGradientHistory')
+      try:
+        self.useGradHist = (useGradHist.text.strip().lower() in utils.stringsThatMeanTrue()) if centralDiff is not None else False
+      except ValueError:
+        self.raiseAnError(ValueError, 'Not able to convert <useGradientHistory> into a boolean.')
+
       self.raiseADebug('Gain growth factor is set at',self.gainGrowthFactor)
       self.raiseADebug('Gain shrink factor is set at',self.gainShrinkFactor)
     self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))

@@ -67,7 +67,6 @@ class ConjugateGradient(SPSA):
     """
     SPSA.localInputAndChecks(self, xmlNode)
     # need extra eval for central Diff, using boolean in math
-
     self.useGradHist = False
     self.paramDict['pertSingleGrad'] = (1 + self.useCentralDiff) * len(self.fullOptVars)
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)

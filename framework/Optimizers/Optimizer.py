@@ -115,6 +115,8 @@ class Optimizer(Sampler):
 
     # central difference
     cendiff = InputData.parameterInputFactory('centralDifference', contentType=InputData.BoolType)
+    gradhis = InputData.parameterInputFactory('useGradientHistory', contentType=InputData.BoolType)
+
     conv = InputData.parameterInputFactory('convergence', strictMode=True)
     itLim   = InputData.parameterInputFactory('iterationLimit'   , contentType=InputData.IntegerType)
     pers    = InputData.parameterInputFactory('persistence'      , contentType=InputData.IntegerType)
@@ -125,6 +127,7 @@ class Optimizer(Sampler):
     grow    = InputData.parameterInputFactory('gainGrowthFactor' , contentType=InputData.FloatType  )
     shrink  = InputData.parameterInputFactory('gainShrinkFactor' , contentType=InputData.FloatType  )
     conv.addSub(cendiff)
+    conv.addSub(gradhis)
     conv.addSub(itLim)
     conv.addSub(pers)
     conv.addSub(rel)
