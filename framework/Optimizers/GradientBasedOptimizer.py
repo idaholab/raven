@@ -217,20 +217,6 @@ class GradientBasedOptimizer(Optimizer):
     """
     # let the local do the main gradient evaluation
     gradient = self.localEvaluateGradient(traj)
-    # if True: #conjugate gradient
-    #   try:
-    #     self.localGradEvals[traj][1] = self.localGradEvals[traj][0]
-    #   except IndexError:
-    #     pass
-    #   self.localGradEvals[traj][0] = gradient
-    #   useGrad = {}
-    #   for var in self.getOptVars():
-    #     if len(self.localGradEvals[traj]) == 2:
-    #       useGrad[var] = 0.7 * self.localGradEvals[traj][0][var] + 0.3 * self.localGradEvals[traj][1][var]
-    #     elif len(self.localGradEvals[traj]) == 1:
-    #       useGrad[var] = self.localGradEvals[traj][0][var]
-    #   gradient = useGrad
-
     # we intend for gradient to give direction only, so get the versor
     ## NOTE this assumes gradient vectors are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
     gradientNorm = self.calculateMultivectorMagnitude(gradient.values())
