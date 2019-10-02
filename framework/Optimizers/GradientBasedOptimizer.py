@@ -73,21 +73,21 @@ class GradientBasedOptimizer(Optimizer):
     self.counter['varsUpdate'      ] = {}
     self.counter['solutionUpdate'  ] = {}
     self.counter['lastStepSize'    ] = {}              # counter to track the last step size taken, by trajectory
-    self.counter['iSave']            = {}
-    self.counter['dSave']            = {}
-    self.counter['task']             = {}
-    self.counter['gtol']             = {}
-    self.counter['xk']               = {}
-    self.counter['gfk']              = {}
-    self.counter['pk']               = {}
-    self.counter['newFVal']         = {}
-    self.counter['oldFVal']         = {}
-    self.counter['oldOldFVal']     = {}
-    self.counter['oldGradK']          = {}
-    self.counter['gNorm']            = {}
-    self.counter['deltaK']           = {}
-    self.counter['derPhi0']          = {}
-    self.counter['alpha']           = {}
+    self.counter['iSave']            = {}              # integer work array of dimension 2 for line search
+    self.counter['dSave']            = {}              # double precision work array of dimension 13 for line search
+    self.counter['task']             = {}              # initial entry task must be set to 'START', at the end of each line search exit with convergence, a warning or an error
+    self.counter['gtol']             = {}              # specifies a nonnegative tolerance for the curvature condition.
+    self.counter['xk']               = {}              # current optimal point for conjugate gradient
+    self.counter['gfk']              = {}              # gradient for current point
+    self.counter['pk']               = {}              # ndarray, search direction
+    self.counter['newFVal']          = {}              # float, function value for current point
+    self.counter['oldFVal']          = {}              # float, function value for last point
+    self.counter['oldOldFVal']       = {}              # float, function value for penultimate point
+    self.counter['oldGradK']         = {}              # gradient for current point
+    self.counter['gNorm']            = {}              # norm of the current grendient
+    self.counter['deltaK']           = {}              # inner product of the current gradient
+    self.counter['derPhi0']          = {}              # scalar, objective function derivative
+    self.counter['alpha']            = {}              # stepsize for conjugate gradient method
 
     self.localGradEvals              = {}              #
 

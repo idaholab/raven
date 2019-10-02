@@ -335,6 +335,13 @@ class ConjugateGradient(SPSA):
     return points
 
   def polakRibierePowellStep(self, traj,alpha, gfkp1=None):
+    """
+
+      @ In, traj, int, the trajectory we are currently considering
+      @ In, alphs, float, step size, or None if no suitable step was found
+      @ In, gfkp1, ndarray, optional, gradient value for xk (xk being the current parameter estimate).
+      @ Out, gNorm, float, norm of the gradient.
+    """
     xkp1 = self.counter['xk'][traj]
     yk = gfkp1 - self.counter['oldGradK'][traj]
     betaK = max(0, np.dot(yk, gfkp1) / self.counter['deltaK'][traj])
