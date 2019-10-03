@@ -507,17 +507,19 @@ class hdf5Database(MessageHandler.MessageUser):
 
     return workingList
 
-  def __getListOfParentGroups(self, grp, backGroups = []):
+  def __getListOfParentGroups(self, grp, backGroups = None):
     """
       Method to get the list of groups from the deepest to the root, given a certain group
       @ In, grp, h5py.Group, istance of the starting group
       @ InOut, backGroups, list, list of group instances (from the deepest to the root)
     """
+    if backGroups is None: backGroups = []
     if grp.parent and grp.parent != grp:
       parentGroup = grp.parent
       if not parentGroup.attrs.get("rootname",False):
         backGroups.append(parentGroup)
         self.__getListOfParentGroups(parentGroup, backGroups)
+    backGroups = list(set(backGroups))
     return backGroups
 
   def __getNewDataFromGroup(self, group, name):

@@ -311,6 +311,8 @@ class Code(Model):
       if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
         os.mkdir(subSubDirectory)
       ##########################################################################
+      if not os.path.exists(inputFile.getAbsFile()):
+        self.raiseAnError(ValueError, 'The input file '+inputFile.getFilename()+' does not exist in directory: '+inputFile.getPath())
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
       self.oriInputFiles[-1].setPath(subSubDirectory)

@@ -631,24 +631,31 @@ double NDSpline::splineCartesianInverseMarginal(double cdf,int marginal_variable
   double up = _discretizations.at(marginal_variable).at(_discretizations.at(marginal_variable).size()-1);
   double down = _discretizations.at(marginal_variable).at(0)+0.000001;
   cdf = splineCartesianMarginalIntegration(down,marginal_variable) + cdf*(splineCartesianMarginalIntegration(up,marginal_variable) - splineCartesianMarginalIntegration(down,marginal_variable));
-
   int mid_position = _discretizations.at(marginal_variable).size()/2;
-
+  unsigned int max_iterations = 100;
+  unsigned int iter = 0;
   double epsilon = 1.0;
   double x_n   = _discretizations.at(marginal_variable).at(mid_position);
   double x_np1 = _discretizations.at(marginal_variable).at(mid_position+1);
   double derivative;
-
+    std::cerr.precision(17);
+    
   do{
     if (x_np1>x_n)
       derivative = (splineCartesianMarginalIntegration(x_np1,marginal_variable) - splineCartesianMarginalIntegration(x_n,marginal_variable))/(x_np1 - x_n);
-    else
+    else if (x_np1<x_n)
       derivative = (splineCartesianMarginalIntegration(x_n,marginal_variable) - splineCartesianMarginalIntegration(x_np1,marginal_variable))/(x_n - x_np1);
-    double next = x_n - (splineCartesianMarginalIntegration(x_n,marginal_variable) - cdf) / derivative;
+    else
+      derivative = 1.0;
+    double next = x_n;
+    if (derivative != 0.0)
+      next -= (splineCartesianMarginalIntegration(x_n,marginal_variable) - cdf) / derivative;
+
     epsilon = std::abs(x_np1 - x_n);
     x_n = x_np1;
     x_np1 = next;
-  }while(epsilon>precision);
+    iter++;
+  }while(epsilon>precision && iter <=max_iterations);
 
   return x_np1;
 }

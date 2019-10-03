@@ -24,6 +24,7 @@ warnings.simplefilter('default', DeprecationWarning)
 import numpy as np
 import copy
 from collections import OrderedDict
+from scipy.spatial import ConvexHull, Delaunay
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -154,6 +155,7 @@ class LimitSurface(PostProcessor):
     #      self.paramType[param] = 'inputs'
     #    else:
     #      self.paramType[param] = 'outputs'
+    self.volume = 1.0
     if self.bounds == None:
       dataSet = self.inputs[self.indexes].asDataset()
       self.bounds = {"lowerBounds":{},"upperBounds":{}}
@@ -162,12 +164,18 @@ class LimitSurface(PostProcessor):
         #self.bounds["lowerBounds"][key], self.bounds["upperBounds"][key] = min(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding')), max(self.inputs[self.indexes].getParam(self.paramType[key],key,nodeId = 'RecontructEnding'))
         if utils.compare(round(self.bounds["lowerBounds"][key],14),round(self.bounds["upperBounds"][key],14)):
           self.bounds["upperBounds"][key]+= abs(self.bounds["upperBounds"][key]/1.e7)
-    self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":initDict['computeCells'] if 'computeCells' in initDict.keys() else False,
+        self.volume = self.volume*(self.bounds["upperBounds"][key]-self.bounds["lowerBounds"][key])
+    computeCells = initDict['computeCells'] if 'computeCells' in initDict.keys() else False
+    self.gridEntity.initialize(initDictionary={"rootName":self.name,'constructTensor':True, "computeCells":computeCells,
                                                "dimensionNames":self.parameters['targets'], "lowerBounds":self.bounds["lowerBounds"],"upperBounds":self.bounds["upperBounds"],
                                                "volumetricRatio":self.tolerance   ,"transformationMethods":self.transfMethods})
     self.nVar                  = len(self.parameters['targets'])                                  # Total number of variables
     self.axisName              = self.gridEntity.returnParameter("dimensionNames",self.name)      # this list is the implicit mapping of the name of the variable with the grid axis ordering self.axisName[i] = name i-th coordinate
     self.testMatrix[self.name] = np.zeros(self.gridEntity.returnParameter("gridShape",self.name)) # grid where the values of the goalfunction are stored
+
+
+
+
 
   def _initializeLSppROM(self, inp, raiseErrorIfNotFound = True):
     """
@@ -238,6 +246,7 @@ class LimitSurface(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+
     self._initializeLSpp(runInfo, inputs, initDict)
     self._initializeLSppROM(self.inputs[self.indexes])
 

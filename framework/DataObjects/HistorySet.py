@@ -237,21 +237,24 @@ class HistorySet(DataSet):
     # TODO some overlap with DataSet implementation, but not much.
     keep = self._getRequestedElements(kwargs)
     toDrop = list(var for var in self._orderedVars if var not in keep)
+    # in case of hierarchical we always re-write everything since the ending histories
+    # can be different and we do not know which "parent" changed from ending True to False
+    startIndex = 0 if 'RAVEN_isEnding' in self.getVars() else start
     # don't rewrite everything; if we've written some already, just append (using mode)
-    mode = 'a' if start > 0 else 'w'
+    mode = 'a' if startIndex > 0 else 'w'
     # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
     # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
     # In this case, if self.hierarchical is False, the histories are going to be reconstructed
     # (see _constructHierPaths for further explainations)
     if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
-      fullData = self._constructHierPaths()[start-1:]
+      fullData = self._constructHierPaths()
       data = self._data.where(self._data['RAVEN_isEnding']==True,drop=True)
       if start > 0:
         data = self._data.isel(**{self.sampleTag:data[self.sampleTag].values[start-1:]})
     else:
       data = self._data
-      if start > 0:
-        data = self._data.isel(**{self.sampleTag:slice(start,None,None)})
+      if startIndex > 0:
+        data = self._data.isel(**{self.sampleTag:slice(startIndex,None,None)})
 
     data = data.drop(toDrop)
     self.raiseADebug('Printing data to CSV: "{}"'.format(fileName+'.csv'))

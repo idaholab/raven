@@ -1936,6 +1936,7 @@ class DataSet(DataObject):
       path = [ending['prefix']]
       while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
+        if ending is None: break
         path.append(ending['prefix'])
       # sort it in order by progression
       path.reverse()
