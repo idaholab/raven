@@ -29,8 +29,6 @@ import os
 import copy
 import numpy as np
 from numpy import linalg as LA
-# from numpy import (atleast_1d, eye, mgrid, argmin, zeros, shape, squeeze,
-#                    asarray, sqrt, Inf, asfarray, isinf)
 import scipy
 from scipy.optimize import minpack2
 #External Modules End--------------------------------------------------------------------------------
