@@ -67,7 +67,7 @@ class RELAPparser():
     self.maxNumberOfDecks = 0
     prevDeckLineNum       = 0
     self.addMinorEdits    = addMinorEdits
-    
+
     for lineNum, line in enumerate(lines):
       if line.strip().startswith("."):
         self.maxNumberOfDecks += 1
@@ -156,10 +156,10 @@ class RELAPparser():
       @ In, None
       @ Out, None
     """
-    for deckNum in self.deckLines.keys(): 
+    for deckNum in self.deckLines.keys():
       self.lastTripLine[deckNum]     = -1
       self.lastCntrLine[deckNum]     = -1
-      self.lastMinorEditLine[deckNum]= -1      
+      self.lastMinorEditLine[deckNum]= -1
       for lineNum, line in enumerate(self.deckLines[deckNum]):
         splitted = _splitRecordAndRemoveComments(line)
         if len(splitted) > 0 and splitted[0].strip().isdigit():
@@ -220,7 +220,7 @@ class RELAPparser():
     """
     isTrip = False
     if deckNum not in self.inputTrips.keys():
-      self.inputTrips[deckNum] = {'variableTrips':{},'logicalTrips':{}} 
+      self.inputTrips[deckNum] = {'variableTrips':{},'logicalTrips':{}}
     if (401 <= int(splitted[0]) <= 599) or (20600010 <= int(splitted[0]) <= 20610000):
       if  not (8 <= len(splitted)<= 9):
         raise IOError(self.printTag+ "ERROR: in RELAP5 input file the number of words in variable trip section needs to be 7 or 8 . Trip= "+splitted[0])

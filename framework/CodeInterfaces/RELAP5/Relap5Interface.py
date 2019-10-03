@@ -302,7 +302,7 @@ class Relap5(CodeInterfaceBase):
         if deckActivated:
           raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
     modifDict['decks']=deckList
-    listDict.append(modifDict) 
+    listDict.append(modifDict)
     return listDict
 
   def DynamicEventTreeForRELAP5(self,**Kwargs):
@@ -332,12 +332,12 @@ class Relap5(CodeInterfaceBase):
         if deckActivated:
           raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
     modifDict['decks']=deckList
-    listDict.append(modifDict) 
-    return listDict    
-    
-    
-    
-    
+    listDict.append(modifDict)
+    return listDict
+
+
+
+
     #listDict =[]
     #deckList={1:{}}   #  List of decks with the cards to be modified in RELAP5 Input File
     #deckActivated = False
