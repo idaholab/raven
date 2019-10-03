@@ -54,6 +54,8 @@
             <xsd:element name="gainShrinkFactor"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
             <xsd:element name="minStepSize"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
             <xsd:element name="persistence"  type="xsd:float"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="centralDifference"  type="RavenBool"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="useGradientHistory"  type="RavenBool"   minOccurs="0" maxOccurs="1"/>
          </xsd:all>
     </xsd:complexType>
 
