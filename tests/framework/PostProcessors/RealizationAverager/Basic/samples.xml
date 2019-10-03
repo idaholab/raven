@@ -1,0 +1,14 @@
+<DataObjectMetadata name="synData">
+  <DataSet type="Static">
+    <dims>
+      <Speed>Time,Year</Speed>
+    </dims>
+    <general>
+      <inputs>scaling</inputs>
+      <outputs>Speed</outputs>
+      <pointwise_meta>PointProbability,ProbabilityWeight,prefix</pointwise_meta>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>
