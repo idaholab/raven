@@ -113,8 +113,8 @@ class MAAP5(GenericCode):
 #        self.includeUpdate(currentInputFiles)
 ###########
         if len(self.multiBranchOccurred)>0:
-	  self.multiBranchMethod(currentInputFiles, Kwargs)
-	  if self.printDebug : print ('Calling multiBranchMethod, priting Kwargs',Kwargs)
+          self.multiBranchMethod(currentInputFiles, Kwargs)
+        if self.printDebug : print ('Calling multiBranchMethod, priting Kwargs',Kwargs)
 
 ###########
         if str(Kwargs['prefix'].split('-')[-1]) != '1': self.modifyBranch(currentInputFiles, Kwargs)
@@ -315,9 +315,9 @@ class MAAP5(GenericCode):
       if 'RESTART FILE WRITTEN AT THIS TIME\n' in lineSumm: timeRestartWrit.append(lineSumm.split()[0])
 
     if (float(timeRestartWrit[-1])-float(timeRestartWrit[-2])) < 0.3: #modified by CP - 17/03/2018 - due to error with different restart file written in 0.1 s
-        if self.printDebug :print('difference between last restart and first-to-last restart is lower than 0.3 s')
-        if len(timeRestartWrit) > 2: restartTimeNew=timeRestartWrit[-3] #modified by CP - 17/03/2018 - to take the second-to-last is important to make sure that at least more than two restart are written
-        else: raise IOError('Change print interval!')
+      if self.printDebug :print('difference between last restart and first-to-last restart is lower than 0.3 s')
+      if len(timeRestartWrit) > 2: restartTimeNew=timeRestartWrit[-3] #modified by CP - 17/03/2018 - to take the second-to-last is important to make sure that at least more than two restart are written
+      else: raise IOError('Change print interval!')
     else: restartTimeNew=timeRestartWrit[-2] #restart time is the second-to-last time when a restart file has been written
 ####################################
 # Parameters values from the parent branches are saved in the self.paramDict dictionary and the include file of the current branch is updated with these values
@@ -684,7 +684,7 @@ class MAAP5(GenericCode):
       tilast=str(timeFloat[-1])
       self.tilastDict[currentFolder]=tilast
       if self.stop.strip()=='mission_time':
-       condition=(math.floor(float(tilast)) >= math.floor(float(self.endTime)))
+        condition=(math.floor(float(tilast)) >= math.floor(float(self.endTime)))
       else:
         condition=(event or (math.floor(float(tilast)) >= math.floor(float(self.endTime))))
       if not condition:

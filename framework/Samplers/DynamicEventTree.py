@@ -29,6 +29,7 @@ warnings.simplefilter('default',DeprecationWarning)
 import sys
 import os
 import copy
+import numpy as np
 from operator import mul
 from functools import reduce
 import xml.etree.ElementTree as ET
@@ -967,11 +968,14 @@ class DynamicEventTree(Grid):
     for key in self.branchValues.keys():
       # add the last forced branch (CDF=1)
       if 1.0 not in self.branchProbabilities[key]:
-        self.branchProbabilities[key].append( 1.0 )
+        self.branchProbabilities[key] = np.append(self.branchProbabilities[key],[1.0])
+        #self.branchProbabilities[key].append( 1.0 )
         if ("<distribution>" in key) or (self.variables2distributionsMapping[key]['totDim']==1):
-          self.branchValues[key].append( self.distDict[key].ppf(1.0) )
+          self.branchValues[key] = np.append(self.branchValues[key],[self.distDict[key].ppf(1.0)])
+          #self.branchValues[key].append( self.distDict[key].ppf(1.0) )
         else:
-          self.branchValues[key].append(self.distDict[key].inverseMarginalDistribution(1.0,self.variables2distributionsMapping[key]['dim']-1) )
+          self.branchValues[key] = np.append(self.branchValues[key],self.distDict[key].inverseMarginalDistribution(1.0,self.variables2distributionsMapping[key]['dim']-1))
+          #self.branchValues[key].append(self.distDict[key].inverseMarginalDistribution(1.0,self.variables2distributionsMapping[key]['dim']-1) )
     self.limit = sys.maxsize
     # add expected metadata
     self.addMetaKeys(['RAVEN_parentID','RAVEN_isEnding','conditionalPb','triggeredVariable','happenedEvent'])
