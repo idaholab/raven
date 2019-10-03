@@ -2300,7 +2300,18 @@ class ARMA(supervisedLearning):
 #
 # Dummy class for replacing a statsmodels ARMAResults with a surrogate.
 class armaResultsProxy:
+  """
+    Class that can be used to artifically construct ARMA information
+    from pre-determined values
+  """
   def __init__(self, arparams, maparams, sigma):
+    """
+      Constructor.
+      @ In, arparams, np.array(float), autoregressive coefficients
+      @ In, maparams, np.array(float), moving average coefficients
+      @ In, sigma, float, standard deviation of ARMA residual noise
+      @ Out, None
+    """
     self.arparams = np.atleast_1d(arparams)
     self.maparams = np.atleast_1d(maparams)
     self.sigma2 = sigma**2
