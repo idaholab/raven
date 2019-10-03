@@ -3,8 +3,9 @@
     type = 'RavenFramework'
     input = 'forwardSamplingMontecarlo.xml'
     csv = 'RunDir/MonteCarlo/histories_0.csv'
-    image = 'RunDir/MonteCarlo/1-historyPlot_line-line-line-line.png RunDir/MonteCarlo/1-samplesPlot3D_scatter-scatter-scatter-scatter.png'
+    image = 'RunDir/MonteCarlo/1-historyPlot_scatter-scatter.png RunDir/MonteCarlo/1-samplesPlot3D_scatter-scatter.png'
     required_libraries = 'PIL'
+    python3_only = true
     rel_err = 0.01
   [../]
 
@@ -12,8 +13,9 @@
     type = 'RavenFramework'
     input = 'forwardSamplingGrid.xml'
     UnorderedCsv = 'RunDir/Grid/histories_0.csv'
-    image = 'RunDir/Grid/1-historyPlot_line-line-line-line.png RunDir/Grid/1-samplesPlot3D_scatter-scatter-scatter-scatter.png'
+    image = 'RunDir/Grid/1-historyPlot_scatter-scatter.png RunDir/Grid/1-samplesPlot3D_scatter-scatter.png'
     required_libraries = 'PIL'
+    python3_only = true
     rel_err = 0.01
   [../]
 
@@ -21,8 +23,9 @@
     type = 'RavenFramework'
     input = 'forwardSamplingStratified.xml'
     csv = 'RunDir/Stratified/histories_0.csv'
-    image = 'RunDir/Stratified/1-historyPlot_line-line-line-line.png RunDir/Stratified/1-samplesPlot3D_scatter-scatter-scatter-scatter.png'
+    image = 'RunDir/Stratified/1-historyPlot_scatter-scatter.png RunDir/Stratified/1-samplesPlot3D_scatter-scatter.png'
     required_libraries = 'PIL'
+    python3_only = true
     rel_err = 0.01
   [../]
 
@@ -30,11 +33,10 @@
     type = 'RavenFramework'
     input = 'forwardSamplingSparseGrid.xml'
     UnorderedXml = 'RunDir/SparseGrid/rom_output.xml'
-    image = 'RunDir/SparseGrid/1-historyPlot_line-line-line-line.png RunDir/SparseGrid/1-samplesModelPlot3D_scatter-scatter-scatter-scatter.png RunDir/SparseGrid/1-samplesROMPlot3D_scatter-scatter-scatter-scatter.png'
+    image = 'RunDir/SparseGrid/1-historyPlot_scatter-scatter.png RunDir/SparseGrid/1-samplesModelPlot3D_scatter-scatter.png RunDir/SparseGrid/1-samplesROMPlot3D_scatter-scatter.png'
     rel_err = 0.01
     required_libraries = 'PIL'
     zero_threshold = 1e-8
-    heavy = true
     max_time = 500
   [../]
 

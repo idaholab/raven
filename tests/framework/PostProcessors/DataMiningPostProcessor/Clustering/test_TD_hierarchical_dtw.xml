@@ -8,7 +8,14 @@
     <description>
       Tests clustering with Hierarchical model and DTW metric.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>HierarchicalDTW</WorkingDir>
     <Sequence>FirstMRun,plotAllHists,clustering,filter0,filter1</Sequence>
@@ -21,7 +28,7 @@
     </ExternalModel>
     <PostProcessor name="hierarchical" subType="DataMining" verbosity="quiet">
       <Metric class="Metrics" type="DTW">example</Metric>
-      <KDD lib="Scipy" labelFeature='labels'>
+      <KDD labelFeature="labels" lib="Scipy">
         <Features>output</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
         <method>single</method>
@@ -37,16 +44,16 @@
       </KDD>
     </PostProcessor>
     <PostProcessor name="filter0" subType="InterfacedPostProcessor">
-       <method>dataObjectLabelFilter</method>
-       <dataType>HistorySet</dataType>
-       <label>labels</label>
-       <clusterIDs>2</clusterIDs>
+      <method>dataObjectLabelFilter</method>
+      <dataType>HistorySet</dataType>
+      <label>labels</label>
+      <clusterIDs>2</clusterIDs>
     </PostProcessor>
     <PostProcessor name="filter1" subType="InterfacedPostProcessor">
-       <method>dataObjectLabelFilter</method>
-       <dataType>HistorySet</dataType>
-       <label>labels</label>
-       <clusterIDs>1</clusterIDs>
+      <method>dataObjectLabelFilter</method>
+      <dataType>HistorySet</dataType>
+      <label>labels</label>
+      <clusterIDs>1</clusterIDs>
     </PostProcessor>
   </Models>
 
@@ -59,37 +66,37 @@
 
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input     class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
-      <Model     class="Models"           type="ExternalModel"  >PythonModule</Model>
-      <Sampler   class="Samplers"         type="MonteCarlo"     >MC_external</Sampler>
-      <Output    class="DataObjects"      type="HistorySet"     >outMC</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">outMCRaw</Output>
     </MultiRun>
     <IOStep name="plotAllHists" pauseAtEnd="false">
-      <Input     class="DataObjects"      type="HistorySet"     >outMC</Input>
-      <Output    class="OutStreams"       type="Plot"           >plot1</Output>
+      <Input class="DataObjects" type="HistorySet">outMCRaw</Input>
+      <Output class="OutStreams" type="Plot">plot1</Output>
     </IOStep>
     <PostProcess name="clustering" pauseAtEnd="True">
-      <Input     class="DataObjects"      type="HistorySet"     >outMC</Input>
-      <Model     class="Models"           type="PostProcessor"  >hierarchical</Model>
-      <Output    class="DataObjects"      type="HistorySet"     >outMC</Output>
-      <Output    class="OutStreams"       type="Print"          >printAllHists</Output>
+      <Input class="DataObjects" type="HistorySet">outMCRaw</Input>
+      <Model class="Models" type="PostProcessor">hierarchical</Model>
+      <Output class="DataObjects" type="HistorySet">outMC</Output>
+      <Output class="OutStreams" type="Print">printAllHists</Output>
     </PostProcess>
     <PostProcess name="filter0" pauseAtEnd="True">
-      <Input     class="DataObjects"      type="HistorySet"     >outMC</Input>
-      <Model     class="Models"           type="PostProcessor"  >filter0</Model>
-      <Output    class="DataObjects"      type="HistorySet"     >outMC0</Output>
-      <Output    class="OutStreams"       type="Plot"           >Cluster_0</Output>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Model class="Models" type="PostProcessor">filter0</Model>
+      <Output class="DataObjects" type="HistorySet">outMC0</Output>
+      <Output class="OutStreams" type="Plot">Cluster_0</Output>
     </PostProcess>
     <PostProcess name="filter1" pauseAtEnd="True">
-      <Input     class="DataObjects"      type="HistorySet"     >outMC</Input>
-      <Model     class="Models"           type="PostProcessor"  >filter1</Model>
-      <Output    class="DataObjects"      type="HistorySet"     >outMC1</Output>
-      <Output    class="OutStreams"       type="Plot"           >Cluster_1</Output>
+      <Input class="DataObjects" type="HistorySet">outMC</Input>
+      <Model class="Models" type="PostProcessor">filter1</Model>
+      <Output class="DataObjects" type="HistorySet">outMC1</Output>
+      <Output class="OutStreams" type="Plot">Cluster_1</Output>
     </PostProcess>
   </Steps>
 
   <OutStreams>
-     <Print name="printAllHists">
+    <Print name="printAllHists">
       <type>csv</type>
       <source>outMC</source>
     </Print>
@@ -99,9 +106,9 @@
           <type>line</type>
           <interpolationType>cubic</interpolationType>
           <interpPointsX>100</interpPointsX>
-          <x>outMC|Output|time</x>
-          <y>outMC|Output|y</y>
-          <z>outMC|Output|z</z>
+          <x>outMCRaw|Output|time</x>
+          <y>outMCRaw|Output|y</y>
+          <z>outMCRaw|Output|z</z>
         </plot>
         <xlabel>time</xlabel>
         <ylabel>x</ylabel>
@@ -155,7 +162,6 @@
         <how>pdf</how>
       </actions>
     </Plot>
-
     <Plot name="Cluster_1" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
@@ -174,7 +180,6 @@
         <how>pdf</how>
       </actions>
     </Plot>
-
   </OutStreams>
 
   <DataObjects>
@@ -184,13 +189,17 @@
     </PointSet>
     <HistorySet name="outMC">
       <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z</Output>
+      <Output>time,x,y,z,labels</Output>
     </HistorySet>
     <HistorySet name="outMC0">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="outMC1">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="outMCRaw">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>

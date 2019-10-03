@@ -171,7 +171,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
     for key,val in first.items():
       if key in skip:
         continue
-      if isinstance(val,(float,int,np.int64)):
+      if isinstance(val,(float,int,np.int64,np.int32)):
         pres = checkFloat('',val,second[key][0],tol,update=False)
       elif type(val).__name__ in ('str','unicode','str_','unicode_'):
         pres = checkSame('',val,second[key][0],update=False)
@@ -728,7 +728,7 @@ seed['a'] = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9])
 data.load(seed,style='dict',dims=data.getDimensions())
 # test contents
 checkArray('load from dict "a"',data.asDataset()['a'].values,seed['a'],float)
-checkArray('load from dict "b"[3]',data.asDataset().isel(True,RAVEN_sample_ID=3)['b'].dropna('t').values,seed['b'][3],float)
+checkArray('load from dict "b"[3]',data.asDataset().isel({'RAVEN_sample_ID':3},True)['b'].dropna('t').values,seed['b'][3],float)
 rlz = data.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
@@ -756,7 +756,7 @@ dataRe._readMoreXML(xml)
 dataRe.load(convertedDict['data'],style='dict',dims=convertedDict['dims'])
 # use exact same tests as originally loading from dict, but for dataRe
 checkArray('load from dict "a"',dataRe.asDataset()['a'].values,seed['a'],float)
-checkArray('load from dict "b"[3]',dataRe.asDataset().isel(True,RAVEN_sample_ID=3)['b'].dropna('t').values,seed['b'][3],float)
+checkArray('load from dict "b"[3]',dataRe.asDataset().isel({'RAVEN_sample_ID':3},True)['b'].dropna('t').values,seed['b'][3],float)
 rlz = dataRe.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)

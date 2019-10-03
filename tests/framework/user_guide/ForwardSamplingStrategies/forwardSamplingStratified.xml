@@ -15,30 +15,28 @@
       This test is an example for the user guide to draw from.  It exemplifies using the Stratified
       sampler on a Code model (the Analytic Bateman in this case).
     </description>
+    <revisions>
+      <revision date="2019-05-08" author="burlip">modified file to replace the Analyticalbateman example with the projectile example</revision>
+    </revisions>
   </TestInfo>
 
-  <Files>
-    <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
-  </Files>
-
   <Models>
-    <Code name="testModel" subType="GenericCode">
-      <executable>../physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
-      <clargs arg="python" type="prepend"/>
-      <clargs arg="" extension=".xml" type="input"/>
-      <clargs arg=" " extension=".csv" type="output"/>
-    </Code>
+    <ExternalModel subType="" name="projectile" ModuleToLoad="../../AnalyticModels/projectile.py">
+      <variables>x,y,v0,angle,r,t,timeOption</variables>
+    </ExternalModel>
   </Models>
 
   <Distributions>
-      <Uniform name="sigma">
-          <lowerBound>1</lowerBound>
-          <upperBound>10</upperBound>
-      </Uniform>
-      <Uniform name="decayConstant">
-          <lowerBound>0.000000005</lowerBound>
-          <upperBound>0.000000010</upperBound>
-      </Uniform>
+    <Normal name="vel_dist">
+      <mean>30</mean>
+      <sigma>5</sigma>
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
+    </Normal>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
@@ -46,45 +44,21 @@
       <samplerInit>
         <initialSeed>42</initialSeed>
       </samplerInit>
-      <variable name="sigma-A">
-        <distribution>sigma</distribution>
-        <grid construction="equal" steps="100" type="value">2 4.0</grid>
+      <variable name="v0">
+        <distribution>vel_dist</distribution>
+        <grid construction="equal" steps="100" type="CDF">.1 0.85</grid>
       </variable>
-      <variable name="decay-A">
-        <distribution>decayConstant</distribution>
-        <grid construction="equal" steps="100" type="value">0.000000005 0.000000008</grid>
-      </variable>
-      <variable name="sigma-B">
-          <distribution>sigma</distribution>
-          <grid construction="equal" steps="100" type="CDF">0.1 0.8</grid>
-      </variable>
-      <variable name="decay-B">
-          <distribution>decayConstant</distribution>
-          <grid construction="equal" steps="100" type="CDF">0.1 0.8</grid>
-      </variable>
-      <variable name="sigma-C">
-          <distribution>sigma</distribution>
-          <grid construction="equal" steps="100" type="value">1.0 5</grid>
-      </variable>
-      <variable name="decay-C">
-          <distribution>decayConstant</distribution>
-          <grid construction="equal" steps="100" type="CDF">0.1 0.5</grid>
-      </variable>
-      <variable name="sigma-D">
-          <distribution>sigma</distribution>
-          <grid construction="equal" steps="100" type="CDF">0.4 0.8</grid>
-      </variable>
-      <variable name="decay-D">
-          <distribution>decayConstant</distribution>
-          <grid construction="equal" steps="100" type="CDF">0.1 0.8</grid>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+        <grid construction="equal" steps="100" type="CDF">0.15  0.9</grid>
       </variable>
     </Stratified>
   </Samplers>
 
   <Steps>
     <MultiRun name="sample">
-      <Input class="Files" type="input">referenceInput.xml</Input>
-      <Model class="Models" type="Code">testModel</Model>
+      <Input  class="DataObjects" type="PointSet" >dummyIN</Input>
+      <Model  class="Models"       type="ExternalModel">projectile</Model>
       <Sampler class="Samplers" type="Stratified">stratified</Sampler>
       <Output class="DataObjects" type="PointSet">samples</Output>
       <Output class="DataObjects" type="HistorySet">histories</Output>
@@ -101,12 +75,19 @@
 
   <DataObjects>
     <PointSet name="samples">
-      <Input>sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D</Input>
-      <Output>A,B,C,D,time</Output>
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+    <PointSet name="dummyIN">
+      <Input>v0,angle</Input>
+      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <HistorySet name="histories">
-        <Input>sigma-A,sigma-B,sigma-C,sigma-D,decay-A,decay-B,decay-C,decay-D</Input>
-        <Output>A,B,C,D,time</Output>
+        <Input>v0,angle</Input>
+        <Output>x,y,r,t</Output>
+        <options>
+        <pivotParameter> t </pivotParameter>
+        </options>
     </HistorySet>
   </DataObjects>
 
@@ -121,56 +102,35 @@
     </Print>
     <Plot name="historyPlot" overwrite="false" verbosity="debug">
         <plotSettings>
-            <gridSpace>2 2</gridSpace>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|A</y>
-                <color>blue</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>time (s)</xlabel>
-                <ylabel>evolution A(kg)</ylabel>
-            </plot>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|B</y>
-                <color>red</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>time (s)</xlabel>
-                <ylabel>evolution B(kg)</ylabel>
-            </plot>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|C</y>
-                <color>yellow</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>time (s)</xlabel>
-                <ylabel>evolution C(kg)</ylabel>
-            </plot>
-            <plot>
-                <type>line</type>
-                <x>histories|Output|time</x>
-                <y>histories|Output|D</y>
-                <color>black</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>time (s)</xlabel>
-                <ylabel>evolution D(kg)</ylabel>
-            </plot>
-
+        <gridSpace>2 1</gridSpace>
+        <plot>
+          <type>scatter</type>
+          <x>histories|Input|v0</x>
+          <y>histories|Output|r</y>
+          <kwargs>
+            <color>blue</color>
+          </kwargs>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>range</ylabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>histories|Input|angle</x>
+          <y>histories|Output|r</y>
+          <kwargs>
+            <color>orange</color>
+          </kwargs>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>angle</xlabel>
+          <ylabel>range</ylabel>
+        </plot>
         </plotSettings>
         <actions>
           <how>png</how>
@@ -181,66 +141,35 @@
     </Plot>
     <Plot name="samplesPlot3D" overwrite="false" verbosity="debug">
         <plotSettings>
-            <gridSpace>2 2</gridSpace>
-            <plot>
+           <gridSpace>2 1</gridSpace>
+             <plot>
                 <type>scatter</type>
-                <x>samples|Input|sigma-A</x>
-                <y>samples|Input|decay-A</y>
-                <z>samples|Output|A</z>
-                <color>blue</color>
+                <x>samples|Input|v0</x>
+                <y>samples|Input|angle</y>
+                <z>samples|Output|r</z>
+                <c>blue</c>
                 <gridLocation>
-                    <x>0</x>
-                    <y>0</y>
+                  <x>0</x>
+                  <y>0</y>
                 </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final A</zlabel>
+                <xlabel>velocity</xlabel>
+                <ylabel>angle</ylabel>
+                <zlabel>range</zlabel>
             </plot>
             <plot>
                 <type>scatter</type>
-                <x>samples|Input|sigma-B</x>
-                <y>samples|Input|decay-B</y>
-                <z>samples|Output|B</z>
-                <color>red</color>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final B</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samples|Input|sigma-C</x>
-                <y>samples|Input|decay-C</y>
-                <z>samples|Output|C</z>
-                <color>yellow</color>
-                <gridLocation>
-                    <x>0</x>
-                    <y>1</y>
-                </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final C</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samples|Input|sigma-D</x>
-                <y>samples|Input|decay-D</y>
-                <z>samples|Output|D</z>
-                <color>black</color>
+                <x>samples|Input|v0</x>
+                <y>samples|Input|angle</y>
+                <z>samples|Output|t</z>
+                <c>orange</c>
                 <gridLocation>
                     <x>1</x>
-                    <y>1</y>
+                    <y>0</y>
                 </gridLocation>
-                <xlabel>sigma</xlabel>
-                <ylabel>decay</ylabel>
-                <zlabel>final D</zlabel>
+                <xlabel>velocity</xlabel>
+                <ylabel>angle</ylabel>
+                <zlabel>time</zlabel>
             </plot>
-            <xlabel>sigma</xlabel>
-            <ylabel>decay</ylabel>
-            <zlabel>final response</zlabel>
         </plotSettings>
         <actions>
             <how>png</how>

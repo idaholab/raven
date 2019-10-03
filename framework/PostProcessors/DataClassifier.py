@@ -76,36 +76,8 @@ class DataClassifier(PostProcessor):
     self.mapping    = {}  # dictionary for mapping input space between different DataObjects {'variableName':'externalFunctionName'}
     self.funcDict   = {}  # Contains the function to be used {'variableName':externalFunctionInstance}
     self.label      = None # ID of the variable which containf the label values
-
-  def _localGenerateAssembler(self, initDict):
-    """
-      It is used for sending to the instanciated class, which is implementing the method, the objects that have
-      been requested throught "whatDoINeed" method
-      @ In, initDict, dict, dictionary ({'mainClassName:{specializedObjectName:ObjectInstance}'})
-      @ Out, None
-    """
-    availableFunc = initDict['Functions']
-    for key, val in self.mapping.items():
-      if val[1] not in availableFunc.keys():
-        self.raiseAnError(IOError, 'Function ', val[1], ' was not found among the available functions: ', availableFunc.keys())
-      self.funcDict[key] = availableFunc[val[1]]
-      # check if the correct method is present
-      if 'evaluate' not in self.funcDict[key].availableMethods():
-        self.raiseAnError(IOError, 'Function ', val[1], ' does not contain a method named "evaluate". '
-                                   'It mush be present if this needs to be used by other RAVEN entities!')
-
-  def _localWhatDoINeed(self):
-    """
-      This method is a local mirror of the general whatDoINeed method that need to request
-      special objects, e.g. Functions
-      @ In, None
-      @ Out, needDict, dict, dictionary of objects needed
-    """
-    needDict = {}
-    needDict['Functions'] = []
-    for func in self.mapping.values():
-      needDict['Functions'].append(func)
-    return needDict
+    # assembler objects to be requested
+    self.addAssemblerObject('Function', 'n', True)
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -116,6 +88,8 @@ class DataClassifier(PostProcessor):
       @ Out, None
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
+    for key, val in self.mapping.items():
+     self.funcDict[key] = self.retrieveObjectFromAssemblerDict('Function',val[1])
 
   def _localReadMoreXML(self, xmlNode):
     """

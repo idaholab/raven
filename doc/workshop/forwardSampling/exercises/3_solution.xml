@@ -1,0 +1,100 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>r3</WorkingDir>
+    <Sequence>generate_data,plot</Sequence>
+    <batchSize>4</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="generate_data">
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="PointSet">results</Output>
+    </MultiRun>
+    <IOStep name="plot" pauseAtEnd="True">
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Output class="OutStreams" type="Print">to_file</Output>
+      <Output class="OutStreams" type="Plot">to_plot</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
+      <variables>v0,y0,angle,r,t,timeOption</variables>
+    </ExternalModel>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="my_mc">
+      <samplerInit>
+        <limit>1000</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="y0">
+        <distribution>y0_dist</distribution>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="v0">30</constant>
+      <constant name="timeOption">1</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Distributions>
+    <!--
+      <Normal name="vel_dist">
+        <mean>30</mean>
+        <sigma>5</sigma>
+        <lowerBound>1</lowerBound>
+        <upperBound>60</upperBound>
+      </Normal>
+    -->
+    <Uniform name="y0_dist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>y0,angle</Input>
+    </PointSet>
+    <PointSet name="results">
+      <Input>y0,angle</Input>
+      <Output>r,t</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="to_file">
+      <type>csv</type>
+      <source>results</source>
+    </Print>
+    <Plot name="to_plot">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>results|Input|y0</x>
+          <y>results|Input|angle</y>
+          <z>results|Output|r</z>
+          <colorMap>results|Output|t</colorMap>
+        </plot>
+        <xlabel>y0</xlabel>
+        <ylabel>angle</ylabel>
+        <zlabel>r</zlabel>
+      </plotSettings>
+      <actions>
+        <how>screen, png</how>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

@@ -25,29 +25,27 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import sys
 import copy
-import itertools
 import collections
 import numpy as np
-import xarray as xr
 import statsmodels.api as sm # VARMAX is in sm.tsa
+import functools
 from statsmodels.tsa.arima_model import ARMA as smARMA
-from scipy import optimize
-from scipy import stats
 from scipy.linalg import solve_discrete_lyapunov
-from sklearn import linear_model, neighbors
+from sklearn import linear_model
+from scipy.signal import find_peaks
+from scipy.stats import rv_histogram
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import randomUtils, xmlUtils, mathUtils
+from utils import randomUtils, xmlUtils, mathUtils,utils
 import Distributions
 from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 
 class ARMA(supervisedLearning):
-  """
+  r"""
     Autoregressive Moving Average model for time series analysis. First train then evaluate.
     Specify a Fourier node in input file if detrending by Fourier series is needed.
 
@@ -55,7 +53,7 @@ class ARMA(supervisedLearning):
     ARMA series X: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
   """
   ### INHERITED METHODS ###
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, messageHandler, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
       @ In, messageHandler: a MessageHandler object in charge of raising errors,
@@ -63,8 +61,8 @@ class ARMA(supervisedLearning):
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
-    self.printTag          = 'ARMA'
+    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    self.printTag = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
     # training storage
     self.trainingData      = {} # holds normalized ('norm') and original ('raw') training data, by target
@@ -78,7 +76,8 @@ class ARMA(supervisedLearning):
     self.Q                 = kwargs.get('Q', 3) # moving average lag
     self.segments          = kwargs.get('segments', 1)
     # data manipulation
-    self.reseedCopies      = kwargs.get('reseedCopies',True)
+    reseed=kwargs.get('reseedCopies',str(True)).lower()
+    self.reseedCopies      = reseed not in utils.stringsThatMeanFalse()
     self.outTruncation = {'positive':set(),'negative':set()} # store truncation requests
     self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
@@ -88,7 +87,10 @@ class ARMA(supervisedLearning):
     self.zeroFilterTarget  = None # target for whom zeros should be filtered out
     self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
     self.zeroFilterMask    = None # mask of places where zftarget is zero, or None if unused
+    self.notZeroFilterMask = None # mask of places where zftarget is NOT zero, or None if unused
     self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
+    #peaks
+    self.peaks             = {} # dictionary of peaks information, by target
     # signal storage
     self._signalStorage    = collections.defaultdict(dict) # various signals obtained in the training process
 
@@ -111,22 +113,25 @@ class ARMA(supervisedLearning):
     self.normEngine.lowerBoundUsed = False
     self.normEngine.initializeDistribution()
 
-    # check for correlation
-    correlated = kwargs.get('correlate',None)
-    if correlated is not None:
-      # FIXME set the numpy seed
+    self.setEngine(randomUtils.newRNG(),seed=self.seed,count=0)
+
+    # FIXME set the numpy seed
       ## we have to do this because VARMA.simulate does not accept a random number generator,
       ## but instead uses numpy directly.  As a result, for now, we have to seed numpy.
       ## Because we use our RNG to set the seed, though, it should follow the global seed still.
-      self.raiseADebug('Setting Numpy seed to',self.seed)
+    self.raiseADebug('Setting ARMA seed to',self.seed)
+    randomUtils.randomSeed(self.seed,engine=self.randomEng)
+
+    # check for correlation
+    correlated = kwargs.get('correlate',None)
+    if correlated is not None:
       np.random.seed(self.seed)
       # store correlated targets
-      corVars = [x.strip() for x in correlated.split(',')]
-      for var in corVars:
+      for var in correlated:
         if var not in self.target:
           self.raiseAnError(IOError,'Variable "{}" requested in "correlate" but not found among the targets!'.format(var))
       # NOTE: someday, this could be expanded to include multiple sets of correlated variables.
-      self.correlations = corVars
+      self.correlations = correlated
 
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
@@ -160,7 +165,6 @@ class ARMA(supervisedLearning):
       elif child.getName() == 'SpecificFourier':
         # clear old information
         periods = None
-        orders = None
         # what variables share this Fourier?
         variables = child.parameterValues['variables']
         # check for variables that aren't targets
@@ -168,16 +172,10 @@ class ARMA(supervisedLearning):
         if len(missing):
           self.raiseAnError(IOError,
                             'Requested SpecificFourier for variables {} but not found among targets!'.format(missing))
-        # record requested Fourier periods, orders
+        # record requested Fourier periods
         for cchild in child.subparts:
           if cchild.getName() == 'periods':
             periods = cchild.value
-          elif cchild.getName() == 'orders':
-            orders = cchild.value
-        # sanity check
-        if len(periods) != len(orders):
-          self.raiseADebug(IOError,'"periods" and "orders" need to have the same number of entries' +\
-                                   'for variable group "{}"!'.format(variables))
         # set these params for each variable
         for v in variables:
           self.raiseADebug('recording specific Fourier settings for "{}"'.format(v))
@@ -185,8 +183,33 @@ class ARMA(supervisedLearning):
             self.raiseAWarning('Fourier params for "{}" were specified multiple times! Using first values ...'
                                .format(v))
             continue
-          self.fourierParams[v] = {'periods': periods,
-                                   'orders': dict(zip(periods,orders))}
+          self.fourierParams[v] = periods
+      elif child.getName() == 'Peaks':
+        # read peaks information for each target
+        peak={}
+        # creat an empty list for each target
+        threshold = child.parameterValues['threshold']
+        peak['threshold']=threshold
+        # read the threshold for the peaks and store it in the dict
+        period = child.parameterValues['period']
+        peak['period']=period
+        # read the period for the peaks and store it in the dict
+        windows=[]
+        # creat an empty list to store the windows' information
+        for cchild in child.subparts:
+          if cchild.getName() == 'window':
+            tempDict={}
+            window = cchild.value
+            width = cchild.parameterValues['width']
+            tempDict['window']=window
+            tempDict['width']=width
+            # for each window in the windows, we create a dictionary. Then store the
+            # peak's width, the index of stating point and ending point in time unit
+            windows.append(tempDict)
+        peak['windows']=windows
+        target = child.parameterValues['target']
+        # target is the key to reach each peak information
+        self.peaks[target]=peak
 
     # read GENERAL parameters for Fourier detrending
     ## these apply to everyone without SpecificFourier nodes
@@ -197,16 +220,10 @@ class ARMA(supervisedLearning):
       basePeriods = basePeriods.value
       if len(set(basePeriods)) != len(basePeriods):
         self.raiseAnError(IOError,'Some <Fourier> periods have been listed multiple times!')
-      # read orders
-      baseOrders = self.initOptionDict.get('FourierOrder', [1]*len(basePeriods))
-      if len(basePeriods) != len(baseOrders):
-        self.raiseAnError(IOError,'{} Fourier periods were requested, but {} Fourier order expansions were given!'
-                                   .format(len(basePeriods),len(baseOrders)))
       # set to any variable that doesn't already have a specific one
       for v in set(self.target) - set(self.fourierParams.keys()):
         self.raiseADebug('setting general Fourier settings for "{}"'.format(v))
-        self.fourierParams[v] = {'periods': basePeriods,
-                                 'orders': dict(zip(basePeriods,baseOrders))}
+        self.fourierParams[v] = basePeriods
 
   def __getstate__(self):
     """
@@ -214,11 +231,10 @@ class ARMA(supervisedLearning):
       @ In, None
       @ Out, d, dict, stateful dictionary
     """
-    d = copy.copy(self.__dict__)
-    # set up a seed for the next pickled iteration
-    if self.reseedCopies:
-      rand = randomUtils.randomIntegers(1,int(2**20),self)
-      d['random seed'] = rand
+    d = supervisedLearning.__getstate__(self)
+    eng=d.pop("randomEng")
+    randCounts = eng.get_rng_state()
+    d['crow_rng_counts'] = randCounts
     return d
 
   def __setstate__(self,d):
@@ -227,13 +243,12 @@ class ARMA(supervisedLearning):
       @ In, d, dict, stateful dictionary
       @ Out, None
     """
-    seed = d.pop('random seed',None)
-    if seed is not None:
-      self.reseed(seed)
-    self.__dict__ = d
-    # set VARMA numpy seed
-    self.raiseADebug('Setting Numpy seed to',self.seed)
-    np.random.seed(self.seed)
+    rngCounts = d.pop('crow_rng_counts')
+    self.__dict__.update(d)
+    self.setEngine(randomUtils.newRNG(),seed=None,count=rngCounts)
+    if self.reseedCopies:
+      randd = np.random.randint(1,2e9)
+      self.reseed(randd)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -268,15 +283,32 @@ class ARMA(supervisedLearning):
         self._trainingCDF[target] = mathUtils.trainEmpiricalFunction(timeSeriesData, minBins=self._minBins)
       # if this target governs the zero filter, extract it now
       if target == self.zeroFilterTarget:
-        self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros are not
-        self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where zeroes are
+        self.notZeroFilterMask = self._trainZeroRemoval(timeSeriesData,tol=self.zeroFilterTol) # where zeros or less than zeros are
+        self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where data are
       # if we're removing Fourier signal, do that now.
+
+      maskPeakRes = np.ones(len(timeSeriesData), dtype=bool)
+      # Make a full mask
+      if target in self.peaks:
+        deltaT=self.pivotParameterValues[-1]-self.pivotParameterValues[0]
+        deltaT=deltaT/(len(self.pivotParameterValues)-1)
+        # change the peak information in self.peak from time unit into index by divided the timestep
+        # deltaT is the time step calculated by (ending point - stating point in time)/(len(time)-1)
+        self.peaks[target]['period']=int(self.peaks[target]['period']/deltaT)
+        for i in range(len(self.peaks[target]['windows'])):
+          self.peaks[target]['windows'][i]['window'][0]=int(self.peaks[target]['windows'][i]['window'][0]/deltaT)
+          self.peaks[target]['windows'][i]['window'][1]=int(self.peaks[target]['windows'][i]['window'][1]/deltaT)
+          self.peaks[target]['windows'][i]['width']=int(self.peaks[target]['windows'][i]['width']/deltaT)
+        groupWin , maskPeakRes=self._peakGroupWindow(timeSeriesData, windowDict=self.peaks[target] )
+        self.peaks[target]['groupWin']=groupWin
+        self.peaks[target]['mask']=maskPeakRes
+
       if target in self.fourierParams:
         self.raiseADebug('... analyzing Fourier signal  for target "{}" ...'.format(target))
         self.fourierResults[target] = self._trainFourier(self.pivotParameterValues,
-                                                         self.fourierParams[target]['periods'],
-                                                         self.fourierParams[target]['orders'],
+                                                         self.fourierParams[target],
                                                          timeSeriesData,
+                                                         masks=[maskPeakRes],  # In future, a consolidated masking system for multiple signal processors can be implemented.
                                                          zeroFilter = target == self.zeroFilterTarget)
         self._signalStorage[target]['fourier'] = copy.deepcopy(self.fourierResults[target]['predict'])
         timeSeriesData -= self.fourierResults[target]['predict']
@@ -287,7 +319,6 @@ class ARMA(supervisedLearning):
         # artifically force signal to 0 post-fourier subtraction where it should be zero
         targetVals[:,t][self.notZeroFilterMask] = 0.0
         self._signalStorage[target]['zerofilter'] = copy.deepcopy(timeSeriesData)
-
 
     # Transform data to obatain normal distrbuted series. See
     # J.M.Morales, R.Minguez, A.J.Conejo "A methodology to generate statistically dependent wind speed scenarios,"
@@ -313,7 +344,7 @@ class ARMA(supervisedLearning):
           # just train the data portions
           normed = normed[self.zeroFilterMask]
         self.raiseADebug('... ... training "{}"...'.format(target))
-        self.armaResult[target] = self._trainARMA(normed)
+        self.armaResult[target] = self._trainARMA(normed,masks=[maskPeakRes])
         self.raiseADebug('... ... finished training target "{}"'.format(target))
 
     # now handle the training of the correlated armas
@@ -333,7 +364,7 @@ class ARMA(supervisedLearning):
         ## -> instead of a VARMA
         if zeroed.shape[1] == 1:
           # then actually train an ARMA instead
-          zVarma = self._trainARMA(zeroed)
+          zVarma = self._trainARMA(zeroed,masks=None)
           zNoise = None # NOTE this is used to check whether an ARMA was trained later!
           zInit = None
         else:
@@ -394,7 +425,7 @@ class ARMA(supervisedLearning):
               result = self.varmaResult[1]
               sample = self._generateARMASignal(result,
                                                 numSamples = self.notZeroFilterMask.sum(),
-                                                randEngine = self.normEngine.rvs)
+                                                randEngine = self.randomEng)
               zeroedSample = np.zeros((self.notZeroFilterMask.sum(),1))
               zeroedSample[:,0] = sample
             correlatedSample = True # placeholder, signifies we've sampled the correlated distribution
@@ -427,7 +458,8 @@ class ARMA(supervisedLearning):
         if target == self.zeroFilterTarget:
           sample = self._generateARMASignal(result,
                                             numSamples = self.zeroFilterMask.sum(),
-                                            randEngine = self.normEngine.rvs)
+                                            randEngine = self.randomEng)
+
           ## if so, then expand result into signal space (functionally, put back in all the zeros)
           signal = np.zeros(len(self.pivotParameterValues))
           signal[self.zeroFilterMask] = sample
@@ -435,34 +467,32 @@ class ARMA(supervisedLearning):
           ## if not, no extra work to be done here!
           sample = self._generateARMASignal(result,
                                             numSamples = len(self.pivotParameterValues),
-                                            randEngine = self.normEngine.rvs)
+                                            randEngine = self.randomEng)
           signal = sample
       # END creating base signal
-      # DEBUGG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
+      # DEBUG adding arbitrary variables for debugging, TODO find a more elegant way, leaving these here as markers
       #returnEvaluation[target+'_0base'] = copy.copy(signal)
       # denoise
       signal = self._denormalizeThroughCDF(signal,self.cdfParams[target])
-      # DEBUGG adding arbitrary variables
+      # DEBUG adding arbitrary variables
       #returnEvaluation[target+'_1denorm'] = copy.copy(signal)
       #debuggFile.writelines('signal_arma,'+','.join(str(x) for x in signal)+'\n')
 
       # Add fourier trends
       if target in self.fourierParams:
         signal += self.fourierResults[target]['predict']
-        # DEBUGG adding arbitrary variables
+        # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_2fourier'] = copy.copy(signal)
         #debuggFile.writelines('signal_fourier,'+','.join(str(x) for x in self.fourierResults[target]['predict'])+'\n')
-
+      if target in self.peaks:
+        signal = self._transformBackPeaks(signal,windowDict=self.peaks[target])
       # if enforcing the training data CDF, apply that transform now
       if self.preserveInputCDF:
-        # first build a histogram object of the sampled data
-        dist = mathUtils.trainEmpiricalFunction(signal, minBins=self._minBins)
-        # transform data through CDFs
-        signal = self._trainingCDF[target].ppf(dist.cdf(signal))
+        signal = self._transformThroughInputCDF(signal, self._trainingCDF[target])
 
       # Re-zero out zero filter target's zero regions
       if target == self.zeroFilterTarget:
-        # DEBUGG adding arbitrary variables
+        # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_3zerofilter'] = copy.copy(signal)
         signal[self.notZeroFilterMask] = 0.0
 
@@ -473,13 +503,13 @@ class ARMA(supervisedLearning):
             signal = np.absolute(signal)
           elif domain == 'negative':
             signal = -np.absolute(signal)
-        # DEBUGG adding arbitrary variables
+        # DEBUG adding arbitrary variables
         #returnEvaluation[target+'_4truncated'] = copy.copy(signal)
 
       # store results
       ## FIXME this is ASSUMING the input to ARMA is only ever a single scaling factor.
       signal *= featureVals[0]
-      # DEBUGG adding arbitrary variables
+      # DEBUG adding arbitrary variables
       #returnEvaluation[target+'_5scaled'] = copy.copy(signal)
 
       # sanity check on the signal
@@ -495,7 +525,8 @@ class ARMA(supervisedLearning):
       @ In, seed, int, new seed to use
       @ Out, None
     """
-    randomUtils.randomSeed(seed)
+    randomUtils.randomSeed(seed,engine=self.randomEng)
+    self.seed=seed
 
   ### UTILITY METHODS ###
   def _computeNumberOfBins(self,data):
@@ -520,7 +551,7 @@ class ARMA(supervisedLearning):
     denormed = self._sampleICDF(denormed, params)
     return denormed
 
-  def _generateARMASignal(self, model, numSamples=None, randEngine=None):
+  def _generateARMASignal(self, model, numSamples=None,randEngine=None):
     """
       Generates a synthetic history from fitted parameters.
       @ In, model, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA such as otained from _trainARMA
@@ -530,29 +561,30 @@ class ARMA(supervisedLearning):
     """
     if numSamples is None:
       numSamples =  len(self.pivotParameterValues)
+    if randEngine is None:
+      randEngine=self.randomEng
     hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
                                        ma = np.append(1., model.maparams),
                                        nsample = numSamples,
-                                       distrvs = randEngine,
+                                       distrvs = functools.partial(randomUtils.randomNormal,engine=randEngine),
+                                       # functool.partial provide the random number generator as a function
+                                       # with normal distribution and take engine as the positional arguments keywords.
                                        sigma = np.sqrt(model.sigma2),
                                        burnin = 2*max(self.P,self.Q)) # @epinas, 2018
     return hist
 
-  def _generateFourierSignal(self, pivots, basePeriod, fourierOrder):
+  def _generateFourierSignal(self, pivots, periods):
     """
       Generate fourier signal as specified by the input file
       @ In, pivots, np.array, pivot values (e.g. time)
-      @ In, basePeriod, list, list of base periods
-      @ In, fourierOrder, dict, order for each base period
+      @ In, periods, list, list of Fourier periods (1/frequency)
       @ Out, fourier, array, shape = [n_timeStep, n_basePeriod]
     """
-    fourier = {}
-    for base in basePeriod:
-      fourier[base] = np.zeros((pivots.size, 2*fourierOrder[base]))
-      for orderBp in range(fourierOrder[base]):
-        hist = 2. * np.pi * (orderBp + 1.0) / base * pivots
-        fourier[base][:, 2*orderBp]   = np.sin(hist)
-        fourier[base][:, 2*orderBp+1] = np.cos(hist)
+    fourier = np.zeros((pivots.size, 2*len(periods))) # sin, cos for each period
+    for p, period in enumerate(periods):
+      hist = 2. * np.pi / period * pivots
+      fourier[:, 2 * p] = np.sin(hist)
+      fourier[:, 2 * p + 1] = np.cos(hist)
     return fourier
 
   def _generateVARMASignal(self, model, numSamples=None, randEngine=None, rvsIndex=None):
@@ -583,37 +615,6 @@ class ARMA(supervisedLearning):
                                      measurement_shocks = measureShocks,
                                      state_shocks = stateShocks)
     return obs
-
-  def getRomClusterValues(self, featureTemplate, *args, **kwargs):
-    """
-      Indicates the parameters on which this ROM can cluster.
-      @ In, featureTemplate, str, format for feature space names (takes target, separator, metric, and id)
-      @ Out, features, dict, cluster feature values
-    """
-    # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
-    features = {}
-    # include Fourier if available
-    for target in self.fourierResults:
-      for b,base in enumerate(self.fourierResults[target]['regression']['coeffs']):
-        for s,subdivision in enumerate(base):
-          for waveform, coeff in subdivision.items():
-            ID = '{}_{}_{}'.format(b,s+1,waveform)
-            feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
-            features[feature] = coeff
-    # signal variance, ARMA (not varma)
-    for target,arma in self.armaResult.items():
-      feature = featureTemplate.format(target=target, metric='arma', id='std')
-      features[feature] = np.sqrt(arma.sigma2)
-    return features
-
-  def getRomClusterParams(self):
-    """
-      Indicates the parameters on which this ROM can cluster.
-      @ In, None
-      @ Out, params, list, clusterable parameters
-    """
-    params = ['Fourier', 'ARMA']
-    return params
 
   def _interpolateDist(self,x,y,Xlow,Xhigh,Ylow,Yhigh,inMask):
     """
@@ -715,16 +716,22 @@ class ARMA(supervisedLearning):
     y = self._interpolateDist(x,y,Xlow,Xhigh,Ylow,Yhigh,inMask)
     return y
 
-  def _trainARMA(self,data):
-    """
+  def _trainARMA(self,data,masks=None):
+    r"""
       Fit ARMA model: x_t = \sum_{i=1}^P \phi_i*x_{t-i} + \alpha_t + \sum_{j=1}^Q \theta_j*\alpha_{t-j}
       @ In, data, np.array(float), data on which to train
+      @ In, masks, np.array, optional, boolean mask where is the signal should be train by ARMA
       @ Out, results, statsmodels.tsa.arima_model.ARMAResults, fitted ARMA
     """
-    # input parameters
-    P = self.P
-    Q = self.Q
-    results = smARMA(data, order = (P, Q)).fit(disp = False)
+    if masks == None:
+      masks = []
+    if len(masks)>1:
+      fullMask = np.logical_and.reduce(*masks)
+      data=data[fullMask]
+    elif len(masks)==1:
+      fullMask =masks[0]
+      data=data[fullMask]
+    results = smARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
   def _trainCDF(self,data):
@@ -752,149 +759,73 @@ class ARMA(supervisedLearning):
               #'cdfSearch':neighbors.NearestNeighbors(n_neighbors=2).fit([[c] for c in cdf])}
     return params
 
-  def _trainFourier(self, pivotValues, basePeriod, order, values, zeroFilter=False):
+  def _trainFourier(self, pivotValues, periods, values, masks=None,zeroFilter=False):
     """
       Perform fitting of Fourier series on self.timeSeriesDatabase
       @ In, pivotValues, np.array, list of values for the independent variable (e.g. time)
-      @ In, basePeriod, list, list of the base periods
-      @ In, order, dict, Fourier orders to extract for each base period
+      @ In, periods, list, list of the base periods
       @ In, values, np.array, list of values for the dependent variable (signal to take fourier from)
+      @ In, masks, np.array, optional, boolean mask where is the signal should be train by Fourier
       @ In, zeroFilter, bool, optional, if True then apply zero-filtering for fourier fitting
       @ Out, fourierResult, dict, results of this training in keys 'residues', 'fourierSet', 'predict', 'regression'
     """
-    fourierSeriesOriginal = self._generateFourierSignal(pivotValues,
-                                                        basePeriod,
-                                                        order)
-    # fourierSeriesOriginal dimensions, for each key (base):
+    # XXX fix for no order
+    if masks is None:
+      masks = []
+
+    fourierSignalsFull = self._generateFourierSignal(pivotValues, periods)
+    # fourierSignals dimensions, for each key (base):
     #   0: length of history
     #   1: evaluations, in order and flattened:
-    #                 0:   sin(1*2pi*t/base),
-    #                 1:   cos(1*2pi*t/base),
-    #                 2:   sin(2*2pi*t/base),
-    #                 3:   cos(2*2pi*t/base),
-    #                    etc,
-    #                 N-1: sin(order*2pi*t/base),
-    #                 N:   cos(order*2pi*t/base)
+    #                 0:   sin(2pi*t/period[0]),
+    #                 1:   cos(2pi*t/period[0]),
+    #                 2:   sin(2pi*t/period[1]),
+    #                 3:   cos(2pi*t/period[1]), ...
     fourierEngine = linear_model.LinearRegression(normalize=False)
+    for mask in masks:
+      fourierSignalsFull = fourierSignalsFull[mask, :]
+      values = values[mask]
+
 
     # if using zero-filter, cut the parts of the Fourier and values that correspond to the zero-value portions
     if zeroFilter:
       values = values[self.zeroFilterMask]
-      fourierEvaluations = dict((period,vals[self.zeroFilterMask]) for period,vals in fourierSeriesOriginal.items())
+      fourierSignals = fourierSignalsFull[self.zeroFilterMask, :]
     else:
-      fourierEvaluations = fourierSeriesOriginal
+      fourierSignals = fourierSignalsFull
 
-    # get the combinations of fourier signal orders to consider
+    # fit the signal
+    fourierEngine.fit(fourierSignals, values)
 
-    criterionBest = np.inf
-    bestSignal = []
-    fourierResult={'residues': 0,
-                   'fourierSet': []}
-
-    fourierBaseFrequencies = [range(1,order[bp]+1) for bp in order]
-    # for all combinations of Fourier periods and orders ...
-    # "values" shape is the length of the history (in this case, like 730 entries)
-    for fourierSet in list(itertools.product(*fourierBaseFrequencies)):
-      # generate container for Fourier series evaluation
-      fourierSignals = np.zeros(shape=(values.size, 2*sum(fourierSet))) # length of history by (sin,cos)(Fourier orders)
-      # dimensions:
-      #    0: length of history
-      #    1: evaluations of sine, cosine for each Fourier order in use
-      # running indices for orders and sine/cosine coefficients
-      runningIndex = 0
-      # for each base period requested ...
-      for index,bp in enumerate(order):
-        # store the series values for the given periods
-        ## TODO this may not be an ideally-indexed storage mechanism
-        ## dimensions are (history length, Fourier combination (sine and cosine))
-        fourierSignals[:, runningIndex:runningIndex+fourierSet[index]*2] = fourierEvaluations[bp][:, 0:fourierSet[index]*2]
-        # update the running index
-        runningIndex += fourierSet[index]*2
-      # find the correct magnitudes to best fit the data
-      ## note in the zero-filter case, this is fitting the truncated data
-      fourierEngine.fit(fourierSignals,values)
-      # determine the (normalized) residual/error associated with this best fit
-      r = (fourierEngine.predict(fourierSignals)-values)**2
-      if r.size > 1:
-        r = sum(r)
-      # TODO any reason to scale this error? values.size should be the same for every order, so all scales same
-      r = r/values.size
-      # TODO is anything gained by the copy and deepcopy for r?
-      criterionCurrent = copy.copy(r)
-      if  criterionCurrent < criterionBest:
-        # TODO this could be sped up by only keeping track of indexes for best, then deepcopying only those
-        fourierResult['fourierSet'] = copy.deepcopy(fourierSet)
-        bestSignal = copy.deepcopy(fourierSignals)
-        bestSet = fourierSet[:]
-        fourierResult['residues'] = copy.deepcopy(r)
-        criterionBest = copy.deepcopy(criterionCurrent)
-
-    self.raiseADebug('Best Fourier matching set:',bestSet,order)
-    # retrain the best-fitting set of orders
-    fourierEngine.fit(bestSignal,values)
-    # reproduce the best-fitting signal
-    fourierSignal = np.asarray(fourierEngine.predict(bestSignal))
-
-    # obtain the Fourier magnitude for each order, to store as reference
-    ## translate indices to headers
-    coefMap = [None for _ in range(len(bestSet))]
-    ## structure of coefMap:
-    ##   list(list(dict))
-    ##   outermost list is the base period in order from the input -> NOPE, it's from order.keys() which is arbitrary
-    ##   second list is the subdivision of the base in numerically-increasing order (1, 2, 3, etc)
-    ##   dictionary has the coefficients as {'sin':coeff, 'cos':coeff}
-    ## see the debug check with plots below for an example of how to use the regression terms.
-    for c,coef in enumerate(fourierEngine.coef_):
-      # which base?
-      floor = 0
-      for b,base in enumerate(bestSet):
-        # how many values correspond to this base?
-        band = base*2
-        # are we between the last boundary and the next?
-        if c < floor + band:
-          correctBase = base
-          correctB = b
-          break
-        else:
-          floor += band
-      if coefMap[correctB] is None:
-        coefMap[correctB] = [{} for _ in range(bestSet[correctB])]
-      # which subdivision?
-      ## reset index list
-      subIndex = c - floor
-      subdivision = subIndex // 2
-      # sin/cos
-      if c % 2 == 0:
-        waveform = 'sin'
-      else:
-        waveform = 'cos'
-      coefMap[correctB][subdivision][waveform] = coef
-    # fill in coefMap with any base subdivisions that were not used
-    for i,(base,subdivs) in enumerate(order.items()):
-      if bestSet[i] < subdivs:
-        for _ in range(bestSet[i]+1,subdivs+1):
-          coefMap[i].append({'sin': 0.0, 'cos':0.0})
-
+    # get signal intercept
     intercept = fourierEngine.intercept_
-    fourierResult['regression'] = {'intercept':intercept,
-                                   'coeffs'   :coefMap,
-                                   'periods'  :[]}
-
-    # store evaluation periods (1 / freq) for Fourier evaluations
-    for b,base in enumerate(basePeriod):
-      new = []
-      for od in range(order[base]):
-        period = base / (od + 1.0)
-        new.append(period)
-      fourierResult['regression']['periods'].append(new)
-
-    # if zero-filtered, put zeroes back into the Fourier series
+    # get coefficient map for A*sin(ft) + B*cos(ft)
+    waveCoefMap = collections.defaultdict(dict) # {period: {sin:#, cos:#}}
+    for c, coef in enumerate(fourierEngine.coef_):
+      period = periods[c//2]
+      waveform = 'sin' if c % 2 == 0 else 'cos'
+      waveCoefMap[period][waveform] = coef
+    # convert to C*sin(ft + s)
+    ## since we use fitting to get A and B, the magnitudes can be deceiving.
+    ## this conversion makes "C" a useful value to know the contribution from a period
+    coefMap = {}
+    signal=np.ones(len(pivotValues)) * intercept
+    for period, coefs in waveCoefMap.items():
+      A = coefs['sin']
+      B = coefs['cos']
+      C, s = mathUtils.convertSinCosToSinPhase(A, B)
+      coefMap[period] = {'amplitude': C, 'phase': s}
+      signal+=mathUtils.evalFourier(period,C,s,pivotValues)
+    # re-add zero-filtered
     if zeroFilter:
-      signal = np.zeros(pivotValues.size)
-      signal[self.zeroFilterMask] = fourierSignal
-    else:
-      signal = fourierSignal
-    fourierResult['predict'] = signal
+      signal[self.notZeroFilterMask] = 0.0
+
+
+    # store results
+    fourierResult = {'regression': {'intercept':intercept,
+                                    'coeffs'   :coefMap,
+                                    'periods'  :periods},
+                     'predict': signal}
     return fourierResult
 
   def _trainMultivariateNormal(self,dim,means,cov):
@@ -923,9 +854,7 @@ class ARMA(supervisedLearning):
       @ Out, stateDist, Distributions.MultivariateNormal, MVN from which VARMA noise is taken
       @ Out, initDist, Distributions.MultivariateNormal, MVN from which VARMA initial state is taken
     """
-    Pmax = self.P
-    Qmax = self.Q
-    model = sm.tsa.VARMAX(endog=data, order=(Pmax,Qmax))
+    model = sm.tsa.VARMAX(endog=data, order=(self.P, self.Q))
     self.raiseADebug('... ... ... fitting VARMA ...')
     results = model.fit(disp=False,maxiter=1000)
     lenHist,numVars = data.shape
@@ -991,7 +920,7 @@ class ARMA(supervisedLearning):
     # add realization
     writeTo.addRealization(rlz)
 
-  def writeXML(self, writeTo, targets = None, skip = None):
+  def writeXML(self, writeTo, targets=None, skip=None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
       Overload in subclasses.
@@ -1001,36 +930,384 @@ class ARMA(supervisedLearning):
       @ Out, None
     """
     if not self.amITrained:
-      self.raiseAnError(RuntimeError,'ROM is not yet trained! Cannot write to DataObject.')
+      self.raiseAnError(RuntimeError, 'ROM is not yet trained! Cannot write to DataObject.')
     root = writeTo.getRoot()
     # - Fourier coefficients (by period, waveform)
-    for target,fourier in self.fourierResults.items():
+    for target, fourier in self.fourierResults.items():
       targetNode = root.find(target)
       if targetNode is None:
         targetNode = xmlUtils.newNode(target)
         root.append(targetNode)
       fourierNode = xmlUtils.newNode('Fourier')
       targetNode.append(fourierNode)
-      fourierNode.append(xmlUtils.newNode('SignalIntercept', text = '{:1.9e}'.format(fourier['regression']['intercept'])))
-      for b,base in enumerate(fourier['regression']['coeffs']):
-        for s,subdivision in enumerate(base):
-          period = fourier['regression']['periods'][b][s]
-          periodNode = xmlUtils.newNode('period', text = '{:1.9e}'.format(period))
-          fourierNode.append(periodNode)
-          periodNode.append(xmlUtils.newNode('frequency', text = '{:1.9e}'.format(1.0/period)))
-          for waveform, coeff in subdivision.items():
-            periodNode.append(xmlUtils.newNode(waveform, text = '{:1.9e}'.format(coeff)))
+      fourierNode.append(xmlUtils.newNode('SignalIntercept', text='{:1.9e}'.format(fourier['regression']['intercept'])))
+      for period in fourier['regression']['periods']:
+        periodNode = xmlUtils.newNode('period', text='{:1.9e}'.format(period))
+        fourierNode.append(periodNode)
+        periodNode.append(xmlUtils.newNode('frequency', text='{:1.9e}'.format(1.0/period)))
+        for stat, value in sorted(list(fourier['regression']['coeffs'][period].items()), key=lambda x:x[0]):
+          periodNode.append(xmlUtils.newNode(stat, text='{:1.9e}'.format(value)))
     # - ARMA std
-    for target,arma in self.armaResult.items():
+    for target, arma in self.armaResult.items():
       targetNode = root.find(target)
       if targetNode is None:
         targetNode = xmlUtils.newNode(target)
         root.append(targetNode)
       armaNode = xmlUtils.newNode('ARMA_params')
       targetNode.append(armaNode)
-      armaNode.append(xmlUtils.newNode('std', text = np.sqrt(arma.sigma2)))
+      armaNode.append(xmlUtils.newNode('std', text=np.sqrt(arma.sigma2)))
       # TODO covariances, P and Q, etc
+    for target,peakInfo in self.peaks.items():
+      targetNode = root.find(target)
+      if targetNode is None:
+        targetNode = xmlUtils.newNode(target)
+        root.append(targetNode)
+      peakNode = xmlUtils.newNode('Peak_params')
+      targetNode.append(peakNode)
+      if 'groupWin' in peakInfo.keys():
+        for group in peakInfo['groupWin']:
+          groupnode=xmlUtils.newNode('peak')
+          groupnode.append(xmlUtils.newNode('Amplitude', text='{}'.format(np.array(group['Amp']).mean())))
+          groupnode.append(xmlUtils.newNode('Index', text='{}'.format(np.array(group['Ind']).mean())))
+          peakNode.append(groupnode)
 
+
+
+
+  def _transformThroughInputCDF(self, signal, originalDist, weights=None):
+    """
+      Transforms a signal through the original distribution
+      @ In, signal, np.array(float), signal to transform
+      @ In, originalDist, scipy.stats.rv_histogram, distribution to transform through
+      @ In, weights, np.array(float), weighting for samples (assumed uniform if not given)
+      @ Out, new, np.array, new signal after transformation
+    """
+    # first build a histogram object of the sampled data
+    dist = mathUtils.trainEmpiricalFunction(signal, minBins=self._minBins, weights=weights)
+    # transform data through CDFs
+    new = originalDist.ppf(dist.cdf(signal))
+    return new
+
+  ### Segmenting and Clustering ###
+  def  isClusterable(self):
+    """
+      Allows ROM to declare whether it has methods for clustring. Default is no.
+      @ In, None
+      @ Out, isClusterable, bool, if True then has clustering mechanics.
+    """
+    # clustering methods have been added
+    return True
+
+  def _getMeanFromGlobal(self, settings, pickers, targets=None):
+    """
+      Derives segment means from global trends
+      @ In, settings, dict, as per getGlobalRomSegmentSettings
+      @ In, pickers, list(slice), picks portion of signal of interest
+      @ In, targets, list, optional, targets to include (default is all)
+      @ Out, results, list(dict), mean for each target per picker
+    """
+    if 'long Fourier signal' not in settings:
+      return []
+    if isinstance(pickers, slice):
+      pickers = [pickers]
+    if targets == None:
+      targets = settings['long Fourier signal'].keys()
+    results = [] # one per "pickers"
+    for picker in pickers:
+      res = dict((target, signal['predict'][picker].mean()) for target, signal in settings['long Fourier signal'].items())
+      results.append(res)
+    return results
+
+  def getLocalRomClusterFeatures(self, featureTemplate, settings, picker=None, **kwargs):
+    """
+      Provides metrics aka features on which clustering compatibility can be measured.
+      This is called on LOCAL subsegment ROMs, not on the GLOBAL template ROM
+      @ In, featureTemplate, str, format for feature inclusion
+      @ In, settings, dict, as per getGlobalRomSegmentSettings
+      @ In, picker, slice, indexer for segmenting data
+      @ In, kwargs, dict, arbitrary keyword arguments
+      @ Out, features, dict, {target_metric: np.array(floats)} features to cluster on
+    """
+    # algorithm for providing Fourier series and ARMA white noise variance and #TODO covariance
+    features = {}
+    # include Fourier if available
+    for target, fourier in self.fourierResults.items():
+      for period in fourier['regression']['periods']:
+        # amp
+        amp = fourier['regression']['coeffs'][period]['amplitude']
+        ID = '{}_{}'.format(period, 'amp')
+        feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
+        features[feature] = amp
+        # phase
+        ## not great for clustering, but sure, why not
+        phase = fourier['regression']['coeffs'][period]['phase']
+        ID = '{}_{}'.format(period, 'phase')
+        feature = featureTemplate.format(target=target, metric='Fourier', id=ID)
+        features[feature] = phase
+
+    # signal variance, ARMA (not varma)
+    for target, arma in self.armaResult.items():
+      feature = featureTemplate.format(target=target, metric='arma', id='std')
+      features[feature] = np.sqrt(arma.sigma2)
+    # segment means
+    # since we've already detrended globally, get the means from that (if present)
+    if 'long Fourier signal' in settings:
+      assert picker is not None
+      results = self._getMeanFromGlobal(settings, picker)
+      for target, mean in results[0].items():
+        feature = featureTemplate.format(target=target, metric="global", id="mean")
+        features[feature] = mean
+    return features
+
+  def getGlobalRomSegmentSettings(self, trainingDict, divisions):
+    """
+      Allows the ROM to perform some analysis before segmenting.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL subsegment ROMs!
+      @ In, trainingDict, dict, data for training, full and unsegmented
+      @ In, divisions, tuple, (division slice indices, unclustered spaces)
+      @ Out, settings, object, arbitrary information about ROM clustering settings
+      @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
+    """
+    trainingDict = copy.deepcopy(trainingDict) # otherwise we destructively tamper with the input data object
+    settings = {}
+    targets = list(self.fourierParams.keys())
+    # set up for input CDF preservation on a global scale
+    if self.preserveInputCDF:
+      inputDists = {}
+      for target in targets:
+        if target == self.pivotParameterID:
+          continue
+        targetVals = trainingDict[target][0]
+        inputDists[target] = mathUtils.trainEmpiricalFunction(targetVals, minBins=self._minBins)
+      settings['input CDFs'] = inputDists
+    # do global Fourier analysis on combined signal for all periods longer than the segment
+    if self.fourierParams:
+      # determine the Nyquist length for the clustered params
+      slicers = divisions[0]
+      pivotValues = trainingDict[self.pivotParameterID][0]
+      # use the first segment as typical of all of them, NOTE might be bad assumption
+      delta = pivotValues[slicers[0][-1]] - pivotValues[slicers[0][0]]
+      # any Fourier longer than the delta should be trained a priori, leaving the reaminder
+      #    to be specific to individual ROMs
+      full = {}      # train these periods on the full series
+      segment = {}   # train these periods on the segments individually
+      for target in targets:
+        if target == self.pivotParameterID:
+          continue
+        # only do separation for targets for whom there's a Fourier request
+        if target in self.fourierParams:
+          # NOTE: assuming training on only one history!
+          targetVals = trainingDict[target][0]
+          # if zero filtering in play, set the masks now
+          ## TODO I'm not particularly happy with having to remember to do this; can we automate it more?
+          zeroFiltering = target == self.zeroFilterTarget
+          if zeroFiltering:
+            self.notZeroFilterMask = self._trainZeroRemoval(targetVals, tol=self.zeroFilterTol) # where zeros are not
+            self.zeroFilterMask = np.logical_not(self.notZeroFilterMask) # where zeroes are
+          periods = np.asarray(self.fourierParams[target])
+          full = periods[periods > delta]
+          segment[target] = periods[np.logical_not(periods > delta)]
+          if len(full):
+            # train Fourier on longer periods
+            self.fourierResults[target] = self._trainFourier(pivotValues,
+                                                             full,
+                                                             targetVals,
+                                                             zeroFilter=zeroFiltering)
+            # remove longer signal from training data
+            signal = self.fourierResults[target]['predict']
+            targetVals -= signal
+            trainingDict[target][0] = targetVals
+      # store the segment-based periods in the settings to return
+      settings['segment Fourier periods'] = segment
+      settings['long Fourier signal'] = self.fourierResults
+    return settings, trainingDict
+
+  def adjustLocalRomSegment(self, settings):
+    """
+      Adjusts this ROM to account for it being a segment as a part of a larger ROM collection.
+      Call this before training the subspace segment ROMs
+      Note this is called on the LOCAL subsegment ROMs, NOT on the GLOBAL templateROM from the ROMcollection!
+      @ In, settings, object, arbitrary information about ROM clustering settings from getGlobalRomSegmentSettings
+      @ Out, None
+    """
+    # some Fourier periods have already been handled, so reset the ones that actually are needed
+    newFourier = settings.get('segment Fourier periods', None)
+    if newFourier is not None:
+      for target in list(self.fourierParams.keys()):
+        periods = newFourier.get(target, [])
+        # if any sub-segment Fourier remaining, send it through
+        if len(periods):
+          self.fourierParams[target] = periods
+        else:
+          # otherwise, remove target from fourierParams so no Fourier is applied
+          self.fourierParams.pop(target,None)
+    # disable CDF preservation on subclusters
+    ## Note that this might be a good candidate for a user option someday,
+    ## but right now we can't imagine a use case that would turn it on
+    self.preserveInputCDF = False
+
+  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker):
+    """
+      Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
+      Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
+      @ In, picker, slice, indexer for data range of this segment
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    # add back in Fourier
+    if 'long Fourier signal' in settings:
+      for target, signal in settings['long Fourier signal'].items():
+        sig = signal['predict'][picker]
+        evaluation[target][picker] += sig
+    return evaluation
+
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None):
+    """
+      Allows any global settings to be applied to the signal collected by the ROMCollection instance.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
+      @ In, weights, np.array(float), optional, if included then gives weight to histories for CDF preservation
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    # backtransform signal
+    ## how nicely does this play with zerofiltering?
+    if self.preserveInputCDF:
+      for target, dist in settings['input CDFs'].items():
+        evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
+    return evaluation
+
+  ### Peak Picker ###
+  def _peakPicker(self,signal,low):
+    """
+      Peak picker, this method find the local maxima index inside the signal by comparing the
+      neighboring values. Threshold of peaks is required to output the height of each peak.
+      @ In, signal, np.array(float), signal to transform
+      @ In, low, float, required height of peaks.
+      @ Out, peaks, np.array, indices of peaks in x that satisfy all given conditions
+      @ Out, heights, np.array, boolean mask where is the residual signal
+    """
+    peaks, properties = find_peaks(signal, height=low)
+    heights = properties['peak_heights']
+    return peaks,heights
+
+  def rangeWindow(self,windowDict):
+    """
+      Collect the window index in to groups and store the information in dictionariy for each target
+      @ In, windowDict, dict, dictionary for specefic target peaks
+      @ Out, rangeWindow, list, list of dictionaries which store the window index for each target
+    """
+    rangeWindow = []
+    windowType = len(windowDict['windows'])
+    windows = windowDict['windows']
+    period = windowDict['period']
+    for i in range(windowType):
+      windowRange={}
+      bgP=(windows[i]['window'][0]-1)%period
+      endP=(windows[i]['window'][1]+2)%period
+      timeInd=np.arange(len(self.pivotParameterValues))
+      bgPInd  = np.where(timeInd%period==bgP )[0].tolist()
+      endPInd = np.where(timeInd%period==endP)[0].tolist()
+      if bgPInd[0]>endPInd[0]:
+        tail=endPInd[0]
+        endPInd.pop(0)
+        endPInd.append(tail)
+      windowRange['bg']=bgPInd
+      windowRange['end']=endPInd
+      rangeWindow.append(windowRange)
+    return rangeWindow
+
+  def _peakGroupWindow(self,signal,windowDict):
+    """
+      Collect the peak information in to groups, define the residual signal.
+      Including the index and amplitude of each peak found in the window.
+      @ In, signal, np.array(float), signal to transform
+      @ In, windowDict, dict, dictionary for specefic target peaks
+      @ Out, groupWin, list, list of dictionaries which store the peak information
+      @ Out, maskPeakRes, np.array, boolean mask where is the residual signal
+    """
+    groupWin = []
+    maskPeakRes = np.ones(len(signal), dtype=bool)
+    rangeWindow = self.rangeWindow(windowDict)
+    low = windowDict['threshold']
+    windows = windowDict['windows']
+    for i in range(len(windowDict['windows'])):
+      bg  = rangeWindow[i]['bg']
+      end = rangeWindow[i]['end']
+      peakInfo   = {}
+      indLocal   = []
+      ampLocal   = []
+      for j in range(min(len(bg), len(end))):
+        ##FIXME this might ignore one window, because the amount of the
+        # staring points and the ending points might be different here,
+        # we choose the shorter one to make sure each window is complete.
+        # Future developer can extend the head and tail of the signal to
+        # include all the posible windows
+        bgLocal = bg[j]
+        endLocal = end[j]
+        peak, height = self._peakPicker(signal[bgLocal:endLocal], low=low)
+        if len(peak) ==1:
+          indLocal.append(int(peak))
+          ampLocal.append(float(height))
+          maskBg=int(peak)+bgLocal-int(np.floor(windows[i]['width']/2))
+          maskEnd=int(peak)+bgLocal+int(np.ceil(windows[i]['width']/2))
+          maskPeakRes[maskBg:maskEnd]=False
+        elif len(peak) >1:
+          indLocal.append(int(peak[np.argmax(height)]))
+          ampLocal.append(float(height[np.argmax(height)]))
+          maskBg=int(peak[np.argmax(height)])+bgLocal-int(np.floor(windows[i]['width']/2))
+          maskEnd=int(peak[np.argmax(height)])+bgLocal+int(np.ceil(windows[i]['width']/2))
+          maskPeakRes[maskBg:maskEnd]=False
+      peakInfo['Ind'] = indLocal
+      peakInfo['Amp'] = ampLocal
+      groupWin.append(peakInfo)
+    return groupWin , maskPeakRes
+
+  def _transformBackPeaks(self,signal,windowDict):
+    """
+      Transforms a signal by regenerate the peaks signal
+      @ In, signal, np.array(float), signal to transform
+      @ In, windowDict, dict, dictionary for specefic target peaks
+      @ Out, signal, np.array(float), new signal after transformation
+    """
+    groupWin = windowDict['groupWin']
+    windows  = windowDict['windows']
+    rangeWindow=self.rangeWindow(windowDict)
+    for i in range(len(windowDict['windows'])):
+      prbExist = len(groupWin[i]['Ind'])/len(rangeWindow[i]['bg'])
+      # (amount of peaks that collected in the windows)/(the amount of windows)
+      # this is the probability to check if we should add a peak in each type of window
+      histAmp = np.histogram(groupWin[i]['Amp'])
+      # generate the distribution of the amplitude for this type of peak
+      histInd = np.histogram(groupWin[i]['Ind'])
+      # generate the distribution of the position( relative index) in the window
+      for j in range(min(len(rangeWindow[i]['bg']),len(rangeWindow[i]['end']))):
+        # the length of the starting points and ending points might be different
+        bgLocal = rangeWindow[i]['bg'][j]
+        # choose the starting index for specific window
+        exist = np.random.choice(2, 1, p=[1-prbExist,prbExist])
+        # generate 1 or 0 base on the prbExist
+        if exist == 1:
+          Amp = rv_histogram(histAmp).rvs()
+          Ind = int(rv_histogram(histInd).rvs())
+          # generate the amplitude and the relative position base on the distribution
+          SigInd = bgLocal+Ind
+          SigInd = int(SigInd%len(self.pivotParameterValues))
+          signal[SigInd] = Amp
+          # replace the signal with peak in this window
+          maskBg = SigInd-int(np.floor(windows[i]['width']/2))
+          maskEnd = SigInd+int(np.ceil(windows[i]['width']/2))
+          # replace the signal inside the width of this peak by interpolation
+          if maskBg > 0 and maskEnd < len(self.pivotParameterValues)-1:
+            # make sure the window is inside the range of the signal
+            bgValue = signal[maskBg-1]
+            endVaue = signal[maskEnd+1]
+            valueBg=np.interp(range(maskBg,SigInd), [maskBg-1,SigInd], [bgValue,  Amp])
+            signal[maskBg:SigInd]=valueBg
+            valueEnd=np.interp(range(SigInd+1,maskEnd+1), [SigInd,maskEnd+1],   [Amp,endVaue])
+            signal[SigInd+1:maskEnd+1]=valueEnd
+      return signal
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):
@@ -1070,3 +1347,19 @@ class ARMA(supervisedLearning):
     """
     pass
 
+  def setEngine(self,eng,seed=None,count=None):
+    """
+     Set up the random engine for arma
+     @ In, eng, instance, random number generator
+     @ In, seed, int, optional, the seed, if None then use the global seed from ARMA
+     @ In, count, int, optional, advances the state of the generator, if None then use the current ARMA.randomEng count
+     @ Out, None
+    """
+    if seed is None:
+      seed=self.seed
+    seed=abs(seed)
+    eng.seed(seed)
+    if count is None:
+      count=self.randomEng.get_rng_state()
+    eng.forward_seed(count)
+    self.randomEng=eng

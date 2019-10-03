@@ -192,6 +192,11 @@ class Distribution(BaseType):
     if lowerBound !=None:
       self.lowerBound = lowerBound.value
       self.lowerBoundUsed = True
+    if self.lowerBoundUsed and self.upperBoundUsed:
+      if self.lowerBound == self.upperBound:
+        self.raiseAnError(IOError, 'Lower bound for Distribution "'+self.name+'" is equal to the upper bound!')
+      if self.lowerBound > self.upperBound:
+        self.raiseAnError(IOError, 'Lower bound for Distribution "'+self.name+'" is greater than the upper bound!')
 
   def getCrowDistDict(self):
     """
@@ -1649,10 +1654,12 @@ class Categorical(Distribution):
     """
     totPsum = 0.0
     for element in self.mapping:
+      if self.mapping[element] < 0:
+        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
       totPsum += self.mapping[element]
     if not mathUtils.compareFloats(totPsum,1.0):
-      self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is '+repr(totPsum)+', not 1.0')
-
+      self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
+                         repr(totPsum), ', not 1.0!', 'Please renomlize it to 1!')
     self.lowerBound = min(self.mapping.keys())
     self.upperBound = max(self.mapping.keys())
 

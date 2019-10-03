@@ -31,6 +31,26 @@ import os, sys
 # MODULE METHODS #
 ##################
 
+def __split_line_comment(line):
+  """
+    Splits a line into the data part and the comment part
+    @ In, line, string, line
+    @ Out, (data, comment), (string, string), The comment part maybe empty
+  """
+  data = ''
+  comment = ''
+  in_string = False
+  in_comment = False
+  for char in line:
+    if char == "'":
+      in_string = not in_string
+    if char == '#' and not in_string:
+      in_comment = True
+    if in_comment:
+      comment += char
+    else:
+      data += char
+  return (data, comment)
 
 def getpot_to_input_node(getpot):
   """
@@ -57,12 +77,12 @@ def getpot_to_input_node(getpot):
   for line in getpot:
     line = line.strip()
     #if comment in line, store it for now
-    if '#' in line:
+    line, new_comment = __split_line_comment(line)
+    if len(new_comment) > 0:
       if comment is not None:
         #need to stash comments, attributes for node
-        comment += "\n"+'#'.join(line.split('#')[1:])
-      comment = '#'.join(line.split('#')[1:])
-      line = line.split('#')[0].strip()
+        comment += "\n"+new_comment
+      comment = new_comment
     #if starting new node
     if line.startswith('[./') and line.endswith(']'):
       #if child node, stash the parent for now
@@ -89,7 +109,9 @@ def getpot_to_input_node(getpot):
     #attribute setting line
     elif '=' in line:
       #TODO FIXME add attribute comment!
-      attribute,value = list(i.strip() for i in line.split('='))
+      equal_index = line.find('=')
+      attribute = line[:equal_index].strip()
+      value = line[equal_index+1:].strip()
       value = value.strip("'")
       if attribute in currentNode.attrib.keys():
         raise IOError('Multiple attributes defined with same name! "'+attribute+'" = "'+value+'"')

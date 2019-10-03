@@ -23,7 +23,11 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import sys
 import numpy as np
-from utils import mathUtils
+from utils import utils
+# numpy with version 1.14.0 and upper will change the floating point type and print
+# https://docs.scipy.org/doc/numpy-1.14.0/release.html
+if int(np.__version__.split('.')[1]) > 13:
+  np.set_printoptions(**{'legacy':'1.13'})
 
 def _reprIfFloat(value):
   """
@@ -31,7 +35,7 @@ def _reprIfFloat(value):
     @ In, value, any, the value to convert to a string
     @ Out, _reprIfFloat, string, a string conversion of this
   """
-  if mathUtils.isAFloat(value):
+  if utils.isAFloat(value):
     return repr(value)
   else:
     return str(value)

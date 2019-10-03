@@ -1,0 +1,203 @@
+<?xml version="1.0" ?>
+<Simulation verbosity='debug'>
+  <TestInfo>
+    <name>framework/Samplers/ROM/tensorflow_keras.tf_lstm</name>
+    <author>wangc</author>
+    <created>2019-02-07</created>
+    <classesTested>Models.ROM</classesTested>
+    <description>
+      Test the capability of convolutional long short-term memory (lstm) using TensorFlow/Keras
+      Multilayers is used, the lstm will accept (numSamples,timeSteps,Features) as training
+      input, and accept (timeSteps, Features) as prediction input. Ensemble model is used
+      in order to generate time-dependent input for lstm models.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>data</WorkingDir>
+    <Sequence>
+      sample,
+      train,
+      resample,
+      print
+    </Sequence>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="./learnAlphabet" name="learnAlphabet" subType="">
+      <variables>x,y,time,index,seqLength</variables>
+    </ExternalModel>
+    <ROM name="lstmROM" subType="KerasLSTMClassifier">
+      <!-- Common setups -->
+      <Features>x</Features>
+      <Target>y</Target>
+      <loss>categorical_crossentropy</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>1</batch_size>
+      <epochs>3</epochs>
+      <plot_model>False</plot_model>
+      <validation_split>0.25</validation_split>
+      <num_classes>23</num_classes>
+      <random_seed>1986</random_seed>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <!-- Setups for LSTM -->
+      <LSTM name="lstm1">
+        <activation>tanh</activation>
+        <dim_out>32</dim_out>
+      </LSTM>
+      <LSTM name="lstm2">
+        <activation>tanh</activation>
+        <dim_out>16</dim_out>
+      </LSTM>
+      <Dropout name="dropout">
+        <rate>0.25</rate>
+      </Dropout>
+      <Dense name="dense">
+        <activation>softmax</activation>
+      </Dense>
+      <layer_layout>lstm1,lstm2,dropout,dense</layer_layout>
+    </ROM>
+    <EnsembleModel name="ensembleModel" subType="">
+      <Model class="Models" type="ExternalModel">
+        learnAlphabet      
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="HistorySet">learnAlphabetDS</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ROM">
+        lstmROM
+        <Input class="DataObjects" type="PointSet">inputHolderROM</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet">lstmDS</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+  
+  <Samplers>
+    <MonteCarlo name="mcSampler">
+      <samplerInit>
+        <limit>200</limit>
+        <initialSeed>888</initialSeed>
+      </samplerInit>
+      <variable name="index">
+        <distribution>categ</distribution>
+      </variable>
+      <constant name="seqLength">3</constant>
+    </MonteCarlo>
+    <MonteCarlo name="mcTest">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>111</initialSeed>
+      </samplerInit>
+      <variable name="index">
+        <distribution>categ</distribution>
+      </variable>
+      <constant name="seqLength">3</constant>
+    </MonteCarlo>
+  </Samplers>
+  
+  <Steps>
+    <MultiRun name="sample" sleepTime="1e-5">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">learnAlphabet</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
+      <Output class="DataObjects" type="HistorySet">trainingData</Output>
+    </MultiRun>
+    <MultiRun name="resample">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="EnsembleModel">ensembleModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mcTest</Sampler>
+      <Output class="DataObjects" type="DataSet">outputDS</Output>
+      <Output class="DataObjects" type="HistorySet">learnAlphabetDS</Output>
+      <Output class="DataObjects" type="DataSet">lstmDS</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="DataSet">outputDS</Input>
+      <Output class="OutStreams" type="Print">outPrint</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">trainingData</Input>
+      <Output class="Models" type="ROM">lstmROM</Output>
+    </RomTrainer>
+  </Steps>
+
+  <Distributions>
+    <Categorical name="categ">
+      <state outcome="1">0.04</state>
+      <state outcome="2">0.04</state>
+      <state outcome="3">0.04</state>
+      <state outcome="4">0.04</state>
+      <state outcome="5">0.04</state>
+      <state outcome="6">0.04</state>
+      <state outcome="7">0.04</state>
+      <state outcome="8">0.04</state>
+      <state outcome="9">0.04</state>
+      <state outcome="10">0.04</state>
+      <state outcome="11">0.04</state>
+      <state outcome="12">0.04</state>
+      <state outcome="13">0.04</state>
+      <state outcome="14">0.04</state>
+      <state outcome="15">0.04</state>
+      <state outcome="16">0.04</state>
+      <state outcome="17">0.04</state>
+      <state outcome="18">0.04</state>
+      <state outcome="19">0.04</state>
+      <state outcome="20">0.04</state>
+      <state outcome="21">0.06</state>
+      <state outcome="22">0.06</state>
+      <state outcome="0">0.08</state>
+    </Categorical>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="dummyIN">
+      <Input>index,seqLength</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputHolder">
+      <Input>index,seqLength</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputHolderROM">
+      <Input>x</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="trainingData">
+      <Input>index</Input>
+      <Output>x,y</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="learnAlphabetDS">
+      <Input>index, seqLength</Input>
+      <Output>x</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="outputDS">
+      <Output>x,y</Output>
+      <Index var="time">x</Index>
+    </DataSet>
+    <DataSet name="lstmDS">
+      <Input>x</Input>
+      <Output>y</Output>
+      <Index var="time">x</Index>
+    </DataSet> 
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outPrint">
+      <type>csv</type>
+      <source>outputDS</source>
+      <filename>outLSTMClassifier</filename>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+</Simulation>

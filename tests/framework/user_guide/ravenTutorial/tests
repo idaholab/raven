@@ -4,6 +4,7 @@
     input = 'singleRun.xml'
     csv = 'singleRunAnalysis/print_history_0.csv'
     rel_err = 0.000001
+    python3_only = true
   [../]
   
   [./singleRunPlot]
@@ -12,6 +13,7 @@
     csv = 'singleRunPlot/history_0.csv singleRunPlot/pointValues.csv'
     image = 'singleRunPlot/1-historyPlot_line-line-line-line.png'
     required_libraries = 'PIL'
+    python3_only = true
     rel_err = 0.01
   [../]
   
@@ -21,6 +23,7 @@
     csv = 'subPlot/history_0.csv subPlot/pointValues.csv'
     image = 'subPlot/1-historyPlot_line-line-line-line.png'
     required_libraries = 'PIL'
+    python3_only = true
     rel_err = 0.01
   [../]
   
@@ -30,6 +33,7 @@
     csv = 'MonteCarlo/histories_0.csv'
     image = 'MonteCarlo/1-history_A_line.png MonteCarlo/1-samplesPlot_A_scatter.png'
     required_libraries = 'PIL'
+    python3_only = true
     rel_err = 0.01
   [../]
   
@@ -38,6 +42,7 @@
     input = 'RomTrain.xml'
     csv = 'ROM/histories_0.csv'
     rel_err = 0.000001
+    python3_only = true
   [../]
   
   [./RomLoad]
@@ -46,6 +51,7 @@
     csv = 'ROMLoad/historiesROM_0.csv'
     image = 'ROMLoad/1-historyROMPlot_line.png'
     required_libraries = 'PIL'
+    python3_only = true
     rel_err = 0.005
   [../]
   
@@ -53,5 +59,6 @@
     type = 'RavenFramework'
     input = 'PostProcess.xml'
     UnorderedCsv = 'stat/statisticalAnalysis_basicStatPP_dump.csv stat/statisticalAnalysis_basicStatPP_time_dump_0.csv'
+    python3_only = true
   [../]
 []

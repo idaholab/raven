@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/ARMA.Segmented</name>
@@ -5,7 +6,7 @@
     <created>2018-11-20</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-      Tests the mechanics of clusterering the "time" subspace of the ARMA ROM.
+      Tests the mechanics of clusterering the ``time'' subspace of the ARMA ROM.
     </description>
     <revisions>
       <revision author="wangc" date="2018-12-19">
@@ -15,18 +16,27 @@
           In this case, only the user requested variables as specified in the DataObjects are printed out.
       </revision>
       <revision author="talbpaul" date="2019-01-30">Added a pickling step to check serialization of segmented ARMA.</revision>
+      <revision author="JiaZhouPU" date="2019-05-02">
+          Deleted the longest Fourier period for this test, because the phase of this period would have results between
+          PI and negative PI( a result of arctan(infinity) ), and cannnot be detected from the xml check.
+      </revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Segmented</WorkingDir>
-    <Sequence>load,train,dump,sample,print,reload,stats</Sequence>
+    <Sequence>load,train,rommeta,dump,unpickle,sample,print,reload,stats</Sequence>
   </RunInfo>
 
   <Steps>
     <IOStep name="load">
       <Input class="Files" type="">input</Input>
       <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+    <IOStep name="rommeta">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">rommeta</Output>
+      <Output class="OutStreams" type="Print">rommeta</Output>
     </IOStep>
     <RomTrainer name="train">
       <Input class="DataObjects" type="HistorySet">input</Input>
@@ -41,6 +51,10 @@
     <IOStep name="dump">
       <Input class="Models" type="ROM">arma</Input>
       <Output class="Files" type="">pk</Output>
+    </IOStep>
+    <IOStep name="unpickle">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">unpk</Output>
     </IOStep>
     <IOStep name="print">
       <Input class="DataObjects" type="HistorySet">synthetic</Input>
@@ -90,26 +104,23 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <DataSet name="rommeta"/>
   </DataObjects>
 
   <Models>
+    <ROM name="unpk" subType="pickledROM"/>
     <ROM name="arma" subType="ARMA">
       <Target>Demand,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
+      <seed>901017</seed>
       <P>0</P>
       <Q>0</Q>
-      <Fourier>
-        1e200,
-        31556952,
-         2592000,
-          604800,
-           86400
-      </Fourier>
-      <FourierOrder>1,4,2,2,4</FourierOrder>
-      <Cluster>
-        <subspace pivotLength='604800' shift='zero'>Time</subspace>
-      </Cluster>
+      <reseedCopies>False</reseedCopies>
+      <Fourier> 31556952, 15778476, 10518984, 7889238, 2592000, 1296000, 604800, 302400, 86400, 43200, 28800, 21600</Fourier>
+      <Segment>
+        <subspace pivotLength="604800" shift="first">Time</subspace>
+      </Segment>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
       <expectedValue prefix="mean">Demand</expectedValue>
@@ -123,7 +134,7 @@
         <limit>1</limit>
         <initialSeed>20021986</initialSeed>
       </samplerInit>
-      <constant name='scaling'>1.0</constant>
+      <constant name="scaling">1.0</constant>
     </MonteCarlo>
   </Samplers>
 
@@ -133,10 +144,15 @@
       <source>synthetic</source>
       <what>input, output</what>
     </Print>
+    <Print name="rommeta">
+      <type>csv</type>
+      <source>rommeta</source>
+    </Print>
     <Print name="stats">
       <type>csv</type>
       <source>stats</source>
       <what>input,output</what>
     </Print>
   </OutStreams>
+
 </Simulation>

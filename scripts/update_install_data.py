@@ -83,6 +83,10 @@ if __name__ == '__main__':
         toChange['CONDA_DEFS'] = sys.argv[c+1]
       elif cla == '--RAVEN_LIBS_NAME':
         toChange['RAVEN_LIBS_NAME'] = sys.argv[c+1]
+      elif cla == '--python-command':
+        toChange['PYTHON_COMMAND'] = sys.argv[c+1]
+      elif cla == '--installation-manager':
+        toChange['INSTALLATION_MANAGER'] = sys.argv[c+1]
       else:
         # all keys should start with --, ignore the arguments
         if cla.startswith('--'):

@@ -28,7 +28,7 @@ import copy
 import numpy as np
 from collections import OrderedDict
 
-from utils import xmlUtils, mathUtils
+from utils import xmlUtils, utils
 import MessageHandler # to give VariableGroups a messageHandler and handle messages
 
 class RAVENparser():
@@ -297,7 +297,7 @@ class RAVENparser():
             getFirstElement.append(subElement)
             getFirstElement = subElement
           # in the event of vector entries, handle those here
-          if mathUtils.isSingleValued(val):
+          if utils.isSingleValued(val):
             val = str(val).strip()
           else:
             if len(val.shape) > 1:
@@ -312,7 +312,7 @@ class RAVENparser():
           nodeToChange = foundNodes[0]
           pathNode     = './/'
           # in the event of vector entries, handle those here
-          if mathUtils.isSingleValued(val):
+          if utils.isSingleValued(val):
             val = str(val).strip()
           else:
             if len(val.shape) > 1:

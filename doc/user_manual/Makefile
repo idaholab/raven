@@ -1,10 +1,10 @@
 SRCFILE = raven_user_manual
 # MANUAL_FILES = optimizer.tex rom.tex postprocessor.tex database_data.tex OutStreamSystem.tex sampler.tex existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex introduction.tex raven_user_manual.tex model.tex runInfo.tex libraries.tex DataMining.tex HowToRun.tex metrics.tex
-MANUAL_FILES = optimizer.tex rom.tex postprocessor.tex database_data.tex OutStreamSystem.tex sampler.tex variablegroups.tex \
+MANUAL_FILES = optimizer.tex rom.tex kerasROM.tex postprocessor.tex database_data.tex OutStreamSystem.tex sampler.tex variablegroups.tex \
 existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex \
 introduction.tex raven_user_manual.tex model.tex runInfo.tex libraries.tex DataMining.tex HowToRun.tex metrics.tex \
 Installation/clone.tex Installation/conda.tex Installation/linux.tex Installation/macosx.tex Installation/main.tex \
-Installation/overview.tex Installation/windows.tex
+Installation/overview.tex Installation/windows.tex advanced_users_templates.tex
 LATEX_FLAGS=-interaction=nonstopmode
 
 all: raven_user_manual.pdf

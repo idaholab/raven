@@ -25,9 +25,10 @@
 #       (x,y) - vector positions of projectile in time
 #       t - corresponding time steps
 #
-from __future__ import division, print_function, unicode_literals, absolute_import
 import numpy as np
 
+in_vars = ['x0', 'y0', 'v0', 'ang', 'timeOption']
+out_vars = ['x', 'y', 'r', 't', 'v', 'a']
 
 def prange(v,th,y0=0,g=9.8):
   """
@@ -40,105 +41,127 @@ def prange(v,th,y0=0,g=9.8):
   """
   return v*np.cos(th)/g * (v*np.sin(th) + np.sqrt(v*v*np.sin(th)**2+2.*g*y0))
 
-def timeToGround(v,th,y0=0,g=9.8):
+def time_to_ground(v,th,y0=0,g=9.8):
   """
     Calculates the analytic time of flight
     @ In, v, float, velocity of the projectile
     @ In, th, float, angle to the ground for initial projectile motion
     @ In, y0, float, optional, initial height of projectile
     @ In, g, float, optional, gravitational constant (m/s/s)
-    @ Out, timeToGround, float, time projectile is above the ground
+    @ Out, time_to_ground, float, time projectile is above the ground
   """
   return v*np.sin(th)/g + np.sqrt(v*v*np.sin(th)**2+2.*g*y0)/g
 
-def xPosition(x0,v,t):
+def x_pos(x0,v,t):
   """
     Calculates the x position in time
     @ In, x0, float, initial horizontal position
     @ In, v, float, velocity of the projectile
     @ In, t, float, time of flight
-    @ Out, xPosition, float, horizontal position
+    @ Out, x_pos, float, horizontal position
   """
   return x0 + v*t
 
-def yPosition(y0,v,t):
+def y_pos(y0,v,t):
   """
     Calculates the analytic vertical position in time
     @ In, y0, float, initial vertical position
     @ In, v, float, velocity of the projectile
     @ In, t, float, time of flight
-    @ Out, yPosition, float, vertical position
+    @ Out, y_pos, float, vertical position
   """
   return y0 + v*t - 4.9*t*t
 
-def run(self,Input):
-  """
-    Method require by RAVEN to run this as an external model.
-    @ In, self, object, object to store members on
-    @ In, Input, dict, dictionary containing inputs from RAVEN
-    @ Out, None
-  """
-  x0 = Input.get('x0',0.0)
-  y0 = Input.get('y0',0.0)
-  v0 = Input.get('v0',1.0)
-  ang = Input.get('angle',45.)*np.pi/180.
-  timeOption = Input.get('timeOption', 1)
-  self.x0 = x0
-  self.y0 = y0
-  self.v0 = v0
-  self.ang = ang
+def calc_vel(y0, y, v0, ang, g=9.8):
+  E_m = 0.5 * v0*v0 + g*y0
+  vel = np.sqrt(v0*v0 - 2*g*(y-y0))
+  x_vel = v0 * np.cos(ang)
+  y_vel = np.sqrt(vel*vel - x_vel*x_vel)
+  return x_vel, y_vel, vel
+
+def current_angle(v0, ang, vel):
+  return np.arccos(v0 * np.cos(ang) / vel)
+
+def run(raven, inputs):
+  vars = {'x0': get_from_raven('x0', raven, 0),
+          'y0': get_from_raven('y0', raven, 0),
+          'v0': get_from_raven('v0', raven, 1),
+          'angle': get_from_raven('angle', raven, 45),
+          'timeOption': get_from_raven('timeOption', raven, 0)}
+  res = main(vars)
+  raven.x = res['x']
+  raven.y = res['y']
+  raven.t = res['t']
+  raven.r = res['r'] * np.ones(len(raven.x))
+  raven.v = res['v']
+  raven.a = res['a']
+
+def get_from_raven(attr, raven, default=None):
+  return np.squeeze(getattr(raven, attr, default))
+
+def main(Input):
+  x0 = Input.get('x0', 0)
+  y0 = Input.get('y0', 0)
+  v0 = Input.get('v0', 1)
+  ang = Input.get('angle', 45)
+  g = Input.get('g', 9.8)
+  timeOption = Input.get('timeOption', 0)
+  ang = ang * np.pi / 180
   if timeOption == 0:
     ts = np.linspace(0,1,10)
   else:
-    ts = np.linspace(0,timeToGround(v0,ang,y0),20)
+    # due to numpy library update, the return shape of np.linspace
+    # is changed when an array-like input is provided, i.e. return from time_to_ground
+    ts = np.linspace(0,time_to_ground(v0,ang,y0),10)
 
   vx0 = np.cos(ang)*v0
   vy0 = np.sin(ang)*v0
   r = prange(v0,ang,y0)
 
-  self.x = np.zeros(len(ts))
-  self.y = np.zeros(len(ts))
-  self.r = np.zeros(len(ts))
+  x = np.zeros(len(ts))
+  y = np.zeros(len(ts))
+  v = np.zeros(len(ts))
+  a = np.zeros(len(ts))
   for i,t in enumerate(ts):
-    self.x[i] = xPosition(x0,vx0,t)
-    self.y[i] = yPosition(y0,vy0,t)
-    self.r[i] = r
-  self.t = ts
+    x[i] = x_pos(x0,vx0,t)
+    y[i] = y_pos(y0,vy0,t)
+    vx, vy, vm = calc_vel(y0, y[i], v0, ang, g)
+    v[i] = vm
+    a[i] = current_angle(v0, ang, vm)
+  t = ts
+  res = {'x': x, 'y': y, 'r': r, 't': ts, 'v': v, 'a': a,
+         'x0': x0, 'y0': y0, 'v0': v0, 'ang': ang, 'timeOption': timeOption}
+  return res
 
 #can be used as a code as well
 if __name__=="__main__":
   import sys
-  print('Welcome to RAVEN\'s Simple Projectile Motion Simulator!')
+  textOutput = False
+  if '-i' not in sys.argv:
+    raise IOError("INPUT MUST BE PROVIDED WITH THE -i nomenclature")
+  if '-o' not in sys.argv:
+    raise IOError("OUTPUT MUST BE PROVIDED WITH THE -o nomenclature")
+  if '-text' in sys.argv:
+    textOutput = True
   inFile = sys.argv[sys.argv.index('-i')+1]
-  print('Reading input from',inFile,'...')
   outFile = sys.argv[sys.argv.index('-o')+1]
   #construct the input
   Input = {}
   for line in open(inFile,'r'):
-    if line.startswith('#'):
-      continue
-    arg,val = (a.strip() for a in line.split('='))
+    arg, val = (a.strip() for a in line.split('='))
     Input[arg] = float(val)
-  #make a dummy class to hold values
-  class IO:
-    """
-      Dummy class to hold values like RAVEN does
-    """
-    pass
-  io = IO()
   #run the code
-  print('Simulating ...')
-  run(io,Input)
+  res = main(Input)
   #write output
-  print('Writing output to',outFile+'.txt','...')
-  outFile = open(outFile+'.txt','w')
-  header = ' '.join("{:8s}".format(i) for i in ('x0','y0','v0','ang','r','x','y','t'))+ '\n'
-  outFile.writelines(header.strip()+'\n')
-  inpstr = ' '.join("{:8.4f}".format(i) for i in (io.x0,io.y0,io.v0,io.ang))
-  for i in range(len(io.t)):
-    outFile.writelines( (inpstr+" " +  ' '.join("{:8.4f}".format(i) for i in (io.r[i],io.x[i],io.y[i],io.t[i]))).strip() +"\n")
-  outFile.writelines('-'*(8*8+4)+'\n')
-  outFile.writelines('SUCCESS'+'\n')
-  outFile.close()
-  print('Done!')
-  print('')
+  outName = outFile+ ('.txt' if textOutput else '.csv')
+  delm = ' ' if textOutput else ','
+  with open(outName, 'w') as outFile:
+    outFile.writelines(delm.join(in_vars) + delm + delm.join(out_vars) + '\n')
+    template = delm.join('{{}}'.format(v) for v in in_vars + out_vars) + '\n'
+    for i in range(len(res['t'])):
+      this = [(res[v][i] if len(np.shape(res[v])) else res[v]) for v in in_vars + out_vars]
+      outFile.writelines(template.format(*this))
+    if textOutput:
+      outFile.write('---------------------------------------------------------------------------\n')
+      outFile.write('SUCCESS\n')
+  print('Wrote results to "{}"'.format(outName))

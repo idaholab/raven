@@ -9,4 +9,32 @@
   executable = 'python'
   parameters = '-c "print(1)"'
  [../]
+
+ [./lots_of_useless_output]
+  type = 'GenericExecutable'
+  executable = 'python'
+  parameters = 'lots_of_output.py'
+ [../]
+
+ [./numeric_test]
+   type = 'GenericExecutable'
+   executable = 'python'
+   parameters = 'create_text_file.py'
+   [./rel_err]
+     type = NumericText
+     output = 'text_test.txt'
+     rel_err = 1.0e-4
+   [../]
+ [../]
+ [./numeric_test_fail]
+   type = 'GenericExecutable'
+   executable = 'python'
+   parameters = 'create_text_file2.py'
+   expected_fail = true
+   [./rel_err]
+     type = NumericText
+     output = 'text_test2.txt'
+     rel_err = 1.0e-4
+   [../]
+ [../]
 []

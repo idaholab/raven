@@ -23,11 +23,12 @@ warnings.simplefilter('default',DeprecationWarning)
 import os
 import copy
 import numpy as np
+import sys
+from sys import platform
 from utils import utils
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import DataObjects
 import csvUtilities
-
 from MessageHandler import MessageHandler
 
 class RAVEN(CodeInterfaceBase):
@@ -36,6 +37,7 @@ class RAVEN(CodeInterfaceBase):
   """
   def __init__(self):
     CodeInterfaceBase.__init__(self)
+    self.preCommand = "" # this is the precommand (bash.exe in case of win)
     self.printTag  = 'RAVEN INTERFACE'
     self.outputPrefix = 'out~'
     self.outStreamsNamesAndType = {} # Outstreams names and type {'outStreamName':[DataObjectName,DataObjectType]}
@@ -73,8 +75,9 @@ class RAVEN(CodeInterfaceBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
-    if os.path.basename(xmlNode.find("executable").text) != 'raven_framework':
-      raise IOError(self.printTag+' ERROR: executable must be "raven_framework" (in whatever location)!')
+    baseName = os.path.basename(xmlNode.find("executable").text)
+    if baseName not in ['raven_framework','Driver.py']:
+      raise IOError(self.printTag+' ERROR: executable must be "raven_framework" (in whatever location)! Got "'+baseName+'"!')
 
     linkedDataObjects = xmlNode.find("outputExportOutStreams")
     if linkedDataObjects is None:
@@ -155,10 +158,14 @@ class RAVEN(CodeInterfaceBase):
       @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
+
     index = self.__findInputFile(inputFiles)
     outputfile = self.outputPrefix+inputFiles[index].getBase()
     # we set the command type to serial since the SLAVE RAVEN handles the parallel on its own
-    executeCommand = [('serial',executable+ ' '+inputFiles[index].getFilename())]
+    pre = ""
+    if "python" not in executable.lower() or not executable.endswith(".py"):
+      pre = self.preCommand.strip() + " "
+    executeCommand = [('serial',pre + executable+ ' '+inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
@@ -194,6 +201,9 @@ class RAVEN(CodeInterfaceBase):
     self.variableGroups = varGroupNames
     # get inner working dir
     self.innerWorkingDir = parser.workingDir
+    # check operating system and define prefix if needed
+    if platform.startswith("win") and utils.which("bash.exe") is not None:
+      self.preCommand = 'bash.exe'
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
@@ -278,7 +288,7 @@ class RAVEN(CodeInterfaceBase):
       return True
     # check for completed run
     readLines = outputToRead.readlines()
-    if not any("Run complete" in x for x in readLines[-20:]):
+    if not any("Run complete" in x for x in readLines[-min(200,len(readLines)):]):
       del readLines
       return True
     # check for output CSV (and data)

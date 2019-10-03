@@ -17,19 +17,30 @@
 
 \newcommand{\romClusterOption}[0]
 {
-  \item \xmlNode{Cluster}, \xmlDesc{node, optional}, provides an alternative way to build the ROM. When
+  \item \xmlNode{Segment}, \xmlDesc{node, optional}, provides an alternative way to build the ROM. When
     this mode is enabled, the subspace of the ROM (e.g. ``time'') will be divided into segments as
     requested, then a distinct ROM will be trained on each of the segments. This is especially helpful if
     during the subspace the ROM representation of the signal changes significantly. For example, if the signal
     is different during summer and winter, then a signal can be divided and a distinct ROM trained on the
-    segments. By default, no segmentation occurs.  This node takes the following subnodes:
+    segments. By default, no segmentation occurs.
+
+    To futher enable clustering of the segments, the \xmlNode{Segment} has the following attributes:
+    \begin{itemize}
+      \item \xmlAttr{grouping}, \xmlDesc{string, optional field} enables the use of ROM subspace clustering in
+        addition to segmenting if set to \xmlString{cluster}. If set to \xmlString{segment}, then performs
+        segmentation without clustering. If clustering, then an additional node needs to be included in the
+        \xmlNode{Segment} node, as described below.
+        \default{segment}
+    \end{itemize}
+
+    This node takes the following subnodes:
     \begin{itemize}
       \item \xmlNode{subspace}, \xmlDesc{string, required field} designates the subspace to divide. This
         should be the pivot parameter (often ``time'') for the ROM. This node also requires an attribute
         to determine how the subspace is divided, as well as other attributes, described below:
         \begin{itemize}
           \item \xmlAttr{pivotLength}, \xmlDesc{float, optional field}, provides the value in the subspace
-            that each cluster should attempt to represent, independently of how the data is stored. For
+            that each segment should attempt to represent, independently of how the data is stored. For
             example, if the subspace has hourly resolution, is measured in seconds, and the desired
             segmentation is daily, the \xmlAttr{pivotLength} would be 86400.
             Either this option or \xmlAttr{divisions} must be provided.
@@ -39,16 +50,23 @@
             points as equally as possible.
             Either this option or \xmlAttr{pivotLength} must be provided.
           \item \xmlAttr{shift}, \xmlDesc{string, optional field}, governs the way in which the subspace is
-            treated in each cluster. By default, the subspace retains its actual values for each cluster; for
-            example, if each cluster is 4 hours long, the first cluster starts at time 0, the second at 4
+            treated in each segment. By default, the subspace retains its actual values for each segment; for
+            example, if each segment is 4 hours long, the first segment starts at time 0, the second at 4
             hours, the third at 8 hours, and so forth. Options to change this behavior are \xmlString{zero}
-            and \xmlString{first}. In the case of \xmlString{zero}, each cluster restarts the pivot with the
-            subspace value as 0, shifting all other values similarly. In the example above, the first cluster
+            and \xmlString{first}. In the case of \xmlString{zero}, each segment restarts the pivot with the
+            subspace value as 0, shifting all other values similarly. In the example above, the first segment
             would start at 0, the second at 0, and the third at 0, with each ending at 4 hours. Note that the
-            pivot values are restored when the ROM is evaluated. Using \xmlString{first}, each cluster
-            subspace restarts at the value of the first cluster. This is useful in the event subspace 0 is not
+            pivot values are restored when the ROM is evaluated. Using \xmlString{first}, each segment
+            subspace restarts at the value of the first segment. This is useful in the event subspace 0 is not
             a desirable value.
         \end{itemize}
+      \item \xmlNode{Classifier}, \xmlDesc{string, optional field} associates a \xmlNode{PostProcessor}
+        defined in the \xmlNode{Models} block to this segmentation. If clustering is enabled (see
+        \xmlAttr{grouping} above), then this associated Classifier will be used to cluster the segmented ROM
+        subspaces. The attributes \xmlAttr{class}=\xmlString{Models} and
+        \xmlAttr{type}=\xmlString{PostProcessor} must be set, and the text of this node is the \xmlAttr{name}
+        of the requested Classifier. Note this Classifier must be a valid Classifier; not all PostProcessors
+        are suitable. For example, see the DataMining PostProcessor subtype Clustering.
     \end{itemize}
 }
 
@@ -82,6 +100,7 @@ one of the following:
   \item \xmlString{ARMA}, for time-dependent stochastic regression (time series generator)
   \item \xmlString{PolyExponential}, for time-dependent regression
   \item \xmlString{DMD}, for time-dependent regression
+  \item \xmlString{KerasMLPClassifier}, for deep neuron network
 \end{itemize}
 
 \specBlock{a}{ROM}
@@ -1350,8 +1369,8 @@ Classifier}{linear\_model|PassiveAggressiveClassifier}
   \default{1.0}
   %
   \item \fitInterceptDescription{True}
-  \item \nIterDescriptionB{5}
   \item \shuffleDescription{True}
+  \item \nIterNoChangeDescriptionA{5}
   \item \randomStateDescription{None}
   \item \verDescriptionB{0}
   \item \xmlNode{loss}, \xmlDesc{string, optional field}, the loss function to
@@ -1431,7 +1450,7 @@ training set one at a time.
   %
   \default{0.0001}
   \item \fitInterceptDescription{True}
-  \item \nIterDescriptionB{5}
+  \item \nIterNoChangeDescriptionA{5}
   \item \shuffleDescription{True}
   \item \randomStateDescription{0}
   \item \verDescriptionB{0}
@@ -1479,6 +1498,7 @@ is a 2d-array of shape [n\_samples, n\_targets]).
   \default{1.0}
   %
   \item \fitInterceptDescription{True}
+  \item \nIterNoChangeDescriptionA{5}
   \item \maxIterDescription{determined by scipy.sparse.linalg.}
   \item \normalizeDescription{False}
   \item \solverDescription
@@ -1697,7 +1717,7 @@ training}{linear\_model|SGDClassifier}
   \default{0.15}
   %
   \item \fitInterceptDescription{True}
-  \item \nIterDescriptionB{5}
+  \item \nIterNoChangeDescriptionA{5}
   \item \shuffleDescription{True}
   \item \randomStateSVMDescription{None}
   \item \verDescriptionB{0}
@@ -1812,7 +1832,7 @@ floating point values for the features.
   \default{0.15}
   %
   \item \fitInterceptDescription{True}
-  \item \nIterDescriptionB{5}
+  \item \nIterNoChangeDescriptionA{5}
   \item \shuffleDescription{True}
   \item \randomStateDescription{None}
   \item \verDescriptionB{0}
@@ -2735,99 +2755,40 @@ The disadvantages of Gaussian Processes for Machine Learning include:
 \skltype{Gaussian Process Regressor}{GaussianProcess|GaussianProcess}
 
 \begin{itemize}
-  \item \xmlNode{regr}, \xmlDesc{string, optional field}, is a regression
-  function returning an array of outputs of the linear regression functional
-  basis.
-  %
-  The number of observations n\_samples should be greater than the size p of
-  this basis.
-  %
-  Available built-in regression models are `constant,' `linear,' and
-  `quadratic.'
-  %
-  \default{constant}
-  \item \xmlNode{corr}, \xmlDesc{string, optional field}, is a stationary
-  autocorrelation function returning the autocorrelation between two points $x$
-  and $x'$.
-  %
-  Default assumes a squared-exponential autocorrelation model.
-  %
-  Built-in correlation models are `absolute\_exponential,'
-  `squared\_exponential,' `generalized\_exponential,' `cubic,' and `linear.'
-  %
-  \default{squared\_exponential}
-  \item \xmlNode{beta0}, \xmlDesc{float, array-like, optional field}, specifies
-  the regression weight vector to perform Ordinary Kriging (OK).
-  %
-  \default{None}
-  \item \xmlNode{storage\_mode}, \xmlDesc{string, optional field}, specifies
-  whether the Cholesky decomposition of the correlation matrix should be stored
-  in the class (storage\_mode = `full') or not (storage\_mode = `light').
-  %
-  \default{full}
-  \item \verDescriptionA{False}
-  \item \xmlNode{theta0}, \xmlDesc{float, array-like, optional field}, is an
-  array with shape (n\_features, ) or (1, ).
-  %
-  This represents the parameters in the autocorrelation model.
-  %
-  If thetaL and thetaU are also specified, theta0 is considered as the starting
-  point for the maximum likelihood estimation of the best set of parameters.
-  %
-  \default{[1e-1]}
-  \item \xmlNode{thetaL}, \xmlDesc{float, array-like, optional field}, is an
-  array with shape matching that defined by \xmlNode{theta0}.
-  %
-  Lower bound on the autocorrelation parameters for maximum likelihood
-  estimation.
-  %
-  \default{None}
-  \item \xmlNode{thetaU}, \xmlDesc{float, array-like, optional field}, is an
-  array with shape matching that defined by \xmlNode{theta0}.
-  %
-  Upper bound on the autocorrelation parameters for maximum likelihood
-  estimation.
-  %
-  \default{None}
-  \item \xmlNode{normalize}, \xmlDesc{boolean, optional field}, if True, the
-  input $X$ and observations $y$ are centered and reduced w.r.t. means and
+  \item \xmlNode{normalize\_y}, \xmlDesc{boolean, optional field}, if True, the
+  observations $y$ are centered and reduced w.r.t. means and
   standard deviations estimated from the n\_samples observations provided.
   %
   \default{True}
-  \item \xmlNode{nugget}, \xmlDesc{float, optional field},specifies a nugget
-  effect to allow smooth predictions from noisy data.
-  %
-  The nugget is added to the diagonal of the assumed training covariance.
-  %
-  In this way it acts as a Tikhonov regularization in the problem.
-  %
-  In the special case of the squared exponential correlation function, the
-  nugget mathematically represents the variance of the input values.
-  %
-  \default{10 * MACHINE\_EPSILON}
   \item \xmlNode{optimizer}, \xmlDesc{string, optional field}, specifies the
   optimization algorithm to be used.
   %
   Available optimizers are: 'fmin\_cobyla', 'Welch'.
   %
   \default{fmin\_cobyla}
-  \item \xmlNode{random\_start}, \xmlDesc{integer, optional field}, sets the
-  number of times the Maximum Likelihood Estimation should be performed from
-  a random starting point.
-  %
-  The first MLE always uses the specified starting point (theta0), the next
-  starting points are picked at random according to an exponential distribution
-  (log-uniform on [thetaL, thetaU]).
-  %
-  \default{1}
   \item \xmlNode{random\_state}, \xmlDesc{integer, optional field}, is the seed
   of the internal random number generator.
   %
   \default{None}
+  \item \xmlNode{n\_restarts\_optimizer }, \xmlDesc{integer, optional field}, The number of restarts of the optimizer for finding 
+the kernel’s parameters which maximize the log-marginal likelihood. The first run of the optimizer is performed from th
+e kernel’s initial parameters, the remaining ones (if any) from thetas sampled log-uniform randomly from the space of 
+allowed theta-values. If greater than 0, all bounds must be finite. Note that n\_restarts\_optimizer $== 0$ implies that one run is performed.
+  %
+  \default{0}
+  %
+  \item \xmlNode{alpha}, \xmlDesc{float, optional field}, Value added to the diagonal of the kernel matrix during fitting.
+ Larger values correspond to increased noise level in the observations. This can also prevent a potential numerical issue
+ during fitting, by ensuring that the calculated values form a positive definite matrix. If an array is passed, it must have the
+ same number of entries as the data used for fitting and is used as datapoint-dependent noise level. Note that this is
+ equivalent to adding a WhiteKernel with c=alpha. Allowing to specify the noise level directly as a parameter is mainly for
+ convenience and for consistency with Ridge.
+  %
+  \default{1e-10}
   %
 \end{itemize}
 
-\zNormalizationNotPerformed{GaussianProcess}
+\zNormalizationNotPerformed{GaussianProcessRegressor}
 
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
@@ -2968,9 +2929,14 @@ train. The Fourier trend will be stored in the trained ARMA model for data gener
 describes the detrending
 process.
 \begin{equation*}
-x_t = y_t - \sum_m\left\{\sum_{k=1}^{K_m}a_k\sin(2\pi kf_mt)+\sum_{k=1}^{K_m}b_k\cos(2\pi kf_mt)\right\},
+\begin{aligned}
+x_t &= y_t - \sum_m\left\{a_m\sin(2\pi f_mt)+b_m\cos(2\pi f_mt)\right\}  \\
+&=y_t - \sum_m\ c_m\sin(2\pi f_mt+\phi_m)
+\end{aligned}
 \end{equation*}
-where $K_m$ and $f_m$ are user-defined parameters.
+
+where $1/f_m$ is defined by the user parameter \xmlNode{Fourier}. \nb $a_m$ and $b_m$ will be calculated then transformed to 
+$c_m$ and $\phi$. The $c_m$ will be stored as \xmlString{amplitude}, and $\phi$ will be stored as \xmlString{phase}.
 
 By default, each target in the training will be considered independent and have an unique ARMA for each
 target.  Correlated targets can be specified through the \xmlNode{correlate} node, at which point
@@ -2998,10 +2964,20 @@ below).
     should be considered as influencing each other, and trained together instead of independently.  This node
     can only be listed once, so all variables that are desired for correlation should be included.  \nb The
     correlated VARMA takes notably longer to train than the independent ARMAs for the same number of targets.
-  \item \xmlNode{seed}, \xmlDesc{integer, optional field}, provides seed for ONLY the VARMA sampling.  Has no
-    effect on ARMA single-target sampling or other RAVEN entities.  Must be provided before training; it cannot
-    be changed once trained.
-  \default{True}
+  \item \xmlNode{seed}, \xmlDesc{integer, optional field}, provides seed for VARMA and ARMA sampling. 
+   Must be provided before training. If no seed is assigned, 
+   then a random number will be used.
+   
+   \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if \xmlString{True} then whenever the ARMA is loaded from file, a
+    random reseeding will be performed to ensure different histories. \nb If reproducible histories are desired for an ARMA loaded from file,
+    \xmlNode{reseedCopies} should be set to \xmlString{False}, and in the \xmlNode{RunInfo} block \xmlNode{batchSize} needs to be 1 
+    and \xmlNode{internalParallel} should be
+     \xmlString{False} for RAVEN runs sampling the trained ARMA model.
+
+If \xmlNode{InternalParallel} is \xmlString{True} and the ARMA has \xmlNode{reseedCopies} as \xmlString{False}, an identical ARMA history will always be provided regardless of how many samples are taken.
+
+If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is more than 1, it is not possible to guarantee the order of RNG usage by the separate processes, so it is not possible to guarantee reproducible histories are generated.        \default{True}
+  
   \item \xmlNode{P}, \xmlDesc{integer, optional field}, defines the value of $p$.
   \default{3}
   \item \xmlNode{Q}, \xmlDesc{integer, optional field}, defines the value of $q$.
@@ -3009,9 +2985,6 @@ below).
   \item \xmlNode{Fourier}, \xmlDesc{comma-separated integers, optional field}, must be positive integers. This defines the
     based period that will be used for Fourier detrending, i.e., this field defines $1/f_m$ in the above equation.
     When this filed is not specified, the ARMA considers no Fourier detrend.
-  \item \xmlNode{FourierOrder}, \xmlDesc{comma-separated integers, optional field}, must be positive integers. The number of integers specified
-    in this field should be exactly same as the number of base periods specified in the node \xmlNode{Fourier}.
-    This field defines $K_m$ in the above equation.
   \item \xmlNode{outTruncation}, \xmlDesc{comma-separated string, optional}, defines whether and how output
     time series are limited in domain. This node has one attribute, \xmlAttr{domain}, whose value can be
     \xmlString{positive} or \xmlString{negative}. The value of this node contains the list of targets to whom
@@ -3019,6 +2992,43 @@ below).
     domain is strictly positive, the absolute value of the original negative value will be used instead, and
     similarly for the negative domain.
   \default{None}
+  
+  
+   \item \xmlNode{Peaks}, \xmlDesc{node, optional}, designed to estimate the peaks in signals that repeat with some frequency, 
+   often in periodic data. The \xmlNode{Peaks} node has the following attributes:  
+  	\begin{itemize}
+    		\item \xmlAttr{target}, \xmlDesc{required string attribute}, defines the name of one target (besides the 
+		pivot parameter) expected to have periodic peaks.
+    		\item \xmlAttr{threshold}, \xmlDesc{required float attribute}, user-defined minimum required 
+		height of peaks (absolute value).
+    		\item \xmlAttr{period}, \xmlDesc{required float attribute}, user-defined expected period for target variable.		
+	\end{itemize}
+
+    	For example, 
+	\begin{lstlisting}[style=XML,morekeywords={target,threshold,period}]
+	<Peaks target='Speed' threshold='0' period='86400'>
+	\end{lstlisting}
+	This means the \xmlString{Speed} signal is a daily signal, and the minimal height required to define a peak is 0.
+    Additionally, the \xmlNode{Peaks} requires the sub-node:
+    	\begin{itemize}
+      		 \item \xmlNode{window}, \xmlDesc{comma-separated floats, required field}, 
+		 lists the window of time within each period in which a peak should be discovered. 
+		 The text of this node is the upper and lower boundary of this 
+		 window \emph{relative to} the start of the period, separated by a comma.
+		 User can define the lower bound to be a negative
+		 number if the window passes through one side of one period. For example, if the period is 24
+		 hours, the window can be -2,2 which is equivalent to 22, 2.
+		 This node has one attribute:
+		 \begin{itemize}
+		  \item \xmlAttr{width}, \xmlDesc{required float attribute} which is the 
+		 user defined  width of peaks in that window. The width is in the unit of the signal as well.
+		 \end{itemize}
+		 The number of \xmlNode{window} is unlimited.
+       	\end{itemize}
+        
+
+  
+  
   \item \xmlNode{preserveInputCDF}, \xmlDesc{boolean, optional field}, enables a final transform on sampled
     data coercing it to have the same distribution as the original data. If \xmlString{True}, then every
     sample generated by this ARMA after training will have a distribution of values that conforms within
@@ -3034,9 +3044,6 @@ below).
     two distinct series: one containing times in which the original target is zero, and one in the remaining
     times. The results from separated ARMAs are recombined after sampling. This can be a methodology for
     treating histories with long zero-value segments punctuated periodically by peaks.
-  \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if True then whenever the ARMA is copied, a
-    random reseeding will be performed to ensure different histories.
-  \default{True}
   \item \xmlNode{SpecificFourier}, \xmlDesc{node, optional}, provides a means to specify different Fourier
     decomposition for different target variables.  Values given in the subnodes of this node will supercede
     the defaults set by the  \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.  This node accepts the
@@ -3049,14 +3056,12 @@ below).
     \begin{itemize}
       \item \xmlNode{periods}, \xmlDesc{comma-separated integers, required field}, lists the (fundamental)
         periodic wavelength of the Fourier decomposition for these variables, as in the \xmlNode{Fourier} general node.
-      \item \xmlNode{orders}, \xmlDesc{comma-separated integers, required field}, lists the highest integer
-        subdivision desired for each period requested in \xmlNode{periods}, as \xmlNode{FourierOrder} above.
     \end{itemize}
     \romClusterOption
 \end{itemize}
 
 \textbf{Example:}
-\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+\begin{lstlisting}[style=XML,morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
 <Simulation>
   ...
   <Models>
@@ -3065,12 +3070,18 @@ below).
       <pivotParameter>Time</pivotParameter>
       <Features>scaling</Features>
       <Target>Speed1,Speed2</Target>
-      <Pmax>5</Pmax>
-      <Pmin>1</Pmin>
-      <Qmax>4</Qmax>
-      <Qmin>1</Qmin>
+      <P>5</P>
+      <Q>4</Q>
+      <Segment>
+        <subspace pivotLength="1296000" shift="first">Time</subspace>
+      </Segment>
+      <preserveInputCDF>True</preserveInputCDF>
       <Fourier>604800,86400</Fourier>
       <FourierOrder>2, 4</FourierOrder>
+      <Peaks target='Speed1' threshold='0.1' period='86400'>
+        <window width='14400' >-7200,10800</window>
+        <window width='18000' >64800,75600</window>
+      </Peaks>
      </ROM>
     ...
   </Models>
@@ -3257,6 +3268,7 @@ below).
   ...
 </Simulation>
 \end{lstlisting}
+
 Once the ROM  is trained (\textbf{Step} \xmlNode{RomTrainer}), its parameters/coefficients can be exported into an XML file
 via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
 in \xmlNode{OutStream} of type \xmlAttr{Print}):
@@ -3300,3 +3312,8 @@ in \xmlNode{OutStream} of type \xmlAttr{Print}):
   ...
 </Simulation>
 \end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%% ROM Model - TensorFlow-Keras Interface  %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{kerasROM.tex}

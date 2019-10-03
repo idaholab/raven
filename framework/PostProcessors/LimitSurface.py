@@ -137,7 +137,7 @@ class LimitSurface(PostProcessor):
     self.ROM.reset()
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
-      if utils.isString(inp)  or isinstance(inp, bytes):
+      if utils.isAString(inp)  or isinstance(inp, bytes):
         self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs. Got string type!')
       if inp.type == 'PointSet':
         self.indexes = index
@@ -420,7 +420,6 @@ class LimitSurface(PostProcessor):
       # check which one of the preselected points is really on the limit surface
       nNegPoints, nPosPoints                       =  0, 0
       listSurfPointNegative, listSurfPointPositive = [], []
-
       if self.lsSide in ["negative", "both"]:
         # it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
         listSurfPointNegative = self.__localLimitStateSearch__(toBeTested, -1, nodeName)

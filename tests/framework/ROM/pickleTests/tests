@@ -21,6 +21,7 @@
     type = 'RavenErrors'
     input = 'not_a_rom_error.xml'
     expect_err = 'RuntimeError: Pickled object in'
+    python3_only = true
   [../]
   [./test_external_pickled]
     type = 'RavenPython'

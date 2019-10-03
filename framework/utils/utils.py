@@ -20,10 +20,11 @@ from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-
-#Do not import numpy or scipy or other libraries that are not
-# built into python.  Otherwise the import can fail, and since utils
-# are used by --library-report, this can cause diagnostic messages to fail.
+# *************************** NOTE FOR DEVELOPERS ***************************
+# Do not import numpy or scipy or other libraries that are not              *
+# built into python.  Otherwise the import can fail, and since utils        *
+# are used by --library-report, this can cause diagnostic messages to fail. *
+# ***************************************************************************
 import bisect
 import sys, os, errno
 import inspect
@@ -390,13 +391,78 @@ def toBytes(s):
   else:
     return s
 
-def isString(s):
+def isSingleValued(val,nanOk=True):
   """
-    Method to figure out if a variable is a string.
-    @ In, s, object, variable for which we need to assess if it is a string
-    @ Out, isString, bool, true if variable is a str or unicode.
+    Determine if a single-entry value (by traditional standards).
+    Single entries include strings, numbers, NaN, inf, None
+    NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isSingleValued, bool, result
   """
-  return isinstance(s, six.string_types)
+  # TODO most efficient order for checking?
+  return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
+
+def isAString(val):
+  """
+    Determine if a string value (by traditional standards).
+    @ In, val, object, check
+    @ Out, isAString, bool, result
+  """
+  return isinstance(val, six.string_types)
+
+def isAFloatOrInt(val,nanOk=True):
+  """
+    Determine if a float or integer value
+    Should be faster than checking (isAFloat || isAnInteger) due to checking against numpy.number
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAFloatOrInt, bool, result
+  """
+  return isAnInteger(val,nanOk) or  isAFloat(val,nanOk)
+
+def isAFloat(val,nanOk=True):
+  """
+    Determine if a float value (by traditional standards).
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAFloat, bool, result
+  """
+  if isinstance(val,(float,numpy.number)):
+    # exclude ints, which are numpy.number
+    if isAnInteger(val):
+      return False
+    # numpy.float32 (or 16) is niether a float nor a numpy.float (it is a numpy.number)
+    if nanOk:
+      return True
+    elif val not in [numpy.nan,numpy.inf]:
+      return True
+  return False
+
+def isAnInteger(val,nanOk=False):
+  """
+    Determine if an integer value (by traditional standards).
+    @ In, val, object, check
+    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ Out, isAnInteger, bool, result
+  """
+  if isinstance(val,six.integer_types) or isinstance(val,numpy.integer):
+    # exclude booleans
+    if isABoolean(val):
+      return False
+    return True
+  # also include inf and nan, if requested
+  if nanOk and isinstance(val,float) and val in [numpy.nan,numpy.inf]:
+    return True
+  return False
+
+def isABoolean(val):
+  """
+    Determine if a boolean value (by traditional standards).
+    @ In, val, object, check
+    @ Out, isABoolean, bool, result
+  """
+  return isinstance(val,(bool,numpy.bool_))
 
 def toBytesIterative(s):
   """
@@ -408,7 +474,7 @@ def toBytesIterative(s):
   if type(s) == list:
     return [toBytes(x) for x in s]
   elif type(s) == dict:
-    if len(s.keys()) == 0:
+    if len(s) == 0:
       return None
     tempdict = {}
     for key,value in s.items():
@@ -671,84 +737,6 @@ def metaclass_insert(metaclass,*baseClasses):
   namespace={}
   return metaclass("NewMiddleClass",baseClasses,namespace)
 
-def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
-  """
-    Method to interpolate 2D/3D points
-    @ In, x, ndarray or cached_ndarray, the array of x coordinates
-    @ In, y, ndarray or cached_ndarray, the array of y coordinates
-    @ In, z, ndarray or cached_ndarray, optional, the array of z coordinates
-    @ In, returnCoordinate, boolean, optional, true if the new coordinates need to be returned
-    @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
-  """
-  options = copy.copy(option)
-  if x.size <= 2:
-    xi = x
-  else:
-    xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
-  if z != None:
-    if y.size <= 2:
-      yi = y
-    else:
-      yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
-    xig, yig = np.meshgrid(xi, yi)
-    try:
-      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
-        if options['interpolationType'] != 'nearest' and z.size > 3:
-          zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
-        else:
-          zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
-      else:
-        rbf = Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
-        zi  = rbf(xig, yig)
-    except Exception as ae:
-      if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
-        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
-        zi = interpolateFunction(x,y,z,options)
-      else:
-        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
-    if returnCoordinate:
-      return xig,yig,zi
-    else:
-      return zi
-  else:
-    try:
-      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
-        if options['interpolationType'] != 'nearest' and y.size > 3:
-          yi = griddata((x), y, (xi[:]), method=options['interpolationType'])
-        else:
-          yi = griddata((x), y, (xi[:]), method='nearest')
-      else:
-        xig, yig = np.meshgrid(xi, yi)
-        rbf = Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
-        yi  = rbf(xi)
-    except Exception as ae:
-      if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
-        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
-        yi = interpolateFunction(x,y,options)
-      else:
-        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
-    if returnCoordinate:
-      return xi,yi
-    else:
-      return yi
-
-def line3DInterpolation(x,y,z,nPoints):
-  """
-    Method to interpolate 3D points on a line
-    @ In, x, ndarray or cached_ndarray, the array of x coordinates
-    @ In, y, ndarray or cached_ndarray, the array of y coordinates
-    @ In, z, ndarray or cached_ndarray, the array of z coordinates
-    @ In, nPoints, int, number of desired inteporlation points
-    @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
-  """
-  options = copy.copy(option)
-  data = np.vstack((x,y,z))
-  tck , u= interpolate.splprep(data, s=1e-6, k=3)
-  new = interpolate.splev(np.linspace(0,1,nPoints), tck)
-  return new[0], new[1], new[2]
-
 class abstractstatic(staticmethod):
   """
     This can be make an abstract static method
@@ -835,6 +823,31 @@ def findCrowModule(name):
       raise ie
     module = importlib.import_module("{}{}".format(name,ext))
   return module
+
+def getPythonCommand():
+  """
+    Method to get the prefered python command.
+    @ In, None
+    @ Out, pythonCommand, str, the name of the command to use.
+  """
+  if os.name == "nt":
+    pythonCommand = "python"
+  else:
+    pythonCommand = sys.executable
+  ## Alternative method.  However, if called by run_tests or raven_framework
+  ## sys.executable is already taken into account PYTHON_COMMAND and this
+  ## logic
+  #if sys.version_info.major > 2:
+  #  if os.name == "nt":
+  #    #Command is python on windows in conda and Python.org install
+  #    pythonCommand = "python"
+  #  else:
+  #    pythonCommand = "python3"
+  #else:
+  #  pythonCommand = "python"
+  #pythonCommand = os.environ.get("PYTHON_COMMAND", pythonCommand)
+  return pythonCommand
+
 
 def printCsv(csv,*args):
   """
@@ -1096,3 +1109,67 @@ def getAllSubclasses(cls):
     @ Out, getAllSubclasses, list of class objects for each subclass of cls.
   """
   return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in getAllSubclasses(s)]
+
+def displayAvailable():
+  """
+    The return variable for backend default setting of whether a display is
+    available or not. For instance, if we are running on the HPC without an X11
+    instance, then we don't have the ability to display the plot, only to save it
+    to a file
+    @ In, None
+    @ Out, dispaly, bool, return True if platform is Windows or environment varialbe
+      'DISPLAY' is available, otherwise return False
+  """
+  display = False
+  if platform.system() == 'Windows':
+    display = True
+  else:
+    if os.getenv('DISPLAY'):
+      display = True
+    else:
+      display = False
+  return display
+
+def which(cmd):
+  """
+    Emulate the which method in shutil.
+    Return the path to an executable which would be run if the given cmd was called.
+    If no cmd would be called, return None.
+    @ In, cmd, str, the exe to check
+    @ Out, which, str, the full path or None if not found
+  """
+  def _access_check(fn):
+    """
+      Just check if the path is executable
+      @ In, fn, string, the file to check
+      @ Out, _access_check, bool, if accessable or not?
+    """
+    return (os.path.exists(fn) and os.access(fn, os.X_OK) and not os.path.isdir(fn))
+  if os.path.dirname(cmd):
+    if _access_check(cmd):
+      return cmd
+    return None
+  path = os.environ.get("PATH", os.defpath)
+  if not path:
+    return None
+  path = path.split(os.pathsep)
+  if sys.platform == "win32":
+    if not os.curdir in path:
+      path.insert(0, os.curdir)
+    pathext = os.environ.get("PATHEXT", "").split(os.pathsep)
+    if any(cmd.lower().endswith(ext.lower()) for ext in pathext):
+      files = [cmd]
+    else:
+      files = [cmd + ext for ext in pathext]
+  else:
+    files = [cmd]
+  seen = set()
+  for dir in path:
+    normdir = os.path.normcase(dir)
+    if not normdir in seen:
+      seen.add(normdir)
+      for thefile in files:
+        name = os.path.join(dir, thefile)
+        if _access_check(name):
+          return name
+  return None

@@ -1,0 +1,86 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.Segmented</name>
+    <author>talbpaul</author>
+    <created>2018-11-20</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+      Tests the mechanics of clusterering the "time" subspace of the ARMA ROM.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Clustered</WorkingDir>
+    <Sequence>load, train, stats</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="input">head.csv</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="input">
+      <Input>scaling</Input>
+      <Output>Signal, Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+  <Models>
+    <ROM name="arma" subType="ARMA">
+      <Target>Signal, Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <P>0</P>
+      <Q>0</Q>
+      <Fourier>100, 5, 3</Fourier>
+      <preserveInputCDF>True</preserveInputCDF>
+      <Segment grouping='cluster'>
+        <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
+        <subspace divisions='10' shift='first'>Time</subspace>
+      </Segment>
+    </ROM>
+    <PostProcessor name="classifier" subType="DataMining">
+      <KDD labelFeature="labels" lib="SciKitLearn">
+        <Features>Signal</Features>
+        <SKLtype>cluster|AffinityPropogation</SKLtype>
+      </KDD>
+    </PostProcessor>
+  </Models>
+
+  <Metrics>
+    <SKL name="metric">
+      <metricType>regression|mean_squared_error</metricType>
+    </SKL>
+  </Metrics>
+
+  <OutStreams>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+  </OutStreams>
+</Simulation>

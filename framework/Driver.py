@@ -167,6 +167,7 @@ if __name__ == '__main__':
 
   if interfaceCheck:
     os.environ['RAVENinterfaceCheck'] = 'True'
+    print('Interface CHECK activated!\n')
   else:
     os.environ['RAVENinterfaceCheck'] = 'False'
 

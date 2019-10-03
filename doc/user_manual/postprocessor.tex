@@ -111,7 +111,9 @@ data objects, depending on the type of statistics the user wants to compute:
   \end{itemize}
   The matrix quantities available for request are:
   \begin{itemize}
-    \item \textbf{sensitivity}: matrix of sensitivity coefficients, computed via linear regression method.
+    \item \textbf{sensitivity}: matrix of sensitivity coefficients, computed via linear regression method. (\nb The condition number is computed every time this quantity is requsted. If it results
+    to be greater then $30$, a multicollinearity problem exists and the sensitivity coefficients 
+    might be incorrect and a Warning is spooned by the code)
     \item \textbf{covariance}: covariance matrix
     \item \textbf{pearson}: matrix of correlation coefficients
     \item \textbf{NormalizedSensitivity}: matrix of normalized sensitivity
@@ -529,7 +531,14 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
   \item \xmlNode{targets}, \xmlDesc{comma separated string, required field}, lists output responses.
   %
   \item \xmlNode{mvnDistribution}, \xmlDesc{string, required field}, specifies the
-  multivariate normal distribution name. The \xmlNode{MultivariateNormal} node must be present.
+  multivariate normal distribution name. The \xmlNode{MultivariateNormal} node must be present. It requires two attributes:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
+        ``class'' the listed object is from, the only acceptable class for
+        this post-processor is \xmlString{Distributions};
+      \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the type of distributions,
+        the only acceptable type is \xmlString{MultivariateNormal} 
+    \end{itemize}
 \end{itemize}
   %
   %
@@ -778,7 +787,14 @@ both boundary sides (-1.0, +1.0).
                optional field}, name of the distribution that is associated to this variable.
               Its name needs to be contained in the \xmlNode{Distributions} block explained
               in Section \ref{sec:distributions}. If this node is not present, the  \xmlNode{lowerBound}
-              and  \xmlNode{upperBound} XML nodes must be inputted.
+              and  \xmlNode{upperBound} XML nodes must be inputted. It requires the following two attributes:
+            \begin{itemize}
+              \item \xmlAttr{class}, \xmlDesc{required string attribute}, is the main
+              ``class'' the listed object is from, the only acceptable class for
+              this post-processor is \xmlString{Distributions};
+              \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the type of distributions,
+                i.e. Normal, Uniform.
+            \end{itemize}
    \item   \xmlNode{lowerBound}, \xmlDesc{float,
                optional field}, lower limit of integration domain for this dimension (variable).
                If this node is not present, the  \xmlNode{distribution} XML node must be inputted.

@@ -18,6 +18,20 @@ declare -a ARGS
 # by default run in "opt" mode
 MODE='opt'
 
+# source read ravenrc script
+RAVEN_RC_SCRIPT=$RAVEN_DIR/scripts/read_ravenrc.sh
+RAVEN_RC_SCRIPT="${RAVEN_RC_SCRIPT//\\//}"
+source $RAVEN_RC_SCRIPT
+INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
+if [[ "$INSTALLATION_MANAGER" == "PIP" ]];
+  then
+  SKIP_CONDA=0
+else
+  # conda
+  SKIP_CONDA=1
+fi
+
+
 # loop through arguments and look for those that are handled before Python is called
 while test $# -gt 0
 do
@@ -42,7 +56,10 @@ done
 
 if [[ ! $SKIP_CONDA == 0 ]]; then
   source $RAVEN_DIR/scripts/establish_conda_env.sh --quiet
+else
+  source $RAVEN_DIR/scripts/establish_conda_env.sh --quiet --installation-manager PIP
 fi
+PYTHON_COMMAND=${PYTHON_COMMAND:=python}
 
 # if there's no file to run after parsing arguments, run "help" after warning of the problem.
 if [ ${#ARGS[@]} -eq 0 ]; then
@@ -55,19 +72,11 @@ fi
 case $MODE in
   'opt' )
     echo 'Running RAVEN in "opt" mode.'
-    if test -n "$CHECK_PYTHON3"; then
-        python3 -O $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
-    else
-        python -O $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
-    fi
+    $PYTHON_COMMAND -O $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
     ;;
   'dev' )
     echo 'Running RAVEN in "dev" mode.'
-    if test -n "$CHECK_PYTHON3"; then
-        python3 $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
-    else
-        python $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
-    fi
+    $PYTHON_COMMAND $RAVEN_DIR/framework/Driver.py "${ARGS[@]}"
     ;;
   'help' )
     echo ''
