@@ -199,9 +199,8 @@ def compare_unordered_element(a_element, b_element, **kwargs):
             del diffs[close_key][b_entry]
             del matchvals[close_key][b_entry]
         break
-      else:
-        matchvals[a_entry][b_entry] = matchval
-        diffs[a_entry][b_entry] = diff
+      matchvals[a_entry][b_entry] = matchval
+      diffs[a_entry][b_entry] = diff
   if len(matchvals) == 0: #all matches found
     return (True, '')
   note = ''
