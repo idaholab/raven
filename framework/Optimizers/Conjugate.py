@@ -38,8 +38,7 @@ from scipy.optimize import minpack2
 #Internal Modules------------------------------------------------------------------------------------
 from .SPSA import SPSA
 from utils import mathUtils,randomUtils
-import pprint
-pp = pprint.PrettyPrinter(indent=2)
+
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ConjugateGradient(SPSA):
@@ -306,7 +305,6 @@ class ConjugateGradient(SPSA):
       @ Out, points, list(dict), perturbation points
     """
     points = []
-    # distance = self.paramDict['pertDist'] * self.paramDict['initialStepSize']
     distance = self.paramDict['pertDist'] * max(self.counter['lastStepSize'][traj],self.paramDict['initialStepSize'])
 
     for i in self.perturbationIndices:
