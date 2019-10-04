@@ -78,7 +78,7 @@ class FiniteDifference(SPSA):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
       @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
-      @ In, step, int, the step index, zero indexed
+      @ In, step, int, optional, the step index, zero indexed
       @ Out, direction, list, the versor for each optimization dimension
     """
     _, varId, denoId, cdId = self._identifierToLabel(perturbationIndex)

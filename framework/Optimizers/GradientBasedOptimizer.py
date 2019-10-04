@@ -79,9 +79,9 @@ class GradientBasedOptimizer(Optimizer):
                                                        # isave(2): whether a lower function value has been obtained
 
     self.counter['dSave']            = {}              # double precision work array of dimension 13 for line search, this array store the previous line search results as:
-                                                       # dsave(1): derivative of the problem at previous step;
-                                                       # dsave(2) nonnegative tolerance for the sufficient decrease condition on gradient calculation;
-                                                       # dsave(3) derivative at the best step on variables;
+                                                       # dsave(1): derivative of the problem at previous step
+                                                       # dsave(2) nonnegative tolerance for the sufficient decrease condition on gradient calculation
+                                                       # dsave(3) derivative at the best step on variables
                                                        # dsave(4) derivative at best residuals;
                                                        # dsave(5) value of the problem at step
                                                        # dsave(6) velue of the problem at best step
