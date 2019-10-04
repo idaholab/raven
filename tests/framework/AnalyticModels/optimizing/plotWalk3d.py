@@ -1,3 +1,16 @@
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
   Module for producing an animation of optimization histories
   for 2D problems given pickled mesh grid data.  For examples
@@ -25,8 +38,6 @@ ax.view_init(70, 0)
 
 surf = ax.plot_surface(bX, bY, bZ, rcount=rcount, ccount=ccount,
                        facecolors=colors,alpha=0.3)
-# surf.set_facecolor((0,0,0,0))
-
 ax.set_xlabel('x')
 ax.set_ylabel('y')
 
@@ -68,7 +79,7 @@ for case in cases:
   rejects.append(reject)
 
 
-def update_point(n,data,points,trails,rejects):
+def updatePoint(n,data,points,trails,rejects):
   """
     Function to be called to update the animation points, one iteration at a time.
     @ In, n, int, the iteration to use
@@ -91,21 +102,21 @@ def update_point(n,data,points,trails,rejects):
 
     a = np.array(data[case]['a'][:n+1] if n+1 < N else data[case]['a'])
     # split data into accepted, rejected points
-    x_a = np.atleast_1d(x[a])
-    y_a = np.atleast_1d(y[a])
-    z_a = np.atleast_1d(z[a])
+    xA = np.atleast_1d(x[a])
+    yA = np.atleast_1d(y[a])
+    zA = np.atleast_1d(z[a])
 
-    x_r = np.atleast_1d(x[np.logical_not(a)])
-    y_r = np.atleast_1d(y[np.logical_not(a)])
-    z_r = np.atleast_1d(z[np.logical_not(a)])
+    xR = np.atleast_1d(x[np.logical_not(a)])
+    yR = np.atleast_1d(y[np.logical_not(a)])
+    zR = np.atleast_1d(z[np.logical_not(a)])
 
     try:
-      point.set_data([x_a[-1]],[y_a[-1]])
-      point.set_3d_properties(z_a[-1])
-      trail.set_data(x_a,y_a)
-      trail.set_3d_properties(z_a)
-      reject.set_data(x_r,y_r)
-      reject.set_3d_properties(z_r)
+      point.set_data([xA[-1]],[yA[-1]])
+      point.set_3d_properties(zA[-1])
+      trail.set_data(xA,yA)
+      trail.set_3d_properties(zA)
+      reject.set_data(xR,yR)
+      reject.set_3d_properties(zR)
     except IndexError:
       continue
 
@@ -113,7 +124,7 @@ def update_point(n,data,points,trails,rejects):
 
   return point
 
-ani=animation.FuncAnimation(fig,update_point,max(len(data[case]['x']) for case in cases),fargs=(data,points,trails,rejects),interval=100,repeat_delay=3000)
+ani=animation.FuncAnimation(fig,updatePoint,max(len(data[case]['x']) for case in cases),fargs=(data,points,trails,rejects),interval=100,repeat_delay=3000)
 
 Writer = animation.writers['ffmpeg']
 writer = Writer(fps=15,bitrate=1800)

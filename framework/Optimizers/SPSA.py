@@ -559,6 +559,7 @@ class SPSA(GradientBasedOptimizer):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
       @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
+      @ In, step, int, the step index, zero indexed, if not using central gradient, then passing the step index to flip the sign of the direction for FD optimizer.
       @ Out, direction, list, the versor for each optimization dimension
     """
     if perturbationIndex == self.perturbationIndices[0]:

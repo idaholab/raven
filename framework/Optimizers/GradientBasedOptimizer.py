@@ -62,8 +62,8 @@ class GradientBasedOptimizer(Optimizer):
     self.constraintHandlingPara      = {}              # Dict containing parameters for parameters related to constraints handling
     self.gradientNormTolerance       = 1.e-3           # tolerance on the L2 norm of the gradient
     self.gradDict                    = {}              # Dict containing information for gradient related operations
-    self.gradDict['numIterForAve'  ] = 1               # Number of iterations for gradient estimation averaging, denoising 3
-    self.gradDict['pertNeeded'     ] = 1               # Number of perturbation needed to evaluate gradient (globally, considering denoising) dimention * 1* denoise for FD
+    self.gradDict['numIterForAve'  ] = 1               # Number of iterations for gradient estimation averaging, denoising number.
+    self.gradDict['pertNeeded'     ] = 1               # Number of perturbation needed to evaluate gradient (globally, considering denoising) for  example, pertNeeded =  dimension * 1(if not central differenc) * denoise in Finite Difference
     self.paramDict['pertSingleGrad'] = 1               # Number of perturbation needed to evaluate a single gradient denoised points needed to evaluate gradient, eg, 1 for SPSA, dim for FD w/o central diff, 2*dim for central diff
     self.gradDict['pertPoints'     ] = {}              # Dict containing normalized inputs sent to model for gradient evaluation
     self.readyVarsUpdate             = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
@@ -73,23 +73,40 @@ class GradientBasedOptimizer(Optimizer):
     self.counter['varsUpdate'      ] = {}
     self.counter['solutionUpdate'  ] = {}
     self.counter['lastStepSize'    ] = {}              # counter to track the last step size taken, by trajectory
-    self.counter['iSave']            = {}              # integer work array of dimension 2 for line search
-    self.counter['dSave']            = {}              # double precision work array of dimension 13 for line search
-    self.counter['task']             = {}              # initial entry task must be set to 'START', at the end of each line search exit with convergence, a warning or an error
-    self.counter['gtol']             = {}              # specifies a nonnegative tolerance for the curvature condition.
-    self.counter['xk']               = {}              # current optimal point for conjugate gradient
-    self.counter['gfk']              = {}              # gradient for current point
-    self.counter['pk']               = {}              # ndarray, search direction
-    self.counter['newFVal']          = {}              # float, function value for current point
-    self.counter['oldFVal']          = {}              # float, function value for last point
-    self.counter['oldOldFVal']       = {}              # float, function value for penultimate point
-    self.counter['oldGradK']         = {}              # gradient for current point
-    self.counter['gNorm']            = {}              # norm of the current grendient
-    self.counter['deltaK']           = {}              # inner product of the current gradient
-    self.counter['derPhi0']          = {}              # scalar, objective function derivative
-    self.counter['alpha']            = {}              # stepsize for conjugate gradient method
+    # line search parameters used in dcsrch function inside minpack2 from Scipy
+    self.counter['iSave']            = {}              # integer work array of dimension 2 for line search in scipy minpack2
+                                                       # isave(1): whether a minimizer has been bracketed in an interval with endpoints
+                                                       # isave(2): whether a lower function value has been obtained
 
-    self.localGradEvals              = {}              #
+    self.counter['dSave']            = {}              # double precision work array of dimension 13 for line search, this array store the previous line search results as:
+                                                       # dsave(1): derivative of the problem at previous step;
+                                                       # dsave(2) nonnegative tolerance for the sufficient decrease condition on gradient calculation;
+                                                       # dsave(3) derivative at the best step on variables;
+                                                       # dsave(4) derivative at best residuals;
+                                                       # dsave(5) value of the problem at step
+                                                       # dsave(6) velue of the problem at best step
+                                                       # dsave(7) value of the problem at second best step
+                                                       # dsave(8) best step obtained so far, endpoint of the interval that contains the minimizer.
+                                                       # dsave(9) second endpoint of the interval that contains the minimizer.
+                                                       # dsave(10) minimum step in line search
+                                                       # dsave(11) maximum step in line search
+                                                       # dsave(12) range of the step
+                                                       # dsave(13) range to decide if a bisection step is needed
+    self.counter['task']             = {}              # bite string for the task in line search, initial entry task must be set to 'START', at the end of each line search exit with convergence, a warning or an error
+
+    # Conjugate gradient parameters
+    self.counter['gtol']             = {}              # specifies a nonnegative tolerance for the curvature condition in conjugate gradient calculation
+    self.counter['xk']               = {}              # ndarray, best optimal point as an array for conjugate gradient calculation
+    self.counter['gfk']              = {}              # ndarray, gradient value as an array for current point in searching the strong wolfe condition in conjugate calculation
+    self.counter['pk']               = {}              # ndarray, search direction in searching the strong wolfe condition in conjugate calculation
+    self.counter['newFVal']          = {}              # float, function value for a new optimal point
+    self.counter['oldFVal']          = {}              # float, function value for last optimal point
+    self.counter['oldOldFVal']       = {}              # float, function value for penultimate optimal point
+    self.counter['oldGradK']         = {}              # ndarry, gradient value as an array for current best optimal point
+    self.counter['gNorm']            = {}              # float, norm of the current grendient
+    self.counter['deltaK']           = {}              # float, inner product of the current gradient for calculation of the Polak–Ribière stepsize
+    self.counter['derPhi0']          = {}              # float, objective function derivative at each begining of the line search
+    self.counter['alpha']            = {}              # float, stepsize for conjugate gradient method in current dirrection
 
     self.convergeTraj                = {}
     self.convergenceProgress         = {}              #tracks the convergence progress, by trajectory
@@ -180,7 +197,6 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['deltaK'][traj]           = None
       self.counter['derPhi0'][traj]          = None
       self.counter['alpha'][traj]            = None
-      self.localGradEvals[traj]              = [None]
       self.optVarsHist[traj]                 = {}
       self.readyVarsUpdate[traj]             = False
       self.convergeTraj[traj]                = False
@@ -744,12 +760,14 @@ class GradientBasedOptimizer(Optimizer):
       self.realizations[traj]['denoised']['opt'] = den
       self.realizations[traj]['accepted'] = True
 
-  def _updateConvergenceVector(self, traj, varsUpdate, currentPoint,conj=False):
+  def _updateConvergenceVector(self, traj, varsUpdate, currentPoint, conj=False):
     """
       Local method to update convergence vector.
       @ In, traj, int, identifier of the trajector to update
       @ In, varsUpdate, int, current variables update iteration number
+      @ In, conj, bool, optional, indentify whether using conjugate greadient to check convergence, if true then do not clear the presistance
       @ In, currentPoint, float, candidate point for optimization path
+
       @ Out, accepted, True if point was rejected otherwise False
     """
     # first, check if we're at varsUpdate 0 (first entry); if so, we are at our first point

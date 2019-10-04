@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Module for plotting the various 2d optimization functions included
+  Module for plotting the various 3d optimization functions included
   in this folder, particularly for obtaining plottable values. Mostly
   used for debugging processes.
 """
@@ -20,7 +20,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
-# import matplotlib.colors as colors
 import pickle as pk
 from mpl_toolkits.mplot3d import axes3d, Axes3D
 from diagonal_valley import main
