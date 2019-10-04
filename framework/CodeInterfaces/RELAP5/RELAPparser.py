@@ -47,7 +47,7 @@ class RELAPparser():
       @ In, inputFile, string, input file name
       @ In, addMinorEdits, bool, flag to add Minor Edits in case there are trips and the variables in the trip is not among the minor edits (generally for DET)
       @ Out, None
-    """
+    """ 
     self.printTag = 'RELAP5 PARSER'
     if not os.path.exists(inputFile):
       raise IOError(self.printTag+'ERROR: not found RELAP input file')
@@ -71,7 +71,7 @@ class RELAPparser():
     for lineNum, line in enumerate(lines):
       if line.strip().startswith("."):
         self.maxNumberOfDecks += 1
-        self.deckLines[self.maxNumberOfDecks] = lines[prevDeckLineNum:lineNum+1]
+        self.deckLines[self.maxNumberOfDecks] = lines[prevDeckLineNum:lineNum]
         prevDeckLineNum = lineNum + 1
     if self.maxNumberOfDecks < 1:
       raise IOError(self.printTag+ "ERROR: the file "+inputFile+" does not contain a end case fullstop '.'!")
@@ -80,10 +80,7 @@ class RELAPparser():
       # add Minor Edits in case there are trips and the variables in the trip is not among the minor edits
       self.getTripsMinorEditsAndControlVars()
       self.addTripsVarsInMinorEdits()
-      toAdd = {}
-      for deckNum in self.inputTrips.keys():
-        toAdd[deckNum] = self.inputTrips[deckNum]['variableTrips'].keys()
-      self.addControlVariablesForStoppingCoditions(toAdd)
+
 
   def addControlVariablesForStoppingCoditions(self, monitoredTrips):
     """
@@ -275,7 +272,7 @@ class RELAPparser():
       outfile =self.inputfile
     outfile.open('w')
     for deckNum in self.deckLines.keys():
-      for i in self.deckLines[deckNum]:
+      for i in self.deckLines[deckNum]+['.\n']:
         outfile.write('%s' %(i))
     outfile.close()
 
@@ -345,6 +342,7 @@ class RELAPparser():
       @ Out, lines, list, list of modified lines (of the original input)
     """
     decks              = {}
+    toAdd              = {} # for DET
     lines              = []
     for i in dictionaryList:
       if 'decks' not in i.keys():
@@ -405,6 +403,9 @@ class RELAPparser():
           self.lastCntrLine[deckNum]      +=cnt
           self.lastMinorEditLine[deckNum] +=cnt
           self.lastTripLine[deckNum]      +=cnt
+          
+          toAdd[deckNum] = self.inputTrips[deckNum]['variableTrips'].keys()
+          self.addControlVariablesForStoppingCoditions(toAdd)          
       lines = lines + temp
     return lines
 
