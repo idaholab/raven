@@ -430,7 +430,13 @@ class DynamicEventTree(Grid):
     """
     # add additional edits if needed
     model.getAdditionalInputEdits(self.inputInfo)
-
+    
+    # model
+    standardDet = dict.fromkeys(self.standardDETvariables) 
+    original = model._replaceVariablesNamesWithAliasSystem(standardDet,fromModelToFramework=True)
+    depVars = copy.deepcopy(self.dependentSample)
+    originalFunctVars = model._replaceVariablesNamesWithAliasSystem(depVars)
+    
     precSampled = rootTree.getrootnode().get('hybridsamplerCoordinate')
     rootnode    =  rootTree.getrootnode()
     rname       = rootnode.name
@@ -439,6 +445,7 @@ class DynamicEventTree(Grid):
     if precSampled:
       self.inputInfo['hybridsamplerCoordinate'  ] = copy.deepcopy(precSampled)
     self.inputInfo['prefix'                    ] = rname
+    self.inputInfo['standardDETvariables'      ] = self.standardDETvariables
     self.inputInfo['initiatorDistribution'     ] = []
     self.inputInfo['triggeredVariable'         ] = b'None'
     self.inputInfo['PbThreshold'               ] = []
@@ -603,6 +610,7 @@ class DynamicEventTree(Grid):
       # Fill the values dictionary that will be passed into the model in order to create an input
       # In this dictionary the info for changing the original input is stored
       self.inputInfo['prefix'] = rname.encode()
+      self.inputInfo['standardDETvariables'] = self.standardDETvariables
       self.inputInfo['endTimeStep'] = endInfo['endTimeStep']
       self.inputInfo['branchChangedParam'] = subGroup.get('branchChangedParam')
       self.inputInfo['branchChangedParamValue'] = subGroup.get('branchChangedParamValue')
