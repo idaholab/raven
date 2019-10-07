@@ -570,10 +570,11 @@ class SPSA(GradientBasedOptimizer):
       direction = self.currentDirection
     return direction
 
-  def localEvaluateGradient(self, traj):
+  def localEvaluateGradient(self, traj, gradHist = False):
     """
       Local method to evaluate gradient.
       @ In, traj, int, the trajectory id
+      @ In, gradHist, bool, optional, whether store  self.counter['gradientHistory'] in this step.
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     # this method used to take a gradient estimation. Nothing actually used it, though. - PWT, 2018-10

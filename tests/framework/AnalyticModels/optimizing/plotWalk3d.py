@@ -13,7 +13,7 @@
 # limitations under the License.
 """
   Module for producing an animation of optimization histories
-  for 2D problems given pickled mesh grid data.  For examples
+  for 3D problems given pickled mesh grid data.  For examples
   of the mesh grid data, see raven/tests/framework/AnalyticModels/optimizing/plot_functions.py.
 """
 

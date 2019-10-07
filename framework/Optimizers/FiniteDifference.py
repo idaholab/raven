@@ -78,7 +78,7 @@ class FiniteDifference(SPSA):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
       @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
-      @ In, step, int, optional, the step index, zero indexed
+      @ In, step, int, the step index, zero indexed, if not using central gradient, then passing the step index to flip the sign of the direction for FD optimizer.
       @ Out, direction, list, the versor for each optimization dimension
     """
     _, varId, denoId, cdId = self._identifierToLabel(perturbationIndex)
@@ -105,10 +105,11 @@ class FiniteDifference(SPSA):
     self.currentDirection = direction
     return direction
 
-  def localEvaluateGradient(self, traj):
+  def localEvaluateGradient(self, traj, gradHist = False):
     """
       Local method to evaluate gradient.
       @ In, traj, int, the trajectory id
+      @ In, gradHist, bool, optional, whether store  self.counter['gradientHistory'] in this step.
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     gradient = {}
@@ -135,4 +136,10 @@ class FiniteDifference(SPSA):
       else:
         gi[var] += 1
         gradient[var] = (gradient[var] + np.atleast_1d(lossDiff / dh))* gi[var]/(gi[var]  + 1)
+    if gradHist:
+      try:
+        self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][traj][0]
+      except IndexError:
+        pass # don't have a history on the first pass
+      self.counter['gradientHistory'][traj][0] = gradient
     return gradient

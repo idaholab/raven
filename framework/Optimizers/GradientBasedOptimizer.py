@@ -341,7 +341,7 @@ class GradientBasedOptimizer(Optimizer):
     else:
       # update self.realizations dictionary for the right trajectory
       # category: is this point an "opt" or a "grad" evaluations?
-      # number is which variable is being perturbed, ie which dimention 0 indexed
+      # number is which variable is being perturbed, ie which dimension 0 indexed
       category, number, _, cdId = self._identifierToLabel(identifier)
       # done is whether the realization finished
       # index: where is it in the dataObject

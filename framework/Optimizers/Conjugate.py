@@ -28,47 +28,20 @@ import sys
 import os
 import copy
 import numpy as np
-from numpy import linalg as LA
 import scipy
 from scipy.optimize import minpack2
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .SPSA import SPSA
+from .FiniteDifference import FiniteDifference
 from utils import mathUtils,randomUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
-class ConjugateGradient(SPSA):
+class ConjugateGradient(FiniteDifference):
   """
-    Finite Difference Gradient Optimizer
-    This class currently inherits from the SPSA (since most of the gradient based machinery is there).
-    TODO: Move the SPSA machinery here (and GradientBasedOptimizer) and make the SPSA just take care of the
-    random perturbation approach
+    Conjugate Gradient Optimizer
+    This class currently inherits from the FiniteDifference (since most of the gradient based machinery is there).
   """
-  ##########################
-  # Initialization Methods #
-  ##########################
-  # def __init__(self):
-  #   """
-  #     Default Constructor
-  #   """
-  #   SPSA.__init__(self)
-
-
-  def localInputAndChecks(self, xmlNode):
-    """
-      Local method for additional reading.
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ Out, None
-    """
-    SPSA.localInputAndChecks(self, xmlNode)
-    # need extra eval for central Diff, using boolean in math
-    self.useGradHist = False
-    self.paramDict['pertSingleGrad'] = (1 + self.useCentralDiff) * len(self.fullOptVars)
-    self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
-    if self.useCentralDiff:
-      self.raiseADebug('Central differencing activated!')
-
   ###############
   # Run Methods #
   ###############
@@ -121,7 +94,7 @@ class ConjugateGradient(SPSA):
           xk = dict((var,self.realizations[traj]['denoised']['opt'][0][var]) for var in self.getOptVars())
           self.counter['xk'][traj] = np.asarray(list(xk.values()))
           self.counter['oldGradK'][traj] = self.counter['gfk'][traj]
-          gfk = dict((var,self.localEvaluateGradient(traj)[var][0]) for var in self.getOptVars())
+          gfk = dict((var,self.localEvaluateGradient(traj,gradHist = True)[var][0]) for var in self.getOptVars())
           self.counter['gfk'][traj] = np.asarray(list(gfk.values()))
           if self.useGradHist and self.counter['oldFVal'][traj]:
             self.counter['oldOldFVal'][traj] = self.counter['oldFVal'][traj]
@@ -141,7 +114,7 @@ class ConjugateGradient(SPSA):
           phi1 = self.counter['oldFVal'][traj]
           derPhi1 = self.counter['derPhi0'][traj]
         else:
-          newGrad = dict((var,self.localEvaluateGradient(traj)[var][0]) for var in self.getOptVars())
+          newGrad = dict((var,self.localEvaluateGradient(traj, gradHist = True)[var][0]) for var in self.getOptVars())
           newGrad = np.asarray(list(newGrad.values()))
           # after step
 
@@ -200,76 +173,6 @@ class ConjugateGradient(SPSA):
   ###################
   # Utility Methods #
   ###################
-
-  def _getPerturbationDirection(self, perturbationIndex, step = None):
-    """
-      This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
-      @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
-      @ In, step, int, optional, the step index, zero indexed
-      @ Out, direction, list, the versor for each optimization dimension
-    """
-    _, varId, denoId, cdId = self._identifierToLabel(perturbationIndex)
-    direction = np.zeros(len(self.getOptVars())).tolist()
-    if cdId == 0:
-      direction[varId] = 1.0
-    else:
-      direction[varId] = -1.0
-    if step:
-      if step % 2 == 0:
-        factor = 1.0
-      else:
-        # flip the sign of the direction, this step will not affect central differancing
-        # but will make the direction between forward and backward
-        # for example of 2 variables 3 denoise W/O central diff:
-        # step 0 directions are ([1 0],[0 1])*3
-        # step 1 directions are ([-1 0],[0 -1])*3
-        # with central diff:
-        # step 0 directions are ([1 0],[0 1],[-1,0],[0,-1])*3
-        # step 1 directions are ([-1,0],[0,-1],[1 0],[0 1])*3
-        factor = -1.0
-      direction = [var * factor for var in direction]
-
-    self.currentDirection = direction
-    return direction
-
-  def localEvaluateGradient(self, traj):
-    """
-      Local method to evaluate gradient.
-      @ In, traj, int, the trajectory id
-      @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
-    """
-    gradient = {}
-    gi = {}
-    inVars = self.getOptVars()
-    opt = self.realizations[traj]['denoised']['opt'][0]
-    allGrads = self.realizations[traj]['denoised']['grad']
-    for g,pert in enumerate(allGrads):
-      varId = g % len(inVars)
-      var = inVars[varId]
-      lossDiff = mathUtils.diffWithInfinites(pert[self.objVar],opt[self.objVar])
-      # unlike SPSA, keep the loss diff magnitude so we get the exact right direction
-      if self.optType == 'max':
-        lossDiff *= -1.0
-      dh = pert[var] - opt[var]
-      if abs(dh) < 1e-15:
-        self.raiseADebug('Checking Var:',var)
-        self.raiseADebug('Opt point   :',opt)
-        self.raiseADebug('Grad point  :',pert)
-        self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
-      if gradient.get(var) == None:
-        gi[var] = 0
-        gradient[var] = np.atleast_1d(lossDiff / dh)
-      else:
-        gi[var] += 1
-        gradient[var] = (gradient[var] + np.atleast_1d(lossDiff / dh))/(gi[var]  + 1)
-    try:
-      self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][traj][0]
-    except IndexError:
-      pass # don't have a history on the first pass
-    self.counter['gradientHistory'][traj][0] = gradient
-
-    return gradient
-
   def _newOptPointAdd(self, gradient, traj):
     """
       This local method add a new opt point based on the gradient
@@ -336,7 +239,7 @@ class ConjugateGradient(SPSA):
       Method to update the conjugate direction with steepest direction
       @ In, traj, int, the trajectory we are currently considering
       @ In, alphs, float, step size, or None if no suitable step was found
-      @ In, gfkp1, ndarray, optional, gradient value for xk (xk being the current parameter estimate).
+      @ In, gfkp1, numpy.ndarray, optional, [1, #variables] gradient value for xk (xk being the current parameter estimate).
       @ Out, gNorm, float, norm of the gradient.
     """
     xkp1 = self.counter['xk'][traj]
@@ -388,7 +291,7 @@ class ConjugateGradient(SPSA):
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
-    SPSA.handleFailedRuns(self,failedRuns)
+    FiniteDifference.handleFailedRuns(self,failedRuns)
     # get the most optimal point among the trajectories
     bestValue = None
     bestTraj = None
