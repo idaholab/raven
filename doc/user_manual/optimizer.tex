@@ -16,7 +16,19 @@ the name that can be used to refer to this specific entity from other input bloc
   The specifications of this optimizer must be defined within #1 \xmlNode{#2} XML
   block.
 }
-\renewcommand{\optimizerSequence}[1]{}
+\renewcommand{\optimizerSequence}[1]{implementation of \textbf{#1} can also handles
+constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the
+constraints. When when updating the variables (not perturbing), if constraint is violated, \textbf{#1} does the following in
+sequence:
+\begin{itemize}
+\item Try to find, through bisection method, the longest fraction of gradient vector so that the variable update satisfies the
+constraints;
+\item When such fraction cannot be found, then find a random vector orthogonal to gradient vector so that, by using this
+orthogonal vector as gradient, the variable update satisfies the constraints. Rotate the orthogonal vector towards the gradient,
+through bisection methods, until constraints can no longer be satisfied;
+\item If all above cannot return a constraint satisfying variable update, then do not update the variables and the \textbf{#1} will
+terminate.
+\end{itemize}}
 \newcommand{\objectiveDescription}[1]{In the \xmlNode{#1} input block, the user needs to specify the objective variable to be optimized, the decision variables, the
 DataObject storing previously performed model evaluations, as well as convergence criteria. In addition, the settings for this
 optimization can be specified in the \xmlNode{initialization} and \xmlNode{parameter} XML blocks:}
@@ -301,20 +313,7 @@ idea is to simultaneously perturb all decision variables in order to estimate th
 model evaluations are required in order to approximate the gradient. The theory behind SPSA can be found in
 \cite{spall1998implementation}, although note a significant number of modifications have been made to
 accelerate this scheme within RAVEN.
-
-In addition to the algorithm in \cite{spall1998implementation}, current implementation of \textbf{SPSA} can also handles
-constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the
-constraints. When when updating the variables (not perturbing), if constraint is violated, \textbf{SPSA} does the following in
-sequence:
-\begin{itemize}
-\item Try to find, through bisection method, the longest fraction of gradient vector so that the variable update satisfies the
-constraints;
-\item When such fraction cannot be found, then find a random vector orthogonal to gradient vector so that, by using this
-orthogonal vector as gradient, the variable update satisfies the constraints. Rotate the orthogonal vector towards the gradient,
-through bisection methods, until constraints can no longer be satisfied;
-\item If all above cannot return a constraint satisfying variable update, then do not update the variables and the \textbf{SPSA} will
-terminate.
-\end{itemize}
+In addition to the algorithm in \cite{spall1998implementation}, current \optimizerSequence{SPSA}
 
 It is important to notice that the gradient and the feature space is always normalized. This means that the gradient is going to be
 normalized with respect to its norm (versor of the gradient); hence, the optimization advancement is not going to be influenced by the
@@ -420,19 +419,7 @@ The \textbf{FiniteDifference} optimization approach is  the simplest Gradient ba
 first order evaluation of the Gradient.  A minimal number of $n variable$
 model evaluations are required in order to get a first order approximation of the gradient.
 
-Current implementation of \textbf{FiniteDifference} can also handles
-constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the
-constraints. When updating the variables (not perturbing), if constraint is violated, \textbf{FiniteDifference} does the following in
-sequence:
-\begin{itemize}
-\item Try to find, through bisection method, the longest fraction of gradient vector so that the variable update satisfies the
-constraints;
-\item When such fraction cannot be found, then find a random vector orthogonal to gradient vector so that, by using this
-orthogonal vector as gradient, the variable update satisfies the constraints. Rotate the orthogonal vector towards the gradient,
-through bisection methods, until constraints can no longer be satisfied;
-\item If all above cannot return a constraint satisfying variable update, then do not update the variables and the \textbf{FiniteDifference} will
-terminate.
-\end{itemize}
+Current \optimizerSequence{FiniteDifference}
 
 It is important to notice that the gradient and the feature space is always normalized. This means that the gradient is going to be
 normalized with respect to its norm (versor of the gradient); hence, the optimization advancement is not going to be influenced by the
@@ -539,19 +526,7 @@ of a nonlinear function using its gradient
 A minimal number of $n variable$ model evaluations are required in order to get a first order approximation of the gradient.
 It works best when the function is quadratic near the local minimum.
 
-Current implementation of \textbf{ConjugateGradient} can also handles
-constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the
-constraints. When updating the variables (not perturbing), if constraint is violated, \textbf{ConjugateGradient} does the following in
-sequence:
-\begin{itemize}
-\item Try to find, through bisection method, the longest fraction of gradient vector so that the variable update satisfies the
-constraints;
-\item When such fraction cannot be found, then find a random vector orthogonal to gradient vector so that, by using this
-orthogonal vector as gradient, the variable update satisfies the constraints. Rotate the orthogonal vector towards the gradient,
-through bisection methods, until constraints can no longer be satisfied;
-\item If all above cannot return a constraint satisfying variable update, then do not update the variables and the \textbf{ConjugateGradient} will
-terminate.
-\end{itemize}
+Current \optimizerSequence{ConjugateGradient}
 
 It is important to notice that in conjugate gradient method, the feature space is always normalized. Unlike SPSA and Finite difference
 optimizers, the gradient in conjugate gradient is not normalized. Optimization advancement might be influenced by the
