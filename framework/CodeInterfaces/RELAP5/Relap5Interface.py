@@ -209,6 +209,10 @@ class Relap5(CodeInterfaceBase):
     if 'dynamiceventtree' in str(samplerType).lower():
       self._samplersDictionary[samplerType] = self.DynamicEventTreeForRELAP5
       det = True
+      detVars   = Kwargs['DETVariables']
+      hdetVars  = Kwargs['HDETVariables']
+      functVars = Kwargs['FunctionVariables']
+      constVars = Kwargs['ConstantVariables']
     else:
       self._samplersDictionary[samplerType] = self.pointSamplerForRELAP5
       det = False

@@ -430,13 +430,6 @@ class DynamicEventTree(Grid):
     """
     # add additional edits if needed
     model.getAdditionalInputEdits(self.inputInfo)
-    
-    # model
-    standardDet = dict.fromkeys(self.standardDETvariables) 
-    original = model._replaceVariablesNamesWithAliasSystem(standardDet,fromModelToFramework=True)
-    depVars = copy.deepcopy(self.dependentSample)
-    originalFunctVars = model._replaceVariablesNamesWithAliasSystem(depVars)
-    
     precSampled = rootTree.getrootnode().get('hybridsamplerCoordinate')
     rootnode    =  rootTree.getrootnode()
     rname       = rootnode.name
@@ -696,6 +689,23 @@ class DynamicEventTree(Grid):
     else:
       # We construct the input for the first DET branch calculation'
       self._createRunningQueueBegin(model, myInput)
+      # We collect some useful information for the DET handling (DET variables, contants, functions)
+      standardDet = dict.fromkeys(self.standardDETvariables) 
+      model._replaceVariablesNamesWithAliasSystem(standardDet)
+      depVars = copy.deepcopy(self.dependentSample)
+      model._replaceVariablesNamesWithAliasSystem(depVars)
+      consts = copy.deepcopy(self.constants)
+      model._replaceVariablesNamesWithAliasSystem(consts)
+      self.inputInfo['DETVariables'] = standardDet.keys()
+      hvars = {}
+      if 'hybridsamplerCoordinate' in self.inputInfo:
+        for precSample in self.inputInfo['hybridsamplerCoordinate']:
+          hvars.update(precSample['SampledVars'])        
+        model._replaceVariablesNamesWithAliasSystem(hvars)
+        self.inputInfo['HDETVariables'] = hvars.keys()
+      self.inputInfo['FunctionVariables'] = depVars
+      self.inputInfo['ConstantVariables'] = consts.keys()
+      
     return
 
   def __getQueueElement(self):
