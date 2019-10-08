@@ -277,7 +277,7 @@ class Optimizer(Sampler):
     """
     # TODO can be combined with Sampler's _readMoreXML, but needs to implement paramInput passing to localInputAndChecks (new input checker)
     Assembler._readMoreXML(self,xmlNode)
-    self._readMoreXMLbase(xmlNode)
+    paramInput=self._readMoreXMLbase(xmlNode)
     self.localInputAndChecks(xmlNode, paramInput)
 
   def _readMoreXMLbase(self,xmlNode):
@@ -414,6 +414,7 @@ class Optimizer(Sampler):
       if len(self.optVarsInit['initial'][varName]) == 0:
         for traj in self.optTraj:
           self.optVarsInit['initial'][varName][traj] = None
+    return paramInput
 
   def initialize(self,externalSeeding=None,solutionExport=None):
     """
