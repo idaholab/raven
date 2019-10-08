@@ -5,7 +5,7 @@
     <author>wangc</author>
     <created>2018-09-21</created>
     <classesTested>Models.Code</classesTested>
-    <description>Workshop test: test code coupling with Bateman model using bateman code interface</description>
+    <description>Workshop test: test code coupling with Projectile model using bateman code interface</description>
   </TestInfo>
 
   <RunInfo>
@@ -15,46 +15,39 @@
   </RunInfo>
 
   <Files>
-    <Input name="originalInput" type="">../../../ExternalModels/Bateman/batemanWorkshopInput.xml</Input>
+    <Input name="originalInput" type="">../../../ExternalModels/input.i</Input>
   </Files>
 
   <Models>
-    <Code name="myWorkshopCode" subType="BatemanSimple">
-      <executable>../../ExternalModels/Bateman/AnalyticalDplMain.py</executable>
+    <Code name="myWorkshopCode" subType="Projectile">
+      <executable>../../ExternalModels/projectile.py</executable>
     </Code>
   </Models>
 
   <Distributions>
-    <Normal name="sigmaDist">
-      <mean>10</mean>
-      <sigma>3</sigma>
-      <lowerBound>0.0</lowerBound>
-      <upperBound>40</upperBound>
-    </Normal>
-    <Uniform name="decayDist">
-      <lowerBound>0.0</lowerBound>
-      <upperBound>0.0000001</upperBound>
+    <Uniform name="vel_dist">
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
+    </Uniform>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
     </Uniform>
   </Distributions>
 
   <Samplers>
     <Grid name="myGrid">
-      <variable name="nuclides|A|sigma">
-        <distribution>sigmaDist</distribution>
-        <grid construction="equal" steps="3" type="CDF">0.1 0.8</grid>
-      </variable>
-      <variable name="nuclides|A|decayConstant">
-        <distribution>decayDist</distribution>
+      <variable name="v0">
+        <distribution>vel_dist</distribution>
         <grid construction="equal" steps="4" type="CDF">0.1 0.8</grid>
       </variable>
-      <variable name="nuclides|B|sigma">
-        <distribution>sigmaDist</distribution>
-        <grid construction="equal" steps="3" type="CDF">0.1 0.8</grid>
-      </variable>
-      <variable name="nuclides|B|decayConstant">
-        <distribution>decayDist</distribution>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
         <grid construction="equal" steps="4" type="CDF">0.1 0.8</grid>
       </variable>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+      <constant name="timeOption">1</constant>
     </Grid>
   </Samplers>
 
@@ -63,51 +56,47 @@
       <Input class="Files" type="">originalInput</Input>
       <Model class="Models" type="Code">myWorkshopCode</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>
-      <Output class="DataObjects" type="HistorySet">outputHistories</Output>
-      <Output class="DataObjects" type="PointSet">outPointSet</Output>
-      <Output class="DataObjects" type="PointSet">outPointSetAverage</Output>
+      <Output class="DataObjects" type="PointSet">results</Output>
     </MultiRun>
     <IOStep name="outputResults">
-      <Input class="DataObjects" type="HistorySet">outputHistories</Input>
-      <Input class="DataObjects" type="PointSet">outPointSet</Input>
-      <Input class="DataObjects" type="PointSet">outPointSetAverage</Input>
-      <Output class="OutStreams" type="Print">outPointSet_dump</Output>
-      <Output class="OutStreams" type="Print">outPointSetAverage_dump</Output>
-      <Output class="OutStreams" type="Print">outputHistories_dump</Output>
+      <Input class="DataObjects" type="PointSet">results</Input>
+      <Output class="OutStreams" type="Print">to_file</Output>
+      <Output class="OutStreams" type="Plot">to_plot</Output>
     </IOStep>
   </Steps>
 
   <OutStreams>
-    <Print name="outPointSet_dump">
+    <Print name="to_file">
       <type>csv</type>
-      <source>outPointSet</source>
+      <source>results</source>
     </Print>
-    <Print name="outPointSetAverage_dump">
-      <type>csv</type>
-      <source>outPointSetAverage</source>
-    </Print>
-    <Print name="outputHistories_dump">
-      <type>csv</type>
-      <source>outputHistories</source>
-    </Print>
+    <Plot name="to_plot">
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>results|Input|v0</x>
+                <y>results|Input|angle</y>
+                <z>results|Output|r</z>
+                <colorMap>results|Output|t</colorMap>
+            </plot>
+            <xlabel>v0</xlabel>
+            <ylabel>angle</ylabel>
+            <zlabel>r</zlabel>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+        </actions>
+    </Plot>
   </OutStreams>
 
   <DataObjects>
-    <PointSet name="outPointSet">
-      <Input>nuclides|A|sigma,nuclides|A|decayConstant,nuclides|B|sigma,nuclides|B|decayConstant</Input>
-      <Output>A,B,C,D</Output>
+    <PointSet name="placeholder">
+      <Input>v0,angle</Input>
     </PointSet>
-    <PointSet name="outPointSetAverage">
-      <Input>nuclides|A|sigma,nuclides|A|decayConstant,nuclides|B|sigma,nuclides|B|decayConstant</Input>
-      <Output>A,B,C,D</Output>
-      <options>
-        <operator>average</operator>
-      </options>
+    <PointSet name="results">
+      <Input>v0,angle</Input>
+      <Output>r,t</Output>
     </PointSet>
-    <HistorySet name="outputHistories">
-      <Input>nuclides|A|sigma,nuclides|A|decayConstant,nuclides|B|sigma,nuclides|B|decayConstant</Input>
-      <Output>A,B,C,D</Output>
-    </HistorySet>
   </DataObjects>
 
 </Simulation>

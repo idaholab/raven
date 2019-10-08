@@ -11,12 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-'''
+"""
  This file contains the mathematical methods used in the framework.
  Some of the methods were in the PostProcessor.py
  created on 03/26/2015
  @author: senrs
-'''
+"""
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings

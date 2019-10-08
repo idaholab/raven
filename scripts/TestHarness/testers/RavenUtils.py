@@ -83,13 +83,14 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("statsmodels", __lookup_preferred_version("statsmodels")),
                ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
                ("cloudpickle", __lookup_preferred_version("cloudpickle", optional=True)),
-               ("python", "3"),
+               ("python", ""),
                ("hdf5", "1.10.4"),
                ("swig", ""),
                ("pylint", ""),
                ("coverage", ""),
                ("lxml", ""),
-               ("psutil", "")]
+               ("psutil", ""),
+               ("pip", "")]
 # libraries to install with conda-forge
 __condaForgeList = [("pyside2", ""),
                     ("pyomo",""),
@@ -98,7 +99,9 @@ __condaForgeList = [("pyside2", ""),
                     ("ipopt","")]
 # optional conda libraries
 __condaOptional = [('pillow', __lookup_preferred_version("pillow"))]
-
+# pip-only list (in here we list the libraries that are installable by pip only)
+__pipOnlyList = [("lazy-import", "")]
+# pip list
 __pipList = [("numpy", __lookup_preferred_version("numpy")),
              ("cloudpickle", __lookup_preferred_version("cloudpickle")),
              ("h5py", __lookup_preferred_version("h5py")),
@@ -113,7 +116,7 @@ __pipList = [("numpy", __lookup_preferred_version("numpy")),
              ("pylint", ""),
              ("psutil", ""),
              ("coverage", ""),
-             ("lxml", "")]
+             ("lxml", "")] + __pipOnlyList
 
 def module_report(module, version=''):
   """
@@ -332,8 +335,16 @@ if __name__ == '__main__':
       else:
         print(k, end=" ")
     print()
+  elif '--pip-only-list' in sys.argv:
+    print("pip install", end=" ")
+    for k, qa_version in __pipOnlyList:
+      if len(qa_version.strip()) > 0:
+        print(k+"=="+qa_version, end=" ")
+      else:
+        print(k, end=" ")
+    print()
   elif '--manual-list' in sys.argv:
     print('\\begin{itemize}')
-    for k, qa_version in __condaList+__condaForgeList+__condaOptional:
+    for k, qa_version in __condaList+__condaForgeList+__condaOptional+__pipOnlyList:
       print("  \\item", k+ (("-"+qa_version) if len(qa_version.strip()) > 0 else ""))
     print("\\end{itemize}")

@@ -38,7 +38,7 @@
 
   <Functions>
     <External file="adaptive_test_goal" name="decision">
-      <variable>r</variable>
+      <variables>r</variables>
     </External>
   </Functions>
 
@@ -62,10 +62,10 @@
       <integralType>MonteCarlo</integralType>
       <target>decision</target>
       <variable name="v0">
-        <distribution> vel_dist </distribution>
+        <distribution class="Distributions" type="Normal"> vel_dist </distribution>
       </variable>
       <variable name="angle">
-        <distribution> angle_dist </distribution>
+        <distribution class="Distributions" type="Uniform"> angle_dist </distribution>
       </variable>
     </PostProcessor>
   </Models>
