@@ -62,9 +62,9 @@ class GradientBasedOptimizer(Optimizer):
     self.constraintHandlingPara      = {}              # Dict containing parameters for parameters related to constraints handling
     self.gradientNormTolerance       = 1.e-3           # tolerance on the L2 norm of the gradient
     self.gradDict                    = {}              # Dict containing information for gradient related operations
-    self.gradDict['numIterForAve'  ] = 1               # Number of iterations for gradient estimation averaging
-    self.gradDict['pertNeeded'     ] = 1               # Number of perturbation needed to evaluate gradient (globally, considering denoising)
-    self.paramDict['pertSingleGrad'] = 1               # Number of perturbation needed to evaluate a single gradient
+    self.gradDict['numIterForAve'  ] = 1               # Number of iterations for gradient estimation averaging, denoising number.
+    self.gradDict['pertNeeded'     ] = 1               # Number of perturbation needed to evaluate gradient (globally, considering denoising) for  example, pertNeeded =  dimension * 1(if not central differenc) * denoise in Finite Difference
+    self.paramDict['pertSingleGrad'] = 1               # Number of perturbation needed to evaluate a single gradient denoised points needed to evaluate gradient, eg, 1 for SPSA, dim for FD w/o central diff, 2*dim for central diff
     self.gradDict['pertPoints'     ] = {}              # Dict containing normalized inputs sent to model for gradient evaluation
     self.readyVarsUpdate             = {}              # Bool variable indicating the finish of gradient evaluation and the ready to update decision variables
     self.counter['perturbation'    ] = {}              # Counter for the perturbation performed.
@@ -73,6 +73,41 @@ class GradientBasedOptimizer(Optimizer):
     self.counter['varsUpdate'      ] = {}
     self.counter['solutionUpdate'  ] = {}
     self.counter['lastStepSize'    ] = {}              # counter to track the last step size taken, by trajectory
+    # line search parameters used in dcsrch function inside minpack2 from Scipy
+    self.counter['iSave']            = {}              # integer work array of dimension 2 for line search in scipy minpack2
+                                                       # isave(1): whether a minimizer has been bracketed in an interval with endpoints
+                                                       # isave(2): whether a lower function value has been obtained
+
+    self.counter['dSave']            = {}              # double precision work array of dimension 13 for line search, this array store the previous line search results as:
+                                                       # dsave(1): derivative of the problem at previous step
+                                                       # dsave(2) nonnegative tolerance for the sufficient decrease condition on gradient calculation
+                                                       # dsave(3) derivative at the best step on variables
+                                                       # dsave(4) derivative at best residuals;
+                                                       # dsave(5) value of the problem at step
+                                                       # dsave(6) velue of the problem at best step
+                                                       # dsave(7) value of the problem at second best step
+                                                       # dsave(8) best step obtained so far, endpoint of the interval that contains the minimizer.
+                                                       # dsave(9) second endpoint of the interval that contains the minimizer.
+                                                       # dsave(10) minimum step in line search
+                                                       # dsave(11) maximum step in line search
+                                                       # dsave(12) range of the step
+                                                       # dsave(13) range to decide if a bisection step is needed
+    self.counter['task']             = {}              # bite string for the task in line search, initial entry task must be set to 'START', at the end of each line search exit with convergence, a warning or an error
+
+    # Conjugate gradient parameters
+    self.counter['gtol']             = {}              # specifies a nonnegative tolerance for the curvature condition in conjugate gradient calculation
+    self.counter['xk']               = {}              # ndarray, best optimal point as an array for conjugate gradient calculation
+    self.counter['gfk']              = {}              # ndarray, gradient value as an array for current point in searching the strong wolfe condition in conjugate calculation
+    self.counter['pk']               = {}              # ndarray, search direction in searching the strong wolfe condition in conjugate calculation
+    self.counter['newFVal']          = {}              # float, function value for a new optimal point
+    self.counter['oldFVal']          = {}              # float, function value for last optimal point
+    self.counter['oldOldFVal']       = {}              # float, function value for penultimate optimal point
+    self.counter['oldGradK']         = {}              # ndarry, gradient value as an array for current best optimal point
+    self.counter['gNorm']            = {}              # float, norm of the current grendient
+    self.counter['deltaK']           = {}              # float, inner product of the current gradient for calculation of the Polak–Ribière stepsize
+    self.counter['derPhi0']          = {}              # float, objective function derivative at each begining of the line search
+    self.counter['alpha']            = {}              # float, stepsize for conjugate gradient method in current dirrection
+
     self.convergeTraj                = {}
     self.convergenceProgress         = {}              #tracks the convergence progress, by trajectory
     self.trajectoriesKilled          = {}              # by traj, store traj killed, so that there's no mutual destruction
@@ -81,7 +116,8 @@ class GradientBasedOptimizer(Optimizer):
     self.gainShrinkFactor            = 2.              # max step shrinking factor
     self.optPointIndices             = []              # in this list we store the indeces that correspond to the opt point
     self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation.
-
+    self.useCentralDiff              = False            # whether to use central differencing
+    self.useGradHist                 = False            # whether to use Gradient hisory
     # REWORK 2018-10 for simultaneous point-and-gradient evaluations
     self.realizations                = {}    # by trajectory, stores the results obtained from the jobs running, see setupNewStorage for structure
 
@@ -115,6 +151,19 @@ class GradientBasedOptimizer(Optimizer):
         self.gainShrinkFactor = float(gainShrinkFactor.text) if gainShrinkFactor is not None else 2.0
       except ValueError:
         self.raiseAnError(ValueError, 'Not able to convert <gainShrinkFactor> into a float.')
+
+      centralDiff = convergence.find('centralDifference')
+      try:
+        self.useCentralDiff = (centralDiff.text.strip().lower() in utils.stringsThatMeanTrue()) if centralDiff is not None else False
+      except ValueError:
+        self.raiseAnError(ValueError, 'Not able to convert <centralDifference> into a boolean.')
+
+      useGradHist = convergence.find('useGradientHistory')
+      try:
+        self.useGradHist = (useGradHist.text.strip().lower() in utils.stringsThatMeanTrue()) if centralDiff is not None else False
+      except ValueError:
+        self.raiseAnError(ValueError, 'Not able to convert <useGradientHistory> into a boolean.')
+
       self.raiseADebug('Gain growth factor is set at',self.gainGrowthFactor)
       self.raiseADebug('Gain shrink factor is set at',self.gainShrinkFactor)
     self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
@@ -133,6 +182,21 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['gradientHistory'][traj]  = [{},{}]
       self.counter['gradNormHistory'][traj]  = [0.0,0.0]
       self.counter['persistence'][traj]      = 0
+      self.counter['iSave'][traj]            = np.zeros((2,), np.intc)
+      self.counter['dSave'][traj]            = np.zeros((13,), float)
+      self.counter['task'][traj]             = b'START'
+      self.counter['gtol'][traj]             = 1e-08
+      self.counter['xk'][traj]               = None
+      self.counter['gfk'][traj]              = None
+      self.counter['pk'][traj]               = None
+      self.counter['newFVal'][traj]          = None
+      self.counter['oldFVal'][traj]          = None
+      self.counter['oldOldFVal'][traj]       = None
+      self.counter['oldGradK'][traj]         = None
+      self.counter['gNorm'][traj]            = None
+      self.counter['deltaK'][traj]           = None
+      self.counter['derPhi0'][traj]          = None
+      self.counter['alpha'][traj]            = None
       self.optVarsHist[traj]                 = {}
       self.readyVarsUpdate[traj]             = False
       self.convergeTraj[traj]                = False
@@ -198,6 +262,7 @@ class GradientBasedOptimizer(Optimizer):
     except IndexError:
       pass # don't have a history on the first pass
     self.counter['gradientHistory'][traj][0] = gradient
+
     return gradient
 
   def finalizeSampler(self,failedRuns):
@@ -275,16 +340,20 @@ class GradientBasedOptimizer(Optimizer):
       self._setupNewStorage(traj)
     else:
       # update self.realizations dictionary for the right trajectory
-      # is this point an "opt" or a "grad" evaluations?
-      category, number = self._identifierToLabel(identifier)
+      # category: is this point an "opt" or a "grad" evaluations?
+      # number is which variable is being perturbed, ie which dimension 0 indexed
+      category, number, _, cdId = self._identifierToLabel(identifier)
+      # done is whether the realization finished
+      # index: where is it in the dataObject
       # find index of sample in the target evaluation data object
       done, index = self._checkModelFinish(str(traj), str(step), str(identifier))
       # sanity check
       if not done:
         self.raiseAnError(RuntimeError,'Trying to collect "{}" but identifies as not done!'.format(prefix))
       # store index for future use
+      # number is the varID
+      number = number + (cdId * len(self.fullOptVars))
       self.realizations[traj]['collect'][category][number].append(index)
-
       # check if any further action needed because we have all the points we need for opt or grad
       if len(self.realizations[traj]['collect'][category][number]) == self.realizations[traj]['need']:
         # get the output space (input space included as well)
@@ -297,7 +366,6 @@ class GradientBasedOptimizer(Optimizer):
           converged = self._finalizeOptimalCandidate(traj,outputs)
         else:
           converged = False
-
         # if both opts and grads are now done, then we can do an evaluation
         ## note that by now we've ALREADY accepted the point; if it was rejected, it would have been reset by now.
         optDone = bool(len(self.realizations[traj]['denoised']['opt'][0]))
@@ -561,11 +629,19 @@ class GradientBasedOptimizer(Optimizer):
     """
     if identifier in self.perturbationIndices:
       category = 'grad'
-      number = (identifier-1) % self.paramDict['pertSingleGrad']
+      pertPerVar = self.paramDict['pertSingleGrad'] // (1+self.useCentralDiff)
+      varId = (identifier - self.gradDict['numIterForAve']) % pertPerVar
+      denoId = (identifier - self.gradDict['numIterForAve'])// self.paramDict['pertSingleGrad']
+      # for cdId 0 is the first cdID 1 is the second side of central Diff
+      cdId = ((identifier - self.gradDict['numIterForAve'])// pertPerVar) % len(self.fullOptVars)
+      if not self.useCentralDiff:
+        cdId = 0
     else:
       category = 'opt'
-      number = 0
-    return category,number
+      varId = 0
+      denoId = identifier
+      cdId = 0
+    return category, varId, denoId, cdId
 
   def localCheckConstraint(self, optVars, satisfaction = True):
     """
@@ -599,6 +675,7 @@ class GradientBasedOptimizer(Optimizer):
       #entries into the queue are as {'inputs':{var:val}, 'prefix':runid} where runid is <traj>_<varUpdate>_<evalNumber> as 0_0_2
       nPoint = {'inputs':copy.deepcopy(point)} #deepcopy to prevent simultaneous alteration
       nPoint['prefix'] = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) # from 0 to self.gradDict['numIterForAve'] are opt point evals
+      # this submission queue only have the denoise number of opt point
       self.submissionQueue[traj].append(nPoint)
 
   def _removeRedundantTraj(self, trajToRemove, currentInput):
@@ -683,12 +760,14 @@ class GradientBasedOptimizer(Optimizer):
       self.realizations[traj]['denoised']['opt'] = den
       self.realizations[traj]['accepted'] = True
 
-  def _updateConvergenceVector(self, traj, varsUpdate, currentPoint):
+  def _updateConvergenceVector(self, traj, varsUpdate, currentPoint, conj=False):
     """
       Local method to update convergence vector.
       @ In, traj, int, identifier of the trajector to update
       @ In, varsUpdate, int, current variables update iteration number
+      @ In, conj, bool, optional, indentify whether using conjugate greadient to check convergence, if true then do not clear the presistance
       @ In, currentPoint, float, candidate point for optimization path
+
       @ Out, accepted, True if point was rejected otherwise False
     """
     # first, check if we're at varsUpdate 0 (first entry); if so, we are at our first point
@@ -798,7 +877,8 @@ class GradientBasedOptimizer(Optimizer):
       else:
         self.raiseAMessage(' ... converged Traj "{}" {} times, required persistence is {}.'.format(traj,self.counter['persistence'][traj],self.convergencePersistence))
     else:
-      self.counter['persistence'][traj] = 0
+      if not conj:
+        self.counter['persistence'][traj] = 0
       self.raiseAMessage(' ... continuing trajectory "{}".'.format(traj))
     return newerIsBetter
 

@@ -8,17 +8,188 @@
 % by just editing a template sentence or paragraph.
 \renewcommand{\nameDescription}
 {
-  \xmlAttr{name},
-  \xmlDesc{required string attribute}, user-defined name of this optimizer.
-  \nb As with other objects, this identifier can be used to reference this
-  specific entity from other input blocks in the XML.
+  \xmlAttr{name}, \xmlDesc{string, required parameter}, user-defined name of this optimizer. \nb As for the other objects, this is
+the name that can be used to refer to this specific entity from other input blocks (xml);
 }
 \renewcommand{\specBlock}[2]
 {
   The specifications of this optimizer must be defined within #1 \xmlNode{#2} XML
   block.
 }
+\newcommand{\optimizerSequence}[1]{implementation of \textbf{#1} can also handles
+constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the
+constraints. When when updating the variables (not perturbing), if constraint is violated, \textbf{#1} does the following in
+sequence:
+\begin{itemize}
+\item Try to find, through bisection method, the longest fraction of gradient vector so that the variable update satisfies the
+constraints;
+\item When such fraction cannot be found, then find a random vector orthogonal to gradient vector so that, by using this
+orthogonal vector as gradient, the variable update satisfies the constraints. Rotate the orthogonal vector towards the gradient,
+through bisection methods, until constraints can no longer be satisfied;
+\item If all above cannot return a constraint satisfying variable update, then do not update the variables and the \textbf{#1} will
+terminate.
+\end{itemize}}
+\newcommand{\objectiveDescription}[1]{In the \xmlNode{#1} input block, the user needs to specify the objective variable to be optimized, the decision variables, the
+DataObject storing previously performed model evaluations, as well as convergence criteria. In addition, the settings for this
+optimization can be specified in the \xmlNode{initialization} and \xmlNode{parameter} XML blocks:}
 
+
+\newcommand{\initialization}{ \xmlNode{initialization},  \xmlDesc{XML node, optional field}. In this xml-node,the following xml sub-nodes can be
+specified:}
+\newcommand{\limit}{\xmlNode{limit}, \xmlDesc{integer,optional field}, number of samples to be generated, which is same as the number of
+    model evaluations. \default{2000}.}
+\newcommand{\initialSeed}{\xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator for stochastic
+    perturbations;}
+\newcommand{\type}{\xmlNode{type},  \xmlDesc{string (case insensitive), optional field}, specifies whether this optimizer performs maximization
+    or minimization. Available options are \xmlString{max} and \xmlString{min}.
+    \default{Min};}
+\newcommand{\thresholdTrajRemoval}{\xmlNode{thresholdTrajRemoval}, \xmlDesc{float, optional field}, this will be used to determine the convergence of different
+    optimization trajectories on each other when multiple trajectories is handled by \xmlNode{FiniteDifference}.  When one
+    trajectory comes within tolerance of a point on another trajectory, the first will be removed in interest
+    of the second.  Note that this value is
+    calculated as Euclidean distance in a normalized 0 to 1 cubic domain, not the original input space domain.
+    \default{0.05}}
+\newcommand{\writeSteps}{\xmlNode{writeSteps},  \xmlDesc{string, optional field}, specifies how often the current optimal
+      point should be stored to the solution export.  Options are \xmlString{every}, in which case each new
+      optimal point will be stored in the solution export; or \xmlString{final}, in which case only the most
+      optimal point found during the simulation will be stored in the solution export.
+    \default{every};}
+
+
+
+
+\newcommand{\TargetEvaluation}[1]
+{\xmlNode{TargetEvaluation}, \xmlDesc{XML node, required parameter},
+represents the container where the model evaluations are stored.
+%
+From a practical point of view, this XML node must contain the name of a data object defined in the \xmlNode{DataObjects} block (see Section~\ref{sec:DataObjects}). The object here specified must be input as  \xmlNode{Output} in the Steps that employ this optimization strategy.
+%
+The \xmlNode{#1} optimizer accepts ``DataObjects'' of type ``PointSet'' only;}
+
+\newcommand{\objectVar}{\xmlNode{objectVar}, \xmlDesc{XML node, required parameter}. The objective variable to be optimized. This variable must be output of the DataObject specified in \xmlNode{TargetEvaluation}.}
+\newcommand{\samplerInOpt}{\xmlNode{Sampler}, \xmlDesc{XML node, optional parameter},represents a Sampler that can be used to initialize the starting points for the trajectories of some of the variables. From a practical point of view, this XML node must contain the name of a Sampler defined in the \xmlNode{Samplers} block (see Section~\ref{subsec:onceThroughSamplers}). The Sampler will be used to initialize the trajectories' initial points for some of the variables. For example, if the Sampler here specified ``samples'' only 2 variables over 5, the  \xmlNode {initial} XML node (see below) is required only for the remaining 3 variables.}
+\newcommand{\functionInOpt}{\xmlNode{Function}, \xmlDesc{XML node, optional parameter}, indicates the external function where the constraints are stored. From a practical point of view, this XML node must contain the name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}). This external function must contain a method called ``constrain'', which returns 1 for inputs satisfying the constraints and 0 otherwise.}
+\newcommand{\Preconditioner}{\xmlNode{Preconditioner}, \xmlDesc{XML node, optional parameter},
+  provides a model that can be used as a preconditioner in Multilevel optimization
+  calculations.  Only affects optimizers with a \xmlNode{multilevel} node.  As many preconditioners as desired can be added to the optimizer, each defined with a \xmlNode{Preconditioner} node.
+  %
+  From a practical point of view, this XML node must contain the name of an \xmlNode{ExternalModel} defined in the \xmlNode{Models} block (see Section~\ref{subsec:models_externalModel}).
+  %
+  In multilevel optimization, the preconditioner is attached to a particular subspace.  Whenever subspaces that are ``higher'' (early in \xmlNode{sequence}) are perturbed, before moving to a lower subspace, the preconditioner will be called to provide a new value for each variable in the lower subspace.
+  %
+  For example, if an input space is divided into one subspace \xmlString{subx} with the input variable $x$ and another subspace \xmlString{suby} with input variable $y$, and if the sequence is specified as \xmlString{subx,suby}, and a preconditioner is attached to subspace \xmlString{suby}, then when a step is taken for subspace \xmlString{subx}, the preconditioner will provide a new value for $y$ before starting a convergence search for $y$.}
+
+\newcommand{\multilevel}{\xmlNode{multilevel}, \xmlDesc{XML node, optional node}, engages the optimizer in \emph{multilevel}
+  mode.  When in multilevel mode, the input space is divided into multiple subspaces.  The subspaces are
+  then aligned in a sequence, and optimizing follows the following procedure:
+  \begin{enumerate}
+    \item Hold all variable values in all subspaces constant EXCEPT the last subspace in the sequence.
+    \item Converge the optimizer considering only input variables in the last listed subspace.
+    \item Hold all variables in the last subspace constant, and take a single optimizing step in the
+      second-to-last subspace.
+    \item If the second to last subspace is converged, go up one more subspace and take a step, then
+      repeat the process thus far.
+    \item If the second to last subspace is not converged, go back to the last subspace and converge it
+      again.
+    \item Et cetera.
+  \end{enumerate}
+  Once the outermost subspace is converged, the entire space is considered converged.
+  %
+  Note that multilevel optimization is not in general better than not using it.  Multilevel works
+  especially well when some variables in the input space are connected and have relatively
+  difficult-to-converge optimization, while other variables in the input space are easily converged.  In
+  this case, the difficult-to-converge variables should make up the last subspace in the sequence, while
+  the easily-converging variables should make up the outer subspace.
+  %
+  RAVEN places no limit on the
+  number of subspaces that are defined, but each variable should only exist in a single subspace.
+  %
+  The \xmlNode{multilevel} node requires the definition of subspaces and the sequence as follows:
+  \begin{itemize}
+    \item \xmlNode{sequence}, \xmlDesc{comma-separated string, required parameter}, lists the order in
+      which subspaces should be converged.  Each subspace is listed as identified by its \xmlAttr{name}
+      parameter in the \xmlNode{subspace} definition.  Note that the first subspace listed will be the
+      slowest to converge and converge only once, and the last subspace listed will be converged
+      frequently and quickly.
+    \item \xmlNode{subspace}, \xmlDesc{comma-separated string, required parameter}, lists the variables
+      included in this subspace.  This node additionally has the following attributes:
+      \begin{itemize}
+        \item \xmlAttr{name}, \xmlDesc{string, require parameter}, provides the identifier that RAVEN
+          will use for this subspace group, both in the \xmlNode{sequence} node as well as in log
+          prints.
+        \item \xmlAttr{precond}, \xmlDesc{model name, optional parameter}, provides the option to attach
+          a preconditioner to this subset, chosen from the \xmlNode{Preconditioner} nodes defined within
+          the optimzer, and identified by the text of those nodes.  See the documentation for the
+          preconditioner node above for details on how they affect the calculation flow.
+      \end{itemize}
+  \end{itemize}}
+
+\newcommand{\variableAttribute}[1]{
+    \item \xmlNode{upperBound}, \xmlDesc{float, required field}, the upper bound of this variable;
+    \item \xmlNode{lowerBound}, \xmlDesc{float, required field}, the lower bound of this variable;
+    \item \xmlNode{initial}, \xmlDesc{comma separated strings, optional field}, the initial value(s) for this variable. If there are more
+    than one initial values specified for a variable, then all the variables need to have the same number of initial values. In this case,
+    \xmlNode{#1} optimizer will maintain multiple trajectories to fully utilize potential parallel computing capability.
+    Every input variable must have an initial value specified either through this node, or through a
+    preconditioner in multilevel optimization or through a linked Sampler (see above).}
+\newcommand{\convergence}{\xmlNode{convergence}, \xmlDesc{XML node, optional field} will specify parameters associated with optimization convergence. This node accepts the following sub-nodes:}
+\newcommand{\iterationLimit}{\xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations. \default{650}.}
+\newcommand{\persistence}{\xmlNode{persistence}, \xmlDesc{integer, optional field}, number of consecutive successful convergences required before completing calculation (per trajectory). Any value less than 1 will be treated as 1.  Float values are rounded down to the nearest integer. \default{1}.}
+\newcommand{\relativeThreshold}{\xmlNode{relativeThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality
+  in a ``relative'' sense: when the relative change of the objective variable in two successive model evaluations is smaller than
+  this specified threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
+      \default{1e-3}}
+\newcommand{\absoluteThreshold}{\xmlNode{absoluteThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality,
+  in an ``absolute'' sense: when the absolute change of objective variable in two successive model evaluations is smaller
+  than this specified threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
+      \default{0.0}}
+\newcommand{\minStepSize}{\xmlNode{minStepSize}, \xmlDesc{float, optional field}, specifies the minimum allowable step size in the normalized input space, ranging from 0 (no movement) to 1 (spans any dimension).
+    \default{1e-9}}
+\newcommand{\gainGrowthFactor}{\xmlNode{gainGrowthFactor}, \xmlDesc{float, optional field}, specifies the rate at which the step size should grow when it does grow, for instance when multiple steps are in the same direction.  Increasing this will increase the likelihood that an optimization path travels quickly across the domain along a consistent gradient.
+      \default{2}}
+\newcommand{\gainShrinkFactor}{\xmlNode{gainShrinkFactor}, \xmlDesc{float, optional field}, specifies the rate at which the step size
+    should shrink when it does shrink, for instance when switching directions on successive steps.  Increasing
+    this will slow convergence, but decrease the likelihood of achieving false convergence due to small step
+    sizes.
+      \default{same value as gainGrowthFactor}}
+\newcommand{\centralDifference}{\xmlNode{centralDifference}, \xmlDesc{boolean, optional field}, specifies the method of gradient calculation, if True,
+  central difference is activated. If False, the gradient calculation is alternating forward and backward difference from an iteration and the other. For example, in the first interation, $\frac{f(x+h)-f(x)}{h}$ will be used as the gradient function, second iteration will take $\frac{f(x)-f(x-h)}{h}$ as the gradient function, next iteration will alternate to $\frac{f(x+h)-f(x)}{h}$ again.
+  \default{False}}
+
+\newcommand{\parameter}{\xmlNode{parameter}, \xmlDesc{XML node, optional field} will accepts the following sub-nodes:}
+\newcommand{\numGradAvgIterations}{\xmlNode{numGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation. When this
+        parameter is $>1$, multiple gradient evaluations are going to be performed. Since the main goal for this parameter is to
+        get a better gradient estimation (performing a denoising), the current point $x_k$ is evaluated multiple times in order to be able to
+        converge in average.
+        \default{1}}
+\newcommand{\initialStepSize}{ \item \xmlNode{initialStepSize}, \xmlDesc{float, optional field} Measure of the optimizer's initial step
+    size, measured as a percent of the length of any one dimension. The actual step size in the normalized
+    unit hypercube is calculated as the hyperdiagonal of a hypercube with side lengths equal to the given
+    value. For example, for a two-dimensional problem and a \texttt{initialStepSize} of 0.10, the full initial
+    step size will be the diagonal of a two-dimensional square with side lengths of 0.10, or roughly 0.14
+    total. It is recommended this value be between 0.05 and 0.20, but is highly dependent on the problem.
+     \default{0.05}}
+\newcommand{\perturbationDistance}{\xmlNode{perturbationDistance}, \xmlDesc{float, optional field} Distance from a point at which the
+    response should be evaluated in order to determine the local gradient, measured as a percent of the
+    current step size. This distance should be near enough to the optimal point to avoid significant changes
+    in the response topology while far enough away to provide meaningful gradient information. It is
+    recommended this number be between 1E-7 and 1E-2, but is dependent on the problem.
+     \default{0.01}}
+\newcommand{\innerBisectionThreshold}{\xmlNode{innerBisectionThreshold}, \xmlDesc{float, optional field} a parameter specifying the convergence threshold of the
+  bisection method used in constraint handling (See above). This parameter shall be in the open inverval $(0,1)$.
+  \default{0.01}}
+\newcommand{\innerLoopLimit}{\xmlNode{innerLoopLimit}, \xmlDesc{integer, optional field} a parameter specifying the number of orthogonal vectors to try
+  when handling the constraints (See above).
+  \default{1000}}
+\newcommand{\stochasticDistribution}{\xmlNode{stochasticDistribution}, \xmlDesc{string, optional field} determines the process used to find gradient evaluation perturbation points as part of SPSA. Choice include the following:
+  \begin{itemize}
+    \item \xmlString{Hypersphere}, which chooses from all possible directions with equal probability,
+    \item \xmlString{Bernoulli}, which limits directions closely to the diagonal directions (corners ofa hypercube).
+  \end{itemize}
+  \default{Hypersphere}}
+\newcommand{\useGradientHistory}{\xmlNode{useGradientHistory}, \xmlDesc{boolean, optional field}, if True, then save previous searching directions to determine a new
+    searching direction, this option can be computationally expensive.
+    \default{False}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -62,11 +233,13 @@ The Gradient Based Optimizer category collects all the strategies that perform t
  category are:
 \begin{itemize}
 \item \textbf{Simultaneous Perturbation Stochastic Approximation (SPSA)}
-\item \textbf{Finite Difference Gradient Optimizer Forward (FiniteDifferenceGradientOptimizer)}
+\item \textbf{Finite Difference Gradient Optimizer (FiniteDifference)}
+\item \textbf{Conjugate Difference Gradient Optimizer (ConjugateGradient)}
+
 \end{itemize}
 
 From a practical point of view, these optimization strategies represent different ways to estimate the gradient based on information
-from previously performed model evaluation. In the following paragraphs, the input requirements and a small explanation of the
+from previously performed model evaluations. In the following paragraphs, the input requirements and a small explanation of the
 different sampling methodologies are reported.
 
 Note that in addition to the input variables and response variable as well as other model outputs, several
@@ -140,25 +313,11 @@ idea is to simultaneously perturb all decision variables in order to estimate th
 model evaluations are required in order to approximate the gradient. The theory behind SPSA can be found in
 \cite{spall1998implementation}, although note a significant number of modifications have been made to
 accelerate this scheme within RAVEN.
-
-In addition to the algorithm in \cite{spall1998implementation}, current implementation of \textbf{SPSA} can also handles
-constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the
-constraints. When when updating the variables (not perturbing), if constraint is violated, \textbf{SPSA} does the following in
-sequence:
-\begin{itemize}
-\item Try to find, through bisection method, the longest fraction of gradient vector so that the variable update satisfies the
-constraints;
-\item When such fraction cannot be found, then find a random vector orthogonal to gradient vector so that, by using this
-orthogonal vector as gradient, the variable update satisfies the constraints. Rotate the orthogonal vector towards the gradient,
-through bisection methods, until constraints can no longer be satisfied;
-\item If all above cannot return a constraint satisfying variable update, then do not update the variables and the \textbf{SPSA} will
-terminate.
-\end{itemize}
+In addition to the algorithm in \cite{spall1998implementation}, current \optimizerSequence{SPSA}
 
 It is important to notice that the gradient and the feature space is always normalized. This means that the gradient is going to be
 normalized with respect to its norm (versor of the gradient); hence, the optimization advancement is not going to be influenced by the
-magnitude of the gradient, but just on its ``direction'' information content. All the following parameters that can be optionally be inputted
-should be calibrated with this information in mind.
+magnitude of the gradient, but just on its ``direction'' information content. All the following parameters, which can be optionally be inputted, should be calibrated with this information in mind.
 %
 
 \specBlock{a}{SPSA}
@@ -167,209 +326,56 @@ should be calibrated with this information in mind.
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this optimizer. \nb As for the other objects, this is
-the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-
-In the \xmlNode{SPSA} input block, the user needs to specify the objective variable to be optimized, the decision variables, the
-DataObject storing previously performed model evaluation, as well as convergence criteria. In addition, the settings for this
-optimization can be specified in the \xmlNode{initialization} and \xmlNode{parameter} XML blocks:
+\objectiveDescription{SPSA}
 \begin{itemize}
-\item \xmlNode{initialization},  \xmlDesc{XML node, optional parameter}. In this xml-node,the following xml sub-nodes can be
+\item \xmlNode{initialization},  \xmlDesc{XML node, optional field}. In this xml-node,the following xml sub-nodes can be
 specified:
   \begin{itemize}
-    \item \xmlNode{limit}, \xmlDesc{integer,optional field}, number of samples to be generated, which is same as the number of
-    model evaluation. \default{2000}.
-    \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator for stochastic
-    perturbations;
-    \item \xmlNode{type},  \xmlDesc{string (case insensitive), optional field}, specifies whether this optimizer performs maximization
-    or minimization. Available options are \xmlString{max} and \xmlString{min}.
-    \default{Min};
-    \item \xmlNode{thresholdTrajRemoval}, \xmlDesc{float, optional field}, this will be used to determine the convergence of different
-    optimization trajectories on each other when multiple trajectories is handled by \xmlNode{SPSA}.  When one
-    trajectory comes within tolerance of a point on another trajectory, the first will be removed in interest
-    of the second.  Note that this value is
-    calculated as Euclidean distance in a normalized 0 to 1 cubic domain, not the original input space domain.
-    \default{0.05}
-    \item \xmlNode{writeSteps},  \xmlDesc{string, optional field}, specifies how often the current optimal
-      point should be stored to the solution export.  Options are \xmlString{every}, in which case each new
-      optimal point will be stored in the solution export; or \xmlString{final}, in which case only the most
-      optimal point found during the simulation will be stored in the solution export.
-    \default{every};
+    \item \limit
+    \item \initialSeed
+    \item \type
+    \item \thresholdTrajRemoval
+    \item \writeSteps
 
   \end{itemize}
 \end{itemize}
 \begin{itemize}
-\item \xmlNode{TargetEvaluation}, \xmlDesc{XML node, required parameter},
-        represents the container where the model evaluations are stored.
-        %
-        From a practical point of view, this XML node must contain the name of
-        a data object defined in the \xmlNode{DataObjects} block (see
-        Section~\ref{sec:DataObjects}). The object here specified must be
-        input as  \xmlNode{Output} in the Steps that employ this optimization strategy.
-        %
-        The \xmlNode{SPSA} optimizer accepts ``DataObjects'' of type ``PointSet'' only;
-        \item \xmlNode{objectVar}, \xmlDesc{XML node, required parameter}. The objective variable to be optimized. This variable must be
-          output of the DataObject specified in \xmlNode{TargetEvaluation}.
-\item \xmlNode{Sampler}, \xmlDesc{XML node, optional parameter},
-        represents a Sampler (Forward) that can be used to initialize the starting points for the trajectories of some of the variables.
-        %
-        From a practical point of view, this XML node must contain the name of
-        a Sampler (Forward) defined in the \xmlNode{Samplers} block (see
-        Section~\ref{subsec:onceThroughSamplers}). The Sampler will be used to initialize the trajectories' initial points for some
-        of the variables. For example, if the Sampler here specified ``samples'' only 2 variables over 5, the  \xmlNode{initial} XML node (see below) is required
-        only for the remaining 3 variables.
-\item \xmlNode{Function}, \xmlDesc{XML node, optional parameter},
-        indicates the external function where the constraints are stored. From a practical point of view, this XML node must contain the
-        name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}). This external function must
-        contain a method called ``constrain'', which returns 1 for inputs satisfying the constraints and 0 otherwise.
-\item \xmlNode{Preconditioner}, \xmlDesc{XML node, optional parameter},
-        provides a model that can be used as a preconditioner in Multilevel optimization
-        calculations.  Only
-        affects optimizers with a \xmlNode{multilevel} node.  As many preconditioners as
-        desired can be added
-        to the optimizer, each defined with a \xmlNode{Preconditioner} node.
-        %
-        From a practical point of view, this XML node must contain the name of
-        an \xmlNode{ExternalModel} defined in the \xmlNode{Models} block (see
-        Section~\ref{subsec:models_externalModel}).
-        %
-        In multilevel optimization, the preconditioner is attached to a particular subspace.  Whenever
-        subspaces that are ``higher'' (early in \xmlNode{sequence}) are perturbed, before moving to a lower
-        subspace, the preconditioner will be called to provide a new value for each variable in the lower
-        subspace.
-        %
-        For example, if an input space is divided into one subspace \xmlString{subx} with the input variable $x$ and
-        another subspace \xmlString{suby} with input variable $y$, and if the sequence is specified as
-        \xmlString{subx,suby}, and a preconditioner is attached to subspace \xmlString{suby}, then when a step
-        is taken for subspace \xmlString{subx}, the preconditioner will provide a new value for $y$ before
-        starting a convergence search for $y$.
-\item \xmlNode{multilevel}, \xmlDesc{XML node, optional node}, engages the optimizer in \emph{multilevel}
-        mode.  When in multilevel mode, the input space is divided into multiple subspaces.  The subspaces are
-        then aligned in a sequence, and optimizing follows the following procedure:
-        \begin{enumerate}
-          \item Hold all variable values in all subspaces constant EXCEPT the last subspace in the sequence.
-          \item Converge the optimizer considering only input variables in the last listed subspace.
-          \item Hold all variables in the last subspace constant, and take a single optimizing step in the
-            second-to-last subspace.
-          \item If the second to last subspace is converged, go up one more subspace and take a step, then
-            repeat the process thus far.
-          \item If the second to last subspace is not converged, go back to the last subspace and converge it
-            again.
-          \item Et cetera.
-        \end{enumerate}
-        Once the outermost subspace is converged, the entire space is considered converged.
-        %
-        Note that multilevel optimization is not in general better than not using it.  Multilevel works
-        especially well when some variables in the input space are connected and have relatively
-        difficult-to-converge optimization, while other variables in the input space are easily converged.  In
-        this case, the difficult-to-converge variables should make up the last subspace in the sequence, while
-        the easily-converging variables should make up the outer subspace.
-        %
-        RAVEN places no limit on the
-        number of subspaces that are defined, but each variable should only exist in a single subspace.
-        %
-        The \xmlNode{multilevel} node requires the definition of subspaces and the sequence as follows:
-        \begin{itemize}
-          \item \xmlNode{sequence}, \xmlDesc{comma-separated string, required parameter}, lists the order in
-            which subspaces should be converged.  Each subspace is listed as identified by its \xmlAttr{name}
-            parameter in the \xmlNode{subspace} definition.  Note that the first subspace listed will be the
-            slowest to converge and converge only once, and the last subspace listed will be converged
-            frequently and quickly.
-          \item \xmlNode{subspace}, \xmlDesc{comma-separated string, required parameter}, lists the variables
-            included in this subspace.  This node additionally has the following attributes:
-            \begin{itemize}
-              \item \xmlAttr{name}, \xmlDesc{string, require parameter}, provides the identifier that RAVEN
-                will use for this subspace group, both in the \xmlNode{sequence} node as well as in log
-                prints.
-              \item \xmlAttr{precond}, \xmlDesc{model name, optional parameter}, provides the option to attach
-                a preconditioner to this subset, chosen from the \xmlNode{Preconditioner} nodes defined within
-                the optimzer, and identified by the text of those nodes.  See the documentation for the
-                preconditioner node above for details on how they affect the calculation flow.
-            \end{itemize}
-        \end{itemize}
-
+\item \TargetEvaluation{SPSA}
+\item \objectVar
+\item \samplerInOpt
+\item \functionInOpt
+\item \Preconditioner
+\item \multilevel
 \end{itemize}
 \begin{itemize}
 \item \variableDescription
  The variable specified here must be input of the DataObject specified in \xmlNode{TargetEvaluation}.
  \variableChildrenIntro
  \begin{itemize}
-    \item \xmlNode{upperBound}, \xmlDesc{float, required field}, the upper bound of this variable;
-    \item \xmlNode{lowerBound}, \xmlDesc{float, required field}, the lower bound of this variable;
-    \item \xmlNode{initial}, \xmlDesc{comma separated strings, optional field}, the initial value(s) for this variable. If there are more
-    than one initial values specified for a variable, then all the variables need to have the same number of initial values. In this case,
-    \xmlNode{SPSA} optimizer will maintain multiple trajectories to fully utilize potential parallel computing capability.
-    Every input variable must have an initial value specified either through this node, or through a
-    preconditioner in multilevel optimization or through a linked Sampler (see above).
-  \end{itemize}
+  \variableAttribute{SPSA}
+ \end{itemize}
 \item \constantVariablesDescription
-\item \xmlNode{convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization
-convergence. This node accepts the following sub-nodes:
+\item \convergence
   \begin{itemize}
-  \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations. \default{650}.
-  \item \xmlNode{persistence}, \xmlDesc{integer, optional field}, number of consecutive successful
-    convergences required before completing calculation (per trajectory). Any value less than 1 will be
-    treated as 1.  Float values are rounded down to the nearest integer. \default{1}.
-  \item \xmlNode{relativeThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality
-  in a ``relative'' sense: when the relative change of the objective variable in two successive model evaluations is smaller than
-  this specified threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
-      \default{1e-3}
-  \item \xmlNode{absoluteThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality,
-  in an ``absolute'' sense: when the absolute change of objective variable in two successive model evaluations is smaller
-  than this specified threshold, the \xmlNode{SPSA} optimizer is in convergence and terminates the simulation.
-      \default{0.0}
-  \item \xmlNode{minStepSize}, \xmlDesc{float, optional field}, specifies the minimum allowable step size in
-    the normalized input space, ranging from 0 (no movement) to 1 (spans any dimension).
-      \default{1e-9}
-  \item \xmlNode{gainGrowthFactor}, \xmlDesc{float, optional field}, specifies the rate at which the step size
-    should grow when it does grow, for instance when multiple steps are in the same direction.  Increasing
-    this will increase the likelihood that an optimization path travels quickly across the domain along a
-    consistent gradient.
-      \default{2}
-  \item \xmlNode{gainShrinkFactor}, \xmlDesc{float, optional field}, specifies the rate at which the step size
-    should shrink when it does shrink, for instance when switching directions on successive steps.  Increasing
-    this will slow convergence, but decrease the likelihood of achieving false convergence due to small step
-    sizes.
-      \default{same value as gainGrowthFactor}
+  \item \iterationLimit
+  \item \persistence
+  \item \relativeThreshold
+  \item \absoluteThreshold
+  \item \minStepSize
+  \item \gainGrowthFactor
+  \item \gainShrinkFactor
   \end{itemize}
-\item \xmlNode{parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
+\item \parameter
   \begin{itemize}
-  \item \xmlNode{numGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation. When this
-        parameter is $>1$, multiple gradient evaluations are going to be performed. Since the main goal for this parameter is to
-        get a better gradient estimation (performing a denoising), the current point $x_k$ is evaluated multiple times in order to be able to
-        converge in average.
-        \default{1}
-
-  \item \xmlNode{stochasticDistribution}, \xmlDesc{string, optional field} determines the process used to find
-        gradient evaluation perturbation points as part of SPSA. Choice include the following:
-        \begin{itemize}
-          \item \xmlString{Hypersphere}, which chooses from all possible directions with equal probability,
-          \item \xmlString{Bernoulli}, which limits directions closely to the diagonal directions (corners of
-                                       a hypercube).
-        \end{itemize}
-        \default{Hypersphere}
-
-  \item \xmlNode{initialStepSize}, \xmlDesc{float, optional field} Measure of the optimizer's initial step
-    size, measured as a percent of the length of any one dimension. The actual step size in the normalized
-    unit hypercube is calculated as the hyperdiagonal of a hypercube with side lengths equal to the given
-    value. For example, for a two-dimensional problem and a \texttt{initialStepSize} of 0.10, the full initial
-    step size will be the diagonal of a two-dimensional square with side lengths of 0.10, or roughly 0.14
-    total. It is recommended this value be between 0.05 and 0.20, but is highly dependent on the problem.
-     \default{0.05}
-  \item \xmlNode{perturbationDistance}, \xmlDesc{float, optional field} Distance from a point at which the
-    response should be evaluated in order to determine the local gradient, measured as a percent of the
-    current step size. This distance should be near enough to the optimal point to avoid significant changes
-    in the response topology while far enough away to provide meaningful gradient information. It is
-    recommended this number be between 1E-7 and 1E-2, but is dependent on the problem.
-     \default{0.01}
-  \item \xmlNode{innerBisectionThreshold}, \xmlDesc{float, optional field} a parameter specifying the convergence threshold of the
-  bisection method used in constraint handling (See above). This parameter shall be in the open inverval $(0,1)$.
-        \default{0.01}
-  \item \xmlNode{innerLoopLimit}, \xmlDesc{integer, optional field} a parameter specifying the number of orthogonal vectors to try
-  when handling the constraints (See above).
-        \default{1000}
+  \item \numGradAvgIterations
+  \item \stochasticDistribution
+  \item \initialStepSize
+  \item \perturbationDistance
+  \item \innerBisectionThreshold
+  \item \innerLoopLimit
   \end{itemize}
 \end{itemize}
 
@@ -405,235 +411,77 @@ Example:
 </Optimizers>
 \end{lstlisting}
 
-%%% Gradient Based Optimizers: FiniteDifferenceGradientOptimizer
-\subsubsection{Finite Difference Gradient Optimizer (FiniteDifferenceGradientOptimizer)}
-\label{subsubsubsec:FiniteDifferenceGradientOptimizer}
-The \textbf{FiniteDifferenceGradientOptimizer} optimization approach is  the simplest Gradient based approach since it is based on the
+
+%%% Gradient Based Optimizers: FiniteDifference
+\subsubsection{Finite Difference Gradient Optimizer (FiniteDifference)}
+\label{subsubsubsec:FiniteDifference}
+The \textbf{FiniteDifference} optimization approach is  the simplest Gradient based approach since it is based on the
 first order evaluation of the Gradient.  A minimal number of $n variable$
 model evaluations are required in order to get a first order approximation of the gradient.
 
-Current implementation of \textbf{FiniteDifferenceGradientOptimizer} can also handles
-constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the
-constraints. When when updating the variables (not perturbing), if constraint is violated, \textbf{FiniteDifferenceGradientOptimizer} does the following in
-sequence:
-\begin{itemize}
-\item Try to find, through bisection method, the longest fraction of gradient vector so that the variable update satisfies the
-constraints;
-\item When such fraction cannot be found, then find a random vector orthogonal to gradient vector so that, by using this
-orthogonal vector as gradient, the variable update satisfies the constraints. Rotate the orthogonal vector towards the gradient,
-through bisection methods, until constraints can no longer be satisfied;
-\item If all above cannot return a constraint satisfying variable update, then do not update the variables and the \textbf{FiniteDifferenceGradientOptimizer} will
-terminate.
-\end{itemize}
+Current \optimizerSequence{FiniteDifference}
 
 It is important to notice that the gradient and the feature space is always normalized. This means that the gradient is going to be
 normalized with respect to its norm (versor of the gradient); hence, the optimization advancement is not going to be influenced by the
-magnitude of the gradient, but just on its ``direction'' information content. All the following parameters that can be optionally be inputted
-should be calibrated with this information in mind.
+magnitude of the gradient, but just on its ``direction'' information content. All the following parameters, which can be optionally be inputted, should be calibrated with this information in mind.
 %
 
-\specBlock{a}{FiniteDifferenceGradientOptimizer}
+\specBlock{a}{FiniteDifference}
 %
 \attrsIntro
 \vspace{-5mm}
 \begin{itemize}
 \itemsep0em
-\item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of this optimizer. \nb As for the other objects, this is
-the name that can be used to refer to this specific entity from other input blocks (xml);
+\item \nameDescription
 \end{itemize}
 \vspace{-5mm}
-
-In the \xmlNode{FiniteDifferenceGradientOptimizer} input block, the user needs to specify the objective variable to be optimized, the decision variables, the
-DataObject storing previously performed model evaluation, as well as convergence criteria. In addition, the settings for this
-optimization can be specified in the \xmlNode{initialization} and \xmlNode{parameter} XML blocks:
+\objectiveDescription{FiniteDifference}
 \begin{itemize}
-\item \xmlNode{initialization},  \xmlDesc{XML node, optional parameter}. In this xml-node,the following xml sub-nodes can be
-specified:
+\item \initialization
   \begin{itemize}
-    \item \xmlNode{limit}, \xmlDesc{integer,optional field}, number of samples to be generated, which is same as the number of
-    model evaluation. \default{2000}.
-    \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator for stochastic
-    perturbations;
-    \item \xmlNode{type},  \xmlDesc{string (case insensitive), optional field}, specifies whether this optimizer performs maximization
-    or minimization. Available options are \xmlString{max} and \xmlString{min}.
-    \default{Min};
-    \item \xmlNode{thresholdTrajRemoval}, \xmlDesc{float, optional field}, this will be used to determine the convergence of different
-    optimization trajectories on each other when multiple trajectories is handled by \xmlNode{FiniteDifferenceGradientOptimizer}.  When one
-    trajectory comes within tolerance of a point on another trajectory, the first will be removed in interest
-    of the second.  Note that this value is
-    calculated as Euclidean distance in a normalized 0 to 1 cubic domain, not the original input space domain.
-    \default{0.05}
+    \item \limit
+    \item \initialSeed
+    \item \type
+    \item \thresholdTrajRemoval
+    \item \writeSteps
   \end{itemize}
 \end{itemize}
 \begin{itemize}
-\item \xmlNode{TargetEvaluation}, \xmlDesc{XML node, required parameter},
-        represents the container where the model evaluations are stored.
-        %
-        From a practical point of view, this XML node must contain the name of
-        a data object defined in the \xmlNode{DataObjects} block (see
-        Section~\ref{sec:DataObjects}). The object here specified must be
-        input as  \xmlNode{Output} in the Steps that employ this optimization strategy.
-        %
-        The \xmlNode{FiniteDifferenceGradientOptimizer} optimizer accepts ``DataObjects'' of type ``PointSet'' only;
-        \item \xmlNode{objectVar}, \xmlDesc{XML node, required parameter}. The objective variable to be optimized. This variable must be
-          output of the DataObject specified in \xmlNode{TargetEvaluation}.
-\item \xmlNode{Sampler}, \xmlDesc{XML node, optional parameter},
-        represents a Sampler (Forward) that can be used to initialize the starting points for the trajectories of some of the variables.
-        %
-        From a practical point of view, this XML node must contain the name of
-        a Sampler (Forward) defined in the \xmlNode{Samplers} block (see
-        Section~\ref{subsec:onceThroughSamplers}). The Sampler will be used to initialize the trajectories' initial points for some
-        of the variables. For example, if the Sampler here specified ``samples'' only 2 variables over 5, the  \xmlNode{initial} XML node (see below) is required
-        only for the remaining 3 variables.
-\item \xmlNode{Function}, \xmlDesc{XML node, optional parameter},
-        indicates the external function where the constraints are stored. From a practical point of view, this XML node must contain the
-        name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}). This external function must
-        contain a method called ``constrain'', which returns 1 for inputs satisfying the constraints and 0 otherwise.
-\item \xmlNode{Preconditioner}, \xmlDesc{XML node, optional parameter},
-        provides a model that can be used as a preconditioner in Multilevel optimization
-        calculations.  Only
-        affects optimizers with a \xmlNode{multilevel} node.  As many preconditioners as
-        desired can be added
-        to the optimizer, each defined with a \xmlNode{Preconditioner} node.
-        %
-        From a practical point of view, this XML node must contain the name of
-        an \xmlNode{ExternalModel} defined in the \xmlNode{Models} block (see
-        Section~\ref{subsec:models_externalModel}).
-        %
-        In multilevel optimization, the preconditioner is attached to a particular subspace.  Whenever
-        subspaces that are ``higher'' (early in \xmlNode{sequence}) are perturbed, before moving to a lower
-        subspace, the preconditioner will be called to provide a new value for each variable in the lower
-        subspace.
-        %
-        For example, if an input space is divided into one subspace \xmlString{subx} with the input variable $x$ and
-        another subspace \xmlString{suby} with input variable $y$, and if the sequence is specified as
-        \xmlString{subx,suby}, and a preconditioner is attached to subspace \xmlString{suby}, then when a step
-        is taken for subspace \xmlString{subx}, the preconditioner will provide a new value for $y$ before
-        starting a convergence search for $y$.
-\item \xmlNode{multilevel}, \xmlDesc{XML node, optional node}, engages the optimizer in \emph{multilevel}
-        mode.  When in multilevel mode, the input space is divided into multiple subspaces.  The subspaces are
-        then aligned in a sequence, and optimizing follows the following procedure:
-        \begin{enumerate}
-          \item Hold all variable values in all subspaces constant EXCEPT the last subspace in the sequence.
-          \item Converge the optimizer considering only input variables in the last listed subspace.
-          \item Hold all variables in the last subspace constant, and take a single optimizing step in the
-            second-to-last subspace.
-          \item If the second to last subspace is converged, go up one more subspace and take a step, then
-            repeat the process thus far.
-          \item If the second to last subspace is not converged, go back to the last subspace and converge it
-            again.
-          \item Et cetera.
-        \end{enumerate}
-        Once the outermost subspace is converged, the entire space is considered converged.
-        %
-        Note that multilevel optimization is not in general better than not using it.  Multilevel works
-        especially well when some variables in the input space are connected and have relatively
-        difficult-to-converge optimization, while other variables in the input space are easily converged.  In
-        this case, the difficult-to-converge variables should make up the last subspace in the sequence, while
-        the easily-converging variables should make up the outer subspace.
-        %
-        RAVEN places no limit on the
-        number of subspaces that are defined, but each variable should only exist in a single subspace.
-        %
-        The \xmlNode{multilevel} node requires the definition of subspaces and the sequence as follows:
-        \begin{itemize}
-          \item \xmlNode{sequence}, \xmlDesc{comma-separated string, required parameter}, lists the order in
-            which subspaces should be converged.  Each subspace is listed as identified by its \xmlAttr{name}
-            parameter in the \xmlNode{subspace} definition.  Note that the first subspace listed will be the
-            slowest to converge and converge only once, and the last subspace listed will be converged
-            frequently and quickly.
-          \item \xmlNode{subspace}, \xmlDesc{comma-separated string, required parameter}, lists the variables
-            included in this subspace.  This node additionally has the following attributes:
-            \begin{itemize}
-              \item \xmlAttr{name}, \xmlDesc{string, require parameter}, provides the identifier that RAVEN
-                will use for this subspace group, both in the \xmlNode{sequence} node as well as in log
-                prints.
-              \item \xmlAttr{precond}, \xmlDesc{model name, optional parameter}, provides the option to attach
-                a preconditioner to this subset, chosen from the \xmlNode{Preconditioner} nodes defined within
-                the optimzer, and identified by the text of those nodes.  See the documentation for the
-                preconditioner node above for details on how they affect the calculation flow.
-              \item \xmlAttr{holdOutputSpace}, \xmlDesc{parameter names, optional comma separated parameter}, provides the option to identify some output parameters that
-              need to be kept on hold at this subspace optimization level. This capability is
-              currently implemented for the \textit{EnsembleModel} only.  In other words,
-              all the models that have, in their output spaces, the parameter here specified
-              will not be re-run for the iteration $i$ but the solution at iteration $i-1$ will be
-              used.
-            \end{itemize}
-        \end{itemize}
-
+\item \TargetEvaluation{FiniteDifference}
+\item \objectVar
+\item \samplerInOpt
+\item \functionInOpt
+\item \Preconditioner
+\item \multilevel
 \end{itemize}
 \begin{itemize}
 \item \variableDescription
  The variable specified here must be input of the DataObject specified in \xmlNode{TargetEvaluation}.
  \variableChildrenIntro
  \begin{itemize}
-    \item \xmlNode{upperBound}, \xmlDesc{float, required field}, the upper bound of this variable;
-    \item \xmlNode{lowerBound}, \xmlDesc{float, required field}, the lower bound of this variable;
-    \item \xmlNode{initial}, \xmlDesc{comma separated strings, optional field}, the initial value(s) for this variable. If there are more
-    than one initial values specified for a variable, then all the variables need to have the same number of initial values. In this case,
-    \xmlNode{FiniteDifferenceGradientOptimizer} optimizer will maintain multiple trajectories to fully utilize potential parallel computing capability.
-    Every input variable must have an initial value specified either through this node, or through a
-    preconditioner in multilevel optimization or through a linked Sampler (see above).
+  \variableAttribute{FiniteDifference}
   \end{itemize}
 \end{itemize}
 \constantVariablesDescription
 \begin{itemize}
-\item \xmlNode{convergence}, \xmlDesc{XML node, optional parameter} will specify parameters associated with optimization
-convergence. This node accepts the following sub-nodes:
+\item \convergence
   \begin{itemize}
-  \item \xmlNode{iterationLimit}, \xmlDesc{integer, optional field}, user-defined maximum number of optimization iterations. \default{650}.
-  \item \xmlNode{persistence}, \xmlDesc{integer, optional field}, number of consecutive successful
-    convergences required before completing calculation (per trajectory). Any value less than 1 will be
-    treated as 1.  Float values are rounded down to the nearest integer. \default{1}.
-  \item \xmlNode{relativeThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality
-  in a ``relative'' sense: when the relative change of the objective variable in two successive model evaluations is smaller than
-  this specified threshold, the \xmlNode{FiniteDifferenceGradientOptimizer} optimizer is in convergence and terminates the simulation.
-      \default{1e-3}
-  \item \xmlNode{absoluteThreshold}, \xmlDesc{float, optional field}, specifies the convergence criteria to determine the optimality,
-  in an ``absolute'' sense: when the absolute change of objective variable in two successive model evaluations is smaller
-  than this specified threshold, the \xmlNode{FiniteDifferenceGradientOptimizer} optimizer is in convergence and terminates the simulation.
-      \default{0.0}
-  \item \xmlNode{minStepSize}, \xmlDesc{float, optional field}, specifies the minimum allowable step size in
-    the normalized input space, ranging from 0 (no movement) to 1 (spans any dimension).
-      \default{1e-9}
-  \item \xmlNode{gainGrowthSize}, \xmlDesc{float, optional field}, specifies the rate at which the step size
-    should grow when it does grow, for instance when multiple steps are in the same direction.  Increasing
-    this will increase the likelihood that an optimization path travels quickly across the domain along a
-    consistent gradient.
-      \default{2}
-  \item \xmlNode{gainShrinkSize}, \xmlDesc{float, optional field}, specifies the rate at which the step size
-    should shrink when it does shrink, for instance when switching directions on successive steps.  Increasing
-    this will slow convergence, but decrease the likelihood of achieving false convergence due to small step
-    sizes.
-      \default{same value as grainGrowthSize}
+  \item \iterationLimit
+  \item \persistence
+  \item \relativeThreshold
+  \item \absoluteThreshold
+  \item \minStepSize
+  \item \gainGrowthFactor
+  \item \gainShrinkFactor
+  \item \centralDifference
   \end{itemize}
-\item \xmlNode{parameter}, \xmlDesc{XML node, optional parameter} will accepts the following sub-nodes:
+\item \parameter
   \begin{itemize}
-  \item \xmlNode{numGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation. When this
-        parameter is $>1$, multiple gradient evaluations are going to be performed. Since the main goal for this parameter is to
-        get a better gradient estimation (performing a denoising), the current point $x_k$ is evaluated multiple times in order to be able to
-        converge in average.
-        \default{1}
-
-  \item \xmlNode{initialStepSize}, \xmlDesc{float, optional field} Measure of the optimizer's initial step
-    size, measured as a percent of the length of any one dimension. The actual step size in the normalized
-    unit hypercube is calculated as the hyperdiagonal of a hypercube with side lengths equal to the given
-    value. For example, for a two-dimensional problem and a \texttt{initialStepSize} of 0.10, the full initial
-    step size will be the diagonal of a two-dimensional square with side lengths of 0.10, or roughly 0.14
-    total. It is recommended this value be between 0.05 and 0.20, but is highly dependent on the problem.
-     \default{0.05}
-  \item \xmlNode{perturbationDistance}, \xmlDesc{float, optional field} Distance from a point at which the
-    response should be evaluated in order to determine the local gradient, measured as a percent of the
-    current step size. This distance should be near enough to the optimal point to avoid significant changes
-    in the response topology while far enough away to provide meaningful gradient information. It is
-    recommended this number be between 1E-7 and 1E-2, but is dependent on the problem.
-     \default{0.01}
-  \item \xmlNode{innerBisectionThreshold}, \xmlDesc{float, optional field} a parameter specifying the convergence threshold of the
-  bisection method used in constraint handling (See above). This parameter shall be in the open inverval $(0,1)$.
-        \default{0.01}
-  \item \xmlNode{innerLoopLimit}, \xmlDesc{integer, optional field} a parameter specifying the number of orthogonal vectors to try
-  when handling the constraints (See above).
-        \default{1000}
+  \item \numGradAvgIterations
+  \item \initialStepSize
+  \item \perturbationDistance
+  \item \innerBisectionThreshold
+  \item \innerLoopLimit
   \end{itemize}
 \end{itemize}
 
@@ -642,7 +490,7 @@ Example:
 \begin{lstlisting}[style=XML]
 <Optimizers>
   ...
-  <FiniteDifferenceGradientOptimizer name="SPSAname">
+  <FiniteDifference name="FDname">
     <initialization>
       <limit>300</limit>
       <type>min</type>
@@ -651,6 +499,7 @@ Example:
     <TargetEvaluation class="DataObjects" type="PointSet">dataObjectName</TargetEvaluation>
     <convergence>
       <iterationLimit>50</iterationLimit>
+      <centralDifference>True</centralDifference>,
       <relativeThreshold>1e-3</relativeThreshold>
       <absoluteThreshold>1e-1</absoluteThreshold>
       <persistence>1</persistence>
@@ -664,7 +513,124 @@ Example:
       <initial>0</initial>
     </variable>
     <objectVar>c</objectVar>
-  </FiniteDifferenceGradientOptimizer>
+  </FiniteDifference>
   ...
 </Optimizers>
+\end{lstlisting}
+
+%%% Gradient Based Optimizers: ConjugateGradient
+\subsubsection{Conjugate Difference Gradient Optimizer (ConjugateGradient)}
+\label{subsubsubsec:ConjugateGradient}
+The \textbf{ConjugateGradient} optimization approach generalizes the conjugate gradient to find the local minimum
+of a nonlinear function using its gradient
+A minimal number of $n variable$ model evaluations are required in order to get a first order approximation of the gradient.
+It works best when the function is quadratic near the local minimum.
+
+Current \optimizerSequence{ConjugateGradient}
+
+It is important to notice that in conjugate gradient method, the feature space is always normalized. Unlike SPSA and Finite difference
+optimizers, the gradient in conjugate gradient is not normalized. Optimization advancement might be influenced by the
+magnitude of the gradient based on the fact that each step, this method performs a line search in same direction until a full stop is reached.
+All the following parameters, which can be optionally be inputted, should be calibrated with this information in mind.
+
+%
+
+\specBlock{a}{ConjugateGradient}
+%
+\attrsIntro
+\vspace{-5mm}
+\begin{itemize}
+\itemsep0em
+\item \nameDescription
+\end{itemize}
+\vspace{-5mm}
+
+\objectiveDescription{ConjugateGradient}
+\begin{itemize}
+\item \initialization
+  \begin{itemize}
+    \item \limit
+    \item \initialSeed
+    \item \type
+    \item \thresholdTrajRemoval
+    \item \writeSteps
+  \end{itemize}
+\end{itemize}
+\begin{itemize}
+\item \TargetEvaluation{ConjugateGradient}
+\item \objectVar
+\item \samplerInOpt
+\item \functionInOpt
+\item \Preconditioner
+\item \multilevel
+\end{itemize}
+\begin{itemize}
+\item \variableDescription
+ The variable specified here must be input of the DataObject specified in \xmlNode{TargetEvaluation}.
+ \variableChildrenIntro
+ \begin{itemize}
+  \variableAttribute{ConjugateGradient}
+  \end{itemize}
+\end{itemize}
+\constantVariablesDescription
+\begin{itemize}
+\item \convergence
+  \begin{itemize}
+  \item \iterationLimit
+  \item \persistence
+  \item \relativeThreshold
+  \item \absoluteThreshold
+  \item \minStepSize
+  \item \centralDifference
+  \item \useGradientHistory
+  \end{itemize}
+\item \parameter
+  \begin{itemize}
+  \item \numGradAvgIterations
+  \item \initialStepSize
+  \item \perturbationDistance
+  \item \innerBisectionThreshold
+  \item \innerLoopLimit
+  \end{itemize}
+\end{itemize}
+
+
+Example:
+\begin{lstlisting}[style=XML]
+
+<Optimizers>
+  ...
+  <ConjugateGradient name="ConjName">
+    <initialization>
+      <limit>3000</limit>
+      <initialSeed>42</initialSeed>
+      <type>min</type>
+      <thresholdTrajRemoval>1e-2</thresholdTrajRemoval>
+      <writeSteps>final</writeSteps>
+    </initialization>
+    <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+    <convergence>
+      <centralDifference>True</centralDifference>
+      <useGradientHistory>False</useGradientHistory>
+      <gradientThreshold>1e-7</gradientThreshold>
+      <absoluteThreshold>0</absoluteThreshold>
+      <relativeThreshold>1e-12</relativeThreshold>
+      <persistence>3</persistence>
+    </convergence>
+    <variable name="x">
+      <upperBound>1</upperBound>
+      <lowerBound>-1</lowerBound>
+      <initial>0.5,0.2,0.6</initial>
+    </variable>
+    <variable name="y">
+      <upperBound>1</upperBound>
+      <lowerBound>-1</lowerBound>
+      <initial>-0.6,-0.9,0.3</initial>
+    </variable>
+    <objectVar>c</objectVar>
+  </ConjugateGradient>
+  ...
+</Optimizers>
+
+
 \end{lstlisting}
