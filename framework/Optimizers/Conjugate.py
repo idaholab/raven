@@ -238,7 +238,7 @@ class ConjugateGradient(FiniteDifference):
     """
       Method to update the conjugate direction with steepest direction
       @ In, traj, int, the trajectory we are currently considering
-      @ In, alphs, float, step size, or None if no suitable step was found
+      @ In, alpha, float, step size, or None if no suitable step was found
       @ In, gfkp1, numpy.ndarray, optional, [1, #variables] gradient value for xk (xk being the current parameter estimate).
       @ Out, gNorm, float, norm of the gradient.
     """
