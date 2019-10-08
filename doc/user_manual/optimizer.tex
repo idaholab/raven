@@ -16,7 +16,7 @@ the name that can be used to refer to this specific entity from other input bloc
   The specifications of this optimizer must be defined within #1 \xmlNode{#2} XML
   block.
 }
-\renewcommand{\optimizerSequence}[1]{implementation of \textbf{#1} can also handles
+\newcommand{\optimizerSequence}[1]{implementation of \textbf{#1} can also handles
 constrained optimization problem. This paragraph briefly describes how current implementation ensures the input satisfies the
 constraints. When when updating the variables (not perturbing), if constraint is violated, \textbf{#1} does the following in
 sequence:
@@ -545,7 +545,7 @@ All the following parameters, which can be optionally be inputted, should be cal
 \end{itemize}
 \vspace{-5mm}
 
-\newcommand{\objectiveDescription}{ConjugateGradient}
+\objectiveDescription{ConjugateGradient}
 \begin{itemize}
 \item \initialization
   \begin{itemize}
