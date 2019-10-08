@@ -101,7 +101,7 @@
    type = 'RavenFramework'
    input = 'varma.xml'
    output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/stats.xml VARMA/rommeta.xml VARMA/rommeta.csv VARMA/samples_0.csv'
-   max_time = 500
+   max_time = 800
     [./stats]
       type = OrderedCSV
       output = 'VARMA/stats.csv'
