@@ -206,16 +206,16 @@ class Relap5(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     self._samplersDictionary                = {}
-    if 'dynamiceventtree' in str(samplerType).lower():
+    det = 'dynamiceventtree' in str(samplerType).lower()
+    if det:
       self._samplersDictionary[samplerType] = self.DynamicEventTreeForRELAP5
-      det = True
-      detVars   = Kwargs['DETVariables']
-      hdetVars  = Kwargs['HDETVariables']
-      functVars = Kwargs['FunctionVariables']
-      constVars = Kwargs['ConstantVariables']
+      detVars   = Kwargs.get('DETVariables')
+      if not detVars: raise IOError('ERROR in "RELAP5 Code Interface": NO DET variables with DET sampler!!!')
+      hdetVars  = Kwargs.get('HDETVariables')
+      functVars = Kwargs.get('FunctionVariables')
+      constVars = Kwargs.get('ConstantVariables')
     else:
       self._samplersDictionary[samplerType] = self.pointSamplerForRELAP5
-      det = False
     if len(self.operators) > 0:
       self._evaluateOperators(**Kwargs)
     found = False

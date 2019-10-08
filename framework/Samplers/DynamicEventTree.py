@@ -477,6 +477,10 @@ class DynamicEventTree(Grid):
 
     if(self.maxSimulTime):
       self.inputInfo['endTime'] = self.maxSimulTime
+
+    # Add some useful variable naming in the input
+    self.inputInfo.update(self.__createVariablesInfoForKwargs(model))
+
     # Add the new input path into the RunQueue system
     newInputs = {'args':[str(self.type)], 'kwargs':dict(self.inputInfo)}
     for key,value in self.inputInfo.items():
@@ -662,6 +666,8 @@ class DynamicEventTree(Grid):
       self.inputInfo['PointProbability' ] = pointPb*subGroup.get('conditionalPb')
       self.inputInfo['ProbabilityWeight'] = self.inputInfo['PointProbability' ]
       self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
+      # Add some useful variable naming in the input
+      self.inputInfo.update(self.__createVariablesInfoForKwargs(model))
       # Add the new input path into the RunQueue system
       newInputs = {'args': [str(self.type)], 'kwargs':dict(self.inputInfo)}
       self.RunQueue['queue'].append(newInputs)
@@ -689,24 +695,35 @@ class DynamicEventTree(Grid):
     else:
       # We construct the input for the first DET branch calculation'
       self._createRunningQueueBegin(model, myInput)
-      # We collect some useful information for the DET handling (DET variables, contants, functions)
-      standardDet = dict.fromkeys(self.standardDETvariables) 
-      model._replaceVariablesNamesWithAliasSystem(standardDet)
-      depVars = copy.deepcopy(self.dependentSample)
-      model._replaceVariablesNamesWithAliasSystem(depVars)
-      consts = copy.deepcopy(self.constants)
-      model._replaceVariablesNamesWithAliasSystem(consts)
-      self.inputInfo['DETVariables'] = standardDet.keys()
-      hvars = {}
-      if 'hybridsamplerCoordinate' in self.inputInfo:
-        for precSample in self.inputInfo['hybridsamplerCoordinate']:
-          hvars.update(precSample['SampledVars'])        
-        model._replaceVariablesNamesWithAliasSystem(hvars)
-        self.inputInfo['HDETVariables'] = hvars.keys()
-      self.inputInfo['FunctionVariables'] = depVars
-      self.inputInfo['ConstantVariables'] = consts.keys()
-      
     return
+
+  def __createVariablesInfoForKwargs(self, model):
+    """
+      This utility method is to create a variable infor block
+      useful to couple with DET external codes
+      @ In, model, Model instance, model instance that can be a Code type, ROM, etc.
+      @ Out, varInfo, dict, the dictionary containing the variable names
+             ({'DETVariables':[...], 'HDETVariables':[...],'FunctionVariables':{Var:DepdendentVar},'ConstantVariables':[...]})
+    """
+    varInfo = {}
+    # We collect some useful information for the DET handling (DET variables, contants, functions)
+    standardDet = dict.fromkeys(self.standardDETvariables)
+    depVars = copy.deepcopy(self.dependentSample)
+    consts = copy.deepcopy(self.constants)
+    model._replaceVariablesNamesWithAliasSystem(depVars)
+    model._replaceVariablesNamesWithAliasSystem(standardDet)
+    model._replaceVariablesNamesWithAliasSystem(consts)
+    varInfo['DETVariables'] = list(standardDet.keys())
+    hvars = {}
+    if 'hybridsamplerCoordinate' in self.inputInfo:
+      for precSample in self.inputInfo['hybridsamplerCoordinate']:
+        hvars.update(precSample['SampledVars'])
+      model._replaceVariablesNamesWithAliasSystem(hvars)
+      varInfo['HDETVariables'] = list(hvars.keys())
+    varInfo['FunctionVariables'] = depVars
+    varInfo['ConstantVariables'] = list(consts.keys())
+    return varInfo
+
 
   def __getQueueElement(self):
     """

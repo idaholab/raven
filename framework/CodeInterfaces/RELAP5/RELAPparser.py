@@ -47,7 +47,7 @@ class RELAPparser():
       @ In, inputFile, string, input file name
       @ In, addMinorEdits, bool, flag to add Minor Edits in case there are trips and the variables in the trip is not among the minor edits (generally for DET)
       @ Out, None
-    """ 
+    """
     self.printTag = 'RELAP5 PARSER'
     if not os.path.exists(inputFile):
       raise IOError(self.printTag+'ERROR: not found RELAP input file')
@@ -403,9 +403,9 @@ class RELAPparser():
           self.lastCntrLine[deckNum]      +=cnt
           self.lastMinorEditLine[deckNum] +=cnt
           self.lastTripLine[deckNum]      +=cnt
-          
+
           toAdd[deckNum] = self.inputTrips[deckNum]['variableTrips'].keys()
-          self.addControlVariablesForStoppingCoditions(toAdd)          
+          self.addControlVariablesForStoppingCoditions(toAdd)
       lines = lines + temp
     return lines
 
