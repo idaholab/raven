@@ -54,14 +54,13 @@ class FiniteDifference(SPSA):
     SPSA.__init__(self)
 
 
-  def localInputAndChecks(self, xmlNode, paramInput):
+  def localInputAndChecks(self, paramInput):
     """
       Local method for additional reading.
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    SPSA.localInputAndChecks(self, xmlNode, paramInput)
+    SPSA.localInputAndChecks(self, paramInput)
     # need extra eval for central Diff, using boolean in math
     self.paramDict['pertSingleGrad'] = (1 + self.useCentralDiff) * len(self.fullOptVars)
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)

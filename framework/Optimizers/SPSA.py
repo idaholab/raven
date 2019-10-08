@@ -77,13 +77,13 @@ class SPSA(GradientBasedOptimizer):
     self.stochasticEngineForConstraintHandling.upperBoundUsed, self.stochasticEngineForConstraintHandling.lowerBoundUsed = False, False
     self.stochasticEngineForConstraintHandling.initializeDistribution()
 
-  def localInputAndChecks(self, xmlNode, paramInput):
+  def localInputAndChecks(self, paramInput):
     """
       Local method for additional reading.
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    GradientBasedOptimizer.localInputAndChecks(self, xmlNode, paramInput)
+    GradientBasedOptimizer.localInputAndChecks(self, paramInput)
     self.currentDirection   = None
     numValues = self._numberOfSamples()
     # set the initial step size

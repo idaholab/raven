@@ -275,10 +275,9 @@ class Optimizer(Sampler):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    # TODO can be combined with Sampler's _readMoreXML, but needs to implement paramInput passing to localInputAndChecks (new input checker)
     Assembler._readMoreXML(self,xmlNode)
     paramInput=self._readMoreXMLbase(xmlNode)
-    self.localInputAndChecks(xmlNode, paramInput)
+    self.localInputAndChecks(paramInput)
 
   def _readMoreXMLbase(self,xmlNode):
     """

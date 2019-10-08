@@ -42,7 +42,7 @@ from utils import utils,cached_ndarray,mathUtils
 class GradientBasedOptimizer(Optimizer):
   """
     This is the base class for gradient based optimizer. The following methods need to be overridden by all derived class
-    self.localLocalInputAndChecks(self, xmlNode, paraminput)
+    self.localLocalInputAndChecks(self, paraminput)
     self.localLocalInitialize(self, solutionExport)
     self.localLocalGenerateInput(self,model,oldInput)
     self.localEvaluateGradient(self, optVarsValues, gradient = None)
@@ -124,11 +124,10 @@ class GradientBasedOptimizer(Optimizer):
     # register metadata
     self.addMetaKeys(['trajID','varsUpdate','prefix'])
 
-  def localInputAndChecks(self, xmlNode, paramInput):
+  def localInputAndChecks(self, paramInput):
     """
       Method to read the portion of the xml input that belongs to all gradient based optimizer only
       and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
