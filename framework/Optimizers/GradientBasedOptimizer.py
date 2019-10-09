@@ -619,7 +619,11 @@ class GradientBasedOptimizer(Optimizer):
       varId = (identifier - self.gradDict['numIterForAve']) % pertPerVar
       denoId = (identifier - self.gradDict['numIterForAve'])// self.paramDict['pertSingleGrad']
       # for cdId 0 is the first cdID 1 is the second side of central Diff
-      cdId = ((identifier - self.gradDict['numIterForAve'])// pertPerVar) % len(self.fullOptVars)
+      if len(self.fullOptVars) == 1:
+        #expect 0 or 1 for cdID, but % len(self.fullOptVars) will always be 0 if len(self.fullOptVars)=1
+        cdId = (identifier - self.gradDict['numIterForAve']) % self.paramDict['pertSingleGrad']
+      else:
+        cdId = ((identifier - self.gradDict['numIterForAve'])// pertPerVar) % len(self.fullOptVars)
       if not self.useCentralDiff:
         cdId = 0
     else:
