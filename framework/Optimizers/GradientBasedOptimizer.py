@@ -116,7 +116,7 @@ class GradientBasedOptimizer(Optimizer):
     self.gainShrinkFactor            = 2.              # max step shrinking factor
     self.optPointIndices             = []              # in this list we store the indeces that correspond to the opt point
     self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation.
-    self.useCentralDiff              = False            # whether to use central differencing
+    self.useCentralDiff              = True            # whether to use central differencing
     self.useGradHist                 = False            # whether to use Gradient hisory
     # REWORK 2018-10 for simultaneous point-and-gradient evaluations
     self.realizations                = {}    # by trajectory, stores the results obtained from the jobs running, see setupNewStorage for structure
@@ -611,7 +611,11 @@ class GradientBasedOptimizer(Optimizer):
     """
     if identifier in self.perturbationIndices:
       category = 'grad'
-      pertPerVar = self.paramDict['pertSingleGrad'] // (1+self.useCentralDiff)
+      if self.paramDict['pertSingleGrad'] == 1:
+        # In case of SPSA
+        pertPerVar = 1
+      else:
+        pertPerVar = self.paramDict['pertSingleGrad'] // (1+self.useCentralDiff)
       varId = (identifier - self.gradDict['numIterForAve']) % pertPerVar
       denoId = (identifier - self.gradDict['numIterForAve'])// self.paramDict['pertSingleGrad']
       # for cdId 0 is the first cdID 1 is the second side of central Diff
