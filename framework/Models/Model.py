@@ -247,7 +247,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """
       Method to convert kwargs Sampled vars with the alias system
-      @ In , sampledVars, dict, dictionary that are going to be modified
+      @ In, sampledVars, dict or list, dictionary or list that are going to be modified
       @ In, aliasType, str, optional, type of alias to be replaced
       @ In, fromModelToFramework, bool, optional, When we define aliases for some input variables, we need to be sure to convert the variable names
                                                   (if alias is of type input) coming from RAVEN (e.g. sampled variables) into the corresponding names
@@ -256,7 +256,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                   names coming from the model into the one that are used in RAVEN (e.g. modelOutputName="00001111",
                                                   frameworkVariableName="clad_temperature"). The fromModelToFramework bool flag controls this action
                                                   (if True, we convert the name in the dictionary from the model names to the RAVEN names, False vice versa)
-      @ Out, originalVariables, dict, dictionary of the original sampled variables
+      @ Out, originalVariables, dict or list, dictionary (or list) of the original sampled variables
     """
     if aliasType =='inout':
       listAliasType = ['input','output']
@@ -267,12 +267,16 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       for varFramework,varModel in self.alias[aliasTyp].items():
         whichVar =  varModel if fromModelToFramework else varFramework
         notFound = 2**62
-        found = sampledVars.pop(whichVar,[notFound])
-        if not np.array_equal(np.asarray(found), [notFound]):
-          if fromModelToFramework:
-            sampledVars[varFramework] = originalVariables[varModel]
-          else:
-            sampledVars[varModel]     = originalVariables[varFramework]
+        if type(originalVariables).__name__ != 'list':
+          found = sampledVars.pop(whichVar,[notFound])
+          if not np.array_equal(np.asarray(found), [notFound]):
+            if fromModelToFramework:
+              sampledVars[varFramework] = originalVariables[varModel]
+            else:
+              sampledVars[varModel]     = originalVariables[varFramework]
+        else:
+          if whichVar in sampledVars:
+            sampledVars[sampledVars.index(whichVar)] = varFramework if fromModelToFramework else varModel
     return originalVariables
 
   def _handleInput(self, paramInput):

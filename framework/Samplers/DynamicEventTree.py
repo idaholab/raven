@@ -707,13 +707,15 @@ class DynamicEventTree(Grid):
     """
     varInfo = {}
     # We collect some useful information for the DET handling (DET variables, contants, functions)
-    standardDet = dict.fromkeys(self.standardDETvariables)
+    standardDet = copy.deepcopy(self.standardDETvariables)
     depVars = copy.deepcopy(self.dependentSample)
     consts = copy.deepcopy(self.constants)
+    for var in depVars:
+      depVars[var] = self.funcDict[var].parameterNames()
     model._replaceVariablesNamesWithAliasSystem(depVars)
     model._replaceVariablesNamesWithAliasSystem(standardDet)
     model._replaceVariablesNamesWithAliasSystem(consts)
-    varInfo['DETVariables'] = list(standardDet.keys())
+    varInfo['DETVariables'] = list(standardDet)
     hvars = {}
     if 'hybridsamplerCoordinate' in self.inputInfo:
       for precSample in self.inputInfo['hybridsamplerCoordinate']:
