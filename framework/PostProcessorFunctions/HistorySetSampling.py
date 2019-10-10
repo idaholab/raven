@@ -128,11 +128,13 @@ class HistorySetSampling(PostProcessorInterfaceBase):
         if hist == 0:
           outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
         outputDic['data'][var][hist] = outData[var]
-
-    if 'ProbabilityWeight' in inputDic['data'].keys():
-      outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
-    if 'prefix' in inputDic['data'].keys():
-      outputDic['data']['prefix'] = inputDic['data']['prefix']
+    # add meta variables back
+    for key in inputDic['metaKeys']:
+      outputDic['data'][key] = inputDic['data'][key]
+    #if 'ProbabilityWeight' in inputDic['data'].keys():
+    #  outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+    #if 'prefix' in inputDic['data'].keys():
+    #  outputDic['data']['prefix'] = inputDic['data']['prefix']
     outputDic['dims'] = copy.deepcopy(inputDic['dims'])
     return outputDic
 

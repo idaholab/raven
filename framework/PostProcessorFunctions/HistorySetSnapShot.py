@@ -162,10 +162,13 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
         #replicate input space
         for var in inputDic['inpVars']:
           outDict['data'][var]  = inputDic['data'][var]
-        #replicate metadata
-          outDict['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
-          outDict['data']['prefix'] = inputDic['data']['prefix']
-          outDict['dims'] = {key:[] for key in inputDic['dims'].keys()}
+        # replicate metadata
+        # add meta variables back
+        for key in inputDic['metaKeys']:
+          outDict['data'][key] = inputDic['data'][key]
+        #outDict['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+        #outDict['data']['prefix'] = inputDic['data']['prefix']
+        outDict['dims'] = {key:[] for key in inputDic['dims'].keys()}
         #loop over the methods requested to fill output space
         for method,entries in self.classifiers.items():
           #min, max take no special effort
