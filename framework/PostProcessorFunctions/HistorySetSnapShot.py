@@ -149,7 +149,11 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
       #for timeSlice we call historySetWindow
       if self.type == 'timeSlice':
         outputHSDic = self.HSsyncPP.run([inputDic])
-        return historySetWindow(outputHSDic,self.timeInstant,inputDic['inpVars'],inputDic['outVars'],inputDic['numberRealizations'],self.pivotParameter)
+        outDict = historySetWindow(outputHSDic,self.timeInstant,inputDic['inpVars'],inputDic['outVars'],inputDic['numberRealizations'],self.pivotParameter)
+        for key in inputDic['metaKeys']:
+          outDict['data'][key] = inputDic['data'][key]
+        return outDict
+
       #for other non-mixed methods we call historySnapShot
       elif self.type != 'mixed':
         outputPSDic = historySnapShot(inputDic,self.pivotVar,self.type,self.pivotVal,self.pivotParameter)
@@ -207,16 +211,19 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
   outputDic={'data':{}}
   # collect metadata, if it exists, to pass through
   # TODO collecting by name is problemsome; for instance, Optimizers don't produce "probability weight" information
+  for key in inputDic['metaKeys']:
+    outputDic['data'][key] = inputDic['data'][key]
+
   ## ProbabilityWeight
-  try:
-    outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
-  except KeyError:
-    pass
+  #try:
+  #  outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+  #except KeyError:
+  #  pass
   ## prefix
-  try:
-    outputDic['data']['prefix'] = inputDic['data']['prefix']
-  except KeyError:
-    pass
+  #try:
+  #  outputDic['data']['prefix'] = inputDic['data']['prefix']
+  #except KeyError:
+  #  pass
   # place to store dimensionalities
   outputDic['dims'] = {key: [] for key in inputDic['dims'].keys()}
 
@@ -267,8 +274,8 @@ def historySetWindow(inputDic,timeStepID,inpVars,outVars,N,pivotParameter):
     @ Out, outDic, dict, it contains the temporal slice of all histories
   """
   outputDic={'data':{}}
-  outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
-  outputDic['data']['prefix'] = inputDic['data']['prefix']
+  #outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
+  #outputDic['data']['prefix'] = inputDic['data']['prefix']
   outputDic['dims'] = {key:[] for key in inputDic['dims'].keys()}
   #outputDic['dims'][pivotParameter]=[]
 

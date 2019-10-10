@@ -124,28 +124,6 @@ class Phisics(CodeInterfaceBase):
       break
     return
 
-  def verifyMrtauFlagsAgree(self, depletionRoot):
-    """
-      Verifies that the node "standalone"'s text is in the xml depletion file. if the standalone flag
-      in the xml depletion file disagrees with the MRTAU standalone flag in the raven input, the codes errors out.
-      @ In, depletionRoot, xml.etree.ElementTree.Element, depletion input xml node
-      @ Out, None
-    """
-    for child in depletionRoot.findall(".//standalone"):
-      isMrtauStandAlone = child.text.lower()
-      tag = child.tag
-      break
-    valueErrorMessage = "\n Error. \n \
-      The flags controlling the Mrtau standalone mode are incorrect. \n \
-      The node <standalone> in depletion_input file disagrees with the node <mrtauStandAlone> in the raven input. \n \
-      the matching solutions are: \n \
-      <mrtauStandAlone>True</mrtauStandAlone> and <" + tag + ">yes<" + tag + ">\n \
-      <mrtauStandAlone>False</mrtauStandAlone> and <" + tag + ">no<" + tag + ">"
-    if self.mrtauStandAlone == False and isMrtauStandAlone == 'yes':
-      raise ValueError(valueErrorMessage)
-    if self.mrtauStandAlone == True and isMrtauStandAlone == 'no':
-      raise ValueError(valueErrorMessage)
-
   def timeUnit(self, depletionRoot):
     """
       Parses the xml depletion file to find the time unit. Default: seconds (string).
@@ -168,7 +146,6 @@ class Phisics(CodeInterfaceBase):
     """
     depletionTree = ET.parse(depletionFile)
     depletionRoot = depletionTree.getroot()
-    self.verifyMrtauFlagsAgree(depletionRoot)
     self.findDecayHeatFlag(depletionRoot)
     self.timeUnit(depletionRoot)
     self.getTitle(depletionRoot)
