@@ -187,8 +187,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     # add meta variables back
     for key in inputDic[-1]['metaKeys']:
       outputDic['data'][key] = np.asanyarray(1.0)
-    #outputDic['data']['ProbabilityWeight'] = np.asanyarray(1.0)
-    #outputDic['data']['prefix'] = np.asanyarray(1.0)
+
     return outputDic
 
   def runStatic(self,inputDic, componentConfig=None):

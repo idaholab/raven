@@ -57,7 +57,6 @@ class testInterfacedPP_PointSet(PostProcessorInterfaceBase):
       for key in inputDict['data'].keys():
         outputDict['data'][key] = copy.deepcopy(inputDict['data'][key])
       # add meta variables back
-      print()
       for key in inputDict['metaKeys']:
         outputDict['data'][key] = inputDict['data'][key]
       return outputDict

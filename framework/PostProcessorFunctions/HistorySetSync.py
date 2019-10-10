@@ -85,7 +85,6 @@ class HistorySetSync(PostProcessorInterfaceBase):
     if self.extension is None or not (self.extension == 'zeroed' or self.extension == 'extended'):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : extension type is not correctly specified (either not specified or not one of its possible allowed values: zeroed or extended)')
 
-
   def run(self,inputDic):
     """
       Method to post-process the dataObjects
@@ -143,8 +142,6 @@ class HistorySetSync(PostProcessorInterfaceBase):
       # add meta variables back
       for key in inputDic['metaKeys']:
         outputDic['data'][key] = inputDic['data'][key]
-      #outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
-      #outputDic['data']['prefix'] = inputDic['data']['prefix']
       outputDic['dims'] = copy.deepcopy(inputDic['dims'])
 
       return outputDic

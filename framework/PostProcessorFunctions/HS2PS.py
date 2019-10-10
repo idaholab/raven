@@ -114,8 +114,6 @@ class HS2PS(PostProcessorInterfaceBase):
       # add meta variables back
       for key in inputDict['metaKeys']:
         outputDic['data'][key] = inputDict['data'][key]
-      #outputDic['data']['ProbabilityWeight'] = inputDict['data']['ProbabilityWeight']
-      #outputDic['data']['prefix'] = inputDict['data']['prefix']
 
       self.transformationSettings['vars'] = copy.deepcopy(self.features)
       self.transformationSettings['timeLength'] = historyLength

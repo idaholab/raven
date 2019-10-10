@@ -170,8 +170,6 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
         # add meta variables back
         for key in inputDic['metaKeys']:
           outDict['data'][key] = inputDic['data'][key]
-        #outDict['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
-        #outDict['data']['prefix'] = inputDic['data']['prefix']
         outDict['dims'] = {key:[] for key in inputDic['dims'].keys()}
         #loop over the methods requested to fill output space
         for method,entries in self.classifiers.items():
@@ -210,20 +208,9 @@ def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = No
   # place to store data results
   outputDic={'data':{}}
   # collect metadata, if it exists, to pass through
-  # TODO collecting by name is problemsome; for instance, Optimizers don't produce "probability weight" information
   for key in inputDic['metaKeys']:
     outputDic['data'][key] = inputDic['data'][key]
 
-  ## ProbabilityWeight
-  #try:
-  #  outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
-  #except KeyError:
-  #  pass
-  ## prefix
-  #try:
-  #  outputDic['data']['prefix'] = inputDic['data']['prefix']
-  #except KeyError:
-  #  pass
   # place to store dimensionalities
   outputDic['dims'] = {key: [] for key in inputDic['dims'].keys()}
 
@@ -274,8 +261,6 @@ def historySetWindow(inputDic,timeStepID,inpVars,outVars,N,pivotParameter):
     @ Out, outDic, dict, it contains the temporal slice of all histories
   """
   outputDic={'data':{}}
-  #outputDic['data']['ProbabilityWeight'] = inputDic['data']['ProbabilityWeight']
-  #outputDic['data']['prefix'] = inputDic['data']['prefix']
   outputDic['dims'] = {key:[] for key in inputDic['dims'].keys()}
   #outputDic['dims'][pivotParameter]=[]
 
