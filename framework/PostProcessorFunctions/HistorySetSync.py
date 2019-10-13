@@ -56,7 +56,6 @@ class HistorySetSync(PostProcessorInterfaceBase):
     self.extension       = extension
     self.syncMethod      = syncMethod
 
-
   def readMoreXML(self,xmlNode):
     """
       Function that reads elements this post-processor will use

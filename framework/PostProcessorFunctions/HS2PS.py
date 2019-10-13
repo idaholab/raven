@@ -123,7 +123,11 @@ class HS2PS(PostProcessorInterfaceBase):
       return outputDic
 
   def _inverse(self,inputDic):
-
+    """
+      This method is aimed to returne the inverse of the action of this PostProcessor
+      @ In, inputDic, dict, dictionary which contains the transformed data of this PP
+      @ Out, data, dict, the dictionary containing the inverse of the data (the orginal space)
+    """
     data = {}
     for hist in inputDic.keys():
       data[hist]= {}
