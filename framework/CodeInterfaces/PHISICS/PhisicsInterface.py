@@ -106,7 +106,7 @@ class Phisics(CodeInterfaceBase):
           line = line.replace('<DEPLETION_INPUT>',
                               '<DEPLETION_INPUT>' + '\n\t' + '<input_files>' +
                               libPathFile + '</input_files>')
-        sys.stdout.write(line)
+        print(line)
     else:
       depletionTree.find('.//input_files').text = libPathFile
       depletionTree.write(depletionFile)
