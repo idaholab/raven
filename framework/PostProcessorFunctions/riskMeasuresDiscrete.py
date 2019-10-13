@@ -62,11 +62,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
-    self.variables = {}    """
-      This method is aimed to returne the inverse of the action of this PostProcessor
-      @ In, inputDic, dict, dictionary which contains the transformed data of this PP
-      @ Out, data, dict, the dictionary containing the inverse of the data (the orginal space)
-    """
+    self.variables = {}
     self.target    = {}
     self.IEData = {}
     self.temporalID = None
