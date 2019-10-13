@@ -87,7 +87,7 @@ def run(raven, inputs):
           'y0': get_from_raven(raven,'y0', 0),
           'v0': get_from_raven(raven,'v0', 1),
           'ang': get_from_raven(raven,'v0', 45),
-          'timeOption': get_from_raven(raven,'timeOption', 1)}
+          'timeOption': get_from_raven(raven,'timeOption', 0)}
   res = main(vars)
   raven.x = res['x']
   raven.y = res['y']
