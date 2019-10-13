@@ -1,7 +1,7 @@
 <Simulation verbosity="debug">
 
   <RunInfo>
-    <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/CodeInterfaceTests/RELAP5/RELAP5interfaceDET</WorkingDir>
+    <WorkingDir>/home/alfoa/MOOSERAVEN/trunk_git/raven_github/raven/tests/framework/CodeInterfaceTests/RELAP5/RELAP5interfaceDET</WorkingDir>
     <Sequence>Run</Sequence>
     <batchSize>4</batchSize>
     <!-- <RemoteRunCommand>raven_qsub_command_legacy.sh</RemoteRunCommand>
@@ -17,6 +17,7 @@
   <Files>
     <Input name="inputFile_PWR"     type=""   >SURRY2_A6j_MD_2A_1A1H1L_tr.i</Input>
     <Input name="tpfh2o"            type=""   >tpfh2o</Input>
+     <Input name="rellic.bin"            type=""   >rellic.bin</Input>
   </Files>
 
   <DataObjects>
@@ -34,6 +35,7 @@
     <MultiRun name="Run">
       <Input     class="Files"         type=""             >inputFile_PWR</Input>
       <Input     class="Files"         type=""             >tpfh2o</Input>
+      <Input     class="Files"         type=""             >rellic.bin</Input>
       <Model     class="Models"        type="Code"         >relap</Model>
       <Sampler   class="Samplers"      type="DynamicEventTree"   >DET</Sampler>
       <Output    class="Databases"     type="HDF5"         >DB_LOCA</Output>
@@ -175,7 +177,7 @@
 
   <Models>
     <Code name="relap" subType="Relap5">
-      <executable>/home/mandd/projects/LOCA2018/2A/relap5.x</executable>
+      <executable>~/Phisics_and_Relap_Repos/RELAP5_Obj_for_PHISICS/r3d434ie/relap5_INL_falcon.x</executable>
       <walltime>10800.</walltime>
       <alias variable="ACC1"                type="input"  >1|0000527:6</alias>
       <alias variable="ACC2"                type="input"  >1|0000556:6</alias>
