@@ -268,17 +268,6 @@ class Optimizer(Sampler):
     needDict['DataObjects'  ] = [(None,'all')] # We get ALL DataObjects in case a CustomSampler is used for the initialization of the initial points
     return needDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ Out, None
-    """
-    Assembler._readMoreXML(self,xmlNode)
-    paramInput=self._readMoreXMLbase(xmlNode)
-    self.localInputAndChecks(paramInput)
-
   def _readMoreXMLbase(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to the base optimizer only

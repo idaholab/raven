@@ -42,7 +42,7 @@ from utils import utils,cached_ndarray,mathUtils
 class GradientBasedOptimizer(Optimizer):
   """
     This is the base class for gradient based optimizer. The following methods need to be overridden by all derived class
-    self.localLocalInputAndChecks(self, paraminput)
+    self.localLocalInputAndChecks(self, xmlNode,paraminput)
     self.localLocalInitialize(self, solutionExport)
     self.localLocalGenerateInput(self,model,oldInput)
     self.localEvaluateGradient(self, optVarsValues, gradient = None)
@@ -124,10 +124,11 @@ class GradientBasedOptimizer(Optimizer):
     # register metadata
     self.addMetaKeys(['trajID','varsUpdate','prefix'])
 
-  def localInputAndChecks(self, paramInput):
+  def localInputAndChecks(self, xmlNode, paramInput):
     """
       Method to read the portion of the xml input that belongs to all gradient based optimizer only
       and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
@@ -612,7 +613,7 @@ class GradientBasedOptimizer(Optimizer):
     if identifier in self.perturbationIndices:
       category = 'grad'
       if self.paramDict['pertSingleGrad'] == 1:
-        # In case of SPSA
+        # no need to calculate the pertPerVar if pertSingleGrad is 1
         pertPerVar = 1
       else:
         pertPerVar = self.paramDict['pertSingleGrad'] // (1+self.useCentralDiff)
