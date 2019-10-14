@@ -10,6 +10,7 @@
       This test aims to confirm the ConjugateGradient optimizer will converge in 2 steps in such a problem using the default
       setup. Extra steps might apply for checking convergency criteria, constrains, and persistence.
     </description>
+    <requirements>R-RM-1</requirements>
   </TestInfo>
 
   <RunInfo>
