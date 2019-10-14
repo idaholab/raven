@@ -536,7 +536,7 @@ class Phisics(CodeInterfaceBase):
       try:
         outc.remove(plot_type)
       except ValueError:
-        pass
+        print('Phisics INTERFACE: added plot_type node and set to 3!')
       outc.append(plot_type)
       tree.write(currentInputFiles[self.typeDict['depletion_input']].getAbsFile())
     return currentInputFiles
