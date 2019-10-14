@@ -359,7 +359,7 @@ class SPSA(GradientBasedOptimizer):
     points = []
     distance = self._computePerturbationDistance(traj,self.paramDict,self.counter['varsUpdate'][traj]+1)
     for i in self.perturbationIndices:
-      direction = self._getPerturbationDirection(i)
+      direction = self._getPerturbationDirection(i, step = self.counter['varsUpdate'][traj])
       point = {}
       index = 0
       for var in self.getOptVars():
@@ -377,6 +377,7 @@ class SPSA(GradientBasedOptimizer):
           index += 1
           point[var] = val
       points.append(point)
+
       if submit:
         prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i)
         self.submissionQueue[traj].append({'inputs':point, 'prefix':prefix})
@@ -578,10 +579,11 @@ class SPSA(GradientBasedOptimizer):
     state['recommendToGain'] = copy.deepcopy(self.recommendToGain           .get(traj,None))
     return state
 
-  def _getPerturbationDirection(self,perturbationIndex):
+  def _getPerturbationDirection(self,perturbationIndex,step = None):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
       @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
+      @ In, step, int, the step index, zero indexed, if not using central gradient, then passing the step index to flip the sign of the direction for FD optimizer.
       @ Out, direction, list, the versor for each optimization dimension
     """
     if perturbationIndex == self.perturbationIndices[0]:
@@ -624,10 +626,11 @@ class SPSA(GradientBasedOptimizer):
       gradient[var] = (gradient[var]/newNormWithoutComponents) if newNormWithoutComponents != 0.0 else gradient[var]
     return suggestedPoint, modded, gradient
 
-  def localEvaluateGradient(self, traj):
+  def localEvaluateGradient(self, traj, gradHist = False):
     """
       Local method to evaluate gradient.
       @ In, traj, int, the trajectory id
+      @ In, gradHist, bool, optional, whether store  self.counter['gradientHistory'] in this step.
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     # this method used to take a gradient estimation. Nothing actually used it, though. - PWT, 2018-10
@@ -637,6 +640,7 @@ class SPSA(GradientBasedOptimizer):
     gradient = {}
     # difference in objective variable
     lossDiff = mathUtils.diffWithInfinites(pert[self.objVar], opt[self.objVar])
+    #gives pert[ans] - opt[ans]
     # we only need the +/- 1, we don't need the gradient value at all.
     lossDiff = 1.0 if lossDiff > 0.0 else -1.0
     # force gradient descent
