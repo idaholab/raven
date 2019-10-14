@@ -1132,7 +1132,7 @@ class Clusters(Segments):
       pivotEdges[r] = pivotVals[pivotIndex]
       pivotIndex += len(rom.pivotParameterValues)
     indexEdges[-1] = pivotIndex
-    pivotEdges[-1] = pivotVals[pivotIndex]
+    pivotEdges[-1] = pivotVals[pivotIndex if pivotIndex < len(pivotVals) else -1]
     return indexEdges[:-1], indexEdges[1:], pivotEdges[:-1], pivotEdges[1:]
 
 
