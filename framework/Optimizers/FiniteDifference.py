@@ -53,6 +53,7 @@ class FiniteDifference(SPSA):
     """
     SPSA.__init__(self)
 
+
   def localInputAndChecks(self, xmlNode):
     """
       Local method for additional reading.
@@ -60,8 +61,11 @@ class FiniteDifference(SPSA):
       @ Out, None
     """
     SPSA.localInputAndChecks(self, xmlNode)
-    self.paramDict['pertSingleGrad'] = len(self.fullOptVars)
+    # need extra eval for central Diff, using boolean in math
+    self.paramDict['pertSingleGrad'] = (1 + self.useCentralDiff) * len(self.fullOptVars)
     self.gradDict['pertNeeded'] = self.gradDict['numIterForAve'] * (self.paramDict['pertSingleGrad']+1)
+    if self.useCentralDiff:
+      self.raiseADebug('Central differencing activated!')
 
   ###############
   # Run Methods #
@@ -70,47 +74,52 @@ class FiniteDifference(SPSA):
   ###################
   # Utility Methods #
   ###################
-  def _getPerturbationDirection(self,perturbationIndex):
+  def _getPerturbationDirection(self, perturbationIndex, step = None):
     """
       This method is aimed to get the perturbation direction (i.e. in this case the random perturbation versor)
       @ In, perturbationIndex, int, the perturbation index (stored in self.perturbationIndices)
+      @ In, step, int, the step index, zero indexed, if not using central gradient, then passing the step index to flip the sign of the direction for FD optimizer.
       @ Out, direction, list, the versor for each optimization dimension
     """
-    optVars = self.getOptVars()
-    if len(optVars) == 1:
-      if self.currentDirection:
-        factor = np.sum(self.currentDirection)*-1.0
-      else:
-        factor = 1.0
-      direction = [factor]
+    _, varId, denoId, cdId = self._identifierToLabel(perturbationIndex)
+    direction = np.zeros(len(self.getOptVars())).tolist()
+    if cdId == 0:
+      direction[varId] = 1.0
     else:
-      if perturbationIndex == self.perturbationIndices[0]:
-        direction = np.zeros(len(self.getOptVars())).tolist()
-        if self.currentDirection:
-          factor = np.sum(self.currentDirection)*-1.0
-        else:
-          factor = 1.0
-        direction[0] = factor
+      direction[varId] = -1.0
+    if step:
+      if step % 2 == 0:
+        factor = 1.0
       else:
-        index = self.currentDirection.index(1.0) if self.currentDirection.count(1.0) > 0 else self.currentDirection.index(-1.0)
-        direction = self.currentDirection
-        newIndex = 0 if index+1 == len(direction) else index+1
-        direction[newIndex],direction[index] = direction[index], 0.0
+        # flip the sign of the direction for FD optimizer, this step will not affect central differancing
+        # but will make the direction between forward and backward
+        # for example of 2 variables 3 denoise W/O central diff:
+        # step 0 directions are ([1 0],[0 1])*3
+        # step 1 directions are ([-1 0],[0 -1])*3
+        # with central diff:
+        # step 0 directions are ([1 0],[0 1],[-1,0],[0,-1])*3
+        # step 1 directions are ([-1,0],[0,-1],[1 0],[0 1])*3
+        factor = -1.0
+      direction = [var * factor for var in direction]
+
     self.currentDirection = direction
     return direction
 
-  def localEvaluateGradient(self, traj):
+  def localEvaluateGradient(self, traj, gradHist = False):
     """
       Local method to evaluate gradient.
       @ In, traj, int, the trajectory id
+      @ In, gradHist, bool, optional, whether store  self.counter['gradientHistory'] in this step.
       @ Out, gradient, dict, dictionary containing gradient estimation. gradient should have the form {varName: gradEstimation}
     """
     gradient = {}
     inVars = self.getOptVars()
     opt = self.realizations[traj]['denoised']['opt'][0]
     allGrads = self.realizations[traj]['denoised']['grad']
+    gi = {}
     for g,pert in enumerate(allGrads):
-      var = inVars[g]
+      varId = g % len(inVars)
+      var = inVars[varId]
       lossDiff = mathUtils.diffWithInfinites(pert[self.objVar],opt[self.objVar])
       # unlike SPSA, keep the loss diff magnitude so we get the exact right direction
       if self.optType == 'max':
@@ -121,5 +130,16 @@ class FiniteDifference(SPSA):
         self.raiseADebug('Opt point   :',opt)
         self.raiseADebug('Grad point  :',pert)
         self.raiseAnError(RuntimeError,'While calculating the gradArray a "dh" very close to zero was found for var:',var)
-      gradient[var] = np.atleast_1d(lossDiff / dh)
+      if gradient.get(var) == None:
+        gi[var] = 0
+        gradient[var] = np.atleast_1d(lossDiff / dh)
+      else:
+        gi[var] += 1
+        gradient[var] = (gradient[var] + np.atleast_1d(lossDiff / dh))* gi[var]/(gi[var]  + 1)
+    if gradHist:
+      try:
+        self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][traj][0]
+      except IndexError:
+        pass # don't have a history on the first pass
+      self.counter['gradientHistory'][traj][0] = gradient
     return gradient
