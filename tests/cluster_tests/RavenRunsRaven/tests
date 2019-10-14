@@ -9,7 +9,7 @@
  [../]
  [./Code]
    input = 'code.xml ../pbspro_mpi.xml ../cluster_runinfo.xml'
-   output = 'Rom/outer_out.csv Rom/outer_out.xml'
+   output = 'Code/outer_out.csv Code/outer_out.xml'
    run_types = 'qsub'
    output_wait_time = 60
    type = RavenFramework
