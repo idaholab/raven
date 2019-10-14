@@ -199,7 +199,7 @@ class ARMA(supervisedLearning):
             self.raiseAWarning('Fourier params for "{}" were specified multiple times! Using first values ...'
                                .format(v))
             continue
-          self.fourierParams[v] = periods
+          self.fourierParams[v] = sorted(periods, reverse=True) # Must be largest to smallest!
       elif child.getName() == 'Peaks':
         # read peaks information for each target
         peak={}
@@ -244,7 +244,7 @@ class ARMA(supervisedLearning):
       # set to any variable that doesn't already have a specific one
       for v in set(self.target) - set(self.fourierParams.keys()):
         self.raiseADebug('setting general Fourier settings for "{}"'.format(v))
-        self.fourierParams[v] = basePeriods
+        self.fourierParams[v] = sorted(basePeriods, reverse=True) # Must be largest to smallest!
 
   def __getstate__(self):
     """
@@ -279,6 +279,8 @@ class ARMA(supervisedLearning):
     """
     self.multiyear = True
     self.numYears = 0 # minimum
+    # clear existing parameters
+    self.growthFactors = collections.defaultdict(list)
     growthNodes = node.findAll('growth')
     numYearsNode = node.findFirst('years')
     # if <years> given, then we use that as the baseline default duration range(0, years) (not inclusive)
@@ -984,14 +986,39 @@ class ARMA(supervisedLearning):
     fourierEngine = linear_model.LinearRegression(normalize=False)
     fourierSignals = fourierSignalsFull[masks, :]
     values = values[masks]
+    # check collinearity
+    condNumber = np.linalg.cond(fourierSignals)
+    if condNumber  > 30:
+      self.raiseADebug('Fourier fitting condition number is {:1.1e}!'.format(condNumber),
+                       ' Calculating iteratively instead of all-at-once.')
+      # fourierSignals has shape (H, 2F) where H is history len and F is number of Fourier periods
+      ## Fourier periods are in order from largest period to smallest, with sin then cos for each:
+      ## [S0, C0, S1, C1, ..., SN, CN]
+      H, F2 = fourierSignals.shape
+      signalToFit = copy.deepcopy(values[:])
+      intercept = 0
+      coeffs = np.zeros(F2)
+      for fn in range(F2):
+        fSignal = fourierSignals[:,fn]
+        eng = linear_model.LinearRegression(normalize=False)
+        eng.fit(fSignal.reshape(H,1), signalToFit)
+        thisIntercept = eng.intercept_
+        thisCoeff = eng.coef_[0]
+        coeffs[fn] = thisCoeff
+        intercept += thisIntercept
+        # remove this signal from the signal to fit
+        thisSignal = thisIntercept + thisCoeff * fSignal
+        signalToFit -= thisSignal
+    else:
+      self.raiseADebug('Fourier fitting condition number is {:1.1e}.'.format(condNumber),
+                       ' Calculating all Fourier coefficients at once.')
+      fourierEngine.fit(fourierSignals, values)
+      intercept = fourierEngine.intercept_
+      coeffs = fourierEngine.coef_
 
-    fourierEngine.fit(fourierSignals, values)
-
-    # get signal intercept
-    intercept = fourierEngine.intercept_
     # get coefficient map for A*sin(ft) + B*cos(ft)
     waveCoefMap = collections.defaultdict(dict) # {period: {sin:#, cos:#}}
-    for c, coef in enumerate(fourierEngine.coef_):
+    for c, coef in enumerate(coeffs):
       period = periods[c//2]
       waveform = 'sin' if c % 2 == 0 else 'cos'
       waveCoefMap[period][waveform] = coef
@@ -1005,7 +1032,7 @@ class ARMA(supervisedLearning):
       B = coefs['cos']
       C, s = mathUtils.convertSinCosToSinPhase(A, B)
       coefMap[period] = {'amplitude': C, 'phase': s}
-      signal+=mathUtils.evalFourier(period,C,s,pivotValues)
+      signal += mathUtils.evalFourier(period,C,s,pivotValues)
     # re-add zero-filtered
     if target == self.zeroFilterTarget:
       signal[self._masks[target]['zeroFilterMask']] = 0.0
