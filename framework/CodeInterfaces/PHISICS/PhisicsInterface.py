@@ -525,4 +525,18 @@ class Phisics(CodeInterfaceBase):
             currentInputFiles[self.typeDict['mass']].getAbsFile(),
             currentInputFiles[self.typeDict['mass']].getPath(),
             **self.distributedPerturbedVars[perturbedParam])
+      # add CSV output from depletion
+      tree = ET.parse(currentInputFiles[self.typeDict['depletion_input']].getAbsFile())
+      depletionRoot = tree.getroot()
+      outc = depletionRoot.find(".//output_control")
+      plot_type = outc.find(".//plot_type")
+      if plot_type is None or plot_type.text.strip() != '3':
+        plot_type = ET.Element("plot_type") if plot_type is None else plot_type
+      plot_type.text = '3'
+      try:
+        outc.remove(plot_type)
+      except ValueError:
+        pass
+      outc.append(plot_type)
+      tree.write(currentInputFiles[self.typeDict['depletion_input']].getAbsFile())
     return currentInputFiles
