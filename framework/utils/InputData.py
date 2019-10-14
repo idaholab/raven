@@ -502,7 +502,7 @@ class ParameterInput(object):
     if cls.subOrder is not None:
       cls.subOrder.append((sub,quantity))
     elif quantity != Quantity.zero_to_infinity:
-     print("ERROR only zero to infinity is supported if Order==False ",
+      print("ERROR only zero to infinity is supported if Order==False ",
            sub.getName()," in ",cls.getName())
 
   @classmethod
