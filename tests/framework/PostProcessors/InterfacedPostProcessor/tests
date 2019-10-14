@@ -105,7 +105,7 @@
   [../]
   [./historySetSampling_and_sync]
     type   = 'RavenFramework'
-    input  = 'test_historySetSamplingIPP.xml'
+    input  = 'test_historySetSampling_and_sync.xml'
     csv    = 'historySetSampling_and_sync/out_synced_and_reduced_1.csv'
   [../]
 
