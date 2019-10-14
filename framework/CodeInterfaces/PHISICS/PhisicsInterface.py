@@ -23,8 +23,6 @@ import re
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import phisicsdata
 import xml.etree.ElementTree as ET
-import fileinput
-import sys
 
 
 class Phisics(CodeInterfaceBase):
@@ -101,14 +99,12 @@ class Phisics(CodeInterfaceBase):
       @ Out, None
     """
     if depletionTree.find('.//input_files') is None:
-      for line in fileinput.FileInput(depletionFile, inplace=1):
-        if '<DEPLETION_INPUT>' in line:
-          line = line.replace('<DEPLETION_INPUT>',
-                              '<DEPLETION_INPUT>' + '\n\t' + '<input_files>' +
-                              libPathFile + '</input_files>')
+      inputFilesNode = ET.Element("input_files")
+      inputFilesNode.text = libPathFile
+      depletionTree.getroot().insert(0,inputFilesNode)
     else:
       depletionTree.find('.//input_files').text = libPathFile
-      depletionTree.write(depletionFile)
+    depletionTree.write(depletionFile)
 
   def getTitle(self, depletionRoot):
     """
