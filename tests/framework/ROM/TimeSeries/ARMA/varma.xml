@@ -141,6 +141,7 @@
         <targets>A,B,D</targets>
         <features>A,B,D</features>
       </covariance>
+      <multipleFeatures>False</multipleFeatures>
     </PostProcessor>
   </Models>
 

@@ -123,6 +123,13 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <HistorySet name="final_out">
+      <Input>scaling</Input>
+      <Output>yearly_aggregate</Output>
+      <options>
+        <pivotParameter>Year</pivotParameter>
+      </options>
+    </HistorySet>
     <DataSet name="synData">
       <Input>scaling</Input>
       <Output>Speed</Output>
@@ -135,13 +142,6 @@
       <Index var="Time">Speed</Index>
       <Index var="Year">Speed, yearly_aggregate</Index>
     </DataSet>
-    <HistorySet name="final_out">
-      <Input>scaling</Input>
-      <Output>yearly_aggregate</Output>
-      <options>
-        <pivotParameter>Year</pivotParameter>
-      </options>
-    </HistorySet>
     <DataSet name="romMeta"/>
   </DataObjects>
 
