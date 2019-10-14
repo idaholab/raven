@@ -4,7 +4,7 @@
     <name>framework/Optimizers.optIteration</name>
     <author>ZHOUJ</author>
     <created>2019-10-09</created>
-    <classesTested>Optimizer</classesTested>
+    <classesTested>Optimizer.ConjugateGradient</classesTested>
     <description>
       This test runs the optimization on an elliptic paraboloid. The minimum solution is at (-0.5, 0.5) with a value of 0.
       This test aims to confirm the ConjugateGradient optimizer will converge in 2 steps in such a problem using the default
