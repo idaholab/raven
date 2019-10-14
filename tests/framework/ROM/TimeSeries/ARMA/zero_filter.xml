@@ -75,10 +75,9 @@
       <ZeroFilter tol="1e-10">GHI</ZeroFilter>
       <pivotParameter>Time</pivotParameter>
       <correlate>Demand, GHI</correlate>
-      <Fourier>86400.000000</Fourier>
-      <!-- 1 year, 3 months, 1 day -->
-      <P>3</P>
-      <Q>2</Q>
+      <Fourier>86400</Fourier>
+      <P>2</P>
+      <Q>1</Q>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
       <expectedValue prefix="mean">Demand,GHI</expectedValue>
