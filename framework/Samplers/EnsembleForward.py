@@ -186,10 +186,10 @@ class EnsembleForward(ForwardSampler):
         self.instanciatedSamplers[samplingStrategy].localGenerateInput(None,None)
         self.instanciatedSamplers[samplingStrategy].inputInfo['prefix'] = self.instanciatedSamplers[samplingStrategy].counter
         self.samplersCombinations[samplingStrategy].append(copy.deepcopy(self.instanciatedSamplers[samplingStrategy].inputInfo))
-        mKeys, mParams = self.instanciatedSamplers[samplingStrategy].provideExpectedMetaKeys()
-        metadataKeys.extend(mKeys)
-        mParams.update(mParams)
       cnt+=1
+      mKeys, mParams = self.instanciatedSamplers[samplingStrategy].provideExpectedMetaKeys()
+      metadataKeys.extend(mKeys)
+      mParams.update(mParams)
     metadataKeys = list(set(metadataKeys))
     self.raiseAMessage('Number of Combined Samples are ' + str(self.limit) + '!')
     # create a grid of combinations (no tensor)
