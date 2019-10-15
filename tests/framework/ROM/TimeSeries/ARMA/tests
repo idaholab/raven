@@ -159,6 +159,7 @@
     # TODO signal test!
     [./rom_meta]
       type = XML
+      unordered = true
       output = 'ClusteredTruncated/romMeta.xml'
       rel_err = 1e-5
     [../]
