@@ -111,8 +111,12 @@ class Optimizer(Sampler):
     init.addSub(thresh)
     init.addSub(write)
     inputSpecification.addSub(init)
-
     # convergence
+
+    # central difference
+    cendiff = InputData.parameterInputFactory('centralDifference', contentType=InputData.BoolType)
+    gradhis = InputData.parameterInputFactory('useGradientHistory', contentType=InputData.BoolType)
+
     conv = InputData.parameterInputFactory('convergence', strictMode=True)
     itLim   = InputData.parameterInputFactory('iterationLimit'   , contentType=InputData.IntegerType)
     pers    = InputData.parameterInputFactory('persistence'      , contentType=InputData.IntegerType)
@@ -122,6 +126,8 @@ class Optimizer(Sampler):
     minstep = InputData.parameterInputFactory('minStepSize'      , contentType=InputData.FloatType  )
     grow    = InputData.parameterInputFactory('gainGrowthFactor' , contentType=InputData.FloatType  )
     shrink  = InputData.parameterInputFactory('gainShrinkFactor' , contentType=InputData.FloatType  )
+    conv.addSub(cendiff)
+    conv.addSub(gradhis)
     conv.addSub(itLim)
     conv.addSub(pers)
     conv.addSub(rel)
@@ -262,18 +268,6 @@ class Optimizer(Sampler):
     needDict['DataObjects'  ] = [(None,'all')] # We get ALL DataObjects in case a CustomSampler is used for the initialization of the initial points
     return needDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ Out, None
-    """
-    # TODO can be combined with Sampler's _readMoreXML, but needs to implement paramInput passing to localInputAndChecks (new input checker)
-    Assembler._readMoreXML(self,xmlNode)
-    self._readMoreXMLbase(xmlNode)
-    self.localInputAndChecks(xmlNode)
-
   def _readMoreXMLbase(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to the base optimizer only
@@ -408,6 +402,7 @@ class Optimizer(Sampler):
       if len(self.optVarsInit['initial'][varName]) == 0:
         for traj in self.optTraj:
           self.optVarsInit['initial'][varName][traj] = None
+    return paramInput
 
   def initialize(self,externalSeeding=None,solutionExport=None):
     """

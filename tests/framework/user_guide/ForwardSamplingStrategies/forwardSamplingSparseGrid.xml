@@ -63,6 +63,9 @@
       <variable name="angle">
         <distribution>angle_dist</distribution>
       </variable>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+      <constant name="timeOption">0</constant>
     </MonteCarlo>
     <SparseGridCollocation name="SG">
       <variable name="v0">
@@ -71,6 +74,9 @@
       <variable name="angle">
         <distribution>angle_dist</distribution>
       </variable>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+      <constant name="timeOption">0</constant>
       <ROM class="Models" type="ROM">rom</ROM>
     </SparseGridCollocation>
   </Samplers>
