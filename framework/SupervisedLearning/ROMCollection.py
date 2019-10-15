@@ -785,7 +785,7 @@ class Clusters(Segments):
       @ Out, getSegmentRoms, list, list of roms
     """
     if full:
-      return list(self._roms[label] for label in self._clusterInfo['labels'])
+      return self._getSequentialRoms()
     else:
       return self._roms
 

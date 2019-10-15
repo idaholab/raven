@@ -54,28 +54,6 @@
     <ClusterROM cluster="1" type="Static">
       <Signal>
         <Fourier>
-          <SignalIntercept>9.083303694e-02</SignalIntercept>
-          <period>5.000000000e+00
-            <frequency>2.000000000e-01</frequency>
-            <amplitude>1.451166047e-01</amplitude>
-            <phase>7.701106672e-02</phase>
-          </period>
-          <period>3.000000000e+00
-            <frequency>3.333333333e-01</frequency>
-            <amplitude>4.214521530e+00</amplitude>
-            <phase>-2.582812542e+00</phase>
-          </period>
-        </Fourier>
-        <ARMA_params>
-          <std>3.71415446774</std>
-        </ARMA_params>
-      </Signal>
-      <segments_represented>4</segments_represented>
-      <indices>10, 20</indices>
-    </ClusterROM>
-    <ClusterROM cluster="2" type="Static">
-      <Signal>
-        <Fourier>
           <SignalIntercept>8.630321843e-02</SignalIntercept>
           <period>5.000000000e+00
             <frequency>2.000000000e-01</frequency>
@@ -93,6 +71,28 @@
         </ARMA_params>
       </Signal>
       <segments_represented>3, 6, 7, 8</segments_represented>
+      <indices>10, 20</indices>
+    </ClusterROM>
+    <ClusterROM cluster="2" type="Static">
+      <Signal>
+        <Fourier>
+          <SignalIntercept>9.083303694e-02</SignalIntercept>
+          <period>5.000000000e+00
+            <frequency>2.000000000e-01</frequency>
+            <amplitude>1.451166047e-01</amplitude>
+            <phase>7.701106672e-02</phase>
+          </period>
+          <period>3.000000000e+00
+            <frequency>3.333333333e-01</frequency>
+            <amplitude>4.214521530e+00</amplitude>
+            <phase>-2.582812542e+00</phase>
+          </period>
+        </Fourier>
+        <ARMA_params>
+          <std>3.71415446774</std>
+        </ARMA_params>
+      </Signal>
+      <segments_represented>4</segments_represented>
       <indices>20, 30</indices>
     </ClusterROM>
     <ClusterROM cluster="3" type="Static">

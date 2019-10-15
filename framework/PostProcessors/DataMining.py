@@ -577,10 +577,15 @@ class DataMining(PostProcessor):
       @ Out, labels, list(int), fixed up labels
     """
     labels = np.zeros(len(originalLabels), dtype=int)
-    unique, firstTimeIndex = np.unique(originalLabels, return_index=True)
-    unique = originalLabels[firstTimeIndex]
-    for l, idx in enumerate(unique):
-      labels[originalLabels == idx] = l
+    oldToNew = {}
+    nextUsableLabel = 0
+    for l, old in enumerate(originalLabels):
+      new = oldToNew.get(old, None)
+      if new is None:
+        oldToNew[old] = nextUsableLabel
+        new = nextUsableLabel
+        nextUsableLabel += 1
+      labels[l] = new
     return labels
 
   def __runSciKitLearn(self, Input):
