@@ -42,7 +42,7 @@ from utils import utils,cached_ndarray,mathUtils
 class GradientBasedOptimizer(Optimizer):
   """
     This is the base class for gradient based optimizer. The following methods need to be overridden by all derived class
-    self.localLocalInputAndChecks(self, xmlNode)
+    self.localLocalInputAndChecks(self, xmlNode,paraminput)
     self.localLocalInitialize(self, solutionExport)
     self.localLocalGenerateInput(self,model,oldInput)
     self.localEvaluateGradient(self, optVarsValues, gradient = None)
@@ -116,7 +116,7 @@ class GradientBasedOptimizer(Optimizer):
     self.gainShrinkFactor            = 2.              # max step shrinking factor
     self.optPointIndices             = []              # in this list we store the indeces that correspond to the opt point
     self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation.
-    self.useCentralDiff              = False            # whether to use central differencing
+    self.useCentralDiff              = True            # whether to use central differencing
     self.useGradHist                 = False            # whether to use Gradient hisory
     # REWORK 2018-10 for simultaneous point-and-gradient evaluations
     self.realizations                = {}    # by trajectory, stores the results obtained from the jobs running, see setupNewStorage for structure
@@ -124,48 +124,31 @@ class GradientBasedOptimizer(Optimizer):
     # register metadata
     self.addMetaKeys(['trajID','varsUpdate','prefix'])
 
-  def localInputAndChecks(self, xmlNode):
+  def localInputAndChecks(self, xmlNode, paramInput):
     """
       Method to read the portion of the xml input that belongs to all gradient based optimizer only
       and initialize some stuff based on the inputs got
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    convergence = xmlNode.find("convergence")
-    if convergence is not None:
-      #convergence criteria, the gradient threshold
-      gradientThreshold = convergence.find("gradientThreshold")
-      try:
-        self.gradientNormTolerance = float(gradientThreshold.text) if gradientThreshold is not None else self.gradientNormTolerance
-      except ValueError:
-        self.raiseAnError(ValueError, 'Not able to convert <gradientThreshold> into a float.')
-      #grain growth factor, the multiplier for going in the same direction
-      gainGrowthFactor = convergence.find('gainGrowthFactor')
-      try:
-        self.gainGrowthFactor = float(gainGrowthFactor.text) if gainGrowthFactor is not None else 2.0
-      except ValueError:
-        self.raiseAnError(ValueError, 'Not able to convert <gainGrowthFactor> into a float.')
-      #grain shrink factor, the multiplier for going in the opposite direction
-      gainShrinkFactor = convergence.find('gainShrinkFactor')
-      try:
-        self.gainShrinkFactor = float(gainShrinkFactor.text) if gainShrinkFactor is not None else 2.0
-      except ValueError:
-        self.raiseAnError(ValueError, 'Not able to convert <gainShrinkFactor> into a float.')
+    for child in paramInput.subparts:
+      if child.getName() == "convergence":
+        for grandchild in child.subparts:
+          tag = grandchild.getName()
+          if tag == "gradientThreshold":
+            self.gradientNormTolerance = grandchild.value
+          elif tag == "gainGrowthFactor":
+            self.gainGrowthFactor = grandchild.value
+            self.raiseADebug('Gain growth factor is set at',self.gainGrowthFactor)
+          elif tag == "gainShrinkFactor":
+            self.gainShrinkFactor = grandchild.value
+            self.raiseADebug('Gain shrink factor is set at',self.gainShrinkFactor)
+          elif tag == "centralDifference":
+            self.useCentralDiff = grandchild.value
+          elif tag == "useGradientHistory":
+            self.useGradHist = grandchild.value
 
-      centralDiff = convergence.find('centralDifference')
-      try:
-        self.useCentralDiff = (centralDiff.text.strip().lower() in utils.stringsThatMeanTrue()) if centralDiff is not None else False
-      except ValueError:
-        self.raiseAnError(ValueError, 'Not able to convert <centralDifference> into a boolean.')
-
-      useGradHist = convergence.find('useGradientHistory')
-      try:
-        self.useGradHist = (useGradHist.text.strip().lower() in utils.stringsThatMeanTrue()) if centralDiff is not None else False
-      except ValueError:
-        self.raiseAnError(ValueError, 'Not able to convert <useGradientHistory> into a boolean.')
-
-      self.raiseADebug('Gain growth factor is set at',self.gainGrowthFactor)
-      self.raiseADebug('Gain shrink factor is set at',self.gainShrinkFactor)
     self.gradDict['numIterForAve'] = int(self.paramDict.get('numGradAvgIterations', 1))
 
   def localInitialize(self,solutionExport):
@@ -629,11 +612,19 @@ class GradientBasedOptimizer(Optimizer):
     """
     if identifier in self.perturbationIndices:
       category = 'grad'
-      pertPerVar = self.paramDict['pertSingleGrad'] // (1+self.useCentralDiff)
+      if self.paramDict['pertSingleGrad'] == 1:
+        # no need to calculate the pertPerVar if pertSingleGrad is 1
+        pertPerVar = 1
+      else:
+        pertPerVar = self.paramDict['pertSingleGrad'] // (1+self.useCentralDiff)
       varId = (identifier - self.gradDict['numIterForAve']) % pertPerVar
       denoId = (identifier - self.gradDict['numIterForAve'])// self.paramDict['pertSingleGrad']
       # for cdId 0 is the first cdID 1 is the second side of central Diff
-      cdId = ((identifier - self.gradDict['numIterForAve'])// pertPerVar) % len(self.fullOptVars)
+      if len(self.fullOptVars) == 1:
+        #expect 0 or 1 for cdID, but % len(self.fullOptVars) will always be 0 if len(self.fullOptVars)=1
+        cdId = (identifier - self.gradDict['numIterForAve']) % self.paramDict['pertSingleGrad']
+      else:
+        cdId = ((identifier - self.gradDict['numIterForAve'])// pertPerVar) % len(self.fullOptVars)
       if not self.useCentralDiff:
         cdId = 0
     else:
