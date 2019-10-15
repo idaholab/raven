@@ -418,49 +418,47 @@ class Code(Model):
     executable = commandSplit[0]
 
     if os.path.exists(executable):
-      executableFile = open(executable, "r")
-
-      firstTwoChars = executableFile.read(2)
-
-      if firstTwoChars == "#!":
-        realExecutable = shlex.split(executableFile.readline())
-        self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
-        # The below code should work, and would be better than findMsys,
-        # but it doesn't work.
-        # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
-        # print("winExecutable",winExecutable)
-        # realExecutable[0] = winExecutable
-        def findMsys():
-          """
-            Function to try and figure out where the MSYS64 is.
-            @ In, None
-            @ Out, dir, String, If not None, the directory where msys is.
-          """
-          dir = os.getcwd()
-          head, tail = os.path.split(dir)
-          while True:
-            if tail.lower().startswith("msys"):
-              return dir
-            dir = head
+      with open(executable, "r+b") as executableFile:
+        firstTwoChars = executableFile.read(2)
+        if firstTwoChars == "#!":
+          realExecutable = shlex.split(executableFile.readline())
+          self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
+          # The below code should work, and would be better than findMsys,
+          # but it doesn't work.
+          # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
+          # print("winExecutable",winExecutable)
+          # realExecutable[0] = winExecutable
+          def findMsys():
+            """
+              Function to try and figure out where the MSYS64 is.
+              @ In, None
+              @ Out, dir, String, If not None, the directory where msys is.
+            """
+            dir = os.getcwd()
             head, tail = os.path.split(dir)
-          return None
-        msysDir = findMsys()
-        if msysDir is not None:
-          beginExecutable = realExecutable[0]
-          if beginExecutable.startswith("/"):
-            beginExecutable = beginExecutable.lstrip("/")
-          winExecutable = os.path.join(msysDir, beginExecutable)
-          self.raiseAMessage("winExecutable " + winExecutable)
-          if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
-            #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
-            maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
-            if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
-              winExecutable = maybeWinExecutable
-          realExecutable[0] = winExecutable
-        else:
-          self.raiseAWarning("Could not find msys in "+os.getcwd())
-        commandSplit = realExecutable + [executable] + commandSplit[1:]
-        return commandSplit
+            while True:
+              if tail.lower().startswith("msys"):
+                return dir
+              dir = head
+              head, tail = os.path.split(dir)
+            return None
+          msysDir = findMsys()
+          if msysDir is not None:
+            beginExecutable = realExecutable[0]
+            if beginExecutable.startswith("/"):
+              beginExecutable = beginExecutable.lstrip("/")
+            winExecutable = os.path.join(msysDir, beginExecutable)
+            self.raiseAMessage("winExecutable " + winExecutable)
+            if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
+              #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
+              maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
+              if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
+                winExecutable = maybeWinExecutable
+            realExecutable[0] = winExecutable
+          else:
+            self.raiseAWarning("Could not find msys in "+os.getcwd())
+          commandSplit = realExecutable + [executable] + commandSplit[1:]
+          return commandSplit
     return origCommand
 
   def evaluateSample(self, myInput, samplerType, kwargs):

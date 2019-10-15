@@ -111,9 +111,9 @@ class HS2PS(PostProcessorInterfaceBase):
         outputDic['data'][str(key)] = np.empty(0)
         outputDic['data'][str(key)] = matrix[:,key]
         outputDic['dims'][str(key)] = []
-
-      outputDic['data']['ProbabilityWeight'] = inputDict['data']['ProbabilityWeight']
-      outputDic['data']['prefix'] = inputDict['data']['prefix']
+      # add meta variables back
+      for key in inputDict['metaKeys']:
+        outputDic['data'][key] = inputDict['data'][key]
 
       self.transformationSettings['vars'] = copy.deepcopy(self.features)
       self.transformationSettings['timeLength'] = historyLength
@@ -123,7 +123,11 @@ class HS2PS(PostProcessorInterfaceBase):
       return outputDic
 
   def _inverse(self,inputDic):
-
+    """
+      This method is aimed to return the inverse of the action of this PostProcessor
+      @ In, inputDic, dict, dictionary which contains the transformed data of this PP
+      @ Out, data, dict, the dictionary containing the inverse of the data (the orginal space)
+    """
     data = {}
     for hist in inputDic.keys():
       data[hist]= {}
