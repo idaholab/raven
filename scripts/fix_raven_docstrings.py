@@ -136,7 +136,6 @@ def trimPoundDocstring(docstring, quoteIndent, maxColumns=120):
   # Return a single string:
   return outputLines
 
-
 if __name__ == '__main__':
   # main portion of this tool
   # the script must be run as follows
