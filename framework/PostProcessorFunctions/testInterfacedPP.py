@@ -57,6 +57,10 @@ class testInterfacedPP(PostProcessorInterfaceBase):
       outputDict['dims'] = copy.deepcopy(inputDict['dims'])
       for key in inputDict['data'].keys():
         outputDict['data'][key] = copy.deepcopy(inputDict['data'][key])
+
+      # add meta variables back
+      for key in inputDict['metaKeys']:
+        outputDict['data'][key] = inputDict['data'][key]
       return outputDict
 
   def readMoreXML(self,xmlNode):
