@@ -3,7 +3,7 @@ name: Feature request
 about: Suggest a new capability or addition you would like to see
 title: "[TASK] Title here"
 labels: priority_minor, task
-assignees: ''
+assignees: alfoa
 
 ---
 
