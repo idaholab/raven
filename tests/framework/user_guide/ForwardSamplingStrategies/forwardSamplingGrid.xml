@@ -50,6 +50,9 @@
         <distribution>angle_dist</distribution>
         <grid construction="equal" steps="3" type="CDF">0.15  0.9</grid>
       </variable>
+      <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
+      <constant name="timeOption">0</constant>
     </Grid>
   </Samplers>
 
