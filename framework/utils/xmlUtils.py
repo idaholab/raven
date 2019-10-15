@@ -210,9 +210,7 @@ def findPath(root, path):
   """
   assert('|' not in path), 'Update XML search to use XPATH syntax!'
   # edit tags for allowable characters
-  # TODO this breaks for xpath searches using attributes!
-  if '[' not in path:
-    path = fixTagsInXpath(path)
+  path = fixTagsInXpath(path)
   found = root.findall(path)
   if len(found) < 1:
     return None
