@@ -360,15 +360,16 @@ class DataMining(PostProcessor):
     else:
       currentInput = currentInp
 
-    if currentInput.type == 'HistorySet':
-      return self.inputToInternalForHistorySet(currentInput)
+    if hasattr(currentInput, 'type'):
+      if currentInput.type == 'HistorySet':
+        return self.inputToInternalForHistorySet(currentInput)
 
-    elif currentInput.type == 'PointSet':
-      return self.inputToInternalForPointSet(currentInput)
+      elif currentInput.type == 'PointSet':
+        return self.inputToInternalForPointSet(currentInput)
 
     elif type(currentInp) == dict:
       if 'Features' in currentInput.keys():
-        return
+        return currentInput
 
     elif isinstance(currentInp, Files.File):
       self.raiseAnError(IOError, 'DataMining PP: this PP does not support files as input.')
@@ -537,7 +538,7 @@ class DataMining(PostProcessor):
       currentInput = inputIn[-1]
     else:
       currentInput = inputIn
-    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None:
+    if hasattr(currentInput, 'type') and currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None:
       return self.__runTemporalSciKitLearn(Input)
     else:
       return self.__runSciKitLearn(Input)
@@ -550,6 +551,14 @@ class DataMining(PostProcessor):
       @ Out, None
     """
     pass
+
+  def updateFeatures(self, features):
+    """
+      Change the Features that this classifier targets.
+      @ In, features, list(str), list of new features
+      @ Out, None
+    """
+    self.unSupervisedEngine.updateFeatures(features)
 
   def __adjustFeatures(self, features):
     """
