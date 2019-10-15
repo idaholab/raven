@@ -417,7 +417,7 @@ class Code(Model):
     commandSplit = shlex.split(origCommand.replace("\\","/"))
     executable = commandSplit[0]
 
-     if os.path.exists(executable):
+    if os.path.exists(executable):
       with open(executable, "r+b") as executableFile:
         firstTwoChars = executableFile.read(2)
         if firstTwoChars == "#!":
