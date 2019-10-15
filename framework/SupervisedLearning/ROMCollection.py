@@ -804,7 +804,7 @@ class Clusters(Segments):
     ## NOTE only using the uSVE isn't an option, as the cluster order isn't regulated.
     classifier.updateFeatures(features)
     res = classifier.run({'Features': clusterFeatures})
-    labels = res['outputs']['labels']
+    labels = res['outputs'][classifier.labelFeature]
     return labels
 
   def _collectClusteredEvaluations(self, evaluationDict, pivotID):

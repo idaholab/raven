@@ -570,6 +570,19 @@ class DataMining(PostProcessor):
       self.unSupervisedEngine.features = sorted(features)
     assert set(self.unSupervisedEngine.features) == set(features)
 
+  def __regulateLabels(self, originalLabels):
+    """
+      Regulates the labels such that the first one to appear is 0, second one is 1, and so on.
+      @ In, originalLabels, list(int), the original labeling system
+      @ Out, labels, list(int), fixed up labels
+    """
+    labels = np.zeros(len(originalLabels), dtype=int)
+    unique, firstTimeIndex = np.unique(originalLabels, return_index=True)
+    unique = originalLabels[firstTimeIndex]
+    for l, idx in enumerate(unique):
+      labels[originalLabels == idx] = l
+    return labels
+
   def __runSciKitLearn(self, Input):
     """
       This method executes the postprocessor action. In this case it loads the
@@ -590,7 +603,8 @@ class DataMining(PostProcessor):
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
     ## Rename the algorithm output to point to the user-defined label feature
     if 'labels' in outputDict['outputs']:
-      outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
+      labels = self.__regulateLabels(outputDict['outputs'].pop('labels'))
+      outputDict['outputs'][self.labelFeature] = labels #outputDict['outputs'].pop('labels')
     elif 'embeddingVectors' in outputDict['outputs']:
       transformedData = outputDict['outputs'].pop('embeddingVectors')
       reducedDimensionality = transformedData.shape[1]
