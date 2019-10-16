@@ -42,13 +42,12 @@ class UnorderedCSVDiffer:
                absolute_check=False, zero_threshold=None, ignore_sign=False):
     """
       Create an UnorderedCSVDiffer class
-      Note naming conventions are out of our control due to MOOSE test harness standards.
-      @ In, test_dir, the directory where the test takes place
       @ In, out_files, the files to be compared.  They will be in test_dir + out_files
       @ In, gold_files, the files to be compared to the out_files.
       @ In, relative_error, float, optional, relative error
       @ In, absolute_check, bool, optional, if True then check absolute
          differences in the values instead of relative differences
+      @ In, zero_threshold, float, optional, if a number <= abs(zero_threshold) it will be considered 0
       @ In, ignore_sign, bool, optional, if True then the sign will be ignored during the comparison
       @ Out, None.
     """
