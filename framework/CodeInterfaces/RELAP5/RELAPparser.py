@@ -140,7 +140,8 @@ class RELAPparser():
       for trip in self.inputTrips[deckNum]['variableTrips'].values():
         found = False
         for edit in alreadyAvailableEdits:
-          if trip['component'] in edit['component'] and trip['variable'] in edit['component']: found = True
+          if trip['component'] in edit['component'] and trip['variable'] in edit['component']: 
+            found = True
         if not found and trip['variable'] != 'time' and trip['variable']+"_"+trip['component'] not in addedVars:
           addedVars.append(trip['variable']+"_"+trip['component'])
           if len(availableMinorEditsCards) == 0: raise IOError("Number of minor edits reached already the upper bound of RELAP5. There are no available cards to monitor the trips!")

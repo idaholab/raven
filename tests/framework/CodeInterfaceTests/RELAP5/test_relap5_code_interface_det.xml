@@ -1,7 +1,7 @@
 <Simulation verbosity="debug">
 
   <RunInfo>
-    <WorkingDir>/home/alfoa/MOOSERAVEN/trunk_git/raven_github/raven/tests/framework/CodeInterfaceTests/RELAP5/RELAP5interfaceDET</WorkingDir>
+    <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/CodeInterfaceTests/RELAP5/RELAP5interfaceDET</WorkingDir>
     <Sequence>Run</Sequence>
     <batchSize>4</batchSize>
     <!-- <RemoteRunCommand>raven_qsub_command_legacy.sh</RemoteRunCommand>
