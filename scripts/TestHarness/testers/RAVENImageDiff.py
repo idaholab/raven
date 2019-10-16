@@ -130,7 +130,7 @@ class ImageDiffer(Differ):
     params.add_param('rel_err', '', 'Relative Error for image files')
     params.add_param('zero_threshold', sys.float_info.min*4.0,
                      'it represents the value below which a float is '+
-                     'considered zero (XML comparison only)')
+                     'considered zero in the pixel comparison')
     return params
 
   def __init__(self, name, params, test_dir):
