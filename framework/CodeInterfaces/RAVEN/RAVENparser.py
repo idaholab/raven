@@ -121,10 +121,12 @@ class RAVENparser():
         # this is the absolute path of the file on the system
         absPath = os.path.abspath(os.path.expanduser(os.path.join(workingDir, subDirectory, child.text.strip())))
         # is this file meant to be perturbed? Default to true.
-        perturbable = child.attrib.get('perturbable', 'True') in utils.stringsThatMeanTrue()
+        perturbable = child.attrib.get('perturbable', 'true').lower() in utils.stringsThatMeanTrue()
         if perturbable:
           # since it will be perturbed, track it so we can copy it to the evenutal inner workdir
           slaveFiles.append(absPath)
+          # we're going to copy it to the working dir, so just leave the file name
+          child.text = os.path.basename(absPath)
         else:
           # change the path to be absolute so the inner workflow still knows where it is
           ## make sure we don't have a subdirectory messing with stuff
@@ -142,10 +144,8 @@ class RAVENparser():
             moduleToLoad += ".py"
           if self.workingDir not in moduleToLoad:
             absPath = os.path.abspath(os.path.expanduser(os.path.join(workingDir, moduleToLoad)))
-            # OLD slaveFiles.append(os.path.expanduser(os.path.join(workingDir, moduleToLoad)))
           else:
             absPath = os.path.abspath(os.path.expanduser(moduleToLoad))
-            # OLD slaveFiles.append(os.path.expanduser(moduleToLoad))
           # because ExternalModels aren't perturbed, just update the path to be absolute
           extModel.attrib['ModuleToLoad'] = absPath
         else:
@@ -161,10 +161,8 @@ class RAVENparser():
             moduleToLoad += ".py"
           if workingDir not in moduleToLoad:
             absPath = os.path.abspath(os.path.expanduser(os.path.join(workingDir, moduleToLoad)))
-            # OLD slaveFiles.append(os.path.expanduser(os.path.join(workingDir, moduleToLoad)))
           else:
             absPath = os.path.abspath(os.path.expanduser(moduleToLoad))
-            # OLD slaveFiles.append(os.path.expanduser(moduleToLoad))
           # because ExternalFunctions aren't perturbed, just update the path to be absolute
           extFunct.attrib['file'] = absPath
         else:
@@ -200,19 +198,25 @@ class RAVENparser():
       @ Out, None
     """
     # the dirName is actually in workingDir/StepName/prefix => we need to go back 2 dirs
-    dirName = os.path.join(currentDirName, ".."+os.path.sep+".."+os.path.sep)
+    #dirName = os.path.join(currentDirName, ".."+os.path.sep+".."+os.path.sep)
     # copy SLAVE raven files in case they are needed
     for slaveInput in self.slaveInputFiles:
-      # OLD full path
-      # OLD slaveInputFullPath = os.path.abspath(os.path.join(dirName,slaveInput))
       # check if exists
-      if os.path.exists(slaveInput): #FullPath):
-        slaveInputBaseDir = os.path.dirname(slaveInput)
-        slaveDir = os.path.join(currentDirName, slaveInputBaseDir.replace(currentDirName,""))
-        os.makedirs(slaveDir)
+      #if os.path.exists(slaveInput): #FullPath):
+        #slaveInputBaseDir = os.path.dirname(slaveInput)
+        # OLDs laveDir = os.path.join(currentDirName, slaveInputBaseDir.replace(currentDirName,""))
+      slaveDir = os.path.join(currentDirName, self.workingDir)
+      print('working:', self.workingDir)
+      print('current dir:', currentDirName)
+      print('slave:', slaveInput)
+      os.makedirs(slaveDir)
+      try:
         shutil.copy(slaveInput, slaveDir)
-      else:
-        raise IOError(self.printTag+' ERROR: File "' +slaveInputFullPath+'" has not been found!!!')
+      except FileNotFoundError:
+        raise IOError('{} ERROR: File "{}" has not been found!'.format(self.printTag, slaveInput))
+        #raise IOError(self.printTag+' ERROR: File "' +slaveInputFullPath+'" has not been found!!!')
+      #else:
+      #  raise IOError(self.printTag+' ERROR: File "' +slaveInputFullPath+'" has not been found!!!')
 
 
   def printInput(self,rootToPrint,outfile=None):
