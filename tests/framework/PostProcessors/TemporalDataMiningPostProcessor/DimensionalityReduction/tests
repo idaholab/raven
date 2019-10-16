@@ -22,6 +22,7 @@
     input  = 'test_tdmSKLearnRandomizedPCA.xml'
     csv    = 'RandomizedPCA/dummy_0.csv RandomizedPCA/dummy_149.csv'
     output = 'RandomizedPCA/dummy.csv'
+    rel_err = 0.00001
   [../]
   [./KernelPCA]
     type   = 'RavenFramework'

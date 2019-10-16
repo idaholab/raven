@@ -261,6 +261,49 @@ class IntegerListType(InputType):
 #Note, XSD's list type is split by spaces, not commas, so using xsd:string
 IntegerListType.createClass("stringtype","xsd:string")
 
+#
+#
+#
+#
+class IntegerOrIntegerTupleType(InputType):
+  """
+    A type for integer "1" -> 1
+    or integer tuples "1, 2, 3" -> (1,2,3)
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to an integer tuple.
+      @ In, value, string, the value to convert
+      @ Out, convertedValue, int or tuple, the converted value
+    """
+    convertedValue = tuple(int(x.strip()) for x in value.split(","))
+    convertedValue = convertedValue[0] if len(convertedValue) == 1 else convertedValue
+    return convertedValue
+
+IntegerOrIntegerTupleType.createClass("stringtype","xsd:string")
+
+#
+#
+#
+#
+class IntegerTupleType(InputType):
+  """
+    A type for integer tuples "1, 2, 3" -> (1,2,3)
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to an integer tuple.
+      @ In, value, string, the value to convert
+      @ Out, convertedValue, tuple, the converted value
+    """
+    convertedValue = tuple(int(x.strip()) for x in value.split(","))
+    return convertedValue
+
+IntegerTupleType.createClass("stringtype","xsd:string")
 
 #
 #
@@ -460,7 +503,7 @@ class ParameterInput(object):
       cls.subOrder.append((sub,quantity))
     elif quantity != Quantity.zero_to_infinity:
       print("ERROR only zero to infinity is supported if Order==False ",
-            sub.getName()," in ",cls.getName())
+           sub.getName()," in ",cls.getName())
 
   @classmethod
   def removeSub(cls, sub):

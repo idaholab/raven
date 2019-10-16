@@ -54,7 +54,7 @@ class Projectile(CodeInterfaceBase):
     # create output file root
     outputfile = 'out~' + inputFiles[0].getBase()
     # create command (python "executable" -i "input file" -o "output file root")
-    executeCommand = [('parallel', "python " +executable +' -i '+ inputFiles[0].getFilename() +' -o '+ outputfile)]
+    executeCommand = [('parallel', "python " +executable +' -i '+ inputFiles[0].getFilename() +' -o '+ outputfile + ' -text')]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
@@ -110,6 +110,7 @@ class Projectile(CodeInterfaceBase):
     """
     # open output file
     outfileName = os.path.join(workingDir,output+".txt" )
+    print(outfileName)
     with open(outfileName, 'r') as src:
       headers = [x.strip() for x in  src.readline().split() ]
       data = []
