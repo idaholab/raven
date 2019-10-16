@@ -6,10 +6,8 @@
     <created>2018-05-15</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-       This test checks the possibility to train an correlated ARMA+Fourier model and its
+       This test checks the possibility to train a correlated ARMA model and its
        capability to generate intrinsically stochastic time series with correlated results.
-       The correlation model used generated uniformly random data on [-0.5,0.5] for A, then
-       set B = 0.9*A + 0.1*rand, with rand also on [-0.5,0.5], to ensure strong correlation.
        The plot output ``plot_input.png'' shows the original training data, while ``plot_VARMA.png''
        plots the sampled values.  B should only be slightly off from A at all points.  If this
        same calculation is done without correlation, both A and B independently range over the
@@ -17,6 +15,7 @@
        to see that the correlation is working correctly.
     </description>
     <revisions>
+      <revision author='talbpaul' date='2019-10-16'>split off for smaller mechanics run</revision>
       <revision author="wangc" date="2018-12-18">
           In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
           the pointwise metadata, and will be printed out in the output csv files by default.
@@ -100,9 +99,8 @@
         mean_A, var_A,
         mean_B, var_B,
         mean_D, var_D,
-                   covar_A_B, covar_A_D,
-        covar_B_A,            covar_B_D,
-        covar_D_A, covar_D_B
+        pearson_A_B,
+        pearson_B_A
       </Output>
     </PointSet>
     <HistorySet name="training">
@@ -131,16 +129,16 @@
       <correlate>A,B</correlate>
       <pivotParameter>Time</pivotParameter>
       <reseedCopies>False</reseedCopies>
-      <P>1</P>
+      <P>0</P>
       <Q>1</Q>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
       <expectedValue prefix="mean">A,B,D</expectedValue>
       <variance prefix="var">A,B,D</variance>
-      <covariance prefix="covar">
-        <targets>A,B,D</targets>
-        <features>A,B,D</features>
-      </covariance>
+      <pearson prefix="pearson">
+        <targets>A,B</targets>
+        <features>A,B</features>
+      </pearson>
       <multipleFeatures>False</multipleFeatures>
     </PostProcessor>
   </Models>

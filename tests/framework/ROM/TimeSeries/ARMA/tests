@@ -103,11 +103,23 @@
   [./VARMA]
    type = 'RavenFramework'
    input = 'varma.xml'
-   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/stats.xml VARMA/rommeta.xml VARMA/rommeta.csv VARMA/samples_0.csv'
+   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/stats.xml VARMA/rommeta.csv VARMA/rommeta.xml VARMA/samples_0.csv'
     [./stats]
       type = OrderedCSV
       output = 'VARMA/stats.csv'
       rel_err = 1e-1
+    [../]
+  [../]
+
+  [./VARMAheavy]
+   type = 'RavenFramework'
+   input = 'varma_heavy.xml'
+   output = 'VARMAheavy/plot_VARMA.png VARMAheavy/plot_input.png VARMAheavy/stats.xml VARMAheavy/rommeta.xml VARMAheavy/rommeta.csv VARMAheavy/samples_0.csv'
+   heavy = true
+    [./stats]
+      type = OrderedCSV
+      output = 'VARMAheavy/stats.csv'
+      rel_err = 1e-3
     [../]
   [../]
 
