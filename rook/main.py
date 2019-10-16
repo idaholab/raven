@@ -64,20 +64,6 @@ class NoColors:
   name = ''
   time = ''
 
-def str2Bool(s):
-  """
-    Converts a string to a boolean.
-    @ In, s, str, input
-    @ Out, str2bool, bool, result
-  """
-  if isinstance(s, bool):
-    return s
-  if s.lower() in ('yes', 'y', 'true', 't', '1'):
-    return True
-  if s.lower() in ('no', 'n', 'false', 'f', '0'):
-    return False
-  raise argparse.ArgumentTypeError('Boolean value expected.')
-
 parser = argparse.ArgumentParser(description="Test Runner")
 parser.add_argument('-j', '--jobs', dest='number_jobs', type=int, default=1,
                     help='Specifies number of tests to run simultaneously (default: 1)')
@@ -240,14 +226,13 @@ def get_testers_and_differs(directory):
   for filename in os.listdir(directory):
     if filename.endswith(".py") and not filename.startswith("__"):
       module = __import__(filename[:-3]) #[:-3] to remove .py
-      for name, value in module.__dict__.items():
-        #print("Unknown", name, value)
-        if inspect.isclass(value) and value is not Tester\
-           and issubclass(value, Tester):
-          tester_dict[name] = value
-        if inspect.isclass(value) and value is not Differ\
-           and issubclass(value, Differ):
-          differ_dict[name] = value
+      for name, val in module.__dict__.items():
+        if inspect.isclass(val) and val is not Tester\
+           and issubclass(val, Tester):
+          tester_dict[name] = val
+        if inspect.isclass(val) and val is not Differ\
+           and issubclass(val, Differ):
+          differ_dict[name] = val
 
   return tester_dict, differ_dict
 
