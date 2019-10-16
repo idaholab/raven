@@ -101,7 +101,7 @@
     input = 'time_dep_asyncHists.xml'
     output = 'basicStatisticsTimeDependentAsynchronousHistories/timeDepBasicStat_basicStatPP_dump.csv'
     UnorderedCsv = 'basicStatisticsTimeDependentAsynchronousHistories/HistorySetPostProcTest_dump_3.csv basicStatisticsTimeDependentAsynchronousHistories/HistorySetPostProcTestSyncronized_dump_3.csv basicStatisticsTimeDependentAsynchronousHistories/timeDepBasicStat_basicStatPP_dump_0.csv basicStatisticsTimeDependentAsynchronousHistories/timeDepBasicStat_basicStatPP_dump_1.csv'
-    rel_err = 1e-5
+    rel_err = 1e-4
     zero_threshold = 1e-14
   [../]
   [./variationCoefficient]

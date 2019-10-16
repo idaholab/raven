@@ -43,8 +43,8 @@ specified:}
 \newcommand{\type}{\xmlNode{type},  \xmlDesc{string (case insensitive), optional field}, specifies whether this optimizer performs maximization
     or minimization. Available options are \xmlString{max} and \xmlString{min}.
     \default{Min};}
-\newcommand{\thresholdTrajRemoval}{\xmlNode{thresholdTrajRemoval}, \xmlDesc{float, optional field}, this will be used to determine the convergence of different
-    optimization trajectories on each other when multiple trajectories is handled by \xmlNode{FiniteDifference}.  When one
+\newcommand{\thresholdTrajRemoval}[1]{\xmlNode{thresholdTrajRemoval}, \xmlDesc{float, optional field}, this will be used to determine the convergence of different
+    optimization trajectories on each other when multiple trajectories is handled by \xmlNode{#1}.  When one
     trajectory comes within tolerance of a point on another trajectory, the first will be removed in interest
     of the second.  Note that this value is
     calculated as Euclidean distance in a normalized 0 to 1 cubic domain, not the original input space domain.
@@ -154,7 +154,7 @@ The \xmlNode{#1} optimizer accepts ``DataObjects'' of type ``PointSet'' only;}
       \default{same value as gainGrowthFactor}}
 \newcommand{\centralDifference}{\xmlNode{centralDifference}, \xmlDesc{boolean, optional field}, specifies the method of gradient calculation, if True,
   central difference is activated. If False, the gradient calculation is alternating forward and backward difference from an iteration and the other. For example, in the first interation, $\frac{f(x+h)-f(x)}{h}$ will be used as the gradient function, second iteration will take $\frac{f(x)-f(x-h)}{h}$ as the gradient function, next iteration will alternate to $\frac{f(x+h)-f(x)}{h}$ again.
-  \default{False}}
+  \default{True}}
 
 \newcommand{\parameter}{\xmlNode{parameter}, \xmlDesc{XML node, optional field} will accepts the following sub-nodes:}
 \newcommand{\numGradAvgIterations}{\xmlNode{numGradAvgIterations}, \xmlDesc{integer, optional field} is the number of iterations for gradient estimation. When this
@@ -337,7 +337,7 @@ specified:
     \item \limit
     \item \initialSeed
     \item \type
-    \item \thresholdTrajRemoval
+    \item \thresholdTrajRemoval{SPSA}
     \item \writeSteps
 
   \end{itemize}
@@ -442,7 +442,7 @@ magnitude of the gradient, but just on its ``direction'' information content. Al
     \item \limit
     \item \initialSeed
     \item \type
-    \item \thresholdTrajRemoval
+    \item \thresholdTrajRemoval{FiniteDifference}
     \item \writeSteps
   \end{itemize}
 \end{itemize}
@@ -552,7 +552,7 @@ All the following parameters, which can be optionally be inputted, should be cal
     \item \limit
     \item \initialSeed
     \item \type
-    \item \thresholdTrajRemoval
+    \item \thresholdTrajRemoval{ConjugateGradient}
     \item \writeSteps
   \end{itemize}
 \end{itemize}

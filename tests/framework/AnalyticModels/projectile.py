@@ -87,7 +87,7 @@ def run(raven, inputs):
           'y0': get_from_raven(raven,'y0', 0),
           'v0': get_from_raven(raven,'v0', 1),
           'ang': get_from_raven(raven,'v0', 45),
-          'timeOption': get_from_raven(raven,'v0', 0)}
+          'timeOption': get_from_raven(raven,'timeOption', 0)}
   res = main(vars)
   raven.x = res['x']
   raven.y = res['y']
@@ -95,6 +95,7 @@ def run(raven, inputs):
   raven.r = res['r'] * np.ones(len(raven.x))
   raven.v = res['v']
   raven.a = res['a']
+  raven.timeOption = vars['timeOption']
 
 def get_from_raven(raven, attr, default=None):
   return np.squeeze(getattr(raven, attr, default))

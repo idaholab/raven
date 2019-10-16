@@ -69,7 +69,6 @@
       <numberOfSamples>20</numberOfSamples>
       <pivotParameter>time</pivotParameter>
       <extension>extended</extension>
-      <syncMethod>grid</syncMethod>
     </PostProcessor>
   </Models>
 
