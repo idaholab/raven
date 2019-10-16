@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-N = 100
+N = 200
 
 # 3 correlated variables
 ## too slow for testing
@@ -15,8 +15,8 @@ N = 100
 # 2 correlated variables
 mean = np.array([42,42])
 #         A     B
-cov = [ [ 25.0, 22.0], # A
-        [ 22.0, 25.0]] # B
+cov = [ [ 25.0, 16.0], # A
+        [ 16.0, 25.0]] # B
 mn = np.random.multivariate_normal(mean,cov,size=N)
 
 # sample
