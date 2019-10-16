@@ -45,6 +45,7 @@ from .Sampler import Sampler
 from utils import utils
 from utils import InputData
 import utils.TreeStructure as ETS
+from utils.graphStructure import graphObject as graph
 #Internal Modules End-------------------------------------------------------------------------------
 
 class DynamicEventTree(Grid):
@@ -724,6 +725,11 @@ class DynamicEventTree(Grid):
       varInfo['HDETVariables'] = list(hvars.keys())
     varInfo['FunctionVariables'] = depVars
     varInfo['ConstantVariables'] = list(consts.keys())
+    if len(depVars):
+      # create graph structure
+      graphDict = dict.fromkeys(standardDet, []) 
+      graphDict.update(depVars)
+      varInfo['dependencyGraph'] = graph(graphDict)
     return varInfo
 
 
