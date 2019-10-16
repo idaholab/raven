@@ -60,8 +60,6 @@ class ImageDiff:
     # read in files
     files_read = False
     for test_filename, gold_filename in zip(self.__out_files, self.__gold_files):
-      #test_filename = os.path.join(self.__test_dir, outfile)
-      #gold_filename = os.path.join(self.__test_dir, 'gold', outfile)
       if not os.path.exists(test_filename):
         self.__same = False
         self.self.__message += 'Test file does not exist: '+test_filename
