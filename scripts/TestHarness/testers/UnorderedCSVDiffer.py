@@ -47,7 +47,8 @@ class UnorderedCSVDiffer:
       @ In, relative_error, float, optional, relative error
       @ In, absolute_check, bool, optional, if True then check absolute
          differences in the values instead of relative differences
-      @ In, zero_threshold, float, optional, if a number <= abs(zero_threshold) it will be considered 0
+      @ In, zero_threshold, float, optional, if a number is less equal then
+                                             abs(zero_threshold), it will be considered 0
       @ In, ignore_sign, bool, optional, if True then the sign will be ignored during the comparison
       @ Out, None.
     """
