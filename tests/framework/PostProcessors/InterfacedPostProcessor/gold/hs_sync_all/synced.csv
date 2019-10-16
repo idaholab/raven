@@ -1,6 +1,6 @@
-x,y,filename
-0.0,1.5,synced_0.csv
--0.774596669241,1.5,synced_1.csv
-0.774596669241,1.5,synced_2.csv
-0.0,1.11270166538,synced_3.csv
-0.0,1.88729833462,synced_4.csv
+x,y,ProbabilityWeight-y,PointProbability,prefix,ProbabilityWeight,ProbabilityWeight-x,filename
+0.0,1.5,1.0,0.5,1,1.0,0.5,synced_0.csv
+-0.774596669241,1.5,1.0,0.5,2,1.0,0.5,synced_1.csv
+0.774596669241,1.5,1.0,0.5,3,1.0,0.5,synced_2.csv
+0.0,1.11270166538,1.0,0.5,4,1.0,0.5,synced_3.csv
+0.0,1.88729833462,1.0,0.5,5,1.0,0.5,synced_4.csv
