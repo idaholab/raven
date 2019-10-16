@@ -54,8 +54,6 @@ import DataObjects
 #if not display:
 #  matplotlib.use('Agg')
 
-import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pylab as plt
 
 class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):

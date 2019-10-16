@@ -400,6 +400,18 @@ def readVariableGroups(xmlNode, messageHandler, caller):
 
   return varGroups
 
+def toFile(name, root, pretty=True):
+  """
+    Writes out XML element "root" to file named "name". By default, applies prettifier.
+    @ In, name, str, name of destination file
+    @ In, root, xml.etree.ElementTree.Element, node to write
+    @ In, pretty, bool, optional, whether to prettify tree
+    @ Out, None
+  """
+  if pretty:
+    s = prettify(root)
+  with open(os.path.abspath(os.path.expanduser(name)), 'w') as f:
+    f.write(s)
 #
 # XML Reader Customization
 #
