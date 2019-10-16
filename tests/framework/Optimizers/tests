@@ -75,6 +75,12 @@
     csv = 'Conjugate/opt_export_1.csv'
     rel_err = 1.e-3
   [../]
+  [./optIteration]
+    type = 'RavenFramework'
+    input = 'optIteration.xml'
+    csv = 'OptIteration/opt_export_1.csv'
+    rel_err = 1.e-3
+  [../]
   # Mixed Options Tests
   [./CustomVectorInit]
     type = 'RavenFramework'

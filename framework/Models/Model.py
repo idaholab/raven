@@ -244,8 +244,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.localInputAndChecks(xmlNode)
     #################
 
-
-
   def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """
       Method to convert kwargs Sampled vars with the alias system
