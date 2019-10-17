@@ -34,6 +34,7 @@ from utils import utils
 from Assembler import Assembler
 from utils import InputData
 import Runners
+from DataObjects import DataSet
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -247,7 +248,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """
       Method to convert kwargs Sampled vars with the alias system
-      @ In , sampledVars, dict, dictionary that are going to be modified
+      @ In, sampledVars, dict or DataObject, dictionary (or data object) that is going to be modified
       @ In, aliasType, str, optional, type of alias to be replaced
       @ In, fromModelToFramework, bool, optional, When we define aliases for some input variables, we need to be sure to convert the variable names
                                                   (if alias is of type input) coming from RAVEN (e.g. sampled variables) into the corresponding names
@@ -256,24 +257,70 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                   names coming from the model into the one that are used in RAVEN (e.g. modelOutputName="00001111",
                                                   frameworkVariableName="clad_temperature"). The fromModelToFramework bool flag controls this action
                                                   (if True, we convert the name in the dictionary from the model names to the RAVEN names, False vice versa)
-      @ Out, originalVariables, dict, dictionary of the original sampled variables
+      @ Out, modified, type of sampledVars, new object with aliases instead of original var names
     """
     if aliasType =='inout':
-      listAliasType = ['input','output']
+      listAliasType = ['input', 'output']
     else:
       listAliasType = [aliasType]
-    originalVariables = copy.deepcopy(sampledVars)
+    # if working on data object
+    if isinstance(sampledVars, DataSet):
+      modified = self._replaceAliasesDataObject(sampledVars, listAliasType, fromModelToFramework)
+    elif isinstance(sampledVars, dict):
+      modified = self._replaceAliasesDict(sampledVars, listAliasType, fromModelToFramework)
+    return modified
+
+  def _replaceAliasesDataObject(self, sampledVars, listAliasType, fromModelToFramework):
+    """
+      Method to convert kwargs Sampled vars with the alias system
+      @ In, sampledVars, DataObject, data object that is going to be modified
+      @ In, aliasType, str, optional, type of alias to be replaced
+      @ In, fromModelToFramework, bool, optional, When we define aliases for some input variables, we need to be sure to convert the variable names
+                                                  (if alias is of type input) coming from RAVEN (e.g. sampled variables) into the corresponding names
+                                                  of the model (e.g. frameworkVariableName = "wolf", modelVariableName="thermal_conductivity").
+                                                  Viceversa, when we define aliases for some model output variables, we need to convert the variable
+                                                  names coming from the model into the one that are used in RAVEN (e.g. modelOutputName="00001111",
+                                                  frameworkVariableName="clad_temperature"). The fromModelToFramework bool flag controls this action
+                                                  (if True, we convert the name in the dictionary from the model names to the RAVEN names, False vice versa)
+      @ Out, modified, DataObject, new copied object with aliases instead of original var names
+    """
+    ds = sampledVars.asDataset()
+    aliases = {}
+    for aliasType in listAliasType:
+      aliases.update(self.alias[aliasType])
+    # if going from model names to framework names, reverse the mapping
+    ## TODO this assumes a 1:1 mapping!!
+    if fromModelToFramework:
+      aliases = dict((v, k) for k, v in aliases.items())
+    modified = ds.rename(name_dict=aliases)
+    return modified
+
+  def _replaceAliasesDict(self, sampledVars, listAliasType, fromModelToFramework):
+    """
+      Method to convert kwargs Sampled vars with the alias system
+      @ In, sampledVars, dict, dictionary that is going to be modified
+      @ In, aliasType, str, optional, type of alias to be replaced
+      @ In, fromModelToFramework, bool, optional, When we define aliases for some input variables, we need to be sure to convert the variable names
+                                                  (if alias is of type input) coming from RAVEN (e.g. sampled variables) into the corresponding names
+                                                  of the model (e.g. frameworkVariableName = "wolf", modelVariableName="thermal_conductivity").
+                                                  Viceversa, when we define aliases for some model output variables, we need to convert the variable
+                                                  names coming from the model into the one that are used in RAVEN (e.g. modelOutputName="00001111",
+                                                  frameworkVariableName="clad_temperature"). The fromModelToFramework bool flag controls this action
+                                                  (if True, we convert the name in the dictionary from the model names to the RAVEN names, False vice versa)
+      @ Out, modified, dict, new object with aliases instead of original var names
+    """
+    modified = copy.deepcopy(sampledVars)
     for aliasTyp in listAliasType:
       for varFramework,varModel in self.alias[aliasTyp].items():
         whichVar =  varModel if fromModelToFramework else varFramework
         notFound = 2**62
-        found = sampledVars.pop(whichVar,[notFound])
+        found = modified.pop(whichVar,[notFound])
         if not np.array_equal(np.asarray(found), [notFound]):
           if fromModelToFramework:
-            sampledVars[varFramework] = originalVariables[varModel]
+            modified[varFramework] = sampledVars[varModel]
           else:
-            sampledVars[varModel]     = originalVariables[varFramework]
-    return originalVariables
+            modified[varModel]     = sampledVars[varFramework]
+    return modified
 
   def _handleInput(self, paramInput):
     """

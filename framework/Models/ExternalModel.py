@@ -112,7 +112,10 @@ class ExternalModel(Dummy):
     modelVariableValues ={}
     if 'createNewInput' in dir(self.sim):
       if 'SampledVars' in kwargs.keys():
-        sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
+        # store original var names in sampledVars
+        sampledVars = kwargs['SampledVars']
+        # modify kwargs sampledvars to use aliases
+        kwargs['SampledVars'] = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input', False)
       extCreateNewInput = self.sim.createNewInput(self.initExtSelf,myInput,samplerType,**kwargs)
       if extCreateNewInput== None:
         self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
@@ -170,7 +173,7 @@ class ExternalModel(Dummy):
           var = var.strip()
           self.modelVariableType[var] = None
     # adjust model-aware variables based on aliases
-    self._replaceVariablesNamesWithAliasSystem(self.modelVariableType,'inout')
+    self.modelVariableType = self._replaceVariablesNamesWithAliasSystem(self.modelVariableType, 'inout')
     self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
     # check if there are other information that the external module wants to load
     #TODO this needs to be converted to work with paramInput
@@ -242,7 +245,7 @@ class ExternalModel(Dummy):
     for key in self.modelVariableType.keys():
       if not (utils.typeMatch(outcomes[key],self.modelVariableType[key])):
         self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
-    self._replaceVariablesNamesWithAliasSystem(outcomes,'inout',True)
+    outcomes = self._replaceVariablesNamesWithAliasSystem(outcomes, 'inout', True)
     # TODO slow conversion, but provides type consistency
     outcomes = dict((k,np.atleast_1d(val)) for k,val in outcomes.items())
     return outcomes,self

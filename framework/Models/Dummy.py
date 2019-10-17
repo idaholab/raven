@@ -88,7 +88,7 @@ class Dummy(Model):
         self.raiseAnError(IOError,self,'type "'+dataIN.type+'" is not compatible with the model "' + self.type + '" named "' + self.name+'"!')
     if type(dataIN)!=dict:
       #localInput = dict.fromkeys(dataIN.getParaKeys('inputs' )+dataIN.getParaKeys('outputs' ),None)
-      localInput = dict.fromkeys(dataIN.getVars('input')+dataIN.getVars('output')+dataIN.indexes,None)
+      localInput = dict.fromkeys(dataIN.getVars('input')+dataIN.getVars('output')+dataIN.indexes, None)
       if not len(dataIN) == 0:
         dataSet = dataIN.asDataset()
         if dataIN.type == 'PointSet':
@@ -126,14 +126,17 @@ class Dummy(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
-    if len(myInput)>1:
+    if len(myInput) > 1:
       self.raiseAnError(IOError,'Only one input is accepted by the model type '+self.type+' with name'+self.name)
 
-    inputDict   = self._inputToInternal(myInput[0])
-    self._replaceVariablesNamesWithAliasSystem(inputDict,'input',False)
+    inputDict = self._inputToInternal(myInput[0])
+    inputDict = self._replaceVariablesNamesWithAliasSystem(inputDict,'input',False)
 
     if 'SampledVars' in kwargs.keys():
-      sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
+      # store originally-sampled variable names in sampledVars
+      sampledVars = kwargs['SampledVars']
+      # replace the sampledVars in kwargs with the aliases
+      kwargs['SampledVars'] = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input', False)
       for key in kwargs['SampledVars'].keys():
         inputDict[key] = np.atleast_1d(kwargs['SampledVars'][key])
 
@@ -169,8 +172,8 @@ class Dummy(Model):
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = self._manipulateInput(Input[0])
     # alias system
-    self._replaceVariablesNamesWithAliasSystem(inRun,'input',True)
-    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',True)
+    inRun = self._replaceVariablesNamesWithAliasSystem(inRun, 'input', True)
+    kwargs['SampledVars'] = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input', True)
     # build realization using input space from inRun and metadata from kwargs
     rlz = dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else kwargs[var])) for var in set(itertools.chain(kwargs.keys(),inRun.keys())))
     # add dummy output space
@@ -191,7 +194,7 @@ class Dummy(Model):
     # TODO expensive deepcopy prevents modification when sent to multiple outputs
     result = finishedJob.getEvaluation()
     # alias system
-    self._replaceVariablesNamesWithAliasSystem(result,'output',True)
+    result = self._replaceVariablesNamesWithAliasSystem(result, 'output', True)
     if isinstance(result,Runners.Error):
       self.raiseAnError(Runners.Error,'No available output to collect!')
     output.addRealization(result)

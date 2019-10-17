@@ -618,8 +618,8 @@ class EnsembleModel(Dummy):
           ## FIXME it is a mistake (Andrea). The SampledVarsPb for this variable should be transferred from outside
           ## Who has this information? -- DPM 4/11/17
           inputKwargs[modelIn]["SampledVarsPb"][key] =  1.0
-        self._replaceVariablesNamesWithAliasSystem(inputKwargs[modelIn]["SampledVars"  ],'input',False)
-        self._replaceVariablesNamesWithAliasSystem(inputKwargs[modelIn]["SampledVarsPb"],'input',False)
+        inputKwargs[modelIn]["SampledVars"] = self._replaceVariablesNamesWithAliasSystem(inputKwargs[modelIn]["SampledVars"], 'input', False)
+        inputKwargs[modelIn]["SampledVarsPb"] = self._replaceVariablesNamesWithAliasSystem(inputKwargs[modelIn]["SampledVarsPb"], 'input', False)
 
         nextModel = False
         while not nextModel:

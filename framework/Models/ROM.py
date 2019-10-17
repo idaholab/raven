@@ -1369,7 +1369,7 @@ class ROM(Dummy):
     if type(trainingSet).__name__ == 'ROM':
       self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
-      self.amITrained               = copy.deepcopy(trainingSet.amITrained)
+      self.amITrained               = copy.copy(trainingSet.amITrained)
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
     else:
       # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
@@ -1378,8 +1378,9 @@ class ROM(Dummy):
         if not trainingSet.checkIndexAlignment(indexesToCheck=pivotParameterId):
           self.raiseAnError(IOError, "The data provided by the data object", trainingSet.name, "is not synchonized!",
                   "The time-dependent ROM requires all the histories are synchonized!")
-      self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
-      self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
+      # OLD self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
+      trainingSet = self._replaceVariablesNamesWithAliasSystem(trainingSet, 'inout', False)
+      rrrrrrr
       # grab assembled stuff and pass it through
       ## TODO this should be changed when the SupervisedLearning objects themselves can use the Assembler
       self.supervisedEngine.train(self.trainingSet, self.assemblerDict)
@@ -1417,8 +1418,8 @@ class ROM(Dummy):
       @ Out, returnDict, dict, the return dictionary containing the results
     """
     returnDict = self.evaluate(inRun)
-    self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
-    self._replaceVariablesNamesWithAliasSystem(inRun, 'input', True)
+    returnDict = self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
+    inRun = self._replaceVariablesNamesWithAliasSystem(inRun, 'input', True)
     return returnDict
 
   def evaluateSample(self, myInput, samplerType, kwargs):
@@ -1440,7 +1441,7 @@ class ROM(Dummy):
     result = self._externalRun(inRun)
     # build realization
     # assure rlz has all metadata
-    self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'] ,'input',True)
+    kwargs['SampledVars'] = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input', True)
     rlz = dict((var,np.atleast_1d(kwargs[var])) for var in kwargs.keys())
     # update rlz with input space from inRun and output space from result
     rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),inRun.keys()))))

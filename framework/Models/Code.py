@@ -378,9 +378,12 @@ class Code(Model):
     kwargs['subDirectory'] = subDirectory
 
     if 'SampledVars' in kwargs.keys():
-      sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
+      # store original sampled var names in sampledVars
+      sampledVars = kwargs['SampledVars']
+      # replace kwargs sampledVars with aliases
+      kwargs['SampledVars'] = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input', False)
 
-    newInput    = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(kwargs))
+    newInput = self.code.createNewInput(newInputSet,self.oriInputFiles,samplerType,**copy.deepcopy(kwargs))
 
     if 'SampledVars' in kwargs.keys() and len(self.alias['input'].keys()) != 0:
       kwargs['SampledVars'] = sampledVars
@@ -623,7 +626,7 @@ class Code(Model):
         for header,data in zip(headers, csvData.T):
           returnDict[header] = data
       if not ravenCase:
-        self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
+        returnDict = self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
         returnDict.update(kwargs)
         returnValue = (kwargs['SampledVars'],returnDict)
         exportDict = self.createExportDictionary(returnValue)
@@ -664,7 +667,7 @@ class Code(Model):
           for var,val in kwargs.items():
             if var not in rlz.keys():
               rlz[var] = np.atleast_1d(val)
-          self._replaceVariablesNamesWithAliasSystem(rlz,'inout',True)
+          rlz = self._replaceVariablesNamesWithAliasSystem(rlz,'inout',True)
           exportDict['realizations'].append(rlz)
 
       ## The last thing before returning should be to delete the temporary log
@@ -717,7 +720,7 @@ class Code(Model):
           self.raiseAWarning('The model '+self.type+' reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the raven (%f).' % (outputEval[key][0], key, value, value))
       outputEval[key] = np.atleast_1d(value)
 
-    self._replaceVariablesNamesWithAliasSystem(outputEval, 'input',True)
+    outputEval = self._replaceVariablesNamesWithAliasSystem(outputEval, 'input', True)
 
     return outputEval
 
@@ -731,7 +734,7 @@ class Code(Model):
     """
     evaluation = finishedJob.getEvaluation()
 
-    self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
+    evaluation = self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(AttributeError,"No available Output to collect")
 
