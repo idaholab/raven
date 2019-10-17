@@ -63,7 +63,8 @@ class Neutrino(CodeInterfaceBase):
     #Creates run command tuple (['executionType','execution command'], output file root)
     #The path to the Neutrino executable is specified in the RAVEN input file as the executable
     # since it must change directories to run
-    returnCommand = [('serial','cd ' + executable + ' && Neutrino.exe --nogui --file ' + str(path) \
+    executablePath = executable.replace("Neutrino.exe","")
+    returnCommand = [('serial','cd ' + executablePath + ' && ' + executable + ' --nogui --file ' + str(path) \
     + ' --run')], outputfile
 
     return returnCommand
@@ -184,17 +185,15 @@ class Neutrino(CodeInterfaceBase):
     # create full path to the outputfile
     # NeutrinoInput needs to be the name of the Neutrino Input file
     # Name of results file name needs to be the same as in the createNewInput function
-    outputPath = os.path.join(workingDir, "NeutrinoInput")
-    outputPath = os.path.join(outputPath, "Measurements")
-    outputPath = os.path.join(outputPath, "results.csv")
+    outputPath = os.path.join(workingDir, "NeutrinoInput", "Measurements", "results.csv")
 
     #Change the output path so RAVEN can read the output
     newOutputPath = os.path.join(workingDir, output)
 
     # check that the output file exists
-    if not os.path.exists(outputPath):
+    '''if not os.path.exists(outputPath):
       print('Results file does not exist. OK if during test.')
-      return newOutputPath
+      return newOutputPath'''
 
     # open original output file (the working directory is provided)
     outputFile = open(outputPath,"r+")
