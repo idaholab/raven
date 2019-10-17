@@ -183,6 +183,8 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       featureValues, targetValues = self._trainByDict(trainingData)
     else:
       self.raiseAnError(TypeError, 'Was expecting dict or DataSet!')
+    print('DEBUGG featureVals:', featureValues)
+    print('DEBUGG targetVals:', targetValues)
     self.__trainLocal__(featureValues, targetValues)
     self.amITrained = True
 
@@ -208,12 +210,12 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       self.raiseAnError(KeyError, 'The following features were not present in the training set:', missing)
     # construct matrices
     ds = trainingData.asDataset()
-    print(self.features)
     featureValues = ds[self.features].to_array().values.T
     targetValues = ds[self.target].to_array().values.T
     # TODO this should be vectorized, but it doesn't line up with the trainByDict method.
     for f, feat in enumerate(self.features):
       self._localNormalizeData(featureValues.T, self.features, feat)
+      featureValues[:, f] = (featureValues[:, f] - self.muAndSigmaFeatures[feat][0]) / self.muAndSigmaFeatures[feat][1]
     # TODO does this work with time dependent?
     return featureValues, targetValues
 
@@ -225,17 +227,15 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, tdict, dict, training data
       @ Out, None
     """
-    names, values  = list(tdict.keys()), list(tdict.values())
+    names, values = list(tdict.keys()), list(tdict.values())
     ## This is for handling the special case needed by SKLtype=*MultiTask* that
     ## requires multiple targets.
-
     targetValues = []
     for target in self.target:
       if target in names:
         targetValues.append(values[names.index(target)])
       else:
         self.raiseAnError(IOError,'The target "{}" is not in the training set'.format(target))
-
     # construct the evaluation matrixes
     featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
     for cnt, feat in enumerate(self.features):
@@ -266,7 +266,6 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, None
     """
     self.muAndSigmaFeatures[feat] = mathUtils.normalizationFactors(values[names.index(feat)])
-    print('DEBUGG set mu and sigma:', feat, self.muAndSigmaFeatures[feat])
 
 
   def confidence(self, edict):

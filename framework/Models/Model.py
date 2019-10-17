@@ -316,22 +316,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     modified = copy.deepcopy(sampledVars)
     for aliasTyp in listAliasType:
       for varFramework, varModel in self.alias[aliasTyp].items():
-        if fromModelToFramework:
-          new = varFramework
-          old = varModel
-        else:
-          new = varModel
-          old = varFramework
-        #whichVar = varModel if fromModelToFramework else varFramework
-        #found = modified.pop(whichVar, None)
-        if old in modified: #found is not None:#not np.array_equal(np.asarray(found), [notFound]):
+        new, old = (varFramework, varModel) if fromModelToFramework else (varModel, varFramework)
+        if old in modified:
           modified[new] = modified.pop(old)
-          #if fromModelToFramework:
-          #  modified[varFramework] = sampledVars[varModel]
-          #else:
-          #  modified[varModel]     = sampledVars[varFramework]
-        #else:
-        #  print('DEBUGG whichvar "{}" not found, available aliases:'.format(whichVar), modified.keys())
     return modified
 
   def _handleInput(self, paramInput):
