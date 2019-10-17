@@ -46,6 +46,7 @@ from .OutStreamManager import OutStreamManager
 from ClassProperty import ClassProperty
 ## Internal Modules End---------------------------------------------------------
 
+#display = True
 display = utils.displayAvailable()
 if not display:
   matplotlib.use('Agg')
@@ -673,17 +674,19 @@ class OutStreamPlot(OutStreamManager):
       @ In, instructionString, string, the instruction to execute
       @ Out, None
     """
-    if instructionString == 'interactive' and 'screen' in self.destinations and displayAvailable:
+    if instructionString == 'interactive' and 'screen' in self.destinations and display:
       self.fig = plt.figure(self.name)
       ## This seems a bit hacky, but we need the ginput in order to block
       ## execution of raven until this is over, however closing the window can
       ## cause this thing to fail.
       try:
-        self.fig.ginput(n = -1, timeout = -1, show_clicks = False)
+        self.fig.ginput(n = -1, timeout = 0, show_clicks = False)
       except:
         ## I know this is bad, but it is a single line of code outside our
         ## control, if it fails for any reason it should not be a huge deal, we
         ## just want RAVEN to continue on its merry way when a figure closes.
+        self.raiseAWarning('There was an error with figure.ginput:\n', e)
+        self.raiseAWarning('... continuing anyway ...')
         pass
       ## We may want to catch a more generic exception since this may be depedent
       ## on the backend used, hence the code replacement above
@@ -724,7 +727,7 @@ class OutStreamPlot(OutStreamManager):
     else:
       self.fig = plt.figure(self.name)
 
-    if 'screen' in self.destinations and displayAvailable:
+    if 'screen' in self.destinations and display:
       self.fig.show()
 
     if self.dim == 3:
@@ -1897,19 +1900,16 @@ class OutStreamPlot(OutStreamManager):
     plt.draw()
     # self.plt3D.draw(self.fig.canvas.renderer)
 
-    if 'screen' in self.destinations and displayAvailable:
-      if platform.system() in ['Linux','Windows']:
-        # XXX For some reason, this is required on Linux, but causes
-        # OSX to fail.  Which is correct for windows has not been determined.
-        def handle_close(event):
-          """
-            This method is aimed to handle the closing of figures (overall when in interactive mode)
-            @ In, event, instance, the event to close
-            @ Out, None
-          """
-          self.fig.canvas.stop_event_loop()
-          self.raiseAMessage('Closed Figure')
-        self.fig.canvas.mpl_connect('close_event', handle_close)
+    if 'screen' in self.destinations and display:
+      def handle_close(event):
+        """
+        This method is aimed to handle the closing of figures (overall when in interactive mode)
+        @ In, event, instance, the event to close
+        @ Out, None
+        """
+        self.fig.canvas.stop_event_loop()
+        self.raiseAMessage('Closed Figure')
+      self.fig.canvas.mpl_connect('close_event', handle_close)
       # self.plt.pause(1e-6)
       ## The following code is extracted from pyplot.pause without actually
       ## needing to force the code to sleep, according to MPL's documentation,

@@ -38,6 +38,7 @@
       <Features>angle</Features>
       <Target>r</Target>
       <p>3</p>
+      <CV class="Models" type="PostProcessor">pp1</CV>
     </ROM>
     <PostProcessor name="pp1" subType="CrossValidation">
       <SciKitLearn>
@@ -52,7 +53,6 @@
       <Model class="Models" type="ExternalModel">projectile</Model>
       <ROM class="Models" type="ROM">IDW</ROM>
       <TargetEvaluation class="DataObjects" type="PointSet">projectileContainer</TargetEvaluation>
-      <CV class="Models" type="PostProcessor">pp1</CV>
       <settings>
         <tolerance>0.005</tolerance>
         <maxTrainSize>1000</maxTrainSize>
@@ -61,6 +61,7 @@
       <validationMethod name="CrowdingDistance">
         <threshold>0.2</threshold>
       </validationMethod>
+      
     </HybridModel>
   </Models>
 

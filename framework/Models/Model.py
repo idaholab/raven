@@ -128,7 +128,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference']
+  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference','ConjugateGradient']
 
   @classmethod
   def generateValidateDict(cls):
@@ -243,8 +243,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # read local information
     self.localInputAndChecks(xmlNode)
     #################
-
-
 
   def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """

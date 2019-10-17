@@ -4,16 +4,19 @@
     input = 'dynamicPRA.xml'
     csv = 'results/integral_basicStatPP_dump.csv'
     output = 'results/1-plot1_scatter.png results/1-plot2_histogram.png results/1-plot3_histogram.png results/1-plot4_histogram.png results/1-plot6_line.png'
+    skip = "needs to be converted to exercise test"
   [../]
   [./runLS]
     type = 'RavenFramework'
     input = 'runLS.xml'
     output = 'resultsLS/1-plotLS_scatter.png resultsLS/1-plotlSampledPoints_scatter.png'
+    skip = "needs to be converted to exercise test"
   [../]
   [./pbFromLS]
     type = 'RavenFramework'
     input = 'pbFromLS.xml'
     csv = 'resultsPB/integral.csv'
     rel_err = 0.005
+    skip = "needs to be converted to exercise test"
   [../]
 []

@@ -175,6 +175,7 @@ class EnsembleForward(ForwardSampler):
     self.limit = 1
     cnt = 0
     lowerBounds, upperBounds = {}, {}
+    metadataKeys, metaParams = [], {}
     for samplingStrategy in self.instanciatedSamplers.keys():
       self.instanciatedSamplers[samplingStrategy].initialize(externalSeeding=self.initSeed,solutionExport=None)
       self.samplersCombinations[samplingStrategy] = []
@@ -186,6 +187,10 @@ class EnsembleForward(ForwardSampler):
         self.instanciatedSamplers[samplingStrategy].inputInfo['prefix'] = self.instanciatedSamplers[samplingStrategy].counter
         self.samplersCombinations[samplingStrategy].append(copy.deepcopy(self.instanciatedSamplers[samplingStrategy].inputInfo))
       cnt+=1
+      mKeys, mParams = self.instanciatedSamplers[samplingStrategy].provideExpectedMetaKeys()
+      metadataKeys.extend(mKeys)
+      metaParams.update(mParams)
+    metadataKeys = list(set(metadataKeys))
     self.raiseAMessage('Number of Combined Samples are ' + str(self.limit) + '!')
     # create a grid of combinations (no tensor)
     self.gridEnsemble = GridEntities.GridEntity(self.messageHandler)
@@ -197,7 +202,8 @@ class EnsembleForward(ForwardSampler):
                 'constructTensor':False,
                 'excludeBounds':{'lowerBounds':False,'upperBounds':True}}
     self.gridEnsemble.initialize(initDict)
-
+    # add meta data keys
+    self.addMetaKeys(metadataKeys, params=metaParams)
 
   def localGenerateInput(self,model,myInput):
     """
