@@ -168,6 +168,7 @@ class RAVENparser():
         else:
           raise IOError(self.printTag+' ERROR: Functions/External ' +extFunct.attrib['name']+ ' does not have any attribute named "file"!!')
     # make the paths absolute
+    print('slaveFilesslaveFilesslaveFilesslaveFilesslaveFiles',slaveFiles)
     return slaveFiles
 
 
