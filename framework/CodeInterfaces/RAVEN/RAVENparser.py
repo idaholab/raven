@@ -27,7 +27,6 @@ import shutil
 import copy
 import numpy as np
 from collections import OrderedDict
-
 from utils import xmlUtils, utils
 import MessageHandler # to give VariableGroups a messageHandler and handle messages
 
@@ -109,7 +108,10 @@ class RAVENparser():
 
   def findSlaveFiles(self, tree, workingDir):
     """
-      Jia will finish this
+      find Slave Files
+      @ In, tree, xml.etree.ElementTree.Element, main node of RAVEN
+      @ In, workingDir, string, current working directory
+      @ Out, slaveFiles, list, list of slave input files
     """
     slaveFiles = [] # NOTE: this is only perturbable files
     # check in files
@@ -123,7 +125,7 @@ class RAVENparser():
         # is this file meant to be perturbed? Default to true.
         perturbable = child.attrib.get('perturbable', 'true').lower() in utils.stringsThatMeanTrue()
         if perturbable:
-          # since it will be perturbed, track it so we can copy it to the evenutal inner workdir
+          # since it will be perturbed, track it so we can copy it to the eventual inner workdir
           slaveFiles.append(absPath)
           # we're going to copy it to the working dir, so just leave the file name
           child.text = os.path.basename(absPath)
@@ -132,8 +134,6 @@ class RAVENparser():
           ## make sure we don't have a subdirectory messing with stuff
           child.attrib.pop('subDirectory', None)
           child.text = absPath
-        #### OLD
-        #slaveFiles.append(os.path.expanduser(os.path.join(workingDir, subDirectory, child.text.strip())))
     # check in external models
     externalModels = tree.findall('.//Models/ExternalModel')
     if len(externalModels) > 0:
@@ -171,10 +171,6 @@ class RAVENparser():
     return slaveFiles
 
 
-
-
-
-
   def returnOutstreamsNamesAnType(self):
     """
       Method to return the Outstreams names and linked DataObject name
@@ -198,25 +194,20 @@ class RAVENparser():
       @ Out, None
     """
     # the dirName is actually in workingDir/StepName/prefix => we need to go back 2 dirs
-    #dirName = os.path.join(currentDirName, ".."+os.path.sep+".."+os.path.sep)
     # copy SLAVE raven files in case they are needed
     for slaveInput in self.slaveInputFiles:
-      # check if exists
-      #if os.path.exists(slaveInput): #FullPath):
-        #slaveInputBaseDir = os.path.dirname(slaveInput)
-        # OLDs laveDir = os.path.join(currentDirName, slaveInputBaseDir.replace(currentDirName,""))
       slaveDir = os.path.join(currentDirName, self.workingDir)
-      print('working:', self.workingDir)
-      print('current dir:', currentDirName)
-      print('slave:', slaveInput)
-      os.makedirs(slaveDir)
+      # if not exist then make the directory
+      try:
+        os.makedirs(slaveDir)
+      # if exist, print message, since no access to message handler
+      except FileExistsError:
+        print('current working dir {}'.format(slaveDir))
+        print('already exists, this might imply deletion of present files')
       try:
         shutil.copy(slaveInput, slaveDir)
       except FileNotFoundError:
         raise IOError('{} ERROR: File "{}" has not been found!'.format(self.printTag, slaveInput))
-        #raise IOError(self.printTag+' ERROR: File "' +slaveInputFullPath+'" has not been found!!!')
-      #else:
-      #  raise IOError(self.printTag+' ERROR: File "' +slaveInputFullPath+'" has not been found!!!')
 
 
   def printInput(self,rootToPrint,outfile=None):

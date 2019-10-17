@@ -1,7 +1,7 @@
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/CodeInterfaceTests/RAVEN.Basic</name>
-    <author>zhouj2</author>
+    <author>talbpaul</author>
     <created>2019-10-16</created>
     <classesTested>Models.Code.RAVEN</classesTested>
     <description>
@@ -14,7 +14,7 @@
 
   <RunInfo>
     <WorkingDir>Code</WorkingDir>
-    <batchSize>5</batchSize>
+    <batchSize>1</batchSize>
     <Sequence>sample,print</Sequence>
   </RunInfo>
 
