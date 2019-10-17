@@ -34,7 +34,7 @@ from operator import mul
 from functools import reduce
 import xml.etree.ElementTree as ET
 import itertools
-from collections import Counter
+from collections import Counter, defaultdict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -727,7 +727,7 @@ class DynamicEventTree(Grid):
     varInfo['ConstantVariables'] = list(consts.keys())
     if len(depVars):
       # create graph structure
-      graphDict = dict.fromkeys(standardDet, []) 
+      graphDict = dict.fromkeys(standardDet, [])
       graphDict.update(depVars)
       varInfo['dependencyGraph'] = graph(graphDict)
     return varInfo

@@ -213,7 +213,7 @@ class Relap5(CodeInterfaceBase):
       if not detVars: raise IOError('ERROR in "RELAP5 Code Interface": NO DET variables with DET sampler!!!')
       hdetVars  = Kwargs.get('HDETVariables')
       functVars = Kwargs.get('FunctionVariables')
-      constVars = Kwargs.get('ConstantVariables')  
+      constVars = Kwargs.get('ConstantVariables')
       graph = Kwargs.get('dependencyGraph')
     else:
       self._samplersDictionary[samplerType] = self.pointSamplerForRELAP5
@@ -229,8 +229,8 @@ class Relap5(CodeInterfaceBase):
     parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile(), det)
     # if det, check which variable is connected to a trip (and consequentially must represent a stop condition)
     trips = parser.getTrips()
-    
-    
+
+
     metadataToTransfer = Kwargs.get("metadataToTransfer",None)
     if metadataToTransfer is not None:
       sourceID = metadataToTransfer.get("sourceID",None)

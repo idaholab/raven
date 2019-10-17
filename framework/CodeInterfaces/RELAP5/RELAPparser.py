@@ -140,7 +140,7 @@ class RELAPparser():
       for trip in self.inputTrips[deckNum]['variableTrips'].values():
         found = False
         for edit in alreadyAvailableEdits:
-          if trip['component'] in edit['component'] and trip['variable'] in edit['component']: 
+          if trip['component'] in edit['component'] and trip['variable'] in edit['component']:
             found = True
         if not found and trip['variable'] != 'time' and trip['variable']+"_"+trip['component'] not in addedVars:
           addedVars.append(trip['variable']+"_"+trip['component'])
@@ -253,15 +253,15 @@ class RELAPparser():
       self.inputStopTrips = [splitted[1]] if len(splitted) == 2 else [splitted[1],splitted[2]]
     return isTrip
 
-  def getTrips(self):
+  def getTrips(self, deckNum=None):
     """
+     Method to retrieve the read trips
+     @ In, deckNum, int, optional, the deck number (if None, self.maxNumberOfDecks)
+     @ Out, trips, dict, the dictionary of the trips for deck 'deckNum'
     """
-    for deckNum in self.deckLines.keys():
-      for lineNum, line in enumerate(self.deckLines[deckNum]):
-        splitted = _splitRecordAndRemoveComments(line)
-        if len(splitted) > 0 and splitted[0].strip().isdigit():
-          isTrip = self.storeTrip(deckNum, splitted)
-          if isTrip: self.lastTripLine[deckNum] = lineNum+1
+    deckN = deckNum if deckNum is not None else self.maxNumberOfDecks
+    trips = self.inputTrips[deckN]
+    return trips
 
   def printInput(self,outfile=None):
     """
