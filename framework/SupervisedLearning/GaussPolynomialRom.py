@@ -295,6 +295,10 @@ class GaussPolynomialRom(supervisedLearning):
     self.polyCoeffDict = {key: dict({}) for key in self.target}
     #check equality of point space
     self.raiseADebug('...checking required points are available...')
+
+
+
+    #### OLD #####
     fvs = []
     tvs = {key: list({}) for key in self.target}
     sgs = list(self.sparseGrid.points())
@@ -317,6 +321,7 @@ class GaussPolynomialRom(supervisedLearning):
           tvs[target].append(targetVals[idx,cnt])
       else:
         missing.append(pt)
+
     if len(missing)>0:
       msg='\n'
       msg+='DEBUG missing feature vals:\n'

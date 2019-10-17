@@ -278,12 +278,16 @@ class SparseGridCollocation(Grid):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
+    # set up the prefix to track this sample; it can be the order at which the samples are requested.
+    prefix = self.counter - 1
+    self.inputInfo['prefix'] = 'SG{}'.format(prefix)
+    # get a new point to sample, or raise a NoMoreNeeded if that's the case.
     try:
-      pt,weight = self.sparseGrid[self.counter-1]
+      pt, weight = self.sparseGrid[prefix]
     except IndexError:
       raise utils.NoMoreSamplesNeeded
 
-    for v,varName in enumerate(self.sparseGrid.varNames):
+    for v, varName in enumerate(self.sparseGrid.varNames):
       # compute the SampledVarsPb for 1-D distribution
       if self.variables2distributionsMapping[varName]['totDim'] == 1:
         for key in varName.strip().split(','):

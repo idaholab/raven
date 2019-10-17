@@ -284,7 +284,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                   (if True, we convert the name in the dictionary from the model names to the RAVEN names, False vice versa)
       @ Out, modified, DataObject, new copied object with aliases instead of original var names
     """
-    ds = sampledVars.asDataset()
     aliases = {}
     for aliasType in listAliasType:
       aliases.update(self.alias[aliasType])
@@ -292,7 +291,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## TODO this assumes a 1:1 mapping!!
     if fromModelToFramework:
       aliases = dict((v, k) for k, v in aliases.items())
-    modified = ds.rename(name_dict=aliases)
+    # recreate a dataobject so we don't mess up the old one
+    modified = copy.deepcopy(sampledVars)
+    # change the alias names
+    # TODO could this be faster by passing a mapping? At first glance, not much.
+    for oldName, newName in aliases.items():
+      modified.renameVariable(oldName, newName)
     return modified
 
   def _replaceAliasesDict(self, sampledVars, listAliasType, fromModelToFramework):
@@ -311,15 +315,23 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     modified = copy.deepcopy(sampledVars)
     for aliasTyp in listAliasType:
-      for varFramework,varModel in self.alias[aliasTyp].items():
-        whichVar =  varModel if fromModelToFramework else varFramework
-        notFound = 2**62
-        found = modified.pop(whichVar,[notFound])
-        if not np.array_equal(np.asarray(found), [notFound]):
-          if fromModelToFramework:
-            modified[varFramework] = sampledVars[varModel]
-          else:
-            modified[varModel]     = sampledVars[varFramework]
+      for varFramework, varModel in self.alias[aliasTyp].items():
+        if fromModelToFramework:
+          new = varFramework
+          old = varModel
+        else:
+          new = varModel
+          old = varFramework
+        #whichVar = varModel if fromModelToFramework else varFramework
+        #found = modified.pop(whichVar, None)
+        if old in modified: #found is not None:#not np.array_equal(np.asarray(found), [notFound]):
+          modified[new] = modified.pop(old)
+          #if fromModelToFramework:
+          #  modified[varFramework] = sampledVars[varModel]
+          #else:
+          #  modified[varModel]     = sampledVars[varFramework]
+        #else:
+        #  print('DEBUGG whichvar "{}" not found, available aliases:'.format(whichVar), modified.keys())
     return modified
 
   def _handleInput(self, paramInput):

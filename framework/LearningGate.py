@@ -37,6 +37,7 @@ from utils import utils
 import SupervisedLearning
 import Metrics
 import MessageHandler
+from DataObjects import DataSet
 #Internal Modules End--------------------------------------------------------------------------------
 
 #
@@ -62,16 +63,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     self.initializationOptions = kwargs
     self.amITrained = False
     self.ROMclass = ROMclass
-    # members for clustered roms
-    ### OLD ###
-    #self._usingRomClustering = False    # are we using ROM clustering?
-    #self._romClusterDivisions = {}      # which parameters do we cluster, and how are they subdivided?
-    #self._romClusterLengths = {}        # OR which parameters do we cluster, and how long should each be?
-    #self._romClusterMetrics = None      # list of requested metrics to apply (defaults to everything)
-    #self._romClusterInfo = {}           # data that should persist across methods
-    #self._romClusterPivotShift = None   # whether and how to normalize/shift subspaces
-    #self._romClusterMap = None          # maps labels to the ROMs that are represented by it
-    #self._romClusterFeatureTemplate = '{target}|{metric}|{id}' # standardized for consistency
+    self.isADynamicModel = None
 
     #the ROM is instanced and initialized
     #if ROM comes from a pickled rom, this gate is just a placeholder and the Targets check doesn't apply
@@ -162,28 +154,64 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     paramDict = self.supervisedContainer[-1].returnInitialParameters()
     return paramDict
 
-  def train(self, trainingSet, assembledObjects=None):
+  def train(self, trainingData, assembledObjects=None, dictConverter=None):
     """
       This function train the ROM this gate is linked to. This method is aimed to agnostically understand if a "time-dependent-like" ROM needs to be constructed.
-      @ In, trainingSet, dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
+      @ In, trainingData, dataObject or dict or list, data used to train the ROM; if a list is provided a temporal ROM is generated.
       @ In, assembledObjects, dict, optional, objects that the ROM Model has assembled via the Assembler
+      @ In, dictConverter, method, optional, method that converted trainingData into the old dictionary form
       @ Out, None
     """
-    if type(trainingSet).__name__ not in  'dict':
-      self.raiseAnError(IOError, "The training set is not a dictionary!")
-    if not list(trainingSet.keys()):
-      self.raiseAnError(IOError, "The training set is empty!")
-
     # provide assembled objects to supervised container
     if assembledObjects is None:
       assembledObjects = {}
-
     self.supervisedContainer[0].setAssembledObjects(assembledObjects)
 
-    # if training using ROMCollection, special treatment
-    if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
-      self.supervisedContainer[0].train(trainingSet)
-    else:
+    # ROMCollection, KerasClassifier need to remain as it is, for now
+    if isinstance(self.supervisedContainer[0], (SupervisedLearning.Collection, SupervisedLearning.KerasClassifier)):
+      # data needs to convert to dict via dummy inputToInternal conversion, and be passed along
+      if dictConverter is None:
+        self.raiseAnError(RuntimeError, '"train" was called without a dictConverter, but SVL requires one! Usually this is Dummy._inputToInternal.')
+      trainingData = copy.deepcopy(dictConverter(trainingData))
+      if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
+        self.supervisedContainer[0].train(trainingData)
+      # keras classifier continues below
+
+
+    if isinstance(trainingData, DataSet):
+      # is there something to train on?
+      if trainingData.isEmpty:
+        self.raiseAnError(IOError, "The training set is empty!")
+      # is there time dependence? TODO move to ROMcollection!
+      dims = trainingData.getVars(subset='indexes')
+      if dims:
+        # we must be dynamic, I guess? Seems like a bit of an implicit check.
+        ## shouldn't we just check for the pivorParameter being set?
+        self.isADynamicModel = True
+        if self.pivotParameterId not in dims:
+          self.raiseAnError(IOError, 'The pivot parameter "{}" is not present in the training set.'.format(self.pivotParameterId))
+        self.historySteps = trainingData.getVarValues(self.pivotParameterID)
+        if self.canHandleDynamicData:
+          self.supervisedContainer[0].train(trainingData)
+        else:
+          # get snapshots of the data at each time
+          slices = trainingData.sliceByIndex(self.pivotParameterID)
+          originalROM = self.supervisedContainer[0]
+          self.supervisedContainer = []
+          for t, timeStep in enumerate(self.historySteps):
+            tsROM = copy.deepcopy(originalROM)
+            tsROM.train(slices[t])
+            self.supervisedContainer.append(tsROM)
+      # if no indexes
+      else:
+        self.supervisedContainer[0].train(trainingData)
+
+    # if training data is a dictionary ...
+    elif isinstance(trainingData, dict):
+      trainingSet = trainingData # rename for clarity
+      if not list(trainingSet.keys()):
+        self.raiseAnError(IOError, "The training set is empty!")
+
       # not a collection # TODO move time-dependent snapshots to collection!
       ## time-dependent or static ROM?
       if any(type(x).__name__ == 'list' for x in trainingSet.values()):
@@ -221,7 +249,9 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
       else:
         #self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
         self.supervisedContainer[0].train(trainingSet)
-    # END if ROMCollection
+    else:
+      self.raiseAnError(TypeError, '"train" was expecting either a DataObject or dict for training, but got {}'.format(type(trainingData)))
+    # regardless of training data is dataset or dict ...
     self.amITrained = True
 
   def confidence(self, request):

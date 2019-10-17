@@ -340,6 +340,17 @@ class DataSet(DataObject):
     # if you haven't returned False by now, you must be aligned
     return True
 
+  def clear(self):
+    """
+      Empties the data object, but retains the variable lists
+      @ In, None
+      @ Out, None
+    """
+    self._collector = None
+    self._data = None
+    self._scaleFactores = {}
+    self._alignedIndexes = {}
+
   def constructNDSample(self,vals,dims,coords,name=None):
     """
       Constructs a single realization instance (for one variable) from a realization entry.
@@ -450,7 +461,7 @@ class DataSet(DataObject):
       self.raiseAnError(RuntimeError,'Unrecognized request type:',type(var))
     return res
 
-  def load(self,dataIn,style='netCDF',**kwargs):
+  def load(self, dataIn, style='netCDF', **kwargs):
     """
       Reads this dataset from disk based on the format.
       @ In, dataIn, str, path and name of file to read
@@ -464,16 +475,16 @@ class DataSet(DataObject):
       dataIn = kwargs['fileToLoad'].getAbsFile()
     # load based on style for loading
     if style == 'netcdf':
-      self._fromNetCDF(dataIn,**kwargs)
+      self._fromNetCDF(dataIn, **kwargs)
     elif style == 'csv':
       # make sure we don't include the "csv"
       if dataIn.endswith('.csv'):
         dataIn = dataIn[:-4]
-      self._fromCSV(dataIn,**kwargs)
+      self._fromCSV(dataIn, **kwargs)
     elif style == 'dict':
-      self._fromDict(dataIn,**kwargs)
+      self._fromDict(dataIn, **kwargs)
     elif style == 'dataset':
-      self._fromXarrayDataset(dataIn)
+      self._fromXarrayDataset(dataIn, **kwargs)
     # TODO dask
     else:
       self.raiseAnError(NotImplementedError,'Unrecognized read style: "{}"'.format(style))
@@ -624,7 +635,7 @@ class DataSet(DataObject):
     if old in self._scaleFactors:
       self._scaleFactors[new] = self._scaleFactors.pop(old)
     if self._data is not None:
-      self._data.rename({old:new},inplace=True)
+      self._data = self._data.rename({old:new})
 
   def reset(self):
     """
@@ -1332,9 +1343,17 @@ class DataSet(DataObject):
     for key,val in self._data.attrs.items():
       self._meta[key] = pk.loads(val.encode('utf-8'))
 
-  def _fromXarrayDataset(self,dataset):
+  def _fromXarrayDataset(self, dataset, overwrite=False, **kwargs):
     """
+      Load from an existing xarray directly.
+      @ In, dataset, xr.Dataset, dataset to load from
+      @ In, overwrite, bool, optional, if True then overwrite this data object's contents
+      @ In, kwargs, dict, additional unused arguments
+      @ Out, None
     """
+    if overwrite:
+      self._data = None
+      self._collector = None
     if not self.isEmpty:
       self.raiseAnError(IOError, 'DataObject', self.name.strip(),'is not empty!')
     #select data from dataset

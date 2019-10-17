@@ -45,6 +45,7 @@ import copy
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, mathUtils, xmlUtils
 import MessageHandler
+from DataObjects import DataSet
 
 interpolationND = utils.findCrowModule('interpolationND')
 #Internal Modules End--------------------------------------------------------------------------------
@@ -166,16 +167,64 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     pass
 
-  def train(self,tdict):
+  def train(self, trainingData):
     """
       Method to perform the training of the supervisedLearning algorithm
       NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires. So far the base class will do the translation into numpy
-      @ In, tdict, dict, training dictionary
+      @ In, trainingData, DataObject, training data
       @ Out, None
     """
-    if type(tdict) != dict:
-      self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    if isinstance(trainingData, DataSet):
+      # this should be the main method for training
+      featureValues, targetValues = self._trainByDataObject(trainingData)
+    elif isinstance(trainingData, dict):
+      # this is legacy, but occasionally a ROM is trained by dict not dataobject
+      featureValues, targetValues = self._trainByDict(trainingData)
+    else:
+      self.raiseAnError(TypeError, 'Was expecting dict or DataSet!')
+    self.__trainLocal__(featureValues, targetValues)
+    self.amITrained = True
+
+
+    # check that all targets, features are in the training set
+
+  def _trainByDataObject(self, trainingData):
+    """
+      Method to perform the training of the supervisedLearning algorithm
+      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      the interface with the kernels requires. So far the base class will do the translation into numpy
+      @ In, trainingData, DataSet, training data
+      @ Out, None
+    """
+    ## assure all features, targets are present
+    # targets
+    missing = set(self.target) - set(trainingData.getVars())
+    if missing:
+      self.raiseAnError(KeyError, 'The following targets were not present in the training set:', missing)
+    # features
+    missing = set(self.features) - set(trainingData.getVars())
+    if missing:
+      self.raiseAnError(KeyError, 'The following features were not present in the training set:', missing)
+    # construct matrices
+    ds = trainingData.asDataset()
+    print(self.features)
+    featureValues = ds[self.features].to_array().values.T
+    targetValues = ds[self.target].to_array().values.T
+    # TODO this should be vectorized, but it doesn't line up with the trainByDict method.
+    for f, feat in enumerate(self.features):
+      self._localNormalizeData(featureValues.T, self.features, feat)
+    # TODO does this work with time dependent?
+    return featureValues, targetValues
+
+  def _trainByDict(self, tdict):
+    """
+      Method to perform the training of the supervisedLearning algorithm
+      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      the interface with the kernels requires. So far the base class will do the translation into numpy
+      @ In, tdict, dict, training data
+      @ Out, None
+    """
     names, values  = list(tdict.keys()), list(tdict.values())
     ## This is for handling the special case needed by SKLtype=*MultiTask* that
     ## requires multiple targets.
@@ -185,14 +234,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       if target in names:
         targetValues.append(values[names.index(target)])
       else:
-        self.raiseAnError(IOError,'The target '+target+' is not in the training set')
-
-    #FIXME: when we do not support anymore numpy <1.10, remove this IF STATEMENT
-    if int(np.__version__.split('.')[1]) >= 10:
-      targetValues = np.stack(targetValues, axis=-1)
-    else:
-      sl = (slice(None),) * np.asarray(targetValues[0]).ndim + (np.newaxis,)
-      targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
+        self.raiseAnError(IOError,'The target "{}" is not in the training set'.format(target))
 
     # construct the evaluation matrixes
     featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
@@ -206,14 +248,13 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
         if len(valueToUse) != featureValues[:,0].size:
-          self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
-          self.raiseAWarning('target values:',len(valueToUse),tag='ERROR')
+          self.raiseAWarning('feature values:', featureValues[:,0].size,tag='ERROR')
+          self.raiseAWarning('target values:', len(valueToUse),tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
-        self._localNormalizeData(values,names,feat)
+        self._localNormalizeData(values, names, feat)
         # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
         featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
-    self.__trainLocal__(featureValues,targetValues)
-    self.amITrained = True
+    return featureValues, targetValues
 
   def _localNormalizeData(self,values,names,feat):
     """
@@ -225,8 +266,10 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, None
     """
     self.muAndSigmaFeatures[feat] = mathUtils.normalizationFactors(values[names.index(feat)])
+    print('DEBUGG set mu and sigma:', feat, self.muAndSigmaFeatures[feat])
 
-  def confidence(self,edict):
+
+  def confidence(self, edict):
     """
       This call is used to get an estimate of the confidence in the prediction.
       The base class self.confidence will translate a dictionary into numpy array, then call the local confidence
@@ -251,7 +294,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         featureValues[:,cnt] = values[names.index(feat)]
     return self.__confidenceLocal__(featureValues)
 
-  def evaluate(self,edict):
+  def evaluate(self, edict):
     """
       Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
       NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
@@ -259,13 +302,13 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluate, dict, {target: evaluated points}
     """
-    if type(edict) != dict:
-      self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
-    names, values  = list(edict.keys()), list(edict.values())
+    if not isinstance(edict, dict):
+      self.raiseAnError(IOError, 'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    names, values = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index], self.isDynamic())
       if not resp[0]:
-        self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
+        self.raiseAnError(IOError,' In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
     featureValues = np.zeros(shape=(values[0].size,len(self.features)))
     for cnt, feat in enumerate(self.features):
@@ -379,17 +422,17 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     # TODO can we do a generic basic statistics clustering on mean, std for all roms?
     self.raiseAnError(NotImplementedError, 'Clustering capabilities not yet implemented for "{}" ROM!'.format(self.__class__.__name__))
 
-  def getGlobalRomSegmentSettings(self, trainingDict, divisions):
+  def getGlobalRomSegmentSettings(self, trainingSet, divisions):
     """
       Allows the ROM to perform some analysis before segmenting.
       Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL subsegment ROMs!
-      @ In, trainingDict, dict, data for training
+      @ In, trainingSet, DataObject, data for training
       @ In, divisions, tuple, (division slice indices, unclustered spaces)
       @ Out, settings, object, arbitrary information about ROM clustering settings
       @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
     """
     # by default, do nothing
-    return None, trainingDict
+    return None, trainingSet
 
   def adjustLocalRomSegment(self, settings):
     """

@@ -1373,6 +1373,8 @@ class ROM(Dummy):
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
     else:
       # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
+      if isinstance(trainingSet, dict):
+        dddddddddd
       if type(trainingSet).__name__ != 'dict' and trainingSet.type == 'HistorySet':
         pivotParameterId = self.supervisedEngine.pivotParameterId
         if not trainingSet.checkIndexAlignment(indexesToCheck=pivotParameterId):
@@ -1380,10 +1382,11 @@ class ROM(Dummy):
                   "The time-dependent ROM requires all the histories are synchonized!")
       # OLD self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       trainingSet = self._replaceVariablesNamesWithAliasSystem(trainingSet, 'inout', False)
-      rrrrrrr
       # grab assembled stuff and pass it through
       ## TODO this should be changed when the SupervisedLearning objects themselves can use the Assembler
-      self.supervisedEngine.train(self.trainingSet, self.assemblerDict)
+      self.supervisedEngine.train(trainingSet,
+                                  assembledObjects=self.assemblerDict,
+                                  dictConverter=self._inputToInternal)
       self.amITrained = self.supervisedEngine.amITrained
 
   def confidence(self,request,target = None):
@@ -1442,6 +1445,7 @@ class ROM(Dummy):
     # build realization
     # assure rlz has all metadata
     kwargs['SampledVars'] = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'], 'input', True)
+    inRun = self._replaceVariablesNamesWithAliasSystem(inRun, 'input', True)
     rlz = dict((var,np.atleast_1d(kwargs[var])) for var in kwargs.keys())
     # update rlz with input space from inRun and output space from result
     rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),inRun.keys()))))
