@@ -169,7 +169,7 @@ class CustomSampler(ForwardSampler):
                     + csvFile.getFilename())
           self.pointsToSample[subVar] = data[:,headers.index(sourceName)]
           subVarPb = 'ProbabilityWeight-'
-          if subVarPb in headers:
+          if subVarPb+sourceName in headers:
             self.infoFromCustom[subVarPb+subVar] = data[:, headers.index(subVarPb+sourceName)]
           else:
             self.infoFromCustom[subVarPb+subVar] = np.ones(lenRlz)
@@ -181,6 +181,7 @@ class CustomSampler(ForwardSampler):
         self.infoFromCustom['ProbabilityWeight'] = data[:,headers.index('ProbabilityWeight')]
       else:
         self.infoFromCustom['ProbabilityWeight'] = np.ones(lenRlz)
+
       self.limit = len(utils.first(self.pointsToSample.values()))
     else:
       self.readingFrom = 'DataObject'

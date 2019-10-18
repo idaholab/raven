@@ -99,6 +99,10 @@ class InterfacedPostProcessor(PostProcessor):
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
 
+    inputObj = inputs[-1] if type(inputs) == list else inputs
+    metaKeys = inputObj.getVars('meta')
+    self.addMetaKeys(metaKeys)
+
   def _localReadMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -167,14 +171,15 @@ class InterfacedPostProcessor(PostProcessor):
       if type(inp) == dict:
         return [inp]
       else:
+        self.metaKeys = inp.getVars('meta')
         inputDictTemp = {}
         inputDictTemp['inpVars']   = inp.getVars('input')
         inputDictTemp['outVars']   = inp.getVars('output')
         inputDictTemp['data']      = inp.asDataset(outType='dict')['data']
         inputDictTemp['dims']      = inp.getDimensions('output')
         inputDictTemp['type']      = inp.type
+        inputDictTemp['metaKeys']  = self.metaKeys
         inputDictTemp['numberRealizations'] = len(inp)
-        self.metaKeys = inp.getVars('meta')
         for key in self.metaKeys:
           try:
             inputDictTemp['data'][key]  = inp.getMeta(pointwise=True,general=True)[key].values
