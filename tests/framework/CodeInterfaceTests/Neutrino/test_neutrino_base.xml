@@ -28,7 +28,7 @@
   <!-- States the Neutrino interface and the path to the executable -->
   <Models>
     <Code name="neutrino" subType="Neutrino">
-      <executable></executable>
+      <executable>put/here/neutrino/exe</executable>
     </Code>
   </Models>
 
