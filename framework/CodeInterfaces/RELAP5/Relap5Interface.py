@@ -215,6 +215,11 @@ class Relap5(CodeInterfaceBase):
       functVars = Kwargs.get('FunctionVariables')
       constVars = Kwargs.get('ConstantVariables')
       graph = Kwargs.get('dependencyGraph')
+      for detVar in detVars:
+        
+      
+      
+      
     else:
       self._samplersDictionary[samplerType] = self.pointSamplerForRELAP5
     if len(self.operators) > 0:
