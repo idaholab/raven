@@ -57,6 +57,10 @@ except (AttributeError,ImportError):
     """
     return func
 
+# custom errors
+class VariableNotPresentError(KeyError):
+  pass
+
 #
 #
 #
@@ -448,7 +452,10 @@ class DataSet(DataObject):
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
     if utils.isAString(var):
-      val = self._data[var]
+      try:
+        val = self._data[var]
+      except KeyError:
+        self.raiseAnError(VariableNotPresentError, 'Variable "{}" was not found in this data object!'.format(var))
       #format as scalar
       if len(val.dims) == 0:
         res = self._data[var].item(0)

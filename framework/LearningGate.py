@@ -190,16 +190,17 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
         self.isADynamicModel = True
         if self.pivotParameterId not in dims:
           self.raiseAnError(IOError, 'The pivot parameter "{}" is not present in the training set.'.format(self.pivotParameterId))
-        self.historySteps = trainingData.getVarValues(self.pivotParameterID)
+        self.historySteps = trainingData.getVarValues(self.pivotParameterId)
         if self.canHandleDynamicData:
           self.supervisedContainer[0].train(trainingData)
         else:
           # get snapshots of the data at each time
-          slices = trainingData.sliceByIndex(self.pivotParameterID)
+          slices = trainingData.sliceByIndex(self.pivotParameterId)
           originalROM = self.supervisedContainer[0]
           self.supervisedContainer = []
           for t, timeStep in enumerate(self.historySteps):
             tsROM = copy.deepcopy(originalROM)
+            print('DEBUGG slice:', slices[t].to_dict())
             tsROM.train(slices[t])
             self.supervisedContainer.append(tsROM)
       # if no indexes

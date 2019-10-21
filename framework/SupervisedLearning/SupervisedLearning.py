@@ -175,6 +175,9 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, trainingData, DataObject, training data
       @ Out, None
     """
+    # TEMPORARILY store training data as an instance variable
+    ## this might be more elegant as a passthrough to the SVLs.
+    self.trainingData = trainingData
     if isinstance(trainingData, DataSet):
       # this should be the main method for training
       featureValues, targetValues = self._trainByDataObject(trainingData)
@@ -183,9 +186,9 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       featureValues, targetValues = self._trainByDict(trainingData)
     else:
       self.raiseAnError(TypeError, 'Was expecting dict or DataSet!')
-    print('DEBUGG featureVals:', featureValues)
-    print('DEBUGG targetVals:', targetValues)
     self.__trainLocal__(featureValues, targetValues)
+    # Remove the temporarily-stored training data
+    del self.trainingData
     self.amITrained = True
 
 
@@ -247,6 +250,9 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
+        print('DEBUGG checking feature', feat)
+        print('DEBUGG target shape:', valueToUse.shape)
+        print('DEBUGG feature shape:', featureValues.shape)
         if len(valueToUse) != featureValues[:,0].size:
           self.raiseAWarning('feature values:', featureValues[:,0].size,tag='ERROR')
           self.raiseAWarning('target values:', len(valueToUse),tag='ERROR')

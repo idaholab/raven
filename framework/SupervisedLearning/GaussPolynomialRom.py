@@ -31,6 +31,7 @@ import sys
 import numpy as np
 from collections import OrderedDict
 from scipy import spatial
+from DataObjects.DataSet import VariableNotPresentError
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -295,10 +296,39 @@ class GaussPolynomialRom(supervisedLearning):
     self.polyCoeffDict = {key: dict({}) for key in self.target}
     #check equality of point space
     self.raiseADebug('...checking required points are available...')
+    mode = None
+    try:
+      trainingPrefixes = self.trainingData.getVarValues('prefix').values
+      # check all necessary values are present
+      neededPrefixes = ['SG{}'.format(i) for i in range(len(self.sparseGrid.points()))]
+      missing = set(neededPrefixes) - set(trainingPrefixes)
+      if missing:
+        self.raiseADebug('Some SparseGrid prefixes were missing, so resorting to KDTree search:', missing)
+        mode = 'KDTree'
+      else:
+        self.raiseADebug('SparseGrid prefixes found; using prefix search.')
+        mode = 'prefix'
+    except VariableNotPresentError:
+      self.raiseADebug('Expected prefixes were not present in training set, so resorting to KDTree search.')
+      mode = 'KDTree'
 
+    if mode == 'prefix':
+      # list of prefix indices in training set
+      prefixIndices = []
+      for p, pt in enumerate(self.sparseGrid.points()):
+        prefixIndices.append(np.nonzero(trainingPrefixes == 'SG{}'.format(p))[0][0])
+      self._trainByPrefix(featureVals, targetVals, prefixIndices)
+    else:
+      self._trainByKDTree(featureVals, targetVals)
+    self.amITrained=True
+    self.raiseADebug('...training complete!')
 
-
-    #### OLD #####
+  def _trainByKDTree(self, featureVals, targetVals):
+    """
+      Trains ROM, using KDTrees to find correct collocation points
+      @ In, featureVals, np.ndarray, feature values
+      @ In, targetVals, np.ndarray, target values
+    """
     fvs = []
     tvs = {key: list({}) for key in self.target}
     sgs = list(self.sparseGrid.points())
@@ -307,7 +337,8 @@ class GaussPolynomialRom(supervisedLearning):
     #TODO this is slowest loop in this algorithm, by quite a bit.
     for pt in sgs:
       #KDtree way
-      distances,idx = kdTree.query(pt,k=1,distance_upper_bound=1e-9) #FIXME how to set the tolerance generically?
+      #FIXME how to set the tolerance generically?
+      distances,idx = kdTree.query(pt, k=1, distance_upper_bound=1e-9)
       #KDTree repots a "not found" as at infinite distance with index len(data)
       if idx >= len(featureVals):
         found = False
@@ -357,8 +388,55 @@ class GaussPolynomialRom(supervisedLearning):
           wt = self.sparseGrid.weights(translate[tupPt])
           self.polyCoeffDict[target][idx]+=soln*self._multiDPolyBasisEval(idx,stdPt)*wt
         self.polyCoeffDict[target][idx]*=self.norm
-    self.amITrained=True
-    self.raiseADebug('...training complete!')
+
+  def _trainByPrefix(self, featureVals, targetVals, prefixIndices):
+    """
+      Trains ROM, using KDTrees to find correct collocation points
+      @ In, featureVals, np.ndarray, feature values
+      @ In, targetVals, np.ndarray, target values
+      @ In, prefixIndices, np.ndarray(int), training data indices in order of sparse grid points
+      @ Out, None
+    """
+    sparseGridPoints = list(self.sparseGrid.points())
+    # precompute standardized points
+    standardPoints = []
+    for p, prefixIndex in enumerate(prefixIndices):
+      featVals = tuple(featureVals[prefixIndex])
+      # generate the point in "standardized" (quadarature-friendly) space
+      stdPoint = []
+      for v, val in enumerate(featVals):
+        varName = self.sparseGrid.varNames[v]
+        # convert the point from the distribution to the quadrature standard version of the distribution
+        stdPoint.append(self.distDict[varName].convertToQuad(self.quads[varName].type, val))
+      standardPoints.append(tuple(stdPoint))
+    # joint normalization factor
+    self.norm = np.prod(list(self.distDict[v].measureNorm(self.quads[v].type) for v in self.distDict.keys()))
+    # compute polynomial coefficients
+    ## for each polynomial
+    for i, idx in enumerate(self.indexSet):
+      idx = tuple(idx)
+      # for each ROM target
+      for t, target in enumerate(self.target):
+        self.polyCoeffDict[target][idx] = 0
+        weightSum = 0
+        # for each collocation point
+        for p, prefixIndex in enumerate(prefixIndices):
+          # training point for this collocation point
+          featurePoint = featureVals[prefixIndex]
+          # equivalent sparse grid point (may vary slightly based on float operations)
+          sparseGridPoint = sparseGridPoints[p]
+          # training point in standardized space
+          standardPoint = standardPoints[p]
+          # response for this target at this collocation point
+          response = targetVals[prefixIndex, t]
+          # collocation (quadrature) weight
+          weight = self.sparseGrid.weights(sparseGridPoint)
+          # update the polynomial coefficient given this collocation point
+          self.polyCoeffDict[target][idx] += response * self._multiDPolyBasisEval(idx, standardPoint) * weight
+        # normalize the collocation point
+        self.polyCoeffDict[target][idx] *= self.norm
+
+
 
   def printPolyDict(self,printZeros=False):
     """

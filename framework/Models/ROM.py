@@ -1368,13 +1368,13 @@ class ROM(Dummy):
     """
     if type(trainingSet).__name__ == 'ROM':
       self.initializationOptionDict = copy.deepcopy(trainingSet.initializationOptionDict)
-      self.trainingSet              = copy.copy(trainingSet.trainingSet)
+      #self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.copy(trainingSet.amITrained)
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
     else:
       # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
-      if isinstance(trainingSet, dict):
-        dddddddddd
+      #if isinstance(trainingSet, dict):
+      #  dddddddddd
       if type(trainingSet).__name__ != 'dict' and trainingSet.type == 'HistorySet':
         pivotParameterId = self.supervisedEngine.pivotParameterId
         if not trainingSet.checkIndexAlignment(indexesToCheck=pivotParameterId):
