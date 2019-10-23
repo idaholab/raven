@@ -577,7 +577,7 @@ class DataMining(PostProcessor):
       @ Out, labels, list(int), fixed up labels
     """
     # this functionality relocated to serve more entities
-    return utils.orderClusterLabels(originalLabels)
+    return mathUtils.orderClusterLabels(originalLabels)
 
   def __runSciKitLearn(self, Input):
     """

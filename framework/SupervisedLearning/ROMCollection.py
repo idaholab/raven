@@ -805,6 +805,8 @@ class Clusters(Segments):
     ## version for the unSupervisedLearning object
     classifier.train(clusterFeatures)
     labels = classifier.evaluate(clusterFeatures)
+    # assure testable ordering
+    labels = mathUtils.orderClusterLabels(labels)
     ## version for QDataMining object, keep for future reference
     #res = classifier.run({'Features': clusterFeatures})
     #labels = res['outputs'][classifier.labelFeature]
