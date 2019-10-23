@@ -659,7 +659,7 @@ class Clusters(Segments):
     classifier = self._assembledObjects.get('Classifier', [[None]*4])[0][3]
     if classifier is not None:
       # Try using the pp directly, not just the uSVE
-      classifier = classifier.interface #.unSupervisedEngine
+      classifier = classifier.interface.unSupervisedEngine
     else:
       self.raiseAnError(IOError, 'Clustering was requested, but no <Classifier> provided!')
     self._divisionClassifier = classifier
@@ -798,13 +798,16 @@ class Clusters(Segments):
       @ In, clusterFeatures, dict, data on which to train classifier
       @ Out, labels, list(int), ordered list of labels corresponding to ROM subdomains
     """
-    # "classifier" is a QDataMining PostProcessor instance.
+    # "classifier" is a unSupervisedLearning object (e.g. SciKitLearn or similar)
+    ## NOTE that it currently CANNOT be the QDataMining object, as that cannot be pickled!
     # update classifier features
-    # TODO the return from classifier.run is fairly large; can we only get the labels?
-    ## NOTE only using the uSVE isn't an option, as the cluster order isn't regulated.
     classifier.updateFeatures(features)
-    res = classifier.run({'Features': clusterFeatures})
-    labels = res['outputs'][classifier.labelFeature]
+    ## version for the unSupervisedLearning object
+    classifier.train(clusterFeatures)
+    labels = classifier.evaluate(clusterFeatures)
+    ## version for QDataMining object, keep for future reference
+    #res = classifier.run({'Features': clusterFeatures})
+    #labels = res['outputs'][classifier.labelFeature]
     return labels
 
   def _collectClusteredEvaluations(self, evaluationDict, pivotID):

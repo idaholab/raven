@@ -150,7 +150,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     self.amITrained = False
     self.features = features
 
-  def train(self, tdict, metric = None):
+  def train(self, tdict, metric=None):
     """
       Method to perform the training of the unSuperVisedLearning algorithm
       NB. The unSuperVisedLearning object is committed to convert the dictionary

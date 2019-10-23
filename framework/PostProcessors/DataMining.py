@@ -576,17 +576,8 @@ class DataMining(PostProcessor):
       @ In, originalLabels, list(int), the original labeling system
       @ Out, labels, list(int), fixed up labels
     """
-    labels = np.zeros(len(originalLabels), dtype=int)
-    oldToNew = {}
-    nextUsableLabel = 0
-    for l, old in enumerate(originalLabels):
-      new = oldToNew.get(old, None)
-      if new is None:
-        oldToNew[old] = nextUsableLabel
-        new = nextUsableLabel
-        nextUsableLabel += 1
-      labels[l] = new
-    return labels
+    # this functionality relocated to serve more entities
+    return utils.orderClusterLabels(originalLabels)
 
   def __runSciKitLearn(self, Input):
     """

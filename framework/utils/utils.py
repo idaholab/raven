@@ -1188,3 +1188,22 @@ def which(cmd):
         if _access_check(name):
           return name
   return None
+
+def orderClusterLabels(originalLables):
+  """
+    Regulates labels such that the first unique one to appear is 0, second one is 1, and so on.
+    e.g. [B, B, C, B, A, A, D] becomes [0, 0, 1, 0, 2, 2, 3]
+    @ In, originalLabels, list, the original labeling system
+    @ Out, labels, np.array(int), ordinal labels
+  """
+  labels = np.zeros(len(originalLabels), dtype=int)
+  oldToNew = {}
+  nextUsableLabel = 0
+  for l, old in enumerate(originalLabels):
+    new = oldToNew.get(old, None)
+    if new is None:
+      oldToNew[old] = nextUsableLabel
+      new = nextUsableLabel
+      nextUsableLabel += 1
+    labels[l] = new
+  return labels
