@@ -13,63 +13,116 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+## TODO update!
 # This is a utility script to install a plugin in the RAVEN plugin directory
 # It takes the following command line arguments
 # -s, the plugin directory that needs to be installed
 # -f, force the copy if the directory in the destination location already exists
 # to run the script use the following command:
 #  python install_plugins -s path/to/plugin -f
+import os
+import sys
+import shutil
+import argparse
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'framework'))
+from utils import xmlUtils
 
-import sys, os, shutil
-# get the location of this script
-app_path = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), ".."))
-plugins_directory = os.path.abspath(os.path.join(app_path, "plugins"))
-found_plugin_argument = False
-force_copy = False
-exclude_dirs = ['.git', 'raven']
-for cnt, commarg in enumerate(sys.argv):
-  if commarg == "-s":
-    plugin_dir = os.path.abspath(sys.argv[cnt+1])
-    found_plugin_argument = True
-  if commarg == "-f":
-    force_copy = True
-  if commarg == "-e":
-    exclude_str = sys.argv[cnt+1]
-    # strip out whitespace
-    exclude_str = "".join(exclude_str.split())
-    exclude_dirs = exclude_str.split(',')
-if not found_plugin_argument:
-  raise IOError('Source directory for plugin installation not found! USE the syntax "-s path/to/plugin/orginal/location"!')
+# set up command-line arguments
+parser = argparse.ArgumentParser(prog="RAVEN Plugin Installer",
+                                 description="Used to install external plugins to the RAVEN repository. " +\
+                                             "By default creates a path link (use -c to override).")
+parser.add_argument('-s', '--source', dest='source_dir', action='append', required=True,
+                    help='designate the folder where the plugin is located (e.g. ~/projects/CashFlow). '+\
+                         'May be specified multiple times as -s path1 -s path2 -s path3, etc.')
+parser.add_argument('-c', '--copy', dest='full_copy', action='store_true',
+                    help='fully copy the plugin, do not create a path link')
+parser.add_argument('-e', '--exclude', dest='exclude', action='append',
+                    help='exclude designated folders from copying. Only valid with -c option.')
+args = parser.parse_args()
 
-plugin_name = os.path.basename(plugin_dir)
+requiredDirs = ['src', 'doc', 'tests']
 
-#check if the plugin directory topology is correct
-src_dir = os.path.join(plugin_dir,"src")
-if not os.path.exists(src_dir):
-  raise IOError('The plugin destination folder "'+plugin_dir+'" does not contain a "src" directory!')
-if not os.path.isdir(src_dir):
-  raise IOError('In the plugin destination folder "'+plugin_dir+'" the "src" target is not a directory!')
-tests_dir = os.path.join(plugin_dir,"tests")
-if not os.path.exists(tests_dir):
-  raise IOError('The plugin destination folder "'+plugin_dir+'" does not contain a "tests" directory!')
-if not os.path.isdir(tests_dir):
-  raise IOError('In the plugin destination folder "'+plugin_dir+'" the "tests" target is not a directory!')
-doc_dir = os.path.join(plugin_dir,"doc")
-if not os.path.exists(doc_dir):
-  raise IOError('The plugin destination folder "'+plugin_dir+'" does not contain a "doc" directory!')
-if not os.path.isdir(doc_dir):
-  raise IOError('In the plugin destination folder "'+plugin_dir+'" the "doc" target is not a directory!')
-# check if plugin exists
-destination_plugin = os.path.join(plugins_directory,plugin_name)
-if os.path.exists(destination_plugin) and not force_copy:
-  raise IOError('The destination plugin folder already exists:"'+destination_plugin+'". If you want to force the installation, use the command line argument "-f"')
-if os.path.exists(destination_plugin):
-  shutil.rmtree(destination_plugin)
-# start copying
-shutil.copytree(
-  plugin_dir,
-  destination_plugin,
-  ignore=shutil.ignore_patterns(*exclude_dirs)
-)
-print('Installation of plugin "'+plugin_name+'" performed successfully!')
+def checkValidPlugin(rawLoc):
+  """
+    Checks that the plugin at "loc" is a valid one.
+    @ In, rawLoc, str, path to plugin (possibly relative)
+    @ Out, okay, bool, whether the plugin looks fine
+    @ Out, msgs, list(str), error messages collected during check.
+    @ Out, loc, str, absolute path to plugin
+  """
+  okay = True
+  msgs = []
+  loc = os.path.abspath(os.path.expanduser(rawLoc))
+  # check existence
+  if not os.path.isdir(loc):
+    okay = False
+    msgs.append('Not a valid directory: {}'.format(loc))
+  # check for source, doc, tests dirs
+  missing = []
+  for needDir in requiredDirs:
+    fullDir = os.path.join(loc, needDir)
+    if not os.path.isdir(fullDir):
+      missing.append(needDir)
+  if missing:
+    okay = False
+    for m in missing:
+      msgs.append('Required directory missing in {}: {}'.format(fullDir, m))
+  return okay, msgs, loc
+
+
+if __name__ == '__main__':
+  sources = []
+  failedSources = []
+  # check legitimacy of plugin directories
+  for s, sourceDir in enumerate(args.source_dir):
+    loc = os.path.abspath(sourceDir)
+    okay, msgs, newLoc = checkValidPlugin(loc)
+    if okay:
+      sources.append(newLoc)
+    else:
+      print('ERROR: Plugin at "{}" had the following error(s):')
+      for e in msgs:
+        print('          ', e)
+      print('       Skipping plugin installation.')
+      failedSources.append(sourceDir)
+
+  if args.full_copy:
+    # TODO: copy the files
+    #       register the plugin in the plugin_directory as being in the plugins folder
+    raise NotImplementedError
+
+  # load sources
+  pluginTreeFile = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'plugins', 'plugin_directory.xml'))
+  if os.path.isfile(pluginTreeFile):
+    root, _ = xmlUtils.loadToTree(pluginTreeFile)
+  else:
+    root = xmlUtils.newNode('plugins')
+  existing = [x.text.strip() for x in root.findall('./plugin/name')]
+  for plugDir in sources:
+    name = os.path.basename(plugDir)
+    if name in existing:
+      # is the path the same?
+      match = root.findall('./plugin/name[.=\'{}\']/..'.format(name))[0]
+      oldPath = match.find('location').text
+      # nothing to do if old path and new path are the same!
+      if oldPath != plugDir:
+        # TODO overwrite or not as an option?
+        print('Updating existing location from {} to {}'.format(oldPath, plugDir))
+        match.find('location').text = plugDir
+    else:
+      # create a new entry
+      new = xmlUtils.newNode('plugin')
+      new.append(xmlUtils.newNode('name', text=name))
+      new.append(xmlUtils.newNode('location', text=plugDir))
+      # TODO read a config file IN THE PLUGIN to determine what nodes it should include
+      ## for example, executable, default excluded dirs, etc
+      new.append(xmlUtils.newNode('exclude'))
+      root.append(new)
+      match = new
+    if args.exclude:
+      match.find('exclude').text = ','.join(x for x in args.exclude)
+  xmlUtils.toFile(pluginTreeFile, root, pretty=True)
+
+
+
 
