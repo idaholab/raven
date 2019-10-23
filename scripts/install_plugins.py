@@ -37,7 +37,7 @@ parser.add_argument('-s', '--source', dest='source_dir', action='append', requir
 parser.add_argument('-c', '--copy', dest='full_copy', action='store_true',
                     help='fully copy the plugin, do not create a path link')
 parser.add_argument('-e', '--exclude', dest='exclude', action='append',
-                    help='exclude designated folders from copying. Only valid with -c option.')
+                    help='exclude designated folders from loading in RAVEN.')
 args = parser.parse_args()
 
 requiredDirs = ['src', 'doc', 'tests']
@@ -71,6 +71,13 @@ def checkValidPlugin(rawLoc):
 
 
 if __name__ == '__main__':
+  ### Design notes
+  # "Installing" is actually just the process of registering the location of the plugin
+  # so that it can be loaded during RAVEN entity loading.
+  #
+  # In the event a full copy is done, we still register the location to assure all plugins
+  # follow the same mechanics.
+  #
   sources = []
   failedSources = []
   # check legitimacy of plugin directories
