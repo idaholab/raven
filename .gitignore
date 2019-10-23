@@ -90,3 +90,6 @@ framework/states.txt
 
 #OSX
 .DS_Store
+
+# plugin installation paths
+plugins/plugin_directory.xml
