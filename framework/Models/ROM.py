@@ -219,9 +219,9 @@ class ROM(Dummy):
     specFourier.addParam("variables", InputData.StringListType, True)
     specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))
     inputSpecification.addSub(specFourier)
-    ### ARMA multiyear
-    multiYear = InputData.parameterInputFactory('Multiyear')
-    multiYear.addSub(InputData.parameterInputFactory('years', contentType=InputData.IntegerType))
+    ### ARMA multicycle
+    multiYear = InputData.parameterInputFactory('Multicycle')
+    multiYear.addSub(InputData.parameterInputFactory('cycles', contentType=InputData.IntegerType))
     growth = InputData.parameterInputFactory('growth', contentType=InputData.FloatType)
     growth.addParam('targets', InputData.StringListType, True)
     growth.addParam('start_index', InputData.IntegerType)

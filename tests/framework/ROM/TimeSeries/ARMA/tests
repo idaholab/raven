@@ -207,29 +207,29 @@
     [../]
   [../]
 
-  [./Multiyear]
+  [./Multicycle]
     type = 'RavenFramework'
-    input = 'multiyear.xml'
+    input = 'multicycle.xml'
     [./meta]
       type = XML
       unordered = true
-      output = 'Multiyear/romMeta.xml'
+      output = 'Multicycle/romMeta.xml'
       rel_err = 1e-3
     [../]
     [./samples]
       type = OrderedCSV
-      output = 'Multiyear/final_out_0.csv Multiyear/final_out_1.csv'
+      output = 'Multicycle/final_out_0.csv Multicycle/final_out_1.csv'
       rel_err = 1e-3
     [../]
   [../]
 
-  [./MultiyearReseed]
+  [./MulticycleReseed]
     type = 'RavenFramework'
-    input = 'multiyear_reseed.xml'
-    prereq = Multiyear
+    input = 'multicycle_reseed.xml'
+    prereq = Multicycle
     [./samples]
       type = OrderedCSV
-      output = 'Multiyear/reseedData.csv'
+      output = 'Multicycle/reseedData.csv'
       rel_err = 1e-3
     [../]
   [../]

@@ -1,20 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/ARMA.Multiyear</name>
+    <name>framework/ROM/TimeSeries/ARMA.Multicycle</name>
     <author>talbpaul</author>
     <created>2019-05-14</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-       Tests sampling the ARMA with multiple years in each sample.
-       As a check, assure that for each realization, the ratio between the mean of years 1 and 0
-       should be near 1.5, and the ratio between years 2 and 0 should be 2.25.
+       Tests sampling the ARMA with multiple cycles in each sample.
+       As a check, assure that for each realization, the ratio between the mean of cycles 1 and 0
+       should be near 1.5, and the ratio between cycles 2 and 0 should be 2.25.
        Further, check that when ensembled the pass-through value is usable (mostly a check for ND data).
     </description>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>Multiyear</WorkingDir>
+    <WorkingDir>Multicycle</WorkingDir>
     <Sequence>read, train, print, pickle, sample, dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -33,7 +33,7 @@
       <Output class="DataObjects" type="DataSet">romMeta</Output>
       <Output class="OutStreams" type="Print">romMeta</Output>
     </IOStep>
-    <IOStep name='pickle'>
+    <IOStep name="pickle">
       <Input class="Models" type="ROM">arma</Input>
       <Output class="Files" type="">pk</Output>
     </IOStep>
@@ -43,7 +43,7 @@
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
       <Output class="DataObjects" type="DataSet">final_out</Output>
     </MultiRun>
-    <IOStep name='dump'>
+    <IOStep name="dump">
       <Input class="DataObjects" type="DataSet">final_out</Input>
       <Output class="OutStreams" type="Print">final_out</Output>
     </IOStep>
@@ -71,27 +71,31 @@
       <pivotParameter>Time</pivotParameter>
       <outTruncation domain="positive">Speed</outTruncation>
       <Fourier>100, 5</Fourier>
-      <!--<Fourier>604800, 302400, 86400, 43200</Fourier>-->
+      <!--
+        <Fourier>604800, 302400, 86400, 43200</Fourier>
+      -->
       <seed>42</seed>
       <P>0</P>
       <Q>0</Q>
       <reseedCopies>False</reseedCopies>
-      <Multiyear>
-        <years>3</years>
-        <growth targets="Speed" mode="exponential">50</growth>
-      </Multiyear>
+      <Multicycle>
+        <cycles>3</cycles>
+        <growth mode="exponential" targets="Speed">50</growth>
+      </Multicycle>
     </ROM>
-    <ExternalModel name='after_arma' subType='' ModuleToLoad='after_arma'>
-      <variables>Speed, Time, Year, yearly_aggregate</variables>
+    <ExternalModel ModuleToLoad="after_arma" name="after_arma" subType="">
+      <variables>Speed, Time, Cycle, yearly_aggregate</variables>
     </ExternalModel>
-    <EnsembleModel name='ens' subType=''>
-      <Model class='Models' type='ROM'>arma
-        <Input class='DataObjects' type='PointSet'>dataIn</Input>
-        <TargetEvaluation class='DataObjects' type='DataSet'>synData</TargetEvaluation>
+    <EnsembleModel name="ens" subType="">
+      <Model class="Models" type="ROM">
+        arma
+        <Input class="DataObjects" type="PointSet">dataIn</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet">synData</TargetEvaluation>
       </Model>
-      <Model class='Models' type='ExternalModel'>after_arma
-        <Input class='DataObjects' type='PointSet'>afterIn</Input>
-        <TargetEvaluation class='DataObjects' type='DataSet'>after_rom_data</TargetEvaluation>
+      <Model class="Models" type="ExternalModel">
+        after_arma
+        <Input class="DataObjects" type="PointSet">afterIn</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet">after_rom_data</TargetEvaluation>
       </Model>
     </EnsembleModel>
   </Models>
@@ -127,20 +131,20 @@
       <Input>scaling</Input>
       <Output>yearly_aggregate</Output>
       <options>
-        <pivotParameter>Year</pivotParameter>
+        <pivotParameter>Cycle</pivotParameter>
       </options>
     </HistorySet>
     <DataSet name="synData">
       <Input>scaling</Input>
       <Output>Speed</Output>
       <Index var="Time">Speed</Index>
-      <Index var="Year">Speed</Index>
+      <Index var="Cycle">Speed</Index>
     </DataSet>
     <DataSet name="after_rom_data">
       <Input>Speed</Input>
       <Output>yearly_aggregate</Output>
       <Index var="Time">Speed</Index>
-      <Index var="Year">Speed, yearly_aggregate</Index>
+      <Index var="Cycle">Speed, yearly_aggregate</Index>
     </DataSet>
     <DataSet name="romMeta"/>
   </DataObjects>

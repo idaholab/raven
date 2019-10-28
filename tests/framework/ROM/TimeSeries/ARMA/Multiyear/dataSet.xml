@@ -1,6 +1,0 @@
-<data name="windRawData" type="HistorySet">
-  <input>scaling</input>
-  <output>Time,Speed</output>
-  <inputFilename>dataSet.csv</inputFilename>
-</data>
-

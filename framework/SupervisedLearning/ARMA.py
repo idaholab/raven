@@ -102,14 +102,14 @@ class ARMA(supervisedLearning):
     self.peaks             = {} # dictionary of peaks information, by target
     # signal storage
     self._signalStorage    = collections.defaultdict(dict) # various signals obtained in the training process
-    # multiyear
-    self.multiyear = False # if True, then multiple years per sample are going to be taken
-    self.numYears = None # if self.multiyear, this is the number of years per sample
-    self.growthFactors = collections.defaultdict(list) # by target, this is how to scale the signal over successive years
+    # multicycle ---> NOTE that cycles are usually years!
+    self.multicycle = False # if True, then multiple cycles per sample are going to be taken
+    self.numCycles = None # if self.multicycle, this is the number of cycles per sample
+    self.growthFactors = collections.defaultdict(list) # by target, this is how to scale the signal over successive cycles
 
-    multiyearNode = kwargs['paramInput'].findFirst('Multiyear')
-    if multiyearNode is not None:
-      self.setMultiyearParams(multiyearNode)
+    multicycleNode = kwargs['paramInput'].findFirst('Multicycle')
+    if multicycleNode is not None:
+      self.setMulticycleParams(multicycleNode)
 
     # get seed if provided
     ## FIXME only applies to VARMA sampling right now, since it has to be sampled through Numpy!
@@ -271,21 +271,21 @@ class ARMA(supervisedLearning):
       randd = np.random.randint(1, 2e9)
       self.reseed(randd)
 
-  def setMultiyearParams(self, node):
+  def setMulticycleParams(self, node):
     """
-      Sets multiyear parameters in an object-oriented sense
-      @ In, node, InputData, input specs (starting with 'multiyear' node)
+      Sets multicycle parameters in an object-oriented sense
+      @ In, node, InputData, input specs (starting with 'multicycle' node)
       @ Out, None
     """
-    self.multiyear = True
-    self.numYears = 0 # minimum
+    self.multicycle = True
+    self.numCycles = 0 # minimum
     # clear existing parameters
     self.growthFactors = collections.defaultdict(list)
     growthNodes = node.findAll('growth')
-    numYearsNode = node.findFirst('years')
-    # if <years> given, then we use that as the baseline default duration range(0, years) (not inclusive)
-    if numYearsNode is not None:
-      defaultIndices = [0, numYearsNode.value - 1]
+    numCyclesNode = node.findFirst('cycles')
+    # if <cycles> given, then we use that as the baseline default duration range(0, cycles) (not inclusive)
+    if numCyclesNode is not None:
+      defaultIndices = [0, numCyclesNode.value - 1]
     else:
       defaultIndices = [None, None]
     # read in settings from each <growth> node
@@ -304,14 +304,14 @@ class ARMA(supervisedLearning):
                   'value': gNode.value}
       # check that a valid index set has been supplied
       if settings['start'] is None:
-        self.raiseAnError(IOError, 'No start index for Multiyear <growth> attribute "start_index" ' +
+        self.raiseAnError(IOError, 'No start index for Multicycle <growth> attribute "start_index" ' +
                           'for targets {} was specified, '.format(gNode.parameterValues['targets'])+
-                          'and no default <years> given!')
+                          'and no default <cycles> given!')
       if settings['end'] is None:
-        self.raiseAnError(IOError, 'No end index for Multiyear <growth> attribute "end_index" ' +
+        self.raiseAnError(IOError, 'No end index for Multicycle <growth> attribute "end_index" ' +
                           'for targets {} was specified, '.format(gNode.parameterValues['targets'])+
-                          'and no default <years> given!')
-      self.numYears = max(self.numYears, settings['end']+1)
+                          'and no default <cycles> given!')
+      self.numCycles = max(self.numCycles, settings['end']+1)
       # check for overlapping coverage
       newCoverage = range(settings['start'], settings['end']+1)
       settings['range'] = newCoverage
@@ -321,11 +321,11 @@ class ARMA(supervisedLearning):
           overlap = range(max(existing['range'].start, newCoverage.start),
                           min(existing['range'].stop-1, newCoverage.stop-1) + 1)
           if overlap:
-            self.raiseAnError(IOError, 'Target "{}" has overlapping growth factors for years with index'.format(target),
+            self.raiseAnError(IOError, 'Target "{}" has overlapping growth factors for cycles with index'.format(target),
                                ' {} to {} (inclusive)!'.format(overlap.start, overlap.stop - 1))
         self.growthFactors[target].append(settings)
     else:
-      self.numYears = numYearsNode.value
+      self.numCycles = numCyclesNode.value
 
   def setAdditionalParams(self, params):
     """
@@ -336,10 +336,10 @@ class ARMA(supervisedLearning):
     # reseeding is taken care of in the supervisedLearning base class of this method
     supervisedLearning.setAdditionalParams(self, params)
     paramInput = params['paramInput']
-    # multiyear; note that myNode is "multiyearNode" not a node that I own
-    myNode = paramInput.findFirst('Multiyear')
+    # multicycle; note that myNode is "multicycleNode" not a node that I own
+    myNode = paramInput.findFirst('Multicycle')
     if myNode:
-      self.setMultiyearParams(myNode)
+      self.setMulticycleParams(myNode)
 
   def __trainLocal__(self, featureVals, targetVals):
     """
@@ -486,45 +486,44 @@ class ARMA(supervisedLearning):
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
-    if self.multiyear:
+    if self.multicycle:
       ## create storage for the sampled result
-      finalResult = dict((target, np.zeros((self.numYears, len(self.pivotParameterValues)))) for target in self.target if target != self.pivotParameterID)
+      finalResult = dict((target, np.zeros((self.numCycles, len(self.pivotParameterValues)))) for target in self.target if target != self.pivotParameterID)
       finalResult[self.pivotParameterID] = self.pivotParameterValues
-      years = np.arange(self.numYears)
+      cycles = np.arange(self.numCycles)
       # calculate scaling factors for targets
       scaling = {}
       for target in (t for t in self.target if t != self.pivotParameterID):
-        scaling[target] = self._evaluateScales(self.growthFactors[target], years)
-        #self.raiseADebug('Yearly growth multipliers for "{}": {}'.format(target, scaling[target]))
-      # create synthetic history for each year
-      for y in years:
-        self.raiseADebug('Evaluating year', y)
+        scaling[target] = self._evaluateScales(self.growthFactors[target], cycles)
+      # create synthetic history for each cycle
+      for y in cycles:
+        self.raiseADebug('Evaluating cycle', y)
         vals = copy.deepcopy(featureVals) # without deepcopy, the vals are modified in-place -> why should this matter?
-        result = self._evaluateYear(vals)
+        result = self._evaluateCycle(vals)
         for target, value in ((t, v) for (t, v) in result.items() if t != self.pivotParameterID): #, growthInfos in self.growthFactors.items():
           finalResult[target][y][:] = value # [:] is a size checker
       # apply growth factors
       for target in (t for t in finalResult if t != self.pivotParameterID):
-        scaling = self._evaluateScales(self.growthFactors[target], years)
+        scaling = self._evaluateScales(self.growthFactors[target], cycles)
         finalResult[target][:] = (finalResult[target].T * scaling).T # -> people say this is as fast as any way to multiply columns by a vector of scalars
       # high-dimensional indexing information
-      finalResult['Year'] = years
-      finalResult['_indexMap'] = dict((target, ['Year', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
+      finalResult['Cycle'] = cycles
+      finalResult['_indexMap'] = dict((target, ['Cycle', self.pivotParameterID]) for target in self.target if target != self.pivotParameterID)
       return finalResult
     else:
-      return self._evaluateYear(featureVals)
+      return self._evaluateCycle(featureVals)
 
-  def _evaluateScales(self, growthInfos, years):
+  def _evaluateScales(self, growthInfos, cycles):
     """
       @ In, growthInfo, dictionary of growth value for each target
-      @ In, year, int, year index in multiyear
-      @ Out, scale, float, scaling factor for each year
+      @ In, cycle, int, cycle index in multicycle
+      @ Out, scale, float, scaling factor for each cycle
     """
-    scales = np.ones(len(years))
-    for y, year in enumerate(years):
+    scales = np.ones(len(cycles))
+    for y, cycle in enumerate(cycles):
       old = scales[y-1] if y > 0 else 1
       for growthInfo in growthInfos:
-        if year in growthInfo['range']:
+        if cycle in growthInfo['range']:
           mode = growthInfo['mode']
           growth = growthInfo['value'] / 100
           scales[y] = (old * (1 + growth)) if mode == 'exponential' else (old + growth)
@@ -533,7 +532,7 @@ class ARMA(supervisedLearning):
         scales[y] = old
     return scales
 
-  def _evaluateYear(self, featureVals):
+  def _evaluateCycle(self, featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
       @ Out, returnEvaluation, dict, dictionary of values for each target (and pivot parameter)
@@ -781,7 +780,7 @@ class ARMA(supervisedLearning):
                                      initial_state=init,
                                      measurement_shocks=measureShocks,
                                      state_shocks=stateShocks)
-    # add zeros back in for zeroed variable, if necessary? FIXME -> looks like no, this is done later in _evaluateYear
+    # add zeros back in for zeroed variable, if necessary? FIXME -> looks like no, this is done later in _evaluateCycle
     return obs
 
   def _interpolateDist(self, x, y, Xlow, Xhigh, Ylow, Yhigh, inMask):
@@ -1148,10 +1147,10 @@ class ARMA(supervisedLearning):
     if not self.amITrained:
       self.raiseAnError(RuntimeError, 'ROM is not yet trained! Cannot write to DataObject.')
     root = writeTo.getRoot()
-    # - multiyear, if any
-    if self.multiyear:
-      myNode = xmlUtils.newNode('Multiyear')
-      myNode.append(xmlUtils.newNode('num_years', text=self.numYears))
+    # - multicycle, if any
+    if self.multicycle:
+      myNode = xmlUtils.newNode('Multicycle')
+      myNode.append(xmlUtils.newNode('num_cycles', text=self.numCycles))
       gNode = xmlUtils.newNode('growth_factors')
       for target, infos in self.growthFactors.items():
         for info in infos:
@@ -2030,11 +2029,11 @@ class ARMA(supervisedLearning):
         # NOTE might need to put zero filter back into it
         # "sig" is variable for the sampled result
         sig = signal['predict'][globalPicker]
-        # if multidimensional, need to scale by growth factor over years.
-        if self.multiyear:
-          scales = self._evaluateScales(self.growthFactors[target], np.arange(self.numYears))
-          # do multiyear signal (m.y.Sig) all at once
-          mySig = np.tile(sig, (self.numYears, 1))
+        # if multidimensional, need to scale by growth factor over cycles.
+        if self.multicycle:
+          scales = self._evaluateScales(self.growthFactors[target], np.arange(self.numCycles))
+          # do multicycle signal (m.y.Sig) all at once
+          mySig = np.tile(sig, (self.numCycles, 1))
           mySig = (mySig.T * scales).T
           # TODO can we do this all at once with a vector operation? -> you betcha
           evaluation[target][:, localPicker] += mySig
@@ -2071,10 +2070,10 @@ class ARMA(supervisedLearning):
     import scipy.stats as stats
     if self.preserveInputCDF:
       for target, dist in settings['input CDFs'].items():
-        if self.multiyear: #TODO check this gets caught correctly by the templateROM.
-          years = range(len(evaluation[target]))
-          scaling = self._evaluateScales(self.growthFactors[target], years)
-          # multiyear option
+        if self.multicycle: #TODO check this gets caught correctly by the templateROM.
+          cycles = range(len(evaluation[target]))
+          scaling = self._evaluateScales(self.growthFactors[target], cycles)
+          # multicycle option
           for y in range(len(evaluation[target])):
             scale = scaling[y]
             if scale != 1:
@@ -2101,7 +2100,7 @@ class ARMA(supervisedLearning):
     """
     if self.zeroFilterTarget:
       mask = self._masks[self.zeroFilterTarget]['zeroFilterMask']
-      if self.multiyear:
+      if self.multicycle:
         evaluation[self.zeroFilterTarget][:, mask] = 0
       else:
         evaluation[self.zeroFilterTarget][mask] = 0

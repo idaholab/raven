@@ -1,21 +1,21 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/ARMA.MultiyearReseed</name>
+    <name>framework/ROM/TimeSeries/ARMA.MulticycleReseed</name>
     <author>talbpaul</author>
     <created>2019-05-15</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-       Tests that the number of sampled years can be changed on an ARMA during unserialization.
-       It takes the pickled ARMA from ``multiyear'' and changes the number of years as well as
-       the growth rate. The resulting DataSet CSV should have Years 0 and 1 only, and the values
-       for Year 1 should be notably higher than Year 0 on average.
-       As a check, for each realization, the ratio between year 1 and year 0 should be near 2.5.
+       Tests that the number of sampled cycles can be changed on an ARMA during unserialization.
+       It takes the pickled ARMA from ``multicycles'' and changes the number of cycles as well as
+       the growth rate. The resulting DataSet CSV should have Cycles 0 and 1 only, and the values
+       for Cycle 1 should be notably higher than Cycle 0 on average.
+       As a check, for each realization, the ratio between cycle 1 and cycle 0 should be near 2.5.
     </description>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>Multiyear</WorkingDir>
+    <WorkingDir>Multicycle</WorkingDir>
     <Sequence>load, sample, dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -31,7 +31,7 @@
       <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
       <Output class="DataObjects" type="DataSet">reseedData</Output>
     </MultiRun>
-    <IOStep name='dump'>
+    <IOStep name="dump">
       <Input class="DataObjects" type="DataSet">reseedData</Input>
       <Output class="OutStreams" type="Print">reseedData</Output>
     </IOStep>
@@ -54,10 +54,10 @@
   <Models>
     <ROM name="arma" subType="pickledROM">
       <seed>42</seed>
-      <Multiyear>
-        <years>2</years>
-        <growth targets="Speed" mode="linear">150</growth>
-      </Multiyear>
+      <Multicycle>
+        <cycles>2</cycles>
+        <growth mode="linear" targets="Speed">150</growth>
+      </Multicycle>
     </ROM>
   </Models>
 
@@ -81,7 +81,7 @@
       <Input>scaling</Input>
       <Output>Speed</Output>
       <Index var="Time">Speed</Index>
-      <Index var="Year">Speed</Index>
+      <Index var="Cycle">Speed</Index>
     </DataSet>
   </DataObjects>
 
