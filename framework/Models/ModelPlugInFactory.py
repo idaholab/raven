@@ -37,13 +37,29 @@ from collections import defaultdict
 from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
+
+# load the plugin_directory.xml and use that to establish the paths to the plugins
+# for each of the plugin paths, load up the Entities that have models in them
+## -> should we do this through some kind of a PluginLoader that registers the objects
+##    in other factories?
+
+
+###### OLD (partially reworked) ######
+def loadPluginsOnPath(path):
+  startDir = os.path.join(os.path.dirname(__file__),'../../plugins')
+  for dirr, _, _ in os.walk(startDir):
+    __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
+    utils.add_path(dirr)
+  
+
 __moduleInterfaceList = []
 startDir = os.path.join(os.path.dirname(__file__),'../../plugins')
-for dirr,_,_ in os.walk(startDir):
+for dirr, _, _ in os.walk(startDir):
   __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
   utils.add_path(dirr)
 __moduleImportedList = []
 __basePluginClasses  = {'ExternalModel':'ExternalModelPluginBase'}
+
 
 """
  Interface Dictionary (factory) (private)

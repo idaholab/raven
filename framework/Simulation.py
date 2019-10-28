@@ -33,6 +33,8 @@ import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+# NOTE: always import plugin factory first!
+import PluginFactory
 import Steps
 import DataObjects
 import Files
