@@ -84,8 +84,8 @@ class ScatterView3D(BaseTopologicalView):
     self.fig = Figure(facecolor='white')
     self.mplCanvas = FigureCanvas(self.fig)
     self.mplCanvas.axes = self.fig.add_subplot(111, projection='3d')
-    # We want the axes cleared every time plot() is called
-    self.mplCanvas.axes.hold(False)
+    # We want the axes cleared every time plot() is called,
+    # so axes.hold used to be called, but now that has been removed.
     self.colorbar = None
 
     mySplitter.addWidget(self.mplCanvas)
@@ -351,7 +351,6 @@ class ScatterView3D(BaseTopologicalView):
 
       lc = mpl_toolkits.mplot3d.art3d.Line3DCollection(lines,colors=lineColors,linewidths=1)
       self.mplCanvas.axes.add_collection(lc)
-      self.mplCanvas.axes.hold(True)
 
     if self.cmbVars['Color'].currentText() not in specialColorKeywords:
       myPlot = self.mplCanvas.axes.scatter(values['X'], values['Y'],
@@ -372,7 +371,6 @@ class ScatterView3D(BaseTopologicalView):
       self.colorbar.set_label(self.cmbVars['Color'].currentText(),size=fontSize,labelpad=10)
       self.colorbar.set_ticks(np.linspace(mins['Color'],maxs['Color'],5))
       self.colorbar.ax.tick_params(labelsize=smallFontSize)
-      self.mplCanvas.axes.hold(True)
       if self.chkExts.checkState() == qtc.Qt.PartiallyChecked:
         maxValues['Color'] = colors.maxBrushColor.name()
         minValues['Color'] = colors.minBrushColor.name()
@@ -397,7 +395,6 @@ class ScatterView3D(BaseTopologicalView):
                                            values['Z'], c=values['Color'],
                                            edgecolors='none')
 
-      self.mplCanvas.axes.hold(True)
       if self.chkExts.checkState() == qtc.Qt.PartiallyChecked:
         maxValues['Color'] = colors.maxBrushColor.name()
         minValues['Color'] = colors.minBrushColor.name()
@@ -440,7 +437,6 @@ class ScatterView3D(BaseTopologicalView):
     for label in  (self.mplCanvas.axes.get_xticklabels()+self.mplCanvas.axes.get_yticklabels()+self.mplCanvas.axes.get_zticklabels()):
       label.set_fontsize(smallFontSize)
 
-    self.mplCanvas.axes.hold(False)
     self.mplCanvas.draw()
 
   def test(self):
