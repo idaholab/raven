@@ -35,10 +35,11 @@ except ImportError as e:
 from .BaseTopologicalView import BaseTopologicalView
 
 import matplotlib
-matplotlib.use('Qt5Agg')
+#Is the below needed?
+#matplotlib.use('Qt5Agg')
 
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import mpl_toolkits
 import matplotlib.pyplot

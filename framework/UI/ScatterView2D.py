@@ -37,7 +37,7 @@ except ImportError as e:
 from .BaseTopologicalView import BaseTopologicalView
 
 from matplotlib.collections import LineCollection
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 import matplotlib.pyplot
