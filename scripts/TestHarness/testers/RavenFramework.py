@@ -25,7 +25,7 @@ import UnorderedCSVDiffer
 import XMLDiff
 import TextDiff
 import ExistsDiff
-from RAVENImageDiff import ImageDiff
+import RAVENImageDiff
 import RavenUtils
 
 # Set this outside the class because the framework directory is constant for
@@ -138,6 +138,7 @@ class RavenFramework(Tester):
     self.__make_differ('xml', XMLDiff.XML, {"unordered":False})
     self.__make_differ('UnorderedXml', XMLDiff.XML, {"unordered":True})
     self.__make_differ('text', TextDiff.Text)
+    self.__make_differ('image', RAVENImageDiff.ImageDiff)
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')\
       if len(self.specs['required_libraries']) > 0 else []
@@ -268,17 +269,4 @@ class RavenFramework(Tester):
       @ In, ignored, string, output of test.
       @ Out, None
     """
-
-    #image
-    image_opts = {}
-    if 'rel_err'        in self.specs.keys():
-      image_opts['rel_err'] = self.specs['rel_err']
-    if 'zero_threshold' in self.specs.keys():
-      image_opts['zero_threshold'] = self.specs['zero_threshold']
-    img_diff = ImageDiff(self.specs['test_dir'], self.img_files, **image_opts)
-    (img_same, img_messages) = img_diff.diff()
-    if not img_same:
-      self.set_diff(img_messages)
-      return
-
     self.set_success()
