@@ -406,7 +406,7 @@ class SingleRun(Step):
                                              inDictionary['jobHandler'].runInfoDict['stepName'])
       try:
         os.mkdir(currentWorkingDirectory)
-      except OSError:
+      except FileExistsError:
         self.raiseAWarning('current working dir '+currentWorkingDirectory+' already exists, ' +
                            'this might imply deletion of present files')
         if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
