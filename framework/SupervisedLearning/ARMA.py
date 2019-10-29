@@ -425,7 +425,7 @@ class ARMA(supervisedLearning):
       # if target correlated with the zero-filter target, truncate the training material now?
       timeSeriesData = targetVals[:,t]
       self.raiseADebug('... analyzing ARMA properties for target "{}" ...'.format(target))
-      self.cdfParams[target] = self._trainCDF(timeSeriesData, binOps=2 )
+      self.cdfParams[target] = self._trainCDF(timeSeriesData, binOps=2)
       # normalize data
       normed = self._normalizeThroughCDF(timeSeriesData, self.cdfParams[target])
       self._signalStorage[target]['gaussianed'] = copy.deepcopy(normed[:])

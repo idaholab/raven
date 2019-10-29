@@ -391,14 +391,14 @@ def toBytes(s):
   else:
     return s
 
-def isSingleValued(val,zeroDOk=True,nanOk=True):
+def isSingleValued(val, nanOk=True, zeroDOk=True):
   """
     Determine if a single-entry value (by traditional standards).
     Single entries include strings, numbers, NaN, inf, None
     NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
     @ In, val, object, check
-    @ In, zeroDOk, bool, optional, if True then a zero-d numpy array with a single-valued entry is A-OK
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ In, zeroDOk, bool, optional, if True then a zero-d numpy array with a single-valued entry is A-OK
     @ Out, isSingleValued, bool, result
   """
   # TODO most efficient order for checking?

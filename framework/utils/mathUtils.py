@@ -519,26 +519,32 @@ def numBinsDraconis(data, low=None, alternateOkay=True, binOps=None):
     @ In, data, np.array, data to be binned
     @ In, low, int, minimum number of bins
     @ In, alternateOkay, bool, if True then can use alternate method if Freeman Draconis won't work
+    @ In, binOps, int, optional, optional method choice for computing optimal bins
     @ Out, numBins, int, optimal number of bins
     @ Out, binEdges, np.array, location of the bins
   """
-  try:
-    iqr = np.percentile(data, 75) - np.percentile(data, 25)
-  # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
-    if iqr > 0.0:
-      size = 2.0 * iqr / np.cbrt(data.size)
-      numBins = int(np.ceil((max(data) - min(data))/size))
-    else:
-      raise TypeError
-  except:
-  # if there's not, with approval we can use the sqrt of the number of entries instead
-    if alternateOkay:
-      numBins = int(np.ceil(np.sqrt(data.size)))
-    else:
-      raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
+  # binOps: default to draconis, but allow other options
+  ## TODO additional options could be easily added in the future.
+  # option 2: square root rule
   if binOps == 2:
     numBins = int(np.ceil(np.sqrt(data.size)))
-    # if a minimum number of bins have been suggested, check that we use enough
+  # default option: try draconis, then fall back on square root rule
+  else:
+    try:
+      iqr = np.percentile(data, 75) - np.percentile(data, 25)
+    # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
+      if iqr > 0.0:
+        size = 2.0 * iqr / np.cbrt(data.size)
+        numBins = int(np.ceil((max(data) - min(data))/size))
+      else:
+        raise TypeError
+    except:
+    # if there's not, with approval we can use the sqrt of the number of entries instead
+      if alternateOkay:
+        numBins = int(np.ceil(np.sqrt(data.size)))
+      else:
+        raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
+  # if a minimum number of bins have been suggested, check that we use enough
   if low is not None:
     numBins = max(numBins, low)
   # for convenience, find the edges of the bins as well

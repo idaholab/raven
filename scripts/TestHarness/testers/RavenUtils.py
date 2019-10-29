@@ -83,7 +83,6 @@ __condaList = [("h5py", __lookup_preferred_version("h5py")),
                ("statsmodels", __lookup_preferred_version("statsmodels")),
                ("tensorflow", __lookup_preferred_version("tensorflow", optional=True)),
                ("cloudpickle", __lookup_preferred_version("cloudpickle", optional=True)),
-
                ("python", ""),
                ("hdf5", "1.10.4"),
                ("swig", ""),

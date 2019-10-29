@@ -164,20 +164,20 @@ class RAVENparser():
       @ Out, None
     """
     # the dirName is actually in workingDir/StepName/prefix => we need to go back 2 dirs
-    dirName = os.path.join(currentDirName, ".."+os.path.sep+".."+os.path.sep)
     # copy SLAVE raven files in case they are needed
     for slaveInput in self.slaveInputFiles:
-      # full path
-      slaveInputFullPath = os.path.abspath(os.path.join(dirName,slaveInput))
-      # check if exists
-      if os.path.exists(slaveInputFullPath):
-        slaveInputBaseDir = os.path.dirname(slaveInput)
-        slaveDir = os.path.join(currentDirName,slaveInputBaseDir.replace(currentDirName,""))
-        os.makedirs(slaveDir, exist_ok=True)
-        shutil.copy(slaveInputFullPath,slaveDir)
-      else:
-        raise IOError(self.printTag+' ERROR: File "' +slaveInputFullPath+'" has not been found!!!')
-
+      slaveDir = os.path.join(currentDirName, self.workingDir)
+      # if not exist then make the directory
+      try:
+        os.makedirs(slaveDir)
+      # if exist, print message, since no access to message handler
+      except FileExistsError:
+        print('current working dir {}'.format(slaveDir))
+        print('already exists, this might imply deletion of present files')
+      try:
+        shutil.copy(slaveInput, slaveDir)
+      except FileNotFoundError:
+        raise IOError('{} ERROR: File "{}" has not been found!'.format(self.printTag, slaveInput))
 
   def printInput(self,rootToPrint,outfile=None):
     """

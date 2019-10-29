@@ -15,7 +15,7 @@ import sys
 import argparse
 import configparser
 
-def check_aux():
+def checkAux():
   """
     Checks for aux file
     @ In, None
@@ -26,7 +26,7 @@ def check_aux():
   except FileNotFoundError:
     raise RuntimeError('Aux file not found prior to running!')
 
-def get_input():
+def getInput():
   """
     Collects input from parser
     @ In, None
@@ -37,7 +37,7 @@ def get_input():
   args = parser.parse_args()
   return args
 
-def read_input(infile):
+def readInput(infile):
   """
     reads input from file
     @ In, infile, string, filename
@@ -76,9 +76,9 @@ def write(a, b, c, x, y, out):
     f.writelines(','.join(str(i) for i in [a, b, c, x, y]) + '\n')
 
 if __name__ == '__main__':
-  check_aux()
-  args = get_input()
-  infile_name = args.i
-  a, b, x, y, out = read_input(infile_name)
+  checkAux()
+  args = getInput()
+  infileName = args.i
+  a, b, x, y, out = readInput(infileName)
   c = run(a, b, x, y)
   write(a, b, c, x, y, out)

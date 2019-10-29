@@ -2788,9 +2788,9 @@ The disadvantages of Gaussian Processes for Machine Learning include:
   of the internal random number generator.
   %
   \default{None}
-  \item \xmlNode{n\_restarts\_optimizer }, \xmlDesc{integer, optional field}, The number of restarts of the optimizer for finding 
+  \item \xmlNode{n\_restarts\_optimizer }, \xmlDesc{integer, optional field}, The number of restarts of the optimizer for finding
 the kernel’s parameters which maximize the log-marginal likelihood. The first run of the optimizer is performed from th
-e kernel’s initial parameters, the remaining ones (if any) from thetas sampled log-uniform randomly from the space of 
+e kernel’s initial parameters, the remaining ones (if any) from thetas sampled log-uniform randomly from the space of
 allowed theta-values. If greater than 0, all bounds must be finite. Note that n\_restarts\_optimizer $== 0$ implies that one run is performed.
   %
   \default{0}
@@ -3075,35 +3075,35 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
       \item \xmlNode{periods}, \xmlDesc{comma-separated integers, required field}, lists the (fundamental)
         periodic wavelength of the Fourier decomposition for these variables, as in the \xmlNode{Fourier} general node.
     \end{itemize}
-  \item \xmlNode{Multiyear}, \xmlDesc{node, optional}, indicates that each sample of the ARMA should yield
+  \item \xmlNode{Multicycle}, \xmlDesc{node, optional}, indicates that each sample of the ARMA should yield
     multiple sequential samples. For example, if an ARMA model is trained to produce a year's worth of data,
-    enabling \xmlNode{Multiyear} causes it to produce several successive years of data. Multiyear sampling
+    enabling \xmlNode{Multicycle} causes it to produce several successive years of data. Multicycle sampling
     is independent of ROM training, and only changes how samples of the ARMA are created.
 
-    \nb The output of a multiyear ARMA must be stored in a \xmlNode{DataSet}, as the targets will depend
-      on both the \xmlNode{pivotParameter} as well as the year, \xmlString{Year}. The year is a second
-      \xmlNode{Index} that all targets should depend on, with variable name \xmlString{Year}.
+    \nb The output of a multicycle ARMA must be stored in a \xmlNode{DataSet}, as the targets will depend
+      on both the \xmlNode{pivotParameter} as well as the cycle, \xmlString{Cycle}. The cycle is a second
+      \xmlNode{Index} that all targets should depend on, with variable name \xmlString{Cycle}.
 
-    The \xmlNode{Multiyear} node accepts the following subnodes:
+    The \xmlNode{Multicycle} node accepts the following subnodes:
     \begin{itemize}
-      \item \xmlNode{years}, \xmlDesc{integer, required field}, the number of years the ARMA should produce
+      \item \xmlNode{cycles}, \xmlDesc{integer, required field}, the number of cycles the ARMA should produce
         each time it yields a sample.
       \item \xmlNode{growth}, \xmlDesc{float, optional field}, if provided then the histories produced by
-        the ARMA will be increased by the growth factor for successive years. This node can be added
+        the ARMA will be increased by the growth factor for successive cycles. This node can be added
         multiple times with different settings for different targets.
         The text of this node is the growth factor in percentage. Some examples are in
-        Table~\ref{tab:arma multiyear growth}, where \emph{Growth factor} is the value used in the RAVEN
+        Table~\ref{tab:arma multicycle growth}, where \emph{Growth factor} is the value used in the RAVEN
         input and \emph{Scaling factor} is the value by which the history will be multiplied.
         \begin{table}[h!]
           \centering
           \begin{tabular}{r c l}
             Growth factor & Scaling factor & Description \\ \hline
-            50 & 1.5 & growing by 50\% each year \\
-            -50 & 0.5 & shrinking by 50\% each year \\
-            150 & 2.5 & growing by 150\% each year \\
+            50 & 1.5 & growing by 50\% each cycle \\
+            -50 & 0.5 & shrinking by 50\% each cycle \\
+            150 & 2.5 & growing by 150\% each cycle \\
           \end{tabular}
           \caption{ARMA Growth Factor Examples}
-          \label{tab:arma multiyear growth}
+          \label{tab:arma multicycle growth}
         \end{table}
 
         The \xmlNode{growth} node takes the following attributes as settings:
@@ -3117,7 +3117,7 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
 
             if \xmlString{exponential}, then the scaling factor is $(1+g/100)^y$;
 
-            where $y$ is the year after the first and $g$ is the provided scaling factor.
+            where $y$ is the cycle after the first and $g$ is the provided scaling factor.
         \end{itemize}
     \end{itemize}
     \romClusterOption
@@ -3127,15 +3127,15 @@ Note that when loading the ARMA model from a serialized file as a \xmlNode{pickl
 several nodes can be used to modify the evaluation behavior:
 \begin{itemize}
   \item \xmlNode{reseed}, \xmlDesc{integer, optional},
-  \item \xmlNode{Multiyear}, \xmlDesc{node, optional}, as \xmlNode{MultiYear} above, allows resetting
-    a growth factor and number of years to sample.
+  \item \xmlNode{Multicycle}, \xmlDesc{node, optional}, as \xmlNode{Multicycle} above, allows resetting
+    a growth factor and number of cycles to sample.
   \item \xmlNode{clusterEvalMode}, \xmlDesc{string, optional}, one of \xmlString{truncated},
     \xmlString{full}, or \xmlString{clustered}, changes the structure of the samples for Clustered
     Segmented ROMs. These are identical to the options for \xmlNode{evalMode} node under \xmlNode{Segmented}
     as described above.
 \end{itemize}
 the \xmlNode{seed}
-as well as the \xmlNode{Multiyear} nodes can be added to change the behavior of the ARMA ROM.
+as well as the \xmlNode{Multicycle} nodes can be added to change the behavior of the ARMA ROM.
 
 When using ROM segmentation/clustering, the ARMA provides the following classes of features that can
 be used for clustering:
