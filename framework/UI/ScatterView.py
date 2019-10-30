@@ -34,7 +34,7 @@ except ImportError as e:
 from .BaseHierarchicalView import BaseHierarchicalView
 
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 import mpl_toolkits
@@ -69,8 +69,6 @@ class ScatterView(BaseHierarchicalView):
     self.mplCanvas = FigureCanvas(self.fig)
     self.mplCanvas.axes = self.fig.add_subplot(111)
 
-    # We want the axes cleared every time plot() is called
-    self.mplCanvas.axes.hold(False)
     self.colorbar = None
 
     mySplitter.addWidget(self.mplCanvas)
@@ -172,9 +170,6 @@ class ScatterView(BaseHierarchicalView):
       dimensionality = 3
       self.mplCanvas.axes = self.fig.add_subplot(111, projection='3d')
 
-    # We want the axes cleared every time plot() is called
-    self.mplCanvas.axes.hold(False)
-
     myColormap = colors.cm.get_cmap(self.cmbColorMaps.currentText())
 
     if len(rows) == 0:
@@ -210,8 +205,6 @@ class ScatterView(BaseHierarchicalView):
         self.lblColorMaps.setVisible(True)
         self.cmbColorMaps.setVisible(True)
 
-      self.mplCanvas.axes.hold(True)
-
     kwargs = {'edgecolors': 'none', 'c': values['Color']}
 
     if dimensionality == 2:
@@ -229,7 +222,6 @@ class ScatterView(BaseHierarchicalView):
       kwargs['vmax'] = maxs['Color']
 
     myPlot = self.mplCanvas.axes.scatter(**kwargs)
-    self.mplCanvas.axes.hold(True)
 
     if self.axesLabelAction.isChecked():
       self.mplCanvas.axes.set_xlabel(self.cmbVars['X'].currentText(),size=fontSize,labelpad=10)
@@ -258,7 +250,6 @@ class ScatterView(BaseHierarchicalView):
     for label in  (self.mplCanvas.axes.get_xticklabels()+self.mplCanvas.axes.get_yticklabels()):
       label.set_fontsize(smallFontSize)
 
-    self.mplCanvas.axes.hold(False)
     self.mplCanvas.draw()
 
   def test(self):
