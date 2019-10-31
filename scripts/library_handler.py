@@ -18,6 +18,7 @@ Adopted from RavenUtils.py
 import os
 import platform
 import argparse
+import subprocess
 from collections import OrderedDict
 
 # python changed the import error in 3.6
@@ -78,15 +79,17 @@ def checkVersions():
   """
   return os.environ.get("RAVEN_IGNORE_VERSIONS", "0") != "1"
 
-def checkLibraries():
+def checkLibraries(buildReport=False):
   """
     Looks for required libraries, and their matching QA versions.
+    @ In, buildReport, bool, optional, if True then report all libraries instead of just problems
     @ Out, missing, list(tuple(str, str)), list of missing libraries and needed versions
     @ Out, notQA, list(tuple(str, str, str)), mismatched versions as (libs, need version, found version)
   """
   missing = []
   notQA = []
   need = getRequiredLibs()
+  messages = []
   for lib, needVersion in need.items():
     # some libs aren't checked from within python
     if lib in skipChecks:
@@ -97,20 +100,25 @@ def checkLibraries():
       continue
     if needVersion is not None and foundVersion != needVersion:
       notQA.append((lib, needVersion, foundVersion))
+    if buildReport:
+      messages.append((lib, found, msg, foundVersion))
+  if buildReport:
+    return messages
   return missing, notQA
 
-def checkSingleLibrary(lib, version=None):
+def checkSingleLibrary(lib, version=None, useImportCheck=False):
   """
     Looks for library and check if available.
     @ In, lib, str, name of library
     @ In, version, str, optional, version to check (e.g. '0.12.2')
+    @ In, useImportCheck, bool, optional, force to use manual check
     @ Out, found, bool, True if library accessible
     @ Out, msg, str, message regarding attempted import
     @ Out, foundVersion, version detected (or None if not required or found)
   """
   # use the faster package checking if possible
   ## this avoids actually importing the modules
-  if usePackageMeta:
+  if usePackageMeta and not useImportCheck:
     found, msg, foundVersion = findLibAndVersion(lib, version=version)
   # otherwise, use the slower subprocess method
   else:
