@@ -20,11 +20,19 @@ import platform
 import argparse
 import configparser
 from collections import OrderedDict
+
+# python changed the import error in 3.6
+import sys
+if sys.version_info[1] >= 6:
+  impErr = ModuleNotFoundError
+else:
+  impErr = ImportError
+
 try:
   # python 3.8+ includes this in std lib
   import importlib_metadata
   usePackageMeta = True
-except ModuleNotFoundError:
+except impErr:
   # the old way to check libs and versions uses subprocess instead
   import subprocess
   usePackageMeta = False
@@ -133,7 +141,7 @@ def findLibAndVersion(lib, version=None):
         found = True
         foundVersion = ps2c.version
         output = 'Library found.'
-      except ModuleNotFoundError:
+      except impErr:
         found = False
         foundVersion = None
         output = 'Library not found.'
