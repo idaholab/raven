@@ -87,7 +87,6 @@ class RavenErrors(Tester):
       @ In, None
       @ Out, check_runnable, boolean, If True this test can run.
     """
-    #missing, too_old, _ = RavenUtils.check_for_missing_modules()
     missing, notQA = library_handler.checkLibraries()
     if len(missing) > 0:
       self.set_skip('skipped (Missing python modules: '+" ".join(missing)+

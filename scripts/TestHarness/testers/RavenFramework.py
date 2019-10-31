@@ -162,8 +162,6 @@ class RavenFramework(Tester):
       @ In, None
       @ Out, check_runnable, boolean, if True can run this test.
     """
-    # XXX missing = _missing_modules
-    # XXX too_old = _too_old_modules
     # remove tests based on skipping criteria
     ## required module is missing
     if _missingModules:
