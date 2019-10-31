@@ -104,6 +104,7 @@ class EnsembleModel(Dummy):
         # get model name
         modelName = child.text.strip()
         # create space of the allowed entries
+        # mirror the structure of medolsDictionary and modelsInputDictionary
         self.modelsInputDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[]}
         self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[]}
         # number of allower entries
@@ -137,8 +138,6 @@ class EnsembleModel(Dummy):
     for modelName in self.modelsInputDictionary.keys():
       if len(self.modelsInputDictionary[modelName]['Output']) == 0:
         self.modelsInputDictionary[modelName]['Output'] = None
-    import pprint
-    pprint.pprint(self.modelsInputDictionary)
 
   def __readSettings(self, xmlNode):
     """
