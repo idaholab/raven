@@ -15,14 +15,19 @@
 This tests for expected errors in a program
 """
 import os
-import subprocess
+import sys
 import platform
+import subprocess
 from Tester import Tester
-import RavenUtils
 
 fileDir = os.path.dirname(os.path.realpath(__file__))
 raven = os.path.abspath(os.path.join(fileDir, '..', '..', '..', 'framework',
                                      'Driver.py'))
+scriptsDir = os.path.abspath(os.path.join(fileDir, '..', '..'))
+sys.path.append(scriptsDir)
+import library_handler
+# clear scripts from path
+sys.path.pop()
 
 class RavenErrors(Tester):
   """
@@ -82,13 +87,14 @@ class RavenErrors(Tester):
       @ In, None
       @ Out, check_runnable, boolean, If True this test can run.
     """
-    missing, too_old, _ = RavenUtils.check_for_missing_modules()
+    #missing, too_old, _ = RavenUtils.check_for_missing_modules()
+    missing, notQA = library_handler.checkLibraries()
     if len(missing) > 0:
       self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
-    if len(too_old) > 0:
-      self.set_skip('skipped (Old version python modules: '+" ".join(too_old)+
+    if len(notQA) > 0:
+      self.set_skip('skipped (incorrect version python modules: '+" ".join(notQA)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:

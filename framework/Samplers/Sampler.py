@@ -462,7 +462,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.auxcnt = self.initSeed
     elif externalSeeding=='continue':
       pass        #in this case the random sequence needs to be preserved
-    else                              :
+    else:
       randomUtils.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
     #grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.

@@ -16,10 +16,16 @@
 This tests programs by running a python command.
 """
 import os
+import sys
 import subprocess
 import distutils.version
 from Tester import Tester
-import RavenUtils
+
+scriptsDir = os.path.abspath(os.path.join(os.path.basename(__file__), '..', '..'))
+sys.path.append(scriptsDir)
+import library_handler
+# clear scripts from path
+sys.path.pop()
 
 class RavenPython(Tester):
   """
@@ -119,7 +125,7 @@ class RavenPython(Tester):
     while i < len(self.minimum_libraries):
       library_name = self.minimum_libraries[i]
       library_version = self.minimum_libraries[i+1]
-      found, _, actual_version = RavenUtils.module_report(library_name, library_name+'.__version__')
+      found, _, actual_version = library_handler.checkSingleLibrary(library_name, 'check')
       if not found:
         self.set_skip('skipped (Unable to import library: "'+library_name+'")')
         return False
@@ -146,13 +152,13 @@ class RavenPython(Tester):
     if self.specs['requires_swig2'] and not RavenPython.has_swig2:
       self.set_skip('skipped (No swig 2.0 found)')
       return False
-    missing, too_old, _ = RavenUtils.check_for_missing_modules()
+    missing, notQA, _ = library_handler.checkLibraries()
     if len(missing) > 0:
       self.set_fail('skipped (Missing python modules: '+" ".join(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
-    if len(too_old) > 0 and RavenUtils.check_versions():
-      self.set_fail('skipped (Old version python modules: '+" ".join(too_old)+
+    if len(notQA) > 0 and library_handler.checkVersions():
+      self.set_fail('skipped (Incorrectly versioned python modules: '+" ".join(notQA)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:
@@ -160,7 +166,7 @@ class RavenPython(Tester):
       if not found:
         self.set_skip('skipped (Unable to import library: "'+lib+'")')
         return False
-    if self.specs['python3_only'] and not RavenUtils.in_python_3():
+    if self.specs['python3_only'] and not library_handler.inPython3():
       self.set_skip('Python 3 only')
       return False
 

@@ -26,7 +26,6 @@ import XMLDiff
 import TextDiff
 import ExistsDiff
 import RAVENImageDiff
-import RavenUtils
 
 # Set this outside the class because the framework directory is constant for
 #  each instance of this Tester, and in addition, there is a problem with the
@@ -41,8 +40,13 @@ RAVEN_DIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
 os.environ["PYTHONPATH"] = os.path.join(RAVEN_DIR, 'contrib') +\
   os.pathsep + os.environ.get("PYTHONPATH", "")
 
+scriptDir = os.path.abspath(os.path.join(RAVEN_DIR, '..', 'scripts'))
+sys.path.append(scriptDir)
+import library_handler
+sys.path.pop()
 
-_missing_modules, _too_old_modules, _notQAModules = RavenUtils.check_for_missing_modules()
+_missingModules, _notQAModules = library_handler.checkLibraries()
+_checkVersions = library_handler.checkVersions()
 
 class RavenFramework(Tester):
   """
@@ -158,17 +162,17 @@ class RavenFramework(Tester):
       @ In, None
       @ Out, check_runnable, boolean, if True can run this test.
     """
-    missing = _missing_modules
-    too_old = _too_old_modules
+    # XXX missing = _missing_modules
+    # XXX too_old = _too_old_modules
     # remove tests based on skipping criteria
     ## required module is missing
-    if len(missing) > 0:
-      self.set_fail('skipped (Missing python modules: '+" ".join(missing)+
+    if _missingModules:
+      self.set_fail('skipped (Missing python modules: '+" ".join(_missingModules)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     ## required module is present, but too old
-    if len(too_old) > 0  and RavenUtils.check_versions():
-      self.set_fail('skipped (Old version python modules: '+" ".join(too_old)+
+    if _notQAModules and _checkVersions:
+      self.set_fail('skipped (Incorrectly versioned python modules: '+" ".join(_notQAModules)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     ## an environment varible value causes a skip
@@ -189,11 +193,11 @@ class RavenFramework(Tester):
         self.set_skip('skipped (OS is "{}")'.format(current_os))
         return False
     for lib in self.required_libraries:
-      found, _, _ = RavenUtils.module_report(lib, '')
+      found, _, _ = library_handler.checkSingleLibrary(lib)
       if not found:
-        self.set_skip('skipped (Unable to import library: "'+lib+'")')
+        self.set_skip('skipped (Unable to import library: "{}")'.format(lib))
         return False
-    if self.specs['python3_only'] and not RavenUtils.in_python_3():
+    if self.specs['python3_only'] and not library_handler.inPython3():
       self.set_skip('Python 3 only')
       return False
 
@@ -205,7 +209,7 @@ class RavenFramework(Tester):
     while i < len(self.minimum_libraries):
       library_name = self.minimum_libraries[i]
       library_version = self.minimum_libraries[i+1]
-      found, _, actual_version = RavenUtils.module_report(library_name, library_name+'.__version__')
+      found, _, actual_version = library_handler.checkSingleLibrary(library_name, version='check')
       if not found:
         self.set_skip('skipped (Unable to import library: "'+library_name+'")')
         return False
