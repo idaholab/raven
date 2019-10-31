@@ -18,15 +18,20 @@ Adopted from RavenUtils.py
 import os
 import platform
 import argparse
-import configparser
 from collections import OrderedDict
 
 # python changed the import error in 3.6
 import sys
-if sys.version_info[1] >= 6:
+if sys.version_info[0] == 3 and sys.version_info[1] >= 6:
   impErr = ModuleNotFoundError
 else:
   impErr = ImportError
+
+# python 2.X uses a different capitalization for configparser
+try:
+  import configparser
+except impErr:
+  import ConfigParser as configparser
 
 try:
   # python 3.8+ includes this in std lib
@@ -254,15 +259,15 @@ def _parseLibs(config, opSys, install, addOptional=False, limit=None):
   # get the main libraries, depending on request
   for src in ['core', 'forge', 'pip']:
     if (True if limit is None else (src in limit)):
-      _addLibsFromSection(config[src], libs)
+      _addLibsFromSection(config.items(src), libs)
   # os-specific are part of 'core' right now
   if (True if limit is None else ('core' in limit)):
-    _addLibsFromSection(config[opSys], libs)
+    _addLibsFromSection(config.items(opSys), libs)
   # optional are part of 'core' right now, but leave that up to the requester?
   if addOptional:
-    _addLibsFromSection(config['optional'], libs)
+    _addLibsFromSection(config.items('optional'), libs)
   if install == 'pip':
-    _addLibsFromSection(config['pip-install'], libs)
+    _addLibsFromSection(config.items('pip-install'), libs)
   return libs
 
 def _addLibsFromSection(configSection, libs):
@@ -272,10 +277,13 @@ def _addLibsFromSection(configSection, libs):
     @ In, libs, dict, libraries tracking dict
     @ Out, None (changes libs in place)
   """
-  for lib, version in configSection.items():
+  for lib, version in configSection:
     if version == 'remove':
       libs.pop(lib, None)
     else:
+      # python 3 fix to work with python 2 syntax
+      if version is not None and version.strip() == '':
+        version = None
       libs[lib] = version
 
 def _readDependencies():
