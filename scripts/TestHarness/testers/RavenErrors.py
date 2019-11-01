@@ -104,7 +104,7 @@ class RavenErrors(Tester):
       if not os.path.exists(lib):
         self.set_skip('skipped (Missing library: "'+lib+'")')
         return False
-    if self.specs['python3_only'] and not RavenUtils.in_python_3():
+    if self.specs['python3_only'] and not library_handler.inPython3():
       self.set_skip('Python 3 only')
       return False
     if len(self.required_executable) > 0 and \

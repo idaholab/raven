@@ -322,6 +322,8 @@ if __name__ == '__main__':
   pipParser = subParsers.add_parser('pip', help='use pip as installer')
   pipParser.add_argument('--action', dest='action', choices=('install', 'list'), default='install',
                       help='Chooses whether to (install) in current environment, or (list) installation libraries.')
+
+  manualParser = subParsers.add_parser('manual', help='provide LaTeX manual list')
   args = mainParser.parse_args()
 
   # load library environment name
@@ -330,59 +332,66 @@ if __name__ == '__main__':
   if args.useOS is None:
     args.useOS = _getOperatingSystem()
 
-  # acceptable options
   ### Il Grande Albero Decisionale
-  # Nesting order: installer, action, subset
-  # NOTE that many of these are not compatible options.
   # "optional" and "os" are passed through
-  preamble = '{installer} {action} {args} '
-  # defaults
-  if args.installer == 'conda':
-    installer = 'conda'
-    equals = '='
-    actionArgs = '--name {env} -y {src}'
-    # which part of the install are we doing?
-    if args.subset == 'core':
-      # no special source
-      src = ''
-      addOptional = args.addOptional
-      limit = ['core']
-    elif args.subset == 'forge':
-      # take libs from conda-forge
-      src = '-c conda-forge '
-      addOptional = False
-      limit = ['forge']
-    elif args.subset == 'pip':
-      src = ''
-      installer = 'pip'
+  if args.installer == 'manual':
+    # compile the LaTeX lib list
+    libs = getRequiredLibs(useOS=args.useOS, installMethod='conda', addOptional=args.addOptional)
+    msg = '\\begin{itemize}\n'
+    for lib, version in libs.items():
+      msg += '  \\item {}{}\n'.format(lib.replace('_','\_'), ('' if version is None else '-'+version))
+    msg += '\\end{itemize}'
+    print(msg)
+  else:
+    # provide an installation command
+    preamble = '{installer} {action} {args} '
+    if args.installer == 'conda':
+      installer = 'conda'
+      equals = '='
+      actionArgs = '--name {env} -y {src}'
+      # which part of the install are we doing?
+      if args.subset == 'core':
+        # no special source
+        src = ''
+        addOptional = args.addOptional
+        limit = ['core']
+      elif args.subset == 'forge':
+        # take libs from conda-forge
+        src = '-c conda-forge '
+        addOptional = False
+        limit = ['forge']
+      elif args.subset == 'pip':
+        src = ''
+        installer = 'pip'
+        actionArgs = ''
+        addOptional = False
+        limit = ['pip']
+      libs = getRequiredLibs(useOS=args.useOS,
+                             installMethod='conda',
+                             addOptional=addOptional,
+                             limit=limit)
+      # conda can create, install, or list
+      if args.action == 'create':
+        action = 'create'
+      elif args.action == 'install':
+        action = 'install'
+      elif args.action == 'list':
+        preamble = ''
+      actionArgs = actionArgs.format(env=envName, src=src)
+    elif args.installer == 'pip':
+      installer = 'pip3'
+      equals = '=='
       actionArgs = ''
-      addOptional = False
-      limit = ['pip']
-    libs = getRequiredLibs(useOS=args.useOS,
-                           installMethod='conda',
-                           addOptional=addOptional,
-                           limit=limit)
-    # conda can create, install, or list
-    if args.action == 'create':
-      action = 'create'
-    elif args.action == 'install':
-      action = 'install'
-    elif args.action == 'list':
-      preamble = ''
-    actionArgs = actionArgs.format(env=envName, src=src)
-  elif args.installer == 'pip':
-    installer = 'pip3'
-    equals = '=='
-    actionArgs = ''
-    libs = getRequiredLibs(useOS=args.useOS,
-                           installMethod='pip',
-                           addOptional=args.addOptional,
-                           limit=None)
-    if args.action == 'install':
-      action = 'install'
-    elif args.action == 'list':
-      preamble = ''
-  preamble = preamble.format(installer=installer, action=action, args=actionArgs)
-  libTexts = ' '.join(['{lib}{ver}'.format(lib=lib, ver=('{}{}'.format(equals, ver) if ver is not None else ''))
-                              for lib, ver in libs.items()])
-  print(preamble + libTexts)
+      libs = getRequiredLibs(useOS=args.useOS,
+                             installMethod='pip',
+                             addOptional=args.addOptional,
+                             limit=None)
+      if args.action == 'install':
+        action = 'install'
+      elif args.action == 'list':
+        preamble = ''
+
+    preamble = preamble.format(installer=installer, action=action, args=actionArgs)
+    libTexts = ' '.join(['{lib}{ver}'.format(lib=lib, ver=('{}{}'.format(equals, ver) if ver is not None else ''))
+                         for lib, ver in libs.items()])
+    print(preamble + libTexts)
