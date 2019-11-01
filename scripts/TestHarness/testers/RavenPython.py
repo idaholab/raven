@@ -21,7 +21,7 @@ import subprocess
 import distutils.version
 from Tester import Tester
 
-scriptsDir = os.path.abspath(os.path.join(os.path.basename(__file__), '..', '..'))
+scriptsDir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(scriptsDir)
 import library_handler
 # clear scripts from path
@@ -152,7 +152,7 @@ class RavenPython(Tester):
     if self.specs['requires_swig2'] and not RavenPython.has_swig2:
       self.set_skip('skipped (No swig 2.0 found)')
       return False
-    missing, notQA, _ = library_handler.checkLibraries()
+    missing, notQA = library_handler.checkLibraries()
     if len(missing) > 0:
       self.set_fail('skipped (Missing python modules: '+" ".join(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
