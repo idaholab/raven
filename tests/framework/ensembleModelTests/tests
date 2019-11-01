@@ -103,7 +103,7 @@
 
  [./testEMReusability]
    type = 'RavenFramework'
-   input = 'test_reuse_em.xml'
+   input = 'test_em_reuse.xml'
    UnorderedCsv = 'checkReusability/printData.csv'
  [../]
 []
