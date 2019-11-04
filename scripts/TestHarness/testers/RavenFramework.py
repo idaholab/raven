@@ -165,7 +165,6 @@ class RavenFramework(Tester):
     # remove tests based on skipping criteria
     ## required module is missing
     if _missingModules:
-      print('DEBUGG missing:', _missingModules)
       self.set_fail('skipped (Missing python modules: '+" ".join([m[0] for m in _missingModules])+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
