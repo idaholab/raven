@@ -170,7 +170,6 @@ class RAVENparser():
     # make the paths absolute
     return slaveFiles
 
-
   def returnOutstreamsNamesAnType(self):
     """
       Method to return the Outstreams names and linked DataObject name
@@ -208,7 +207,6 @@ class RAVENparser():
         shutil.copy(slaveInput, slaveDir)
       except FileNotFoundError:
         raise IOError('{} ERROR: File "{}" has not been found!'.format(self.printTag, slaveInput))
-
 
   def printInput(self,rootToPrint,outfile=None):
     """

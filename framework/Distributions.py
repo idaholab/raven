@@ -3598,7 +3598,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     self.raiseAnError(NotImplementedError,'untruncatedMode not yet implemented for ' + self.type)
 
-  def rvs(self,*args):
+  def rvs(self, *args):
     """
       Return the random coordinate
       @ In, args, dict, arguments (for future usage)

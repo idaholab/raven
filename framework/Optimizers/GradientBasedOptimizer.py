@@ -248,13 +248,13 @@ class GradientBasedOptimizer(Optimizer):
 
     return gradient
 
-  def finalizeSampler(self,failedRuns):
+  def finalizeSampler(self, failedRuns):
     """
       Method called at the end of the Step when no more samples will be taken.  Closes out optimizer.
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
-    Optimizer.handleFailedRuns(self,failedRuns)
+    Optimizer.handleFailedRuns(self, failedRuns)
     # get the most optimal point among the trajectories
     bestValue = None
     bestTraj = None
@@ -314,12 +314,14 @@ class GradientBasedOptimizer(Optimizer):
       self.raiseADebug(' ... sample "{}" FAILED. Cutting step and re-queueing.'.format(prefix))
       # since run failed, cut the step and requeue
       ## cancel any further runs at this point
-      self.cancelJobs([self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) for i in range(self.perturbationIndices[-1])])
+      self.cancelJobs([self._createEvaluationIdentifier(traj, self.counter['varsUpdate'][traj], i) for i in range(1, self.perturbationIndices[-1]+1)])
       self.recommendToGain[traj] = 'cut'
       grad = self.counter['gradientHistory'][traj][0]
       new = self._newOptPointAdd(grad, traj)
       if new is not None:
         self._createPerturbationPoints(traj, new)
+      else:
+        self.raiseADebug('After failing a point, trajectory {} is not adding new points!'.format(traj))
       self._setupNewStorage(traj)
     else:
       # update self.realizations dictionary for the right trajectory

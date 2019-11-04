@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.Constrained</name>
+    <author>talbpaul</author>
+    <created>2019-08-15</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Goal function is minimizing ans = 10x + 0.01y. The full gradient should move quickly in
+      x until the constraint is met, then rotate along the constraint to move in y to (0, 0).
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ConstrainedRotate</WorkingDir>
+    <Sequence>optimize, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">ph</Input>
+      <Model class="Models" type="ExternalModel">goal</Model>
+      <Optimizer class="Optimizers" type="SPSA">opt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">opt_out</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="HistorySet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </IOStep>
+  </Steps>
+
+  <Functions>
+    <External file="goal" name="goal">
+      <variables>x,y</variables>
+    </External>
+  </Functions>
+
+  <Optimizers>
+    <FiniteDifference name="opt">
+      <initialization>
+        <initialSeed>42</initialSeed>
+        <writeSteps>final</writeSteps>
+      </initialization>
+      <Function class="Functions" type="External">goal</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">opt_out</TargetEvaluation>
+      <convergence>
+        <gainGrowthFactor>2</gainGrowthFactor>
+        <gainShrinkFactor>1.25</gainShrinkFactor>
+        <relativeThreshold>1e-5</relativeThreshold>
+      </convergence>
+      <variable name="x">
+        <upperBound>1</upperBound>
+        <lowerBound>0</lowerBound>
+        <initial>1</initial>
+      </variable>
+      <variable name="y">
+        <upperBound>1</upperBound>
+        <lowerBound>0</lowerBound>
+        <initial>0.5</initial>
+      </variable>
+      <objectVar>ans</objectVar>
+    </FiniteDifference>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="goal" name="goal" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="ph"/>
+    <PointSet name="opt_out">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Output>x, y, ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

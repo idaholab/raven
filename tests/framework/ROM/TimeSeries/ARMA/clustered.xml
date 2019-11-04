@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ROM/TimeSeries/ARMA.Segmented</name>
+    <name>framework/ROM/TimeSeries/ARMA.Clustered</name>
     <author>talbpaul</author>
     <created>2018-11-20</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
