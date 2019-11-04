@@ -101,4 +101,9 @@
    UnorderedCsv = 'checkConnection/printData.csv'
  [../]
 
+ [./testEMReusability]
+   type = 'RavenFramework'
+   input = 'test_em_reuse.xml'
+   UnorderedCsv = 'checkReusability/printData.csv'
+ [../]
 []
