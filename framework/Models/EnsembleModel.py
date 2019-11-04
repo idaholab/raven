@@ -445,15 +445,21 @@ class EnsembleModel(Dummy):
     joinedGeneralMetadata = {}
     targetEvaluationNames = {}
     optionalOutputNames = {}
+    joinedIndexMap = {} # collect all the index maps, then we can keep the ones we want?
     for modelIn in self.modelsDictionary.keys():
       targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation']] = modelIn
       # collect data
+      newIndexMap = outcomes[modelIn]['response'].pop('_indexMap', None)
+      if newIndexMap:
+        joinedIndexMap.update(newIndexMap[0])
       joinedResponse.update(outcomes[modelIn]['response'])
       joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
       # collect the output of the STEP
       optionalOutputNames.update({outName : modelIn for outName in self.modelsDictionary[modelIn]['OutputObject']})
     # the prefix is re-set here
     joinedResponse['prefix'] = np.asarray([finishedJob.identifier])
+    if joinedIndexMap:
+      joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         output.addRealization(joinedResponse)
@@ -531,10 +537,16 @@ class EnsembleModel(Dummy):
     """
     dependentOutputs = {}
     for previousOutputs, outputType in zip(listOfOutputs,typeOutputs):
+      indexMap = previousOutputs.get('_indexMap', [{}])[0]
       if len(previousOutputs.values()) > 0:
         for inKey in self.modelsDictionary[modelIn]['Input']:
           if inKey in previousOutputs.keys():
-            dependentOutputs[inKey] =  previousOutputs[inKey] if len(previousOutputs[inKey]) > 1 else previousOutputs[inKey][0]
+            dependentOutputs[inKey] = previousOutputs[inKey] if len(previousOutputs[inKey]) > 1 else previousOutputs[inKey][0]
+            indices = indexMap.get(inKey, None)
+            if indices:
+              if '_indexMap' not in dependentOutputs:
+                dependentOutputs['_indexMap'] = {}
+              dependentOutputs['_indexMap'][inKey] = indices
     return dependentOutputs
 
   def _externalRun(self,inRun, jobHandler):
@@ -640,7 +652,7 @@ class EnsembleModel(Dummy):
             else:
               time.sleep(1.e-3)
           # store the results in the working dictionaries
-            returnDict[modelIn]   = {}
+            returnDict[modelIn] = {}
           #if modelIn not in modelsOnHold:
           # get job that just finished to gather the results
           finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
@@ -665,7 +677,9 @@ class EnsembleModel(Dummy):
           dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
           responseSpace         = dataSet
           typeOutputs[modelCnt] = inRunTargetEvaluations[modelIn].type
-          gotOutputs[modelCnt]  = {key: dataSet[key] for key in inRunTargetEvaluations[modelIn].getVars("output")+inRunTargetEvaluations[modelIn].getVars("indexes")}
+          gotOutputs[modelCnt]  = {key: dataSet[key] for key in inRunTargetEvaluations[modelIn].getVars("output") + inRunTargetEvaluations[modelIn].getVars("indexes")}
+          if '_indexMap' in dataSet.keys():
+            gotOutputs[modelCnt]['_indexMap'] = dataSet['_indexMap']
 
           #store the results in return dictionary
           # store the metadata
@@ -675,6 +689,7 @@ class EnsembleModel(Dummy):
           returnDict[modelIn]['prefix'          ] = np.atleast_1d(identifier)
           returnDict[modelIn]['general_metadata'] = inRunTargetEvaluations[modelIn].getMeta(general=True)
           # if nonlinear system, compute the residue
+          ## it looks like this is handling _indexMap, but it's not clear since there's not a way to test it (yet).
           if self.activatePicard:
             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
             for out in  inRunTargetEvaluations[modelIn].getVars("output"):
@@ -703,3 +718,7 @@ class EnsembleModel(Dummy):
           break
     returnEvaluation = returnDict, inRunTargetEvaluations, tempOutputs
     return returnEvaluation
+
+
+
+

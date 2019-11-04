@@ -513,37 +513,45 @@ def NDInArray(findIn,val,tol=1e-12):
     return False,None,None
   return found,idx,looking
 
-def numBinsDraconis(data, low=None, alternateOkay=True):
+def numBinsDraconis(data, low=None, alternateOkay=True, binOps=None):
   """
     Determine  Bin size and number of bins determined by Freedman Diaconis rule (https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule)
     @ In, data, np.array, data to be binned
     @ In, low, int, minimum number of bins
     @ In, alternateOkay, bool, if True then can use alternate method if Freeman Draconis won't work
+    @ In, binOps, int, optional, optional method choice for computing optimal bins
     @ Out, numBins, int, optimal number of bins
     @ Out, binEdges, np.array, location of the bins
   """
-  try:
-    iqr = np.percentile(data, 75) - np.percentile(data, 25)
-  # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
-    if iqr > 0.0:
-      size = 2.0 * iqr / np.cbrt(data.size)
-      numBins = int(np.ceil((max(data) - min(data))/size))
-    else:
-      raise TypeError
-  except:
-  # if there's not, with approval we can use the sqrt of the number of entries instead
-    if alternateOkay:
-      numBins = int(np.ceil(np.sqrt(data.size)))
-    else:
-      raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
-    # if a minimum number of bins have been suggested, check that we use enough
+  # binOps: default to draconis, but allow other options
+  ## TODO additional options could be easily added in the future.
+  # option 2: square root rule
+  if binOps == 2:
+    numBins = int(np.ceil(np.sqrt(data.size)))
+  # default option: try draconis, then fall back on square root rule
+  else:
+    try:
+      iqr = np.percentile(data, 75) - np.percentile(data, 25)
+    # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
+      if iqr > 0.0:
+        size = 2.0 * iqr / np.cbrt(data.size)
+        numBins = int(np.ceil((max(data) - min(data))/size))
+      else:
+        raise TypeError
+    except:
+    # if there's not, with approval we can use the sqrt of the number of entries instead
+      if alternateOkay:
+        numBins = int(np.ceil(np.sqrt(data.size)))
+      else:
+        raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
+  # if a minimum number of bins have been suggested, check that we use enough
   if low is not None:
     numBins = max(numBins, low)
   # for convenience, find the edges of the bins as well
-  binEdges = np.linspace(start=min(data), stop=max(data), num=numBins+1)
+  binEdges = np.linspace(start=np.asarray(data).min(), stop=np.asarray(data).max(), num=numBins+1)
   return numBins, binEdges
 
-def diffWithInfinites(a,b):
+def diffWithInfinites(a, b):
   """
     Calculates the difference a-b and treats infinites.  We consider infinites to have equal values, but
     inf - (- inf) = inf.
@@ -652,6 +660,7 @@ def trainEmpiricalFunction(signal, bins=None, minBins=None, weights=None):
     @ In, minBins, int, optional, minimum number of bins to use
     @ In, weights, np.array(float), optional, weights for each sample within the distribution
     @ Out, dist, scipy.stats.rv_histogram instance, distribution object instance based on input data
+    @ Out, histogram, tuple, (counts, edges) the frequency and bins of the histogram
   """
   # determine the number of bins to use in the empirical distribution
   if bins is None:
@@ -659,7 +668,7 @@ def trainEmpiricalFunction(signal, bins=None, minBins=None, weights=None):
   counts, edges = np.histogram(signal, bins=bins, density=False, weights=weights)
   counts = np.asarray(counts) / float(len(signal))
   dist = stats.rv_histogram((counts, edges))
-  return dist
+  return dist, (counts, edges)
 
 def convertSinCosToSinPhase(A, B):
   """
@@ -685,3 +694,21 @@ def evalFourier(period,C,p,t):
   fourier = C * np.sin(2. * np.pi * t / period + p)
   return fourier
 
+def orderClusterLabels(originalLabels):
+  """
+    Regulates labels such that the first unique one to appear is 0, second one is 1, and so on.
+    e.g. [B, B, C, B, A, A, D] becomes [0, 0, 1, 0, 2, 2, 3]
+    @ In, originalLabels, list, the original labeling system
+    @ Out, labels, np.array(int), ordinal labels
+  """
+  labels = np.zeros(len(originalLabels), dtype=int)
+  oldToNew = {}
+  nextUsableLabel = 0
+  for l, old in enumerate(originalLabels):
+    new = oldToNew.get(old, None)
+    if new is None:
+      oldToNew[old] = nextUsableLabel
+      new = nextUsableLabel
+      nextUsableLabel += 1
+    labels[l] = new
+  return labels

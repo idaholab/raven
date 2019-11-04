@@ -50,6 +50,9 @@ class PostProcessor(Model):
     cls.validateDict['Input'  ][-1]['type'        ] = ['HDF5']
     cls.validateDict['Input'  ][-1]['required'    ] = False
     cls.validateDict['Input'  ][-1]['multiplicity'] = 'n'
+    ## datasets
+    dataObjects = cls.validateDict['Input'][0]
+    dataObjects['type'].append('DataSet')
     # Cross validations will accept Model.ROM
     cls.validateDict['Input'].append(cls.testDict.copy())
     cls.validateDict['Input'  ][-1]['class'       ] = 'Models'

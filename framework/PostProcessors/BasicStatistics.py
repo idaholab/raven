@@ -637,17 +637,17 @@ class BasicStatistics(PostProcessor):
     #
     self.sampleSize = inputDataset.sizes[self.sampleTag]
     metric = 'samples'
-    if len(needed[metric]['targets'])>0:
+    if len(needed[metric]['targets']) > 0:
       self.raiseADebug('Starting "'+metric+'"...')
       if self.dynamic:
         nt = inputDataset.sizes[self.pivotParameter]
-        sampleMat = np.zeros((len(self.parameters['targets']),len(self.pivotValue)))
+        sampleMat = np.zeros((len(self.parameters['targets']), len(self.pivotValue)))
         sampleMat.fill(self.sampleSize)
-        samplesDA = xr.DataArray(sampleMat,dims=('targets',self.pivotParameter),coords={'targets':self.parameters['targets'],self.pivotParameter:self.pivotValue})
+        samplesDA = xr.DataArray(sampleMat,dims=('targets', self.pivotParameter), coords={'targets':self.parameters['targets'], self.pivotParameter:self.pivotValue})
       else:
         sampleMat = np.zeros(len(self.parameters['targets']))
         sampleMat.fill(self.sampleSize)
-        samplesDA = xr.DataArray(sampleMat,dims=('targets'),coords={'targets':self.parameters['targets']})
+        samplesDA = xr.DataArray(sampleMat,dims=('targets'), coords={'targets':self.parameters['targets']})
 
       calculations[metric] = samplesDA
 
@@ -655,7 +655,7 @@ class BasicStatistics(PostProcessor):
     # expected value
     #
     metric = 'expectedValue'
-    if len(needed[metric]['targets'])>0:
+    if len(needed[metric]['targets']) > 0:
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
       if self.pbPresent:
