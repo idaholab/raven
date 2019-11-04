@@ -27,6 +27,7 @@ import time
 import abc
 import os
 import sys
+import threading
 import itertools
 if sys.version_info.major > 2:
   import pickle
@@ -990,6 +991,9 @@ class IOStep(Step):
         ## unpickle the ROM
         fileobj = inDictionary['Input'][i]
         unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
+        pickleLock = threading.RLock()
+        with pickleLock:
+          unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
         if not isinstance(unpickledObj,Models.ROM):
           self.raiseAnError(RuntimeError,'Pickled object in "%s" is not a ROM.  Exiting ...' %str(fileobj))
         if not unpickledObj.amITrained:

@@ -142,6 +142,8 @@ class RAVENparser():
           moduleToLoad = extModel.attrib['ModuleToLoad']
           if not moduleToLoad.endswith("py"):
             moduleToLoad += ".py"
+          if os.path.isabs(moduleToLoad):
+            continue
           if self.workingDir not in moduleToLoad:
             absPath = os.path.abspath(os.path.expanduser(os.path.join(workingDir, moduleToLoad)))
           else:
