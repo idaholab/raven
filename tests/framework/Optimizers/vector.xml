@@ -53,9 +53,9 @@
       <TargetEvaluation class="DataObjects" type="DataSet">optOut</TargetEvaluation>
       <convergence>
         <gradientThreshold>1e-3</gradientThreshold>
-        <relativeThreshold>1e-5</relativeThreshold>
-        <gainGrowthFactor>3</gainGrowthFactor>
-        <gainShrinkFactor>1.2</gainShrinkFactor>
+        <relativeThreshold>1e-7</relativeThreshold>
+        <gainGrowthFactor>2</gainGrowthFactor>
+        <gainShrinkFactor>1.1</gainShrinkFactor>
       </convergence>
       <variable name="x">
         <upperBound>6</upperBound>
@@ -72,7 +72,7 @@
       <objectVar>ans</objectVar>
       <parameter>
         <initialStepSize>0.01</initialStepSize>
-        <perturbationDistance>0.001</perturbationDistance>
+        <perturbationDistance>0.0001</perturbationDistance>
       </parameter>
     </SPSA>
   </Optimizers>

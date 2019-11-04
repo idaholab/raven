@@ -138,7 +138,7 @@ class RavenFramework(Tester):
     self.__make_differ('xml', XMLDiff.XML, {"unordered":False})
     self.__make_differ('UnorderedXml', XMLDiff.XML, {"unordered":True})
     self.__make_differ('text', TextDiff.Text)
-    self.__make_differ('image', RAVENImageDiff.ImageDiff)
+    self.__make_differ('image', RAVENImageDiff.ImageDiffer)
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')\
       if len(self.specs['required_libraries']) > 0 else []

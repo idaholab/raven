@@ -391,16 +391,20 @@ def toBytes(s):
   else:
     return s
 
-def isSingleValued(val,nanOk=True):
+def isSingleValued(val, nanOk=True, zeroDOk=True):
   """
     Determine if a single-entry value (by traditional standards).
     Single entries include strings, numbers, NaN, inf, None
     NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
     @ In, val, object, check
     @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
+    @ In, zeroDOk, bool, optional, if True then a zero-d numpy array with a single-valued entry is A-OK
     @ Out, isSingleValued, bool, result
   """
   # TODO most efficient order for checking?
+  if zeroDOk:
+    # if a zero-d numpy array, then technically it's single-valued, but we need to get into the array
+    val = npZeroDToEntry(val)
   return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
 
 def isAString(val):
@@ -463,6 +467,17 @@ def isABoolean(val):
     @ Out, isABoolean, bool, result
   """
   return isinstance(val,(bool,numpy.bool_))
+
+def npZeroDToEntry(a):
+  """
+    Cracks the shell of the numpy array and gets the sweet sweet value inside
+    @ In, a, object, thing to crack open (might be anything, hopefully a zero-d numpy array)
+    @ Out, a, object, thing that was inside the thing in the first place
+  """
+  if isinstance(a, numpy.ndarray) and a.shape == ():
+    # make the thing we're checking the thing inside to the numpy array
+    a = a.item()
+  return a
 
 def toBytesIterative(s):
   """
@@ -1173,3 +1188,22 @@ def which(cmd):
         if _access_check(name):
           return name
   return None
+
+def orderClusterLabels(originalLables):
+  """
+    Regulates labels such that the first unique one to appear is 0, second one is 1, and so on.
+    e.g. [B, B, C, B, A, A, D] becomes [0, 0, 1, 0, 2, 2, 3]
+    @ In, originalLabels, list, the original labeling system
+    @ Out, labels, np.array(int), ordinal labels
+  """
+  labels = np.zeros(len(originalLabels), dtype=int)
+  oldToNew = {}
+  nextUsableLabel = 0
+  for l, old in enumerate(originalLabels):
+    new = oldToNew.get(old, None)
+    if new is None:
+      oldToNew[old] = nextUsableLabel
+      new = nextUsableLabel
+      nextUsableLabel += 1
+    labels[l] = new
+  return labels
