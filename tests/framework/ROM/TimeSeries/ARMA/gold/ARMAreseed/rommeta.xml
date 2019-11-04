@@ -28,12 +28,18 @@
         </period>
       </Fourier>
       <ARMA_params>
-        <std>0.258397941738</std>
+        <std>0.258086103993</std>
       </ARMA_params>
     </Speed>
   </ARMA>
   
   <DataSet type="Static">
+    <dims>
+      <Speed_fourier>Time</Speed_fourier>
+      <Speed_gaussianed>Time</Speed_gaussianed>
+      <Speed_nofourier>Time</Speed_nofourier>
+      <Speed_original>Time</Speed_original>
+    </dims>
     <general>
       <pointwise_meta>Speed_fourier,Speed_gaussianed,Speed_nofourier,Speed_original</pointwise_meta>
       <sampleTag>RAVEN_sample_ID</sampleTag>

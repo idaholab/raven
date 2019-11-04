@@ -17,11 +17,13 @@
    UnorderedXml = 'Basic/romMeta.xml'
    rel_err = 1e-6
   [../]
+
   [./ARMAparallel]
    type = 'RavenFramework'
    input = 'test_ARMA_parallel.xml'
    output = 'ARMAparallel/writeSynDataOut.csv ARMAparallel/writeSynDataOut.xml'
   [../]
+
   [./ARMAreseedPrecursor]
    type = 'RavenFramework'
    input = 'arma_reseed_precursor.xml'
@@ -42,6 +44,7 @@
       output = 'ARMAreseed/signals_0.csv ARMAreseed/signals_1.csv ARMAreseed/signals_2.csv ARMAreseed/signals_3.csv ARMAreseed/signals.csv '
     [../]
   [../]
+
   [./ARMAreseedTest]
    type = 'RavenFramework'
    input = 'arma_reseed_test.xml'
@@ -100,12 +103,23 @@
   [./VARMA]
    type = 'RavenFramework'
    input = 'varma.xml'
-   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/stats.xml VARMA/rommeta.xml VARMA/rommeta.csv VARMA/samples_0.csv'
-   max_time = 800
+   output = 'VARMA/plot_VARMA.png VARMA/plot_input.png VARMA/stats.xml VARMA/rommeta.csv VARMA/rommeta.xml VARMA/samples_0.csv'
     [./stats]
       type = OrderedCSV
       output = 'VARMA/stats.csv'
       rel_err = 1e-1
+    [../]
+  [../]
+
+  [./VARMAheavy]
+   type = 'RavenFramework'
+   input = 'varma_heavy.xml'
+   output = 'VARMAheavy/plot_VARMA.png VARMAheavy/plot_input.png VARMAheavy/stats.xml VARMAheavy/rommeta.xml VARMAheavy/rommeta.csv VARMAheavy/samples_0.csv'
+   heavy = true
+    [./stats]
+      type = OrderedCSV
+      output = 'VARMAheavy/stats.csv'
+      rel_err = 1e-3
     [../]
   [../]
 
@@ -139,12 +153,26 @@
       rel_err = 1e-5
     [../]
   [../]
+
   [./Clustered]
     type = 'RavenFramework'
     input = 'clustered.xml'
+    # TODO signal test!
     [./rom_meta]
       type = XML
       output = 'Clustered/romMeta.xml'
+      rel_err = 1e-5
+    [../]
+  [../]
+
+  [./Clustered_Truncated]
+    type = 'RavenFramework'
+    input = 'clustered_truncated.xml'
+    # TODO signal test!
+    [./rom_meta]
+      type = XML
+      unordered = true
+      output = 'ClusteredTruncated/romMeta.xml'
       rel_err = 1e-5
     [../]
   [../]
@@ -178,11 +206,39 @@
       rel_err = 5e-2
     [../]
   [../]
-   [./Peaks]
-   type = 'RavenFramework'
-   input = 'peaks.xml'
-   output = 'Peaks/romMeta.csv'
-   UnorderedXml = 'Peaks/romMeta.xml'
-   rel_err = 1e-6
+
+  [./Multicycle]
+    type = 'RavenFramework'
+    input = 'multicycle.xml'
+    [./meta]
+      type = XML
+      unordered = true
+      output = 'Multicycle/romMeta.xml'
+      rel_err = 1e-3
+    [../]
+    [./samples]
+      type = OrderedCSV
+      output = 'Multicycle/final_out_0.csv Multicycle/final_out_1.csv'
+      rel_err = 1e-3
+    [../]
+  [../]
+
+  [./MulticycleReseed]
+    type = 'RavenFramework'
+    input = 'multicycle_reseed.xml'
+    prereq = Multicycle
+    [./samples]
+      type = OrderedCSV
+      output = 'Multicycle/reseedData.csv'
+      rel_err = 1e-3
+    [../]
+  [../]
+
+  [./Peaks]
+    type = 'RavenFramework'
+    input = 'peaks.xml'
+    output = 'Peaks/romMeta.csv'
+    UnorderedXml = 'Peaks/romMeta.xml'
+    rel_err = 1e-6
   [../]
 []
