@@ -16,12 +16,12 @@
     <ROM>
       <type>ARMA</type>
     </ROM>
-    <Multiyear>
-      <num_years>3</num_years>
+    <Multicycle>
+      <num_cycles>3</num_cycles>
       <growth_factors>
         <Speed end_index="2" mode="exponential" start_index="0">50.0</Speed>
       </growth_factors>
-    </Multiyear>
+    </Multicycle>
     <Speed>
       <Fourier>
         <SignalIntercept>4.586502254e-01</SignalIntercept>
