@@ -343,6 +343,7 @@ class SPSA(GradientBasedOptimizer):
     """
     # perturbation point should be a percent of the intended step
     pct = paramDict['pertDist']
+    print('pct',pct)
     distance = pct * self.counter['lastStepSize'][traj]
     return distance
 
@@ -356,6 +357,8 @@ class SPSA(GradientBasedOptimizer):
     """
     print('inside spsa _createPerturbationPoints ',self.submissionQueue)
     print('optPoint',optPoint)
+    print('self.counter[varsUpdate][traj]',self.counter['varsUpdate'][traj])
+    print('last stepsize',self.counter['lastStepSize'][traj])
     points = []
     distance = self._computePerturbationDistance(traj,self.paramDict,self.counter['varsUpdate'][traj]+1)
     print('distance,self.perturbationIndices',distance,self.perturbationIndices)
