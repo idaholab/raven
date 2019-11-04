@@ -87,13 +87,13 @@ class RavenErrors(Tester):
       @ In, None
       @ Out, check_runnable, boolean, If True this test can run.
     """
-    missing, notQA = library_handler.checkLibraries()
+    missing, not_qa = library_handler.checkLibraries()
     if len(missing) > 0:
       self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
-    if len(notQA) > 0:
-      self.set_skip('skipped (incorrect version python modules: '+" ".join(notQA)+
+    if len(not_qa) > 0:
+      self.set_skip('skipped (incorrect version python modules: '+" ".join(not_qa)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:

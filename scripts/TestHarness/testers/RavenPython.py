@@ -152,13 +152,13 @@ class RavenPython(Tester):
     if self.specs['requires_swig2'] and not RavenPython.has_swig2:
       self.set_skip('skipped (No swig 2.0 found)')
       return False
-    missing, notQA = library_handler.checkLibraries()
+    missing, not_qa = library_handler.checkLibraries()
     if len(missing) > 0:
       self.set_fail('skipped (Missing python modules: '+" ".join(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
-    if len(notQA) > 0 and library_handler.checkVersions():
-      self.set_fail('skipped (Incorrectly versioned python modules: '+" ".join(notQA)+
+    if len(not_qa) > 0 and library_handler.checkVersions():
+      self.set_fail('skipped (Incorrectly versioned python modules: '+" ".join(not_qa)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:

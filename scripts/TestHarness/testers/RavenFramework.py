@@ -171,7 +171,8 @@ class RavenFramework(Tester):
       return False
     ## required module is present, but too old
     if _notQAModules and _checkVersions:
-      self.set_fail('skipped (Incorrectly versioned python modules: '+" ".join(['{}-{}'.format(*m) for m in _notQAModules])+
+      self.set_fail('skipped (Incorrectly versioned python modules: ' +
+                    " ".join(['{}-{}'.format(*m) for m in _notQAModules]) +
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     ## an environment varible value causes a skip
