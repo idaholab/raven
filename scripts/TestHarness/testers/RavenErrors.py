@@ -92,8 +92,9 @@ class RavenErrors(Tester):
       self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
-    if len(not_qa) > 0:
-      self.set_skip('skipped (incorrect version python modules: '+" ".join(not_qa)+
+  if len(not_qa) > 0:
+      self.set_skip('skipped (incorrect version python modules: ' +
+                    " ".join(['{}-{}'.format(*m) for m in not_qa]) +
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:

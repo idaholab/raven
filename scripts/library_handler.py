@@ -57,7 +57,7 @@ libAlias = {'scikit-learn': 'sklearn',
 # -> see findLibAndVersion
 metaExceptions = ['pyside2']
 
-skipChecks = ['python', 'hdf5', 'swig']
+skipChecks = ['python', 'hdf5', 'swig', 'nomkl']
 
 #############
 #    API    #
@@ -339,7 +339,7 @@ if __name__ == '__main__':
     libs = getRequiredLibs(useOS=args.useOS, installMethod='conda', addOptional=args.addOptional)
     msg = '\\begin{itemize}\n'
     for lib, version in libs.items():
-      msg += '  \\item {}{}\n'.format(lib.replace('_','\_'), ('' if version is None else '-'+version))
+      msg += '  \\item {}{}\n'.format(lib.replace('_', '\\_'), ('' if version is None else '-'+version))
     msg += '\\end{itemize}'
     print(msg)
   else:

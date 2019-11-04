@@ -158,7 +158,8 @@ class RavenPython(Tester):
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     if len(not_qa) > 0 and library_handler.checkVersions():
-      self.set_fail('skipped (Incorrectly versioned python modules: '+" ".join(not_qa)+
+      self.set_fail('skipped (Incorrectly versioned python modules: ' +
+                    " ".join(['{}-{}'.format(*m) for m in not_qa]) +
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:
