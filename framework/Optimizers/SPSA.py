@@ -153,6 +153,7 @@ class SPSA(GradientBasedOptimizer):
       self.queueUpOptPointRuns(traj,data)
       # set up grad point near initial point
       pertPoints = self._createPerturbationPoints(traj,data)
+      print('lulelueluelueleulelueeuleuueule inside spsa lli',self.submissionQueue)
       # set up storage structure for results
       self._setupNewStorage(traj)
 
@@ -353,14 +354,19 @@ class SPSA(GradientBasedOptimizer):
       @ In, submit, bool, optional, if True then submit perturbation points to queue
       @ Out, points, list(dict), perturbation points
     """
+    print('inside spsa _createPerturbationPoints ',self.submissionQueue)
+    print('optPoint',optPoint)
     points = []
     distance = self._computePerturbationDistance(traj,self.paramDict,self.counter['varsUpdate'][traj]+1)
+    print('distance,self.perturbationIndices',distance,self.perturbationIndices)
     for i in self.perturbationIndices:
       direction = self._getPerturbationDirection(i, step = self.counter['varsUpdate'][traj])
+      print('direction',direction)
       point = {}
       index = 0
       for var in self.getOptVars():
         size = np.prod(self.variableShapes[var])
+        print('size',size)
         if size > 1:
           new = np.zeros(size)
           for v, origVal in enumerate(optPoint[var]):
@@ -369,15 +375,19 @@ class SPSA(GradientBasedOptimizer):
             index += 1
           point[var] = new
         else:
+          print('budayuyi')
+          print(distance)
+          print(direction[index])
           val = optPoint[var] + distance*direction[index]
           val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
           index += 1
           point[var] = val
       points.append(point)
-
+      print('lulueleu0000 point',point,self.submissionQueue)
       if submit:
         prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i)
         self.submissionQueue[traj].append({'inputs':point, 'prefix':prefix})
+    print('lulueleu point',point,self.submissionQueue)
     return points
 
   def _generateVarsUpdateConstrained(self,traj,ak,gradient,varK):
@@ -592,6 +602,7 @@ class SPSA(GradientBasedOptimizer):
     if self.optType == 'max':
       lossDiff *= -1.0
     # difference in input variables
+    print(pert,opt)
     for var in self.getOptVars():
       dh = pert[var] - opt[var]
       # keep dimensionality consistent, so at least 1D
