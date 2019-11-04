@@ -1,19 +1,19 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/ensembleModelTests.testEMConnection</name>
-    <author>alfoa</author>
-    <created>2018-08-04</created>
+    <name>framework/ensembleModelTests.testEMReusability</name>
+    <author>Jimmy</author>
+    <created>2019-10-30</created>
     <classesTested>Models.EnsembleModel, Models.ExternalModel, JobHandler.ParallelPython</classesTested>
     <description>
-       Example of usage of the Ensemble Model capability in RAVEN, connecting multiple External Models.
-       This test is aimed to check the connection between multiple models, as reported in issue #696.
+       Example of re-using the ensemble model in different steps.
+       This test is aimed to fix the bug reported in issue #859.
     </description>
   </TestInfo>
   <RunInfo>
-    <WorkingDir>checkConnection</WorkingDir>
-    <Sequence>testMetaModel,dumpResults</Sequence>
-    <batchSize>2</batchSize>
+    <WorkingDir>checkReusability</WorkingDir>
+    <Sequence>mrun1,mrun1,dumpResults</Sequence>
+    <batchSize>1</batchSize>
     <internalParallel>True</internalParallel>
   </RunInfo>
 
@@ -87,33 +87,34 @@
   </Models>
 
   <Samplers>
-    <Grid name="grid">
+    <MonteCarlo name="MC1">
+      <samplerInit>
+        <limit>6</limit>
+      </samplerInit>
       <variable name="A">
         <distribution>distA</distribution>
-        <grid construction="equal" steps="1" type="value">0 1</grid>
       </variable>
       <variable name="B">
         <distribution>distB</distribution>
-        <grid construction="equal" steps="1" type="value">2 3</grid>
       </variable>
       <variable name="H">
         <distribution>distH</distribution>
-        <grid construction="equal" steps="2" type="value">5 8</grid>
       </variable>
-    </Grid>
+    </MonteCarlo>
   </Samplers>
 
   <Steps>
-    <MultiRun name="testMetaModel">
+    <MultiRun name="mrun1" re-seeding="200286">
       <Input   class="DataObjects" type="PointSet"      >inputAlpha</Input>
       <Input   class="DataObjects" type="PointSet"      >inputBeta</Input>
       <Input   class="DataObjects" type="PointSet"      >inputGamma</Input>
       <Input   class="DataObjects" type="PointSet"      >inputDelta</Input>
       <Model   class="Models"      type="EnsembleModel" >testConfig</Model>
-      <Sampler class="Samplers"    type="Grid"          >grid</Sampler>
+      <Sampler class="Samplers"    type="MonteCarlo"    >MC1</Sampler>
       <Output  class="DataObjects" type="PointSet"      >metaModelData</Output>
     </MultiRun>
-    <IOStep name="dumpResults" pauseAtEnd="True">
+
+    <IOStep name="dumpResults">
       <Input  class="DataObjects"  type="PointSet"      >metaModelData</Input>
       <Output class="OutStreams"   type="Print"          >printData</Output>
     </IOStep>
