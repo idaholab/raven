@@ -162,7 +162,7 @@ class RavenPython(Tester):
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:
-      found, _, = library_handler.checkSingleLibrary(lib)
+      found, _, _ = library_handler.checkSingleLibrary(lib)
       if not found:
         self.set_skip('skipped (Unable to import library: "'+lib+'")')
         return False
