@@ -38,6 +38,7 @@ import abc
 import ast
 import copy
 import platform
+import matplotlib
 #External Modules End-----------------------------------------------------------
 #Internal Modules---------------------------------------------------------------
 from utils import utils

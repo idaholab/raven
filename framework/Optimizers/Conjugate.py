@@ -99,7 +99,7 @@ class ConjugateGradient(FiniteDifference):
           if self.useGradHist and self.counter['oldFVal'][traj]:
             self.counter['oldOldFVal'][traj] = self.counter['oldFVal'][traj]
             self.counter['oldFVal'][traj] = self.realizations[traj]['denoised']['opt'][0][self.objVar]
-            self.counter['gNorm'][traj] = self.polakRibierePowellStep(traj,self.counter['lastStepSize'][traj], self.counter['gfk'][traj])
+            self.counter['gNorm'][traj] = self.polakRibierePowellStep(traj,self.counter['lastStepSize'][traj][0], self.counter['gfk'][traj])
           else:
             self.counter['oldFVal'][traj] = self.realizations[traj]['denoised']['opt'][0][self.objVar]
             self.counter['oldOldFVal'][traj] = self.counter['oldFVal'][traj] + np.linalg.norm(self.counter['gfk'][traj]) / 2
@@ -121,7 +121,7 @@ class ConjugateGradient(FiniteDifference):
           phi1 = self.realizations[traj]['denoised']['opt'][0][self.objVar]
           derPhi1 = np.dot(newGrad, self.counter['pk'][traj])
 
-        self.counter['lastStepSize'][traj], self.counter['newFVal'][traj], _, self.counter['task'][traj] = minpack2.dcsrch(self.counter['alpha'][traj], phi1, derPhi1, ftol=1e-4, gtol=0.4,
+        self.counter['lastStepSize'][traj][0], self.counter['newFVal'][traj], _, self.counter['task'][traj] = minpack2.dcsrch(self.counter['alpha'][traj], phi1, derPhi1, ftol=1e-4, gtol=0.4,
                                                 xtol=1e-14, task = self.counter['task'][traj], stpmin=1e-100,
                                                 stpmax=1e100, isave = self.counter['iSave'][traj] , dsave=self.counter['dSave'][traj])
         # return of the line search can be those results
@@ -154,7 +154,7 @@ class ConjugateGradient(FiniteDifference):
             self.removeConvergedTrajectory(traj)
           else:
             self.raiseAMessage(' ... converged Traj "{}" {} times, required persistence is {}.'.format(traj,self.counter['persistence'][traj],self.convergencePersistence))
-        self.counter['alpha'][traj] = self.counter['lastStepSize'][traj]
+        self.counter['alpha'][traj] = self.counter['lastStepSize'][traj][0]
         grad = dict((var,self.counter['gfk'][traj][ind]/(self.optVarsInit['upperBound'][var]-self.optVarsInit['lowerBound'][var])) for ind,var in enumerate(self.getOptVars()))
         try:
           self.counter['gradNormHistory'][traj][1] = self.counter['gradNormHistory'][traj][0]
@@ -180,7 +180,7 @@ class ConjugateGradient(FiniteDifference):
       @ In, traj, int, trajectory
       @ Out, varKPlus, dict, new point that has been queued (or None if no new points should be run for this traj)
     """
-    stepSize = self.counter['lastStepSize'][traj]
+    stepSize = self.counter['lastStepSize'][traj][0]
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = {}
     varK = dict((var,self.counter['recentOptHist'][traj][0][var]) for var in self.getOptVars())
     varKPlus,modded = self._generateVarsUpdateConstrained(traj, stepSize, gradient, varK)
@@ -192,7 +192,7 @@ class ConjugateGradient(FiniteDifference):
       return None
     #if the new point was modified by the constraint, reset the step size
     if modded:
-      self.counter['lastStepSize'][traj] = self.paramDict['initialStepSize']
+      self.counter['lastStepSize'][traj][0] = self.paramDict['initialStepSize']
       self.raiseADebug('Resetting step size for trajectory',traj,'due to hitting constraints')
     self.queueUpOptPointRuns(traj,varKPlus)
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = varKPlus
@@ -207,7 +207,7 @@ class ConjugateGradient(FiniteDifference):
       @ Out, points, list(dict), perturbation points
     """
     points = []
-    distance = self.paramDict['pertDist'] * max(self.counter['lastStepSize'][traj],self.paramDict['initialStepSize'])
+    distance = self.paramDict['pertDist'] * max(self.counter['lastStepSize'][traj][0],self.paramDict['initialStepSize'])
 
     for i in self.perturbationIndices:
       direction = self._getPerturbationDirection(i, step = self.counter['varsUpdate'][traj])

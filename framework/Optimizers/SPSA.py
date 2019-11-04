@@ -134,7 +134,8 @@ class SPSA(GradientBasedOptimizer):
     # build up queue of initial runs
     for traj in self.optTraj:
       # for the first run, set the step size to the initial step size
-      self.counter['lastStepSize'][traj] = self.paramDict['initialStepSize']
+      self.counter['lastStepSize'][traj][0] = self.paramDict['initialStepSize']
+      self.counter['lastStepSize'][traj][1] = self.paramDict['initialStepSize']
       # construct initial point for trajectory
       values = {}
       for var in self.getOptVars():
@@ -327,28 +328,33 @@ class SPSA(GradientBasedOptimizer):
       @ Out, new, float, current value for gain ak
     """
     try:
-      size = self.counter['lastStepSize'][traj]
+      size = self.counter['lastStepSize'][traj][0]
     except KeyError:
       size = paramDict['initialStepSize']
     # modify step size based on the history of the gradients used
     frac = self.fractionalStepChangeFromGradHistory(traj)
     new = size*frac
     self.raiseADebug('step gain size for traj "{}" iternum "{}": {:1.3e} (root {:1.2e} frac {:1.2e})'.format(traj,iterNum,new,size,frac))
-    self.counter['lastStepSize'][traj] = new
+    self.counter['lastStepSize'][traj][0] = new
     return new
 
-  def _computePerturbationDistance(self,traj,paramDict,iterNum):
+  def _computePerturbationDistance(self,traj,paramDict,iterNum,new = True):
     """
       Utility function to compute the perturbation distance (distance from opt point to grad point)
       @ In, traj, int, integer label for current trajectory
       @ In, paramDict, dict, dictionary containing information to compute gain parameter
       @ In, iterNum, int, current iteration index
+      @ In, new, bool, if True take the last stepsize as the reference
       @ Out, distance, float, current value for gain ck
     """
     # perturbation point should be a percent of the intended step
     pct = paramDict['pertDist']
-    print('pct',pct)
-    distance = pct * self.counter['lastStepSize'][traj]
+    distance = pct * self.counter['lastStepSize'][traj][1]
+    # if new == True:
+    #   distance = pct * self.counter['lastStepSize'][traj][0]
+    # else:
+    #   distance = pct * self.counter['lastStepSize'][traj][1]
+
     return distance
 
   def _createPerturbationPoints(self, traj, optPoint, submit=True):
@@ -360,20 +366,18 @@ class SPSA(GradientBasedOptimizer):
       @ Out, points, list(dict), perturbation points
     """
     print('inside spsa _createPerturbationPoints ',self.submissionQueue)
-    print('optPoint',optPoint)
-    print('self.counter[varsUpdate][traj]',self.counter['varsUpdate'][traj])
+
     print('last stepsize',self.counter['lastStepSize'][traj])
     points = []
     distance = self._computePerturbationDistance(traj,self.paramDict,self.counter['varsUpdate'][traj]+1)
-    print('distance,self.perturbationIndices',distance,self.perturbationIndices)
+    print('distance,self.perturbationIndices',distance)
     for i in self.perturbationIndices:
       direction = self._getPerturbationDirection(i, step = self.counter['varsUpdate'][traj])
-      print('direction',direction)
+      # print('direction',direction)
       point = {}
       index = 0
       for var in self.getOptVars():
         size = np.prod(self.variableShapes[var])
-        print('size',size)
         if size > 1:
           new = np.zeros(size)
           for v, origVal in enumerate(optPoint[var]):
@@ -382,19 +386,17 @@ class SPSA(GradientBasedOptimizer):
             index += 1
           point[var] = new
         else:
-          print('budayuyi')
-          print(distance)
-          print(direction[index])
+          # print(direction[index])
           val = optPoint[var] + distance*direction[index]
           val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
           index += 1
           point[var] = val
       points.append(point)
-      print('lulueleu0000 point',point,self.submissionQueue)
+      # print('lulueleu0000 point',point,self.submissionQueue)
       if submit:
         prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i)
         self.submissionQueue[traj].append({'inputs':point, 'prefix':prefix})
-    print('lulueleu point',point,self.submissionQueue)
+    # print('lulueleu point',point,self.submissionQueue)
     return points
 
   def _findNewPoint(self, gain, startPoint, gradient):
@@ -700,17 +702,17 @@ class SPSA(GradientBasedOptimizer):
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = varKPlus
     return varKPlus
 
-  def _setAlgorithmState(self, traj, state):
-    """
-      @ In, traj, int, the trajectory being saved
-      @ In, state, dict, keys:values this algorithm cares about saving for this trajectory
-      @ Out, None
-    """
-    if state is None:
-      return
-    if state['lastStepSize'] is not None:
-      self.counter['lastStepSize'][traj] = state['lastStepSize']
-    if state['gradientHistory'] is not None:
-      self.counter['gradientHistory'][traj] = state['gradientHistory']
-    if state['recommendToGain'] is not None:
-      self.recommendToGain[traj] = state['recommendToGain']
+  # def _setAlgorithmState(self, traj, state):
+  #   """
+  #     @ In, traj, int, the trajectory being saved
+  #     @ In, state, dict, keys:values this algorithm cares about saving for this trajectory
+  #     @ Out, None
+  #   """
+  #   if state is None:
+  #     return
+  #   if state['lastStepSize'] is not None:
+  #     self.counter['lastStepSize'][traj] = state['lastStepSize']
+  #   if state['gradientHistory'] is not None:
+  #     self.counter['gradientHistory'][traj] = state['gradientHistory']
+  #   if state['recommendToGain'] is not None:
+  #     self.recommendToGain[traj] = state['recommendToGain']

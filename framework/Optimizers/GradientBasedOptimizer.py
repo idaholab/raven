@@ -162,6 +162,7 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['varsUpdate'][traj]       = 0
       self.counter['solutionUpdate'][traj]   = 0
       self.counter['gradientHistory'][traj]  = [{},{}]
+      self.counter['lastStepSize'][traj]  = [{},{}]
       self.counter['gradNormHistory'][traj]  = [0.0,0.0]
       self.counter['persistence'][traj]      = 0
       self.counter['iSave'][traj]            = np.zeros((2,), np.intc)
@@ -194,7 +195,7 @@ class GradientBasedOptimizer(Optimizer):
     self.perturbationIndices = list(range(self.gradDict['numIterForAve'],self.gradDict['numIterForAve']*(self.paramDict['pertSingleGrad']+1)))
     #specializing the self.localLocalInitialize()
     self.localLocalInitialize(solutionExport=solutionExport)
-    print('inside LI ',self.submissionQueue)
+    # print('inside LI ',self.submissionQueue)
 
   @abc.abstractmethod
   def localLocalInitialize(self, solutionExport):
@@ -216,7 +217,7 @@ class GradientBasedOptimizer(Optimizer):
     """
     # let the local do the main gradient evaluation
     gradient = self.localEvaluateGradient(traj)
-    print('gradientgradientgradient',gradient)
+    # print('gradientgradientgradient',gradient)
     # we intend for gradient to give direction only, so get the versor
     ## NOTE this assumes gradient vectors are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
     gradientNorm = self.calculateMultivectorMagnitude(gradient.values())
@@ -243,6 +244,7 @@ class GradientBasedOptimizer(Optimizer):
     # store gradient
     try:
       self.counter['gradientHistory'][traj][1] = self.counter['gradientHistory'][traj][0]
+      self.counter['lastStepSize'][traj][1] = self.counter['lastStepSize'][traj][0]
     except IndexError:
       pass # don't have a history on the first pass
     self.counter['gradientHistory'][traj][0] = gradient
@@ -255,7 +257,7 @@ class GradientBasedOptimizer(Optimizer):
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
-    print('inside FS ',self.submissionQueue)
+    # print('inside FS ',self.submissionQueue)
     Optimizer.handleFailedRuns(self, failedRuns)
     # get the most optimal point among the trajectories
     bestValue = None
@@ -377,7 +379,11 @@ class GradientBasedOptimizer(Optimizer):
           self.counter['recentOptHist'][traj][0] = optCandidate
           # find the new gradient for this trajectory at the new opt point
           grad = self.evaluateGradient(traj)
-          print('grad grad',grad)
+          print('')
+
+          print('grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad')
+          print('')
+          print(grad)
           # get a new candidate
           new = self._newOptPointAdd(grad, traj)
           if new is not None:
@@ -504,7 +510,7 @@ class GradientBasedOptimizer(Optimizer):
       @ In, outputs, dict, denoised new optimal point
       @ Out, converged, bool, if True then indicates convergence has been reached
     """
-    print('lalalalalalalla5')
+    print('_finalizeOptimalCandidate')
     # check convergence and check if new point is accepted (better than old point)
     accepted = self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputs)
     # if converged, we can wrap up this trajectory
@@ -601,8 +607,8 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, prefix, #_#_#
       @ Out, point, dict, {var:val}
     """
-    print('lalalalalalalla2')
-    print(self.submissionQueue[traj])
+    # print('lalalalalalalla2')
+    # print(self.submissionQueue[traj])
     try:
       entry = self.submissionQueue[traj].popleft()
     except IndexError:
@@ -619,7 +625,7 @@ class GradientBasedOptimizer(Optimizer):
       @ In, identifier, int, number of evaluation within trajectory and step
       @ Out, label, tuple, first entry is "grad" or "opt", second is which grad it belongs to (opt is always 0)
     """
-    print('lalalalalalalla1',self.submissionQueue)
+    # print('lalalalalalalla1',self.submissionQueue)
     if identifier in self.perturbationIndices:
       category = 'grad'
       if self.paramDict['pertSingleGrad'] == 1:
@@ -822,7 +828,7 @@ class GradientBasedOptimizer(Optimizer):
       # "min step size" and "gradient norm" are both always valid checks, whether rejecting or accepting new point
       ## min step size check
       try:
-        lastStep = self.counter['lastStepSize'][traj]
+        lastStep = self.counter['lastStepSize'][traj][0]
         minStepSizeCheck = lastStep <= self.minStepSize
       except KeyError:
         #we reset the step size, so we don't have a value anymore
@@ -926,7 +932,7 @@ class GradientBasedOptimizer(Optimizer):
         new = traj+1 # +1 is for historical reasons, when histories were indexed on 1 instead of 0
       elif var == 'stepSize':
         try:
-          new = self.counter['lastStepSize'][traj]
+          new = self.counter['lastStepSize'][traj][0]
         except KeyError:
           new = badValue
       elif var == 'accepted':
