@@ -16,13 +16,15 @@ Library management for RAVEN installation and operation.
 Adopted from RavenUtils.py
 """
 import os
+import sys
 import platform
 import argparse
 import subprocess
 from collections import OrderedDict
 
+from update_install_data import loadRC
+
 # python changed the import error in 3.6
-import sys
 if sys.version_info[0] == 3 and sys.version_info[1] >= 6:
   impErr = ModuleNotFoundError
 else:
@@ -40,7 +42,6 @@ try:
   usePackageMeta = True
 except impErr:
   # the old way to check libs and versions uses subprocess instead
-  import subprocess
   usePackageMeta = False
 
 # some libs are called differently in conda and within python interpreter
@@ -58,6 +59,14 @@ libAlias = {'scikit-learn': 'sklearn',
 metaExceptions = ['pyside2', 'AMSC']
 
 skipChecks = ['python', 'hdf5', 'swig', 'nomkl']
+
+# load up the ravenrc if it's present
+## TODO we only want to do this once, but does it need to get updated?
+rcFile = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.ravenrc'))
+if os.path.isfile(rcFile):
+  rcOptions = loadRC(rcFile)
+else:
+  rcOptions = {}
 
 #############
 #    API    #
@@ -159,6 +168,7 @@ def findLibAndVersion(lib, version=None):
         foundVersion = None
         output = 'Library not found.'
     elif lib == 'AMSC':
+      # FIXME improve AMSC setup.py so it's compatible with importlib_metadata!
       return findLibAndVersionSubprocess('AMSC')
     else:
       raise NotImplementedError('Library "{}" on exception list, but no exception implemented!'.format(lib))
@@ -252,7 +262,10 @@ def _getInstallMethod(override=None):
     if override.lower() not in valid:
       raise TypeError('Library Handler: Provided override install method not recognized: "{}"! Acceptable options: {}'.format(override, valid))
     return override.lower()
-  # no suggestion given, so we assume conda -> should we try reading the ravenrc?
+  # check ravenrc for how libs were installed
+  if rcOptions:
+    return rcOptions.get('INSTALLATION_MANAGER', 'conda').lower()
+  # no suggestion given, so we assume conda
   return 'conda'
 
 def _parseLibs(config, opSys, install, addOptional=False, limit=None):
