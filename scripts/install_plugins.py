@@ -24,7 +24,8 @@ import os
 import sys
 import shutil
 import argparse
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'framework'))
+frameworkDir = os.path.join(os.path.dirname(__file__), '..', 'framework')
+sys.path.append(frameworkDir)
 from utils import xmlUtils
 
 # set up command-line arguments
@@ -67,8 +68,61 @@ def checkValidPlugin(rawLoc):
     okay = False
     for m in missing:
       msgs.append('Required directory missing in {}: {}'.format(fullDir, m))
+
   return okay, msgs, loc
 
+def _writeNewPluginXML(name, location):
+  """
+    Writes plugin information to XML
+    @ In, name, str, name of plugin
+    @ In, location, str, directory of plugin
+    @ Out, new, xml.etree.ElementTree.Element, new plugin information in xml
+  """
+  new = xmlUtils.newNode('plugin')
+  new.append(xmlUtils.newNode('name', text=name))
+  new.append(xmlUtils.newNode('location', text=location))
+  # TODO read a config file IN THE PLUGIN to determine what nodes it should include
+  ## for example, executable, default excluded dirs, etc
+  new.append(xmlUtils.newNode('exclude'))
+  return new
+
+def _updatePluginXML(root, name, location):
+  """
+    Update an existing plugin entry with new information
+    @ In, root, xml.etree.ElementTree.Element, root of plugin tree
+    @ In, name, str, name of plugin
+    @ In, location, str, location of plugin on disk
+    @ Out, match, xml.etree.ElementTree.Element, updated element
+  """
+  match = root.findall('./plugin/name[.=\'{}\']/..'.format(name))[0]
+  oldPath = match.find('location').text
+  # nothing to do if old path and new path are the same!
+  if oldPath != location:
+    # TODO overwrite or not as an option?
+    print('Updating existing location of plugin "{}" from "{}" to "{}"'.format(name, oldPath, location))
+    match.find('location').text = location
+  return match
+
+def _tellPluginAboutRaven(name, loc):
+  """
+    Informs plugin about raven framework location
+    @ In, name, str, name of plugin
+    @ In, loc, location of plugin
+    @ Out, None
+  """
+  # check for config file; load up a root element either way
+  configFile = os.path.join(loc, '.ravenconfig')
+  if os.path.isfile(configFile):
+    root, _ = xmlUtils.loadToTree(configFile)
+  else:
+    root = xmlUtils.newNode('RavenConfig')
+  # add raven information
+  ravenLoc = root.find('FrameworkLocation')
+  if ravenLoc is None:
+    ravenLoc = xmlUtils.newNode('FrameworkLocation')
+    root.append(ravenLoc)
+  ravenLoc.text = os.path.abspath(os.path.expanduser(frameworkDir))
+  xmlUtils.toFile(configFile, root)
 
 if __name__ == '__main__':
   ### Design notes
@@ -104,30 +158,22 @@ if __name__ == '__main__':
     root, _ = xmlUtils.loadToTree(pluginTreeFile)
   else:
     root = xmlUtils.newNode('plugins')
+
+  # add or update plugins from sources
   existing = [x.text.strip() for x in root.findall('./plugin/name')]
   for plugDir in sources:
     name = os.path.basename(plugDir)
     if name in existing:
-      # is the path the same?
-      match = root.findall('./plugin/name[.=\'{}\']/..'.format(name))[0]
-      oldPath = match.find('location').text
-      # nothing to do if old path and new path are the same!
-      if oldPath != plugDir:
-        # TODO overwrite or not as an option?
-        print('Updating existing location from {} to {}'.format(oldPath, plugDir))
-        match.find('location').text = plugDir
+      match = _updatePluginXML(root, name, plugDir)
     else:
       # create a new entry
-      new = xmlUtils.newNode('plugin')
-      new.append(xmlUtils.newNode('name', text=name))
-      new.append(xmlUtils.newNode('location', text=plugDir))
-      # TODO read a config file IN THE PLUGIN to determine what nodes it should include
-      ## for example, executable, default excluded dirs, etc
-      new.append(xmlUtils.newNode('exclude'))
+      new = _writeNewPluginXML(name, plugDir)
       root.append(new)
       match = new
     if args.exclude:
       match.find('exclude').text = ','.join(x for x in args.exclude)
+    # tell plugin about RAVEN
+    _tellPluginAboutRaven(name, plugDir)
   xmlUtils.toFile(pluginTreeFile, root, pretty=True)
 
 
