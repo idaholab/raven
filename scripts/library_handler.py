@@ -55,7 +55,7 @@ libAlias = {'scikit-learn': 'sklearn',
 # some bad actors can't use the metadata correctly
 # and so need special treatment
 # -> see findLibAndVersion
-metaExceptions = ['pyside2']
+metaExceptions = ['pyside2', 'AMSC']
 
 skipChecks = ['python', 'hdf5', 'swig', 'nomkl']
 
@@ -158,6 +158,8 @@ def findLibAndVersion(lib, version=None):
         found = False
         foundVersion = None
         output = 'Library not found.'
+    elif lib == 'AMSC':
+      return findLibAndVersionSubprocess('AMSC')
     else:
       raise NotImplementedError('Library "{}" on exception list, but no exception implemented!'.format(lib))
   return found, output, foundVersion
