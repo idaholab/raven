@@ -1,0 +1,31 @@
+[Tests]
+  [./MC]
+    type = 'RavenFramework'
+    input = 'mc.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'MC/samples.csv'
+      gold_files = 'gold/samples.csv'
+    [../]
+  [../]
+
+  [./Grid]
+    type = 'RavenFramework'
+    input = 'grid.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'Grid/samples.csv'
+      gold_files = 'gold/samples.csv'
+    [../]
+  [../]
+
+  [./Stratified]
+    type = 'RavenFramework'
+    input = 'stratified.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'Stratified/samples.csv'
+      gold_files = 'gold/samples.csv'
+    [../]
+  [../]
+[]

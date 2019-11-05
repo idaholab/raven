@@ -522,7 +522,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           self.entitiesToRemove.append('transformation-'+distName)
 
     # Register expected metadata
-    meta = ['ProbabilityWeight','prefix','PointProbability']
+    meta = ['ProbabilityWeight', 'prefix', 'PointProbability']
     for var in self.toBeSampled.keys():
       meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
     self.addMetaKeys(meta)
@@ -801,7 +801,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     self._incrementCounter()
     model.getAdditionalInputEdits(self.inputInfo)
-    self.localGenerateInput(model,oldInput)
+    # if everything is a constant or redundant (e.g. nothing needs to be sampled),
+    # -> then we don't call localGenerateInput!
+    if self.toBeSampled:
+      self.localGenerateInput(model,oldInput)
+    else:
+      self.raiseADebug('No stochastic variables to be sampled for "{}". Continuing...'.format(self.name))
+      self.inputInfo['PointProbability'] = 1
+      self.inputInfo['ProbabilityWeight'] = 1
+      self.inputInfo['SamplerType'] = self.printTag
     # split the sampled vars Pb among the different correlated variables
     self._reassignSampledVarsPbToFullyCorrVars()
     self._reassignPbWeightToCorrelatedVars()

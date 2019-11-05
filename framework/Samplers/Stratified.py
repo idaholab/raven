@@ -98,9 +98,10 @@ class Stratified(Grid):
     Sampler.readSamplerInit(self,xmlNode)
     Grid.localInputAndChecks(self,xmlNode, paramInput)
     pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
-    if len(set(pointByVar))!=1:
-      self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of point in each dimension')
-    self.pointByVar         = pointByVar[0]
+    if len(set(pointByVar)) > 1:
+      self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of points in each dimension')
+    # if pointByVar is empty, then we have all constants/functions and nothing to sample
+    self.pointByVar = pointByVar[0] if pointByVar else 2 # sets the limit to 1
     self.inputInfo['upper'] = {}
     self.inputInfo['lower'] = {}
 
