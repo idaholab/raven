@@ -241,6 +241,16 @@ class Optimizer(Sampler):
     self.addAssemblerObject('Preconditioner','-n')
     self.addAssemblerObject('Sampler','-1')   #This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
+  @property
+  def toBeSampled(self):
+    """
+      Mimics typical sampler's toBeSampled variable
+      @ In, None
+      @ Out, toBeSampled, dict, variables mapped to None
+    """
+    allVars = self.getOptVars()
+    return dict(zip(allVars, [None]*len(allVars)))
+
   def _localGenerateAssembler(self,initDict):
     """
       It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method

@@ -29,6 +29,7 @@ import sys
 import copy
 from operator import mul
 from functools import reduce
+from itertools import chain
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -89,6 +90,8 @@ class EnsembleForward(ForwardSampler):
     self.samplersCombinations = {}
     self.dependentSample      = {}
 
+
+
   def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
@@ -109,6 +112,7 @@ class EnsembleForward(ForwardSampler):
         self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
         #FIXME the variableGroups needs to be fixed
         self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
+        self.toBeSampled.update(self.instanciatedSamplers[child.tag].toBeSampled)
       # function variables are defined outside the individual samplers
       elif child.tag=='variable':
         for childChild in child:
@@ -164,7 +168,6 @@ class EnsembleForward(ForwardSampler):
       # check if the correct method is present
       if "evaluate" not in self.funcDict[key].availableMethods():
         self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
-
 
   def localInitialize(self):
     """
