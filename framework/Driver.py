@@ -34,18 +34,20 @@ import threading
 import traceback
 import xml.etree.ElementTree as ET
 
+#warning: this needs to be before importing h5py
+os.environ["MV2_ENABLE_AFFINITY"]="0"
+
+frameworkDir = os.path.dirname(os.path.abspath(__file__))
+
 # library handler is in scripts
 sys.path.append(os.path.join(frameworkDir, '..', "scripts"))
 import library_handler as LH
 sys.path.pop() #remove scripts path for cleanliness
 
-#warning: this needs to be before importing h5py
-os.environ["MV2_ENABLE_AFFINITY"]="0"
-
-frameworkDir = os.path.dirname(os.path.abspath(__file__))
 from utils import utils
 import utils.TreeStructure as TS
 utils.find_crow(frameworkDir)
+
 if sys.version_info.major == 2:
   utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
 else:
