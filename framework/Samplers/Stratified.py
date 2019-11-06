@@ -103,7 +103,7 @@ class Stratified(Grid):
     if lenPBV != 1:
       if lenPBV == 0:
         # no sampled vars were given, but allow the Sampler to catch this later.
-        self.pointByVar = 2
+        pass
       else:
         self.raiseAnError(IOError,'<Stratified> sampler named "{}" requires the same number of point in each dimension!'.format(self.name))
     else:

@@ -29,7 +29,6 @@ import sys
 import copy
 from operator import mul
 from functools import reduce
-from itertools import chain
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -89,8 +88,6 @@ class EnsembleForward(ForwardSampler):
     self.instanciatedSamplers = {}
     self.samplersCombinations = {}
     self.dependentSample      = {}
-
-
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """
