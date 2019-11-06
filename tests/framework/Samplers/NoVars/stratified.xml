@@ -29,11 +29,11 @@
 
   <Samplers>
     <Stratified name="sampler">
-      <constant name='x1'>1.0</constant>
-      <constant name='x2'>2.0</constant>
       <variable name='x3'>
         <function>depends</function>
       </variable>
+      <constant name='x1'>1.0</constant>
+      <constant name='x2'>2.0</constant>
     </Stratified>
   </Samplers>
 
