@@ -34,6 +34,11 @@ import threading
 import traceback
 import xml.etree.ElementTree as ET
 
+# library handler is in scripts
+sys.path.append(os.path.join(frameworkDir, '..', "scripts"))
+import library_handler as LH
+sys.path.pop() #remove scripts path for cleanliness
+
 #warning: this needs to be before importing h5py
 os.environ["MV2_ENABLE_AFFINITY"]="0"
 
@@ -104,10 +109,6 @@ def checkVersions():
     @ In, None
     @ Out, None
   """
-  # library handler is in scripts
-  sys.path.append(os.path.join(frameworkDir, '..', "scripts"))
-  import library_handler as LH
-  sys.path.pop() #remove scripts path for cleanliness
   # if libraries are not to be checked, we're done here
   if not LH.checkVersions():
     return

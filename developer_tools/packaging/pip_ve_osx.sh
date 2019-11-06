@@ -87,7 +87,7 @@ PATH="$OLD_PATH"
 
 source $INSTALL_DIR/bin/activate
 #Call library_handler to return the pip install command with the qa'd versions
-`python $SCRIPT_DIR/.bray_handler.py pip --action install`
+`python $SCRIPT_DIR/library_handler.py pip --action install`
 #pip install numpy==1.11.0 h5py==2.6.0 scipy==0.17.1 scikit-learn==0.17.1 matplotlib==1.5.1
 
 
