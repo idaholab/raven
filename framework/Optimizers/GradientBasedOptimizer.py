@@ -108,6 +108,7 @@ class GradientBasedOptimizer(Optimizer):
     self.counter['derPhi0']          = {}              # float, objective function derivative at each begining of the line search
     self.counter['alpha']            = {}              # float, stepsize for conjugate gradient method in current dirrection
 
+    self.resample                    = {}              # bool, whether next point is a resample opt point if True, then the next submit point is a resample opt point with new perturbed gradient point
     self.convergeTraj                = {}
     self.convergenceProgress         = {}              #tracks the convergence progress, by trajectory
     self.trajectoriesKilled          = {}              # by traj, store traj killed, so that there's no mutual destruction
@@ -180,6 +181,7 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['deltaK'][traj]           = None
       self.counter['derPhi0'][traj]          = None
       self.counter['alpha'][traj]            = None
+      self.resample[traj]                    = False
       self.optVarsHist[traj]                 = {}
       self.readyVarsUpdate[traj]             = False
       self.convergeTraj[traj]                = False
@@ -195,7 +197,6 @@ class GradientBasedOptimizer(Optimizer):
     self.perturbationIndices = list(range(self.gradDict['numIterForAve'],self.gradDict['numIterForAve']*(self.paramDict['pertSingleGrad']+1)))
     #specializing the self.localLocalInitialize()
     self.localLocalInitialize(solutionExport=solutionExport)
-    # print('inside LI ',self.submissionQueue)
 
   @abc.abstractmethod
   def localLocalInitialize(self, solutionExport):
@@ -217,7 +218,6 @@ class GradientBasedOptimizer(Optimizer):
     """
     # let the local do the main gradient evaluation
     gradient = self.localEvaluateGradient(traj)
-    # print('gradientgradientgradient',gradient)
     # we intend for gradient to give direction only, so get the versor
     ## NOTE this assumes gradient vectors are 0 or 1 dimensional, not 2 or more! (vectors or scalars, not matrices)
     gradientNorm = self.calculateMultivectorMagnitude(gradient.values())
@@ -257,7 +257,6 @@ class GradientBasedOptimizer(Optimizer):
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
-    # print('inside FS ',self.submissionQueue)
     Optimizer.handleFailedRuns(self, failedRuns)
     # get the most optimal point among the trajectories
     bestValue = None
@@ -359,7 +358,6 @@ class GradientBasedOptimizer(Optimizer):
         ## note that by now we've ALREADY accepted the point; if it was rejected, it would have been reset by now.
         optDone = bool(len(self.realizations[traj]['denoised']['opt'][0]))
         gradDone = all( len(self.realizations[traj]['denoised']['grad'][i]) for i in range(self.paramDict['pertSingleGrad']))
-        print('optDone,gradDone',optDone,gradDone)
         if not converged and optDone and gradDone:
           optCandidate = self.normalizeData(self.realizations[traj]['denoised']['opt'][0])
           # update solution export
@@ -379,11 +377,7 @@ class GradientBasedOptimizer(Optimizer):
           self.counter['recentOptHist'][traj][0] = optCandidate
           # find the new gradient for this trajectory at the new opt point
           grad = self.evaluateGradient(traj)
-          print('')
 
-          print('grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad.grad')
-          print('')
-          print(grad)
           # get a new candidate
           new = self._newOptPointAdd(grad, traj)
           if new is not None:
@@ -510,9 +504,12 @@ class GradientBasedOptimizer(Optimizer):
       @ In, outputs, dict, denoised new optimal point
       @ Out, converged, bool, if True then indicates convergence has been reached
     """
-    print('_finalizeOptimalCandidate')
     # check convergence and check if new point is accepted (better than old point)
-    accepted = self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputs)
+    if self.resample[traj]:
+      accepted = True
+    else:
+      accepted = self._updateConvergenceVector(traj, self.counter['solutionUpdate'][traj], outputs)
+
     # if converged, we can wrap up this trajectory
     if self.convergeTraj[traj]:
       # end any excess gradient evaluation jobs
@@ -522,7 +519,9 @@ class GradientBasedOptimizer(Optimizer):
     if accepted:
       # store acceptance for later
       self.realizations[traj]['accepted'] = accepted
+      self.resample[traj] = False
     else:
+      self.resample[traj] = True
       # cancel all gradient evaluations for the rejected candidate immediately
       self.cancelJobs([self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) for i in self.perturbationIndices])
       # update solution export
@@ -536,9 +535,9 @@ class GradientBasedOptimizer(Optimizer):
       # new point setup
       ## keep the old grad point
       grad = self.counter['gradientHistory'][traj][0]
-      new = self._newOptPointAdd(grad, traj)
+      new = self._newOptPointAdd(grad, traj,resample = self.resample[traj])
       if new is not None:
-        self._createPerturbationPoints(traj, new)
+        self._createPerturbationPoints(traj, new, resample = self.resample[traj])
       self._setupNewStorage(traj)
     return False #not converged
 
@@ -607,8 +606,6 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, prefix, #_#_#
       @ Out, point, dict, {var:val}
     """
-    # print('lalalalalalalla2')
-    # print(self.submissionQueue[traj])
     try:
       entry = self.submissionQueue[traj].popleft()
     except IndexError:
@@ -625,7 +622,6 @@ class GradientBasedOptimizer(Optimizer):
       @ In, identifier, int, number of evaluation within trajectory and step
       @ Out, label, tuple, first entry is "grad" or "opt", second is which grad it belongs to (opt is always 0)
     """
-    # print('lalalalalalalla1',self.submissionQueue)
     if identifier in self.perturbationIndices:
       category = 'grad'
       if self.paramDict['pertSingleGrad'] == 1:

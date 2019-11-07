@@ -154,7 +154,6 @@ class SPSA(GradientBasedOptimizer):
       self.queueUpOptPointRuns(traj,data)
       # set up grad point near initial point
       pertPoints = self._createPerturbationPoints(traj,data)
-      print('lulelueluelueleulelueeuleuueule inside spsa lli',self.submissionQueue)
       # set up storage structure for results
       self._setupNewStorage(traj)
 
@@ -338,26 +337,26 @@ class SPSA(GradientBasedOptimizer):
     self.counter['lastStepSize'][traj][0] = new
     return new
 
-  def _computePerturbationDistance(self,traj,paramDict,iterNum,new = True):
+  def _computePerturbationDistance(self,traj,paramDict,iterNum,resample=False):
     """
       Utility function to compute the perturbation distance (distance from opt point to grad point)
       @ In, traj, int, integer label for current trajectory
       @ In, paramDict, dict, dictionary containing information to compute gain parameter
       @ In, iterNum, int, current iteration index
-      @ In, new, bool, if True take the last stepsize as the reference
+      @ In, resample, bool, if False take the last stepsize as the reference
       @ Out, distance, float, current value for gain ck
     """
     # perturbation point should be a percent of the intended step
     pct = paramDict['pertDist']
-    distance = pct * self.counter['lastStepSize'][traj][1]
-    # if new == True:
-    #   distance = pct * self.counter['lastStepSize'][traj][0]
-    # else:
-    #   distance = pct * self.counter['lastStepSize'][traj][1]
+    # distance = pct * self.counter['lastStepSize'][traj][1]
+    if not resample:
+      distance = pct * self.counter['lastStepSize'][traj][0]
+    else:
+      distance = pct * self.counter['lastStepSize'][traj][1]
 
     return distance
 
-  def _createPerturbationPoints(self, traj, optPoint, submit=True):
+  def _createPerturbationPoints(self, traj, optPoint, submit=True, resample=False):
     """
       Creates perturbation points based on a provided NORMALIZED data point
       @ In, traj, int, integer label for current trajectory
@@ -365,15 +364,10 @@ class SPSA(GradientBasedOptimizer):
       @ In, submit, bool, optional, if True then submit perturbation points to queue
       @ Out, points, list(dict), perturbation points
     """
-    print('inside spsa _createPerturbationPoints ',self.submissionQueue)
-
-    print('last stepsize',self.counter['lastStepSize'][traj])
     points = []
-    distance = self._computePerturbationDistance(traj,self.paramDict,self.counter['varsUpdate'][traj]+1)
-    print('distance,self.perturbationIndices',distance)
+    distance = self._computePerturbationDistance(traj,self.paramDict,self.counter['varsUpdate'][traj]+1,resample=resample)
     for i in self.perturbationIndices:
       direction = self._getPerturbationDirection(i, step = self.counter['varsUpdate'][traj])
-      # print('direction',direction)
       point = {}
       index = 0
       for var in self.getOptVars():
@@ -386,17 +380,14 @@ class SPSA(GradientBasedOptimizer):
             index += 1
           point[var] = new
         else:
-          # print(direction[index])
           val = optPoint[var] + distance*direction[index]
           val = self._checkBoundariesAndModify(1.0, 0.0, 1.0, val, 0.9999, 0.0001)
           index += 1
           point[var] = val
       points.append(point)
-      # print('lulueleu0000 point',point,self.submissionQueue)
       if submit:
         prefix = self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i)
         self.submissionQueue[traj].append({'inputs':point, 'prefix':prefix})
-    # print('lulueleu point',point,self.submissionQueue)
     return points
 
   def _findNewPoint(self, gain, startPoint, gradient):
@@ -663,14 +654,13 @@ class SPSA(GradientBasedOptimizer):
     if self.optType == 'max':
       lossDiff *= -1.0
     # difference in input variables
-    print(pert,opt)
     for var in self.getOptVars():
       dh = pert[var] - opt[var]
       # keep dimensionality consistent, so at least 1D
       gradient[var] = np.atleast_1d(lossDiff * dh)
     return gradient
 
-  def _newOptPointAdd(self, gradient, traj):
+  def _newOptPointAdd(self, gradient, traj, resample = False):
     """
       This local method add a new opt point based on the gradient
       @ In, gradient, dict, dictionary containing the gradient
@@ -685,7 +675,12 @@ class SPSA(GradientBasedOptimizer):
     # if no last viable point exists, use the original point
     else:
       varK = dict((var, self.optVarsInit['initial'][var][traj]) for var in self.getOptVars())
+
+    # This step propose a new point, and return whether this modded by constrains.
     varKPlus, modded = self._generateVarsUpdateConstrained(traj, stepSize, gradient, varK)
+    if resample:
+      varKPlus = varK
+      modded = False
     #check for redundant paths
     if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
       removed = self._removeRedundantTraj(traj, varKPlus)
