@@ -15,6 +15,7 @@
 """
 This tests programs by running a python command.
 """
+from __future__ import absolute_import
 import os
 import sys
 import subprocess
@@ -32,12 +33,12 @@ class RavenPython(Tester):
   This class runs a python program to test something.
   """
   try:
-    output_swig = subprocess.Popen(["swig", "-version"], stdout=subprocess.PIPE,
+    outputSwig = subprocess.Popen(["swig", "-version"], stdout=subprocess.PIPE,
                                    universal_newlines=True).communicate()[0]
   except OSError:
-    output_swig = "Failed"
+    outputSwig = "Failed"
 
-  has_swig2 = "Version 2.0" in output_swig or "Version 3.0" in output_swig
+  hasSwig2 = "Version 2.0" in outputSwig or "Version 3.0" in outputSwig
 
 
   @staticmethod
@@ -83,10 +84,10 @@ class RavenPython(Tester):
       @ Out, get_command, string, command to run.
     """
     if len(self.specs["python_command"]) == 0:
-      python_command = self._get_python_command()
+      pythonCommand = self._get_python_command()
     else:
-      python_command = self.specs["python_command"]
-    return python_command+" "+self.specs["input"]
+      pythonCommand = self.specs["python_command"]
+    return pythonCommand+" "+self.specs["input"]
 
   def __init__(self, name, params):
     """
@@ -123,24 +124,24 @@ class RavenPython(Tester):
                     +str(self.minimum_libraries)+')')
       return False
     while i < len(self.minimum_libraries):
-      library_name = self.minimum_libraries[i]
-      library_version = self.minimum_libraries[i+1]
-      found, _, actual_version = library_handler.checkSingleLibrary(library_name, 'check')
+      libraryName = self.minimum_libraries[i]
+      libraryVersion = self.minimum_libraries[i+1]
+      found, _, actualVersion = library_handler.checkSingleLibrary(libraryName, 'check')
       if not found:
-        self.set_skip('skipped (Unable to import library: "'+library_name+'")')
+        self.set_skip('skipped (Unable to import library: "'+libraryName+'")')
         return False
-      if distutils.version.LooseVersion(actual_version) < \
-         distutils.version.LooseVersion(library_version):
-        self.set_skip('skipped (Outdated library: "'+library_name+'")')
+      if distutils.version.LooseVersion(actualVersion) < \
+         distutils.version.LooseVersion(libraryVersion):
+        self.set_skip('skipped (Outdated library: "'+libraryName+'")')
         return False
       i += 2
 
     if len(self.required_executable) > 0:
       try:
-        args_list = [self.required_executable]
-        args_list.extend(self.required_executable_check_flags)
-        ret_value = subprocess.call(args_list, stdout=subprocess.PIPE)
-        if ret_value != 0:
+        argsList = [self.required_executable]
+        argsList.extend(self.required_executable_check_flags)
+        retValue = subprocess.call(argsList, stdout=subprocess.PIPE)
+        if retValue != 0:
           self.set_skip('skipped (Failing executable: "'
                         +self.required_executable+'")')
           return False
@@ -149,17 +150,17 @@ class RavenPython(Tester):
                       +self.required_executable+'")')
         return False
 
-    if self.specs['requires_swig2'] and not RavenPython.has_swig2:
+    if self.specs['requires_swig2'] and not RavenPython.hasSwig2:
       self.set_skip('skipped (No swig 2.0 found)')
       return False
-    missing, not_qa = library_handler.checkLibraries()
+    missing, notQa = library_handler.checkLibraries()
     if len(missing) > 0:
       self.set_fail('skipped (Missing python modules: '+" ".join(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
-    if len(not_qa) > 0 and library_handler.checkVersions():
+    if len(notQa) > 0 and library_handler.checkVersions():
       self.set_fail('skipped (Incorrectly versioned python modules: ' +
-                    " ".join(['{}-{}'.format(*m) for m in not_qa]) +
+                    " ".join(['{}-{}'.format(*m) for m in notQa]) +
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:

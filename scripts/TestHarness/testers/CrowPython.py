@@ -15,18 +15,19 @@
 """
 Tests by running a python program.
 """
+from __future__ import absolute_import
 import subprocess
 from Tester import Tester
 
 class CrowPython(Tester):
   """ A python test interface for Crow """
   try:
-    output_swig = subprocess.Popen(["swig", "-version"], stdout=subprocess.PIPE,
+    outputSwig = subprocess.Popen(["swig", "-version"], stdout=subprocess.PIPE,
                                    universal_newlines=True).communicate()[0]
   except OSError:
-    output_swig = "Failed"
+    outputSwig = "Failed"
 
-  has_swig2 = "Version 2.0" in output_swig or "Version 3.0" in output_swig
+  hasSwig2 = "Version 2.0" in outputSwig or "Version 3.0" in outputSwig
 
   @staticmethod
   def get_valid_params():
@@ -49,10 +50,10 @@ class CrowPython(Tester):
       @ Out, get_command, string, string command to use.
     """
     if len(self.specs["python_command"]) == 0:
-      python_command = self._get_python_command()
+      pythonCommand = self._get_python_command()
     else:
-      python_command = self.specs["python_command"]
-    return python_command+" "+self.specs["input"]
+      pythonCommand = self.specs["python_command"]
+    return pythonCommand+" "+self.specs["input"]
 
   def __init__(self, name, params):
     """ Constructor that will setup this test with a name and a list of

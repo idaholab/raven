@@ -14,6 +14,7 @@
 """
 This tests for expected errors in a program
 """
+from __future__ import absolute_import
 import os
 import sys
 import platform
@@ -87,14 +88,14 @@ class RavenErrors(Tester):
       @ In, None
       @ Out, check_runnable, boolean, If True this test can run.
     """
-    missing, not_qa = library_handler.checkLibraries()
+    missing, notQa = library_handler.checkLibraries()
     if len(missing) > 0:
       self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
-    if len(not_qa) > 0:
+    if len(notQa) > 0:
       self.set_skip('skipped (incorrect version python modules: ' +
-                    " ".join(['{}-{}'.format(*m) for m in not_qa]) +
+                    " ".join(['{}-{}'.format(*m) for m in notQa]) +
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:
@@ -121,9 +122,9 @@ class RavenErrors(Tester):
       self.set_skip('skipped (Error when trying executable: "'+self.required_executable+'")')
       return False
     if len(self.specs['skip_if_env']) > 0:
-      env_var = self.specs['skip_if_env']
-      if env_var in os.environ:
-        self.set_skip('skipped (found environmental variable "'+env_var+'")')
+      envVar = self.specs['skip_if_env']
+      if envVar in os.environ:
+        self.set_skip('skipped (found environmental variable "'+envVar+'")')
         return False
     return True
 
@@ -144,7 +145,7 @@ class RavenErrors(Tester):
     """
       Allow any exit code (but this could be extended to have an expected exit
       code in the parameters at some point)
-      @ In, exit_code, int, the exit code of the test command.
-      @ Out, check_exit_code, bool, always True since errors are expected
+      @ In, exitCode, int, the exit code of the test command.
+      @ Out, checkExitCode, bool, always True since errors are expected
     """
     return True
