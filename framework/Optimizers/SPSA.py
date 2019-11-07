@@ -697,17 +697,17 @@ class SPSA(GradientBasedOptimizer):
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = varKPlus
     return varKPlus
 
-  # def _setAlgorithmState(self, traj, state):
-  #   """
-  #     @ In, traj, int, the trajectory being saved
-  #     @ In, state, dict, keys:values this algorithm cares about saving for this trajectory
-  #     @ Out, None
-  #   """
-  #   if state is None:
-  #     return
-  #   if state['lastStepSize'] is not None:
-  #     self.counter['lastStepSize'][traj] = state['lastStepSize']
-  #   if state['gradientHistory'] is not None:
-  #     self.counter['gradientHistory'][traj] = state['gradientHistory']
-  #   if state['recommendToGain'] is not None:
-  #     self.recommendToGain[traj] = state['recommendToGain']
+  def _setAlgorithmState(self, traj, state):
+    """
+      @ In, traj, int, the trajectory being saved
+      @ In, state, dict, keys:values this algorithm cares about saving for this trajectory
+      @ Out, None
+    """
+    if state is None:
+      return
+    if state['lastStepSize'] is not None:
+      self.counter['lastStepSize'][traj] = state['lastStepSize']
+    if state['gradientHistory'] is not None:
+      self.counter['gradientHistory'][traj] = state['gradientHistory']
+    if state['recommendToGain'] is not None:
+      self.recommendToGain[traj] = state['recommendToGain']

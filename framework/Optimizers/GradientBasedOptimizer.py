@@ -163,7 +163,7 @@ class GradientBasedOptimizer(Optimizer):
       self.counter['varsUpdate'][traj]       = 0
       self.counter['solutionUpdate'][traj]   = 0
       self.counter['gradientHistory'][traj]  = [{},{}]
-      self.counter['lastStepSize'][traj]  = [{},{}]
+      self.counter['lastStepSize'][traj]     = [{},{}]
       self.counter['gradNormHistory'][traj]  = [0.0,0.0]
       self.counter['persistence'][traj]      = 0
       self.counter['iSave'][traj]            = np.zeros((2,), np.intc)
