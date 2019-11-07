@@ -19,15 +19,15 @@ from __future__ import absolute_import
 import subprocess
 from Tester import Tester
 
+try:
+  outputSwig = subprocess.Popen(["swig", "-version"], stdout=subprocess.PIPE,
+                                 universal_newlines=True).communicate()[0]
+except OSError:
+  outputSwig = "Failed"
+
 class CrowPython(Tester):
   """ A python test interface for Crow """
-  try:
-    outputSwig = subprocess.Popen(["swig", "-version"], stdout=subprocess.PIPE,
-                                   universal_newlines=True).communicate()[0]
-  except OSError:
-    outputSwig = "Failed"
-
-  hasSwig2 = "Version 2.0" in outputSwig or "Version 3.0" in outputSwig
+  hasSwig2 = any('Version {:d}.0'.format(v) in outputSwig for v in [2, 3, 4])
 
   @staticmethod
   def get_valid_params():
@@ -70,7 +70,7 @@ class CrowPython(Tester):
       @ In, None
       @ Out, check_runnable, boolean, True if this test can run.
     """
-    if self.specs['requires_swig2'] and not CrowPython.has_swig2:
+    if self.specs['requires_swig2'] and not CrowPython.hasSwig2:
       self.set_skip('skipped (No swig 2.0 found)')
       return False
     return True
