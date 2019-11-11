@@ -343,7 +343,7 @@ class SPSA(GradientBasedOptimizer):
       @ In, traj, int, integer label for current trajectory
       @ In, paramDict, dict, dictionary containing information to compute gain parameter
       @ In, iterNum, int, current iteration index
-      @ In, resample, bool, if False take the last stepsize as the reference
+      @ In, resample, bool, optional, if False take the last stepsize as the reference
       @ Out, distance, float, current value for gain ck
     """
     # perturbation point should be a percent of the intended step
@@ -362,6 +362,7 @@ class SPSA(GradientBasedOptimizer):
       @ In, traj, int, integer label for current trajectory
       @ In, optPoint, dict, current optimal point near which to calculate gradient
       @ In, submit, bool, optional, if True then submit perturbation points to queue
+      @ In, resample, bool, optional, if False take the last stepsize as the reference
       @ Out, points, list(dict), perturbation points
     """
     points = []
@@ -665,6 +666,7 @@ class SPSA(GradientBasedOptimizer):
       This local method add a new opt point based on the gradient
       @ In, gradient, dict, dictionary containing the gradient
       @ In, traj, int, trajectory
+      @ In, resample, bool, optional, if False take the last stepsize as the reference
       @ Out, varKPlus, dict, new point that has been queued (or None if no new points should be run for this traj)
     """
     stepSize = self._computeStepSize(self.paramDict, self.counter['varsUpdate'][traj], traj)

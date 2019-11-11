@@ -173,11 +173,12 @@ class ConjugateGradient(FiniteDifference):
   ###################
   # Utility Methods #
   ###################
-  def _newOptPointAdd(self, gradient, traj):
+  def _newOptPointAdd(self, gradient, traj,resample = False):
     """
       This local method add a new opt point based on the gradient
       @ In, gradient, dict, dictionary containing the gradient
       @ In, traj, int, trajectory
+      @ In, resample, bool, optional, if False take the last stepsize as the reference
       @ Out, varKPlus, dict, new point that has been queued (or None if no new points should be run for this traj)
     """
     stepSize = self.counter['lastStepSize'][traj][0]
@@ -198,12 +199,13 @@ class ConjugateGradient(FiniteDifference):
     self.optVarsHist[traj][self.counter['varsUpdate'][traj]] = varKPlus
     return varKPlus
 
-  def _createPerturbationPoints(self, traj, optPoint, submit=True):
+  def _createPerturbationPoints(self, traj, optPoint, submit=True, resample=False):
     """
       Creates perturbation points based on a provided NORMALIZED data point
       @ In, traj, int, integer label for current trajectory
       @ In, optPoint, dict, current optimal point near which to calculate gradient
       @ In, submit, bool, optional, if True then submit perturbation points to queue
+      @ In, resample, bool, optional, if False take the last stepsize as the reference
       @ Out, points, list(dict), perturbation points
     """
     points = []

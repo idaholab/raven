@@ -84,7 +84,7 @@ class GradientBasedOptimizer(Optimizer):
                                                        # dsave(3) derivative at the best step on variables
                                                        # dsave(4) derivative at best residuals;
                                                        # dsave(5) value of the problem at step
-                                                       # dsave(6) velue of the problem at best step
+                                                       # dsave(6) value of the problem at best step
                                                        # dsave(7) value of the problem at second best step
                                                        # dsave(8) best step obtained so far, endpoint of the interval that contains the minimizer.
                                                        # dsave(9) second endpoint of the interval that contains the minimizer.
@@ -102,23 +102,23 @@ class GradientBasedOptimizer(Optimizer):
     self.counter['newFVal']          = {}              # float, function value for a new optimal point
     self.counter['oldFVal']          = {}              # float, function value for last optimal point
     self.counter['oldOldFVal']       = {}              # float, function value for penultimate optimal point
-    self.counter['oldGradK']         = {}              # ndarry, gradient value as an array for current best optimal point
-    self.counter['gNorm']            = {}              # float, norm of the current grendient
+    self.counter['oldGradK']         = {}              # ndarray, gradient value as an array for current best optimal point
+    self.counter['gNorm']            = {}              # float, norm of the current gradient
     self.counter['deltaK']           = {}              # float, inner product of the current gradient for calculation of the Polak–Ribière stepsize
     self.counter['derPhi0']          = {}              # float, objective function derivative at each begining of the line search
     self.counter['alpha']            = {}              # float, stepsize for conjugate gradient method in current dirrection
-
+    self.resampleSwitch              = True            # bool, resample switch
     self.resample                    = {}              # bool, whether next point is a resample opt point if True, then the next submit point is a resample opt point with new perturbed gradient point
     self.convergeTraj                = {}
-    self.convergenceProgress         = {}              #tracks the convergence progress, by trajectory
+    self.convergenceProgress         = {}              # tracks the convergence progress, by trajectory
     self.trajectoriesKilled          = {}              # by traj, store traj killed, so that there's no mutual destruction
     self.recommendToGain             = {}              # recommended action to take in next step, by trajectory
     self.gainGrowthFactor            = 2.              # max step growth factor
     self.gainShrinkFactor            = 2.              # max step shrinking factor
-    self.optPointIndices             = []              # in this list we store the indeces that correspond to the opt point
-    self.perturbationIndices         = []              # in this list we store the indeces that correspond to the perturbation.
+    self.optPointIndices             = []              # in this list we store the indices that correspond to the opt point
+    self.perturbationIndices         = []              # in this list we store the indices that correspond to the perturbation.
     self.useCentralDiff              = True            # whether to use central differencing
-    self.useGradHist                 = False            # whether to use Gradient hisory
+    self.useGradHist                 = False           # whether to use Gradient history
     # REWORK 2018-10 for simultaneous point-and-gradient evaluations
     self.realizations                = {}    # by trajectory, stores the results obtained from the jobs running, see setupNewStorage for structure
 
@@ -134,6 +134,11 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, None
     """
     for child in paramInput.subparts:
+      if child.getName() == "initialization":
+        for grandchild in child.subparts:
+          tag = grandchild.getName()
+          if tag == "resample":
+            self.resampleSwitch = grandchild.value
       if child.getName() == "convergence":
         for grandchild in child.subparts:
           tag = grandchild.getName()
@@ -505,6 +510,7 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, converged, bool, if True then indicates convergence has been reached
     """
     # check convergence and check if new point is accepted (better than old point)
+    self.resample[traj] = self.checkResampleOption(traj)
     if self.resample[traj]:
       accepted = True
     else:
@@ -521,7 +527,7 @@ class GradientBasedOptimizer(Optimizer):
       self.realizations[traj]['accepted'] = accepted
       self.resample[traj] = False
     else:
-      self.resample[traj] = True
+      self.resample[traj] = self.checkResampleOption(traj)
       # cancel all gradient evaluations for the rejected candidate immediately
       self.cancelJobs([self._createEvaluationIdentifier(traj,self.counter['varsUpdate'][traj],i) for i in self.perturbationIndices])
       # update solution export
@@ -949,3 +955,12 @@ class GradientBasedOptimizer(Optimizer):
       # format for realization
       rlz[var] = np.atleast_1d(new)
     self.solutionExport.addRealization(rlz)
+
+  def checkResampleOption(self,traj):
+    """
+
+    """
+    if self.resampleSwitch:
+      return True
+    else:
+      return False

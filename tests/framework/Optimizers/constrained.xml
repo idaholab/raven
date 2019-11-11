@@ -18,6 +18,7 @@
       <revision author="talbpaul" date="2018-01-04">switch from snapshot to writeSteps final</revision>
       <revision author="talbpaul" date="2018-10-23">limited outputs checked to just the solution</revision>
       <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author='ZHOUJ2' date='2019-11-10'>add resample to False in optimizer</revision>
     </revisions>
   </TestInfo>
 
@@ -52,6 +53,7 @@
       <initialization>
         <initialSeed>42</initialSeed>
         <writeSteps>final</writeSteps>
+        <resample>False</resample>
       </initialization>
       <Function class="Functions" type="External">mishra</Function>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
