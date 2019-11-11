@@ -348,7 +348,6 @@ class SPSA(GradientBasedOptimizer):
     """
     # perturbation point should be a percent of the intended step
     pct = paramDict['pertDist']
-    # distance = pct * self.counter['lastStepSize'][traj][1]
     if not resample:
       distance = pct * self.counter['lastStepSize'][traj][0]
     else:

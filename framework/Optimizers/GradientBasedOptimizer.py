@@ -958,7 +958,10 @@ class GradientBasedOptimizer(Optimizer):
 
   def checkResampleOption(self,traj):
     """
-
+      Turn on self.resample[traj] while checking self.resampleSwitch.
+      This method is equivalent to self.resample[traj] = resampleSwitch while needed
+      @ In, traj, int, the trajectory for which an entry is being written
+      @ Out, bool, True if resample switch is on
     """
     if self.resampleSwitch:
       return True

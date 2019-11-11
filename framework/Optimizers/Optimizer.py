@@ -335,8 +335,6 @@ class Optimizer(Sampler):
             self.initSeed = childChild.value
           elif childChild.getName() == 'thresholdTrajRemoval':
             self.thresholdTrajRemoval = childChild.value
-          # elif childChild.getName() == 'resample':
-          #   self.resampleSwitch = childChild.value
           elif childChild.getName() == 'writeSteps':
             whenToWrite = childChild.value.strip().lower()
             if whenToWrite == 'every':
@@ -345,8 +343,6 @@ class Optimizer(Sampler):
               self.writeSolnExportOn = 'final'
             else:
               self.raiseAnError(IOError,'Unexpected frequency for <writeSteps>: "{}". Expected "every" or "final".'.format(whenToWrite))
-          # else:
-          #   self.raiseAnError(IOError,'Unknown tag: '+childChild.getName())
 
       elif child.getName() == "convergence":
         for childChild in child.subparts:
