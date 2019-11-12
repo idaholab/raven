@@ -39,14 +39,6 @@ for classObj in utils.getAllSubclasses(eval(__base)):
   key = classObj.__name__
   __interFaceDict[key] = classObj
 
-# load from plugins
-for subType in ['ExternalModel', 'Code', 'ROM', 'PostProcessor']:
-  pluginModels = PluginFactory.getEntities(subType)
-  __interFaceDict.update(pluginModels)
-
-import pprint
-pprint.pprint(__interFaceDict)
-
 #here the class methods are called to fill the information about the usage of the classes
 for classType in __interFaceDict.values():
   classType.generateValidateDict()

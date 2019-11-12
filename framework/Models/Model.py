@@ -42,10 +42,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     it could as complex as a stand alone code, a reduced order model trained somehow or something
     externally build and imported by the user
   """
-  #try:
-  #  plugins = importlib.import_module("Models.ModelPlugInFactory")
-  #except Exception as ae:
-  #  print("FAILED PLUGIN IMPORT",repr(ae))
+  plugins = importlib.import_module("Models.ModelPlugInFactory")
+
 
   @classmethod
   def getInputSpecification(cls):

@@ -16,6 +16,42 @@ If a code: \vspace{-20pt}
 \end{itemize}\vspace{-20pt}
 the GenericCode interface should cover the code for RAVEN.
 
+The GenericCode interface leverages a wildcard-based approach to editing input files. Using the
+special wildcard format \texttt{\$RAVEN-\$}, RAVEN parses text-based inputs and replaces the
+wildcards with sampled values. For example, consider RAVEN sampling variables named
+\texttt{initial_velocity} and \texttt{initial_angle}. Assume we're using a projectile tracking model
+with keyword based entry input files; for example,
+\begin{lstlisting}[language=python]
+  initial_height = 0     # starting height, m
+  initial_angle = 35     # starting angle, degrees
+  initial_velocity = 40  # starting velocity, m/s
+  gravity = 9.8          # accel due to grav, m/s/s
+  auxfile = gen.two      # additional properties file
+  case = myOut           # output name (adds .csv)
+ \end{lstlisting}
+Since we want to sample \texttt{initial_velocity} and \texttt{initial_angle}, we create a new
+template input and replace the values where samples should go with the wildcard and the variable
+name:
+\begin{lstlisting}[language=python]
+  initial_height = 0     # starting height, m
+  initial_angle = $RAVEN-initial_angle$ # starting angle, degrees
+  initial_velocity = $RAVEN-initial_velocity$ # starting velocity, m/s
+  gravity = 9.8          # accel due to grav, m/s/s
+  auxfile = gen.two      # additional properties file
+  case = myOut           # output name (adds .csv)
+\end{lstlisting}
+See more discussion of replacing the output case and auxiliary file names below. When RAVEN samples
+values for the initial height and velocity, it will generate a new input file with those values in
+place, for example,
+\begin{lstlisting}[language=python]
+  initial_height = 0     # starting height, m
+  initial_angle = 22.7589 # starting angle, degrees
+  initial_velocity = 47.2076 # starting velocity, m/s
+  gravity = 9.8          # accel due to grav, m/s/s
+  auxfile = gen.two      # additional properties file
+  case = myOut           # output name (adds .csv)
+\end{lstlisting}
+
 If a code contains cross-dependent data, the generic interface is not able to
 edit the correct values.  For example, if a geometry-building script specifies
 inner\_radius, outer\_radius, and thickness, the generic interface cannot
@@ -468,22 +504,22 @@ An additional feature of the RELAP5 Code interface is the possibility to specify
 cards. For example, let's assume the values in cards 1180801:2 and 1180802:2 must come from a calculation based on sampled variables (e.g. 20100154:2 and 20100155:2), the user can specify the following XML node:
 
 \begin{itemize}
-   \item \xmlNode{operator}, \xmlDesc{XML node, optional parameter}, The operator block. 
+   \item \xmlNode{operator}, \xmlDesc{XML node, optional parameter}, The operator block.
     This XML node must contain the following attribute:
      \begin{itemize}
       \item \textit{variables}, \xmlDesc{comma separated list, required parameter}, The list of variables
        (coming from a Sampler) that will be used in the  \xmlNode{expression} XML node.
-      \end{itemize}   
+      \end{itemize}
      Within the  \xmlNode{operator} the following XML sub-nodes must be specified:
      \begin{itemize}
-        \item \xmlNode{expression}, \xmlDesc{string, required parameter}, The string representing the expression to be 
+        \item \xmlNode{expression}, \xmlDesc{string, required parameter}, The string representing the expression to be
         performed. The ``card'' (if needed to be used) must be identified with the token \%card\% and it
-         will be replaced with the values of the cards 
-        (specified in the XML node \xmlNode{cards} ) from the original input file. In this expression, all the functions available in 
+         will be replaced with the values of the cards
+        (specified in the XML node \xmlNode{cards} ) from the original input file. In this expression, all the functions available in
         the Python $math$ module can be used (e.g. $sqrt$, $exp$, $sin$, etc.).
          \item \xmlNode{cards}, \xmlDesc{comma separated list, required parameter},
           The list of cards in the original input file whose values need to be replaced by the value resulting from the expression
-          contained in \xmlNode{expression}. 
+          contained in \xmlNode{expression}.
      \end{itemize}
     \nb the user can specify as many \xmlNode{operator} nodes as needed.
 \end{itemize}
@@ -4553,9 +4589,9 @@ mrtauTime, n2n$\vert$gr1$\vert$reg4, httemp\_3001010\_1, time
 \subsection{Neutrino Interface}
 \label{subsec:neutrinoInterface}
 This section covers the input specification for running Neutrino through RAVEN. It is important to notice
-that this explanation assumes that the reader already knows how to use Neutrino. The existing inteface can be used to modify the particle size. 
-However, the interface can be modified to alter other parameters by using a similar method to the 
-existing particle size modification included in the interface. 
+that this explanation assumes that the reader already knows how to use Neutrino. The existing inteface can be used to modify the particle size.
+However, the interface can be modified to alter other parameters by using a similar method to the
+existing particle size modification included in the interface.
 
 \subsubsection{Files}
 In the \xmlNode{Files} section, as specified before, all the files needed for the code to
@@ -4563,7 +4599,7 @@ run should be specified. In the case of Neutrino, the file needed is the followi
 \begin{itemize}
   \item Neutrino input file with file extension `.nescene';
 \end{itemize}
-The Neutrino input file name must be NeutrinoInput.nescene. Otherwise, the Neutrino interface must be modified. 
+The Neutrino input file name must be NeutrinoInput.nescene. Otherwise, the Neutrino interface must be modified.
 %
 Example:
 \begin{lstlisting}[style=XML]
@@ -4599,7 +4635,7 @@ This model can be initialized with the following children:
   \item \xmlNode{executable}, \xmlDesc{string, required field}, specifies the path of the executable to
     be used; \nb Either an absolute or relative path can be used.
 \end{itemize}
- 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Distributions}
@@ -4667,4 +4703,4 @@ The Neutrino interface is used to alter the particle size by modifying the Neutr
 searches for the default SPH solver parameter name: '\texttt{NIISphSolver\_1}'. If the SPH solver name is changed in the
 Neutrino input file, the Neutrino interface must also be changed. Similarly, the Neutrino interface searches for the
 output in the default Measurement field name: '\texttt{MeasurementField\_1}'. Again, this would need to modified in the interface
-if the measurement field name was changed. 
+if the measurement field name was changed.
