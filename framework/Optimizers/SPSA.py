@@ -349,10 +349,10 @@ class SPSA(GradientBasedOptimizer):
     # perturbation point should be a percent of the intended step
     pct = paramDict['pertDist']
     if not resample:
-      distance = pct * self.counter['lastStepSize'][traj][0]
+      stepSize = self.counter['lastStepSize'][traj][0]
     else:
-      distance = pct * self.counter['lastStepSize'][traj][1]
-
+      stepSize = self.counter['lastStepSize'][traj][1]
+    distance = pct * stepSize
     return distance
 
   def _createPerturbationPoints(self, traj, optPoint, submit=True, resample=False):
@@ -678,10 +678,12 @@ class SPSA(GradientBasedOptimizer):
       varK = dict((var, self.optVarsInit['initial'][var][traj]) for var in self.getOptVars())
 
     # This step propose a new point, and return whether this modded by constrains.
-    varKPlus, modded = self._generateVarsUpdateConstrained(traj, stepSize, gradient, varK)
     if resample:
       varKPlus = varK
       modded = False
+    else:
+      varKPlus, modded = self._generateVarsUpdateConstrained(traj, stepSize, gradient, varK)
+
     #check for redundant paths
     if len(self.optTrajLive) > 1 and self.counter['solutionUpdate'][traj] > 0:
       removed = self._removeRedundantTraj(traj, varKPlus)
