@@ -1,0 +1,5 @@
+<Functions>
+  <External file='../common/redundants.py' name='depends'>
+    <variables>x1,x2</variables>
+  </External>
+</Functions>

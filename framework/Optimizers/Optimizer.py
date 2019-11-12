@@ -402,6 +402,7 @@ class Optimizer(Sampler):
       if len(self.optVarsInit['initial'][varName]) == 0:
         for traj in self.optTraj:
           self.optVarsInit['initial'][varName][traj] = None
+      self.toBeSampled[varName] = None # compatability with base Sampler
     return paramInput
 
   def initialize(self,externalSeeding=None,solutionExport=None):
