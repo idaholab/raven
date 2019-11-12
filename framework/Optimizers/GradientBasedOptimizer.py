@@ -510,7 +510,6 @@ class GradientBasedOptimizer(Optimizer):
       @ Out, converged, bool, if True then indicates convergence has been reached
     """
     # check convergence and check if new point is accepted (better than old point)
-    self.resample[traj] = self.checkResampleOption(traj)
     if self.resample[traj]:
       accepted = True
     else:
