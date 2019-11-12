@@ -27,6 +27,18 @@ frameworkDir = os.path.join(os.path.dirname(__file__), '..', 'framework')
 sys.path.append(frameworkDir)
 from utils import xmlUtils
 
+# python changed the import error in 3.6
+if sys.version_info[0] == 3 and sys.version_info[1] >= 6:
+  impErr = ModuleNotFoundError
+else:
+  impErr = ImportError
+
+# python 2.X uses a different capitalization for configparser
+try:
+  import configparser
+except impErr:
+  import ConfigParser as configparser
+
 # globals
 ravenConfigName = '.ravenconfig.xml'
 requiredDirs = ['src', 'doc', 'tests']
@@ -156,3 +168,33 @@ def getPluginLocation(name):
   if plugin is not None:
     return plugin.find('location').text
   return None
+
+if __name__ == '__main__':
+  parser = argparse.ArgumentParser(prog="RAVEN Plugin Handler",
+                                   description="Plugin management tool for RAVEN")
+  # for now, the only use is to request a location, so we make that the arugment
+  # -> this is used in the run_tests script to find test dirs
+  #parser.add_argument('loc', dest='pluginLocReq', required=True, default=None, metavar='plugin_name',
+  parser.add_argument('-f', '--find', dest='loc', default=None, metavar='plugin_name',
+                      help='provides location of requested plugin')
+  parser.add_argument('-l', '--list', dest='list', action='store_true',
+                      help='lists installed plugins')
+
+  # no arguments? get some help!
+  if len(sys.argv) == 1:
+    parser.print_help()
+    sys.exit(1)
+
+  args = parser.parse_args()
+  # plugins list
+  doList = args.list
+  if doList:
+    plugins = getInstalledPlugins()
+    print(' '.join(p[0] for p in plugins))
+  # plugin location
+  requested = args.loc
+  if args.loc:
+    loc = getPluginLocation(requested)
+    if loc is None:
+      raise KeyError('Plugin "{}" not installed!'.format(requested))
+    print(loc)

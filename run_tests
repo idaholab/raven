@@ -52,17 +52,19 @@ for A in "$@"; do
     esac
 done
 
-# this copy the plugins tests into raven tests
-echo 'Loading plugin tests ...'
-$PYTHON_COMMAND $SCRIPT_DIR/scripts/copy_plugins_tests.py
 # run the tests
-echo 'Running tests ...'
+echo 'Running RAVEN tests ...'
 
 $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
-
 # grep return code
 rc=$?
-# this copy back the plugins and remove them from the source folder
-$PYTHON_COMMAND $SCRIPT_DIR/scripts/copy_back_plugins_results.py
-# return code
-if [[ $rc != 0 ]]; then exit $rc; fi
+if [[ $rc != 0 ]]; then
+    echo ' ... there were failed RAVEN tests!'
+    exit $rc;
+fi
+
+# this copy the plugins tests into raven tests
+echo 'Loading plugin tests ...'
+PLUGINS=`$PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -l`
+# $PYTHON_COMMAND $SCRIPT_DIR/scripts/copy_plugins_tests.py
+

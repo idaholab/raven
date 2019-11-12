@@ -88,7 +88,8 @@ if __name__ == '__main__':
     # tell plugin about RAVEN
     rLoc = pluginHandler.tellPluginAboutRaven(plugDir)
     print(' ... plugin "{}" informed of RAVEN at "{}"...'.format(name, rLoc))
-    ## TODO testing?
+    # testing ?
+    # done
     print(' ... plugin "{}" succesfully installed!'.format(name))
   pluginHandler.writePluginTree(infoFile, root)
 
