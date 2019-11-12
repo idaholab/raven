@@ -4,7 +4,6 @@
 # read .ravenrc file
 
 ECE_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-RAVEN_UTILS=${ECE_SCRIPT_DIR}/TestHarness/testers/RavenUtils.py
 
 # fail if ANYTHING this script fails (mostly, there are exceptions)
 set -e

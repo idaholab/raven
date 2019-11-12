@@ -14,15 +14,21 @@
 """
 This tests for expected errors in a program
 """
+from __future__ import absolute_import
 import os
-import subprocess
+import sys
 import platform
+import subprocess
 from Tester import Tester
-import RavenUtils
 
 fileDir = os.path.dirname(os.path.realpath(__file__))
 raven = os.path.abspath(os.path.join(fileDir, '..', '..', '..', 'framework',
                                      'Driver.py'))
+scriptsDir = os.path.abspath(os.path.join(fileDir, '..', '..'))
+sys.path.append(scriptsDir)
+import library_handler
+# clear scripts from path
+sys.path.pop()
 
 class RavenErrors(Tester):
   """
@@ -82,13 +88,14 @@ class RavenErrors(Tester):
       @ In, None
       @ Out, check_runnable, boolean, If True this test can run.
     """
-    missing, too_old, _ = RavenUtils.check_for_missing_modules()
+    missing, notQa = library_handler.checkLibraries()
     if len(missing) > 0:
       self.set_skip('skipped (Missing python modules: '+" ".join(missing)+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
-    if len(too_old) > 0:
-      self.set_skip('skipped (Old version python modules: '+" ".join(too_old)+
+    if len(notQa) > 0:
+      self.set_skip('skipped (incorrect version python modules: ' +
+                    " ".join(['{}-{}'.format(*m) for m in notQa]) +
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     for lib in self.required_libraries:
@@ -99,7 +106,7 @@ class RavenErrors(Tester):
       if not os.path.exists(lib):
         self.set_skip('skipped (Missing library: "'+lib+'")')
         return False
-    if self.specs['python3_only'] and not RavenUtils.in_python_3():
+    if self.specs['python3_only'] and not library_handler.inPython3():
       self.set_skip('Python 3 only')
       return False
     if len(self.required_executable) > 0 and \
@@ -115,9 +122,9 @@ class RavenErrors(Tester):
       self.set_skip('skipped (Error when trying executable: "'+self.required_executable+'")')
       return False
     if len(self.specs['skip_if_env']) > 0:
-      env_var = self.specs['skip_if_env']
-      if env_var in os.environ:
-        self.set_skip('skipped (found environmental variable "'+env_var+'")')
+      envVar = self.specs['skip_if_env']
+      if envVar in os.environ:
+        self.set_skip('skipped (found environmental variable "'+envVar+'")')
         return False
     return True
 
@@ -138,7 +145,7 @@ class RavenErrors(Tester):
     """
       Allow any exit code (but this could be extended to have an expected exit
       code in the parameters at some point)
-      @ In, exit_code, int, the exit code of the test command.
-      @ Out, check_exit_code, bool, always True since errors are expected
+      @ In, exitCode, int, the exit code of the test command.
+      @ Out, checkExitCode, bool, always True since errors are expected
     """
     return True
