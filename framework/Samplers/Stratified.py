@@ -97,10 +97,18 @@ class Stratified(Grid):
     #TODO Remove using xmlNode
     Sampler.readSamplerInit(self,xmlNode)
     Grid.localInputAndChecks(self,xmlNode, paramInput)
+    # check that the correct dimensionality was provided
     pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
-    if len(set(pointByVar))!=1:
-      self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of point in each dimension')
-    self.pointByVar         = pointByVar[0]
+    lenPBV = len(set(pointByVar))
+    if lenPBV != 1:
+      if lenPBV == 0:
+        # no sampled vars were given, but allow the Sampler to catch this later.
+        pass
+      else:
+        self.raiseAnError(IOError,'<Stratified> sampler named "{}" requires the same number of point in each dimension!'.format(self.name))
+    else:
+      # correct dimensionality given
+      self.pointByVar         = pointByVar[0]
     self.inputInfo['upper'] = {}
     self.inputInfo['lower'] = {}
 

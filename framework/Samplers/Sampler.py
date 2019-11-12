@@ -225,6 +225,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     Assembler._readMoreXML(self,xmlNode)
     paramInput = self._readMoreXMLbase(xmlNode)
     self.localInputAndChecks(xmlNode, paramInput)
+    if not self.toBeSampled and self.type != 'MonteCarlo':
+      self.raiseAnError(IOError, '<{t}> sampler named "{n}" requires at least one sampled <variable>!'
+                                 .format(n=self.name, t=self.type))
 
   def _readMoreXMLbase(self,xmlNode):
     """
@@ -462,7 +465,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.auxcnt = self.initSeed
     elif externalSeeding=='continue':
       pass        #in this case the random sequence needs to be preserved
-    else                              :
+    else:
       randomUtils.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
     #grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.

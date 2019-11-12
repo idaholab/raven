@@ -816,5 +816,7 @@ class Simulation(MessageHandler.MessageUser):
             for allObject in self.whichDict[mainClassStr]:
               neededobjs[mainClassStr][allObject] = self.whichDict[mainClassStr][allObject]
           else:
-            self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
+            self.raiseAnError(IOError,'Requested object <{n}> is not part of the Main Class <{m}>!'
+                                      .format(n=obj[1], m=mainClassStr) +
+                                      '\nOptions are:', self.whichDict[mainClassStr].keys())
       objectInstance.generateAssembler(neededobjs)
