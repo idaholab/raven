@@ -148,12 +148,15 @@ class ExternalModel(Dummy):
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
       # load the external module and point it to self.sim
       self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
-    elif len(paramInput.parameterValues['subType'].strip()) > 0:
-      # it is a plugin. Look for the type in the plugins class list
+    ## NOTE we implicitly assume not having ModuleToLoad means you're a plugin or a known type.
+    elif paramInput.parameterValues['subType'].strip() is not None:
+      print('DEBUGG known:', ExternalModel.plugins.knownTypes())
+      # We assume it is a plugin. Look for the type in the plugins class list
       if paramInput.parameterValues['subType'] not in ExternalModel.plugins.knownTypes():
-        self.raiseAnError(IOError,'The "subType" named "'+paramInput.parameterValues['subType']+
-                                  '" does not belong to any ExternalModel plugin available. ' +
-                                  'Available plugins are "'+ ','.join(ExternalModel.plugins.knownTypes()))
+        self.raiseAnError(IOError,('The "subType" named "{sub}" does not belong to any ' +
+                                   'ExternalModel plugin available. Available plugins are: {plugs}')
+                                  .format(sub=paramInput.parameterValues['subType'],
+                                          plugs=', '.join(ExternalModel.plugins.knownTypes())))
       self.sim = ExternalModel.plugins.returnPlugin("ExternalModel",paramInput.parameterValues['subType'],self)
     else:
       self.raiseAnError(IOError,'"ModuleToLoad" attribute or "subType" not provided for Model "ExternalModel" named "'+self.name+'"!')

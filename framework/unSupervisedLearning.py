@@ -56,6 +56,7 @@ import DataObjects
 
 
 if utils.displayAvailable() and platform.system() != 'Windows':
+  import matplotlib
   matplotlib.use('TkAgg')
 import matplotlib.pylab as plt
 

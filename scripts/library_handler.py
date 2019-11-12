@@ -220,10 +220,12 @@ def getRequiredLibs(useOS=None, installMethod=None, addOptional=False, limit=Non
     @ In, installMethod, str, optional, if provided then assume given install method
     @ In, addOptional, bool, optional, if True then add optional libraries to list
     @ In, limit, list(str), optional, limit sections that are read in
-    @ In, plugins, list(tuple(str,str)), optional, plugins (name, location) that should be added to the required libs
+    @ In, plugins, list(tuple(str,str)), optional, plugins (name, location) that should be added to
+                   the required libs
     @ Out, libs, dict, dictionary of libraries {name: version}
   """
-  mainConfigFile = os.path.abspath(os.path.expanduser(os.path.join(os.path.dirname(__file__), '..', 'dependencies.ini')))
+  mainConfigFile = os.path.abspath(os.path.expanduser(os.path.join(os.path.dirname(__file__),
+                                                                   '..', 'dependencies.ini')))
   config = _readDependencies(mainConfigFile)
   opSys = _getOperatingSystem(override=useOS)
   install = _getInstallMethod(override=installMethod)
@@ -332,21 +334,22 @@ def _parseLibs(config, opSys, install, addOptional=False, limit=None, plugins=No
     @ In, install, str, installation method (not checked)
     @ In, addOptional, bool, optional, if True then include optional libraries
     @ In, limit, list(str), optional, if provided then only read the given sections
-    @ In, plugins, list(tuple(str,configParser.configParser)), optional, plugins (name, config) that should be added to the parsing
+    @ In, plugins, list(tuple(str,configParser.configParser)), optional, plugins (name, config)
+                   that should be added to the parsing
     @ Out, libs, dict, dictionary of libraries {name: version}
   """
   libs = OrderedDict()
   # get the main libraries, depending on request
   for src in ['core', 'forge', 'pip']:
-    if (True if limit is None else (src in limit)):
+    if src in config and (True if limit is None else (src in limit)):
       _addLibsFromSection(config.items(src), libs)
   # os-specific are part of 'core' right now
-  if (True if limit is None else ('core' in limit)):
+  if opSys in config and (True if limit is None else ('core' in limit)):
     _addLibsFromSection(config.items(opSys), libs)
   # optional are part of 'core' right now, but leave that up to the requester?
-  if addOptional:
+  if addOptional and 'optional' in config:
     _addLibsFromSection(config.items('optional'), libs)
-  if install == 'pip':
+  if install == 'pip' and 'pip-install' in config:
     _addLibsFromSection(config.items('pip-install'), libs)
   return libs
 
@@ -358,6 +361,8 @@ def _addLibsFromSection(configSection, libs):
     @ Out, None (changes libs in place)
   """
   for lib, version in configSection:
+    if lib not in configSection:
+      return
     if version == 'remove':
       libs.pop(lib, None)
     else:
@@ -378,23 +383,28 @@ def _readDependencies(initFile):
 
 if __name__ == '__main__':
   mainParser = argparse.ArgumentParser(description='RAVEN Library Handler')
-  mainParser.add_argument('--os', dest='useOS', choices=('windows', 'mac', 'linux'), default=None,
-                      help='Determines the operating system for which the library configuration will be built.')
+  mainParser.add_argument('--os', dest='useOS',
+        choices=('windows', 'mac', 'linux'), default=None,
+        help='Determines the operating system for which the library configuration will be built.')
   mainParser.add_argument('--plugins', dest='usePlugins', action='append',
-                      help='Lists the plugins (or none or all) whose libraries should be included. Default: all.')
+        help='Lists the plugins (or none or all) whose libraries should be included. Default: all.')
   mainParser.add_argument('--optional', dest='addOptional', action='store_true',
-                      help='Include optional libraries in configuration.')
+        help='Include optional libraries in configuration.')
   subParsers = mainParser.add_subparsers(help='Choose library installer.', dest='installer')
 
   condaParser = subParsers.add_parser('conda', help='use conda as installer')
-  condaParser.add_argument('--action', dest='action', choices=('create', 'install', 'list'), default='install',
-                      help='Chooses whether to (create) a new environment, (install) in existing environment, or (list) installation libraries.')
-  condaParser.add_argument('--subset', dest='subset', choices=('core', 'forge', 'pip'), default='core',
-                      help='Use subset of installation libraries, divided by source.')
+  condaParser.add_argument('--action', dest='action',
+        choices=('create', 'install', 'list'), default='install',
+        help='Chooses whether to (create) a new environment, (install) in existing environment, ' +
+             'or (list) installation libraries.')
+  condaParser.add_argument('--subset', dest='subset',
+        choices=('core', 'forge', 'pip'), default='core',
+        help='Use subset of installation libraries, divided by source.')
 
   pipParser = subParsers.add_parser('pip', help='use pip as installer')
   pipParser.add_argument('--action', dest='action', choices=('install', 'list'), default='install',
-                      help='Chooses whether to (install) in current environment, or (list) installation libraries.')
+        help='Chooses whether to (install) in current environment, or ' +
+             '(list) installation libraries.')
 
   manualParser = subParsers.add_parser('manual', help='provide LaTeX manual list')
 
@@ -430,17 +440,19 @@ if __name__ == '__main__':
       else:
         plugins.append((pluginName, loc))
     if missing:
-      raise IOError('During library installation, the following requested plugin libraries were not found: {}'
-                    .format(', '.join(missing)))
+      raise IOError('During library installation, the following requested plugin libraries '+
+                    ' were not found: {}'.format(', '.join(missing)))
 
   ### Il Grande Albero Decisionale
   # "optional" and "os" are passed through
   if args.installer == 'manual':
     # compile the LaTeX lib list
-    libs = getRequiredLibs(useOS=args.useOS, installMethod='conda', addOptional=args.addOptional, plugins=plugins)
+    libs = getRequiredLibs(useOS=args.useOS, installMethod='conda',
+                           addOptional=args.addOptional, plugins=plugins)
     msg = '\\begin{itemize}\n'
     for lib, version in libs.items():
-      msg += '  \\item {}{}\n'.format(lib.replace('_', '\\_'), ('' if version is None else '-'+version))
+      msg += '  \\item {}{}\n'.format(
+             lib.replace('_', '\\_'), ('' if version is None else '-'+version))
     msg += '\\end{itemize}'
     print(msg)
   else:
@@ -495,6 +507,8 @@ if __name__ == '__main__':
         preamble = ''
 
     preamble = preamble.format(installer=installer, action=action, args=actionArgs)
-    libTexts = ' '.join(['{lib}{ver}'.format(lib=lib, ver=('{}{}'.format(equals, ver) if ver is not None else ''))
+    libTexts = ' '.join(['{lib}{ver}'
+                         .format(lib=lib,
+                                 ver=('{}{}'.format(equals, ver) if ver is not None else ''))
                          for lib, ver in libs.items()])
     print(preamble + libTexts)
