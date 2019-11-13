@@ -773,9 +773,8 @@ class GradientBasedOptimizer(Optimizer):
       Local method to update convergence vector.
       @ In, traj, int, identifier of the trajector to update
       @ In, varsUpdate, int, current variables update iteration number
-      @ In, conj, bool, optional, indentify whether using conjugate greadient to check convergence, if true then do not clear the presistance
       @ In, currentPoint, float, candidate point for optimization path
-
+      @ In, conj, bool, optional, identify whether using conjugate gradient to check convergence, if true then do not clear the persistance
       @ Out, accepted, True if point was rejected otherwise False
     """
     # first, check if we're at varsUpdate 0 (first entry); if so, we are at our first point
@@ -961,7 +960,5 @@ class GradientBasedOptimizer(Optimizer):
       This method is equivalent to self.resample[traj] = self.resampleSwitch while needed
       @ In, traj, int, the trajectory for which an entry is being written
       @ Out, self.resampleSwitch, bool, True if resample switch is on
-
-
     """
     return self.resampleSwitch
