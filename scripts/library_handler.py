@@ -341,15 +341,15 @@ def _parseLibs(config, opSys, install, addOptional=False, limit=None, plugins=No
   libs = OrderedDict()
   # get the main libraries, depending on request
   for src in ['core', 'forge', 'pip']:
-    if src in config and (True if limit is None else (src in limit)):
+    if config.has_section(src) and (True if limit is None else (src in limit)):
       _addLibsFromSection(config.items(src), libs)
   # os-specific are part of 'core' right now
-  if opSys in config and (True if limit is None else ('core' in limit)):
+  if config.has_section(opSys) and (True if limit is None else ('core' in limit)):
     _addLibsFromSection(config.items(opSys), libs)
   # optional are part of 'core' right now, but leave that up to the requester?
-  if addOptional and 'optional' in config:
+  if addOptional and config.has_section('optional'):
     _addLibsFromSection(config.items('optional'), libs)
-  if install == 'pip' and 'pip-install' in config:
+  if install == 'pip' and config.has_section('pip-install'):
     _addLibsFromSection(config.items('pip-install'), libs)
   return libs
 
@@ -361,8 +361,8 @@ def _addLibsFromSection(configSection, libs):
     @ Out, None (changes libs in place)
   """
   for lib, version in configSection:
-    if lib not in configSection:
-      return
+    #if lib not in configSection:
+    #  return
     if version == 'remove':
       libs.pop(lib, None)
     else:
