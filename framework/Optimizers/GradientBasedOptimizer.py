@@ -137,7 +137,7 @@ class GradientBasedOptimizer(Optimizer):
       if child.getName() == "initialization":
         for grandchild in child.subparts:
           tag = grandchild.getName()
-          if tag == "resample":
+          elif tag == "resample":
             self.resampleSwitch = grandchild.value
       if child.getName() == "convergence":
         for grandchild in child.subparts:
@@ -958,9 +958,11 @@ class GradientBasedOptimizer(Optimizer):
   def checkResampleOption(self,traj):
     """
       Turn on self.resample[traj] while checking self.resampleSwitch.
-      This method is equivalent to self.resample[traj] = resampleSwitch while needed
+      This method is equivalent to self.resample[traj] = self.resampleSwitch while needed
       @ In, traj, int, the trajectory for which an entry is being written
-      @ Out, bool, True if resample switch is on
+      @ Out, bool, return self.resampleSwitch, True if resample switch is on
+
+
     """
     if self.resampleSwitch:
       return True
