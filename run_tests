@@ -55,6 +55,9 @@ done
 # run the tests
 # -> First RAVEN
 # -> Then each plugin in turn
+echo
+echo "********************************************************************************"
+echo
 echo 'Running RAVEN tests ...'
 
 # success/fail storage
@@ -80,15 +83,18 @@ PLUGINS=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -l)
 for P in $PLUGINS; do
   LOCATION=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -f $P)/tests
   # TODO extend config to use RAVEN and PLUGIN config options without redoing all tests
-  echo Starting plugin $P tests ...
+  echo
+  echo "********************************************************************************"
+  echo
+  echo Starting tests for plugin "$P" ...
   $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION "${ARGS[@]}"
   rc=$?
   ALL_PASS=$(($ALL_PASS + $rc))
   if [[ $rc != 0 ]]; then
-    echo  ... there were failed tests for plugn $P!
+    echo  ... there were failed tests for plugin "$P"!
     FAILED=( "${FAILED[@]}" "$P" )
   else
-    echo Tests passed for plugin $P.
+    echo Tests passed for plugin "$P".
     PASSED=( "${PASSED[@]}" "$P" )
   fi
 done
@@ -96,6 +102,9 @@ done
 ## FINISHED running tests
 
 # report results
+echo
+echo "********************************************************************************"
+echo
 if [[ $ALL_PASS != 0 ]]; then
   echo  ... there were failed tests!
   echo The following tests passed: ${PASSED[@]}

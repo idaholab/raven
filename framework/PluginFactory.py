@@ -107,8 +107,9 @@ def loadEntities(name, plugin):
           print('DEBUGG candidate:', candidate)
           if not candidate.isAValidPlugin():
             raise PluginError('Invalid plugin entity: "{}" from plugin "{}"'.format(candidateName, name))
-          pluginEntities[candidate.entityType][candidateName] = candidate
-          print(' ... registered "{}.{}" as a "{}" RAVEN entity.'.format(name, candidateName, candidate.entityType))
+          registerName = '{}.{}'.format(name, candidateName)
+          pluginEntities[candidate.entityType][registerName] = candidate
+          print(' ... registered "{}" as a "{}" RAVEN entity.'.format(registerName, candidate.entityType))
 
 def getEntities(entityType):
   """
