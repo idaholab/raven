@@ -27,7 +27,6 @@ frameworkDir = os.path.join(os.path.dirname(__file__), '..', 'framework')
 sys.path.append(frameworkDir)
 from utils import xmlUtils
 
-<<<<<<< HEAD
 # python changed the import error in 3.6
 if sys.version_info[0] == 3 and sys.version_info[1] >= 6:
   impErr = ModuleNotFoundError
@@ -40,8 +39,6 @@ try:
 except impErr:
   import ConfigParser as configparser
 
-=======
->>>>>>> c3a8c9407ae5b7bd0f897ba0e975bbf99523c010
 # globals
 ravenConfigName = '.ravenconfig.xml'
 requiredDirs = ['src', 'doc', 'tests']
@@ -170,7 +167,6 @@ def getPluginLocation(name):
   plugin = root.find('./plugin/[name=\'{}\']'.format(name))
   if plugin is not None:
     return plugin.find('location').text
-<<<<<<< HEAD
   return None
 
 if __name__ == '__main__':
@@ -202,6 +198,3 @@ if __name__ == '__main__':
     if loc is None:
       raise KeyError('Plugin "{}" not installed!'.format(requested))
     print(loc)
-=======
-  return None
->>>>>>> c3a8c9407ae5b7bd0f897ba0e975bbf99523c010

@@ -53,18 +53,56 @@ for A in "$@"; do
 done
 
 # run the tests
+# -> First RAVEN
+# -> Then each plugin in turn
 echo 'Running RAVEN tests ...'
 
+# success/fail storage
+#   Names of successful test sets are stored in PASSED
+#   Names of failed test sets are stored in FAILED
+
+# run RAVEN tests
 $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
-# grep return code
+# store return codes individually (rc) and combined (ALL_PASS)
 rc=$?
+ALL_PASS=$rc
 if [[ $rc != 0 ]]; then
     echo ' ... there were failed RAVEN tests!'
-    exit $rc;
+    FAILED=( "RAVEN" )
+else
+    echo ' ... RAVEN tests passed successfully.'
+    PASSED=( "RAVEN" )
 fi
 
-# this copy the plugins tests into raven tests
+# Now run the plugin tests
 echo 'Loading plugin tests ...'
-PLUGINS=`$PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -l`
-# $PYTHON_COMMAND $SCRIPT_DIR/scripts/copy_plugins_tests.py
+PLUGINS=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -l)
+for P in $PLUGINS; do
+  LOCATION=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -f $P)/tests
+  # TODO extend config to use RAVEN and PLUGIN config options without redoing all tests
+  echo Starting plugin $P tests ...
+  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION "${ARGS[@]}"
+  rc=$?
+  ALL_PASS=$(($ALL_PASS + $rc))
+  if [[ $rc != 0 ]]; then
+    echo  ... there were failed tests for plugn $P!
+    FAILED=( "${FAILED[@]}" "$P" )
+  else
+    echo Tests passed for plugin $P.
+    PASSED=( "${PASSED[@]}" "$P" )
+  fi
+done
+
+## FINISHED running tests
+
+# report results
+if [[ $ALL_PASS != 0 ]]; then
+  echo  ... there were failed tests!
+  echo The following tests passed: ${PASSED[@]}
+  echo The following tests failed: ${FAILED[@]}
+  exit $ALL_PASS
+else
+  echo Tested: ${PASSED[@]}
+  echo ... tests passed!
+fi
 
