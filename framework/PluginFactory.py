@@ -29,7 +29,7 @@ import importlib
 from collections import defaultdict
 
 from PluginsBaseClasses import PluginBase
-from utils import utils, xmlUtils
+from utils import xmlUtils
 
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -104,7 +104,6 @@ def loadEntities(name, plugin):
               break
             # guaranteed to be found, I think, so no else
           # check validity
-          print('DEBUGG candidate:', candidate)
           if not candidate.isAValidPlugin():
             raise PluginError('Invalid plugin entity: "{}" from plugin "{}"'.format(candidateName, name))
           registerName = '{}.{}'.format(name, candidateName)
@@ -134,37 +133,7 @@ if os.path.isfile(pluginsCatalogue):
   loadPlugins(pluginsPath, pluginsCatalogue)
 else:
   print('PluginFactory: No installed plugins detected.')
-  print('DEBUGG file:', pluginsCatalogue)
 
-
-
-
-#### OLD ####
-__moduleInterfaceList = []
-startDir = os.path.join(os.path.dirname(__file__),'../../plugins')
-for dirr,_,_ in os.walk(startDir):
-  __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
-  utils.add_path(dirr)
-__moduleImportedList = []
-__basePluginClasses  = {'ExternalModel':'ExternalModelPluginBase'}
-
-"""
- Interface Dictionary (factory) (private)
-"""
-__base                          = 'ModelPlugins'
-__interFaceDict                 = defaultdict(dict)
-for moduleIndex in range(len(__moduleInterfaceList)):
-  if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
-    __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex],False))
-    for key,modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
-      for base in modClass.__bases__:
-        for ravenEntityName, baseClassName in __basePluginClasses.items():
-          if base.__name__ == baseClassName:
-            __interFaceDict[ravenEntityName][key] = modClass
-            # check the validity of the plugin
-            if not modClass.isAvalidPlugin():
-              raise IOError("The plugin based on the class "+ravenEntityName.strip()+" is not valid. Please check with the Plugin developer!")
-__knownTypes = [item for sublist in __interFaceDict.values() for item in sublist]
 
 def knownTypes():
   """
