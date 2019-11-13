@@ -21,7 +21,6 @@ warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 from utils import utils
-import PluginFactory
 
 from .Model         import Model
 from .Dummy         import Dummy

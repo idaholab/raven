@@ -91,9 +91,3 @@ if __name__ == '__main__':
     ## TODO testing?
     print(' ... plugin "{}" succesfully installed!'.format(name))
   pluginHandler.writePluginTree(infoFile, root)
-
-  # XXX DEBUGG testing
-  print(pluginHandler.getPluginLocation('CashFlow'))
-
-
-

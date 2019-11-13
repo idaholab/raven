@@ -62,42 +62,6 @@ for baseType, baseName in __basePluginClasses.items():
   plugins = PluginFactory.getEntities(baseType)
   registerSubtypes(baseType, plugins)
 
-###### OLD (partially reworked) ######
-# def loadPluginsOnPath(path):
-#   startDir = os.path.join(os.path.dirname(__file__),'../../plugins')
-#   for dirr, _, _ in os.walk(startDir):
-#     __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
-#     utils.add_path(dirr)
-
-
-# __moduleInterfaceList = []
-# startDir = os.path.join(os.path.dirname(__file__),'../../plugins')
-# for dirr, _, _ in os.walk(startDir):
-#   __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
-#   utils.add_path(dirr)
-# __moduleImportedList = []
-# __basePluginClasses = {'ExternalModel':'ExternalModelPluginBase'}
-
-
-# """
-#  Interface Dictionary (factory) (private)
-# """
-# __base                          = 'ModelPlugins'
-# __interfaceDict = defaultdict(dict)
-# for moduleIndex in range(len(__moduleInterfaceList)):
-#   if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
-#     __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex],False))
-#     for key,modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
-#       for base in modClass.__bases__:
-#         for ravenEntityName, baseClassName in __basePluginClasses.items():
-#           if base.__name__ == baseClassName:
-#             __interFaceDict[ravenEntityName][key] = modClass
-#             # check the validity of the plugin
-#             if not modClass.isAvalidPlugin():
-#               raise IOError("The plugin based on the class "+ravenEntityName.strip()+" is not valid. Please check with the Plugin developer!")
-# __knownTypes = [item for sublist in __interFaceDict.values() for item in sublist]
-# __knownTypes = [] # populate through registration
-
 def knownTypes():
   """
     Method to return the list of known model plugins
