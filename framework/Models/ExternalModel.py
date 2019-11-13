@@ -29,8 +29,7 @@ import inspect
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
 import CustomCommandExecuter
-from utils import utils
-from utils import InputData
+from utils import utils, InputData, mathUtils
 import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -310,7 +309,7 @@ class ExternalModel(Dummy):
         # OLD ? if key in instanciatedSelf.modelVariableType.keys(): #TODO why would it not be in this dict?
         if outputSize == -1:
           outputSize = len(np.atleast_1d(evaluation[key]))
-        if not utils.sizeMatch(evaluation[key],outputSize):
+        if not mathUtils.sizeMatch(evaluation[key],outputSize):
           self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(len(np.atleast_1d(outcomes[key]))))
 
     Dummy.collectOutput(self, finishedJob, output, options)

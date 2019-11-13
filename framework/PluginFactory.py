@@ -133,24 +133,3 @@ if os.path.isfile(pluginsCatalogue):
   loadPlugins(pluginsPath, pluginsCatalogue)
 else:
   print('PluginFactory: No installed plugins detected.')
-
-
-def knownTypes():
-  """
-    Method to return the list of known model plugins
-    @ In, None
-    @ Out, __knownTypes, list, the list of known types
-  """
-  return __knownTypes
-
-def returnPlugin(Type,subType,caller):
-  """
-    this allows the code(model) class to interact with a specific
-     code for which the interface is present in the CodeInterfaces module
-    @ In, Type, string, the type of plugin main class (e.g. ExternalModel)
-    @ In, subType, string, the subType of the plugin specialized class (e.g. CashFlow)
-    @ In, caller, instance, instance of the caller
-  """
-  if subType not in knownTypes():
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type+' subType '+Type)
-  return __interFaceDict[Type][subType]()

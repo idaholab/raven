@@ -56,6 +56,8 @@ if __QtAvailable:
   from Application import InteractiveApplication
 #Internal Modules End--------------------------------------------------------------------------------
 
+import matplotlib
+matplotlib.use('TkAgg')
 #----------------------------------------------------------------------------------------------------
 class SimulationMode(MessageHandler.MessageUser):
   """
@@ -416,7 +418,7 @@ class Simulation(MessageHandler.MessageUser):
     varGroupNode = xmlNode.find('VariableGroups')
     # init, read XML for variable groups
     if varGroupNode is not None:
-      varGroups = xmlUtils.readVariableGroups(varGroupNode,self.messageHandler,self)
+      varGroups = mathUtils.readVariableGroups(varGroupNode,self.messageHandler,self)
     else:
       varGroups={}
     # read other nodes
