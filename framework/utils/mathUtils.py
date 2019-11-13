@@ -31,7 +31,6 @@ from scipy import interpolate, stats, integrate
 import numpy as np
 import six
 from utils.utils import UreturnPrintTag,UreturnPrintPostTag
-import VariableGroups
 
 def normal(x,mu=0.0,sigma=1.0):
   """
@@ -859,6 +858,7 @@ def readVariableGroups(xmlNode, messageHandler, caller):
     @ In, caller, MessageHandler.MessageUser instance, entity calling this method (needs to inherit from MessageHandler.MessageUser)
     @ Out, varGroups, dict, dictionary of variable groups (names to the variable lists to replace the names)
   """
+  import VariableGroups
   # first find all the names
   names = [node.attrib['name'] for node in xmlNode]
 
