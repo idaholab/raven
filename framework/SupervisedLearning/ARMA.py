@@ -87,7 +87,7 @@ class ARMA(supervisedLearning):
     self.segments          = kwargs.get('segments', 1)
     # data manipulation
     reseed = str(kwargs.get('reseedCopies', True)).lower()
-    self.reseedCopies      = reseed not in mathUtils.stringsThatMeanFalse()
+    self.reseedCopies      = reseed not in utils.stringsThatMeanFalse()
     self.outTruncation     = {'positive':set(), 'negative':set()} # store truncation requests
     self.pivotParameterID  = kwargs['pivotParameter']
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)

@@ -30,7 +30,8 @@ import scipy
 from scipy import interpolate, stats, integrate
 import numpy as np
 import six
-from utils.utils import UreturnPrintTag,UreturnPrintPostTag
+from utils.utils import UreturnPrintTag, UreturnPrintPostTag
+from .graphStructure import graphObject
 
 def normal(x,mu=0.0,sigma=1.0):
   """

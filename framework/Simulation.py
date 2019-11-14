@@ -49,7 +49,7 @@ import OutStreams
 from JobHandler import JobHandler
 import MessageHandler
 import VariableGroups
-from utils import utils,TreeStructure,xmlUtils
+from utils import utils, TreeStructure, xmlUtils, mathUtils
 from Application import __QtAvailable
 from Interaction import Interaction
 if __QtAvailable:

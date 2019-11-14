@@ -22,7 +22,6 @@ import xml.etree.ElementTree as ET
 import re
 import os
 from .utils import toString, getRelativeSortedListEntry
-from .graphStructure import graphObject
 warnings.simplefilter('default', DeprecationWarning)
 
 #define type checking
