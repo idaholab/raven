@@ -19,6 +19,7 @@ Created on October 23, 2019
 comment: Superseding the ModelPluginFactory, this factory collects the entities from plugins
          and makes them available to the various entity factories in RAVEN.
 """
+from __future__ import absolute_import
 import os
 import sys
 import types
@@ -38,6 +39,9 @@ warnings.simplefilter('default', DeprecationWarning)
 
 ## custom errors
 class PluginError(RuntimeError):
+  """
+    Custom error for run-time issues with plugins.
+  """
   pass
 
 ## Method definitions
