@@ -56,8 +56,6 @@ if __QtAvailable:
   from Application import InteractiveApplication
 #Internal Modules End--------------------------------------------------------------------------------
 
-import matplotlib
-matplotlib.use('TkAgg')
 #----------------------------------------------------------------------------------------------------
 class SimulationMode(MessageHandler.MessageUser):
   """
