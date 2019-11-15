@@ -19,7 +19,7 @@ the GenericCode interface should cover the code for RAVEN.
 The GenericCode interface leverages a wildcard-based approach to editing input files. Using the
 special wildcard format \texttt{\$RAVEN-\$}, RAVEN parses text-based inputs and replaces the
 wildcards with sampled values. For example, consider RAVEN sampling variables named
-\texttt{initial_velocity} and \texttt{initial_angle}. Assume we're using a projectile tracking model
+\texttt{initial\_velocity} and \texttt{initial\_angle}. Assume we're using a projectile tracking model
 with keyword based entry input files; for example,
 \begin{lstlisting}[language=python]
   initial_height = 0     # starting height, m
@@ -29,7 +29,7 @@ with keyword based entry input files; for example,
   auxfile = gen.two      # additional properties file
   case = myOut           # output name (adds .csv)
  \end{lstlisting}
-Since we want to sample \texttt{initial_velocity} and \texttt{initial_angle}, we create a new
+Since we want to sample \texttt{initial\_velocity} and \texttt{initial\_angle}, we create a new
 template input and replace the values where samples should go with the wildcard and the variable
 name:
 \begin{lstlisting}[language=python]
