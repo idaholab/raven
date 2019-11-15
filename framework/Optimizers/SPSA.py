@@ -331,6 +331,8 @@ class SPSA(GradientBasedOptimizer):
     except KeyError:
       size = paramDict['initialStepSize']
     # modify step size based on the history of the gradients used
+    if self.realizations[traj]['accepted']  == 'resample':
+      self.recommendToGain[traj] = 'cut'
     frac = self.fractionalStepChangeFromGradHistory(traj)
     new = size*frac
     self.raiseADebug('step gain size for traj "{}" iternum "{}": {:1.3e} (root {:1.2e} frac {:1.2e})'.format(traj,iterNum,new,size,frac))

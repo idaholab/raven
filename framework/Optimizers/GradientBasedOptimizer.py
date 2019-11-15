@@ -523,7 +523,11 @@ class GradientBasedOptimizer(Optimizer):
     # if not accepted, we need to scrap this run and set up a new one
     if accepted:
       # store acceptance for later
-      self.realizations[traj]['accepted'] = accepted
+      if self.resample[traj]:
+        self.realizations[traj]['accepted'] = 'resample'
+        self.raiseADebug('This is a resample point')
+      else:
+        self.realizations[traj]['accepted'] = 'accepted'
       self.resample[traj] = False
     else:
       self.resample[traj] = self.checkResampleOption(traj)
@@ -761,7 +765,7 @@ class GradientBasedOptimizer(Optimizer):
                                'denoised': {'opt' : [ [] ],
                                             'grad': [ [] for _ in range(self.paramDict['pertSingleGrad']) ] },
                                'need'    : denoises,
-                               'accepted': None,
+                               'accepted': 'rejected',
                               }
     # reset opt if requested
     if keepOpt:
@@ -895,7 +899,7 @@ class GradientBasedOptimizer(Optimizer):
       Uses data from "recentOptHist" and other counters to fill in values.
       @ In, traj, int, the trajectory for which an entry is being written
       @ In, recent, dict, the new optimal point (NORMALIZED) that needs to get written to the solution export
-      @ In, accepted, bool, whether the most recent point was accepted or rejected as a bad move
+      @ In, accepted, string, whether the most recent point was accepted or rejected as a bad move
       @ In, overwrite, dict, optional, values to overwrite if requested as {key:val}
       @ Out, None
     """
@@ -937,7 +941,6 @@ class GradientBasedOptimizer(Optimizer):
           new = badValue
       elif var == 'accepted':
         new = accepted
-      # convergence metrics
       elif var.startswith( 'convergenceAbs'):
         try:
           new = self.convergenceProgress[traj].get('abs',badValue)
