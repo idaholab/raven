@@ -53,6 +53,7 @@ class FiniteDifference(SPSA):
     """
     SPSA.__init__(self)
     self.resampleSwitch = False
+    self.useCentralDiff = True
 
 
   def localInputAndChecks(self, xmlNode, paramInput):

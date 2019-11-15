@@ -1,22 +1,22 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers.Conjugate</name>
-    <author>ZHOUJ</author>
-    <created>2019-10-02</created>
+    <name>framework/Optimizers.stochasticValley</name>
+    <author>talbpaul</author>
+    <created>2019-09-06</created>
     <classesTested>Optimizer</classesTested>
     <description>
-      This test runs the optimization on a diagonal valley. This is a goal function whose value is linear and very high
-      when it is away from $x+y=0$ and parabolic as $x^2+y^2$ within the valley. Minimum solution
-      is at (-0.5, 0.5) with a value of 0.
+      This test runs the optimization on a stochastic diagonal valley. This is a goal function whose
+      value is linear and very high when it is away from $x+y=0$ and parabolic as $x^2+y^2$ within
+      the valley. Minimum solution is at (-0.5, 0.5) with a value of 0, if the stoch is 0.
     </description>
     <revisions>
-      <revision author='ZHOUJ2' date='2019-11-15'>change external model from diagonal_valley to diagonal_valley_stochastic, passing stoch as 0</revision>
+      <revision author='ZHOUJ2' date='2019-11-15'>change external model from diagonal_valley to diagonal_valley_stochastic, passing the scale of the randomness as 2. SPSA optimier will turn on resample in this test, gainShrinkFactor is relatively small from other test since it is a stochastic problem </revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>Conjugate</WorkingDir>
+    <WorkingDir>StochasticValley</WorkingDir>
     <Sequence>optimize, print</Sequence>
   </RunInfo>
 
@@ -24,7 +24,7 @@
     <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">valley</Model>
-      <Optimizer class="Optimizers" type="ConjugateGradient">opter</Optimizer>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
@@ -35,7 +35,7 @@
   </Steps>
 
   <Optimizers>
-    <ConjugateGradient name="opter">
+    <SPSA name="opter">
       <initialization>
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
@@ -43,28 +43,29 @@
         <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <parameter>
+        <numGradAvgIterations>3</numGradAvgIterations>
+      </parameter>
       <convergence>
-        <centralDifference>True</centralDifference>
-        <useGradientHistory>False</useGradientHistory>
         <gradientThreshold>1e-7</gradientThreshold>
         <absoluteThreshold>0</absoluteThreshold>
-        <relativeThreshold>1e-12</relativeThreshold>
-        <minStepSize>1e-13</minStepSize>
-        <persistence>3</persistence>
+        <relativeThreshold>1e-11</relativeThreshold>
+        <gainGrowthFactor>1.25</gainGrowthFactor>
+        <gainShrinkFactor>1.01</gainShrinkFactor>
       </convergence>
       <variable name="x">
         <upperBound>1</upperBound>
         <lowerBound>-1</lowerBound>
-        <initial>0.6,0.5,0.2</initial>
+        <initial>0.6</initial>
       </variable>
       <variable name="y">
         <upperBound>1</upperBound>
         <lowerBound>-1</lowerBound>
-        <initial>0.3,-0.6,-0.9</initial>
+        <initial>-0.5</initial>
       </variable>
-      <constant name="stoch">0</constant>
+      <constant name="stoch">2</constant>
       <objectVar>ans</objectVar>
-    </ConjugateGradient>
+    </SPSA>
   </Optimizers>
 
   <Models>
@@ -81,7 +82,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>ans</Output>
+      <Output>x,y,stoch,ans,varsUpdate,accepted,stepSize</Output>
     </PointSet>
   </DataObjects>
 
