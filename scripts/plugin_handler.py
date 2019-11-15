@@ -22,6 +22,7 @@
 #  python install_plugins -s path/to/plugin -f
 import os
 import sys
+import time
 import argparse
 frameworkDir = os.path.join(os.path.dirname(__file__), '..', 'framework')
 sys.path.append(frameworkDir)
@@ -59,16 +60,18 @@ def checkValidPlugin(rawLoc):
   if not os.path.isdir(loc):
     okay = False
     msgs.append('Not a valid directory: {}'.format(loc))
-  # check for source, doc, tests dirs
-  missing = []
-  for needDir in requiredDirs:
-    fullDir = os.path.join(loc, needDir)
-    if not os.path.isdir(fullDir):
-      missing.append(needDir)
-  if missing:
-    okay = False
-    for m in missing:
-      msgs.append('Required directory missing in {}: {}'.format(fullDir, m))
+  # only check structure if directory found
+  if okay:
+    # check for source, doc, tests dirs
+    missing = []
+    for needDir in requiredDirs:
+      fullDir = os.path.join(loc, needDir)
+      if not os.path.isdir(fullDir):
+        missing.append(needDir)
+    if missing:
+      okay = False
+      for m in missing:
+        msgs.append('Required directory missing in {}: {}'.format(fullDir, m))
 
   return okay, msgs, loc
 

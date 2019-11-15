@@ -30,13 +30,17 @@ import plugin_handler as pluginHandler
 parser = argparse.ArgumentParser(prog="RAVEN Plugin Installer",
                                  description="Used to install external plugins to the RAVEN repository. " +\
                                              "By default creates a path link (use -c to override).")
-parser.add_argument('-s', '--source', dest='source_dir', action='append', required=True,
+parser.add_argument('-s', '--source', dest='source_dir', action='append',
                     help='designate the folder where the plugin is located (e.g. ~/projects/CashFlow). '+\
                          'May be specified multiple times as -s path1 -s path2 -s path3, etc.')
 parser.add_argument('-c', '--copy', dest='full_copy', action='store_true',
                     help='fully copy the plugin, do not create a path link')
 parser.add_argument('-e', '--exclude', dest='exclude', action='append',
                     help='exclude designated folders from loading in RAVEN.')
+parser.add_argument('-a', '--all', dest='doAll', action='store_true',
+                    help='install all standard RAVEN plugins available (overrides -s)')
+parser.add_argument('--avail', dest='showAvail', action='store_true',
+                    help='show all available standard RAVEN plugins and exit')
 args = parser.parse_args()
 
 if __name__ == '__main__':
@@ -47,20 +51,58 @@ if __name__ == '__main__':
   # In the event a full copy is done, we still register the location to assure all plugins
   # follow the same mechanics.
   #
+  # populate submodules list
+  returnCode = 0 # 0 if all passes, otherwise nonzero
+  ## subsOut are ALL the repo's registered plugins
+  subsOut = os.popen('git config --file .gitmodules --name-only --get-regexp path').read()
+  ## subsInit are the initialized ones
+  subsInit = [x.split(' ')[1] for x in os.popen('git submodule status').read().split(os.linesep) if x.strip() != '']
+  submods = []
+  for m, sub in enumerate(subsOut.split(os.linesep)):
+    if sub.strip() != '':
+      submods.append(os.path.basename(sub)[:-5]) #trim off path, ".path"
+
+  if args.showAvail:
+    print('Available standard plugins:')
+    for plug in submods:
+      # TODO descriptions, maybe? Might have to initialize for those
+      print('  -> {}'.format(plug))
+    sys.exit()
+
+  # if requested "all" install, update sources
+  if args.doAll:
+    args.source_dir = submods
+  elif not args.source_dir:
+    returnCode += 1
+    parser.print_help()
+    sys.exit(returnCode)
+
   sources = []
   failedSources = []
   # check legitimacy of plugin directories
   for s, sourceDir in enumerate(args.source_dir):
+    print('Beginning installation of "{}"'.format(sourceDir))
     loc = os.path.abspath(sourceDir)
     okay, msgs, newLoc = pluginHandler.checkValidPlugin(loc)
+    # perhaps the user means a standard submodule, not a separate repo?
+    if not okay and sourceDir in submods:
+      # has it been initialized?
+      if sourceDir not in subsInit:
+        # initialize it
+        print(' ... initializing plugin submodule {} ...'.format(sourceDir))
+        os.popen('git submodule update --init plugins/{}'.format(sourceDir)).read()
+      okay = True
+      msgs = []
+      newLoc = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'plugins', sourceDir))
     if okay:
       print(' ... plugin located at "{}" ...'.format(newLoc))
       sources.append(newLoc)
     else:
-      print('ERROR: Plugin at "{}" had the following error(s):')
+      print('ERROR: Plugin at "{}" had the following error(s):'.format(sourceDir))
       for e in msgs:
         print('          ', e)
       print('       Skipping plugin installation.')
+      returnCode += 1
       failedSources.append(sourceDir)
 
   if args.full_copy:
@@ -71,7 +113,11 @@ if __name__ == '__main__':
   infoFile, root = pluginHandler.loadPluginTree()
 
   # add or update plugins from sources
-  existing, _ = zip(*pluginHandler.getInstalledPlugins())
+  installed = pluginHandler.getInstalledPlugins()
+  if installed:
+    existing, _ = zip(*installed)
+  else:
+    existing = []
   for plugDir in sources:
     name = os.path.basename(plugDir)
     if name in existing:
@@ -91,3 +137,4 @@ if __name__ == '__main__':
     ## TODO testing?
     print(' ... plugin "{}" succesfully installed!'.format(name))
   pluginHandler.writePluginTree(infoFile, root)
+  sys.exit(returnCode)
