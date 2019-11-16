@@ -43,9 +43,6 @@
         <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <parameter>
-        <numGradAvgIterations>3</numGradAvgIterations>
-      </parameter>
       <convergence>
         <gradientThreshold>1e-7</gradientThreshold>
         <absoluteThreshold>0</absoluteThreshold>
@@ -65,6 +62,9 @@
       </variable>
       <constant name="stoch">2</constant>
       <objectVar>ans</objectVar>
+      <parameter>
+        <numGradAvgIterations>3</numGradAvgIterations>
+      </parameter>
     </SPSA>
   </Optimizers>
 
