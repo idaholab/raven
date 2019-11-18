@@ -56,6 +56,10 @@ if __QtAvailable:
   from Application import InteractiveApplication
 #Internal Modules End--------------------------------------------------------------------------------
 
+# Load up plugins!
+# -> only available on specially-marked base types
+Models.Model.loadFromPlugins()
+
 #----------------------------------------------------------------------------------------------------
 class SimulationMode(MessageHandler.MessageUser):
   """

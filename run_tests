@@ -11,10 +11,14 @@ fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
 SKIP_CONDA=1 # 0 for skipping conda, 1 for not skipping
+TEST_SET=0 # 0 for normal tests, 1 for plugin tests, 2 for both
+
 # source read ravenrc script
 RAVEN_RC_SCRIPT=$SCRIPT_DIR/scripts/read_ravenrc.sh
 RAVEN_RC_SCRIPT="${RAVEN_RC_SCRIPT//\\//}"
 source $RAVEN_RC_SCRIPT
+
+# set up installation manager
 INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
 if [[ "$INSTALLATION_MANAGER" == "PIP" ]];
   then
@@ -24,11 +28,18 @@ else
   SKIP_CONDA=1
 fi
 
+# read command-line arguments
 ARGS=()
 for A in "$@"; do
     case $A in
         --skip-conda)
             SKIP_CONDA=0
+            ;;
+        --plugins)
+            TEST_SET=1
+            ;;
+        --test_all)
+            TEST_SET=2
             ;;
         *)
             ARGS+=("$A")
@@ -43,6 +54,22 @@ else
     #PYTHON_COMMAND=${PYTHON_COMMAND:=python}
 fi
 
+# pick tests to run
+## test set 0 is normal raven tests
+## test set 1 is plugins only tests
+## test set 2 is both normal raven and plugins tests
+
+if [[ $TEST_SET == 0 ]] || [[ $TEST_SET == 2 ]]; then
+  DO_RAVEN=0
+else
+  DO_RAVEN=1
+fi
+if [[ $TEST_SET == 1 ]] || [[ $TEST_SET == 2 ]]; then
+  DO_PLUGINS=0
+else
+  DO_PLUGINS=1
+fi
+
 for A in "$@"; do
     case $A in
         --library_report | --library-report)
@@ -53,51 +80,53 @@ for A in "$@"; do
 done
 
 # run the tests
-# -> First RAVEN
-# -> Then each plugin in turn
-echo
-echo "********************************************************************************"
-echo
-echo 'Running RAVEN tests ...'
-
 # success/fail storage
 #   Names of successful test sets are stored in PASSED
 #   Names of failed test sets are stored in FAILED
 
-# run RAVEN tests
-$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
-# store return codes individually (rc) and combined (ALL_PASS)
-rc=$?
-ALL_PASS=$rc
-if [[ $rc != 0 ]]; then
-    echo ' ... there were failed RAVEN tests!'
-    FAILED=( "RAVEN" )
-else
-    echo ' ... RAVEN tests passed successfully.'
-    PASSED=( "RAVEN" )
-fi
-
-# Now run the plugin tests
-echo 'Loading plugin tests ...'
-PLUGINS=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -l)
-for P in $PLUGINS; do
-  LOCATION=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -f $P)/tests
-  # TODO extend config to use RAVEN and PLUGIN config options without redoing all tests
+if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo "********************************************************************************"
   echo
-  echo Starting tests for plugin "$P" ...
-  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION "${ARGS[@]}"
+  echo 'Running RAVEN tests ...'
+
+  # run RAVEN tests
+  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
+  # store return codes individually (rc) and combined (ALL_PASS)
   rc=$?
-  ALL_PASS=$(($ALL_PASS + $rc))
+  ALL_PASS=$rc
   if [[ $rc != 0 ]]; then
-    echo  ... there were failed tests for plugin "$P"!
-    FAILED=( "${FAILED[@]}" "$P" )
+      echo ' ... there were failed RAVEN tests!'
+      FAILED=( "RAVEN" )
   else
-    echo Tests passed for plugin "$P".
-    PASSED=( "${PASSED[@]}" "$P" )
-  fi
-done
+      echo ' ... RAVEN tests passed successfully.'
+      PASSED=( "RAVEN" )
+  fi # end "if passed"
+fi   # end "if do raven"
+
+if [[ $DO_PLUGINS == 0 ]]; then
+  # Now run the plugin tests
+  echo 'Loading plugin tests ...'
+  PLUGINS=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -l)
+  for P in $PLUGINS; do
+    LOCATION=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -f $P)/tests
+    # TODO extend config to use RAVEN and PLUGIN config options without redoing all tests
+    echo
+    echo "********************************************************************************"
+    echo
+    echo Starting tests for plugin "$P" ...
+    $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION "${ARGS[@]}"
+    rc=$?
+    ALL_PASS=$(($ALL_PASS + $rc))
+    if [[ $rc != 0 ]]; then
+      echo  ... there were failed tests for plugin "$P"!
+      FAILED=( "${FAILED[@]}" "$P" )
+    else
+      echo Tests passed for plugin "$P".
+      PASSED=( "${PASSED[@]}" "$P" )
+    fi
+  done  # finish "for each plugin"
+fi      # finish "if do plugins"
 
 ## FINISHED running tests
 
@@ -107,11 +136,11 @@ echo "**************************************************************************
 echo
 if [[ $ALL_PASS != 0 ]]; then
   echo  ... there were failed tests!
-  echo The following tests passed: ${PASSED[@]}
-  echo The following tests failed: ${FAILED[@]}
+  echo The following test sets passed: ${PASSED[@]}
+  echo The following test sets failed: ${FAILED[@]}
   exit $ALL_PASS
 else
-  echo Tested: ${PASSED[@]}
+  echo Tested sets: ${PASSED[@]}
   echo ... tests passed!
 fi
 

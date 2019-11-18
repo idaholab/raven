@@ -42,7 +42,14 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     it could as complex as a stand alone code, a reduced order model trained somehow or something
     externally build and imported by the user
   """
-  plugins = importlib.import_module("Models.ModelPlugInFactory")
+  @classmethod
+  def loadFromPlugins(cls):
+    """
+      Loads plugins from factory.
+      @ In, cls, uninstantiated object, class to load for
+      @ Out, None
+    """
+    cls.plugins = importlib.import_module("Models.ModelPlugInFactory")
 
 
   @classmethod

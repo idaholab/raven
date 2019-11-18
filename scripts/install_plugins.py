@@ -71,6 +71,11 @@ if __name__ == '__main__':
 
   # if requested "all" install, update sources
   if args.doAll:
+    # TODO TEMPORARY FIXME for PRAplugin:
+    # -> manually add to install list for "all"
+    # This is because the plugin maintainers have not transitioned to a separate repository yet.
+    submods.append('PRAplugin')
+    # END TEMPORARY FIXME
     args.source_dir = submods
   elif not args.source_dir:
     returnCode += 1
@@ -81,7 +86,7 @@ if __name__ == '__main__':
   failedSources = []
   # check legitimacy of plugin directories
   for s, sourceDir in enumerate(args.source_dir):
-    print('Beginning installation of "{}"'.format(sourceDir))
+    print('Initializing plugin "{}"'.format(sourceDir))
     loc = os.path.abspath(sourceDir)
     okay, msgs, newLoc = pluginHandler.checkValidPlugin(loc)
     # perhaps the user means a standard submodule, not a separate repo?
@@ -118,6 +123,7 @@ if __name__ == '__main__':
     existing, _ = zip(*installed)
   else:
     existing = []
+  print('Installing plugins ...')
   for plugDir in sources:
     name = os.path.basename(plugDir)
     if name in existing:
