@@ -1,6 +1,6 @@
-SRCFILE = raven_plugin_manual
+SRCFILE = raven_plugins_manual
 LATEX_FLAGS=-shell-escape
-GUIDE_FILES = raven_plugin_manual.tex introduction.tex making_new_plugin.tex ../version.tex
+GUIDE_FILES = raven_plugins_manual.tex introduction.tex making_new_plugin.tex ../version.tex
 MAKE_DIR = $(shell pwd)
 
 all: tidy
