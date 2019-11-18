@@ -37,9 +37,8 @@ try:
     print("Could not find RAVEN version info")
 except:
   print("Failed to find git version")
-sys.path.append(os.path.join(RAVEN_DIR, "scripts"))
-#sys.path.insert(0,os.path.join(RAVEN_DIR, "framework", "utils"))
 
+sys.path.append(os.path.join(RAVEN_DIR, "scripts"))
 import library_handler
 from utils import utils
 

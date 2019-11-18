@@ -14,7 +14,7 @@ tidy: $(GUIDE_FILES)
 draft: $(GUIDE_FILES)
 
 	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
-	# bibtex $(SRCFILE)
+	bibtex $(SRCFILE)
 	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
 	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
 
