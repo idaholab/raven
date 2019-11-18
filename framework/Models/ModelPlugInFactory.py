@@ -57,8 +57,6 @@ def registerSubtypes(typeName, typeDict):
   for name, subtype in typeDict.items():
     __interfaceDict[typeName][name] = subtype
     __knownTypes.append(name)
-  if len(__knownTypes) == 1:
-    raise RuntimeError()
 
 for baseType, baseName in __basePluginClasses.items():
   plugins = PluginFactory.getEntities(baseType)

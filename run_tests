@@ -11,7 +11,7 @@ fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
 SKIP_CONDA=1 # 0 for skipping conda, 1 for not skipping
-TEST_SET=0 # 0 for normal tests, 1 for plugin tests, 2 for both
+TEST_SET=2 # 0 for normal tests, 1 for plugin tests, 2 for both
 
 # source read ravenrc script
 RAVEN_RC_SCRIPT=$SCRIPT_DIR/scripts/read_ravenrc.sh
@@ -34,6 +34,9 @@ for A in "$@"; do
     case $A in
         --skip-conda)
             SKIP_CONDA=0
+            ;;
+        --raven)
+            TEST_SET=0
             ;;
         --plugins)
             TEST_SET=1
