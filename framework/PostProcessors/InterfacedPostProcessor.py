@@ -99,6 +99,10 @@ class InterfacedPostProcessor(PostProcessor):
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
 
+    inputObj = inputs[-1] if type(inputs) == list else inputs
+    metaKeys = inputObj.getVars('meta')
+    self.addMetaKeys(metaKeys)
+
   def _localReadMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -133,12 +137,19 @@ class InterfacedPostProcessor(PostProcessor):
       @ In, inputIn, dict, dictionary of data to process
       @ Out, outputDic, dict, dict containing the post-processed results
     """
-    inputTypes = set([inp.type for inp in inputIn])
-    for inp in inputIn:
-      if not inputTypes <= set(self.returnFormat("input").split("|")):
-        self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor named "'+ self.name +
-                              '" : The input object "'+ inp.name +'" provided is of the wrong type. Got "'+
-                              inp.type + '" but expected "'+self.returnFormat("input") + '"!')
+    #FIXME THIS IS NOT CORRECT!!!!
+    try:
+      inputTypes = set([inp.type for inp in inputIn])
+      check=True
+    except AttributeError:
+      check=False
+    if check:
+      for inp in inputIn:
+        if not inputTypes <= set(self.returnFormat("input").split("|")):
+          self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor named "'+ self.name +
+                            '" : The input object "'+ inp.name +'" provided is of the wrong type. Got "'+
+                            inp.type + '" but expected "'+self.returnFormat("input") + '"!')
+
     inputDic= self.inputToInternal(inputIn)
     self.raiseADebug('InterfacedPostProcessor Post-Processor '+ self.name +' : start to run')
     outputDic = self.postProcessor.run(inputDic)
@@ -160,14 +171,15 @@ class InterfacedPostProcessor(PostProcessor):
       if type(inp) == dict:
         return [inp]
       else:
+        self.metaKeys = inp.getVars('meta')
         inputDictTemp = {}
         inputDictTemp['inpVars']   = inp.getVars('input')
         inputDictTemp['outVars']   = inp.getVars('output')
         inputDictTemp['data']      = inp.asDataset(outType='dict')['data']
         inputDictTemp['dims']      = inp.getDimensions('output')
         inputDictTemp['type']      = inp.type
+        inputDictTemp['metaKeys']  = self.metaKeys
         inputDictTemp['numberRealizations'] = len(inp)
-        self.metaKeys = inp.getVars('meta')
         for key in self.metaKeys:
           try:
             inputDictTemp['data'][key]  = inp.getMeta(pointwise=True,general=True)[key].values

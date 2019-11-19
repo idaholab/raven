@@ -37,6 +37,7 @@ import numpy as np
 import abc
 import ast
 import copy
+import platform
 #External Modules End-----------------------------------------------------------
 #Internal Modules---------------------------------------------------------------
 from utils import utils
@@ -44,6 +45,20 @@ from utils import mathUtils
 import MessageHandler
 import DataObjects
 #Internal Modules End-----------------------------------------------------------
+
+# FIXME: temporarily force to use Agg backend for now, otherwise it will cause segmental fault for test:
+# test_dataMiningHierarchical.xml in tests/framework/PostProcessors/DataMiningPostProcessor/Clustering
+# For the record, when using dendrogram, we have to force matplotlib.use('Agg')
+# In the future, I think all the plots should moved to OutStreamPlots -- wangc
+#display = utils.displayAvailable()
+#if not display:
+#  matplotlib.use('Agg')
+
+
+if utils.displayAvailable() and platform.system() != 'Windows':
+  import matplotlib
+  matplotlib.use('TkAgg')
+import matplotlib.pylab as plt
 
 class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
   """
@@ -135,11 +150,11 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, features, list(str), list of new features
       @ Out, None
     """
-    if self.amITrained:
-      self.raiseAnError(RuntimeError,'Trying to change the <Features> of an already-trained ROM!')
+    self.raiseAWarning('Features for learning engine type "{}" have been reset, so ROM is untrained!'.format(self.printTag))
+    self.amITrained = False
     self.features = features
 
-  def train(self, tdict, metric = None):
+  def train(self, tdict, metric=None):
     """
       Method to perform the training of the unSuperVisedLearning algorithm
       NB. The unSuperVisedLearning object is committed to convert the dictionary
@@ -148,7 +163,6 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, tdict, dict, training dictionary
       @ Out, None
     """
-
     self.metric = metric
     if not isinstance(tdict, dict):
       self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
@@ -174,8 +188,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       self.raiseAnError(IOError, msg)
 
     ## Check that all of the values have the same length
-    if not isinstance(utils.first(tdict.values()),dict):
-      for name,val in tdict.items():
+    if not isinstance(utils.first(tdict.values()), dict):
+      for name, val in tdict.items():
         if name in self.features and realizationCount != val.size:
           self.raiseAnError(IOError, ' In training set, the number of realizations are inconsistent among the requested features.')
 
@@ -264,7 +278,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     self.amITrained = True
 
   ## I'd be willing to bet this never gets called, and if it did it would crash
-  ## under specific settings, namely using a history set.
+  ## under specific settings, namely using a history set. - unknown (maybe Dan?)
   ## -> for the record, I call it to get the labels in the ROMCollection.Clusters - talbpaul
   def evaluate(self, edict):
     """
@@ -276,6 +290,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluation, numpy.array, array of evaluated points
     """
+    if not self.amITrained:
+      self.raiseAnError('ROM must be trained before evaluating!')
     if not isinstance(edict, dict):
       self.raiseAnError(IOError, ' Method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
 
@@ -1315,16 +1331,16 @@ class Scipy(unSupervisedLearning):
       self.linkage = self.Method.linkage(self.normValues,self.initOptionDict['method'],self.initOptionDict['metric'])
 
       if 'dendrogram' in self.initOptionDict and self.initOptionDict['dendrogram'] == 'true':
-        self.ddata = self.advDendrogram(self.linkage,
-                                        p                = float(self.initOptionDict['p']),
-                                        leaf_rotation    = 90.,
-                                        leaf_font_size   = 12.,
-                                        truncate_mode    = self.initOptionDict['truncationMode'],
-                                        show_leaf_counts = self.initOptionDict['leafCounts'],
-                                        show_contracted  = self.initOptionDict['showContracted'],
-                                        annotate_above   = self.initOptionDict['annotatedAbove'],
-                                        #orientation      = self.initOptionDict['orientation'],
-                                        max_d            = self.initOptionDict['level'])
+        self.advDendrogram(self.linkage,
+                           p                = float(self.initOptionDict['p']),
+                           leaf_rotation    = 90.,
+                           leaf_font_size   = 12.,
+                           truncate_mode    = self.initOptionDict['truncationMode'],
+                           show_leaf_counts = self.initOptionDict['leafCounts'],
+                           show_contracted  = self.initOptionDict['showContracted'],
+                           annotate_above   = self.initOptionDict['annotatedAbove'],
+                           #orientation      = self.initOptionDict['orientation'],
+                           max_d            = self.initOptionDict['level'])
 
       self.labels_ = hier.hierarchy.fcluster(self.linkage, self.initOptionDict['level'],self.initOptionDict['criterion'])
       self.outputDict['outputs']['labels'] = self.labels_
@@ -1336,7 +1352,6 @@ class Scipy(unSupervisedLearning):
       @ In, None
       @ Out, None
     """
-    import matplotlib.pylab as plt
     plt.figure()
     max_d = kwargs.pop('max_d', None)
     if max_d and 'color_threshold' not in kwargs:
@@ -1364,7 +1379,6 @@ class Scipy(unSupervisedLearning):
       title = 'dendrogram.pdf'
     plt.savefig(title)
     plt.close()
-    return ddata
 
   def __evaluateLocal__(self,*args, **kwargs):
     """

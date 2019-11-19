@@ -33,11 +33,15 @@
     type = 'RavenFramework'
     input = 'forwardSamplingSparseGrid.xml'
     UnorderedXml = 'RunDir/SparseGrid/rom_output.xml'
-    image = 'RunDir/SparseGrid/1-historyPlot_scatter-scatter.png RunDir/SparseGrid/1-samplesModelPlot3D_scatter-scatter.png RunDir/SparseGrid/1-samplesROMPlot3D_scatter-scatter.png'
     rel_err = 0.01
     required_libraries = 'PIL'
     zero_threshold = 1e-8
     max_time = 500
+  [./image_diff]
+   type = ImageDiffer
+   output = 'RunDir/SparseGrid/1-historyPlot_scatter-scatter.png RunDir/SparseGrid/1-samplesModelPlot3D_scatter-scatter.png RunDir/SparseGrid/1-samplesROMPlot3D_scatter-scatter.png'
+   rel_err = 0.1
+  [../]
   [../]
 
 []

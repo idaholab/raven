@@ -24,7 +24,7 @@ These are the features that are common to all testers.
   \item[heavy] If true, run only with heavy tests
   \item[output] Output of the test
   \item[expected\_fail] if true, then the test should fails, and if it passes, it fails
-  \item[run\_types] The run types that this test is separated by spaces Example: 'heavy qsub' The default in 'normal'
+  \item[run\_types] The run types of this test, separated by spaces. Example: 'heavy qsub' The default is 'normal'
   \item[output\_wait\_time] Number of seconds to wait for output
 \end{description}
 
@@ -77,5 +77,26 @@ This can compare two CSV files to see if they are the same.
   \item[ignore\_sign] if true, then only compare the absolute values
   \item[check\_absolute\_value] if true the values are compared to the tolerance directectly, instead of relatively.
 \end{description}
+
+\section{Configuration File}
+
+The {\tt main.py} command takes an argument {\tt --config-file} which can be used to set several parameters.  The parameters also can be set on the command line.  Here are the parameters:
+
+\begin{description}
+\item[test\_dir] directory where the tests are located.  Equivalent to {\tt --test-dir}
+\item[scripts\_dir] directory where the scripts are located. Equivalent to {\tt --scripts-dir}
+\item[add\_run\_types] add run types to the ones to be run. Equivalent to {\tt --run-types}
+\item[only\_run\_types] only run the listed types. Equivalent to {\tt --only-run-types}
+\item[add\_non\_default\_run\_types] add a run type that is not run by default. Equivalent to {\tt --add-non-default-run-types}
+\item[command\_prefix] prefix for the test commands.  Equivalent to {\tt --command-prefix}
+\item[python\_command] command to run python. Equivalent to {\tt --python-command}
+\end{description}
+
+For example to add a new type of run time that only runs when the command line has {\tt --only-run-types="slow" } or {\tt --run-types="slow" } the following config file could be created:
+
+\begin{verbatim}
+[rook]
+add_non_default_run_types = slow
+\end{verbatim}
 
 \end{document}

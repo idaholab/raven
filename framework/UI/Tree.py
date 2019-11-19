@@ -158,18 +158,15 @@ class Node(object):
 
       myOffset = xoffset
 
-      def cmp(a,b):
+      def key(a):
         """
-          A function for comparing two Node items
-          @ In, a, Node, the first node to compare
-          @ In, b, Node, the second node to compare
-          @ Out, value, int, returns -1 if a > b, otherwise returns 1
+          A function for getting a key for a Node
+          @ In, a, Node, the node to get a key from.
+          @ Out, value, the key
         """
-        if a.level > b.level:
-          return -1
-        return 1
+        return a.level
 
-      children = sorted(self.children, cmp=cmp)
+      children = sorted(self.children, key=key)
       immediateDescendantXs = []
       truncated = True
 

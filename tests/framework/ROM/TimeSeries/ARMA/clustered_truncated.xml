@@ -1,0 +1,109 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.ClusteredTruncated</name>
+    <author>talbpaul</author>
+    <created>2018-11-20</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+      Tests the mechanics of clusterering the "time" subspace of the ARMA ROM.
+      Resulting histories are represented in the "truncated" format, where each
+      cluster is placed sequentially one after another.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ClusteredTruncated</WorkingDir>
+    <Sequence>load, train, stats, sample</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">synthetic</Output>
+      <Output class="OutStreams" type="Print">synthetic</Output>
+    </MultiRun>
+  </Steps>
+
+  <Files>
+    <Input name="input">head.csv</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <HistorySet name="input">
+      <Input>scaling</Input>
+      <Output>Signal, Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synthetic">
+      <Input>scaling</Input>
+      <Output>Signal</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+  <Models>
+    <ROM name="arma" subType="ARMA">
+      <Target>Signal, Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <P>0</P>
+      <Q>0</Q>
+      <Fourier>100, 5, 3</Fourier>
+      <preserveInputCDF>True</preserveInputCDF>
+      <Segment grouping='cluster'>
+        <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
+        <subspace divisions='10'>Time</subspace>
+        <clusterFeatures>fourier</clusterFeatures>
+        <evalMode>truncated</evalMode>
+      </Segment>
+    </ROM>
+    <PostProcessor name="classifier" subType="DataMining">
+      <KDD labelFeature="labels" lib="SciKitLearn">
+        <Features>Signal</Features>
+        <SKLtype>cluster|KMeans</SKLtype>
+        <n_clusters>3</n_clusters>
+      </KDD>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name='mc'>
+      <samplerInit>
+        <limit>3</limit>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+    <Print name="synthetic">
+      <type>csv</type>
+      <source>synthetic</source>
+    </Print>
+  </OutStreams>
+</Simulation>

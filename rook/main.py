@@ -20,6 +20,10 @@ import warnings
 import os
 import sys
 import argparse
+try:
+  import configparser
+except ImportError:
+  import ConfigParser as configparser
 import re
 import inspect
 import time
@@ -38,14 +42,27 @@ from Tester import Tester, Differ
 warnings.simplefilter('default', DeprecationWarning)
 
 # set up colors
-# TODO add feature to turn coloring on and off
-norm_color = '\033[0m'  #reset color
-skip_color = '\033[90m' #dark grey
-fail_color = '\033[91m' #red
-pass_color = '\033[92m' #green
-name_color = '\033[93m' #yellow
-time_color = '\033[94m' #blue
+class UseColors:
+  """
+    Container for color definitions when using colors.
+  """
+  norm = '\033[0m'  #reset color
+  skip = '\033[90m' #dark grey
+  fail = '\033[91m' #red
+  okay = '\033[92m' #green
+  name = '\033[93m' #yellow
+  time = '\033[94m' #blue
 
+class NoColors:
+  """
+    Container for color definitions when not using colors.
+  """
+  norm = ''
+  skip = ''
+  fail = ''
+  okay = ''
+  name = ''
+  time = ''
 
 parser = argparse.ArgumentParser(description="Test Runner")
 parser.add_argument('-j', '--jobs', dest='number_jobs', type=int, default=1,
@@ -56,6 +73,8 @@ parser.add_argument('-l', dest='load_average', type=float, default=-1.0,
                     help='wait until load average is below the number before starting a new test')
 parser.add_argument('--heavy', action='store_true',
                     help='Run only heavy tests')
+parser.add_argument('--no-color', action='store_true',
+                    help='disable ANSI escape colors')
 
 parser.add_argument('--list-testers', action='store_true', dest='list_testers',
                     help='Print out the possible testers')
@@ -69,6 +88,9 @@ parser.add_argument('--run-types', dest='add_run_types',
                     help='add run types to the ones to be run')
 parser.add_argument('--only-run-types', dest='only_run_types',
                     help='only run the listed types')
+parser.add_argument('--add-non-default-run-types',
+                    dest='add_non_default_run_types',
+                    help='add a run type that is not run by default')
 
 parser.add_argument('--command-prefix', dest='command_prefix',
                     help='prefix for the test commands')
@@ -76,10 +98,28 @@ parser.add_argument('--command-prefix', dest='command_prefix',
 parser.add_argument('--python-command', dest='python_command',
                     help='command to run python')
 
+parser.add_argument('--config-file', dest='config_file',
+                    help='Configuration file location')
+
 parser.add_argument('--unkillable', action='store_true',
                     help='Ignore SIGTERM so test running is harder to be killed')
 
 args = parser.parse_args()
+
+if args.config_file is not None:
+  config = configparser.ConfigParser()
+  print('rook: loading init file "{}"'.format(args.config_file))
+  config.read(args.config_file)
+
+  if 'rook' in config:
+    for key in config['rook']:
+      if key in args and args.__getattribute__(key) is None:
+        value = config['rook'][key]
+        print(' ... loaded setting "{} = {}"'.format(key, value))
+        args.__setattr__(key, value)
+  else:
+    print("No section [rook] in config file ", args.config_file)
+
 
 class LoadClass(threading.Thread):
   """
@@ -157,16 +197,20 @@ def load_average_adapter(function):
     return function(data)
   return new_func
 
-def get_test_lists(directory):
+def get_test_lists(directories):
   """
     Returns a list of all the files named tests under the directory
     @ In, directory, string, the directory to start at
     @ Out, dir_test_list, list, the files named tests
   """
   dir_test_list = []
-  for root, _, files in os.walk(directory):
-    if 'tests' in files:
-      dir_test_list.append((root, os.path.join(root, 'tests')))
+  found = 0
+  for directory in directories:
+    for root, _, files in os.walk(directory):
+      if 'tests' in files:
+        dir_test_list.append((root, os.path.join(root, 'tests')))
+    print('rook: found {} test dirs under "{}" ...'.format(len(dir_test_list) - found, directory))
+    found = len(dir_test_list)
   return dir_test_list
 
 def get_testers_and_differs(directory):
@@ -182,14 +226,13 @@ def get_testers_and_differs(directory):
   for filename in os.listdir(directory):
     if filename.endswith(".py") and not filename.startswith("__"):
       module = __import__(filename[:-3]) #[:-3] to remove .py
-      for name, value in module.__dict__.items():
-        #print("Unknown", name, value)
-        if inspect.isclass(value) and value is not Tester\
-           and issubclass(value, Tester):
-          tester_dict[name] = value
-        if inspect.isclass(value) and value is not Differ\
-           and issubclass(value, Differ):
-          differ_dict[name] = value
+      for name, val in module.__dict__.items():
+        if inspect.isclass(val) and val is not Tester\
+           and issubclass(val, Tester):
+          tester_dict[name] = val
+        if inspect.isclass(val) and val is not Differ\
+           and issubclass(val, Differ):
+          differ_dict[name] = val
 
   return tester_dict, differ_dict
 
@@ -221,18 +264,18 @@ def process_result(index, _input_data, output_data):
         job_id = name_to_id[postreq]
         print("Enabling", postreq, job_id)
         run_pool.enable_job(job_id)
-    okaycolor = pass_color
+    okaycolor = Colors.okay
   elif group == Tester.group_skip:
     results["skipped"] += 1
     print(output_data.message)
-    okaycolor = skip_color
+    okaycolor = Colors.skip
   else:
     results["fail"] += 1
     failed_list.append(Tester.get_group_name(group)+" "+process_test_name)
     print("Output of'"+process_test_name+"':")
     print(output_data.output)
     print(output_data.message)
-    okaycolor = fail_color
+    okaycolor = Colors.fail
   number_done = sum(results.values())
   print(' '.join(["({done}/{togo})",
                   "{statcolor}{status:7s}{normcolor}"
@@ -241,12 +284,13 @@ def process_result(index, _input_data, output_data):
         .format(done=number_done,
                 togo=len(function_list),
                 statcolor=okaycolor,
-                normcolor=norm_color,
-                namecolor=name_color,
-                timecolor=time_color,
+                normcolor=Colors.norm,
+                namecolor=Colors.name,
+                timecolor=Colors.time,
                 status=Tester.get_group_name(group),
                 time=sec_format(output_data.runtime),
                 test=process_test_name))
+
 if __name__ == "__main__":
   if args.unkillable:
     def term_handler(signum, _):
@@ -259,6 +303,10 @@ if __name__ == "__main__":
 
     signal.signal(signal.SIGTERM, term_handler)
 
+  if args.no_color:
+    Colors = NoColors
+  else:
+    Colors = UseColors
 
   test_re = re.compile(args.test_re_raw)
 
@@ -267,9 +315,9 @@ if __name__ == "__main__":
   if args.test_dir is None:
     #XXX fixme to find a better way to the tests directory
 
-    base_test_dir = os.path.join(up_one_dir, "tests")
+    base_test_dir = [os.path.join(up_one_dir, "tests")]
   else:
-    base_test_dir = args.test_dir
+    base_test_dir = [x.strip() for x in args.test_dir.split(',')]
 
 
   test_list = get_test_lists(base_test_dir)
@@ -283,7 +331,10 @@ if __name__ == "__main__":
   testers.update(base_testers)
   differs.update(base_differs)
   Tester.add_non_default_run_type("heavy")
-  Tester.add_non_default_run_type("qsub")
+  if args.add_non_default_run_types is not None:
+    non_default_run_types = args.add_non_default_run_types.split(",")
+    for ndrt in non_default_run_types:
+      Tester.add_non_default_run_type(ndrt)
 
   if args.list_testers:
     print("Testers:")
@@ -327,7 +378,7 @@ if __name__ == "__main__":
         print("Missing Parameters in:", node.tag)
       if not param_handler.check_for_all_known(node.attrib):
         print("Unknown Parameters in:", node.tag, test_file)
-      rel_test_dir = test_dir[len(base_test_dir)+1:]
+      rel_test_dir = test_dir#[len(base_test_dir)+1:]
       test_name = rel_test_dir+os.sep+node.tag
       if "prereq" in node.attrib:
         prereq = node.attrib['prereq']
@@ -379,10 +430,10 @@ if __name__ == "__main__":
   run_pool.wait()
 
   if results["fail"] > 0:
-    print("{}FAILED:".format(fail_color))
+    print("{}FAILED:".format(Colors.fail))
   for path in failed_list:
     print(path)
-  print(norm_color)
+  print(Colors.norm)
 
   csv_report = open("test_report.csv", "w")
   csv_report.write(",".join(["name", "passed", "group", "time"])+"\n")
@@ -396,7 +447,7 @@ if __name__ == "__main__":
     csv_report.write(out_line+"\n")
   csv_report.close()
 
-  print("PASSED: {}{}{}".format(pass_color, results["pass"], norm_color))
-  print("SKIPPED: {}{}{}".format(skip_color, results["skipped"], norm_color))
-  print("FAILED: {}{}{}".format(fail_color, results["fail"], norm_color))
+  print("PASSED: {}{}{}".format(Colors.okay, results["pass"], Colors.norm))
+  print("SKIPPED: {}{}{}".format(Colors.skip, results["skipped"], Colors.norm))
+  print("FAILED: {}{}{}".format(Colors.fail, results["fail"], Colors.norm))
   sys.exit(results["fail"])

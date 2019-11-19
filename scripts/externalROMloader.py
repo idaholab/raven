@@ -143,7 +143,7 @@ if __name__ == '__main__':
         for child in evaluateData:
           evalDict[child.tag] = [float(val) for val in child.text.split()]
       if inspectROM is not None:
-        inspROM = True if inspectROM.text.lower() in ['true','t','yes'] else False
+        inspROM = True if inspectROM.text.lower() in ['true','t','yes',"y"] else False
       else:
         inspROM = False
   else:
