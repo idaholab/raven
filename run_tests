@@ -95,8 +95,7 @@ if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo 'Running RAVEN tests ...'
 
-  $PYTHON_COMMAND -V
-  #$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
+  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
   # store return codes individually (rc) and combined (ALL_PASS)
   rc=$?
   ALL_PASS=$rc
