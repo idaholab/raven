@@ -75,6 +75,7 @@ if __name__ == '__main__':
     # -> manually add to install list for "all"
     # This is because the plugin maintainers have not transitioned to a separate repository yet.
     submods.append('PRAplugin')
+    submods.append('ExamplePlugin')
     # END TEMPORARY FIXME
     args.source_dir = submods
   elif not args.source_dir:
