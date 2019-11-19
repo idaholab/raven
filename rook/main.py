@@ -81,8 +81,8 @@ parser.add_argument('--list-testers', action='store_true', dest='list_testers',
 parser.add_argument('--test-dir', dest='test_dir',
                     help='specify where the tests are located')
 
-parser.add_argument('--scripts-dir', dest='scripts_dir',
-                    help='specify where the scripts are located')
+parser.add_argument('--testers-dir', dest='testers_dirs',
+                    help='specify where the scripts are located. May be comma-separated.')
 
 parser.add_argument('--run-types', dest='add_run_types',
                     help='add run types to the ones to be run')
@@ -220,6 +220,9 @@ def get_testers_and_differs(directory):
     @ Out, (tester_dict, differ_dict), tuple of dictionaries
       returns dictionaries with all the subclasses of Tester and Differ.
   """
+  # if no testers added, that's fine
+  if not os.path.isdir(directory):
+    return {}, {}
   tester_dict = {}
   differ_dict = {}
   os.sys.path.append(directory)
@@ -319,15 +322,19 @@ if __name__ == "__main__":
   else:
     base_test_dir = [x.strip() for x in args.test_dir.split(',')]
 
-
   test_list = get_test_lists(base_test_dir)
 
   base_testers, base_differs = get_testers_and_differs(this_dir)
-  if args.scripts_dir is None:
-    scripts_dir = os.path.join(up_one_dir, "scripts", "TestHarness", "testers")
+  if not args.testers_dirs:
+    testers_dirs = [os.path.join(up_one_dir, "scripts", "TestHarness", "testers")]
   else:
-    scripts_dir = args.scripts_dir
-  testers, differs = get_testers_and_differs(scripts_dir)
+    testers_dirs = args.testers_dirs.split(',')
+  testers = {}
+  differs = {}
+  for testers_dir in testers_dirs:
+    new_testers, new_differs = get_testers_and_differs(testers_dir)
+    testers.update(new_testers)
+    differs.update(new_differs)
   testers.update(base_testers)
   differs.update(base_differs)
   Tester.add_non_default_run_type("heavy")

@@ -143,7 +143,9 @@ if [[ $DO_PLUGINS == 0 ]]; then
     echo "********************************************************************************"
     echo
     echo Starting tests for plugin "$P" ...
-    $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION "${ARGS[@]}"
+    # add RAVEN testers to plugin testers
+    ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $SCRIPT_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers ${ARGS[@]}"
+    $ROOK_COMMAND
     rc=$?
     ALL_PASS=$(($ALL_PASS + $rc))
     if [[ $rc != 0 ]]; then
