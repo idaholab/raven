@@ -84,8 +84,10 @@ done
 
 # run the tests
 # success/fail storage
-#   Names of successful test sets are stored in PASSED
-#   Names of failed test sets are stored in FAILED
+#   Names of successful test sets are stored in "PASSED"
+#   Names of failed test sets are stored in "FAILED"
+#   Success of most recent test stored in "rc"
+#   Total number of failed test sets stored in "ALL_PASS"
 
 if [[ $DO_RAVEN == 0 ]]; then
   echo
@@ -93,8 +95,8 @@ if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo 'Running RAVEN tests ...'
 
-  # run RAVEN tests
-  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
+  $PYTHON_COMMAND -V
+  #$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
   # store return codes individually (rc) and combined (ALL_PASS)
   rc=$?
   ALL_PASS=$rc
@@ -105,7 +107,31 @@ if [[ $DO_RAVEN == 0 ]]; then
       echo ' ... RAVEN tests passed successfully.'
       PASSED=( "RAVEN" )
   fi # end "if passed"
+
+  # test the API for Plugins using the ExamplePlugin
+  ## note this means the ExamplePlugin may be run both as a RAVEN test and as a plugin test
+  ## this is desired for machinery testing; as a result the ExamplePlugin should be as
+  ## lightweight as practical!
+  P=PluginAPI
+  LOCATION=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -f ExamplePlugin)/tests
+  echo
+  echo "********************************************************************************"
+  echo
+  echo Running $P tests ...
+  # get location of ExamplePlugin test dir
+  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION "${ARGS[@]}"
+  rc=$?
+  ALL_PASS=$(($ALL_PASS + $rc))
+  if [[ $rc != 0 ]]; then
+      echo  ... there were failed $P tests!
+      FAILED=( "${FAILED[@]}" "$P" )
+  else
+      echo  ... $P tests passed successfully.
+      PASSED=( "${PASSED[@]}" "$P" )
+  fi # end "if passed"
 fi   # end "if do raven"
+
+# now do plugins
 
 if [[ $DO_PLUGINS == 0 ]]; then
   # Now run the plugin tests
