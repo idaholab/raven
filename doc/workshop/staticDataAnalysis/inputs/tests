@@ -3,30 +3,36 @@
     type = 'RavenFramework'
     input = 't.xml'
     output = 'GaussianMixture/1-PlotGaussianMixtureBlobs_dataMining.png'
+    skip = "needs to be converted to exercise test"
   [../]
   [./dmICA]
     type = 'RavenFramework'
     input = 'test_dataMiningExactICA.xml'
     output = 'ExactPCA/ica.png'
+    skip = "needs to be converted to exercise test"
   [../]
   [./dmPCA]
     type = 'RavenFramework'
     input = 'test_dataMiningExactPCA.xml'
     output = 'ExactPCA/1-PlotIris_dataMining.png'
+    skip = "needs to be converted to exercise test"
   [../]
   [./dmGM2]
     type = 'RavenFramework'
     input = 'test_dataMiningGaussianMixture.xml'
     output = 'GaussianMixture/scatter.png'
+    skip = "needs to be converted to exercise test"
   [../]
   [./dmKMeans]
     type = 'RavenFramework'
     input = 'test_dataMiningKMeans.xml'
     output = 'KMeans/PlotKMeans1_dataMining.png KMeans/1-PlotAll_dataMining-dataMining-dataMining.png'
+    skip = "needs to be converted to exercise test"
   [../]
   [./dmMeanShift]
     type = 'RavenFramework'
     input = 'test_dataMiningMeanShift_complete.xml'
     output = 'MeanShift/PlotClustered_scatter.png MeanShift/PlotAll_scatter.png'
+    skip = "needs to be converted to exercise test"
   [../]
 []

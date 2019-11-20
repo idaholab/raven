@@ -67,6 +67,24 @@
         \xmlAttr{type}=\xmlString{PostProcessor} must be set, and the text of this node is the \xmlAttr{name}
         of the requested Classifier. Note this Classifier must be a valid Classifier; not all PostProcessors
         are suitable. For example, see the DataMining PostProcessor subtype Clustering.
+      \item \xmlNode{clusterFeatures}, \xmlDesc{string, optional field}, if clustering then delineates
+        the fundamental ROM features that should be considered while clustering. The available features are
+        ROM-dependent, and an exception is raised if an unrecognized request is given. See individual ROMs
+        for options. \default All ROM-specific options.
+      \item \xmlNode{evalMode}, \xmlDesc{string, optional field}, one of \xmlString{truncated},
+        \xmlString{full}, or \xmlString{clustered}, determines how the evaluations are
+        represented, as follows:
+        \begin{itemize}
+          \item \xmlString{full}, reproduce the full signal using representative cluster segments,
+          \item \xmlString{truncated}, reproduce a history containing exactly segment from each
+            cluster placed back-to-back, with the \xmlNode{pivotParameter} spanning the clustered
+            dimension. Note this will almost surely not be the same length as the original signal;
+            information about indexing can be found in the ROM's XML metadata.
+          \item \xmlString{clustered}, reproduce a N-dimensional object with the variable
+            \texttt{\_ROM\_cluster} as one of the indexes for the ROM's sampled variables. Note that
+            in order to use the option, the receiving \xmlNode{DataObject} should be of type
+            \xmlNode{DataSet} with one of the indices being \texttt{\_ROM\_cluster}.
+        \end{itemize}
     \end{itemize}
 }
 
@@ -2770,9 +2788,9 @@ The disadvantages of Gaussian Processes for Machine Learning include:
   of the internal random number generator.
   %
   \default{None}
-  \item \xmlNode{n\_restarts\_optimizer }, \xmlDesc{integer, optional field}, The number of restarts of the optimizer for finding 
+  \item \xmlNode{n\_restarts\_optimizer }, \xmlDesc{integer, optional field}, The number of restarts of the optimizer for finding
 the kernel’s parameters which maximize the log-marginal likelihood. The first run of the optimizer is performed from th
-e kernel’s initial parameters, the remaining ones (if any) from thetas sampled log-uniform randomly from the space of 
+e kernel’s initial parameters, the remaining ones (if any) from thetas sampled log-uniform randomly from the space of
 allowed theta-values. If greater than 0, all bounds must be finite. Note that n\_restarts\_optimizer $== 0$ implies that one run is performed.
   %
   \default{0}
@@ -2935,7 +2953,7 @@ x_t &= y_t - \sum_m\left\{a_m\sin(2\pi f_mt)+b_m\cos(2\pi f_mt)\right\}  \\
 \end{aligned}
 \end{equation*}
 
-where $1/f_m$ is defined by the user parameter \xmlNode{Fourier}. \nb $a_m$ and $b_m$ will be calculated then transformed to 
+where $1/f_m$ is defined by the user parameter \xmlNode{Fourier}. \nb $a_m$ and $b_m$ will be calculated then transformed to
 $c_m$ and $\phi$. The $c_m$ will be stored as \xmlString{amplitude}, and $\phi$ will be stored as \xmlString{phase}.
 
 By default, each target in the training will be considered independent and have an unique ARMA for each
@@ -2964,20 +2982,20 @@ below).
     should be considered as influencing each other, and trained together instead of independently.  This node
     can only be listed once, so all variables that are desired for correlation should be included.  \nb The
     correlated VARMA takes notably longer to train than the independent ARMAs for the same number of targets.
-  \item \xmlNode{seed}, \xmlDesc{integer, optional field}, provides seed for VARMA and ARMA sampling. 
-   Must be provided before training. If no seed is assigned, 
+  \item \xmlNode{seed}, \xmlDesc{integer, optional field}, provides seed for VARMA and ARMA sampling.
+   Must be provided before training. If no seed is assigned,
    then a random number will be used.
-   
+
    \item \xmlNode{reseedCopies}, \xmlDesc{boolean, optional field}, if \xmlString{True} then whenever the ARMA is loaded from file, a
     random reseeding will be performed to ensure different histories. \nb If reproducible histories are desired for an ARMA loaded from file,
-    \xmlNode{reseedCopies} should be set to \xmlString{False}, and in the \xmlNode{RunInfo} block \xmlNode{batchSize} needs to be 1 
+    \xmlNode{reseedCopies} should be set to \xmlString{False}, and in the \xmlNode{RunInfo} block \xmlNode{batchSize} needs to be 1
     and \xmlNode{internalParallel} should be
      \xmlString{False} for RAVEN runs sampling the trained ARMA model.
 
 If \xmlNode{InternalParallel} is \xmlString{True} and the ARMA has \xmlNode{reseedCopies} as \xmlString{False}, an identical ARMA history will always be provided regardless of how many samples are taken.
 
 If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is more than 1, it is not possible to guarantee the order of RNG usage by the separate processes, so it is not possible to guarantee reproducible histories are generated.        \default{True}
-  
+
   \item \xmlNode{P}, \xmlDesc{integer, optional field}, defines the value of $p$.
   \default{3}
   \item \xmlNode{Q}, \xmlDesc{integer, optional field}, defines the value of $q$.
@@ -2992,43 +3010,43 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
     domain is strictly positive, the absolute value of the original negative value will be used instead, and
     similarly for the negative domain.
   \default{None}
-  
-  
-   \item \xmlNode{Peaks}, \xmlDesc{node, optional}, designed to estimate the peaks in signals that repeat with some frequency, 
-   often in periodic data. The \xmlNode{Peaks} node has the following attributes:  
+
+
+   \item \xmlNode{Peaks}, \xmlDesc{node, optional}, designed to estimate the peaks in signals that repeat with some frequency,
+   often in periodic data. The \xmlNode{Peaks} node has the following attributes:
   	\begin{itemize}
-    		\item \xmlAttr{target}, \xmlDesc{required string attribute}, defines the name of one target (besides the 
+    		\item \xmlAttr{target}, \xmlDesc{required string attribute}, defines the name of one target (besides the
 		pivot parameter) expected to have periodic peaks.
-    		\item \xmlAttr{threshold}, \xmlDesc{required float attribute}, user-defined minimum required 
+    		\item \xmlAttr{threshold}, \xmlDesc{required float attribute}, user-defined minimum required
 		height of peaks (absolute value).
-    		\item \xmlAttr{period}, \xmlDesc{required float attribute}, user-defined expected period for target variable.		
+    		\item \xmlAttr{period}, \xmlDesc{required float attribute}, user-defined expected period for target variable.
 	\end{itemize}
 
-    	For example, 
+    	For example,
 	\begin{lstlisting}[style=XML,morekeywords={target,threshold,period}]
 	<Peaks target='Speed' threshold='0' period='86400'>
 	\end{lstlisting}
 	This means the \xmlString{Speed} signal is a daily signal, and the minimal height required to define a peak is 0.
     Additionally, the \xmlNode{Peaks} requires the sub-node:
     	\begin{itemize}
-      		 \item \xmlNode{window}, \xmlDesc{comma-separated floats, required field}, 
-		 lists the window of time within each period in which a peak should be discovered. 
-		 The text of this node is the upper and lower boundary of this 
+      		 \item \xmlNode{window}, \xmlDesc{comma-separated floats, required field},
+		 lists the window of time within each period in which a peak should be discovered.
+		 The text of this node is the upper and lower boundary of this
 		 window \emph{relative to} the start of the period, separated by a comma.
 		 User can define the lower bound to be a negative
 		 number if the window passes through one side of one period. For example, if the period is 24
 		 hours, the window can be -2,2 which is equivalent to 22, 2.
 		 This node has one attribute:
 		 \begin{itemize}
-		  \item \xmlAttr{width}, \xmlDesc{required float attribute} which is the 
+		  \item \xmlAttr{width}, \xmlDesc{required float attribute} which is the
 		 user defined  width of peaks in that window. The width is in the unit of the signal as well.
 		 \end{itemize}
 		 The number of \xmlNode{window} is unlimited.
        	\end{itemize}
-        
 
-  
-  
+
+
+
   \item \xmlNode{preserveInputCDF}, \xmlDesc{boolean, optional field}, enables a final transform on sampled
     data coercing it to have the same distribution as the original data. If \xmlString{True}, then every
     sample generated by this ARMA after training will have a distribution of values that conforms within
@@ -3046,7 +3064,7 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
     treating histories with long zero-value segments punctuated periodically by peaks.
   \item \xmlNode{SpecificFourier}, \xmlDesc{node, optional}, provides a means to specify different Fourier
     decomposition for different target variables.  Values given in the subnodes of this node will supercede
-    the defaults set by the  \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.  This node accepts the
+    the defaults set by the  \xmlNode{Fourier} and \xmlNode{FourierOrder} nodes.  This node
     requires the following attribute:
     \begin{itemize}
       \item \xmlAttr{variables}, \xmlDesc{comma-separated list, required field}, lists the variables to whom
@@ -3057,10 +3075,78 @@ If \xmlNode{InternalParallel} is \xmlString{False} and \xmlNode{batchSize} is mo
       \item \xmlNode{periods}, \xmlDesc{comma-separated integers, required field}, lists the (fundamental)
         periodic wavelength of the Fourier decomposition for these variables, as in the \xmlNode{Fourier} general node.
     \end{itemize}
+  \item \xmlNode{Multicycle}, \xmlDesc{node, optional}, indicates that each sample of the ARMA should yield
+    multiple sequential samples. For example, if an ARMA model is trained to produce a year's worth of data,
+    enabling \xmlNode{Multicycle} causes it to produce several successive years of data. Multicycle sampling
+    is independent of ROM training, and only changes how samples of the ARMA are created.
+
+    \nb The output of a multicycle ARMA must be stored in a \xmlNode{DataSet}, as the targets will depend
+      on both the \xmlNode{pivotParameter} as well as the cycle, \xmlString{Cycle}. The cycle is a second
+      \xmlNode{Index} that all targets should depend on, with variable name \xmlString{Cycle}.
+
+    The \xmlNode{Multicycle} node accepts the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{cycles}, \xmlDesc{integer, required field}, the number of cycles the ARMA should produce
+        each time it yields a sample.
+      \item \xmlNode{growth}, \xmlDesc{float, optional field}, if provided then the histories produced by
+        the ARMA will be increased by the growth factor for successive cycles. This node can be added
+        multiple times with different settings for different targets.
+        The text of this node is the growth factor in percentage. Some examples are in
+        Table~\ref{tab:arma multicycle growth}, where \emph{Growth factor} is the value used in the RAVEN
+        input and \emph{Scaling factor} is the value by which the history will be multiplied.
+        \begin{table}[h!]
+          \centering
+          \begin{tabular}{r c l}
+            Growth factor & Scaling factor & Description \\ \hline
+            50 & 1.5 & growing by 50\% each cycle \\
+            -50 & 0.5 & shrinking by 50\% each cycle \\
+            150 & 2.5 & growing by 150\% each cycle \\
+          \end{tabular}
+          \caption{ARMA Growth Factor Examples}
+          \label{tab:arma multicycle growth}
+        \end{table}
+
+        The \xmlNode{growth} node takes the following attributes as settings:
+        \begin{itemize}
+          \item \xmlAttr{targets}, \xmlDesc{comma-seperated list, required field}, lists the targets
+            in this ARMA that this growth factor should apply to.
+          \item \xmlAttr{mode}, \xmlDesc{string, required field}, either \xmlString{linear} or
+            \xmlString{exponential}, determines the manner in which the growth factor is applied.
+
+            If \xmlString{linear}, then the scaling factor is $(1+y\cdot g/100)$;
+
+            if \xmlString{exponential}, then the scaling factor is $(1+g/100)^y$;
+
+            where $y$ is the cycle after the first and $g$ is the provided scaling factor.
+        \end{itemize}
+    \end{itemize}
     \romClusterOption
 \end{itemize}
 
-\textbf{Example:}
+Note that when loading the ARMA model from a serialized file as a \xmlNode{pickledROM},
+several nodes can be used to modify the evaluation behavior:
+\begin{itemize}
+  \item \xmlNode{reseed}, \xmlDesc{integer, optional},
+  \item \xmlNode{Multicycle}, \xmlDesc{node, optional}, as \xmlNode{Multicycle} above, allows resetting
+    a growth factor and number of cycles to sample.
+  \item \xmlNode{clusterEvalMode}, \xmlDesc{string, optional}, one of \xmlString{truncated},
+    \xmlString{full}, or \xmlString{clustered}, changes the structure of the samples for Clustered
+    Segmented ROMs. These are identical to the options for \xmlNode{evalMode} node under \xmlNode{Segmented}
+    as described above.
+\end{itemize}
+the \xmlNode{seed}
+as well as the \xmlNode{Multicycle} nodes can be added to change the behavior of the ARMA ROM.
+
+When using ROM segmentation/clustering, the ARMA provides the following classes of features that can
+be used for clustering:
+\begin{itemize}
+   \item \xmlString{global}, the segment-long mean values of the signal;
+   \item \xmlString{fourier}, the fundamental Fourier frequency amplitudes discovered during training;
+   \item \xmlString{arma}, the standard deviation, $p$, and $q$ coefficients obtained during training;
+   \item \xmlString{peak}, the peak probability, mean, standard deviation, and most probable index discovered during training.
+\end{itemize}
+
+\textbf{General ARMA Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
 <Simulation>
   ...

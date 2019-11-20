@@ -72,6 +72,7 @@ class EnsembleModel(Dummy):
     Dummy.__init__(self,runInfoDict)
     self.modelsDictionary       = {}                    # dictionary of models that are going to be assembled
                                                         # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
+    self.modelsInputDictionary  = {}                    # to allow reusability of ensemble modes (similar in construction to self.modelsDictionary)
     self.activatePicard         = False                 # is non-linear system beeing identified?
     self.localTargetEvaluations = {}                    # temporary storage of target evaluation data objects
     self.maxIterations          = 30                    # max number of iterations (in case of non-linear system activated)
@@ -103,38 +104,40 @@ class EnsembleModel(Dummy):
         # get model name
         modelName = child.text.strip()
         # create space of the allowed entries
+        # mirror the structure of medolsDictionary and modelsInputDictionary
+        self.modelsInputDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[]}
         self.modelsDictionary[modelName] = {'TargetEvaluation':None,'Instance':None,'Input':[],'Output':[],'metadataToTransfer':[]}
         # number of allower entries
-        allowedEntriesLen = len(self.modelsDictionary[modelName].keys())
+        allowedEntriesLen = len(self.modelsInputDictionary[modelName].keys())
         for childChild in child:
           if childChild.tag.strip() == 'metadataToTransfer':
             # metadata that needs to be transfered from a source model into this model
             # list(metadataToTranfer, ModelSource,Alias (optional))
             if 'source' not in childChild.attrib.keys():
               self.raiseAnError(IOError, 'when metadataToTransfer XML block is defined, the "source" attribute must be inputted!')
-            self.modelsDictionary[modelName][childChild.tag].append([childChild.text.strip(),childChild.attrib['source'],childChild.attrib.get("alias",None)])
+            self.modelsInputDictionary[modelName][childChild.tag].append([childChild.text.strip(),childChild.attrib['source'],childChild.attrib.get("alias",None)])
           else:
             try:
-              self.modelsDictionary[modelName][childChild.tag].append(childChild.text.strip())
+              self.modelsInputDictionary[modelName][childChild.tag].append(childChild.text.strip())
             except AttributeError:
-              self.modelsDictionary[modelName][childChild.tag] = childChild.text.strip()
+              self.modelsInputDictionary[modelName][childChild.tag] = childChild.text.strip()
             except KeyError:
               self.raiseAnError(IOError, 'The role '+str(childChild.tag) +" can not be used in the EnsebleModel. Check the manual for allowable nodes!")
-        if list(self.modelsDictionary[modelName].values()).count(None) != 1:
+        if list(self.modelsInputDictionary[modelName].values()).count(None) != 1:
           self.raiseAnError(IOError, "TargetEvaluation xml block needs to be inputted!")
-        if len(self.modelsDictionary[modelName]['Input']) == 0:
+        if len(self.modelsInputDictionary[modelName]['Input']) == 0:
           self.raiseAnError(IOError, "Input XML node for Model" + modelName +" has not been inputted!")
-        if len(self.modelsDictionary[modelName].values()) > allowedEntriesLen:
+        if len(self.modelsInputDictionary[modelName].values()) > allowedEntriesLen:
           self.raiseAnError(IOError, "TargetEvaluation, Input and metadataToTransfer XML blocks are the only XML sub-blocks allowed!")
         if child.attrib['type'].strip() == "Code":
           self.createWorkingDir = True
       if child.tag == 'settings':
         self.__readSettings(child)
-    if len(self.modelsDictionary.keys()) < 2:
+    if len(self.modelsInputDictionary.keys()) < 2:
       self.raiseAnError(IOError, "The EnsembleModel needs at least 2 models to be constructed!")
-    for modelName in self.modelsDictionary.keys():
-      if len(self.modelsDictionary[modelName]['Output']) == 0:
-        self.modelsDictionary[modelName]['Output'] = None
+    for modelName in self.modelsInputDictionary.keys():
+      if len(self.modelsInputDictionary[modelName]['Output']) == 0:
+        self.modelsInputDictionary[modelName]['Output'] = None
 
   def __readSettings(self, xmlNode):
     """
@@ -232,18 +235,18 @@ class EnsembleModel(Dummy):
 
     # collect the models
     self.allOutputs = set()
-    for modelClass,modelType,modelName,modelInstance in self.assemblerDict['Model']:
+    for modelClass, modelType, modelName, modelInstance in self.assemblerDict['Model']:
       self.modelsDictionary[modelName]['Instance'] = modelInstance
       inputInstancesForModel = []
-      for inputName in self.modelsDictionary[modelName]['Input']:
+      for inputName in self.modelsInputDictionary[modelName]['Input']:
         inputInstancesForModel.append(self.retrieveObjectFromAssemblerDict('Input',inputName))
         checkDictInputsUsage[inputInstancesForModel[-1]] = True
       self.modelsDictionary[modelName]['InputObject'] = inputInstancesForModel
 
       # retrieve 'Output' objects, such as DataObjects, Databases to check if they are present in the Step
-      if self.modelsDictionary[modelName]['Output'] is not None:
+      if self.modelsInputDictionary[modelName]['Output'] is not None:
         outputNamesModel = []
-        for output in self.modelsDictionary[modelName]['Output']:
+        for output in self.modelsInputDictionary[modelName]['Output']:
           outputObject = self.retrieveObjectFromAssemblerDict('Output',output, True)
           if outputObject.name not in outputsNames:
             self.raiseAnError(IOError, "The optional Output "+outputObject.name+" listed for Model "+modelName+" is not present among the Step outputs!!!")
@@ -257,7 +260,7 @@ class EnsembleModel(Dummy):
       # Generate a list of modules that needs to be imported for internal parallelization (parallel python)
       self.mods = self.mods +list(set(self.modelsDictionary[modelName]['Instance'].mods) - set(self.mods))
       # retrieve 'TargetEvaluation' DataObjects
-      targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsDictionary[modelName]['TargetEvaluation'], True)
+      targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsInputDictionary[modelName]['TargetEvaluation'], True)
       # assert acceptable TargetEvaluation types are used
       if targetEvaluation.type not in ['PointSet','HistorySet','DataSet']:
         self.raiseAnError(IOError, "Only DataObjects are allowed as TargetEvaluation object. Got "+ str(targetEvaluation.type)+"!")
@@ -442,15 +445,21 @@ class EnsembleModel(Dummy):
     joinedGeneralMetadata = {}
     targetEvaluationNames = {}
     optionalOutputNames = {}
+    joinedIndexMap = {} # collect all the index maps, then we can keep the ones we want?
     for modelIn in self.modelsDictionary.keys():
       targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation']] = modelIn
       # collect data
+      newIndexMap = outcomes[modelIn]['response'].pop('_indexMap', None)
+      if newIndexMap:
+        joinedIndexMap.update(newIndexMap[0])
       joinedResponse.update(outcomes[modelIn]['response'])
       joinedGeneralMetadata.update(outcomes[modelIn]['general_metadata'])
       # collect the output of the STEP
       optionalOutputNames.update({outName : modelIn for outName in self.modelsDictionary[modelIn]['OutputObject']})
     # the prefix is re-set here
     joinedResponse['prefix'] = np.asarray([finishedJob.identifier])
+    if joinedIndexMap:
+      joinedResponse['_indexMap'] = np.atleast_1d(joinedIndexMap)
     if output.name not in optionalOutputNames:
       if output.name not in targetEvaluationNames.keys():
         output.addRealization(joinedResponse)
@@ -528,10 +537,16 @@ class EnsembleModel(Dummy):
     """
     dependentOutputs = {}
     for previousOutputs, outputType in zip(listOfOutputs,typeOutputs):
+      indexMap = previousOutputs.get('_indexMap', [{}])[0]
       if len(previousOutputs.values()) > 0:
         for inKey in self.modelsDictionary[modelIn]['Input']:
           if inKey in previousOutputs.keys():
-            dependentOutputs[inKey] =  previousOutputs[inKey] if len(previousOutputs[inKey]) > 1 else previousOutputs[inKey][0]
+            dependentOutputs[inKey] = previousOutputs[inKey] if len(previousOutputs[inKey]) > 1 else previousOutputs[inKey][0]
+            indices = indexMap.get(inKey, None)
+            if indices:
+              if '_indexMap' not in dependentOutputs:
+                dependentOutputs['_indexMap'] = {}
+              dependentOutputs['_indexMap'][inKey] = indices
     return dependentOutputs
 
   def _externalRun(self,inRun, jobHandler):
@@ -637,7 +652,7 @@ class EnsembleModel(Dummy):
             else:
               time.sleep(1.e-3)
           # store the results in the working dictionaries
-            returnDict[modelIn]   = {}
+            returnDict[modelIn] = {}
           #if modelIn not in modelsOnHold:
           # get job that just finished to gather the results
           finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
@@ -662,7 +677,9 @@ class EnsembleModel(Dummy):
           dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
           responseSpace         = dataSet
           typeOutputs[modelCnt] = inRunTargetEvaluations[modelIn].type
-          gotOutputs[modelCnt]  = {key: dataSet[key] for key in inRunTargetEvaluations[modelIn].getVars("output")+inRunTargetEvaluations[modelIn].getVars("indexes")}
+          gotOutputs[modelCnt]  = {key: dataSet[key] for key in inRunTargetEvaluations[modelIn].getVars("output") + inRunTargetEvaluations[modelIn].getVars("indexes")}
+          if '_indexMap' in dataSet.keys():
+            gotOutputs[modelCnt]['_indexMap'] = dataSet['_indexMap']
 
           #store the results in return dictionary
           # store the metadata
@@ -672,6 +689,7 @@ class EnsembleModel(Dummy):
           returnDict[modelIn]['prefix'          ] = np.atleast_1d(identifier)
           returnDict[modelIn]['general_metadata'] = inRunTargetEvaluations[modelIn].getMeta(general=True)
           # if nonlinear system, compute the residue
+          ## it looks like this is handling _indexMap, but it's not clear since there's not a way to test it (yet).
           if self.activatePicard:
             residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
             for out in  inRunTargetEvaluations[modelIn].getVars("output"):
@@ -700,3 +718,7 @@ class EnsembleModel(Dummy):
           break
     returnEvaluation = returnDict, inRunTargetEvaluations, tempOutputs
     return returnEvaluation
+
+
+
+

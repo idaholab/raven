@@ -32,26 +32,22 @@
         <initialSeed>42</initialSeed>
       </samplerInit>
       <variable name="v0">
-        <distribution>v0_dist</distribution>
-      </variable>
-      <variable name="y0">
-        <distribution>y0_dist</distribution>
+        <distribution>vel_dist</distribution>
       </variable>
       <variable name="angle">
         <distribution>angle_dist</distribution>
       </variable>
       <constant name="x0">0</constant>
+      <constant name="y0">0</constant>
       <constant name="timeOption">1</constant>
     </MonteCarlo>
   </Samplers>
 
   <Distributions>
-    <Normal name="v0_dist">
-      <mean>30</mean>
-      <sigma>5</sigma>
+    <Uniform name="vel_dist">
       <lowerBound>1</lowerBound>
       <upperBound>60</upperBound>
-    </Normal>
+    </Uniform>
     <Uniform name="y0_dist">
       <lowerBound>0</lowerBound>
       <upperBound>1</upperBound>

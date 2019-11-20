@@ -109,6 +109,8 @@ class EnsembleForward(ForwardSampler):
         self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
         #FIXME the variableGroups needs to be fixed
         self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
+        # fill toBeSampled so that correct check for samplable variables occurs
+        self.toBeSampled.update(self.instanciatedSamplers[child.tag].toBeSampled)
       # function variables are defined outside the individual samplers
       elif child.tag=='variable':
         for childChild in child:
@@ -133,6 +135,8 @@ class EnsembleForward(ForwardSampler):
       @ In, None
       @ Out, needDict, dict, dictionary of objects needed
     """
+    # clear out toBeSampled, since ForwardSampler uses it for assembling
+    self.toBeSampled = {}
     needDict = ForwardSampler._localWhatDoINeed(self)
     for combSampler in self.instanciatedSamplers.values():
       preNeedDict = combSampler.whatDoINeed()
@@ -165,7 +169,6 @@ class EnsembleForward(ForwardSampler):
       if "evaluate" not in self.funcDict[key].availableMethods():
         self.raiseAnError(IOError,'Function '+self.funcDict[key].name+' does not contain a method named "evaluate". It must be present if this needs to be used in a Sampler!')
 
-
   def localInitialize(self):
     """
       Initialize the EnsembleForward sampler. It calls the localInitialize method of all the Samplers defined in this input
@@ -175,6 +178,7 @@ class EnsembleForward(ForwardSampler):
     self.limit = 1
     cnt = 0
     lowerBounds, upperBounds = {}, {}
+    metadataKeys, metaParams = [], {}
     for samplingStrategy in self.instanciatedSamplers.keys():
       self.instanciatedSamplers[samplingStrategy].initialize(externalSeeding=self.initSeed,solutionExport=None)
       self.samplersCombinations[samplingStrategy] = []
@@ -186,6 +190,10 @@ class EnsembleForward(ForwardSampler):
         self.instanciatedSamplers[samplingStrategy].inputInfo['prefix'] = self.instanciatedSamplers[samplingStrategy].counter
         self.samplersCombinations[samplingStrategy].append(copy.deepcopy(self.instanciatedSamplers[samplingStrategy].inputInfo))
       cnt+=1
+      mKeys, mParams = self.instanciatedSamplers[samplingStrategy].provideExpectedMetaKeys()
+      metadataKeys.extend(mKeys)
+      metaParams.update(mParams)
+    metadataKeys = list(set(metadataKeys))
     self.raiseAMessage('Number of Combined Samples are ' + str(self.limit) + '!')
     # create a grid of combinations (no tensor)
     self.gridEnsemble = GridEntities.GridEntity(self.messageHandler)
@@ -197,7 +205,8 @@ class EnsembleForward(ForwardSampler):
                 'constructTensor':False,
                 'excludeBounds':{'lowerBounds':False,'upperBounds':True}}
     self.gridEnsemble.initialize(initDict)
-
+    # add meta data keys
+    self.addMetaKeys(metadataKeys, params=metaParams)
 
   def localGenerateInput(self,model,myInput):
     """

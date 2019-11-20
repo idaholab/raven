@@ -18,10 +18,11 @@
       <Model class="Models" type="PostProcessor">syncer</Model>
       <Output class="DataObjects" type="HistorySet">synced</Output>
     </PostProcess>
-    <PostProcess name="stats">
+    <PostProcess name="stats" pauseAtEnd="True">
       <Input class="DataObjects" type="HistorySet">synced</Input>
       <Model class="Models" type="PostProcessor">stats</Model>
       <Output class="DataObjects" type="HistorySet">stats</Output>
+      <Output class="OutStreams" type="Plot">to_plot</Output>
     </PostProcess>
     <IOStep name="print">
       <Input class="DataObjects" type="HistorySet">stats</Input>
@@ -31,7 +32,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
-      <variables>v0,y0,angle,x,y,t</variables>
+      <variables>v0,y0,angle,x,y,t,timeOption</variables>
     </ExternalModel>
     <PostProcessor name="syncer" subType="InterfacedPostProcessor">
       <method>HistorySetSync</method>
@@ -67,6 +68,7 @@
         <distribution>angle_dist</distribution>
       </variable>
       <constant name="x0">0</constant>
+      <constant name="timeOption">1</constant>
     </MonteCarlo>
   </Samplers>
 
@@ -107,7 +109,7 @@
     </HistorySet>
     <HistorySet name="stats">
       <Input>mean_v0,mean_y0,mean_angle</Input>
-      <Output>var_x,var_y</Output>
+      <Output>mean_x,mean_y,var_x,var_y</Output>
       <options>
         <pivotParameter>t</pivotParameter>
       </options>
@@ -124,11 +126,20 @@
       <plotSettings>
         <plot>
           <type>scatter</type>
-          <x>results|Output|t</x>
-          <y>results|Input|v0</y>
-          <z>results|Input|v0</y>
+          <x>stats|Output|t</x>
+          <y>stats|Output|var_x</y>
         </plot>
+        <plot>
+          <type>scatter</type>
+          <x>stats|Output|t</x>
+          <y>stats|Output|var_y</y>
+        </plot>
+        <xlabel>t</xlabel>
+        <ylabel>value</ylabel>
       </plotSettings>
+      <actions>
+        <how>screen,png</how>
+      </actions>
     </Plot>
   </OutStreams>
 

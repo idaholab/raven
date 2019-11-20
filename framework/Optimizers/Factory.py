@@ -26,6 +26,7 @@ from .Optimizer import Optimizer
 from .GradientBasedOptimizer import GradientBasedOptimizer
 from .SPSA import SPSA
 from .FiniteDifference import FiniteDifference
+from .Conjugate import ConjugateGradient
 ## [ Add new class here ]
 
 
@@ -38,7 +39,9 @@ __base = 'Optimizer'
 __interFaceDict = {}
 __interFaceDict['GradientBasedOptimizer'           ] = GradientBasedOptimizer
 __interFaceDict['SPSA'                             ] = SPSA
-__interFaceDict['FiniteDifference'] = FiniteDifference
+__interFaceDict['FiniteDifference'                 ] = FiniteDifference
+__interFaceDict['ConjugateGradient'                ] = ConjugateGradient
+
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():

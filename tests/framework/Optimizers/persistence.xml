@@ -16,6 +16,7 @@
     <revisions>
       <revision author="talbpaul" date="2018-01-04">switch from snapshot to writeSteps final</revision>
       <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
+      <revision author='ZHOUJ2' date='2019-11-10'>add resample to False in optimizer</revision>
     </revisions>
   </TestInfo>
 
@@ -46,6 +47,7 @@
         <initialSeed>42</initialSeed>
         <type>max</type>
         <writeSteps>final</writeSteps>
+        <resample>False</resample>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>

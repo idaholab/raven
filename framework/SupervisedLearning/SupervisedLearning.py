@@ -29,7 +29,6 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
-from numpy import average
 import sys
 if sys.version_info.major > 2:
   from crow_modules.distribution1Dpy3 import CDF
@@ -116,7 +115,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     #a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}
     #these need to be declared in the child classes!!!!
-    self.amITrained         = False
+    self.amITrained = False
     self.kerasROMDict = self.initOptionDict.pop('KerasROMDict', None) # dictionary for ROM builded by Keras
 
   def __getstate__(self):
@@ -126,10 +125,10 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
     state = copy.copy(self.__dict__)
-    state['initOptionDict'].pop('paramInput',None)
+    state['initOptionDict'].pop('paramInput', None)
     ## capture what is normally pickled
     if not self.amITrained:
-      supervisedEngineObj = state.pop("supervisedContainer",None)
+      supervisedEngineObj = state.pop("supervisedContainer", None)
       del supervisedEngineObj
     return state
 
@@ -356,6 +355,21 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     return
 
+  def setAdditionalParams(self, params):
+    """
+      Sets parameters aside from initialization, such as during deserialization.
+      @ In, params, dict, parameters to set (dependent on ROM)
+      @ Out, None
+    """
+    newMH = params.pop('messageHandler', None)
+    if newMH:
+      self.messageHandler = newMH
+    # reseeding is common to many
+    seed = params.pop('seed', None)
+    if seed:
+      self.reseed(seed)
+    # overload this method in subclasses to load other parameters
+
   ### ROM Clustering (see ROMCollection.py) ###
   def isClusterable(self):
     """
@@ -365,6 +379,14 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     # only true if overridden.
     return False
+
+  def checkRequestedClusterFeatures(self, request):
+    """
+      Takes the user-requested features (sometimes "all") and interprets them for this ROM.
+      @ In, request, dict(list), as from ROMColletion.Cluster._extrapolateRequestedClusterFeatures
+      @ Out, interpreted, dict(list), interpreted features
+    """
+    self.raiseAnError(NotImplementedError, 'This ROM is not prepared to handle feature cluster requests!')
 
   def getLocalRomClusterFeatures(self, *args, **kwargs):
     """

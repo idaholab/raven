@@ -9,7 +9,7 @@ def evaluate(x,y):
   return (1.5 - x + x*y)**2 + (2.25 - x + x*y*y)**2 + (2.625 - x + x*y*y*y)**2
 
 def run(self,Inputs):
-  if abs(self.y - 0.24392555296) <= 0.00001 and abs(self.x - 0.247797586626) <= 0.00001 :
+  if 0.95 < self.x < 1.0 and 1.5 < self.y < 1.61:
     print("Expected failure for testing ... x:"+str(self.x)+" | y:"+str(self.y))
     raise Exception("expected failure for testing")
   self.ans = evaluate(self.x,self.y)

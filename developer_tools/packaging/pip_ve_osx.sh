@@ -86,8 +86,8 @@ virtualenv --always-copy $INSTALL_DIR
 PATH="$OLD_PATH"
 
 source $INSTALL_DIR/bin/activate
-#Call RavenUtils to return the pip install command with the qa'd versions
-`python $SCRIPT_DIR/../../scripts/TestHarness/testers/RavenUtils.py --pip-install`
+#Call library_handler to return the pip install command with the qa'd versions
+`python $SCRIPT_DIR/library_handler.py pip --action install`
 #pip install numpy==1.11.0 h5py==2.6.0 scipy==0.17.1 scikit-learn==0.17.1 matplotlib==1.5.1
 
 
@@ -109,7 +109,7 @@ make -j${JOBS}
 make install
 
 
-#Defining MPLBACKEND, Otherwise matplotlib complains that python needs to be 
+#Defining MPLBACKEND, Otherwise matplotlib complains that python needs to be
 # built as a framework
 #However if I build python with:
 #./configure --enable-framework=$HOME/python_framework --prefix=$HOME/python_unix
