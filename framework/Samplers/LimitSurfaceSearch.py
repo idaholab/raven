@@ -19,10 +19,9 @@
   supercedes Samplers.py from alfoa
 """
 #for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
+from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-#if not 'xrange' in dir(__builtins__): xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -33,6 +32,7 @@ from operator import mul
 from functools import reduce
 from scipy import spatial
 from math import ceil
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -43,6 +43,7 @@ from AMSC_Object import AMSC_Object
 from utils import randomUtils
 from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class LimitSurfaceSearch(AdaptiveSampler):
   """
@@ -159,6 +160,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
                                                 #  (% of range space)
     self.threshold      = 0                     # Post-rank function value
                                                 #  cutoff (%  of range space)
+    self.sizeGrid       = None                  # size of grid
+    self.sizeSubGrid    = None                  # size of subgrid
     self.printTag            = 'SAMPLER ADAPTIVE'
 
     self.acceptedScoringParam = ['distance','distancePersistence']
@@ -213,6 +216,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       self.tolerance=float(convergenceNode.text)
     except:
       self.raiseAnError(IOError,'Failed to convert '+convergenceNode.text+' to a meaningful number for the convergence')
+    self.errorTolerance = self.tolerance
     attribList = list(convergenceNode.attrib.keys())
     if 'limit'          in convergenceNode.attrib.keys():
       attribList.pop(attribList.index('limit'))
@@ -260,7 +264,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if child.tag == "generateCSVs":
         self.generateCSVs = True
       if child.tag == "batchStrategy":
-        self.batchStrategy = child.text.encode('ascii')
+        self.batchStrategy = child.text
         if self.batchStrategy not in self.acceptedBatchParam:
           self.raiseAnError(IOError, 'Requested unknown batch strategy: ',
                             self.batchStrategy, '. Available options: ',
@@ -274,7 +278,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
           self.raiseAWarning(IOError,'Requested an invalid maximum batch size: ', self.maxBatchSize, '. This should be a non-negative integer value. Defaulting to 1.')
           self.maxBatchSize = 1
       if child.tag == "scoring":
-        self.scoringMethod = child.text.encode('ascii')
+        self.scoringMethod = child.text
         if self.scoringMethod not in self.acceptedScoringParam:
           self.raiseAnError(IOError, 'Requested unknown scoring type: ', self.scoringMethod, '. Available options: ', self.acceptedScoringParam)
       if child.tag == 'simplification':
@@ -423,6 +427,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if len(self.lastOutput) == 0 and not self.limitSurfacePP.ROM.amITrained:
         return ready
     #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
+    oldSizeLsFunctionValue = 0 if len(self.limitSurfacePP.getFunctionValue()) == 0 else len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])
     if type(self.lastOutput) == dict:
       self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
     else:
@@ -433,6 +438,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
     self.surfPoint, evaluations, self.listSurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True, exceptionGrid=self.exceptionGrid, merge=False)
     self.raiseADebug('Limit Surface has been computed!')
+    newSizeLsFunctionValue = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])  if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys() else 0
     # check hanging points
     if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys():
       indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
@@ -460,10 +466,17 @@ class LimitSurfaceSearch(AdaptiveSampler):
     coarseGridTestMatix, coarseGridOldTestMatix = testMatrixDict.pop(0), oldTestMatrixDict.pop(0)
     # compute the Linf norm with respect the location of the LS
     testError = np.sum(np.abs(np.subtract(coarseGridTestMatix,coarseGridOldTestMatix)))
+    if self.sizeGrid is None:
+      self.sizeGrid = float(coarseGridTestMatix.size)
     if len(testMatrixDict) > 0:
       # compute the error
-      testError += np.sum(np.abs(np.subtract(testMatrixDict,oldTestMatrixDict)))
-    if (testError > self.errorTolerance):
+      if self.sizeSubGrid is None:
+        self.sizeSubGrid = float(np.asarray(testMatrixDict).size)
+      testError += np.sum(np.abs(np.subtract(testMatrixDict,oldTestMatrixDict)))/(self.sizeGrid+self.sizeSubGrid)
+    else:
+      testError/= self.sizeGrid
+
+    if (testError > self.errorTolerance) or newSizeLsFunctionValue == oldSizeLsFunctionValue:
       # we still have error
       ready, self.repetition = True, 0
     else:
@@ -485,8 +498,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.converged = True
         if not self.limitSurfacePP.crossedLimitSurf:
           self.raiseAWarning("THE LIMIT SURFACE has NOT been crossed. The search FAILED!!!")
-
-    self.raiseAMessage('counter: '+str(self.counter)+'       Error: ' +str(testError)+' Repetition: '+str(self.repetition))
+    self.raiseAMessage('counter: '+str(self.counter)+'       Error: {:9.6E} Repetition: {:5d}'.format(testError,self.repetition) )
     #if the number of point on the limit surface is > than compute persistence
     realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
     if self.solutionExport is not None:
@@ -523,11 +535,11 @@ class LimitSurfaceSearch(AdaptiveSampler):
       for surfPoint in points:
         setSurfPoint.add(tuple(surfPoint))
       newIndices = set(setSurfPoint)
-      for step in xrange(1,self.thickness):
+      for step in range(1,self.thickness):
         prevPoints = set(newIndices)
         newIndices = set()
         for i,iCoords in enumerate(prevPoints):
-          for d in xrange(len(iCoords)):
+          for d in range(len(iCoords)):
             offset = np.zeros(len(iCoords),dtype=int)
             offset[d] = 1
             if iCoords[d] - offset[d] > 0:
@@ -588,7 +600,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       self.scores = OrderedDict()
       for key, value in self.invPointPersistence.items():
         self.scores[key] = np.zeros(len(self.surfPoint[key]))
-        for i in xrange(len(self.listsurfPoint)):
+        for i in range(len(self.listsurfPoint)):
           self.scores[key][i] = 1
     else:
       self.raiseAnError(NotImplementedError,self.scoringMethod + ' scoring method is not implemented yet')
@@ -622,7 +634,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
       if self.batchStrategy == 'none':
         self.__scoreCandidates()
         maxDistance, maxGridId, maxId =  0.0, "", 0
-        for key, value in self.invPointPersistence.items():
+        for key, value in sorted(self.invPointPersistence.items()):
           if key != self.exceptionGrid and self.surfPoint[key] is not None:
             localMax = np.max(self.scores[key])
             if localMax > maxDistance:
@@ -653,10 +665,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
 
           flattenedSurfPoints = np.array(flattenedSurfPoints)
           for i,iCoords in enumerate(flattenedBandPoints):
-            for j in xrange(i+1, len(flattenedBandPoints)):
+            for j in range(i+1, len(flattenedBandPoints)):
               jCoords = flattenedBandPoints[j]
               ijValidNeighbors = True
-              for d in xrange(len(jCoords)):
+              for d in range(len(jCoords)):
                 if abs(iCoords[d] - jCoords[d]) > 1:
                   ijValidNeighbors = False
                   break
@@ -664,8 +676,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
                 edges.append((i,j))
                 edges.append((j,i))
 
-          names = [ name.encode('ascii', 'ignore') for name in axisNames]
-          names.append('score'.encode('ascii','ignore'))
+          names = axisNames[:] #make copy
+          names.append('score')
           amsc = AMSC_Object(X=flattenedSurfPoints, Y=flattenedScores,
                              w=None, names=names, graph='none',
                              gradient='steepest', normalization='feature',
@@ -721,7 +733,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
 
     if not varSet:
       #here we are still generating the batch
-      for key in self.distDict.keys():
+      for key in sorted(self.distDict.keys()):
         if self.toleranceWeight=='cdf':
           self.values[key]                       = self.distDict[key].ppf(float(randomUtils.random()))
         else:
@@ -730,7 +742,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
         self.inputInfo['distributionType'][key]  = self.distDict[key].type
         self.inputInfo['SampledVarsPb'   ][key]  = self.distDict[key].pdf(self.values[key])
         self.inputInfo['ProbabilityWeight-'+key] = self.distDict[key].pdf(self.values[key])
-        self.addMetaKeys(*['ProbabilityWeight-'+key])
+        self.addMetaKeys(['ProbabilityWeight-'+key])
     self.inputInfo['PointProbability'    ]      = reduce(mul, self.inputInfo['SampledVarsPb'].values())
     # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
     self.inputInfo['ProbabilityWeight']         = self.inputInfo['PointProbability']

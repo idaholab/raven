@@ -7,8 +7,8 @@ curl -C - -L -O https://repo.continuum.io/miniconda/Miniconda-latest-MacOSX-x86_
 chmod +x Miniconda-latest-MacOSX-x86_64.sh
 ./Miniconda-latest-MacOSX-x86_64.sh -b -p $INSTALL_DIR
 export PATH=$INSTALL_DIR/bin:$PATH
-#Call RavenUtils to return the conda create command with the qa'd versions
-`python ../../scripts/TestHarness/testers/RavenUtils.py --conda-create`
+#Call library_handler to return the conda create command with the qa'd versions
+`python ../../scripts/libray_handler.py conda --action create`
 #conda install -y numpy hdf5 h5py scipy scikit-learn matplotlib swig
 
 # For some bizarre reason, qt causes the install to fail with incorrect

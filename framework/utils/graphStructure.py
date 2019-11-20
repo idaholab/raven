@@ -40,11 +40,11 @@ class graphObject(object):
     """
       Initializes a graph object
       If no dictionary or None is given, an empty dictionary will be used
-      @ In, graphDict, dict, the graph dictionary ({'Node':[connectedNode1,connectedNode2, etc.]}
+      @ In, graphDict, dict, the graph dictionary ({'Node':[connectedNode1,connectedNode2, etc.]} where connectedNode is a node that relies on Node
     """
-    if graphDict == None:
+    if graphDict is None:
       graphDict = {}
-    self.__graphDict = { k.strip():v for k, v in graphDict.iteritems()}
+    self.__graphDict = { k.strip():v for k, v in graphDict.items()}
 
   def vertices(self):
     """
@@ -338,7 +338,7 @@ class graphObject(object):
       @ In, None
       @ Out, minDegree, integer, the minimum degree of the vertices
     """
-    minDegree = sys.maxint
+    minDegree = 2**62 #sys.maxint
     for vertex in self.__graphDict:
       vertexDegree = self.vertexDegree(vertex)
       if vertexDegree < minDegree:

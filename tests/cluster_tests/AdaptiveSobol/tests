@@ -1,0 +1,10 @@
+[Tests]
+ [./test_parallel_adaptive_sobol]
+   input = 'test_adapt_sobol_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml'
+   output = 'workdir/par_dump.csv'
+   run_types = 'qsub'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+[]

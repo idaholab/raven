@@ -8,6 +8,12 @@
     <description>
       Tests decomposition with KernelPCA and a pivot parameter.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-09-27">
+        As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
+        the output data object will be renamed, and the variable name of labels will be explicitly defined.
+      </revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -35,10 +41,10 @@
       <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
       <Model class="Models" type="ExternalModel">DataGeneratorModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">gridSampler</Sampler>
-      <Output class="DataObjects" type="HistorySet">mData</Output>
+      <Output class="DataObjects" type="HistorySet">mDataRaw</Output>
     </MultiRun>
     <PostProcess name="pp1" pauseAtEnd="True">
-      <Input class="DataObjects" type="HistorySet">mData</Input>
+      <Input class="DataObjects" type="HistorySet">mDataRaw</Input>
       <Model class="Models" type="PostProcessor">PCA</Model>
       <Output class="DataObjects" type="HistorySet">mData</Output>
       <Output class="OutStreams" type="Print">dummy</Output>
@@ -104,9 +110,16 @@
     </PointSet>
     <HistorySet name="mData">
       <Input>n</Input>
+      <Output>x1,x2,x3,x4,PCADimension1,PCADimension2</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="mDataRaw">
+      <Input>n</Input>
       <Output>x1,x2,x3,x4</Output>
       <options>
-          <pivotParameter>Time</pivotParameter>
+        <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>

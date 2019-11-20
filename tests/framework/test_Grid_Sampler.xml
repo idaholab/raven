@@ -19,6 +19,7 @@
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="talbpaul" date="2016-04-26">added check for pre-existing backup files when validating</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-06-05">Modified grid to test resolution of issue #1003</revision>
     </revisions>
     <requirements>R-RE-3</requirements>
   </TestInfo>
@@ -54,10 +55,10 @@
 
   <Samplers>
     <Grid name="myGrid">
-      <variable name="VarGauss1">
-        <distribution>Gauss1</distribution>
-        <grid construction="custom" type="value">0.02 0.5 0.6</grid>
-      </variable>
+        <variable name="VarGauss1">
+            <distribution>Gauss1</distribution>
+            <grid construction="custom" type="value">0 1 2</grid>
+        </variable>
       <variable name="VarGauss2">
         <distribution>Gauss2</distribution>
         <grid construction="custom" type="CDF">0.5 1.0 0.0</grid>

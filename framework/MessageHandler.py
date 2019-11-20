@@ -20,8 +20,6 @@ Created on Apr 20, 2015
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -113,7 +111,7 @@ class MessageUser(object):
     tag       = kwargs.get('tag'      ,'Warning')
     color     = kwargs.get('color'    ,None     )
     msg = ' '.join(str(a) for a in args)
-    self.messageHandler.message(self,msg,str(tag),verbosity,color)
+    self.messageHandler.message(self, msg, str(tag), verbosity, color)
 
   def raiseAMessage(self,*args,**kwargs):
     """
@@ -289,7 +287,7 @@ class MessageHandler(object):
       @ Out, currentVerb, int, integer equivalent to verbosity level
     """
     if str(verb).strip().lower() not in self.verbCode.keys():
-      raise IOError('Verbosity key '+str(verb)+' not recognized!  Options are '+str(self.verbCode.keys()+[None]),'ERROR','silent')
+      raise IOError('Verbosity key '+str(verb)+' not recognized!  Options are '+str(list(self.verbCode.keys())+[None]))
     currentVerb = self.verbCode[str(verb).strip().lower()]
     return currentVerb
 

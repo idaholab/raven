@@ -11,6 +11,7 @@
   input = 'testHybridDET.xml'
   output = 'HybridDynamicEventTree/HybridDETrunTest/HybridDET_test_5-1-2/out~pump_fake HybridDynamicEventTree/print_and_plot_outputs/testprint_hist_hier_28.csv HybridDynamicEventTree/print_and_plot_outputs/2DHistoryPlot_line.pdf'
   UnorderedCsv = 'HybridDynamicEventTree/print_and_plot_outputs/testprint_tpset_hier.csv'
+  python3_only = true
  [../]
 
  [./testAdaptiveDynamicEventTreeRAVEN]

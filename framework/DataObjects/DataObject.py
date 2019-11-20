@@ -19,12 +19,14 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-import __builtin__
 import os
 import sys
 import copy
 import functools
-import cPickle as pk
+try:
+  import cPickle as pk
+except ImportError:
+  import pickle as pk
 import xml.etree.ElementTree as ET
 
 import abc
@@ -33,7 +35,6 @@ import pandas as pd
 import xarray as xr
 
 from BaseClasses import BaseType
-from Files import StaticXMLOutput
 from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 from MessageHandler import MessageHandler
 
@@ -209,16 +210,14 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         self._inputs.remove(index)
       except ValueError:
         pass #not requested as input anyway
+    # check inputs and outputs, if there were duplicates, error out
+    dups = set(self._inputs).intersection(self._outputs)
+    if dups:
+      self.raiseAnError(IOError, 'Variables: "', ','.join(dups), '" are specified in both "Input" and "Output" Node of DataObject "', self.name,'"')
     self._orderedVars = self._inputs + self._outputs
     # check if protected vars have been violated
-    if set(self.protectedTags).issubset(set(self._orderedVars)):
+    if set(self.protectedTags).intersection(set(self._orderedVars)):
       self.raiseAnError(IOError, 'Input, Output and Index variables can not be part of RAVEN protected tags: '+','.join(self.protectedTags))
-
-    # create dict var to index
-    # FIXME: this dict will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
-    if self.indexes:
-      for ind in self.indexes:
-        self._fromVarToIndex.update(dict.fromkeys( self._pivotParams[ind], ind))
 
     if self.messageHandler is None:
       self.messageHandler = MessageHandler()
@@ -282,10 +281,12 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   # DATA CONTAINER API #
   ######################
   @abc.abstractmethod
-  def addExpectedMeta(self,keys):
+  def addExpectedMeta(self,keys, params={}):
     """
       Registers meta to look for in realization
       @ In, keys, set(str), keys to register
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
     pass

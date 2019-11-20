@@ -20,8 +20,6 @@ Created on Nov 14, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
 ## End compatibility block for Python 3-----------------------------------------
 
 ## External Modules-------------------------------------------------------------
@@ -48,19 +46,9 @@ from .OutStreamManager import OutStreamManager
 from ClassProperty import ClassProperty
 ## Internal Modules End---------------------------------------------------------
 
-## Set a global variable for backend default setting of whether a display is
-## available or not. For instance, if we are running on the HPC without an X11
-## instance, then we don't have the ability to display the plot, only to save it
-## to a file
-if platform.system() == 'Windows':
-  displayAvailable = True
-else:
-  if os.getenv('DISPLAY'):
-    displayAvailable = True
-  else:
-    displayAvailable = False
-
-if not displayAvailable:
+#display = True
+display = utils.displayAvailable()
+if not display:
   matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
@@ -333,7 +321,7 @@ class OutStreamPlot(OutStreamManager):
             if xSplit[2].strip() not in self.sourceData[pltIndex].getVars(xSplit[1].lower())+outputIndexes:
               self.raiseAnError(IOError, 'Not found variable "'+ xSplit[2] + '" in "'+xSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
             # for variable from input space, it will return array(float), not 1d array
-            self.xValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt).dropna(pivotParam)[xSplit[2]].values.astype(float, copy=False)))
+            self.xValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel({'RAVEN_sample_ID':cnt},False).dropna(pivotParam)[xSplit[2]].values.astype(float, copy=False)))
             maxSize = self.xValues[pltIndex][cnt][-1].size if self.xValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.yCoordinates :
             for i in range(len(self.yCoordinates [pltIndex])):
@@ -341,7 +329,7 @@ class OutStreamPlot(OutStreamManager):
               outputIndexes = self.sourceData[pltIndex].indexes if ySplit[1].lower() == 'output' else []
               if ySplit[2].strip() not in self.sourceData[pltIndex].getVars(ySplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ ySplit[2] + '" in "'+ySplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.yValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt).dropna(pivotParam)[ySplit[2]].values.astype(float, copy=False)))
+              self.yValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel({'RAVEN_sample_ID':cnt},False).dropna(pivotParam)[ySplit[2]].values.astype(float, copy=False)))
               maxSize = self.yValues[pltIndex][cnt][-1].size if self.yValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.zCoordinates  and self.dim > 2:
             for i in range(len(self.zCoordinates [pltIndex])):
@@ -349,7 +337,7 @@ class OutStreamPlot(OutStreamManager):
               outputIndexes = self.sourceData[pltIndex].indexes if zSplit[1].lower() == 'output' else []
               if zSplit[2].strip() not in self.sourceData[pltIndex].getVars(zSplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ zSplit[2] + '" in "'+zSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.zValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt).dropna(pivotParam)[zSplit[2]].values.astype(float, copy=False)))
+              self.zValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel({'RAVEN_sample_ID':cnt},False).dropna(pivotParam)[zSplit[2]].values.astype(float, copy=False)))
               maxSize = self.zValues[pltIndex][cnt][-1].size if self.zValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.colorMapCoordinates[pltIndex] != None:
             for i in range(len(self.colorMapCoordinates[pltIndex])):
@@ -357,7 +345,7 @@ class OutStreamPlot(OutStreamManager):
               outputIndexes = self.sourceData[pltIndex].indexes if colorSplit[1].lower() == 'output' else []
               if colorSplit[2].strip() not in self.sourceData[pltIndex].getVars(colorSplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ colorSplit[2] + '" in "'+colorSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.colorMapValues[pltIndex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt).dropna(pivotParam)[colorSplit[2]].values.astype(float, copy=False))
+              self.colorMapValues[pltIndex][cnt].append(dataSet.isel({'RAVEN_sample_ID':cnt},False).dropna(pivotParam)[colorSplit[2]].values.astype(float, copy=False))
               maxSize = self.colorMapValues[pltIndex][cnt][-1].size if self.colorMapValues[pltIndex][cnt][-1].size > maxSize else maxSize
           # expand the scalars in case they need to be plotted against histories
           if self.xValues[pltIndex][cnt][-1].size == 1 and maxSize > 1:
@@ -686,17 +674,19 @@ class OutStreamPlot(OutStreamManager):
       @ In, instructionString, string, the instruction to execute
       @ Out, None
     """
-    if instructionString == 'interactive' and 'screen' in self.destinations and displayAvailable:
+    if instructionString == 'interactive' and 'screen' in self.destinations and display:
       self.fig = plt.figure(self.name)
       ## This seems a bit hacky, but we need the ginput in order to block
       ## execution of raven until this is over, however closing the window can
       ## cause this thing to fail.
       try:
-        self.fig.ginput(n = -1, timeout = -1, show_clicks = False)
+        self.fig.ginput(n = -1, timeout = 0, show_clicks = False)
       except:
         ## I know this is bad, but it is a single line of code outside our
         ## control, if it fails for any reason it should not be a huge deal, we
         ## just want RAVEN to continue on its merry way when a figure closes.
+        self.raiseAWarning('There was an error with figure.ginput:\n', e)
+        self.raiseAWarning('... continuing anyway ...')
         pass
       ## We may want to catch a more generic exception since this may be depedent
       ## on the backend used, hence the code replacement above
@@ -737,7 +727,7 @@ class OutStreamPlot(OutStreamManager):
     else:
       self.fig = plt.figure(self.name)
 
-    if 'screen' in self.destinations and displayAvailable:
+    if 'screen' in self.destinations and display:
       self.fig.show()
 
     if self.dim == 3:
@@ -912,7 +902,7 @@ class OutStreamPlot(OutStreamManager):
       self.raiseAnError(TypeError, 'This Plot interface is able to handle 2D-3D plot only')
 
     if 'gridSpace' in self.options['plotSettings'].keys():
-      grid = map(int, self.options['plotSettings']['gridSpace'].split(' '))
+      grid = list(map(int, self.options['plotSettings']['gridSpace'].split(' ')))
       self.gridSpace = matplotlib.gridspec.GridSpec(grid[0], grid[1])
 
   def addOutput(self):
@@ -943,11 +933,11 @@ class OutStreamPlot(OutStreamManager):
         x = None
         y = None
         if 'x' in  plotSettings['gridLocation'].keys():
-          x = map(int, plotSettings['gridLocation']['x'].strip().split(' '))
+          x = list(map(int, plotSettings['gridLocation']['x'].strip().split(' ')))
         else:
           x = None
         if 'y' in  plotSettings['gridLocation'].keys():
-          y = map(int, plotSettings['gridLocation']['y'].strip().split(' '))
+          y = list(map(int, plotSettings['gridLocation']['y'].strip().split(' ')))
         else:
           y = None
         if   (len(x) == 1 and len(y) == 1):
@@ -980,9 +970,8 @@ class OutStreamPlot(OutStreamManager):
       #  plt.hold(True)
       if 'gridSpace' in self.options['plotSettings'].keys():
         plt.locator_params(axis = 'y', nbins = 4)
-        plt.ticklabel_format(**{'style':'sci', 'scilimits':(0, 1), 'useOffset':False, 'axis':'both'})
         plt.locator_params(axis = 'x', nbins = 2)
-        plt.ticklabel_format(**{'style':'sci', 'scilimits':(0, 1), 'useOffset':False, 'axis':'both'})
+        #plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 1))
         if 'range' in plotSettings.keys():
           axes_range = plotSettings['range']
           if self.dim == 2:
@@ -1911,19 +1900,16 @@ class OutStreamPlot(OutStreamManager):
     plt.draw()
     # self.plt3D.draw(self.fig.canvas.renderer)
 
-    if 'screen' in self.destinations and displayAvailable:
-      if platform.system() in ['Linux','Windows']:
-        # XXX For some reason, this is required on Linux, but causes
-        # OSX to fail.  Which is correct for windows has not been determined.
-        def handle_close(event):
-          """
-            This method is aimed to handle the closing of figures (overall when in interactive mode)
-            @ In, event, instance, the event to close
-            @ Out, None
-          """
-          self.fig.canvas.stop_event_loop()
-          self.raiseAMessage('Closed Figure')
-        self.fig.canvas.mpl_connect('close_event', handle_close)
+    if 'screen' in self.destinations and display:
+      def handle_close(event):
+        """
+        This method is aimed to handle the closing of figures (overall when in interactive mode)
+        @ In, event, instance, the event to close
+        @ Out, None
+        """
+        self.fig.canvas.stop_event_loop()
+        self.raiseAMessage('Closed Figure')
+      self.fig.canvas.mpl_connect('close_event', handle_close)
       # self.plt.pause(1e-6)
       ## The following code is extracted from pyplot.pause without actually
       ## needing to force the code to sleep, according to MPL's documentation,

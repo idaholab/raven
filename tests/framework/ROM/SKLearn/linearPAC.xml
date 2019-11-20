@@ -43,9 +43,9 @@
       <Target>Z</Target>
       <C>1.0</C>
       <fit_intercept>True</fit_intercept>
-      <n_iter>5</n_iter>
       <shuffle>True</shuffle>
       <random_state>1</random_state>
+      <n_iter_no_change>5</n_iter_no_change>
       <verbose>0</verbose>
       <loss>hinge</loss>
       <warm_start>False</warm_start>

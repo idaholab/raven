@@ -1,4 +1,4 @@
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <TestInfo>
     <name>plugins/ExamplePlugin.TestPluginExample</name>
     <author>alfoa</author>
@@ -11,6 +11,10 @@
         Xi(t)=\sum_{i=1}^{n} coef_i*e^{var_i*t}
        \end{math}
     </description>
+    <revisions>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+    </revisions>
+    <requirements>R-SI-2</requirements>
   </TestInfo>
 
   <RunInfo>
@@ -46,11 +50,11 @@
       <samplerInit>
         <limit>2</limit>
       </samplerInit>
-      <constant name="a">0.0001</constant>
-      <constant name="b">-0.5</constant>
       <variable name="c">
           <distribution>one</distribution>
       </variable>
+      <constant name="a">0.0001</constant>
+      <constant name="b">-0.5</constant>
     </MonteCarlo>
   </Samplers>
 

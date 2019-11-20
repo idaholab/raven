@@ -29,7 +29,6 @@ import relapdata
 from PhisicsInterface import Phisics
 from Relap5Interface import Relap5
 
-from  __builtin__ import any as b_any
 
 class PhisicsRelap5(CodeInterfaceBase):
   """
@@ -92,7 +91,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     for key in searchDict:
       for child in libraryRoot.getiterator(searchDict[key]):
         timeDict[dictKeys[key]] = child.text
-        return timeDict
+    return timeDict
 
   def _readMoreXML(self,xmlNode):
     """
@@ -106,7 +105,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     self.PhisicsInterface._readMoreXML(xmlNode)
     self.Relap5Interface._readMoreXML(xmlNode)
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       See base class.  Collects all the clargs and the executable to produce the command-line call.
@@ -116,6 +115,8 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual
+                                       command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     mapDict = self.mapInputFileType(inputFiles)
@@ -211,7 +212,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     passToDesignatedCode['phisics']['SampledVars'] = {}
     passToDesignatedCode['relap5']  = {}
     passToDesignatedCode['relap5']['SampledVars']  = {}
-    for var,value in perturbedVars.iteritems():
+    for var,value in perturbedVars.items():
       if var.split('|')[0] in set(self.phisicsVariables):
         passToDesignatedCode['phisics']['SampledVars'][var] = value
       else:

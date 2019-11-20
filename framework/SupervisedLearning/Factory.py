@@ -19,9 +19,7 @@
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
-warnings.simplefilter('default',DeprecationWarning)
-if not 'xrange' in dir(__builtins__):
-  xrange = range
+warnings.simplefilter('default', DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
@@ -39,6 +37,14 @@ from SupervisedLearning.SciKitLearn        import SciKitLearn
 from SupervisedLearning.pickledROM         import pickledROM
 from SupervisedLearning.PolyExponential    import PolyExponential
 from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
+from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters, Interpolated
+from .KerasClassifier import isTensorflowAvailable
+if isTensorflowAvailable():
+  from .KerasClassifier import KerasClassifier
+  from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
+  from SupervisedLearning.KerasConvNetClassifier import KerasConvNetClassifier
+  from SupervisedLearning.KerasLSTMClassifier import KerasLSTMClassifier
+from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters
 
 ## [ Add new class here ]
 ################################################################################
@@ -62,6 +68,13 @@ __interfaceDict['ARMA'                ] = ARMA
 __interfaceDict['pickledROM'          ] = pickledROM
 __interfaceDict['PolyExponential'     ] = PolyExponential
 __interfaceDict['DMD'                 ] = DynamicModeDecomposition
+__interfaceDict['Segments'            ] = Segments
+__interfaceDict['Clusters'            ] = Clusters
+__interfaceDict['Interpolated'        ] = Interpolated
+if isTensorflowAvailable():
+  __interfaceDict['KerasMLPClassifier'    ] = KerasMLPClassifier
+  __interfaceDict['KerasConvNetClassifier'] = KerasConvNetClassifier
+  __interfaceDict['KerasLSTMClassifier'   ] = KerasLSTMClassifier
 
 def knownTypes():
   """

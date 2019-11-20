@@ -32,11 +32,12 @@ source ../scripts/establish_conda_env.sh --load --quiet
 #   (not the Unix-style ones used on other platforms).  This also means semi-colons need to be used
 #   to separate terms instead of the Unix colon.
 #
-if [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]
+if [ "$(uname)" == "Darwin" ] || [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]
+then
+  export TEXINPUTS=.:$SCRIPT_DIR/tex_inputs/:$TEXINPUTS
+elif [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
 then
   export TEXINPUTS=.\;`cygpath -w $SCRIPT_DIR/tex_inputs`\;$TEXINPUTS
-else
-  export TEXINPUTS=.:$SCRIPT_DIR/tex_inputs/:$TEXINPUTS
 fi
 
 
@@ -53,14 +54,25 @@ then
     fi
 fi
 
-for DIR in  user_manual user_guide theory_manual qa_docs tests; do
+for DIR in  user_manual user_guide theory_manual tests; do
     cd $DIR
     echo Building in $DIR...
-    if [[ 1 -eq $VERB ]]
+    if [ "$(uname)" == "Darwin" ] || [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]
     then
-      make; MADE=$?
-    else
-      make > /dev/null; MADE=$?
+      if [[ 1 -eq $VERB ]]
+      then
+        make; MADE=$?
+      else
+        make > /dev/null; MADE=$?
+      fi    
+    elif [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
+    then  
+      if [[ 1 -eq $VERB ]]
+      then
+        bash.exe make_win.sh; MADE=$?
+      else
+        bash.exe make_win.sh > /dev/null; MADE=$?
+      fi
     fi
     if [[ 0 -eq $MADE ]]; then
         echo ...Successfully made docs in $DIR
@@ -71,9 +83,13 @@ for DIR in  user_manual user_guide theory_manual qa_docs tests; do
     cd $SCRIPT_DIR
 done
 
+cd sqa
+./make_docs.sh
+cd ..
 mkdir pdfs
-for DOC in user_guide/raven_user_guide.pdf theory_manual/raven_theory_manual.pdf qa_docs/raven_sdd.pdf qa_docs/test_plan.pdf qa_docs/requirements.pdf  user_manual/raven_user_manual.pdf tests/analytic_tests.pdf; do
+for DOC in user_guide/raven_user_guide.pdf theory_manual/raven_theory_manual.pdf sqa/sdd/raven_software_design_description.pdf sqa/rtr/raven_requirements_traceability_matrix.pdf sqa/srs/raven_software_requirements_specifications.pdf user_manual/raven_user_manual.pdf tests/analytic_tests.pdf; do
     cp $DOC pdfs/
 done
+
 
 

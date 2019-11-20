@@ -1,0 +1,6 @@
+<DataObjects>
+  <PointSet name="placeholder"/>
+  <PointSet name="samples">
+    <Input>x1,x2,x3</Input>
+  </PointSet>
+</DataObjects>

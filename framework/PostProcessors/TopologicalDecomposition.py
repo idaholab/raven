@@ -16,13 +16,14 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
+from __future__ import division, print_function, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import time
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -31,6 +32,7 @@ from utils import InputData
 import Files
 import Runners
 #Internal Modules End-----------------------------------------------------------
+
 
 class TopologicalDecomposition(PostProcessor):
   """
@@ -150,7 +152,7 @@ class TopologicalDecomposition(PostProcessor):
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
     # register metadata
-    self.addMetaKeys('maxLabel','minLabel')
+    self.addMetaKeys(['maxLabel','minLabel'])
 
   def _handleInput(self, paramInput):
     """
@@ -160,13 +162,13 @@ class TopologicalDecomposition(PostProcessor):
     """
     for child in paramInput.subparts:
       if child.getName() == "graph":
-        self.graph = child.value.encode('ascii').lower()
+        self.graph = child.value.lower()
         if self.graph not in self.acceptedGraphParam:
           self.raiseAnError(IOError, 'Requested unknown graph type: ',
                             self.graph, '. Available options: ',
                             self.acceptedGraphParam)
       elif child.getName() == "gradient":
-        self.gradient = child.value.encode('ascii').lower()
+        self.gradient = child.value.lower()
         if self.gradient not in self.acceptedGradientParam:
           self.raiseAnError(IOError, 'Requested unknown gradient method: ',
                             self.gradient, '. Available options: ',
@@ -181,7 +183,7 @@ class TopologicalDecomposition(PostProcessor):
       elif child.getName() == 'simplification':
         self.simplification = child.value
       elif child.getName() == 'persistence':
-        self.persistence = child.value.encode('ascii').lower()
+        self.persistence = child.value.lower()
         if self.persistence not in self.acceptedPersistenceParam:
           self.raiseAnError(IOError, 'Requested unknown persistence method: ',
                             self.persistence, '. Available options: ',
@@ -189,13 +191,13 @@ class TopologicalDecomposition(PostProcessor):
       elif child.getName() == 'parameters':
         self.parameters['features'] = child.value.strip().split(',')
         for i, parameter in enumerate(self.parameters['features']):
-          self.parameters['features'][i] = self.parameters['features'][i].encode('ascii')
+          self.parameters['features'][i] = self.parameters['features'][i]
       elif child.getName() == 'weighted':
         self.weighted = child.value in ['True', 'true']
       elif child.getName() == 'response':
         self.parameters['targets'] = child.value
       elif child.getName() == 'normalization':
-        self.normalization = child.value.encode('ascii').lower()
+        self.normalization = child.value.lower()
         if self.normalization not in self.acceptedNormalizationParam:
           self.raiseAnError(IOError, 'Requested unknown normalization type: ',
                             self.normalization, '. Available options: ',
@@ -273,7 +275,7 @@ class TopologicalDecomposition(PostProcessor):
 
         # Append the min/max labels to the data whether the user wants them or
         # not, and place the hierarchy information into the metadata
-        for key, values in outputDict.iteritems():
+        for key, values in outputDict.items():
           if key in ['minLabel', 'maxLabel']:
             for value in values:
               output.updateOutputValue(key, [value])
@@ -305,13 +307,13 @@ class TopologicalDecomposition(PostProcessor):
     myDataIn = internalInput['features']
     myDataOut = internalInput['targets']
 
-    self.outputData = myDataOut[self.parameters['targets'].encode('UTF-8')]
+    self.outputData = myDataOut[self.parameters['targets']]
     self.pointCount = len(self.outputData)
     self.dimensionCount = len(self.parameters['features'])
 
     self.inputData = np.zeros((self.pointCount, self.dimensionCount))
     for i, lbl in enumerate(self.parameters['features']):
-      self.inputData[:, i] = myDataIn[lbl.encode('UTF-8')]
+      self.inputData[:, i] = myDataIn[lbl]
 
     if self.weighted:
       self.weights = internalInput['metadata']['PointProbability']
@@ -340,7 +342,7 @@ class TopologicalDecomposition(PostProcessor):
 
     outputDict['minLabel'] = np.zeros(self.pointCount)
     outputDict['maxLabel'] = np.zeros(self.pointCount)
-    for extPair, indices in partitions.iteritems():
+    for extPair, indices in partitions.items():
       for idx in indices:
         outputDict['minLabel'][idx] = extPair[0]
         outputDict['maxLabel'][idx] = extPair[1]
@@ -359,6 +361,15 @@ class TopologicalDecomposition(PostProcessor):
 
 try:
   import PySide.QtCore as qtc
+  __QtAvailable = True
+except ImportError as e:
+  try:
+    import PySide2.QtCore as qtc
+    __QtAvailable = True
+  except ImportError as e:
+    __QtAvailable = False
+
+if __QtAvailable:
   class QTopologicalDecomposition(TopologicalDecomposition,qtc.QObject):
     """
       TopologicalDecomposition class - Computes an approximated hierarchical
@@ -429,7 +440,7 @@ try:
 
         ## Give this UI a unique id in case other threads are requesting UI
         ##  elements
-        uiID = unicode(id(self))
+        uiID = str(id(self))
 
         ## Send the request for a UI thread to the main application
         self.requestUI.emit('TopologyWindow', uiID,
@@ -465,7 +476,5 @@ try:
             until the correct one has signaled it is done.
         @Out, None
       """
-      if uiID == unicode(id(self)):
+      if uiID == str(id(self)):
         self.uiDone = True
-except ImportError as e:
-  pass

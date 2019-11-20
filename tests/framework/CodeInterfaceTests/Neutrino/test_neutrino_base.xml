@@ -1,0 +1,89 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/Neutrino.Base</name>
+	<author>EmeraldRyan</author>
+	<created>2019-07-16</created>
+	<classesTested>Models.Code.Neutrino</classesTested>
+	<description>
+	  Basic test of the Neutrino base interface.
+	  Sample three values for the particle size from a uniform distribution and uses a Monte Carlo sampler.
+	  Outputs the results of each and particle size run.
+	  This test is used to test the Neutrino intereface with no executable.
+	</description>
+  </TestInfo>
+
+  <RunInfo>
+    <!-- States where the working directory is, the sequence of steps to take, and the number of batches to run-->
+    <WorkingDir>Neutrino_Base</WorkingDir>
+    <Sequence>sampleNeutrino,outputResults</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+   <!-- Gives the name of the neutrino input file and provides the name of the file to be used in this input-->
+  <Files>
+    <Input name="neutrinoInput" type="">NeutrinoInput.nescene</Input>
+  </Files>
+
+  <!-- States the Neutrino interface and the path to the executable -->
+  <Models>
+    <Code name="neutrino" subType="Neutrino">
+      <executable>put/here/neutrino/exe</executable>
+    </Code>
+  </Models>
+
+  <!-- Gives different distributions for raven to use in order to modify variables-->
+  <Distributions>
+    <Uniform name="testDist">
+      <lowerBound>0.1</lowerBound>
+      <upperBound>0.2</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <!--Gives how the distributions should be sampled -->
+  <Samplers>
+    <MonteCarlo name="myMC">
+      <samplerInit>
+        <limit>3</limit>
+		<initialSeed>2</initialSeed>
+      </samplerInit>
+      <variable name="ParticleSize">
+        <distribution>testDist</distribution>
+      </variable>
+     </MonteCarlo>
+  </Samplers>
+
+  <!--Provides the steps to run RAVEN and what to do  -->
+  <Steps>
+    <MultiRun name="sampleNeutrino">
+      <Input   class="Files"       type=""          >neutrinoInput</Input>
+      <Model   class="Models"      type="Code"      >neutrino</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"      >myMC</Sampler>
+      <Output  class="DataObjects" type="HistorySet"  >resultSet</Output>
+    </MultiRun>
+    <IOStep name="outputResults" pauseAtEnd="True">
+      <Input  class="DataObjects" type="HistorySet"   >resultSet</Input>
+      <Output  class="OutStreams"  type="Print"     >out_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <!--Provides output files -->
+  <OutStreams>
+    <Print name="out_dump">
+      <type>csv</type>
+      <source>resultSet</source>
+    </Print>
+  </OutStreams>
+
+  <!-- Provides variable to store information to-->
+  <DataObjects>
+    <HistorySet name="resultSet">
+	  <Input> ParticleSize </Input>
+      <Output>time,result</Output>
+	  <options>
+	    <pivotParameter>time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

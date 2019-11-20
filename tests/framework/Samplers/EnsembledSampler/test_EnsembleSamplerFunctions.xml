@@ -1,4 +1,5 @@
-<Simulation verbosity='debug'>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Samplers/EnsembledSampler.EnsembleSamplerDummy</name>
     <author>mandd</author>
@@ -10,6 +11,7 @@
     </description>
     <revisions>
       <revision author="talbpaul" date="2018-01-02">added input data object to prevent same-input-as-output error</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -20,15 +22,15 @@
   </RunInfo>
 
   <Models>
-    <Dummy name='MyDummy1' subType=''/>
+    <Dummy name="MyDummy1" subType=""/>
   </Models>
 
   <Distributions>
-    <Uniform name='unif'>
+    <Uniform name="unif">
       <lowerBound>0.0</lowerBound>
       <upperBound>1.0</upperBound>
     </Uniform>
-    <Normal name='norm'>
+    <Normal name="norm">
       <mean>0.5</mean>
       <sigma>0.2</sigma>
       <lowerBound>0</lowerBound>
@@ -37,42 +39,41 @@
   </Distributions>
 
   <Functions>
-     <External name='funct1' file='funct1.py'>
-        <variable>x1</variable>
-        <variable>x2</variable>
-     </External>
-     <External name='funct2' file='funct2.py'>
-        <variable>x2</variable>
-     </External>
+    <External file="funct1.py" name="funct1">
+      <variables>x1,x2</variables>
+    </External>
+    <External file="funct2.py" name="funct2">
+      <variables>x2</variables>
+    </External>
   </Functions>
 
   <Samplers>
-    <EnsembleForward name='testEnsembleForward'>
-      <variable name='x3'>
-          <function>funct1</function>
+    <EnsembleForward name="testEnsembleForward">
+      <variable name="x3">
+        <function>funct1</function>
       </variable>
-      <variable name='x4,x5'>
-          <function>funct2</function>
+      <variable name="x4,x5">
+        <function>funct2</function>
       </variable>
-      <MonteCarlo name='notNeeded'>
+      <MonteCarlo name="notNeeded">
         <samplerInit>
           <limit>3</limit>
         </samplerInit>
-        <variable name='x1'>
+        <variable name="x1">
           <distribution>norm</distribution>
         </variable>
       </MonteCarlo>
-      <Grid name='notNeeded'>
-        <variable name='x2'>
+      <Grid name="notNeeded">
+        <variable name="x2">
           <distribution>unif</distribution>
-          <grid construction='custom' type='value'>0.02 0.6</grid>
+          <grid construction="custom" type="value">0.02 0.6</grid>
         </variable>
       </Grid>
-     </EnsembleForward>
+    </EnsembleForward>
   </Samplers>
 
   <OutStreams>
-    <Print name='PointsetEnsembleForward'>
+    <Print name="PointsetEnsembleForward">
       <type>csv</type>
       <source>PointsetEnsembleForward</source>
       <what>input,output</what>
@@ -80,23 +81,23 @@
   </OutStreams>
 
   <Steps>
-    <MultiRun name='EnsembleForwardStep' sleepTime='0.0000001'>
-      <Input    class='DataObjects'   type='PointSet'         >input</Input>
-      <Model    class='Models'        type='Dummy'            >MyDummy1</Model>
-      <Sampler  class='Samplers'      type='EnsembleForward'  >testEnsembleForward</Sampler>
-      <Output   class='DataObjects'   type='PointSet'         >PointsetEnsembleForward</Output>
+    <MultiRun name="EnsembleForwardStep" sleepTime="0.0000001">
+      <Input class="DataObjects" type="PointSet">input</Input>
+      <Model class="Models" type="Dummy">MyDummy1</Model>
+      <Sampler class="Samplers" type="EnsembleForward">testEnsembleForward</Sampler>
+      <Output class="DataObjects" type="PointSet">PointsetEnsembleForward</Output>
     </MultiRun>
-    <IOStep name='EnsembleForwardOutstreamStep'>
-      <Input    class='DataObjects'   type='PointSet'         >PointsetEnsembleForward</Input>
-      <Output   class='OutStreams'    type='Print'            >PointsetEnsembleForward</Output>
+    <IOStep name="EnsembleForwardOutstreamStep">
+      <Input class="DataObjects" type="PointSet">PointsetEnsembleForward</Input>
+      <Output class="OutStreams" type="Print">PointsetEnsembleForward</Output>
     </IOStep>
   </Steps>
 
   <DataObjects>
-    <PointSet name='input'>
+    <PointSet name="input">
       <Input>x1,x2,x3,x4,x5</Input>
     </PointSet>
-    <PointSet name='PointsetEnsembleForward'>
+    <PointSet name="PointsetEnsembleForward">
       <Input>x1,x2,x3,x4,x5</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>

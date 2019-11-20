@@ -71,7 +71,7 @@ def fullfact(levels):
     level_repeat = 1
     range_repeat = np.prod(levels)
     for i in range(n):
-        range_repeat /= levels[i]
+        range_repeat //= levels[i]
         lvl = []
         for j in range(levels[i]):
             lvl += [j]*level_repeat
@@ -189,7 +189,9 @@ def fracfact(gen):
        
     """
     # Recognize letters and combinations
-    A = [item for item in re.split('\-?\s?\+?', gen) if item]  # remove empty strings
+    #### fixed for python 3.7 by alfoa
+    A = [item for item in re.split('\-|\s|\+', gen) if item] # remove empty strings
+    
     C = [len(item) for item in A]
     
     # Indices of single letters (main factors)

@@ -42,70 +42,41 @@ class PostProcessor(Model):
       @ In, None
       @ Out, None
     """
-    cls.validateDict['Input']                    = [cls.validateDict['Input' ][0]]
-    cls.validateDict['Input'][0]['required'    ] = False
+    cls.validateDict.pop('Sampler', None)
+    cls.validateDict.pop('Optimizer', None)
+    #the possible inputs
     cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][1]['class'       ] = 'Databases'
-    cls.validateDict['Input'  ][1]['type'        ] = ['HDF5']
-    cls.validateDict['Input'  ][1]['required'    ] = False
-    cls.validateDict['Input'  ][1]['multiplicity'] = 'n'
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][2]['class'       ] = 'DataObjects'
-    cls.validateDict['Input'  ][2]['type'        ] = ['PointSet','HistorySet']
-    cls.validateDict['Input'  ][2]['required'    ] = False
-    cls.validateDict['Input'  ][2]['multiplicity'] = 'n'
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][3]['class'       ] = 'Files'
-    # FIXME there's lots of types that Files can be, so until XSD replaces this, commenting this out
-    #cls.validateDict['Input'  ][3]['type'        ] = ['']
-    cls.validateDict['Input'  ][3]['required'    ] = False
-    cls.validateDict['Input'  ][3]['multiplicity'] = 'n'
+    cls.validateDict['Input'  ][-1]['class'       ] = 'Databases'
+    cls.validateDict['Input'  ][-1]['type'        ] = ['HDF5']
+    cls.validateDict['Input'  ][-1]['required'    ] = False
+    cls.validateDict['Input'  ][-1]['multiplicity'] = 'n'
+    ## datasets
+    dataObjects = cls.validateDict['Input'][0]
+    dataObjects['type'].append('DataSet')
     # Cross validations will accept Model.ROM
     cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][4]['class'       ] = 'Models'
-    cls.validateDict['Input'  ][4]['type'        ] = ['ROM']
-    cls.validateDict['Input'  ][4]['required'    ] = False
-    cls.validateDict['Input'  ][4]['multiplicity'] = 'n'
+    cls.validateDict['Input'  ][-1]['class'       ] = 'Models'
+    cls.validateDict['Input'  ][-1]['type'        ] = ['ROM']
+    cls.validateDict['Input'  ][-1]['required'    ] = False
+    cls.validateDict['Input'  ][-1]['multiplicity'] = 'n'
     #Some metrics can handle distributions
     cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][5]['class'       ] = 'Distributions'
-    cls.validateDict['Input'  ][5]['type'        ] = ['']
-    cls.validateDict['Input'  ][5]['required'    ] = False
-    cls.validateDict['Input'  ][5]['multiplicity'] = 'n'
+    cls.validateDict['Input'  ][-1]['class'       ] = 'Distributions'
+    cls.validateDict['Input'  ][-1]['type'        ] = ['']
+    cls.validateDict['Input'  ][-1]['required'    ] = False
+    cls.validateDict['Input'  ][-1]['multiplicity'] = 'n'
+    #the possible outputs
     cls.validateDict['Output'].append(cls.testDict.copy())
-    cls.validateDict['Output' ][0]['class'       ] = 'Files'
-    cls.validateDict['Output' ][0]['type'        ] = ['']
-    cls.validateDict['Output' ][0]['required'    ] = False
-    cls.validateDict['Output' ][0]['multiplicity'] = 'n'
-    cls.validateDict['Output' ][1]['class'       ] = 'DataObjects'
-    cls.validateDict['Output' ][1]['type'        ] = ['PointSet','HistorySet','DataSet']
-    cls.validateDict['Output' ][1]['required'    ] = False
-    cls.validateDict['Output' ][1]['multiplicity'] = 'n'
-    cls.validateDict['Output'].append(cls.testDict.copy())
-    cls.validateDict['Output' ][2]['class'       ] = 'Databases'
-    cls.validateDict['Output' ][2]['type'        ] = ['HDF5']
-    cls.validateDict['Output' ][2]['required'    ] = False
-    cls.validateDict['Output' ][2]['multiplicity'] = 'n'
-    cls.validateDict['Output'].append(cls.testDict.copy())
-    cls.validateDict['Output' ][3]['class'       ] = 'OutStreams'
-    cls.validateDict['Output' ][3]['type'        ] = ['Plot','Print']
-    cls.validateDict['Output' ][3]['required'    ] = False
-    cls.validateDict['Output' ][3]['multiplicity'] = 'n'
+    cls.validateDict['Output' ][-1]['class'       ] = 'Files'
+    cls.validateDict['Output' ][-1]['type'        ] = ['']
+    cls.validateDict['Output' ][-1]['required'    ] = False
+    cls.validateDict['Output' ][-1]['multiplicity'] = 'n'
+    # The possible functions
     cls.validateDict['Function'] = [cls.testDict.copy()]
     cls.validateDict['Function'  ][0]['class'       ] = 'Functions'
     cls.validateDict['Function'  ][0]['type'        ] = ['External','Internal']
     cls.validateDict['Function'  ][0]['required'    ] = False
     cls.validateDict['Function'  ][0]['multiplicity'] = 1
-    cls.validateDict['ROM'] = [cls.testDict.copy()]
-    cls.validateDict['ROM'       ][0]['class'       ] = 'Models'
-    cls.validateDict['ROM'       ][0]['type'        ] = ['ROM']
-    cls.validateDict['ROM'       ][0]['required'    ] = False
-    cls.validateDict['ROM'       ][0]['multiplicity'] = 1
-    cls.validateDict['KDD'] = [cls.testDict.copy()]
-    cls.validateDict['KDD'       ][0]['class'       ] = 'Models'
-    cls.validateDict['KDD'       ][0]['type'        ] = ['KDD']
-    cls.validateDict['KDD'       ][0]['required'    ] = False
-    cls.validateDict['KDD'       ][0]['multiplicity'] = 'n'
 
   def __init__(self,runInfoDict):
     """
@@ -114,25 +85,27 @@ class PostProcessor(Model):
       @ Out, None
     """
     Model.__init__(self,runInfoDict)
-    self.input  = {}     # input source
-    self.action = None   # action
-    self.workingDir = ''
+    self.inputCheckInfo  = []     # List of tuple, i.e input objects info [('name','type')]
+    self.action = None            # action
+    self.workingDir = ''          # path for working directory
     self.printTag = 'POSTPROCESSOR MODEL'
 
   def provideExpectedMetaKeys(self):
     """
       Overrides the base class method to assure child postprocessor is also polled for its keys.
       @ In, None
-      @ Out, meta, set(str), expected keys (empty if none)
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and the indexes related to expected keys
     """
     # get keys as per base class
-    keys = Model.provideExpectedMetaKeys(self)
+    metaKeys,metaParams = Model.provideExpectedMetaKeys(self)
     # add postprocessor keys
     try:
-      keys = keys.union(self.interface.provideExpectedMetaKeys())
+      keys, params = self.interface.provideExpectedMetaKeys()
+      metaKeys = metaKeys.union(keys)
+      metaParams.update(params)
     except AttributeError:
       pass # either "interface" has no method for returning meta keys, or "interface" is not established yet.
-    return keys
+    return metaKeys, metaParams
 
   def whatDoINeed(self):
     """
@@ -167,18 +140,6 @@ class PostProcessor(Model):
     self.interface = PostProcessors.returnInstance(self.subType,self)
     self.interface._readMoreXML(xmlNode)
 
-  def getInitParams(self):
-    """
-      This function is called from the base class to print some of the information inside the class.
-      Whatever is permanent in the class and not inherited from the parent class should be mentioned here
-      The information is passed back in the dictionary. No information about values that change during the simulation are allowed
-      @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys
-        and each parameter's initial value as the dictionary values
-    """
-    paramDict = Model.getInitParams(self)
-    return paramDict
-
   def initialize(self,runInfo,inputs, initDict=None):
     """
       this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
@@ -187,9 +148,10 @@ class PostProcessor(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    self.workingDir               = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
+    self.workingDir = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
+    self.inputCheckInfo = [(inp.name, inp.type) for inp in inputs]
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
     """
@@ -203,12 +165,8 @@ class PostProcessor(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, str(0), modulesToImport=self.mods, forceUseThreads=True)
+    kwargs['forceThreads'] = True
+    Model.submit(self,myInput, samplerType, jobHandler,**kwargs)
 
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
@@ -237,6 +195,10 @@ class PostProcessor(Model):
       @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
+    outputCheckInfo = (output.name, output.type)
+    if outputCheckInfo in self.inputCheckInfo:
+      self.raiseAnError(IOError, 'DataObject',output.name,'is used as both input and output of', \
+              self.interface.printTag, 'This is not allowed! Please use different DataObjet as output')
     self.interface.collectOutput(finishedjob,output)
 
   def createNewInput(self,myInput,samplerType,**kwargs):

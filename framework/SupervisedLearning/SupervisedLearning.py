@@ -29,7 +29,6 @@ import warnings
 warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
-from numpy import average
 import sys
 if sys.version_info.major > 2:
   from crow_modules.distribution1Dpy3 import CDF
@@ -43,7 +42,7 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils,mathUtils
+from utils import utils, mathUtils, xmlUtils
 import MessageHandler
 
 interpolationND = utils.findCrowModule('interpolationND')
@@ -93,9 +92,10 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    self.printTag          = 'Supervised'
-    self.messageHandler    = messageHandler
+    self.printTag = 'Supervised'
+    self.messageHandler = messageHandler
     self._dynamicHandling = False
+    self._assembledObjects = None           # objects assembled by the ROM Model, passed through.
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None:
       self.initOptionDict = kwargs
@@ -115,7 +115,30 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     #a dictionary where for each feature a tuple (average value, sigma)
     self.muAndSigmaFeatures = {}
     #these need to be declared in the child classes!!!!
-    self.amITrained         = False
+    self.amITrained = False
+    self.kerasROMDict = self.initOptionDict.pop('KerasROMDict', None) # dictionary for ROM builded by Keras
+
+  def __getstate__(self):
+    """
+      This function return the state of the ROM
+      @ In, None
+      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
+    """
+    state = copy.copy(self.__dict__)
+    state['initOptionDict'].pop('paramInput', None)
+    ## capture what is normally pickled
+    if not self.amITrained:
+      supervisedEngineObj = state.pop("supervisedContainer", None)
+      del supervisedEngineObj
+    return state
+
+  def __setstate__(self, d):
+    """
+      Initialize the ROM with the data contained in newstate
+      @ In, d, dict, it contains all the information needed by the ROM to be initialized
+      @ Out, None
+    """
+    self.__dict__.update(d)
 
   def initialize(self,idict):
     """
@@ -124,6 +147,23 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, None
     """
     pass #Overloaded by (at least) GaussPolynomialRom
+
+  def setAssembledObjects(self, assembledObjects):
+    """
+      Allows providing entities from the Assembler to be used in supervised learning algorithms.
+      @ In, assembledObjects, dict, assembled objects that the ROM model requested as an Assembler.
+      @ Out, None
+    """
+    self._assembledObjects = assembledObjects
+
+  def readAssembledObjects(self):
+    """
+      Collects the entities from the Assembler as needed.
+      In general, SVL don't need any assembled objects.
+      @ In, None
+      @ Out, None
+    """
+    pass
 
   def train(self,tdict):
     """
@@ -216,7 +256,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires.
       @ In, edict, dict, evaluation dictionary
-      @ Out, evaluate, numpy.array, evaluated points
+      @ Out, evaluate, dict, {target: evaluated points}
     """
     if type(edict) != dict:
       self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
@@ -263,44 +303,40 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     currParDict = dict({'Trained':self.amITrained}.items() + self.__CurrentSettingDictLocal__().items())
     return currParDict
 
-  def printXMLSetup(self,outFile,options={}):
+  def writeXMLPreamble(self, writeTo, targets=None):
     """
       Allows the SVE to put whatever it wants into an XML file only once (right before calling pringXML)
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      Extend in subclasses.
+      @ In, writeTo, xmlUtils.StaticXmlElement instance, Element to write to
+      @ In, targets, list, list of targets for whom information should be written
       @ Out, None
     """
-    outFile.addScalar('ROM',"type",self.printTag)
-    self._localPrintXMLSetup(outFile,options)
+    # different calls depending on if it's static or dynamic
+    if isinstance(writeTo, xmlUtils.DynamicXmlElement):
+      writeTo.addScalar('ROM', "type", self.printTag, None, general = True)
+    else:
+      writeTo.addScalar('ROM', "type", self.printTag)
 
-  def _localPrintXMLSetup(self,outFile,pivotVal,options={}):
+  def writePointwiseData(self, *args):
     """
-      Specific local method for printing anything desired to xml file at the begin of the print.
-      Overwrite in inheriting classes.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      Allows the SVE to add data to a DataObject
+      Overload in subclasses.
+      @ In, args, list, unused arguments
       @ Out, None
     """
-    pass
+    # by default, nothing to write!
+    self.raiseAMessage('Writing ROM "{}", but no pointwise data found. Moving on ...')
 
-  def printXML(self,outFile,pivotVal,options={}):
+  def writeXML(self, writeTo, targets=None, skip=None):
     """
       Allows the SVE to put whatever it wants into an XML to print to file.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, pivotVal, float, value of pivot parameters to use in printing if dynamic
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
+      Overload in subclasses.
+      @ In, writeTo, xmlUtils.StaticXmlElement, StaticXmlElement to write to
+      @ In, targets, list, optional, list of targets for whom information should be written
+      @ In, skip, list, optional, list of targets to skip
       @ Out, None
     """
-    self._localPrintXML(outFile,pivotVal,options)
-
-  def _localPrintXML(self,node,options={}):
-    """
-      Specific local method for printing anything desired to xml file.  Overwrite in inheriting classes.
-      @ In, outFile, Files.File, either StaticXMLOutput or DynamicXMLOutput file
-      @ In, options, dict, optional, dict of string-based options to use, including filename, things to print, etc
-      @ Out, None
-    """
-    outFile.addScalar('ROM',"noInfo",'ROM of type '+str(self.printTag.strip())+' has no special output options.')
+    writeTo.addScalar('ROM',"noInfo",'ROM has no special output options.')
 
   def isDynamic(self):
     """
@@ -318,6 +354,97 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, None
     """
     return
+
+  def setAdditionalParams(self, params):
+    """
+      Sets parameters aside from initialization, such as during deserialization.
+      @ In, params, dict, parameters to set (dependent on ROM)
+      @ Out, None
+    """
+    newMH = params.pop('messageHandler', None)
+    if newMH:
+      self.messageHandler = newMH
+    # reseeding is common to many
+    seed = params.pop('seed', None)
+    if seed:
+      self.reseed(seed)
+    # overload this method in subclasses to load other parameters
+
+  ### ROM Clustering (see ROMCollection.py) ###
+  def isClusterable(self):
+    """
+      Allows ROM to declare whether it has methods for clustring. Default is no.
+      @ In, None
+      @ Out, isClusterable, bool, if True then has clustering mechanics.
+    """
+    # only true if overridden.
+    return False
+
+  def checkRequestedClusterFeatures(self, request):
+    """
+      Takes the user-requested features (sometimes "all") and interprets them for this ROM.
+      @ In, request, dict(list), as from ROMColletion.Cluster._extrapolateRequestedClusterFeatures
+      @ Out, interpreted, dict(list), interpreted features
+    """
+    self.raiseAnError(NotImplementedError, 'This ROM is not prepared to handle feature cluster requests!')
+
+  def getLocalRomClusterFeatures(self, *args, **kwargs):
+    """
+      Provides metrics aka features on which clustering compatibility can be measured.
+      This is called on LOCAL subsegment ROMs, not on the GLOBAL template ROM
+      @ In, featureTemplate, str, format for feature inclusion
+      @ In, settings, dict, as per getGlobalRomSegmentSettings
+      @ In, picker, slice, indexer for segmenting data
+      @ In, kwargs, dict, arbitrary keyword arguments
+      @ Out, features, dict, {target_metric: np.array(floats)} features to cluster on
+    """
+    # TODO can we do a generic basic statistics clustering on mean, std for all roms?
+    self.raiseAnError(NotImplementedError, 'Clustering capabilities not yet implemented for "{}" ROM!'.format(self.__class__.__name__))
+
+  def getGlobalRomSegmentSettings(self, trainingDict, divisions):
+    """
+      Allows the ROM to perform some analysis before segmenting.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL subsegment ROMs!
+      @ In, trainingDict, dict, data for training
+      @ In, divisions, tuple, (division slice indices, unclustered spaces)
+      @ Out, settings, object, arbitrary information about ROM clustering settings
+      @ Out, trainingDict, dict, adjusted training data (possibly unchanged)
+    """
+    # by default, do nothing
+    return None, trainingDict
+
+  def adjustLocalRomSegment(self, settings):
+    """
+      Adjusts this ROM to account for it being a segment as a part of a larger ROM collection.
+      Call this before training the subspace segment ROMs
+      Note this is called on the LOCAL subsegment ROMs, NOT on the GLOBAL templateROM from the ROMcollection!
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ Out, None
+    """
+    # by default, do nothing
+    pass
+
+  def finalizeLocalRomSegmentEvaluation(self, settings, evaluation, picker):
+    """
+      Allows global settings in "settings" to affect a LOCAL evaluation of a LOCAL ROM
+      Note this is called on the LOCAL subsegment ROM and not the GLOBAL templateROM.
+      @ In, settings, dict, as from getGlobalRomSegmentSettings
+      @ In, evaluation, dict, preliminary evaluation from the local segment ROM as {target: [values]}
+      @ In, picker, slice, indexer for data range of this segment
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    return evaluation
+
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation):
+    """
+      Allows any global settings to be applied to the signal collected by the ROMCollection instance.
+      Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!
+      @ In, evaluation, dict, {target: np.ndarray} evaluated full (global) signal from ROMCollection
+      TODO finish docs
+      @ Out, evaluation, dict, {target: np.ndarray} adjusted global evaluation
+    """
+    return evaluation
+  ### END ROM Clustering ###
 
   @abc.abstractmethod
   def __trainLocal__(self,featureVals,targetVals):

@@ -2,7 +2,7 @@
  [./gridPCAValue]
   type = 'RavenFramework'
   input = 'test_grid_pca_value.xml'
-  xml = 'gridPCAValue/testPrintPointSet_dump.xml'
+  output = 'gridPCAValue/testPrintPointSet_dump.xml'
   csv = 'gridPCAValue/testPrintPointSet_dump.csv'
   remove_unicode_identifier = true
  [../]
@@ -10,7 +10,7 @@
  [./gridPCACdf]
   type = 'RavenFramework'
   input = 'test_grid_pca_cdf.xml'
-  xml = 'gridPCACdf/testPrintPointSet_dump.xml'
+  output = 'gridPCACdf/testPrintPointSet_dump.xml'
   csv = 'gridPCACdf/testPrintPointSet_dump.csv'
   remove_unicode_identifier = true
  [../]
@@ -19,7 +19,7 @@
   type = 'RavenFramework'
   input = 'test_mc_pca.xml'
   csv = 'mcPCA/testPrintPointSet_dump.csv'
-  xml = 'mcPCA/testPrintPointSet_dump.xml'
+  UnorderedXml = 'mcPCA/testPrintPointSet_dump.xml'
   remove_unicode_identifier = true
  [../]
 

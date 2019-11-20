@@ -33,7 +33,10 @@ import operator
 from collections import OrderedDict
 import csv
 from scipy.interpolate import UnivariateSpline
+from numpy import linalg as LA
+import copy
 import math as math
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -69,6 +72,7 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'Custom1D':'Custom1DDistribution',
                               'Exponential':'ExponentialDistribution',
                               'Categorical':'Categorical',
+                              'MarkovCategorical':'MarkovCategorical',
                               'LogNormal':'LogNormalDistribution',
                               'Weibull':'WeibullDistribution',
                               'NDInverseWeight': 'NDInverseWeightDistribution',
@@ -188,6 +192,11 @@ class Distribution(BaseType):
     if lowerBound !=None:
       self.lowerBound = lowerBound.value
       self.lowerBoundUsed = True
+    if self.lowerBoundUsed and self.upperBoundUsed:
+      if self.lowerBound == self.upperBound:
+        self.raiseAnError(IOError, 'Lower bound for Distribution "'+self.name+'" is equal to the upper bound!')
+      if self.lowerBound > self.upperBound:
+        self.raiseAnError(IOError, 'Lower bound for Distribution "'+self.name+'" is greater than the upper bound!')
 
   def getCrowDistDict(self):
     """
@@ -1645,10 +1654,12 @@ class Categorical(Distribution):
     """
     totPsum = 0.0
     for element in self.mapping:
+      if self.mapping[element] < 0:
+        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
       totPsum += self.mapping[element]
     if not mathUtils.compareFloats(totPsum,1.0):
-      self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is '+repr(totPsum)+', not 1.0')
-
+      self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
+                         repr(totPsum), ', not 1.0!', 'Please renomlize it to 1!')
     self.lowerBound = min(self.mapping.keys())
     self.upperBound = max(self.mapping.keys())
 
@@ -1703,6 +1714,133 @@ class Categorical(Distribution):
     return rvsValue
 
 DistributionsCollection.addSub(Categorical.getInputSpecification())
+
+class MarkovCategorical(Categorical):
+  """
+    Class for the Markov categorical distribution based on "Markov Model"
+    Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
+  """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
+
+    StatePartInput = InputData.parameterInputFactory("state", contentType=InputData.StringType)
+    StatePartInput.addParam("outcome", InputData.FloatType, True)
+    StatePartInput.addParam("index", InputData.IntegerType, True)
+    TransitionInput = InputData.parameterInputFactory("transition", contentType=InputData.StringType)
+    inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
+    inputSpecification.addSub(TransitionInput, InputData.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
+    ## Because we do not inherit from the base class, we need to manually
+    ## add the name back in.
+    inputSpecification.addParam("name", InputData.StringType, True)
+
+    return inputSpecification
+
+  def __init__(self):
+    """
+      Function that initializes the categorical distribution
+      @ In, None
+      @ Out, none
+    """
+    Categorical.__init__(self)
+    self.dimensionality = 1
+    self.disttype       = 'Discrete'
+    self.type           = 'MarkovCategorical'
+    self.steadyStatePb  = None # variable containing the steady state probabilities of the Markov Model
+    self.transition     = None # transition matrix of a continuous time Markov Model
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    workingDir = paramInput.findFirst('workingDir')
+    if workingDir is not None:
+      self.workingDir = workingDir.value
+    else:
+      self.workingDir = os.getcwd()
+
+    for child in paramInput.subparts:
+      if child.getName() == "state":
+        outcome = child.parameterValues["outcome"]
+        markovIndex = child.parameterValues["index"]
+        self.mapping[outcome] = markovIndex
+        if outcome in self.values:
+          self.raiseAnError(IOError,'Markov Categorical distribution has identical outcomes')
+        else:
+          self.values.add(outcome)
+      elif child.getName() == "transition":
+        transition = [float(value) for value in child.value.split()]
+        dim = int(np.sqrt(len(transition)))
+        if dim == 1:
+          self.raiseAnError(IOError, "The dimension of transition matrix should be greater than 1!")
+        elif dim**2 != len(transition):
+          self.raiseAnError(IOError, "The transition matrix is not a square matrix!")
+        self.transition = np.asarray(transition).reshape((-1,dim))
+    #Check the correctness of user inputs
+    invalid = self.transition is None
+    if invalid:
+      self.raiseAnError(IOError, "Transition matrix is not provided, please use 'transition' node to provide the transition matrix!")
+    if len(self.mapping.values()) != len(set(self.mapping.values())):
+      self.raiseAnError(IOError, "The states of Markov Categorical distribution have identifcal indices!")
+
+    self.initializeDistribution()
+
+  def getInitParams(self):
+    """
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = Distribution.getInitParams(self)
+    paramDict['mapping'] = self.mapping
+    paramDict['values'] = self.values
+    paramDict['transition'] = self.transition
+    paramDict['steadyStatePb'] = self.steadyStatePb
+    return paramDict
+
+  def initializeDistribution(self):
+    """
+      Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
+      @ In, None
+      @ Out, None
+    """
+    self.steadyStatePb = self.computeSteadyStatePb(self.transition)
+    for key, value in self.mapping.items():
+      try:
+        self.mapping[key] = self.steadyStatePb[value - 1]
+      except IndexError:
+        self.raiseAnError(IOError, "Index ",value, " for outcome ", key, " is out of bounds! Maximum index should be ", len(self.steadyStatePb))
+    Categorical.initializeDistribution(self)
+
+  def computeSteadyStatePb(self, transition):
+    """
+      Function that compute the steady state probabilities for given transition matrix
+      @ In, transition, numpy.array, transition matrix for Markov model
+      @ Out, steadyStatePb, numpy.array, 1-D array of steady state probabilities
+    """
+    dim = transition.shape[0]
+    perturbTransition = copy.copy(transition)
+    perturbTransition[0] = 1
+    q = np.zeros(dim)
+    q[0] = 1
+    steadyStatePb = np.dot(LA.inv(perturbTransition),q)
+
+    return steadyStatePb
+
+DistributionsCollection.addSub(MarkovCategorical.getInputSpecification())
 
 class Logistic(BoostDistribution):
   """
@@ -2372,9 +2510,9 @@ class Custom1D(Distribution):
       @ Out, None
     """
 
-    f = open(self.dataFilename, 'rb')
+    f = open(self.dataFilename, 'r')
     reader = csv.reader(f)
-    headers = reader.next()
+    headers = next(reader)
     indexFunctionID = headers.index(self.functionID)
     indexVariableID = headers.index(self.variableID)
     f.close()
@@ -3460,7 +3598,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     self.raiseAnError(NotImplementedError,'untruncatedMode not yet implemented for ' + self.type)
 
-  def rvs(self,*args):
+  def rvs(self, *args):
     """
       Return the random coordinate
       @ In, args, dict, arguments (for future usage)
@@ -3493,6 +3631,7 @@ __interFaceDict['Poisson'           ] = Poisson
 __interFaceDict['Binomial'          ] = Binomial
 __interFaceDict['Bernoulli'         ] = Bernoulli
 __interFaceDict['Categorical'       ] = Categorical
+__interFaceDict['MarkovCategorical' ] = MarkovCategorical
 __interFaceDict['Logistic'          ] = Logistic
 __interFaceDict['Exponential'       ] = Exponential
 __interFaceDict['LogNormal'         ] = LogNormal

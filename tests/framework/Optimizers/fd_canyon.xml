@@ -4,7 +4,7 @@
     <name>framework/Optimizers.FD_Canyon</name>
     <author>talbpaul</author>
     <created>2018-09-05</created>
-    <classesTested>Optimizers.FiniteDifferenceGradientOptimizer</classesTested>
+    <classesTested>Optimizers.FiniteDifference</classesTested>
     <description>
       Originally this models tests minimizing $x y \cos(s+y)$, but has been extended to test the finite difference
       gradient optimizer with denoising in 2 dimensions, to assure indexing works correctly.
@@ -13,6 +13,9 @@
       This test minimizes the documented 2D Canyon function x y cos(x+y), which when limited to 0..x..pi and 0..y..pi has a minimum at
       (1.8218,1.8218) of -2.90946.
     </analytic>
+    <revisions>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -36,7 +39,7 @@
   </Steps>
 
   <Optimizers>
-    <FiniteDifferenceGradientOptimizer name="opter">
+    <FiniteDifference name="opter">
       <initialization>
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
@@ -64,7 +67,7 @@
       <parameter>
         <numGradAvgIterations>2</numGradAvgIterations>
       </parameter>
-    </FiniteDifferenceGradientOptimizer>
+    </FiniteDifference>
   </Optimizers>
 
   <Models>
@@ -83,8 +86,7 @@
       <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 

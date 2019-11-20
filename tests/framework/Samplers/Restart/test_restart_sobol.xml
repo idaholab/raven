@@ -2,11 +2,11 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>sobol</WorkingDir>
-    <Sequence>makeCoarse,makeRestart,makeFine,trainRestart,trainFine,print,printROM</Sequence>
+    <Sequence>makeCoarse,makeRestart,makeFine,trainRestart,trainFine,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
-    <name>framework/Samplers/Restart/Sobol</name>
+    <name>framework/Samplers/Restart.Sobol</name>
     <author>talbpaul</author>
     <created>2015-07-07</created>
     <classesTested>Samplers.Sobol</classesTested>
@@ -46,12 +46,6 @@
       <Output class="OutStreams" type="Print">coarse</Output>
       <Output class="OutStreams" type="Print">restart</Output>
       <Output class="OutStreams" type="Print">fine</Output>
-    </IOStep>
-    <IOStep name="printROM">
-      <Input class="Models" type="ROM">romRestart</Input>
-      <Input class="Models" type="ROM">romFine</Input>
-      <Output class="OutStreams" type="Print">romRestart</Output>
-      <Output class="OutStreams" type="Print">romFine</Output>
     </IOStep>
     <RomTrainer name="trainRestart">
       <Input class="DataObjects" type="PointSet">solnsRestart</Input>

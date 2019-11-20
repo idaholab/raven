@@ -37,6 +37,7 @@ import numpy as np
 import abc
 import ast
 import copy
+import platform
 #External Modules End-----------------------------------------------------------
 #Internal Modules---------------------------------------------------------------
 from utils import utils
@@ -44,6 +45,20 @@ from utils import mathUtils
 import MessageHandler
 import DataObjects
 #Internal Modules End-----------------------------------------------------------
+
+# FIXME: temporarily force to use Agg backend for now, otherwise it will cause segmental fault for test:
+# test_dataMiningHierarchical.xml in tests/framework/PostProcessors/DataMiningPostProcessor/Clustering
+# For the record, when using dendrogram, we have to force matplotlib.use('Agg')
+# In the future, I think all the plots should moved to OutStreamPlots -- wangc
+#display = utils.displayAvailable()
+#if not display:
+#  matplotlib.use('Agg')
+
+
+if utils.displayAvailable() and platform.system() != 'Windows':
+  import matplotlib
+  matplotlib.use('TkAgg')
+import matplotlib.pylab as plt
 
 class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
   """
@@ -129,7 +144,17 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     ## The normalized training data
     self.normValues = None
 
-  def train(self, tdict, metric = None):
+  def updateFeatures(self, features):
+    """
+      Change the Features that this classifier targets. If this ROM is trained already, raises an error.
+      @ In, features, list(str), list of new features
+      @ Out, None
+    """
+    self.raiseAWarning('Features for learning engine type "{}" have been reset, so ROM is untrained!'.format(self.printTag))
+    self.amITrained = False
+    self.features = features
+
+  def train(self, tdict, metric=None):
     """
       Method to perform the training of the unSuperVisedLearning algorithm
       NB. The unSuperVisedLearning object is committed to convert the dictionary
@@ -138,14 +163,13 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, tdict, dict, training dictionary
       @ Out, None
     """
-
     self.metric = metric
-    if type(tdict) != dict:
+    if not isinstance(tdict, dict):
       self.raiseAnError(IOError, ' method "train". The training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
 
     featureCount = len(self.features)
-    if not isinstance(tdict[tdict.keys()[0]],dict):
-      realizationCount = tdict.values()[0].size
+    if not isinstance(tdict[utils.first(tdict.keys())],dict):
+      realizationCount = utils.first(tdict.values()).size
 
     ############################################################################
     ## Error-handling
@@ -164,8 +188,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       self.raiseAnError(IOError, msg)
 
     ## Check that all of the values have the same length
-    if not isinstance(tdict.values()[0],dict):
-      for name,val in tdict.iteritems():
+    if not isinstance(utils.first(tdict.values()), dict):
+      for name, val in tdict.items():
         if name in self.features and realizationCount != val.size:
           self.raiseAnError(IOError, ' In training set, the number of realizations are inconsistent among the requested features.')
 
@@ -181,7 +205,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     ## Not sure when this would ever happen, but check that the data you are
     ## given is a 1D array?
-    # for name,val in tdict.iteritems():
+    # for name,val in tdict.items():
     #   if name in self.features:
     #     resp = self.checkArrayConsistency(val)
     #     if not resp[0]:
@@ -202,7 +226,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     else:
       # metric != None
       ## The dictionary represents a HistorySet
-      if isinstance(tdict.values()[0],dict):
+      if isinstance(utils.first(tdict.values()),dict):
         ## normalize data
 
         ## But why this way? This should be one of the options, this looks like
@@ -218,14 +242,14 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
         cardinality = len(tdictNorm.keys())
         self.normValues = np.zeros((cardinality,cardinality))
-        keys = tdictNorm.keys()
+        keys = list(tdictNorm.keys())
         for i in range(cardinality):
           for j in range(i,cardinality):
             # process the input data for the metric, numpy.array is required
-            assert(tdictNorm[keys[i]].keys() == tdictNorm[keys[j]].keys())
+            assert(list(tdictNorm[keys[i]].keys()) == list(tdictNorm[keys[j]].keys()))
             numParamsI = len(tdictNorm[keys[i]].keys())
-            numStepsI = len(tdictNorm[keys[i]].values()[0])
-            numStepsJ = len(tdictNorm[keys[j]].values()[0])
+            numStepsI = len(utils.first(tdictNorm[keys[i]].values()))
+            numStepsJ = len(utils.first(tdictNorm[keys[j]].values()))
 
             inputI = np.empty((numParamsI, numStepsI))
             inputJ = np.empty((numParamsI, numStepsJ))
@@ -254,7 +278,8 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
     self.amITrained = True
 
   ## I'd be willing to bet this never gets called, and if it did it would crash
-  ## under specific settings, namely using a history set.
+  ## under specific settings, namely using a history set. - unknown (maybe Dan?)
+  ## -> for the record, I call it to get the labels in the ROMCollection.Clusters - talbpaul
   def evaluate(self, edict):
     """
       Method to perform the evaluation of a point or a set of points through
@@ -265,12 +290,14 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluation, numpy.array, array of evaluated points
     """
-    if type(edict) != dict:
+    if not self.amITrained:
+      self.raiseAnError('ROM must be trained before evaluating!')
+    if not isinstance(edict, dict):
       self.raiseAnError(IOError, ' Method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
 
     names = edict.keys()
 
-    realizationCount = edict.values()[0].size
+    realizationCount = utils.first(edict.values()).size
     featureCount = len(self.features)
 
     ############################################################################
@@ -289,7 +316,7 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
         msg = 'The requested features: %s do not exist in the evaluate set.' % str(list(unidentifiedFeatures))
       self.raiseAnError(IOError, msg)
 
-    for name,values in edict.iteritems():
+    for name,values in edict.items():
       resp = self.checkArrayConsistency(values)
       if not resp[0]:
         self.raiseAnError(IOError, ' In evaluate request for feature ' + name + ':' + resp[1])
@@ -380,12 +407,12 @@ class SciKitLearn(unSupervisedLearning):
   #  availImpl['bicluster']['SpectralCoclustering'] = (cluster.bicluster.SpectralCoclustering, 'float')  # Spectral Co-Clustering algorithm (Dhillon, 2001).
 
   availImpl['mixture'] = {}  # Generalized Gaussion Mixture Models (Classification)
-  availImpl['mixture']['GMM'  ] = (mixture.GMM  , 'float')  # Gaussian Mixture Model
+  availImpl['mixture']['GMM'  ] = (mixture.GaussianMixture  , 'float')  # Gaussian Mixture Model
   ## Comment is not even right on it, but the DPGMM is being deprecated by SKL who
   ## admits that it is not working correctly which also explains why it is buried in
   ## their documentation.
   # availImpl['mixture']['DPGMM'] = (mixture.DPGMM, 'float')  # Variational Inference for the Infinite Gaussian Mixture Model.
-  availImpl['mixture']['VBGMM'] = (mixture.VBGMM, 'float')  # Variational Inference for the Gaussian Mixture Model
+  availImpl['mixture']['VBGMM'] = (mixture.BayesianGaussianMixture, 'float')  # Variational Inference for the Gaussian Mixture Model
 
   availImpl['manifold'] = {}  # Manifold Learning (Embedding techniques)
   availImpl['manifold']['LocallyLinearEmbedding'  ] = (manifold.LocallyLinearEmbedding  , 'float')  # Locally Linear Embedding
@@ -398,7 +425,7 @@ class SciKitLearn(unSupervisedLearning):
   availImpl['decomposition'] = {}  # Matrix Decomposition
   availImpl['decomposition']['PCA'                 ] = (decomposition.PCA                 , 'float')  # Principal component analysis (PCA)
  # availImpl['decomposition']['ProbabilisticPCA'    ] = (decomposition.ProbabilisticPCA    , 'float')  # Additional layer on top of PCA that adds a probabilistic evaluationPrincipal component analysis (PCA)
-  availImpl['decomposition']['RandomizedPCA'       ] = (decomposition.RandomizedPCA       , 'float')  # Principal component analysis (PCA) using randomized SVD
+  availImpl['decomposition']['RandomizedPCA'       ] = (decomposition.PCA       , 'float')  # Principal component analysis (PCA) using randomized SVD
   availImpl['decomposition']['KernelPCA'           ] = (decomposition.KernelPCA           , 'float')  # Kernel Principal component analysis (KPCA)
   availImpl['decomposition']['FastICA'             ] = (decomposition.FastICA             , 'float')  # FastICA: a fast algorithm for Independent Component Analysis.
   availImpl['decomposition']['TruncatedSVD'        ] = (decomposition.TruncatedSVD        , 'float')  # Dimensionality reduction using truncated SVD (aka LSA).
@@ -621,17 +648,21 @@ class SciKitLearn(unSupervisedLearning):
             center[cnt] = center[cnt] * sigma + mu
         self.metaDict['means'] = means
 
-      if hasattr(self.Method, 'covars_') :
-        covariance = copy.deepcopy(self.Method.covars_)
+      if hasattr(self.Method, 'covariances_') :
+        covariance = copy.deepcopy(self.Method.covariances_)
 
         for row, rowFeature in enumerate(self.features):
           rowSigma = self.muAndSigmaFeatures[rowFeature][1]
           for col, colFeature in enumerate(self.features):
             colSigma = self.muAndSigmaFeatures[colFeature][1]
-            covariance[row,col] = covariance[row,col] * rowSigma * colSigma
+            #if covariance type == full, the shape is (n_components, n_features, n_features)
+            if len(covariance.shape) == 3:
+              covariance[:,row,col] = covariance[:,row,col] * rowSigma * colSigma
+            else:
+              #XXX if covariance type == diag, this will be wrong.
+              covariance[row,col] = covariance[row,col] * rowSigma * colSigma
         self.metaDict['covars'] = covariance
     elif 'decomposition' == self.SKLtype:
-
       if 'embeddingVectors' not in self.outputDict['outputs']:
         if hasattr(self.Method, 'transform'):
           embeddingVectors = self.Method.transform(self.normValues)
@@ -699,9 +730,10 @@ class SciKitLearn(unSupervisedLearning):
         self.outputDict['confidence']['adjustedRandIndex'        ] =        metrics.adjusted_rand_score(self.labelValues, labels)
         self.outputDict['confidence']['adjustedMutualInformation'] = metrics.adjusted_mutual_info_score(self.labelValues, labels)
     elif 'mixture' == self.SKLtype:
-      self.outputDict['confidence']['aic'  ] = self.Method.aic(self.normValues)   ## Akaike Information Criterion
-      self.outputDict['confidence']['bic'  ] = self.Method.bic(self.normValues)   ## Bayesian Information Criterion
-      self.outputDict['confidence']['score'] = self.Method.score(self.normValues) ## log probabilities of each data point
+      if hasattr(self.Method, 'aic'):
+        self.outputDict['confidence']['aic'  ] = self.Method.aic(self.normValues)   ## Akaike Information Criterion
+        self.outputDict['confidence']['bic'  ] = self.Method.bic(self.normValues)   ## Bayesian Information Criterion
+        self.outputDict['confidence']['score'] = self.Method.score(self.normValues) ## log probabilities of each data point
 
     return self.outputDict['confidence']
 
@@ -874,7 +906,7 @@ class temporalSciKitLearn(unSupervisedLearning):
 
     for t in range(self.numberOfHistoryStep):
       sklInput = {}
-      for feat in self.features.keys():
+      for feat in self.features:
         sklInput[feat] = self.inputDict[feat][:,t]
 
       self.SKLEngine.features = sklInput
@@ -925,7 +957,7 @@ class temporalSciKitLearn(unSupervisedLearning):
         #   self.metaDict['clusterCentersIndices'][t] = range(noClusters)
         # else:
         #   self.metaDict['clusterCentersIndices'][t] = range(noClusters)  # use list(set(self.SKLEngine.Method.labels_)) to collect outliers
-        self.metaDict['clusterCentersIndices'][t] = range(noClusters)
+        self.metaDict['clusterCentersIndices'][t] = list(range(noClusters))
 
         # # collect optional output
         # if hasattr(self.SKLEngine.Method, 'inertia_'):
@@ -967,7 +999,7 @@ class temporalSciKitLearn(unSupervisedLearning):
           numComponents = self.metaDict['means'][t].shape[0]
 
         # # collect component indices
-        self.metaDict['componentMeanIndices'][t] = range(numComponents)
+        self.metaDict['componentMeanIndices'][t] = list(range(numComponents))
 
         # # collect optional output
         if hasattr(self.SKLEngine.Method, 'weights_'):
@@ -1168,7 +1200,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     for n1 in range(N1):
       for n2 in range(N2):
         dMatrix[n1,n2] = self.__computeDist__(t,n1,n2,dataCenter,'DistanceWithDecay')
-    _, mapping = self.__localReMap__(dMatrix, (range(N1), range(N2)))
+    _, mapping = self.__localReMap__(dMatrix, (list(range(N1)), list(range(N2))))
 
     remap = {}
     f1, f2 = [False]*N1, [False]*N2
@@ -1299,16 +1331,16 @@ class Scipy(unSupervisedLearning):
       self.linkage = self.Method.linkage(self.normValues,self.initOptionDict['method'],self.initOptionDict['metric'])
 
       if 'dendrogram' in self.initOptionDict and self.initOptionDict['dendrogram'] == 'true':
-        self.ddata = self.advDendrogram(self.linkage,
-                                        p                = float(self.initOptionDict['p']),
-                                        leaf_rotation    = 90.,
-                                        leaf_font_size   = 12.,
-                                        truncate_mode    = self.initOptionDict['truncationMode'],
-                                        show_leaf_counts = self.initOptionDict['leafCounts'],
-                                        show_contracted  = self.initOptionDict['showContracted'],
-                                        annotate_above   = self.initOptionDict['annotatedAbove'],
-                                        #orientation      = self.initOptionDict['orientation'],
-                                        max_d            = self.initOptionDict['level'])
+        self.advDendrogram(self.linkage,
+                           p                = float(self.initOptionDict['p']),
+                           leaf_rotation    = 90.,
+                           leaf_font_size   = 12.,
+                           truncate_mode    = self.initOptionDict['truncationMode'],
+                           show_leaf_counts = self.initOptionDict['leafCounts'],
+                           show_contracted  = self.initOptionDict['showContracted'],
+                           annotate_above   = self.initOptionDict['annotatedAbove'],
+                           #orientation      = self.initOptionDict['orientation'],
+                           max_d            = self.initOptionDict['level'])
 
       self.labels_ = hier.hierarchy.fcluster(self.linkage, self.initOptionDict['level'],self.initOptionDict['criterion'])
       self.outputDict['outputs']['labels'] = self.labels_
@@ -1320,7 +1352,6 @@ class Scipy(unSupervisedLearning):
       @ In, None
       @ Out, None
     """
-    import matplotlib.pylab as plt
     plt.figure()
     max_d = kwargs.pop('max_d', None)
     if max_d and 'color_threshold' not in kwargs:
@@ -1348,7 +1379,6 @@ class Scipy(unSupervisedLearning):
       title = 'dendrogram.pdf'
     plt.savefig(title)
     plt.close()
-    return ddata
 
   def __evaluateLocal__(self,*args, **kwargs):
     """

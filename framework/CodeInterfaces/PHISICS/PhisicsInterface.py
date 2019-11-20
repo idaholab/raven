@@ -23,8 +23,6 @@ import re
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import phisicsdata
 import xml.etree.ElementTree as ET
-import fileinput
-import sys
 
 
 class Phisics(CodeInterfaceBase):
@@ -53,7 +51,7 @@ class Phisics(CodeInterfaceBase):
         'reactions', 'atoms_plot', 'atoms_csv', 'decay_heat', 'bu_power',
         'flux', 'repository'
     ]
-    for xmlNodeNumber in xrange(0, len(xmlNodes)):
+    for xmlNodeNumber in range(0, len(xmlNodes)):
       for xmlNode in pathRoot.getiterator(xmlNodes[xmlNodeNumber]):
         self.outputFileNameDict[xmlNodes[xmlNodeNumber]] = xmlNode.text
 
@@ -101,15 +99,12 @@ class Phisics(CodeInterfaceBase):
       @ Out, None
     """
     if depletionTree.find('.//input_files') is None:
-      for line in fileinput.FileInput(depletionFile, inplace=1):
-        if '<DEPLETION_INPUT>' in line:
-          line = line.replace('<DEPLETION_INPUT>',
-                              '<DEPLETION_INPUT>' + '\n\t' + '<input_files>' +
-                              libPathFile + '</input_files>')
-        sys.stdout.write(line)
+      inputFilesNode = ET.Element("input_files")
+      inputFilesNode.text = libPathFile
+      depletionTree.getroot().insert(0,inputFilesNode)
     else:
       depletionTree.find('.//input_files').text = libPathFile
-      depletionTree.write(depletionFile)
+    depletionTree.write(depletionFile)
 
   def getTitle(self, depletionRoot):
     """
@@ -123,28 +118,6 @@ class Phisics(CodeInterfaceBase):
       self.jobTitle = child.text
       break
     return
-
-  def verifyMrtauFlagsAgree(self, depletionRoot):
-    """
-      Verifies that the node "standalone"'s text is in the xml depletion file. if the standalone flag
-      in the xml depletion file disagrees with the MRTAU standalone flag in the raven input, the codes errors out.
-      @ In, depletionRoot, xml.etree.ElementTree.Element, depletion input xml node
-      @ Out, None
-    """
-    for child in depletionRoot.findall(".//standalone"):
-      isMrtauStandAlone = child.text.lower()
-      tag = child.tag
-      break
-    valueErrorMessage = "\n Error. \n \
-      The flags controlling the Mrtau standalone mode are incorrect. \n \
-      The node <standalone> in depletion_input file disagrees with the node <mrtauStandAlone> in the raven input. \n \
-      the matching solutions are: \n \
-      <mrtauStandAlone>True</mrtauStandAlone> and <" + tag + ">yes<" + tag + ">\n \
-      <mrtauStandAlone>False</mrtauStandAlone> and <" + tag + ">no<" + tag + ">"
-    if self.mrtauStandAlone == False and isMrtauStandAlone == 'yes':
-      raise ValueError(valueErrorMessage)
-    if self.mrtauStandAlone == True and isMrtauStandAlone == 'no':
-      raise ValueError(valueErrorMessage)
 
   def timeUnit(self, depletionRoot):
     """
@@ -168,7 +141,6 @@ class Phisics(CodeInterfaceBase):
     """
     depletionTree = ET.parse(depletionFile)
     depletionRoot = depletionTree.getroot()
-    self.verifyMrtauFlagsAgree(depletionRoot)
     self.findDecayHeatFlag(depletionRoot)
     self.timeUnit(depletionRoot)
     self.getTitle(depletionRoot)
@@ -186,17 +158,17 @@ class Phisics(CodeInterfaceBase):
     """
     distributedPerturbedVars = {}
     pertType = []
-    for i in perturbedVars.iterkeys(
+    for i in perturbedVars.keys(
     ):  # teach what are the type of perturbation (decay FY etc...)
       splittedKeywords = i.split('|')
       pertType.append(splittedKeywords[0])
-    for i in xrange(
+    for i in range(
         0, len(pertType)
     ):  # declare all the dictionaries according the different type of pert
       distributedPerturbedVars[pertType[i]] = {}
     for key, value in perturbedVars.items():  # populate the dictionaries
       splittedKeywords = key.split('|')
-      for j in xrange(0, len(pertType)):
+      for j in range(0, len(pertType)):
         if splittedKeywords[0] == pertType[j]:
           distributedPerturbedVars[pertType[j]][key] = value
     return distributedPerturbedVars
@@ -254,7 +226,7 @@ class Phisics(CodeInterfaceBase):
           raise ValueError(
               "\n the node " + child.tag + "has to be a boolean entry")
 
-  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       See base class.  Collects all the clargs and the executable to produce the command-line call.
@@ -269,6 +241,8 @@ class Phisics(CodeInterfaceBase):
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can
                                    specify in the input (e.g. under the node < Code >< clargstype =0 input0arg
                                    =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual
+                                       command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to
                                    run the code (string), returnCommand[1] is the name of the output root
     """
@@ -485,7 +459,7 @@ class Phisics(CodeInterfaceBase):
       self.numberOfMPI = 1
     else:
       self.numberOfMPI = self.getNumberOfMpi(Kwargs['precommand'])
-    for perturbedParam in self.distributedPerturbedVars.iterkeys():
+    for perturbedParam in self.distributedPerturbedVars.keys():
       if perturbedParam == 'DECAY':
         DecayParser.DecayParser(
             currentInputFiles[self.typeDict['decay']].getAbsFile(),
@@ -546,4 +520,18 @@ class Phisics(CodeInterfaceBase):
             currentInputFiles[self.typeDict['mass']].getAbsFile(),
             currentInputFiles[self.typeDict['mass']].getPath(),
             **self.distributedPerturbedVars[perturbedParam])
+      # add CSV output from depletion
+      tree = ET.parse(currentInputFiles[self.typeDict['depletion_input']].getAbsFile())
+      depletionRoot = tree.getroot()
+      outc = depletionRoot.find(".//output_control")
+      plotType = outc.find(".//plot_type")
+      if plotType is None or plotType.text.strip() != '3':
+        plotType = ET.Element("plot_type") if plotType is None else plotType
+      plotType.text = '3'
+      try:
+        outc.remove(plotType)
+      except ValueError:
+        print('Phisics INTERFACE: added plot_type node and set to 3!')
+      outc.append(plotType)
+      tree.write(currentInputFiles[self.typeDict['depletion_input']].getAbsFile())
     return currentInputFiles

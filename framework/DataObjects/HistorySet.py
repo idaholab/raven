@@ -24,8 +24,10 @@ import sys
 import copy
 import functools
 import itertools
-import __builtin__
-import cPickle as pk
+try:
+  import cPickle as pk
+except ImportError:
+  import pickle as pk
 import xml.etree.ElementTree as ET
 
 import abc
@@ -34,7 +36,6 @@ import pandas as pd
 import xarray as xr
 
 from BaseClasses import BaseType
-from Files import StaticXMLOutput
 from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
 try:
   from .DataSet import DataSet
@@ -43,8 +44,9 @@ except ValueError: #attempted relative import in non-package
 
 # for profiling with kernprof
 try:
+  import __builtin__
   profile = __builtin__.profile
-except AttributeError:
+except (AttributeError,ImportError):
   # profiler not preset, so pass through
   def profile(func):
     """
@@ -79,6 +81,8 @@ class HistorySet(DataSet):
     self.printTag  = self.name
     self._tempPivotParam = None
     self._neededForReload = [] # HistorySet doesn't need anything special to load, since it's written in cluster-by-sample CSV format
+    self._inputMetaVars = [] # meta vars belong to the input of HistorySet, i.e. scalar
+    self._outputMetaVars = [] # meta vara belong to the output of HistorySet, i.e. vector
 
   def _readMoreXML(self,xmlNode):
     """
@@ -124,7 +128,7 @@ class HistorySet(DataSet):
     main = self._readPandasCSV(fileName+'.csv')
     nSamples = len(main.index)
     ## collect input space data
-    for inp in self._inputs + self._metavars:
+    for inp in self._inputs + self._inputMetaVars:
       data[inp] = main[inp].values
     ## get the sampleTag values if they're present, in case it's not just range
     if self.sampleTag in main:
@@ -134,7 +138,7 @@ class HistorySet(DataSet):
     # load subfiles for output spaces
     subFiles = main['filename'].values
     # pre-build realization spots
-    for out in self._outputs + self.indexes:
+    for out in self._outputs + self.indexes + self._outputMetaVars:
       data[out] = np.zeros(nSamples,dtype=object)
     # read in secondary CSVs
     for i,sub in enumerate(subFiles):
@@ -148,7 +152,7 @@ class HistorySet(DataSet):
       if len(set(subDat.keys()).intersection(self.indexes)) != len(self.indexes):
         self.raiseAnError(IOError,'Importing HistorySet from .csv: the pivot parameters "'+', '.join(self.indexes)+'" have not been found in the .csv file. Check that the '
                                   'correct <pivotParameter> has been specified in the dataObject or make sure the <pivotParameter> is included in the .csv files')
-      for out in self._outputs+self.indexes:
+      for out in self._outputs + self.indexes + self._outputMetaVars:
         data[out][i] = subDat[out].values
     # construct final data object
     self.load(data,style='dict',dims=self.getDimensions())
@@ -185,10 +189,10 @@ class HistorySet(DataSet):
       if var in self.protectedTags:
         continue
       # only modify it if it is not already scalar
-      if not mathUtils.isSingleValued(val):
+      if not utils.isSingleValued(val):
         # treat inputs, outputs differently TODO this should extend to per-variable someday
         ## inputs
-        if var in self._inputs:
+        if var in self._inputs + self._inputMetaVars:
           method,indic = self._selectInput
         # pivot variables are included here in "else"; remove them after they're used in operators
         else:
@@ -254,7 +258,7 @@ class HistorySet(DataSet):
     # specific implementation
     ## write input space CSV with pointers to history CSVs
     ### get list of input variables to keep
-    ordered = list(i for i in itertools.chain(self._inputs,self._metavars) if i in keep)
+    ordered = list(i for i in itertools.chain(self._inputs,self._inputMetaVars) if i in keep)
     ### select input part of dataset
     inpData = data[ordered]
     ### add column for realization information, pointing to the appropriate CSV
@@ -269,7 +273,7 @@ class HistorySet(DataSet):
     ### write CSV
     self._usePandasWriteCSV(fileName,inpData,ordered,keepSampleTag = self.sampleTag in keep,mode=mode)
     ## obtain slices to write subset CSVs
-    ordered = list(o for o in self.getVars('output') if o in keep)
+    ordered = list(o for o in itertools.chain(self._outputs,self._outputMetaVars) if o in keep)
 
     if len(ordered):
       # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
@@ -298,3 +302,17 @@ class HistorySet(DataSet):
           self._usePandasWriteCSV(filename,rlz,ordered,keepIndex=True)
     else:
       self.raiseAWarning('No output space variables have been requested for DataObject "{}"! No history files will be printed!'.format(self.name))
+
+  def addExpectedMeta(self,keys, params={}):
+    """
+      Registers meta to look for in realizations.
+      @ In, keys, set(str), keys to register
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
+      @ Out, None
+    """
+    extraKeys = DataSet.addExpectedMeta(self, keys, params)
+    self._inputMetaVars.extend(list(key for key in extraKeys if key not in params))
+    if params:
+      self._outputMetaVars.extend(list(key for key in extraKeys if key in params))
+    return extraKeys

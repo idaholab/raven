@@ -1,53 +1,66 @@
 [Tests]
+  [./build_tests]
+    type = 'RavenPython'
+    input = 'AssembleTests.py'
+  [../]
   [./FW1]
     type = 'RavenFramework'
-    input = '1_sample_and_plot.xml'
+    input = 'test_1_sample_and_plot.xml'
     UnorderedCsv = 'r1/to_file.csv'
-    output = 'r1/to_plot_scatter.png'
+    output = 'r1/to_plot_scatter.png r1/to_file.xml'
+    prereq = build_tests
   [../]
   [./FW2]
     type = 'RavenFramework'
-    input = '2_normal_distribution.xml'
+    input = 'test_2_normal_distribution.xml'
     UnorderedCsv = 'r2/to_file.csv'
-    output = 'r2/to_plot_scatter.png'
+    output = 'r2/to_plot_scatter.png r2/to_file.xml'
+    prereq = build_tests
   [../]
   [./FW3]
     type = 'RavenFramework'
-    input = '3_initial_height.xml'
+    input = 'test_3_initial_height.xml'
     UnorderedCsv = 'r3/to_file.csv'
-    output = 'r3/to_plot_scatter.png'
+    output = 'r3/to_plot_scatter.png r3/to_file.xml'
+    prereq = FW2
   [../]
   [./FW4]
     type = 'RavenFramework'
-    input = '4_grid_sampler.xml'
+    input = 'test_4_grid_sampler.xml'
     UnorderedCsv = 'r4/to_file.csv'
-    output = 'r4/to_plot_scatter.png'
+    output = 'r4/to_plot_scatter.png r4/to_file.xml'
+    prereq = FW3
   [../]
   [./FW5]
     type = 'RavenFramework'
-    input = '5_basic_stats.xml'
+    input = 'test_5_basic_stats.xml'
     UnorderedCsv = 'r5/to_file.csv r5/stats_file.csv'
-    output = 'r5/to_plot_scatter.png'
+    output = 'r5/to_plot_scatter.png r5/to_file.xml r5/stats_file.xml'
+    prereq = FW4
   [../]
   [./FW6]
     type = 'RavenFramework'
-    input = '6_point_sets.xml'
+    input = 'test_6_point_sets.xml'
     UnorderedCsv = 'r6/to_file.csv'
+    prereq = build_tests
   [../]
   [./FW7]
     type = 'RavenFramework'
-    input = '7_history_sets.xml'
+    input = 'test_7_history_sets.xml'
     output = 'r7/to_file.csv r7/to_file_0.csv'
+    prereq = FW6
   [../]
   [./FW8]
     type = 'RavenFramework'
-    input = '8_history_sync.xml'
+    input = 'test_8_history_sync.xml'
     output = 'r8/synced.csv r8/synced_0.csv'
+    prereq = FW7
   [../]
   [./FW9]
     type = 'RavenFramework'
-    input = '9_time_stats.xml'
-    csv = 'r9/stats_0.csv'
-    output = 'r9/stats.csv'
+    input = 'test_9_time_stats.xml'
+    csv = 'r9/stats_file_0.csv'
+    output = 'r9/stats_file.csv r9/stats_file.xml'
+    prereq = FW8
   [../]
 []

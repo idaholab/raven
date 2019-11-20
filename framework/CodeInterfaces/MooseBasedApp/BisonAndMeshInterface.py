@@ -81,9 +81,9 @@ class BisonAndMesh(CodeInterfaceBase):#MooseBasedAppInterface,BisonMeshScriptInt
       raise IOError('No preExec listed in input!  Use MooseBasedAppInterface if mesh is not perturbed.  Exiting...')
     mooseInp,cubitInp = self.findInps(inputFiles)
     #get the cubit part
-    cubitCommand,cubitOut = self.BisonMeshInterface.generateCommand([cubitInp],preExec,clargs,fargs)
+    cubitCommand,cubitOut = self.BisonMeshInterface.generateCommand([cubitInp],preExec,clargs,fargs,preExec)
     #get the moose part
-    mooseCommand,mooseOut = self.MooseInterface.generateCommand([mooseInp],executable,clargs,fargs)
+    mooseCommand,mooseOut = self.MooseInterface.generateCommand([mooseInp],executable,clargs,fargs,preExec)
     #combine them
     returnCommand = cubitCommand + mooseCommand, mooseOut #can only send one...#(cubitOut,mooseOut)
     print('Execution commands from JobHandler:')

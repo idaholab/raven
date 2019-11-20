@@ -66,7 +66,7 @@ class relapdata:
     times = {}
     deckNum, startLineNumber, endLineNumber = 0, 0, 0
     for cnt, line in enumerate(lines):
-      if re.match('^\s*Final time=',line) or re.match('^\s*0Final time=',line):
+      if re.match('^\\s*Final time=',line) or re.match('^\\s*0Final time=',line):
         deckNum+=1
         startLineNumber = endLineNumber
         endLineNumber   = cnt+1
@@ -84,12 +84,12 @@ class relapdata:
     """
     tripArray=[]
     for i in range(len(lines)):
-      if re.match('^\s*0Trip\s*number',lines[i]):
+      if re.match('^\\s*0Trip\\s*number',lines[i]):
         tripArray=[]
         i=i+1
-        while not (re.match('^0System|^0\s*Total',lines[i])):
+        while not (re.match('^0System|^0\\s*Total',lines[i])):
           temp1 = lines[i].split();
-          for j in range(len(temp1)/2):
+          for j in range(len(temp1)//2):
             if (float(temp1[2*j+1])>-1.000):
               tripArray.append({temp1[2*j]:temp1[2*j+1]});
           i=i+1;
@@ -111,8 +111,8 @@ class relapdata:
     while(flagg1==0 & flagg2==0):
       if flagg1==0:
         tempkeys=[]
-        temp1 = re.split('\s{2,}|\n',lines[i])
-        #temp2 = re.split('\s{2,}|\n',lines[i+1])
+        temp1 = re.split('\\s{2,}|\n',lines[i])
+        #temp2 = re.split('\\s{2,}|\n',lines[i+1])
         temp2 = [lines[i+1][j:j+13].strip() for j in range(0, len(lines[i+1]), 13)]
         temp1.pop()
         temp2.pop()
@@ -124,7 +124,7 @@ class relapdata:
           edit_keys.append(temp1[j]+'_'+temp2[j])
           tempArray.append([]);     #   allocates array for data block
         i=i+4
-        while not re.match('^\s*1 time|^1RELAP5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]):
+        while not re.match('^\\s*1 time|^1RELAP5|^\\s*\n|^\\s*1RELAP5|^\\s*MINOR EDIT',lines[i]):
           tempData=lines[i].split()
           #takeIt = False if re.match("^\d+?\.\d+?$", tempData[0]) is None else True
           #if takeIt:
@@ -134,20 +134,20 @@ class relapdata:
             for k in range(len(tempArray)):
               tempArray[k].append(tempData[k])
           i=i+1
-          if re.match('^\s*1 time|^\s*1\s*R5|^\s*\n|^1RELAP5',lines[i]) or re.match('^\s*0Final time',lines[i]) or re.match('^\s*Final time',lines[i]):
+          if re.match('^\\s*1 time|^\\s*1\\s*R5|^\\s*\n|^1RELAP5',lines[i]) or re.match('^\\s*0Final time',lines[i]) or re.match('^\\s*Final time',lines[i]):
             break
         for l in range(len(tempkeys)):
           minorDict.update({tempkeys[l]:tempArray[l]})
-        if re.match('^\s*1\s*R5|^\s*\n|^\s*1RELAP5|^\s*MINOR EDIT',lines[i]):
+        if re.match('^\\s*1\\s*R5|^\\s*\n|^\\s*1RELAP5|^\\s*MINOR EDIT',lines[i]):
           #or i+1 > len(lines) -1:
           flagg2=1
           flagg1=1
-        elif re.match('^\s*1 time',lines[i]):
+        elif re.match('^\\s*1 time',lines[i]):
           block_count=block_count+1
           flagg=1
           flagg1=1
           flagg2=1
-        elif re.match('^\s*0Final time',lines[i]):
+        elif re.match('^\\s*0Final time',lines[i]):
           flagg=1
           flagg1=1
           flagg2=1
@@ -244,13 +244,13 @@ class relapdata:
     if len(self.ravenData) > 0:
       IOcsvfile.write(',')
     for j in range(len(self.ravenData.keys())):
-      IOcsvfile.write('%s' %(self.ravenData.keys()[j]))
+      IOcsvfile.write('%s' %(list(self.ravenData.keys())[j]))
       if j+1<len(self.ravenData.keys()): IOcsvfile.write(',')
     IOcsvfile.write('\n')
-    for i in range(len(self.minordata.get(self.minordata.keys()[0]))):
-      IOcsvfile.write(','.join(self.minordata.get(self.minordata.keys()[j])[i] for j in range(len(self.minordata.keys()))))
+    for i in range(len(self.minordata.get(list(self.minordata.keys())[0]))):
+      IOcsvfile.write(','.join(self.minordata.get(list(self.minordata.keys())[j])[i] for j in range(len(self.minordata.keys()))))
       if len(self.ravenData)>0:
         IOcsvfile.write(',')
-      IOcsvfile.write(','.join(self.ravenData[self.ravenData.keys()[k]] for k in range(len(self.ravenData.keys()))))
+      IOcsvfile.write(','.join(self.ravenData[list(self.ravenData.keys())[k]] for k in range(len(self.ravenData.keys()))))
       IOcsvfile.write('\n')
     IOcsvfile.close()

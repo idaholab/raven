@@ -24,14 +24,20 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import matplotlib
 
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
-from PySide import QtGui as qtw
+try:
+  from PySide import QtCore as qtc
+  from PySide import QtGui as qtg
+  from PySide import QtGui as qtw
+except ImportError as e:
+  from PySide2 import QtCore as qtc
+  from PySide2 import QtGui as qtg
+  from PySide2 import QtWidgets as qtw
+
 
 from .BaseTopologicalView import BaseTopologicalView
 
 from matplotlib.collections import LineCollection
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 import matplotlib.pyplot
@@ -77,8 +83,8 @@ class ScatterView2D(BaseTopologicalView):
     self.fig = Figure(facecolor='white')
     self.mplCanvas = FigureCanvas(self.fig)
     self.mplCanvas.axes = self.fig.add_subplot(111)
-    # We want the axes cleared every time plot() is called
-    self.mplCanvas.axes.hold(False)
+    # We want the axes cleared every time plot() is called,
+    # so axes.hold used to be called, but that has been removed.
     self.colorbar = None
 
     mySplitter.addWidget(self.mplCanvas)
@@ -174,7 +180,7 @@ class ScatterView2D(BaseTopologicalView):
     """
     enabled = self.amsc.FitsSynced()
     for cmb in self.cmbVars.values():
-      for i in xrange(cmb.count()):
+      for i in range(cmb.count()):
         if 'Predicted' in cmb.itemText(i) or 'Residual' in cmb.itemText(i):
           item = cmb.model().item(i,0)
           if enabled:
@@ -200,7 +206,7 @@ class ScatterView2D(BaseTopologicalView):
     myColormap = colors.cm.get_cmap(self.cmbColorMaps.currentText())
 
     if len(rows) == 0:
-      rows = list(xrange(self.amsc.GetSampleSize()))
+      rows = list(range(self.amsc.GetSampleSize()))
 
     allValues = {}
     values = {}
@@ -249,7 +255,8 @@ class ScatterView2D(BaseTopologicalView):
 
     specialColorKeywords = ['Segment','Minimum Flow', 'Maximum Flow']
 
-    for key,cmb in self.cmbVars.iteritems():
+    string_type = '|U7' #If python 2 compatibility is needed, use '|S7'
+    for key,cmb in self.cmbVars.items():
       if cmb.currentText() == 'Predicted from Linear Fit':
         allValues[key] = self.amsc.PredictY(None)
         mins[key] = min(allValues[key])
@@ -267,8 +274,8 @@ class ScatterView2D(BaseTopologicalView):
       elif cmb.currentText() == 'Segment':
         colorMap = self.amsc.GetColors()
         partitions = self.amsc.Partitions()
-        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype='|S7')
-        for extPair,items in partitions.iteritems():
+        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype=string_type)
+        for extPair,items in partitions.items():
           for item in items:
             allValues[key][item] = colorMap[extPair]
         values[key] = allValues[key][rows]
@@ -277,8 +284,8 @@ class ScatterView2D(BaseTopologicalView):
       elif cmb.currentText() == 'Maximum Flow':
         colorMap = self.amsc.GetColors()
         partitions = self.amsc.Partitions()
-        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype='|S7')
-        for extPair,items in partitions.iteritems():
+        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype=string_type)
+        for extPair,items in partitions.items():
           for item in items:
             allValues[key][item] = colorMap[extPair[1]]
         values[key] = allValues[key][rows]
@@ -287,8 +294,8 @@ class ScatterView2D(BaseTopologicalView):
       elif cmb.currentText() == 'Minimum Flow':
         colorMap = self.amsc.GetColors()
         partitions = self.amsc.Partitions()
-        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype='|S7')
-        for extPair,items in partitions.iteritems():
+        allValues[key] = np.zeros(self.amsc.GetSampleSize(),dtype=string_type)
+        for extPair,items in partitions.items():
           for item in items:
             allValues[key][item] = colorMap[extPair[0]]
         values[key] = allValues[key][rows]
@@ -315,7 +322,7 @@ class ScatterView2D(BaseTopologicalView):
       lines  = []
       lineColors = []
       for row in rows + minIdxs + maxIdxs:
-        cols = self.amsc.GetNeighbors(row)
+        cols = self.amsc.GetNeighbors(int(row))
         for col in cols:
           if col in rows + minIdxs + maxIdxs:
             lines.append([(allValues['X'][row], allValues['Y'][row]),
@@ -327,7 +334,6 @@ class ScatterView2D(BaseTopologicalView):
             else:
               lineColors.append('#CCCCCC')
 
-      self.mplCanvas.axes.hold(True)
       lc = LineCollection(lines,colors=lineColors,linewidths=1)
       self.mplCanvas.axes.add_collection(lc)
 
@@ -339,7 +345,6 @@ class ScatterView2D(BaseTopologicalView):
                                            vmax=maxs['Color'],
                                            edgecolors='none')
 
-      self.mplCanvas.axes.hold(True)
       if self.chkExts.checkState() == qtc.Qt.PartiallyChecked:
         maxValues['Color'] = colors.maxBrushColor.name()
         minValues['Color'] = colors.minBrushColor.name()
@@ -364,7 +369,6 @@ class ScatterView2D(BaseTopologicalView):
                                            c=values['Color'],
                                            edgecolors='none')
 
-      self.mplCanvas.axes.hold(True)
       if self.chkExts.checkState() == qtc.Qt.PartiallyChecked:
         maxValues['Color'] = colors.maxBrushColor.name()
         minValues['Color'] = colors.minBrushColor.name()
@@ -397,7 +401,6 @@ class ScatterView2D(BaseTopologicalView):
     for label in  (self.mplCanvas.axes.get_xticklabels()+self.mplCanvas.axes.get_yticklabels()):
       label.set_fontsize(smallFontSize)
 
-    self.mplCanvas.axes.hold(False)
     self.mplCanvas.draw()
 
   def test(self):
@@ -440,7 +443,7 @@ class ScatterView2D(BaseTopologicalView):
     self.updateScene()
 
     self.resizeEvent(qtg.QResizeEvent(qtc.QSize(1,1),qtc.QSize(100,100)))
-    pair = self.amsc.GetCurrentLabels()[0]
+    pair = list(self.amsc.GetCurrentLabels())[0]
     self.amsc.SetSelection([pair,pair[0],pair[1]])
     self.updateScene()
 

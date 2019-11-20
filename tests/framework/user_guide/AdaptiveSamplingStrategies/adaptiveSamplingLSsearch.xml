@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <RunInfo>
     <JobName>LSsearch</JobName>
     <Sequence>sample,computeLSintegral,writeHistories</Sequence>
@@ -17,11 +17,13 @@
       for using the LimitSurface capabilities of RAVEN (both the LimitSurfaceSearch sampler and the
       LimitSurfaceIntegral postprocessor.
     </description>
+    <revisions>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+    </revisions>
   </TestInfo>
 
   <Files>
     <Input name="referenceInput.xml" type="input">referenceInput.xml</Input>
-    <Input name="LSintegral.csv" type="">LSintegral.csv</Input>
   </Files>
 
   <Models>
@@ -44,10 +46,10 @@
       <seed>20021986</seed>
       <target>goalFunction</target>
       <variable name="sigma-A">
-        <distribution>sigmaA</distribution>
+        <distribution class="Distributions" type="Uniform">sigmaA</distribution>
       </variable>
       <variable name="decay-A">
-        <distribution>decayConstantA</distribution>
+        <distribution class="Distributions" type="Uniform">decayConstantA</distribution>
       </variable>
       <outputName>EventProbability</outputName>
     </PostProcessor>
@@ -81,7 +83,7 @@
 
   <Functions>
     <External file="goalFunction" name="goalFunction">
-      <variable>A</variable>
+      <variables>A</variables>
     </External>
   </Functions>
 
@@ -118,8 +120,8 @@
       <Output>goalFunction</Output>
     </PointSet>
     <PointSet name="limitSurfaceIntegral">
-        <Input>sigma-A,decay-A</Input>
-        <Output>goalFunction,EventProbability</Output>
+      <Input>sigma-A,decay-A</Input>
+      <Output>goalFunction,EventProbability</Output>
     </PointSet>
     <PointSet name="samples">
       <Input>sigma-A,decay-A</Input>
@@ -151,7 +153,9 @@
           <type>line</type>
           <x>histories|Output|time</x>
           <y>histories|Output|A</y>
-          <color>blue</color>
+          <kwargs>
+            <color>blue</color>
+          </kwargs>
           <gridLocation>
             <x>0</x>
             <y>0</y>
@@ -163,7 +167,9 @@
           <type>line</type>
           <x>histories|Output|time</x>
           <y>histories|Output|B</y>
-          <color>red</color>
+          <kwargs>
+            <color>orange</color>
+          </kwargs>
           <gridLocation>
             <x>1</x>
             <y>0</y>
@@ -175,7 +181,9 @@
           <type>line</type>
           <x>histories|Output|time</x>
           <y>histories|Output|C</y>
-          <color>yellow</color>
+          <kwargs>
+            <color>green</color>
+          </kwargs>
           <gridLocation>
             <x>0</x>
             <y>1</y>
@@ -187,7 +195,9 @@
           <type>line</type>
           <x>histories|Output|time</x>
           <y>histories|Output|D</y>
-          <color>black</color>
+          <kwargs>
+            <color>red</color>
+          </kwargs>
           <gridLocation>
             <x>1</x>
             <y>1</y>
@@ -232,7 +242,7 @@
           <x>samples|Input|decay-A</x>
           <y>samples|Input|sigma-A</y>
           <z>samples|Output|A</z>
-          <color>blue</color>
+          <c>blue</c>
           <gridLocation>
             <x>0</x>
             <y>0</y>
@@ -246,7 +256,7 @@
           <x>samples|Input|decay-A</x>
           <y>samples|Input|sigma-A</y>
           <z>samples|Output|B</z>
-          <color>blue</color>
+          <c>blue</c>
           <gridLocation>
             <x>1</x>
             <y>0</y>
@@ -255,9 +265,6 @@
           <ylabel>sigma-A</ylabel>
           <zlabel>final B</zlabel>
         </plot>
-        <xlabel>decay</xlabel>
-        <ylabel>sigma</ylabel>
-        <zlabel>final response</zlabel>
       </plotSettings>
       <actions>
         <how>png</how>

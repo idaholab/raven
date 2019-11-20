@@ -11,22 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-'''
+"""
  This file contains the mathematical methods used in the framework.
  Some of the methods were in the PostProcessor.py
  created on 03/26/2015
  @author: senrs
-'''
+"""
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
+import sys
 import math
+import functools
 import copy
 import scipy
 from scipy import interpolate, stats, integrate
 import numpy as np
+import six
 from utils.utils import UreturnPrintTag,UreturnPrintPostTag
 
 def normal(x,mu=0.0,sigma=1.0):
@@ -178,7 +181,7 @@ def historySnapShoots(valueDict, numberOfTimeStep):
     @ Out, outDic, list, it contains the temporal slice of all histories
   """
   outDict = []
-  numberOfRealizations = len(valueDict.values()[-1])
+  numberOfRealizations = len(list(valueDict.values())[-1])
   outPortion, inPortion = {}, {}
   numberSteps = - 1
   # check consistency of the dictionary
@@ -189,11 +192,11 @@ def historySnapShoots(valueDict, numberOfTimeStep):
       # check the time-step size
       outPortion[variable] = np.asarray(value)
       if numberSteps == -1:
-        numberSteps = reduce(lambda x, y: x*y, list(outPortion.values()[-1].shape))/numberOfRealizations
+        numberSteps = functools.reduce(lambda x, y: x*y, list(list(outPortion.values())[-1].shape))/numberOfRealizations
       if len(list(outPortion[variable].shape)) != 2:
         return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable
-      if reduce(lambda x, y:
-        x*y, list(outPortion.values()[-1].shape))/numberOfRealizations != numberSteps :
+      if functools.reduce(lambda x, y:
+        x*y, list(list(outPortion.values())[-1].shape))/numberOfRealizations != numberSteps :
         return "historySnapShoots method: number of time steps are not consistent among the different histories for variable "+variable+". Expected "+str(numberSteps)+" /= "+ sum(list(outPortion[variable].shape))/numberOfRealizations
     else:
       inPortion [variable] = np.asarray(value)
@@ -510,21 +513,45 @@ def NDInArray(findIn,val,tol=1e-12):
     return False,None,None
   return found,idx,looking
 
-def numBinsDraconis(data):
+def numBinsDraconis(data, low=None, alternateOkay=True, binOps=None):
   """
     Determine  Bin size and number of bins determined by Freedman Diaconis rule (https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule)
     @ In, data, np.array, data to be binned
+    @ In, low, int, minimum number of bins
+    @ In, alternateOkay, bool, if True then can use alternate method if Freeman Draconis won't work
+    @ In, binOps, int, optional, optional method choice for computing optimal bins
     @ Out, numBins, int, optimal number of bins
     @ Out, binEdges, np.array, location of the bins
   """
+  # binOps: default to draconis, but allow other options
+  ## TODO additional options could be easily added in the future.
+  # option 2: square root rule
+  if binOps == 2:
+    numBins = int(np.ceil(np.sqrt(data.size)))
+  # default option: try draconis, then fall back on square root rule
+  else:
+    try:
+      iqr = np.percentile(data, 75) - np.percentile(data, 25)
+    # Freedman Diaoconis assumes there's a difference between the 75th and 25th percentile (there usually is)
+      if iqr > 0.0:
+        size = 2.0 * iqr / np.cbrt(data.size)
+        numBins = int(np.ceil((max(data) - min(data))/size))
+      else:
+        raise TypeError
+    except:
+    # if there's not, with approval we can use the sqrt of the number of entries instead
+      if alternateOkay:
+        numBins = int(np.ceil(np.sqrt(data.size)))
+      else:
+        raise ValueError('When computing bins using Freedman-Diaconis the 25th and 75th percentiles are the same, and "alternate" is not enabled!')
+  # if a minimum number of bins have been suggested, check that we use enough
+  if low is not None:
+    numBins = max(numBins, low)
+  # for convenience, find the edges of the bins as well
+  binEdges = np.linspace(start=np.asarray(data).min(), stop=np.asarray(data).max(), num=numBins+1)
+  return numBins, binEdges
 
-  IQR = np.percentile(data, 75) - np.percentile(data, 25)
-  binSize = 2.0*IQR*(data.size**(-1.0/3.0))
-  numBins = int((max(data)-min(data))/binSize)
-  binEdges = np.linspace(start=min(data),stop=max(data),num=numBins+1)
-  return numBins,binEdges
-
-def diffWithInfinites(a,b):
+def diffWithInfinites(a, b):
   """
     Calculates the difference a-b and treats infinites.  We consider infinites to have equal values, but
     inf - (- inf) = inf.
@@ -542,89 +569,6 @@ def diffWithInfinites(a,b):
   else:
     res = a-b
   return res
-
-def isSingleValued(val,nanOk=True):
-  """
-    Determine if a single-entry value (by traditional standards).
-    Single entries include strings, numbers, NaN, inf, None
-    NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAScalar, bool, result
-  """
-  # TODO most efficient order for checking?
-  return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
-
-def isAString(val):
-  """
-    Determine if a string value (by traditional standards).
-    @ In, val, object, check
-    @ Out, isAString, bool, result
-  """
-  # str,unicode inherit from basestring
-  return isinstance(val,basestring)
-
-def isAFloatOrInt(val,nanOk=True):
-  """
-    Determine if a float or integer value
-    Should be faster than checking (isAFloat || isAnInteger) due to checking against np.number
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAFloatOrInt, bool, result
-  """
-  if isinstance(val,(float,int,long,np.number)):
-    # bools are ints, unfortunately
-    if isABoolean(val):
-      return False
-    # nan and inf are floats
-    if nanOk:
-      return True
-    elif val not in [np.inf,np.nan]:
-      return True
-  return False
-
-def isAFloat(val,nanOk=True):
-  """
-    Determine if a float value (by traditional standards).
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAFloat, bool, result
-  """
-  if isinstance(val,(float,np.number)):
-    # exclude ints, which are np.number
-    if isAnInteger(val):
-      return False
-    # np.float32 (or 16) is niether a float nor a np.float (it is a np.number)
-    if nanOk:
-      return True
-    elif val not in [np.nan,np.inf]:
-      return True
-  return False
-
-def isAnInteger(val,nanOk=False):
-  """
-    Determine if an integer value (by traditional standards).
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAnInteger, bool, result
-  """
-  if isinstance(val,(int,np.integer,long)):
-    # exclude booleans
-    if isABoolean(val):
-      return False
-    return True
-  # also include inf and nan, if requested
-  if nanOk and val in [np.nan,np.inf]:
-    return True
-  return False
-
-def isABoolean(val):
-  """
-    Determine if a boolean value (by traditional standards).
-    @ In, val, object, check
-    @ Out, isABoolean, bool, result
-  """
-  return isinstance(val,(bool,np.bool_))
 
 def computeTruncatedTotalLeastSquare(X, Y, truncationRank):
   """
@@ -705,3 +649,66 @@ def computeAmplitudeCoefficients(mods, Y, eigs, optmized):
   else:
     amplitudes = np.linalg.lstsq(mods, Y.T[0])[0]
   return amplitudes
+
+def trainEmpiricalFunction(signal, bins=None, minBins=None, weights=None):
+  """
+    Creates a scipy empirical distribution object with all the associated methods (pdf, cdf, ppf, etc).
+    Note this is only partially covered (while extended to include weights) by methods in raven/framework/Metrics/MetricUtilities,
+    and ideally those methods can be generalized and extended to be included here, or in Distributions.  See issue #908.
+    @ In, signal, np.array(float), signal to create distribution for
+    @ In, bins, int, optional, number of bins to use
+    @ In, minBins, int, optional, minimum number of bins to use
+    @ In, weights, np.array(float), optional, weights for each sample within the distribution
+    @ Out, dist, scipy.stats.rv_histogram instance, distribution object instance based on input data
+    @ Out, histogram, tuple, (counts, edges) the frequency and bins of the histogram
+  """
+  # determine the number of bins to use in the empirical distribution
+  if bins is None:
+    bins, _ = numBinsDraconis(signal, low=minBins)
+  counts, edges = np.histogram(signal, bins=bins, density=False, weights=weights)
+  counts = np.asarray(counts) / float(len(signal))
+  dist = stats.rv_histogram((counts, edges))
+  return dist, (counts, edges)
+
+def convertSinCosToSinPhase(A, B):
+  """
+    Given coefficients A, B for the equation A*sin(kt) = B*cos(kt), returns
+    the equivalent values C, p for the equation C*sin(kt + p)
+    @ In, A, float, sine coefficient
+    @ In, B, float, cosine coefficient
+    @ Out, C, float, equivalent sine-only amplitude
+    @ Out, p, float, phase shift of sine-only waveform
+  """
+  p = np.arctan2(B, A)
+  C = A / np.cos(p)
+  return C, p
+
+def evalFourier(period,C,p,t):
+  """
+    Evaluate Fourier Singal by coefficients C, p, t for the equation C*sin(kt + p)
+    @ In, C, float, equivalent sine-only amplitude
+    @ In, p, float, phase shift of sine-only waveform
+    @ In, t, np.array, list of values for the time
+    @ Out fourier, np.array, results of the transfered signal
+  """
+  fourier = C * np.sin(2. * np.pi * t / period + p)
+  return fourier
+
+def orderClusterLabels(originalLabels):
+  """
+    Regulates labels such that the first unique one to appear is 0, second one is 1, and so on.
+    e.g. [B, B, C, B, A, A, D] becomes [0, 0, 1, 0, 2, 2, 3]
+    @ In, originalLabels, list, the original labeling system
+    @ Out, labels, np.array(int), ordinal labels
+  """
+  labels = np.zeros(len(originalLabels), dtype=int)
+  oldToNew = {}
+  nextUsableLabel = 0
+  for l, old in enumerate(originalLabels):
+    new = oldToNew.get(old, None)
+    if new is None:
+      oldToNew[old] = nextUsableLabel
+      new = nextUsableLabel
+      nextUsableLabel += 1
+    labels[l] = new
+  return labels

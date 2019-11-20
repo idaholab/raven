@@ -472,7 +472,7 @@ class Simulation(MessageHandler.MessageUser):
               else:
                 self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
             else:
-              self.raiseAnError(IOError,'not found name attribute for one '+Class)
+              self.raiseAnError(IOError,'not found name attribute for one "{}": {}'.format(Class,subType))
       else:
         #tag not in whichDict, check if it's a documentation tag
         if child.tag not in ['TestInfo']:
@@ -483,7 +483,7 @@ class Simulation(MessageHandler.MessageUser):
       fileName = os.path.join(self.runInfoDict['WorkingDir'],self.runInfoDict['printInput'])
       self.raiseAMessage('Writing duplicate input file:',fileName)
       outFile = open(fileName,'w')
-      outFile.writelines(TreeStructure.tostring(xmlNode)+'\n') #\n for no-end-of-line issue
+      outFile.writelines(utils.toString(TreeStructure.tostring(xmlNode))+'\n') #\n for no-end-of-line issue
       outFile.close()
     if not set(self.stepSequenceList).issubset(set(self.stepsDict.keys())):
       self.raiseAnError(IOError,'The step list: '+str(self.stepSequenceList)+' contains steps that have not been declared: '+str(list(self.stepsDict.keys())))
@@ -593,6 +593,8 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['CallDir'] = os.getcwd()
         # then get the requested "WorkingDir"
         tempName = element.text
+        if element.text is None:
+          self.raiseAnError(IOError, 'RunInfo.WorkingDir is empty! Use "." to signify "work here" or specify a directory.')
         if '~' in tempName:
           tempName = os.path.expanduser(tempName)
         if os.path.isabs(tempName):
@@ -814,5 +816,7 @@ class Simulation(MessageHandler.MessageUser):
             for allObject in self.whichDict[mainClassStr]:
               neededobjs[mainClassStr][allObject] = self.whichDict[mainClassStr][allObject]
           else:
-            self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
+            self.raiseAnError(IOError,'Requested object <{n}> is not part of the Main Class <{m}>!'
+                                      .format(n=obj[1], m=mainClassStr) +
+                                      '\nOptions are:', self.whichDict[mainClassStr].keys())
       objectInstance.generateAssembler(neededobjs)

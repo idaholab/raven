@@ -1,0 +1,181 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.PreserveCdf</name>
+    <author>talbpaul</author>
+    <created>2019-01-22</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+      Tests the feature (Models.ARMA.preserveInputCDF) to preserve the CDF of the input training data when producing synthetic histories.
+      The standard is being able to identically match the original data's ValueDuration curve.
+      Currently, there's not a Metric for comparing a single gold standard to several samples;
+      thus we read in a second history set with the ValueDuration curve of the training set
+      repeated 10 times for comparison to the sample ValueDuration curves.
+    </description>
+    <revisions>
+      <revision author='talbpaul' date='2019-01-22'>created</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>PreserveCdf</WorkingDir>
+    <Sequence>
+      load, train, stats,
+      sample, valdur_orig, valdur_samples,
+      load_gold_vdcs, vdc_metric, out
+    </Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Output class="Models" type="ROM">rom</Output>
+    </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="DataObjects" type="DataSet">rom</Output>
+      <Output class="OutStreams" type="Print">rom</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">rom</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+    </MultiRun>
+    <PostProcess name="valdur_orig">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Model class="Models" type="PostProcessor">val_dur</Model>
+      <Output class="DataObjects" type="HistorySet">input_durs</Output>
+    </PostProcess>
+    <PostProcess name="valdur_samples">
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Model class="Models" type="PostProcessor">val_dur</Model>
+      <Output class="DataObjects" type="HistorySet">sample_durs</Output>
+    </PostProcess>
+    <IOStep name="load_gold_vdcs">
+      <Input class="Files" type="">gold_durs</Input>
+      <Output class="DataObjects" type="HistorySet">gold_durs</Output>
+    </IOStep>
+    <PostProcess name="vdc_metric">
+      <Input class="DataObjects" type="HistorySet">gold_durs</Input>
+      <Input class="DataObjects" type="HistorySet">sample_durs</Input>
+      <Model class="Models" type="PostProcessor">metric_pp</Model>
+      <Output class="DataObjects" type="PointSet">metric</Output>
+    </PostProcess>
+    <IOStep name="out">
+      <Input class="DataObjects" type="HistorySet">input_durs</Input>
+      <Input class="DataObjects" type="PointSet">metric</Input>
+      <Output class="OutStreams" type="Print">input_durs</Output>
+      <Output class="OutStreams" type="Print">metric</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="input">head.csv</Input>
+    <Input name="gold_durs">gold_dur.csv</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>scaling</Input>
+    </PointSet>
+    <PointSet name="metric">
+      <Output>metric_counts_Gold_counts_Signal</Output>
+    </PointSet>
+    <HistorySet name="input">
+      <Input>scaling</Input>
+      <Output>Signal,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="samples">
+      <Input>scaling</Input>
+      <Output>Signal,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="input_durs">
+      <Output>counts_Signal</Output>
+      <options>
+        <pivotParameter>bins_Signal</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="sample_durs">
+      <Output>counts_Signal</Output>
+      <options>
+        <pivotParameter>bins_Signal</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="gold_durs">
+      <Output>counts_Gold</Output>
+      <options>
+        <pivotParameter>bins_Signal</pivotParameter>
+      </options>
+    </HistorySet>
+
+    <DataSet name="rom"/>
+  </DataObjects>
+
+  <Models>
+    <ROM name="rom" subType="ARMA">
+      <Target>Signal,Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <Fourier>1,10,100</Fourier>
+      <P>0</P>
+      <Q>0</Q>
+      <preserveInputCDF>True</preserveInputCDF>
+    </ROM>
+    <PostProcessor name="val_dur" subType="ValueDuration">
+      <target>Signal</target>
+      <bins>10</bins>
+    </PostProcessor>
+    <PostProcessor name="metric_pp" subType="Metric">
+      <Features type="variable">counts_Signal</Features>
+      <Targets type="variable">counts_Gold</Targets>
+      <pivotParameter>bins_Signal</pivotParameter>
+      <Metric class="Metrics" type="SKL">metric</Metric>
+    </PostProcessor>
+  </Models>
+
+  <Metrics>
+    <SKL name="metric">
+      <metricType>regression|mean_squared_error</metricType>
+    </SKL>
+  </Metrics>
+
+  <OutStreams>
+    <Print name="rom">
+      <type>csv</type>
+      <source>rom</source>
+    </Print>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+    <Print name="input_durs">
+      <type>csv</type>
+      <source>input_durs</source>
+    </Print>
+    <Print name="metric">
+      <type>csv</type>
+      <source>metric</source>
+    </Print>
+  </OutStreams>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+</Simulation>

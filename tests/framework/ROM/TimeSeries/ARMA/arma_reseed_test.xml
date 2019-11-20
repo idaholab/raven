@@ -6,88 +6,81 @@
     <created>2017-07-12</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-      Runs an unpickled ARMA ROM in internal parallel and assures the histories
-      generated are not identical (expected_fail = True).  Note that the gold file
-      is created by coping ARMAparallel/results_1.csv to gold/ARMAparallel/results_0.csv,
-      then we make sure they are not the same through expected_fail
+      Runs an unpickled ARMA ROM and assures the histories generated are  identical (by setting
+      the batch size to 1 and internalparelle to False in precursor and reseed test). Note that
+      the gold file is created by runing the arma_ressed_precurssor test, signals_0 signals_1
+      signals_2 signals_3 are gold files. results_0 results_1 results_2 results_3 are the generated
+      unpickled histories by test,then we compare they are the same.
     </description>
     <revisions>
       <revision author="talbpaul" date="2017-07-12">created</revision>
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
+      <revision author="zhouj" date="2019-05-06">Modified location of the test to the same with precursor,
+      change batchsize to 1, delete the internal parallel option, delete distribution block </revision>
     </revisions>
   </TestInfo>
 
-    <RunInfo>
-      <WorkingDir>ARMAparallel</WorkingDir>
-      <Sequence>read,run,write</Sequence>
-      <batchSize>4</batchSize>
-      <internalParallel>True</internalParallel>
-    </RunInfo>
+  <RunInfo>
+    <WorkingDir>ARMAreseed</WorkingDir>
+    <Sequence>read,run,write</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
-    <Files>
-        <Input name="pk">arma.pk</Input>
-    </Files>
+  <Files>
+    <Input name="pk">arma.pk</Input>
+  </Files>
 
-    <Distributions>
-		  <Uniform name="uniDist">
-			  <lowerBound>0</lowerBound>
-			  <upperBound>1</upperBound>
-		  </Uniform>
-	</Distributions>
-
-	<Samplers>
-		<MonteCarlo name="mc">
-			<samplerInit>
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
         <limit>4</limit>
-		    <initialSeed>20021986</initialSeed>
-			</samplerInit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
       <constant name="scaling">1</constant>
     </MonteCarlo>
-	</Samplers>
+  </Samplers>
 
-	<Models>
-    <ROM name='ARMA' subType='pickledROM'/>
+  <Models>
+    <ROM name="ARMA" subType="pickledROM"/>
   </Models>
 
   <Steps>
-    <IOStep name='read'>
-      <Input  class='Files'  type = ''    >pk</Input>
-      <Output class='Models' type = 'ROM' >ARMA</Output>
+    <IOStep name="read">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">ARMA</Output>
     </IOStep>
-		<MultiRun name='run'>
-			<Input  class='DataObjects' type='HistorySet'>dataIn</Input>
-			<Model class='Models' 		  type='ROM' 	 		 >ARMA</Model>
+    <MultiRun name="run">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">ARMA</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="HistorySet">results</Output>
-		</MultiRun>
-    <IOStep name='write'>
-			<Input  class='DataObjects' type='HistorySet'>results</Input>
-			<Output class='OutStreams'  type='Print'>results</Output>
-		</IOStep>
+    </MultiRun>
+    <IOStep name="write">
+      <Input class="DataObjects" type="HistorySet">results</Input>
+      <Output class="OutStreams" type="Print">results</Output>
+    </IOStep>
   </Steps>
 
-    <OutStreams>
-        <Print name = 'results'>
-          <type>csv</type>
-          <source>results</source>
-          <what>input, output</what>
-        </Print>
-	</OutStreams>
+  <OutStreams>
+    <Print name="results">
+      <type>csv</type>
+      <source>results</source>
+    </Print>
+  </OutStreams>
 
-    <DataObjects>
-      <PointSet name="dataIn">
-        <Input>scaling</Input>
-        <Output>OutputPlaceHolder</Output>
-      </PointSet>
-      <HistorySet name="results">
-        <Input>scaling</Input>
-        <Output>Speed,Time</Output>
-        <options>
-            <pivotParameter>Time</pivotParameter>
-        </options>
-      </HistorySet>
-    </DataObjects>
+  <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="results">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
 </Simulation>
-
-

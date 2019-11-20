@@ -1,0 +1,121 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/InterfacedPostProcessor.historySetSampling_and_sync</name>
+    <author>alfoa</author>
+    <created>2019-10-08</created>
+    <classesTested>InterfacedPostProcessor</classesTested>
+    <description>
+      Tests of the HistorySetSampling interfaced post-processor and sub-sequential syncronization of the
+      history set
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2019-10-08">Created test to show how to perform the sync</revision>
+    </revisions>
+  </TestInfo>
+  
+  <RunInfo>
+    <WorkingDir>historySetSampling_and_sync</WorkingDir>
+    <Sequence>FirstMRun,PP1,sync1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+
+  <Steps>
+    <MultiRun name="FirstMRun" pauseAtEnd="True">
+      <Input   class="DataObjects"  type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"       type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"     type="MonteCarlo"    >MC_external</Sampler>
+      <Output  class="DataObjects"  type="PointSet"      >outMC</Output>
+    </MultiRun>
+    <PostProcess name="PP1">
+      <Input   class="DataObjects"  type="HistorySet"    >outMC</Input>
+      <Model   class="Models"       type="PostProcessor" >historySamplingPP_uniform</Model>
+      <Output  class="DataObjects"  type="HistorySet"    >outMC_PP1</Output>
+    </PostProcess>
+    <PostProcess name="sync1">
+        <Input   class="DataObjects"  type="HistorySet"    >outMC_PP1</Input>
+        <Model   class="Models"       type="PostProcessor" >hs_sync</Model>
+        <Output  class="DataObjects"  type="HistorySet"    >outMC_synced</Output>
+        <Output  class="OutStreams"   type="Print"         >out_synced_and_reduced</Output>
+    </PostProcess>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../historySampling/lorentzAttractor" name="PythonModule" subType="">
+      <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
+    </ExternalModel>
+    <PostProcessor name="historySamplingPP_uniform" subType="InterfacedPostProcessor">
+      <method>HistorySetSampling</method>
+      <samplingType>uniform</samplingType>
+      <numberOfSamples>10</numberOfSamples>
+      <pivotParameter>time</pivotParameter>
+      <interpolation>cubic</interpolation>
+    </PostProcessor>
+    <PostProcessor name="hs_sync" subType="InterfacedPostProcessor">
+      <method>HistorySetSync</method>
+      <syncMethod>all</syncMethod>
+      <pivotParameter>time</pivotParameter>
+      <extension>extended</extension>
+    </PostProcessor>
+  </Models>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>2</limit>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="out_synced_and_reduced">
+      <type>csv</type>
+      <source>outMC_synced</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="outMC">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="outMC_PP1">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+    <HistorySet name="outMC_synced">
+      <Input>x0,y0,z0</Input>
+      <Output>time,x,y,z</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

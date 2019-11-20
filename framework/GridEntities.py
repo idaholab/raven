@@ -32,7 +32,7 @@ import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils.utils import UreturnPrintTag,partialEval,compare, metaclass_insert
+from utils.utils import UreturnPrintTag,partialEval,floatConversion,compare, metaclass_insert
 from BaseClasses import BaseType
 import utils.TreeStructure as ETS
 from utils.RAVENiterators import ravenArrayIterator
@@ -302,7 +302,7 @@ class GridEntity(GridBase):
             self.raiseAnError(ValueError, "can not convert 'dim' attribute in integer!")
     #check for globalGrid type of structure
     globalGrids = {}
-    for key in gridInfo.keys():
+    for key in list(gridInfo.keys()): #list() to create copy so pop can be used
       splitted = key.split(":")
       if splitted[0].strip() == 'globalGrid':
         globalGrids[splitted[1]] = gridInfo.pop(key)
@@ -351,7 +351,7 @@ class GridEntity(GridBase):
       self.raiseAnError(IOError,"Each <grid> XML node needs to have the attribute type!!!!")
     nameGrid = None
     if constrType in ['custom','equal']:
-      bounds = [partialEval(element) for element in child.text.split()]
+      bounds = [floatConversion(element) for element in child.text.split()]
       bounds.sort()
       lower, upper = min(bounds), max(bounds)
       if 'name' in child.attrib.keys():
@@ -420,6 +420,8 @@ class GridEntity(GridBase):
       self.gridContainer['transformationMethods'] = initDict["transformationMethods"]
     self.nVar                            = len(self.gridInitDict["dimensionNames"]) if "dimensionNames" in self.gridInitDict.keys() else len(initDict["dimensionNames"])
     self.gridContainer['dimensionNames'] = self.gridInitDict["dimensionNames"] if "dimensionNames" in self.gridInitDict.keys() else initDict["dimensionNames"]
+    #expand iterator with list()
+    self.gridContainer['dimensionNames'] = list(self.gridContainer['dimensionNames'])
     upperkeys                            = list(self.gridInitDict["upperBounds"].keys() if "upperBounds" in self.gridInitDict.keys() else initDict["upperBounds"  ].keys())
     lowerkeys                            = list(self.gridInitDict["lowerBounds"].keys() if "lowerBounds" in self.gridInitDict.keys() else initDict["lowerBounds"  ].keys())
     self.gridContainer['dimensionNames'].sort()

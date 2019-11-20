@@ -2,7 +2,7 @@
  [./testLimitSurfaceMultiGridSampling]
   type = 'RavenFramework'
   input = 'test_limit_surface_multi_grid_acc.xml'
-  csv = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
+  UnorderedCsv = 'limitSurfaceMultiGrid/limitSurfaceTwoIslandsCSV.csv'
   max_time = 300
   rel_err = 0.0001
  [../]
@@ -14,5 +14,10 @@
  [./adaptive_sampler_no_crossing]
   type = 'RavenFramework'
   input = 'test_limit_surface_no_crossing_transition.xml'
+ [../]
+ [./limit_surface_1_dimensional]
+  type = 'RavenFramework'
+  input = 'test_adaptive_sampler_1_d_limit_surface.xml'
+  csv = 'Adapt1D/limitSurfaceDump.csv'
  [../]
 []

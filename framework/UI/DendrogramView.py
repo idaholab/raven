@@ -24,11 +24,16 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import numpy as np
 import sys
-
-from PySide import QtCore as qtc
-from PySide import QtGui as qtg
-from PySide import QtGui as qtw
-from PySide import QtSvg as qts
+try:
+  from PySide import QtCore as qtc
+  from PySide import QtGui as qtg
+  from PySide import QtGui as qtw
+  from PySide import QtSvg as qts
+except ImportError as e:
+  from PySide2 import QtCore as qtc
+  from PySide2 import QtGui as qtg
+  from PySide2 import QtWidgets as qtw
+  from PySide2 import QtSvg as qts
 
 from .BaseHierarchicalView import BaseHierarchicalView
 from .ZoomableGraphicsView import ZoomableGraphicsView
@@ -376,7 +381,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
       @ Out, None
     """
     selectedKeys = []
-    for key,graphic in self.nodes.iteritems():
+    for key,graphic in self.nodes.items():
       if graphic in self.scene().selectedItems():
         selectedKeys.append(key)
     # self.tree.SetSelection(selectedKeys)
@@ -421,7 +426,7 @@ class DendrogramView(ZoomableGraphicsView,BaseHierarchicalView):
     # self.scene().selectionChanged.disconnect(self.select)
 
     # selectedKeys = self.segmentation.selectedSegments
-    # for key,graphic in self.nodes.iteritems():
+    # for key,graphic in self.nodes.items():
     #   if key in selectedKeys:
     #     graphic.setSelected(True)
     #   else:

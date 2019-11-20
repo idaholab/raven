@@ -10,18 +10,59 @@ else
 fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
+SKIP_CONDA=1 # 0 for skipping conda, 1 for not skipping
+# source read ravenrc script
+RAVEN_RC_SCRIPT=$SCRIPT_DIR/scripts/read_ravenrc.sh
+RAVEN_RC_SCRIPT="${RAVEN_RC_SCRIPT//\\//}"
+source $RAVEN_RC_SCRIPT
+INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
+if [[ "$INSTALLATION_MANAGER" == "PIP" ]];
+  then
+  SKIP_CONDA=0
+else
+  # conda
+  SKIP_CONDA=1
+fi
+
+ARGS=()
+for A in "$@"; do
+    case $A in
+        --skip-conda)
+            SKIP_CONDA=0
+            ;;
+        *)
+            ARGS+=("$A")
+            ;;
+    esac
+done
 echo 'Loading libraries ...'
-source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
+if [[ ! $SKIP_CONDA == 0 ]]; then
+    source $SCRIPT_DIR/scripts/establish_conda_env.sh --load
+else
+    source $SCRIPT_DIR/scripts/establish_conda_env.sh --load --installation-manager PIP
+    #PYTHON_COMMAND=${PYTHON_COMMAND:=python}
+fi
+
+for A in "$@"; do
+    case $A in
+        --library_report | --library-report)
+            $PYTHON_COMMAND $SCRIPT_DIR/scripts/library_report
+            exit
+            ;;
+    esac
+done
 
 # this copy the plugins tests into raven tests
 echo 'Loading plugin tests ...'
-python $SCRIPT_DIR/scripts/copy_plugins_tests.py
+$PYTHON_COMMAND $SCRIPT_DIR/scripts/copy_plugins_tests.py
 # run the tests
 echo 'Running tests ...'
-python backend_run_tests --skip-config-check "$@"
+
+$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
+
 # grep return code
 rc=$?
 # this copy back the plugins and remove them from the source folder
-python $SCRIPT_DIR/scripts/copy_back_plugins_results.py
+$PYTHON_COMMAND $SCRIPT_DIR/scripts/copy_back_plugins_results.py
 # return code
 if [[ $rc != 0 ]]; then exit $rc; fi

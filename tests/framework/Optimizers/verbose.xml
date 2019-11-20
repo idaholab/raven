@@ -12,6 +12,8 @@
     <revisions>
       <revision author='talbpaul' date='2018-01-03'>Switched from snapshot to writeSteps as final</revision>
       <revision author='talbpaul' date='2018-04-04'>Added a constant to test passing through</revision>
+      <revision author='talbpaul' date='2018-10-23'>removed gradient prints</revision>
+      <revision author='ZHOUJ2' date='2019-11-10'>add resample to False in optimizer</revision>
     </revisions>
   </TestInfo>
 
@@ -42,6 +44,7 @@
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>final</writeSteps>
+        <resample>False</resample>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <convergence>
@@ -84,7 +87,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,pi,ans,varsUpdate,stepSize,gradient_x,gradient_y,convergenceAbs,convergenceRel,convergenceGrad</Output>
+      <Output>x,y,pi,ans,varsUpdate,stepSize,convergenceAbs,convergenceRel</Output>
     </PointSet>
   </DataObjects>
 

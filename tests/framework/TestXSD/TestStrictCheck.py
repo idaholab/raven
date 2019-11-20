@@ -60,7 +60,7 @@ print(errors)
 
 checkAnswer('Required parameter required_string not in inner', errors[0])
 checkAnswer('no_such_element not in attributes and strict mode on in inner', errors[1])
-checkAnswer('Child \"no_such_sub\" not allowed as sub-element of \"ordered\"', errors[2])
+checkAnswer('Childs \"[no_such_sub]\" not allowed as sub-elements of \"ordered\"', errors[2])
 
 print("passes",passFails[0],"fails",passFails[1])
 sys.exit(passFails[1])

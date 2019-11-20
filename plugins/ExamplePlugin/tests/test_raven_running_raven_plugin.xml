@@ -9,12 +9,19 @@
        This test is aimed to check the functionality of the RAVEN code interface (RAVEN running RAVEN)
        executing an external plugin (ExternalModel) plugin
     </description>
+    <revisions>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+      <revision author="alfoa" date="2019-06-05">
+          Removed HDF5 dumping in order to reduce overhead of IO on HPC slow systems.
+          In addition, it invokes python directly to remove a bit of overhead for establishing conda </revision>
+    </revisions>
+    <requirements>R-SI-2</requirements>
   </TestInfo>
   <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>ravenRunningRavenPlugin</WorkingDir>
     <Sequence>FirstMRun</Sequence>
-    <!-- This settings here are going to run 3 SLAVE RAVENs at a time, each of them using 2 processors -->
+    <!-- This settings here are going to run 2 SLAVE RAVENs at a time, each of them using 1 processors -->
     <batchSize>1</batchSize>
     <NumMPI>1</NumMPI>
     <mode>mpi</mode>
@@ -30,7 +37,6 @@
       <Input class="Files" type="raven">test_example_plugin.xml</Input>
       <Model class="Models" type="Code">raven_running_plugin</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="Databases" type="HDF5">test_external_db</Output>
       <Output class="DataObjects" type="PointSet">testPointSet</Output>
       <Output class="OutStreams" type="Print">testPointSet_dump</Output>
     </MultiRun>
@@ -39,7 +45,7 @@
   <!-- MODELS -->
   <Models>
     <Code name="raven_running_plugin" subType="RAVEN">
-        <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
+        <executable>python %FRAMEWORK_DIR%/../framework/Driver.py</executable>
         <outputExportOutStreams>dumpSumOfExpOutput</outputExportOutStreams>
         <alias variable="b"  type="input">Samplers|MonteCarlo@name:test_MC|constant@name:b</alias>
         <alias variable="a"  type="input">Samplers|MonteCarlo@name:test_MC|constant@name:a</alias>
@@ -72,11 +78,6 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-
-  <!-- DATABASES -->
-  <Databases>
-    <HDF5 name="test_external_db" readMode="overwrite"/>
-  </Databases>
 
   <!-- OUTSTREAMS -->
   <OutStreams>

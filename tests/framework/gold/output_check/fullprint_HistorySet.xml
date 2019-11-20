@@ -2,12 +2,12 @@
   <DataSet type="Static">
     <dims>
       <cosine>time</cosine>
-      <sine>time</sine>
       <square>time</square>
+      <sine>time</sine>
     </dims>
     <general>
       <inputs>var1,var2</inputs>
-      <pointwise_meta>ProbabilityWeight,ProbabilityWeight-var1,prefix,PointProbability,ProbabilityWeight-var2</pointwise_meta>
+      <pointwise_meta>PointProbability,ProbabilityWeight,ProbabilityWeight-var1,ProbabilityWeight-var2,prefix</pointwise_meta>
       <outputs>sine,square,cosine</outputs>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>

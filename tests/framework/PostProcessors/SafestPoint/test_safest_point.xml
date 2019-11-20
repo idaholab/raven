@@ -1,0 +1,190 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.safest_point_pp</name>
+    <author>alfoa</author>
+    <created>2014-11-17</created>
+    <classesTested>Samplers.LimitSurfaceSearch, Models.PostProcessor.SafestPoint, Steps.MultiRun</classesTested>
+    <description>
+       This test is about the identification of the Safest Point in a set of controllable and un-controllable parameter.
+       In order to do that, a LimitSurfaceSearch sampling is employed and sub-sequentially the PostProcessor
+       of type SafestPoint is used.
+    </description>
+    <revisions>
+      <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
+      <revision author="alfoa" date="2015-05-19">Closes #176</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="talbpaul" date="2015-07-07">standardized tests</revision>
+      <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>SafestPointPP</WorkingDir>
+    <Sequence>pth1,pth2,pth3,pth4</Sequence>
+    <batchSize>50</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="pth1" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">grd_vl_ql_smp_dpt_dt</Input>
+      <Model class="Models" type="ExternalModel">xtr_mdl</Model>
+      <Sampler class="Samplers" type="Grid">grd_vl_ql_smp_dpt</Sampler>
+      <Output class="DataObjects" type="PointSet">nt_phy_dpt_dt</Output>
+    </MultiRun>
+    <MultiRun name="pth2" pauseAtEnd="true">
+      <Input class="DataObjects" type="PointSet">bln_smp_dt</Input>
+      <Model class="Models" type="ExternalModel">xtr_mdl</Model>
+      <Sampler class="Samplers" type="LimitSurfaceSearch">dpt_smp</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">lmt_srf_dt</SolutionExport>
+      <Output class="DataObjects" type="PointSet">nt_phy_dpt_dt</Output>
+    </MultiRun>
+    <IOStep name="pth4" pauseAtEnd="true">
+      <Input class="DataObjects" type="PointSet">lmt_srf_dt</Input>
+      <Input class="DataObjects" type="PointSet">sfs_pnt_dt</Input>
+      <Output class="OutStreams" type="Print">lmt_srf_dmp</Output>
+      <Output class="OutStreams" type="Print">sfs_pnt_dmp</Output>
+    </IOStep>
+    <PostProcess name="pth3" pauseAtEnd="false">
+      <Input class="DataObjects" type="PointSet">lmt_srf_dt</Input>
+      <Model class="Models" type="PostProcessor">SP</Model>
+      <Output class="DataObjects" type="PointSet">sfs_pnt_dt</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="grd_vl_ql_smp_dpt_dt">
+      <Input>x2,x1,gammay</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="nt_phy_dpt_dt">
+      <Input>x2,x1,gammay</Input>
+      <Output>g</Output>
+    </PointSet>
+    <PointSet name="bln_smp_dt">
+      <Input>x2,x1,gammay</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="lmt_srf_dt">
+      <Input>x2,x1,gammay</Input>
+      <Output>g_zr</Output>
+    </PointSet>
+    <PointSet name="sfs_pnt_dt">
+      <Input>x2,x1,gammay</Input>
+      <Output>p</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <Normal name="x1_dst">
+      <upperBound>10</upperBound>
+      <lowerBound>-10</lowerBound>
+      <mean>0.5</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+    <Normal name="x2_dst">
+      <upperBound>10</upperBound>
+      <lowerBound>-10</lowerBound>
+      <mean>-0.15</mean>
+      <sigma>0.05</sigma>
+    </Normal>
+    <Normal name="gammay_dst">
+      <upperBound>20</upperBound>
+      <lowerBound>-20</lowerBound>
+      <mean>0</mean>
+      <sigma>15</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grd_vl_ql_smp_dpt">
+      <variable name="x1">
+        <distribution>x1_dst</distribution>
+        <grid construction="equal" steps="10" type="value">-10.0 10.0</grid>
+      </variable>
+      <variable name="x2">
+        <distribution>x2_dst</distribution>
+        <grid construction="equal" steps="10" type="value">-10.0 10.0</grid>
+      </variable>
+      <variable name="gammay">
+        <distribution>gammay_dst</distribution>
+        <grid construction="equal" steps="10" type="value">-20.0 20.0</grid>
+      </variable>
+    </Grid>
+    <LimitSurfaceSearch name="dpt_smp" verbosity="debug">
+      <ROM class="Models" type="ROM">accelerated_ROM</ROM>
+      <Function class="Functions" type="External">g_zr</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">nt_phy_dpt_dt</TargetEvaluation>
+      <Convergence forceIteration="False" limit="3000" persistence="5" weight="value">1e-2</Convergence>
+      <variable name="x1">
+        <distribution>x1_dst</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>x2_dst</distribution>
+      </variable>
+      <variable name="gammay">
+        <distribution>gammay_dst</distribution>
+      </variable>
+    </LimitSurfaceSearch>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="safest_point_test_xtr_mdl" name="xtr_mdl" subType="">
+      <variables>x1,x2,gammay,g</variables>
+    </ExternalModel>
+    <ROM name="accelerated_ROM" subType="SciKitLearn">
+      <Features>x1,x2,gammay</Features>
+      <Target>g_zr</Target>
+      <SKLtype>svm|SVC</SKLtype>
+      <kernel>rbf</kernel>
+      <gamma>10</gamma>
+      <tol>1e-5</tol>
+      <C>50</C>
+    </ROM>
+    <PostProcessor name="SP" subType="SafestPoint">
+      <Distribution class="Distributions" type="Normal">x1_dst</Distribution>
+      <Distribution class="Distributions" type="Normal">x2_dst</Distribution>
+      <Distribution class="Distributions" type="Normal">gammay_dst</Distribution>
+      <outputName>p</outputName>
+      <controllable>
+        <variable name="x1">
+          <distribution>x1_dst</distribution>
+          <grid steps="20" type="value">1</grid>
+        </variable>
+        <variable name="x2">
+          <distribution>x2_dst</distribution>
+          <grid steps="20" type="value">1</grid>
+        </variable>
+      </controllable>
+      <non-controllable>
+        <variable name="gammay">
+          <distribution>gammay_dst</distribution>
+          <grid steps="20" type="value">2</grid>
+        </variable>
+      </non-controllable>
+    </PostProcessor>
+  </Models>
+
+  <Functions>
+    <External file="SafestPointPP/safest_point_test_g_zr.py" name="g_zr">
+      <variables>g</variables>
+    </External>
+  </Functions>
+
+  <OutStreams>
+    <Print name="lmt_srf_dmp">
+      <type>csv</type>
+      <source>lmt_srf_dt</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="sfs_pnt_dmp">
+      <type>csv</type>
+      <source>sfs_pnt_dt</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

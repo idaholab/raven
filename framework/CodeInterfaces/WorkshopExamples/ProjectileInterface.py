@@ -36,7 +36,7 @@ class Projectile(CodeInterfaceBase):
   """
     Provides code to interface RAVEN to Projectile
   """
-  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
@@ -45,6 +45,7 @@ class Projectile(CodeInterfaceBase):
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     # find the input file (check that one input is provided)
@@ -53,7 +54,7 @@ class Projectile(CodeInterfaceBase):
     # create output file root
     outputfile = 'out~' + inputFiles[0].getBase()
     # create command (python "executable" -i "input file" -o "output file root")
-    executeCommand = [('parallel', "python " +executable +' -i '+ inputFiles[0].getFilename() +' -o '+ outputfile)]
+    executeCommand = [('parallel', "python " +executable +' -i '+ inputFiles[0].getFilename() +' -o '+ outputfile + ' -text')]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
@@ -109,6 +110,7 @@ class Projectile(CodeInterfaceBase):
     """
     # open output file
     outfileName = os.path.join(workingDir,output+".txt" )
+    print(outfileName)
     with open(outfileName, 'r') as src:
       headers = [x.strip() for x in  src.readline().split() ]
       data = []

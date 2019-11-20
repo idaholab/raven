@@ -10,6 +10,7 @@
     </description>
     <revisions>
       <revision author="talbpaul" date="2018-01-04">switched from snapshot to writeSteps final</revision>
+      <revision author='talbpaul' date='2018-10-23'>limited outputs checked to just the solution</revision>
     </revisions>
     <analytic>
       This test uses an inverted 2-dimensional parabola with maximum at (0,0) of 1.0.
@@ -49,7 +50,7 @@
       <!-- Initialization Sampler -->
       <Sampler class="Samplers" type="Grid">initialPointsSampler</Sampler>
       <convergence>
-        <gradientThreshold>1e-4</gradientThreshold>
+        <relativeThreshold>1e-4</relativeThreshold>
         <gainGrowthFactor>1.5</gainGrowthFactor>
         <gainShrinkFactor>1.25</gainShrinkFactor>
       </convergence>
@@ -105,8 +106,7 @@
       <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
+      <Output>ans</Output>
     </PointSet>
   </DataObjects>
 

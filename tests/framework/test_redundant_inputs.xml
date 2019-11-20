@@ -14,8 +14,10 @@
       <revision author="wangc" date="2015-09-22">fix the bug #296</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>RedundantInputs</WorkingDir>
     <Sequence>sim_py_MC,sim_py_grid</Sequence>
@@ -82,7 +84,7 @@
         <function>raven_e_calc</function>
       </variable>
       <variable name="z,l">
-          <function>raven_e_calc</function>
+        <function>raven_e_calc</function>
       </variable>
     </MonteCarlo>
     <Grid name="grid">
@@ -105,7 +107,7 @@
         <function>raven_e_calc</function>
       </variable>
       <variable name="z,l">
-          <function>raven_e_calc</function>
+        <function>raven_e_calc</function>
       </variable>
     </Grid>
   </Samplers>
@@ -123,12 +125,10 @@
 
   <Functions>
     <External file="RedundantInputs/d_calc.py" name="raven_d_calc">
-      <variable>a</variable>
-      <variable>c</variable>
+      <variables>a,c</variables>
     </External>
     <External file="RedundantInputs/e_calc.py" name="raven_e_calc">
-      <variable>b</variable>
-      <variable>c</variable>
+      <variables>b,c</variables>
     </External>
   </Functions>
 

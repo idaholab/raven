@@ -1,0 +1,108 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <!-- TestInfo -->
+  <TestInfo>
+    <name>framework/Samplers/AdaptiveLimitSurfaceSearch.limit_surface_1_dimensional</name>
+    <author>alfoa</author>
+    <created>2018-11-29</created>
+    <classesTested>Samplers.LimitSurfaceSearch, Models.ExternalModel, Models.ROM</classesTested>
+    <description>
+        This  test is aimed to test the capability of RAVEN to employ a goal oriented sampling. It tests the
+        LimitSurfaceSearch algorithm using an external model as ``system code''.
+        In addition it ensures that a 1Dimensional Limit surface can be generated (1 uncertanty).
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2018-11-29">New test for addressing issue #864</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Adapt1D</WorkingDir>
+    <Sequence>adapt,adaptdump</Sequence>
+    <batchSize>1</batchSize>
+    <maxQueueSize>1</maxQueueSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="adapt" pauseAtEnd="true">
+      <Input class="DataObjects" type="PointSet">dummy</Input>
+      <Model class="Models" type="ExternalModel">testFunction</Model>
+      <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
+      <Output class="DataObjects" type="PointSet">sampledPoints</Output>
+    </MultiRun>
+    <IOStep name="adaptdump" pauseAtEnd="true">
+      <Input class="DataObjects" type="PointSet">limitSurface</Input>
+      <Output class="OutStreams" type="Print">limitSurfaceDump</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="sampledPoints">
+      <Input>x1</Input>
+      <Output>y1,y2</Output>
+    </PointSet>
+    <PointSet name="dummy">
+      <Input>x1</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="limitSurface">
+      <Input>x1</Input>
+      <Output>decision</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Distributions>
+    <Normal name="x1_dst">
+      <upperBound>1</upperBound>
+      <lowerBound>-1</lowerBound>
+      <mean>0.05</mean>
+      <sigma>0.01</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <LimitSurfaceSearch name="adaptiveSearch">
+      <ROM class="Models" type="ROM">accelerated_ROM</ROM>
+      <Function class="Functions" type="External">decision</Function>
+      <TargetEvaluation class="DataObjects" type="PointSet">sampledPoints</TargetEvaluation>
+      <Convergence forceIteration="False" limit="3000" persistence="50" weight="value">1e-3</Convergence>
+      <variable name="x1">
+        <distribution>x1_dst</distribution>
+      </variable>
+      <constant name="x2">-0.015</constant>
+      <constant name="x3">0</constant>
+    </LimitSurfaceSearch>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../Adapt/adaptive_test_model" name="testFunction" subType="">
+      <variables>x1,x2,x3,y1,y2</variables>
+    </ExternalModel>
+    <ROM name="accelerated_ROM" subType="SciKitLearn">
+      <Features>x1</Features>
+      <Target>decision</Target>
+      <SKLtype>svm|SVC</SKLtype>
+      <kernel>rbf</kernel>
+      <gamma>10</gamma>
+      <tol>1e-5</tol>
+      <C>50</C>
+      <random_state>0</random_state>
+    </ROM>
+  </Models>
+
+  <Functions>
+    <External file="Adapt/adaptive_test_goal" name="decision">
+      <variables>y1,y2</variables>
+    </External>
+  </Functions>
+
+  <OutStreams>
+    <Print name="limitSurfaceDump">
+      <type>csv</type>
+      <source>limitSurface</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

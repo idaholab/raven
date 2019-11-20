@@ -35,6 +35,8 @@
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnGaussianMixture.xml'
     csv    = 'GaussianMixture/centroid_0.csv GaussianMixture/centroid_2.csv GaussianMixture/dummy_0.csv GaussianMixture/dummy_9.csv'
+    python3_only = true
+    rel_err = 0.00001
   [../]
   [./VariationalGMM]
     type   = 'RavenFramework'

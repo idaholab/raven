@@ -55,7 +55,7 @@ class FissionYieldParser():
       @ In, pertDict, dictionary, perturbed variables
       @ Out, pertDict, dictionary, perturbed variables in scientific format
     """
-    for key, value in pertDict.iteritems():
+    for key, value in pertDict.items():
       pertDict[key] = '%.3E' % Decimal(str(value))
     return pertDict
 
@@ -121,9 +121,9 @@ class FissionYieldParser():
                      line[0])  # remove the dashes in isotope names
     spectraUpper = spectra.upper()
     try:
-      for fissionProductID in self.listedYieldDict[spectraUpper].iterkeys():
+      for fissionProductID in self.listedYieldDict[spectraUpper].keys():
         for actinideID in self.listedYieldDict[spectraUpper][
-            fissionProductID].iterkeys():
+            fissionProductID].keys():
           if line[0] == fissionProductID:
             typeOfYieldPerturbed = []
             self.spectrumUpperCase = [x.upper() for x in self.spectrum]
@@ -144,7 +144,7 @@ class FissionYieldParser():
                     'Make sure the fission yields you are perturbing have existing values in the unperturbed fission yield library'
                 )
     except KeyError:
-      pass  # pass you pertub 'FAST': {u'ZN67': {u'U235': '5.659E+00'}} only, the case 'THERMAL': {u'ZN67': {u'U235': '5.659E+00'}} ignored in the line for fissionProductID in self.listedYieldDict[spectraUpper].iterkeys() (because non existent)
+      pass  # pass you pertub 'FAST': {u'ZN67': {u'U235': '5.659E+00'}} only, the case 'THERMAL': {u'ZN67': {u'U235': '5.659E+00'}} ignored in the line for fissionProductID in self.listedYieldDict[spectraUpper].keys() (because non existent)
     try:
       isotopeCounter = isotopeCounter + 1
       line[0] = "{0:<7s}".format(line[0])
@@ -218,7 +218,7 @@ class FissionYieldParser():
     fissioningActinide = []
     resultingFP = []
     spectrumType = []
-    for key in self.pertYieldDict.iterkeys():
+    for key in self.pertYieldDict.keys():
       splittedYieldKeywords = key.split('|')
       spectrumType.append(splittedYieldKeywords[1])
       fissioningActinide.append(splittedYieldKeywords[2])
@@ -231,7 +231,7 @@ class FissionYieldParser():
         for k in range(len(fissioningActinide)):
           self.listedYieldDict[spectrumType[i]][resultingFP[j]][
               fissioningActinide[k]] = {}
-    for yieldTypeKey, yieldValue in self.pertYieldDict.iteritems():
+    for yieldTypeKey, yieldValue in self.pertYieldDict.items():
       self.listedYieldDict[yieldTypeKey.split('|')[1]][yieldTypeKey.split('|')[
           3]][yieldTypeKey.split('|')[2]] = yieldValue
 
