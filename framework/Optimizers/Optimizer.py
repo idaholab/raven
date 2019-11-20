@@ -402,6 +402,7 @@ class Optimizer(Sampler):
       if len(self.optVarsInit['initial'][varName]) == 0:
         for traj in self.optTraj:
           self.optVarsInit['initial'][varName][traj] = None
+      self.toBeSampled[varName] = None # compatability with base Sampler
     return paramInput
 
   def initialize(self,externalSeeding=None,solutionExport=None):
@@ -586,8 +587,12 @@ class Optimizer(Sampler):
     if self.constraintFunction == None:
       satisfied = True
     else:
-      satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
+      constraintVars = dict(optVars)
+      constraintVars.update(self.constants)
+      satisfied = True if self.constraintFunction.evaluate("constrain", constraintVars) == 1 else False
       if not satisfied:
+        self.raiseAWarning('The proposed evaluation point violates the constraint function!')
+        self.raiseADebug('Offending point:', constraintVars)
         violatedConstrains['external'].append(self.constraintFunction.name)
     for var in optVars:
       varSatisfy=True

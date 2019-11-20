@@ -32,23 +32,23 @@ class ImageDiff:
     ImageDiff is used for comparing two image files.
   """
 
-  def __init__(self, out_files, gold_files, relative_error=1e-10, zero_threshold=None):
+  def __init__(self, outFiles, goldFiles, relativeError=1e-10, zeroThreshold=None):
     """
       Create an ImageDiff class
-      @ In, out_files, the files to be compared.
-      @ In, gold_files, the files to be compared to the out_files.
-      @ In, relative_error, float, optional, relative error
-      @ In, zero_threshold, float, optional, if a number is less equal then
-                                             abs(zero_threshold), it will be considered 0
+      @ In, outFiles, the files to be compared.
+      @ In, goldFiles, the files to be compared to the outFiles.
+      @ In, relativeError, float, optional, relative error
+      @ In, zeroThreshold, float, optional, if a number is less equal then
+                                             abs(zeroThreshold), it will be considered 0
       @ Out, None.
     """
-    #assert len(out_files) == len(gold_files)
-    self.__out_files = out_files
-    self.__gold_files = gold_files
+    #assert len(outFiles) == len(goldFiles)
+    self.__out_files = outFiles
+    self.__gold_files = goldFiles
     self.__message = ""
     self.__same = True
-    self.__rel_err = relative_error
-    self.__zero_threshold = float(zero_threshold) if zero_threshold is not None else 0.0
+    self.__rel_err = relativeError
+    self.__zero_threshold = float(zeroThreshold) if zeroThreshold is not None else 0.0
 
   def diff(self):
     """
@@ -60,18 +60,18 @@ class ImageDiff:
       Out, None
     """
     # read in files
-    files_read = False
-    for test_filename, gold_filename in zip(self.__out_files, self.__gold_files):
-      if not os.path.exists(test_filename):
+    filesRead = False
+    for testFilename, goldFilename in zip(self.__out_files, self.__gold_files):
+      if not os.path.exists(testFilename):
         self.__same = False
-        self.__message += 'Test file does not exist: '+test_filename
-      elif not os.path.exists(gold_filename):
+        self.__message += 'Test file does not exist: '+testFilename
+      elif not os.path.exists(goldFilename):
         self.__same = False
-        self.__message += 'Gold file does not exist: '+gold_filename
+        self.__message += 'Gold file does not exist: '+goldFilename
       else:
-        files_read = True
+        filesRead = True
       #read in files
-      if files_read:
+      if filesRead:
         if not correctImport:
           self.__message += 'ImageDiff cannot run with scipy version less '+\
             'than 0.15.0, and requires the PIL installed; scipy version is '+\
@@ -80,37 +80,37 @@ class ImageDiff:
           return(self.__same, self.__message)
         try:
           # RAK - The original line...
-          # test_image = imread(open(test_filename,'r'))
+          # testImage = imread(open(testFilename,'r'))
           # ...didn't work on Windows Python because it couldn't sense the file type
-          test_image = imread(test_filename)
+          testImage = imread(testFilename)
         except IOError:
-          self.__message += 'Unrecognized file type for test image in scipy.imread: '+test_filename
-          files_read = False
+          self.__message += 'Unrecognized file type for test image in scipy.imread: '+testFilename
+          filesRead = False
           return (False, self.__message)
         try:
           # RAK - The original line...
-          # gold_image = imread(open(gold_filename,'r'))
+          # goldImage = imread(open(goldFilename,'r'))
           # ...didn't work on Windows Python because it couldn't sense the file type
-          gold_image = imread(gold_filename)
+          goldImage = imread(goldFilename)
         except IOError:
-          files_read = False
-          self.__message += 'Unrecognized file type for test image in scipy.imread: '+gold_filename
+          filesRead = False
+          self.__message += 'Unrecognized file type for test image in scipy.imread: '+goldFilename
           return (False, self.__message)
         #first check dimensionality
-        if gold_image.shape != test_image.shape:
+        if goldImage.shape != testImage.shape:
           self.__message += 'Gold and test image are not the same shape: '+\
-            str(gold_image.shape)+', '+str(test_image.shape)
+            str(goldImage.shape)+', '+str(testImage.shape)
           self.__same = False
           return (self.__same, self.__message)
         #pixelwise comparison
         #TODO in the future we can add greyscale, normalized coloring, etc.
         # For now just do raw comparison of right/wrong pixels
-        diff = gold_image - test_image
-        only_diffs = diff[abs(diff) > self.__zero_threshold]
-        pct_num_diff = only_diffs.size/float(diff.size)
-        if pct_num_diff > self.__rel_err:
+        diff = goldImage - testImage
+        onlyDiffs = diff[abs(diff) > self.__zero_threshold]
+        pctNumDiff = onlyDiffs.size/float(diff.size)
+        if pctNumDiff > self.__rel_err:
           self.__message += 'Difference between images is too large:'+\
-            ' %2.2f pct (allowable: %2.2f)' %(100*pct_num_diff,\
+            ' %2.2f pct (allowable: %2.2f)' %(100*pctNumDiff,\
                                             100*self.__rel_err)
           self.__same = False
     return (self.__same, self.__message)
@@ -135,15 +135,15 @@ class ImageDiffer(Differ):
                      'considered zero in the pixel comparison')
     return params
 
-  def __init__(self, name, params, test_dir):
+  def __init__(self, name, params, testDir):
     """
       Initializer for the class. Takes a String name and a dictionary params
       @ In, name, string, name of the test.
       @ In, params, dictionary, parameters for the class
-      @ In, test_dir, string, path to the test.
+      @ In, testDir, string, path to the test.
       @ Out, None.
     """
-    Differ.__init__(self, name, params, test_dir)
+    Differ.__init__(self, name, params, testDir)
     self.__zero_threshold = self.specs['zero_threshold']
     if len(self.specs['rel_err']) > 0:
       self.__rel_err = float(self.specs['rel_err'])
@@ -159,10 +159,10 @@ class ImageDiffer(Differ):
       @ In, None
       @ Out, (same, message), same is true if the tests passes.
     """
-    image_files = self._get_test_files()
-    gold_files = self._get_gold_files()
-    image_diff = ImageDiff(image_files,
-                           gold_files,
-                           relative_error=self.__rel_err,
-                           zero_threshold=self.__zero_threshold)
-    return image_diff.diff()
+    imageFiles = self._get_test_files()
+    goldFiles = self._get_gold_files()
+    imageDiff = ImageDiff(imageFiles,
+                           goldFiles,
+                           relativeError=self.__rel_err,
+                           zeroThreshold=self.__zero_threshold)
+    return imageDiff.diff()

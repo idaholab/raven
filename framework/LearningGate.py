@@ -89,8 +89,10 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     self.supervisedContainer = [modelInstance]
     self.historySteps = []
 
-    nameToClass = {'segment': 'Segments', 'cluster': 'Clusters'}
-    ### ClusteredRom ###
+    nameToClass = {'segment': 'Segments',
+                   'cluster': 'Clusters',
+                   'interpolate': 'Interpolated'}
+    ### ROMCollection ###
     # if the ROM targeted by this gate is a cluster, create the cluster now!
     if 'Segment' in self.initializationOptions:
       # read from specs directly
@@ -109,7 +111,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     """
     # clear input specs, as they should all be read in by now
     ## this isn't a great implementation; we should make paramInput picklable instead!
-    self.initializationOptions.pop('paramInput',None)
+    self.initializationOptions.pop('paramInput', None)
     for eng in self.supervisedContainer:
       eng.initOptionDict.pop('paramInput',None)
     # capture what is normally pickled
@@ -130,6 +132,18 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
       # NOTE this will fail if the ROM requires the paramInput spec! Fortunately, you shouldn't pickle untrained.
       modelInstance             = SupervisedLearning.returnInstance(self.ROMclass,self,**self.initializationOptions)
       self.supervisedContainer  = [modelInstance]
+
+  def setAdditionalParams(self, params):
+    """
+      Sets parameters aside from initialization, such as during deserialization.
+      @ In, params, dict, parameters to set (dependent on ROM)
+      @ Out, None
+    """
+    newMH = params.get('messageHandler', None)
+    if newMH:
+      self.messageHandler = newMH
+    for rom in self.supervisedContainer:
+      rom.setAdditionalParams(params)
 
   def reset(self):
     """

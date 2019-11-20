@@ -37,7 +37,7 @@ except ImportError as e:
 from .BaseTopologicalView import BaseTopologicalView
 
 from matplotlib.collections import LineCollection
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
 import matplotlib.pyplot
@@ -83,8 +83,8 @@ class ScatterView2D(BaseTopologicalView):
     self.fig = Figure(facecolor='white')
     self.mplCanvas = FigureCanvas(self.fig)
     self.mplCanvas.axes = self.fig.add_subplot(111)
-    # We want the axes cleared every time plot() is called
-    self.mplCanvas.axes.hold(False)
+    # We want the axes cleared every time plot() is called,
+    # so axes.hold used to be called, but that has been removed.
     self.colorbar = None
 
     mySplitter.addWidget(self.mplCanvas)
@@ -334,7 +334,6 @@ class ScatterView2D(BaseTopologicalView):
             else:
               lineColors.append('#CCCCCC')
 
-      self.mplCanvas.axes.hold(True)
       lc = LineCollection(lines,colors=lineColors,linewidths=1)
       self.mplCanvas.axes.add_collection(lc)
 
@@ -346,7 +345,6 @@ class ScatterView2D(BaseTopologicalView):
                                            vmax=maxs['Color'],
                                            edgecolors='none')
 
-      self.mplCanvas.axes.hold(True)
       if self.chkExts.checkState() == qtc.Qt.PartiallyChecked:
         maxValues['Color'] = colors.maxBrushColor.name()
         minValues['Color'] = colors.minBrushColor.name()
@@ -371,7 +369,6 @@ class ScatterView2D(BaseTopologicalView):
                                            c=values['Color'],
                                            edgecolors='none')
 
-      self.mplCanvas.axes.hold(True)
       if self.chkExts.checkState() == qtc.Qt.PartiallyChecked:
         maxValues['Color'] = colors.maxBrushColor.name()
         minValues['Color'] = colors.minBrushColor.name()
@@ -404,7 +401,6 @@ class ScatterView2D(BaseTopologicalView):
     for label in  (self.mplCanvas.axes.get_xticklabels()+self.mplCanvas.axes.get_yticklabels()):
       label.set_fontsize(smallFontSize)
 
-    self.mplCanvas.axes.hold(False)
     self.mplCanvas.draw()
 
   def test(self):

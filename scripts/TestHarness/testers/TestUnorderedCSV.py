@@ -22,21 +22,21 @@ from UnorderedCSVDiffer import UnorderedCSVDiffer as UCSV
 
 warnings.simplefilter('default', DeprecationWarning)
 
-def check_same(comment, first, second, local_msg, local_results):
+def check_same(comment, first, second, localMsg, localResults):
   """
     checks that the first and second are the same.
     @ In, comment, string, comment if failed.
     @ In, first, Any, first thing to compare
     @ In, second, Any, second thing to compare
-    @ In, local_msg, printable, extra thing to print if failed
-    @ In, local_results, dictionary, dictionary of results
+    @ In, localMsg, printable, extra thing to print if failed
+    @ In, localResults, dictionary, dictionary of results
   """
   if first == second:
-    local_results['pass'] += 1
+    localResults['pass'] += 1
   else:
-    local_results['fail'] += 1
+    localResults['fail'] += 1
     print('FAILED '+comment)
-    print(local_msg)
+    print(localMsg)
     print('')
 
 def test_a_file(fname):
