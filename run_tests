@@ -118,7 +118,7 @@ if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo Running $P tests ...
   # get location of ExamplePlugin test dir
-  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION "${ARGS[@]}"
+  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --add_non_default_run_types qsub "${ARGS[@]}"
   rc=$?
   ALL_PASS=$(($ALL_PASS + $rc))
   if [[ $rc != 0 ]]; then
