@@ -37,10 +37,10 @@ try:
     print("Could not find RAVEN version info")
 except:
   print("Failed to find git version")
-sys.path.append(os.path.join(RAVEN_DIR, "scripts"))
-sys.path.insert(0,os.path.join(RAVEN_DIR, "framework", "utils"))
 
-import library_handler, utils
+sys.path.append(os.path.join(RAVEN_DIR, "scripts"))
+import library_handler
+from utils import utils
 
 report_list = library_handler.checkLibraries(buildReport=True)
 amsc_report = library_handler.checkSingleLibrary('AMSC', useImportCheck=True)
