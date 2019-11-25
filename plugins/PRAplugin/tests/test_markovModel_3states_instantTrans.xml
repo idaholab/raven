@@ -24,19 +24,19 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-  
+
   <Models>
-    <ExternalModel name="markov" subType="MarkovModel">
+    <ExternalModel name="markov" subType="PRAplugin.MarkovModel">
       <variables>initialState,finalState</variables>
       <initState>initialState</initState>
       <finState>finalState</finState>
       <endTime>200</endTime>
-      <state name='1'> 
+      <state name='1'>
         <transition type='instant' value='2.0' >2</transition>
       </state>
-      <state name='2'> 
+      <state name='2'>
         <transition type='lambda'  value='0.2'>1</transition>
-      </state>       
+      </state>
     </ExternalModel>
   </Models>
 
@@ -78,7 +78,7 @@
       </actions>
     </Plot>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>initialState</Input>
@@ -89,5 +89,5 @@
       <Output>finalState</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

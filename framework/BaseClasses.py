@@ -24,9 +24,8 @@ import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
+from utils import utils, InputData, mathUtils
 import MessageHandler
-from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class BaseType(MessageHandler.MessageUser):
@@ -261,7 +260,7 @@ class BaseType(MessageHandler.MessageUser):
         values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
-    if any(not utils.isAString(a) for a in args):
+    if any(not mathUtils.isAString(a) for a in args):
       self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
     self.metadataKeys = self.metadataKeys.union(set(args))
     self.metadataParams.update(params)

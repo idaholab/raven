@@ -27,7 +27,7 @@ import shutil
 import copy
 import numpy as np
 from collections import OrderedDict
-from utils import xmlUtils, utils
+from utils import utils, xmlUtils, mathUtils
 import MessageHandler # to give VariableGroups a messageHandler and handle messages
 
 class RAVENparser():
@@ -64,7 +64,7 @@ class RAVENparser():
       messageHandler = MessageHandler.MessageHandler()
       messageHandler.initialize({'verbosity':'quiet'})
       messageUser = MessageHandler.MessageUser()
-      self.varGroups = xmlUtils.readVariableGroups(variableGroupNode,messageHandler,messageUser)
+      self.varGroups = mathUtils.readVariableGroups(variableGroupNode,messageHandler,messageUser)
 
     # do some sanity checks
     sequence = [step.strip() for step in self.tree.find('.//RunInfo/Sequence').text.split(",")]
@@ -325,7 +325,7 @@ class RAVENparser():
             getFirstElement.append(subElement)
             getFirstElement = subElement
           # in the event of vector entries, handle those here
-          if utils.isSingleValued(val):
+          if mathUtils.isSingleValued(val):
             val = str(val).strip()
           else:
             if len(val.shape) > 1:
@@ -340,7 +340,7 @@ class RAVENparser():
           nodeToChange = foundNodes[0]
           pathNode     = './/'
           # in the event of vector entries, handle those here
-          if utils.isSingleValued(val):
+          if mathUtils.isSingleValued(val):
             val = str(val).strip()
           else:
             if len(val.shape) > 1:

@@ -17,9 +17,8 @@
     <Sequence>MCrun,printTOfile</Sequence>
   </RunInfo>
 
-
   <Models>
-    <ExternalModel name="sum_exp" subType="SumOfExponential">
+    <ExternalModel name="sum_exp" subType="ExamplePlugin.SumOfExponential">
       <variables> Xi, monotonicVariable, a, b, c</variables>
       <!-- xml portion for this plugin only -->
       <coefficient varName="a">1.1</coefficient>
