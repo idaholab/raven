@@ -1171,7 +1171,7 @@ class ROM(Dummy):
       @ Out, None
     """
     Dummy.__init__(self,runInfoDict)
-    self.initializationOptionDict = {'NumThreads': runInfoDict['NumThreads']}         # ROM initialization options
+    self.initializationOptionDict = {'NumThreads': runInfoDict.get('NumThreads', 1)}         # ROM initialization options
     self.amITrained               = False      # boolean flag, is the ROM trained?
     self.supervisedEngine         = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
