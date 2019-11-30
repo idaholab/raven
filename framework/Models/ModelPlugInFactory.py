@@ -35,33 +35,32 @@ from collections import defaultdict
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
+import PluginFactory
 #Internal Modules End--------------------------------------------------------------------------------
 
-__moduleInterfaceList = []
-startDir = os.path.join(os.path.dirname(__file__),'../../plugins')
-for dirr,_,_ in os.walk(startDir):
-  __moduleInterfaceList.extend(glob(os.path.join(dirr,"*.py")))
-  utils.add_path(dirr)
-__moduleImportedList = []
-__basePluginClasses  = {'ExternalModel':'ExternalModelPluginBase'}
 
-"""
- Interface Dictionary (factory) (private)
-"""
-__base                          = 'ModelPlugins'
-__interFaceDict                 = defaultdict(dict)
-for moduleIndex in range(len(__moduleInterfaceList)):
-  if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
-    __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex],False))
-    for key,modClass in inspect.getmembers(__moduleImportedList[-1], inspect.isclass):
-      for base in modClass.__bases__:
-        for ravenEntityName, baseClassName in __basePluginClasses.items():
-          if base.__name__ == baseClassName:
-            __interFaceDict[ravenEntityName][key] = modClass
-            # check the validity of the plugin
-            if not modClass.isAvalidPlugin():
-              raise IOError("The plugin based on the class "+ravenEntityName.strip()+" is not valid. Please check with the Plugin developer!")
-__knownTypes = [item for sublist in __interFaceDict.values() for item in sublist]
+# load the plugin_directory.xml and use that to establish the paths to the plugins
+# for each of the plugin paths, load up the Entities that have models in them
+## -> should we do this through some kind of a PluginLoader that registers the objects
+##    in other factories?
+
+__basePluginClasses = {'ExternalModel':'ExternalModelPluginBase'}
+__interfaceDict = defaultdict(dict)
+__knownTypes = [] # populate through registration
+
+def registerSubtypes(typeName, typeDict):
+  """
+    Registers new subtypes.
+    @ In, typeName, str, name of entity subtype
+    @ In, typeDict, dict, dictionary mapping names to models
+  """
+  for name, subtype in typeDict.items():
+    __interfaceDict[typeName][name] = subtype
+    __knownTypes.append(name)
+
+for baseType, baseName in __basePluginClasses.items():
+  plugins = PluginFactory.getEntities(baseType)
+  registerSubtypes(baseType, plugins)
 
 def knownTypes():
   """
@@ -81,4 +80,4 @@ def returnPlugin(Type,subType,caller):
   """
   if subType not in knownTypes():
     caller.raiseAnError(NameError,'not known '+__base+' type '+Type+' subType '+Type)
-  return __interFaceDict[Type][subType]()
+  return __interfaceDict[Type][subType]()

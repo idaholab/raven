@@ -24,12 +24,12 @@ from Tester import Differ
 
 # get access to math tools from RAVEN
 try:
-  from utils import utils
+  from utils import mathUtils
 except ImportError:
   new = os.path.realpath(os.path.join(os.path.realpath(__file__), '..', '..',
                                       '..', '..', 'framework'))
   sys.path.append(new)
-  from utils import utils
+  from utils import mathUtils
 
 whoAmI = False # enable to show test dir and out files
 debug = False # enable to increase printing
@@ -105,8 +105,8 @@ class UnorderedCSVDiffer:
       ### TODO could check indices ONCE and re-use instead of checking each time
       matchVal = match[idx].values.item(0) if match[idx].values.shape[0] != 0 else None
       ## find out if match[idx] and/or "val" are numbers
-      matchIsNumber = utils.isAFloatOrInt(matchVal)
-      valIsNumber = utils.isAFloatOrInt(val)
+      matchIsNumber = mathUtils.isAFloatOrInt(matchVal)
+      valIsNumber = mathUtils.isAFloatOrInt(val)
       ## if one is a number and the other is not, consider it a non-match.
       if matchIsNumber != valIsNumber:
         if debug:
@@ -266,7 +266,7 @@ class UnorderedCSVDiffer:
     for col in csv.columns:
       example = csv[col].values.item(0) if csv[col].values.shape[0] != 0 else None
       # skip columns that aren't numbers TODO might skip float columns with "None" early on
-      if not utils.isAFloatOrInt(example):
+      if not mathUtils.isAFloatOrInt(example):
         continue
       # flatten near-zeros
       csv[col].values[np.isclose(csv[col].values, 0, **key)] = 0

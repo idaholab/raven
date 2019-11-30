@@ -15,6 +15,7 @@
   
   <RunInfo>
     <WorkingDir>data</WorkingDir>
+    <NumThreads>1</NumThreads>
     <Sequence>
       sample,
       train,

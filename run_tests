@@ -11,10 +11,14 @@ fi
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
 
 SKIP_CONDA=1 # 0 for skipping conda, 1 for not skipping
+TEST_SET=2 # 0 for normal tests, 1 for plugin tests, 2 for both
+
 # source read ravenrc script
 RAVEN_RC_SCRIPT=$SCRIPT_DIR/scripts/read_ravenrc.sh
 RAVEN_RC_SCRIPT="${RAVEN_RC_SCRIPT//\\//}"
 source $RAVEN_RC_SCRIPT
+
+# set up installation manager
 INSTALLATION_MANAGER=$(read_ravenrc "INSTALLATION_MANAGER")
 if [[ "$INSTALLATION_MANAGER" == "PIP" ]];
   then
@@ -24,11 +28,21 @@ else
   SKIP_CONDA=1
 fi
 
+# read command-line arguments
 ARGS=()
 for A in "$@"; do
     case $A in
         --skip-conda)
             SKIP_CONDA=0
+            ;;
+        --raven)
+            TEST_SET=0
+            ;;
+        --plugins)
+            TEST_SET=1
+            ;;
+        --test_all)
+            TEST_SET=2
             ;;
         *)
             ARGS+=("$A")
@@ -43,6 +57,22 @@ else
     #PYTHON_COMMAND=${PYTHON_COMMAND:=python}
 fi
 
+# pick tests to run
+## test set 0 is normal raven tests
+## test set 1 is plugins only tests
+## test set 2 is both normal raven and plugins tests
+
+if [[ $TEST_SET == 0 ]] || [[ $TEST_SET == 2 ]]; then
+  DO_RAVEN=0
+else
+  DO_RAVEN=1
+fi
+if [[ $TEST_SET == 1 ]] || [[ $TEST_SET == 2 ]]; then
+  DO_PLUGINS=0
+else
+  DO_PLUGINS=1
+fi
+
 for A in "$@"; do
     case $A in
         --library_report | --library-report)
@@ -52,17 +82,93 @@ for A in "$@"; do
     esac
 done
 
-# this copy the plugins tests into raven tests
-echo 'Loading plugin tests ...'
-$PYTHON_COMMAND $SCRIPT_DIR/scripts/copy_plugins_tests.py
 # run the tests
-echo 'Running tests ...'
+# success/fail storage
+#   Names of successful test sets are stored in "PASSED"
+#   Names of failed test sets are stored in "FAILED"
+#   Success of most recent test stored in "rc"
+#   Total number of failed test sets stored in "ALL_PASS"
 
-$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
+if [[ $DO_RAVEN == 0 ]]; then
+  echo
+  echo "********************************************************************************"
+  echo
+  echo 'Running RAVEN tests ...'
 
-# grep return code
-rc=$?
-# this copy back the plugins and remove them from the source folder
-$PYTHON_COMMAND $SCRIPT_DIR/scripts/copy_back_plugins_results.py
-# return code
-if [[ $rc != 0 ]]; then exit $rc; fi
+  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --config-file=$SCRIPT_DIR/developer_tools/rook.ini "${ARGS[@]}"
+  # store return codes individually (rc) and combined (ALL_PASS)
+  rc=$?
+  ALL_PASS=$rc
+  if [[ $rc != 0 ]]; then
+      echo ' ... there were failed RAVEN tests!'
+      FAILED=( "RAVEN" )
+  else
+      echo ' ... RAVEN tests passed successfully.'
+      PASSED=( "RAVEN" )
+  fi # end "if passed"
+
+  # test the API for Plugins using the ExamplePlugin
+  ## note this means the ExamplePlugin may be run both as a RAVEN test and as a plugin test
+  ## this is desired for machinery testing; as a result the ExamplePlugin should be as
+  ## lightweight as practical!
+  P=PluginAPI
+  LOCATION=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -f ExamplePlugin)/tests
+  echo
+  echo "********************************************************************************"
+  echo
+  echo Running $P tests ...
+  # get location of ExamplePlugin test dir
+  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --add-non-default-run-types qsub "${ARGS[@]}"
+  rc=$?
+  ALL_PASS=$(($ALL_PASS + $rc))
+  if [[ $rc != 0 ]]; then
+      echo  ... there were failed $P tests!
+      FAILED=( "${FAILED[@]}" "$P" )
+  else
+      echo  ... $P tests passed successfully.
+      PASSED=( "${PASSED[@]}" "$P" )
+  fi # end "if passed"
+fi   # end "if do raven"
+
+# now do plugins
+
+if [[ $DO_PLUGINS == 0 ]]; then
+  # Now run the plugin tests
+  echo 'Loading plugin tests ...'
+  PLUGINS=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -l)
+  for P in $PLUGINS; do
+    LOCATION=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -f $P)/tests
+    # TODO extend config to use RAVEN and PLUGIN config options without redoing all tests
+    echo
+    echo "********************************************************************************"
+    echo
+    echo Starting tests for plugin "$P" ...
+    $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION "${ARGS[@]}"
+    rc=$?
+    ALL_PASS=$(($ALL_PASS + $rc))
+    if [[ $rc != 0 ]]; then
+      echo  ... there were failed tests for plugin "$P"!
+      FAILED=( "${FAILED[@]}" "$P" )
+    else
+      echo Tests passed for plugin "$P".
+      PASSED=( "${PASSED[@]}" "$P" )
+    fi
+  done  # finish "for each plugin"
+fi      # finish "if do plugins"
+
+## FINISHED running tests
+
+# report results
+echo
+echo "********************************************************************************"
+echo
+if [[ $ALL_PASS != 0 ]]; then
+  echo  ... there were failed tests!
+  echo The following test sets passed: ${PASSED[@]}
+  echo The following test sets failed: ${FAILED[@]}
+  exit $ALL_PASS
+else
+  echo Tested sets: ${PASSED[@]}
+  echo ... tests passed!
+fi
+
