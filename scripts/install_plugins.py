@@ -100,7 +100,6 @@ if __name__ == '__main__':
       if sourceDir not in subsInit:
         # initialize it
         print(' ... initializing plugin submodule {} ...'.format(sourceDir))
-        dbg = os.popen('pwd').read()
         os.popen('git submodule update --init plugins/{}'.format(sourceDir)).read()
       okay = True
       msgs = []
