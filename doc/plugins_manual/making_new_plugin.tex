@@ -1,0 +1,28 @@
+\section{Making a New RAVEN Plugin}
+
+Creating a new plugin is a straightforward process. It involves setting up a repository,
+establishing a basic structure, and installing in RAVEN for testing.
+
+\subsection{Setting up a Repository}
+TODO
+
+\subsection{Plugin Structure}
+The following directories must be present in the main directory of the plugin in order for RAVEN to
+read it correctly:
+\begin{itemize}
+  \item \texttt{src}, where the entities for RAVEN to load are located;
+  \item \texttt{doc}, where the documentation for the plugin and its entities is located.
+  \item \texttt{tests}, where continuous integration tests are located;
+\end{itemize}
+
+\subsection{Additional Libraries}
+If the plugin requires additional libraries, they can extend the \texttt{dependencies.ini} file in
+the same manner as RAVEN's dependencies file. Libraries will be added like they are for RAVEN
+itself, and a check will be performed to assure no base RAVEN (or other plugin) dependencies are
+modified.
+
+\subsection{Installing in RAVEN}
+Use the installation script in \texttt{raven/install\_plugins.py}.
+
+This process automatically registers the plugin in the plugin directory, and informs the plugin
+about RAVEN (TODO more notes on this!)

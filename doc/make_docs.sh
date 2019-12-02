@@ -54,7 +54,7 @@ then
     fi
 fi
 
-for DIR in  user_manual user_guide theory_manual tests; do
+for DIR in  user_manual user_guide theory_manual tests plugins_manual; do
     cd $DIR
     echo Building in $DIR...
     if [ "$(uname)" == "Darwin" ] || [ "$(expr substr $(uname -s) 1 5)" == "Linux" ]
@@ -64,9 +64,9 @@ for DIR in  user_manual user_guide theory_manual tests; do
         make; MADE=$?
       else
         make > /dev/null; MADE=$?
-      fi    
+      fi
     elif [ "$(expr substr $(uname -s) 1 5)" == "MINGW" ]  || [  "$(expr substr $(uname -s) 1 4)" == "MSYS" ]
-    then  
+    then
       if [[ 1 -eq $VERB ]]
       then
         bash.exe make_win.sh; MADE=$?
@@ -87,7 +87,7 @@ cd sqa
 ./make_docs.sh
 cd ..
 mkdir pdfs
-for DOC in user_guide/raven_user_guide.pdf theory_manual/raven_theory_manual.pdf sqa/sdd/raven_software_design_description.pdf sqa/rtr/raven_requirements_traceability_matrix.pdf sqa/srs/raven_software_requirements_specifications.pdf user_manual/raven_user_manual.pdf tests/analytic_tests.pdf; do
+for DOC in user_guide/raven_user_guide.pdf theory_manual/raven_theory_manual.pdf plugins_manual/raven_plugins_manual.pdf sqa/sdd/raven_software_design_description.pdf sqa/rtr/raven_requirements_traceability_matrix.pdf sqa/srs/raven_software_requirements_specifications.pdf user_manual/raven_user_manual.pdf tests/analytic_tests.pdf; do
     cp $DOC pdfs/
 done
 

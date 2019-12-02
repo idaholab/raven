@@ -31,9 +31,9 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-  
+
   <Models>
-    <ExternalModel name="graph" subType="GraphModel">
+    <ExternalModel name="graph" subType="PRAplugin.GraphModel">
       <variables>status2,status3,status4,status5,statusSG1,statusSG2,statusSG3</variables>
       <!-- xml portion for this plugin only -->
       <modelFile>graphTest</modelFile>
@@ -66,7 +66,7 @@
       <what>input,output</what>
     </Print>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>status2,status3,status4,status5</Input>
@@ -77,5 +77,5 @@
       <Output>statusSG1,statusSG2,statusSG3</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

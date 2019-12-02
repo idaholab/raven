@@ -12,14 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+#static seed
+np.random.seed(42)
+
 
 def run(raven, Inputs):
   coeffs = [1, 1, 0] # ax + by + c = 0 -> x = y
-  raven.ans = main(coeffs, raven.x, raven.y)
+  raven.ans = main(coeffs, raven.x, raven.y) + random(scale=raven.stoch)/10
 
 def main(coeffs, x, y, thresh=0.01):
   distance = dist_to_line(coeffs, x, y)
-  z = (x+0.5)**2 + (y-0.5)**2
+  z = 3*(x+0.5)**2 + 3*(y-0.5)**2
   z += distance * 10
   return z
 
@@ -36,4 +39,7 @@ def closest_point(coeffs, x0, y0):
   y = a * (-b * x0 + a * y0) - b * c
   y /= denom
   return x, y
+
+def random(scale=0.5,loc=-1.0):
+  return scale*(2.*np.random.rand()+loc)
 

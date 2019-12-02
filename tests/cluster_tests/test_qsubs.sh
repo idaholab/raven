@@ -47,7 +47,8 @@ wait_lines ()
 echo Current directory: `pwd`
 
 cd ${RAVEN_FRAMEWORK_DIR}/..
-./run_tests --only-run-types="qsub" --re=cluster_tests
+# TODO running plugin qsub tests?
+./run_tests --raven --only-run-types="qsub" --re=cluster_tests
 EXIT=$?
 
 ## Find output files and print them
