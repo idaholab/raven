@@ -1,0 +1,58 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/MCSimporterPostProcessor.MC_importer_Saphire</name>
+    <author>mandd</author>
+    <created>2019-11-1</created>
+    <classesTested>MCSimporter</classesTested>
+    <description>
+      Tests of the MCSimporter post-processor: it reads a list of MCSs generated from Saphire and it imports it as a PointSet. 
+    </description>
+  </TestInfo>
+  
+  <RunInfo>
+    <WorkingDir>MCSimporter</WorkingDir>
+    <Sequence>import,printOnFile</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="MCSlistFile" type="MCSlist">MCSlist.csv</Input>
+    <Input name="BElistFile"  type="BElist">BElist.csv</Input>
+  </Files>
+  
+  <Models>
+    <PostProcessor name="MCSimporter" subType="MCSimporter">
+      <fileFormat>Saphire</fileFormat>
+      <expand>True</expand>
+      <BElistColumn>Description</BElistColumn>
+    </PostProcessor>   
+  </Models>
+
+  <Steps>
+    <PostProcess name="import">
+      <Input   class="Files"        type="MCSlist"         >MCSlistFile</Input>
+      <Input   class="Files"        type="BElist"          >BElistFile</Input>
+      <Model   class="Models"       type="PostProcessor"   >MCSimporter</Model>
+      <Output  class="DataObjects"  type="PointSet"        >MCS_PS</Output>
+    </PostProcess>
+    <IOStep name="printOnFile">
+      <Input   class="DataObjects"  type="PointSet"        >MCS_PS</Input>
+      <Output  class="OutStreams"   type="Print"           >PrintPS</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="PrintPS">
+      <type>csv</type>
+      <source>MCS_PS</source>
+    </Print>
+  </OutStreams>
+  
+  <DataObjects>
+    <PointSet name="MCS_PS">
+      <Input>ACC,LPI,LPR</Input>
+      <Output>sequence</Output>
+    </PointSet>
+  </DataObjects>
+  
+</Simulation>
