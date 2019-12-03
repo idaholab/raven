@@ -111,7 +111,7 @@ class MessageUser(object):
     tag       = kwargs.get('tag'      ,'Warning')
     color     = kwargs.get('color'    ,None     )
     msg = ' '.join(str(a) for a in args)
-    self.messageHandler.message(self,msg,str(tag),verbosity,color)
+    self.messageHandler.message(self, msg, str(tag), verbosity, color)
 
   def raiseAMessage(self,*args,**kwargs):
     """

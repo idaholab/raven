@@ -28,7 +28,7 @@ import xarray as xr
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import utils
+from utils import utils, mathUtils
 from utils import InputData
 import Files
 import unSupervisedLearning
@@ -360,15 +360,16 @@ class DataMining(PostProcessor):
     else:
       currentInput = currentInp
 
-    if currentInput.type == 'HistorySet':
-      return self.inputToInternalForHistorySet(currentInput)
+    if hasattr(currentInput, 'type'):
+      if currentInput.type == 'HistorySet':
+        return self.inputToInternalForHistorySet(currentInput)
 
-    elif currentInput.type == 'PointSet':
-      return self.inputToInternalForPointSet(currentInput)
+      elif currentInput.type == 'PointSet':
+        return self.inputToInternalForPointSet(currentInput)
 
     elif type(currentInp) == dict:
       if 'Features' in currentInput.keys():
-        return
+        return currentInput
 
     elif isinstance(currentInp, Files.File):
       self.raiseAnError(IOError, 'DataMining PP: this PP does not support files as input.')
@@ -537,7 +538,7 @@ class DataMining(PostProcessor):
       currentInput = inputIn[-1]
     else:
       currentInput = inputIn
-    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None:
+    if hasattr(currentInput, 'type') and currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None:
       return self.__runTemporalSciKitLearn(Input)
     else:
       return self.__runSciKitLearn(Input)
@@ -551,6 +552,14 @@ class DataMining(PostProcessor):
     """
     pass
 
+  def updateFeatures(self, features):
+    """
+      Change the Features that this classifier targets.
+      @ In, features, list(str), list of new features
+      @ Out, None
+    """
+    self.unSupervisedEngine.updateFeatures(features)
+
   def __adjustFeatures(self, features):
     """
       If the features are the output, then they need to be listed
@@ -560,6 +569,15 @@ class DataMining(PostProcessor):
     if self.unSupervisedEngine.features == ['output']:
       self.unSupervisedEngine.features = sorted(features)
     assert set(self.unSupervisedEngine.features) == set(features)
+
+  def __regulateLabels(self, originalLabels):
+    """
+      Regulates the labels such that the first one to appear is 0, second one is 1, and so on.
+      @ In, originalLabels, list(int), the original labeling system
+      @ Out, labels, list(int), fixed up labels
+    """
+    # this functionality relocated to serve more entities
+    return mathUtils.orderClusterLabels(originalLabels)
 
   def __runSciKitLearn(self, Input):
     """
@@ -581,7 +599,8 @@ class DataMining(PostProcessor):
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
     ## Rename the algorithm output to point to the user-defined label feature
     if 'labels' in outputDict['outputs']:
-      outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
+      labels = self.__regulateLabels(outputDict['outputs'].pop('labels'))
+      outputDict['outputs'][self.labelFeature] = labels #outputDict['outputs'].pop('labels')
     elif 'embeddingVectors' in outputDict['outputs']:
       transformedData = outputDict['outputs'].pop('embeddingVectors')
       reducedDimensionality = transformedData.shape[1]

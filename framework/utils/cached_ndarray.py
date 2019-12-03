@@ -89,7 +89,7 @@ class c1darray(object):
     """
     return self.size
 
-  def append(self,x):
+  def append(self, x):
     """
       Append method. call format c1darrayInstance.append(value)
       @ In, x, element or array, the value or array to append
@@ -98,7 +98,7 @@ class c1darray(object):
 
     #lock.acquire()
     try:
-      if type(x).__name__ not in ['ndarray','c1darray']:
+      if type(x).__name__ not in ['ndarray', 'c1darray']:
         if self.size  == self.capacity:
           self.capacity *= 4
           newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
@@ -109,7 +109,7 @@ class c1darray(object):
       else:
         if (self.capacity - self.size) < x.size:
           # to be safer
-          self.capacity += max(self.capacity*4,x.size) #self.capacity + x.size*4
+          self.capacity += max(self.capacity*4, x.size) #self.capacity + x.size*4
           newdata = np.zeros((self.capacity,),dtype=self.values.dtype)
           newdata[:self.size] = self.values[:self.size]
           self.values = newdata

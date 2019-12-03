@@ -30,7 +30,7 @@ import copy
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import InputData, utils
+from utils import InputData, utils, mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CustomSampler(ForwardSampler):
@@ -229,7 +229,7 @@ class CustomSampler(ForwardSampler):
           subVar = subVar.strip()
           sourceName = self.nameInSource[subVar]
           # get the value(s) for the variable for this realization
-          self.values[subVar] = rlz[sourceName].values
+          self.values[subVar] = mathUtils.npZeroDToEntry(rlz[sourceName].values)
           # set the probability weight due to this variable (default to 1)
           pbWtName = 'ProbabilityWeight-'
           self.inputInfo[pbWtName+subVar] = rlz.get(pbWtName+sourceName,1.0)

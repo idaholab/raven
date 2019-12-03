@@ -21,6 +21,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
+import threading
 import numpy as np
 from collections import deque, defaultdict
 
@@ -42,6 +43,7 @@ class BoxMullerGenerator:
       @ Out, None
     """
     self.queue = defaultdict(deque)
+    self.__queueLock = threading.RLock()
 
   def generate(self,engine=None):
     """
@@ -49,10 +51,14 @@ class BoxMullerGenerator:
       @ In, engine, instance, optional, random number generator
       @ Out, generate, float, random value
     """
-    if len(self.queue[engine]) == 0:
-      #calculate new values
-      self.queue[engine].extend(self.createSamples(engine=engine))
-    return self.queue[engine].pop() #no need to pop left, as they're independent and all get used
+    with self.__queueLock:
+      if len(self.queue[engine]) == 0:
+        #calculate new values
+        self.queue[engine].extend(self.createSamples(engine=engine))
+      val = self.queue[engine].pop()
+    return val
+
+
 
   def createSamples(self,engine=None):
     """

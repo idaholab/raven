@@ -37,15 +37,15 @@ try:
     print("Could not find RAVEN version info")
 except:
   print("Failed to find git version")
-sys.path.append(os.path.join(RAVEN_DIR,"scripts","TestHarness","testers"))
-sys.path.insert(0,os.path.join(RAVEN_DIR,"framework","utils"))
-import RavenUtils,utils
-#missing,too_old = RavenUtils.checkForMissingModules()
-#print(missing,too_old)
-report_list = RavenUtils.modules_report()
-amsc_report = RavenUtils.module_report('AMSC')
-tensorflow_report = RavenUtils.module_report('tensorflow',version='tensorflow.__version__')
-report_list.append(('AMSC',amsc_report[0],amsc_report[1],""))
+
+sys.path.append(os.path.join(RAVEN_DIR, "scripts"))
+import library_handler
+from utils import utils
+
+report_list = library_handler.checkLibraries(buildReport=True)
+amsc_report = library_handler.checkSingleLibrary('AMSC', useImportCheck=True)
+tensorflow_report = library_handler.checkSingleLibrary('tensorflow', version='check', useImportCheck=True)
+report_list.append(('AMSC',amsc_report[0], amsc_report[1], ""))
 report_list.append(('tensorflow',) + tensorflow_report)
 print("\nLibraries report:\n")
 for module, found, message, version in report_list:

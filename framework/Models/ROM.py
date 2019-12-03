@@ -63,25 +63,31 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputData.StringType))
     # segmenting and clustering
     segment = InputData.parameterInputFactory("Segment", strictMode=True)
-    segmentGroups = InputData.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster'])
+    segmentGroups = InputData.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
     segment.addParam('grouping', segmentGroups)
     subspace = InputData.parameterInputFactory('subspace', contentType=InputData.StringType)
     subspace.addParam('divisions', InputData.IntegerType, False)
     subspace.addParam('pivotLength', InputData.FloatType, False)
     subspace.addParam('shift', InputData.StringType, False)
     segment.addSub(subspace)
+    clusterEvalModeEnum = InputData.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
+    segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum))
+    ## clusterFeatures
+    segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputData.StringListType))
+    ## classifier
     clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputData.StringType)
     clsfr.addParam('class', InputData.StringType, True)
     clsfr.addParam('type', InputData.StringType, True)
     segment.addSub(clsfr)
+    ## metric
     metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputData.StringType)
     metric.addParam('class', InputData.StringType, True)
     metric.addParam('type', InputData.StringType, True)
     segment.addSub(metric)
-    feature = InputData.parameterInputFactory('feature', strictMode=True, contentType=InputData.StringType)
-    feature.addParam('weight', InputData.FloatType)
-    segment.addSub(feature)
+    segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputData.StringType))
     inputSpecification.addSub(segment)
+    # pickledROM
+    inputSpecification.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum))
     # unsorted
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("gradient", contentType=InputData.StringType))
@@ -196,7 +202,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("P", contentType=InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("Q", contentType=InputData.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("seed", contentType=InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputData.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputData.FloatListType))
     inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputData.BoolType))
     ### ARMA zero filter
@@ -213,11 +219,25 @@ class ROM(Dummy):
     specFourier.addParam("variables", InputData.StringListType, True)
     specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputData.FloatListType))
     inputSpecification.addSub(specFourier)
+    ### ARMA multicycle
+    multiYear = InputData.parameterInputFactory('Multicycle')
+    multiYear.addSub(InputData.parameterInputFactory('cycles', contentType=InputData.IntegerType))
+    growth = InputData.parameterInputFactory('growth', contentType=InputData.FloatType)
+    growth.addParam('targets', InputData.StringListType, True)
+    growth.addParam('start_index', InputData.IntegerType)
+    growth.addParam('end_index', InputData.IntegerType)
+    growthEnumType = InputData.makeEnumType('growth', 'armaGrowthType', ['exponential', 'linear'])
+    growth.addParam('mode', growthEnumType, True)
+    multiYear.addSub(growth)
+    inputSpecification.addSub(multiYear)
     ### ARMA peaks
     peaks = InputData.parameterInputFactory('Peaks')
+    nbin= InputData.parameterInputFactory('nbin',contentType=InputData.IntegerType)
     window = InputData.parameterInputFactory('window',contentType=InputData.FloatListType)
     window.addParam('width', InputData.FloatType, True)
     peaks.addSub(window)
+    peaks.addSub(nbin)
+
     peaks.addParam('threshold', InputData.FloatType)
     peaks.addParam('target', InputData.StringType)
     peaks.addParam('period', InputData.FloatType)
@@ -1142,7 +1162,7 @@ class ROM(Dummy):
     cls.validateDict['Input' ]                    = [cls.validateDict['Input' ][0]]
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
-    cls.validateDict['Output'][0]['type'        ] = ['PointSet','HistorySet']
+    cls.validateDict['Output'][0]['type'        ] = ['PointSet', 'HistorySet', 'DataSet']
 
   def __init__(self,runInfoDict):
     """
@@ -1151,9 +1171,9 @@ class ROM(Dummy):
       @ Out, None
     """
     Dummy.__init__(self,runInfoDict)
-    self.initializationOptionDict = {}          # ROM initialization options
-    self.amITrained                = False      # boolean flag, is the ROM trained?
-    self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
+    self.initializationOptionDict = {'NumThreads': runInfoDict.get('NumThreads', 1)}         # ROM initialization options
+    self.amITrained               = False      # boolean flag, is the ROM trained?
+    self.supervisedEngine         = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
     self.cvInstance               = None             # Instance of provided cross validation
     # Dictionary of Keras Neural Network Core layers
@@ -1253,6 +1273,8 @@ class ROM(Dummy):
     # NOTE assemblerDict isn't needed if ROM already trained, but it can create an infinite recursion
     ## for the ROMCollection if left in, so remove it on getstate.
     del d['assemblerDict']
+    # input params isn't picklable (right now)
+    d['initializationOptionDict'].pop('paramInput', None)
     return d
 
   def __setstate__(self, d):
@@ -1306,7 +1328,8 @@ class ROM(Dummy):
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
       self.initializationOptionDict['pickled'] = True
-    self._initializeSupervisedGate(paramInput=paramInput, **self.initializationOptionDict)
+    self.initializationOptionDict['paramInput'] = paramInput
+    self._initializeSupervisedGate(**self.initializationOptionDict)
     #the ROM is instanced and initialized
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
     self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
@@ -1371,6 +1394,7 @@ class ROM(Dummy):
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
+      self.supervisedEngine.messageHandler = self.messageHandler
     else:
       # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
       if type(trainingSet).__name__ != 'dict' and trainingSet.type == 'HistorySet':
@@ -1397,7 +1421,7 @@ class ROM(Dummy):
     confidenceDict = self.supervisedEngine.confidence(inputToROM)
     return confidenceDict
 
-  def evaluate(self,request):
+  def evaluate(self, request):
     """
       When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
       @ In, request, datatype, feature coordinates (request)
@@ -1445,6 +1469,14 @@ class ROM(Dummy):
     # update rlz with input space from inRun and output space from result
     rlz.update(dict((var,np.atleast_1d(inRun[var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),inRun.keys()))))
     return rlz
+
+  def setAdditionalParams(self, params):
+    """
+      Used to set parameters at a time other than initialization (such as deserializing).
+      @ In, params, dict, new params to set (internals depend on ROM)
+      @ Out, None
+    """
+    self.supervisedEngine.setAdditionalParams(params)
 
   def convergence(self,trainingSet):
     """

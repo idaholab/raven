@@ -105,11 +105,13 @@ class Optimizer(Sampler):
     minmax     = InputData.parameterInputFactory('type', contentType=minmaxEnum)
     thresh     = InputData.parameterInputFactory('thresholdTrajRemoval', contentType=InputData.FloatType)
     write      = InputData.parameterInputFactory('writeSteps',contentType=whenWriteEnum)
+    resample   = InputData.parameterInputFactory('resample',contentType=InputData.BoolType)
     init.addSub(limit)
     init.addSub(seed)
     init.addSub(minmax)
     init.addSub(thresh)
     init.addSub(write)
+    init.addSub(resample)
     inputSpecification.addSub(init)
     # convergence
 
@@ -341,8 +343,6 @@ class Optimizer(Sampler):
               self.writeSolnExportOn = 'final'
             else:
               self.raiseAnError(IOError,'Unexpected frequency for <writeSteps>: "{}". Expected "every" or "final".'.format(whenToWrite))
-          else:
-            self.raiseAnError(IOError,'Unknown tag: '+childChild.getName())
 
       elif child.getName() == "convergence":
         for childChild in child.subparts:
@@ -399,9 +399,12 @@ class Optimizer(Sampler):
         self.raiseAnError(IOError, 'Lower bound for '+varName+' is not provided' )
       #store ranges of variables
       self.optVarsInit['ranges'][varName] = self.optVarsInit['upperBound'][varName] - self.optVarsInit['lowerBound'][varName]
+      if self.optVarsInit['ranges'][varName] < 0:
+         self.raiseAnError(ValueError, 'Variable {}: Lower bound {} is larger than upper bound {}'.format(varName, self.optVarsInit['lowerBound'][varName],self.optVarsInit['upperBound'][varName]) )
       if len(self.optVarsInit['initial'][varName]) == 0:
         for traj in self.optTraj:
           self.optVarsInit['initial'][varName][traj] = None
+      self.toBeSampled[varName] = None # compatability with base Sampler
     return paramInput
 
   def initialize(self,externalSeeding=None,solutionExport=None):
@@ -586,8 +589,12 @@ class Optimizer(Sampler):
     if self.constraintFunction == None:
       satisfied = True
     else:
-      satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
+      constraintVars = dict(optVars)
+      constraintVars.update(self.constants)
+      satisfied = True if self.constraintFunction.evaluate("constrain", constraintVars) == 1 else False
       if not satisfied:
+        self.raiseAWarning('The proposed evaluation point violates the constraint function!')
+        self.raiseADebug('Offending point:', constraintVars)
         violatedConstrains['external'].append(self.constraintFunction.name)
     for var in optVars:
       varSatisfy=True

@@ -14,6 +14,7 @@
 """
 RavenFramework is a tool to test raven inputs.
 """
+from __future__ import absolute_import
 import os
 import subprocess
 import sys
@@ -25,8 +26,7 @@ import UnorderedCSVDiffer
 import XMLDiff
 import TextDiff
 import ExistsDiff
-from RAVENImageDiff import ImageDiff
-import RavenUtils
+import RAVENImageDiff
 
 # Set this outside the class because the framework directory is constant for
 #  each instance of this Tester, and in addition, there is a problem with the
@@ -35,14 +35,19 @@ import RavenUtils
 # Be aware that if this file changes its location, this variable should also be
 #  changed.
 myDir = os.path.dirname(os.path.realpath(__file__))
-RAVEN_DIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
+RAVENDIR = os.path.abspath(os.path.join(myDir, '..', '..', '..', 'framework'))
 
 #Need to add the directory for AMSC for doing module checks.
-os.environ["PYTHONPATH"] = os.path.join(RAVEN_DIR, 'contrib') +\
+os.environ["PYTHONPATH"] = os.path.join(RAVENDIR, 'contrib') +\
   os.pathsep + os.environ.get("PYTHONPATH", "")
 
+scriptDir = os.path.abspath(os.path.join(RAVENDIR, '..', 'scripts'))
+sys.path.append(scriptDir)
+import library_handler
+sys.path.pop()
 
-_missing_modules, _too_old_modules, _notQAModules = RavenUtils.check_for_missing_modules()
+_missingModules, _notQAModules = library_handler.checkLibraries()
+_checkVersions = library_handler.checkVersions()
 
 class RavenFramework(Tester):
   """
@@ -110,23 +115,23 @@ class RavenFramework(Tester):
 
     return self._get_python_command() + " " + self.driver + " " + ravenflag + self.specs["input"]
 
-  def __make_differ(self, spec_name, differ_class, extra=None):
+  def __make_differ(self, specName, differClass, extra=None):
     """
-      This adds a differ if the spec_name has files.
-      @ In, spec_name, string of the list of files to use with the differ.
-      @ In, differ_class, subclass of Differ, for use with the files.
+      This adds a differ if the specName has files.
+      @ In, specName, string of the list of files to use with the differ.
+      @ In, differClass, subclass of Differ, for use with the files.
       @ In, extra, dictionary, extra parameters
       @ Out, None
     """
-    if len(self.specs[spec_name]) == 0:
+    if len(self.specs[specName]) == 0:
       #No files, so quit
       return
-    differ_params = dict(self.specs)
-    differ_params["output"] = self.specs[spec_name]
-    differ_params["type"] = differ_class.__name__
+    differParams = dict(self.specs)
+    differParams["output"] = self.specs[specName]
+    differParams["type"] = differClass.__name__
     if extra is not None:
-      differ_params.update(extra)
-    self.add_differ(differ_class(spec_name, differ_params, self.get_test_dir()))
+      differParams.update(extra)
+    self.add_differ(differClass(specName, differParams, self.get_test_dir()))
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
@@ -138,6 +143,7 @@ class RavenFramework(Tester):
     self.__make_differ('xml', XMLDiff.XML, {"unordered":False})
     self.__make_differ('UnorderedXml', XMLDiff.XML, {"unordered":True})
     self.__make_differ('text', TextDiff.Text)
+    self.__make_differ('image', RAVENImageDiff.ImageDiffer)
     self.required_executable = self.specs['required_executable']
     self.required_libraries = self.specs['required_libraries'].split(' ')\
       if len(self.specs['required_libraries']) > 0 else []
@@ -149,7 +155,7 @@ class RavenFramework(Tester):
     self.required_executable = self.required_executable.replace("%METHOD%",
                                                                 os.environ.get("METHOD", "opt"))
     self.specs['scale_refine'] = False
-    self.driver = os.path.join(RAVEN_DIR, 'Driver.py')
+    self.driver = os.path.join(RAVENDIR, 'Driver.py')
 
   def check_runnable(self):
     """
@@ -157,42 +163,41 @@ class RavenFramework(Tester):
       @ In, None
       @ Out, check_runnable, boolean, if True can run this test.
     """
-    missing = _missing_modules
-    too_old = _too_old_modules
     # remove tests based on skipping criteria
     ## required module is missing
-    if len(missing) > 0:
-      self.set_fail('skipped (Missing python modules: '+" ".join(missing)+
+    if _missingModules:
+      self.set_fail('skipped (Missing python modules: '+" ".join([m[0] for m in _missingModules])+
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     ## required module is present, but too old
-    if len(too_old) > 0  and RavenUtils.check_versions():
-      self.set_fail('skipped (Old version python modules: '+" ".join(too_old)+
+    if _notQAModules and _checkVersions:
+      self.set_fail('skipped (Incorrectly versioned python modules: ' +
+                    " ".join(['{}-{}'.format(*m) for m in _notQAModules]) +
                     " PYTHONPATH="+os.environ.get("PYTHONPATH", "")+')')
       return False
     ## an environment varible value causes a skip
     if len(self.specs['skip_if_env']) > 0:
-      env_var = self.specs['skip_if_env']
-      if env_var in os.environ:
-        self.set_skip('skipped (found environmental variable "'+env_var+'")')
+      envVar = self.specs['skip_if_env']
+      if envVar in os.environ:
+        self.set_skip('skipped (found environmental variable "'+envVar+'")')
         return False
     ## OS
     if len(self.specs['skip_if_OS']) > 0:
-      skip_os = [x.strip().lower() for x in self.specs['skip_if_OS'].split(',')]
+      skipOs = [x.strip().lower() for x in self.specs['skip_if_OS'].split(',')]
       # get simple-name platform (options are Linux, Windows, Darwin, or SunOS that I've seen)
-      current_os = platform.system().lower()
+      currentOs = platform.system().lower()
       # replace Darwin with more expected "mac"
-      if current_os == 'darwin':
-        current_os = 'mac'
-      if current_os in skip_os:
-        self.set_skip('skipped (OS is "{}")'.format(current_os))
+      if currentOs == 'darwin':
+        currentOs = 'mac'
+      if currentOs in skipOs:
+        self.set_skip('skipped (OS is "{}")'.format(currentOs))
         return False
     for lib in self.required_libraries:
-      found, _, _ = RavenUtils.module_report(lib, '')
+      found, _, _ = library_handler.checkSingleLibrary(lib)
       if not found:
-        self.set_skip('skipped (Unable to import library: "'+lib+'")')
+        self.set_skip('skipped (Unable to import library: "{}")'.format(lib))
         return False
-    if self.specs['python3_only'] and not RavenUtils.in_python_3():
+    if self.specs['python3_only'] and not library_handler.inPython3():
       self.set_skip('Python 3 only')
       return False
 
@@ -202,15 +207,15 @@ class RavenFramework(Tester):
                     +str(self.minimum_libraries)+')')
       return False
     while i < len(self.minimum_libraries):
-      library_name = self.minimum_libraries[i]
-      library_version = self.minimum_libraries[i+1]
-      found, _, actual_version = RavenUtils.module_report(library_name, library_name+'.__version__')
+      libraryName = self.minimum_libraries[i]
+      libraryVersion = self.minimum_libraries[i+1]
+      found, _, actualVersion = library_handler.checkSingleLibrary(libraryName, version='check')
       if not found:
-        self.set_skip('skipped (Unable to import library: "'+library_name+'")')
+        self.set_skip('skipped (Unable to import library: "'+libraryName+'")')
         return False
-      if distutils.version.LooseVersion(actual_version) < \
-         distutils.version.LooseVersion(library_version):
-        self.set_skip('skipped (Outdated library: "'+library_name+'")')
+      if distutils.version.LooseVersion(actualVersion) < \
+         distutils.version.LooseVersion(libraryVersion):
+        self.set_skip('skipped (Outdated library: "'+libraryName+'")')
         return False
       i += 2
 
@@ -227,16 +232,16 @@ class RavenFramework(Tester):
       self.set_skip('skipped (Error when trying executable: "'
                     +self.required_executable+'")'+str(exp))
       return False
-    filename_set = set()
-    duplicate_files = []
+    filenameSet = set()
+    duplicateFiles = []
     for filename in self.__get_created_files():
-      if filename not in filename_set:
-        filename_set.add(filename)
+      if filename not in filenameSet:
+        filenameSet.add(filename)
       else:
-        duplicate_files.append(filename)
-    if len(duplicate_files) > 0:
+        duplicateFiles.append(filename)
+    if len(duplicateFiles) > 0:
       self.set_skip('[incorrect test] duplicated files specified: '+
-                    " ".join(duplicate_files))
+                    " ".join(duplicateFiles))
       return False
     return True
 
@@ -249,8 +254,8 @@ class RavenFramework(Tester):
       @ Out, createdFiles, [str], list of files created by the test.
     """
     runpath = self.get_test_dir()
-    remove_files = self.get_differ_remove_files()
-    return remove_files+list(os.path.join(runpath, file) for file in self.all_files)
+    removeFiles = self.get_differ_remove_files()
+    return removeFiles+list(os.path.join(runpath, file) for file in self.all_files)
 
   def prepare(self):
     """
@@ -268,17 +273,4 @@ class RavenFramework(Tester):
       @ In, ignored, string, output of test.
       @ Out, None
     """
-
-    #image
-    image_opts = {}
-    if 'rel_err'        in self.specs.keys():
-      image_opts['rel_err'] = self.specs['rel_err']
-    if 'zero_threshold' in self.specs.keys():
-      image_opts['zero_threshold'] = self.specs['zero_threshold']
-    img_diff = ImageDiff(self.specs['test_dir'], self.img_files, **image_opts)
-    (img_same, img_messages) = img_diff.diff()
-    if not img_same:
-      self.set_diff(img_messages)
-      return
-
     self.set_success()

@@ -38,8 +38,12 @@ optimization can be specified in the \xmlNode{initialization} and \xmlNode{param
 specified:}
 \newcommand{\limit}{\xmlNode{limit}, \xmlDesc{integer,optional field}, number of samples to be generated, which is same as the number of
     model evaluations. \default{2000}.}
+
 \newcommand{\initialSeed}{\xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator for stochastic
     perturbations;}
+
+\newcommand{\resample}[1]{\xmlNode{resample}, \xmlDesc{boolean, optional field}, If True, then recalculate the last optimal point for a new gradient after rejecting the new optimal point. \default{{#1}}.}
+
 \newcommand{\type}{\xmlNode{type},  \xmlDesc{string (case insensitive), optional field}, specifies whether this optimizer performs maximization
     or minimization. Available options are \xmlString{max} and \xmlString{min}.
     \default{Min};}
@@ -336,6 +340,7 @@ specified:
   \begin{itemize}
     \item \limit
     \item \initialSeed
+    \item \resample{True}
     \item \type
     \item \thresholdTrajRemoval{SPSA}
     \item \writeSteps
@@ -441,6 +446,7 @@ magnitude of the gradient, but just on its ``direction'' information content. Al
   \begin{itemize}
     \item \limit
     \item \initialSeed
+    \item \resample{False}
     \item \type
     \item \thresholdTrajRemoval{FiniteDifference}
     \item \writeSteps

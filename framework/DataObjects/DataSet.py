@@ -21,17 +21,13 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import warnings
 warnings.simplefilter('default',DeprecationWarning)
 
-import os
-import sys
 import copy
 import itertools
 try:
   import cPickle as pk
 except ImportError:
   import pickle as pk
-import xml.etree.ElementTree as ET
 
-import abc
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -41,7 +37,7 @@ try:
   from .DataObject import DataObject
 except ValueError:
   from DataObject import DataObject
-from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
+from utils import utils, cached_ndarray, xmlUtils, mathUtils
 
 # for profiling with kernprof
 try:
@@ -175,7 +171,7 @@ class DataSet(DataObject):
           # Otherwise, scalarMetric
           else:
             # sanity check to make sure suitable values are passed in
-            assert(utils.isSingleValued(value))
+            assert(mathUtils.isSingleValued(value))
             destination.addScalar(target,metric,value)
     # otherwise if a node was provided directly ...
     else:
@@ -183,7 +179,7 @@ class DataSet(DataObject):
       ## TODO check structure?
       self._meta[tag] = node
 
-  def addRealization(self,rlz):
+  def addRealization(self, rlz):
     """
       Adds a "row" (or "sample") to this data object.
       This is the method to add data to this data object.
@@ -194,16 +190,45 @@ class DataSet(DataObject):
                          "val" is a np.ndarray of values.
       @ Out, None
     """
+    #########
+    # A note about what we're expecting in "rlz":
+    #
+    # Each entry in "rlz" should be a variable name, with exceptions described below.
+    # For each entry, the contents should be a numpy nd array:
+    #   - For a scalar, it's a length-one array with a single value as {'pi': np.array([3.14])}
+    #   - For a history, it's a single-dimensional array with the history values {'fib': np.array([0,1,1,2,3,5])}
+    #   - For a high-dimensional object, it's a numpy ndarray with each dimension depending on a different index
+    #          for example {'fibgrow': np.array([[0,1,1,2,3,5], [0,2,2,4,6,10]])}
+    #       IN THIS CASE (for high-dimensional objects), a unique special node needs to be passed with the
+    #         realization "_indexMap" that describes what order the numpy array dimensions show up in.
+    #
+    #       For example, if my realization has one high-dimensional variable H(X, Y) depending on
+    #         indices X and Y, and say that X has 3 values (0, 1, 2) and Y has 2 values (0.5, 1.5), then
+    #         "rlz" should be as follows (with all [] as np.array([])):
+    #         rlz = {'H': [[0.1, 0.2, 0.3], [0.2, 0.3, 0.4]],
+    #                'X': [0, 1, 2],
+    #                'Y': [0.5, 1.5],
+    #                '_indexMap': ['Y', 'X']}
+    #         Note the order, H has shape (2, 3) so the first index is Y and the second is X.
+    #         A sanity check is that H.shape == tuple(var.size for var in rlz['_indexMap'])
+    #
+    #  Yours truly, talbpw, May 2019
+    #########
     # protect against back-changing realization
     rlz = copy.deepcopy(rlz)
+    # if index map was included, remove that now before checking variables
+    indexMap = rlz.pop('_indexMap', None)
+    if indexMap is not None:
+      # keep only those parts of the indexMap that correspond to variables we care about.
+      indexMap = dict((key, val) for key, val in indexMap[0].items() if key in self.getVars()) # [0] because everything is nested in a list by now, it seems
     # clean out entries that aren't desired
     try:
-      rlz = dict((var,rlz[var]) for var in self.getVars()+self.indexes)
+      rlz = dict((var, rlz[var]) for var in self.getVars() + self.indexes)
     except KeyError as e:
-      self.raiseADebug('Variables provided:',rlz.keys())
+      self.raiseAWarning('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
     # check consistency, but make it an assertion so it can be passed over
-    if not self._checkRealizationFormat(rlz):
+    if not self._checkRealizationFormat(rlz, indexMap=indexMap):
       self.raiseAnError(SyntaxError,'Realization was not formatted correctly for "{}"! See warnings above.'.format(self.name))
     # format the data
     rlz = self._formatRealization(rlz)
@@ -227,7 +252,7 @@ class DataSet(DataObject):
     #   This is because the cNDarray collector expects a LIST of realization, not a single realization.
     #   Maybe the "append" method should be renamed to "extend" or changed to append one at a time.
     ## set realizations as a list of realizations (which are ordered lists)
-    newData = np.array(list(rlz[var] for var in self._orderedVars)+[0.0],dtype=object)
+    newData = np.array(list(rlz[var] for var in self._orderedVars)+[0.0], dtype=object)
     newData = newData[:-1]
     # if data storage isn't set up, set it up
     if self._collector is None:
@@ -312,7 +337,7 @@ class DataSet(DataObject):
       @ Out, same, bool, if True then alignment is good
     """
     # format request so that indexesToCheck is always a list
-    if utils.isAString(indexesToCheck):
+    if mathUtils.isAString(indexesToCheck):
       indexesToCheck = [indexesToCheck]
     elif indexesToCheck is None:
       indexesToCheck = self.indexes[:]
@@ -340,7 +365,7 @@ class DataSet(DataObject):
     # if you haven't returned False by now, you must be aligned
     return True
 
-  def constructNDSample(self,vals,dims,coords,name=None):
+  def constructNDSample(self, vals, dims, coords, name=None):
     """
       Constructs a single realization instance (for one variable) from a realization entry.
       @ In, vals, np.ndarray, should have shape of (len(coords[d]) for d in dims)
@@ -349,7 +374,7 @@ class DataSet(DataObject):
       @ Out, obj, xr.DataArray, completed realization instance suitable for sending to "addRealization"
     """
     # while simple, this API will allow easier extensibility in the future.
-    obj = xr.DataArray(vals,dims=dims,coords=coords)
+    obj = xr.DataArray(vals, dims=dims, coords=coords)
     obj.rename(name)
     return obj
 
@@ -436,7 +461,7 @@ class DataSet(DataObject):
     # For faster access, consider using data.asDataset()['varName'] for one variable, or
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
-    if utils.isAString(var):
+    if mathUtils.isAString(var):
       val = self._data[var]
       #format as scalar
       if len(val.dims) == 0:
@@ -480,7 +505,7 @@ class DataSet(DataObject):
     # after loading, set or reset scaling factors
     self._setScalingFactors()
 
-  def realization(self,index=None,matchDict=None,tol=1e-15, unpackXArray=False):
+  def realization(self, index=None, matchDict=None, tol=1e-15, unpackXArray=False):
     """
       Method to obtain a realization from the data, either by index or matching value.
       Either "index" or "matchDict" must be supplied.
@@ -527,6 +552,8 @@ class DataSet(DataObject):
         ## otherwise, grab the entry from the collector
         else:
           rlz = self._getRealizationFromCollectorByIndex(index)
+      # add index map where necessary
+      rlz = self._addIndexMapToRlz(rlz)
       return rlz
     ## END select by index
     ## START collect by matching realization
@@ -535,18 +562,20 @@ class DataSet(DataObject):
       if numInData == 0:
         # if nothing in data OR collector, we can't have a match
         if numInCollector == 0:
-          return 0,None
+          return 0, None
         # otherwise, get it from the collector
         else:
-          index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
+          index, rlz = self._getRealizationFromCollectorByValue(matchDict, tol=tol)
       # otherwise, first try to find it in the data
       else:
-        index,rlz = self._getRealizationFromDataByValue(matchDict,tol=tol, unpackXArray=unpackXArray)
+        index, rlz = self._getRealizationFromDataByValue(matchDict, tol=tol, unpackXArray=unpackXArray)
         # if no match found in data, try in the collector (if there's anything in it)
         if rlz is None:
           if numInCollector > 0:
-            index,rlz = self._getRealizationFromCollectorByValue(matchDict,tol=tol)
-      return index,rlz
+            index, rlz = self._getRealizationFromCollectorByValue(matchDict, tol=tol)
+      # add index map where necessary
+      rlz = self._addIndexMapToRlz(rlz)
+      return index, rlz
 
   def remove(self,variable):
     """
@@ -745,6 +774,20 @@ class DataSet(DataObject):
     return list(self._pivotParams.keys())
 
   ### INTERNAL USE FUNCTIONS ###
+  def _addIndexMapToRlz(self, rlz):
+    """
+      Adds the special key _indexMap along with index mapping
+      for any N-dimensional entries in "rlz", if N > 1.
+      @ In, rlz, dict, single-sample realization
+      @ Out, rlz, dict, same dict with _indexMap added if necessary
+    """
+    if rlz is None:
+      return rlz
+    need = any(len(val.shape) > 1 for val in rlz.values() if hasattr(val, 'shape'))
+    if need:
+      rlz['_indexMap'] = self.getDimensions()
+    return rlz
+
   def _changeVariableValue(self,index,var,value):
     """
       Changes the value of a variable for a particular realization in the data object, in collector or data.
@@ -756,7 +799,7 @@ class DataSet(DataObject):
       @ Out, None
     """
     assert(var in self._orderedVars)
-    assert(utils.isSingleValued(value)) #['float','str','int','unicode','bool'])
+    assert(mathUtils.isSingleValued(value)) #['float','str','int','unicode','bool'])
     lenColl = len(self._collector) if self._collector is not None else 0
     lenData = len(self._data[self.sampleTag]) if self._data      is not None else 0
     # if it's in the data ...
@@ -786,7 +829,7 @@ class DataSet(DataObject):
           closeEnough = False
         else:
           # "close enough" if float/int, otherwise require exactness
-          if utils.isAFloatOrInt(rlz[index][0]):
+          if mathUtils.isAFloatOrInt(rlz[index][0]):
             closeEnough = all(np.isclose(rlz[index],self._alignedIndexes[index],rtol=tol))
           else:
             closeEnough = all(rlz[index] == self._alignedIndexes[index])
@@ -814,34 +857,82 @@ class DataSet(DataObject):
         # otherwise, you're misaligned, and have been since before this realization, no action.
     return
 
-  def _checkRealizationFormat(self,rlz):
+  def _checkRealizationFormat(self, rlz, indexMap=None):
     """
       Checks that a passed-in realization has a format acceptable to data objects.
       Data objects require a CSV-like result with either float or np.ndarray instances.
       @ In, rlz, dict, realization with {key:value} pairs.
       @ Out, okay, bool, True if acceptable or False if not
     """
-    if not isinstance(rlz,dict):
+    # check that indexMap and expected indexes line up
+    ## This check can be changed when we can automatically collapse dimensions intelligently
+    if indexMap is not None:
+      mapIndices = set()
+      mapIndices.update(*list(indexMap.values()))
+      if mapIndices != set(self.indexes):
+        self.raiseAWarning('Realization indexes do not match expected indexes!\n',
+                           'Extra from realization: {}\n'.format(mapIndices-set(self.indexes)),
+                           'Missing from realization: {}'.format(set(self.indexes) - mapIndices))
+        return False
+    if not isinstance(rlz, dict):
       self.raiseAWarning('Realization is not a "dict" instance!')
       return False
-    for key,value in rlz.items():
+    for var, value in rlz.items():
       #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
-      if not isinstance(value,np.ndarray):
-        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(key,type(value)))
+      if not isinstance(value, np.ndarray):
+        self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(var, type(value)))
         return False
       # check if index-dependent variables have matching shapes
       # FIXME: this check will not work in case of variables depending on multiple indexes.
       #    When this need comes, we will change this check(alfoa)
       if self.indexes:
-        if key in self._fromVarToIndex and rlz[self._fromVarToIndex[key]].shape != rlz[key].shape:
-          self.raiseAWarning(('Variable "{}" with shape {} '+
-                              'is not consistent with respect its index "{}" with shape {}!')
-                              .format(key,
-                                      rlz[key].shape,
-                                      self._fromVarToIndex[key],
-                                      rlz[self._fromVarToIndex[key]].shape)
-                              )
-          return False
+        dims = self.getDimensions(var)[var] # NOTE we assume this is always in the same order, which should be true.
+        # if this variable depends on no dimensions, no check needed
+        # if this variable depends on one dimension, check length trivially
+        if len(dims) == 1:
+          dim = dims[0]
+          correctShape = rlz[dim].shape
+          if rlz[var].shape != correctShape:
+            self.raiseAWarning(('Variable "{var}" with shape {vShape} '+
+                                'is not consistent with respect its index "{dim}" with shape {dShape}!')
+                               .format(var=var,
+                                       vShape=rlz[var].shape,
+                                       dim=dim,
+                                       dShape=correctShape))
+            return False
+        # if this variable depends on multiple dimensions, check shape
+        elif len(dims) > 1:
+          # the model should have provided an index map for the shaping of the variables
+          if indexMap is None:
+            self.raiseAWarning('No variable index map "_indexMap" was provided in model realization, but ' +
+                               'a multidimensional variable ("{}") is expected!'.format(var))
+            return False
+          try:
+            rlzDimOrder = list(indexMap[var]) # want a list for the equality comparison below
+          # if the realization order wasn't provided, return a useful error describing the problem
+          except KeyError:
+            self.raiseAWarning('Variable "{}" is multidimensional, but no entry '.format(var) +
+                               'was given in the "_indexMap" for "{}" in the model realization!'.format(var))
+            self.raiseAWarning('Received entries for: {}'.format(list(indexMap.keys())))
+
+            return False
+          # check that the realization is consistent
+          ## TODO assumes indexes are single-dimensional, seems like a safe assumption for now
+          correctShape = tuple(rlz[idx].size for idx in rlzDimOrder)
+          if rlz[var].shape != correctShape:
+            self.raiseAWarning(('Variable "{}" with shape {} '+
+                                'is not consistent with respect its indices "{}" with shapes {}!')
+                               .format(var,
+                                       rlz[var].shape,
+                                       rlzDimOrder,
+                                       correctShape))
+            return False
+          # re-order the provided realization to fit the expected dims order, if needed
+          if rlzDimOrder != dims:
+            sourceOrder = range(len(dims))
+            destOrder = list(dims.index(dim) for dim in rlzDimOrder)
+            rlz[var] = np.moveaxis(rlz[var], sourceOrder, destOrder)
+            assert rlz[var].shape == tuple(rlz[idx].size for idx in dims)
     # all conditions for failing formatting were not met, so formatting is fine
     return True
 
@@ -901,7 +992,13 @@ class DataSet(DataObject):
     i = -1
     while dataType is type(None):
       i += 1
-      dataType = type(data[i])
+      try:
+        dataType = type(data[i])
+      except IndexError:
+        self.raiseADebug('Could not find a type for "{}"; using None.'.format(var))
+        dataType = type(None)
+        i = 0
+        break
     # if "type" predetermined, override it (but we still needed "i" so always do the loop above)
     # TODO this can be sped up probably, by checking the "type" directly with dtype; but we ALSO need to know if
     #   it's a history or not, so we need to check the first non-NaN entry....
@@ -909,7 +1006,7 @@ class DataSet(DataObject):
       dataType = dtype
     # method = 'once' # see below, parallelization is possible but not implemented
     # first case: single entry per node: floats, strings, ints, etc
-    if utils.isSingleValued(data[i]):
+    if mathUtils.isSingleValued(data[i]):
       data = np.array(data,dtype=dataType)
       array = xr.DataArray(data,
                            dims=[self.sampleTag],
@@ -1082,7 +1179,7 @@ class DataSet(DataObject):
       # storage array for each variable's xr.DataArray with all rlz data from every rlz
       arrays = {}
       # loop over variables IN ORDER of collector storage to collapse data into nice xr.DataArray of realization data
-      for v,var in enumerate(self._orderedVars):
+      for v, var in enumerate(self._orderedVars):
         # only converting variables, so ignore indexes (they'll be used by the variables)
         if var in self.indexes:
           continue
@@ -1093,27 +1190,28 @@ class DataSet(DataObject):
           dims = self.getDimensions(var)[var]
           # make sure "dims" isn't polluted
           assert(self.sampleTag not in dims)
-          # TODO not ready for ND; this only uses single-dependency cases, but should be easily extensible
-          if len(dims) > 1:
-            self.raiseAnError(NotImplementedError,'Currently cannot handle more than 1 pivot per variable')
-          # loop over indexes (just one for now) and create data
-          for index in dims:
-            # if aligned, grab the data into one large chunk and make a datarray with all rlzs
-            if index in self._alignedIndexes.keys():
+          # loop over indexes (just one for now?) and create data
+          ## SPECIAL CASE: if only histories/scalars, and histories are aligned, we can shortcut this
+          if len(dims) == 1 and dims[0] in self._alignedIndexes:
+            # since aligned, grab the data into one large chunk and make a datarray with all rlzs
               data = np.vstack(self._collector[:,v]).astype(dtype)
-              coords = dict((idx,self._alignedIndexes[idx]) for idx in dims)
-              arrays[var] = self.constructNDSample(data,dims=[self.sampleTag]+dims,coords=coords)
-            # otherwise, we're better off making one dataarray for each rlz, then collapsing
-            else:
-              # first make a datarray out of each realization value
-              for r in range(len(self._collector)):
-                values = self._collector[r,v]
-                dtype = self._getCompatibleType(values[0])
-                values = np.array(values,dtype=dtype)
-                coords = dict((idx,self._collector[r,self._orderedVars.index(idx)]) for idx in dims)
-                self._collector[r][v] = self.constructNDSample(values,dims,coords,name=str(r))
-              # then collapse these entries into a single datarray
-              arrays[var] = self._collapseNDtoDataArray(self._collector[:,v],var,dtype=dtype)
+              coords = {dims[0]: self._alignedIndexes[dims[0]]}
+              #coords[self.sampleTag] = np.arange(len(self._collector))
+              arrays[var] = self.constructNDSample(data, dims=[self.sampleTag]+dims, coords=coords)
+          else:
+            for r in range(len(self._collector)):
+              values = self._collector[r, v]
+              dtype = self._getCompatibleType(values[0])
+              values = np.array(values,dtype=dtype)
+              coords = {}
+              for idx in dims:
+                val = self._alignedIndexes.get(idx, None)
+                if val is None:
+                  val = self._collector[r, self._orderedVars.index(idx)]
+                coords[idx] = val
+              self._collector[r][v] = self.constructNDSample(values, dims, coords, name=str(r))
+            # then collapse these entries into a single datarray
+            arrays[var] = self._collapseNDtoDataArray(self._collector[:,v], var, dtype=dtype)
         # if it's a dataarray, then that's old-style histories, no-can do right now
         elif isinstance(self._collector[0,v],xr.DataArray):
           self.raiseAnError(NotImplementedError,'History entries should be numpy arrays, not data arrays!')
@@ -1127,7 +1225,7 @@ class DataSet(DataObject):
               self.raiseAWarning('NaN detected, but no safe casting NaN to "{}" so switching to "object" type. '.format(dtype) \
                   + ' This may cause problems with other entities in RAVEN.')
               varData = self._collector[:,v][:]
-              dtype=object
+              dtype = object
             # otherwise, let error be raised.
             else:
               raise e
@@ -1162,12 +1260,11 @@ class DataSet(DataObject):
     if self._collector is None or len(self._collector) == 0:
       for var in self._pivotParams.keys():
         dtype = self._getCompatibleType(rlz[var][0])
-        current = rlz[var].dtype
         # Note, I don't like this action happening here, but I don't have an alternative way to assure
         # indexes have the correct dtype.  In the first pass, they aren't going into the collector, but into alignedIndexes.
         rlz[var] = np.array(rlz[var],dtype=dtype)
     # for now, leave them as the arrays they are, except single entries need converting
-    for var,val in rlz.items():
+    for var, val in rlz.items():
       # if an index variable, skip it
       if var in self._pivotParams:
         continue
@@ -1200,20 +1297,31 @@ class DataSet(DataObject):
     arrays = {}
     for var in self.getVars():
       if var in dims.keys():
-        data = df[[var,self.sampleTag]+dims[var]]
-        data.set_index(self.sampleTag,inplace=True)
+        varDims = dims[var]
+        data = df[[var, self.sampleTag] + dims[var]]
+        data.set_index(self.sampleTag, inplace=True)
         ndat = np.zeros(len(samples),dtype=object)
-        for s,sample in enumerate(samples):
+        for s, sample in enumerate(samples):
           # set dtype on first pass
           if s == 0:
             dtype = self._getCompatibleType(sample)
           places = data.index.get_loc(sample)
           vals = data[places].dropna().set_index(dims[var])
-          #vals.drop('dim_1')
-          # TODO this needs to be improved before ND will work; we need the individual sub-indices (time, space, etc)
-          ndat[s] = xr.DataArray(vals.values[:,0],
-                                 dims=dims[var],
-                                 coords=dict((var,vals.index.values) for var in dims[var]))
+          if len(varDims) > 1:
+            useVals = vals.values.reshape(vals.index.levshape) #[:, 0], -> why :, 0??
+            coords = dict((dim, vals.index.levels[vals.index.names.index(dim)].values) for dim in dims[var])
+          else:
+            useVals = vals.values[:, 0]
+            coords = dict((var, vals.index.values) for var in varDims)
+          # slower, but more clear:
+          #coords = {}
+          #for dim in dims[var]:
+          #  pdIndexLevel = vals.index.names.index(dim)
+          #  coords[dim] = vals.index.levels[pdIndexLevel].values
+          # I think this is fixed now. - talbpw -> TODO this needs to be improved before ND will work; we need the individual sub-indices (time, space, etc)
+          ndat[s] = xr.DataArray(useVals,
+                                 dims=varDims,
+                                 coords=coords) #dict((var,vals.index.values) for var in dims[var]))
         # END for sample in samples
         arrays[var] = self._collapseNDtoDataArray(ndat,var,labels=samples,dtype=dtype)
       else:
@@ -1379,14 +1487,14 @@ class DataSet(DataObject):
     if isinstance(val,(xr.DataArray,np.ndarray)):
       val = val.item(0)
     # identify other scalars by instance
-    if utils.isAFloat(val):
+    if mathUtils.isAFloat(val):
       _type = float
-    elif utils.isABoolean(val):
+    elif mathUtils.isABoolean(val):
       _type = bool
-    elif utils.isAnInteger(val):
+    elif mathUtils.isAnInteger(val):
       _type = int
     # strings and unicode have to be stored as objects to prevent string sizing in numpy
-    elif utils.isAString(val):
+    elif mathUtils.isAString(val):
       _type = object
     # catchall
     else:
@@ -1401,7 +1509,7 @@ class DataSet(DataObject):
     """
     assert(self._collector is not None)
     assert(index < len(self._collector))
-    rlz = dict(zip(self._orderedVars,self._collector[index]))
+    rlz = dict(zip(self._orderedVars, self._collector[index]))
     # don't forget the aligned indices! If indexes stored there instead of in collector, retrieve them
     for var,vals in self._alignedIndexes.items():
       rlz[var] = vals
@@ -1423,7 +1531,7 @@ class DataSet(DataObject):
       match = True
       for e,element in enumerate(row):
         # check for matching based on if a number or not
-        if utils.isAFloatOrInt(element):
+        if mathUtils.isAFloatOrInt(element):
           match &= mathUtils.compareFloats(lookingFor[e],element,tol=tol)
         else:
           match &= lookingFor[e] == element
@@ -1465,7 +1573,7 @@ class DataSet(DataObject):
     mask = 1.0
     for var,val in match.items():
       # float instances are relative, others are absolute
-      if utils.isAFloatOrInt(val):
+      if mathUtils.isAFloatOrInt(val):
         # scale if we know how
         try:
           loc,scale = self._scaleFactors[var]
@@ -1586,7 +1694,7 @@ class DataSet(DataObject):
       dtype = self.defaultDtype # set in subclasses if different
     return cached_ndarray.cNDarray(width=width,length=length,dtype=dtype)
 
-  def _readPandasCSV(self,fname,nullOK=None):
+  def _readPandasCSV(self, fname, nullOK=None):
     """
       Reads in a CSV and does some simple checking.
       @ In, fname, str, name of file to read in (WITH the .csv extension)
@@ -1639,7 +1747,7 @@ class DataSet(DataObject):
     """
     if self.types is None:
       self.types = [None]*len(self.getVars())
-      for v,name in enumerate(self.getVars()):
+      for v, name in enumerate(self.getVars()):
         val = rlz[name]
         self.types[v] = self._getCompatibleType(val)
 

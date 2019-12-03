@@ -11,7 +11,8 @@
 # name for raven libraries: RAVEN_LIBS_NAME (defaults to raven_libraries if not set)
 
 ECE_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-RAVEN_UTILS=${ECE_SCRIPT_DIR}/TestHarness/testers/RavenUtils.py
+RAVEN_LIB_HANDLER=${ECE_SCRIPT_DIR}/library_handler.py
+
 # fail if ANYTHING this script fails (mostly, there are exceptions)
 set -e
 
@@ -19,19 +20,19 @@ function establish_OS ()
 {
 	case $OSTYPE in
 		"linux")
-			OSOPTION="--linux"
+			OSOPTION="--os linux"
 			;;
 		"linux-gnu")
-			OSOPTION="--linux"
+			OSOPTION="--os linux"
 			;;
 		"darwin"*)
-			OSOPTION="--mac"
+			OSOPTION="--os mac"
 			;;
 		"msys"*)
-			OSOPTION="--windows"
+			OSOPTION="--os windows"
 			;;
 		"cygwin"*)
-			OSOPTION="--windows"
+			OSOPTION="--os windows"
 			;;
 		*)
 			echo Unknown OS: $OSTYPE\; ignoring.
@@ -78,18 +79,18 @@ function install_libraries()
   if [[ $ECE_VERBOSE == 0 ]]; then echo Installing libraries ...; fi
   if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
-    echo ... conda command: ${COMMAND}
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install)`
+    if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: \"${COMMAND}\"; fi
     ${COMMAND}
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
     ${COMMAND}
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --pip-only-list ${INSTALL_OPTIONAL} ${OSOPTION})`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
   else
@@ -97,7 +98,7 @@ function install_libraries()
     activate_env
     # pip install
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pip ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --pip-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} pip --action install)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pip command: ${COMMAND}; fi
     ${COMMAND}
   fi
@@ -105,21 +106,22 @@ function install_libraries()
 
 function create_libraries()
 {
+  # TODO there's a lot of redundancy here with install_libraries; maybe this can be consolidated?
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries ...; fi
   if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-create ${INSTALL_OPTIONAL} ${OSOPTION})`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: ${COMMAND}; fi
     ${COMMAND}
     # conda-forge
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from conda-forge ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --conda-forge --conda-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset forge)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda-forge command: ${COMMAND}; fi
     ${COMMAND}
     # pip only
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --pip-only-list ${INSTALL_OPTIONAL} ${OSOPTION})`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
   else
@@ -131,7 +133,7 @@ function create_libraries()
     activate_env
     # pip install
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pip ...; fi
-    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_UTILS} --pip-install ${INSTALL_OPTIONAL} ${OSOPTION})`
+    local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} pip --action install)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pip command: ${COMMAND}; fi
     ${COMMAND}
   fi

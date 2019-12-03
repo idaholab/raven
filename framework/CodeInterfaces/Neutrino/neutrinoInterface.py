@@ -1,8 +1,19 @@
+# Copyright 2017 University of Rome La Sapienza and Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
-Created on Jul 25, 2017
-
-@author: Emerald Ryan
-
+  Created on Jul 25, 2017
+  @author: Emerald Ryan
 """
 
 from __future__ import division, print_function, absolute_import
@@ -20,7 +31,7 @@ class Neutrino(CodeInterfaceBase):
     The name of this class represents the type in the RAVEN input file
     e.g.
     <Models>
-      <Code name="myName" subType="NeutrinoBase">
+      <Code name="myName" subType="Neutrino">
       ...
       </Code>
       ...
@@ -44,7 +55,6 @@ class Neutrino(CodeInterfaceBase):
             run the code (string), returnCommand[1] is the name of the output root
     """
     found = False
-
     # Find the first file in the inputFiles that is an XML, which is what we need to work with.
     for index, inputFile in enumerate(inputFiles):
       if self._isValidInput(inputFile):
@@ -78,7 +88,6 @@ class Neutrino(CodeInterfaceBase):
     valid = False
     if inputFile.getExt() in ('nescene'):
       valid = True
-
     return valid
 
   def getInputExtension(self):

@@ -214,13 +214,13 @@ def compare_unordered_element(a_element, b_element, **kwargs):
     #print the tree of the nearest match
     note += '  Nearest unused match: '
     close = sorted(list(close.items()), key=lambda x: x[1], reverse=True)
-    if len(close) > 1:
+    if close:
       closest = '/'.join(list(c.tag for c in close[0][0]))
     else:
       closest = '-none found-'
     note += '    '+ closest +'\n'
     #print what was different between them
-    if len(close) > 1:
+    if len(close):
       diff = diffs[unmatched][close[0][0]]
       for b_diff, code, right, miss in diff:
         if b_diff is None:
@@ -335,17 +335,15 @@ def compare_ordered_element(a_element, b_element, *args, **kwargs):
         if len(a_element) > 0:
           a_string = ET.tostring(a_element)
           if len(a_string) > 80:
-            message.append('Branches in gold not matching test...\n'+path)
+            message.append('Branches in gold not matching test...\n{}'.format(path))
           else:
-            message.append('Branches in gold not matching test...\n'+path+
-                           " "+a_string)
+            message.append('Branches in gold not matching test...\n{} {}'.format(path, a_string))
         if len(b_element) > 0:
           b_string = ET.tostring(b_element)
           if len(b_string) > 80:
-            message.append('Branches in test not matching gold...\n'+path)
+            message.append('Branches in test not matching gold...\n{}'.format(path))
           else:
-            message.append('Branches in test not matching gold...\n'+path+
-                           " "+b_string)
+            message.append('Branches in test not matching gold...\n{} {}'.format(path, b_string))
   return (same, message)
 
 class XMLDiff:

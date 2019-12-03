@@ -13,6 +13,9 @@
       from which the initial samples are taken is a trimmed version of the output of framework/Optmizers.Vector test
       output, taking initial seed points from the 100th and 400th iteration of that test.
     </description>
+    <revisions>
+      <revision author='ZHOUJ2' date='2019-11-10'>add resample to False in Optimizer</revision>
+    </revisions>
     <analytic>
       This test uses the "time parabola" $f(x,y,t) = x^2 + (t-y)^2 e^(-t)$, which has a minimum at x=0 and y=t for each value of t,
       with greater impact coming from early values of y (y[0], y[1], etc).
@@ -55,6 +58,7 @@
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
         <writeSteps>final</writeSteps>
+        <resample>False</resample>
       </initialization>
       <TargetEvaluation class="DataObjects" type="DataSet">optOut</TargetEvaluation>
       <Sampler class="Samplers" type="CustomSampler">init</Sampler>
