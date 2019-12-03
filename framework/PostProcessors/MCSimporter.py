@@ -24,6 +24,7 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules---------------------------------------------------------------
 import pandas as pd
 import numpy as np
+import csv
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -64,7 +65,7 @@ class MCSimporter(PostProcessor):
     """
     inputSpecification = super(MCSimporter, cls).getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("expand", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("expand", contentType=InputData.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("BElistColumn", contentType=InputData.StringType))
     return inputSpecification
 
@@ -144,27 +145,35 @@ class MCSimporter(PostProcessor):
       
     # construct the list of MCSs and the list of BE  
     counter=0
-    with open(str(MCSlistFile), 'r') as file:
-      counter = counter+1
-      lines = file.readlines()
+    with open(MCSlistFile.getFilename(), 'r') as file:
+      next(file) # skip header
+      lines = file.read().splitlines()
       for l in lines:
-        elementsList = l.split(',')
-        for i in range(4):
-          elementsList.pop(0)
-      self.MCSlist.append(elementsList)
-      if self.expand==False:
-        self.BElist.update(elementsList)  
+        elementsList = l.split(',') 
+        elementsList.pop(0)
+        for element in elementsList:
+          element.rstrip('\n')
+        self.MCSlist.append(elementsList)
+        counter = counter+1
+        if self.expand==False:
+          self.BElist.update(elementsList)  
     if self.expand==True: 
-      BEdata = pd.read_csv(BElistFile)
+      BEdata = pd.read_csv(BElistFile.getFilename())    
       self.BElist = BEdata[self.BElistColumn]
-    
+
     MCSpointSet = {}  
     for be in self.BElist:
       MCSpointSet[be]= np.zeros(counter)
-      
-    for index,mcs in self.MCSlist:
+    
+    # Input variables
+    MCSpointSet['MCS_ID']= np.arange(counter)
+    
+    # Output variables 
+    counter=0
+    for mcs in self.MCSlist:
       for be in mcs:  
-        MCSpointSet[be][index] = 1.0
+        MCSpointSet[be][counter] = 1.0
+      counter = counter+1
     
     return MCSpointSet
 
