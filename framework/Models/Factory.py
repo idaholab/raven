@@ -16,8 +16,6 @@ Factory for generating the instances of the  Models Module
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 from utils import utils

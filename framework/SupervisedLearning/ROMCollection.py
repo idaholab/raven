@@ -34,7 +34,6 @@ from utils import utils, mathUtils, xmlUtils, randomUtils
 from .SupervisedLearning import supervisedLearning
 # import pickle as pk # TODO remove me!
 import os
-warnings.simplefilter('default', DeprecationWarning)
 
 
 #

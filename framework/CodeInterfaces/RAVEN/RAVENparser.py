@@ -17,8 +17,6 @@ Created on Sept 10, 2017
 @author: alfoa
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import xml.etree.ElementTree as ET
 import xml.dom.minidom

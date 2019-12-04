@@ -17,7 +17,7 @@ talbpaul, 2016-05
 """
 
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
+from utils.utils import toString
 import xml.etree.ElementTree as ET
 import re
 import os
