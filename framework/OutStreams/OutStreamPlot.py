@@ -1115,7 +1115,6 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        #self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         try:
                           self.actcm.draw_all()
                         except:
@@ -1135,7 +1134,6 @@ class OutStreamPlot(OutStreamManager):
                       else:
                         m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
                         m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
-                        #self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                 else:
                   if 'color' not in scatterPlotOptions:
@@ -1158,7 +1156,6 @@ class OutStreamPlot(OutStreamManager):
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                         else:
-                          #self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                           self.actcm.draw_all()
                     else:
                       scatterPlotOptions['cmap'] = plotSettings['cmap']
