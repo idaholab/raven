@@ -21,9 +21,6 @@ import warnings
 import xml.etree.ElementTree as ET
 import re
 import os
-from .utils import toString, getRelativeSortedListEntry
-warnings.simplefilter('default', DeprecationWarning)
-
 #define type checking
 def isComment(node):
   """
