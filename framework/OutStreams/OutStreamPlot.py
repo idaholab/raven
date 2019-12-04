@@ -1208,7 +1208,6 @@ class OutStreamPlot(OutStreamManager):
                     if self.actcm is None:
                       self.actcm = self.fig.colorbar(cmap)
                       self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
-                      # self.actcm.set_clim(vmin = minV, vmax = maxV)
                     else:
                       self.actcm.draw_all()
                 else:
@@ -1224,7 +1223,6 @@ class OutStreamPlot(OutStreamManager):
                       if self.actcm is None:
                         self.actcm = self.fig.colorbar(cmap)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
-                        # self.actcm.set_clim(vmin = minV, vmax = maxV)
                       else:
                         self.actcm.draw_all()
                   else:
