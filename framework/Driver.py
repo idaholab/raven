@@ -28,8 +28,7 @@ import warnings
 if not __debug__:
   warnings.filterwarnings("ignore")
 else:
-  warnings.simplefilter('default', DeprecationWarning)
-
+  warnings.simplefilter("default", DeprecationWarning)
 
 import os
 import sys
