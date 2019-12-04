@@ -73,9 +73,9 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-  
+
   <Models>
-    <ExternalModel name="ET" subType="ETModel">
+    <ExternalModel name="ET" subType="PRAplugin.ETModel">
       <variables>initEvent,statusACC,statusLPI,LPR,sequence</variables>
       <map var='initEvent' >IE</map>
       <map var='statusACC' >ACC</map>
@@ -84,21 +84,21 @@
       <sequenceID>sequence</sequenceID>
     </ExternalModel>
 
-    <ExternalModel name="FT1" subType="FTModel">
+    <ExternalModel name="FT1" subType="PRAplugin.FTModel">
       <variables>A,B,LPR</variables>
       <topEvents>LPR</topEvents>
       <map var='A'>A</map>
       <map var='B'>B</map>
     </ExternalModel>
 
-    <ExternalModel name="FT2" subType="FTModel">
+    <ExternalModel name="FT2" subType="PRAplugin.FTModel">
       <variables>A,C,alpha</variables>
       <topEvents>alpha</topEvents>
       <map var='A'>A</map>
       <map var='C'>C</map>
     </ExternalModel>
 
-    <ExternalModel name="graph" subType="GraphModel">
+    <ExternalModel name="graph" subType="PRAplugin.GraphModel">
       <variables>alpha,beta,gamma,statusACC</variables>
       <modelFile>RBD</modelFile>
       <nodesIN>signal</nodesIN>
@@ -109,7 +109,7 @@
       <map var='statusACC' >ACC</map>
     </ExternalModel>
 
-    <ExternalModel name="markov" subType="MarkovModel">
+    <ExternalModel name="markov" subType="PRAplugin.MarkovModel">
       <variables>initialState,statusLPI</variables>
       <initState>initialState</initState>
       <finState>statusLPI</finState>
@@ -117,9 +117,9 @@
       <state name='0'>
         <transition type='tau' value='1.25' >1</transition>
       </state>
-      <state name='1'> 
+      <state name='1'>
         <transition type='tau' value='5.'>0</transition>
-      </state>     
+      </state>
     </ExternalModel>
 
     <EnsembleModel name="PRA_Model" subType="">
@@ -150,7 +150,7 @@
       </Model>
     </EnsembleModel>
   </Models>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>A,B,C,beta,gamma,initialState,initEvent</Input>
@@ -189,5 +189,5 @@
       <Output>statusACC</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

@@ -9,9 +9,9 @@
   <Files>
     <Input name="eventTreeTest" type="">eventTree.xml</Input>
   </Files>
-  
-  <Models> 
-    <ExternalModel name="ET" subType="ETModel">
+
+  <Models>
+    <ExternalModel name="ET" subType="PRAplugin.ETModel">
       <variables>statusACC,statusLPI,statusLPR,sequence</variables>
       <!-- xml portion for this plugin only -->
       <map var='statusACC'>ACC</map>
@@ -61,7 +61,7 @@
       <what>input,output</what>
     </Print>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>statusACC,statusLPI,statusLPR</Input>
@@ -72,5 +72,5 @@
       <Output>sequence</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

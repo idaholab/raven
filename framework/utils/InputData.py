@@ -20,7 +20,7 @@ This a library for defining the data used and for reading it in.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import xml.etree.ElementTree as ET
-from utils import utils,mathUtils
+from utils import utils, mathUtils
 
 class InputType(object):
   """
@@ -180,9 +180,9 @@ class InterpretedListType(InputType):
     values = list(x.strip() for x in value.split(delim) if x.strip())
     base = utils.partialEval(values[0])
     # three possibilities: string, integer, or float
-    if utils.isAString(base):
+    if mathUtils.isAString(base):
       conv = str
-    elif utils.isAnInteger(base):
+    elif mathUtils.isAnInteger(base):
       conv = int
     else: #float
       conv = float
@@ -261,6 +261,49 @@ class IntegerListType(InputType):
 #Note, XSD's list type is split by spaces, not commas, so using xsd:string
 IntegerListType.createClass("stringtype","xsd:string")
 
+#
+#
+#
+#
+class IntegerOrIntegerTupleType(InputType):
+  """
+    A type for integer "1" -> 1
+    or integer tuples "1, 2, 3" -> (1,2,3)
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to an integer tuple.
+      @ In, value, string, the value to convert
+      @ Out, convertedValue, int or tuple, the converted value
+    """
+    convertedValue = tuple(int(x.strip()) for x in value.split(","))
+    convertedValue = convertedValue[0] if len(convertedValue) == 1 else convertedValue
+    return convertedValue
+
+IntegerOrIntegerTupleType.createClass("stringtype","xsd:string")
+
+#
+#
+#
+#
+class IntegerTupleType(InputType):
+  """
+    A type for integer tuples "1, 2, 3" -> (1,2,3)
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to an integer tuple.
+      @ In, value, string, the value to convert
+      @ Out, convertedValue, tuple, the converted value
+    """
+    convertedValue = tuple(int(x.strip()) for x in value.split(","))
+    return convertedValue
+
+IntegerTupleType.createClass("stringtype","xsd:string")
 
 #
 #
@@ -291,6 +334,20 @@ class EnumBaseType(InputType):
     cls.xmlType = xmlType
     cls.needGenerating = True
     cls.enumList = enumList
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Error checking for reading in enum entries
+      @ In, value, object, user-requested enum value
+      @ Out, value, object, adjusted enum value
+    """
+    # TODO is this the right place for checking?
+    ## TODO need to provide the offending XML node somehow ...
+    ## TODO should these by caught and handled by the parseNode?
+    if value not in cls.enumList:
+      raise IOError('Value "{}" unrecognized! Expected one of {}.'.format(value, cls.enumList))
+    return value
 
   @classmethod
   def generateXML(cls, xsdNode):
@@ -326,8 +383,10 @@ class BoolType(EnumBaseType):
     """
     if value.lower() in utils.stringsThatMeanTrue():
       return True
-    else:
+    elif value.lower() in utils.stringsThatMeanFalse():
       return False
+    else:
+      raise IOError('Unrecognized boolean value: "{}"! Expected "True" or "False", or similar.'.format(value))
 
 boolTypeList = utils.stringsThatMeanTrue() + utils.stringsThatMeanFalse()
 BoolType.createClass("bool","boolType", boolTypeList + [elm.capitalize() for elm in boolTypeList])
@@ -460,7 +519,7 @@ class ParameterInput(object):
       cls.subOrder.append((sub,quantity))
     elif quantity != Quantity.zero_to_infinity:
       print("ERROR only zero to infinity is supported if Order==False ",
-            sub.getName()," in ",cls.getName())
+           sub.getName()," in ",cls.getName())
 
   @classmethod
   def removeSub(cls, sub):
@@ -527,33 +586,46 @@ class ParameterInput(object):
         Handles the error, either by throwing IOError or adding to the errorlist
         @ In, s, string, string describing error.
       """
+      # TODO give the offending XML! Use has no idea where they went wrong.
       if errorList == None:
         raise IOError(s)
       else:
         errorList.append(s)
 
+    # check specs vs tag name
     if node.tag != self.name:
       #should this be an error or a warning? Or even that?
       #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
-      print('Using param spec "{}" to read XML node "{}.'.format(self.name,node.tag))
+      print('InputData: Using param spec "{}" to read XML node "{}.'.format(self.name,node.tag))
+
+    # check content type
     if self.contentType:
-      self.value = self.contentType.convert(node.text)
+      try:
+        self.value = self.contentType.convert(node.text)
+      except Exception as e:
+        handleError(str(e))
     else:
       self.value = node.text
+
+    # check attributes
     for parameter in self.parameters:
       if parameter in node.attrib:
         param_type = self.parameters[parameter]["type"]
         self.parameterValues[parameter] = param_type.convert(node.attrib[parameter])
       elif self.parameters[parameter]["required"]:
         handleError("Required parameter " + parameter + " not in " + node.tag)
+    # if strict, force parameter checking
     if self.strictMode:
       for parameter in node.attrib:
         if not parameter in self.parameters:
           handleError(parameter + " not in attributes and strict mode on in "+node.tag)
+
+    # handle ordering of subnodes
     if self.subOrder is not None:
       subs = [sub[0] for sub in self.subOrder]
     else:
       subs = self.subs
+    # read in subnodes
     subNames = set()
     for sub in subs:
       subName = sub.getName()
@@ -568,13 +640,11 @@ class ParameterInput(object):
         # there are mismatches
         unknownChilds = list(nodeNames - subNames)
         if unknownChilds:
-          handleError('Childs "[{}]" not allowed as sub-elements of "{}"'.format(",".join(unknownChilds),node.tag))
+          handleError('Childs "[{}]" not allowed as sub-elements of "{}"'.format(", ".join(unknownChilds),node.tag))
         #TODO: keep this for the future. We need to implement in the InputData a way to set some nodes to be required
         #missingChilds =  list(subNames - nodeNames)
         #if missingChilds:
         #  handleError('Not found Childs "[{}]" as sub-elements of "{}"'.format(",".join(missingChilds),node.tag))
-
-
 
   def findFirst(self, name):
     """
@@ -588,6 +658,14 @@ class ParameterInput(object):
       if sub.getName() == name:
         return sub
     return None
+
+  def findAll(self, name):
+    """
+      Finds all the subparts with name.
+      @ In, name, string, the name of the node to search for
+      @ Out, findAll, list, matching nodes (may be empty)
+    """
+    return list(sub for sub in self.subparts if sub.getName() == name)
 
   @classmethod
   def generateXSD(cls, xsdNode, definedDict):

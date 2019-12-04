@@ -1,0 +1,104 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <RunInfo>
+    <WorkingDir>r8</WorkingDir>
+    <Sequence>generate_data,sync,print</Sequence>
+    <batchSize>4</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="generate_data">
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Output class="DataObjects" type="HistorySet">results</Output>
+    </MultiRun>
+    <PostProcess name="sync">
+      <Input class="DataObjects" type="HistorySet">results</Input>
+      <Model class="Models" type="PostProcessor">syncer</Model>
+      <Output class="DataObjects" type="HistorySet">synced</Output>
+    </PostProcess>
+    <IOStep name="print">
+      <Input class="DataObjects" type="HistorySet">synced</Input>
+      <Output class="OutStreams" type="Print">synced</Output>
+    </IOStep>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
+      <variables>v0,y0,angle,x,y,timeOption,t</variables>
+    </ExternalModel>
+    <PostProcessor name="syncer" subType="InterfacedPostProcessor">
+      <method>HistorySetSync</method>
+      <pivotParameter>t</pivotParameter>
+      <extension>zeroed</extension>
+      <syncMethod>grid</syncMethod>
+      <numberOfSamples>20</numberOfSamples>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="my_mc">
+      <samplerInit>
+        <limit>30</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="v0">
+        <distribution>v0_dist</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_dist</distribution>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+      <constant name="x0">0</constant>
+      <constant name="timeOption">1</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <Distributions>
+    <Normal name="v0_dist">
+      <mean>30</mean>
+      <sigma>5</sigma>
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
+    </Normal>
+    <Uniform name="y0_dist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>v0,y0,angle</Input>
+    </PointSet>
+    <HistorySet name="results">
+      <Input>v0,y0,angle</Input>
+      <Output>x,y</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synced">
+      <Input>v0,y0,angle</Input>
+      <Output>x,y</Output>
+      <options>
+        <pivotParameter>t</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="synced">
+      <type>csv</type>
+      <source>synced</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

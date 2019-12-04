@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Utilities for comparing strings.
+  Utilities for comparing strings.
 """
 import re
 import sys
@@ -105,7 +105,8 @@ def remove_unicode_identifiers(s_var):
 def compare_strings_with_floats(a_str, b_str, num_tol=1e-10,
                                 zero_threshold=sys.float_info.min*4.0,
                                 remove_whitespace=False,
-                                remove_unicode_identifier=False):
+                                remove_unicode_identifier=False,
+                                rel_err=None):
   """
     Compares two strings that have floats inside them.
     This searches for floating point numbers, and compares them with a
@@ -117,6 +118,8 @@ def compare_strings_with_floats(a_str, b_str, num_tol=1e-10,
        is considered zero (XML comparison only). For example, if
        zeroThershold = 0.1, a float = 0.01 will be considered as it was 0.0
     @ In, remove_whitespace, bool, if True, remove all whitespace before comparing.
+    @ In, rel_err, float or None, if a float, then it is used as a relative
+       error.
     @ Out, compareStringWithFloats, (bool,string), (succeeded, note) where
       succeeded is a boolean that is true if the strings match, and note is
       a comment on the comparison.
@@ -148,8 +151,13 @@ def compare_strings_with_floats(a_str, b_str, num_tol=1e-10,
       b_float = float(b_part)
       a_float = a_float if abs(a_float) > zero_threshold else 0.0
       b_float = b_float if abs(b_float) > zero_threshold else 0.0
-      if abs(a_float - b_float) > num_tol:
-        return (False, "Numeric Mismatch of '"+a_part+"' and '"+b_part+"'")
+      if rel_err is None:
+        if abs(a_float - b_float) > num_tol:
+          return (False, "Numeric Mismatch of '"+a_part+"' and '"+b_part+"'")
+      else:
+        scale = abs(b_float) if b_float != 0 else 1.0
+        if abs(a_float - b_float) > scale*rel_err:
+          return (False, "Numeric Mismatch of '"+a_part+"' and '"+b_part+"'")
 
   return (True, "Strings Match Floatwise")
 

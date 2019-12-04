@@ -5,6 +5,23 @@
    UnorderedCsv = 'Basic/outer_out.csv'
    max_time = 500
  [../]
+ [./Code]
+   type = 'RavenFramework'
+   input = 'code.xml'
+   UnorderedCsv = 'Code/outer_out.csv'
+   rel_err = 0.0001
+    [./folderExist]
+      type = Exists
+      output = 'Code/sample/1/innerRunDir/sample/4/out~input.csv '
+    [../]
+ [../]
+ [./Code2ndRun]
+   type = 'RavenFramework'
+   input = 'code.xml'
+   UnorderedCsv = 'Code/outer_out.csv'
+   rel_err = 0.0001
+   prereq = Code
+ [../]
  [./ROM]
    type = 'RavenFramework'
    input = 'rom.xml'
@@ -12,5 +29,4 @@
    UnorderedCsv = 'ROM/testPointSet_dump.csv'
    rel_err = 0.0001
  [../]
-
 []

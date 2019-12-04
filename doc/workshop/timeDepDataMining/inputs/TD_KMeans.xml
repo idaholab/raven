@@ -128,7 +128,7 @@
     </PointSet>
     <HistorySet name="outMC">
       <Input>x0,y0,z0</Input>
-      <Output>time,x,y,z,KMeans1Dimension</Output>
+      <Output>time,x,y,z,KMeans1Labels</Output>
     </HistorySet>
     <HistorySet name="outMC0">
       <Input>x0,y0,z0</Input>

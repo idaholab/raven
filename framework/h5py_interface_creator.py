@@ -37,8 +37,7 @@ import difflib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from utils import mathUtils
+from utils import utils, mathUtils
 import MessageHandler
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
@@ -135,6 +134,8 @@ class hdf5Database(MessageHandler.MessageUser):
       self.firstRootGroup = True
     else:
       # self.h5FileW is the HDF5 object. Open the database in "write only" mode
+      if os.path.exists(self.filenameAndPath):
+        os.remove(self.filenameAndPath)
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'w')
       # Add the root as first group
       self.allGroupPaths.append(b"/")
@@ -261,7 +262,7 @@ class hdf5Database(MessageHandler.MessageUser):
     parentID  = rlz.get("RAVEN_parentID",[None])[0]
     prefix    = rlz.get("prefix")
 
-    groupName = str(prefix if utils.isSingleValued(prefix) else prefix[0])
+    groupName = str(prefix if mathUtils.isSingleValued(prefix) else prefix[0])
     if parentID:
       #If Hierarchical structure, firstly add the root group
       if not self.firstRootGroup or parentID == "None":

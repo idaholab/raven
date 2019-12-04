@@ -3,16 +3,19 @@
     type = 'RavenFramework'
     input = 'time_dep.xml'
     output = 'basicStatisticsTimeDependent/1-PlotRawdata_line.png basicStatisticsTimeDependent/1-Plotdata_scatter-scatter-scatter.png'
+    skip = "needs to be converted to exercise test"
   [../]
   [./KMeansT]
     type = 'RavenFramework'
     input = 'timeSliceKMeans.xml'
     output = 'timeSliceKMeans/plotPPDataCentroid_line.png timeSliceKMeans/plotRawData_line.png timeSliceKMeans/plotRawDataWithLabels_line.png timeSliceKMeans/centroid.csv'
+    skip = "needs to be converted to exercise test"
   [../]
   [./DTW]
     type = 'RavenFramework'
     input = 'TD_hierarchical_dtw.xml'
     output = 'resultsHierarchicalDTW/1-Cluster_0_line.pdf resultsHierarchicalDTW/1-Cluster_1_line.pdf resultsHierarchicalDTW/1-plot1_line.pdf resultsHierarchicalDTW/dendrogram.pdf'
     max_time = 1500
+    skip = "needs to be converted to exercise test"
   [../]
 []

@@ -29,8 +29,7 @@ import inspect
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
 import CustomCommandExecuter
-from utils import utils
-from utils import InputData
+from utils import utils, InputData, mathUtils
 import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -109,12 +108,12 @@ class ExternalModel(Dummy):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
-    modelVariableValues ={}
+    modelVariableValues = {}
     if 'createNewInput' in dir(self.sim):
       if 'SampledVars' in kwargs.keys():
         sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
       extCreateNewInput = self.sim.createNewInput(self.initExtSelf,myInput,samplerType,**kwargs)
-      if extCreateNewInput== None:
+      if extCreateNewInput is None:
         self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
       if type(extCreateNewInput).__name__ != "dict":
         self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+ ' the method createNewInput must return a dictionary. Got type: ' +type(extCreateNewInput).__name__)
@@ -130,8 +129,7 @@ class ExternalModel(Dummy):
     else:
       newInput =  Dummy.createNewInput(self, myInput,samplerType,**kwargs)
     if 'SampledVars' in kwargs.keys():
-      for key in kwargs['SampledVars'].keys():
-        modelVariableValues[key] = kwargs['SampledVars'][key]
+      modelVariableValues.update(kwargs['SampledVars'])
     return newInput, copy.copy(modelVariableValues)
 
   def localInputAndChecks(self,xmlNode):
@@ -149,12 +147,15 @@ class ExternalModel(Dummy):
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
       # load the external module and point it to self.sim
       self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
-    elif len(paramInput.parameterValues['subType'].strip()) > 0:
-      # it is a plugin. Look for the type in the plugins class list
+    ## NOTE we implicitly assume not having ModuleToLoad means you're a plugin or a known type.
+    elif paramInput.parameterValues['subType'].strip() is not None:
+      print('DEBUGG known:', ExternalModel.plugins.knownTypes())
+      # We assume it is a plugin. Look for the type in the plugins class list
       if paramInput.parameterValues['subType'] not in ExternalModel.plugins.knownTypes():
-        self.raiseAnError(IOError,'The "subType" named "'+paramInput.parameterValues['subType']+
-                                  '" does not belong to any ExternalModel plugin available. ' +
-                                  'Available plugins are "'+ ','.join(ExternalModel.plugins.knownTypes()))
+        self.raiseAnError(IOError,('The "subType" named "{sub}" does not belong to any ' +
+                                   'ExternalModel plugin available. Available plugins are: {plugs}')
+                                  .format(sub=paramInput.parameterValues['subType'],
+                                          plugs=', '.join(ExternalModel.plugins.knownTypes())))
       self.sim = ExternalModel.plugins.returnPlugin("ExternalModel",paramInput.parameterValues['subType'],self)
     else:
       self.raiseAnError(IOError,'"ModuleToLoad" attribute or "subType" not provided for Model "ExternalModel" named "'+self.name+'"!')
@@ -189,7 +190,7 @@ class ExternalModel(Dummy):
     modelVariableValues = {}
     for key in self.modelVariableType.keys():
       modelVariableValues[key] = None
-    for key,value in self.initExtSelf.__dict__.items():
+    for key, value in self.initExtSelf.__dict__.items():
       CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object)',self=externalSelf,object=value)  # exec('externalSelf.'+ key +' = copy.copy(value)')
       modelVariableValues[key] = copy.copy(value)
     for key in Input.keys():
@@ -200,10 +201,13 @@ class ExternalModel(Dummy):
     else:
       InputDict = Input
     #if 'createNewInput' not in dir(self.sim):
+    additionalKeys = []
+    if '_indexMap' in Input.keys():
+      additionalKeys.append('_indexMap')
     for key in Input.keys():
-      if key in modelVariables.keys():
+      if key in modelVariables.keys() or key in additionalKeys:
         modelVariableValues[key] = copy.copy(Input[key])
-    for key in self.modelVariableType.keys():
+    for key in list(self.modelVariableType.keys()) + additionalKeys:
       # add the variable as a member of "self"
       try:
         CustomCommandExecuter.execCommand('self.'+ key +' = copy.copy(object["'+key+'"])',self=externalSelf,object=modelVariableValues) #exec('externalSelf.'+ key +' = copy.copy(modelVariableValues[key])')  #self.__uploadSolution()
@@ -214,21 +218,23 @@ class ExternalModel(Dummy):
     #  InputDict = Input
     # only pass the variables and their values according to the model itself.
     for key in Input.keys():
-      if key in self.modelVariableType.keys():
+      if key in self.modelVariableType.keys() or key in additionalKeys:
         InputDict[key] = Input[key]
 
     self.sim.run(externalSelf, InputDict)
 
-    for key in self.modelVariableType.keys():
+    for key in self.modelVariableType:
       try:
-        CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')',self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
-      except (SyntaxError,AttributeError):
+        # Note, the following string can't be converted using {} formatting, at least as far as I can tell.
+        CustomCommandExecuter.execCommand('object["'+key+'"]  = copy.copy(self.'+key+')', self=externalSelf,object=modelVariableValues) #exec('modelVariableValues[key]  = copy.copy(externalSelf.'+key+')') #self.__pointSolution()
+      except (SyntaxError, AttributeError):
         self.raiseAWarning('Variable "{}" cannot be read from "self" due to complex name.  Retaining original value.'.format(key))
     for key in self.initExtSelf.__dict__.keys():
-      CustomCommandExecuter.execCommand('self.' +key+' = copy.copy(object.'+key+')',self=self.initExtSelf,object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
+      # Note, the following string can't be converted using {} formatting, at least as far as I can tell.
+      CustomCommandExecuter.execCommand('self.' +key+' = copy.copy(object.'+key+')', self=self.initExtSelf, object=externalSelf) #exec('self.initExtSelf.' +key+' = copy.copy(externalSelf.'+key+')')
     if None in self.modelVariableType.values():
       errorFound = False
-      for key in self.modelVariableType.keys():
+      for key in self.modelVariableType:
         self.modelVariableType[key] = type(modelVariableValues[key]).__name__
         if self.modelVariableType[key] not in self._availableVariableTypes:
           if not errorFound:
@@ -236,16 +242,20 @@ class ExternalModel(Dummy):
           errorFound = True
           self.raiseADebug('variable '+ key+' has an unsupported type -> '+ self.modelVariableType[key],verbosity='silent')
       if errorFound:
-        self.raiseAnError(RuntimeError,'Errors detected. See above!!')
+        self.raiseAnError(RuntimeError, 'Errors detected. See above!!')
     outcomes = dict((k, modelVariableValues[k]) for k in self.listOfRavenAwareVars)
     # check type consistency... This is needed in order to keep under control the external model... In order to avoid problems in collecting the outputs in our internal structures
-    for key in self.modelVariableType.keys():
-      if not (utils.typeMatch(outcomes[key],self.modelVariableType[key])):
-        self.raiseAnError(RuntimeError,'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
-    self._replaceVariablesNamesWithAliasSystem(outcomes,'inout',True)
-    # TODO slow conversion, but provides type consistency
-    outcomes = dict((k,np.atleast_1d(val)) for k,val in outcomes.items())
-    return outcomes,self
+    for key in self.modelVariableType:
+      if not utils.typeMatch(outcomes[key], self.modelVariableType[key]):
+        self.raiseAnError(RuntimeError, 'type of variable '+ key + ' is ' + str(type(outcomes[key]))+' and mismatches with respect to the input ones (' + self.modelVariableType[key] +')!!!')
+    self._replaceVariablesNamesWithAliasSystem(outcomes, 'inout', True)
+    # add the indexMap, if provided
+    indexMap = getattr(externalSelf, '_indexMap', None)
+    if indexMap:
+      outcomes['_indexMap'] = indexMap
+    # TODO slow conversion, but provides type consistency --> TODO this doesn't mach up well with other models!
+    outcomes = dict((k, np.atleast_1d(val)) for k, val in outcomes.items())
+    return outcomes, self
 
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
@@ -299,7 +309,7 @@ class ExternalModel(Dummy):
         # OLD ? if key in instanciatedSelf.modelVariableType.keys(): #TODO why would it not be in this dict?
         if outputSize == -1:
           outputSize = len(np.atleast_1d(evaluation[key]))
-        if not utils.sizeMatch(evaluation[key],outputSize):
+        if not mathUtils.sizeMatch(evaluation[key],outputSize):
           self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(len(np.atleast_1d(outcomes[key]))))
 
     Dummy.collectOutput(self, finishedJob, output, options)

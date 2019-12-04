@@ -21,9 +21,7 @@ import warnings
 import xml.etree.ElementTree as ET
 import re
 import os
-import VariableGroups
-from .utils import isAString, toString, getRelativeSortedListEntry
-from .graphStructure import graphObject
+from .utils import toString, getRelativeSortedListEntry
 warnings.simplefilter('default', DeprecationWarning)
 
 #define type checking
@@ -263,10 +261,7 @@ def fixXmlText(msg):
     @ In, msg, string, tag/text/attribute
     @ Out, msg, string, fixed string
   """
-  #if not a string, pass it back through
-  if not isAString(msg):
-    return msg
-  #otherwise, replace illegal characters with "?"
+  # replace illegal characters with "?"
   # from http://boodebr.org/main/python/all-about-python-and-unicode#UNI_XML
   RE_XML_ILLEGAL = u'([\u0000-\u0008\u000b-\u000c\u000e-\u001f\ufffe-\uffff])' + \
                  u'|' + \
@@ -274,7 +269,10 @@ def fixXmlText(msg):
                   ('\ud800', '\udbff', '\udc00', '\udfff',
                    '\ud800', '\udbff', '\udc00', '\udfff',
                    '\ud800', '\udbff', '\udc00', '\udfff')
-  msg = re.sub(RE_XML_ILLEGAL, "?", msg)
+  try:
+    msg = re.sub(RE_XML_ILLEGAL, "?", msg)
+  except TypeError:
+    pass # not a string, so don't replace illegals, just pass on.
   return msg
 
 def fixXmlTag(msg):
@@ -283,16 +281,17 @@ def fixXmlTag(msg):
     @ In, msg, string, tag/text/attribute
     @ Out, msg, string, fixed string
   """
-  #if not a string, pass it back through
-  if not isAString(msg):
-    return msg
   #define some presets
   letters = u'([a-zA-Z])'
   notAllTagChars = '(^[a-zA-Z0-9-_.]+$)'
   notTagChars = '([^a-zA-Z0-9-_.])'
   #rules:
   #  1. Can only contain letters, digits, hyphens, underscores, and periods
-  if not bool(re.match(notAllTagChars, msg)):
+  try:
+    matched = re.match(notAllTagChars, msg)
+  except TypeError:
+    return msg # not a string, so don't continue
+  if not bool(matched):
     pre = msg
     msg = re.sub(notTagChars, '.', msg)
     print('XML UTILS: Replacing illegal tag characters in "{}": {}'.format(pre, msg))
@@ -355,51 +354,18 @@ def findAllRecursive(node, element):
     result.append(elem)
   return result
 
-def readVariableGroups(xmlNode, messageHandler, caller):
+def toFile(name, root, pretty=True):
   """
-    Reads the XML for the variable groups and initializes them
-    @ In, xmlNode, ElementTree.Element, xml node to read in
-    @ In, messageHandler, MessageHandler.MessageHandler instance, message handler to assign to the variable group objects
-    @ In, caller, MessageHandler.MessageUser instance, entity calling this method (needs to inherit from MessageHandler.MessageUser)
-    @ Out, varGroups, dict, dictionary of variable groups (names to the variable lists to replace the names)
+    Writes out XML element "root" to file named "name". By default, applies prettifier.
+    @ In, name, str, name of destination file
+    @ In, root, xml.etree.ElementTree.Element, node to write
+    @ In, pretty, bool, optional, whether to prettify tree
+    @ Out, None
   """
-  # first find all the names
-  names = [node.attrib['name'] for node in xmlNode]
-
-  # find dependencies
-  deps = {}
-  nodes = {}
-  initials = []
-  for child in xmlNode:
-    name = child.attrib['name']
-    nodes[name] = child
-    if child.text is None:
-      needs = []
-    else:
-      needs = [s.strip().strip('-+^%') for s in child.text.split(',')]
-    for n in needs:
-      if n not in deps and n not in names:
-        deps[n] = []
-    deps[name] = needs
-    if len(deps[name]) == 0:
-      initials.append(name)
-  graph = graphObject(deps)
-  # sanity checking
-  if graph.isALoop():
-    caller.raiseAnError(IOError, 'VariableGroups have circular dependency!')
-  # ordered list (least dependencies first)
-  hierarchy = list(reversed(graph.createSingleListOfVertices(graph.findAllUniquePaths(initials))))
-
-  # build entities
-  varGroups = {}
-  for name in hierarchy:
-    if len(deps[name]):
-      varGroup = VariableGroups.VariableGroup()
-      varGroup.readXML(nodes[name], messageHandler, varGroups)
-      varGroups[name] = varGroup
-
-  return varGroups
-
+  if pretty:
+    s = prettify(root)
+  with open(os.path.abspath(os.path.expanduser(name)), 'w') as f:
+    f.write(s)
 #
 # XML Reader Customization
 #

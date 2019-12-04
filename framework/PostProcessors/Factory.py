@@ -43,6 +43,7 @@ from .ExternalPostProcessor import ExternalPostProcessor
 from .InterfacedPostProcessor import InterfacedPostProcessor
 from .TopologicalDecomposition import TopologicalDecomposition
 from .ComparisonStatisticsModule import ComparisonStatistics
+from .RealizationAverager import RealizationAverager
 # from .RavenOutput import RavenOutput # deprecated for now
 
 ## These utilize the optional prequisite library PySide, so don't error if they

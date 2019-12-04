@@ -37,6 +37,13 @@ from SupervisedLearning.SciKitLearn        import SciKitLearn
 from SupervisedLearning.pickledROM         import pickledROM
 from SupervisedLearning.PolyExponential    import PolyExponential
 from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
+from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters, Interpolated
+from .KerasClassifier import isTensorflowAvailable
+if isTensorflowAvailable():
+  from .KerasClassifier import KerasClassifier
+  from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
+  from SupervisedLearning.KerasConvNetClassifier import KerasConvNetClassifier
+  from SupervisedLearning.KerasLSTMClassifier import KerasLSTMClassifier
 from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters
 
 ## [ Add new class here ]
@@ -63,6 +70,11 @@ __interfaceDict['PolyExponential'     ] = PolyExponential
 __interfaceDict['DMD'                 ] = DynamicModeDecomposition
 __interfaceDict['Segments'            ] = Segments
 __interfaceDict['Clusters'            ] = Clusters
+__interfaceDict['Interpolated'        ] = Interpolated
+if isTensorflowAvailable():
+  __interfaceDict['KerasMLPClassifier'    ] = KerasMLPClassifier
+  __interfaceDict['KerasConvNetClassifier'] = KerasConvNetClassifier
+  __interfaceDict['KerasLSTMClassifier'   ] = KerasLSTMClassifier
 
 def knownTypes():
   """

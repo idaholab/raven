@@ -1,0 +1,64 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug" color="True">
+  <TestInfo>
+    <name>framework/PostProcessors/RealizationAverager.Basic</name>
+    <author>talbpw</author>
+    <created>2019-07-02</created>
+    <classesTested>PostProcessors.RealizationAverager</classesTested>
+    <description>
+      This test checks basic functionalities of the Realization Averager.
+      The data is samples from a multiyear ARMA, with dimensions of 3 years and 10 time steps each.
+      The RealizationAverager simply averages the three samples, maintaining the year and time dimensions.
+      This test was checked analytically at creation to assure the average of the three samples is the resulting averaged values.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Basic</WorkingDir>
+    <Sequence>load, process</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">original</Input>
+      <Output class="DataObjects" type="DataSet">samples</Output>
+    </IOStep>
+    <PostProcess name="process">
+      <Input class="DataObjects" type="DataSet">samples</Input>
+      <Model class="Models" type="PostProcessor">pp</Model>
+      <Output class="DataObjects" type="DataSet">averaged</Output>
+      <Output class="OutStreams" type="Print">averaged</Output>
+    </PostProcess>
+  </Steps>
+
+  <Files>
+    <Input name="original">samples.csv</Input>
+  </Files>
+
+  <OutStreams>
+    <Print name="averaged">
+      <type>csv</type>
+      <source>averaged</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <DataSet name="samples">
+      <Output>Speed</Output>
+      <Index var="Time">Speed</Index>
+      <Index var="Year">Speed</Index>
+    </DataSet>
+    <DataSet name="averaged">
+      <Output>Speed</Output>
+      <Index var="Time">Speed</Index>
+      <Index var="Year">Speed</Index>
+    </DataSet>
+  </DataObjects>
+
+  <Models>
+    <PostProcessor name="pp" subType="RealizationAverager" verbosity="debug">
+      <target>Speed</target>
+    </PostProcessor>
+  </Models>
+
+</Simulation>

@@ -42,10 +42,15 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     it could as complex as a stand alone code, a reduced order model trained somehow or something
     externally build and imported by the user
   """
-  try:
-    plugins = importlib.import_module("Models.ModelPlugInFactory")
-  except Exception as ae:
-    print("FAILED PLUGIN IMPORT",repr(ae))
+  @classmethod
+  def loadFromPlugins(cls):
+    """
+      Loads plugins from factory.
+      @ In, cls, uninstantiated object, class to load for
+      @ Out, None
+    """
+    cls.plugins = importlib.import_module("Models.ModelPlugInFactory")
+
 
   @classmethod
   def getInputSpecification(cls):
@@ -128,7 +133,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference']
+  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference','ConjugateGradient']
 
   @classmethod
   def generateValidateDict(cls):
@@ -243,8 +248,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # read local information
     self.localInputAndChecks(xmlNode)
     #################
-
-
 
   def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """

@@ -23,7 +23,7 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 if int(np.__version__.split(".")[1]) >12:
-  isin = np.isin 
+  isin = np.isin
 else:
   isin = lambda a, b: np.array([item in b for item in a])
 
@@ -33,8 +33,7 @@ from collections import OrderedDict
 
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import InputData
-from utils import utils
+from utils import InputData, utils, mathUtils
 import LearningGate
 import GridEntities
 import Files
@@ -141,7 +140,7 @@ class LimitSurface(PostProcessor):
     self.ROM.reset()
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
-      if utils.isAString(inp)  or isinstance(inp, bytes):
+      if mathUtils.isAString(inp)  or isinstance(inp, bytes):
         self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs. Got string type!')
       if inp.type == 'PointSet':
         self.indexes = index

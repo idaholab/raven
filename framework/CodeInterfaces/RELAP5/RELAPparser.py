@@ -143,7 +143,7 @@ class RELAPparser():
       if self.maxNumberOfDecks > 1:
         temp.append('*'+' deckNum: '+str(deckNum)+'\n')
       for j in sorted(modiDictionaryList):
-        for var in sorted(modiDictionaryList[j]):
+        for var in modiDictionaryList[j]:
           temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+str(var['value'])+'\n')
       temp.append('*RAVEN INPUT VALUES\n')
 

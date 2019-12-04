@@ -24,12 +24,12 @@ from Tester import Differ
 
 # get access to math tools from RAVEN
 try:
-  from utils import utils
+  from utils import mathUtils
 except ImportError:
   new = os.path.realpath(os.path.join(os.path.realpath(__file__), '..', '..',
                                       '..', '..', 'framework'))
   sys.path.append(new)
-  from utils import utils
+  from utils import mathUtils
 
 whoAmI = False # enable to show test dir and out files
 debug = False # enable to increase printing
@@ -38,29 +38,29 @@ class UnorderedCSVDiffer:
   """
     Used for comparing two CSV files without regard for column, row orders
   """
-  def __init__(self, out_files, gold_files, relative_error=1e-10,
-               absolute_check=False, zero_threshold=None, ignore_sign=False):
+  def __init__(self, outFiles, goldFiles, relativeError=1e-10,
+               absoluteCheck=False, zeroThreshold=None, ignoreSign=False):
     """
       Create an UnorderedCSVDiffer class
-      Note naming conventions are out of our control due to MOOSE test harness standards.
-      @ In, test_dir, the directory where the test takes place
-      @ In, out_files, the files to be compared.  They will be in test_dir + out_files
-      @ In, gold_files, the files to be compared to the out_files.
-      @ In, relative_error, float, optional, relative error
-      @ In, absolute_check, bool, optional, if True then check absolute
+      @ In, outFiles, the files to be compared.  They will be in testDir + outFiles
+      @ In, goldFiles, the files to be compared to the outFiles.
+      @ In, relativeError, float, optional, relative error
+      @ In, absoluteCheck, bool, optional, if True then check absolute
          differences in the values instead of relative differences
-      @ In, ignore_sign, bool, optional, if True then the sign will be ignored during the comparison
+      @ In, zeroThreshold, float, optional, if a number is less equal then
+                                             abs(zeroThreshold), it will be considered 0
+      @ In, ignoreSign, bool, optional, if True then the sign will be ignored during the comparison
       @ Out, None.
     """
-    assert len(out_files) == len(gold_files)
-    self.__out_files = out_files
-    self.__gold_files = gold_files
+    assert len(outFiles) == len(goldFiles)
+    self.__out_files = outFiles
+    self.__gold_files = goldFiles
     self.__message = ""
     self.__same = True
-    self.__check_absolute_values = absolute_check
-    self.__rel_err = relative_error
-    self.__zero_threshold = float(zero_threshold) if zero_threshold is not None else 0.0
-    self.__ignore_sign = ignore_sign
+    self.__check_absolute_values = absoluteCheck
+    self.__rel_err = relativeError
+    self.__zero_threshold = float(zeroThreshold) if zeroThreshold is not None else 0.0
+    self.__ignore_sign = ignoreSign
     if debug or whoAmI:
       print('out files:', self.__out_files)
       print('gold files:', self.__gold_files)
@@ -93,7 +93,7 @@ class UnorderedCSVDiffer:
       print('Looking for:\n', row)
       print('Looking in:\n', csv)
     match = csv.copy()
-    # TODO can I do this as a single search, using binomial on floats +- rel_err?
+    # TODO can I do this as a single search, using binomial on floats +- relErr?
     for idx, val in row.iteritems():
       if debug:
         print('  checking index', idx, 'value', val)
@@ -103,20 +103,20 @@ class UnorderedCSVDiffer:
       # check type consistency
       ## get a sample from the matching CSV column
       ### TODO could check indices ONCE and re-use instead of checking each time
-      match_val = match[idx].values.item(0) if match[idx].values.shape[0] != 0 else None
+      matchVal = match[idx].values.item(0) if match[idx].values.shape[0] != 0 else None
       ## find out if match[idx] and/or "val" are numbers
-      match_is_number = utils.isAFloatOrInt(match_val)
-      val_is_number = utils.isAFloatOrInt(val)
+      matchIsNumber = mathUtils.isAFloatOrInt(matchVal)
+      valIsNumber = mathUtils.isAFloatOrInt(val)
       ## if one is a number and the other is not, consider it a non-match.
-      if match_is_number != val_is_number:
+      if matchIsNumber != valIsNumber:
         if debug:
           print('  Not same type (number)! lfor: "{}" lin: "{}"'
-                .format(val_is_number, match_is_number))
+                .format(valIsNumber, matchIsNumber))
         return []
       # find index of lowest and highest possible matches
-      ## if values are floats, then matches could be as low as val(1-rel_err)
-      ## and as high as val(1+rel_err)
-      if match_is_number:
+      ## if values are floats, then matches could be as low as val(1-relErr)
+      ## and as high as val(1+relErr)
+      if matchIsNumber:
         pval = abs(val) if self.__ignore_sign else val
         pmatch = abs(match[idx].values) if self.__ignore_sign else match[idx].values
         # adjust for negative values
@@ -135,7 +135,7 @@ class UnorderedCSVDiffer:
           print('  Match is past end of sort list!')
         return []
       ## if entry at lowest index doesn't match entry, then it's not to be found
-      if not self.matches(match[idx].values[lowest], val, match_is_number, self.__rel_err):
+      if not self.matches(match[idx].values[lowest], val, matchIsNumber, self.__rel_err):
         if debug:
           print('  Match is not equal to insert point!')
         return []
@@ -145,25 +145,25 @@ class UnorderedCSVDiffer:
         print('  After searching for {}={}, remaining matches:\n'.format(idx, val), match)
     return match
 
-  def matches(self, a_obj, b_obj, is_number, tol):
+  def matches(self, aObj, bObj, isNumber, tol):
     """
       Determines if two objects match within tolerance.
       @ In, a, object, first object ("measured")
       @ In, b, object, second object ("actual")
-      @ In, is_number, bool, if True then treat as float with tolerance (else check equivalence)
+      @ In, isNumber, bool, if True then treat as float with tolerance (else check equivalence)
       @ In, tol, float, tolerance at which to hold match (if float)
       @ Out, matches, bool, True if matching
     """
-    if not is_number:
-      return a_obj == b_obj
+    if not isNumber:
+      return aObj == bObj
     if self.__ignore_sign:
-      a_obj = abs(a_obj)
-      b_obj = abs(b_obj)
+      aObj = abs(aObj)
+      bObj = abs(bObj)
     if self.__check_absolute_values:
-      return abs(a_obj-b_obj) < tol
+      return abs(aObj-bObj) < tol
     # otherwise, relative error
-    scale = abs(b_obj) if b_obj != 0 else 1.0
-    return abs(a_obj-b_obj) < scale*tol
+    scale = abs(bObj) if bObj != 0 else 1.0
+    return abs(aObj-bObj) < scale*tol
 
   def diff(self):
     """
@@ -173,80 +173,80 @@ class UnorderedCSVDiffer:
       @ Out, messages, str, messages to print on fail
     """
     # read in files
-    for test_filename, gold_filename in zip(self.__out_files, self.__gold_files):
+    for testFilename, goldFilename in zip(self.__out_files, self.__gold_files):
       # local "same" and message list
       same = True
       msg = []
       # load test file
       try:
-        test_csv = pd.read_csv(test_filename, sep=',')
+        testCsv = pd.read_csv(testFilename, sep=',')
       # if file is empty, we can check that's consistent, too
       except pd.errors.EmptyDataError:
-        test_csv = None
+        testCsv = None
       # if file doesn't exist, that's another problem
       except IOError:
         msg.append('Test file does not exist!')
         same = False
       # load gold file
       try:
-        gold_csv = pd.read_csv(gold_filename, sep=',')
+        goldCsv = pd.read_csv(goldFilename, sep=',')
       # if file is empty, we can check that's consistent, too
       except pd.errors.EmptyDataError:
-        gold_csv = None
+        goldCsv = None
       # if file doesn't exist, that's another problem
       except IOError:
         msg.append('Gold file does not exist!')
         same = False
       # if either file did not exist, clean up and go to next outfile
       if not same:
-        self.finalize_message(same, msg, test_filename)
+        self.finalize_message(same, msg, testFilename)
         continue
       # at this point, we've loaded both files (even if they're empty), so compare them.
       ## first, cover the case when both files are empty.
-      if test_csv is None or gold_csv is None:
-        if not (test_csv is None and gold_csv is None):
+      if testCsv is None or goldCsv is None:
+        if not (testCsv is None and goldCsv is None):
           same = False
-          if test_csv is None:
+          if testCsv is None:
             msg.append('Test file is empty, but Gold is not!')
           else:
             msg.append('Gold file is empty, but Test is not!')
         # either way, move on to the next file, as no more comparison is needed
-        self.finalize_message(same, msg, test_filename)
+        self.finalize_message(same, msg, testFilename)
         continue
       ## at this point, both files have data loaded
       ## check columns using symmetric difference
-      diff_columns = set(gold_csv.columns)^set(test_csv.columns)
-      if len(diff_columns) > 0:
+      diffColumns = set(goldCsv.columns)^set(testCsv.columns)
+      if len(diffColumns) > 0:
         same = False
         msg.append('Columns are not the same! Different: {}'.format(', '.join(diff_columns)))
-        self.finalize_message(same, msg, test_filename)
+        self.finalizeMessage(same, msg, testFilename)
         continue
       ## check index length
-      if len(gold_csv.index) != len(test_csv.index):
+      if len(goldCsv.index) != len(testCsv.index):
         same = False
         msg.append(('Different number of entires in Gold ({}) versus'+
-                    ' Test ({})!').format(len(gold_csv.index), len(test_csv.index)))
-        self.finalize_message(same, msg, test_filename)
+                    ' Test ({})!').format(len(goldCsv.index), len(testCsv.index)))
+        self.finalize_message(same, msg, testFilename)
         continue
       ## at this point both CSVs have the same shape, with the same header contents.
       ## align columns
-      test_csv = test_csv[gold_csv.columns.tolist()]
+      testCsv = testCsv[goldCsv.columns.tolist()]
       ## set marginal values to zero, fix infinites
-      test_csv = self.prep_data_frame(test_csv, self.__zero_threshold)
-      gold_csv = self.prep_data_frame(gold_csv, self.__zero_threshold)
+      testCsv = self.prep_data_frame(testCsv, self.__zero_threshold)
+      goldCsv = self.prep_data_frame(goldCsv, self.__zero_threshold)
       ## check for matching rows
-      for idx in gold_csv.index:
-        find = gold_csv.iloc[idx].rename(None)
-        match = self.find_row(find, test_csv)
+      for idx in goldCsv.index:
+        find = goldCsv.iloc[idx].rename(None)
+        match = self.find_row(find, testCsv)
         if len(match) == 0:
           same = False
           msg.append(('Could not find match for row "{}" in '+
                       'Gold:\n{}').format(idx+1, find)) #+1 because of header row
           msg.append('The Test output csv is:')
-          msg.append(str(test_csv))
+          msg.append(str(testCsv))
           # stop looking once a mismatch is found
           break
-      self.finalize_message(same, msg, test_filename)
+      self.finalize_message(same, msg, testFilename)
     return self.__same, self.__message
 
   def prep_data_frame(self, csv, tol):
@@ -266,12 +266,12 @@ class UnorderedCSVDiffer:
     for col in csv.columns:
       example = csv[col].values.item(0) if csv[col].values.shape[0] != 0 else None
       # skip columns that aren't numbers TODO might skip float columns with "None" early on
-      if not utils.isAFloatOrInt(example):
+      if not mathUtils.isAFloatOrInt(example):
         continue
       # flatten near-zeros
       csv[col].values[np.isclose(csv[col].values, 0, **key)] = 0
     # TODO would like to sort here, but due to relative errors it doesn't do
-    #  enough good.  Instead, sort in find_row.
+    #  enough good.  Instead, sort in findRow.
     return csv
 
 class UnorderedCSV(Differ):
@@ -296,15 +296,15 @@ class UnorderedCSV(Differ):
                      'compared to the tolerance directectly, instead of relatively.')
     return params
 
-  def __init__(self, name, params, test_dir):
+  def __init__(self, name, params, testDir):
     """
       Initializer for the class. Takes a String name and a dictionary params
       @ In, name, string, name of the test.
       @ In, params, dictionary, parameters for the class
-      @ In, test_dir, string, path to the test.
+      @ In, testDir, string, path to the test.
       @ Out, None.
     """
-    Differ.__init__(self, name, params, test_dir)
+    Differ.__init__(self, name, params, testDir)
     self.__zero_threshold = self.specs['zero_threshold']
     self.__ignore_sign = bool(self.specs['ignore_sign'])
     if len(self.specs['rel_err']) > 0:
@@ -322,12 +322,12 @@ class UnorderedCSV(Differ):
       @ In, None
       @ Out, (same, message), same is true if the tests passes.
     """
-    csv_files = self._get_test_files()
-    gold_files = self._get_gold_files()
-    csv_diff = UnorderedCSVDiffer(csv_files,
-                                  gold_files,
-                                  relative_error=self.__rel_err,
-                                  zero_threshold=self.__zero_threshold,
-                                  ignore_sign=self.__ignore_sign,
-                                  absolute_check=self.__check_absolute_value)
-    return csv_diff.diff()
+    csvFiles = self._get_test_files()
+    goldFiles = self._get_gold_files()
+    csvDiff = UnorderedCSVDiffer(csvFiles,
+                                  goldFiles,
+                                  relativeError=self.__rel_err,
+                                  zeroThreshold=self.__zero_threshold,
+                                  ignoreSign=self.__ignore_sign,
+                                  absoluteCheck=self.__check_absolute_value)
+    return csvDiff.diff()

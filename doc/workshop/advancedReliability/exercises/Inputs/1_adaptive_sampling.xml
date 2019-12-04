@@ -35,7 +35,7 @@
 
   <Functions>
     <External file="adaptive_test_goal" name="decision">
-      <variable>r</variable>
+      <variables>r</variables>
     </External>
   </Functions>
 

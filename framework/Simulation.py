@@ -33,6 +33,8 @@ import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+# NOTE: always import plugin factory first!
+import PluginFactory
 import Steps
 import DataObjects
 import Files
@@ -47,12 +49,16 @@ import OutStreams
 from JobHandler import JobHandler
 import MessageHandler
 import VariableGroups
-from utils import utils,TreeStructure,xmlUtils
+from utils import utils, TreeStructure, xmlUtils, mathUtils
 from Application import __QtAvailable
 from Interaction import Interaction
 if __QtAvailable:
   from Application import InteractiveApplication
 #Internal Modules End--------------------------------------------------------------------------------
+
+# Load up plugins!
+# -> only available on specially-marked base types
+Models.Model.loadFromPlugins()
 
 #----------------------------------------------------------------------------------------------------
 class SimulationMode(MessageHandler.MessageUser):
@@ -414,7 +420,7 @@ class Simulation(MessageHandler.MessageUser):
     varGroupNode = xmlNode.find('VariableGroups')
     # init, read XML for variable groups
     if varGroupNode is not None:
-      varGroups = xmlUtils.readVariableGroups(varGroupNode,self.messageHandler,self)
+      varGroups = mathUtils.readVariableGroups(varGroupNode,self.messageHandler,self)
     else:
       varGroups={}
     # read other nodes
@@ -816,5 +822,7 @@ class Simulation(MessageHandler.MessageUser):
             for allObject in self.whichDict[mainClassStr]:
               neededobjs[mainClassStr][allObject] = self.whichDict[mainClassStr][allObject]
           else:
-            self.raiseAnError(IOError,'Requested object '+obj[1]+' is not part of the Main Class '+mainClassStr + '!')
+            self.raiseAnError(IOError,'Requested object <{n}> is not part of the Main Class <{m}>!'
+                                      .format(n=obj[1], m=mainClassStr) +
+                                      '\nOptions are:', self.whichDict[mainClassStr].keys())
       objectInstance.generateAssembler(neededobjs)

@@ -1654,10 +1654,12 @@ class Categorical(Distribution):
     """
     totPsum = 0.0
     for element in self.mapping:
+      if self.mapping[element] < 0:
+        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
       totPsum += self.mapping[element]
     if not mathUtils.compareFloats(totPsum,1.0):
-      self.raiseAnError(IOError,'Categorical distribution cannot be initialized: sum of probabilities is '+repr(totPsum)+', not 1.0')
-
+      self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
+                         repr(totPsum), ', not 1.0!', 'Please renomlize it to 1!')
     self.lowerBound = min(self.mapping.keys())
     self.upperBound = max(self.mapping.keys())
 
@@ -3596,7 +3598,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     self.raiseAnError(NotImplementedError,'untruncatedMode not yet implemented for ' + self.type)
 
-  def rvs(self,*args):
+  def rvs(self, *args):
     """
       Return the random coordinate
       @ In, args, dict, arguments (for future usage)

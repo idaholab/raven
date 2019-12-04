@@ -1,0 +1,81 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.optIteration</name>
+    <author>ZHOUJ</author>
+    <created>2019-10-09</created>
+    <classesTested>Optimizer.ConjugateGradient</classesTested>
+    <description>
+      This test runs the optimization on an elliptic paraboloid. The minimum solution is at (-0.5, 0.5) with a value of 0.
+      This test aims to confirm the ConjugateGradient optimizer will converge in 2 steps in such a problem using the default
+      setup. Extra steps might apply for checking convergency criteria, constrains, and persistence.
+    </description>
+    <requirements>R-RM-1</requirements>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>OptIteration</WorkingDir>
+    <Sequence>optimize, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">optIter</Model>
+      <Optimizer class="Optimizers" type="ConjugateGradient">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </IOStep>
+  </Steps>
+
+  <Optimizers>
+    <ConjugateGradient name="opter">
+      <initialization>
+        <writeSteps>every</writeSteps>
+      </initialization>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <variable name="x">
+        <upperBound>2</upperBound>
+        <lowerBound>-2</lowerBound>
+        <initial>0</initial>
+      </variable>
+      <variable name="y">
+        <upperBound>2</upperBound>
+        <lowerBound>-2</lowerBound>
+        <initial>1</initial>
+      </variable>
+      <objectVar>ans</objectVar>
+    </ConjugateGradient>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/paraboloid" name="optIter" subType="">
+      <variables>x, y, ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,varsUpdate,accepted</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+
+</Simulation>

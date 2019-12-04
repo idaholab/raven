@@ -1,0 +1,910 @@
+%%%%%% command used for TensorFlow-Keras Deep neural networks %%%%%%%%%%%%%%%%%
+\newcommand{\layerNameAttr}[0]
+{
+    This node require the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{name}, \xmlDesc{string, required field}, name of this layer. The value will be
+        used in \xmlNode{layer\_layout} to construct the fully connected neural network.
+    \end{itemize}
+}
+%%% Arguments for Dense Layer %%%
+\newcommand{\activation}[0]
+{
+      \item \xmlNode{activation}, \xmlDesc{string, optional field}, including
+        {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
+        (see~\ref{activationsDNN})
+        \default{linear}
+}
+\newcommand{\dimOut}[0]
+{
+      \item \xmlNode{dim\_out}, \xmlDesc{positive integer, required except if this layer is used as the last output layer},
+        dimensionality of the output space of this layer
+}
+\newcommand{\useBias}[0]
+{
+  \item \xmlNode{use\_bias}, \xmlDesc{boolean, optional field}, whether the layer uses a bias vector.
+    \default{True}
+}
+\newcommand{\kernelInitializer}[0]
+{
+  \item \xmlNode{kernel\_initializer}, \xmlDesc{string, optional field}, initializer for the kernel weights matrix
+    (see~\ref{initializersDNN}).
+    \default{glorot\_uniform}
+}
+\newcommand{\biasInitializer}[0]
+{
+  \item \xmlNode{bias\_initializer}, \xmlDesc{string, optional field}, intializer for the bias vector
+    (see ~\ref{initializersDNN}).
+    \default{zeros}
+}
+\newcommand{\kernelRegularizer}[0]
+{
+  \item \xmlNode{kernel\_regularizer}, \xmlDesc{string, optional field}, regularizer function applied to
+    the kernel weights matrix (see ~\ref{regularizersDNN}).
+    \default{None}
+}
+\newcommand{\biasRegularizer}[0]
+{
+  \item \xmlNode{bias\_regularizer}, \xmlDesc{string, optional field}, regularizer function applied to the bias vector
+    (see~\ref{regularizersDNN}).
+    \default{None}
+}
+\newcommand{\activityRegularizer}[0]
+{
+  \item \xmlNode{activity\_regularizer}, \xmlDesc{string, optional field}, regularizer function applied to the output
+    of the layer (its "activation"). (see~\ref{regularizersDNN})
+    \default{None}
+}
+\newcommand{\kernelConstraint}[0]
+{
+  \item \xmlNode{kernel\_constraint}, \xmlDesc{string, optional field}, constraint function applied to the kernel weights
+    matrix (see~\ref{constraintsDNN}).
+    \default{None}
+}
+\newcommand{\biasConstraint}[0]
+{
+  \item \xmlNode{bias\_constraint}, \xmlDesc{string, optional field}, constraint function applied to the bias vector
+    (see ~\ref{constraintsDNN})
+    \default{None}
+}
+%%% Arguments for Dropout Layer %%%
+\newcommand{\rate}[0]
+{
+      \item \xmlNode{rate}, \xmlDesc{float between 0 and 1, optional field}, fraction of the input units to drop.
+        \default{0}
+}
+\newcommand{\noiseShape}[0]
+{
+      \item \xmlNode{noise\_shape}, \xmlDesc{list of integers, optional field}, 1D integer tensor representing the shape
+        of the binary dropout mask that will be multiplied with the input.
+        \default{None}
+}
+\newcommand{\seed}[0]
+{
+      \item \xmlNode{seed}, \xmlDesc{integer, optional field}, a integer to use as random seed.
+        \default{None}
+}
+%%% Arguments for LSTM Layer %%%
+\newcommand{\recurrentActivation}[0]
+{
+      \item \xmlNode{recurrent\_activation}, \xmlDesc{string, optional field}, activation function to use for the recurrent
+        step, including {`relu', `tanh', `elu', `selu', `softplus', `softsign', `sigmoid', `hard\_sigmoid', `linear', `softmax'}.
+        \default{hard\_sigmoid}
+}
+\newcommand{\recurrentInitializer}[0]
+{
+      \item \xmlNode{recurrent\_initializer}, \xmlDesc{string, optional field}, used for the linear transformation of
+        the recurrent state (see ~\ref{initializersDNN}).
+        \default{orthogonal}
+}
+\newcommand{\unitForgetBias}[0]
+{
+      \item \xmlNode{unit\_forget\_bias}, \xmlDesc{boolean, optional field}, add 1 to the bias of the forget gate at
+        initialization if True.
+        \default{True}
+}
+\newcommand{\recurrentRegularizer}[0]
+{
+      \item \xmlNode{recurrent\_regularizer}, \xmlDesc{string, optional field}, regularizer function applied to the
+        \textit{recurrent\_kernel} weights matrix (see ~\ref{regularizersDNN}).
+        \default{None}
+}
+\newcommand{\recurrentConstraint}[0]
+{
+      \item \xmlNode{recurrent\_constraint}, \xmlDesc{string, optional field}, constraint function applied to the
+        \textit{recurrent\_kernel} weights matrix (see ~\ref{constraints}).
+        \default{None}
+}
+\newcommand{\dropout}[0]
+{
+      \item \xmlNode{dropout}, \xmlDesc{float between 0 and 1, optional field}, fraction of the units to drop for the linear
+        transformation of the inputs
+        \default{0}
+}
+\newcommand{\recurrentDropout}[0]
+{
+      \item \xmlNode{recurrent\_dropout}, \xmlDesc{float between 0 and 1, optional field}, fraction of the units to drop for the linear
+        transformation of the recurrent state.
+        \default{0}
+}
+\newcommand{\returnSequence}[0]
+{
+      \item \xmlNode{return\_sequence}, \xmlDesc{boolean, optional field}, whether to return the last output in the output sequence, or
+        full sequence.
+        \default{False}
+}
+\newcommand{\implementation}[0]
+{
+      \item \xmlNode{implementation}, \xmlDesc{integer, optional field},
+        implementation mode, either 1 or 2. Mode 1 will structure its operations as a larger number of smaller dot products and additions,
+        whereas mode 2 will batch them into fewer, larger operations. These modes will have different performance profiles on different
+        hardware and for different applications.
+        \default{1}
+}
+\newcommand{\returnState}[0]
+{
+      \item \xmlNode{return\_state}, \xmlDesc{boolean, optional field},
+        whether to return the last output in the output sequence, or the full sequence.
+        \default{False}
+}
+\newcommand{\goBackwards}[0]
+{
+      \item \xmlNode{go\_backwards}, \xmlDesc{boolean, optional field},
+        if True, process the input sequence backwards and return the reversed sequence.
+        \default{False}
+}
+\newcommand{\stateful}[0]
+{
+      \item \xmlNode{stateful}, \xmlDesc{boolean, optional field},
+        if True, the last state for each sample at index i in a batch will be used as initial state for the sample
+        of index i in the following batch.
+        \default{False}
+}
+\newcommand{\unroll}[0]
+{
+      \item \xmlNode{unroll}, \xmlDesc{boolean, optional field},
+        if True, the network will be unrolled, else a symbolic loop will be used. Unrolling can speed-up a RNN,
+        although it tends to be more memory-intensive. Unrolling is only suitable for short sequences.
+        \default{False}
+}
+
+%%% Arguments for Conv1D Layer %%%
+
+\newcommand{\kernelSize}[0]
+{
+      \item \xmlNode{kernel\_size}, \xmlDesc{integer or list of integers, required field}, specifying the length
+        of the 1D convolution window.
+}
+\newcommand{\strides}[0]
+{
+      \item \xmlNode{strides}, \xmlDesc{integer or list of integers, optional field}, pecifying the stride
+        length of the convolution. Specifying any stride value not equal 1 is incompatible with specifying any
+        dilation\_rate value not equal 1.
+        \default{1}
+}
+\newcommand{\padding}[0]
+{
+      \item \xmlNode{padding}, \xmlDesc{string, optional field},
+        one of "valid", "causal" or "same" (case-insensitive).  "valid" means "no padding".
+        "same" results in padding the input such that the output has the same length as the original input.
+        "causal" results in causal (dilated) convolutions, e.g. output[t] does not depend on input[t + 1:].
+        A zero padding is used such that the output has the same length as the original input. Useful when
+        modeling temporal data where the model should not violate the temporal order.
+        \default{valid}
+}
+\newcommand{\dataFormat}[0]
+{
+      \item \xmlNode{data\_format}, \xmlDesc{string, optional field},
+        A string, one of "channels\_last" (default) or "channels\_first". The ordering of the dimensions in the inputs.
+        "channels\_last" corresponds to inputs with shape  (batch, steps, channels) (default format for temporal data
+        in Keras) while "channels\_first" corresponds to inputs with shape (batch, channels, steps).
+        \default{channels\_last}
+}
+\newcommand{\dilationRate}[0]
+{
+      \item \xmlNode{dilation\_rate}, \xmlDesc{integer or list of integers, optional field},
+        specifying the dilation rate to use for dilated convolution. Currently, specifying any dilation\_rate value
+        not equal 1 is incompatible with specifying any strides value not equal 1.
+        \default{1}
+}
+
+%%% Arguments for Pooling Layer %%%
+
+\newcommand{\poolSize}[0]
+{
+      \item \xmlNode{pool\_size}, \xmlDesc{integer, required field}, size of the max pooling windows.
+        \default{2}
+}
+
+\newcommand{\DenseLayer}[0]
+{
+  \item \xmlNode{Dense}, \xmlDesc{required field}, regular densely-connected neural network layer.
+    \layerNameAttr
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+        \activation
+        \dimOut
+        \useBias
+        \kernelInitializer
+        \biasInitializer
+        \kernelRegularizer
+        \biasRegularizer
+        \activityRegularizer
+        \kernelConstraint
+        \biasConstraint
+    \end{itemize}
+}
+\newcommand{\DropoutLayer}[0]
+{
+  \item \xmlNode{Dropout}, \xmlDesc{optional field}, applies Dropout to the input. Dropout consists in
+    randomly setting a fraction \xmlNode{rate} of input units to 0 at each update during training time,
+    which helps prevent overfitting.
+    \layerNameAttr
+    In addition, this node also accepts the following subnode
+    \begin{itemize}
+        \rate
+        \noiseShape
+        \seed
+    \end{itemize}
+}
+
+\newcommand{\PoolingLayer}[1]
+{
+
+  \item \xmlNode{#1}, \xmlDesc{optional field},
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+        \poolSize
+        \strides
+        \padding
+        \dataFormat
+    \end{itemize}
+}
+\newcommand{\GlobalPoolingLayer}[1]
+{
+
+  \item \xmlNode{#1}, \xmlDesc{optional field},
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+        \dataFormat
+    \end{itemize}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%% ROM Model - TensorFlow-Keras Interface  %%%%%%%
+\subsubsection{TensorFlow-Keras Deep Neural Networks}
+\label{subsubsec:TFK_DNNs}
+
+\textcolor{red}{\\It is important to NOTE that Python3 is required in order to use these deep neural networks.
+If python2 is installed, these ROMs will not be imported by RAVEN, and an error will be raised if the user tries
+to use these capabilities.}
+
+\textbf{TensorFlow} is an open source software library for high performance numerical computation. Its flexible architecture
+allows easy deployment of computation across a variety of platforms (CPUs, GPUs, TPUs), and from desktops to clusters
+of servers to mobile and edge devices. Originally developed by researchers and engineers from the Google Brain team
+within Google’s AI organization, it comes with strong support for machine learning and deep learning and the flexible
+numerical computation core is used across many other scientific domains.
+
+\textbf{Keras} is a high-level API to build and train deep learning models. It's used for fast prototyping, advanced research,
+and production, with three key advantages:
+\begin{itemize}
+  \item \textit{User friendly}: Keras has a simple, consistent interface optimized for common use cases.
+    It provides clear and actionable feedback for user errors.
+  \item \textit{Modular and composable}: Keras models are made by connecting configurable building blocks together,
+    with few restrictions.
+  \item \textit{Easy to extend}: Write custom building blocks to express new ideas for research. Create new layers,
+    loss functions, and develop state-of-the-art models.
+\end{itemize}
+
+\textbf{tf.keras} is TensorFlow's implementation of the Keras API specification. This is a high-level API to build and train
+models that include first-class support for TensorFlow-specific functionality, such as eager \textit{execution},
+\textit{tf.data} pipelines, and \textit{Estimators}. \textbf{tf.keras} makes TensorFlow easier to use without sacrificing
+flexibility and performance. RAVEN will utilize this high-level API to build and train deep neural networks (DNNs) as ROMs, and
+these ROMs can be employed by other RAVEN entities to perform uncertainty quantification, model opimization and data analysis.
+
+Before analyzing each classifier in detail, it is important to mention that each type has a similar syntax. In the
+example below, the subnodes that can be included in the main XML node \xmlNode{ROM} are reported:
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='whatever'>
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <loss>mean_squared_error</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>4</batch_size>
+      <epochs>4</epochs>
+      <num_classes>2</num_classes>
+      <validation_split>0.25</validation_split>
+      <optimizerSetting>
+        <optimizer>Adam</optimizer>
+        ...
+      </optimizerSetting>
+      <WhateverLayer1 name="layerName1">
+        ...
+      </WhateverLayer1>
+      ...
+      <WhateverLayerN name="layerNameN">
+        ...
+      </WhateverLayerN>
+      <layer_layout>layerName1, ..., layerNameN</layer_layout>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+As shown in above example, in addition to the common subnodes \xmlNode{Target} and \xmlNode{Features}, the \xmlNode{ROM} of DNNs
+can be initialized with the following children:
+\begin{itemize}
+  \item \xmlNode{loss}, \xmlDesc{string or comma separated string, optional field}, if the model has multiple outputs, you can use a different
+    loss metric on each output by passing a list of loss metrics. The value that will be minimized by the model will then
+    be the sum of all individual value from each loss metric. Available loss functions include \textit{mean\_squared\_error},
+    \textit{mean\_absolute\_error}, \textit{mean\_absolute\_percentage\_error}, \textit{mean\_squared\_logarithmic\_error},
+    \textit{squared\_hinge}, \textit{hinge}, \textit{categorical\_hinge}, \textit{logcosh}, \textit{categorical\_crossentropy},
+    \textit{sparse\_categorical\_crossentropy}, \textit{binary\_crossentropy}, \textit{kullback\_leibler\_divergence},
+    \textit{poisson}, \textit{cosine\_proximity}.
+  \default{mean\_squared\_error}
+  \item \xmlNode{metrics}, \xmlDesc{string or comma separated string, optional field}, list of metrics to be evaluated by
+    the model during training and testing. available metrics include
+    \textit{binary\_accuracy}, \textit{categorical\_accuracy}, \textit{sparse\_categorical\_accuracy},
+    \textit{top\_k\_categorical\_accuracy}, \textit{sparse\_top\_k\_categorical\_accuracy}.
+  \default{accuracy}
+  \item \xmlNode{batch\_size}, \xmlDesc{integer, optional field}, number of samples per gradient update.
+  \default{20}
+  \item \xmlNode{epochs}, \xmlDesc{integer, optional field}, number of epochs to train the model. An epoch
+    is an iteration over the entire training data.
+  \default{20}
+  \item \xmlNode{num\_classes}, \xmlDesc{positive integer, optional field}, dimensionality of the output space of given classifier.
+  \default{1}
+  \item \xmlNode{validation\_split}, \xmlDesc{float between 0 and 1, optional field}, fraction of the training data to
+    be used as validation data.
+  \default{0.25}
+  \item \xmlNode{plot\_model}, \xmlDesc{boolean, optional field}, if true the DNN model constructed by RAVEN will be
+    plotted and stored in the working directory. The file name will be \textit{"ROM name" + "\_" + "model.png"}.
+    \nb This capability requires the following libraries, i.e. pydot-ng and graphviz to be installed.
+  \default{False}
+  \item \xmlNode{optimizerSetting}, \xmlDesc{optional field}, including several subnode depending on the type of
+    optimizers.
+    \begin{itemize}
+      \item \xmlNode{optimizer}, \xmlDesc{string, optional field}, name of optimizer.
+    \end{itemize}
+    \default{Adam}
+    \nb The users can also choose different optimizers to train the ROM. The default algorithm is \textit{Adam}.
+    Other available optimizers include:
+    \textit{SGD}, \textit{RMSprop}, \textit{Adagrad}, \textit{Adadelta}, \textit{Adamx}, \textit{Nadam}.
+    For the detailed information, i.e. the parameters for each optimization, the user can refer to
+    \url{https://keras.io/optimizers/}. In raven, the user can use \xmlNode{optimizerSetting} to set the
+    parameters of the above optimizer as follows:
+    \begin{itemize}
+      \item \textbf{Adam}, adam optimizer
+        \begin{itemize}
+          \item \xmlNode{beta\_1}, \xmlDesc{float, optional field}, $0 < beta < 1$. Generally close to 1.
+          \default{0.9}
+          \item \xmlNode{beta\_2}, \xmlDesc{float, optional field}, $0 < beta < 1$. Generally close to 1.
+          \default{0.999}
+          \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, fuzz factor.
+          \default{None}
+          \item \xmlNode{decay}, \xmlDesc{float, optional field}, learning rate decay over each update.
+          \default{0.0}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{0.001}
+        \end{itemize}
+    %
+      \item \textbf{SGD}, stochastic gradient descent optimizer.
+        \begin{itemize}
+          \item \xmlNode{momentum}, \xmlDesc{float, optional field}, $> 0$. Parameter that accelerates SGD in
+            the relevant direction and dampens oscillations.
+          \default{0.0}
+          \item \xmlNode{nesterov}, \xmlDesc{boolean, optional field}, whether to apply Nesterov momentum
+          \default{False}
+          \item \xmlNode{decay}, \xmlDesc{float, optional field}, learning rate decay over each update.
+          \default{0.0}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{0.001}
+        \end{itemize}
+    %
+      \item \textbf{RMSprop}, RMSProp optimizer.
+        \begin{itemize}
+          \item \xmlNode{rho}, \xmlDesc{float, optional field}, $> 0$.
+          \default{0.9}
+          \item \xmlNode{decay}, \xmlDesc{float, optional field}, learning rate decay over each update.
+          \default{0.0}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{0.001}
+          \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, fuzz factor.
+          \default{None}
+        \end{itemize}
+    %
+      \item \textbf{Adagrad}, Adagrad optimizer.
+        \begin{itemize}
+          \item \xmlNode{decay}, \xmlDesc{float, optional field}, learning rate decay over each update.
+          \default{0.0}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{0.01}
+          \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, fuzz factor.
+          \default{None}
+        \end{itemize}
+    %
+      \item \textbf{Adadelta}, Adadelta optimizer.
+        \begin{itemize}
+          \item \xmlNode{decay}, \xmlDesc{float, optional field}, learning rate decay over each update.
+          \default{0.0}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{1.0}
+          \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, fuzz factor.
+          \default{None}
+          \item \xmlNode{rho}, \xmlDesc{float, optional field}, $> 0$.
+          \default{0.95}
+        \end{itemize}
+    %
+      \item \textbf{Adamax}, Adamax optimizer
+        \begin{itemize}
+          \item \xmlNode{beta\_1}, \xmlDesc{float, optional field}, $0 < beta < 1$. Generally close to 1.
+          \default{0.9}
+          \item \xmlNode{beta\_2}, \xmlDesc{float, optional field}, $0 < beta < 1$. Generally close to 1.
+          \default{0.999}
+          \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, fuzz factor.
+          \default{None}
+          \item \xmlNode{decay}, \xmlDesc{float, optional field}, learning rate decay over each update.
+          \default{0.0}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{0.002}
+        \end{itemize}
+    %
+      \item \textbf{Nadam},
+        \begin{itemize}
+          \item \xmlNode{beta\_1}, \xmlDesc{float, optional field}, $0 < beta < 1$. Generally close to 1.
+          \default{0.9}
+          \item \xmlNode{beta\_2}, \xmlDesc{float, optional field}, $0 < beta < 1$. Generally close to 1.
+          \default{0.999}
+          \item \xmlNode{epsilon}, \xmlDesc{float, optional field}, fuzz factor.
+          \default{None}
+          \item \xmlNode{lr}, \xmlDesc{float, optional field}, learning rate.
+          \default{0.002}
+        \end{itemize}
+  \end{itemize}
+  \item \xmlNode{layer\_layout}, \xmlDesc{comma seperated string, required}, the layout/order of layers in the
+    deep neural networks. The values in the subnode should be the name of layers defined in layer node, such as
+    \xmlNode{Dense}, \xmlNode{Dropout}, and \xmlNode{Conv1D}.
+\end{itemize}
+
+\nb The descriptions regarding the \xmlNode{WhateverLayer} node will be introduced in following subsections.
+Basically, different classifiers will require different layers.
+In addition, most core layers will accept the \xmlNode{activation} subnode (see ~\ref{activationsDNN}).
+
+%%%%% Activation Functions  %%%%%%%
+\paragraph{Activation Functions}
+\label{activationsDNN}
+Activations can either be used through an \xmlNode{Activation} layer, or through the
+\xmlNode{activation} argument supported by all forward layers.
+Available activations include:
+\begin{itemize}
+  \item \textit{relu}, the rectified linear unit function, returns $f(x) = max(0, x)$.
+  \item \textit{tanh}, the hyperbolic tan function, returns $f(x) = tanh(x)$.
+  \item \textit{elu}, exponential linear units try to make the mean activations closer to zero which speeds
+    up learning. $f(x) = x$ if $x \ge 0$, otherwise $(exp(x) - 1.)$.
+  \item \textit{selu}, scaled exponential linear unit, i.e. $scale * elu(x, alpha)$, where $scale, alpha$
+    are pre-defined constants.
+  \item \textit{softplus}, a smooth approximation to the rectifier linear unit function, return
+    $f(x) = log(1. + exp(x))$.
+  \item \textit{softsign}, return $f(x) = \frac{x}{1. + |x|}$.
+  \item \textit{sigmoid},return $f(x) = \frac{1.}{1. + exp(-x)}$.
+  \item \textit{hard\_sigmoid}, hard sigmoid activation function.
+  \item \textit{linear}, i.e. identity.
+  \item \textit{softmax}, softmax activation function, return $f(x) = \frac{exp(x_i)}{\sum_i{exp(x_i)}}$
+\end{itemize}
+
+%%%%% Initializer Functions  %%%%%%%
+\paragraph{Initializer Functions}
+\label{initializersDNN}
+Initializations define the way to set the initial random weights of TensorFlow-Keras layers. The keyword
+arguments used to passing initializers to layers will depend on the layer. Usually it is simply
+\xmlNode{kernel\_initializer} and \xmlNode{bias\_initializer}.
+Available initializers include:
+\begin{itemize}
+  \item \textit{Zeros}, generates tensors initialized to 0.
+  \item \textit{Ones}, generates tensors initialized to 1.
+  \item \textit{Constant}, generates tensors initialized to a constant value.
+  \item \textit{RandomNormal}, generates tensors with a normal distribution.
+  \item \textit{RandomUniform}, generates tensors with a uniform distribution.
+  \item \textit{TruncatedNormal}, generates a truncated normal distribution.
+  \item \textit{VarianceScaling}, initializer capable of adapting its scale to the shape of weights.
+  \item \textit{Orthogonal}, generates a random orthogonal matrix.
+  \item \textit{Identity}, generates the identity matrix.
+  \item \textit{lecun\_uniform}, LeCun uniform initializer.
+    It draws samples from a uniform distribution within
+    $[-limit, limit]$ where \textit{limit} is $sqrt(3/fanIn)$ where \textit{fanIn} is the number of input dimensions
+    in the weight tensor.
+  \item \textit{glorot\_normal}, Glorot normal initializer.
+    It draws samples from a truncated normal distribution
+    centered on 0 with $stddev = sqrt(2/(fanIn + fanOut))$ where \textit{fanIn} is the number of input dimensions
+    in the weight tensor and \textit{fanOut} is the number of output dimensions in the weight tensors.
+  \item \textit{glorot\_uniform}, Glorot uniform initializer.
+    It draws samples from a uniform distribution within
+    $[-limit, limit]$ where \textit{limit} is $sqrt(6/(fanIn+fanOut))$.
+  \item \textit{he\_normal}, He normal initializer.
+    It draws samples from a truncated normal distribution
+    centered on 0 with $stddev = sqrt(2/fanIn)$.
+  \item \textit{lecun\_normal}, LeCun normal initializer.
+    It draws samples from a truncated normal distribution
+    centered on 0 with $stddev = sqrt(1/fanIn)$.
+  \item \textit{he\_uniform}, He uniform variance scaling initializer.
+    It draws samples from a uniform distribution within
+    $[-limit, limit]$ where \textit{limit} is $sqrt(6/fanIn)$ where \textit{fanIn} is the number of input dimensions
+    in the weight tensor.
+\end{itemize}
+
+%%%%% Rgularizer Functions  %%%%%%%
+\paragraph{Regularizer Functions}
+\label{regularizersDNN}
+Regularizers allow to apply penalities on layer parameters or layer activity during optimization.
+These penalties are incorporated in the loss function that the network optimizes. The exact API
+will depend on the layer, but the layers \xmlNode{Dense, Conv1D, Conv2D, and Conv3D} have a
+unified API.
+Available regularizers include:
+\begin{itemize}
+  \item \textit{l1}, l1 regularization
+  \item \textit{l2}, l2 regularization
+  \item \textit{l1\_l2}, l1 and l2 regularization
+\end{itemize}
+
+%%%%% Constraint Functions  %%%%%%%
+\paragraph{Constraint Functions}
+\label{constraintsDNN}
+Functions from the \textit{constraint} module allow setting constraints on network parameters during optimization.
+Available constraints include:
+\begin{itemize}
+  \item \textit{MaxNorm}, constrains the weights incident to each hidden unit to have a norm less than or equal to
+    a desired value.
+  \item \textit{NonNeg}, constrains the weights to be non-negative
+  \item \textit{UnitNorm}, constrains the weights incident to each hidden unit to have unit norm.
+  \item \textit{MinMaxNorm}, constrains the weights incident to each hidden unit to have the norm between a lower bound
+    and an upper bound.
+\end{itemize}
+
+%%%%% ROM Model - KerasMLPClassifier  %%%%%%%
+\paragraph{KerasMLPClassifier}
+\label{KerasMLPClassifier}
+
+Multi-Layer Perceptron (MLP) (or Artificial Neural Network - ANN), a class of feedforward
+ANN, can be viewed as a logistic regression classifier where input is first transformed
+using a non-linear transformation. This transformation probjects the input data into a
+space where it becomes linearly separable. This intermediate layer is referred to as a
+\textbf{hidden layer}. An MLP consists of at least three layers of nodes. Except for the
+input nodes, each node is a neuron that uses a nonlinear \textbf{activation function}. MLP
+utilizes a suppervised learning technique called \textbf{Backpropagation} for training.
+Generally, a single hidden layer is sufficient to make MLPs a universal approximator.
+However, many hidden layers, i.e. deep learning, can be used to model more complex nonlinear
+relationships. The extra layers enable composition of features from lower layers, potentially
+modeling complex data with fewer units than a similarly performing shallow network.
+
+\zNormalizationPerformed{KerasMLPClassifier}
+
+In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+be \xmlString{KerasMLPClassifier} (see the example below). This model can be initialized with
+the following layers:
+
+\begin{itemize}
+  \DenseLayer
+  \DropoutLayer
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='KerasMLPClassifier'>
+      <Features>X,Y</Features>
+      <Target>Z</Target>
+      <loss>mean_squared_error</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>4</batch_size>
+      <epochs>4</epochs>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <Dense name="layer1">
+          <activation>relu</activation>
+          <dim_out>15</dim_out>
+      </Dense>
+      <Dropout name="dropout1">
+          <rate>0.2</rate>
+      </Dropout>
+      <Dense name="layer2">
+          <activation>tanh</activation>
+          <dim_out>8</dim_out>
+      </Dense>
+      <Dropout name="dropout2">
+          <rate>0.2</rate>
+      </Dropout>
+      <Dense name="outLayer">
+          <activation>sigmoid</activation>
+      </Dense>
+      <layer_layout>layer1, dropout1, layer2, dropout2, outLayer</layer_layout>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+%%%%% ROM Model - KerasConvNetClassifier  %%%%%%%
+\paragraph{KerasConvNetClassifier}
+\label{KerasClassifier}
+
+Convolutional Neural Network (CNN) is a deep learning algorithm which can take in an input image, assign
+importance to various objects in the image and be able to differentiate one from the other. The
+architecture of a CNN is analogous to that of the connectivity pattern of Neurons in the Human Brain
+and was inspired by the organization of the Visual Cortex. Individual neurons respond to stimuli only
+in a restricted region of the visual field known as the Receptive Field. A collection of such fields
+overlap to cover the entire visual area. CNN is able to successfully capture the spatial and temporal
+dependencies in an image through the applicaiton of relevant filters. The architecture performs
+a better fitting to the image dataset due to the reduction in the number of parameters involved
+and reusability of weights. In other words, the network can be trained to understand the sophistication
+of the image better.
+
+\zNormalizationPerformed{KerasConvNetClassifier}
+
+In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+be \xmlString{KerasConvNetClassifier} (see the example below). This model can be initialized with
+the following layers:
+
+\begin{itemize}
+  \DenseLayer
+  \DropoutLayer
+  \item \xmlNode{Conv1D}, \xmlDesc{optional field},
+    \layerNameAttr
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+        \activation
+        \dimOut
+        \useBias
+        \kernelSize
+        \strides
+        \padding
+        \dataFormat
+        \dilationRate
+        \kernelInitializer
+        \biasInitializer
+        \kernelRegularizer
+        \biasRegularizer
+        \activityRegularizer
+        \kernelConstraint
+        \biasConstraint
+    \end{itemize}
+
+  \item \xmlNode{Conv2D}, \xmlDesc{optional field},
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+        \activation
+        \dimOut
+        \useBias
+        \kernelSize
+        \strides
+        \padding
+        \dataFormat
+        \dilationRate
+        \kernelInitializer
+        \biasInitializer
+        \kernelRegularizer
+        \biasRegularizer
+        \activityRegularizer
+        \kernelConstraint
+        \biasConstraint
+    \end{itemize}
+
+  \item \xmlNode{Conv3D}, \xmlDesc{optional field},
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+        \activation
+        \dimOut
+        \useBias
+        \kernelSize
+        \strides
+        \padding
+        \dataFormat
+        \dilationRate
+        \kernelInitializer
+        \biasInitializer
+        \kernelRegularizer
+        \biasRegularizer
+        \activityRegularizer
+        \kernelConstraint
+        \biasConstraint
+    \end{itemize}
+
+  \item \xmlNode{Flatten}, \xmlDesc{optional field},
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+        \dataFormat
+    \end{itemize}
+
+  \PoolingLayer{MaxPooling1D}
+  \PoolingLayer{MaxPooling2D}
+  \PoolingLayer{MaxPooling3D}
+  \PoolingLayer{AveragePooling1D}
+  \PoolingLayer{AveragePooling2D}
+  \PoolingLayer{AveragePooling3D}
+  \GlobalPoolingLayer{GlobalMaxPooling1D}
+  \GlobalPoolingLayer{GlobalMaxPooling2D}
+  \GlobalPoolingLayer{GlobalMaxPooling3D}
+  \GlobalPoolingLayer{GlobalAveragePooling1D}
+  \GlobalPoolingLayer{GlobalAveragePooling2D}
+  \GlobalPoolingLayer{GlobalAveragePooling3D}
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='KerasConvNetClassifier'>
+      <Features>x1,x2</Features>
+      <Target>labels</Target>
+      <loss>mean_squared_error</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>1</batch_size>
+      <epochs>2</epochs>
+      <plot_model>True</plot_model>
+      <validation_split>0.25</validation_split>
+      <num_classes>1</num_classes>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <Conv1D name="firstConv1D">
+          <activation>relu</activation>
+          <strides>1</strides>
+          <kernel_size>2</kernel_size>
+          <padding>valid</padding>
+          <dim_out>32</dim_out>
+      </Conv1D>
+      <MaxPooling1D name="pooling1">
+          <strides>2</strides>
+          <pool_size>2</pool_size>
+      </MaxPooling1D>
+      <Conv1D name="SecondConv1D">
+          <activation>relu</activation>
+          <strides>1</strides>
+          <kernel_size>2</kernel_size>
+          <padding>valid</padding>
+          <dim_out>32</dim_out>
+      </Conv1D>
+      <MaxPooling1D name="pooling2">
+          <strides>2</strides>
+          <pool_size>2</pool_size>
+      </MaxPooling1D>
+      <Flatten name="flatten">
+      </Flatten>
+      <Dense name="dense1">
+          <activation>relu</activation>
+          <dim_out>10</dim_out>
+      </Dense>
+      <Dropout name="dropout1">
+          <rate>0.25</rate>
+      </Dropout>
+      <Dropout name="dropout2">
+          <rate>0.25</rate>
+      </Dropout>
+      <Dense name="dense2">
+          <activation>softmax</activation>
+      </Dense>
+      <layer_layout>firstConv1D, pooling1, dropout1, SecondConv1D, pooling2, dropout2, flatten, dense1, dense2</layer_layout>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+%%%%% ROM Model - KerasLSTMClassifier  %%%%%%%
+\paragraph{KerasLSTMClassifier}
+\label{KerasClassifier}
+
+Long Short Term Memory networks (LSTM) are a special kind of recurrent neural network, capable
+of learning long-term dependencies. They work tremendously well on a large variety of problems, and
+are now widely used. LSTMs are explicity designed to avoid the long-term dependency problem. Remembering
+information for long periods of time is practically their default behavior, not something that they
+struggle to learn.
+
+\zNormalizationPerformed{KerasLSTMClassifier}
+
+In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+be \xmlString{KerasLSTMClassifier} (see the example below). This model can be initialized with
+the following layers:
+
+\begin{itemize}
+  \DenseLayer
+  \DropoutLayer
+  \item \xmlNode{LSTM}, \xmlDesc{required field}, long short-term memory layer.
+    \layerNameAttr
+    In addition, this node also accepts the following subnodes
+    \begin{itemize}
+        \activation
+        \dimOut
+        \recurrentActivation
+        \dropout
+        \recurrentDropout
+        \returnSequence
+        \useBias
+        \kernelInitializer
+        \recurrentInitializer
+        \biasInitializer
+        \unitForgetBias
+        \kernelRegularizer
+        \recurrentRegularizer
+        \biasRegularizer
+        \activityRegularizer
+        \kernelConstraint
+        \recurrentConstraint
+        \biasConstraint
+        \implementation
+        \returnState
+        \goBackwards
+        \stateful
+        \unroll
+    \end{itemize}
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name='aUserDefinedName' subType='KerasLSTMClassifier'>
+      <Features>x</Features>
+      <Target>y</Target>
+      <loss>categorical_crossentropy</loss>
+      <metrics>accuracy</metrics>
+      <batch_size>1</batch_size>
+      <epochs>10</epochs>
+      <validation_split>0.25</validation_split>
+      <num_classes>26</num_classes>
+      <optimizerSetting>
+        <beta_1>0.9</beta_1>
+        <optimizer>Adam</optimizer>
+        <beta_2>0.999</beta_2>
+        <epsilon>1e-8</epsilon>
+        <decay>0.0</decay>
+        <lr>0.001</lr>
+      </optimizerSetting>
+      <LSTM name="lstm1">
+          <activation>tanh</activation>
+          <dim_out>32</dim_out>
+      </LSTM>
+      <LSTM name="lstm2">
+          <activation>tanh</activation>
+          <dim_out>16</dim_out>
+      </LSTM>
+      <Dropout name="dropout">
+          <rate>0.25</rate>
+      </Dropout>
+      <Dense name="dense">
+          <activation>softmax</activation>
+      </Dense>
+      <layer_layout>lstm1,lstm2,dropout,dense</layer_layout>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}

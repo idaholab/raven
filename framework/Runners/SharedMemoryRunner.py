@@ -158,7 +158,6 @@ class SharedMemoryRunner(InternalRunner):
         try:
           self.thread.raiseException(RuntimeError)
         except ValueError:
-          print('DEBUGG was already terminated....')
           self.thread = None
     self.trackTime('runner_killed')
 

@@ -42,7 +42,7 @@ class PolyExponential(supervisedLearning):
   r"""
     This surrogate is aimed to construct a "time-dep" surrogate based on a polynomial sum of exponentials
     The surrogate will have the form:
-    SM(X,z) = \sum_{i=1}^N P_i(X) \exp ( - Q_i(X) z )
+    SM(X,z) = sum_{i=1}^N P_i(X) exp ( - Q_i(X) z )
     where:
       z is the independent  monotonic variable (e.g. time)
       X is the vector of the other independent (parametric) variables
@@ -90,11 +90,12 @@ class PolyExponential(supervisedLearning):
     r"""
       Method to compute the coefficients of "n" exponential terms that minimize the
       difference between the training data and the "predicted" data
-      y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
+      y(x) = sum_{i=1}**n a_i exp ( - bi x )
       @ In, x, numpy.ndarray, the x values
       @ In, y, numpy.ndarray, the target values
       @ In, storePredictDiff, bool, optional, True if the prediction differences need to be returned (default False)
-      @ Out, (fi, 1/taui, predictionErr (optional) ), tuple(numpy.ndarray, numpy.ndarray, numpy.ndarray (optional)), a_i and b_i and predictionErr (if returnPredictDiff=True)
+      @ Out, (fi, taui**(-1), predictionErr (optional) ), tuple(numpy.ndarray, numpy.ndarray, numpy.ndarray (optional)),
+             ai and bi and predictionErr (if returnPredictDiff=True)
     """
     def _objective(s):
       """
@@ -130,7 +131,7 @@ class PolyExponential(supervisedLearning):
   def __evaluateExpTerm(self,x, a, b):
     r"""
       Evaluate exponential term given x, a and b
-      y(x) = \sum_{i=1}^n a_i \exp ( - b_i x )
+      y(x) = sum_{i=1}**n ai exp ( - bi x )
       @ In, x, numpy.ndarray, the x values
       @ In, a, numpy.ndarray, the a values
       @ In, b, numpy.ndarray, the b values

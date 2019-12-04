@@ -14,6 +14,9 @@
 
       As a result, before any regolding is performed on this test, a similar test and comparison should be made.
     </description>
+    <revisions>
+      <revision author='ZHOUJ2' date='2019-11-10'>add resample to False in optimizer</revision>
+    </revisions>
     <analytic>
       This test uses the "time parabola" $f(x,y,t) = x^2 + (t-y)^2 e^(-t)$, which has a minimum at x=0 and y=t for each value of t,
       with greater impact coming from early values of y (y[0], y[1], etc).
@@ -49,13 +52,14 @@
         <initialSeed>42</initialSeed>
         <thresholdTrajRemoval>1e-5</thresholdTrajRemoval>
         <writeSteps>final</writeSteps>
+        <resample>False</resample>
       </initialization>
       <TargetEvaluation class="DataObjects" type="DataSet">optOut</TargetEvaluation>
       <convergence>
         <gradientThreshold>1e-3</gradientThreshold>
-        <relativeThreshold>1e-5</relativeThreshold>
-        <gainGrowthFactor>3</gainGrowthFactor>
-        <gainShrinkFactor>1.2</gainShrinkFactor>
+        <relativeThreshold>1e-7</relativeThreshold>
+        <gainGrowthFactor>2</gainGrowthFactor>
+        <gainShrinkFactor>1.1</gainShrinkFactor>
       </convergence>
       <variable name="x">
         <upperBound>6</upperBound>
@@ -72,7 +76,7 @@
       <objectVar>ans</objectVar>
       <parameter>
         <initialStepSize>0.01</initialStepSize>
-        <perturbationDistance>0.001</perturbationDistance>
+        <perturbationDistance>0.0001</perturbationDistance>
       </parameter>
     </SPSA>
   </Optimizers>

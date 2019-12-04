@@ -406,7 +406,7 @@ class SingleRun(Step):
                                              inDictionary['jobHandler'].runInfoDict['stepName'])
       try:
         os.mkdir(currentWorkingDirectory)
-      except OSError:
+      except FileExistsError:
         self.raiseAWarning('current working dir '+currentWorkingDirectory+' already exists, ' +
                            'this might imply deletion of present files')
         if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
@@ -667,6 +667,12 @@ class MultiRun(SingleRun):
         sampler.finalizeActualSampling(finishedJob,model,inputs)
         finishedJob.trackTime('step_finished')
 
+        # terminate jobs as requested by the sampler, in case they're not needed anymore
+        ## TODO is this a safe place to put this?
+        ## If it's placed after adding new jobs and IDs are re-used i.e. for failed tests,
+        ## -> then the new jobs will be killed if this is placed after new job submission!
+        jobHandler.terminateJobs(sampler.getJobsToEnd(clear=True))
+
         # add new jobs
         isEnsemble = isinstance(model, Models.EnsembleModel)
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
@@ -686,9 +692,6 @@ class MultiRun(SingleRun):
               break
           else:
             break
-      # terminate jobs as requested by the sampler, in case they're not needed anymore
-      num = len(sampler.getJobsToEnd(clear=False))
-      jobHandler.terminateJobs(sampler.getJobsToEnd(clear=True))
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
@@ -991,13 +994,13 @@ class IOStep(Step):
           self.raiseAnError(RuntimeError,'Pickled object in "%s" is not a ROM.  Exiting ...' %str(fileobj))
         if not unpickledObj.amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
-        # save reseeding parameter from pickledROM
-        reseedInt = outputs[i].initializationOptionDict.get('reseedValue',None)
+        # save reseeding parameters from pickledROM
+        loadSettings = outputs[i].initializationOptionDict
         # train the ROM from the unpickled object
         outputs[i].train(unpickledObj)
         # reseed as requested
-        if reseedInt is not None:
-          outputs[i].reseed(reseedInt)
+        loadSettings['messageHandler'] = self.messageHandler
+        outputs[i].setAdditionalParams(loadSettings)
 
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet

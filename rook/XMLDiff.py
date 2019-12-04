@@ -18,9 +18,12 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import os
 import xml.etree.ElementTree as ET
-import DiffUtils as DU
-
 from Tester import Differ
+import DiffUtils as DU
+#cswf Defined because otherwise lines of code get too long.
+cswf = DU.compare_strings_with_floats
+
+
 
 numTol = 1e-10 #effectively zero for our purposes
 
@@ -76,11 +79,11 @@ def compare_list_entry(a_list, b_list, **kwargs):
     a_item = a_list[i]
     b_item = b_list[i]
     #match tag
-    same, _ = DU.compare_strings_with_floats(a_item.tag, b_item.tag,
-                                             options["rel_err"],
-                                             options["zero_threshold"],
-                                             options["remove_whitespace"],
-                                             options["remove_unicode_identifier"])
+    same, _ = cswf(a_item.tag, b_item.tag,
+                   rel_err=options["rel_err"],
+                   zero_threshold=options["zero_threshold"],
+                   remove_whitespace=options["remove_whitespace"],
+                   remove_unicode_identifier=options["remove_unicode_identifier"])
     total_matchable += 1
     if not same:
       match = False
@@ -89,12 +92,12 @@ def compare_list_entry(a_list, b_list, **kwargs):
       num_match += 1
     #match text
     #if (a_item.text is None or len(a_item.text)>0) and (b_item.text is None or len(b_item.text)>0):
-    same, _ = DU.compare_strings_with_floats(a_item.text,
-                                             b_item.text,
-                                             options["rel_err"],
-                                             options["zero_threshold"],
-                                             options["remove_whitespace"],
-                                             options["remove_unicode_identifier"])
+    same, _ = cswf(a_item.text,
+                   b_item.text,
+                   rel_err=options["rel_err"],
+                   zero_threshold=options["zero_threshold"],
+                   remove_whitespace=options["remove_whitespace"],
+                   remove_unicode_identifier=options["remove_unicode_identifier"])
     if not same:
       match = False
       diff.append((b_item, XMLDiff.notMatchText, str(a_item.text), str(b_item.text)))
@@ -110,12 +113,12 @@ def compare_list_entry(a_list, b_list, **kwargs):
         match = False
         diff.append((b_item, XMLDiff.missingAttribute, attrib, None))
         continue
-      same, _ = DU.compare_strings_with_floats(a_item.attrib[attrib],
-                                               b_item.attrib[attrib],
-                                               options["rel_err"],
-                                               options["zero_threshold"],
-                                               options["remove_whitespace"],
-                                               options["remove_unicode_identifier"])
+      same, _ = cswf(a_item.attrib[attrib],
+                     b_item.attrib[attrib],
+                     rel_err=options["rel_err"],
+                     zero_threshold=options["zero_threshold"],
+                     remove_whitespace=options["remove_whitespace"],
+                     remove_unicode_identifier=options["remove_unicode_identifier"])
       if not same:
         match = False
         diff.append((b_item, XMLDiff.notMatchAttribute, (a_item, attrib), (b_item, attrib)))
@@ -168,12 +171,12 @@ def compare_unordered_element(a_element, b_element, **kwargs):
     args_expanded = " ".join([str(x) for x in print_args])
     message.append(args_expanded)
   if a_element.text != b_element.text:
-    succeeded, note = DU.compare_strings_with_floats(a_element.text,
-                                                     b_element.text,
-                                                     options["rel_err"],
-                                                     options["zero_threshold"],
-                                                     options["remove_whitespace"],
-                                                     options["remove_unicode_identifier"])
+    succeeded, note = cswf(a_element.text,
+                           b_element.text,
+                           rel_err=options["rel_err"],
+                           zero_threshold=options["zero_threshold"],
+                           remove_whitespace=options["remove_whitespace"],
+                           remove_unicode_identifier=options["remove_unicode_identifier"])
     if not succeeded:
       same = False
       fail_message(note)
@@ -196,9 +199,8 @@ def compare_unordered_element(a_element, b_element, **kwargs):
             del diffs[close_key][b_entry]
             del matchvals[close_key][b_entry]
         break
-      else:
-        matchvals[a_entry][b_entry] = matchval
-        diffs[a_entry][b_entry] = diff
+      matchvals[a_entry][b_entry] = matchval
+      diffs[a_entry][b_entry] = diff
   if len(matchvals) == 0: #all matches found
     return (True, '')
   note = ''
@@ -212,13 +214,13 @@ def compare_unordered_element(a_element, b_element, **kwargs):
     #print the tree of the nearest match
     note += '  Nearest unused match: '
     close = sorted(list(close.items()), key=lambda x: x[1], reverse=True)
-    if len(close) > 1:
+    if close:
       closest = '/'.join(list(c.tag for c in close[0][0]))
     else:
       closest = '-none found-'
     note += '    '+ closest +'\n'
     #print what was different between them
-    if len(close) > 1:
+    if len(close):
       diff = diffs[unmatched][close[0][0]]
       for b_diff, code, right, miss in diff:
         if b_diff is None:
@@ -290,12 +292,12 @@ def compare_ordered_element(a_element, b_element, *args, **kwargs):
   else:
     path += a_element.tag + "/"
   if a_element.text != b_element.text:
-    succeeded, note = DU.compare_strings_with_floats(a_element.text,
-                                                     b_element.text,
-                                                     options["rel_err"],
-                                                     options["zero_threshold"],
-                                                     options["remove_whitespace"],
-                                                     options["remove_unicode_identifier"])
+    succeeded, note = cswf(a_element.text,
+                           b_element.text,
+                           rel_err=options["rel_err"],
+                           zero_threshold=options["zero_threshold"],
+                           remove_whitespace=options["remove_whitespace"],
+                           remove_unicode_identifier=options["remove_unicode_identifier"])
     if not succeeded:
       same = False
       fail_message(note)
@@ -333,17 +335,15 @@ def compare_ordered_element(a_element, b_element, *args, **kwargs):
         if len(a_element) > 0:
           a_string = ET.tostring(a_element)
           if len(a_string) > 80:
-            message.append('Branches in gold not matching test...\n'+path)
+            message.append('Branches in gold not matching test...\n{}'.format(path))
           else:
-            message.append('Branches in gold not matching test...\n'+path+
-                           " "+a_string)
+            message.append('Branches in gold not matching test...\n{} {}'.format(path, a_string))
         if len(b_element) > 0:
           b_string = ET.tostring(b_element)
           if len(b_string) > 80:
-            message.append('Branches in test not matching gold...\n'+path)
+            message.append('Branches in test not matching gold...\n{}'.format(path))
           else:
-            message.append('Branches in test not matching gold...\n'+path+
-                           " "+b_string)
+            message.append('Branches in test not matching gold...\n{} {}'.format(path, b_string))
   return (same, message)
 
 class XMLDiff:

@@ -48,6 +48,7 @@ from .ETImporter import ETImporter
 from .FTImporter import FTImporter
 from .DataClassifier import DataClassifier
 from .ComparisonStatisticsModule import ComparisonStatistics
+from .RealizationAverager import RealizationAverager
 # from .RavenOutput import RavenOutput # deprecated for now
 
 additionalModules = []
@@ -85,5 +86,6 @@ __all__ = ['PostProcessor',
            'FTImporter',
            'DataClassifier',
            'SampleSelector',
-           'ETImporter'] + additionalModules
+           'ETImporter',
+           'RealizationAverager'] + additionalModules
 #           'RavenOutput', # deprecated for now
