@@ -20,7 +20,7 @@ This a library for defining the data used and for reading it in.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import xml.etree.ElementTree as ET
-from utils import utils,mathUtils
+from utils import utils, mathUtils
 
 class InputType(object):
   """
@@ -180,9 +180,9 @@ class InterpretedListType(InputType):
     values = list(x.strip() for x in value.split(delim) if x.strip())
     base = utils.partialEval(values[0])
     # three possibilities: string, integer, or float
-    if utils.isAString(base):
+    if mathUtils.isAString(base):
       conv = str
-    elif utils.isAnInteger(base):
+    elif mathUtils.isAnInteger(base):
       conv = int
     else: #float
       conv = float

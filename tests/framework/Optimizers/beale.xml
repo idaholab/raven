@@ -10,8 +10,8 @@
       as well as the mechanical operation of the test.  Also tests the "gainGrowthFactor" and
       "gainShrinkFactor" convergence parameters.
 
-      Currently the full optimization path taken for 5 trajectories is printed, and the first two
-      are tested for exact path.
+      Currently the full optimization path taken for 5 trajectories is printed, and the first one
+      and last one are tested for exact path.
     </description>
     <analytic>
       This test uses Beale's function, which is documented in the analytic tests documentation under
@@ -20,6 +20,7 @@
     <requirements>R-RM-1</requirements>
     <revisions>
       <revision author='talbpaul' date='2018-01-04'>added the writeSteps=every option to test default performance</revision>
+      <revision author='ZHOUJ2' date='2019-11-10'>add resample test optimizer, regold path of first 2 trajectories to trajectory 1 and 5</revision>
     </revisions>
   </TestInfo>
 

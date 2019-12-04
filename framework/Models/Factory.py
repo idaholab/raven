@@ -31,23 +31,12 @@ from .EnsembleModel import EnsembleModel
 from .PostProcessor import PostProcessor
 from .HybridModel   import HybridModel
 
-## [ Add new class here ]
-
-################################################################################
-## Alternatively, to fully automate this file:
-# from Models import *
-################################################################################
-
 __base = 'Model'
 __interFaceDict = {}
 
 for classObj in utils.getAllSubclasses(eval(__base)):
   key = classObj.__name__
   __interFaceDict[key] = classObj
-
-
-## Can this be removed?
-#__interFaceDict                   = (__interFaceDict.items()+CodeInterfaces.__interFaceDict.items()) #try to use this and remove the code interface
 
 #here the class methods are called to fill the information about the usage of the classes
 for classType in __interFaceDict.values():
