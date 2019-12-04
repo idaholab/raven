@@ -22,11 +22,6 @@ warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
-if int(np.__version__.split(".")[1]) >12:
-  isin = np.isin
-else:
-  isin = lambda a, b: np.array([item in b for item in a])
-
 import copy
 from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
@@ -475,7 +470,8 @@ class LimitSurface(PostProcessor):
             myIdList[iVar] += 1
             if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
               putIt[iVar] = True
-              if not any(isin(listSurfPoint,coordinate)):
+              aaaa =  np.isin(listSurfPoint,coordinate)
+              if not np.isin(listSurfPoint,coordinate).any():
                 listSurfPoint.append(copy.copy(coordinate))
               break
             myIdList[iVar] -= 1
@@ -483,7 +479,7 @@ class LimitSurface(PostProcessor):
               myIdList[iVar] -= 1
               if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
                 putIt[iVar] = True
-                if not any(isin(listSurfPoint,coordinate)):
+                if not np.isin(listSurfPoint,coordinate).any():
                   listSurfPoint.append(copy.copy(coordinate))
                 break
               myIdList[iVar] += 1
@@ -491,16 +487,16 @@ class LimitSurface(PostProcessor):
             myIdList[iVar] -= 1
             if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
               putIt[iVar] = True
-              if not any(isin(listSurfPoint,coordinate)):
+              if not np.isin(listSurfPoint,coordinate).any():
                 listSurfPoint.append(copy.copy(coordinate))
               break
             if coordinate[iVar] > 0:
               myIdList[iVar] += 1
               if self.testMatrix[nodeName][tuple(myIdList)] * sign <= 0:
                 putIt[iVar] = True
-                if not any(isin(listSurfPoint,coordinate)):
+                if not np.isin(listSurfPoint,coordinate).any():
                   listSurfPoint.append(copy.copy(coordinate))
                 break
-      if len(set(putIt)) == 1 and  list(set(putIt))[0] == True and not any(isin(listSurfPoint,coordinate)):
+      if len(set(putIt)) == 1 and  list(set(putIt))[0] == True and not np.isin(listSurfPoint,coordinate).any():
         listSurfPoint.append(copy.copy(coordinate))
     return listSurfPoint
