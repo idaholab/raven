@@ -18,7 +18,6 @@ Created on Mar 7, 2013
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
 #from __builtin__ import None
 #End compatibility block for Python 3----------------------------------------------------------------
 

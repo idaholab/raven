@@ -24,10 +24,12 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 # if in debug mode, activate deprication warnings
 ## TODO does this need to be done in all modules, or just this one?
 import warnings
-if __debug__:
-  warnings.simplefilter('default', DeprecationWarning)
-else:
+
+if not __debug__:
   warnings.filterwarnings("ignore")
+else:
+  warnings.simplefilter('default', DeprecationWarning)
+
 
 import os
 import sys
