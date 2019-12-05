@@ -255,7 +255,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         # variable for tracking if distributions or functions have been declared
         foundDistOrFunc = False
         # store variable name for re-use
-        varName = child.parameterValues['name']
+        # alfoa: the variable name is always considered a single string.
+        # If a comma is present, we remove any leading spaces here
+        varName = ','.join([key.strip() for key in child.parameterValues['name'].split(",")])
         # set shape if present
         if 'shape' in child.parameterValues:
           self.variableShapes[varName] = child.parameterValues['shape']

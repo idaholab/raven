@@ -288,7 +288,9 @@ class Optimizer(Sampler):
         if self.fullOptVars is None:
           self.fullOptVars = []
         # store variable name
-        varName = child.parameterValues['name']
+        # alfoa: the variable name is always considered a single string.
+        # If a comma is present, we remove any leading spaces here
+        varName = ','.join([key.strip() for key in child.parameterValues['name'].split(",")])
         self.optVarsInitialized[varName] = False
         # store varible requested shape, if any
         if 'shape' in child.parameterValues:
