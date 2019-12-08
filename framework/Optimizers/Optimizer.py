@@ -81,7 +81,9 @@ class Optimizer(Sampler):
     ## was also part of Sampler, but we need to rewrite variable, so remove it first
     inputSpecification.removeSub('variable')
     variable = InputData.parameterInputFactory('variable', strictMode=True)
-    variable.addParam("name", InputData.StringType, True)
+    # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
+    # from StringType to StringNoLeadingSpacesType
+    variable.addParam("name", InputData.StringNoLeadingSpacesType, True)
     variable.addParam("shape", InputData.IntegerListType, required=False)
     upperBound = InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType, strictMode=True)
     lowerBound = InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType, strictMode=True)
@@ -288,9 +290,7 @@ class Optimizer(Sampler):
         if self.fullOptVars is None:
           self.fullOptVars = []
         # store variable name
-        # Added by alfoa: the variable name is always considered a single string.
-        #                 If a comma is present, we remove any leading spaces here
-        varName = ','.join([key.strip() for key in child.parameterValues['name'].split(",")])
+        varName = child.parameterValues['name']
         self.optVarsInitialized[varName] = False
         # store varible requested shape, if any
         if 'shape' in child.parameterValues:
