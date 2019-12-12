@@ -100,6 +100,10 @@ class CustomSampler(ForwardSampler):
           self.toBeSampled[name] = 'custom'
         else:
           self.dependentSample[name] = funct.text.strip()
+      elif child.tag == 'constant':
+        name = child.attrib['name']
+        value = float(child.text)
+        self.constants[name] = value
       elif child.tag == 'Source'  :
         if child.attrib['class'] not in ['Files','DataObjects']:
           self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
