@@ -63,6 +63,8 @@ coverage erase
 #get DISPLAY BACK
 DISPLAY=$DISPLAY_VAR
 
+echo DISPLAY $DISPLAY
+echo Xvfb `which Xvfb`
 if which Xvfb
 then
     Xvfb :8888 &

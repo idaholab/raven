@@ -248,6 +248,11 @@ if isTensorflowAvailable():
       self._romHistory = None
       self._sessionConf = None
       randomSeed = self.initOptionDict.pop('random_seed',None)
+      # Force TensorFlow to use single thread when reproducible results are requested
+      # Multiple threads are a potential source of non-reproducible results.
+      # For further details, see: https://stackoverflow.com/questions/42022950/
+      self._sessionConf = tf.ConfigProto(intra_op_parallelism_threads=self.numThreads,
+                                    inter_op_parallelism_threads=self.numThreads)
       # Set the seed for random number generation to obtain reproducible results
       # https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
       if randomSeed is not None:
@@ -257,11 +262,6 @@ if isTensorflowAvailable():
         # The below is necessary for starting core Python generated random numbers
         # in a well-defined state.
         rn.seed(randomSeed)
-        # Force TensorFlow to use single thread.
-        # Multiple threads are a potential source of non-reproducible results.
-        # For further details, see: https://stackoverflow.com/questions/42022950/
-        self._sessionConf = tf.ConfigProto(intra_op_parallelism_threads=1,
-                                      inter_op_parallelism_threads=1)
         # The below tf.set_random_seed() will make random number generation
         # in the TensorFlow backend have a well-defined initial state.
         # For further details, see:

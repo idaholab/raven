@@ -25,6 +25,7 @@
         <limit>100</limit>
         <initialSeed>42</initialSeed>
         <type>max</type>
+        <resample>False</resample>
         <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
