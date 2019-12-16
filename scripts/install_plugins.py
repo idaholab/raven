@@ -43,9 +43,9 @@ parser.add_argument('--avail', dest='showAvail', action='store_true',
                     help='show all available standard RAVEN plugins and exit')
 args = parser.parse_args()
 
-# TODO TEMPORARY FIXME for PRAplugin:
 # -> manually add to install list for "all"
-# This is because the plugin maintainers have not transitioned to a separate repository yet.
+# ExamplePlugin should always stay here.
+# PRAPlugin can be moved once it is in a separate repository.
 manualAddedPlugins = ['PRAplugin', 'ExamplePlugin']
 # END TEMPORARY FIXME
 
