@@ -20,7 +20,6 @@ import warnings
 import sys
 from UnorderedCSVDiffer import UnorderedCSVDiffer as UCSV
 
-warnings.simplefilter('default', DeprecationWarning)
 
 def check_same(comment, first, second, localMsg, localResults):
   """

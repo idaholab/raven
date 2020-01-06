@@ -18,9 +18,6 @@
 '''
 
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
 import threading
 import numpy as np
 from collections import deque, defaultdict

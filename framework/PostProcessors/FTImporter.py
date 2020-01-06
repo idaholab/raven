@@ -18,8 +18,6 @@ Created on Dec 21, 2017
 """
 
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import numpy as np
