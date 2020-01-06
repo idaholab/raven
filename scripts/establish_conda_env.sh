@@ -79,6 +79,7 @@ function install_libraries()
   if [[ $ECE_VERBOSE == 0 ]]; then echo Installing libraries ...; fi
   if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
+    conda config --set channel_priority flexible
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: \"${COMMAND}\"; fi
     ${COMMAND}
@@ -110,6 +111,7 @@ function create_libraries()
   if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries ...; fi
   if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
+    conda config --set channel_priority flexible
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER} ${INSTALL_OPTIONAL} ${OSOPTION} conda --action create)`
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... conda command: ${COMMAND}; fi
     ${COMMAND}
