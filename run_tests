@@ -141,7 +141,6 @@ if [[ $DO_PLUGINS == 0 ]]; then
   echo 'Loading plugin tests ...'
   PLUGINS=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -l)
   for P in $PLUGINS; do
-    echo DEBUGG P "$P"
     LOCATION=$($PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -f $P)/tests
     # TODO extend config to use RAVEN and PLUGIN config options without redoing all tests
     echo
