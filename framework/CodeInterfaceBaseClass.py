@@ -44,7 +44,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     self.inputExtensions = []            # list of input extensions
     self._runOnShell = True               # True if the specified command by the code interfaces will be executed through shell.
 
-  def setRunOnShell(self,shell=True):
+  def setRunOnShell(self, shell=True):
     """
       Method used to set the the executation of code command through shell if shell=True
       @ In, shell, Boolean, True if the users want to execute their code through shell
@@ -60,7 +60,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     return self._runOnShell
 
-  def genCommand(self,inputFiles,executable,flags=None, fileArgs=None, preExec=None):
+  def genCommand(self, inputFiles, executable, flags=None, fileArgs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       This method checks a boolean environment variable called 'RAVENinterfaceCheck':
@@ -80,7 +80,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     returnCommand = subcodeCommand,outputfileroot
     return returnCommand
 
-  def readMoreXML(self,xmlNode):
+  def readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this class and
       initialize some members based on inputs.
@@ -89,7 +89,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     self._readMoreXML(xmlNode)
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and
       initialize some members based on inputs. This can be overloaded in specialized code interface in order
@@ -100,7 +100,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     pass
 
   @abc.abstractmethod
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       @ In, inputFiles, list, List of input files (length of the list depends on the number of inputs have been added in the Step is running this code)
@@ -113,7 +113,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     return
 
   @abc.abstractmethod
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     """
       This method is used to generate an input based on the information passed in.
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -164,16 +164,17 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     self.addInputExtension(['i','inp','in'])
 
-  def initialize(self,runInfo, oriInputFiles):
+  def initialize(self, runInfo, oriInputFiles):
     """
       Method to initialize the run of a new step
       @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
       @ In, oriInputFiles, list, list of the original input files
       @ Out, None
     """
-    pass
+    # store working dir for future needs
+    self._ravenWorkingDir = runInfo['WorkingDir']
 
-  def finalizeCodeOutput(self,command,output,workingDir):
+  def finalizeCodeOutput(self, command, output, workingDir):
     """
       this method is called by the RAVEN code at the end of each run (if the method is present).
       It can be used for those codes, that do not create CSV files to convert the whatever output format into a csv
@@ -184,7 +185,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     return output
 
-  def checkForOutputFailure(self,output,workingDir):
+  def checkForOutputFailure(self, output, workingDir):
     """
       This method is called by RAVEN at the end of each run if the return code is == 0.
       This method needs to be implemented by the codes that, if the run fails, return a return code that is 0
