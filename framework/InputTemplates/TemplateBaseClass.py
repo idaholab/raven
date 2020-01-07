@@ -20,8 +20,6 @@ template as an accelerated way to write new RAVEN workflows. Other templates
 can inherit from this base class for specific applications.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 # standard library
 import os
 import sys
