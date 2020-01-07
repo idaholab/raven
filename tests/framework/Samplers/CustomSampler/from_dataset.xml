@@ -40,7 +40,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <DataSet name="samples">
-      <Input>x,y</Input>
+      <Input>x,y,const</Input>
       <Output>ans</Output>
       <Index var="t">y</Index>
     </DataSet>
@@ -67,6 +67,7 @@
       <variable name="y"/>
       <variable name="t"/>
       <variable name="ans"/>
+      <constant name='const'>3.14</constant>
     </CustomSampler>
   </Samplers>
 
