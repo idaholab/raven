@@ -111,6 +111,8 @@ class IntegerType(InputType):
       @ In, value, string, the value to convert
       @ Out, convert, int, the converted value
     """
+    if mathUtils.isAString(value):
+      value = float(value)
     return int(value)
 
 IntegerType.createClass("integer","xsd:integer")
