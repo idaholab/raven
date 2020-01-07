@@ -24,9 +24,9 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-  
+
   <Models>
-    <ExternalModel name="markov2" subType="MarkovModel">
+    <ExternalModel name="markov2" subType="PRAplugin.MarkovModel">
       <variables>initialState,finalState</variables>
       <initState>initialState</initState>
       <finState>finalState</finState>
@@ -36,7 +36,7 @@
       </state>
       <state name='2'> <!-- Failed -->
         <transition type='tau' value='5.'>1</transition>
-      </state>     
+      </state>
     </ExternalModel>
   </Models>
 
@@ -78,7 +78,7 @@
       </actions>
     </Plot>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>initialState</Input>
@@ -89,5 +89,5 @@
       <Output>finalState</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

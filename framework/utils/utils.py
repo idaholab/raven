@@ -17,8 +17,6 @@
 
 from __future__ import division, print_function, absolute_import
 # WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 # *************************** NOTE FOR DEVELOPERS ***************************
 # Do not import numpy or scipy or other libraries that are not              *
@@ -31,8 +29,8 @@ import inspect
 import subprocess
 import platform
 import copy
-import numpy
-import six
+# import numpy # DO NOT import! See note above.
+# import six   # DO NOT import! see note above.
 from difflib import SequenceMatcher
 import importlib
 
@@ -391,94 +389,6 @@ def toBytes(s):
   else:
     return s
 
-def isSingleValued(val, nanOk=True, zeroDOk=True):
-  """
-    Determine if a single-entry value (by traditional standards).
-    Single entries include strings, numbers, NaN, inf, None
-    NOTE that Python usually considers strings as arrays of characters.  Raven doesn't benefit from this definition.
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ In, zeroDOk, bool, optional, if True then a zero-d numpy array with a single-valued entry is A-OK
-    @ Out, isSingleValued, bool, result
-  """
-  # TODO most efficient order for checking?
-  if zeroDOk:
-    # if a zero-d numpy array, then technically it's single-valued, but we need to get into the array
-    val = npZeroDToEntry(val)
-  return isAFloatOrInt(val,nanOk=nanOk) or isABoolean(val) or isAString(val) or (val is None)
-
-def isAString(val):
-  """
-    Determine if a string value (by traditional standards).
-    @ In, val, object, check
-    @ Out, isAString, bool, result
-  """
-  return isinstance(val, six.string_types)
-
-def isAFloatOrInt(val,nanOk=True):
-  """
-    Determine if a float or integer value
-    Should be faster than checking (isAFloat || isAnInteger) due to checking against numpy.number
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAFloatOrInt, bool, result
-  """
-  return isAnInteger(val,nanOk) or  isAFloat(val,nanOk)
-
-def isAFloat(val,nanOk=True):
-  """
-    Determine if a float value (by traditional standards).
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAFloat, bool, result
-  """
-  if isinstance(val,(float,numpy.number)):
-    # exclude ints, which are numpy.number
-    if isAnInteger(val):
-      return False
-    # numpy.float32 (or 16) is niether a float nor a numpy.float (it is a numpy.number)
-    if nanOk:
-      return True
-    elif val not in [numpy.nan,numpy.inf]:
-      return True
-  return False
-
-def isAnInteger(val,nanOk=False):
-  """
-    Determine if an integer value (by traditional standards).
-    @ In, val, object, check
-    @ In, nanOk, bool, optional, if True then NaN and inf are acceptable
-    @ Out, isAnInteger, bool, result
-  """
-  if isinstance(val,six.integer_types) or isinstance(val,numpy.integer):
-    # exclude booleans
-    if isABoolean(val):
-      return False
-    return True
-  # also include inf and nan, if requested
-  if nanOk and isinstance(val,float) and val in [numpy.nan,numpy.inf]:
-    return True
-  return False
-
-def isABoolean(val):
-  """
-    Determine if a boolean value (by traditional standards).
-    @ In, val, object, check
-    @ Out, isABoolean, bool, result
-  """
-  return isinstance(val,(bool,numpy.bool_))
-
-def npZeroDToEntry(a):
-  """
-    Cracks the shell of the numpy array and gets the sweet sweet value inside
-    @ In, a, object, thing to crack open (might be anything, hopefully a zero-d numpy array)
-    @ Out, a, object, thing that was inside the thing in the first place
-  """
-  if isinstance(a, numpy.ndarray) and a.shape == ():
-    # make the thing we're checking the thing inside to the numpy array
-    a = a.item()
-  return a
-
 def toBytesIterative(s):
   """
     Method aimed to convert all the string-compatible content of
@@ -497,38 +407,6 @@ def toBytesIterative(s):
     return tempdict
   else:
     return toBytes(s)
-
-def toListFromNumpyOrC1array(array):
-  """
-    This method converts a numpy or c1darray into list
-    @ In, array, numpy or c1array,  array to be converted
-    @ Out, response, list, the casted value
-  """
-  response = array
-  if type(array).__name__ == 'ndarray':
-    response = array.tolist()
-  elif type(array).__name__.split(".")[0] == 'c1darray':
-    response = numpy.asarray(array).tolist()
-  return response
-
-def toListFromNumpyOrC1arrayIterative(array):
-  """
-    Method aimed to convert all the string-compatible content of
-    an object (dict, list, or string) in type list from numpy and c1darray types (recursively call toBytes(s))
-    @ In, array, object,  object whose content needs to be converted
-    @ Out, response, object, a copy of the object in which the string-compatible has been converted
-  """
-  if type(array) == list:
-    return [toListFromNumpyOrC1array(x) for x in array]
-  elif type(array) == dict:
-    if len(array.keys()) == 0:
-      return None
-    tempdict = {}
-    for key,value in array.items():
-      tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
-    return tempdict
-  else:
-    return toBytes(array)
 
 def toStrish(s):
   """
@@ -1002,19 +880,6 @@ def typeMatch(var,varTypeStr):
       if typeVar.__name__.startswith(varTypeStr):
         match = True
   return match
-
-def sizeMatch(var,sizeToCheck):
-  """
-    This method is aimed to check if a variable has an expected size
-    @ In, var, python datatype, the first variable to compare
-    @ In, sizeToCheck, int, the size this variable should have
-    @ Out, sizeMatched, bool, is the size ok?
-  """
-  sizeMatched = True
-  if len(numpy.atleast_1d(var)) != sizeToCheck:
-    sizeMatched = False
-  return sizeMatched
-
 
 def isASubset(setToTest,pileList):
   """

@@ -17,8 +17,6 @@ Created on November 6, 2017
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 #External Modules End-----------------------------------------------------------
@@ -33,6 +31,7 @@ class PluginBase(object):
   # List containing the methods that need to be checked in order to assess the
   # validity of a certain plugin. This list needs to be populated by the derived class
   _methodsToCheck = []
+  entityType = None  # the RAVEN entity fulfilled by this object
 
   def __init__(self):
     """
@@ -40,10 +39,9 @@ class PluginBase(object):
       @ In, None
       @ Out, None
     """
-    pass
 
   @classmethod
-  def isAvalidPlugin(cls):
+  def isAValidPlugin(cls):
     """
       Method to check if this plugin is a valid one (i.e. contains all the expected API method)
       @ In, None

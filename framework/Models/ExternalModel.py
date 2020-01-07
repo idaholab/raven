@@ -16,8 +16,6 @@ Module where the base class and the specialization of different type of Model ar
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -29,8 +27,7 @@ import inspect
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
 import CustomCommandExecuter
-from utils import utils
-from utils import InputData
+from utils import utils, InputData, mathUtils
 import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -148,12 +145,15 @@ class ExternalModel(Dummy):
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
       # load the external module and point it to self.sim
       self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
-    elif len(paramInput.parameterValues['subType'].strip()) > 0:
-      # it is a plugin. Look for the type in the plugins class list
+    ## NOTE we implicitly assume not having ModuleToLoad means you're a plugin or a known type.
+    elif paramInput.parameterValues['subType'].strip() is not None:
+      print('DEBUGG known:', ExternalModel.plugins.knownTypes())
+      # We assume it is a plugin. Look for the type in the plugins class list
       if paramInput.parameterValues['subType'] not in ExternalModel.plugins.knownTypes():
-        self.raiseAnError(IOError,'The "subType" named "'+paramInput.parameterValues['subType']+
-                                  '" does not belong to any ExternalModel plugin available. ' +
-                                  'Available plugins are "'+ ','.join(ExternalModel.plugins.knownTypes()))
+        self.raiseAnError(IOError,('The "subType" named "{sub}" does not belong to any ' +
+                                   'ExternalModel plugin available. Available plugins are: {plugs}')
+                                  .format(sub=paramInput.parameterValues['subType'],
+                                          plugs=', '.join(ExternalModel.plugins.knownTypes())))
       self.sim = ExternalModel.plugins.returnPlugin("ExternalModel",paramInput.parameterValues['subType'],self)
     else:
       self.raiseAnError(IOError,'"ModuleToLoad" attribute or "subType" not provided for Model "ExternalModel" named "'+self.name+'"!')
@@ -307,7 +307,7 @@ class ExternalModel(Dummy):
         # OLD ? if key in instanciatedSelf.modelVariableType.keys(): #TODO why would it not be in this dict?
         if outputSize == -1:
           outputSize = len(np.atleast_1d(evaluation[key]))
-        if not utils.sizeMatch(evaluation[key],outputSize):
+        if not mathUtils.sizeMatch(evaluation[key],outputSize):
           self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(len(np.atleast_1d(outcomes[key]))))
 
     Dummy.collectOutput(self, finishedJob, output, options)

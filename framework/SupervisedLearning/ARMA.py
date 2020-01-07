@@ -20,8 +20,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -140,7 +138,7 @@ class ARMA(supervisedLearning):
     if correlated is not None:
       np.random.seed(self.seed)
       # store correlated targets
-      assert not utils.isAString(correlated)
+      assert not mathUtils.isAString(correlated)
       corVars = correlated #[x.strip() for x in correlated.split(',')]
       for var in corVars:
         if var not in self.target:

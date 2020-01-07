@@ -23,10 +23,14 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os,sys
 import numpy as np
+import xml.etree.ElementTree as ET
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
 from utils import mathUtils
-import numpy as np
+
+from MessageHandler import MessageHandler
+mh = MessageHandler()
+mh.initialize({})
 
 print (mathUtils)
 
@@ -344,6 +348,139 @@ checkAnswer('InfDiff finite - (-inf)',mathUtils.diffWithInfinites( 0,-n), i)
 checkAnswer('InfDiff -inf   - inf'   ,mathUtils.diffWithInfinites(-n, n),-i)
 checkAnswer('InfDiff -inf   - finite',mathUtils.diffWithInfinites(-n, 0),-i)
 checkAnswer('InfDiff -inf   - (-inf)',mathUtils.diffWithInfinites(-n,-n), 0)
+
+##########################
+#      TYPE CHECKING     #
+##########################
+# isSingleValued
+checkAnswer('isSingleValued -1'      ,mathUtils.isSingleValued(-1      ),True)
+checkAnswer('isSingleValued 0'       ,mathUtils.isSingleValued(0       ),True)
+checkAnswer('isSingleValued 1'       ,mathUtils.isSingleValued(1       ),True)
+checkAnswer('isSingleValued 1e200'   ,mathUtils.isSingleValued(1e200   ),True)
+checkAnswer('isSingleValued 1e-200'  ,mathUtils.isSingleValued(1e-200  ),True)
+checkAnswer('isSingleValued -1e200'  ,mathUtils.isSingleValued(-1e200  ),True)
+checkAnswer('isSingleValued 3.14'    ,mathUtils.isSingleValued(3.14    ),True)
+checkAnswer('isSingleValued "hombre"',mathUtils.isSingleValued('hombre'),True)
+checkAnswer('isSingleValued None'    ,mathUtils.isSingleValued(None    ),True)
+checkAnswer('isSingleValued True'    ,mathUtils.isSingleValued(True    ),True)
+checkAnswer('isSingleValued False'   ,mathUtils.isSingleValued(False   ),True)
+checkAnswer('isSingleValued long',mathUtils.isSingleValued(123456789012345678901234567890),True)
+
+checkAnswer('isSingleValued inf notok',mathUtils.isSingleValued(np.inf,nanOk=False),False)
+checkAnswer('isSingleValued nan notok',mathUtils.isSingleValued(np.nan,nanOk=False),False)
+checkAnswer('isSingleValued inf ok'   ,mathUtils.isSingleValued(np.inf,nanOk=True ),True)
+checkAnswer('isSingleValued nan ok'   ,mathUtils.isSingleValued(np.nan,nanOk=True ),True)
+
+checkAnswer('isSingleValued array'  ,mathUtils.isSingleValued([1]          ),False)
+checkAnswer('isSingleValued set'    ,mathUtils.isSingleValued((1,)         ),False)
+checkAnswer('isSingleValued nparray',mathUtils.isSingleValued(np.array([1])),False)
+checkAnswer('isSingleValued dict'   ,mathUtils.isSingleValued({1:2}        ),False)
+
+# isAString
+# TODO how to get a string (not unicode) after import unicode literals?
+#checkAnswer('isAString string',utils.isAString(bytes_to_native_str(b'alpha')),True)
+checkAnswer('isAString strish' ,mathUtils.isAString('alpha'),True)
+checkAnswer('isAString unicode',mathUtils.isAString(u'beta'),True)
+checkAnswer('isAString float'  ,mathUtils.isAString(1.0    ),False)
+checkAnswer('isAString int'    ,mathUtils.isAString(1      ),False)
+checkAnswer('isAString bool'   ,mathUtils.isAString(True   ),False)
+
+# isAFloatOrInt
+checkAnswer('isAFloatOrInt 0'   ,mathUtils.isAFloatOrInt(0      ),True)
+checkAnswer('isAFloatOrInt 1'   ,mathUtils.isAFloatOrInt(1      ),True)
+checkAnswer('isAFloatOrInt 3.14',mathUtils.isAFloatOrInt(3.14   ),True)
+checkAnswer('isAFloatOrInt str' ,mathUtils.isAFloatOrInt('gamma'),False)
+checkAnswer('isAFloatOrInt bool',mathUtils.isAFloatOrInt(True   ),False)
+
+checkAnswer('isAFloatOrInt nan ok' ,mathUtils.isAFloatOrInt(np.nan),True)
+checkAnswer('isAFloatOrInt inf ok' ,mathUtils.isAFloatOrInt(np.inf),True)
+checkAnswer('isAFloatOrInt nan not ok',mathUtils.isAFloatOrInt(np.nan, nanOk=False),False)
+checkAnswer('isAFloatOrInt inf not ok',mathUtils.isAFloatOrInt(np.inf, nanOk=False),False)
+checkAnswer('isAFloatOrInt long',mathUtils.isAFloatOrInt(123456789012345678901234567890),True)
+
+# isAFloat
+checkAnswer('isAFloat 3.14'  ,mathUtils.isAFloat(3.14  ),True)
+checkAnswer('isAFloat 1e200' ,mathUtils.isAFloat(1e200 ),True)
+checkAnswer('isAFloat 1e-200',mathUtils.isAFloat(1e-200),True)
+checkAnswer('isAFloat -1e200',mathUtils.isAFloat(-1e200),True)
+checkAnswer('isAFloat 1'     ,mathUtils.isAFloat(1     ),False)
+checkAnswer('isAFloat str'   ,mathUtils.isAFloat('eps' ),False)
+checkAnswer('isAFloat bool'  ,mathUtils.isAFloat(True  ),False)
+
+# isAnInteger
+checkAnswer('isAnInteger 1'   ,mathUtils.isAnInteger(1      ),True)
+checkAnswer('isAnInteger 0'   ,mathUtils.isAnInteger(0      ),True)
+checkAnswer('isAnInteger -1'  ,mathUtils.isAnInteger(-1     ),True)
+checkAnswer('isAnInteger 3.14',mathUtils.isAnInteger(3.14   ),False)
+checkAnswer('isAnInteger 1e1' ,mathUtils.isAnInteger(1e1    ),False)
+checkAnswer('isAnInteger str' ,mathUtils.isAnInteger('delta'),False)
+checkAnswer('isAnInteger bool',mathUtils.isAnInteger(True   ),False)
+checkAnswer('isAnInteger long',mathUtils.isAnInteger(123456789012345678901234567890),True)
+
+# isABoolean
+checkAnswer('isABoolean False',mathUtils.isABoolean(False ),True)
+checkAnswer('isABoolean True' ,mathUtils.isABoolean(True  ),True)
+checkAnswer('isABoolean 0'    ,mathUtils.isABoolean(0     ),False)
+checkAnswer('isABoolean 1'    ,mathUtils.isABoolean(1     ),False)
+checkAnswer('isABoolean -1'   ,mathUtils.isABoolean(-1    ),False)
+checkAnswer('isABoolean str'  ,mathUtils.isABoolean("True"),False)
+checkAnswer('isABoolean 3.14' ,mathUtils.isABoolean(3.14  ),False)
+checkAnswer('isABoolean long' ,mathUtils.isABoolean(123456789012345678901234567890),False)
+
+###################
+# Variable Groups #
+###################
+
+print('')
+# all ( a, b, d)
+# d (some a, some b)
+# ab (a, b)
+# ce (c, e)
+# f is isolated
+example = """<VariableGroups>
+  <Group name="a">a1, a2, a3</Group>
+  <Group name="b">b1, b2, b3</Group>
+  <Group name="c">c1, c2, c3</Group>
+  <Group name="d">a1, b1</Group>
+  <Group name="e">e1, e2 ,e3</Group>
+  <Group name="f">f1, f2, f3</Group>
+  <Group name="ce">c, e</Group>
+  <Group name="ab">a,b</Group>
+  <Group name="abd">a,b,d</Group>
+  <Group name="plus">a,c</Group>
+  <Group name="minus">a,-d</Group>
+  <Group name="intersect">a,^d</Group>
+  <Group name="symmdiff">a,%d</Group>
+  <Group name="symmrev">d,%a</Group>
+</VariableGroups>"""
+node = ET.fromstring(example)
+groups = mathUtils.readVariableGroups(node,mh,None)
+
+# test contents
+def testVarGroup(groups,g,right):
+  got = groups[g].getVarsString()
+  if got == right:
+    results['pass']+=1
+  else:
+    print('ERROR: Vargroups group "{}" should be "{}" but got "{}"!'.format(g,right,got))
+    results['fail']+=1
+
+# note that order matters for these solutions!
+testVarGroup(groups,'a','a1,a2,a3')             # a and b are first basic sets
+testVarGroup(groups,'b','b1,b2,b3')             # a and b are first basic sets
+testVarGroup(groups,'c','c1,c2,c3')             # c and e are second basic sets
+testVarGroup(groups,'d','a1,b1')                # d is just a1 and b1, to test one-entry-per-variable
+testVarGroup(groups,'e','e1,e2,e3')             # c and e are second basic sets
+testVarGroup(groups,'f','f1,f2,f3')             # f is isolated; nothing else uses it
+testVarGroup(groups,'ce','c1,c2,c3,e1,e2,e3')   # ce combines c and e
+testVarGroup(groups,'ab','a1,a2,a3,b1,b2,b3')   # ab combines a and b
+testVarGroup(groups,'abd','a1,a2,a3,b1,b2,b3')  # ab combines a and b
+testVarGroup(groups,'plus','a1,a2,a3,c1,c2,c3') # plus is OR for a and c
+testVarGroup(groups,'minus','a2,a3')            # minus is a but not d
+testVarGroup(groups,'intersect','a1')           # intersect is AND for a, d
+testVarGroup(groups,'symmdiff','a2,a3,b1')      # symdiff is XOR for a, d
+testVarGroup(groups,'symmrev','b1,a2,a3')       # symmrev shows order depends on how variables are put in
+
 
 print(results)
 

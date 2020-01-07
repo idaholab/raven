@@ -24,9 +24,9 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-  
+
   <Models>
-    <ExternalModel name="markov" subType="MarkovModel">
+    <ExternalModel name="markov" subType="PRAplugin.MarkovModel">
       <variables>initialState,finalState</variables>
       <initState>initialState</initState>
       <finState>finalState</finState>
@@ -36,7 +36,7 @@
       </state>
       <state name='2'> <!-- Bear market -->
         <transition type='unif' value='0.0,4.0' >1</transition>
-      </state>   
+      </state>
     </ExternalModel>
   </Models>
 
@@ -78,7 +78,7 @@
       </actions>
     </Plot>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>initialState</Input>
@@ -89,5 +89,5 @@
       <Output>finalState</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

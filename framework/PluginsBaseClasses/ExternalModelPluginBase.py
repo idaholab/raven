@@ -17,8 +17,6 @@ Created on November 6, 2017
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 #External Modules End-----------------------------------------------------------
@@ -34,6 +32,7 @@ class ExternalModelPluginBase(PluginBase):
   # List containing the methods that need to be checked in order to assess the
   # validity of a certain plugin. This list needs to be populated by the derived class
   _methodsToCheck = ['run','initialize']
+  entityType = 'ExternalModel' # should this just be Model?
 
   def __init__(self):
     """

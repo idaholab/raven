@@ -20,8 +20,6 @@
 """
 #----- python 2 - 3 compatibility
 from __future__ import division, print_function, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #----- end python 2 - 3 compatibility
 
 #External Modules------------------------------------------------------------------------------------

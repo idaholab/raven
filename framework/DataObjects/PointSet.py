@@ -16,8 +16,6 @@
 """
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import sys,os
 import functools
@@ -124,7 +122,7 @@ class PointSet(DataSet):
       if var in self.protectedTags:
         continue
       # only modify it if it is not already scalar
-      if not utils.isSingleValued(val):
+      if not mathUtils.isSingleValued(val):
         # treat inputs, outputs differently TODO this should extend to per-variable someday
         ## inputs
         if var in self._inputs:

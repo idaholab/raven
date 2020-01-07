@@ -16,8 +16,6 @@ Module where the base class and the specialization of different type of Model ar
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -1171,9 +1169,9 @@ class ROM(Dummy):
       @ Out, None
     """
     Dummy.__init__(self,runInfoDict)
-    self.initializationOptionDict = {}          # ROM initialization options
-    self.amITrained                = False      # boolean flag, is the ROM trained?
-    self.supervisedEngine          = None       # dict of ROM instances (== number of targets => keys are the targets)
+    self.initializationOptionDict = {'NumThreads': runInfoDict.get('NumThreads', 1)}         # ROM initialization options
+    self.amITrained               = False      # boolean flag, is the ROM trained?
+    self.supervisedEngine         = None       # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'
     self.cvInstance               = None             # Instance of provided cross validation
     # Dictionary of Keras Neural Network Core layers

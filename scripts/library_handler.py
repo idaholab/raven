@@ -23,6 +23,7 @@ import subprocess
 from collections import OrderedDict
 
 from update_install_data import loadRC
+import plugin_handler as pluginHandler
 
 # python changed the import error in 3.6
 if sys.version_info[0] == 3 and sys.version_info[1] >= 6:
@@ -97,7 +98,8 @@ def checkLibraries(buildReport=False):
   """
   missing = []
   notQA = []
-  need = getRequiredLibs()
+  plugins = pluginHandler.getInstalledPlugins()
+  need = getRequiredLibs(plugins=plugins)
   messages = []
   for lib, needVersion in need.items():
     # some libs aren't checked from within python
@@ -211,19 +213,75 @@ def findLibAndVersionSubprocess(lib, version=None):
       foundVersion = None
   return True, foundExists, foundVersion
 
-def getRequiredLibs(useOS=None, installMethod=None, addOptional=False, limit=None):
+def getRequiredLibs(useOS=None, installMethod=None, addOptional=False, limit=None, plugins=None):
   """
     Assembles dictionary of required libraries.
     @ In, useOS, str, optional, if provided then assume given operating system
     @ In, installMethod, str, optional, if provided then assume given install method
     @ In, addOptional, bool, optional, if True then add optional libraries to list
     @ In, limit, list(str), optional, limit sections that are read in
+    @ In, plugins, list(tuple(str,str)), optional, plugins (name, location) that should be added to
+                   the required libs
     @ Out, libs, dict, dictionary of libraries {name: version}
   """
-  config = _readDependencies()
+  mainConfigFile = os.path.abspath(os.path.expanduser(os.path.join(os.path.dirname(__file__),
+                                                                   '..', 'dependencies.ini')))
+  config = _readDependencies(mainConfigFile)
   opSys = _getOperatingSystem(override=useOS)
   install = _getInstallMethod(override=installMethod)
-  return _parseLibs(config, opSys, install, addOptional=addOptional, limit=limit)
+  libs = _parseLibs(config, opSys, install, addOptional=addOptional, limit=limit)
+  # extend config with plugin libs
+  for pluginName, pluginLoc in plugins:
+    pluginConfigFile = os.path.join(pluginLoc, 'dependencies.ini')
+    if os.path.isfile(pluginConfigFile):
+      pluginConfig = _readDependencies(pluginConfigFile)
+      pluginLibs = _parseLibs(pluginConfig, opSys, install, addOptional=addOptional, limit=limit)
+      pluginLibs = _checkForUpdates(libs, pluginLibs, pluginName)
+      libs.update(pluginLibs)
+  return libs
+
+def _checkForUpdates(libs, pluginLibs, pluginName):
+  """
+    Checks requested lib updates for conflicts
+    @ In, libs, dict, existing libs: versions
+    @ In, pluginLibs, dict, requested changes as libs: versions
+    @ In, pluginName, str, name of plugin
+    @ Out, pluginLibs, dict, modified plugin library
+  """
+  # make sure no changing of required versions is done
+  toRemove = []
+  for pluginLibName, pluginVersion in pluginLibs.items():
+    if pluginLibName in libs: # NOTE: do not use libs.get(~,None) here, since many libs map to None
+      pinned = libs[pluginLibName]
+      # a couple things could be happening here:
+      #  -> no change requested
+      if pinned == pluginVersion:
+          # lib already exists in list; no change needed
+          toRemove.append(pluginLibName)
+      #  -> the existing unpinned version is being pinned (okay, update)
+      elif pinned is None:
+        # NOTE: assumed: pluginVersion is also not None, else it would be caught in 'if =='
+        pass # leave in the dict to be updated
+      #  -> the existing lib (pinned or not) is requested without a version (okay, no action)
+      elif pluginVersion is None:
+        # pinned version supercedes requirement, so no change needed
+        toRemove.append(pluginLibName)
+      #  -> the existing lib (pinned) is being given a new version (not okay, error)
+      else:
+        # we already know:
+        #   pinned is not None
+        #   pluginVersion is not None
+        #   pluginVersion != pinned
+        # therefore we have a conflict
+        raise ValueError(('Plugin "{plug}" is trying to change already-pinned version of library '+
+                          '"{lib}" from "{pin}" to "{plugVer}"').format(plug=pluginName,
+                                                                        lib=pluginLibName,
+                                                                        pin=libs[pluginLibName],
+                                                                        plugVer=pluginVersion))
+  # clear libs that don't need updating
+  for name in toRemove:
+    del pluginLibs[name]
+  return pluginLibs
 
 #############
 #   UTILS   #
@@ -268,7 +326,7 @@ def _getInstallMethod(override=None):
   # no suggestion given, so we assume conda
   return 'conda'
 
-def _parseLibs(config, opSys, install, addOptional=False, limit=None):
+def _parseLibs(config, opSys, install, addOptional=False, limit=None, plugins=None):
   """
     Parses config file to get libraries to install, using given options.
     @ In, config, configparser.ConfigParser, read-in dependencies
@@ -276,20 +334,22 @@ def _parseLibs(config, opSys, install, addOptional=False, limit=None):
     @ In, install, str, installation method (not checked)
     @ In, addOptional, bool, optional, if True then include optional libraries
     @ In, limit, list(str), optional, if provided then only read the given sections
+    @ In, plugins, list(tuple(str,configParser.configParser)), optional, plugins (name, config)
+                   that should be added to the parsing
     @ Out, libs, dict, dictionary of libraries {name: version}
   """
   libs = OrderedDict()
   # get the main libraries, depending on request
   for src in ['core', 'forge', 'pip']:
-    if (True if limit is None else (src in limit)):
+    if config.has_section(src) and (True if limit is None else (src in limit)):
       _addLibsFromSection(config.items(src), libs)
   # os-specific are part of 'core' right now
-  if (True if limit is None else ('core' in limit)):
+  if config.has_section(opSys) and (True if limit is None else ('core' in limit)):
     _addLibsFromSection(config.items(opSys), libs)
   # optional are part of 'core' right now, but leave that up to the requester?
-  if addOptional:
+  if addOptional and config.has_section('optional'):
     _addLibsFromSection(config.items('optional'), libs)
-  if install == 'pip':
+  if install == 'pip' and config.has_section('pip-install'):
     _addLibsFromSection(config.items('pip-install'), libs)
   return libs
 
@@ -301,6 +361,8 @@ def _addLibsFromSection(configSection, libs):
     @ Out, None (changes libs in place)
   """
   for lib, version in configSection:
+    #if lib not in configSection:
+    #  return
     if version == 'remove':
       libs.pop(lib, None)
     else:
@@ -309,36 +371,43 @@ def _addLibsFromSection(configSection, libs):
         version = None
       libs[lib] = version
 
-def _readDependencies():
+def _readDependencies(initFile):
   """
     Reads in the library list using config parsing.
     @ In, None
     @ Out, configparser.ConfigParser, configurations read in
   """
   config = configparser.ConfigParser(allow_no_value=True)
-  initFile = os.path.abspath(os.path.expanduser(os.path.join(os.path.dirname(__file__), '..', 'dependencies.ini')))
   config.read(initFile)
   return config
 
 if __name__ == '__main__':
   mainParser = argparse.ArgumentParser(description='RAVEN Library Handler')
-  mainParser.add_argument('--os', dest='useOS', choices=('windows', 'mac', 'linux'), default=None,
-                      help='Determines the operating system for which the library configuration will be built.')
+  mainParser.add_argument('--os', dest='useOS',
+        choices=('windows', 'mac', 'linux'), default=None,
+        help='Determines the operating system for which the library configuration will be built.')
+  mainParser.add_argument('--plugins', dest='usePlugins', action='append',
+        help='Lists the plugins (or none or all) whose libraries should be included. Default: all.')
   mainParser.add_argument('--optional', dest='addOptional', action='store_true',
-                      help='Include optional libraries in configuration.')
+        help='Include optional libraries in configuration.')
   subParsers = mainParser.add_subparsers(help='Choose library installer.', dest='installer')
 
   condaParser = subParsers.add_parser('conda', help='use conda as installer')
-  condaParser.add_argument('--action', dest='action', choices=('create', 'install', 'list'), default='install',
-                      help='Chooses whether to (create) a new environment, (install) in existing environment, or (list) installation libraries.')
-  condaParser.add_argument('--subset', dest='subset', choices=('core', 'forge', 'pip'), default='core',
-                      help='Use subset of installation libraries, divided by source.')
+  condaParser.add_argument('--action', dest='action',
+        choices=('create', 'install', 'list'), default='install',
+        help='Chooses whether to (create) a new environment, (install) in existing environment, ' +
+             'or (list) installation libraries.')
+  condaParser.add_argument('--subset', dest='subset',
+        choices=('core', 'forge', 'pip'), default='core',
+        help='Use subset of installation libraries, divided by source.')
 
   pipParser = subParsers.add_parser('pip', help='use pip as installer')
   pipParser.add_argument('--action', dest='action', choices=('install', 'list'), default='install',
-                      help='Chooses whether to (install) in current environment, or (list) installation libraries.')
+        help='Chooses whether to (install) in current environment, or ' +
+             '(list) installation libraries.')
 
   manualParser = subParsers.add_parser('manual', help='provide LaTeX manual list')
+
   args = mainParser.parse_args()
 
   # load library environment name
@@ -346,15 +415,44 @@ if __name__ == '__main__':
 
   if args.useOS is None:
     args.useOS = _getOperatingSystem()
+  if args.usePlugins is None:
+    args.usePlugins = ['all']
+
+  plugins = [] # list of [(name, location), (name, location)] for each plugin
+  if 'all' in args.usePlugins:
+    plugins = pluginHandler.getInstalledPlugins()
+  elif 'none' in args.usePlugins:
+    pass # nothing to do
+  else:
+    # separate out comma-separated
+    usePlugins = []
+    for pluginArg in args.usePlugins:
+      usePlugins.extend(pluginArg.split(','))
+    # store plugin names and locations
+    missing = []
+    for pluginName in usePlugins:
+      if pluginName.strip() == '':
+        continue
+      loc = pluginHandler.getPluginLocation(pluginName)
+      if loc is None:
+        print('ERROR (library_handler): Plugin "{}" has not been installed!'.format(pluginName))
+        missing.append(pluginName)
+      else:
+        plugins.append((pluginName, loc))
+    if missing:
+      raise IOError('During library installation, the following requested plugin libraries '+
+                    ' were not found: {}'.format(', '.join(missing)))
 
   ### Il Grande Albero Decisionale
   # "optional" and "os" are passed through
   if args.installer == 'manual':
     # compile the LaTeX lib list
-    libs = getRequiredLibs(useOS=args.useOS, installMethod='conda', addOptional=args.addOptional)
+    libs = getRequiredLibs(useOS=args.useOS, installMethod='conda',
+                           addOptional=args.addOptional, plugins=plugins)
     msg = '\\begin{itemize}\n'
     for lib, version in libs.items():
-      msg += '  \\item {}{}\n'.format(lib.replace('_', '\\_'), ('' if version is None else '-'+version))
+      msg += '  \\item {}{}\n'.format(
+             lib.replace('_', '\\_'), ('' if version is None else '-'+version))
     msg += '\\end{itemize}'
     print(msg)
   else:
@@ -384,7 +482,8 @@ if __name__ == '__main__':
       libs = getRequiredLibs(useOS=args.useOS,
                              installMethod='conda',
                              addOptional=addOptional,
-                             limit=limit)
+                             limit=limit,
+                             plugins=plugins)
       # conda can create, install, or list
       if args.action == 'create':
         action = 'create'
@@ -400,13 +499,16 @@ if __name__ == '__main__':
       libs = getRequiredLibs(useOS=args.useOS,
                              installMethod='pip',
                              addOptional=args.addOptional,
-                             limit=None)
+                             limit=None,
+                             plugins=plugins)
       if args.action == 'install':
         action = 'install'
       elif args.action == 'list':
         preamble = ''
 
     preamble = preamble.format(installer=installer, action=action, args=actionArgs)
-    libTexts = ' '.join(['{lib}{ver}'.format(lib=lib, ver=('{}{}'.format(equals, ver) if ver is not None else ''))
+    libTexts = ' '.join(['{lib}{ver}'
+                         .format(lib=lib,
+                                 ver=('{}{}'.format(equals, ver) if ver is not None else ''))
                          for lib, ver in libs.items()])
     print(preamble + libTexts)
