@@ -88,6 +88,10 @@ done
 #   Names of failed test sets are stored in "FAILED"
 #   Success of most recent test stored in "rc"
 #   Total number of failed test sets stored in "ALL_PASS"
+# initialize vars in case no tests get run
+ALL_PASS=0
+PASSED=()
+FAILED=()
 
 if [[ $DO_RAVEN == 0 ]]; then
   echo
@@ -101,10 +105,10 @@ if [[ $DO_RAVEN == 0 ]]; then
   ALL_PASS=$rc
   if [[ $rc != 0 ]]; then
       echo ' ... there were failed RAVEN tests!'
-      FAILED=( "RAVEN" )
+      FAILED=( "${FAILED[@]}" "RAVEN" )
   else
       echo ' ... RAVEN tests passed successfully.'
-      PASSED=( "RAVEN" )
+      PASSED=( "${PASSED[@]}" "RAVEN" )
   fi # end "if passed"
 
   # test the API for Plugins using the ExamplePlugin
@@ -163,12 +167,18 @@ echo
 echo "********************************************************************************"
 echo
 if [[ $ALL_PASS != 0 ]]; then
+  # if no tests were run, this should not be possible!
   echo  ... there were failed tests!
   echo The following test sets passed: ${PASSED[@]}
   echo The following test sets failed: ${FAILED[@]}
   exit $ALL_PASS
 else
-  echo Tested sets: ${PASSED[@]}
+  # check if NO tests were run
+  if [ ${#PASSED[@]} -eq 0 ]; then
+    echo WARNING: no test sets were checked!
+  else
+    echo Tested sets: ${PASSED[@]}
+  fi
   echo ... tests passed!
 fi
 
