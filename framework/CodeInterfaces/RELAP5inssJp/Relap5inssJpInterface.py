@@ -19,8 +19,6 @@ Created on July 20, 2016
 This is a code interface for the modified version of RELAP5 mantained by the INSS Japan
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
