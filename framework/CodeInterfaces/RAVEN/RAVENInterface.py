@@ -63,7 +63,7 @@ class RAVEN(CodeInterfaceBase):
     """
     self.addInputExtension(['xml'])
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
       some members based on inputs. This can be overloaded in specialize code interface in order to
@@ -90,13 +90,14 @@ class RAVEN(CodeInterfaceBase):
     if child is not None:
       for moduleNode in child:
         # get the module to be used for conversion
-        source = moduleNode.attrib.get('source',None)
+        source = moduleNode.attrib.get('source', None)
         if source is None:
           raise IOError(self.printTag+' ERROR: no module "source" listed in "conversion" subnode attributes!')
         # fix up the path
+        ## should be relative to the working dir!
         source = os.path.expanduser(source)
         if not os.path.isabs(source):
-          source = os.path.abspath(source)
+          source = os.path.abspath(os.path.join(self._ravenWorkingDir, source))
         # check for existence
         if not os.path.exists(source):
           raise IOError(self.printTag+' ERROR: the conversionModule "{}" was not found!'

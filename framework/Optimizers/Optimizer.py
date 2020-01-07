@@ -430,7 +430,7 @@ class Optimizer(Sampler):
         self.raiseAnError(IOError,'Only "ForwardSampler"s (e.g. MonteCarlo, Grid, etc.) can be used for initializing the trajectories in the Optimizer! Got "{}.{}" for "{}".'.format(cls,typ,name))
       self.initializationSampler = sampler
       initDict = {}
-      for entity in ['Distributions','Functions','DataObjects']:
+      for entity in ['Distributions', 'Functions', 'DataObjects']:
         initDict[entity] = dict((entry[2],entry[3]) for entry in self.assemblerDict.get(entity,[]))
       self.initializationSampler._localGenerateAssembler(initDict)
       for key in self.initializationSampler.getInitParams().keys():

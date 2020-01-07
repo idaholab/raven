@@ -41,8 +41,9 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, None
       @ Out, None
     """
-    self.inputExtensions = []            # list of input extensions
-    self._runOnShell = True               # True if the specified command by the code interfaces will be executed through shell.
+    self.inputExtensions = []    # list of input extensions
+    self._runOnShell = True      # True if the specified command by the code interfaces will be executed through shell.
+    self._ravenWorkingDir = None # location of RAVEN's main working directory
 
   def setRunOnShell(self, shell=True):
     """
@@ -80,13 +81,15 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     returnCommand = subcodeCommand,outputfileroot
     return returnCommand
 
-  def readMoreXML(self, xmlNode):
+  def readMoreXML(self, xmlNode, ravenWorkingDir):
     """
       Function to read the portion of the xml input that belongs to this class and
       initialize some members based on inputs.
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ In, ravenWorkingDir, str, location of RAVEN's working directory
       @ Out, None
     """
+    self._ravenWorkingDir = ravenWorkingDir
     self._readMoreXML(xmlNode)
 
   def _readMoreXML(self, xmlNode):
