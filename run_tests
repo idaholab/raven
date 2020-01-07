@@ -118,7 +118,7 @@ if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo Running $P tests ...
   # get location of ExamplePlugin test dir
-  ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $SCRIPT_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers ${ARGS[@]}"
+  ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $SCRIPT_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
   # $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --add-non-default-run-types qsub "${ARGS[@]}"
   $ROOK_COMMAND
   rc=$?
@@ -146,7 +146,7 @@ if [[ $DO_PLUGINS == 0 ]]; then
     echo
     echo Starting tests for plugin "$P" ...
     # add RAVEN testers to plugin testers
-    ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $SCRIPT_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers ${ARGS[@]}"
+    ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $SCRIPT_DIR/scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
     $ROOK_COMMAND
     rc=$?
     ALL_PASS=$(($ALL_PASS + $rc))
