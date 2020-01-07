@@ -54,6 +54,10 @@ if __name__ == '__main__':
   # populate submodules list
   returnCode = 0 # 0 if all passes, otherwise nonzero
   ## subsOut are ALL the repo's registered plugins
+  # save the current CWD and restore it after acting
+  owd = os.getcwd()
+  cwd = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+  os.chdir(cwd)
   subsOut = os.popen('git config --file .gitmodules --name-only --get-regexp path').read()
   ## subsInit are the initialized ones
   subsInit = [x.split(' ')[1] for x in os.popen('git submodule status').read().split(os.linesep) if x.strip() != '']
@@ -99,7 +103,7 @@ if __name__ == '__main__':
         os.popen('git submodule update --init plugins/{}'.format(sourceDir)).read()
       okay = True
       msgs = []
-      newLoc = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'plugins', sourceDir))
+      newLoc = os.path.abspath(os.path.join(cwd, 'plugins', sourceDir))
     if okay:
       print(' ... plugin located at "{}" ...'.format(newLoc))
       sources.append(newLoc)
@@ -144,4 +148,6 @@ if __name__ == '__main__':
     ## TODO testing?
     print(' ... plugin "{}" succesfully installed!'.format(name))
   pluginHandler.writePluginTree(infoFile, root)
+  # restore original working directory
+  os.chdir(owd)
   sys.exit(returnCode)
