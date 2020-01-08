@@ -32,7 +32,6 @@ from collections import defaultdict
 from PluginsBaseClasses import PluginBase
 from utils import xmlUtils
 
-warnings.simplefilter('default', DeprecationWarning)
 
 # Design Note: This module is meant to be loaded BEFORE any other entities are loaded!
 #              It is critical that factories can inquire the plugin list to populate their modules.

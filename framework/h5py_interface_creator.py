@@ -20,7 +20,6 @@ Created on Mar 25, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 from datetime import datetime
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------

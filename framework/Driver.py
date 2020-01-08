@@ -23,9 +23,12 @@ This is the Driver of RAVEN
 from __future__ import division, print_function, unicode_literals, absolute_import
 # if in debug mode, activate deprication warnings
 ## TODO does this need to be done in all modules, or just this one?
-if __debug__:
-  import warnings
-  warnings.simplefilter('default', DeprecationWarning)
+import warnings
+
+if not __debug__:
+  warnings.filterwarnings("ignore")
+else:
+  warnings.simplefilter("default", DeprecationWarning)
 
 import os
 import sys

@@ -16,8 +16,6 @@ Created on Mar 16, 2013
 @author: crisr
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import inspect
 import sys

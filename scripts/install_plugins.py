@@ -43,6 +43,12 @@ parser.add_argument('--avail', dest='showAvail', action='store_true',
                     help='show all available standard RAVEN plugins and exit')
 args = parser.parse_args()
 
+# -> manually add to install list for "all"
+# ExamplePlugin should always stay here.
+# PRAPlugin can be moved once it is in a separate repository.
+manualAddedPlugins = ['PRAplugin', 'ExamplePlugin']
+# END TEMPORARY FIXME
+
 if __name__ == '__main__':
   ### Design notes
   # "Installing" is actually just the process of registering the location of the plugin
@@ -54,6 +60,10 @@ if __name__ == '__main__':
   # populate submodules list
   returnCode = 0 # 0 if all passes, otherwise nonzero
   ## subsOut are ALL the repo's registered plugins
+  # save the current CWD and restore it after acting
+  owd = os.getcwd()
+  cwd = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+  os.chdir(cwd)
   subsOut = os.popen('git config --file .gitmodules --name-only --get-regexp path').read()
   ## subsInit are the initialized ones
   subsInit = [x.split(' ')[1] for x in os.popen('git submodule status').read().split(os.linesep) if x.strip() != '']
@@ -71,12 +81,7 @@ if __name__ == '__main__':
 
   # if requested "all" install, update sources
   if args.doAll:
-    # TODO TEMPORARY FIXME for PRAplugin:
-    # -> manually add to install list for "all"
-    # This is because the plugin maintainers have not transitioned to a separate repository yet.
-    submods.append('PRAplugin')
-    submods.append('ExamplePlugin')
-    # END TEMPORARY FIXME
+    submods.extend(manualAddedPlugins)
     args.source_dir = submods
   elif not args.source_dir:
     returnCode += 1
@@ -99,7 +104,7 @@ if __name__ == '__main__':
         os.popen('git submodule update --init plugins/{}'.format(sourceDir)).read()
       okay = True
       msgs = []
-      newLoc = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'plugins', sourceDir))
+      newLoc = os.path.abspath(os.path.join(cwd, 'plugins', sourceDir))
     if okay:
       print(' ... plugin located at "{}" ...'.format(newLoc))
       sources.append(newLoc)
@@ -144,4 +149,6 @@ if __name__ == '__main__':
     ## TODO testing?
     print(' ... plugin "{}" succesfully installed!'.format(name))
   pluginHandler.writePluginTree(infoFile, root)
+  # restore original working directory
+  os.chdir(owd)
   sys.exit(returnCode)

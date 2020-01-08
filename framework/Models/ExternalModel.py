@@ -16,8 +16,6 @@ Module where the base class and the specialization of different type of Model ar
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -149,7 +147,6 @@ class ExternalModel(Dummy):
       self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
     ## NOTE we implicitly assume not having ModuleToLoad means you're a plugin or a known type.
     elif paramInput.parameterValues['subType'].strip() is not None:
-      print('DEBUGG known:', ExternalModel.plugins.knownTypes())
       # We assume it is a plugin. Look for the type in the plugins class list
       if paramInput.parameterValues['subType'] not in ExternalModel.plugins.knownTypes():
         self.raiseAnError(IOError,('The "subType" named "{sub}" does not belong to any ' +
