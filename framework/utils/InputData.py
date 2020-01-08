@@ -94,6 +94,27 @@ class StringType(InputType):
   pass
 
 StringType.createClass("string","xsd:string")
+#
+#
+#
+#
+class StringNoLeadingSpacesType(InputType):
+  """
+    A type for arbitrary string data. This is equivalent
+    to the StringType but in case of a comma delimiter, it
+    removes the leading white spaces. For Example:
+    - if value = 'varName', it return 'varName'
+    - if value = 'varName1,   varName2', it returns 'varName1,varName2'
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to an integer.
+      @ In, value, string, the value to convert
+      @ Out, convert, string, the converted value
+    """
+    return ','.join([key.strip() for key in value.split(",")]) if ',' in value else value
 
 #
 #
