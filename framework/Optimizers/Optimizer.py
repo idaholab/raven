@@ -30,7 +30,7 @@ from collections import deque
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils,randomUtils,InputData
+from utils import utils, randomUtils, InputData, InputTypes
 from BaseClasses import BaseType
 from Assembler import Assembler
 import SupervisedLearning
@@ -58,32 +58,32 @@ class Optimizer(Sampler):
 
     inputSpecification = super(Optimizer,cls).getInputSpecification()
     # assembled objects
-    targEval = InputData.parameterInputFactory('TargetEvaluation', contentType=InputData.StringType, strictMode=True)
-    targEval.addParam('type', InputData.StringType, True)
-    targEval.addParam('class', InputData.StringType, True)
+    targEval = InputData.parameterInputFactory('TargetEvaluation', contentType=InputTypes.StringType, strictMode=True)
+    targEval.addParam('type', InputTypes.StringType, True)
+    targEval.addParam('class', InputTypes.StringType, True)
     inputSpecification.addSub(targEval)
-    sampler = InputData.parameterInputFactory('Sampler', contentType=InputData.StringType, strictMode=True)
-    sampler.addParam('type', InputData.StringType, True)
-    sampler.addParam('class', InputData.StringType, True)
+    sampler = InputData.parameterInputFactory('Sampler', contentType=InputTypes.StringType, strictMode=True)
+    sampler.addParam('type', InputTypes.StringType, True)
+    sampler.addParam('class', InputTypes.StringType, True)
     inputSpecification.addSub(sampler)
-    function = InputData.parameterInputFactory('Function', contentType=InputData.StringType, strictMode=True)
-    function.addParam('type', InputData.StringType, True)
-    function.addParam('class', InputData.StringType, True)
+    function = InputData.parameterInputFactory('Function', contentType=InputTypes.StringType, strictMode=True)
+    function.addParam('type', InputTypes.StringType, True)
+    function.addParam('class', InputTypes.StringType, True)
     inputSpecification.addSub(function)
-    precond = InputData.parameterInputFactory('Preconditioner', contentType=InputData.StringType, strictMode=True)
-    precond.addParam('type', InputData.StringType, True)
-    precond.addParam('class', InputData.StringType, True)
+    precond = InputData.parameterInputFactory('Preconditioner', contentType=InputTypes.StringType, strictMode=True)
+    precond.addParam('type', InputTypes.StringType, True)
+    precond.addParam('class', InputTypes.StringType, True)
     inputSpecification.addSub(precond)
 
     # variable
     ## was also part of Sampler, but we need to rewrite variable, so remove it first
     inputSpecification.removeSub('variable')
     variable = InputData.parameterInputFactory('variable', strictMode=True)
-    variable.addParam("name", InputData.StringType, True)
-    variable.addParam("shape", InputData.IntegerListType, required=False)
-    upperBound = InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType, strictMode=True)
-    lowerBound = InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType, strictMode=True)
-    initial = InputData.parameterInputFactory('initial',contentType=InputData.StringListType)
+    variable.addParam("name", InputTypes.StringType, True)
+    variable.addParam("shape", InputTypes.IntegerListType, required=False)
+    upperBound = InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType, strictMode=True)
+    lowerBound = InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType, strictMode=True)
+    initial = InputData.parameterInputFactory('initial',contentType=InputTypes.StringListType)
     variable.addSub(upperBound)
     variable.addSub(lowerBound)
     variable.addSub(initial)
@@ -91,19 +91,19 @@ class Optimizer(Sampler):
     # constant -> use the Sampler's specs.
 
     # objectVar
-    objectVar = InputData.parameterInputFactory('objectVar', contentType=InputData.StringType, strictMode=True)
+    objectVar = InputData.parameterInputFactory('objectVar', contentType=InputTypes.StringType, strictMode=True)
     inputSpecification.addSub(objectVar)
 
     # initialization
     init = InputData.parameterInputFactory('initialization', strictMode=True)
-    whenWriteEnum = InputData.makeEnumType('whenWriteEnum','whenWriteType',['final','every'])
-    limit      = InputData.parameterInputFactory('limit', contentType=InputData.IntegerType)
-    seed       = InputData.parameterInputFactory('initialSeed', contentType=InputData.IntegerType)
-    minmaxEnum = InputData.makeEnumType('MinMax','OptimizerTypeType',['min','max'])
+    whenWriteEnum = InputTypes.makeEnumType('whenWriteEnum','whenWriteType',['final','every'])
+    limit      = InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType)
+    seed       = InputData.parameterInputFactory('initialSeed', contentType=InputTypes.IntegerType)
+    minmaxEnum = InputTypes.makeEnumType('MinMax','OptimizerTypeType',['min','max'])
     minmax     = InputData.parameterInputFactory('type', contentType=minmaxEnum)
-    thresh     = InputData.parameterInputFactory('thresholdTrajRemoval', contentType=InputData.FloatType)
+    thresh     = InputData.parameterInputFactory('thresholdTrajRemoval', contentType=InputTypes.FloatType)
     write      = InputData.parameterInputFactory('writeSteps',contentType=whenWriteEnum)
-    resample   = InputData.parameterInputFactory('resample',contentType=InputData.BoolType)
+    resample   = InputData.parameterInputFactory('resample',contentType=InputTypes.BoolType)
     init.addSub(limit)
     init.addSub(seed)
     init.addSub(minmax)
@@ -114,18 +114,18 @@ class Optimizer(Sampler):
     # convergence
 
     # central difference
-    cendiff = InputData.parameterInputFactory('centralDifference', contentType=InputData.BoolType)
-    gradhis = InputData.parameterInputFactory('useGradientHistory', contentType=InputData.BoolType)
+    cendiff = InputData.parameterInputFactory('centralDifference', contentType=InputTypes.BoolType)
+    gradhis = InputData.parameterInputFactory('useGradientHistory', contentType=InputTypes.BoolType)
 
     conv = InputData.parameterInputFactory('convergence', strictMode=True)
-    itLim   = InputData.parameterInputFactory('iterationLimit'   , contentType=InputData.IntegerType)
-    pers    = InputData.parameterInputFactory('persistence'      , contentType=InputData.IntegerType)
-    rel     = InputData.parameterInputFactory('relativeThreshold', contentType=InputData.FloatType  )
-    abst    = InputData.parameterInputFactory('absoluteThreshold', contentType=InputData.FloatType  )
-    grad    = InputData.parameterInputFactory('gradientThreshold', contentType=InputData.FloatType  )
-    minstep = InputData.parameterInputFactory('minStepSize'      , contentType=InputData.FloatType  )
-    grow    = InputData.parameterInputFactory('gainGrowthFactor' , contentType=InputData.FloatType  )
-    shrink  = InputData.parameterInputFactory('gainShrinkFactor' , contentType=InputData.FloatType  )
+    itLim   = InputData.parameterInputFactory('iterationLimit'   , contentType=InputTypes.IntegerType)
+    pers    = InputData.parameterInputFactory('persistence'      , contentType=InputTypes.IntegerType)
+    rel     = InputData.parameterInputFactory('relativeThreshold', contentType=InputTypes.FloatType  )
+    abst    = InputData.parameterInputFactory('absoluteThreshold', contentType=InputTypes.FloatType  )
+    grad    = InputData.parameterInputFactory('gradientThreshold', contentType=InputTypes.FloatType  )
+    minstep = InputData.parameterInputFactory('minStepSize'      , contentType=InputTypes.FloatType  )
+    grow    = InputData.parameterInputFactory('gainGrowthFactor' , contentType=InputTypes.FloatType  )
+    shrink  = InputData.parameterInputFactory('gainShrinkFactor' , contentType=InputTypes.FloatType  )
     conv.addSub(cendiff)
     conv.addSub(gradhis)
     conv.addSub(itLim)
@@ -140,11 +140,11 @@ class Optimizer(Sampler):
 
     # parameter
     param = InputData.parameterInputFactory('parameter', strictMode=True)
-    stochEnum = InputData.makeEnumType('StochDistEnum','StochDistType',['Hypersphere','Bernoulli'])
-    num    = InputData.parameterInputFactory('numGradAvgIterations'   , contentType=InputData.IntegerType)
+    stochEnum = InputTypes.makeEnumType('StochDistEnum','StochDistType',['Hypersphere','Bernoulli'])
+    num    = InputData.parameterInputFactory('numGradAvgIterations'   , contentType=InputTypes.IntegerType)
     stoch  = InputData.parameterInputFactory('stochasticDistribution' , contentType=stochEnum            )
-    bisect = InputData.parameterInputFactory('innerBisectionThreshold', contentType=InputData.FloatType  )
-    loop   = InputData.parameterInputFactory('innerLoopLimit'         , contentType=InputData.IntegerType)
+    bisect = InputData.parameterInputFactory('innerBisectionThreshold', contentType=InputTypes.FloatType  )
+    loop   = InputData.parameterInputFactory('innerLoopLimit'         , contentType=InputTypes.IntegerType)
     param.addSub(num)
     param.addSub(stoch)
     param.addSub(bisect)

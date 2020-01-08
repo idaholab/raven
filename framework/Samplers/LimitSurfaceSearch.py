@@ -39,7 +39,7 @@ from .AdaptiveSampler import AdaptiveSampler
 import Distributions
 from AMSC_Object import AMSC_Object
 from utils import randomUtils
-from utils import InputData
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -59,45 +59,45 @@ class LimitSurfaceSearch(AdaptiveSampler):
     """
     inputSpecification = super(LimitSurfaceSearch, cls).getInputSpecification()
 
-    convergenceInput = InputData.parameterInputFactory("Convergence", contentType=InputData.FloatType)
-    convergenceInput.addParam("limit", InputData.IntegerType)
-    convergenceInput.addParam("forceIteration", InputData.StringType)
-    convergenceInput.addParam("weight", InputData.StringType)
-    convergenceInput.addParam("persistence", InputData.IntegerType)
-    convergenceInput.addParam("subGridTol", InputData.FloatType)
+    convergenceInput = InputData.parameterInputFactory("Convergence", contentType=InputTypes.FloatType)
+    convergenceInput.addParam("limit", InputTypes.IntegerType)
+    convergenceInput.addParam("forceIteration", InputTypes.StringType)
+    convergenceInput.addParam("weight", InputTypes.StringType)
+    convergenceInput.addParam("persistence", InputTypes.IntegerType)
+    convergenceInput.addParam("subGridTol", InputTypes.FloatType)
 
     inputSpecification.addSub(convergenceInput)
 
     batchStrategyInput = InputData.parameterInputFactory("batchStrategy",
-                                                         contentType=InputData.StringType)
+                                                         contentType=InputTypes.StringType)
     inputSpecification.addSub(batchStrategyInput)
 
-    maxBatchSizeInput = InputData.parameterInputFactory("maxBatchSize", contentType=InputData.IntegerType)
+    maxBatchSizeInput = InputData.parameterInputFactory("maxBatchSize", contentType=InputTypes.IntegerType)
     inputSpecification.addSub(maxBatchSizeInput)
-    scoringInput = InputData.parameterInputFactory("scoring", contentType=InputData.StringType)
+    scoringInput = InputData.parameterInputFactory("scoring", contentType=InputTypes.StringType)
     inputSpecification.addSub(scoringInput)
-    simplificationInput = InputData.parameterInputFactory("simplification", contentType=InputData.FloatType)
+    simplificationInput = InputData.parameterInputFactory("simplification", contentType=InputTypes.FloatType)
     inputSpecification.addSub(simplificationInput)
 
-    thicknessInput = InputData.parameterInputFactory("thickness", contentType=InputData.IntegerType)
+    thicknessInput = InputData.parameterInputFactory("thickness", contentType=InputTypes.IntegerType)
     inputSpecification.addSub(thicknessInput)
 
-    thresholdInput = InputData.parameterInputFactory("threshold", contentType=InputData.FloatType)
+    thresholdInput = InputData.parameterInputFactory("threshold", contentType=InputTypes.FloatType)
     inputSpecification.addSub(thresholdInput)
 
-    romInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
-    romInput.addParam("type", InputData.StringType)
-    romInput.addParam("class", InputData.StringType)
+    romInput = InputData.parameterInputFactory("ROM", contentType=InputTypes.StringType)
+    romInput.addParam("type", InputTypes.StringType)
+    romInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(romInput)
 
-    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputData.StringType)
-    targetEvaluationInput.addParam("type", InputData.StringType)
-    targetEvaluationInput.addParam("class", InputData.StringType)
+    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputTypes.StringType)
+    targetEvaluationInput.addParam("type", InputTypes.StringType)
+    targetEvaluationInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(targetEvaluationInput)
 
-    functionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
-    functionInput.addParam("type", InputData.StringType)
-    functionInput.addParam("class", InputData.StringType)
+    functionInput = InputData.parameterInputFactory("Function", contentType=InputTypes.StringType)
+    functionInput.addParam("type", InputTypes.StringType)
+    functionInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(functionInput)
 
     return inputSpecification

@@ -39,7 +39,7 @@ from sklearn.metrics import r2_score
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
-from utils import InputData
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -90,10 +90,10 @@ class PairwiseMetric(Metric):
         specifying input of cls.
     """
     inputSpecification = super(PairwiseMetric, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("metricType",contentType=InputData.StringType),quantity=InputData.Quantity.one)
-    inputSpecification.addSub(InputData.parameterInputFactory("degree",contentType=InputData.IntegerType),quantity=InputData.Quantity.zero_to_one)
-    inputSpecification.addSub(InputData.parameterInputFactory("gamma",contentType=InputData.FloatType),quantity=InputData.Quantity.zero_to_one)
-    inputSpecification.addSub(InputData.parameterInputFactory("coef0",contentType=InputData.IntegerType),quantity=InputData.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("metricType",contentType=InputData.StringType),quantity=InputTypes.Quantity.one)
+    inputSpecification.addSub(InputData.parameterInputFactory("degree",contentType=InputData.IntegerType),quantity=InputTypes.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("gamma",contentType=InputData.FloatType),quantity=InputTypes.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("coef0",contentType=InputData.IntegerType),quantity=InputTypes.Quantity.zero_to_one)
 
     return inputSpecification
 

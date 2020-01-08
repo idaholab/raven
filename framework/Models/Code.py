@@ -33,7 +33,7 @@ import numpy as np
 #Internal Modules------------------------------------------------------------------------------------
 from .Model import Model
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 import Files
 from DataObjects import Data
@@ -57,9 +57,9 @@ class Code(Model):
     """
     inputSpecification = super(Code, cls).getInputSpecification()
     inputSpecification.setStrictMode(False) #Code interfaces can allow new elements.
-    inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("walltime", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("walltime", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputTypes.StringType))
 
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
@@ -67,20 +67,20 @@ class Code(Model):
     ClargsTypeInput = InputData.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend","python"])
     ClargsInput.addParam("type", ClargsTypeInput, True)
 
-    ClargsInput.addParam("arg", InputData.StringType, False)
-    ClargsInput.addParam("extension", InputData.StringType, False)
-    ClargsInput.addParam("delimiter", InputData.StringType, False)
+    ClargsInput.addParam("arg", InputTypes.StringType, False)
+    ClargsInput.addParam("extension", InputTypes.StringType, False)
+    ClargsInput.addParam("delimiter", InputTypes.StringType, False)
     inputSpecification.addSub(ClargsInput)
     ## End command line arguments tag
 
     ## Begin file arguments tag
     FileargsInput = InputData.parameterInputFactory("fileargs")
 
-    FileargsTypeInput = InputData.makeEnumType("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
+    FileargsTypeInput = InputTypes.makeEnumType("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
     FileargsInput.addParam("type", FileargsTypeInput, True)
 
-    FileargsInput.addParam("arg", InputData.StringType, False)
-    FileargsInput.addParam("extension", InputData.StringType, False)
+    FileargsInput.addParam("arg", InputTypes.StringType, False)
+    FileargsInput.addParam("extension", InputTypes.StringType, False)
     inputSpecification.addSub(FileargsInput)
     ## End file arguments tag
 

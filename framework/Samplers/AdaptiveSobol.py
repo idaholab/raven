@@ -37,7 +37,7 @@ import itertools
 from .Sobol import Sobol
 from .AdaptiveSparseGrid import AdaptiveSparseGrid
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import DataObjects
 import SupervisedLearning
 import Quadratures
@@ -67,21 +67,20 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     inputSpecification.popSub("convergenceStudy")
     convergenceInput = InputData.parameterInputFactory("Convergence")
 
-    convergenceInput.addSub(InputData.parameterInputFactory("relTolerance", contentType=InputData.FloatType))
-    convergenceInput.addSub(InputData.parameterInputFactory("maxRuns", contentType=InputData.IntegerType))
-    convergenceInput.addSub(InputData.parameterInputFactory("maxSobolOrder", contentType=InputData.IntegerType))
-    convergenceInput.addSub(InputData.parameterInputFactory("progressParam", contentType=InputData.FloatType))
-    convergenceInput.addSub(InputData.parameterInputFactory("logFile", contentType=InputData.StringType))
-    convergenceInput.addSub(InputData.parameterInputFactory("subsetVerbosity", contentType=InputData.StringType))
+    convergenceInput.addSub(InputData.parameterInputFactory("relTolerance", contentType=InputTypes.FloatType))
+    convergenceInput.addSub(InputData.parameterInputFactory("maxRuns", contentType=InputTypes.IntegerType))
+    convergenceInput.addSub(InputData.parameterInputFactory("maxSobolOrder", contentType=InputTypes.IntegerType))
+    convergenceInput.addSub(InputData.parameterInputFactory("progressParam", contentType=InputTypes.FloatType))
+    convergenceInput.addSub(InputData.parameterInputFactory("logFile", contentType=InputTypes.StringType))
+    convergenceInput.addSub(InputData.parameterInputFactory("subsetVerbosity", contentType=InputTypes.StringType))
 
     inputSpecification.addSub(convergenceInput)
 
     convergenceStudyInput = InputData.parameterInputFactory("convergenceStudy")
 
-    convergenceStudyInput.addSub(InputData.parameterInputFactory("runStatePoints", contentType=InputData.StringType))
-    convergenceStudyInput.addSub(InputData.parameterInputFactory("baseFilename", contentType=InputData.StringType))
+    convergenceStudyInput.addSub(InputData.parameterInputFactory("runStatePoints", contentType=InputTypes.StringType))
+    convergenceStudyInput.addSub(InputData.parameterInputFactory("baseFilename", contentType=InputTypes.StringType))
     convergenceStudyInput.addSub(InputData.parameterInputFactory("pickle"))
-    print(convergenceStudyInput.subs)
 
     inputSpecification.addSub(convergenceStudyInput)
 

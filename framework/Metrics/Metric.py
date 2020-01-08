@@ -26,7 +26,7 @@ import abc
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import utils, InputData
+from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):

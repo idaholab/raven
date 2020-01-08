@@ -23,10 +23,9 @@ import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
-from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import Runners
+from PostProcessor import PostProcessor
 #Internal Modules End-----------------------------------------------------------
 
 class FastFourierTransform(PostProcessor):
@@ -45,9 +44,9 @@ class FastFourierTransform(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inSpec= super(FastFourierTransform, cls).getInputSpecification()
+    inSpec = super(FastFourierTransform, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
-                                                  contentType=InputData.StringListType,
+                                                  contentType=InputTypes.StringListType,
                                                   strictMode=True))
     return inSpec
 
