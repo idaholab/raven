@@ -43,6 +43,12 @@ parser.add_argument('--avail', dest='showAvail', action='store_true',
                     help='show all available standard RAVEN plugins and exit')
 args = parser.parse_args()
 
+# -> manually add to install list for "all"
+# ExamplePlugin should always stay here.
+# PRAPlugin can be moved once it is in a separate repository.
+manualAddedPlugins = ['PRAplugin', 'ExamplePlugin']
+# END TEMPORARY FIXME
+
 if __name__ == '__main__':
   ### Design notes
   # "Installing" is actually just the process of registering the location of the plugin
@@ -75,12 +81,7 @@ if __name__ == '__main__':
 
   # if requested "all" install, update sources
   if args.doAll:
-    # TODO TEMPORARY FIXME for PRAplugin:
-    # -> manually add to install list for "all"
-    # This is because the plugin maintainers have not transitioned to a separate repository yet.
-    submods.append('PRAplugin')
-    submods.append('ExamplePlugin')
-    # END TEMPORARY FIXME
+    submods.extend(manualAddedPlugins)
     args.source_dir = submods
   elif not args.source_dir:
     returnCode += 1
