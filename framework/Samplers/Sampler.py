@@ -18,8 +18,6 @@ Created on Feb 16, 2013
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -64,7 +62,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     inputSpecification.addSub(outerDistributionInput)
 
     variableInput = InputData.parameterInputFactory("variable")
-    variableInput.addParam("name", InputData.StringType)
+    # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
+    # from StringType to StringNoLeadingSpacesType
+    variableInput.addParam("name", InputData.StringNoLeadingSpacesType)
     variableInput.addParam("shape", InputData.IntegerListType, required=False)
     distributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
     distributionInput.addParam("dim", InputData.IntegerType)
@@ -88,7 +88,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     inputSpecification.addSub(variablesTransformationInput)
 
     constantInput = InputData.parameterInputFactory("constant", contentType=InputData.InterpretedListType)
-    constantInput.addParam("name", InputData.StringType, True)
+    # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
+    # from StringType to StringNoLeadingSpacesType
+    constantInput.addParam("name", InputData.StringNoLeadingSpacesType, True)
     constantInput.addParam("shape", InputData.IntegerListType, required=False)
     constantInput.addParam("source", InputData.StringType, required=False)
     constantInput.addParam("index", InputData.IntegerType, required=False)

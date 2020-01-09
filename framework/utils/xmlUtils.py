@@ -17,12 +17,10 @@ talbpaul, 2016-05
 """
 
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
+from utils.utils import toString, getRelativeSortedListEntry
 import xml.etree.ElementTree as ET
 import re
 import os
-from .utils import toString, getRelativeSortedListEntry
-warnings.simplefilter('default', DeprecationWarning)
 
 #define type checking
 def isComment(node):

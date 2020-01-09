@@ -18,8 +18,6 @@
   needs, depending on any combination of "index" dimensions (time, space, etc).
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import copy
 import itertools
