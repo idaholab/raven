@@ -63,7 +63,7 @@ class RAVEN(CodeInterfaceBase):
     """
     self.addInputExtension(['xml'])
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
       some members based on inputs. This can be overloaded in specialize code interface in order to
@@ -90,13 +90,14 @@ class RAVEN(CodeInterfaceBase):
     if child is not None:
       for moduleNode in child:
         # get the module to be used for conversion
-        source = moduleNode.attrib.get('source',None)
+        source = moduleNode.attrib.get('source', None)
         if source is None:
           raise IOError(self.printTag+' ERROR: no module "source" listed in "conversion" subnode attributes!')
         # fix up the path
+        ## should be relative to the working dir!
         source = os.path.expanduser(source)
         if not os.path.isabs(source):
-          source = os.path.abspath(source)
+          source = os.path.abspath(os.path.join(self._ravenWorkingDir, source))
         # check for existence
         if not os.path.exists(source):
           raise IOError(self.printTag+' ERROR: the conversionModule "{}" was not found!'
@@ -203,7 +204,7 @@ class RAVEN(CodeInterfaceBase):
     if platform.startswith("win") and utils.which("bash.exe") is not None:
       self.preCommand = 'bash.exe'
 
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     """
       this generates a new input file depending on which sampler has been chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -222,7 +223,7 @@ class RAVEN(CodeInterfaceBase):
     modifDict = Kwargs['SampledVars']
 
     # apply conversion scripts
-    for source,convDict in self.conversionDict.items():
+    for source, convDict in self.conversionDict.items():
       module = utils.importFromPath(source)
       varVals = dict((var,np.asarray(modifDict[var])) for var in convDict['variables'])
       # modify vector+ variables that need to be flattened
@@ -252,16 +253,16 @@ class RAVEN(CodeInterfaceBase):
         raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" does not exist!')
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
-      modifDict['RunInfo|batchSize'       ] = newBatchSize
+      modifDict['RunInfo|batchSize'] = newBatchSize
     #modifDict['RunInfo|internalParallel'] = internalParallel
     # make tree
-    modifiedRoot = parser.modifyOrAdd(modifDict,save=True,allowAdd = True)
+    modifiedRoot = parser.modifyOrAdd(modifDict, save=True, allowAdd=True)
     # modify tree
     if self.inputManipulationModule is not None:
       module = utils.importFromPath(self.inputManipulationModule)
       modifiedRoot = module.modifyInput(modifiedRoot,modifDict)
     # write input file
-    parser.printInput(modifiedRoot,currentInputFiles[index].getAbsFile())
+    parser.printInput(modifiedRoot, currentInputFiles[index].getAbsFile())
     # copy slave files
     parser.copySlaveFiles(currentInputFiles[index].getPath())
     return currentInputFiles

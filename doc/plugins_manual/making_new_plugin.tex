@@ -3,8 +3,8 @@
 Creating a new plugin is a straightforward process. It involves setting up a repository,
 establishing a basic structure, and installing in RAVEN for testing.
 
-\subsection{Setting up a Repository}
-TODO
+%\subsection{Setting up a Repository}
+%TODO
 
 \subsection{Plugin Structure}
 The following directories must be present in the main directory of the plugin in order for RAVEN to
@@ -25,4 +25,32 @@ modified.
 Use the installation script in \texttt{raven/install\_plugins.py}.
 
 This process automatically registers the plugin in the plugin directory, and informs the plugin
-about RAVEN (TODO more notes on this!)
+about RAVEN %(TODO more notes on this!)
+
+\subsection{Adding Testers}
+RAVEN automatically provides a testing harness for automated regression testing. This includes a
+variety of \emph{testers}, such as CSV checkers and XML checkers.
+
+If a plugin requires additional testers for regression testing, they can be added to the plugin and
+loaded by RAVEN's test harness at testing time.
+
+Any new testers should be added under a folder named \texttt{Testers} in the \texttt{src} directory
+of the plugin. For example, for a plugin named \texttt{examplePlugin} and a tester named
+\texttt{myNewTester}:
+\begin{lstlisting}[morekeywords={examplePlugin,myNewTester}]
+  /path/to/examplePlugin/src/Testers/myNewTester.py
+\end{lstlisting}
+Any discovered testers will be made available to the \texttt{tests} files used by the RAVEN
+regression test system; for example:
+\begin{lstlisting}[morekeywords={myNewTester}]
+[Tests]
+  [./aTestForMyPlugin]
+    type = myNewTester
+    input = my_test_input.xml
+    csv = 'TestWorkingDir/results.csv'
+  [../]
+[]
+\end{lstlisting}
+
+For more information on inheriting from and creating new testers, see the RAVEN regression system
+documentation.
