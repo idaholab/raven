@@ -48,7 +48,7 @@ class DTW(Metric):
     """
     inputSpecification = super(DTW, cls).getInputSpecification()
     orderInputType = InputTypes.makeEnumType("order","orderType",["0","1"])
-    inputSpecification.addSub(InputData.parameterInputFactory("order",contentType=orderInputType),quantity=InputTypes.Quantity.one)
+    inputSpecification.addSub(InputData.parameterInputFactory("order",contentType=orderInputType),quantity=InputData.Quantity.one)
     inputSpecification.addSub(InputData.parameterInputFactory("localDistance",contentType=InputTypes.StringType),quantity=InputData.Quantity.one)
 
     return inputSpecification
