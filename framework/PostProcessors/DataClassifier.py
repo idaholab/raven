@@ -52,7 +52,7 @@ class DataClassifier(PostProcessor):
     """
     inputSpecification = super(DataClassifier, cls).getInputSpecification()
     VariableInput = InputData.parameterInputFactory("variable", contentType=InputTypes.StringType)
-    VariableInput.addParam("name", InputData.StringType, True)
+    VariableInput.addParam("name", InputTypes.StringType, True)
     FunctionInput = InputData.parameterInputFactory("Function", contentType=InputTypes.StringType)
     FunctionInput.addParam("class", InputTypes.StringType, True)
     FunctionInput.addParam("type", InputTypes.StringType, True)

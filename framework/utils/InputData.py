@@ -22,6 +22,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 from collections import OrderedDict
 import xml.etree.ElementTree as ET
 from utils import InputTypes
+import textwrap
 
 class Quantity:
   """
@@ -365,10 +366,81 @@ class ParameterInput(object):
       if parameterData["required"]:
         attributeNode.set('use','required')
 
-## TODO: We should normalize the names of the following two functions, since they
-## do the same thing just on different input types.
-## e.g., parameterInputFactory and EnumFactory
-## makeClassSpecification and makeEnumSpecification
+  @classmethod
+  def generateLatex(cls, recDepth=0):
+    """
+      Generates the user manual entry for this input spec.
+      @ In, recDepth, int, optional, recursion depth of printing
+      @ Out, msg, str, LaTeX string representation of user manual entry
+    """
+    # indentation is as follows:
+    # main item definition
+    #   main item description
+    #   main item parameters
+    #     main item param 1
+    #     main item param 2
+    #   main item subnodes
+    #     subitem definition
+    #     subitem description
+    #     subitem parameters
+    #     subitem subnodes
+    # etc
+    name = cls.name
+    typ = cls.contentType
+    desc = wrapText(cls.description, indent=doDent(recDepth, 1))
+    msg = ''
+    # if this is a main entity, use subsection instead of itemizing
+    if recDepth == 0:
+      # triple curly braces preserves one set of curls while replacing "n"
+      msg += '\subsection{{{n}}}\n{d}\n'.format(n=name, d=desc)
+    # since this is a sub-entity, it's part of a list
+    else:
+      msg += '{i}\\item \\xmlNode{{{n}}}:'.format(i=doDent(recDepth), n=name)
+      # add the required text type if it exists
+      if cls.contentType:
+        msg += '\\xmlDesc{{{t}}}, '.format(t=cls.contentType.name)
+      # add description
+      msg += '\n{d}'.format(d=desc)
+    # add parameter definitions, if any, tabbed in by 1
+    msg += '\n' + cls.generateParamsLatex(recDepth+1)
+    # add subnode definitions
+    if cls.subs:
+      msg += '\n{i}The \\xmlNode{{{n}}} node recognizes the following subnodes:'.format(i=doDent(recDepth, 1), n=name)
+      msg += '\n{i}\\begin{{itemize}}'.format(i=doDent(recDepth, 1))
+      for sub in cls.subs:
+        msg += '\n{sub}'.format(sub=sub.generateLatex(recDepth=recDepth+2))
+      msg += '{i}\\end{{itemize}}\n'.format(i=doDent(recDepth, 1))
+    return msg
+
+  @classmethod
+  def generateParamsLatex(cls, recDepth):
+    """
+      Generates the LaTeX representation of the parameters (attributes) of this spec.
+      @ In, recDepth, int, recursion depth for indentation purposes
+      @ Out, msg, str, LaTeX parameters
+    """
+    msg = ''
+    # if no parameters, nothing to do
+    if not cls.parameters:
+      return msg
+    specName = cls.name
+    msg += '{i}The \\xmlNode{{{n}}} node recognizes the following parameters:'.format(i=doDent(recDepth), n=specName)
+    msg += '\n{i}\\begin{{itemize}}'.format(i=doDent(recDepth, 1))
+    for param, info in cls.parameters.items():
+      name = param
+      typ = info['type'].name
+      req = 'required' if info['required'] else 'optional'
+      desc = wrapText(info['description'], indent=doDent(recDepth, 3))
+      msg += '\n{i}  \\item \\xmlAttr{{{n}}}: \\xmlDesc{{{t}, {r}}}, \n{d}'.format(i=doDent(recDepth, 1),
+                                                                                   n=name,
+                                                                                   t=typ,
+                                                                                   r=req,
+                                                                                   d=desc)
+    msg += '\n{i}\\end{{itemize}}\n'.format(i=doDent(recDepth))
+    return msg
+
+
+
 
 def parameterInputFactory(*paramList, **paramDict):
   """
@@ -406,3 +478,30 @@ class RavenBase(ParameterInput):
   """
 RavenBase.createClass("RavenBase", baseNode=None)
 RavenBase.addParam("verbosity") #XXX should be enumeration
+
+
+#
+#
+#
+#
+def doDent(d, p=0, style='  '):
+  """
+    Creates an indent based on desired level
+    @ In, d, int, number of indents to add nominally
+    @ In, p, int, number of additional indents
+    @ In, style, str, optional, characters for indenting
+    @ Out, dent, str, indent string
+  """
+  return style * (d + p)
+
+def wrapText(text, indent, width=100):
+  """
+    Utility to wrap text to an appropriate length and indentation
+    @ In, text, text to wrap
+    @ In, indent, str, string to use as an indent
+    @ In, width, int, optional, number of characters including indent to wrap at
+    @ Out, msg, str, modified text
+  """
+  msg = textwrap.dedent(text)
+  msg = textwrap.fill(msg, width=width, initial_indent=indent, subsequent_indent=indent)
+  return msg

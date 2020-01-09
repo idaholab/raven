@@ -64,7 +64,7 @@ class Code(Model):
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
 
-    ClargsTypeInput = InputData.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend","python"])
+    ClargsTypeInput = InputTypes.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend","python"])
     ClargsInput.addParam("type", ClargsTypeInput, True)
 
     ClargsInput.addParam("arg", InputTypes.StringType, False)

@@ -29,7 +29,7 @@ import sys
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
 import pyDOE as doe
-from utils import InputData, Types
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class FactorialDesign(Grid):

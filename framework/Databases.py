@@ -63,7 +63,7 @@ class DateBase(BaseType):
     inputSpecification.addParam("directory", InputTypes.StringType)
     inputSpecification.addParam("filename", InputTypes.StringType)
     inputSpecification.addParam("readMode", InputTypes.makeEnumType("readMode","readModeType",["overwrite","read"]), True)
-    inputSpecification.addSub(InputTypes.parameterInputFactory("variables", contentType=InputTypes.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringListType))
     return inputSpecification
 
   def _handleInput(self, paramInput):

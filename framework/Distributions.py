@@ -1590,7 +1590,7 @@ class Categorical(Distribution):
 
     StatePartInput = InputData.parameterInputFactory("state", contentType=InputTypes.FloatType)
     StatePartInput.addParam("outcome", InputTypes.FloatType, True)
-    inputSpecification.addSub(StatePartInput, InputTypes.Quantity.one_to_infinity)
+    inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
 
     ## Because we do not inherit from the base class, we need to manually
     ## add the name back in.
@@ -1733,8 +1733,8 @@ class MarkovCategorical(Categorical):
     StatePartInput.addParam("outcome", InputTypes.FloatType, True)
     StatePartInput.addParam("index", InputTypes.IntegerType, True)
     TransitionInput = InputData.parameterInputFactory("transition", contentType=InputTypes.StringType)
-    inputSpecification.addSub(StatePartInput, InputTypes.Quantity.one_to_infinity)
-    inputSpecification.addSub(TransitionInput, InputTypes.Quantity.zero_to_one)
+    inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
+    inputSpecification.addSub(TransitionInput, InputData.Quantity.zero_to_one)
     inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputTypes.StringType))
     ## Because we do not inherit from the base class, we need to manually
     ## add the name back in.

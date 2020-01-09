@@ -25,7 +25,7 @@ import numpy as np
 #Internal Modules---------------------------------------------------------------
 from utils import InputData, InputTypes
 import Runners
-from PostProcessor import PostProcessor
+from .PostProcessor import PostProcessor
 #Internal Modules End-----------------------------------------------------------
 
 class FastFourierTransform(PostProcessor):

@@ -1,0 +1,99 @@
+\subsection{MultiRun}
+   The \textbf{MultiRun} step allows the user to assemble the calculation flow of an analysis that
+  requires multiple ``runs'' of the same model. This step is used, for example, when the input
+  (space) of the model needs to be perturbed by a particular sampling strategy. The specifications
+  of this type of step must be defined within a \xmlNode{MultiRun} XML block.
+
+  The \xmlNode{MultiRun} node recognizes the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{verbosity}: \xmlDesc{string, optional}, 
+        -- no description yet --
+      \item \xmlAttr{name}: \xmlDesc{string, required}, 
+        User-defined name to designate this entity.
+      \item \xmlAttr{sleepTime}: \xmlDesc{float, optional}, 
+        Determines the wait time between successive iterations within this step, in seconds.
+      \item \xmlAttr{re-seeding}: \xmlDesc{string, optional}, 
+         this optional attribute could be used to control the seeding of the random number generator
+        (RNG). If inputted, the RNG can be reseeded. The value of this attribute can be: either 1)
+        an integer value with the seed to be used (e.g. \xmlAttr{re-seeding} = ``20021986''), or 2)
+        string value named ``continue'' where the RNG is not re-initialized
+      \item \xmlAttr{pauseAtEnd}: \xmlDesc{string, optional}, 
+        -- no description yet --
+      \item \xmlAttr{fromDirectory}: \xmlDesc{string, optional}, 
+        -- no description yet --
+      \item \xmlAttr{repeatFailureRuns}: \xmlDesc{string, optional}, 
+        -- no description yet --
+  \end{itemize}
+
+  The \xmlNode{MultiRun} node recognizes the following subnodes:
+  \begin{itemize}
+    \item \xmlNode{Input}:\xmlDesc{string}, 
+      Inputs to the step operation
+      The \xmlNode{Input} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            -- no description yet --
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            -- no description yet --
+      \end{itemize}
+
+    \item \xmlNode{Model}:\xmlDesc{string}, 
+      Entity containing the model to be executed
+      The \xmlNode{Model} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            -- no description yet --
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            -- no description yet --
+      \end{itemize}
+
+    \item \xmlNode{Sampler}:\xmlDesc{string}, 
+      Entity containing the sampling strategy
+      The \xmlNode{Sampler} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            -- no description yet --
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            -- no description yet --
+      \end{itemize}
+
+    \item \xmlNode{Output}:\xmlDesc{string}, 
+      Entity to store results of the step
+      The \xmlNode{Output} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            -- no description yet --
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            -- no description yet --
+      \end{itemize}
+
+    \item \xmlNode{Optimizer}:\xmlDesc{string}, 
+      Entity containing the optimization strategy
+      The \xmlNode{Optimizer} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            -- no description yet --
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            -- no description yet --
+      \end{itemize}
+
+    \item \xmlNode{SolutionExport}:\xmlDesc{string}, 
+      Entity containing auxiliary output for the solution of this step
+      The \xmlNode{SolutionExport} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            -- no description yet --
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            -- no description yet --
+      \end{itemize}
+
+    \item \xmlNode{Function}:\xmlDesc{string}, 
+      Functional definition for use within this step
+      The \xmlNode{Function} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            -- no description yet --
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            -- no description yet --
+      \end{itemize}
+  \end{itemize}

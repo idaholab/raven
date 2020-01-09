@@ -53,7 +53,7 @@ class LimitSurfaceIntegral(PostProcessor):
     inputSpecification = super(LimitSurfaceIntegral, cls).getInputSpecification()
 
     LSIVariableInput = InputData.parameterInputFactory("variable")
-    LSIVariableInput.addParam("name", InputData.StringType)
+    LSIVariableInput.addParam("name", InputTypes.StringType)
     LSIDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
     LSIDistributionInput.addParam("class", InputTypes.StringType, True)
     LSIDistributionInput.addParam("type", InputTypes.StringType, True)

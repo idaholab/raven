@@ -52,10 +52,10 @@ class Metric(PostProcessor):
     """
     inputSpecification = super(Metric, cls).getInputSpecification()
     featuresInput = InputData.parameterInputFactory("Features", contentType=InputTypes.StringListType)
-    featuresInput.addParam("type", InputData.StringType)
+    featuresInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(featuresInput)
     targetsInput = InputData.parameterInputFactory("Targets", contentType=InputTypes.StringListType)
-    targetsInput.addParam("type", InputData.StringType)
+    targetsInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(targetsInput)
     multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=InputTypes.StringType)
     inputSpecification.addSub(multiOutputInput)
