@@ -14,7 +14,6 @@
 
 import os
 import sys
-import filecmp
 
 frameworkPath = os.path.join(os.path.dirname(__file__), *(['..']*4), 'framework')
 sys.path.append(frameworkPath)
@@ -39,7 +38,12 @@ with open(fName, 'w') as f:
   f.writelines(tex)
 
 # compare
-same = filecmp.cmp(fName, 'gold/tex/multirun_spec.tex')
+with open('gold/tex/multirun_spec.tex', 'r') as test:
+  with open (fName, 'r') as gold:
+    t = test.read()
+    g = gold.read()
+    same = t == g
+
 if same:
   results['pass'] += 1
 else:

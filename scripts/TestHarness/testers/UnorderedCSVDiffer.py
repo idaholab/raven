@@ -69,7 +69,7 @@ class UnorderedCSVDiffer:
       print('abs check:', self.__check_absolute_values)
       print('zero thr :', self.__zero_threshold)
 
-  def finalize_message(self, same, msg, filename):
+  def finalizeMessage(self, same, msg, filename):
     """
       Compiles useful messages to print, prepending with file paths.
       @ In, same, bool, True if files are the same
@@ -199,7 +199,7 @@ class UnorderedCSVDiffer:
         same = False
       # if either file did not exist, clean up and go to next outfile
       if not same:
-        self.finalize_message(same, msg, testFilename)
+        self.finalizeMessage(same, msg, testFilename)
         continue
       # at this point, we've loaded both files (even if they're empty), so compare them.
       ## first, cover the case when both files are empty.
@@ -211,14 +211,14 @@ class UnorderedCSVDiffer:
           else:
             msg.append('Gold file is empty, but Test is not!')
         # either way, move on to the next file, as no more comparison is needed
-        self.finalize_message(same, msg, testFilename)
+        self.finalizeMessage(same, msg, testFilename)
         continue
       ## at this point, both files have data loaded
       ## check columns using symmetric difference
       diffColumns = set(goldCsv.columns)^set(testCsv.columns)
       if len(diffColumns) > 0:
         same = False
-        msg.append('Columns are not the same! Different: {}'.format(', '.join(diff_columns)))
+        msg.append('Columns are not the same! Different: {}'.format(', '.join(diffColumns)))
         self.finalizeMessage(same, msg, testFilename)
         continue
       ## check index length
@@ -226,7 +226,7 @@ class UnorderedCSVDiffer:
         same = False
         msg.append(('Different number of entires in Gold ({}) versus'+
                     ' Test ({})!').format(len(goldCsv.index), len(testCsv.index)))
-        self.finalize_message(same, msg, testFilename)
+        self.finalizeMessage(same, msg, testFilename)
         continue
       ## at this point both CSVs have the same shape, with the same header contents.
       ## align columns
@@ -246,7 +246,7 @@ class UnorderedCSVDiffer:
           msg.append(str(testCsv))
           # stop looking once a mismatch is found
           break
-      self.finalize_message(same, msg, testFilename)
+      self.finalizeMessage(same, msg, testFilename)
     return self.__same, self.__message
 
   def prep_data_frame(self, csv, tol):
