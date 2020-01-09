@@ -99,7 +99,7 @@ StringType.createClass("string", "xsd:string")
 #
 #
 #
-class StringNotLeadingSpacesType(InputType):
+class StringNoLeadingSpacesType(InputType):
   """
     A type for arbitrary string data. This is equivalent
     to the StringType but in case of a comma delimiter, it
