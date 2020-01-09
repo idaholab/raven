@@ -62,7 +62,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     inputSpecification.addSub(outerDistributionInput)
 
     variableInput = InputData.parameterInputFactory("variable")
-    variableInput.addParam("name", InputTypes.StringType)
+    # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
+    # from StringType to StringNoLeadingSpacesType
+    variableInput.addParam("name", InputTypes.StringNoLeadingSpacesType)
     variableInput.addParam("shape", InputTypes.IntegerListType, required=False)
     distributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
     distributionInput.addParam("dim", InputTypes.IntegerType)
@@ -86,7 +88,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     inputSpecification.addSub(variablesTransformationInput)
 
     constantInput = InputData.parameterInputFactory("constant", contentType=InputTypes.InterpretedListType)
-    constantInput.addParam("name", InputTypes.StringType, True)
+    # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
+    # from StringType to StringNoLeadingSpacesType
+    constantInput.addParam("name", InputTypes.StringNoLeadingSpacesType, True)
     constantInput.addParam("shape", InputTypes.IntegerListType, required=False)
     constantInput.addParam("source", InputTypes.StringType, required=False)
     constantInput.addParam("index", InputTypes.IntegerType, required=False)

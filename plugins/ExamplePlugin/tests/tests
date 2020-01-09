@@ -1,6 +1,6 @@
 [Tests]
  [./TestPluginExample]
-  type = 'RavenFramework'
+  type = 'ExampleIntegration'
   input = 'test_example_plugin.xml'
   csv = 'simpleTest/dumpSumOfExpOutput.csv'
   max_time = 100

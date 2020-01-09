@@ -79,7 +79,9 @@ class Optimizer(Sampler):
     ## was also part of Sampler, but we need to rewrite variable, so remove it first
     inputSpecification.removeSub('variable')
     variable = InputData.parameterInputFactory('variable', strictMode=True)
-    variable.addParam("name", InputTypes.StringType, True)
+    # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
+    # from StringType to StringNoLeadingSpacesType
+    variable.addParam("name", InputTypes.StringNoLeadingSpacesType, True)
     variable.addParam("shape", InputTypes.IntegerListType, required=False)
     upperBound = InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType, strictMode=True)
     lowerBound = InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType, strictMode=True)
@@ -430,7 +432,7 @@ class Optimizer(Sampler):
         self.raiseAnError(IOError,'Only "ForwardSampler"s (e.g. MonteCarlo, Grid, etc.) can be used for initializing the trajectories in the Optimizer! Got "{}.{}" for "{}".'.format(cls,typ,name))
       self.initializationSampler = sampler
       initDict = {}
-      for entity in ['Distributions','Functions','DataObjects']:
+      for entity in ['Distributions', 'Functions', 'DataObjects']:
         initDict[entity] = dict((entry[2],entry[3]) for entry in self.assemblerDict.get(entity,[]))
       self.initializationSampler._localGenerateAssembler(initDict)
       for key in self.initializationSampler.getInitParams().keys():
