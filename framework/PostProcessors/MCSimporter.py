@@ -48,11 +48,11 @@ class MCSimporter(PostProcessor):
       @ Out, None
     """
     PostProcessor.__init__(self, messageHandler)
-    self.printTag  = 'POSTPROCESSOR ET IMPORTER'
+    self.printTag  = 'POSTPROCESSOR MCS IMPORTER'
     self.expand    = None  # option that controls the structure of the ET. If True, the tree is expanded so that
                            # all possible sequences are generated. Sequence label is maintained according to the
                            # original tree
-    self.allowedFormats = ['Saphire'] # ET formats that are supported
+    #self.allowedFormats = ['Saphire'] # ET formats that are supported
 
   @classmethod
   def getInputSpecification(cls):
@@ -64,9 +64,9 @@ class MCSimporter(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(MCSimporter, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
+    #inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("expand", contentType=InputData.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("BElistColumn", contentType=InputData.StringType))
+    #inputSpecification.addSub(InputData.parameterInputFactory("BElistColumn", contentType=InputData.StringType))
     return inputSpecification
 
   def initialize(self, runInfo, inputs, initDict) :
@@ -97,16 +97,16 @@ class MCSimporter(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    fileFormat = paramInput.findFirst('fileFormat')
-    self.fileFormat = fileFormat.value
-    if self.fileFormat not in self.allowedFormats:
-      self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', format ' + str(self.fileFormat) + ' : is not supported')
+    #fileFormat = paramInput.findFirst('fileFormat')
+    #self.fileFormat = fileFormat.value
+    #if self.fileFormat not in self.allowedFormats:
+    #  self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', format ' + str(self.fileFormat) + ' : is not supported')
     
     expand = paramInput.findFirst('expand')
     self.expand = expand.value
 
-    BElistColumn = paramInput.findFirst('BElistColumn')
-    self.BElistColumn = BElistColumn.value
+    #BElistColumn = paramInput.findFirst('BElistColumn')
+    #self.BElistColumn = BElistColumn.value
         
     # if self.expand = False then the dataObject includes only the Basic Events  listed in the set of MCSs
     # if self.expand = True then the dataObject includes all Basic Events
@@ -141,7 +141,9 @@ class MCSimporter(PostProcessor):
       self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', Expand is set to False but no file with type=BElist has been found')
     
     self.MCSlist=[]
-    self.BElist=set()    
+    self.BElist=set()  
+    self.probability = np.zeros((0))
+    self.MCS_IDs = np.zeros((0))  
       
     # construct the list of MCSs and the list of BE  
     counter=0
@@ -150,7 +152,13 @@ class MCSimporter(PostProcessor):
       lines = file.read().splitlines()
       for l in lines:
         elementsList = l.split(',') 
+
+        self.MCS_IDs=np.append(self.MCS_IDs,elementsList[0])
         elementsList.pop(0)
+        
+        self.probability=np.append(self.probability,elementsList[0])
+        elementsList.pop(0)
+        
         for element in elementsList:
           element.rstrip('\n')
         self.MCSlist.append(elementsList)
@@ -161,7 +169,11 @@ class MCSimporter(PostProcessor):
       BEdata = pd.read_csv(BElistFile.getFilename())    
       self.BElist = BEdata[self.BElistColumn]
 
-    MCSpointSet = {}  
+    MCSpointSet = {} 
+    MCSpointSet['probability'] = self.probability
+    MCSpointSet['MCS_IDs']     = self.MCS_IDs
+    MCSpointSet['out']         = np.ones((counter))
+
     for be in self.BElist:
       MCSpointSet[be]= np.zeros(counter)
     
