@@ -107,4 +107,35 @@ class GradientDescent(Sampled):
   ###################
   # Utility Methods #
   ###################
-  # TODO
+  def _createPrefix(self, **kwargs):
+  """
+    Creates a unique ID to identifiy particular realizations as they return from the JobHandler.
+    Expandable by inheritors.
+    @ In, args, list, list of arguments
+    @ In, kwargs, dict, dictionary of keyword arguments
+    @ Out, identifiers, list(str), the evaluation identifiers
+  """
+  # allow other identifiers as well
+  otherInfo = kwargs.get('info', None) # TODO deepcopy?
+  if otherInfo is None:
+    otherInfo = []
+  # add the opt/grad point identifier
+  optOrGrad = kwargs['optOrGrad']
+  otherInfo.append(optOrGrad)
+  # allow base class to contribute
+  return Sampled._createPrefix(self, info=otherInfo, **kwargs)
+
+def _deconstructPrefix(self, prefix):
+  """
+    Deconstruct a prefix as far as this instance knows how.
+    @ In, prefix, str, label for a realization
+    @ Out, info, dict, {traj: #, resample: #}, information about the realization
+    @ Out, rem, str, remainder of the prefix (with prior information removed)
+  """
+  # allow base class to peel off it's part
+  info, prefix = Sampled._createPrefix(self, prefix)
+  asList = prefix.split('_')
+  # get the opt (0) or grad ID (1:N)
+  info['optOrGrad'] = int(asList[0])
+  rem = asList[1:].join('_')
+  return info, rem

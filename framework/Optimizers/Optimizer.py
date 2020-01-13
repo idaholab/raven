@@ -171,15 +171,42 @@ class Optimizer(Sampler):
     elif self.optType == 'max':
       return a >= b
 
-  def _createPrefix(self, *args, **kwargs):
+  def _createPrefix(self, **kwargs):
     """
       Creates a unique ID to identifiy particular realizations as they return from the JobHandler.
       Expandable by inheritors.
       @ In, args, list, list of arguments
       @ In, kwargs, dict, dictionary of keyword arguments
-      @ Out, identifier, str, the evaluation identifier
+      @ Out, identifiers, list(str), the evaluation identifiers
     """
-    # TODO
+    # allow other identifiers as well
+    otherInfo = kwargs.get('info', None) # TODO deepcopy?
+    if otherInfo is None:
+      otherInfo = []
+    # prefixes start with the trajectory
+    traj = kwargs['traj']
+    otherInfo.insert(0, traj)
+    # prefixes end with the resample number
+    resample = kwargs['resample']
+    otherInfo.append(resample)
+    return otherInfo
+
+  def _deconstructPrefix(self, prefix):
+    """
+      Deconstruct a prefix as far as this instance knows how.
+      @ In, prefix, str, label for a realization
+      @ Out, info, dict, {traj: #, resample: #}, information about the realization
+      @ Out, rem, str, remainder of the prefix (with prior information removed)
+    """
+    asList = prefix.split('_')
+    # since this is the base class, create the info
+    ## include the trajectory number
+    ## and also the stochastic denoising/resampling number
+    info = {'traj': int(asList[0]),
+            'resample': int(asList[-1]),
+           }
+    rem = asList[1:-1].join('_')
+    return info, rem
 
   def denormalizeData(self, normalized):
     """

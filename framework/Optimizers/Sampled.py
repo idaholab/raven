@@ -101,4 +101,35 @@ class Sampled(Optimizer):
   ###################
   # Utility Methods #
   ###################
-  # TODO
+  def _createPrefix(self, **kwargs):
+  """
+    Creates a unique ID to identifiy particular realizations as they return from the JobHandler.
+    Expandable by inheritors.
+    @ In, args, list, list of arguments
+    @ In, kwargs, dict, dictionary of keyword arguments
+    @ Out, identifiers, list(str), the evaluation identifiers
+  """
+  # allow other identifiers as well
+  otherInfo = kwargs.get('info', None) # TODO deepcopy?
+  if otherInfo is None:
+    otherInfo = []
+  # add the iteration (or step)
+  step = kwargs['step']
+  otherInfo.append(step)
+  # allow base class to contribute
+  return Optimizer._createPrefix(self, info=otherInfo, **kwargs)
+
+def _deconstructPrefix(self, prefix):
+  """
+    Deconstruct a prefix as far as this instance knows how.
+    @ In, prefix, str, label for a realization
+    @ Out, info, dict, {traj: #, resample: #}, information about the realization
+    @ Out, rem, str, remainder of the prefix (with prior information removed)
+  """
+  # allow base class to peel off it's part
+  info, prefix = Optimizer._createPrefix(self, prefix)
+  asList = prefix.split('_')
+  # get the iteration (or step, if you will)
+  info['iteration'] = int(asList[0])
+  rem = asList[1:].join('_')
+  return info, rem
