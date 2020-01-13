@@ -1,0 +1,15 @@
+Input File:
+ - objectVar -> objective
+ - Function -> Constraint
+
+
+
+
+
+
+-----------------------------
+Design
+
+Optimizer
+ - add "cancel job(s) by ID" to design
+ - ? remove Output final solution
