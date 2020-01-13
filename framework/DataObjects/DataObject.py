@@ -16,8 +16,6 @@
 """
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import sys
@@ -218,12 +216,6 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     # check if protected vars have been violated
     if set(self.protectedTags).intersection(set(self._orderedVars)):
       self.raiseAnError(IOError, 'Input, Output and Index variables can not be part of RAVEN protected tags: '+','.join(self.protectedTags))
-
-    # create dict var to index
-    # FIXME: this dict will not work in case of variables depending on multiple indexes. When this need comes, we will change this check(alfoa)
-    if self.indexes:
-      for ind in self.indexes:
-        self._fromVarToIndex.update(dict.fromkeys( self._pivotParams[ind], ind))
 
     if self.messageHandler is None:
       self.messageHandler = MessageHandler()

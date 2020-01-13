@@ -17,9 +17,6 @@ Created on August 30, 2017
 @author: wangc
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import os
@@ -203,9 +200,7 @@ class CrossValidation(PostProcessor):
           cvEstimator = currentInput
         else:
           self.raiseAnError(IOError, "This postprocessor '%s' only accepts one input of Models.ROM!" %self.name)
-
     currentInputs.remove(cvEstimator)
-
     currentInput = copy.deepcopy(currentInputs[-1])
     inputType = None
     if hasattr(currentInput, 'type'):

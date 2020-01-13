@@ -16,8 +16,6 @@ Module where the base class and the specialization of different type of Model ar
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -50,6 +48,9 @@ class PostProcessor(Model):
     cls.validateDict['Input'  ][-1]['type'        ] = ['HDF5']
     cls.validateDict['Input'  ][-1]['required'    ] = False
     cls.validateDict['Input'  ][-1]['multiplicity'] = 'n'
+    ## datasets
+    dataObjects = cls.validateDict['Input'][0]
+    dataObjects['type'].append('DataSet')
     # Cross validations will accept Model.ROM
     cls.validateDict['Input'].append(cls.testDict.copy())
     cls.validateDict['Input'  ][-1]['class'       ] = 'Models'

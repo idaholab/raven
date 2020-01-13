@@ -18,8 +18,6 @@ Created on Nov 14, 2013
 """
 ## for future compatibility with Python 3---------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 ## End compatibility block for Python 3-----------------------------------------
 
 ## External Modules-------------------------------------------------------------
@@ -46,19 +44,9 @@ from .OutStreamManager import OutStreamManager
 from ClassProperty import ClassProperty
 ## Internal Modules End---------------------------------------------------------
 
-## Set a global variable for backend default setting of whether a display is
-## available or not. For instance, if we are running on the HPC without an X11
-## instance, then we don't have the ability to display the plot, only to save it
-## to a file
-if platform.system() == 'Windows':
-  displayAvailable = True
-else:
-  if os.getenv('DISPLAY'):
-    displayAvailable = True
-  else:
-    displayAvailable = False
-
-if not displayAvailable:
+#display = True
+display = utils.displayAvailable()
+if not display:
   matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
@@ -331,7 +319,7 @@ class OutStreamPlot(OutStreamManager):
             if xSplit[2].strip() not in self.sourceData[pltIndex].getVars(xSplit[1].lower())+outputIndexes:
               self.raiseAnError(IOError, 'Not found variable "'+ xSplit[2] + '" in "'+xSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
             # for variable from input space, it will return array(float), not 1d array
-            self.xValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt).dropna(pivotParam)[xSplit[2]].values.astype(float, copy=False)))
+            self.xValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel({'RAVEN_sample_ID':cnt},False).dropna(pivotParam)[xSplit[2]].values.astype(float, copy=False)))
             maxSize = self.xValues[pltIndex][cnt][-1].size if self.xValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.yCoordinates :
             for i in range(len(self.yCoordinates [pltIndex])):
@@ -339,7 +327,7 @@ class OutStreamPlot(OutStreamManager):
               outputIndexes = self.sourceData[pltIndex].indexes if ySplit[1].lower() == 'output' else []
               if ySplit[2].strip() not in self.sourceData[pltIndex].getVars(ySplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ ySplit[2] + '" in "'+ySplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.yValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt).dropna(pivotParam)[ySplit[2]].values.astype(float, copy=False)))
+              self.yValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel({'RAVEN_sample_ID':cnt},False).dropna(pivotParam)[ySplit[2]].values.astype(float, copy=False)))
               maxSize = self.yValues[pltIndex][cnt][-1].size if self.yValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.zCoordinates  and self.dim > 2:
             for i in range(len(self.zCoordinates [pltIndex])):
@@ -347,7 +335,7 @@ class OutStreamPlot(OutStreamManager):
               outputIndexes = self.sourceData[pltIndex].indexes if zSplit[1].lower() == 'output' else []
               if zSplit[2].strip() not in self.sourceData[pltIndex].getVars(zSplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ zSplit[2] + '" in "'+zSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.zValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel(False,RAVEN_sample_ID=cnt).dropna(pivotParam)[zSplit[2]].values.astype(float, copy=False)))
+              self.zValues[pltIndex][cnt].append(np.atleast_1d(dataSet.isel({'RAVEN_sample_ID':cnt},False).dropna(pivotParam)[zSplit[2]].values.astype(float, copy=False)))
               maxSize = self.zValues[pltIndex][cnt][-1].size if self.zValues[pltIndex][cnt][-1].size > maxSize else maxSize
           if self.colorMapCoordinates[pltIndex] != None:
             for i in range(len(self.colorMapCoordinates[pltIndex])):
@@ -355,7 +343,7 @@ class OutStreamPlot(OutStreamManager):
               outputIndexes = self.sourceData[pltIndex].indexes if colorSplit[1].lower() == 'output' else []
               if colorSplit[2].strip() not in self.sourceData[pltIndex].getVars(colorSplit[1].lower())+outputIndexes:
                 self.raiseAnError(IOError, 'Not found variable "'+ colorSplit[2] + '" in "'+colorSplit[1]+ '" of DataObject "'+ self.sourceData[pltIndex].name+'"!')
-              self.colorMapValues[pltIndex][cnt].append(dataSet.isel(False,RAVEN_sample_ID=cnt).dropna(pivotParam)[colorSplit[2]].values.astype(float, copy=False))
+              self.colorMapValues[pltIndex][cnt].append(dataSet.isel({'RAVEN_sample_ID':cnt},False).dropna(pivotParam)[colorSplit[2]].values.astype(float, copy=False))
               maxSize = self.colorMapValues[pltIndex][cnt][-1].size if self.colorMapValues[pltIndex][cnt][-1].size > maxSize else maxSize
           # expand the scalars in case they need to be plotted against histories
           if self.xValues[pltIndex][cnt][-1].size == 1 and maxSize > 1:
@@ -551,7 +539,7 @@ class OutStreamPlot(OutStreamManager):
         if self.dim == 2 :
           plt.text(float(self.options[key]['position'].split(',')[0]), float(self.options[key]['position'].split(',')[1]), self.options[key]['text'], fontdict = ast.literal_eval(self.options[key]['fontdict']), **self.options[key].get('attributes', {}))
         elif self.dim == 3:
-          self.plt3D.text(float(self.options[key]['position'].split(',')[0]), float(self.options[key]['position'].split(',')[1]), float(self.options[key]['position'].split(',')[2]), self.options[key]['text'], fontdict = ast.literal_eval(self.options[key]['fontdict']), withdash = ast.literal_eval(self.options[key]['withdash']), **self.options[key].get('attributes', {}))
+          self.plt3D.text(float(self.options[key]['position'].split(',')[0]), float(self.options[key]['position'].split(',')[1]), float(self.options[key]['position'].split(',')[2]), self.options[key]['text'], fontdict = ast.literal_eval(self.options[key]['fontdict']), **self.options[key].get('attributes', {}))
       elif key == 'autoscale':
         if 'enable' not in self.options[key].keys():
           self.options[key]['enable'] = 'True'
@@ -684,17 +672,19 @@ class OutStreamPlot(OutStreamManager):
       @ In, instructionString, string, the instruction to execute
       @ Out, None
     """
-    if instructionString == 'interactive' and 'screen' in self.destinations and displayAvailable:
+    if instructionString == 'interactive' and 'screen' in self.destinations and display:
       self.fig = plt.figure(self.name)
       ## This seems a bit hacky, but we need the ginput in order to block
       ## execution of raven until this is over, however closing the window can
       ## cause this thing to fail.
       try:
-        self.fig.ginput(n = -1, timeout = -1, show_clicks = False)
+        self.fig.ginput(n = -1, timeout = 0, show_clicks = False)
       except:
         ## I know this is bad, but it is a single line of code outside our
         ## control, if it fails for any reason it should not be a huge deal, we
         ## just want RAVEN to continue on its merry way when a figure closes.
+        self.raiseAWarning('There was an error with figure.ginput:\n', e)
+        self.raiseAWarning('... continuing anyway ...')
         pass
       ## We may want to catch a more generic exception since this may be depedent
       ## on the backend used, hence the code replacement above
@@ -735,7 +725,7 @@ class OutStreamPlot(OutStreamManager):
     else:
       self.fig = plt.figure(self.name)
 
-    if 'screen' in self.destinations and displayAvailable:
+    if 'screen' in self.destinations and display:
       self.fig.show()
 
     if self.dim == 3:
@@ -978,9 +968,8 @@ class OutStreamPlot(OutStreamManager):
       #  plt.hold(True)
       if 'gridSpace' in self.options['plotSettings'].keys():
         plt.locator_params(axis = 'y', nbins = 4)
-        plt.ticklabel_format(style='sci', scilimits=(0, 1), useOffset=False, axis='both')
         plt.locator_params(axis = 'x', nbins = 2)
-        plt.ticklabel_format(style='sci', scilimits=(0, 1), useOffset=False, axis='both')
+        #plt.ticklabel_format(axis='both', style='sci', scilimits=(0, 1))
         if 'range' in plotSettings.keys():
           axes_range = plotSettings['range']
           if self.dim == 2:
@@ -1126,7 +1115,6 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        #self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         try:
                           self.actcm.draw_all()
                         except:
@@ -1144,7 +1132,8 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                 else:
                   if 'color' not in scatterPlotOptions:
@@ -1167,7 +1156,6 @@ class OutStreamPlot(OutStreamManager):
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                         else:
-                          #self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                           self.actcm.draw_all()
                     else:
                       scatterPlotOptions['cmap'] = plotSettings['cmap']
@@ -1179,7 +1167,8 @@ class OutStreamPlot(OutStreamManager):
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                         else:
-                          self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                          m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                          m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                           self.actcm.draw_all()
                   else:
                     if 'color' not in scatterPlotOptions:
@@ -1216,7 +1205,6 @@ class OutStreamPlot(OutStreamManager):
                     if self.actcm is None:
                       self.actcm = self.fig.colorbar(cmap)
                       self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
-                      # self.actcm.set_clim(vmin = minV, vmax = maxV)
                     else:
                       self.actcm.draw_all()
                 else:
@@ -1232,7 +1220,6 @@ class OutStreamPlot(OutStreamManager):
                       if self.actcm is None:
                         self.actcm = self.fig.colorbar(cmap)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
-                        # self.actcm.set_clim(vmin = minV, vmax = maxV)
                       else:
                         self.actcm.draw_all()
                   else:
@@ -1303,7 +1290,7 @@ class OutStreamPlot(OutStreamManager):
             except:
               colorss = plotSettings['color']
             if self.dim == 2:
-              plt.hist(self.xValues[pltIndex][key][xIndex], bins = ast.literal_eval(plotSettings['bins']), normed = ast.literal_eval(plotSettings['normed']), weights = ast.literal_eval(plotSettings['weights']),
+              plt.hist(self.xValues[pltIndex][key][xIndex], bins = ast.literal_eval(plotSettings['bins']), density = ast.literal_eval(plotSettings['normed']), weights = ast.literal_eval(plotSettings['weights']),
                             cumulative = ast.literal_eval(plotSettings['cumulative']), histtype = plotSettings['histtype'], align = plotSettings['align'],
                             orientation = plotSettings['orientation'], rwidth = ast.literal_eval(plotSettings['rwidth']), log = ast.literal_eval(plotSettings['log']),
                             color = colorss, stacked = ast.literal_eval(plotSettings['stacked']), **plotSettings.get('attributes', {}))
@@ -1343,7 +1330,9 @@ class OutStreamPlot(OutStreamManager):
           for xIndex in range(len(self.xValues[pltIndex][key])):
             for yIndex in range(len(self.yValues[pltIndex][key])):
               if self.dim == 2:
-                self.actPlot = plt.stem(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], linefmt = plotSettings['linefmt'], markerfmt = plotSettings['markerfmt'], basefmt = plotSettings['linefmt'], **plotSettings.get('attributes', {}))
+                self.actPlot = plt.stem(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], linefmt = plotSettings['linefmt'],
+                                        markerfmt = plotSettings['markerfmt'], basefmt = plotSettings['linefmt'],
+                                        use_line_collection=True, **plotSettings.get('attributes', {}))
               elif self.dim == 3:
                 # it is a basic stem plot constructed using a standard line plot. For now we do not use the previous defined keywords...
                 for zIndex in range(len(self.zValues[pltIndex][key])):
@@ -1454,7 +1443,8 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                   else:
                     if plotSettings['cmap'] == 'None':
@@ -1519,7 +1509,8 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                   else:
                     if plotSettings['cmap'] != 'None':
@@ -1570,7 +1561,8 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                   else:
                     if plotSettings['cmap'] == 'None':
@@ -1629,7 +1621,8 @@ class OutStreamPlot(OutStreamManager):
                       self.actcm = plt.colorbar(self.actPlot, shrink = 0.8, extend = 'both')
                       self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                     else:
-                      self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                      m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                      m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                       self.actcm.draw_all()
         elif self.dim == 3:
           self.raiseAWarning('contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n               contour3D/filledContour3D are 3-D! ')
@@ -1676,14 +1669,15 @@ class OutStreamPlot(OutStreamManager):
                   else:
                     if plotSettings['cmap'] == 'None':
                       plotSettings['cmap'] = 'jet'
-                    self.actPlot = self.plt3D.contourf3D(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins, extend3d = ext3D, cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), **plotSettings.get('attributes', {}))
+                    self.actPlot = self.plt3D.contourf3D(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins, cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), **plotSettings.get('attributes', {}))
                   plt.clabel(self.actPlot, inline = 1, fontsize = 10)
                   if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
                     if first:
                       self.actcm = plt.colorbar(self.actPlot, shrink = 0.8, extend = 'both')
                       self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                     else:
-                      self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                      m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                      m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                       self.actcm.draw_all()
       ########################
       #   DataMining PLOT    #
@@ -1909,19 +1903,16 @@ class OutStreamPlot(OutStreamManager):
     plt.draw()
     # self.plt3D.draw(self.fig.canvas.renderer)
 
-    if 'screen' in self.destinations and displayAvailable:
-      if platform.system() in ['Linux','Windows']:
-        # XXX For some reason, this is required on Linux, but causes
-        # OSX to fail.  Which is correct for windows has not been determined.
-        def handle_close(event):
-          """
-            This method is aimed to handle the closing of figures (overall when in interactive mode)
-            @ In, event, instance, the event to close
-            @ Out, None
-          """
-          self.fig.canvas.stop_event_loop()
-          self.raiseAMessage('Closed Figure')
-        self.fig.canvas.mpl_connect('close_event', handle_close)
+    if 'screen' in self.destinations and display:
+      def handle_close(event):
+        """
+        This method is aimed to handle the closing of figures (overall when in interactive mode)
+        @ In, event, instance, the event to close
+        @ Out, None
+        """
+        self.fig.canvas.stop_event_loop()
+        self.raiseAMessage('Closed Figure')
+      self.fig.canvas.mpl_connect('close_event', handle_close)
       # self.plt.pause(1e-6)
       ## The following code is extracted from pyplot.pause without actually
       ## needing to force the code to sleep, according to MPL's documentation,

@@ -19,8 +19,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -81,7 +79,9 @@ class Optimizer(Sampler):
     ## was also part of Sampler, but we need to rewrite variable, so remove it first
     inputSpecification.removeSub('variable')
     variable = InputData.parameterInputFactory('variable', strictMode=True)
-    variable.addParam("name", InputData.StringType, True)
+    # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
+    # from StringType to StringNoLeadingSpacesType
+    variable.addParam("name", InputData.StringNoLeadingSpacesType, True)
     variable.addParam("shape", InputData.IntegerListType, required=False)
     upperBound = InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType, strictMode=True)
     lowerBound = InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType, strictMode=True)
@@ -105,14 +105,20 @@ class Optimizer(Sampler):
     minmax     = InputData.parameterInputFactory('type', contentType=minmaxEnum)
     thresh     = InputData.parameterInputFactory('thresholdTrajRemoval', contentType=InputData.FloatType)
     write      = InputData.parameterInputFactory('writeSteps',contentType=whenWriteEnum)
+    resample   = InputData.parameterInputFactory('resample',contentType=InputData.BoolType)
     init.addSub(limit)
     init.addSub(seed)
     init.addSub(minmax)
     init.addSub(thresh)
     init.addSub(write)
+    init.addSub(resample)
     inputSpecification.addSub(init)
-
     # convergence
+
+    # central difference
+    cendiff = InputData.parameterInputFactory('centralDifference', contentType=InputData.BoolType)
+    gradhis = InputData.parameterInputFactory('useGradientHistory', contentType=InputData.BoolType)
+
     conv = InputData.parameterInputFactory('convergence', strictMode=True)
     itLim   = InputData.parameterInputFactory('iterationLimit'   , contentType=InputData.IntegerType)
     pers    = InputData.parameterInputFactory('persistence'      , contentType=InputData.IntegerType)
@@ -122,6 +128,8 @@ class Optimizer(Sampler):
     minstep = InputData.parameterInputFactory('minStepSize'      , contentType=InputData.FloatType  )
     grow    = InputData.parameterInputFactory('gainGrowthFactor' , contentType=InputData.FloatType  )
     shrink  = InputData.parameterInputFactory('gainShrinkFactor' , contentType=InputData.FloatType  )
+    conv.addSub(cendiff)
+    conv.addSub(gradhis)
     conv.addSub(itLim)
     conv.addSub(pers)
     conv.addSub(rel)
@@ -262,18 +270,6 @@ class Optimizer(Sampler):
     needDict['DataObjects'  ] = [(None,'all')] # We get ALL DataObjects in case a CustomSampler is used for the initialization of the initial points
     return needDict
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ Out, None
-    """
-    # TODO can be combined with Sampler's _readMoreXML, but needs to implement paramInput passing to localInputAndChecks (new input checker)
-    Assembler._readMoreXML(self,xmlNode)
-    self._readMoreXMLbase(xmlNode)
-    self.localInputAndChecks(xmlNode)
-
   def _readMoreXMLbase(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to the base optimizer only
@@ -347,8 +343,6 @@ class Optimizer(Sampler):
               self.writeSolnExportOn = 'final'
             else:
               self.raiseAnError(IOError,'Unexpected frequency for <writeSteps>: "{}". Expected "every" or "final".'.format(whenToWrite))
-          else:
-            self.raiseAnError(IOError,'Unknown tag: '+childChild.getName())
 
       elif child.getName() == "convergence":
         for childChild in child.subparts:
@@ -405,9 +399,13 @@ class Optimizer(Sampler):
         self.raiseAnError(IOError, 'Lower bound for '+varName+' is not provided' )
       #store ranges of variables
       self.optVarsInit['ranges'][varName] = self.optVarsInit['upperBound'][varName] - self.optVarsInit['lowerBound'][varName]
+      if self.optVarsInit['ranges'][varName] < 0:
+         self.raiseAnError(ValueError, 'Variable {}: Lower bound {} is larger than upper bound {}'.format(varName, self.optVarsInit['lowerBound'][varName],self.optVarsInit['upperBound'][varName]) )
       if len(self.optVarsInit['initial'][varName]) == 0:
         for traj in self.optTraj:
           self.optVarsInit['initial'][varName][traj] = None
+      self.toBeSampled[varName] = None # compatability with base Sampler
+    return paramInput
 
   def initialize(self,externalSeeding=None,solutionExport=None):
     """
@@ -434,7 +432,7 @@ class Optimizer(Sampler):
         self.raiseAnError(IOError,'Only "ForwardSampler"s (e.g. MonteCarlo, Grid, etc.) can be used for initializing the trajectories in the Optimizer! Got "{}.{}" for "{}".'.format(cls,typ,name))
       self.initializationSampler = sampler
       initDict = {}
-      for entity in ['Distributions','Functions','DataObjects']:
+      for entity in ['Distributions', 'Functions', 'DataObjects']:
         initDict[entity] = dict((entry[2],entry[3]) for entry in self.assemblerDict.get(entity,[]))
       self.initializationSampler._localGenerateAssembler(initDict)
       for key in self.initializationSampler.getInitParams().keys():
@@ -591,8 +589,12 @@ class Optimizer(Sampler):
     if self.constraintFunction == None:
       satisfied = True
     else:
-      satisfied = True if self.constraintFunction.evaluate("constrain",optVars) == 1 else False
+      constraintVars = dict(optVars)
+      constraintVars.update(self.constants)
+      satisfied = True if self.constraintFunction.evaluate("constrain", constraintVars) == 1 else False
       if not satisfied:
+        self.raiseAWarning('The proposed evaluation point violates the constraint function!')
+        self.raiseADebug('Offending point:', constraintVars)
         violatedConstrains['external'].append(self.constraintFunction.name)
     for var in optVars:
       varSatisfy=True

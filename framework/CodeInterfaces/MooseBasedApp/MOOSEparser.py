@@ -17,13 +17,17 @@ Created on Mar 25, 2013
 @author: crisr
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import xml.etree.ElementTree as ET
 import os
 import copy
+import numpy as np
 from utils.utils import toBytes, toStrish, compare, toString
+
+# numpy with version 1.14.0 and upper will change the floating point type and print
+# https://docs.scipy.org/doc/numpy-1.14.0/release.html
+if int(np.__version__.split('.')[1]) > 13:
+  np.set_printoptions(**{'legacy':'1.13'})
 
 class MOOSEparser():
   """

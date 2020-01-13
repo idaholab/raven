@@ -18,8 +18,6 @@ Created on December 6, 2016
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -89,8 +87,10 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     self.supervisedContainer = [modelInstance]
     self.historySteps = []
 
-    nameToClass = {'segment': 'Segments', 'cluster': 'Clusters'}
-    ### ClusteredRom ###
+    nameToClass = {'segment': 'Segments',
+                   'cluster': 'Clusters',
+                   'interpolate': 'Interpolated'}
+    ### ROMCollection ###
     # if the ROM targeted by this gate is a cluster, create the cluster now!
     if 'Segment' in self.initializationOptions:
       # read from specs directly
@@ -109,7 +109,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     """
     # clear input specs, as they should all be read in by now
     ## this isn't a great implementation; we should make paramInput picklable instead!
-    self.initializationOptions.pop('paramInput',None)
+    self.initializationOptions.pop('paramInput', None)
     for eng in self.supervisedContainer:
       eng.initOptionDict.pop('paramInput',None)
     # capture what is normally pickled
@@ -131,6 +131,18 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
       modelInstance             = SupervisedLearning.returnInstance(self.ROMclass,self,**self.initializationOptions)
       self.supervisedContainer  = [modelInstance]
 
+  def setAdditionalParams(self, params):
+    """
+      Sets parameters aside from initialization, such as during deserialization.
+      @ In, params, dict, parameters to set (dependent on ROM)
+      @ Out, None
+    """
+    newMH = params.get('messageHandler', None)
+    if newMH:
+      self.messageHandler = newMH
+    for rom in self.supervisedContainer:
+      rom.setAdditionalParams(params)
+
   def reset(self):
     """
       This method is aimed to reset the ROM
@@ -140,6 +152,15 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     for rom in self.supervisedContainer:
       rom.reset()
     self.amITrained = False
+
+  def reseed(self,seed):
+    """
+      Used to reset the seed of the underlying ROMs.
+      @ In, seed, int, new seed to use
+      @ Out, None
+    """
+    for rom in self.supervisedContainer:
+      rom.reseed(seed)
 
   def getInitParams(self):
     """
@@ -257,15 +278,6 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
           for key in resultsDict.keys():
             resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
     return resultsDict
-
-  def reseed(self,seed):
-    """
-      Used to reset the seed of the underlying ROMs.
-      @ In, seed, int, new seed to use
-      @ Out, None
-    """
-    for rom in self.supervisedContainer:
-      rom.reseed(seed)
 
 __interfaceDict                         = {}
 __interfaceDict['SupervisedGate'      ] = supervisedLearningGate

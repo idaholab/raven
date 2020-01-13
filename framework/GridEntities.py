@@ -18,8 +18,6 @@ Created on Mar 30, 2015
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -32,7 +30,7 @@ import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils.utils import UreturnPrintTag,partialEval,compare, metaclass_insert
+from utils.utils import UreturnPrintTag,partialEval,floatConversion,compare, metaclass_insert
 from BaseClasses import BaseType
 import utils.TreeStructure as ETS
 from utils.RAVENiterators import ravenArrayIterator
@@ -351,7 +349,7 @@ class GridEntity(GridBase):
       self.raiseAnError(IOError,"Each <grid> XML node needs to have the attribute type!!!!")
     nameGrid = None
     if constrType in ['custom','equal']:
-      bounds = [partialEval(element) for element in child.text.split()]
+      bounds = [floatConversion(element) for element in child.text.split()]
       bounds.sort()
       lower, upper = min(bounds), max(bounds)
       if 'name' in child.attrib.keys():

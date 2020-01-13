@@ -13,8 +13,10 @@
       <revision author="alfoa" date="2016-05-25">Fixed absolute path</revision>
       <revision author="talbpaul" date="2016-09-15">Test updates</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="talbpaul" date="2020-01-07">Adding a constant</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>FromDataset</WorkingDir>
     <Sequence>load,sample</Sequence>
@@ -40,7 +42,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <DataSet name="samples">
-      <Input>x,y</Input>
+      <Input>x,y,const</Input>
       <Output>ans</Output>
       <Index var="t">y</Index>
     </DataSet>
@@ -67,6 +69,7 @@
       <variable name="y"/>
       <variable name="t"/>
       <variable name="ans"/>
+      <constant name='const'>3.14</constant>
     </CustomSampler>
   </Samplers>
 

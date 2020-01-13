@@ -9,9 +9,9 @@
   <Files>
     <Input name="faultTreeTest" type="">FT1.xml</Input>
   </Files>
-  
-  <Models> 
-    <ExternalModel name="FT" subType="FTModel">
+
+  <Models>
+    <ExternalModel name="FT" subType="PRAplugin.FTModel">
       <variables>statusBE1,statusBE2,statusBE3,statusBE4,TOP</variables>
       <!-- xml portion for this plugin only -->
       <topEvents>TOP</topEvents>
@@ -65,7 +65,7 @@
       <what>input,output</what>
     </Print>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>statusBE1,statusBE2,statusBE3,statusBE4</Input>
@@ -76,5 +76,5 @@
       <Output>TOP</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

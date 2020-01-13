@@ -24,11 +24,11 @@
     <SegmentROM segment="0" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.46597952886</std>
+          <std>1.39905186671</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>10.986702545</Amplitude>
+            <Amplitude>11.106393538</Amplitude>
             <Index>4.0</Index>
           </peak>
           <peak>
@@ -41,12 +41,12 @@
     <SegmentROM segment="1" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.13395001389</std>
+          <std>1.40116930574</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>9.426047925999999</Amplitude>
-            <Index>5.0</Index>
+            <Amplitude>9.078975033199999</Amplitude>
+            <Index>4.8</Index>
           </peak>
           <peak>
             <Amplitude>8.0202026812</Amplitude>
@@ -58,12 +58,12 @@
     <SegmentROM segment="2" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.19617804316</std>
+          <std>1.44350608151</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>10.64844266825</Amplitude>
-            <Index>3.75</Index>
+            <Amplitude>10.228836770800001</Amplitude>
+            <Index>3.8</Index>
           </peak>
           <peak>
             <Amplitude>7.7647331432</Amplitude>
@@ -75,12 +75,12 @@
     <SegmentROM segment="3" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.15436193195</std>
+          <std>1.40741081917</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>11.10470237425</Amplitude>
-            <Index>3.75</Index>
+            <Amplitude>10.4286295492</Amplitude>
+            <Index>3.6</Index>
           </peak>
           <peak>
             <Amplitude>8.354200345999999</Amplitude>
@@ -92,11 +92,11 @@
     <SegmentROM segment="4" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.16310996853</std>
+          <std>1.40295178957</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>11.254381038750001</Amplitude>
+            <Amplitude>10.8141274696</Amplitude>
             <Index>3.0</Index>
           </peak>
           <peak>
@@ -109,12 +109,12 @@
     <SegmentROM segment="5" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.15559900905</std>
+          <std>1.37645138378</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>10.648485288500002</Amplitude>
-            <Index>2.75</Index>
+            <Amplitude>10.633409068800002</Amplitude>
+            <Index>2.8</Index>
           </peak>
           <peak>
             <Amplitude>7.6111753566</Amplitude>
@@ -126,11 +126,11 @@
     <SegmentROM segment="6" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.19298465381</std>
+          <std>1.4551579758</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>13.5558071475</Amplitude>
+            <Amplitude>13.447024312</Amplitude>
             <Index>2.0</Index>
           </peak>
           <peak>
@@ -143,12 +143,12 @@
     <SegmentROM segment="7" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.15480029986</std>
+          <std>1.40077421912</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>11.3040692325</Amplitude>
-            <Index>2.0</Index>
+            <Amplitude>11.087581528</Amplitude>
+            <Index>1.8</Index>
           </peak>
           <peak>
             <Amplitude>7.8232402232</Amplitude>
@@ -160,12 +160,12 @@
     <SegmentROM segment="8" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.12491344721</std>
+          <std>1.39729542433</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>10.34538642675</Amplitude>
-            <Index>1.5</Index>
+            <Amplitude>9.598185627</Amplitude>
+            <Index>1.4</Index>
           </peak>
           <peak>
             <Amplitude>7.605278060800001</Amplitude>
@@ -177,11 +177,11 @@
     <SegmentROM segment="9" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.47624768637</std>
+          <std>1.39409898092</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>11.547432605000001</Amplitude>
+            <Amplitude>11.800037642000001</Amplitude>
             <Index>1.0</Index>
           </peak>
           <peak>
@@ -194,12 +194,12 @@
     <SegmentROM segment="10" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.1385867768</std>
+          <std>1.40451155501</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>9.935794087249999</Amplitude>
-            <Index>1.25</Index>
+            <Amplitude>9.735317220399999</Amplitude>
+            <Index>1.2</Index>
           </peak>
           <peak>
             <Amplitude>8.474797234799999</Amplitude>
@@ -211,12 +211,12 @@
     <SegmentROM segment="11" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.15619391761</std>
+          <std>1.41542838444</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>9.74620287575</Amplitude>
-            <Index>1.25</Index>
+            <Amplitude>9.6136325334</Amplitude>
+            <Index>1.2</Index>
           </peak>
           <peak>
             <Amplitude>7.5714187182</Amplitude>
@@ -228,12 +228,12 @@
     <SegmentROM segment="12" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.1445049644</std>
+          <std>1.39571008147</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>10.303140545749999</Amplitude>
-            <Index>1.25</Index>
+            <Amplitude>10.069110585599999</Amplitude>
+            <Index>1.2</Index>
           </peak>
           <peak>
             <Amplitude>8.2351586406</Amplitude>
@@ -245,11 +245,11 @@
     <SegmentROM segment="13" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.19749853816</std>
+          <std>1.42764320201</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>10.82947484525</Amplitude>
+            <Amplitude>10.547834058</Amplitude>
             <Index>1.0</Index>
           </peak>
           <peak>
@@ -262,12 +262,12 @@
     <SegmentROM segment="14" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.14856099408</std>
+          <std>1.39176698371</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>9.257859236</Amplitude>
-            <Index>1.75</Index>
+            <Amplitude>9.0687257234</Amplitude>
+            <Index>1.6</Index>
           </peak>
           <peak>
             <Amplitude>7.6026415542</Amplitude>
@@ -279,12 +279,12 @@
     <SegmentROM segment="15" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.15773265619</std>
+          <std>1.38512558105</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>9.46591918825</Amplitude>
-            <Index>1.5</Index>
+            <Amplitude>9.5177670722</Amplitude>
+            <Index>1.6</Index>
           </peak>
           <peak>
             <Amplitude>8.1249751824</Amplitude>
@@ -296,11 +296,11 @@
     <SegmentROM segment="16" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.45567970063</std>
+          <std>1.38110648914</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>10.859948147499999</Amplitude>
+            <Amplitude>11.29687169</Amplitude>
             <Index>2.0</Index>
           </peak>
           <peak>
@@ -313,12 +313,12 @@
     <SegmentROM segment="17" type="Static">
       <Signal>
         <ARMA_params>
-          <std>1.21916531434</std>
+          <std>1.48674172936</std>
         </ARMA_params>
         <Peak_params>
           <peak>
-            <Amplitude>9.353792989</Amplitude>
-            <Index>1.6666666666666667</Index>
+            <Amplitude>9.288260418250001</Amplitude>
+            <Index>1.5</Index>
           </peak>
           <peak>
             <Amplitude>8.721018187499999</Amplitude>

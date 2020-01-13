@@ -16,8 +16,6 @@ Module where the base class and the specialization of different type of Model ar
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -103,25 +101,26 @@ class Code(Model):
     cls.validateDict['Input'  ][0]['required'    ] = False
     cls.validateDict['Input'  ][0]['multiplicity'] = 'n'
 
-  def __init__(self,runInfoDict):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
       @ Out, None
     """
     Model.__init__(self,runInfoDict)
-    self.executable         = ''   #name of the executable (abs path)
-    self.preExec            = None   #name of the pre-executable, if any
-    self.oriInputFiles      = []   #list of the original input files (abs path)
-    self.workingDir         = ''   #location where the code is currently running
-    self.outFileRoot        = ''   #root to be used to generate the sequence of output files
-    self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
-    self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
-    self.printTag           = 'CODE MODEL'
-    self.createWorkingDir   = True
-    self.foundExecutable    = True # True indicates the executable is found, otherwise not found
-    self.foundPreExec       = True # True indicates the pre-executable is found, otherwise not found
-    self.maxWallTime        = None # If set, this indicates the maximum CPU time a job can take.
+    self.executable = ''         # name of the executable (abs path)
+    self.preExec = None          # name of the pre-executable, if any
+    self.oriInputFiles = []      # list of the original input files (abs path)
+    self.workingDir = ''         # location where the code is currently running
+    self.outFileRoot = ''        # root to be used to generate the sequence of output files
+    self.currentInputFiles = []  # list of the modified (possibly) input files (abs path)
+    self.codeFlags = None        # flags that need to be passed into code interfaces(if present)
+    self.printTag = 'CODE MODEL'
+    self.createWorkingDir = True
+    self.foundExecutable = True  # True indicates the executable is found, otherwise not found
+    self.foundPreExec = True     # True indicates the pre-executable is found, otherwise not found
+    self.maxWallTime = None      # If set, this indicates the maximum CPU time a job can take.
+    self._ravenWorkingDir = runInfoDict['WorkingDir']
 
   def _readMoreXML(self,xmlNode):
     """
@@ -246,8 +245,8 @@ class Code(Model):
       else:
         self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
-    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
-    self.code.readMoreXML(xmlNode) #TODO figure out how to handle this with InputData
+    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType, self)
+    self.code.readMoreXML(xmlNode, self._ravenWorkingDir) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
@@ -299,7 +298,7 @@ class Code(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
+    self.workingDir = os.path.join(runInfoDict['WorkingDir'], runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     self.oriInputFiles = []
     for inputFile in inputFiles:
@@ -314,8 +313,8 @@ class Code(Model):
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
       self.oriInputFiles[-1].setPath(subSubDirectory)
-    self.currentInputFiles        = None
-    self.outFileRoot              = None
+    self.currentInputFiles = None
+    self.outFileRoot = None
     if not self.foundExecutable:
       path = os.path.join(runInfoDict['WorkingDir'],self.executable)
       if os.path.exists(path):
@@ -418,49 +417,47 @@ class Code(Model):
     executable = commandSplit[0]
 
     if os.path.exists(executable):
-      executableFile = open(executable, "r")
-
-      firstTwoChars = executableFile.read(2)
-
-      if firstTwoChars == "#!":
-        realExecutable = shlex.split(executableFile.readline())
-        self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
-        # The below code should work, and would be better than findMsys,
-        # but it doesn't work.
-        # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
-        # print("winExecutable",winExecutable)
-        # realExecutable[0] = winExecutable
-        def findMsys():
-          """
-            Function to try and figure out where the MSYS64 is.
-            @ In, None
-            @ Out, dir, String, If not None, the directory where msys is.
-          """
-          dir = os.getcwd()
-          head, tail = os.path.split(dir)
-          while True:
-            if tail.lower().startswith("msys"):
-              return dir
-            dir = head
+      with open(executable, "r+b") as executableFile:
+        firstTwoChars = executableFile.read(2)
+        if firstTwoChars == "#!":
+          realExecutable = shlex.split(executableFile.readline())
+          self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
+          # The below code should work, and would be better than findMsys,
+          # but it doesn't work.
+          # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
+          # print("winExecutable",winExecutable)
+          # realExecutable[0] = winExecutable
+          def findMsys():
+            """
+              Function to try and figure out where the MSYS64 is.
+              @ In, None
+              @ Out, dir, String, If not None, the directory where msys is.
+            """
+            dir = os.getcwd()
             head, tail = os.path.split(dir)
-          return None
-        msysDir = findMsys()
-        if msysDir is not None:
-          beginExecutable = realExecutable[0]
-          if beginExecutable.startswith("/"):
-            beginExecutable = beginExecutable.lstrip("/")
-          winExecutable = os.path.join(msysDir, beginExecutable)
-          self.raiseAMessage("winExecutable " + winExecutable)
-          if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
-            #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
-            maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
-            if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
-              winExecutable = maybeWinExecutable
-          realExecutable[0] = winExecutable
-        else:
-          self.raiseAWarning("Could not find msys in "+os.getcwd())
-        commandSplit = realExecutable + [executable] + commandSplit[1:]
-        return commandSplit
+            while True:
+              if tail.lower().startswith("msys"):
+                return dir
+              dir = head
+              head, tail = os.path.split(dir)
+            return None
+          msysDir = findMsys()
+          if msysDir is not None:
+            beginExecutable = realExecutable[0]
+            if beginExecutable.startswith("/"):
+              beginExecutable = beginExecutable.lstrip("/")
+            winExecutable = os.path.join(msysDir, beginExecutable)
+            self.raiseAMessage("winExecutable " + winExecutable)
+            if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
+              #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
+              maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
+              if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
+                winExecutable = maybeWinExecutable
+            realExecutable[0] = winExecutable
+          else:
+            self.raiseAWarning("Could not find msys in "+os.getcwd())
+          commandSplit = realExecutable + [executable] + commandSplit[1:]
+          return commandSplit
     return origCommand
 
   def evaluateSample(self, myInput, samplerType, kwargs):

@@ -52,7 +52,6 @@ See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
   \item Global Minimum: $f(-0.54719,-1.54719) = -1.9133$
 \end{itemize}
 
-
 \subsubsection{2D Canyon}
 The two-dimensional canyon offers a low region surrounded by higher walls.
 
@@ -62,8 +61,23 @@ The two-dimensional canyon offers a low region surrounded by higher walls.
   \item Global Minimum: $f(1.8218,1.8218)=-2.90946$
 \end{itemize}
 
+\subsubsection{Stochastic Diagonal Valley}
+The stochastic three-dimensional diagonal valley offers a low region surrounded by higher walls.
 
+\begin{itemize}
+  \item Function: $f(x,y,stoch) = stoch * R + (x+0.5)^2 + (y-0.5)^2 + \sqrt{(x - \cfrac{x}{x-y})^2 + (y - \cfrac{y}{y-x})*^2} * 10, while R\sim ([-0.1,0.1])$
+  \item Domain: $0 \leq x,y \leq 1$
+  \item Global Minimum if $stoch =0$: $f(-0.5,0.5)=0$
+\end{itemize}
 
+\subsubsection{Paraboloid}
+The elliptic paraboloid is a two-dimensional function with a single global minimum.
+
+\begin{itemize}
+  \item Function: $f(x,y) = 10(x+0.5)^2 + 10(y-0.5)^2 $
+  \item Domain: $-2 \leq x \leq 2$, $-2 \leq y \leq 2$
+  \item Global Minimum: $f(-0.5,0.5) = 0$
+\end{itemize}
 
 \subsubsection{Time-Parabola}
 This model features the sum of a parabola in both $x$ and $y$; however, the parabola in $y$ moves in time and

@@ -18,8 +18,6 @@
            Andrea Alfonsi (INL)
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from melcorInterface   import MelcorApp

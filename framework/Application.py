@@ -18,8 +18,6 @@ Created on January 12, 2016
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
@@ -35,7 +33,12 @@ try:
   import PySide.QtCore as qtc
   __QtAvailable = True
 except ImportError as e:
-  __QtAvailable = False
+  try:
+    import PySide2.QtWidgets as qtw
+    import PySide2.QtCore as qtc
+    __QtAvailable = True
+  except ImportError as e:
+    __QtAvailable = False
 
 if __QtAvailable:
   class InteractiveApplication(qtw.QApplication, MessageHandler.MessageUser):

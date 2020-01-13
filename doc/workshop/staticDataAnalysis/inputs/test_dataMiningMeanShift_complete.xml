@@ -27,9 +27,9 @@
   <Models>
     <PostProcessor name="MeanShift" subType="DataMining" verbosity="quiet">
       <KDD lib="SciKitLearn">
-        <Features>x1,x2</Features>
-        <SKLtype>cluster|MeanShift</SKLtype>
-        <bin_seeding>True</bin_seeding>
+        <Features>x1,x2,y1</Features>
+        <SKLtype>cluster|KMeans</SKLtype>
+        <n_clusters>3</n_clusters>
       </KDD>
     </PostProcessor>
   </Models>
@@ -71,12 +71,14 @@
           <type>scatter</type>
           <x>DataSets|Input|x1</x>
           <y>DataSets|Input|x2</y>
+          <z>DataSets|Input|y1</z>
         </plot>
         <xlabel>x1</xlabel>
         <ylabel>x2</ylabel>
+        <zlabel>y1</zlabel>
       </plotSettings>
       <actions>
-        <how>png</how>
+        <how>screen,png</how>
       </actions>
     </Plot>
     <Plot name="PlotClustered" verbosity="debug">
@@ -85,13 +87,15 @@
           <type>scatter</type>
           <x>DataSetsCL|Input|x1</x>
           <y>DataSetsCL|Input|x2</y>
+          <z>DataSetsCL|Input|y1</z>
           <colorMap>DataSetsCL|Output|MeanShiftLabels</colorMap>
         </plot>
         <xlabel>x1</xlabel>
         <ylabel>x2</ylabel>
+        <zlabel>y1</zlabel>
       </plotSettings>
       <actions>
-        <how>png</how>
+        <how>screen,png</how>
       </actions>
     </Plot>
   </OutStreams>
