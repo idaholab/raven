@@ -31,7 +31,7 @@ import xarray as xr
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 from utils import mathUtils
 import Files
 import Runners
@@ -79,38 +79,38 @@ class BasicStatistics(PostProcessor):
     inputSpecification = super(BasicStatistics, cls).getInputSpecification()
 
     for scalar in cls.scalarVals:
-      scalarSpecification = InputData.parameterInputFactory(scalar, contentType=InputData.StringListType)
+      scalarSpecification = InputData.parameterInputFactory(scalar, contentType=InputTypes.StringListType)
       if scalar == 'percentile':
         #percent is a string type because otherwise we can't tell 95.0 from 95
         # which matters because the number is used in output.
-        scalarSpecification.addParam("percent", InputData.StringListType)
-      scalarSpecification.addParam("prefix", InputData.StringType)
+        scalarSpecification.addParam("percent", InputTypes.StringListType)
+      scalarSpecification.addParam("prefix", InputTypes.StringType)
       inputSpecification.addSub(scalarSpecification)
 
     for vector in cls.vectorVals:
       vectorSpecification = InputData.parameterInputFactory(vector)
-      vectorSpecification.addParam("prefix", InputData.StringType)
+      vectorSpecification.addParam("prefix", InputTypes.StringType)
       features = InputData.parameterInputFactory('features',
-                                contentType=InputData.StringListType)
+                                contentType=InputTypes.StringListType)
       vectorSpecification.addSub(features)
       targets = InputData.parameterInputFactory('targets',
-                                contentType=InputData.StringListType)
+                                contentType=InputTypes.StringListType)
       vectorSpecification.addSub(targets)
       inputSpecification.addSub(vectorSpecification)
 
-    pivotParameterInput = InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType)
+    pivotParameterInput = InputData.parameterInputFactory('pivotParameter', contentType=InputTypes.StringType)
     inputSpecification.addSub(pivotParameterInput)
 
-    datasetInput = InputData.parameterInputFactory('dataset', contentType=InputData.BoolType)
+    datasetInput = InputData.parameterInputFactory('dataset', contentType=InputTypes.BoolType)
     inputSpecification.addSub(datasetInput)
 
-    methodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
+    methodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputTypes.StringType)
     inputSpecification.addSub(methodsToRunInput)
 
-    biasedInput = InputData.parameterInputFactory("biased", contentType=InputData.BoolType)
+    biasedInput = InputData.parameterInputFactory("biased", contentType=InputTypes.BoolType)
     inputSpecification.addSub(biasedInput)
 
-    multipleFeaturesInput = InputData.parameterInputFactory("multipleFeatures", contentType=InputData.BoolType)
+    multipleFeaturesInput = InputData.parameterInputFactory("multipleFeatures", contentType=InputTypes.BoolType)
     inputSpecification.addSub(multipleFeaturesInput)
 
     return inputSpecification
