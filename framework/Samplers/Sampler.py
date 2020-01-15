@@ -30,7 +30,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils,randomUtils,InputData
+from utils import utils, randomUtils, InputData
 from BaseClasses import BaseType
 from Assembler import Assembler
 #Internal Modules End--------------------------------------------------------------------------------
@@ -806,7 +806,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     self._incrementCounter()
     model.getAdditionalInputEdits(self.inputInfo)
-    self.localGenerateInput(model,oldInput)
+    self.localGenerateInput(model, oldInput)
     # split the sampled vars Pb among the different correlated variables
     self._reassignSampledVarsPbToFullyCorrVars()
     self._reassignPbWeightToCorrelatedVars()
@@ -819,14 +819,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ##### VECTOR VARS #####
     self._expandVectorVariables()
     ##### RESTART #####
-    index,inExisting = self._checkRestartForEvaluation()
+    index, inExisting = self._checkRestartForEvaluation()
     # reformat metadata into acceptable format for dataojbect
     # DO NOT format here, let that happen when a realization is made in collectOutput for each Model.  Sampler doesn't care about this.
     # self.inputInfo['ProbabilityWeight'] = np.atleast_1d(self.inputInfo['ProbabilityWeight'])
     # self.inputInfo['prefix'] = np.atleast_1d(self.inputInfo['prefix'])
     #if not found or not restarting, we have a new point!
     if inExisting is None:
-      self.raiseADebug('Found new point to sample:',self.values)
+      # we have a new evaluation, so check its contents for consistency
+      self._checkSample()
+      self.raiseADebug('Found new point to sample:', self.values)
       ## The new info for the perturbed run will be stored in the sampler's
       ## inputInfo (I don't particularly like this, I think it should be
       ## returned here, but let's get this working and then we can decide how
@@ -835,7 +837,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       ## a copy of the information, otherwise we have to be careful to create a
       ## deep copy of this information when we submit it to a job).
       ## -- DPM 4/18/17
-      return 0,oldInput
+      return 0, oldInput
     #otherwise, return the restart point
     else:
       # TODO use realization format as per new data object (no subspaces)
@@ -846,7 +848,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
       rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
       rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
-      return 1,rlz
+      return 1, rlz
 
   def generateInputBatch(self,myInput,model,batchSize,projector=None):
     """
@@ -900,6 +902,13 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
     self.values.update(manifestVariablesDict)
 
+  def _checkSample(self):
+    """
+      Checks the current sample for consistency with expected contents.
+      @ In, None
+      @ Out, None
+    """
+    pass # nothing to do by default
 
   ### FINALIZING METHODS ####
   def finalizeActualSampling(self,jobObject,model,myInput):
