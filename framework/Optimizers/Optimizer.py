@@ -32,13 +32,11 @@ from collections import deque
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, randomUtils, InputData, InputTypes
-from BaseClasses import BaseType
-from Assembler import Assembler
 import SupervisedLearning
-from Samplers import Sampler
+from Samplers import AdaptiveSampler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Optimizer(Sampler):
+class Optimizer(AdaptiveSampler):
   """
     The Optimizer is a specialization of adaptive sampling.
     This base class defines the principle methods required for optimizers and provides some general utilities.
@@ -70,7 +68,7 @@ class Optimizer(Sampler):
       @ In, None
       @ Out, None
     """
-    Sampler.__init__(self)
+    AdaptiveSampler.__init__(self)
     ## Instance Variable Initialization
     # public
 
@@ -78,15 +76,18 @@ class Optimizer(Sampler):
     self._activeTraj = []      # tracks live trajectories
     self._numRepeatSamples = 1 # number of times to repeat sampling (e.g. denoising)
     self._objectiveVar = None  # objective variable for optimization
-    
+
     # __private
 
     # additional methods
-    self.addAssemblerObject('TargetEvaluation','1') # Place where realization evaluations go
-    self.addAssemblerObject('Constraint','-1')      # Explicit (input-based) constraints
-    self.addAssemblerObject('Sampler','-1')         # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+    self.addAssemblerObject('TargetEvaluation', '1') # Place where realization evaluations go
+    self.addAssemblerObject('Constraint', '-1')      # Explicit (input-based) constraints
+    self.addAssemblerObject('Sampler', '-1')         # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
-  def _localGenerateAssembler(self,initDict):
+    # register adaptive sample identification criteria
+    self._registerIdentifier('traj') # the trajectory of interest
+
+  def _localGenerateAssembler(self, initDict):
     """
       It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
       Overloads the base Sampler class since optimizer has different requirements
@@ -115,6 +116,7 @@ class Optimizer(Sampler):
 
   def handleInput(self, TODO):
     """ TODO """
+    TODO
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -123,7 +125,7 @@ class Optimizer(Sampler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    # TODO
+    TODO
 
   ###############
   # Run Methods #
@@ -136,7 +138,7 @@ class Optimizer(Sampler):
       @ In, None
       @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input.
     """
-    # TODO
+    TODO
 
   ###################
   # Utility Methods #
@@ -147,7 +149,7 @@ class Optimizer(Sampler):
       @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
       @ Out, satisfaction, tuple, (bool,list) => (variable indicating the satisfaction of constraints at the point optVars, masks for the under/over violations)
     """
-    # TODO
+    TODO
 
   @abc.abstractmethod
   def checkConvergence(self):
@@ -156,7 +158,7 @@ class Optimizer(Sampler):
       @ In, none,
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
-    # TODO
+    TODO
 
   def checkIfBetter(self, a, b):
     """
@@ -171,42 +173,16 @@ class Optimizer(Sampler):
     elif self.optType == 'max':
       return a >= b
 
-  def _createPrefix(self, **kwargs):
+  def _addTrackingInfo(self, info, **kwargs):
     """
-      Creates a unique ID to identifiy particular realizations as they return from the JobHandler.
+      Creates realization identifiers to identifiy particular realizations as they return from the JobHandler.
       Expandable by inheritors.
-      @ In, args, list, list of arguments
+      @ In, info, dict, dictionary of potentially-existing added identifiers
       @ In, kwargs, dict, dictionary of keyword arguments
-      @ Out, identifiers, list(str), the evaluation identifiers
+      @ Out, None (but "info" gets modified)
     """
-    # allow other identifiers as well
-    otherInfo = kwargs.get('info', None) # TODO deepcopy?
-    if otherInfo is None:
-      otherInfo = []
-    # prefixes start with the trajectory
-    traj = kwargs['traj']
-    otherInfo.insert(0, traj)
-    # prefixes end with the resample number
-    resample = kwargs['resample']
-    otherInfo.append(resample)
-    return otherInfo
-
-  def _deconstructPrefix(self, prefix):
-    """
-      Deconstruct a prefix as far as this instance knows how.
-      @ In, prefix, str, label for a realization
-      @ Out, info, dict, {traj: #, resample: #}, information about the realization
-      @ Out, rem, str, remainder of the prefix (with prior information removed)
-    """
-    asList = prefix.split('_')
-    # since this is the base class, create the info
-    ## include the trajectory number
-    ## and also the stochastic denoising/resampling number
-    info = {'traj': int(asList[0]),
-            'resample': int(asList[-1]),
-           }
-    rem = asList[1:-1].join('_')
-    return info, rem
+    # TODO shouldn't this require the realization and information to do right?
+    info['traj'] = kwargs['traj']
 
   def denormalizeData(self, normalized):
     """
@@ -214,7 +190,7 @@ class Optimizer(Sampler):
       @ In, normalized, dict, dictionary containing the value of decision variables to be deormalized, in form of {varName: varValue}
       @ Out, denormed, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
     """
-    # TODO
+    TODO
 
   def normalizeData(self, denormed):
     """
@@ -222,4 +198,4 @@ class Optimizer(Sampler):
       @ In, denormed, dict, dictionary containing the value of decision variables to be normalized, in form of {varName: varValue}
       @ Out, normalized, dict, dictionary containing the value of normalized decision variables, in form of {varName: varValue}
     """
-    # TODO
+    TODO
