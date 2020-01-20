@@ -27,7 +27,7 @@ import copy
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import InputData
+from utils import InputData, InputTypes
 from utils import xmlUtils as xmlU
 from utils import utils
 import Files
@@ -64,8 +64,8 @@ class ETImporter(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(ETImporter, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("expand"    , contentType=InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("expand"    , contentType=InputTypes.BoolType))
     return inputSpecification
 
   def initialize(self, runInfo, inputs, initDict) :

@@ -28,7 +28,7 @@ import copy
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import InputData, utils, mathUtils
+from utils import InputData, InputTypes, utils, mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CustomSampler(ForwardSampler):
@@ -46,16 +46,16 @@ class CustomSampler(ForwardSampler):
         specifying input of cls.
     """
     inputSpecification = super(CustomSampler, cls).getInputSpecification()
-    sourceInput = InputData.parameterInputFactory("Source", contentType=InputData.StringType)
-    sourceInput.addParam("type", InputData.StringType)
-    sourceInput.addParam("class", InputData.StringType)
+    sourceInput = InputData.parameterInputFactory("Source", contentType=InputTypes.StringType)
+    sourceInput.addParam("type", InputTypes.StringType)
+    sourceInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(sourceInput)
 
-    inputSpecification.addSub(InputData.parameterInputFactory('index', contentType=InputData.IntegerListType))
+    inputSpecification.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.IntegerListType))
 
     # add "nameInSource" attribute to <variable>
     var = inputSpecification.popSub('variable')
-    var.addParam("nameInSource", InputData.StringType, required=False)
+    var.addParam("nameInSource", InputTypes.StringType, required=False)
     inputSpecification.addSub(var)
 
     return inputSpecification
