@@ -58,9 +58,34 @@ class Optimizer(AdaptiveSampler):
     """
       Method to get a reference to a class that specifies the input data for class cls.
       @ In, cls, the class for which we are retrieving the specification
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
-    # TODO
+    specs = super(Optimizer, cls).getInputSpecification()
+    # objective variable
+    specs.addSub(InputData.parameterInputFactory('objective', contentType=InputTypes.StringType, strictMode=True))
+    # modify Sampler variable nodes
+    variable = specs.getSub('variable') # TODO use getter?
+    #variable.removeSub('distribution')
+    #variable.removeSub('grid')
+    #variable.addSub(InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType)) # TODO quantity = 1
+    #variable.addSub(InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType)) # TODO quantity = 1
+    variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatListType)) # TODO quantity = 1
+    # initialization
+    ## TODO similar to MonteCarlo and other samplers, maybe overlap?
+    init = InputData.parameterInputFactory('samplerInit', strictMode=True)
+    minMaxEnum = InputTypes.makeEnumType('MinMax', 'MinMaxType', ['min', 'max'])
+    seed = InputData.parameterInputFactory('initialSeed', contentType=InputTypes.IntegerType)
+    minMax = InputData.parameterInputFactory('type', contentType=minMaxEnum)
+    init.addSub(seed)
+    init.addSub(minMax)
+    specs.addSub(init)
+
+    # TODO threshold, stochastic samples
+    # assembled objects
+    specs.addSub(InputData.assemblyInputFactory('TargetEvaluation', contentType=InputTypes.StringType, strictMode=True))
+    specs.addSub(InputData.assemblyInputFactory('Constraint', contentType=InputTypes.StringType, strictMode=True))
+    specs.addSub(InputData.assemblyInputFactory('Sampler', contentType=InputTypes.StringType, strictMode=True))
+    return specs
 
   def __init__(self):
     """
@@ -69,6 +94,8 @@ class Optimizer(AdaptiveSampler):
       @ Out, None
     """
     AdaptiveSampler.__init__(self)
+    self._seed = None
+    self._minMax = None
     ## Instance Variable Initialization
     # public
 
@@ -85,7 +112,7 @@ class Optimizer(AdaptiveSampler):
     self.addAssemblerObject('Sampler', '-1')         # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
     # register adaptive sample identification criteria
-    self._registerIdentifier('traj') # the trajectory of interest
+    self.registerIdentifier('traj') # the trajectory of interest
 
   def _localGenerateAssembler(self, initDict):
     """
@@ -101,6 +128,17 @@ class Optimizer(AdaptiveSampler):
       for funct in initDict[mainClass]:
         self.assemblerDict[mainClass].append([mainClass,initDict[mainClass][funct].type,funct,initDict[mainClass][funct]])
 
+  def localInputAndChecks(self, xmlNode, paramInput):
+    """
+      unfortunately-named method that serves as a pass-through for input reading.
+      comes from inheriting from Sampler and _readMoreXML chain.
+      @ In, xmlNode, xml.etree.ElementTree.Element, xml element node (don't use!)
+      @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
+      @ Out, None
+    """
+    # this is just a passthrough until sampler gets reworked or renamed
+    self.handleInput(paramInput)
+
   def _localWhatDoINeed(self):
     """
       Identifies needed distributions and functions.
@@ -114,9 +152,28 @@ class Optimizer(AdaptiveSampler):
     needDict['DataObjects'  ] = [(None,'all')]
     return needDict
 
-  def handleInput(self, TODO):
-    """ TODO """
-    TODO
+  def handleInput(self, paramInput):
+    """
+      Read input specs
+      @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
+      @ Out, None
+    """
+    # the reading of variables (dist or func) and constants already happened in _readMoreXMLbase in Sampler
+    # objective var
+    self._objectiveVar = paramInput.findFirst('objective')
+    #
+    # sampler init
+    # self.readSamplerInit() can't be used because it requires the xml node
+    init = paramInput.findFirst('samplerInit')
+    if init is not None:
+      # initialSeed
+      seed = init.findFirst('seed')
+      if seed is not None:
+        self._seed = seed.value
+      # minmax
+      minMax = init.findFirst('type')
+      if minMax is not None:
+        self._minMax = minMax.value
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -125,7 +182,9 @@ class Optimizer(AdaptiveSampler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    TODO
+    # seed
+    if self._seed is not None:
+      randomUtils.randomSeed(self._seed)
 
   ###############
   # Run Methods #

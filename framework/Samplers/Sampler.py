@@ -254,48 +254,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.toBeSampled[prefix+child.parameterValues['name']] = toBeSampled
 
       elif child.getName() == 'variable':
-        # variable for tracking if distributions or functions have been declared
-        foundDistOrFunc = False
-        # store variable name for re-use
-        varName = child.parameterValues['name']
-        # set shape if present
-        if 'shape' in child.parameterValues:
-          self.variableShapes[varName] = child.parameterValues['shape']
-        # read subnodes
-        for childChild in child.subparts:
-          if childChild.getName() =='distribution':
-            # can only have a distribution if doesn't already have a distribution or function
-            if not foundDistOrFunc:
-              foundDistOrFunc = True
-            else:
-              self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function, or more than one of either!')
-            # name of the distribution to sample
-            toBeSampled = childChild.value
-            varData={}
-            varData['name']=childChild.value
-            # variable dimensionality
-            if 'dim' not in childChild.parameterValues:
-              dim=1
-            else:
-              dim=childChild.parameterValues['dim']
-            varData['dim']=dim
-            # set up mapping for variable to distribution
-            self.variables2distributionsMapping[varName] = varData
-            # flag distribution as needing to be sampled
-            self.toBeSampled[prefix+varName] = toBeSampled
-          elif childChild.getName() == 'function':
-            # can only have a function if doesn't already have a distribution or function
-            if not foundDistOrFunc:
-              foundDistOrFunc = True
-            else:
-              self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
-            # function name
-            toBeSampled = childChild.value
-            # track variable as a functional sample
-            self.dependentSample[prefix+varName] = toBeSampled
-
-        if not foundDistOrFunc:
-          self.raiseAnError(IOError,'Sampled variable',varName,'has neither a <distribution> nor <function> node specified!')
+        self._readInVariable(child, prefix)
 
       elif child.getName() == "variablesTransformation":
         transformationDict = {}
@@ -317,7 +276,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.variablesTransformationDict[child.parameterValues['distribution']] = transformationDict
 
       elif child.getName() == "constant":
-        name,value = self._readInConstant(child)
+        name, value = self._readInConstant(child)
         self.constants[name] = value
 
       elif child.getName() == "restartTolerance":
@@ -369,7 +328,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     #Checking the variables transformation
     if self.variablesTransformationDict:
-      for dist,varsDict in self.variablesTransformationDict.items():
+      for dist, varsDict in self.variablesTransformationDict.items():
         maxDim = len(varsDict['manifestVariables'])
         listLatentElement = varsDict['latentVariables']
         if len(set(listLatentElement)) != len(listLatentElement):
@@ -399,7 +358,58 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
     return paramInput
 
-  def _readInConstant(self,inp):
+  def _readInVariable(self, inp, prefix):
+    """
+      Reads in a "variable" input parameter node.
+      @ In, inp, utils.InputData.ParameterInput, input parameter node to read from
+      @ In, prefix, str, variable prefix, if any # TODO maybe always empty?
+      @ Out, name, string, name of constant
+      @ Out, value, float or np.array,
+    """
+    # variable for tracking if distributions or functions have been declared
+    foundDistOrFunc = False
+    # store variable name for re-use
+    varName = child.parameterValues['name']
+    # set shape if present
+    if 'shape' in child.parameterValues:
+      self.variableShapes[varName] = child.parameterValues['shape']
+    # read subnodes
+    for childChild in child.subparts:
+      if childChild.getName() == 'distribution':
+        # can only have a distribution if doesn't already have a distribution or function
+        if foundDistOrFunc:
+          self.raiseAnError(IOError, 'A sampled variable cannot have both a distribution and a function, or more than one of either!')
+        else:
+          foundDistOrFunc = True
+        # name of the distribution to sample
+        toBeSampled = childChild.value
+        varData = {}
+        varData['name'] = childChild.value
+        # variable dimensionality
+        if 'dim' not in childChild.parameterValues:
+          dim = 1
+        else:
+          dim = childChild.parameterValues['dim']
+        varData['dim'] = dim
+        # set up mapping for variable to distribution
+        self.variables2distributionsMapping[varName] = varData
+        # flag distribution as needing to be sampled
+        self.toBeSampled[prefix + varName] = toBeSampled
+      elif childChild.getName() == 'function':
+        # can only have a function if doesn't already have a distribution or function
+        if not foundDistOrFunc:
+          foundDistOrFunc = True
+        else:
+          self.raiseAnError(IOError, 'A sampled variable cannot have both a distribution and a function!')
+        # function name
+        toBeSampled = childChild.value
+        # track variable as a functional sample
+        self.dependentSample[prefix + varName] = toBeSampled
+
+    if not foundDistOrFunc:
+      self.raiseAnError(IOError, 'Sampled variable', varName, 'has neither a <distribution> nor <function> node specified!')
+
+  def _readInConstant(self, inp):
     """
       Reads in a "constant" input parameter node.
       @ In, inp, utils.InputParameter.ParameterInput, input parameter node to read from

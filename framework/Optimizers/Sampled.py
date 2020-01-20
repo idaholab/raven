@@ -50,7 +50,7 @@ class Sampled(Optimizer):
      - Establish API for iterative sample output to solution export
      - Implements specific sampling methods from Sampler (when not present in Optimizer)
   """
-  
+
   ##########################
   # Initialization Methods #
   ##########################
@@ -61,7 +61,16 @@ class Sampled(Optimizer):
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
-    # TODO
+    specs = super(Sampled, cls).getInputSpecification()
+    # initialization: add sampling-based options
+    whenSolnExpEnum = InputTypes.makeEnumType('whenWriteEnum', 'whenWriteType', ['final', 'every'])
+    init = specs.getSub('samplerInit')
+    #specs.addSub(init)
+    limit = InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType)
+    write = InputData.parameterInputFactory('writeSteps', contentType=whenSolnExpEnum)
+    init.addSub(limit)
+    init.addSub(write)
+    return specs
 
   def __init__(self):
     """
@@ -71,18 +80,37 @@ class Sampled(Optimizer):
     """
     Optimizer.__init__(self)
     # TODO
-    
+
     ## Instance Variable Initialization
     # public
+    self.limit = None
 
     # _protected
-    
+    self._writeSteps = 'final'
+
     # __private
 
     # additional methods
 
-  def handleInput(self, TODO):
-    """ TODO """
+  def handleInput(self, paramInput):
+    """
+      Read input specs
+      @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
+      @ Out, None
+    """
+    Optimizer.handleInput(self, paramInput)
+    # samplerInit
+    init = paramInput.findFirst('samplerInit')
+    if init is not None:
+      # limit
+      limit = init.findFirst('limit')
+      if limit is not None:
+        self.limit = limit.value
+      # writeSteps
+      writeSteps = init.findFirst('writeSteps')
+      if writeSteps is not None:
+        self._writeSteps = writeSteps.value
+
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -102,22 +130,22 @@ class Sampled(Optimizer):
   # Utility Methods #
   ###################
   def _createPrefix(self, **kwargs):
-  """
-    Creates a unique ID to identifiy particular realizations as they return from the JobHandler.
-    Expandable by inheritors.
-    @ In, args, list, list of arguments
-    @ In, kwargs, dict, dictionary of keyword arguments
-    @ Out, identifiers, list(str), the evaluation identifiers
-  """
-  # allow other identifiers as well
-  otherInfo = kwargs.get('info', None) # TODO deepcopy?
-  if otherInfo is None:
-    otherInfo = []
-  # add the iteration (or step)
-  step = kwargs['step']
-  otherInfo.append(step)
-  # allow base class to contribute
-  return Optimizer._createPrefix(self, info=otherInfo, **kwargs)
+    """
+      Creates a unique ID to identifiy particular realizations as they return from the JobHandler.
+      Expandable by inheritors.
+      @ In, args, list, list of arguments
+      @ In, kwargs, dict, dictionary of keyword arguments
+      @ Out, identifiers, list(str), the evaluation identifiers
+    """
+    # allow other identifiers as well
+    otherInfo = kwargs.get('info', None) # TODO deepcopy?
+    if otherInfo is None:
+      otherInfo = []
+    # add the iteration (or step)
+    step = kwargs['step']
+    otherInfo.append(step)
+    # allow base class to contribute
+    return Optimizer._createPrefix(self, info=otherInfo, **kwargs)
 
 def _deconstructPrefix(self, prefix):
   """

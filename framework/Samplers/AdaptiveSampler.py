@@ -83,8 +83,7 @@ class AdaptiveSampler(Sampler):
 
   def checkIdentifiersPresent(self, checkDict):
     """ TODO checks that all identifiers registered have values """
-    assert self._registeredIdentifiers.issubset(set(checkDict.keys())), 'missing identifiers: {}'
-       .format(self._registeredIdentifiers - set(checkDict.keys()))
+    assert self._registeredIdentifiers.issubset(set(checkDict.keys())), 'missing identifiers: {}'.format(self._registeredIdentifiers - set(checkDict.keys()))
 
   def getIdentifierFromPrefix(self, prefix, pop=False):
     """ TODO """

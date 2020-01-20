@@ -33,6 +33,9 @@ from utils import utils, randomUtils, InputData, InputTypes
 from BaseClasses import BaseType
 from Assembler import Assembler
 from .Sampled import Sampled
+from .gradients import knownTypes as gradKnownTypes
+from .gradients import returnInstance as gradReturnInstance
+from .gradients import returnClass as gradReturnClass
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GradientDescent(Sampled):
@@ -56,7 +59,7 @@ class GradientDescent(Sampled):
        - converge on gradient magnitude, change in evaluation, min step size
      - Implement summary of step iteration to SolutionExport
   """
-  
+
   ##########################
   # Initialization Methods #
   ##########################
@@ -67,7 +70,19 @@ class GradientDescent(Sampled):
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
-    # TODO
+    specs = super(GradientDescent, cls).getInputSpecification()
+    # gradient estimation options
+    grad = InputData.parameterInputFactory('gradientEstimation', strictMode=True)
+    specs.addSub(grad)
+
+    ## common options to all gradient descenders
+    # TODO grad.addSub(InputData.parameterInputFactory('proximity', contentType=InputTypes.FloatType))
+
+    ## get specs for each gradient subclass, and add them to this class's options
+    for option in gradKnownTypes():
+      subSpecs = gradReturnClass(option, cls).getInputSpecification()
+      grad.addSub(subSpecs)
+    return specs
 
   def __init__(self):
     """
@@ -75,20 +90,35 @@ class GradientDescent(Sampled):
       @ In, None
       @ Out, None
     """
-    Optimizer.__init__(self)
+    Sampled.__init__(self)
     # TODO
-    
+
     ## Instance Variable Initialization
     # public
 
     # _protected
-    
+    self._gradientInstance = None # instance of GradientApproximater
+
     # __private
 
     # additional methods
 
-  def handleInput(self, TODO):
-    """ TODO """
+  def handleInput(self, paramInput):
+    """
+      Read input specs
+      @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
+      @ Out, None
+    """
+    Sampled.handleInput(self, paramInput)
+    # grad strategy
+    gradNode = paramInput.findFirst('gradient')
+    # TODO do I need to check for the node's existence?
+    if len(gradNode.subs) != 1:
+      self.raiseAnError('The <gradient> node requires exactly one gradient strategy! Choose from: ', gradKnownTypes())
+    gradNode = gradNode.subs.keys()[0]
+    gradType = gradNode.getName()
+    self._gradientInstance = gradReturnInstance(gradType, self)
+    self._gradientInstance.handleInput(gradNode)
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -97,45 +127,20 @@ class GradientDescent(Sampled):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    # TODO
+    Sampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
 
   ###############
   # Run Methods #
   ###############
-  # TODO
+  def localGenerateInput(self, model, input):
+    """
+      TODO
+    """
 
+  def checkConvergence(self):
+    """
+      TODO
+    """
   ###################
   # Utility Methods #
   ###################
-  def _createPrefix(self, **kwargs):
-  """
-    Creates a unique ID to identifiy particular realizations as they return from the JobHandler.
-    Expandable by inheritors.
-    @ In, args, list, list of arguments
-    @ In, kwargs, dict, dictionary of keyword arguments
-    @ Out, identifiers, list(str), the evaluation identifiers
-  """
-  # allow other identifiers as well
-  otherInfo = kwargs.get('info', None) # TODO deepcopy?
-  if otherInfo is None:
-    otherInfo = []
-  # add the opt/grad point identifier
-  optOrGrad = kwargs['optOrGrad']
-  otherInfo.append(optOrGrad)
-  # allow base class to contribute
-  return Sampled._createPrefix(self, info=otherInfo, **kwargs)
-
-def _deconstructPrefix(self, prefix):
-  """
-    Deconstruct a prefix as far as this instance knows how.
-    @ In, prefix, str, label for a realization
-    @ Out, info, dict, {traj: #, resample: #}, information about the realization
-    @ Out, rem, str, remainder of the prefix (with prior information removed)
-  """
-  # allow base class to peel off it's part
-  info, prefix = Sampled._createPrefix(self, prefix)
-  asList = prefix.split('_')
-  # get the opt (0) or grad ID (1:N)
-  info['optOrGrad'] = int(asList[0])
-  rem = asList[1:].join('_')
-  return info, rem
