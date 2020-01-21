@@ -44,6 +44,7 @@ import Models
 # for internal parallel
 import pp
 import ppserver
+import ray
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
 
@@ -194,7 +195,7 @@ class JobHandler(MessageHandler.MessageUser):
           self.ppserver = pp.Server(ncpus=0, ppservers=tuple(ppservers))
       else:
          ## We are using the parallel python system
-        self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+        self.ppserver = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),use_pickle=True)
     else:
       ## We are just using threading
       self.ppserver = None

@@ -22,6 +22,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import copy
 import numpy as np
 import inspect
+import ray
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -254,6 +255,8 @@ class ExternalModel(Dummy):
     outcomes = dict((k, np.atleast_1d(val)) for k, val in outcomes.items())
     return outcomes, self
 
+  
+  @ray.remote
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters

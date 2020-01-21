@@ -122,7 +122,8 @@ class DistributedMemoryRunner(InternalRunner):
       @ Out, None
     """
     try:
-      self.thread = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(), modules = tuple(list(set(self.frameworkMods))),functionToSkip=self.functionToSkip)
+      self.thread = self.functionToRun.remote(*self.args)
+      #self.thread = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(), modules = tuple(list(set(self.frameworkMods))),functionToSkip=self.functionToSkip)
       self.trackTime('runner_started')
       self.started = True
     except Exception as ae:
