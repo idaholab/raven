@@ -710,7 +710,6 @@ def findCrowModule(name):
   # find the module
   ext = 'py3' if sys.version_info.major > 2 else 'py2'
   try:
-    print(sys.path)
     module = importlib.import_module("crow_modules.{}{}".format(name,ext))
   except ImportError as ie:
     if not str(ie).startswith("No module named"):
