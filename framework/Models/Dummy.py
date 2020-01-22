@@ -22,6 +22,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import copy
 import itertools
 import numpy as np
+import ray
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -151,6 +152,8 @@ class Dummy(Model):
       pass
     return [(inputDict)],copy.deepcopy(kwargs)
 
+  
+  @ray.remote
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters

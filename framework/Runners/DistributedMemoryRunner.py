@@ -26,6 +26,7 @@ import signal
 import copy
 import sys
 import abc
+import ray
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -99,7 +100,7 @@ class DistributedMemoryRunner(InternalRunner):
     if self.thread is None:
       return True
     else:
-      return self.thread.finished
+      return self.thread in ray.wait([self.thread], timeout=1e-10)[0]
 
   def _collectRunnerResponse(self):
     """
@@ -110,7 +111,8 @@ class DistributedMemoryRunner(InternalRunner):
     """
     if not self.hasBeenAdded:
       if self.thread is not None:
-        self.runReturn = self.thread()
+        self.runReturn = ray.get(self.thread)
+        #self.runReturn = self.thread()
       else:
         self.runReturn = None
       self.hasBeenAdded = True
@@ -121,6 +123,7 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
+    
     try:
       self.thread = self.functionToRun.remote(*self.args)
       #self.thread = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(), modules = tuple(list(set(self.frameworkMods))),functionToSkip=self.functionToSkip)

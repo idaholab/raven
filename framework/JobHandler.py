@@ -195,7 +195,8 @@ class JobHandler(MessageHandler.MessageUser):
           self.ppserver = pp.Server(ncpus=0, ppservers=tuple(ppservers))
       else:
          ## We are using the parallel python system
-        self.ppserver = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),use_pickle=True)
+        os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
+        self.ppserver = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']))#,use_pickle=True)
     else:
       ## We are just using threading
       self.ppserver = None

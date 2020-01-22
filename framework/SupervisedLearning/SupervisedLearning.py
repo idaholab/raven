@@ -27,12 +27,6 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 #End compatibility block for Python 3----------------------------------------------------------------
 
-import sys
-if sys.version_info.major > 2:
-  from crow_modules.distribution1Dpy3 import CDF
-else:
-  from crow_modules.distribution1Dpy2 import CDF
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import abc
@@ -43,7 +37,7 @@ import copy
 from utils import utils, mathUtils, xmlUtils
 import MessageHandler
 
-interpolationND = utils.findCrowModule('interpolationND')
+#interpolationND = utils.findCrowModule('interpolationND')
 #Internal Modules End--------------------------------------------------------------------------------
 
 class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):

@@ -24,6 +24,7 @@ import inspect
 import itertools
 import numpy as np
 import functools
+import ray
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -1442,7 +1443,8 @@ class ROM(Dummy):
     self._replaceVariablesNamesWithAliasSystem(returnDict, 'output', True)
     self._replaceVariablesNamesWithAliasSystem(inRun, 'input', True)
     return returnDict
-
+  
+  @ray.remote
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
