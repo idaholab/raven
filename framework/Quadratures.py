@@ -61,7 +61,7 @@ class SparseGrid(MessageHandler.MessageUser):
     self.N              = None                                                    # dimensionality of input space
     self.SG             = None                                                    # dict{ (point,point,point): weight}
     self.messageHandler = None                                                    # message handler
-    self.mods           = utils.returnImportModuleString(inspect.getmodule(self)) # list of modules this class depends on (needed for automatic parallel python)
+    #self.mods           = utils.returnImportModuleString(inspect.getmodule(self)) # list of modules this class depends on (needed for automatic parallel python)
 
   def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
     """
@@ -498,7 +498,7 @@ class SmolyakSparseGrid(SparseGrid):
           cof=self.c[j]
           idx = self.indexSet[j]
           m=self.quadRule(idx)+1
-          handler.addJob((m,),self.tensorGrid,prefix+str(cof),modulesToImport = self.mods)
+          handler.addJob((m,),self.tensorGrid,prefix+str(cof))
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:
           break #FIXME this is significantly the second-most expensive line in this method
@@ -552,7 +552,7 @@ class SmolyakSparseGrid(SparseGrid):
         #load new inputs, up to 100 at a time
         for k in range(min(handler.availability(),N-1-i)):
           i+=1
-          handler.addJob((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i),modulesToImport = self.mods)
+          handler.addJob((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i))
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:
           break

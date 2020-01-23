@@ -152,7 +152,7 @@ class Dummy(Model):
       pass
     return [(inputDict)],copy.deepcopy(kwargs)
 
-  
+
   @ray.remote
   def evaluateSample(self, myInput, samplerType, kwargs):
     """

@@ -256,7 +256,7 @@ class EnsembleModel(Dummy):
       # initialize model
       self.modelsDictionary[modelName]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
       # Generate a list of modules that needs to be imported for internal parallelization (parallel python)
-      self.mods = self.mods +list(set(self.modelsDictionary[modelName]['Instance'].mods) - set(self.mods))
+      #self.mods = self.mods +list(set(self.modelsDictionary[modelName]['Instance'].mods) - set(self.mods))
       # retrieve 'TargetEvaluation' DataObjects
       targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsInputDictionary[modelName]['TargetEvaluation'], True)
       # assert acceptable TargetEvaluation types are used
@@ -512,7 +512,7 @@ class EnsembleModel(Dummy):
           contains a dictionary {'name variable':value}
         @ Out, None
     """
-    self.mods = self.mods +list(set(utils.returnImportModuleString(jobHandler)) - set(self.mods))
+    #self.mods = self.mods +list(set(utils.returnImportModuleString(jobHandler)) - set(self.mods))
     prefix = kwargs['prefix']
 
     ## Ensemble models need access to the job handler, so let's stuff it in our

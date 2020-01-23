@@ -41,27 +41,20 @@ class DistributedMemoryRunner(InternalRunner):
     Class for running internal objects in distributed memory fashion using
     ppserver
   """
-  def __init__(self, messageHandler, ppserver, args, functionToRun,
+  def __init__(self, messageHandler, args, functionToRun,
                      frameworkModules = [], identifier=None, metadata=None,
-                     functionToSkip = None, uniqueHandler = "any",
-                     profile = False):
+                     uniqueHandler = "any", profile = False):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
         handler object
-      @ In, ppserver, ppserver, instance of the ppserver object
       @ In, args, dict, this is a list of arguments that will be passed as
         function parameters into whatever method is stored in functionToRun.
         e.g., functionToRun(*args)
       @ In, functionToRun, method or function, function that needs to be run
-      @ In, frameworkModules, list, optional, list of modules that need to be
-        imported for internal parallelization (parallel python). This list
-        should be generated with the method returnImportModuleString in utils.py
       @ In, identifier, string, optional, id of this job
       @ In, metadata, dict, optional, dictionary of metadata associated with
         this run
-      @ In, functionToSkip, list, optional, list of functions, classes and
-        modules that need to be skipped in pickling the function dependencies
       @ In, forceUseThreads, bool, optional, flag that, if True, is going to
         force the usage of multi-threading even if parallel python is activated
       @ In, uniqueHandler, string, optional, it is a special keyword attached to
@@ -77,15 +70,6 @@ class DistributedMemoryRunner(InternalRunner):
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
     super(DistributedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler,profile)
-
-    ## Just in case, remove duplicates before storing to save on computation
-    ## later
-    self.frameworkMods  = utils.removeDuplicates(frameworkModules)
-    self.functionToSkip = utils.removeDuplicates(functionToSkip)
-    self.args = args
-
-    ## Other parameters passed at initialization
-    self.__ppserver = ppserver
 
   def isDone(self):
     """
@@ -112,7 +96,6 @@ class DistributedMemoryRunner(InternalRunner):
     if not self.hasBeenAdded:
       if self.thread is not None:
         self.runReturn = ray.get(self.thread)
-        #self.runReturn = self.thread()
       else:
         self.runReturn = None
       self.hasBeenAdded = True
@@ -123,10 +106,8 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    
     try:
       self.thread = self.functionToRun.remote(*self.args)
-      #self.thread = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(), modules = tuple(list(set(self.frameworkMods))),functionToSkip=self.functionToSkip)
       self.trackTime('runner_started')
       self.started = True
     except Exception as ae:
@@ -143,7 +124,6 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    self.thread.stop()
     del self.thread
     self.thread = None
     self.returnCode = -1

@@ -530,9 +530,6 @@ class HybridModel(Dummy):
         contains a dictionary {'name variable':value}
       @ Out, None
     """
-    for mm in utils.returnImportModuleString(jobHandler):
-      if mm not in self.mods:
-        self.mods.append(mm)
     prefix = kwargs['prefix']
     self.counter = prefix
     self.tempOutputs['uncollectedJobIds'].append(prefix)

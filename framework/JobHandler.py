@@ -300,7 +300,7 @@ class JobHandler(MessageHandler.MessageUser):
       ## probably when we move to Python 3.
       time.sleep(self.sleepTime)
 
-  def addJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], forceUseThreads = False, uniqueHandler="any", clientQueue = False):
+  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads = False, uniqueHandler="any", clientQueue = False):
     """
       Method to add an internal run (function execution)
       @ In, args, dict, this is a list of arguments that will be passed as
@@ -311,9 +311,6 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, identifier, string, the job identifier
       @ In, metadata, dict, optional, dictionary of metadata associated to this
         run
-      @ In, modulesToImport, list, optional, list of modules that need to be
-        imported for internal parallelization (parallel python). This list
-        should be generated with the method returnImportModuleString in utils.py
       @ In, forceUseThreads, bool, optional, flag that, if True, is going to
         force the usage of multi-threading even if parallel python is activated
       @ In, uniqueHandler, string, optional, it is a special keyword attached to
@@ -335,12 +332,9 @@ class JobHandler(MessageHandler.MessageUser):
                                                uniqueHandler,
                                                profile=self.__profileJobs)
     else:
-      skipFunctions = [utils.metaclass_insert(abc.ABCMeta,BaseType)]
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
-                                                    self.ppserver, args,
-                                                    functionToRun,
-                                                    modulesToImport, identifier,
-                                                    metadata, skipFunctions,
+                                                    args, functionToRun,
+                                                    identifier, metadata,
                                                     uniqueHandler,
                                                     profile=self.__profileJobs)
 
@@ -364,7 +358,7 @@ class JobHandler(MessageHandler.MessageUser):
         runner.trackTime('queue')
       self.__submittedJobs.append(runner.identifier)
 
-  def addClientJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], uniqueHandler="any"):
+  def addClientJob(self, args, functionToRun, identifier, metadata=None, uniqueHandler="any"):
     """
       Method to add an internal run (function execution), without consuming
       resources (free spots). This can be used for client handling (see
@@ -383,7 +377,7 @@ class JobHandler(MessageHandler.MessageUser):
         If uniqueHandler == 'any', every "client" can get this runner.
       @ Out, None
     """
-    self.addJob(args, functionToRun, identifier, metadata, modulesToImport,
+    self.addJob(args, functionToRun, identifier, metadata,
                 forceUseThreads = True, uniqueHandler = uniqueHandler,
                 clientQueue = True)
 

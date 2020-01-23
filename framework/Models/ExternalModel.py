@@ -96,7 +96,6 @@ class ExternalModel(Dummy):
     if 'initialize' in dir(self.sim):
       self.sim.initialize(self.initExtSelf,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)
-    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.sim)))
 
   def createNewInput(self,myInput,samplerType,**kwargs):
     """
@@ -255,7 +254,7 @@ class ExternalModel(Dummy):
     outcomes = dict((k, np.atleast_1d(val)) for k, val in outcomes.items())
     return outcomes, self
 
-  
+
   @ray.remote
   def evaluateSample(self, myInput, samplerType, kwargs):
     """

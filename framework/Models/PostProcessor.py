@@ -148,7 +148,7 @@ class PostProcessor(Model):
     """
     self.workingDir = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
+    #self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
     self.inputCheckInfo = [(inp.name, inp.type) for inp in inputs]
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):

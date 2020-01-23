@@ -57,10 +57,10 @@ class BaseType(MessageHandler.MessageUser):
     self.variableGroups   = {}                                                          # the variables this class needs to be aware of
     self.metadataKeys     = set()                                                       # list of registered metadata keys to expect from this entity
     self.metadataParams   = {}                                                          # dictionary of registered metadata keys with repect to their indexes
-    self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
-    for baseClass in self.__class__.__mro__:
-      self.mods.extend(utils.returnImportModuleString(inspect.getmodule(baseClass),True))
-    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self),True))
+    #self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
+    #for baseClass in self.__class__.__mro__:
+    #  self.mods.extend(utils.returnImportModuleString(inspect.getmodule(baseClass),True))
+    #self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self),True))
 
   def readXML(self,xmlNode,messageHandler,variableGroups={},globalAttributes=None):
     """
