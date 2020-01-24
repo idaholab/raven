@@ -66,7 +66,7 @@ class JobHandler(MessageHandler.MessageUser):
     self.printTag         = 'Job Handler'
     self.runInfoDict      = {}
 
-    self.isParallelPythonInitialized = False
+    self.isRayInitialized = False
 
     self.sleepTime  = 1e-4 #0.005
     self.completed = False
@@ -162,107 +162,96 @@ class JobHandler(MessageHandler.MessageUser):
         self.raiseAMessage(" Process Failed " + str(running) + " internal returnCode " + str(returnCode))
         self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metadataToKeep))
 
-  def __initializeParallelPython(self):
+  def __initializeRay(self):
     """
       Internal method that is aimed to initialize the internal parallel system.
-      It initilizes the paralle python implementation (with socketing system) in
+      It initilizes the RAY implementation (with socketing system) in
       case RAVEN is run in a cluster with multiple nodes or the NumMPI > 1,
       otherwise multi-threading is used.
       @ In, None
       @ Out, None
     """
+    ## set up enviroment
+    os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
     ## Check if the list of unique nodes is present and, in case, initialize the
-    ## socket
+    servers = None
     if self.runInfoDict['internalParallel']:
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
-
-        ## Set the initial port randomly among the user accessible ones
-        ## Is there any problem if we select the same port as something else?
-        randomPort = random.randint(1024,65535)
-
+        ## identify the local host name and get the number of local processors
+        localHostName = self.__getLocalHost()
+        self.raiseADebug("Local host name is  : "+ localHostName)
+        nProcsHead = availableNodes.count(localHostName)
+        self.raiseADebug("# of local procs    : "+ str(nProcsHead))
+        ## initialize ray server with nProcs
+        self.rayserver = ray.init(num_cpus=int(nProcsHead))
         ## Get localHost and servers
-        localHostName, ppservers = self.__runRemoteListeningSockets(randomPort)
-        self.raiseADebug("Local host is "+ localHostName)
-
-        if len(ppservers) == 0:
-          ## We are on a single node
-          self.ppserver = pp.Server(ncpus=len(availableNodes))
-        else:
-          ## We are using multiple nodes
-          self.raiseADebug("Servers found are " + ','.join(ppservers))
-          self.raiseADebug("Server port in use is " + str(randomPort))
-          self.ppserver = pp.Server(ncpus=0, ppservers=tuple(ppservers))
+        servers = self.__runRemoteListeningSockets(self.rayserver['redis_address'])
       else:
-         ## We are using the parallel python system
-        os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
-        self.ppserver = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']))#,use_pickle=True)
+        self.rayserver = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']))
+      self.raiseADebug("Head node IP address: " + self.rayserver['node_ip_address'])
+      self.raiseADebug("Redis address       : " + self.rayserver['redis_address'])
+      self.raiseADebug("Object store address: " + self.rayserver['object_store_address'])
+      self.raiseADebug("Raylet socket name  : " + self.rayserver['raylet_socket_name'])
+      self.raiseADebug("Session directory   : " + self.rayserver['session_dir'])
+      if servers:
+        self.raiseADebug("# of remote servers : " + str(len(servers)))
+        self.raiseADebug("Remote servers      : " + " , ".join(servers))
+
     else:
       ## We are just using threading
-      self.ppserver = None
+      self.rayserver = None
 
-    self.isParallelPythonInitialized = True
+    self.isRayInitialized = True
 
   def __getLocalAndRemoteMachineNames(self):
     """
       Method to get the qualified host and remote nodes' names
       @ In, None
-      @ Out, hostNameMapping, dict, dictionary containing the qualified names
-        {'local':hostName,'remote':{nodeName1:IP1,nodeName2:IP2,etc}}
+      @ Out, hostNameMapping, dict, dictionary containing the qualified names of the remote nodes
     """
-    hostNameMapping = {'local':"",'remote':{}}
-
-    ## Store the local machine name as its fully-qualified domain name (FQDN)
-    hostNameMapping['local'] = str(socket.getfqdn()).strip()
-    self.raiseADebug("Local Host is " + hostNameMapping['local'])
-
+    hostNameMapping = {}
     ## collect the qualified hostnames for each remote node
     for nodeId in list(set(self.runInfoDict['Nodes'])):
-      hostNameMapping['remote'][nodeId.strip()] = socket.gethostbyname(nodeId.strip())
-      self.raiseADebug("Remote Host identified " + hostNameMapping['remote'][nodeId.strip()])
+      hostNameMapping[nodeId.strip()] = socket.gethostbyname(nodeId.strip())
+      self.raiseADebug("Remote Host identified " + hostNameMapping[nodeId.strip()])
 
     return hostNameMapping
 
-  def __runRemoteListeningSockets(self,newPort):
+  def __getLocalHost(self):
+    """
+      Method to get the name of the local host
+      @ In, None
+      @ Out, __getLocalHost, string, the local host name
+    """
+    return str(socket.getfqdn()).strip()
+
+  def __runRemoteListeningSockets(self,address):
     """
       Method to activate the remote sockets for parallel python
-      @ In, newPort, integer, the comunication port to use
-      @ Out, (qualifiedHostName, ppservers), tuple, tuple containining:
-             - in position 0 the host name and
-             - in position 1 the list containing the nodes in which the remote
-               sockets have been activated
+      @ In, address, string, the head node redis address
+      @ Out, servers, list, list containing the nodes in which the remote sockets have been activated
     """
     ## Get the local machine name and the remote nodes one
-    hostNameMapping = self.__getLocalAndRemoteMachineNames()
-    qualifiedHostName =  hostNameMapping['local']
-    remoteNodesIP = hostNameMapping['remote']
+    remoteNodesIP = self.__getLocalAndRemoteMachineNames()
 
     ## Strip out the nodes' names
     availableNodes = [node.strip() for node in self.runInfoDict['Nodes']]
 
     ## Get unique nodes
-    uniqueNodes    = list(set(availableNodes))
-    ppservers      = []
+    uniqueNodes  = list(set(availableNodes))
+    servers      = []
 
     if len(uniqueNodes) > 1:
       ## There are remote nodes that need to be activated
-
-      ## Locate the ppserver script to be executed
-      if sys.version_info.major == 2:
-        ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
-      else:
-        ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp3","ppserver.py")
-
       ## Modify the python path used by the local environment
       localenv = os.environ.copy()
       pathSeparator = os.pathsep
       localenv["PYTHONPATH"] = pathSeparator.join(sys.path)
-
+      ## Start
       for nodeId in uniqueNodes:
         ## Build the filename
-        outFileName = nodeId.strip()+"_port:"+str(newPort)+"_server_out.log"
-        outFileName = os.path.join(self.runInfoDict['WorkingDir'], outFileName)
-
+        outFileName = os.path.join(self.runInfoDict['WorkingDir'], nodeId.strip()+"_server_out.log")
         outFile = open(outFileName, 'w')
 
         ## Check how many processors are available in the node
@@ -270,21 +259,13 @@ class JobHandler(MessageHandler.MessageUser):
         remoteHostName =  remoteNodesIP[nodeId]
 
         ## Activate the remote socketing system
-
-        ## Next line is a direct execute of a ppserver:
-        #subprocess.Popen(['ssh', nodeId, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
-
-        ## Instead, let's build the command and then call the os-agnostic version
-        pythonCommand = utils.getPythonCommand()
-
-        command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
+        ## let's build the command and then call the os-agnostic version
+        command=" ".join(["ray start", "--address="+address, "-num-cpus",str(ntasks)])
         utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
-        ## e.g., ssh nodeId COMMAND='python ppserverScript -w stuff'
-
         ## update list of servers
-        ppservers.append(nodeId+":"+str(newPort))
+        servers.append(nodeId)
 
-    return qualifiedHostName, ppservers
+    return servers
 
   def startLoop(self):
     """
@@ -322,10 +303,10 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     ## internal server is initialized only in case an internal calc is requested
-    if not self.isParallelPythonInitialized:
-      self.__initializeParallelPython()
+    if not self.isRayInitialized:
+      self.__initializeRay()
 
-    if self.ppserver is None or forceUseThreads:
+    if self.rayserver is None or forceUseThreads:
       internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
                                                functionToRun,
                                                identifier, metadata,
