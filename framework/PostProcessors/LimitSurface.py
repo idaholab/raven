@@ -26,7 +26,7 @@ from collections import OrderedDict
 
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import InputData, utils, mathUtils
+from utils import InputData, InputTypes, utils, mathUtils
 import LearningGate
 import GridEntities
 import Files
@@ -50,23 +50,23 @@ class LimitSurface(PostProcessor):
     ## This will replace the lines above
     inputSpecification = super(LimitSurface, cls).getInputSpecification()
 
-    ParametersInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
+    ParametersInput = InputData.parameterInputFactory("parameters", contentType=InputTypes.StringType)
     inputSpecification.addSub(ParametersInput)
 
-    ToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
+    ToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputTypes.FloatType)
     inputSpecification.addSub(ToleranceInput)
 
-    SideInput = InputData.parameterInputFactory("side", contentType=InputData.StringType)
+    SideInput = InputData.parameterInputFactory("side", contentType=InputTypes.StringType)
     inputSpecification.addSub(SideInput)
 
-    ROMInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
-    ROMInput.addParam("class", InputData.StringType)
-    ROMInput.addParam("type", InputData.StringType)
+    ROMInput = InputData.parameterInputFactory("ROM", contentType=InputTypes.StringType)
+    ROMInput.addParam("class", InputTypes.StringType)
+    ROMInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(ROMInput)
 
-    FunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
-    FunctionInput.addParam("class", InputData.StringType)
-    FunctionInput.addParam("type", InputData.StringType)
+    FunctionInput = InputData.parameterInputFactory("Function", contentType=InputTypes.StringType)
+    FunctionInput.addParam("class", InputTypes.StringType)
+    FunctionInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(FunctionInput)
 
     return inputSpecification
