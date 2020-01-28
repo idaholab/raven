@@ -19,17 +19,24 @@ import sys
 
 import numpy as np
 
-ravenPath = os.path.abspath(os.path.join(__file__, *['..'] * 3))
-print(ravenPath)
+ravenPath = os.path.abspath(os.path.join(__file__, *['..'] * 5, 'framework'))
+print('... located RAVEN at:', ravenPath)
 sys.path.append(ravenPath)
-from utils.utils import find_crow
-find_crow(ravenPath)
+import Driver
+#from utils.utils import find_crow
+#add_path(os.path.join(ravenPath, 'contrib'))
+#add_path(os.path.join(ravenPath, 'contrib', 'AMSC'))
+#add_path_recursively(os.path.join(ravenPath, 'contrib', 'pp3'))
+#find_crow(ravenPath)
 
 from Optimizers.gradients import returnInstance
 
 fd = returnInstance('FiniteDifference', 'tester')
 
+#
+#
 # checkers
+#
 def checkFloat(comment, value, expected, tol=1e-10, update=True):
   """
     This method compares two floats given a certain tolerance
@@ -74,14 +81,28 @@ def checkSame(comment, value, expected, update=True):
 
 results = {'pass': 0, 'fail': 0}
 
+#
+#
+# formatters
+#
+def formatSample(vars):
+  return dict ((x, np.atleast_1d(y)) for x, y in vars.items())
+
+#
+#
 # initialization
+#
 optVars = ['a', 'b', 'c']
 proximity = 0.01
 fd.initialize(optVars, proximity)
 
 checkSame('Check num vars', fd.N, 3)
 
-# eval points
+#
+#
+# choosing eval points
+#
+
 optPoint = {'a': 0.1,
             'b': 0.2,
             'c': 0.3}
@@ -103,9 +124,85 @@ for p, pt in enumerate(pts):
     checkSame('Point "{}" info "{}"'.format(p, i), info[p][i], cinfo[p][i])
   checkFloat('Point "{}" var "{}"'.format(p, 'delta'), info[p]['delta'], cinfo[p]['delta'])
 
+#
+#
+# evaluating the gradient
+#
+def linearModel(vars):
+  ans = 3 * vars['a'] + 2 * vars['b'] + vars['c']
+  vars['ans'] = ans
+
+opt = {'a': 0.1, 'b': 0.2, 'c': 0.3}
+grads = [
+    {'a': 0.095, 'b': 0.2, 'c': 0.3},
+    {'a': 0.1, 'b': 0.205, 'c': 0.3},
+    {'a': 0.1, 'b': 0.2, 'c': 0.295}]
+for g, grad in enumerate(grads):
+  grads[g] = formatSample(grad)
+# fill in samples
+linearModel(opt)
+for g in grads:
+  linearModel(g)
+
+infos = [
+    {'type': 'grad', 'optVar': 'a', 'delta': -0.005},
+    {'type': 'grad', 'optVar': 'b', 'delta':  0.005},
+    {'type': 'grad', 'optVar': 'c', 'delta': -0.005}]
+mag, vsr, inf = fd.evaluate(opt, grads, infos, 'ans')
+correctMag = [3.741657386773921]
+correctVsr = [0.8017837257372723, 0.5345224838248521, 0.2672612419124202]
+checkSame('Linear finite model, inf check', inf, False)
+checkFloat('Linear finite model, magnitude', mag, correctMag)
+for v, var in enumerate(['a', 'b', 'c']):
+  checkFloat('Linear finite model, versor, var "{}"'.format(var), vsr[var], correctVsr[v])
 
 
+#
+# try some infinites
+def infiniteModel(vs):
+  a, b, c = vs['a'], vs['b'], vs['c']
+  if a < 0.1 or b > 0.2:
+    ans = np.atleast_1d(np.inf)
+  else:
+    ans = 3 * a + 2 * b + c
+  vs['ans'] = ans
 
+opt = formatSample({'a': 0.1, 'b': 0.2, 'c': 0.3})
+grads = [
+    {'a': 0.095, 'b': 0.2, 'c': 0.3},
+    {'a': 0.1, 'b': 0.205, 'c': 0.3},
+    {'a': 0.1, 'b': 0.2, 'c': 0.295}]
+for g, grad in enumerate(grads):
+  grads[g] = formatSample(grad)
+infos = [
+    {'type': 'grad', 'optVar': 'a', 'delta': -0.005},
+    {'type': 'grad', 'optVar': 'b', 'delta':  0.005},
+    {'type': 'grad', 'optVar': 'c', 'delta': -0.005}]
+# fill in samples
+infiniteModel(opt)
+for g in grads:
+  infiniteModel(g)
+mag, vsr, inf = fd.evaluate(opt, grads, infos, 'ans')
+correctMag = [1.4142135623730951]
+correctVsr = [-0.7071067811865475, 0.7071067811865475, 0]
+checkSame('Linear infinite model, inf check', inf, True)
+checkFloat('Linear infinite model, magnitude', mag, correctMag)
+for v, var in enumerate(['a', 'b', 'c']):
+  checkFloat('Linear infinite model, versor, var "{}"'.format(var), vsr[var], correctVsr[v])
 
+#
+# number of required samples
+#
+proximity = 0.01
+optVars = ['a', 'b', 'c']
+fd.initialize(optVars, proximity)
+checkSame('Number of samples needed, 3 vars', fd.numGradPoints(), 3)
+optVars = ['a', 'b', 'c', 'd', 'e']
+fd.initialize(optVars, proximity)
+checkSame('Number of samples needed, 5 vars', fd.numGradPoints(), 5)
+
+#
+# end
+#
 print('Results:', results)
 sys.exit(results['fail'])

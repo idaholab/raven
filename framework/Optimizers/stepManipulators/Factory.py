@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
+  Created on May 21, 2016
+  @author: chenj
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
-from .GradientApproximater import GradientApproximater
-from .FiniteDifference import FiniteDifference
-#from .CentralDifference import CentralDifference
-#from .SPSA import SPSA
+from .StepManipulator import StepManipulator
+from .GradientHistory import GradientHistory
 
 
 
@@ -30,9 +30,9 @@ from .FiniteDifference import FiniteDifference
 """
 # This machinery will automatically populate the "knownTypes" given the
 # imports defined above.
-__base = 'Optimizer'
+__base = 'StepSizer'
 __interFaceDict = {}
-__interFaceDict['FiniteDifference'] = FiniteDifference
+__interFaceDict['GradientHistory'] = GradientHistory
 #__interFaceDict['CentralDifference'] = CentralDifference
 #__interFaceDict['SPSA'] = SPSA
 

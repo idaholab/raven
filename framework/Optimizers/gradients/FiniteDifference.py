@@ -30,38 +30,6 @@ class FiniteDifference(GradientApproximater):
   ##########################
   # Initialization Methods #
   ##########################
-  @classmethod
-  def getInputSpecification(cls):
-    """
-      Method to get a reference to a class that specifies the input data for class cls.
-      @ In, cls, the class for which we are retrieving the specification
-      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
-    """
-    specs = super(FiniteDifference, cls).getInputSpecification()
-    return specs
-
-  def __init__(self):
-    """
-      Constructor.
-      @ In, None
-      @ Out, None
-    """
-    GradientApproximater.__init__(self)
-    ## Instance Variable Initialization
-    # public
-    # _protected
-    # __private
-    # additional methods
-
-  def initialize(self, optVars, proximity):
-    """
-      After construction, finishes initialization of this approximator.
-      @ In, optVars, list(str), list of optimization variable names
-      @ In, proximity, float, percentage of step size away that neighbor samples should be taken
-      @ Out, None
-    """
-    GradientApproximater.initialize(self, optVars, proximity)
-
   ###############
   # Run Methods #
   ###############
@@ -78,7 +46,8 @@ class FiniteDifference(GradientApproximater):
     evalInfo = []
 
     directions = np.asarray(randomUtils.random(self.N) < 0.5) * 2 - 1
-    for o, (optVar, optValue) in enumerate(opt.items()):
+    for o, optVar in enumerate(self._optVars):
+      optValue = opt[optVar]
       new = copy.deepcopy(opt)
       delta = dh * directions[o]
       new[optVar] = optValue + delta
@@ -109,11 +78,16 @@ class FiniteDifference(GradientApproximater):
       gradient[activeVar] = grad
     # get the magnitude, versor of the gradient
     magnitude, direction, foundInf = mathUtils.calculateMagnitudeAndVersor(list(gradient.values()))
+    direction = dict((var, float(direction[v])) for v, var in enumerate(gradient.keys()))
     return magnitude, direction, foundInf
 
+  def numGradPoints(self):
+    """
+      Returns the number of grad points required for the method
+    """
+    return self.N
 
   ###################
   # Utility Methods #
   ###################
-
 

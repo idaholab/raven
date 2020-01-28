@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  TODO
+  Defines acceptance conditions when comparing successive optimal points.
 
   Reworked 2020-01
   @author: talbpaul
@@ -21,7 +21,7 @@ import abc
 
 from utils import utils, InputData, InputTypes
 
-class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
+class AcceptanceCondition(utils.metaclass_insert(abc.ABCMeta, object)):
   """
     GradientApproximators use provided information to both select points
     required to estimate gradients as well as calculate the estimates.
@@ -48,9 +48,6 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
     ## Instance Variable Initialization
     # public
     # _protected
-    self._optVars = None
-    self._proximity = None
-    self.N = None
     # __private
     # additional methods
 
@@ -62,46 +59,25 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     pass
 
-  def initialize(self, optVars, proximity):
+  def initialize(self):
     """
       After construction, finishes initialization of this approximator.
       @ In, optVars, list(str), list of optimization variable names
       @ In, proximity, float, percentage of step size away that neighbor samples should be taken
       @ Out, None
     """
-    self._optVars = optVars
-    self._proximity = proximity
-    self.N = len(self._optVars)
+    pass
 
   ###############
   # Run Methods #
   ###############
   @abc.abstractmethod
-  def chooseEvaluationPoints(self, opt, stepSize):
+  def checkImprovement(self, new, old):
     """
-      Determines new point(s) needed to evaluate gradient
-      @ In, opt, dict, current opt point (normalized)
-      @ In, stepSize, float, distance from opt point to sample neighbors
-      @ Out, evalPoints, list(dict), list of points that need sampling
-      @ Out, evalInfo, list(dict), identifying information about points
-    """
-
-  @abc.abstractmethod
-  def numGradPoints(self):
-    """
-      Returns the number of grad points required for the method
-    """
-
-  @abc.abstractmethod
-  def evaluate(self, opt, grads, infos, objVar):
-    """
-      Approximates gradient based on evaluated points.
-      @ In, opt, dict, current opt point (normalized)
-      @ In, grads, list(dict), evaluated neighbor points
-      @ In, infos, list(dict), info about evaluated neighbor points
-      @ In, objVar, string, objective variable
-      @ Out, magnitude, float, magnitude of gradient
-      @ Out, direction, dict, versor (unit vector) for gradient direction
+      Determines if a new value is sufficiently improved over the old
+      @ In, new, float, new value
+      @ In, old, float, old value
+      @ Out, acceptable, bool, True if acceptable value
     """
 
   ###################

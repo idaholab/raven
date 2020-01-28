@@ -5,6 +5,7 @@
     <WorkingDir>Basic</WorkingDir>
     <Sequence>optimize, print</Sequence>
     <batchSize>1</batchSize>
+    <maxQueueSize>10</maxQueueSize>
   </RunInfo>
 
   <Steps>
@@ -14,10 +15,13 @@
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
     </IOStep>
   </Steps>
 
@@ -31,7 +35,7 @@
   <Optimizers>
     <GradientDescent name="opter">
       <samplerInit>
-        <limit>200</limit>
+        <limit>100</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
@@ -39,24 +43,28 @@
         <FiniteDifference/>
       </gradient>
       <stepSize>
-        <adaptive>
-          <growthFactor>1.5</growthFactor>
-          <shrinkFactor>1.25</shrinkFactor>
-        </adaptive>
+        <GradientHistory>
+          <growthFactor>1.25</growthFactor>
+          <shrinkFactor>1.15</shrinkFactor>
+        </GradientHistory>
       </stepSize>
+      <acceptance>
+        <Strict/>
+      </acceptance>
       <convergence>
         <gradientAbsValue>1e-1</gradientAbsValue>
         <minStepSize>0</minStepSize>
       </convergence>
       <variable name="x">
         <distribution>beale_dist</distribution>
-        <initial>-2,2</initial>
+        <initial>-2</initial>
       </variable>
       <variable name="y">
         <distribution>beale_dist</distribution>
-        <initial>-2,2</initial>
+        <initial>-2</initial>
       </variable>
       <objective>ans</objective>
+      <constant name='const'>3.14</constant>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     </GradientDescent>
   </Optimizers>
@@ -78,11 +86,15 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate,accepted</Output>
+      <Output>x,y,ans,stepSize,iteration,accepted</Output>
     </PointSet>
   </DataObjects>
 
   <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
     <Print name="opt_export">
       <type>csv</type>
       <source>opt_export</source>

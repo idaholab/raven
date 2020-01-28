@@ -45,6 +45,19 @@ class AdaptiveSampler(Sampler):
     self._registeredIdentifiers = set() # tracks job identifiers used for this adaptive sampler and its inheritors
     self._prefixToIdentifiers = {}      # tracks the mapping of run prefixes to particular identifiers
     self._inputIdentifiers = {}         # identifiers for a single realization
+    self._targetEvaluation = None       # data object with feedback from sample realizations
+    self._solutionExport = None         # data object for solution printing
+
+  def initialize(self, externalSeeding=None, solutionExport=None):
+    """
+      This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
+      @ In, externalSeeding, int, optional, external seed
+      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ Out, None
+    """
+    Sampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    self._targetEvaluation = self.assemblerDict['TargetEvaluation'][0][3]
+    self._solutionExport = solutionExport
 
   def _registerSample(self, prefix, info):
     """ TODO """
@@ -64,6 +77,14 @@ class AdaptiveSampler(Sampler):
       prefix = self.inputInfo['prefix']
       if not prefix in self._prefixToIdentifiers:
         self.raiseAnError(RuntimeError, 'Prefix "{p}" has not been tracked in adaptive sampling!'.format(p=prefix))
+
+  def stillLookingForPrefix(self, prefix):
+    """
+      Checks if a prefix is still registered for collection.
+      @ In, prefix, str, job prefix
+      @ Out, looking, bool, True if still waiting for prefix else False
+    """
+    return prefix in self._prefixToIdentifiers
 
   ##########################################
   # Utilities for Prefix-Identifier System #
@@ -92,18 +113,30 @@ class AdaptiveSampler(Sampler):
     else:
       return self._prefixToIdentifiers.get(prefix, None)
 
-  def getPrefixFromIdentifier(self, idDict, pop=False):
+  def getPrefixFromIdentifier(self, idDict, pop=False, getAll=False):
     """ TODO get a prefix given identifying information """
     # make sure the request matches the expected form
-    self.checkIdentifiersPresent(idDict)
+    if getAll:
+      found = []
+    else:
+      found = None
+    # if not collecting many, check all identifiers used
+    if not getAll:
+      self.checkIdentifiersPresent(idDict)
     # find the match
+    toPop = []
     for prefix, info in self._prefixToIdentifiers.items():
-      if info == idDict:
+      if all(list((v == info[k]) for k, v in idDict.items())):
         if pop:
-          self._prefixToIdentifiers.pop(prefix)
-        return prefix
-    # if no matches found ...
-    return None
+          toPop.append(prefix)
+        if getAll:
+          found.append(prefix)
+        else:
+          found = prefix
+          break
+    for p in toPop:
+      self._prefixToIdentifiers.pop(p)
+    return found
 
 
 

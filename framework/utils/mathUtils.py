@@ -566,7 +566,7 @@ def diffWithInfinites(a, b):
     else: # b > a
       res = -np.inf
   else:
-    res = a-b
+    res = a - b
   return res
 
 def computeTruncatedTotalLeastSquare(X, Y, truncationRank):
@@ -894,3 +894,50 @@ def readVariableGroups(xmlNode, messageHandler, caller):
       varGroups[name] = varGroup
 
   return varGroups
+
+def calculateMultivectorMagnitude(vector):
+  """
+    Given a list of potentially mixed scalars and numpy arrays, obtains the magnitude as if every
+    entry were part of one larger array
+    @ In, vector, list, mixed float/np.array elements where all scalars should be treated with same weighting
+    @ Out, mag, float, magnitude of combined elements
+  """
+  # reshape so numpy can perform Frobenius norm
+  # -> do this by calculating the norm of vector entries first
+  # --> note that np norm fails on length-1 arrays so we protect against that
+  new = [np.linalg.norm(x) if len(np.atleast_1d(x)) > 1 else np.atleast_1d(x)[0] for x in vector]
+  mag = np.linalg.norm(new)
+  return mag
+
+def calculateMagnitudeAndVersor(vector, normalizeInfinity=True):
+  """
+    Generates a magnitude and versor for provided vector.
+    @ In, vector, list or np.array, potentially mixed float/np.array elements
+    @ In, normalizeInfinity, bool, optional, if True then normalize vector if infinites present
+    @ Out, mag, float, magnitude of vector
+    @ Out, versor, np.array, vector divided by magnitude
+  """
+  # protect original data
+  vector = copy.deepcopy(vector)
+  # check if infinites were detected
+  foundInf = False
+  mag = calculateMultivectorMagnitude(vector)
+  if normalizeInfinity and mag == np.inf:
+    foundInf = True
+    for e, entry in enumerate(vector):
+      # if we're working with infinites, then recalculate by "dividing by infinity"
+      vector[e][-np.inf < entry < np.inf] = 0.0
+      # since np.inf / np.inf is nan, manually define quotient as 1
+      vector[e][entry == np.inf] = 1.0
+      vector[e][entry == -np.inf] = -1.0
+    mag = calculateMultivectorMagnitude(vector)
+  # create versor (if divisor is not zero)
+  if mag != 0.0:
+    for e, entry in enumerate(vector):
+      vector[e] = entry / mag
+      # fix up vector/scalars: len 1 vectors are scalars
+      #if len(entry) == 1:
+      #  vector[e] = float(vector[e])
+  return mag, vector, foundInf
+
+

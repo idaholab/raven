@@ -94,25 +94,32 @@ class Optimizer(AdaptiveSampler):
       @ Out, None
     """
     AdaptiveSampler.__init__(self)
-    self._seed = None
-    self._minMax = None
     ## Instance Variable Initialization
     # public
-
     # _protected
-    self._activeTraj = []      # tracks live trajectories
-    self._numRepeatSamples = 1 # number of times to repeat sampling (e.g. denoising)
-    self._objectiveVar = None  # objective variable for optimization
-
+    self._seed = None           # random seed to apply
+    self._minMax = None         # maximization or minimization?
+    self._activeTraj = []       # tracks live trajectories
+    self._numRepeatSamples = 1  # number of times to repeat sampling (e.g. denoising)
+    self._objectiveVar = None   # objective variable for optimization
+    self._initialValues = None  # initial variable values (trajectory starting locations), list of dicts
+    self._variableBounds = None # dictionary of upper/lower bounds for each variable (may be inf?)
+    self._trajCounter = 0       # tracks numbers to assign to trajectories
     # __private
-
     # additional methods
     self.addAssemblerObject('TargetEvaluation', '1') # Place where realization evaluations go
     self.addAssemblerObject('Constraint', '-1')      # Explicit (input-based) constraints
-    self.addAssemblerObject('Sampler', '-1')         # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+    # TODO self.addAssemblerObject('Sampler', '-1')         # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
     # register adaptive sample identification criteria
     self.registerIdentifier('traj') # the trajectory of interest
+
+  def _localWhatDoINeed(self):
+    """
+    """
+    needDict = AdaptiveSampler._localWhatDoINeed()
+    needDict['Functions'] = [(None, 'all')]
+    return needDict
 
   def _localGenerateAssembler(self, initDict):
     """
@@ -121,12 +128,15 @@ class Optimizer(AdaptiveSampler):
       @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
-    self.assemblerDict['Functions'    ] = []
-    self.assemblerDict['Distributions'] = []
-    self.assemblerDict['DataObjects'  ] = []
-    for mainClass in ['Functions','Distributions','DataObjects']:
+    AdaptiveSampler._localGenerateAssembler(self, initDict)
+    # functions and distributions already collected
+    self.assemblerDict['DataObjects'] = []
+    for mainClass in ['DataObjects']:
       for funct in initDict[mainClass]:
-        self.assemblerDict[mainClass].append([mainClass,initDict[mainClass][funct].type,funct,initDict[mainClass][funct]])
+        self.assemblerDict[mainClass].append([mainClass,
+                                              initDict[mainClass][funct].type,
+                                              funct,
+                                              initDict[mainClass][funct]])
 
   def localInputAndChecks(self, xmlNode, paramInput):
     """
@@ -160,7 +170,7 @@ class Optimizer(AdaptiveSampler):
     """
     # the reading of variables (dist or func) and constants already happened in _readMoreXMLbase in Sampler
     # objective var
-    self._objectiveVar = paramInput.findFirst('objective')
+    self._objectiveVar = paramInput.findFirst('objective').value
     #
     # sampler init
     # self.readSamplerInit() can't be used because it requires the xml node
@@ -174,6 +184,17 @@ class Optimizer(AdaptiveSampler):
       minMax = init.findFirst('type')
       if minMax is not None:
         self._minMax = minMax.value
+    #
+    # variables additional reading
+    for varNode in paramInput.findAll('variable'):
+      var = varNode.parameterValues['name']
+      inits = varNode.findFirst('initial').value
+      # initialize list of dictionaries if needed
+      if not self._initialValues:
+        self._initialValues = [{} for _ in inits]
+      # store initial values
+      for i, init in enumerate(inits):
+        self._initialValues[i][var] = init
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -182,9 +203,22 @@ class Optimizer(AdaptiveSampler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
+    AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     # seed
     if self._seed is not None:
       randomUtils.randomSeed(self._seed)
+    # variable bounds
+    self._variableBounds = {}
+    for var in self.toBeSampled:
+      dist = self.distDict[var]
+      lower = dist.lowerBound if dist.lowerBound is not None else -np.inf
+      upper = dist.upperBound if dist.upperBound is not None else np.inf
+      self._variableBounds[var] = [lower, upper]
+      self.raiseADebug('Set bounds for opt var "{}" to {}'.format(var, self._variableBounds[var]))
+    # trajectory initialization
+    for i, init in enumerate(self._initialValues):
+      self._initialValues[i] = self.normalizeData(init)
+      self.initializeTrajectory()
 
   ###############
   # Run Methods #
@@ -197,19 +231,14 @@ class Optimizer(AdaptiveSampler):
       @ In, None
       @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input.
     """
-    TODO
+    # if any trajectories are still active, we're ready to provide an input
+    ready = AdaptiveSampler.amIreadyToProvideAnInput(self)
+    ready *= bool(self._activeTraj)
+    return ready
 
   ###################
   # Utility Methods #
   ###################
-  def checkConstraint(self, optVars):
-    """
-      Method to check whether a set of decision variables satisfy the constraint or not in UNNORMALIZED input space
-      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
-      @ Out, satisfaction, tuple, (bool,list) => (variable indicating the satisfaction of constraints at the point optVars, masks for the under/over violations)
-    """
-    TODO
-
   @abc.abstractmethod
   def checkConvergence(self):
     """
@@ -217,20 +246,6 @@ class Optimizer(AdaptiveSampler):
       @ In, none,
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
-    TODO
-
-  def checkIfBetter(self, a, b):
-    """
-      Checks if a is preferable to b for this optimization problem.  Helps mitigate needing to keep
-      track of whether a minimization or maximation problem is being run.
-      @ In, a, float, value to be compared
-      @ In, b, float, value to be compared against
-      @ Out, checkIfBetter, bool, True if a is preferable to b for this optimization
-    """
-    if self.optType == 'min':
-      return a <= b
-    elif self.optType == 'max':
-      return a >= b
 
   def _addTrackingInfo(self, info, **kwargs):
     """
@@ -243,13 +258,35 @@ class Optimizer(AdaptiveSampler):
     # TODO shouldn't this require the realization and information to do right?
     info['traj'] = kwargs['traj']
 
-  def denormalizeData(self, normalized):
+  def checkConstraint(self, optVars):
     """
-      Method to normalize the data
-      @ In, normalized, dict, dictionary containing the value of decision variables to be deormalized, in form of {varName: varValue}
-      @ Out, denormed, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
+      Method to check whether a set of decision variables satisfy the constraint or not in UNNORMALIZED input space
+      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
+      @ Out, satisfaction, tuple, (bool,list) => (variable indicating the satisfaction of constraints at the point optVars, masks for the under/over violations)
     """
     TODO
+
+  def _collectOptValue(self, rlz):
+    """
+      collects the objective variable from a realization and adjusts the sign for min/max
+      @ In, rlz, dict, realization particularly including objective variable
+      @ Out, optVal, float, sign-adjust objective value
+    """
+    optVal = (-1 if self._minMax == 'max' else 1) * rlz[self._objectiveVar]
+    return optVal
+
+  def initializeTrajectory(self, traj=None):
+    """
+      Sets up a new trajectory.
+      @ In, traj, int, optional, label to use
+      @ Out, traj, int, trajectory number
+    """
+    if traj is None:
+      traj = self._trajCounter
+      self._trajCounter += 1
+    if traj not in self._activeTraj:
+      self._activeTraj.append(traj)
+    return traj
 
   def normalizeData(self, denormed):
     """
@@ -257,4 +294,22 @@ class Optimizer(AdaptiveSampler):
       @ In, denormed, dict, dictionary containing the value of decision variables to be normalized, in form of {varName: varValue}
       @ Out, normalized, dict, dictionary containing the value of normalized decision variables, in form of {varName: varValue}
     """
-    TODO
+    normalized = copy.deepcopy(denormed)
+    for var in self.toBeSampled:
+      val = denormed[var]
+      lower, upper = self._variableBounds[var]
+      normalized[var] = (val - lower) / (upper - lower)
+    return normalized
+
+  def denormalizeData(self, normalized):
+    """
+      Method to normalize the data
+      @ In, normalized, dict, dictionary containing the value of decision variables to be deormalized, in form of {varName: varValue}
+      @ Out, denormed, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
+    """
+    denormed = copy.deepcopy(normalized)
+    for var in self.toBeSampled:
+      val = normalized[var]
+      lower, upper = self._variableBounds[var]
+      denormed[var] = val * (upper - lower) + lower
+    return denormed

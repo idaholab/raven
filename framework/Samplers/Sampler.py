@@ -358,10 +358,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
     return paramInput
 
-  def _readInVariable(self, inp, prefix):
+  def _readInVariable(self, child, prefix):
     """
       Reads in a "variable" input parameter node.
-      @ In, inp, utils.InputData.ParameterInput, input parameter node to read from
+      @ In, child, utils.InputData.ParameterInput, input parameter node to read from
       @ In, prefix, str, variable prefix, if any # TODO maybe always empty?
       @ Out, name, string, name of constant
       @ Out, value, float or np.array,
@@ -509,7 +509,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.constants[var] = rlz[data['sourceVar']]
 
     #specializing the self.localInitialize() to account for adaptive sampling
-    if solutionExport != None:
+    if solutionExport is not None:
       self.localInitialize(solutionExport=solutionExport)
     else:
       self.localInitialize()
@@ -551,7 +551,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     return {}
 
-  def localInitialize(self):
+  def localInitialize(self, **kwargs):
     """
       use this function to add initialization features to the derived class
       it is call at the beginning of each step
@@ -672,7 +672,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, ready, bool, is this sampler ready to generate another sample?
     """
-    ready = True if self.counter < self.limit else False
+    if self.counter < self.limit: # can use < since counter is 0-based
+      ready = True
+    else:
+      ready = False
+      self.raiseADebug('Sampling limit reached! No new samples ...')
     ready = self.localStillReady(ready)
     return ready
 
@@ -683,6 +687,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
+    # TODO is this an okay check for ALL samplers?
+    if self.counter > self.limit:
+      ready = False
     return ready
 
   def _checkRestartForEvaluation(self):
@@ -747,9 +754,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #since we are creating the input for the next run we increase the counter and global counter
     self.counter +=1
     self.auxcnt  +=1
-    #exit if over the limit
-    if self.counter > self.limit:
-      self.raiseADebug('Exceeded number of points requested in sampling!  Moving on...')
+    # prep to exit if over the limit
+    if self.counter >= self.limit:
+      self.raiseADebug('Sampling limit reached!')
+      # TODO this is disjointed from readiness check!
     #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
     if self.counter >1:
       for key in self.entitiesToRemove:
@@ -838,7 +846,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     if inExisting is None:
       # we have a new evaluation, so check its contents for consistency
       self._checkSample()
-      self.raiseADebug('Found new point to sample:', self.values)
+      self.raiseADebug(' ... Sample point {}: {}'.format(self.inputInfo['prefix'], self.values))
       ## The new info for the perturbed run will be stored in the sampler's
       ## inputInfo (I don't particularly like this, I think it should be
       ## returned here, but let's get this working and then we can decide how

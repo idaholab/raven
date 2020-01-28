@@ -660,10 +660,12 @@ class MultiRun(SingleRun):
         if finishedJob.getReturnCode() == 0:
           for myLambda, outIndex in self._outputCollectionLambda:
             myLambda([finishedJob,outputs[outIndex]])
-            self.raiseADebug('Just collected output {0:2} of the input {1:6}'.format(outIndex+1,self.counter))
+            self.raiseADebug('Just collected job {j:^8} and sent to output "{o}"'
+                              .format(j=finishedJob.identifier,
+                                      o=inDictionary['Output'][outIndex].name))
         # pool it if it failed, before we loop back to "while True" we'll check for these again
         else:
-          self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
+          self.raiseADebug('the job "{}" has failed.'.format(finishedJob.identifier))
           if self.failureHandling['fail']:
             # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
             if not sampler.ableToHandelFailedRuns:
@@ -702,22 +704,22 @@ class MultiRun(SingleRun):
         ## employ a threshold on the number of jobs the jobHandler can take,
         ## in addition, we cannot provide more jobs than the sampler can provide.
         ## So, we take the minimum of these two values.
+        self.raiseADebug('Testing if the sampler is ready to generate a new input')
         for _ in range(min(jobHandler.availability(isEnsemble),sampler.endJobRunnable())):
-          self.raiseADebug('Testing if the sampler is ready to generate a new input')
 
           if sampler.amIreadyToProvideAnInput():
             try:
               newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
               model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
             except utils.NoMoreSamplesNeeded:
-              self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
+              self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break
           else:
             break
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
-        self.raiseADebug('Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
+        self.raiseADebug(' ... Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       time.sleep(self.sleepTime)
     # END while loop that runs the step iterations
@@ -744,7 +746,7 @@ class MultiRun(SingleRun):
     #  case 1: found the input in restart, and newInp is a realization dicitonary of data to use
     found = None
     while found != 0:
-      found,newInp = sampler.generateInput(model,inputs)
+      found, newInp = sampler.generateInput(model,inputs)
       if found == 1:
         # loop over the outputs for this step and collect the data for each
         for collector, outIndex in self._outputDictCollectionLambda:

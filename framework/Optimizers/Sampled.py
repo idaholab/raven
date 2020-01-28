@@ -25,6 +25,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import copy
 import abc
+from collections import deque
+from functools import reduce
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -70,6 +72,7 @@ class Sampled(Optimizer):
     write = InputData.parameterInputFactory('writeSteps', contentType=whenSolnExpEnum)
     init.addSub(limit)
     init.addSub(write)
+    print('DEbUGG sampled init subs:')
     return specs
 
   def __init__(self):
@@ -79,18 +82,22 @@ class Sampled(Optimizer):
       @ Out, None
     """
     Optimizer.__init__(self)
-    # TODO
-
     ## Instance Variable Initialization
     # public
     self.limit = None
-
+    self.type = 'Sampled Optimizer'
     # _protected
     self._writeSteps = 'final'
-
+    self._submissionQueue = deque()
+    self._stepCounter = {}
+    self._stepTracker = {}          # action tracking: what is collected, what needs collecting?
+    self._optPointHistory = {}      # by traj, is a deque (-1 is most recent)
+    self._maxHistLen = 2            # FIXME who should set this?
+    # self._nextTrajToConsider = 0  # which is the next trajectory to check up on?
     # __private
-
     # additional methods
+    ## register adaptive sample identification criteria
+    self.registerIdentifier('step') # the step within the action
 
   def handleInput(self, paramInput):
     """
@@ -111,7 +118,6 @@ class Sampled(Optimizer):
       if writeSteps is not None:
         self._writeSteps = writeSteps.value
 
-
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
       This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
@@ -119,45 +125,117 @@ class Sampled(Optimizer):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    # TODO
+    Optimizer.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
 
   ###############
   # Run Methods #
   ###############
-  # TODO
+  @abc.abstractmethod
+  def _useRealization(self, info, rlz, optVal):
+    """
+      Used to feedback the collected runs into actionable items within the sampler.
+      @ In, info, dict, identifying information about the realization
+      @ In, rlz, dict, realized realization
+      @ In, optVal, float, value of objective variable (corrected for min/max)
+      @ Out, None
+    """
+
+  @abc.abstractmethod
+  def _checkForImprovement(self, new, old):
+    """
+      Determine if the new value is sufficient improved over the old.
+      @ In, new, float, new optimization value
+      @ In, old, float, previous optimization value
+      @ Out, improved, bool, True if "sufficiently" improved or False if not.
+    """
+
+  def _initializeStep(self, traj):
+    """
+      Initializes a new step in the optimization process.
+      @ In, traj, int, the trajectory of interest
+      @ Out, None
+    """
+    self._stepCounter[traj] += 1
+    self._stepTracker[traj] = {'opt': None} # add entries in inheritors as needed
+
+  def amIreadyToProvideAnInput(self):
+    """
+      This is a method that should be called from any user of the optimizer before requiring the generation of a new input.
+      This method act as a "traffic light" for generating a new input.
+      Reason for not being ready could be for example: exceeding number of model evaluation, convergence criteria met, etc.
+      @ In, None
+      @ Out, ready, bool, indicating the readiness of the optimizer to generate a new input.
+    """
+    # if any trajectories are still active, we're ready to provide an input
+    ready = Optimizer.amIreadyToProvideAnInput(self)
+    # we're not ready yet if we don't have anything in queue
+    ready = ready and len(self._submissionQueue)
+    return ready
+
+  def localGenerateInput(self, model, inp):
+    """
+      TODO
+    """
+    # get point from stack
+    point, info = self._submissionQueue.popleft()
+    point = self.denormalizeData(point)
+    # assign a tracking prefix
+    prefix = self.inputInfo['prefix']
+    # register the point tracking information
+    self._registerSample(prefix, info)
+    # build the point in the way the Sampler expects
+    for var in self.toBeSampled: #, val in point.items():
+      val = point[var]
+      self.values[var] = val # TODO should be np.atleast_1d?
+      ptProb = self.distDict[var].pdf(val)
+      # sampler-required meta information # TODO should we not require this?
+      self.inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
+      self.inputInfo['SampledVarsPb'][var] = ptProb
+    self.inputInfo['ProbabilityWeight'] = 1 # TODO assume all weight 1? Not well-distributed samples
+    self.inputInfo['PointProbability'] = np.prod([x for x in self.inputInfo['SampledVarsPb'].values()])
+    self.inputInfo['SamplerType'] = self.type
+
+  def localFinalizeActualSampling(self, job, model, inp):
+    """
+      Runs after each sample is collected from the JobHandler.
+      @ In, job, Runner instance, job runner entity
+      @ In, model, Model instance, RAVEN model that was run
+      @ In, inp, list, generated inputs for run
+      @ Out, None
+    """
+    Optimizer.localFinalizeActualSampling(self, job, model, inp)
+    # TODO should this be an Optimizer class action instead of Sampled?
+    # collect finished job
+    prefix = job.getMetadata()['prefix']
+    # If we're not looking for the prefix, don't bother with using it
+    ## this usually happens if we've cancelled the run but it's already done
+    if not self.stillLookingForPrefix(prefix):
+      return
+    if job.getReturnCode() != 0: # TODO shouldn't this be "if job failed"?
+      raise NotImplementedError # FIXME   handle failed runs
+    # FIXME implicit constraints probable should be handled here too
+    # get information and realization, and update trajectories
+    info = self.getIdentifierFromPrefix(prefix, pop=True)
+    _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
+    # trim down opt point to the useful parts
+    # TODO making a new dict might be costly, maybe worth just passing whole point?
+    ## testing suggests no big deal on smaller problem
+    rlz = dict((var, full[var]) for var in (list(self.toBeSampled.keys()) + [self._objectiveVar]))
+    optVal = self._collectOptValue(rlz)
+    rlz = self.normalizeData(rlz)
+    self._useRealization(info, rlz, optVal)
 
   ###################
   # Utility Methods #
   ###################
-  def _createPrefix(self, **kwargs):
+  def initializeTrajectory(self, traj=None):
     """
-      Creates a unique ID to identifiy particular realizations as they return from the JobHandler.
-      Expandable by inheritors.
-      @ In, args, list, list of arguments
-      @ In, kwargs, dict, dictionary of keyword arguments
-      @ Out, identifiers, list(str), the evaluation identifiers
+      Sets up a new trajectory.
+      @ In, traj, int, optional, label to use
+      @ Out, traj, int, trajectory number
     """
-    # allow other identifiers as well
-    otherInfo = kwargs.get('info', None) # TODO deepcopy?
-    if otherInfo is None:
-      otherInfo = []
-    # add the iteration (or step)
-    step = kwargs['step']
-    otherInfo.append(step)
-    # allow base class to contribute
-    return Optimizer._createPrefix(self, info=otherInfo, **kwargs)
-
-def _deconstructPrefix(self, prefix):
-  """
-    Deconstruct a prefix as far as this instance knows how.
-    @ In, prefix, str, label for a realization
-    @ Out, info, dict, {traj: #, resample: #}, information about the realization
-    @ Out, rem, str, remainder of the prefix (with prior information removed)
-  """
-  # allow base class to peel off it's part
-  info, prefix = Optimizer._createPrefix(self, prefix)
-  asList = prefix.split('_')
-  # get the iteration (or step, if you will)
-  info['iteration'] = int(asList[0])
-  rem = asList[1:].join('_')
-  return info, rem
+    traj = Optimizer.initializeTrajectory(self, traj=traj)
+    self._optPointHistory[traj] = deque(maxlen=self._maxHistLen)
+    self._stepCounter[traj] = -1
+    self._initializeStep(traj)
+    return traj
