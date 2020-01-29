@@ -235,7 +235,9 @@ class Optimizer(AdaptiveSampler):
     """
     # if any trajectories are still active, we're ready to provide an input
     ready = AdaptiveSampler.amIreadyToProvideAnInput(self)
-    ready *= bool(self._activeTraj)
+    if not self._activeTraj:
+      self.raiseADebug(' ... No active optimization trajectories.')
+      ready = False
     return ready
 
   ###################

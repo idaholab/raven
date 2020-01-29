@@ -705,7 +705,7 @@ class MultiRun(SingleRun):
         ## in addition, we cannot provide more jobs than the sampler can provide.
         ## So, we take the minimum of these two values.
         self.raiseADebug('Testing if the sampler is ready to generate a new input')
-        for _ in range(min(jobHandler.availability(isEnsemble),sampler.endJobRunnable())):
+        for _ in range(min(jobHandler.availability(isEnsemble), sampler.endJobRunnable())):
 
           if sampler.amIreadyToProvideAnInput():
             try:
@@ -715,11 +715,12 @@ class MultiRun(SingleRun):
               self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break
           else:
+            self.raiseADebug(' ... sampler has no new inputs currently.')
             break
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
-        self.raiseADebug(' ... Finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
+        self.raiseADebug('Sampling finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       time.sleep(self.sleepTime)
     # END while loop that runs the step iterations
