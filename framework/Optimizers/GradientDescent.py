@@ -23,12 +23,12 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 #External Modules------------------------------------------------------------------------------------
 from enum import Enum
-from collections import deque
+from collections import deque, defaultdict
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes
+from utils import InputData, InputTypes, mathUtils
 from .Sampled import Sampled
 from .gradients import knownTypes as gradKnownTypes
 from .gradients import returnInstance as gradReturnInstance
@@ -62,6 +62,14 @@ class Motive(Enum):
   REJECTED_OPT = 4
   REDUNDANT = 9
 
+# utility function for defaultdict
+def giveZero():
+  """
+    Utility function for defaultdict to 0
+    @ In, None
+    @ Out, giveZero, int, zero
+  """
+  return 0
 
 class GradientDescent(Sampled):
   """
@@ -84,6 +92,11 @@ class GradientDescent(Sampled):
        - converge on gradient magnitude, change in evaluation, min step size
      - Implement summary of step iteration to SolutionExport
   """
+  convergenceOptions = ['gradient',    # gradient magnitude
+                        # TODO change in input space?
+                        'objective',   # relative change in objective value
+                        'stepSize'  # normalized step size
+                       ]
 
   ##########################
   # Initialization Methods #
@@ -127,12 +140,13 @@ class GradientDescent(Sampled):
       subSpecs = acceptReturnClass(option, cls).getInputSpecification()
       accept.addSub(subSpecs)
 
-
     # convergence
     conv = InputData.parameterInputFactory('convergence', strictMode=True)
     specs.addSub(conv)
-    conv.addSub(InputData.parameterInputFactory('gradientAbsValue', contentType=InputTypes.FloatType))
-    conv.addSub(InputData.parameterInputFactory('minStepSize', contentType=InputTypes.FloatType))
+    for name in cls.convergenceOptions:
+      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType))
+    conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType))
+    # NOTE to add new convergence options, add them to convergenceOptions above, not here!
 
     return specs
 
@@ -147,15 +161,19 @@ class GradientDescent(Sampled):
     # public
     self.type = 'GradientDescent Optimizer'
     # _protected
-    self._gradientInstance = None # instance of GradientApproximater
-    self._stepInstance = None     # instance of StepManipulator
-    self._gradProximity = 0.01    # TODO user input, the proximity for gradient evaluations
+    self._gradientInstance = None  # instance of GradientApproximater
+    self._stepInstance = None      # instance of StepManipulator
+    self._acceotInstance = None    # instance of AcceptanceCondition
+    self._gradProximity = 0.01     # TODO user input, the proximity for gradient evaluations
     # history trackers, by traj, are deques (-1 is most recent)
-    self._gradHistory = {}        # gradients
-    self._stepHistory = {}        # step sizes
-    self._acceptHistory = {}      # acceptability
+    self._gradHistory = {}         # gradients
+    self._stepHistory = {}         # step sizes
+    self._acceptHistory = {}       # acceptability
     self._stepRecommendations = {} # by traj, if a 'cut' or 'grow' is recommended else None
-    self._acceptRerun = {}        # by traj, if True then override accept for point rerun
+    self._acceptRerun = {}         # by traj, if True then override accept for point rerun
+    self._convergenceCriteria = defaultdict(giveZero) # names and values for convergence checks
+    self._convergenceInfo = {}     # by traj, the persistence and convergence information for most recent opt
+    self._requiredPersistence = 0  # consecutive persistence required to mark convergence
     # __private
     # additional methods
     ## register adaptive sample identification criteria
@@ -171,7 +189,7 @@ class GradientDescent(Sampled):
 
     # grad strategy
     gradParentNode = paramInput.findFirst('gradient')
-    if len(gradParentNode.subs) != 1:
+    if len(gradParentNode.subparts) != 1:
       self.raiseAnError('The <gradient> node requires exactly one gradient strategy! Choose from: ', gradKnownTypes())
     gradNode = next(iter(gradParentNode.subparts))
     gradType = gradNode.getName()
@@ -180,7 +198,7 @@ class GradientDescent(Sampled):
 
     # stepping strategy
     stepNode = paramInput.findFirst('stepSize')
-    if len(stepNode.subs) != 1:
+    if len(stepNode.subparts) != 1:
       self.raiseAnError('The <stepNode> node requires exactly one stepping strategy! Choose from: ', stepKnownTypes())
     stepNode = next(iter(stepNode.subparts))
     stepType = stepNode.getName()
@@ -191,7 +209,7 @@ class GradientDescent(Sampled):
     # FIXME continued ... move to "sampled"?
     acceptNode = paramInput.findFirst('acceptance')
     if acceptNode:
-      if len(acceptNode.subs) != 1:
+      if len(acceptNode.subparts) != 1:
         self.raiseAnError('The <acceptance> node requires exactly one acceptance strategy! Choose from: ', acceptKnownTypes())
       acceptNode = next(iter(acceptNode.subparts))
       acceptType = acceptNode.getName()
@@ -200,6 +218,18 @@ class GradientDescent(Sampled):
     else:
       # default to strict mode acceptance
       acceptNode = acceptReturnInstance('Strict', self)
+
+    # convergence options
+    convNode = paramInput.findFirst('convergence')
+    if convNode is not None:
+      for sub in convNode.subparts:
+        if sub.getName() == 'persistence':
+          self._requiredPersistence = sub.value
+        else:
+          self._convergenceCriteria[sub.name] = sub.value
+    if not self._convergenceCriteria:
+      self.raiseAWarning('No convergence criteria given; using defaults.')
+      self._convergenceCriteria['gradient'] = 1e-6
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -221,12 +251,24 @@ class GradientDescent(Sampled):
   ###############
   # Run Methods #
   ###############
-  def checkConvergence(self):
+  def checkConvergence(self, traj):
     """
-      TODO
+      Checks the active convergence criteria.
+      @ In, traj, int, trajectory identifier
+      @ Out, converged, bool, convergence state
+      @ Out, convs, dict, state of convergence criterions
     """
-    return True # FIXME XXX
-    raise NotImplementedError
+    convs = {}
+    for conv in self._convergenceCriteria:
+      # fix capitalization for RAVEN standards
+      fName = conv[:1].upper() + conv[1:]
+      # get function from lookup
+      f = getattr(self, '_checkConv{}'.format(fName))
+      # check convergence function
+      okay = f(traj)
+      # store and update
+      convs[conv] = okay
+    return any(convs.values()), convs
 
   def _useRealization(self, info, rlz, optVal):
     """
@@ -275,19 +317,6 @@ class GradientDescent(Sampled):
   ###################
   # Utility Methods #
   ###################
-  def _cancelAssociatedJobs(self, opt, info):
-    """
-      Queues jobs to be cancelled based on opt run
-      @ In, opt, dict, rejected optimal point
-      @ In, info, dict, identifying information about the realization
-      @ Out, None
-    """
-    # generic tracking info: we want this trajectory, this step, all purposes
-    ginfo = {'step': info['step'], 'traj': info['traj']}
-    # get prefixes; get all matches, and pop them so we don't track them anymore
-    prefixes = self.getPrefixFromIdentifier(ginfo, getAll=True, pop=True)
-    self.raiseADebug('Canceling grad jobs for traj "{}" iteration "{}":'.format(info['traj'], info['step']), prefixes)
-    self._jobsToEnd.extend(prefixes)
 
   def _checkForImprovement(self, new, old):
     """
@@ -335,6 +364,9 @@ class GradientDescent(Sampled):
     self._acceptHistory[traj] = deque(maxlen=self._maxHistLen)
     self._stepRecommendations[traj] = None
     self._acceptRerun[traj] = False
+    self._convergenceInfo[traj] = {'persistence': 0}
+    for criteria in self._convergenceCriteria:
+      self._convergenceInfo[traj][criteria] = False
     return traj
 
   def _resolveNewOptPoint(self, traj, rlz, optVal, info):
@@ -352,7 +384,7 @@ class GradientDescent(Sampled):
     # FIXME check implicit constraints? - Jia
     # NOTE: if self._optPointHistory[traj]: -> faster to use "try" for all but the first time
     try:
-      old, oldInfo = self._optPointHistory[traj][-1]
+      old, _ = self._optPointHistory[traj][-1]
       oldVal = self._collectOptValue(old)
       self.raiseADebug(' ... change: {d: 1.3e} new: {n: 1.6e} old: {o: 1.6e}'
                       .format(d=optVal-oldVal, o=oldVal, n=optVal))
@@ -367,16 +399,39 @@ class GradientDescent(Sampled):
       # if first sample, simply assume it's better!
       acceptable = 'first'
     self._acceptHistory[traj].append(acceptable)
-    # update solution export
     self.raiseADebug(' ... {a}!'.format(a=acceptable))
+
+    # if acceptable, then check convergence
+    ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
+    if acceptable == 'accepted':
+      self.raiseADebug('Convergence Check for Trajectory {}:'.format(traj))
+      # check convergence
+      converged, convDict = self.checkConvergence(traj)
+    else:
+      converged = False
+      convDict = dict((var, False) for var in self._convergenceInfo[traj])
+    # update persistence
     self.raiseADebug('*'*80)
+    if converged:
+      self._convergenceInfo[traj]['persistence'] += 1
+      self.raiseADebug('Trajectory {} has converged successfully {} time(s)!'.format(traj, self._convergenceInfo[traj]['persistence']))
+      if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
+        self._closeTrajectory(traj, 'converge', 'converged', optVal)
+    else:
+      self._convergenceInfo[traj]['persistence'] = 0
+      self.raiseADebug('Resetting convergence for trajectory {}.'.format(traj))
+    # update convergence information
+    self._convergenceInfo[traj].update(convDict)
+
+    # update solution export
     self._updateSolutionExport(traj, rlz, acceptable) # NOTE: only on opt point!
+
+    # how to proceed?
+    # TODO if converged to persistence
     if acceptable in ['accepted', 'rerun', 'first']:
       # ***************
       # ACCEPTABLE
       # ***************
-      # check convergence
-      self.checkConvergence()
       # extend history
       self._optPointHistory[traj].append((rlz, info))
     else:
@@ -384,7 +439,7 @@ class GradientDescent(Sampled):
       # NOT ACCEPTABLE
       # ***************
       # cancel grad runs
-      self._cancelAssociatedJobs(rlz, info)
+      self._cancelAssociatedJobs(info['traj'], step=info['step'])
       # FIXME ? revert current point point ? -> based on stepping strategy?
       # FIXME for now, rerun the opt point and gradients, and cut step -> TODO use option to do this
       #      or cut step!
@@ -461,30 +516,73 @@ class GradientDescent(Sampled):
       @ Out, None
     """
     denormed = self.denormalizeData(rlz)
-    solution = {}
-    for var in self._solutionExport.getVars():
-      # TODO add N-dim indices for soln export variables?
-      # get requested variable
-      if var in rlz:
-        entry = denormed[var]
-      elif var in self.constants:
-        entry = self.constants[var]
-      # specialized counters: iteration, trajID, stepSize, ?grad hist?
-      elif var == 'iteration':
-        entry = self._stepCounter[traj]
-      elif var == 'trajID':
-        entry = traj
-      elif var == 'stepSize':
-        entry = self._stepHistory[traj][-1]
-      # TODO elif var == 'gradient':
-      elif var == 'accepted':
-        entry = acceptable
-      # convergence metrics
-      # TODO elif var == 'convergence_abs':
-      # TODO elif var == 'convergence_rel':
-      else:
-        self.raiseAnError(KeyError, 'Unrecognized SolutionExport variable request:', var)
-      solution[var] = np.atleast_1d(entry)
+    # meta variables
+    solution = {'iteration': self._stepCounter[traj],
+                'trajID': traj,
+                'stepSize': self._stepHistory[traj][-1],
+                'accepted': acceptable,
+               }
+    for key, val in self._convergenceInfo[traj].items():
+      solution['conv_{}'.format(key)] = val
+    # variables, objective function, constants, etc
+    solution[self._objectiveVar] = rlz[self._objectiveVar]
+    for var in self.toBeSampled:
+      # TODO dimensionality?
+      solution[var] = denormed[var]
+    for var in self.constants:
+      solution[var] = self.constants[var]
+    # TODO need to be np.atleast_1d?
+    solution = dict((var, np.atleast_1d(val)) for var, val in solution.items())
     self._solutionExport.addRealization(solution)
 
+  ######################
+  # Convergence Checks #
+  ######################
+  # Note these names need to be formatted according to checkConvergence check!
+  convFormat = ' ... {name:^12s}: {conv:5s}, {got:1.2e} / {req:1.2e}'
 
+  def _checkConvGradient(self, traj):
+    """
+      Checks the gradient magnitude for convergence
+      @ In, traj, int, trajectory identifier
+      @ Out, converged, bool, convergence state
+    """
+    gradMag, _ = self._gradHistory[traj][-1]
+    converged = gradMag < self._convergenceCriteria['gradient']
+    self.raiseADebug(self.convFormat.format(name='gradient',
+                                            conv=str(converged),
+                                            got=gradMag,
+                                            req=self._convergenceCriteria['gradient']))
+    return converged
+
+  def _checkConvStepSize(self, traj):
+    """
+      Checks the step size for convergence
+      @ In, traj, int, trajectory identifier
+      @ Out, converged, bool, convergence state
+    """
+    stepSize = self._stepHistory[traj][-1]
+    converged = stepSize < self._convergenceCriteria['stepSize']
+    self.raiseADebug(self.convFormat.format(name='stepSize',
+                                            conv=str(converged),
+                                            got=stepSize,
+                                            req=self._convergenceCriteria['stepSize']))
+    return converged
+
+  def _checkConvObjective(self, traj):
+    """
+      Checks the change in objective for convergence
+      @ In, traj, int, trajectory identifier
+      @ Out, converged, bool, convergence state
+    """
+    if len(self._optPointHistory[traj]) < 2:
+      return False
+    o1, _ = self._optPointHistory[traj][-1]
+    o2, _ = self._optPointHistory[traj][-2]
+    delta = mathUtils.relativeDiff(self._collectOptValue(o2), self._collectOptValue(o1))
+    converged = abs(delta) < self._convergenceCriteria['objective']
+    self.raiseADebug(self.convFormat.format(name='objective',
+                                            conv=str(converged),
+                                            got=delta,
+                                            req=self._convergenceCriteria['objective']))
+    return converged

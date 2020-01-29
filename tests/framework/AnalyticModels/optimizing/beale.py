@@ -24,8 +24,25 @@ def evaluate(x,y):
 def run(self,Inputs):
   self.ans = evaluate(self.x,self.y)
 
+def grad(x, y):
+  return [gradX(x, y), gradY(x, y)]
+
+def gradX(x, y):
+  tot = 0
+  consts = (1.5, 2.25, 2.625)
+  for i in range(1, 4):
+    tot += 2 * (y**i - 1) * (x * (y**i - 1) + consts[i-1])
+  return tot
+
+def gradY(x, y):
+  tot = 0
+  consts = (1.5, 2.25, 2.625)
+  for i in range(1, 4):
+    tot += 2 * i * x * (x * (y**i - 1) + consts[i-1])
+  return tot
+
 if __name__ == '__main__':
   import sys
   x = float(sys.argv[1])
   y = float(sys.argv[2])
-  print(evaluate(x, y))
+  print(evaluate(x, y), grad(x, y))

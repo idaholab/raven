@@ -100,6 +100,8 @@ class Optimizer(AdaptiveSampler):
     self._seed = None           # random seed to apply
     self._minMax = None         # maximization or minimization?
     self._activeTraj = []       # tracks live trajectories
+    self._cancelledTraj = {}    # tracks cancelled trajectories, and reasons
+    self._convergedTraj = {}    # tracks converged trajectories, and values obtained
     self._numRepeatSamples = 1  # number of times to repeat sampling (e.g. denoising)
     self._objectiveVar = None   # objective variable for optimization
     self._initialValues = None  # initial variable values (trajectory starting locations), list of dicts
@@ -287,6 +289,23 @@ class Optimizer(AdaptiveSampler):
     if traj not in self._activeTraj:
       self._activeTraj.append(traj)
     return traj
+
+  def _closeTrajectory(self, traj, action, reason, value):
+    """
+      Removes a trajectory from active space.
+      @ In, traj, int, trajectory identifier
+      @ In, action, str, method in which to close ('converge' or 'cancel')
+      @ In, reason, str, reason for closure
+      @ In, value, float, opt value obtained
+      @ Out, None
+    """
+    self._activeTraj.remove(traj)
+    info = {'reason': reason, 'value': value}
+    assert action in ['converge', 'cancel']
+    if action == 'converge':
+      self._convergedTraj[traj] = info
+    else: # action == 'cancel'
+      self._cancelledTraj[traj] = info
 
   def normalizeData(self, denormed):
     """

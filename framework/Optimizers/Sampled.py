@@ -141,6 +141,14 @@ class Sampled(Optimizer):
     """
 
   @abc.abstractmethod
+  def checkConvergence(self, traj):
+    """
+      Check for trajectory convergence
+      @ In, traj, int, trajectory to consider
+      @ Out, None? FIXME
+    """
+
+  @abc.abstractmethod
   def _checkForImprovement(self, new, old):
     """
       Determine if the new value is sufficient improved over the old.
@@ -228,6 +236,22 @@ class Sampled(Optimizer):
   ###################
   # Utility Methods #
   ###################
+  def _cancelAssociatedJobs(self, traj, step=None):
+    """
+      Queues jobs to be cancelled based on opt run
+      @ In, traj, int, trajectory identifier
+      @ In, step, int, optional, iteration identifier
+      @ Out, None
+    """
+    # generic tracking info: we want this trajectory, this step, all purposes
+    ginfo = {'traj': traj}
+    if step is not None:
+      ginfo['step'] = step
+    # get prefixes; get all matches, and pop them so we don't track them anymore
+    prefixes = self.getPrefixFromIdentifier(ginfo, getAll=True, pop=True)
+    self.raiseADebug('Canceling grad jobs for traj "{}" iteration "{}":'.format(traj, 'all' if step is None else step), prefixes)
+    self._jobsToEnd.extend(prefixes)
+
   def initializeTrajectory(self, traj=None):
     """
       Sets up a new trajectory.
@@ -239,3 +263,16 @@ class Sampled(Optimizer):
     self._stepCounter[traj] = -1
     self._initializeStep(traj)
     return traj
+
+  def _closeTrajectory(self, traj, action, reason, value):
+    """
+      Removes a trajectory from active space.
+      @ In, traj, int, trajectory identifier
+      @ In, action, str, method in which to close ('converge' or 'cancel')
+      @ In, reason, str, reason for closure
+      @ In, value, float, opt value obtained
+      @ Out, None
+    """
+    Optimizer._closeTrajectory(self, traj, action, reason, value)
+    # kill jobs associated with trajectory
+    self._cancelAssociatedJobs(traj)

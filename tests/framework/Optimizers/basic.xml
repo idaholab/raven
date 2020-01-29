@@ -35,7 +35,7 @@
   <Optimizers>
     <GradientDescent name="opter">
       <samplerInit>
-        <limit>100</limit>
+        <limit>2000</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
@@ -45,15 +45,17 @@
       <stepSize>
         <GradientHistory>
           <growthFactor>1.25</growthFactor>
-          <shrinkFactor>1.15</shrinkFactor>
+          <shrinkFactor>1.5</shrinkFactor>
         </GradientHistory>
       </stepSize>
       <acceptance>
         <Strict/>
       </acceptance>
       <convergence>
-        <gradientAbsValue>1e-1</gradientAbsValue>
-        <minStepSize>0</minStepSize>
+        <gradient>1e-3</gradient>
+        <objective>1e-8</objective>
+        <stepSize>1e-10</stepSize>
+        <persistence>5</persistence>
       </convergence>
       <variable name="x">
         <distribution>beale_dist</distribution>
@@ -86,7 +88,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,stepSize,iteration,accepted</Output>
+      <Output>x,y,ans,stepSize,iteration,accepted,conv_gradient,conv_stepSize,conv_objective</Output>
     </PointSet>
   </DataObjects>
 
