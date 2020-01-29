@@ -189,6 +189,8 @@ class Optimizer(AdaptiveSampler):
     #
     # variables additional reading
     for varNode in paramInput.findAll('variable'):
+      if varNode.findFirst('function') is not None:
+        continue # handled by Sampler base class, so skip it
       var = varNode.parameterValues['name']
       inits = varNode.findFirst('initial').value
       # initialize list of dictionaries if needed

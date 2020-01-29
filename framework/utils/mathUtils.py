@@ -434,24 +434,24 @@ def numpyNearestMatch(findIn,val):
   returnMatch = idx,findIn[idx]
   return returnMatch
 
-def relativeDiff(f1,f2):
+def relativeDiff(f1, f2):
   """
     Given two floats, safely compares them to determine relative difference.
     @ In, f1, float, first value (the value to compare to f2, "measured")
     @ In, f2, float, second value (the value being compared to, "actual")
     @ Out, relativeDiff, float, (safe) relative difference
   """
-  if not isinstance(f1,float):
+  if not isinstance(f1, float):
     try:
       f1 = float(f1)
     except ValueError:
       raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  First argument is %s type %s' %(str(f1),type(f1)))
-  if not isinstance(f2,float):
+  if not isinstance(f2, float):
     try:
       f2 = float(f2)
     except ValueError:
       raise RuntimeError('Provided argument to compareFloats could not be cast as a float!  Second argument is %s type %s' %(str(f2),type(f2)))
-  diff = abs(diffWithInfinites(f1,f2))
+  diff = abs(diffWithInfinites(f1, f2))
   #"scale" is the relative scaling factor
   scale = f2
   #protect against div 0

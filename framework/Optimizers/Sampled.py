@@ -88,7 +88,7 @@ class Sampled(Optimizer):
     self.type = 'Sampled Optimizer'
     # _protected
     self._writeSteps = 'final'
-    self._submissionQueue = deque()
+    self._submissionQueue = deque() # TODO change to Queue.Queue if multithreading samples
     self._stepCounter = {}
     self._stepTracker = {}          # action tracking: what is collected, what needs collecting?
     self._optPointHistory = {}      # by traj, is a deque (-1 is most recent)
@@ -228,7 +228,7 @@ class Sampled(Optimizer):
     # trim down opt point to the useful parts
     # TODO making a new dict might be costly, maybe worth just passing whole point?
     ## testing suggests no big deal on smaller problem
-    rlz = dict((var, full[var]) for var in (list(self.toBeSampled.keys()) + [self._objectiveVar]))
+    rlz = dict((var, full[var]) for var in (list(self.toBeSampled.keys()) + [self._objectiveVar] + list(self.dependentSample.keys())))
     optVal = self._collectOptValue(rlz)
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz, optVal)
@@ -236,6 +236,35 @@ class Sampled(Optimizer):
   ###################
   # Utility Methods #
   ###################
+  def _resolveNewOptPoint(self, traj, rlz, optVal, info):
+    """
+      Consider and store a new optimal point
+      @ In, traj, int, trajectory for this new point
+      @ In, info, dict, identifying information about the realization
+      @ In, rlz, dict, realized realization
+      @ In, optVal, float, value of objective variable (corrected for min/max)
+    """
+    ## ***** TODO ***** Break this into submethods, this is too much!
+    self.raiseADebug('*'*80)
+    self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))
+    # note the collection of the opt point
+    self._stepTracker[traj]['opt'] = (rlz, info)
+    # FIXME check implicit constraints? Function call, - Jia
+    acceptable, old = self._checkAcceptability(traj, optVal)
+    converged, convDict = self._updateConvergence(traj, acceptable)
+    self._updatePersistence(traj, converged, optVal)
+    # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
+    #       point history.
+    self._updateSolutionExport(traj, rlz, acceptable) # NOTE: only on opt point!
+    self.raiseADebug('*'*80)
+    # decide what to do next
+    if acceptable in ['accepted', 'rerun', 'first']:
+      # record history
+      self._optPointHistory[traj].append((rlz, info))
+      # nothing else to do but wait for the grad points to be collected
+    else:
+      self._rejectOptPoint(traj, info, old)
+
   def _cancelAssociatedJobs(self, traj, step=None):
     """
       Queues jobs to be cancelled based on opt run
@@ -247,7 +276,18 @@ class Sampled(Optimizer):
     ginfo = {'traj': traj}
     if step is not None:
       ginfo['step'] = step
-    # get prefixes; get all matches, and pop them so we don't track them anymore
+    # remove them from the submission queue
+    toRemove = []
+    # NOTE use a queue lock here if taking samples in multithreading (not currently true)
+    for point, info in self._submissionQueue:
+      if all(item in info.items() for item in ginfo.items()):
+        toRemove.append((point, info))
+    for x in toRemove:
+      try:
+        self._submissionQueue.remove(x)
+      except ValueError:
+        pass # it must have been submitted since we flagged it for removal
+    # get prefixes of already-submitted jobs; get all matches, and pop them so we don't track them anymore
     prefixes = self.getPrefixFromIdentifier(ginfo, getAll=True, pop=True)
     self.raiseADebug('Canceling grad jobs for traj "{}" iteration "{}":'.format(traj, 'all' if step is None else step), prefixes)
     self._jobsToEnd.extend(prefixes)

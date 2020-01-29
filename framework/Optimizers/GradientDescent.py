@@ -290,7 +290,7 @@ class GradientDescent(Sampled):
       # get new gradient
       opt, _ = self._stepTracker[traj]['opt']
       grads, gradInfos = zip(*self._stepTracker[traj]['grads'])
-      gradMag, gradVersor, foundInf = self._gradientInstance.evaluate(opt,
+      gradMag, gradVersor, _ = self._gradientInstance.evaluate(opt,
                                                                       grads, gradInfos,
                                                                       self._objectiveVar)
       self._gradHistory[traj].append((gradMag, gradVersor))
@@ -414,35 +414,6 @@ class GradientDescent(Sampled):
 
   # * * * * * * * * * * * * * * * *
   # Resolving potential opt points
-  def _resolveNewOptPoint(self, traj, rlz, optVal, info):
-    """
-      Consider and store a new optimal point
-      @ In, traj, int, trajectory for this new point
-      @ In, info, dict, identifying information about the realization
-      @ In, rlz, dict, realized realization
-      @ In, optVal, float, value of objective variable (corrected for min/max)
-    """
-    ## ***** TODO ***** Break this into submethods, this is too much!
-    self.raiseADebug('*'*80)
-    self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))
-    # note the collection of the opt point
-    self._stepTracker[traj]['opt'] = (rlz, info)
-    # FIXME check implicit constraints? Function call, - Jia
-    acceptable, old = self._checkAcceptability(traj, optVal)
-    converged, convDict = self._updateConvergence(traj, acceptable)
-    self._updatePersistence(traj, converged, optVal)
-    # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
-    #       point history.
-    self._updateSolutionExport(traj, rlz, acceptable) # NOTE: only on opt point!
-    self.raiseADebug('*'*80)
-    # decide what to do next
-    if acceptable in ['accepted', 'rerun', 'first']:
-      # record history
-      self._optPointHistory[traj].append((rlz, info))
-      # nothing else to do but wait for the grad points to be collected
-    else:
-      self._rejectOptPoint(traj, info, old)
-
   def _checkAcceptability(self, traj, optVal):
     """ TODO """
     # Check acceptability
@@ -510,6 +481,7 @@ class GradientDescent(Sampled):
       @ In, acceptable, bool, acceptability of opt point
       @ Out, None
     """
+    # FIXME abstract this for Sampled base class!!
     denormed = self.denormalizeData(rlz)
     # meta variables
     solution = {'iteration': self._stepCounter[traj],
@@ -524,9 +496,11 @@ class GradientDescent(Sampled):
     for var in self.toBeSampled:
       # TODO dimensionality?
       solution[var] = denormed[var]
-    for var in self.constants:
-      solution[var] = self.constants[var]
-    # TODO need to be np.atleast_1d?
+    for var, val in self.constants.items():
+      solution[var] = val
+    for var in self.dependentSample:
+      solution[var] = rlz[var]
+    # format rlz for dataobject
     solution = dict((var, np.atleast_1d(val)) for var, val in solution.items())
     self._solutionExport.addRealization(solution)
 
