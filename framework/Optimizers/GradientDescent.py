@@ -415,7 +415,13 @@ class GradientDescent(Sampled):
   # * * * * * * * * * * * * * * * *
   # Resolving potential opt points
   def _checkAcceptability(self, traj, optVal):
-    """ TODO """
+    """
+      Check if new opt point is acceptably better than the old one
+      @ In, traj, int, identifier
+      @ In, optVal, float, new optimization value
+      @ Out, acceptable, str, acceptability condition for point
+      @ Out, old, dict, old opt point
+    """
     # Check acceptability
     # NOTE: if self._optPointHistory[traj]: -> faster to use "try" for all but the first time
     try:
@@ -445,11 +451,17 @@ class GradientDescent(Sampled):
       @ In, old, float, previous optimization value
       @ Out, improved, bool, True if "sufficiently" improved or False if not.
     """
+    # TODO could this be a base Sampled class?
     improved = self._acceptInstance.checkImprovement(new, old)
     return 'accepted' if improved else 'rejected'
 
   def _updateConvergence(self, traj, acceptable):
-    """ TODO """
+    """
+      Updates convergence information for trajectory
+      @ In, traj, int, identifier
+      @ In, acceptable, str, condition of point
+      @ Out, converged, bool, True if converged on ANY criteria
+    """
     ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
     if acceptable == 'accepted':
       self.raiseADebug('Convergence Check for Trajectory {}:'.format(traj))
@@ -459,10 +471,16 @@ class GradientDescent(Sampled):
       converged = False
       convDict = dict((var, False) for var in self._convergenceInfo[traj])
     self._convergenceInfo[traj].update(convDict)
-    return converged, convDict
+    return converged
 
   def _updatePersistence(self, traj, converged, optVal):
-    """ TODO """
+    """
+      Update persistence tracking state variables
+      @ In, traj, identifier
+      @ In, converged, bool, convergence check result
+      @ In, optVal, float, new optimal value
+      @ Out, None
+    """
     # update persistence
     if converged:
       self._convergenceInfo[traj]['persistence'] += 1
@@ -484,6 +502,7 @@ class GradientDescent(Sampled):
     # FIXME abstract this for Sampled base class!!
     denormed = self.denormalizeData(rlz)
     # meta variables
+    print('DEBUGG acceptable:', acceptable)
     solution = {'iteration': self._stepCounter[traj],
                 'trajID': traj,
                 'stepSize': self._stepHistory[traj][-1],
@@ -509,7 +528,7 @@ class GradientDescent(Sampled):
       Having rejected the suggested opt point, take actions so we can move forward
       @ In, traj, int, identifier
       @ In, info, dict, meta information about the opt point
-      @ In,
+      @ In, old, dict, previous optimal point (to resubmit)
     """
     # cancel grad runs
     self._cancelAssociatedJobs(info['traj'], step=info['step'])

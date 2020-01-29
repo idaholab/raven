@@ -251,19 +251,72 @@ class Sampled(Optimizer):
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
     acceptable, old = self._checkAcceptability(traj, optVal)
-    converged, convDict = self._updateConvergence(traj, acceptable)
+    converged = self._updateConvergence(traj, acceptable)
     self._updatePersistence(traj, converged, optVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     self._updateSolutionExport(traj, rlz, acceptable) # NOTE: only on opt point!
     self.raiseADebug('*'*80)
     # decide what to do next
-    if acceptable in ['accepted', 'rerun', 'first']:
+    #if acceptable in ['accepted', 'rerun', 'first']:
+    if acceptable in ['accepted', 'first']:
       # record history
       self._optPointHistory[traj].append((rlz, info))
       # nothing else to do but wait for the grad points to be collected
-    else:
+    elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)
+    else: # e.g. rerun
+      pass # nothing to do, just keep moving
+
+  # support methods for _resolveNewOptPoint
+  @abc.abstractmethod
+  def _checkAcceptability(self, traj, optVal):
+    """
+      Check if new opt point is acceptably better than the old one
+      @ In, traj, int, identifier
+      @ In, optVal, float, new optimization value
+      @ Out, acceptable, str, acceptability condition for point
+      @ Out, old, dict, old opt point
+    """
+
+  @abc.abstractmethod
+  def _updateConvergence(self, traj, acceptable):
+    """
+      Updates convergence information for trajectory
+      @ In, traj, int, identifier
+      @ In, acceptable, str, condition of point
+      @ Out, converged, bool, True if converged on ANY criteria
+    """
+
+  @abc.abstractmethod
+  def _updatePersistence(self, traj, converged, optVal):
+    """
+      Update persistence tracking state variables
+      @ In, traj, identifier
+      @ In, converged, bool, convergence check result
+      @ In, optVal, float, new optimal value
+      @ Out, None
+    """
+
+  @abc.abstractmethod
+  def _updateSolutionExport(self, traj, rlz, acceptable):
+    """
+      Prints information to the solution export.
+      @ In, traj, int, trajectory which should be written
+      @ In, rlz, dict, collected point
+      @ In, acceptable, bool, acceptability of opt point
+      @ Out, None
+    """
+
+  @abc.abstractmethod
+  def _rejectOptPoint(self, traj, info, old):
+    """
+      Having rejected the suggested opt point, take actions so we can move forward
+      @ In, traj, int, identifier
+      @ In, info, dict, meta information about the opt point
+      @ In, old, dict, previous optimal point (to resubmit)
+    """
+  # END support methods for _resolveNewOptPoint
 
   def _cancelAssociatedJobs(self, traj, step=None):
     """

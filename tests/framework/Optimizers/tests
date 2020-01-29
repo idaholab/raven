@@ -14,4 +14,37 @@
       output = 'Basic/opt_export.xml'
     [../]
   [../]
+
+  [./ConvergeGradient]
+    type = 'RavenFramework'
+    input = 'converge_gradient.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'ConvergeGradient/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./ConvergeStepsize]
+    type = 'RavenFramework'
+    input = 'converge_stepsize.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'ConvergeStepsize/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./ConvergeObjective]
+    type = 'RavenFramework'
+    input = 'converge_objective.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'ConvergeObjective/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
 []
