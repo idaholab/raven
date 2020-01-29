@@ -55,8 +55,6 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, identifier, string, optional, id of this job
       @ In, metadata, dict, optional, dictionary of metadata associated with
         this run
-      @ In, forceUseThreads, bool, optional, flag that, if True, is going to
-        force the usage of multi-threading even if parallel python is activated
       @ In, uniqueHandler, string, optional, it is a special keyword attached to
         this runner. For example, if present, to retrieve this runner using the
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
@@ -65,11 +63,11 @@ class DistributedMemoryRunner(InternalRunner):
         during deconstruction.
       @ Out, None
     """
-
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
     super(DistributedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler,profile)
+    self.rayActor = rayRemote.remote(args, functionToRun)
 
   def isDone(self):
     """
@@ -107,7 +105,7 @@ class DistributedMemoryRunner(InternalRunner):
       @ Out, None
     """
     try:
-      self.thread = self.functionToRun.remote(*self.args)
+      self.thread =  self.rayActor.start.remote()
       self.trackTime('runner_started')
       self.started = True
     except Exception as ae:
@@ -124,7 +122,42 @@ class DistributedMemoryRunner(InternalRunner):
       @ In, None
       @ Out, None
     """
-    del self.thread
-    self.thread = None
-    self.returnCode = -1
+    self.rayActor.kill.remote()
+    self.thread, self.returnCode = None, -1
     self.trackTime('runner_killed')
+
+
+@ray.remote
+class rayRemote(object):
+  """
+    Class for encapsulating a ray remote run
+  """
+  def __init__(self, args, functionToRun):
+    """
+      Init method
+      @ In, args, dict, this is a list of arguments that will be passed as
+        function parameters into whatever method is stored in functionToRun.
+        e.g., functionToRun(*args)
+      @ In, functionToRun, method or function, function that needs to be run
+      @ Out, None
+    """
+    self.args = args
+    self.functionToRun = functionToRun
+
+  @ray.method(num_return_vals=1)
+  def start(self):
+    """
+      Method to execute a ray remote task
+      @ In, None
+      @ Out, taskId, ray.TaskID, the task id
+    """
+    taskId = self.functionToRun(*self.args)
+    return taskId
+
+  def kill(self):
+    """
+      Method to exit the actor remote execution
+      @ In, None
+      @ Out, None
+    """
+    ray.actor.exit_actor()
