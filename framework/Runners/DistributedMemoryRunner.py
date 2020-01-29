@@ -42,7 +42,7 @@ class DistributedMemoryRunner(InternalRunner):
     ppserver
   """
   def __init__(self, messageHandler, args, functionToRun,
-                     frameworkModules = [], identifier=None, metadata=None,
+                    identifier=None, metadata=None,
                      uniqueHandler = "any", profile = False):
     """
       Init method

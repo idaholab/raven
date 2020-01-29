@@ -467,7 +467,7 @@ class EnsembleModel(Dummy):
       # collect optional output if present and not already collected
       output.addRealization(optionalOutputs[optionalOutputNames[output.name]])
 
-  def getAdditionalInputEdits(self,inputInfo):
+  def getAdditionalInputEdits(self,inputInfo): 
     """
       Collects additional edits for the sampler to use when creating a new input. In this case, it calls all the getAdditionalInputEdits methods
       of the sub-models
