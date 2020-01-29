@@ -317,17 +317,6 @@ class GradientDescent(Sampled):
   ###################
   # Utility Methods #
   ###################
-
-  def _checkForImprovement(self, new, old):
-    """
-      Determine if the new value is sufficient improved over the old.
-      @ In, new, float, new optimization value
-      @ In, old, float, previous optimization value
-      @ Out, improved, bool, True if "sufficiently" improved or False if not.
-    """
-    improved = self._acceptInstance.checkImprovement(new, old)
-    return 'accepted' if improved else 'rejected'
-
   def _checkStepReady(self, traj):
     """
       Checks if enough information has been collected to proceed with optimization
@@ -369,102 +358,6 @@ class GradientDescent(Sampled):
       self._convergenceInfo[traj][criteria] = False
     return traj
 
-  def _resolveNewOptPoint(self, traj, rlz, optVal, info):
-    """
-      Consider and store a new optimal point
-      @ In, traj, int, trajectory for this new point
-      @ In, info, dict, identifying information about the realization
-      @ In, rlz, dict, realized realization
-      @ In, optVal, float, value of objective variable (corrected for min/max)
-    """
-    ## ***** TODO ***** Break this into submethods, this is too much!
-    self.raiseADebug('*'*80)
-    self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))
-    # note the collection of the opt point
-    self._stepTracker[traj]['opt'] = (rlz, info)
-    # FIXME check implicit constraints? Function call, - Jia
-    acceptable = self._checkAcceptability(traj, optVal)
-    converged, convDict = self._updateConvergence(traj, acceptable)
-    self._updatePersistence(traj, converged, optVal, convDict)
-    self._updateSolutionExport(traj, rlz, acceptable) # NOTE: only on opt point!
-    self.raiseADebug('*'*80)
-  
-    # how to proceed?
-    # TODO if converged to persistence
-    if acceptable in ['accepted', 'rerun', 'first']:
-      # extend history
-      self._optPointHistory[traj].append((rlz, info))
-    else:
-      # ***************
-      # NOT ACCEPTABLE
-      # ***************
-      # cancel grad runs
-      self._cancelAssociatedJobs(info['traj'], step=info['step'])
-      # FIXME ? revert current point point ? -> based on stepping strategy?
-      # FIXME for now, rerun the opt point and gradients, and cut step -> TODO use option to do this
-      #      or cut step!
-      # FIXME move this all into a "rejectPoint" for easy handling?
-      # get rid of the previous step size, since we're tossing the point # TODO keep one more hist
-      #      in case of this?
-      # initialize a new step
-      self._initializeStep(traj)
-      #if self._acceptHistory[traj][-2] in ['rerun', 'first', 'accepted']: # rejected current point, but accepted previous
-      #  self._stepHistory[traj].pop() # but wait, what if we've rejected 2 points in a row?? Don't want to pop then!
-      # track that the next recommended step size for this traj should be "cut"
-      self._stepRecommendations[traj] = 'shrink'
-      # get new grads around new point
-      self._stepCounter[traj] += 1
-      self._submitOptAndGrads(old, traj, self._stepCounter[traj], self._stepHistory[traj][-1])
-      self._acceptRerun[traj] = True
-  
-  def _checkAcceptability(self, traj, optVal):
-    """ TODO """
-    # Check acceptability
-    # NOTE: if self._optPointHistory[traj]: -> faster to use "try" for all but the first time
-    try:
-      old, _ = self._optPointHistory[traj][-1]
-      oldVal = self._collectOptValue(old)
-      self.raiseADebug(' ... change: {d: 1.3e} new: {n: 1.6e} old: {o: 1.6e}'
-                      .format(d=optVal-oldVal, o=oldVal, n=optVal))
-      # if this is an opt point rerun, accept it without checking.
-      if self._acceptRerun[traj]:
-        acceptable = 'rerun'
-        self._acceptRerun[traj] = False
-        self._stepRecommendations[traj] = 'shrink' # FIXME how much do we really want this?
-      else:
-        acceptable = self._checkForImprovement(optVal, oldVal)
-    except IndexError:
-      # if first sample, simply assume it's better!
-      acceptable = 'first'
-    self._acceptHistory[traj].append(acceptable)
-    self.raiseADebug(' ... {a}!'.format(a=acceptable))
-    return acceptable
-
-def _updateConvergence(self, traj, acceptable):
-    """ TODO """
-    ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
-    if acceptable == 'accepted':
-      self.raiseADebug('Convergence Check for Trajectory {}:'.format(traj))
-      # check convergence
-      converged, convDict = self.checkConvergence(traj)
-    else:
-      converged = False
-      convDict = dict((var, False) for var in self._convergenceInfo[traj])
-    self._convergenceInfo[traj].update(convDict)
-    return converged, convDict
-
-def _updatePersistence(self, traj, converged, optVal, convDict):
-    """ TODO """  
-    # update persistence
-    if converged:
-      self._convergenceInfo[traj]['persistence'] += 1
-      self.raiseADebug('Trajectory {} has converged successfully {} time(s)!'.format(traj, self._convergenceInfo[traj]['persistence']))
-      if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
-        self._closeTrajectory(traj, 'converge', 'converged', optVal)
-    else:
-      self._convergenceInfo[traj]['persistence'] = 0
-      self.raiseADebug('Resetting convergence for trajectory {}.'.format(traj))
- 
   def _resolveNewGradPoint(self, traj, rlz, optVal, info):
     """
       Consider and store a new gradient evaluation point
@@ -475,6 +368,8 @@ def _updatePersistence(self, traj, converged, optVal, convDict):
     """
     self._stepTracker[traj]['grads'].append((rlz, info))
 
+  # * * * * * * * * * * * * * * * *
+  # Queuing Runs
   def _submitOptAndGrads(self, opt, traj, step, stepSize):
     """
       Submits a set of opt + grad points to the submission queue
@@ -514,6 +409,98 @@ def _updatePersistence(self, traj, converged, optVal, convDict):
     #  self.raiseADebug(' ... {}: {}'.format(key, inf))
     #self.raiseADebug(' ... {}: {}'.format('point', point))
     self._submissionQueue.append((point, info))
+  # END queuing Runs
+  # * * * * * * * * * * * * * * * *
+
+  # * * * * * * * * * * * * * * * *
+  # Resolving potential opt points
+  def _resolveNewOptPoint(self, traj, rlz, optVal, info):
+    """
+      Consider and store a new optimal point
+      @ In, traj, int, trajectory for this new point
+      @ In, info, dict, identifying information about the realization
+      @ In, rlz, dict, realized realization
+      @ In, optVal, float, value of objective variable (corrected for min/max)
+    """
+    ## ***** TODO ***** Break this into submethods, this is too much!
+    self.raiseADebug('*'*80)
+    self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))
+    # note the collection of the opt point
+    self._stepTracker[traj]['opt'] = (rlz, info)
+    # FIXME check implicit constraints? Function call, - Jia
+    acceptable, old = self._checkAcceptability(traj, optVal)
+    converged, convDict = self._updateConvergence(traj, acceptable)
+    self._updatePersistence(traj, converged, optVal)
+    # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
+    #       point history.
+    self._updateSolutionExport(traj, rlz, acceptable) # NOTE: only on opt point!
+    self.raiseADebug('*'*80)
+    # decide what to do next
+    if acceptable in ['accepted', 'rerun', 'first']:
+      # record history
+      self._optPointHistory[traj].append((rlz, info))
+      # nothing else to do but wait for the grad points to be collected
+    else:
+      self._rejectOptPoint(traj, info, old)
+
+  def _checkAcceptability(self, traj, optVal):
+    """ TODO """
+    # Check acceptability
+    # NOTE: if self._optPointHistory[traj]: -> faster to use "try" for all but the first time
+    try:
+      old, _ = self._optPointHistory[traj][-1]
+      oldVal = self._collectOptValue(old)
+      self.raiseADebug(' ... change: {d: 1.3e} new: {n: 1.6e} old: {o: 1.6e}'
+                      .format(d=optVal-oldVal, o=oldVal, n=optVal))
+      # if this is an opt point rerun, accept it without checking.
+      if self._acceptRerun[traj]:
+        acceptable = 'rerun'
+        self._acceptRerun[traj] = False
+        self._stepRecommendations[traj] = 'shrink' # FIXME how much do we really want this?
+      else:
+        acceptable = self._checkForImprovement(optVal, oldVal)
+    except IndexError:
+      # if first sample, simply assume it's better!
+      acceptable = 'first'
+      old = None
+    self._acceptHistory[traj].append(acceptable)
+    self.raiseADebug(' ... {a}!'.format(a=acceptable))
+    return acceptable, old
+
+  def _checkForImprovement(self, new, old):
+    """
+      Determine if the new value is sufficient improved over the old.
+      @ In, new, float, new optimization value
+      @ In, old, float, previous optimization value
+      @ Out, improved, bool, True if "sufficiently" improved or False if not.
+    """
+    improved = self._acceptInstance.checkImprovement(new, old)
+    return 'accepted' if improved else 'rejected'
+
+  def _updateConvergence(self, traj, acceptable):
+    """ TODO """
+    ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
+    if acceptable == 'accepted':
+      self.raiseADebug('Convergence Check for Trajectory {}:'.format(traj))
+      # check convergence
+      converged, convDict = self.checkConvergence(traj)
+    else:
+      converged = False
+      convDict = dict((var, False) for var in self._convergenceInfo[traj])
+    self._convergenceInfo[traj].update(convDict)
+    return converged, convDict
+
+  def _updatePersistence(self, traj, converged, optVal):
+    """ TODO """
+    # update persistence
+    if converged:
+      self._convergenceInfo[traj]['persistence'] += 1
+      self.raiseADebug('Trajectory {} has converged successfully {} time(s)!'.format(traj, self._convergenceInfo[traj]['persistence']))
+      if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
+        self._closeTrajectory(traj, 'converge', 'converged', optVal)
+    else:
+      self._convergenceInfo[traj]['persistence'] = 0
+      self.raiseADebug('Resetting convergence for trajectory {}.'.format(traj))
 
   def _updateSolutionExport(self, traj, rlz, acceptable):
     """
@@ -543,9 +530,31 @@ def _updatePersistence(self, traj, converged, optVal, convDict):
     solution = dict((var, np.atleast_1d(val)) for var, val in solution.items())
     self._solutionExport.addRealization(solution)
 
-  ######################
-  # Convergence Checks #
-  ######################
+  def _rejectOptPoint(self, traj, info, old):
+    """
+      Having rejected the suggested opt point, take actions so we can move forward
+      @ In, traj, int, identifier
+      @ In, info, dict, meta information about the opt point
+      @ In,
+    """
+    # cancel grad runs
+    self._cancelAssociatedJobs(info['traj'], step=info['step'])
+    ## what do do if a point is rejected?
+    # for now, rerun the opt point and gradients, AND cut step
+    # TODO user option to EITHER rerun opt point OR cut step!
+    # initialize a new step
+    self._initializeStep(traj)
+    # track that the next recommended step size for this traj should be "cut"
+    self._stepRecommendations[traj] = 'shrink'
+    # get new grads around new point
+    self._stepCounter[traj] += 1
+    self._submitOptAndGrads(old, traj, self._stepCounter[traj], self._stepHistory[traj][-1])
+    self._acceptRerun[traj] = True
+  # END resolving potential opt points
+  # * * * * * * * * * * * * * * * *
+
+  # * * * * * * * * * * * * * * * *
+  # Convergence Checks
   # Note these names need to be formatted according to checkConvergence check!
   convFormat = ' ... {name:^12s}: {conv:5s}, {got:1.2e} / {req:1.2e}'
 
@@ -594,3 +603,5 @@ def _updatePersistence(self, traj, converged, optVal, convDict):
                                             got=delta,
                                             req=self._convergenceCriteria['objective']))
     return converged
+  # END convergence Checks
+  # * * * * * * * * * * * * * * * *
