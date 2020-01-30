@@ -164,7 +164,7 @@ class PostProcessor(Model):
         @ Out, None
     """
     kwargs['forceThreads'] = True
-    Model.submit(self,myInput, samplerType, jobHandler,**kwargs)
+    Model.submit(self,myInput, samplerType, jobHandler, **kwargs)
 
   def evaluateSample(self, myInput, samplerType, kwargs):
     """

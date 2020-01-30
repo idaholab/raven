@@ -24,6 +24,7 @@ import numpy as np
 import abc
 import sys
 import importlib
+import ray
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -289,6 +290,22 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
+
+  @ray.remote
+  def evaluateSampleRemote(self, myInput, samplerType, kwargs):
+    """
+      Mirror of the evaluateSample method for encapsulating the RAY parallelization
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+          a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ Out, evaluateSampleRemote, tuple, This will hold two pieces of information,
+        the first item will be the input data used to generate this sample,
+        the second item will be the output of this model given the specified
+        inputs
+    """
+    return self.evaluateSample(myInput, samplerType, kwargs)
+
 
   @abc.abstractmethod
   def evaluateSample(self, myInput, samplerType, kwargs):

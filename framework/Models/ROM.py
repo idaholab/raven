@@ -1444,7 +1444,6 @@ class ROM(Dummy):
     self._replaceVariablesNamesWithAliasSystem(inRun, 'input', True)
     return returnDict
 
-  @ray.remote
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters

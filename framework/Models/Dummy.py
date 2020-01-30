@@ -151,9 +151,7 @@ class Dummy(Model):
     except KeyError:
       pass
     return [(inputDict)],copy.deepcopy(kwargs)
-
-
-  @ray.remote
+  
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
