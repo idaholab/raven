@@ -104,48 +104,44 @@ class relapdata:
     """
     minorDict={}
     edit_keys=[]
-    flagg1 = 0
+    keepReading = True
 
-    while(flagg1==0):
+    while(keepReading):
       tempkeys=[]
-      temp1 = re.split('\\s{2,}|\n',lines[i])
-      #temp2 = re.split('\\s{2,}|\n',lines[i+1])
-      temp2 = [lines[i+1][j:j+13].strip() for j in range(0, len(lines[i+1]), 13)]
-      temp1.pop()
-      temp2.pop()
+      temp1 = re.split('\\s{2,}|\n',lines[i])[:-1]
+      temp2 = [lines[i+1][j:j+13].strip() for j in range(0, len(lines[i+1]), 13)][:-1]
       temp2 = ['_'.join(key.split()) for key in temp2]
-      #temp2.pop(0)
       tempArray=[]
       for j in range(len(temp1)):
         tempkeys.append(temp1[j]+'_'+temp2[j])
         edit_keys.append(temp1[j]+'_'+temp2[j])
-        tempArray.append([]);     #   allocates array for data block
+        tempArray.append([]);                  # allocates array for data block
       i=i+4
       while not re.match('^\\s*1 time|^1RELAP5|^\\s*\n|^\\s*1RELAP5|^\\s*MINOR EDIT',lines[i]):
         tempData=lines[i].split()
-        #takeIt = False if re.match("^\d+?\.\d+?$", tempData[0]) is None else True
-        #if takeIt:
-        #  for k in range(len(tempArray)): tempArray[k].append(tempData[k])
         # Here I check that none of the keywords contained in errorKeywords are contained in tempData
         if self.checkLine(tempData) and (len(tempArray)==len(tempData)):
           for k in range(len(tempArray)):
             tempArray[k].append(tempData[k])
         i=i+1
-        if re.match('^\\s*1 time|^\\s*1\\s*R5|^\\s*\n|^1RELAP5',lines[i]) or re.match('^\\s*0Final time',lines[i]) or re.match('^\\s*Final time',lines[i]):
+        if (re.match('^\\s*1 time|^\\s*1\\s*R5|^\\s*\n|^1RELAP5',lines[i]) or
+            re.match('^\\s*0Final time',lines[i]) or
+            re.match('^\\s*Final time',lines[i]) or
+            not self.checkLine(tempData)):
+            # if we reached the END OF THE MINOR EDIT BLOCK
+            # OR if the line is invalid (checkLine is false), it means that RELAP printed
+            # out a warning/error at the end of the minor edit block => we can skip it
           break
       for l in range(len(tempkeys)):
         minorDict.update({tempkeys[l]:tempArray[l]})
-      if re.match('^\\s*1\\s*R5|^\\s*\n|^\\s*1RELAP5|^\\s*MINOR EDIT',lines[i]):
-        #or i+1 > len(lines) -1:
-        flagg1=1
-      elif re.match('^\\s*1 time',lines[i]):
-        flagg1=1
-      elif re.match('^\\s*0Final time',lines[i]):
-        flagg1=1
-  
-    for s in minorDict['1 time_(sec)']:
-      if float(s) == 8.0:
-        print("eccolo")
+      if (re.match('^\\s*1\\s*R5|^\\s*\n|^\\s*1RELAP5|^\\s*MINOR EDIT',lines[i]) or
+          re.match('^\\s*1 time',lines[i]) or
+          re.match('^\\s*0Final time',lines[i]) or
+          not self.checkLine(tempData)):
+          # if we reached the END OF THE MINOR EDIT BLOCK
+          # OR if the line is invalid (checkLine is false), it means that RELAP printed
+          # out a warning/error at the end of the minor edit block => we can skip it
+        keepReading = False
     return minorDict
 
   def checkLine(self,lineList):
@@ -156,6 +152,8 @@ class relapdata:
     """
     outcome = True
     for element in lineList:
+      if element.strip() == '8':
+        print("a")
       try:
         float(element)
       except ValueError:
