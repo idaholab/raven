@@ -152,8 +152,6 @@ class relapdata:
     """
     outcome = True
     for element in lineList:
-      if element.strip() == '8':
-        print("a")
       try:
         float(element)
       except ValueError:
