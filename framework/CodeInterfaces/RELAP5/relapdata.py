@@ -103,26 +103,24 @@ class relapdata:
       @ Out, minorDict, dict, dictionary containing the minor edit info
     """
     minorDict={}
-    edit_keys=[]
     keepReading = True
 
     while(keepReading):
-      tempkeys=[]
-      temp1 = re.split('\\s{2,}|\n',lines[i])[:-1]
-      temp2 = [lines[i+1][j:j+13].strip() for j in range(0, len(lines[i+1]), 13)][:-1]
-      temp2 = ['_'.join(key.split()) for key in temp2]
-      tempArray=[]
-      for j in range(len(temp1)):
-        tempkeys.append(temp1[j]+'_'+temp2[j])
-        edit_keys.append(temp1[j]+'_'+temp2[j])
-        tempArray.append([]);                  # allocates array for data block
+      headerKesy=[]
+      varNames = re.split('\\s{2,}|\n',lines[i])[:-1]
+      componetName = [lines[i+1][j:j+13].strip() for j in range(0, len(lines[i+1]), 13)][:-1]
+      componetName = ['_'.join(key.split()) for key in componetName]
+      dataArray=[]
+      for j in range(len(varNames)):
+        headerKeys.append(varNames[j]+'_'+componetName[j])
+        dataArray.append([]);                  # allocates array for data block
       i=i+4
       while not re.match('^\\s*1 time|^1RELAP5|^\\s*\n|^\\s*1RELAP5|^\\s*MINOR EDIT',lines[i]):
         tempData=lines[i].split()
         # Here I check that none of the keywords contained in errorKeywords are contained in tempData
-        if self.checkLine(tempData) and (len(tempArray)==len(tempData)):
-          for k in range(len(tempArray)):
-            tempArray[k].append(tempData[k])
+        if self.checkLine(tempData) and (len(dataArray)==len(tempData)):
+          for k in range(len(dataArray)):
+            dataArray[k].append(tempData[k])
         i=i+1
         if (re.match('^\\s*1 time|^\\s*1\\s*R5|^\\s*\n|^1RELAP5',lines[i]) or
             re.match('^\\s*0Final time',lines[i]) or
@@ -132,8 +130,8 @@ class relapdata:
             # OR if the line is invalid (checkLine is false), it means that RELAP printed
             # out a warning/error at the end of the minor edit block => we can skip it
           break
-      for l in range(len(tempkeys)):
-        minorDict.update({tempkeys[l]:tempArray[l]})
+      for l in range(len(headerKeys)):
+        minorDict.update({headerKeys[l]:dataArray[l]})
       if (re.match('^\\s*1\\s*R5|^\\s*\n|^\\s*1RELAP5|^\\s*MINOR EDIT',lines[i]) or
           re.match('^\\s*1 time',lines[i]) or
           re.match('^\\s*0Final time',lines[i]) or
