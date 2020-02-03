@@ -106,7 +106,7 @@ class relapdata:
     keepReading = True
 
     while(keepReading):
-      headerKesy=[]
+      headerKeys=[]
       varNames = re.split('\\s{2,}|\n',lines[i])[:-1]
       componetName = [lines[i+1][j:j+13].strip() for j in range(0, len(lines[i+1]), 13)][:-1]
       componetName = ['_'.join(key.split()) for key in componetName]
