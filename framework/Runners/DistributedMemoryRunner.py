@@ -107,7 +107,7 @@ class DistributedMemoryRunner(InternalRunner):
       @ Out, None
     """
     try:
-      self.thread = self.functionToRun.remote(*self.args)
+      self.thread = self.functionToRun(*self.args)
       self.trackTime('runner_started')
       self.started = True
     except Exception as ae:

@@ -61,7 +61,6 @@ class SparseGrid(MessageHandler.MessageUser):
     self.N              = None                                                    # dimensionality of input space
     self.SG             = None                                                    # dict{ (point,point,point): weight}
     self.messageHandler = None                                                    # message handler
-    #self.mods           = utils.returnImportModuleString(inspect.getmodule(self)) # list of modules this class depends on (needed for automatic parallel python)
 
   def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
     """

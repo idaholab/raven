@@ -138,6 +138,9 @@ class JobHandler(MessageHandler.MessageUser):
     with self.__queueLock:
       self.__running       = [None]*self.runInfoDict['batchSize']
       self.__clientRunning = [None]*self.runInfoDict['batchSize']
+    ## internal server is initialized only in case an internal calc is requested
+    if not self.isRayInitialized:
+      self.__initializeRay()
 
   def __checkAndRemoveFinished(self, running):
     """
@@ -300,10 +303,6 @@ class JobHandler(MessageHandler.MessageUser):
         clientQueue
       @ Out, None
     """
-    ## internal server is initialized only in case an internal calc is requested
-    if not self.isRayInitialized:
-      self.__initializeRay()
-
     if self.rayserver is None or forceUseThreads:
       internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
                                                functionToRun,
@@ -311,8 +310,18 @@ class JobHandler(MessageHandler.MessageUser):
                                                uniqueHandler,
                                                profile=self.__profileJobs)
     else:
+      @ray.remote
+      def remoteFunction(*args):
+        """
+          Wrapper for remote function.
+          Adding it here, it allows to avoid to create an Actor
+          @ In, args, list, args list of function arguments
+          @ Out, remoteFunction, object, the return object
+        """
+        return functionToRun(*args)
+
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
-                                                    args, functionToRun,
+                                                    args, remoteFunction.remote,
                                                     identifier, metadata,
                                                     uniqueHandler,
                                                     profile=self.__profileJobs)

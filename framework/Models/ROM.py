@@ -1330,8 +1330,6 @@ class ROM(Dummy):
     self.initializationOptionDict['paramInput'] = paramInput
     self._initializeSupervisedGate(**self.initializationOptionDict)
     #the ROM is instanced and initialized
-    #self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
-    #self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
