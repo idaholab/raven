@@ -36,6 +36,8 @@ import MessageHandler
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
 
+waitTimeOut = 1e-10 # timeout to check for job to finish
+
 class DistributedMemoryRunner(InternalRunner):
   """
     Class for running internal objects in distributed memory fashion using
@@ -65,7 +67,6 @@ class DistributedMemoryRunner(InternalRunner):
         during deconstruction.
       @ Out, None
     """
-
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
@@ -84,7 +85,7 @@ class DistributedMemoryRunner(InternalRunner):
     if self.thread is None:
       return True
     else:
-      return self.thread in ray.wait([self.thread], timeout=1e-10)[0]
+      return self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]
 
   def _collectRunnerResponse(self):
     """

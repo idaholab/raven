@@ -61,12 +61,19 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
+    ## Print tag of this object
     self.printTag         = 'Job Handler'
+    ## Container of the running info (RunInfo block in the input file)
     self.runInfoDict      = {}
-
+    ## Is Ray Initialized?
     self.isRayInitialized = False
+    ## Variable containing the info about the RAY parallel server. If None, multi-threading is used
+    self.rayServer = None
 
+    ## Sleep time for collecting/inquiring/submitting new jobs
     self.sleepTime  = 1e-4 #0.005
+
+    ## Is the execution completed? When True, the JobHandler is shut down
     self.completed = False
 
     ## Determines whether to collect and print job timing summaries at the end of job runs.
@@ -104,14 +111,11 @@ class JobHandler(MessageHandler.MessageUser):
     ############################################################################
 
     self.__queueLock = threading.RLock()
-
     ## List of submitted job identifiers, includes jobs that have completed as
     ## this list is not cleared until a new step is entered
     self.__submittedJobs = []
     ## Dict of failed jobs of the form { identifer: metadata }
     self.__failedJobs = {}
-
-    #self.__noResourcesJobs = []
 
   def initialize(self, runInfoDict, messageHandler):
     """
@@ -185,23 +189,23 @@ class JobHandler(MessageHandler.MessageUser):
         nProcsHead = availableNodes.count(localHostName)
         self.raiseADebug("# of local procs    : "+ str(nProcsHead))
         ## initialize ray server with nProcs
-        self.rayserver = ray.init(num_cpus=int(nProcsHead))
+        self.rayServer = ray.init(num_cpus=int(nProcsHead))
         ## Get localHost and servers
-        servers = self.__runRemoteListeningSockets(self.rayserver['redis_address'])
+        servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
-        self.rayserver = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']))
-      self.raiseADebug("Head node IP address: " + self.rayserver['node_ip_address'])
-      self.raiseADebug("Redis address       : " + self.rayserver['redis_address'])
-      self.raiseADebug("Object store address: " + self.rayserver['object_store_address'])
-      self.raiseADebug("Raylet socket name  : " + self.rayserver['raylet_socket_name'])
-      self.raiseADebug("Session directory   : " + self.rayserver['session_dir'])
+        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']))
+      self.raiseADebug("Head node IP address: " + self.rayServer['node_ip_address'])
+      self.raiseADebug("Redis address       : " + self.rayServer['redis_address'])
+      self.raiseADebug("Object store address: " + self.rayServer['object_store_address'])
+      self.raiseADebug("Raylet socket name  : " + self.rayServer['raylet_socket_name'])
+      self.raiseADebug("Session directory   : " + self.rayServer['session_dir'])
       if servers:
         self.raiseADebug("# of remote servers : " + str(len(servers)))
         self.raiseADebug("Remote servers      : " + " , ".join(servers))
 
     else:
       ## We are just using threading
-      self.rayserver = None
+      self.rayServer = None
 
     self.isRayInitialized = True
 
@@ -303,7 +307,7 @@ class JobHandler(MessageHandler.MessageUser):
         clientQueue
       @ Out, None
     """
-    if self.rayserver is None or forceUseThreads:
+    if self.rayServer is None or forceUseThreads:
       internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
                                                functionToRun,
                                                identifier, metadata,

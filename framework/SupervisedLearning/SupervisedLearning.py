@@ -36,8 +36,6 @@ import copy
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, mathUtils, xmlUtils
 import MessageHandler
-
-#interpolationND = utils.findCrowModule('interpolationND')
 #Internal Modules End--------------------------------------------------------------------------------
 
 class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
