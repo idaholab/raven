@@ -32,6 +32,7 @@ else:
 
 import os
 import sys
+#import ray
 import time
 import threading
 import traceback
@@ -50,11 +51,6 @@ sys.path.pop() #remove scripts path for cleanliness
 from utils import utils
 import utils.TreeStructure as TS
 utils.find_crow(frameworkDir)
-
-if sys.version_info.major == 2:
-  utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
-else:
-  utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp3'))
 utils.add_path(os.path.join(frameworkDir,'contrib','AMSC'))
 utils.add_path(os.path.join(frameworkDir,'contrib'))
 #Internal Modules
