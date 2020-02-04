@@ -551,6 +551,13 @@ class Code(Model):
       command = self._expandCommand(command)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
+    new_python_path = []
+    for key in localenv['PYTHONPATH'].split(":"):
+      if 'raven_libraries' not in key:
+        new_python_path.append(key)
+    localenv['PYTHONPATH'] = ':'.join(new_python_path)
+    for key in localenv['PYTHONPATH'].split(":"):
+      print(k)
     process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
 
     if self.maxWallTime is not None:
