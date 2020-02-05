@@ -32,7 +32,6 @@ import copy
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.
 from difflib import SequenceMatcher
-import importlib
 
 class Object(object):
   """
@@ -704,6 +703,7 @@ def findCrowModule(name):
     @ In, name, str, the name of the module
     @ Out, module, instance, the instance of module of "name"
   """
+  import importlib
   availableCrowModules = ['distribution1D','interpolationND','randomENG']
   # assert
   assert(name in availableCrowModules)
