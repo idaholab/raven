@@ -1,0 +1,37 @@
+before_script:
+      # Print out python version for debugging
+    - python -V
+      # set up proxy for runner user
+    - export http_proxy=http://webbalance.inl.gov:8080;
+        export https_proxy=http://webbalance.inl.gov:8080;
+        export ftp_proxy=http://webbalance.inl.gov:8080;
+        export ftps_proxy=http://webbalance.inl.gov:8080;
+      # clone raven
+    - git clone https://github.com/idaholab/raven.git
+    - cd raven
+    - git checkout master
+    - git clean -xfd
+      # check that we have conda
+    - export PATH=$HOME/miniconda2/bin:$PATH
+    - if which conda 2> /dev/null; then
+        echo "Conda found!";
+        conda update conda;
+      else
+        echo "ERROR Conda not found!";
+        exit 404;
+      fi
+      # create libraries or create them
+    - ./scripts/establish_conda_env.sh --install --conda-defs $HOME/miniconda2/etc/profile.d/conda.sh
+      # check python installation
+    - which python
+    - python -V
+    - ./build_raven
+      # Install CashFlow branch ...
+    - python ./scripts/install_plugins.py -s ../ 
+      # return to project path main dir
+    - cd ..
+
+test:
+    script:
+      - cd raven
+      - ./run_tests -j4 --plugins --no-color

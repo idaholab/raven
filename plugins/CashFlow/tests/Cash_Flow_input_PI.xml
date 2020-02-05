@@ -1,0 +1,49 @@
+<Economics verbosity="0">
+  <Global>
+    <DiscountRate>0.05</DiscountRate>
+    <tax>0.392</tax>
+    <inflation>0.04</inflation>
+    <Indicator name="PI" target="0">
+      BOP|CA
+      BOP|RE
+      IP|CA
+      IP|RE
+    </Indicator>
+  </Global>
+  <Component name="BOP">
+    <Life_time>60</Life_time>
+    <CashFlows>
+      <!-- Capital Cost -->
+      <Capex inflation="none" mult_target="false" multiply="Multiplier" name="CA" tax="false">
+        <driver>BOP_capacity</driver>
+        <alpha>-4510000000</alpha>
+        <reference>1100000000</reference>
+        <X>0.64</X>
+        <depreciation scheme='MACRS'>15</depreciation>
+      </Capex>
+      <!-- Electric Revenue -->
+      <Recurring inflation="none" mult_target="true" name="RE" tax="true">
+        <driver>BOP_TOT_revenueEL</driver>
+        <alpha>1.0</alpha>
+      </Recurring>
+    </CashFlows>
+  </Component>
+
+  <Component name="IP">
+    <Life_time>40</Life_time>
+    <CashFlows>
+      <!-- Capital Cost -->
+      <Capex inflation="none" mult_target="false" name="CA" tax="false">
+        <driver>IP_capacity</driver>
+        <alpha>-153000000</alpha>
+        <reference>231000000</reference>
+        <X>1.0</X>
+      </Capex>
+      <!-- Non electric Revenue -->
+      <Recurring inflation="none" mult_target="true" name="RE" tax="true">
+        <driver>IP_TOT_revenueBY</driver>
+        <alpha>1.0</alpha>
+      </Recurring>
+    </CashFlows>
+  </Component>
+</Economics>

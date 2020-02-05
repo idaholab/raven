@@ -1,0 +1,57 @@
+<Economics verbosity="0"> <!-- "0" all debug output, "1" some output, "100" only errors  -->
+  <Global>
+    <DiscountRate>0.05</DiscountRate> <!-- %/100 -->
+    <tax>0.392</tax> <!-- %/100 -->
+    <inflation>0.04</inflation> <!-- %/100 -->
+    <Indicator name='NPV' target='0'>
+      BOP|CA
+      BOP|RE
+      IP|CA
+      IP|RE
+    </Indicator>
+  </Global>
+
+  <Component name="BOP">
+    <Life_time>60</Life_time>   <!-- years -->
+    <CashFlows>
+      <!-- Capital Cost -->
+      <!-- alpha in $ for the <reference> MW plant -->
+      <Capex name="CA" tax="false" inflation="none" mult_target="false" multiply="Multiplier">
+        <driver>BOP_capacity</driver>
+        <alpha>-4510000000</alpha>
+        <reference>1100000000</reference>
+        <X>0.64</X>
+        <depreciation scheme='custom'>
+          5.0 9.5 8.55 7.7 6.93 6.23 5.9
+          5.90 5.91 5.90 5.91 5.90 5.91 5.90 5.91 2.95
+        </depreciation>
+      </Capex>
+      <!-- Electric Revenue -->
+      <!-- alpha is 1.0 -->
+      <Recurring name="RE" tax="true" inflation="none" mult_target="true">
+        <driver>BOP_TOT_revenueEL</driver>
+        <alpha>1.0</alpha>
+      </Recurring>
+    </CashFlows>
+  </Component>
+
+  <Component name="IP">
+    <Life_time>40</Life_time>   <!-- years -->
+    <CashFlows>
+      <!-- Capital Cost -->
+      <!-- alpha in $ for the <reference> MW plant, i.e. $/W(th)h -->
+      <Capex name="CA" tax="false" inflation="none" mult_target="false">
+        <alpha>-153000000</alpha>
+        <driver>IP_capacity</driver>
+        <reference>231000000</reference>
+        <X>1.0</X>
+      </Capex>
+      <!-- Non electric Revenue -->
+      <!-- alpha is 1.0  -->
+      <Recurring name="RE" tax="true" inflation="none" mult_target="true">
+        <driver>IP_TOT_revenueBY</driver>
+        <alpha>1.0</alpha>
+      </Recurring>
+    </CashFlows>
+  </Component>
+</Economics>

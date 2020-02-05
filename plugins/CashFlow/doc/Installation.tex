@@ -1,0 +1,52 @@
+
+\section{Installation}
+\label{sec:Installation}
+
+This section of the manual describes how to install the 'Economics for RAVEN'  plug-in and use it from within RAVEN \cite{RAVEN}.
+
+\subsection{Installing the plug-in}
+The CashFlow plugin is distributed with RAVEN. If you just want to use the plugin and are not interested in developing additional features or bug-fixes for it, just make sure that you have access to the plugin repository and you will automatically get it when installing RAVEN.
+For more information, please refere to the RAVEN manual.
+
+\subsection{Accessing the plug-in from within RAVEN}
+The plugin can be accessed as a special subtype of the External model. The syntax is given in Listing \ref{lst:CashFlowfromRAVEN}.
+
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=Call CashFlow from RAVEN input., label=lst:CashFlowfromRAVEN]
+<ExternalModel name="Cash_Flow" subType="CashFlow.CashFlow">
+  <variables> Input and output variables needed by CashFlow  </variables>
+  <ExternalXML node="Economics" xmlToLoad="Cash_Flow_input.xml"/>
+</ExternalModel>
+\end{lstlisting}
+
+\subsection{Running the plugin as a stand-alone python code}
+
+In addition to accessing the plug-in from within RAVEN, it can also be run as a stand-alone python program. This is useful for example for testing. However, since CashFlow is still a RAVEN plugin, RAVEN needs to be installed and the plugin needs to be in the plugin-folder for that to work.
+
+Assuming RAVEN is installed and the plugin is in the proper directory (execution will generate an error if its not), one can run it using the command shown in Listing \ref{lst:CashFlowAsCode}.
+
+\small
+\begin{lstlisting}[caption=CashFlow run as stand-alone python code, label=lst:CashFlowAsCode]
+~/raven --> python plugins/CashFlow/src/CashFlow_ExtMode.py -h
+usage: Cash_Flow.py [-h] -iXML inp_file -iINP inp_file -o out_file
+
+Run RAVEN CashFlow plugin as stand-alone code
+
+arguments:
+  -h, --help      show this help message and exit
+  -iXML inp_file  XML CashFlow input file name
+  -iINP inp_file  CashFlow input file name with the input 
+                  variable list
+  -o out_file     Output file name
+\end{lstlisting}
+\normalsize
+
+The XML CashFlow input is the one that contains the component and cash flow definitions, i.e. the one in \xmlAttr{xmlToLoad} in Listing \ref{lst:CashFlowfromRAVEN}.
+
+The CashFlow input file contains the variables that RAVEN provides when using the CashFlow as a plugin, i.e. the cash flow drivers and multipliers. Listing \ref{lst:CashFlowInputFile} shows an example of the CashFlow input file for the cash flow definitions given in Listing \ref{lst:InputExample}.
+
+\begin{lstlisting}[caption=CashFlow run as stand-alone python code, label=lst:CashFlowInputFile]
+Cfdriver1 5.5
+multiplier1 1.0
+Cfdriver2 10.8
+multiplier2 2.0
+\end{lstlisting}

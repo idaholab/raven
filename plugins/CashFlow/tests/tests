@@ -1,0 +1,86 @@
+[Tests]
+ [./CashFlow_PI]
+  type = 'RavenFramework'
+  input = 'CashFlow_test_PI.xml'
+  UnorderedCsv = 'dumpPI.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
+ [./CashFlow_NPV]
+  type = 'RavenFramework'
+  input = 'CashFlow_test_NPV.xml'
+  UnorderedCsv = 'dumpNPV.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
+ [./CashFlow_NPVsearch]
+  type = 'RavenFramework'
+  input = 'CashFlow_test_NPVsearch.xml'
+  UnorderedCsv = 'dumpNPVsearch.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
+ [./CashFlow_IRR]
+  type = 'RavenFramework'
+  input = 'CashFlow_test_IRR.xml'
+  UnorderedCsv = 'dumpIRR.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
+ [./CashFlow_NPV_multiplier ]
+  type = 'RavenFramework'
+  input = 'CashFlow_test_NPV_multiplier.xml'
+  UnorderedCsv = 'dumpNPV_multiplier.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
+ [./CashFlow_NPV_expandedDriver ]
+  type = 'RavenFramework'
+  input = 'CashFlow_test_NPV_expandedDriver.xml'
+  UnorderedCsv = 'dumpNPV_expandedDriver.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
+ [./CashFlow_NPV_componentTax ]
+  type = 'RavenFramework'
+  input = 'CashFlow_test_NPV_componentTax.xml'
+  UnorderedCsv = 'dumpNPV_componentTax.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
+ [./CashFlow_NPV_RunAsCode]
+  type = 'RavenPython'
+  input = 'CashFlow_test_NPV_RunAsCode.py'
+ [../]
+
+ [./CashFlow_NPV_customTime]
+  type = 'RavenFramework'
+  input = 'CashFlow_test_NPV_customTime.xml'
+  UnorderedCsv = 'dumpNPV_customTime.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
+ [./CashFlow_NPV_customTime2]
+  type = 'RavenFramework'
+  input = 'CashFlow_test_NPV_customTime2.xml'
+  UnorderedCsv = 'dumpNPV_customTime2.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+
+ [./CashFlow_NPV_custom_MACRS]
+  type = 'RavenFramework'
+  input = 'CashFlow_test_NPV_custom_MACRS.xml'
+  UnorderedCsv = 'dumpNPV_custom_macrs.csv'
+  max_time = 500
+  rel_err = 0.001
+ [../]
+[]

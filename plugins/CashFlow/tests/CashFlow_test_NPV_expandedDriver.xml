@@ -1,0 +1,115 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>CashFlow_test_NPV</name>
+    <author>A. Epiney</author>
+    <created>2018-03-23</created>
+    <description>
+      This input tests the RAVEN plugin CashFlow.
+      The tested functionality is called NPV.
+      The BOP revenue is an expanded driver, i.e. values for every year are provided
+         instead of just one value that is repeated for all years.
+    </description>
+    <classesTested>Models.ExternalModel.CashFlow</classesTested>
+    <revisions>
+      <revision author="alfoa" date="2018-12-13">Added classTested node</revision>
+      <revision author="wangc" date="2019-11-08">update ExternalXML with new structure cash flow input</revision>
+      <revision author="alfoa" date="2019-11-25">Added Plugin name extension</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>MCrun,printTOfile</Sequence>
+  </RunInfo>
+
+  <VariableGroups>
+    <Group name="GRO_RevenueData_in_scalar">input_scaling</Group>
+    <Group name="GRO_RevenueData_out_year">BOP_TOT_revenueEL</Group>
+    <Group name="GRO_CashFlow_in_scalar">BOP_capacity, IP_capacity, IP_TOT_revenueBY, Multiplier</Group>
+    <Group name="GRO_CashFlow_in_year">BOP_TOT_revenueEL</Group>
+    <Group name="GRO_CashFlow_out_scalar">NPV</Group>
+  </VariableGroups>
+
+  <Models>
+    <ExternalModel ModuleToLoad="RevenueData" name="RevenueData" subType="">
+      <variables>GRO_RevenueData_in_scalar, GRO_RevenueData_out_year, year</variables>
+    </ExternalModel>
+    <ExternalModel name="Cash_Flow" subType="CashFlow.CashFlow">
+      <variables> GRO_CashFlow_in_scalar, GRO_CashFlow_in_year,  GRO_CashFlow_out_scalar</variables>
+      <ExternalXML node="Economics" xmlToLoad="Cash_Flow_input_NPV.xml"/>
+    </ExternalModel>
+    <EnsembleModel name="MyEnsemble" subType="">
+      <Model class="Models" type="ExternalModel">
+        RevenueData
+        <Input            class="DataObjects" type="PointSet"             >SET_RevenueData_in</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"              >SET_RevenueData_out</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ExternalModel">
+        Cash_Flow
+        <Input            class="DataObjects" type="PointSet"             >SET_CashFlow_in</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet"              >SET_CashFlow_out</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="test_MC">
+      <samplerInit>
+        <limit>1</limit>
+      </samplerInit>
+      <constant name="input_scaling">2.0</constant>
+      <constant name="BOP_capacity">300.0E6</constant>
+      <constant name="IP_capacity">51.0E6</constant>
+      <constant name="IP_TOT_revenueBY">31.5E6</constant>
+      <constant name="Multiplier">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="SET_RevenueData_in">
+      <Input>GRO_RevenueData_in_scalar</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <DataSet name="SET_RevenueData_out">
+      <Input>GRO_RevenueData_in_scalar</Input>
+      <Output>GRO_RevenueData_out_year</Output>
+      <Index var="year">GRO_RevenueData_out_year</Index>
+    </DataSet>
+    <PointSet name="SET_CashFlow_in">
+      <Input>GRO_CashFlow_in_scalar</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <DataSet name="SET_CashFlow_out">
+      <Input>GRO_CashFlow_in_scalar, GRO_CashFlow_in_year</Input>
+      <Output>GRO_CashFlow_out_scalar</Output>
+      <Index var="year">GRO_CashFlow_in_year</Index>
+    </DataSet>
+    <PointSet name="SET_output">
+      <Input>GRO_CashFlow_in_scalar</Input>
+      <Output>GRO_CashFlow_out_scalar</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Steps>
+    <MultiRun name="MCrun" pauseAtEnd="True">
+      <Input          class="DataObjects"   type="PointSet">SET_CashFlow_in</Input>
+      <Input          class="DataObjects"   type="PointSet">SET_RevenueData_in</Input>
+      <Model          class="Models"        type="ExternalModel">MyEnsemble</Model>
+      <Sampler        class="Samplers"      type="MonteCarlo">test_MC</Sampler>
+      <Output         class="DataObjects"   type="DataSet">SET_CashFlow_out</Output>
+      <Output         class="DataObjects"   type="DataSet">SET_output</Output>
+    </MultiRun>
+    <IOStep name="printTOfile">
+     <Input          class="DataObjects"   type="DataSet">SET_output</Input>
+     <Output         class="OutStreams"    type="Print">dumpNPV_expandedDriver</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dumpNPV_expandedDriver">
+      <type>csv</type>
+      <source>SET_output</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+</Simulation>
