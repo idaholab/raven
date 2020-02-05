@@ -20,6 +20,8 @@
             <xsd:element name="AdaptiveDynamicEventTree" type="AdaptiveDETSampler"     minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdaptiveSobol"            type="AdaptiveSobolSampler"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="EnsembleForward"          type="EnsembleForwardSampler" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="AdaptiveMonteCarlo"       type="AdaptiveMCSampler"      minOccurs="0" maxOccurs="unbounded"/>
+
         </xsd:sequence>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
@@ -428,6 +430,30 @@
         </xsd:sequence>
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
+    </xsd:complexType>
+    <xsd:complexType name="AdaptiveMCSampler">
+      <xsd:sequence>
+        <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+        <xsd:element name="Convergence"      type="adaptiveMCConvergenceType" minOccurs="1" maxOccurs="unbounded"/>
+        <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
+        <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
+            <xsd:complexType mixed="true">
+                <xsd:attribute name="name" type="xsd:string" use="required"/>
+                <xsd:attribute name="shape" type="xsd:string" />
+            </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+    <xsd:attribute name="name"      type="xsd:string" use="required"/>
+    <xsd:attribute name="verbosity" type="verbosityAttr"/>
+    </xsd:complexType>
+    <xsd:complexType name="adaptiveMCConvergenceType">
+        <xsd:all>
+            <xsd:element name="Limit"             type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="objectVar"         type="xsd:string"  minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="persistence"       type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="relativeThreshold" type="xsd:float"   minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="absoluteThreshold" type="xsd:float"   minOccurs="0" maxOccurs="1"/>
+        </xsd:all>
     </xsd:complexType>
     <!-- *********************************************************************** -->
     <!--                  Dynamic Event Tree                                     -->
