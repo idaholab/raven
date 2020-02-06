@@ -17,9 +17,7 @@ Created on April 14, 2016
 @modified: picoco (The Ohio State University)
 '''
 
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
+from __future__ import division, print_function, absolute_import
 
 from GenericCodeInterface import GenericCode
 import numpy as np
@@ -214,7 +212,7 @@ class MAAP5(GenericCode):
           print('stopTimer =', self.stopTimer)
           stop=False
       for cont, var in enumerate(self.DETsampledVars):
-        var = var.encode('utf8')
+        var = var
         branchingMarker=str('C Branching '+var)
         if branchingMarker in line:
           #branching timer marker
@@ -415,7 +413,7 @@ class MAAP5(GenericCode):
 
     RAVENoutputFile=os.path.join(workingDir,output+".csv") #RAVEN will look for  output+'.csv'file but in the workingDir, so we need to append it to the filename
     outputCSVfile=open(RAVENoutputFile,"w+")
-    csvwriter=csv.writer(outputCSVfile,delimiter=b',')
+    csvwriter=csv.writer(outputCSVfile,delimiter=',')
     csvwriter.writerow(allVariableTags)
     for i in range(len(allVariableValues[0])):
       row=[]

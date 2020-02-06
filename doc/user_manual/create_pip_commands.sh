@@ -7,5 +7,5 @@ virtualenv raven_libs
 source raven_libs/bin/activate
 #Use pip to install needed libraries
 EOF
-python ../../scripts/TestHarness/testers/RavenUtils.py --pip-install | fold -s -w60 | sed 's/$/\\/' | python -c 'import sys; sys.stdout.write(sys.stdin.read()[:-2])'>> pip_commands.txt
+python ../../scripts/library_handler.py pip --action install | fold -s -w60 | sed 's/$/\\/' | python -c 'import sys; sys.stdout.write(sys.stdin.read()[:-2])'>> pip_commands.txt
 

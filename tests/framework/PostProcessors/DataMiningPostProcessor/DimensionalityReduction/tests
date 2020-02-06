@@ -20,19 +20,23 @@
     type   = 'RavenFramework'
     input  = 'test_dataMiningRandomizedPCA.xml'
     csv    = 'RandomizedPCA/dummy.csv'
+    rel_err = 1.0e-7
     output = 'RandomizedPCA/1-PlotIris_dataMining.png'
   [../]
   [./KernelPCA]
     type   = 'RavenFramework'
     input  = 'test_dataMiningKernelPCA.xml'
     csv    = 'KernelPCA/dummy.csv'
+    rel_err = 1.0e-7
     output = 'KernelPCA/1-PlotIris_dataMining.png'
   [../]
   [./SparsePCA]
     type   = 'RavenFramework'
     input  = 'test_dataMiningSparsePCA.xml'
-    csv    = 'SparsePCA/dummy.csv'
+    UnorderedCsv    = 'SparsePCA/dummy.csv'
     output = 'SparsePCA/1-PlotIris_dataMining.png'
+    ignore_sign = True
+    rel_err = 0.001
   [../]
   [./MiniBatchSparsePCA]
     type   = 'RavenFramework'
@@ -46,19 +50,23 @@
     type   = 'RavenFramework'
     input  = 'test_dataMiningTruncatedSVD.xml'
     csv    = 'TruncatedSVD/dummy.csv'
+    rel_err = 1.0e-7
     output = 'TruncatedSVD/1-PlotIris_dataMining.png'
   [../]
   [./FastICA]
     type   = 'RavenFramework'
     input  = 'test_dataMiningFastICA.xml'
-    csv    = 'FastICA/dummy.csv'
+    UnorderedCsv    = 'FastICA/dummy.csv'
     output = 'FastICA/1-PlotIris_dataMining.png'
+    ignore_sign = True
+    rel_err = 0.001
   [../]
   [./Isomap]
     type   = 'RavenFramework'
     input  = 'test_dataMiningIsomap.xml'
     csv    = 'Isomap/dummy.csv'
     output = 'Isomap/1-PlotIris_dataMining.png'
+    ignore_sign = True
   [../]
   [./LocallyLinearEmbedding]
     type   = 'RavenFramework'

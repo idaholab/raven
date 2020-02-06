@@ -11,12 +11,16 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2015-10-07">Made the test faster</revision>
-      <revision author="alfoa" date="2015-10-19">New syntax form samplerInit: from sampler_init -> samplerInit</revision>
+      <revision author="alfoa" date="2015-10-19">New syntax form samplerInit: from sampler_init -&gt; samplerInit</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2018-01-09">Modified for new dataobject structure</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
+    <requirements>R-IS-8</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>InternalParallelPostProcessorLS</WorkingDir>
     <Sequence>ExternalModelMC,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted,ComputeLimitSurfaceIntegralUnWeighted</Sequence>
@@ -41,10 +45,10 @@
       <target>goalFunctionForLimitSurface</target>
       <outputName>EventProbability</outputName>
       <variable name="x0">
-        <distribution>x0_distrib</distribution>
+        <distribution class="Distributions" type="Normal">x0_distrib</distribution>
       </variable>
       <variable name="y0">
-        <distribution>y0_distrib</distribution>
+        <distribution class="Distributions" type="Normal">y0_distrib</distribution>
       </variable>
     </PostProcessor>
     <PostProcessor name="LimitSurfaceIntegralUnWeightedWithBounds" subType="LimitSurfaceIntegral">
@@ -74,7 +78,7 @@
 
   <Functions>
     <External file="InternalParallelPostProcessorLS/goalFunctionTest" name="goalFunctionForLimitSurface">
-      <variable>z</variable>
+      <variables>z</variables>
     </External>
   </Functions>
 
@@ -126,14 +130,20 @@
       <Model class="Models" type="PostProcessor">LimitSurfaceIntegralWeighted</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfaceWeightedPb</Output>
       <Output class="OutStreams" type="Print">LimitSurfaceWeightedPb_dump</Output>
-      <!-- NOT ALLOWED ANYMORE: <Output class="Files" type="">LimitSurfaceWeightedPb_FileObj.csv</Output> -->
+      <!--
+         NOT ALLOWED ANYMORE:
+        <Output class="Files" type="">LimitSurfaceWeightedPb_FileObj.csv</Output>
+      -->
     </PostProcess>
     <PostProcess name="ComputeLimitSurfaceIntegralUnWeighted">
       <Input class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Input>
       <Model class="Models" type="PostProcessor">LimitSurfaceIntegralUnWeightedWithBounds</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfaceUnWeightedPb</Output>
       <Output class="OutStreams" type="Print">LimitSurfaceUnWeightedPb_dump</Output>
-      <!-- NOT ALLOWED ANYMORE: <Output class="Files" type="">LimitSurfaceUnWeightedPb_FileObj.csv</Output> -->
+      <!--
+         NOT ALLOWED ANYMORE:
+        <Output class="Files" type="">LimitSurfaceUnWeightedPb_FileObj.csv</Output>
+      -->
     </PostProcess>
   </Steps>
 

@@ -1,6 +1,6 @@
-y0,x0,filename
-1.0,0.0,train_data_0.csv
-0.8,0.0,train_data_1.csv
-1.2,0.0,train_data_2.csv
-1.0,-1.0,train_data_3.csv
-1.0,1.0,train_data_4.csv
+x0,y0,ProbabilityWeight,prefix,PointProbability,ProbabilityWeight-y0,ProbabilityWeight-x0,filename
+0.0,1.0,-6.28318530718,1,0.795774715459,1.99471140201,0.398942280401,train_data_0.csv
+0.0,0.8,3.14159265359,2,0.48266176315,1.2098536226,0.398942280401,train_data_1.csv
+0.0,1.2,3.14159265359,3,0.48266176315,1.2098536226,0.398942280401,train_data_2.csv
+-1.0,1.0,3.14159265359,4,0.48266176315,1.99471140201,0.241970724519,train_data_3.csv
+1.0,1.0,3.14159265359,5,0.48266176315,1.99471140201,0.241970724519,train_data_4.csv

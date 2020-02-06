@@ -59,7 +59,25 @@ RAVEN provides a set of basic and advanced capabilities that ranges from data ge
 ## Model capabilities
 
 - Generic interface with external codes
-- Custom code interfaces (third-party software(s) currently available: Any generic MOOSE based application, MAAP, DYMOLA, etc.)
+- Custom code interfaces (third-party software(s) currently available:
+    - [RELAP5-3D](https://relap53d.inl.gov/SitePages/Home.aspx)  
+    - [MELCOR](https://melcor.sandia.gov/about.html) 
+    - [MAAP5](https://www.fauske.com/nuclear/maap-modular-accident-analysis-program) 
+    - [MOOSE-BASED Apps](https://mooseframework.inl.gov/) 
+    - [SCALE](https://www.ornl.gov/onramp/scale-code-system) 
+    - [SERPENT](http://montecarlo.vtt.fi/) 
+    - [CTF - COBRA TF](https://www.ne.ncsu.edu/rdfmg/cobra-tf/) 
+    - [SAPHIRE](https://saphire.inl.gov/) 
+    - [MODELICA](https://www.modelica.org/modelicalanguage) 
+    - [DYMOLA](https://www.3ds.com/products-services/catia/products/dymola/) 
+    - [BISON](https://bison.inl.gov/SitePages/Home.aspx) 
+    - [RATTLESNAKE](https://rattlesnake.inl.gov/SitePages/Home.aspx)
+    - [MAMMOTH](https://moose.inl.gov/mammoth/SitePages/Home.aspx) 
+    - [GOTHIC](http://www.numerical.com/products/gothic/gothic_all.php) 
+    - [PHISICS](https://modsimcode.inl.gov/SitePages/Home.aspx)
+    - [NEUTRINO](http://www.neutrinodynamics.com/) 
+    - [RAVEN running itself](https://raven.inl.gov/SitePages/Overview.aspx)
+
 - Custom ad-hoc external models (build in python internally to RAVEN)
 
 ## Data Post-Processing capabilities
@@ -97,7 +115,7 @@ This project is supported by [Idaho National Laboratory](https://www.inl.gov/).
 
 ### License
 
-Files in /crow/contrib, /framework/contrib and /moose are third party libraries that are not part of Raven and are provided here for covenience. These are under their own, seperate licensing which is described in those directories.
+Files in /crow/contrib and /framework/contrib are third party libraries that are not part of Raven and are provided here for covenience. These are under their own, seperate licensing which is described in those directories.
 
 Raven itself is licensed as follows:
 

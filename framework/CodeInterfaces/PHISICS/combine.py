@@ -16,8 +16,6 @@ Created on March 8th 2018
 @author: rouxpn
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 import os
 import re
 import csv
@@ -42,8 +40,8 @@ class combine():
     paramDict['timeList'] = self.selectPhisicsTime(depTimeDict,phisicsCSV)
     paramDict['phiDict'] = phiDict = self.putCSVinDict(phisicsCSV,phisicsCSV)
     paramDict['relDict'] = self.putCSVinDict(relapCSV,phisicsCSV)
-    paramDict['numOfRelapLines'] = self.getNumOfLines(relapCSV)
-    paramDict['numOfPhisicsLines'] = self.getNumOfLines(phisicsCSV)
+    paramDict['numOfRelapLines'] = len(paramDict['relDict'])
+    paramDict['numOfPhisicsLines'] = len(paramDict['phiDict'])
     paramDict['depTimeDict'] = depTimeDict
     paramDict['inpTimeDict'] = inpTimeDict
     paramDict['relapPhisicsCsv'] = relapPhisicsCsv
@@ -91,19 +89,16 @@ class combine():
     """
     csvDict = {}
     with open(csvFile, 'r') as inFile:
-      for countLine,line in enumerate(inFile):
+      countLine = 0
+      for line in inFile:
         if countLine == 0 and csvFile == phisicsCSV:
           self.numOfParameters = len(line.split(','))
-        csvDict[countLine] = line
+        if re.match(r'^\s*$', line):
+          pass
+        else:
+          csvDict[countLine] = line
+          countLine += 1
     return csvDict
-
-  def getNumOfLines(self,csvFile):
-    """
-      Counts the number of lines in the PHISICS or RELAP csv.
-      @ In, csvFile, string, csv file name
-      @ Out, getNumOfLines, integer, total number of lines
-    """
-    return len(open(csvFile, 'r').readlines())
 
   def joinLine(self,phisicsList,relapList):
     """
@@ -126,8 +121,8 @@ class combine():
       if os.path.exists(cleanUpFile):
         os.remove(cleanUpFiles) # remove the file if was already existing
     thBurnStep = paramDict['inpTimeDict']['TH_between_BURN'].split(' ')
-    with open(os.path.join(workingDir,'dummy.csv'), 'wb') as f:
-      instantWriter = csv.writer(f, delimiter=str(u',').encode('utf-8'),quotechar=str(u' ').encode('utf-8'),
+    with open(os.path.join(workingDir,'dummy.csv'), 'w') as f:
+      instantWriter = csv.writer(f, delimiter=str(','),quotechar=str(' '),
                                  quoting=csv.QUOTE_MINIMAL)
       instantWriter.writerow(self.joinLine(paramDict['phiDict'][0],paramDict['relDict'][0]))
       instantWriter.writerow([0.0] * self.numOfParameters + [paramDict['relDict'][1]])
@@ -152,7 +147,7 @@ class combine():
             instantWriter.writerow(self.joinLine(paramDict['phiDict'][paramDict['numOfPhisicsLines'] - 1],
                                                  paramDict['relDict'][paramDict['numOfRelapLines'] - 1]))
     with open(os.path.join(workingDir,'dummy.csv'), 'r') as inFile:
-      with open(os.path.join(workingDir,paramDict['relapPhisicsCsv']), 'wb') as outFile:
+      with open(os.path.join(workingDir,paramDict['relapPhisicsCsv']), 'w') as outFile:
         for line in inFile:
           cleanedLine = line.strip(' ')
           if re.match(r'^\s*$', line):

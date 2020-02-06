@@ -441,12 +441,12 @@ data.addMeta('TestPP',{'firstVar':{'scalarMetric1':10.0,
                       })
 # directly test contents, without using API
 checkSame('Metadata top level entries',len(data._meta),2)
-treePP = data._meta['TestPP'].tree.getroot()
+treePP = data._meta['TestPP'].getRoot()
 checkSame('Metadata TestPP',treePP.tag,'TestPP')
-first,second = (c for c in treePP) # TODO always same order?
+first,second = (c for c in treePP)
 
 checkSame('Metadata TestPP/firstVar tag',first.tag,'firstVar')
-sm1,vm,sm2 = (c for c in first) # TODO always same order?
+sm1,sm2,vm = (c for c in first) # Order not guaranteed?
 checkSame('Metadata TestPP/firstVar/scalarMetric1 tag',sm1.tag,'scalarMetric1')
 checkSame('Metadata TestPP/firstVar/scalarMetric1 value',sm1.text,'10.0')
 checkSame('Metadata TestPP/firstVar/scalarMetric2 tag',sm2.tag,'scalarMetric2')
@@ -470,20 +470,20 @@ child = second[0]
 checkSame('Metadata TestPP/secondVar/scalarMetric1 tag',child.tag,'scalarMetric1')
 checkSame('Metadata TestPP/secondVar/scalarMetric1 value',child.text,'100.0')
 
-treeDS = data._meta['DataSet'].tree.getroot()
+treeDS = data._meta['DataSet'].getRoot()
 checkSame('Metadata HistorySet',treeDS.tag,'DataSet')
 checkSame('Metadata HistorySet entries',len(treeDS),2)
 dims,general = treeDS[:]
 checkSame('Metadata HistorySet/dims tag',dims.tag,'dims')
 checkSame('Metadata HistorySet/dims entries',len(dims),2)
-y,x = dims[:]
+x,y = dims[:]
 checkSame('Metadata HistorySet/dims/x tag',x.tag,'x')
 checkSame('Metadata HistorySet/dims/x value',x.text,'Timelike')
 checkSame('Metadata HistorySet/dims/y tag',y.tag,'y')
 checkSame('Metadata HistorySet/dims/y value',y.text,'Timelike')
 checkSame('Metadata HistorySet/general tag',general.tag,'general')
 checkSame('Metadata HistorySet/general entries',len(general),4)
-inputs,pointwise_meta,outputs,sampleTag = general[:]
+inputs,outputs,pointwise_meta,sampleTag = general[:]
 checkSame('Metadata HistorySet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata HistorySet/general/inputs value',inputs.text,'a,b')
 checkSame('Metadata HistorySet/general/outputs tag',outputs.tag,'outputs')
@@ -497,9 +497,9 @@ checkSame('Metadata HistorySet/general/sampleTag value',sampleTag.text,'RAVEN_sa
 meta = data.getMeta(pointwise=True,general=True)
 checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix'],str)
 # fail to find pointwise in general
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'prefix\'])',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: (prefix)',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
 # fail to find general in pointwise
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'HistorySet\'])',data.getMeta,kwargs=dict(keys=['HistorySet'],pointwise=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: (HistorySet)',data.getMeta,kwargs=dict(keys=['HistorySet'],pointwise=True))
 # TODO more value testing, easier "getting" of specific values
 
 
@@ -524,36 +524,36 @@ csvname = 'HistorySetUnitTest'
 data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
 ## test metadata written
 correct = ['<DataObjectMetadata name="HistorySet">',
-'  <TestPP type="Static">',
-'    <firstVar>',
-'      <scalarMetric1>10.0</scalarMetric1>',
-'      <vectorMetric>',
-'        <a>1</a>',
-'        <c>3</c>',
-'        <b>2</b>',
-'        <d>4.0</d>',
-'      </vectorMetric>',
-'      <scalarMetric2>20</scalarMetric2>',
-'    </firstVar>',
-'    <secondVar>',
-'      <scalarMetric1>100.0</scalarMetric1>',
-'    </secondVar>',
-'  </TestPP>',
-'  ',
-'  <DataSet type="Static">',
-'    <dims>',
-'      <y>Timelike</y>',
-'      <x>Timelike</x>',
-'    </dims>',
-'    <general>',
-'      <inputs>a,b</inputs>',
-'      <pointwise_meta>prefix</pointwise_meta>',
-'      <outputs>x,y</outputs>',
-'      <sampleTag>RAVEN_sample_ID</sampleTag>',
-'    </general>',
-'  </DataSet>',
-'  ',
-'</DataObjectMetadata>']
+           '  <DataSet type="Static">',
+           '    <dims>',
+           '      <x>Timelike</x>',
+           '      <y>Timelike</y>',
+           '    </dims>',
+           '    <general>',
+           '      <inputs>a,b</inputs>',
+           '      <outputs>x,y</outputs>',
+           '      <pointwise_meta>prefix</pointwise_meta>',
+           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
+           '    </general>',
+           '  </DataSet>',
+           '  ',
+           '  <TestPP type="Static">',
+           '    <firstVar>',
+           '      <scalarMetric1>10.0</scalarMetric1>',
+           '      <scalarMetric2>20</scalarMetric2>',
+           '      <vectorMetric>',
+           '        <a>1</a>',
+           '        <b>2</b>',
+           '        <c>3</c>',
+           '        <d>4.0</d>',
+           '      </vectorMetric>',
+           '    </firstVar>',
+           '    <secondVar>',
+           '      <scalarMetric1>100.0</scalarMetric1>',
+           '    </secondVar>',
+           '  </TestPP>',
+           '  ',
+           '</DataObjectMetadata>']
 # read in XML
 lines = open(csvname+'.xml','r').readlines()
 # remove line endings
@@ -698,6 +698,123 @@ checkRlz('Adding asynchronous histories, dataset[1]',data.realization(index=1),r
 #data._readMoreXML(xml)
 #checkFails('Expected error foulty realization (index/variable no matching shape), rlzFoulty', "SyntaxError: Realization was not formatted correctly", data.addRealization, args=(rlzFoulty,))
 
+######################################
+#   scalar and vector meta data      #
+######################################
+xml = createElement('HistorySet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a,b'))
+xml.append(createElement('Output',text='y'))
+options = createElement('options')
+options.append(createElement('pivotParameter',text='Timelike'))
+xml.append(options)
+data = DataObjects.HistorySet()
+data.messageHandler = mh
+data._readMoreXML(xml)
+metavars = ['prefix', 'vectorMeta']
+params = {'vectorMeta':['Timelike']}
+data.addExpectedMeta(metavars, params)
+rlz1 = {'a': 1.0,
+        'b': 2.0,
+        'y': [5.0, 5.1, 5.2],
+        'prefix': 'first',
+        'vectorMeta':[1.1,1.2,1.3],
+        'Timelike':[3.1e-6,3.2e-6,3.3e-6],
+       }
+rlz2 = {'a' :11.0,
+        'b': 12.0,
+        'y': [15.0, 15.1, 15.2],
+        'prefix': 'second',
+        'vectorMeta':[2.1,2.2,2.3],
+        'Timelike':[13.1e-6,13.2e-6,13.3e-6],
+       }
+formatRealization(rlz1)
+formatRealization(rlz2)
+data.addRealization(rlz1)
+data.addRealization(rlz2)
+csvname = 'HSVectorMetaUnitTest'
+data.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'})
+## test metadata written
+correct = ['<DataObjectMetadata name="HistorySet">',
+           '  <DataSet type="Static">',
+           '    <dims>',
+           '      <vectorMeta>Timelike</vectorMeta>',
+           '      <y>Timelike</y>',
+           '    </dims>',
+           '    <general>',
+           '      <inputs>a,b</inputs>',
+           '      <outputs>y</outputs>',
+           '      <pointwise_meta>prefix,vectorMeta</pointwise_meta>',
+           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
+           '    </general>',
+           '  </DataSet>',
+           '  ',
+           '</DataObjectMetadata>']
+# read in XML
+lines = open(csvname+'.xml','r').readlines()
+# remove line endings
+for l,line in enumerate(lines):
+  lines[l] = line.rstrip(os.linesep).rstrip('\n')
+# check
+checkArray('CSV XML',lines,correct,str)
+## read from CSV/XML
+### create the data object
+xml = createElement('HistorySet',attrib={'name':'test'})
+xml.append(createElement('Input',text='a,b'))
+xml.append(createElement('Output',text='y'))
+options = createElement('options')
+options.append(createElement('pivotParameter',text='Timelike'))
+xml.append(options)
+dataCSV = DataObjects.HistorySet()
+dataCSV.messageHandler = mh
+dataCSV._readMoreXML(xml)
+### load the data (with both CSV, XML)
+dataCSV.load(csvname,style='CSV')
+for var in data.getVars():
+  if isinstance(data.getVarValues(var).item(0),(float,int)):
+    checkTrue('CSV var {}'.format(var),(dataCSV._data[var] - data._data[var]).sum()<1e-20) #necessary due to roundoff
+  else:
+    checkTrue('CSV var {}'.format(var),bool((dataCSV._data[var] == data._data[var]).prod()))
+os.remove(csvname+'.csv')
+os.remove(csvname+'_0.csv')
+os.remove(csvname+'_1.csv')
+
+csvname = 'HSVectorMetaUnitTest'
+dataCSV.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'})
+# read in XML
+lines = open(csvname+'.xml','r').readlines()
+# remove line endings
+for l,line in enumerate(lines):
+  lines[l] = line.rstrip(os.linesep).rstrip('\n')
+# check
+checkArray('CSV XML',lines,correct,str)
+### also try without the XML metadata file, just the CSVs
+# get rid of the xml file
+os.remove(csvname+'.xml')
+dataCSV.reset()
+dataCSV.load(csvname,style='CSV')
+for var in data.getVars():
+  if isinstance(data.getVarValues(var).item(0),(float,int)):
+    checkTrue('CSV var {}'.format(var),(dataCSV._data[var] - data._data[var]).sum()<1e-20) #necessary due to roundoff
+  else:
+    checkTrue('CSV var {}'.format(var),bool((dataCSV._data[var] == data._data[var]).prod()))
+# clean up remaining temp files
+os.remove(csvname+'.csv')
+os.remove(csvname+'_0.csv')
+os.remove(csvname+'_1.csv')
+csvname = 'HSVectorMetaUnitTest'
+dataCSV.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'})
+# read in XML
+lines = open(csvname+'.xml','r').readlines()
+# remove line endings
+for l,line in enumerate(lines):
+  lines[l] = line.rstrip(os.linesep).rstrip('\n')
+# check
+checkArray('CSV XML',lines,correct,str)
+os.remove(csvname+'.csv')
+os.remove(csvname+'_0.csv')
+os.remove(csvname+'_1.csv')
+os.remove(csvname+'.xml')
+
 print(results)
 
 sys.exit(results["fail"])
@@ -712,4 +829,3 @@ sys.exit(results["fail"])
     </description>
   </TestInfo>
 """
-

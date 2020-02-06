@@ -21,8 +21,6 @@ Created on November 13, 2013
 This module is used to employ QSUB commands when the PBS protocol is available
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import os,subprocess,sys

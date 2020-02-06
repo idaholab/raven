@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>Basic</WorkingDir>
-    <Sequence>Sample,Process_min,Process_max</Sequence>
+    <Sequence>Sample,Process_min,Process_max,Process_index</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -15,9 +15,11 @@
       This test checks basic functionalities of the Sample Selector. The model
       multiplies the input x by 2.5 to obtain x1, and y is multiplied by 3.5 to obtain y1.
       x and y are sampled through a Monte Carlo sampler, with 10 realizations. The
-      SampleSelector postprocessor is called twice, once to pick the minimum of x1,
-      and once to pick the maximum of y1.
+      SampleSelector postprocessor is called several times, testing each of the selection methods.
     </description>
+    <revisions>
+      <revision date="2018-11-06" author="talbpaul">added index selection method to test</revision>
+    </revisions>
   </TestInfo>
 
   <Models>
@@ -31,6 +33,9 @@
     <PostProcessor name="PPmax" subType="SampleSelector" verbosity="debug">
       <target> y1 </target>
       <criterion> max </criterion>
+    </PostProcessor>
+    <PostProcessor name="PPindex" subType="SampleSelector" verbosity="debug">
+      <criterion value='3'> index </criterion>
     </PostProcessor>
   </Models>
 
@@ -66,6 +71,7 @@
       <Model class="Models" type="ExternalModel">mirrowModel</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
       <Output class="DataObjects" type="PointSet">outputDataMC</Output>
+      <Output class="OutStreams" type="Print">all_samples</Output>
     </MultiRun>
     <PostProcess name="Process_min">
       <Input class="DataObjects" type="PointSet">outputDataMC</Input>
@@ -79,9 +85,19 @@
       <Output class="DataObjects" type="PointSet">selected_max</Output>
       <Output class="OutStreams" type="Print">selected_printed_max</Output>
     </PostProcess>
+    <PostProcess name="Process_index">
+      <Input class="DataObjects" type="PointSet">outputDataMC</Input>
+      <Model class="Models" type="PostProcessor">PPindex</Model>
+      <Output class="DataObjects" type="PointSet">selected_index</Output>
+      <Output class="OutStreams" type="Print">selected_printed_index</Output>
+    </PostProcess>
   </Steps>
 
   <OutStreams>
+    <Print name="all_samples">
+      <type>csv</type>
+      <source>outputDataMC</source>
+    </Print>
     <Print name="selected_printed_min">
       <type>csv</type>
       <source>selected_min</source>
@@ -89,6 +105,10 @@
     <Print name="selected_printed_max">
       <type>csv</type>
       <source>selected_max</source>
+    </Print>
+    <Print name="selected_printed_index">
+      <type>csv</type>
+      <source>selected_index</source>
     </Print>
   </OutStreams>
 
@@ -108,6 +128,10 @@
     <PointSet name="selected_max">
       <Input>x,y</Input>
       <Output>y1</Output>
+    </PointSet>
+    <PointSet name="selected_index">
+      <Input>x,y</Input>
+      <Output>x1,y1</Output>
     </PointSet>
   </DataObjects>
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <RunInfo>
     <WorkingDir>innerRun</WorkingDir>
     <Sequence>optimize,print</Sequence>
@@ -25,6 +25,7 @@
         <limit>100</limit>
         <initialSeed>42</initialSeed>
         <type>max</type>
+        <resample>False</resample>
         <writeSteps>final</writeSteps>
       </initialization>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
@@ -36,7 +37,7 @@
       <variable name="x">
         <upperBound>2</upperBound>
         <lowerBound>-2</lowerBound>
-        <initial>-0.75</initial>
+        <initial>0.25</initial>
       </variable>
       <constant name="center">1</constant>
       <constant name="vectorConst">1</constant>

@@ -6,7 +6,7 @@
   ## get meaningful dimensionality reduction results, you typically need a large
   ## amount of data. Possibly, we should look into storing these sets as HDF5s
   ## and doing comparison on them?
-  
+
   ## Now we used the iris dataset stored in sklearn to generate input date
   ## And we do not check all the output file, but only a few of them
 
@@ -22,18 +22,22 @@
     input  = 'test_tdmSKLearnRandomizedPCA.xml'
     csv    = 'RandomizedPCA/dummy_0.csv RandomizedPCA/dummy_149.csv'
     output = 'RandomizedPCA/dummy.csv'
+    rel_err = 0.00001
   [../]
   [./KernelPCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnKernelPCA.xml'
     csv    = 'KernelPCA/dummy_0.csv KernelPCA/dummy_149.csv'
     output = 'KernelPCA/dummy.csv'
+    max_time = 600
   [../]
   [./SparsePCA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnSparsePCA.xml'
-    csv    = 'SparsePCA/dummy_0.csv SparsePCA/dummy_149.csv'
+    UnorderedCsv    = 'SparsePCA/dummy_0.csv SparsePCA/dummy_149.csv'
     output = 'SparsePCA/dummy.csv'
+    ignore_sign = True
+    rel_err = 0.001
   [../]
   [./MiniBatchSparsePCA]
     type    = 'RavenFramework'
@@ -52,8 +56,10 @@
   [./FastICA]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnFastICA.xml'
-    csv    = 'FastICA/dummy_0.csv FastICA/dummy_149.csv'
+    UnorderedCsv    = 'FastICA/dummy_0.csv FastICA/dummy_149.csv'
     output = 'FastICA/dummy.csv'
+    ignore_sign = True
+    rel_err = 0.001
   [../]
   [./LocallyLinearEmbedding]
     type    = 'RavenFramework'
@@ -61,11 +67,13 @@
     csv     = 'LocallyLinearEmbedding/dummy_0.csv LocallyLinearEmbedding/dummy_149.csv'
     output  = 'LocallyLinearEmbedding/dummy.csv'
     rel_err = 0.001
+    max_time = 600
   [../]
   [./MultiDimensionalScaling]
     type   = 'RavenFramework'
     input  = 'test_tdmSKLearnMultiDimensionalScaling.xml'
     csv    = 'MultiDimensionalScaling/dummy_0.csv MultiDimensionalScaling/dummy_74.csv'
     output = 'MultiDimensionalScaling/dummy.csv'
+    skip = 'Unrealistic resource usage and timeout in Windows'
   [../]
 []

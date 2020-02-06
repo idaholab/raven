@@ -7,7 +7,7 @@
     <classesTested>Models.PostProcessors.LimitSurface, Models.PostProcessors.LimitSurfaceIntegral</classesTested>
     <description>
        This test is aimed to check the capability of RAVEN to generate Limit Surfaces from a pre-generated data set (in this case, generated with
-       a MonteCarlo sampling). In addition, this test is aimed to check the capability of RAVEN to compute the integral of the Limit Surface (e.g. 
+       a MonteCarlo sampling). In addition, this test is aimed to check the capability of RAVEN to compute the integral of the Limit Surface (e.g.
        Failure probability) both probability-weighted and not.
     </description>
     <revisions>
@@ -20,8 +20,12 @@
       <revision author="alfoa" date="2017-12-14">
           Moved LimitSurface Postprocessor tests in a specific directory (tests/framework/PostProcessors/LimitSurface) and updated for new DataObject structure
       </revision>
+      <revision author="alfoa" date="2018-09-20">This test is now a requirement test.</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
+    <requirements>R-RA-7</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>limitSurface_integral</WorkingDir>
     <Sequence>FirstMRun,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted,ComputeLimitSurfaceIntegralUnWeighted</Sequence>
@@ -52,10 +56,10 @@
       <target>goalFunctionForLimitSurface</target>
       <outputName>EventProbability</outputName>
       <variable name="x0">
-        <distribution>x0_distrib</distribution>
+        <distribution class="Distributions" type="Normal">x0_distrib</distribution>
       </variable>
       <variable name="y0">
-        <distribution>y0_distrib</distribution>
+        <distribution class="Distributions" type="Normal">y0_distrib</distribution>
       </variable>
     </PostProcessor>
     <PostProcessor name="LimitSurfaceIntegralUnWeightedWithBounds" subType="LimitSurfaceIntegral">
@@ -84,8 +88,9 @@
   </Models>
 
   <Functions>
-    <External file="limitSurface_integral/goalFunctionTest" name="goalFunctionForLimitSurface">
-      <variable>z</variable>
+    <!--External file="limitSurface_integral/goalFunctionTest" name="goalFunctionForLimitSurface"-->
+    <External file="goalFunctionTest" name="goalFunctionForLimitSurface">
+      <variables>z</variables>
     </External>
   </Functions>
 
@@ -108,11 +113,11 @@
     <Grid name="Grid_external">
       <variable name="x0">
         <distribution>x0_distrib</distribution>
-        <grid construction='equal' steps='10' type='CDF'>0.1 0.9</grid>
+        <grid construction="equal" steps="10" type="CDF">0.1 0.9</grid>
       </variable>
       <variable name="y0">
         <distribution>y0_distrib</distribution>
-        <grid construction='equal' steps='10' type='CDF'>0.1 0.9</grid>
+        <grid construction="equal" steps="10" type="CDF">0.1 0.9</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -136,14 +141,20 @@
       <Model class="Models" type="PostProcessor">LimitSurfaceIntegralWeighted</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfaceWeightedPb</Output>
       <Output class="OutStreams" type="Print">LimitSurfaceWeightedPb_dump</Output>
-      <!-- NOT ALLOWED ANYMORE: <Output class="Files" type="">LimitSurfaceWeightedPb_FileObj.csv</Output> -->
+      <!--
+         NOT ALLOWED ANYMORE:
+        <Output class="Files" type="">LimitSurfaceWeightedPb_FileObj.csv</Output>
+      -->
     </PostProcess>
     <PostProcess name="ComputeLimitSurfaceIntegralUnWeighted">
       <Input class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Input>
       <Model class="Models" type="PostProcessor">LimitSurfaceIntegralUnWeightedWithBounds</Model>
       <Output class="DataObjects" type="PointSet">LimitSurfaceUnWeightedPb</Output>
       <Output class="OutStreams" type="Print">LimitSurfaceUnWeightedPb_dump</Output>
-      <!-- NOT ALLOWED ANYMORE: <Output class="Files" type="">LimitSurfaceUnWeightedPb_FileObj.csv</Output> -->
+      <!--
+         NOT ALLOWED ANYMORE:
+        <Output class="Files" type="">LimitSurfaceUnWeightedPb_FileObj.csv</Output>
+      -->
     </PostProcess>
   </Steps>
 

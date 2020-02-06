@@ -33,7 +33,6 @@
       <clargs arg="-i" extension=".one" type="input"/>
       <fileargs arg="aux" extension=".two" type="input"/>
       <fileargs arg="output" type="output"/>
-      <prepend>python</prepend>
     </Code>
   </Models>
 

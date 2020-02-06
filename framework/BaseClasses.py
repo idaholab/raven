@@ -16,17 +16,14 @@ Created on Mar 16, 2013
 @author: crisr
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import inspect
 import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
+from utils import utils, InputData, InputTypes, mathUtils
 import MessageHandler
-from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class BaseType(MessageHandler.MessageUser):
@@ -44,7 +41,7 @@ class BaseType(MessageHandler.MessageUser):
         specifying input of cls.
     """
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.RavenBase)
-    inputSpecification.addParam("name", InputData.StringType, True)
+    inputSpecification.addParam("name", InputTypes.StringType, True, descr='User-defined name to designate this entity.')
 
     return inputSpecification
 
@@ -59,6 +56,7 @@ class BaseType(MessageHandler.MessageUser):
     self.messageHandler   = None                                                        # message handling object
     self.variableGroups   = {}                                                          # the variables this class needs to be aware of
     self.metadataKeys     = set()                                                       # list of registered metadata keys to expect from this entity
+    self.metadataParams   = {}                                                          # dictionary of registered metadata keys with repect to their indexes
     self.mods             = utils.returnImportModuleString(inspect.getmodule(BaseType)) #list of modules this class depends on (needed for automatic parallel python)
     for baseClass in self.__class__.__mro__:
       self.mods.extend(utils.returnImportModuleString(inspect.getmodule(baseClass),True))
@@ -248,16 +246,19 @@ class BaseType(MessageHandler.MessageUser):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, set(str), expected keys (empty if none)
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and indexes/dimensions corresponding to expected keys
     """
-    return self.metadataKeys
+    return self.metadataKeys, self.metadataParams
 
-  def addMetaKeys(self,*args):
+  def addMetaKeys(self,args, params={}):
     """
       Adds keywords to a list of expected metadata keys.
       @ In, args, list(str), keywords to register
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
-    if any(not utils.isString(a) for a in args):
+    if any(not mathUtils.isAString(a) for a in args):
       self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
     self.metadataKeys = self.metadataKeys.union(set(args))
+    self.metadataParams.update(params)

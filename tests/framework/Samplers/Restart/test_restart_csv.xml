@@ -6,7 +6,7 @@
     <batchSize>1</batchSize>
   </RunInfo>
   <TestInfo>
-    <name>framework/Samplers/Restart/CSV</name>
+    <name>framework/Samplers/Restart.CSV</name>
     <author>talbpaul</author>
     <created>2015-07-27</created>
     <classesTested>Files</classesTested>
@@ -15,6 +15,10 @@
       from an earlier step.  As with the other restart tests, in output data objects samples from "course" have an
       output of 1, while samples from "fine" have an output of 2.
     </description>
+    <revisions>
+        <revision author="alfoa" date="2018-10-01">This Test is now a requirement test.</revision>
+    </revisions>
+    <requirements>R-F-4</requirements>
   </TestInfo>
 
   <Files>

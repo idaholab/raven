@@ -16,9 +16,6 @@ Created on July 10, 2013
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 import copy
@@ -28,8 +25,8 @@ import xarray as xr
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import utils
-from utils import InputData
+from utils import utils, mathUtils
+from utils import InputData, InputTypes
 import Files
 import unSupervisedLearning
 import Runners
@@ -55,112 +52,112 @@ class DataMining(PostProcessor):
     ## This will replace the lines above
     inputSpecification = super(DataMining, cls).getInputSpecification()
 
-    preProcessorInput = InputData.parameterInputFactory("PreProcessor", contentType=InputData.StringType)
-    preProcessorInput.addParam("class", InputData.StringType)
-    preProcessorInput.addParam("type", InputData.StringType)
+    preProcessorInput = InputData.parameterInputFactory("PreProcessor", contentType=InputTypes.StringType)
+    preProcessorInput.addParam("class", InputTypes.StringType)
+    preProcessorInput.addParam("type", InputTypes.StringType)
 
-    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
 
     inputSpecification.addSub(pivotParameterInput)
 
-    dataObjectInput = InputData.parameterInputFactory("DataObject", contentType=InputData.StringType)
-    dataObjectInput.addParam("class", InputData.StringType)
-    dataObjectInput.addParam("type", InputData.StringType)
+    dataObjectInput = InputData.parameterInputFactory("DataObject", contentType=InputTypes.StringType)
+    dataObjectInput.addParam("class", InputTypes.StringType)
+    dataObjectInput.addParam("type", InputTypes.StringType)
 
     inputSpecification.addSub(dataObjectInput)
 
-    metricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
-    metricInput.addParam("class", InputData.StringType)
-    metricInput.addParam("type", InputData.StringType)
+    metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
+    metricInput.addParam("class", InputTypes.StringType)
+    metricInput.addParam("type", InputTypes.StringType)
 
     inputSpecification.addSub(metricInput)
 
     kddInput = InputData.parameterInputFactory("KDD")
-    kddInput.addParam("lib", InputData.StringType)
-    kddInput.addParam("labelFeature", InputData.StringType)
+    kddInput.addParam("lib", InputTypes.StringType)
+    kddInput.addParam("labelFeature", InputTypes.StringType)
 
 
-    sklTypeInput = InputData.parameterInputFactory("SKLtype", contentType=InputData.StringType)
+    sklTypeInput = InputData.parameterInputFactory("SKLtype", contentType=InputTypes.StringType)
     kddInput.addSub(sklTypeInput)
-    sciPyTypeInput = InputData.parameterInputFactory("SCIPYtype", contentType=InputData.StringType)
+    sciPyTypeInput = InputData.parameterInputFactory("SCIPYtype", contentType=InputTypes.StringType)
     kddInput.addSub(sciPyTypeInput)
 
-    for name, inputType in [("interactive",InputData.StringType),
-                            ("Features",InputData.StringType),
-                            ("n_components",InputData.StringType),
-                            ("covariance_type",InputData.StringType),
-                            ("random_state",InputData.StringType),
-                            ("min_covar",InputData.FloatType),
-                            ("thresh",InputData.FloatType),
-                            ("n_iter",InputData.IntegerType),
-                            ("n_init",InputData.IntegerType),
-                            ("params",InputData.StringType),
-                            ("init_params",InputData.StringType),
-                            ("alpha",InputData.FloatType),
-                            ("n_clusters",InputData.IntegerType),
-                            ("max_iter",InputData.IntegerType),
-                            ("init",InputData.StringType),
-                            ("precompute_distances",InputData.StringType),
-                            ("tol",InputData.FloatType),
-                            ("n_jobs",InputData.IntegerType),
-                            ("max_no_improvement",InputData.IntegerType),
-                            ("batch_size",InputData.IntegerType),
-                            ("compute_labels",InputData.StringType),
-                            ("reassignment_ratio",InputData.FloatType),
-                            ("damping",InputData.StringType),
-                            ("convergence_iter",InputData.IntegerType),
-                            ("copy",InputData.StringType),
-                            ("preference",InputData.StringType),
-                            ("affinity",InputData.StringType),
-                            ("verbose",InputData.StringType),
-                            ("bandwidth",InputData.FloatType),
-                            ("seeds",InputData.StringType),
-                            ("bin_seeding",InputData.StringType),
-                            ("min_bin_freq",InputData.IntegerType),
-                            ("cluster_all",InputData.StringType),
-                            ("gamma",InputData.FloatType),
-                            ("degree",InputData.StringType),
-                            ("coef0",InputData.FloatType),
-                            ("n_neighbors",InputData.IntegerType),
-                            ("eigen_solver",InputData.StringType),
-                            ("eigen_tol",InputData.FloatType),
-                            ("assign_labels",InputData.StringType),
-                            ("kernel_params",InputData.StringType),
-                            ("eps",InputData.StringType),
-                            ("min_samples",InputData.IntegerType),
-                            ("metric", InputData.StringType),
-                            ("connectivity",InputData.StringType),
-                            ("linkage",InputData.StringType),
-                            ("whiten",InputData.StringType),
-                            ("iterated_power",InputData.StringType),
-                            ("kernel",InputData.StringType),
-                            ("fit_inverse_transform",InputData.StringType),
-                            ("remove_zero_eig",InputData.StringType),
-                            ("ridge_alpha",InputData.FloatType),
-                            ("method",InputData.StringType),
-                            ("U_init",InputData.StringType),
-                            ("V_init",InputData.StringType),
-                            ("callback",InputData.StringType),
-                            ("shuffle",InputData.StringType),
-                            ("algorithm",InputData.StringType),
-                            ("fun",InputData.StringType),
-                            ("fun_args",InputData.StringType),
-                            ("w_init",InputData.StringType),
-                            ("path_method",InputData.StringType),
-                            ("neighbors_algorithm",InputData.StringType),
-                            ("reg",InputData.FloatType),
-                            ("hessian_tol",InputData.FloatType),
-                            ("modified_tol",InputData.FloatType),
-                            ("dissimilarity",InputData.StringType),
-                            ("level",InputData.StringType),
-                            ("criterion",InputData.StringType),
-                            ("dendrogram",InputData.StringType),
-                            ("truncationMode",InputData.StringType),
-                            ("p",InputData.IntegerType),
-                            ("leafCounts",InputData.StringType),
-                            ("showContracted",InputData.StringType),
-                            ("annotatedAbove",InputData.FloatType),
-                            ("dendFileID",InputData.StringType)]:
+    for name, inputType in [("interactive",InputTypes.StringType),
+                            ("Features",InputTypes.StringType),
+                            ("n_components",InputTypes.StringType),
+                            ("covariance_type",InputTypes.StringType),
+                            ("random_state",InputTypes.StringType),
+                            ("min_covar",InputTypes.FloatType),
+                            ("thresh",InputTypes.FloatType),
+                            ("n_iter",InputTypes.IntegerType),
+                            ("n_init",InputTypes.IntegerType),
+                            ("params",InputTypes.StringType),
+                            ("init_params",InputTypes.StringType),
+                            ("alpha",InputTypes.FloatType),
+                            ("n_clusters",InputTypes.IntegerType),
+                            ("max_iter",InputTypes.IntegerType),
+                            ("init",InputTypes.StringType),
+                            ("precompute_distances",InputTypes.StringType),
+                            ("tol",InputTypes.FloatType),
+                            ("n_jobs",InputTypes.IntegerType),
+                            ("max_no_improvement",InputTypes.IntegerType),
+                            ("batch_size",InputTypes.IntegerType),
+                            ("compute_labels",InputTypes.StringType),
+                            ("reassignment_ratio",InputTypes.FloatType),
+                            ("damping",InputTypes.StringType),
+                            ("convergence_iter",InputTypes.IntegerType),
+                            ("copy",InputTypes.StringType),
+                            ("preference",InputTypes.StringType),
+                            ("affinity",InputTypes.StringType),
+                            ("verbose",InputTypes.StringType),
+                            ("bandwidth",InputTypes.FloatType),
+                            ("seeds",InputTypes.StringType),
+                            ("bin_seeding",InputTypes.StringType),
+                            ("min_bin_freq",InputTypes.IntegerType),
+                            ("cluster_all",InputTypes.StringType),
+                            ("gamma",InputTypes.FloatType),
+                            ("degree",InputTypes.StringType),
+                            ("coef0",InputTypes.FloatType),
+                            ("n_neighbors",InputTypes.IntegerType),
+                            ("eigen_solver",InputTypes.StringType),
+                            ("eigen_tol",InputTypes.FloatType),
+                            ("assign_labels",InputTypes.StringType),
+                            ("kernel_params",InputTypes.StringType),
+                            ("eps",InputTypes.StringType),
+                            ("min_samples",InputTypes.IntegerType),
+                            ("metric", InputTypes.StringType),
+                            ("connectivity",InputTypes.StringType),
+                            ("linkage",InputTypes.StringType),
+                            ("whiten",InputTypes.StringType),
+                            ("iterated_power",InputTypes.StringType),
+                            ("kernel",InputTypes.StringType),
+                            ("fit_inverse_transform",InputTypes.StringType),
+                            ("remove_zero_eig",InputTypes.StringType),
+                            ("ridge_alpha",InputTypes.FloatType),
+                            ("method",InputTypes.StringType),
+                            ("U_init",InputTypes.StringType),
+                            ("V_init",InputTypes.StringType),
+                            ("callback",InputTypes.StringType),
+                            ("shuffle",InputTypes.StringType),
+                            ("algorithm",InputTypes.StringType),
+                            ("fun",InputTypes.StringType),
+                            ("fun_args",InputTypes.StringType),
+                            ("w_init",InputTypes.StringType),
+                            ("path_method",InputTypes.StringType),
+                            ("neighbors_algorithm",InputTypes.StringType),
+                            ("reg",InputTypes.FloatType),
+                            ("hessian_tol",InputTypes.FloatType),
+                            ("modified_tol",InputTypes.FloatType),
+                            ("dissimilarity",InputTypes.StringType),
+                            ("level",InputTypes.StringType),
+                            ("criterion",InputTypes.StringType),
+                            ("dendrogram",InputTypes.StringType),
+                            ("truncationMode",InputTypes.StringType),
+                            ("p",InputTypes.IntegerType),
+                            ("leafCounts",InputTypes.StringType),
+                            ("showContracted",InputTypes.StringType),
+                            ("annotatedAbove",InputTypes.FloatType),
+                            ("dendFileID",InputTypes.StringType)]:
       dataType = InputData.parameterInputFactory(name, contentType=inputType)
       kddInput.addSub(dataType)
 
@@ -360,15 +357,16 @@ class DataMining(PostProcessor):
     else:
       currentInput = currentInp
 
-    if currentInput.type == 'HistorySet':
-      return self.inputToInternalForHistorySet(currentInput)
+    if hasattr(currentInput, 'type'):
+      if currentInput.type == 'HistorySet':
+        return self.inputToInternalForHistorySet(currentInput)
 
-    elif currentInput.type == 'PointSet':
-      return self.inputToInternalForPointSet(currentInput)
+      elif currentInput.type == 'PointSet':
+        return self.inputToInternalForPointSet(currentInput)
 
     elif type(currentInp) == dict:
       if 'Features' in currentInput.keys():
-        return
+        return currentInput
 
     elif isinstance(currentInp, Files.File):
       self.raiseAnError(IOError, 'DataMining PP: this PP does not support files as input.')
@@ -471,6 +469,10 @@ class DataMining(PostProcessor):
       @ InOut, outputObject, dataObjects, A reference to an object where we want
         to place our computed results
     """
+    if len(outputObject) !=0:
+      self.raiseAnError(IOError,"There is some information already stored in the DataObject",outputObject.name, \
+              "the calculations from PostProcessor",self.name, " can not be stored in this DataObject!", \
+              "Please provide a new empty DataObject for this PostProcessor!")
     ## When does this actually happen?
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
@@ -481,64 +483,45 @@ class DataMining(PostProcessor):
     inputObject = inputObject[0]
     ## Store everything we cannot wrangle from the input data object and the
     ## result of the dataMineDict
-    missingKeys = []
+    ## We will explicitly copy everything from the input data object to the output data object.
     ############################################################################
-    ## If the input data object is different from the output data object, we
-    ## need to explicitly copy everything over that the user requests from the
-    ## input object
-    if inputObject != outputObject:
-      if inputObject.type != outputObject.type:
-        self.raiseAnError(IOError, 'The type of output data object ', outputObject.name, ' is not consistent with the type of input data object ', self.inputObject, '! Please check your input file')
-      rlzs = {}
-      inputData = inputObject.asDataset()
-      ## First copy any data you need from the input object
-      ## before adding new data
-      for key in outputObject.getVars('Input')+outputObject.getVars('Output'):
-        if key in inputObject.getVars('Input') + inputObject.getVars('Output'):
-          rlzs[key] = copy.deepcopy(inputObject.getVarValues(key).values)
-        else:
-          missingKeys.append(key)
-      if outputObject.type == 'PointSet':
-        outputObject.load(rlzs, style='dict')
-      elif outputObject.type == 'HistorySet':
-        rlzs[self.pivotParameter] = np.atleast_1d(self.pivotVariable)
-        outputObject.load(rlzs, style='dict', dims=inputObject.getDimensions())
-      else:
-        self.raiseAnError(IOError, 'Unrecognized type for output data object ', outputObject.name, '! Available type are HistorySet or PointSet!')
-    ## End data copy
-    ############################################################################
+    if inputObject.type != outputObject.type:
+      self.raiseAnError(IOError,"The type of output DataObject",outputObject.name,"is not consistent with input",\
+              "DataObject type, i.e. ",outputObject.type,"!=",inputObject.type)
+    rlzs = {}
+    # first create a new dataset from copying input data object
+    dataset = inputObject.asDataset().copy(deep=True)
+    sampleTag = inputObject.sampleTag
+    sampleCoord = dataset[sampleTag].values
+    availVars = dataset.data_vars.keys()
+    # update variable values if the values in the dataset are different from the values in the dataMineDict
+    # dataMineDict stores all the information generated by the datamining algorithm
+    if outputObject.type == 'PointSet':
+      for key,value in dataMineDict['outputs'].items():
+        if key in availVars and not np.array_equal(value,dataset[key].values):
+          newDA = xr.DataArray(value,dims=(sampleTag),coords={sampleTag:sampleCoord})
+          dataset = dataset.drop(key)
+          dataset[key] = newDA
+        elif key not in availVars:
+          newDA = xr.DataArray(value,dims=(sampleTag),coords={sampleTag:sampleCoord})
+          dataset[key] = newDA
+    elif outputObject.type == 'HistorySet':
+      for key,values in dataMineDict['outputs'].items():
+        if key not in availVars:
+          expDict = {}
+          for index, value in enumerate(values):
+            timeLength = len(self.pivotVariable[index])
+            arrayBase = value * np.ones(timeLength)
+            xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter), coords=[self.pivotVariable[index]])
+            expDict[sampleCoord[index]] = xrArray
+          ds = xr.Dataset(data_vars=expDict)
+          ds = ds.to_array().rename({'variable':sampleTag})
+          dataset[key] = ds
+    else:
+      self.raiseAnError(IOError, 'Unrecognized type for output data object ', outputObject.name, \
+              '! Available type are HistorySet or PointSet!')
 
-    ############################################################################
-    ## Now augment the DataObject by adding the computed labels and/or
-    ## transformed coordinates aka the new columns added to the DataObject
-    for key in dataMineDict['outputs']:
-      if key in missingKeys:
-        missingKeys.remove(key)
-      for param in outputObject.getVars('output'):
-        if key == param:
-          outputObject.remove(variable=key)
-      if outputObject.type == 'PointSet':
-        outputObject.addVariable(key, copy.copy(dataMineDict['outputs'][key]),classify='output')
-      elif outputObject.type == 'HistorySet':
-        expValues = np.zeros(len(outputObject), dtype=object)
-        values = dataMineDict['outputs'][key]
-        for index, value in enumerate(values):
-          timeLength = len(self.pivotVariable[index])
-          arrayBase = value * np.ones(timeLength)
-          xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter), coords=[self.pivotVariable[index]])
-          expValues[index] = xrArray
-        outputObject.addVariable(key, expValues,classify='output')
-    ## End data augmentation
-    ############################################################################
-
-    if len(missingKeys) > 0:
-      missingKeys = ','.join(missingKeys)
-      self.raiseAWarning("The {} \"{}\" used as an output specifies the "
-                           "following inputs/outputs that could not be resolved "
-                           "by the \"{}\" {}: {}".format(outputObject.type,
-                                                         outputObject.name,
-                                                         self.name, "Model",
-                                                         missingKeys))
+    outputObject.load(dataset,style='dataset')
 
   def run(self, inputIn):
     """
@@ -552,7 +535,7 @@ class DataMining(PostProcessor):
       currentInput = inputIn[-1]
     else:
       currentInput = inputIn
-    if currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None:
+    if hasattr(currentInput, 'type') and currentInput.type == 'HistorySet' and self.PreProcessor is None and self.metric is None:
       return self.__runTemporalSciKitLearn(Input)
     else:
       return self.__runSciKitLearn(Input)
@@ -566,6 +549,33 @@ class DataMining(PostProcessor):
     """
     pass
 
+  def updateFeatures(self, features):
+    """
+      Change the Features that this classifier targets.
+      @ In, features, list(str), list of new features
+      @ Out, None
+    """
+    self.unSupervisedEngine.updateFeatures(features)
+
+  def __adjustFeatures(self, features):
+    """
+      If the features are the output, then they need to be listed
+      @ In, features, dict, dictionary of the features
+      @ Out, None
+    """
+    if self.unSupervisedEngine.features == ['output']:
+      self.unSupervisedEngine.features = sorted(features)
+    assert set(self.unSupervisedEngine.features) == set(features)
+
+  def __regulateLabels(self, originalLabels):
+    """
+      Regulates the labels such that the first one to appear is 0, second one is 1, and so on.
+      @ In, originalLabels, list(int), the original labeling system
+      @ Out, labels, list(int), fixed up labels
+    """
+    # this functionality relocated to serve more entities
+    return mathUtils.orderClusterLabels(originalLabels)
+
   def __runSciKitLearn(self, Input):
     """
       This method executes the postprocessor action. In this case it loads the
@@ -573,7 +583,7 @@ class DataMining(PostProcessor):
       @ In, Input, dict, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    self.unSupervisedEngine.features = Input['Features']
+    self.__adjustFeatures(Input['Features'])
     if not self.unSupervisedEngine.amITrained:
       metric = None
       if self.metric is not None:
@@ -586,7 +596,8 @@ class DataMining(PostProcessor):
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
     ## Rename the algorithm output to point to the user-defined label feature
     if 'labels' in outputDict['outputs']:
-      outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
+      labels = self.__regulateLabels(outputDict['outputs'].pop('labels'))
+      outputDict['outputs'][self.labelFeature] = labels #outputDict['outputs'].pop('labels')
     elif 'embeddingVectors' in outputDict['outputs']:
       transformedData = outputDict['outputs'].pop('embeddingVectors')
       reducedDimensionality = transformedData.shape[1]
@@ -606,7 +617,7 @@ class DataMining(PostProcessor):
           rlzs = {}
           if self.PreProcessor is None:
             rlzs[self.labelFeature] = np.atleast_1d(indices)
-            for i, key in enumerate(self.unSupervisedEngine.features.keys()):
+            for i, key in enumerate(self.unSupervisedEngine.features):
               ## FIXME: Can I be sure of the order of dimensions in the features dict, is
               ## the same order as the data held in the UnSupervisedLearning object?
               rlzs[key] = np.atleast_1d(centers[:,i])
@@ -651,7 +662,7 @@ class DataMining(PostProcessor):
         rlzs = {}
         additionalOutput = {}
         rlzs[self.labelFeature] = np.atleast_1d(indices)
-        for i, key in enumerate(self.unSupervisedEngine.features.keys()):
+        for i, key in enumerate(self.unSupervisedEngine.features):
           ## Can I be sure of the order of dimensions in the features dict, is
           ## the same order as the data held in the UnSupervisedLearning
           ## object?
@@ -659,7 +670,7 @@ class DataMining(PostProcessor):
           ##FIXME: You may also want to output the covariances of each pair of
           ## dimensions as well, this is currently only accessible from the solution export metadata
           ## We should list the variables name the solution export in order to access this data
-          for joffset,col in enumerate(list(self.unSupervisedEngine.features.keys())[i:]):
+          for joffset,col in enumerate(list(self.unSupervisedEngine.features)[i:]):
             j = i+joffset
             covValues = mixtureCovars[:,i,j]
             covName = 'cov_'+str(key)+'_'+str(col)
@@ -679,7 +690,7 @@ class DataMining(PostProcessor):
           components = solutionExportDict['components']
           indices = list(range(1, len(components)+1))
           rlzs[self.labelFeature] = np.atleast_1d(indices)
-          for keyIndex, key in enumerate(self.unSupervisedEngine.features.keys()):
+          for keyIndex, key in enumerate(self.unSupervisedEngine.features):
             rlzs[key] = np.atleast_1d(components[:,keyIndex])
         self.solutionExport.load(rlzs, style='dict')
         # FIXME: I think the user need to specify the following word in the solution export data object
@@ -714,15 +725,6 @@ class DataMining(PostProcessor):
       self.raiseAnError(RuntimeError, 'Bicluster has not yet been implemented.')
 
     ## Rename the algorithm output to point to the user-defined label feature
-    # if 'labels' in outputDict:
-    #   outputDict['outputs'][self.labelFeature] = outputDict['outputs'].pop('labels')
-    # elif 'embeddingVectors' in outputDict['outputs']:
-    #   transformedData = outputDict['outputs'].pop('embeddingVectors')
-    #   reducedDimensionality = transformedData.shape[1]
-
-    #   for i in range(reducedDimensionality):
-    #     newColumnName = self.labelFeature + str(i + 1)
-    #     outputDict['outputs'][newColumnName] =  transformedData[:, i]
 
     if 'labels' in self.unSupervisedEngine.outputDict['outputs'].keys():
       labels = np.zeros(shape=(numberOfSample,numberOfHistoryStep))
@@ -904,7 +906,15 @@ class DataMining(PostProcessor):
 
 try:
   import PySide.QtCore as qtc
+  __QtAvailable = True
+except ImportError as e:
+  try:
+    import PySide2.QtCore as qtc
+    __QtAvailable = True
+  except ImportError as e:
+    __QtAvailable = False
 
+if __QtAvailable:
   class QDataMining(DataMining,qtc.QObject):
     """
       DataMining class - Computes a hierarchical clustering from an input point
@@ -980,7 +990,7 @@ try:
 
         ## Give this UI a unique id in case other threads are requesting UI
         ##  elements
-        uiID = unicode(id(self))
+        uiID = str(id(self))
 
         ## Send the request for a UI thread to the main application
         self.requestUI.emit('HierarchyWindow', uiID,
@@ -1007,7 +1017,5 @@ try:
             until the correct one has signaled it is done.
         @Out, None
       """
-      if uiID == unicode(id(self)):
+      if uiID == str(id(self)):
         self.uiDone = True
-except ImportError as e:
-  pass

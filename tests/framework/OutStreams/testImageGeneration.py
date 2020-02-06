@@ -60,7 +60,17 @@ inputFile = 'imageGeneration_png.xml'
 testImage = os.path.join('plot','1-test_scatter.png')
 goldImage = os.path.join('gold',testImage)
 
-retCode = subprocess.call(['python','../../../framework/Driver.py',inputFile])
+if sys.version_info.major > 2:
+  if os.name == "nt":
+    #Command is python on windows in conda and Python.org install
+    pythonName = "python"
+  else:
+    pythonName = "python3"
+else:
+  pythonName = "python2"
+pythonName = os.environ.get("PYTHON_COMMAND", pythonName)
+
+retCode = subprocess.call([pythonName,'../../../framework/Driver.py',inputFile])
 
 if retCode == 0:
   proc = subprocess.Popen(['compare', '-metric', differenceMetric, '-fuzz',fuzzAmount, testImage,goldImage,'null:'],stderr=subprocess.PIPE)

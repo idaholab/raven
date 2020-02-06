@@ -3,8 +3,6 @@ Created on September 1st, 2017
 @author: rouxpn
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 import os
 from decimal import Decimal
 import xml.etree.ElementTree as ET
@@ -88,12 +86,12 @@ class XSCreator():
           for tab,value in zip(tabList,valueList):
             tabChild = SubElement(topChild, 'tab', {'name':tab})
             tabChild.text = value
-        for material in self.listedDict.get('XS').get(tabulation).iterkeys():
+        for material in self.listedDict.get('XS').get(tabulation).keys():
           tabulationChild = SubElement(topChild, 'library', {'lib_name':material})
-          for isotope in self.listedDict.get('XS').get(tabulation).get(material).iterkeys():
-            for typeOfXs in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).iterkeys():
+          for isotope in self.listedDict.get('XS').get(tabulation).get(material).keys():
+            for typeOfXs in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).keys():
               libraryChild = SubElement(tabulationChild, 'isotope', {'id':isotope, 'type':typeOfXs.lower()})
-              for reaction in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).iterkeys():
+              for reaction in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).keys():
                 #groupList = []
                 #valueList = []
                 for count,(group,value) in enumerate(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).items()):

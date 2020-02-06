@@ -3,8 +3,6 @@ Created on July 25th, 2017
 @author: rouxpn
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 import os
 import re
 import csv
@@ -1011,8 +1009,8 @@ class phisicsdata():
         with open(csvOutput, 'a+') as f:
           instantWriter = csv.writer(
               f,
-              delimiter=str(u',').encode('utf-8'),
-              quotechar=str(u',').encode('utf-8'),
+              delimiter=str(','),
+              quotechar=str(','),
               quoting=csv.QUOTE_MINIMAL)
           if timeStepIndex == 0:
             instantWriter.writerow(
@@ -1033,8 +1031,8 @@ class phisicsdata():
         with open(csvOutput, 'a+') as f:
           instantWriter = csv.writer(
               f,
-              delimiter=str(u',').encode('utf-8'),
-              quotechar=str(u',').encode('utf-8'),
+              delimiter=str(','),
+              quotechar=str(','),
               quoting=csv.QUOTE_MINIMAL)
           if timeStepIndex == 0:
             instantWriter.writerow(

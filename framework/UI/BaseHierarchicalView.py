@@ -18,12 +18,14 @@
 
 #For future compatibility with Python 3
 from __future__ import division, print_function, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3
+try:
+  from PySide.QtCore import QSize
+  from PySide.QtGui import QWidget
+except ImportError as e:
+  from PySide2.QtCore import QSize
+  from PySide2.QtWidgets import QWidget
 
-from PySide.QtCore import QSize
-from PySide.QtGui import QWidget
 
 from .ZoomableGraphicsView import ZoomableGraphicsView
 

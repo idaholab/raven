@@ -18,8 +18,6 @@ Created on Feb. 16 2018
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -32,7 +30,7 @@ import scipy.spatial.distance as spatialDistance
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
-from utils import utils, InputData
+from utils import utils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ScipyMetric(Metric):
@@ -68,9 +66,9 @@ class ScipyMetric(Metric):
         specifying input of cls.
     """
     inputSpecification = super(ScipyMetric, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("metricType",contentType=InputData.StringType),quantity=InputData.Quantity.one)
-    inputSpecification.addSub(InputData.parameterInputFactory("w",contentType=InputData.FloatListType),quantity=InputData.Quantity.zero_to_one)
-    inputSpecification.addSub(InputData.parameterInputFactory("p",contentType=InputData.FloatType),quantity=InputData.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("metricType",contentType=InputTypes.StringType),quantity=InputData.Quantity.one)
+    inputSpecification.addSub(InputData.parameterInputFactory("w",contentType=InputTypes.FloatListType),quantity=InputData.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("p",contentType=InputTypes.FloatType),quantity=InputData.Quantity.zero_to_one)
 
     return inputSpecification
 
@@ -117,7 +115,7 @@ class ScipyMetric(Metric):
       @ Out, value, float, metric result
     """
     if isinstance(x,np.ndarray) and isinstance(y,np.ndarray):
-      assert(x.shape == y.shape, "Input data x, y should have the same shape!")
+      assert x.shape == y.shape, "Input data x, y should have the same shape!"
       # TODO: weights are supported in scipy.spatial.distance for many distance metrics in v1.0.0
       # when we switch to scipy 1.0.0, we can enable weights in our metrics calculations
       sv = str(scipy.__version__).split('.')

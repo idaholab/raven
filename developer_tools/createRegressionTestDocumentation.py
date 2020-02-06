@@ -99,10 +99,12 @@ class testDescription(object):
     __testList = []
     filesWithDescription = OrderedDict()
     noDescriptionFiles = []
-    startDir = os.path.join(os.path.dirname(__file__),'../tests')
+    startDir = os.path.join(os.path.dirname(__file__),'../')
     for dirr,_,_ in os.walk(startDir):
       __testInfoList.extend(glob(os.path.join(dirr,"tests")))
     for testInfoFile in __testInfoList:
+      if 'moose' in testInfoFile.split(os.sep) or not os.path.isfile(testInfoFile):
+        continue
       fileObject = open(testInfoFile,"r+")
       fileLines = fileObject.readlines()
       dirName = os.path.dirname(testInfoFile)
@@ -172,7 +174,7 @@ class testDescription(object):
     if createdDateNode is not None: createdDate = createdDateNode.text
     else                          : raise IOError("XML node <created> not found for test "+ fileName)
     if classTestedNode is not None: classTested = classTestedNode.text
-    else                          : raise IOError("XML node <classTested> not found for test "+ fileName)
+    else                          : raise IOError("XML node <classesTested> not found for test "+ fileName)
 
     nameChapter = name.replace("/", " ").replace("_", " ").upper()
     fileLocation = '.'+fileName.replace(self.__userPath,"")
@@ -196,37 +198,38 @@ class testDescription(object):
       analyticalDescription = analyticNode.text.replace("_", "\_")
       latexString += '   \\item This test is analytic:\n'
       latexString += '   \\begin{itemize} \n'
-      latexString += '     \\item ' +analyticalDescription.strip().replace("#","\#")+'\n'
+      latexString += '     \\item ' +str(analyticalDescription).strip().replace("#","\#")+'\n'
       latexString += '   \\end{itemize} \n'
     # author
     latexString += '   \\item Original Author:\n'
     latexString += '   \\begin{itemize} \n'
-    latexString += '     \\item ' +author.strip()+'\n'
+    latexString += '     \\item ' +str(author).strip()+'\n'
     latexString += '   \\end{itemize} \n'
     # createdDate
     latexString += '   \\item Creation date:\n'
     latexString += '   \\begin{itemize} \n'
-    latexString += '     \\item ' +createdDate.strip()+'\n'
+    latexString += '     \\item ' +str(createdDate).strip()+'\n'
     latexString += '   \\end{itemize} \n'
     # classTested
     latexString += '   \\item The classes tested in this test are:\n'
     latexString += '   \\begin{itemize} \n'
-    latexString += '     \\item ' +classTested.strip()+'\n'
+    latexString += '     \\item ' +str(classTested).strip()+'\n'
     latexString += '   \\end{itemize} \n'
-    # is analytical?
+    # is requirement?
     if requirementsNode is not None:
-      requirementDescription = requirementsNode.text
+      requirementDescription = requirementsNode.text.split() if "," not in requirementsNode.text else requirementsNode.text.split(",")
       latexString += '   \\item This test fulfills the following requirement:\n'
       latexString += '   \\begin{itemize} \n'
-      latexString += '     \\item ' +requirementDescription.strip().replace("#","\#")+'\n'
+      for req in requirementDescription:
+        latexString += '     \\item ' +req.strip().replace("#","\#")+'\n'
       latexString += '   \\end{itemize} \n'
     if revisionsNode is not None and len(revisionsNode) > 0:
       latexString += '   \\item Since the creation of this test, the following main revisions have been performed:\n'
       latexString += '   \\begin{enumerate} \n'
       for child in revisionsNode:
         revisionText   = str(child.text).strip().replace("_", "\_").replace("#","\#")
-        revisionAuthor = child.attrib['author'].strip()
-        revisionDate   = child.attrib['date'].strip()
+        revisionAuthor = child.attrib.get('author',"None").strip()
+        revisionDate   = child.attrib.get('date',"None").strip()
         latexString += '     \\item revision info:\n'
         latexString += '       \\begin{itemize} \n'
         latexString += '         \\item author     : ' +revisionAuthor+'\n'
@@ -264,31 +267,34 @@ class testDescription(object):
     tupleOut = verificationDict, analyticalDict, requirementDict
     return tupleOut
 
-  def createLatexFile(self, fileName, documentClass = "article", latexPackages=['']):
+  def createLatexFile(self, fileName, documentClass = "article", latexPackages=[''], bodyOnly=False):
     """
       This method is aimed to create a latex file containing all the information
       found in the described tests
       @ In, fileName, string, filename (absolute path)
+      @ In, documentClass, string, latex class document
+      @ In, latexPackages, list, list of latex packages
+      @ In, bodyOnly, bool, create a full document or just the document body (\begin{document} to \end{document})
       @ Out, None
     """
     fileObject = open(fileName,"w+")
-    fileObject.write(" \\documentclass{"+documentClass+"}\n")
-    for packageLatex in latexPackages: fileObject.write(" \\usepackage{"+packageLatex.strip()+"} \n")
-    fileObject.write(" \\usepackage{hyperref} \n \\usepackage[automark,nouppercase]{scrpage2} \n")
-    fileObject.write(" \\usepackage[obeyspaces,dvipsnames,svgnames,x11names,table,hyperref]{xcolor} \n")
-    fileObject.write(" \\usepackage{times} \n \\usepackage[FIGBOTCAP,normal,bf,tight]{subfigure} \n")
-    fileObject.write(" \\usepackage{amsmath} \n \\usepackage{amssymb} \n")
-    fileObject.write(" \\usepackage{soul} \n \\usepackage{pifont} \n \\usepackage{enumerate} \n")
-    fileObject.write(" \\usepackage{listings}  \n \\usepackage{fullpage} \n \\usepackage{xcolor} \n")
-    fileObject.write(" \\usepackage{ifthen}  \n \\usepackage{textcomp}  \n  \\usepackage{mathtools} \n")
-    fileObject.write(" \\usepackage{relsize}  \n \\usepackage{lscape}  \n \\usepackage[toc,page]{appendix} \n")
-    fileObject.write("\n")
-    fileObject.write(' \\lstdefinestyle{XML} {\n language=XML, \n extendedchars=true, \n breaklines=true, \n breakatwhitespace=true, \n')
-    fileObject.write(' emphstyle=\color{red}, \n basicstyle=\\ttfamily, \n commentstyle=\\color{gray}\\upshape, \n ')
-    fileObject.write(' morestring=[b]", \n morecomment=[s]{<?}{?>}, \n morecomment=[s][\color{forestgreen}]{<!--}{-->},')
-    fileObject.write(' keywordstyle=\\color{cyan}, \n stringstyle=\\ttfamily\color{black}, tagstyle=\color{blue}\\bf \\ttfamily \n }')
-
-    fileObject.write(" \\title{RAVEN regression tests' description}\n")
+    if not bodyOnly:
+      fileObject.write(" \\documentclass{"+documentClass+"}\n")
+      for packageLatex in latexPackages: fileObject.write(" \\usepackage{"+packageLatex.strip()+"} \n")
+      fileObject.write(" \\usepackage{hyperref} \n \\usepackage[automark,nouppercase]{scrpage2} \n")
+      fileObject.write(" \\usepackage[obeyspaces,dvipsnames,svgnames,x11names,table,hyperref]{xcolor} \n")
+      fileObject.write(" \\usepackage{times} \n \\usepackage[FIGBOTCAP,normal,bf,tight]{subfigure} \n")
+      fileObject.write(" \\usepackage{amsmath} \n \\usepackage{amssymb} \n")
+      fileObject.write(" \\usepackage{soul} \n \\usepackage{pifont} \n \\usepackage{enumerate} \n")
+      fileObject.write(" \\usepackage{listings}  \n \\usepackage{fullpage} \n \\usepackage{xcolor} \n")
+      fileObject.write(" \\usepackage{ifthen}  \n \\usepackage{textcomp}  \n  \\usepackage{mathtools} \n")
+      fileObject.write(" \\usepackage{relsize}  \n \\usepackage{lscape}  \n \\usepackage[toc,page]{appendix} \n")
+      fileObject.write("\n")
+      fileObject.write(' \\lstdefinestyle{XML} {\n language=XML, \n extendedchars=true, \n breaklines=true, \n breakatwhitespace=true, \n')
+      fileObject.write(' emphstyle=\color{red}, \n basicstyle=\\ttfamily, \n commentstyle=\\color{gray}\\upshape, \n ')
+      fileObject.write(' morestring=[b]", \n morecomment=[s]{<?}{?>}, \n morecomment=[s][\color{forestgreen}]{<!--}{-->},')
+      fileObject.write(' keywordstyle=\\color{cyan}, \n stringstyle=\\ttfamily\color{black}, tagstyle=\color{blue}\\bf \\ttfamily \n }')
+      fileObject.write(" \\title{RAVEN regression tests' description}\n")
     fileObject.write(" \\begin{document} \n \\maketitle \n")
     # Introduction
     fileObject.write(" \\section{Introduction} \n")
@@ -412,7 +418,7 @@ if __name__ == '__main__':
   print("\n% of tests that got commented is : "+str(descriptionClass.getDescriptionCoverage())+" %")
   print("\nFolders that contain undocumented tests are:\n")
   for folderName in descriptionClass.getFoldersOfUndocumentedTests(): print(folderName)
-  descriptionClass.createLatexFile("regression_tests_documentation.tex")
+  descriptionClass.createLatexFile("regression_tests_documentation_body.tex",bodyOnly=True)
 
 
 

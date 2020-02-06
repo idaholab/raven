@@ -18,8 +18,6 @@ Created on June 18, 2018
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 import os
@@ -83,6 +81,10 @@ if __name__ == '__main__':
         toChange['CONDA_DEFS'] = sys.argv[c+1]
       elif cla == '--RAVEN_LIBS_NAME':
         toChange['RAVEN_LIBS_NAME'] = sys.argv[c+1]
+      elif cla == '--python-command':
+        toChange['PYTHON_COMMAND'] = sys.argv[c+1]
+      elif cla == '--installation-manager':
+        toChange['INSTALLATION_MANAGER'] = sys.argv[c+1]
       else:
         # all keys should start with --, ignore the arguments
         if cla.startswith('--'):

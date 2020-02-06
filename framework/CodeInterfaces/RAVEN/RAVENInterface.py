@@ -17,17 +17,16 @@ Created on Sept 10, 2017
 @author: alfoa
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
 import numpy as np
+import sys
+from sys import platform
 from utils import utils
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import DataObjects
 import csvUtilities
-
 from MessageHandler import MessageHandler
 
 class RAVEN(CodeInterfaceBase):
@@ -36,6 +35,7 @@ class RAVEN(CodeInterfaceBase):
   """
   def __init__(self):
     CodeInterfaceBase.__init__(self)
+    self.preCommand = "" # this is the precommand (bash.exe in case of win)
     self.printTag  = 'RAVEN INTERFACE'
     self.outputPrefix = 'out~'
     self.outStreamsNamesAndType = {} # Outstreams names and type {'outStreamName':[DataObjectName,DataObjectType]}
@@ -51,6 +51,8 @@ class RAVEN(CodeInterfaceBase):
     self.innerWorkingDir = ''
     # linked DataObjects
     self.linkedDataObjectOutStreamsNames = None
+    # input manipulation module
+    self.inputManipulationModule = None
 
   def addDefaultExtension(self):
     """
@@ -61,7 +63,7 @@ class RAVEN(CodeInterfaceBase):
     """
     self.addInputExtension(['xml'])
 
-  def _readMoreXML(self,xmlNode):
+  def _readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
       some members based on inputs. This can be overloaded in specialize code interface in order to
@@ -71,8 +73,9 @@ class RAVEN(CodeInterfaceBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
-    if os.path.basename(xmlNode.find("executable").text) != 'raven_framework':
-      raise IOError(self.printTag+' ERROR: executable must be "raven_framework" (in whatever location)!')
+    baseName = os.path.basename(xmlNode.find("executable").text)
+    if baseName not in ['raven_framework','Driver.py']:
+      raise IOError(self.printTag+' ERROR: executable must be "raven_framework" (in whatever location)! Got "'+baseName+'"!')
 
     linkedDataObjects = xmlNode.find("outputExportOutStreams")
     if linkedDataObjects is None:
@@ -81,18 +84,20 @@ class RAVEN(CodeInterfaceBase):
     if len(self.linkedDataObjectOutStreamsNames) > 2:
       raise IOError(self.printTag+' ERROR: outputExportOutStreams node. The maximum number of linked OutStreams are 2 (1 for PointSet and 1 for HistorySet)!')
 
+    # load conversion modules
     self.conversionDict = {} # {modulePath : {'variables': [], 'noScalar': 0, 'scalar': 0}, etc }
     child = xmlNode.find("conversion")
     if child is not None:
       for moduleNode in child:
         # get the module to be used for conversion
-        source = moduleNode.attrib.get('source',None)
+        source = moduleNode.attrib.get('source', None)
         if source is None:
           raise IOError(self.printTag+' ERROR: no module "source" listed in "conversion" subnode attributes!')
         # fix up the path
+        ## should be relative to the working dir!
         source = os.path.expanduser(source)
         if not os.path.isabs(source):
-          source = os.path.abspath(source)
+          source = os.path.abspath(os.path.join(self._ravenWorkingDir, source))
         # check for existence
         if not os.path.exists(source):
           raise IOError(self.printTag+' ERROR: the conversionModule "{}" was not found!'
@@ -102,19 +107,25 @@ class RAVEN(CodeInterfaceBase):
         if checkImport is None:
           raise IOError(self.printTag+' ERROR: the conversionModule "{}" failed on import!'
                         .format(source))
-        # check methods are in place
-        noScalar = 'convertNotScalarSampledVariables' in checkImport.__dict__
-        scalar = 'manipulateScalarSampledVariables' in checkImport.__dict__
-        if not (noScalar or scalar):
-          raise IOError(self.printTag +' ERROR: the conversionModule "'+source
-                        +'" does not contain any of the usable methods! Expected at least '
-                        +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
-        # acquire the variables to be modified
-        varNode = moduleNode.find('variables')
-        if varNode is None:
-          raise IOError(self.printTag+' ERROR: no node "variables" listed in "conversion|module" subnode!')
-        variables = [x.strip() for x in varNode.text.split(',')]
-        self.conversionDict[source] = {'variables':variables, 'noScalar':noScalar, 'scalar':scalar}
+        # variable conversion modules
+        if moduleNode.tag == 'module':
+          # check methods are in place
+          noScalar = 'convertNotScalarSampledVariables' in checkImport.__dict__
+          scalar = 'manipulateScalarSampledVariables' in checkImport.__dict__
+          if not (noScalar or scalar):
+            raise IOError(self.printTag +' ERROR: the conversionModule "'+source
+                          +'" does not contain any of the usable methods! Expected at least '
+                          +'one of: "manipulateScalarSampledVariables" and/or "manipulateScalarSampledVariables"!')
+          # acquire the variables to be modified
+          varNode = moduleNode.find('variables')
+          if varNode is None:
+            raise IOError(self.printTag+' ERROR: no node "variables" listed in "conversion|module" subnode!')
+          variables = [x.strip() for x in varNode.text.split(',')]
+          self.conversionDict[source] = {'variables':variables, 'noScalar':noScalar, 'scalar':scalar}
+
+        # custom input file manipulation
+        elif moduleNode.tag == 'input':
+          self.inputManipulationModule = source
 
   def __findInputFile(self,inputFiles):
     """
@@ -133,7 +144,7 @@ class RAVEN(CodeInterfaceBase):
       raise IOError(self.printTag+' ERROR: None of the input files are tagged with the "type" "raven" (e.g. <Input name="aName" type="raven">inputFileName.xml</Input>)')
     return inputFileIndex
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None, preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
@@ -143,30 +154,30 @@ class RAVEN(CodeInterfaceBase):
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
+
     index = self.__findInputFile(inputFiles)
     outputfile = self.outputPrefix+inputFiles[index].getBase()
     # we set the command type to serial since the SLAVE RAVEN handles the parallel on its own
-    executeCommand = [('serial',executable+ ' '+inputFiles[index].getFilename())]
+    pre = ""
+    if "python" not in executable.lower() or not executable.endswith(".py"):
+      pre = self.preCommand.strip() + " "
+    executeCommand = [('serial',pre + executable+ ' '+inputFiles[index].getFilename())]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def initialize(self, runInfo, oriInputFiles):
     """
-      this generates a new input file depending on which sampler has been chosen
-      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      Method to initialize the run of a new step
+      @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
       @ In, oriInputFiles, list, list of the original input files
-      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
-      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
-             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
-      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+      @ Out, None
     """
     import RAVENparser
-    if 'dynamiceventtree' in str(samplerType).strip().lower():
-      raise IOError(self.printTag+' ERROR: DynamicEventTree-based sampling not supported!')
-    index = self.__findInputFile(currentInputFiles)
-    parser = RAVENparser.RAVENparser(currentInputFiles[index].getAbsFile())
+    index = self.__findInputFile(oriInputFiles)
+    parser = RAVENparser.RAVENparser(oriInputFiles[index].getAbsFile())
     # get the OutStreams names
     self.outStreamsNamesAndType = parser.returnOutstreamsNamesAnType()
     # check if the linked DataObjects are among the Outstreams
@@ -189,11 +200,30 @@ class RAVEN(CodeInterfaceBase):
     self.variableGroups = varGroupNames
     # get inner working dir
     self.innerWorkingDir = parser.workingDir
+    # check operating system and define prefix if needed
+    if platform.startswith("win") and utils.which("bash.exe") is not None:
+      self.preCommand = 'bash.exe'
+
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
+    """
+      this generates a new input file depending on which sampler has been chosen
+      @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
+      @ In, oriInputFiles, list, list of the original input files
+      @ In, samplerType, string, Sampler type (e.g. MonteCarlo, Adaptive, etc. see manual Samplers section)
+      @ In, Kwargs, dictionary, kwarded dictionary of parameters. In this dictionary there is another dictionary called "SampledVars"
+             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
+      @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
+    """
+    import RAVENparser
+    if 'dynamiceventtree' in str(samplerType).strip().lower():
+      raise IOError(self.printTag+' ERROR: DynamicEventTree-based sampling not supported!')
+    index = self.__findInputFile(currentInputFiles)
+    parser = RAVENparser.RAVENparser(currentInputFiles[index].getAbsFile())
     # get sampled variables
     modifDict = Kwargs['SampledVars']
 
     # apply conversion scripts
-    for source,convDict in self.conversionDict.items():
+    for source, convDict in self.conversionDict.items():
       module = utils.importFromPath(source)
       varVals = dict((var,np.asarray(modifDict[var])) for var in convDict['variables'])
       # modify vector+ variables that need to be flattened
@@ -223,12 +253,16 @@ class RAVEN(CodeInterfaceBase):
         raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" does not exist!')
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
-      modifDict['RunInfo|batchSize'       ] = newBatchSize
+      modifDict['RunInfo|batchSize'] = newBatchSize
     #modifDict['RunInfo|internalParallel'] = internalParallel
-    #make tree
-    modifiedRoot = parser.modifyOrAdd(modifDict,save=True,allowAdd = True)
-    #make input
-    parser.printInput(modifiedRoot,currentInputFiles[index].getAbsFile())
+    # make tree
+    modifiedRoot = parser.modifyOrAdd(modifDict, save=True, allowAdd=True)
+    # modify tree
+    if self.inputManipulationModule is not None:
+      module = utils.importFromPath(self.inputManipulationModule)
+      modifiedRoot = module.modifyInput(modifiedRoot,modifDict)
+    # write input file
+    parser.printInput(modifiedRoot, currentInputFiles[index].getAbsFile())
     # copy slave files
     parser.copySlaveFiles(currentInputFiles[index].getPath())
     return currentInputFiles
@@ -253,7 +287,7 @@ class RAVEN(CodeInterfaceBase):
       return True
     # check for completed run
     readLines = outputToRead.readlines()
-    if not any("Run complete" in x for x in readLines[-20:]):
+    if not any("Run complete" in x for x in readLines[-min(200,len(readLines)):]):
       del readLines
       return True
     # check for output CSV (and data)

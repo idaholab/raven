@@ -18,8 +18,6 @@ Created on Mar 5, 2013
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
@@ -34,6 +32,7 @@ import abc
 import threading
 import random
 import socket
+import time
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -43,11 +42,8 @@ import MessageHandler
 import Runners
 import Models
 # for internal parallel
-if sys.version_info.major == 2:
-  import pp
-  import ppserver
-else:
-  print("pp does not support python3")
+import pp
+import ppserver
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
 
@@ -71,7 +67,7 @@ class JobHandler(MessageHandler.MessageUser):
 
     self.isParallelPythonInitialized = False
 
-    self.sleepTime  = 0.005
+    self.sleepTime  = 1e-4 #0.005
     self.completed = False
 
     ## Determines whether to collect and print job timing summaries at the end of job runs.
@@ -250,7 +246,10 @@ class JobHandler(MessageHandler.MessageUser):
       ## There are remote nodes that need to be activated
 
       ## Locate the ppserver script to be executed
-      ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+      if sys.version_info.major == 2:
+        ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+      else:
+        ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp3","ppserver.py")
 
       ## Modify the python path used by the local environment
       localenv = os.environ.copy()
@@ -274,7 +273,9 @@ class JobHandler(MessageHandler.MessageUser):
         #subprocess.Popen(['ssh', nodeId, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
 
         ## Instead, let's build the command and then call the os-agnostic version
-        command=" ".join(["python",ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
+        pythonCommand = utils.getPythonCommand()
+
+        command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
         utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         ## e.g., ssh nodeId COMMAND='python ppserverScript -w stuff'
 
@@ -727,3 +728,31 @@ class JobHandler(MessageHandler.MessageUser):
         unfinishedRuns = [run for run in runList if run is not None]
         for run in unfinishedRuns:
           run.kill()
+
+  def terminateJobs(self, ids):
+    """
+      Kills running jobs that match the given ids.
+      @ In, ids, list(str), job prefixes to terminate
+      @ Out, None
+    """
+    queues = [self.__queue, self.__clientQueue, self.__running, self.__clientRunning]
+    with self.__queueLock:
+      for q,queue in enumerate(queues):
+        toRemove = []
+        for job in queue:
+          if job is not None and job.identifier in ids:
+            # this assumes that each uniqueHandle only exists once in any queue anywhere
+            ids.remove(job.identifier)
+            toRemove.append(job)
+        for job in toRemove:
+          # for fixed-spot queues, need to replace job with None not remove
+          if isinstance(queue,list):
+            job.kill()
+            queue[queue.index(job)] = None
+          # for variable queues, can just remove the job
+          else:
+            queue.remove(job)
+          self.raiseADebug('Terminated job "{}" by request.'.format(job.identifier))
+    if len(ids):
+      self.raiseADebug('Tried to remove some jobs but not found in any queues:',', '.join(ids))
+

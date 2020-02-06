@@ -37,6 +37,7 @@ from .ImportanceRank import ImportanceRank
 from .CrossValidation import CrossValidation
 from .BasicStatistics import BasicStatistics
 from .LimitSurfaceIntegral import LimitSurfaceIntegral
+from .FastFourierTransform import FastFourierTransform
 from .ExternalPostProcessor import ExternalPostProcessor
 from .InterfacedPostProcessor import InterfacedPostProcessor
 from .TopologicalDecomposition import TopologicalDecomposition
@@ -47,6 +48,7 @@ from .ETImporter import ETImporter
 from .FTImporter import FTImporter
 from .DataClassifier import DataClassifier
 from .ComparisonStatisticsModule import ComparisonStatistics
+from .RealizationAverager import RealizationAverager
 # from .RavenOutput import RavenOutput # deprecated for now
 
 additionalModules = []
@@ -80,8 +82,10 @@ __all__ = ['PostProcessor',
            'Metric',
            'CrossValidation',
            'ValueDuration',
+           'FastFourierTransform',
            'FTImporter',
            'DataClassifier',
            'SampleSelector',
-           'ETImporter'] + additionalModules
+           'ETImporter',
+           'RealizationAverager'] + additionalModules
 #           'RavenOutput', # deprecated for now

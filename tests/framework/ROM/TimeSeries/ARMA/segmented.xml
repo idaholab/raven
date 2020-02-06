@@ -1,0 +1,158 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.Segmented</name>
+    <author>talbpaul</author>
+    <created>2018-11-20</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+      Tests the mechanics of clusterering the ``time'' subspace of the ARMA ROM.
+    </description>
+    <revisions>
+      <revision author="wangc" date="2018-12-19">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
+      </revision>
+      <revision author="talbpaul" date="2019-01-30">Added a pickling step to check serialization of segmented ARMA.</revision>
+      <revision author="JiaZhouPU" date="2019-05-02">
+          Deleted the longest Fourier period for this test, because the phase of this period would have results between
+          PI and negative PI( a result of arctan(infinity) ), and cannnot be detected from the xml check.
+      </revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Segmented</WorkingDir>
+    <Sequence>load,train,rommeta,dump,unpickle,sample,print,reload,stats</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+    <IOStep name="rommeta">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="DataObjects" type="DataSet">rommeta</Output>
+      <Output class="OutStreams" type="Print">rommeta</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">synthetic</Output>
+    </MultiRun>
+    <IOStep name="dump">
+      <Input class="Models" type="ROM">arma</Input>
+      <Output class="Files" type="">pk</Output>
+    </IOStep>
+    <IOStep name="unpickle">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">unpk</Output>
+    </IOStep>
+    <IOStep name="print">
+      <Input class="DataObjects" type="HistorySet">synthetic</Input>
+      <Output class="OutStreams" type="Print">synthetic</Output>
+    </IOStep>
+    <IOStep name="reload">
+      <Input class="Files" type="">sample</Input>
+      <Output class="DataObjects" type="PointSet">sample</Output>
+    </IOStep>
+    <PostProcess name="stats">
+      <Input class="DataObjects" type="PointSet">sample</Input>
+      <Model class="Models" type="PostProcessor">stats</Model>
+      <Output class="DataObjects" type="PointSet">stats</Output>
+      <Output class="OutStreams" type="Print">stats</Output>
+    </PostProcess>
+  </Steps>
+
+  <Files>
+    <Input name="input">ercotNC_all_hourly.csv</Input>
+    <Input name="sample">synthetic_0.csv</Input>
+    <Input name="pk">arma.pk</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="sample">
+      <Input>Time</Input>
+      <Output>Demand</Output>
+    </PointSet>
+    <PointSet name="stats">
+      <Output>mean_Demand, var_Demand</Output>
+    </PointSet>
+    <HistorySet name="input">
+      <Input>scaling</Input>
+      <Output>Demand,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="synthetic">
+      <Input>scaling</Input>
+      <Output>Demand,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="rommeta"/>
+  </DataObjects>
+
+  <Models>
+    <ROM name="unpk" subType="pickledROM"/>
+    <ROM name="arma" subType="ARMA">
+      <Target>Demand,Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <seed>901017</seed>
+      <P>0</P>
+      <Q>0</Q>
+      <reseedCopies>False</reseedCopies>
+      <Fourier> 31556952, 15778476, 10518984, 7889238, 2592000, 1296000, 604800, 302400, 86400, 43200, 28800, 21600</Fourier>
+      <Segment>
+        <subspace pivotLength="604800" shift="first">Time</subspace>
+      </Segment>
+    </ROM>
+    <PostProcessor name="stats" subType="BasicStatistics">
+      <expectedValue prefix="mean">Demand</expectedValue>
+      <variance prefix="var">Demand</variance>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="synthetic">
+      <type>csv</type>
+      <source>synthetic</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="rommeta">
+      <type>csv</type>
+      <source>rommeta</source>
+    </Print>
+    <Print name="stats">
+      <type>csv</type>
+      <source>stats</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

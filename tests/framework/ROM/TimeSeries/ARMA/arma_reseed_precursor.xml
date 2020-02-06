@@ -7,23 +7,27 @@
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
       Builds a reseeding copy of the ARMA to test multiple evaluations return different values;
-      this run only creates the arma and pickles it.
+      this run creates the arma and pickles it, also generates gold files for the reseed test.
+      And added sampling for the gold file as well as rommeta.
     </description>
     <revisions>
       <revision author="talbpaul" date="2017-07-12">created</revision>
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
+      <revision author="talbpaul" date="2018-12-20">ROM IO to data object added</revision>
+      <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
+      <revision author="zhouj" date="2019-05-06">Modified location of the test to arma reseed </revision>
     </revisions>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>ARMAparallel</WorkingDir>
-    <Sequence>readIn,ARMATrain,writeOut</Sequence>
+    <WorkingDir>ARMAreseed</WorkingDir>
+    <Sequence>readIn,ARMATrain,rommeta,dump,run,write</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <Input name="rawDataFile">../ARMA/dataSet.csv</Input>
+    <Input name="rawDataFile">../Basic/dataSet.csv</Input>
     <Input name="pk">arma.pk</Input>
   </Files>
 
@@ -32,18 +36,17 @@
       <Target>Speed,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>2</Pmax>
-      <Pmin>2</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
+      <P>2</P>
+      <Q>1</Q>
+      <seed>901017</seed>
       <outTruncation domain="positive">Speed</outTruncation>
-      <Fourier>604800,86400</Fourier>
-      <FourierOrder>2,2</FourierOrder>
+      <reseedCopies>False</reseedCopies>
+      <Fourier>604800.000000, 302400.000000, 86400.000000, 43200.000000</Fourier>
     </ROM>
   </Models>
 
   <Steps>
-    <IOStep name="readIn" pauseAtEnd="True">
+    <IOStep name="readIn">
       <Input class="Files" type="">rawDataFile</Input>
       <Output class="DataObjects" type="HistorySet">rawData</Output>
     </IOStep>
@@ -51,13 +54,42 @@
       <Input class="DataObjects" type="HistorySet">rawData</Input>
       <Output class="Models" type="ROM">ARMA</Output>
     </RomTrainer>
-    <IOStep name="writeOut" pauseAtEnd="True">
+    <IOStep name="rommeta">
+      <Input class="Models" type="ROM">ARMA</Input>
+      <Output class="DataObjects" type="DataSet">rommeta</Output>
+      <Output class="OutStreams" type="Print">rommeta</Output>
+    </IOStep>
+    <IOStep name="dump">
       <Input class="Models" type="ROM">ARMA</Input>
       <Output class="Files" type="">pk</Output>
     </IOStep>
+    <MultiRun name="run">
+      <Input class="DataObjects" type="PointSet">dataIn</Input>
+      <Model class="Models" type="ROM">ARMA</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">signals</Output>
+    </MultiRun>
+    <IOStep name="write">
+      <Input class="DataObjects" type="HistorySet">signals</Input>
+      <Output class="OutStreams" type="Print">signals</Output>
+    </IOStep>
   </Steps>
 
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>4</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1</constant>
+    </MonteCarlo>
+  </Samplers>
+
   <DataObjects>
+    <PointSet name="dataIn">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
     <HistorySet name="rawData">
       <Input>scaling</Input>
       <Output>Speed,Time</Output>
@@ -65,6 +97,25 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <HistorySet name="signals">
+      <Input>scaling</Input>
+      <Output>Speed,Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="rommeta"/>
   </DataObjects>
+
+<OutStreams>
+    <Print name="rommeta">
+      <type>csv</type>
+      <source>rommeta</source>
+    </Print>
+    <Print name="signals">
+      <type>csv</type>
+      <source>signals</source>
+    </Print>
+</OutStreams>
 
 </Simulation>

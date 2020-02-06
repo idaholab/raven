@@ -1,0 +1,187 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ensembleModelTests.testEMReusability</name>
+    <author>Jimmy</author>
+    <created>2019-10-30</created>
+    <classesTested>Models.EnsembleModel, Models.ExternalModel, JobHandler.ParallelPython</classesTested>
+    <description>
+       Example of re-using the ensemble model in different steps.
+       This test is aimed to fix the bug reported in issue #859.
+    </description>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>checkReusability</WorkingDir>
+    <Sequence>mrun1,mrun1,dumpResults</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>True</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="distA">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+    <Uniform name="distB">
+      <lowerBound>2</lowerBound>
+      <upperBound>3</upperBound>
+    </Uniform>
+    <Uniform name="distH">
+      <lowerBound>5</lowerBound>
+      <upperBound>8</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../Models/alpha" name="Alpha" subType="">
+      <variables>A,B,C</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../Models/beta" name="Beta" subType="">
+      <variables>C,D,E</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../Models/gamma" name="Gamma" subType="">
+      <variables>D,G</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../Models/delta" name="Delta" subType="">
+      <variables>F,E</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../Models/epsilon" name="Epsilon" subType="">
+      <variables>H,G</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="../Models/rho" name="Rho" subType="">
+      <variables>D, I</variables>
+    </ExternalModel>
+
+    <EnsembleModel name="testConfig" subType="">
+      <Model class="Models" type="ExternalModel">
+        Alpha
+        <Input   class="DataObjects" type="PointSet"      >inputAlpha</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">dataAlpha</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ExternalModel">
+        Beta
+        <Input   class="DataObjects" type="PointSet"      >inputBeta</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">dataBeta</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ExternalModel">
+        Delta
+        <Input   class="DataObjects" type="PointSet"      >inputDelta</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">dataDelta</TargetEvaluation>
+      </Model>
+      <Model class="Models"  type="ExternalModel">
+        Gamma
+        <Input   class="DataObjects" type="PointSet"      >inputGamma</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">dataGamma</TargetEvaluation>
+      </Model>
+      <Model class="Models"  type="ExternalModel">
+        Epsilon
+        <Input   class="DataObjects" type="PointSet"      >inputEpsilon</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">dataEpsilon</TargetEvaluation>
+      </Model>
+      <Model class="Models"  type="ExternalModel">
+        Rho
+        <Input   class="DataObjects" type="PointSet"      >inputRho</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">dataRho</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="MC1">
+      <samplerInit>
+        <limit>6</limit>
+      </samplerInit>
+      <variable name="A">
+        <distribution>distA</distribution>
+      </variable>
+      <variable name="B">
+        <distribution>distB</distribution>
+      </variable>
+      <variable name="H">
+        <distribution>distH</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mrun1" re-seeding="200286">
+      <Input   class="DataObjects" type="PointSet"      >inputAlpha</Input>
+      <Input   class="DataObjects" type="PointSet"      >inputBeta</Input>
+      <Input   class="DataObjects" type="PointSet"      >inputGamma</Input>
+      <Input   class="DataObjects" type="PointSet"      >inputDelta</Input>
+      <Model   class="Models"      type="EnsembleModel" >testConfig</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >MC1</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >metaModelData</Output>
+    </MultiRun>
+
+    <IOStep name="dumpResults">
+      <Input  class="DataObjects"  type="PointSet"      >metaModelData</Input>
+      <Output class="OutStreams"   type="Print"          >printData</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="printData">
+      <type>csv</type>
+      <source>metaModelData</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputAlpha">
+      <Input>A,B</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputBeta">
+      <Input>C,D</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputDelta">
+      <Input>E</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputGamma">
+      <Input>G</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputEpsilon">
+      <Input>H</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputRho">
+      <Input>D</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+
+    <PointSet name="dataAlpha">
+      <Input>A,B</Input>
+      <Output>C</Output>
+    </PointSet>
+    <PointSet name="dataBeta">
+      <Input>C,D</Input>
+      <Output>E</Output>
+    </PointSet>
+    <PointSet name="dataDelta">
+      <Input>E</Input>
+      <Output>F</Output>
+    </PointSet>
+    <PointSet name="dataGamma">
+      <Input>G</Input>
+      <Output>D</Output>
+    </PointSet>
+    <PointSet name="dataEpsilon">
+      <Input>H</Input>
+      <Output>G</Output>
+    </PointSet>
+    <PointSet name="dataRho">
+      <Input>D</Input>
+      <Output>I</Output>
+    </PointSet>
+    <PointSet name="metaModelData">
+      <Input>A,B</Input>
+      <Output>C,D,E,F,G</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

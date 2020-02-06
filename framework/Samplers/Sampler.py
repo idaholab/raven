@@ -17,9 +17,7 @@ Created on Feb 16, 2013
 @author: alfoa
 """
 #for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
+from __future__ import division, print_function, absolute_import
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -32,7 +30,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils,randomUtils,InputData
+from utils import utils,randomUtils,InputData, InputTypes
 from BaseClasses import BaseType
 from Assembler import Assembler
 #Internal Modules End--------------------------------------------------------------------------------
@@ -56,50 +54,61 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     inputSpecification = super(Sampler, cls).getInputSpecification()
     # FIXME the DET HybridSampler doesn't use the "name" param for the samples it creates,
     #      so we can't require the name yet
-    inputSpecification.addParam("name", InputData.StringType)
+    inputSpecification.addParam("name", InputTypes.StringType)
 
     outerDistributionInput = InputData.parameterInputFactory("Distribution")
-    outerDistributionInput.addParam("name", InputData.StringType)
-    outerDistributionInput.addSub(InputData.parameterInputFactory("distribution", contentType=InputData.StringType))
+    outerDistributionInput.addParam("name", InputTypes.StringType)
+    outerDistributionInput.addSub(InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType))
     inputSpecification.addSub(outerDistributionInput)
 
     variableInput = InputData.parameterInputFactory("variable")
-    variableInput.addParam("name", InputData.StringType)
-    variableInput.addParam("shape", InputData.IntegerListType, required=False)
-    distributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
-    distributionInput.addParam("dim", InputData.IntegerType)
+    # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
+    # from StringType to StringNoLeadingSpacesType
+    variableInput.addParam("name", InputTypes.StringNoLeadingSpacesType)
+    variableInput.addParam("shape", InputTypes.IntegerListType, required=False)
+    distributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
+    distributionInput.addParam("dim", InputTypes.IntegerType)
 
     variableInput.addSub(distributionInput)
 
-    functionInput = InputData.parameterInputFactory("function", contentType=InputData.StringType)
+    functionInput = InputData.parameterInputFactory("function", contentType=InputTypes.StringType)
 
     variableInput.addSub(functionInput)
 
     inputSpecification.addSub(variableInput)
 
     variablesTransformationInput = InputData.parameterInputFactory("variablesTransformation")
-    variablesTransformationInput.addParam('distribution', InputData.StringType)
+    variablesTransformationInput.addParam('distribution', InputTypes.StringType)
 
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("latentVariables", contentType=InputData.StringListType))
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariables", contentType=InputData.StringListType))
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariablesIndex", contentType=InputData.StringListType))
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("method", contentType=InputData.StringType))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("latentVariables", contentType=InputTypes.StringListType))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariables", contentType=InputTypes.StringListType))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariablesIndex", contentType=InputTypes.StringListType))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
 
     inputSpecification.addSub(variablesTransformationInput)
 
-    constantInput = InputData.parameterInputFactory("constant", contentType=InputData.InterpretedListType)
-    constantInput.addParam("name", InputData.StringType, True)
-    constantInput.addParam("shape", InputData.IntegerListType, required=False)
+    constantInput = InputData.parameterInputFactory("constant", contentType=InputTypes.InterpretedListType)
+    # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
+    # from StringType to StringNoLeadingSpacesType
+    constantInput.addParam("name", InputTypes.StringNoLeadingSpacesType, True)
+    constantInput.addParam("shape", InputTypes.IntegerListType, required=False)
+    constantInput.addParam("source", InputTypes.StringType, required=False)
+    constantInput.addParam("index", InputTypes.IntegerType, required=False)
 
     inputSpecification.addSub(constantInput)
 
-    restartToleranceInput = InputData.parameterInputFactory("restartTolerance", contentType=InputData.FloatType)
+    restartToleranceInput = InputData.parameterInputFactory("restartTolerance", contentType=InputTypes.FloatType)
     inputSpecification.addSub(restartToleranceInput)
 
-    restartInput = InputData.parameterInputFactory("Restart", contentType=InputData.StringType)
-    restartInput.addParam("type", InputData.StringType)
-    restartInput.addParam("class", InputData.StringType)
+    restartInput = InputData.parameterInputFactory("Restart", contentType=InputTypes.StringType)
+    restartInput.addParam("type", InputTypes.StringType)
+    restartInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(restartInput)
+
+    sourceInput = InputData.parameterInputFactory("ConstantSource", contentType=InputTypes.StringType)
+    sourceInput.addParam("type", InputTypes.StringType)
+    sourceInput.addParam("class", InputTypes.StringType)
+    inputSpecification.addSub(sourceInput)
 
     return inputSpecification
 
@@ -132,9 +141,14 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.reseedAtEachIteration         = False                     # Logical flag. True if every newer evaluation is performed after a new reseeding
     self.FIXME                         = False                     # FIXME flag
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
+
     self.restartData                   = None                      # presampled points to restart from
     self.restartTolerance              = 1e-15                     # strictness with which to find matches in the restart data
     self.restartIsCompatible           = None                      # flags restart as compatible with the sampling scheme (used to speed up checking)
+    self._jobsToEnd                    = []                        # list of strings, containing job prefixes that should be cancelled.
+
+    self.constantSourceData            = None                      # dictionary of data objects from which constants can take values
+    self.constantSources               = {}                        # storage for the way to obtain constant information
 
     self._endJobRunnable               = sys.maxsize               # max number of inputs creatable by the sampler right after a job ends (e.g., infinite for MC, 1 for Adaptive, etc)
 
@@ -144,6 +158,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
     self.addAssemblerObject('Restart' ,'-n',True)
+    self.addAssemblerObject('ConstantSource' ,'-n',True)
 
     #used for PCA analysis
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
@@ -212,6 +227,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     Assembler._readMoreXML(self,xmlNode)
     paramInput = self._readMoreXMLbase(xmlNode)
     self.localInputAndChecks(xmlNode, paramInput)
+    if not self.toBeSampled and self.type != 'MonteCarlo':
+      self.raiseAnError(IOError, '<{t}> sampler named "{n}" requires at least one sampled <variable>!'
+                                 .format(n=self.name, t=self.type))
 
   def _readMoreXMLbase(self,xmlNode):
     """
@@ -388,23 +406,33 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, name, string, name of constant
       @ Out, value, float or np.array,
     """
+    # constantSources
     value = inp.value
     name = inp.parameterValues['name']
     shape = inp.parameterValues.get('shape',None)
-    # if single entry, remove array structure; if multiple entries, cast them as numpy array
-    if len(value) == 1:
-      value = value[0]
+    source = inp.parameterValues.get('source',None)
+    # if constant's value is provided directly by value ...
+    if source is None:
+      # if single entry, remove array structure; if multiple entries, cast them as numpy array
+      if len(value) == 1:
+        value = value[0]
+      else:
+        value = np.asarray(value)
+      # if specific shape requested, then reshape it
+      if shape is not None:
+        try:
+          value = value.reshape(shape)
+        except ValueError:
+          self.raiseAnError(IOError,
+              ('Requested shape "{}" ({} entries) for constant "{}"' +\
+              ' is not consistent with the provided values ({} entries)!')
+              .format(shape,np.prod(shape),name,len(value)))
+    # else if constant's value is provided from a DataObject ...
     else:
-      value = np.asarray(value)
-    # if specific shape requested, then reshape it
-    if shape is not None:
-      try:
-        value = value.reshape(shape)
-      except ValueError:
-        self.raiseAnError(IOError,
-            ('Requested shape "{}" ({} entries) for constant "{}"' +\
-            ' is not consistent with the provided values ({} entries)!')
-            .format(shape,np.prod(shape),name,len(value)))
+      self.constantSources[name] = {'shape'    : shape,
+                                      'source'   : source,
+                                      'index'    : inp.parameterValues.get('index',-1),
+                                      'sourceVar': value[0]} # generally, constants are a list, but in this case just take the only entry
     return name, value
 
   def getInitParams(self):
@@ -439,7 +467,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.auxcnt = self.initSeed
     elif externalSeeding=='continue':
       pass        #in this case the random sequence needs to be preserved
-    else                              :
+    else:
       randomUtils.randomSeed(externalSeeding)     #the external seeding is used
       self.auxcnt = externalSeeding
     #grab restart dataobject if it's available, then in localInitialize the sampler can deal with it.
@@ -459,17 +487,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     else:
       self.raiseAMessage('No restart for '+self.printTag)
 
-    #load restart data into existing points
-    # TODO do not copy data!  Read directly from restart.
-    #if self.restartData is not None:
-    #  if len(self.restartData) > 0:
-    #    inps = self.restartData.getInpParametersValues()
-    #    outs = self.restartData.getOutParametersValues()
-    #    #FIXME there is no guarantee ordering is accurate between restart data and sampler
-    #    inputs = list(v for v in inps.values())
-    #    existingInps = zip(*inputs)
-    #    outVals = zip(*list(v for v in outs.values()))
-    #    self.existing = dict(zip(existingInps,outVals))
+    if 'ConstantSource' in self.assemblerDict.keys():
+      # find all the sources requested in the sampler, map data objects to their requested names
+      self.constantSourceData = dict((a[2],a[3]) for a in self.assemblerDict['ConstantSource'])
+      for var,data in self.constantSources.items():
+        source = self.constantSourceData[data['source']]
+        rlz = source.realization(index=data['index'])
+        if data['sourceVar'] not in rlz:
+          self.raiseAnError(IOError,'Requested variable "{}" from DataObject "{}" to set constant "{}",'.format(data['sourceVar'], source.name, var) +\
+                                    ' but "{}" is not a variable in "{}"!'.format(data['sourceVar'], source.name))
+        self.constants[var] = rlz[data['sourceVar']]
 
     #specializing the self.localInitialize() to account for adaptive sampling
     if solutionExport != None:
@@ -503,7 +530,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     meta = ['ProbabilityWeight','prefix','PointProbability']
     for var in self.toBeSampled.keys():
       meta +=  ['ProbabilityWeight-'+ key for key in var.split(",")]
-    self.addMetaKeys(*meta)
+    self.addMetaKeys(meta)
 
   def localGetInitParams(self):
     """
@@ -604,6 +631,17 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     paramDict.update(self.localGetCurrentSetting())
     return paramDict
 
+  def getJobsToEnd(self, clear=False):
+    """
+      Provides a list of jobs that should be terminated.
+      @ In, clear, bool, optional, if True then clear list after returning.
+      @ Out, ret, list, jobs to terminate
+    """
+    ret = set(self._jobsToEnd[:])
+    if clear:
+      self._jobsToEnd = []
+    return ret
+
   def localGetCurrentSetting(self):
     """
       Returns a dictionary with class specific information regarding the
@@ -664,7 +702,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       # we consider that CDF of the constant variables is equal to 1 (same as its Pb Weight)
       self.inputInfo['SampledVarsPb'].update(dict.fromkeys(self.constants.keys(),1.0))
       pbKey = ['ProbabilityWeight-'+key for key in self.constants.keys()]
-      self.addMetaKeys(*pbKey)
+      self.addMetaKeys(pbKey)
       self.inputInfo.update(dict.fromkeys(['ProbabilityWeight-'+key for key in self.constants.keys()],1.0))
 
   def _expandVectorVariables(self):

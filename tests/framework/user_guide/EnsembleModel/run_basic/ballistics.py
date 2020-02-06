@@ -25,6 +25,7 @@
 #       (x,y) - vector positions of projectile in time
 #       t - corresponding time steps
 #
+from __future__ import division, print_function, absolute_import
 import numpy as np
 
 def prange(v,th,y0=0,g=9.8):
@@ -117,10 +118,10 @@ if __name__=="__main__":
   outFile = sys.argv[sys.argv.index('-o')+1]
   #construct the input
   Input = {}
-  print ''
+  print()
   for line in open(inFile,'r'):
     arg,val = (a.strip() for a in line.split('='))
-    print 'Setting',arg,val
+    print('Setting',arg,val)
     Input[arg] = float(val)
   #make a dummy class to hold values
   class IO:

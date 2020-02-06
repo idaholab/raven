@@ -24,9 +24,9 @@
       </variable>
     </MonteCarlo>
   </Samplers>
-  
+
   <Models>
-    <ExternalModel name="markov" subType="MarkovModel">
+    <ExternalModel name="markov" subType="PRAplugin.MarkovModel">
       <variables>initialState,finalState</variables>
       <initState>initialState</initState>
       <finState>finalState</finState>
@@ -42,7 +42,7 @@
       <state name='3'> <!-- Stagnant market -->
         <transition type='lambda' value='0.02'>1</transition>
         <transition type='lambda' value='0.4' >2</transition>
-      </state>      
+      </state>
     </ExternalModel>
   </Models>
 
@@ -84,7 +84,7 @@
       </actions>
     </Plot>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>initialState</Input>
@@ -95,5 +95,5 @@
       <Output>finalState</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

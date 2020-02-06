@@ -17,9 +17,6 @@ Created on August 30, 2017
 @author: wangc
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import os
@@ -31,7 +28,7 @@ import copy
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import Files
 import Models
 import Runners
@@ -54,28 +51,28 @@ class CrossValidation(PostProcessor):
     """
     inputSpecification = super(CrossValidation, cls).getInputSpecification()
 
-    metricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
-    metricInput.addParam("class", InputData.StringType, True)
-    metricInput.addParam("type", InputData.StringType, True)
+    metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
+    metricInput.addParam("class", InputTypes.StringType, True)
+    metricInput.addParam("type", InputTypes.StringType, True)
     inputSpecification.addSub(metricInput)
 
     sciKitLearnInput = InputData.parameterInputFactory("SciKitLearn")
 
-    sklTypeInput = InputData.parameterInputFactory("SKLtype", contentType=InputData.StringType)
+    sklTypeInput = InputData.parameterInputFactory("SKLtype", contentType=InputTypes.StringType)
 
     sciKitLearnInput.addSub(sklTypeInput)
 
-    for name, inputType in [("n",InputData.IntegerType),
-                            ("p",InputData.IntegerType),
-                            ("n_splits",InputData.IntegerType),
-                            ("shuffle",InputData.StringType),
-                            ("random_state",InputData.StringType),
-                            ("y",InputData.StringType),
-                            ("labels",InputData.StringType),
-                            ("n_iter",InputData.IntegerType),
-                            ("test_size",InputData.StringType),
-                            ("train_size",InputData.StringType),
-                            ("scores",InputData.StringType)]:
+    for name, inputType in [("p",InputTypes.IntegerType),
+                            ("n_splits",InputTypes.IntegerType),
+                            ("shuffle",InputTypes.BoolType),
+                            ("random_state",InputTypes.IntegerType),
+                            ('max_train_size',InputTypes.IntegerType),
+                            ('test_fold', InputTypes.FloatListType),
+                            ("test_size",InputTypes.FloatOrIntType),
+                            ("train_size",InputTypes.FloatOrIntType),
+                            ('n_groups',InputTypes.IntegerType),
+                            ("labels",InputTypes.FloatListType),
+                            ("scores",InputTypes.StringType)]:
       dataType = InputData.parameterInputFactory(name, contentType=inputType)
       sciKitLearnInput.addSub(dataType)
 
@@ -97,10 +94,6 @@ class CrossValidation(PostProcessor):
     self.cvScore        = None
     # assembler objects to be requested
     self.addAssemblerObject('Metric', 'n', True)
-    # The list of cross validation engine that require the parameter 'n'
-    # This will be removed if we updated the scikit-learn to version 0.20
-    # We will rely on the code to decide the value for the parameter 'n'
-    self.CVList = ['KFold', 'LeaveOneOut', 'LeavePOut', 'ShuffleSplit']
     #self.validMetrics = ['mean_absolute_error', 'explained_variance_score', 'r2_score', 'mean_squared_error', 'median_absolute_error']
     # 'median_absolute_error' is removed, the reasons for that are:
     # 1. this metric can not accept multiple ouptuts
@@ -179,7 +172,7 @@ class CrossValidation(PostProcessor):
       if len(child.parameterValues) > 0:
         initDict[child.getName()] = dict(child.parameterValues)
       else:
-        initDict[child.getName()] = utils.tryParse(child.value)
+        initDict[child.getName()] = child.value
     return initDict
 
   def inputToInternal(self, currentInp, full = False):
@@ -207,9 +200,7 @@ class CrossValidation(PostProcessor):
           cvEstimator = currentInput
         else:
           self.raiseAnError(IOError, "This postprocessor '%s' only accepts one input of Models.ROM!" %self.name)
-
     currentInputs.remove(cvEstimator)
-
     currentInput = copy.deepcopy(currentInputs[-1])
     inputType = None
     if hasattr(currentInput, 'type'):
@@ -300,17 +291,23 @@ class CrossValidation(PostProcessor):
       self.raiseAnError(IOError, "Not implemented yet")
     initDict = copy.deepcopy(self.initializationOptionDict)
     cvEngine = None
+    groups = None
     for key, value in initDict.items():
       if key == "SciKitLearn":
-        if value['SKLtype'] in self.CVList:
-          dataSize = np.asarray(utils.first(inputDict.values())).size
-          value['n'] = dataSize
+        groups = value.pop("labels",None)
         cvEngine = CrossValidations.returnInstance(key, self, **value)
         break
     if cvEngine is None:
       self.raiseAnError(IOError, "No cross validation engine is provided!")
     outputDict = {}
-    for trainIndex, testIndex in cvEngine.generateTrainTestIndices():
+    # In SciKit-Learn (version > 0.18), module model_selection is used to perform cross validation
+    # A wrapper in RAVEN is created, and the method .split is replaced with generateTrainTestIndices
+    # In the old version, 'labels' is used for the label-related cross validation. In the new versions
+    # Both keywords 'y' and 'groups' can be used to specify the labels. The keyword 'y' is mainly used by
+    # SciKit-Learn supervised learning problems, and 'groups' become additional option to specify the group
+    # labels that can be used while splitting the dataset into train/test set. For our purpose, only one
+    # label option is needed. ~ wangc
+    for trainIndex, testIndex in cvEngine.generateTrainTestIndices(list(inputDict.values())[0], y=groups, groups=groups):
       trainDict, testDict = self.__generateTrainTestInputs(inputDict, trainIndex, testIndex)
       ## Train the rom
       cvEstimator.train(trainDict)

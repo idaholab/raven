@@ -147,18 +147,23 @@
     input = 'gp.xml'
     csv = 'data/outGP.csv'
     output = 'data/outGP.xml'
+    # rel_err was updated from 1.0e-6 to 5.0e-6 due to the small changes in the outputs
+    # from all linux related test machines.
+    rel_err = 5.0e-6
   [../]
   [./linearARD]
     type = 'RavenFramework'
     input = 'linearARD.xml'
     UnorderedCsv = 'data/outLinearARD.csv'
     output = 'data/outLinearARD.xml'
+    rel_err = 1.0e-5
   [../]
   [./linearBayesianRidge]
     type = 'RavenFramework'
     input = 'linearBayesianRidge.xml'
     UnorderedCsv = 'data/outLinearBayesianRidge.csv'
     output = 'data/outLinearBayesianRidge.xml'
+    rel_err = 1.0e-5
   [../]
   [./linearElasticNet]
     type = 'RavenFramework'
@@ -285,6 +290,7 @@
     input = 'mlpRegressor.xml'
     csv = 'data/outMLPRegressor.csv'
     output = 'data/outMLPRegressor.xml'
+    rel_err = 1.0e-8
   [../]
   ##############################################################################
   ## Inconsistent Results

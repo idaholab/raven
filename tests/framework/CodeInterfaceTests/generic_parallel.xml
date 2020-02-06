@@ -7,10 +7,13 @@
     <classesTested>Models.Code.GenericCode, Files</classesTested>
     <description>
         Tests using "Files" in an internalParallel run (which tests pickling and unpickling them).
+        This test is also a requirement test where we test the capability of RAVEN to dispatch
+        multiple parallel jobs based on user-defined information (batchSize)
     </description>
     <revisions>
       <revision author="talbpaul" date="2017-08-24">Created</revision>
     </revisions>
+    <requirements>R-F-2</requirements>
   </TestInfo>
   <RunInfo>
     <Sequence>sample</Sequence>
@@ -28,7 +31,7 @@
   <Models>
     <Code name="poly" subType="GenericCode">
       <executable>GenericInterface/poly_inp.py</executable>
-      <clargs arg="python" type="prepend"/>
+      <clargs type="python"/>
       <clargs arg="-i" extension=".xml" type="input"/>
       <clargs arg="-a" extension=".two" type="input"/>
       <clargs arg="-o" type="output"/>

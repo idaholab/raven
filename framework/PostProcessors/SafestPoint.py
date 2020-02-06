@@ -17,8 +17,6 @@ Created on July 10, 2013
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -30,7 +28,7 @@ import copy
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
-from utils import InputData
+from utils import InputData, InputTypes
 from utils.RAVENiterators import ravenArrayIterator
 import DataObjects
 import Runners
@@ -52,25 +50,25 @@ class SafestPoint(PostProcessor):
     ## This will replace the lines above
     inputSpecification = super(SafestPoint, cls).getInputSpecification()
 
-    OuterDistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputData.StringType)
-    OuterDistributionInput.addParam("class", InputData.StringType)
-    OuterDistributionInput.addParam("type", InputData.StringType)
+    OuterDistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputTypes.StringType)
+    OuterDistributionInput.addParam("class", InputTypes.StringType)
+    OuterDistributionInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(OuterDistributionInput)
 
     VariableInput = InputData.parameterInputFactory("variable")
-    VariableInput.addParam("name", InputData.StringType)
-    InnerDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
+    VariableInput.addParam("name", InputTypes.StringType)
+    InnerDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
     VariableInput.addSub(InnerDistributionInput)
-    InnerGridInput = InputData.parameterInputFactory("grid", contentType=InputData.FloatType)
-    InnerGridInput.addParam("type", InputData.StringType)
-    InnerGridInput.addParam("steps", InputData.IntegerType)
+    InnerGridInput = InputData.parameterInputFactory("grid", contentType=InputTypes.FloatType)
+    InnerGridInput.addParam("type", InputTypes.StringType)
+    InnerGridInput.addParam("steps", InputTypes.IntegerType)
     VariableInput.addSub(InnerGridInput)
-    ControllableInput = InputData.parameterInputFactory("controllable", contentType=InputData.StringType)
+    ControllableInput = InputData.parameterInputFactory("controllable", contentType=InputTypes.StringType)
     ControllableInput.addSub(VariableInput)
     inputSpecification.addSub(ControllableInput)
-    inputSpecification.addSub(InputData.parameterInputFactory("outputName", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("outputName", contentType=InputTypes.StringType))
 
-    NoncontrollableInput = InputData.parameterInputFactory("non-controllable", contentType=InputData.StringType)
+    NoncontrollableInput = InputData.parameterInputFactory("non-controllable", contentType=InputTypes.StringType)
     NoncontrollableInput.addSub(VariableInput)
     inputSpecification.addSub(NoncontrollableInput)
 
@@ -94,24 +92,8 @@ class SafestPoint(PostProcessor):
     self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
     self.outputName = "Probability"
     self.addAssemblerObject('Distribution','n', True)
-    self.addMetaKeys(*["ProbabilityWeight"])
+    self.addMetaKeys(["ProbabilityWeight"])
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
-
-  def _localGenerateAssembler(self, initDict):
-    """
-      This method  is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-      It is an abstract method -> It must be implemented in the derived class!
-      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
-      @ Out, None
-    """
-    for varName, distName in self.controllableDist.items():
-      if distName not in initDict['Distributions'].keys():
-        self.raiseAnError(IOError, 'distribution ' + distName + ' not found.')
-      self.controllableDist[varName] = initDict['Distributions'][distName]
-    for varName, distName in self.nonControllableDist.items():
-      if distName not in initDict['Distributions'].keys():
-        self.raiseAnError(IOError, 'distribution ' + distName + ' not found.')
-      self.nonControllableDist[varName] = initDict['Distributions'][distName]
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -130,7 +112,6 @@ class SafestPoint(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
     for child in paramInput.subparts:
       if child.getName() == 'outputName':
         self.outputName = child.value
@@ -178,6 +159,10 @@ class SafestPoint(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+    for varName, distName in self.controllableDist.items():
+      self.controllableDist[varName] = self.retrieveObjectFromAssemblerDict('Distribution', distName)
+    for varName, distName in self.nonControllableDist.items():
+      self.nonControllableDist[varName] = self.retrieveObjectFromAssemblerDict('Distribution', distName)
     self.__gridSetting__()
     self.__gridGeneration__()
     self.inputToInternal(inputs)
@@ -391,4 +376,3 @@ class SafestPoint(PostProcessor):
     output.load(dataCollector,'dict')
     # add general metadata
     output.addMeta(self.type,{'safest_point':{'coordinate':safestPoint}})
-

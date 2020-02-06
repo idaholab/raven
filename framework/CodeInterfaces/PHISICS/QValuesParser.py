@@ -3,8 +3,6 @@ Created on June 19th, 2017
 @author: rouxpn
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 import os
 import re
 from decimal import Decimal
@@ -49,7 +47,7 @@ class QValuesParser():
     for line in lines:
       line = line.upper().split()
       line[0] = re.sub(r'(.*?)(\w+)(-)(\d+M?)', r'\1\2\4', line[0])
-      for isotopeID in self.listedQValuesDict.iterkeys():
+      for isotopeID in self.listedQValuesDict.keys():
         if line[0] == isotopeID:
           try:
             line[1] = str(self.listedQValuesDict.get(isotopeID))
@@ -89,7 +87,7 @@ class QValuesParser():
       @ Out, None
     """
     perturbedIsotopes = []
-    for key in self.pertQValuesDict.iterkeys():
+    for key in self.pertQValuesDict.keys():
       perturbedIsotopes.append(key.split('|')[1])
     for perturbedIsotope in perturbedIsotopes:
       self.listedQValuesDict[perturbedIsotope] = {

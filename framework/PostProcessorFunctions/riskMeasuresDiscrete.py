@@ -18,8 +18,6 @@ Created on November 2016
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -64,9 +62,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     """
     self.variables = {}
     self.target    = {}
-
     self.IEData = {}
-
     self.temporalID = None
 
     for child in xmlNode:
@@ -183,8 +179,11 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                         ' : more than one HistorySet has been provided')
 
-    outputDic['data']['ProbabilityWeight'] = np.asanyarray(1.0)
-    outputDic['data']['prefix'] = np.asanyarray(1.0)
+    # replicate metadata
+    # add meta variables back
+    for key in inputDic[-1]['metaKeys']:
+      outputDic['data'][key] = np.asanyarray(1.0)
+
     return outputDic
 
   def runStatic(self,inputDic, componentConfig=None):

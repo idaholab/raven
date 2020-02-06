@@ -17,21 +17,20 @@
 
 from __future__ import division, print_function, absolute_import
 # WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
-
-#Do not import numpy or scipy or other libraries that are not
-# built into python.  Otherwise the import can fail, and since utils
-# are used by --library-report, this can cause diagnostic messages to fail.
+# *************************** NOTE FOR DEVELOPERS ***************************
+# Do not import numpy or scipy or other libraries that are not              *
+# built into python.  Otherwise the import can fail, and since utils        *
+# are used by --library-report, this can cause diagnostic messages to fail. *
+# ***************************************************************************
 import bisect
 import sys, os, errno
 import inspect
 import subprocess
 import platform
 import copy
-import numpy
-import six
+# import numpy # DO NOT import! See note above.
+# import six   # DO NOT import! see note above.
 from difflib import SequenceMatcher
 import importlib
 
@@ -390,14 +389,6 @@ def toBytes(s):
   else:
     return s
 
-def isString(s):
-  """
-    Method to figure out if a variable is a string.
-    @ In, s, object, variable for which we need to assess if it is a string
-    @ Out, isString, bool, true if variable is a str or unicode.
-  """
-  return isinstance(s, six.string_types)
-
 def toBytesIterative(s):
   """
     Method aimed to convert all the string-compatible content of
@@ -408,7 +399,7 @@ def toBytesIterative(s):
   if type(s) == list:
     return [toBytes(x) for x in s]
   elif type(s) == dict:
-    if len(s.keys()) == 0:
+    if len(s) == 0:
       return None
     tempdict = {}
     for key,value in s.items():
@@ -416,38 +407,6 @@ def toBytesIterative(s):
     return tempdict
   else:
     return toBytes(s)
-
-def toListFromNumpyOrC1array(array):
-  """
-    This method converts a numpy or c1darray into list
-    @ In, array, numpy or c1array,  array to be converted
-    @ Out, response, list, the casted value
-  """
-  response = array
-  if type(array).__name__ == 'ndarray':
-    response = array.tolist()
-  elif type(array).__name__.split(".")[0] == 'c1darray':
-    response = numpy.asarray(array).tolist()
-  return response
-
-def toListFromNumpyOrC1arrayIterative(array):
-  """
-    Method aimed to convert all the string-compatible content of
-    an object (dict, list, or string) in type list from numpy and c1darray types (recursively call toBytes(s))
-    @ In, array, object,  object whose content needs to be converted
-    @ Out, response, object, a copy of the object in which the string-compatible has been converted
-  """
-  if type(array) == list:
-    return [toListFromNumpyOrC1array(x) for x in array]
-  elif type(array) == dict:
-    if len(array.keys()) == 0:
-      return None
-    tempdict = {}
-    for key,value in array.items():
-      tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
-    return tempdict
-  else:
-    return toBytes(array)
 
 def toStrish(s):
   """
@@ -671,84 +630,6 @@ def metaclass_insert(metaclass,*baseClasses):
   namespace={}
   return metaclass("NewMiddleClass",baseClasses,namespace)
 
-def interpolateFunction(x,y,option,z=None,returnCoordinate=False):
-  """
-    Method to interpolate 2D/3D points
-    @ In, x, ndarray or cached_ndarray, the array of x coordinates
-    @ In, y, ndarray or cached_ndarray, the array of y coordinates
-    @ In, z, ndarray or cached_ndarray, optional, the array of z coordinates
-    @ In, returnCoordinate, boolean, optional, true if the new coordinates need to be returned
-    @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
-  """
-  options = copy.copy(option)
-  if x.size <= 2:
-    xi = x
-  else:
-    xi = np.linspace(x.min(),x.max(),int(options['interpPointsX']))
-  if z != None:
-    if y.size <= 2:
-      yi = y
-    else:
-      yi = np.linspace(y.min(),y.max(),int(options['interpPointsY']))
-    xig, yig = np.meshgrid(xi, yi)
-    try:
-      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or z.size <= 3:
-        if options['interpolationType'] != 'nearest' and z.size > 3:
-          zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method=options['interpolationType'])
-        else:
-          zi = griddata((x,y), z, (xi[None,:], yi[:,None]), method='nearest')
-      else:
-        rbf = Rbf(x,y,z,function=str(str(options['interpolationType']).replace('Rbf', '')), epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
-        zi  = rbf(xig, yig)
-    except Exception as ae:
-      if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
-        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
-        zi = interpolateFunction(x,y,z,options)
-      else:
-        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
-    if returnCoordinate:
-      return xig,yig,zi
-    else:
-      return zi
-  else:
-    try:
-      if ['nearest','linear','cubic'].count(options['interpolationType']) > 0 or y.size <= 3:
-        if options['interpolationType'] != 'nearest' and y.size > 3:
-          yi = griddata((x), y, (xi[:]), method=options['interpolationType'])
-        else:
-          yi = griddata((x), y, (xi[:]), method='nearest')
-      else:
-        xig, yig = np.meshgrid(xi, yi)
-        rbf = Rbf(x, y,function=str(str(options['interpolationType']).replace('Rbf', '')),epsilon=int(options.pop('epsilon',2)), smooth=float(options.pop('smooth',0.0)))
-        yi  = rbf(xi)
-    except Exception as ae:
-      if 'interpolationTypeBackUp' in options.keys():
-        print(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('Warning') + '->   The interpolation process failed with error : ' + str(ae) + '.The STREAM MANAGER will try to use the BackUp interpolation type '+ options['interpolationTypeBackUp'])
-        options['interpolationTypeBackUp'] = options.pop('interpolationTypeBackUp')
-        yi = interpolateFunction(x,y,options)
-      else:
-        raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '-> Interpolation failed with error: ' +  str(ae))
-    if returnCoordinate:
-      return xi,yi
-    else:
-      return yi
-
-def line3DInterpolation(x,y,z,nPoints):
-  """
-    Method to interpolate 3D points on a line
-    @ In, x, ndarray or cached_ndarray, the array of x coordinates
-    @ In, y, ndarray or cached_ndarray, the array of y coordinates
-    @ In, z, ndarray or cached_ndarray, the array of z coordinates
-    @ In, nPoints, int, number of desired inteporlation points
-    @ Out, i, ndarray or cached_ndarray or tuple, the interpolated values
-  """
-  options = copy.copy(option)
-  data = np.vstack((x,y,z))
-  tck , u= interpolate.splprep(data, s=1e-6, k=3)
-  new = interpolate.splev(np.linspace(0,1,nPoints), tck)
-  return new[0], new[1], new[2]
-
 class abstractstatic(staticmethod):
   """
     This can be make an abstract static method
@@ -835,6 +716,31 @@ def findCrowModule(name):
       raise ie
     module = importlib.import_module("{}{}".format(name,ext))
   return module
+
+def getPythonCommand():
+  """
+    Method to get the prefered python command.
+    @ In, None
+    @ Out, pythonCommand, str, the name of the command to use.
+  """
+  if os.name == "nt":
+    pythonCommand = "python"
+  else:
+    pythonCommand = sys.executable
+  ## Alternative method.  However, if called by run_tests or raven_framework
+  ## sys.executable is already taken into account PYTHON_COMMAND and this
+  ## logic
+  #if sys.version_info.major > 2:
+  #  if os.name == "nt":
+  #    #Command is python on windows in conda and Python.org install
+  #    pythonCommand = "python"
+  #  else:
+  #    pythonCommand = "python3"
+  #else:
+  #  pythonCommand = "python"
+  #pythonCommand = os.environ.get("PYTHON_COMMAND", pythonCommand)
+  return pythonCommand
+
 
 def printCsv(csv,*args):
   """
@@ -975,19 +881,6 @@ def typeMatch(var,varTypeStr):
         match = True
   return match
 
-def sizeMatch(var,sizeToCheck):
-  """
-    This method is aimed to check if a variable has an expected size
-    @ In, var, python datatype, the first variable to compare
-    @ In, sizeToCheck, int, the size this variable should have
-    @ Out, sizeMatched, bool, is the size ok?
-  """
-  sizeMatched = True
-  if len(numpy.atleast_1d(var)) != sizeToCheck:
-    sizeMatched = False
-  return sizeMatched
-
-
 def isASubset(setToTest,pileList):
   """
     Check if setToTest is ordered subset of pileList in O(n)
@@ -1096,3 +989,86 @@ def getAllSubclasses(cls):
     @ Out, getAllSubclasses, list of class objects for each subclass of cls.
   """
   return cls.__subclasses__() + [g for s in cls.__subclasses__() for g in getAllSubclasses(s)]
+
+def displayAvailable():
+  """
+    The return variable for backend default setting of whether a display is
+    available or not. For instance, if we are running on the HPC without an X11
+    instance, then we don't have the ability to display the plot, only to save it
+    to a file
+    @ In, None
+    @ Out, dispaly, bool, return True if platform is Windows or environment varialbe
+      'DISPLAY' is available, otherwise return False
+  """
+  display = False
+  if platform.system() == 'Windows':
+    display = True
+  else:
+    if os.getenv('DISPLAY'):
+      display = True
+    else:
+      display = False
+  return display
+
+def which(cmd):
+  """
+    Emulate the which method in shutil.
+    Return the path to an executable which would be run if the given cmd was called.
+    If no cmd would be called, return None.
+    @ In, cmd, str, the exe to check
+    @ Out, which, str, the full path or None if not found
+  """
+  def _access_check(fn):
+    """
+      Just check if the path is executable
+      @ In, fn, string, the file to check
+      @ Out, _access_check, bool, if accessable or not?
+    """
+    return (os.path.exists(fn) and os.access(fn, os.X_OK) and not os.path.isdir(fn))
+  if os.path.dirname(cmd):
+    if _access_check(cmd):
+      return cmd
+    return None
+  path = os.environ.get("PATH", os.defpath)
+  if not path:
+    return None
+  path = path.split(os.pathsep)
+  if sys.platform == "win32":
+    if not os.curdir in path:
+      path.insert(0, os.curdir)
+    pathext = os.environ.get("PATHEXT", "").split(os.pathsep)
+    if any(cmd.lower().endswith(ext.lower()) for ext in pathext):
+      files = [cmd]
+    else:
+      files = [cmd + ext for ext in pathext]
+  else:
+    files = [cmd]
+  seen = set()
+  for dir in path:
+    normdir = os.path.normcase(dir)
+    if not normdir in seen:
+      seen.add(normdir)
+      for thefile in files:
+        name = os.path.join(dir, thefile)
+        if _access_check(name):
+          return name
+  return None
+
+def orderClusterLabels(originalLables):
+  """
+    Regulates labels such that the first unique one to appear is 0, second one is 1, and so on.
+    e.g. [B, B, C, B, A, A, D] becomes [0, 0, 1, 0, 2, 2, 3]
+    @ In, originalLabels, list, the original labeling system
+    @ Out, labels, np.array(int), ordinal labels
+  """
+  labels = np.zeros(len(originalLabels), dtype=int)
+  oldToNew = {}
+  nextUsableLabel = 0
+  for l, old in enumerate(originalLabels):
+    new = oldToNew.get(old, None)
+    if new is None:
+      oldToNew[old] = nextUsableLabel
+      new = nextUsableLabel
+      nextUsableLabel += 1
+    labels[l] = new
+  return labels

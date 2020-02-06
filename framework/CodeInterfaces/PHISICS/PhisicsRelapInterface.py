@@ -16,8 +16,6 @@ Created on February 1st 2018
 @author: rouxpn
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 import os
 import re
 import combine
@@ -91,7 +89,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     for key in searchDict:
       for child in libraryRoot.getiterator(searchDict[key]):
         timeDict[dictKeys[key]] = child.text
-        return timeDict
+    return timeDict
 
   def _readMoreXML(self,xmlNode):
     """
@@ -105,7 +103,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     self.PhisicsInterface._readMoreXML(xmlNode)
     self.Relap5Interface._readMoreXML(xmlNode)
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       This method is used to retrieve the command (in tuple format) needed to launch the Code.
       See base class.  Collects all the clargs and the executable to produce the command-line call.
@@ -115,6 +113,8 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual
+                                       command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     mapDict = self.mapInputFileType(inputFiles)

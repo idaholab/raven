@@ -17,8 +17,6 @@ Created on July 10, 2013
 @author: alfoa, wangc
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import numpy as np
@@ -33,7 +31,7 @@ import xarray as xr
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 from utils import mathUtils
 import Files
 import Runners
@@ -60,6 +58,13 @@ class BasicStatistics(PostProcessor):
                 'pearson',
                 'NormalizedSensitivity',
                 'VarianceDependentSensitivity']
+  # quantities that the standard error can be computed
+  steVals    = ['expectedValue_ste',
+                'median_ste',
+                'variance_ste',
+                'sigma_ste',
+                'skewness_ste',
+                'kurtosis_ste']
 
   @classmethod
   def getInputSpecification(cls):
@@ -74,38 +79,38 @@ class BasicStatistics(PostProcessor):
     inputSpecification = super(BasicStatistics, cls).getInputSpecification()
 
     for scalar in cls.scalarVals:
-      scalarSpecification = InputData.parameterInputFactory(scalar, contentType=InputData.StringListType)
+      scalarSpecification = InputData.parameterInputFactory(scalar, contentType=InputTypes.StringListType)
       if scalar == 'percentile':
         #percent is a string type because otherwise we can't tell 95.0 from 95
         # which matters because the number is used in output.
-        scalarSpecification.addParam("percent", InputData.StringListType)
-      scalarSpecification.addParam("prefix", InputData.StringType)
+        scalarSpecification.addParam("percent", InputTypes.StringListType)
+      scalarSpecification.addParam("prefix", InputTypes.StringType)
       inputSpecification.addSub(scalarSpecification)
 
     for vector in cls.vectorVals:
       vectorSpecification = InputData.parameterInputFactory(vector)
-      vectorSpecification.addParam("prefix", InputData.StringType)
+      vectorSpecification.addParam("prefix", InputTypes.StringType)
       features = InputData.parameterInputFactory('features',
-                                contentType=InputData.StringListType)
+                                contentType=InputTypes.StringListType)
       vectorSpecification.addSub(features)
       targets = InputData.parameterInputFactory('targets',
-                                contentType=InputData.StringListType)
+                                contentType=InputTypes.StringListType)
       vectorSpecification.addSub(targets)
       inputSpecification.addSub(vectorSpecification)
 
-    pivotParameterInput = InputData.parameterInputFactory('pivotParameter', contentType=InputData.StringType)
+    pivotParameterInput = InputData.parameterInputFactory('pivotParameter', contentType=InputTypes.StringType)
     inputSpecification.addSub(pivotParameterInput)
 
-    datasetInput = InputData.parameterInputFactory('dataset', contentType=InputData.BoolType)
+    datasetInput = InputData.parameterInputFactory('dataset', contentType=InputTypes.BoolType)
     inputSpecification.addSub(datasetInput)
 
-    methodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputData.StringType)
+    methodsToRunInput = InputData.parameterInputFactory("methodsToRun", contentType=InputTypes.StringType)
     inputSpecification.addSub(methodsToRunInput)
 
-    biasedInput = InputData.parameterInputFactory("biased", contentType=InputData.BoolType)
+    biasedInput = InputData.parameterInputFactory("biased", contentType=InputTypes.BoolType)
     inputSpecification.addSub(biasedInput)
 
-    multipleFeaturesInput = InputData.parameterInputFactory("multipleFeatures", contentType=InputData.BoolType)
+    multipleFeaturesInput = InputData.parameterInputFactory("multipleFeatures", contentType=InputTypes.BoolType)
     inputSpecification.addSub(multipleFeaturesInput)
 
     return inputSpecification
@@ -132,7 +137,9 @@ class BasicStatistics(PostProcessor):
     self.pbPresent      = False # True if the ProbabilityWeight is available
     self.realizationWeight = None # The joint probabilities
     self.outputDataset  = False # True if the user wants to dump the outputs to dataset
+    self.steMetaIndex   = 'targets' # when Dataset is requested as output, the default index of ste metadata is ['targets', self.pivotParameter]
     self.multipleFeatures = True # True if multiple features are employed in linear regression as feature inputs
+    self.sampleSize     = None # number of sample size
 
   def inputToInternal(self, currentInp):
     """
@@ -202,6 +209,10 @@ class BasicStatistics(PostProcessor):
         if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
           self.raiseAnError(IOError, "The data provided by the data objects", currentInput.name, "is not synchronized!")
         self.pivotValue = inputDataset[self.pivotParameter].values
+        if self.pivotValue.size != len(inputDataset.groupby(self.pivotParameter)):
+          msg = "Duplicated values were identified in pivot parameter, please use the 'HistorySetSync'" + \
+          " PostProcessor to syncronize your data before running 'BasicStatistics' PostProcessor."
+          self.raiseAnError(IOError, msg)
     # extract all required meta data
     metaVars = currentInput.getVars('meta')
     self.pbPresent = True if 'ProbabilityWeight' in metaVars else False
@@ -242,6 +253,36 @@ class BasicStatistics(PostProcessor):
     #for backward compatibility, compile the full list of parameters used in Basic Statistics calculations
     self.parameters['targets'] = list(self.allUsedParams)
     PostProcessor.initialize(self, runInfo, inputs, initDict)
+    inputObj = inputs[-1] if type(inputs) == list else inputs
+    if inputObj.type == 'HistorySet':
+      self.dynamic = True
+    inputMetaKeys = []
+    outputMetaKeys = []
+    for metric, infos in self.toDo.items():
+      steMetric = metric + '_ste'
+      if steMetric in self.steVals:
+        for info in infos:
+          prefix = info['prefix']
+          for target in info['targets']:
+            metaVar = prefix + '_ste_' + target if not self.outputDataset else metric + '_ste'
+            metaDim = inputObj.getDimensions(target)
+            if len(metaDim[target]) == 0:
+              inputMetaKeys.append(metaVar)
+            else:
+              outputMetaKeys.append(metaVar)
+    metaParams = {}
+    if not self.outputDataset:
+      if len(outputMetaKeys) > 0:
+        metaParams = {key:[self.pivotParameter] for key in outputMetaKeys}
+    else:
+      if len(outputMetaKeys) > 0:
+        params = {key:[self.pivotParameter,self.steMetaIndex] for key in outputMetaKeys + inputMetaKeys}
+        metaParams.update(params)
+      elif len(inputMetaKeys) > 0:
+        params = {key:[self.steMetaIndex] for key in inputMetaKeys}
+        metaParams.update(params)
+    metaKeys = inputMetaKeys + outputMetaKeys
+    self.addMetaKeys(metaKeys,metaParams)
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -264,7 +305,7 @@ class BasicStatistics(PostProcessor):
     for child in paramInput.subparts:
       tag = child.getName()
       #because percentile is strange (has an attached parameter), we address it first
-      if tag in ['percentile'] + self.scalarVals + self.vectorVals:
+      if tag in self.scalarVals + self.vectorVals:
         if 'prefix' not in child.parameterValues:
           self.raiseAnError(IOError, "No prefix is provided for node: ", tag)
         #get the prefix
@@ -294,6 +335,7 @@ class BasicStatistics(PostProcessor):
           self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
         self.toDo[tag].append({'targets':set(child.value),
                                'prefix':prefix})
+
       elif tag in self.vectorVals:
         if tag not in self.toDo.keys():
           self.toDo[tag] = [] # list of {'targets':(),'features':(), 'prefix':str}
@@ -320,6 +362,7 @@ class BasicStatistics(PostProcessor):
         self.multipleFeatures = child.value
       else:
         self.raiseAWarning('Unrecognized node in BasicStatistics "',tag,'" has been ignored!')
+
     assert (len(self.toDo)>0), self.raiseAnError(IOError, 'BasicStatistics needs parameters to work on! Please check input for PP: ' + self.name)
 
   def __computePower(self, p, dataset):
@@ -329,9 +372,14 @@ class BasicStatistics(PostProcessor):
       @ In, dataset, xarray.Dataset, probability weights of all input variables
       @ Out, pw, xarray.Dataset, the p-th power of weights
     """
-    pw = xr.Dataset()
-    for target, targValue in dataset.data_vars.items():
+    pw = {}
+    coords = dataset.coords
+    for target, targValue in dataset.variables.items():
+      ##remove index variable
+      if target in coords:
+        continue
       pw[target] = np.power(targValue,p)
+    pw = xr.Dataset(data_vars=pw,coords=coords)
     return pw
 
   def __computeVp(self,p,weights):
@@ -344,6 +392,22 @@ class BasicStatistics(PostProcessor):
     vp = self.__computePower(p,weights)
     vp = vp.sum()
     return vp
+
+  def __computeEquivalentSampleSize(self,weights):
+    """
+      Compute the equivalent sample size for given probability weights
+      @ In, weights, xarray.Dataset, probability weights of all input variables
+      @ Out, equivalentSize, xarray.Dataset, the equivalent sample size
+    """
+    # The equivalent sample size for given samples, i.e. (sum of weights) squared / sum of the squared weights
+    # The definition of this quantity can be found:
+    # R. F. Potthoff, M. A. Woodbury and K. G. Manton, "'Equivalent SampleSize' and 'Equivalent Degrees of Freedom'
+    # Refinements for Inference Using Survey Weights Under Superpopulation Models", Journal of the American Statistical
+    # Association, Vol. 87, No. 418 (1992)
+    v1Square = self.__computeVp(1,weights)**2
+    v2 = self.__computeVp(2,weights)
+    equivalentSize = v1Square/v2
+    return equivalentSize
 
   def __computeUnbiasedCorrection(self,order,weightsOrN):
     """
@@ -402,7 +466,7 @@ class BasicStatistics(PostProcessor):
       else:
         result = -3.0 + (p4 * vp * unbiasCorr) / vr
     else:
-      unbiasCorr = self.__computeUnbiasedCorrection(4,arrayIn.sizes[dim]) if not self.biased else 1.0
+      unbiasCorr = self.__computeUnbiasedCorrection(4,int(arrayIn.sizes[dim])) if not self.biased else 1.0
       vp = 1.0 / arrayIn.sizes[dim]
       p4 = ((arrayIn - expValue)**4.0).sum(dim=dim)
       if not self.biased:
@@ -430,7 +494,7 @@ class BasicStatistics(PostProcessor):
       vp = 1.0/self.__computeVp(1,pbWeight)
       result = ((arrayIn - expValue)**3 * pbWeight).sum(dim=dim) * vp * unbiasCorr / vr
     else:
-      unbiasCorr = self.__computeUnbiasedCorrection(3,arrayIn.sizes[dim]) if not self.biased else 1.0
+      unbiasCorr = self.__computeUnbiasedCorrection(3,int(arrayIn.sizes[dim])) if not self.biased else 1.0
       vp = 1.0 / arrayIn.sizes[dim]
       result = ((arrayIn - expValue)**3).sum(dim=dim) * vp * unbiasCorr / vr
     return result
@@ -451,7 +515,7 @@ class BasicStatistics(PostProcessor):
       vp = 1.0/self.__computeVp(1,pbWeight)
       result = ((arrayIn-expValue)**2 * pbWeight).sum(dim=dim) * vp * unbiasCorr
     else:
-      unbiasCorr = self.__computeUnbiasedCorrection(2,arrayIn.sizes[dim]) if not self.biased else 1.0
+      unbiasCorr = self.__computeUnbiasedCorrection(2,int(arrayIn.sizes[dim])) if not self.biased else 1.0
       result =  (arrayIn-expValue).var(dim=dim) * unbiasCorr
     return result
 
@@ -529,15 +593,18 @@ class BasicStatistics(PostProcessor):
     # sigma needs                  | variance               | variationCoefficient
     # variance                     | expectedValue          | sigma, skewness, kurtosis
     # expectedValue                |                        | variance, variationCoefficient, skewness, kurtosis
-    needed['sigma']['targets'].update(needed['variationCoefficient']['targets'])
-    needed['variance']['targets'].update(needed['sigma']['targets'])
+
+    # update needed dictionary when standard errors are requested
     needed['expectedValue']['targets'].update(needed['sigma']['targets'])
     needed['expectedValue']['targets'].update(needed['variationCoefficient']['targets'])
     needed['expectedValue']['targets'].update(needed['variance']['targets'])
+    needed['expectedValue']['targets'].update(needed['median']['targets'])
     needed['expectedValue']['targets'].update(needed['skewness']['targets'])
     needed['expectedValue']['targets'].update(needed['kurtosis']['targets'])
     needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['targets'])
     needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['features'])
+    needed['sigma']['targets'].update(needed['expectedValue']['targets'])
+    needed['variance']['targets'].update(needed['sigma']['targets'])
     needed['covariance']['targets'].update(needed['NormalizedSensitivity']['targets'])
     needed['covariance']['features'].update(needed['NormalizedSensitivity']['features'])
     needed['VarianceDependentSensitivity']['targets'].update(needed['NormalizedSensitivity']['targets'])
@@ -566,32 +633,35 @@ class BasicStatistics(PostProcessor):
     #
     # samples
     #
+    self.sampleSize = inputDataset.sizes[self.sampleTag]
     metric = 'samples'
-    if len(needed[metric]['targets'])>0:
+    if len(needed[metric]['targets']) > 0:
       self.raiseADebug('Starting "'+metric+'"...')
-      numRlz = inputDataset.sizes[self.sampleTag]
       if self.dynamic:
         nt = inputDataset.sizes[self.pivotParameter]
-        sampleMat = np.zeros((len(self.parameters['targets']),len(self.pivotValue)))
-        sampleMat.fill(numRlz)
-        samplesDA = xr.DataArray(sampleMat,dims=('targets',self.pivotParameter),coords={'targets':self.parameters['targets'],self.pivotParameter:self.pivotValue})
+        sampleMat = np.zeros((len(self.parameters['targets']), len(self.pivotValue)))
+        sampleMat.fill(self.sampleSize)
+        samplesDA = xr.DataArray(sampleMat,dims=('targets', self.pivotParameter), coords={'targets':self.parameters['targets'], self.pivotParameter:self.pivotValue})
       else:
         sampleMat = np.zeros(len(self.parameters['targets']))
-        sampleMat.fill(numRlz)
-        samplesDA = xr.DataArray(sampleMat,dims=('targets'),coords={'targets':self.parameters['targets']})
+        sampleMat.fill(self.sampleSize)
+        samplesDA = xr.DataArray(sampleMat,dims=('targets'), coords={'targets':self.parameters['targets']})
 
       calculations[metric] = samplesDA
+
     #
     # expected value
     #
     metric = 'expectedValue'
-    if len(needed[metric]['targets'])>0:
+    if len(needed[metric]['targets']) > 0:
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
       if self.pbPresent:
         relWeight = pbWeights[list(needed[metric]['targets'])]
+        equivalentSize = self.__computeEquivalentSampleSize(relWeight)
         dataSet = dataSet * relWeight
         expectedValueDS = dataSet.sum(dim = self.sampleTag)
+        calculations['equivalentSamples'] = equivalentSize
       else:
         expectedValueDS = dataSet.mean(dim = self.sampleTag)
       calculations[metric] = expectedValueDS
@@ -675,6 +745,79 @@ class BasicStatistics(PostProcessor):
       else:
         medianSet = dataSet.median(dim=self.sampleTag)
       calculations[metric] = medianSet
+    ############################################################
+    # compute standard error for expectedValue
+    ############################################################
+    metric = 'expectedValue'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting calculate standard error on"'+metric+'"...')
+      if self.pbPresent:
+        factor = self.__computePower(0.5,calculations['equivalentSamples'])
+      else:
+        factor = np.sqrt(self.sampleSize)
+      calculations[metric+'_ste'] = calculations['sigma'][list(needed[metric]['targets'])]/factor
+
+    metric = 'variance'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting calculate standard error on "'+metric+'"...')
+      varList = list(needed[metric]['targets'])
+      if self.pbPresent:
+        en = calculations['equivalentSamples'][varList]
+        factor = 2.0 /(en - 1.0)
+        factor = self.__computePower(0.5,factor)
+      else:
+        factor = np.sqrt(2.0/(float(self.sampleSize) - 1.0))
+      calculations[metric+'_ste'] = calculations['sigma'][varList]**2 * factor
+
+    metric = 'sigma'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting calculate standard error on "'+metric+'"...')
+      varList = list(needed[metric]['targets'])
+      if self.pbPresent:
+        en = calculations['equivalentSamples'][varList]
+        factor = 2.0 * (en - 1.0)
+        factor = self.__computePower(0.5,factor)
+      else:
+        factor = np.sqrt(2.0 * (float(self.sampleSize) - 1.0))
+      calculations[metric+'_ste'] = calculations['sigma'][varList] / factor
+
+    metric = 'median'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting calculate standard error on "'+metric+'"...')
+      varList = list(needed[metric]['targets'])
+      calculations[metric+'_ste'] = calculations['expectedValue_ste'][varList] * np.sqrt(np.pi/2.0)
+
+    metric = 'skewness'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting calculate standard error on "'+metric+'"...')
+      varList = list(needed[metric]['targets'])
+      if self.pbPresent:
+        en = calculations['equivalentSamples'][varList]
+        factor = 6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.))
+        factor = self.__computePower(0.5,factor)
+        calculations[metric+'_ste'] = xr.full_like(calculations[metric],1.0) * factor
+      else:
+        en = float(self.sampleSize)
+        factor = np.sqrt(6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.)))
+        calculations[metric+'_ste'] = xr.full_like(calculations[metric],factor)
+
+    metric = 'kurtosis'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting calculate standard error on "'+metric+'"...')
+      varList = list(needed[metric]['targets'])
+      if self.pbPresent:
+        en = calculations['equivalentSamples'][varList]
+        factor1 = self.__computePower(0.5,6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.)))
+        factor2 = self.__computePower(0.5,(en**2-1.)/((en-3.0)*(en+5.0)))
+        factor = 2.0 * factor1 * factor2
+        calculations[metric+'_ste'] = xr.full_like(calculations[metric],1.0) * factor
+      else:
+        en = float(self.sampleSize)
+        factor = 2.0 * np.sqrt(6.*en*(en-1.)/((en-2.)*(en+1.)*(en+3.)))*np.sqrt((en**2-1.)/((en-3.0)*(en+5.0)))
+        calculations[metric+'_ste'] = xr.full_like(calculations[metric],factor)
+    ############################################################
+    # End of Standard Error Calculations
+    ############################################################
     #
     # maximum
     #
@@ -901,10 +1044,9 @@ class BasicStatistics(PostProcessor):
 
 
     for metric, ds in calculations.items():
-      if metric in self.scalarVals and metric !='samples':
+      if metric in self.scalarVals + self.steVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations)
-
     if self.outputDataset:
       # Add 'RAVEN_sample_ID' to output dataset for consistence
       if 'RAVEN_sample_ID' not in outputSet.sizes.keys():
@@ -920,6 +1062,10 @@ class BasicStatistics(PostProcessor):
             if metric in self.scalarVals and metric != 'percentile':
               varName = prefix + '_' + target
               outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
+              steMetric = metric + '_ste'
+              if steMetric in self.steVals:
+                metaVar = prefix + '_ste_' + target
+                outputDict[metaVar] = np.atleast_1d(outputSet[steMetric].sel(**{'targets':target}))
             elif metric == 'percentile':
               for percent in targetDict['strPercent']:
                 varName = '_'.join([prefix,percent,target])
@@ -978,7 +1124,11 @@ class BasicStatistics(PostProcessor):
       # If False, which means there is no overlap between the target set and feature set.
       # mutivariate linear regression can be used. However, for both cases, co-linearity check should be
       # added for the feature set. ~ wangc
+
       if not intersectionSet:
+        condNumber = np.linalg.cond(featSamples)
+        if condNumber > 30.:
+          self.raiseAWarning("Condition Number: {:10.4f} > 30.0. Detected SEVERE multicollinearity problem. Sensitivity might be incorrect!".format(condNumber))
         senMatrix = LinearRegression().fit(featSamples,targSamples).coef_
       else:
         # Target variables are in feature variables list, multi-target linear regression can not be used
@@ -989,7 +1139,12 @@ class BasicStatistics(PostProcessor):
           ind = list(featVars).index(targ) if targ in featVars else None
           if ind is not None:
             featMat = np.delete(featSamples,ind,axis=1)
+          else:
+            featMat = featSamples
           regCoeff = LinearRegression().fit(featMat, targSamples[:,p]).coef_
+          condNumber = np.linalg.cond(featMat)
+          if condNumber > 30.:
+            self.raiseAWarning("Condition Number: {:10.4f} > 30.0. Detected SEVERE multicollinearity problem. Sensitivity might be incorrect!".format(condNumber))
           if ind is not None:
             regCoeff = np.insert(regCoeff,ind,1.0)
           senMatrix[p,:] = regCoeff

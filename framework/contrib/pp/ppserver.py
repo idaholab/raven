@@ -30,6 +30,7 @@ Parallel Python Software, Network Server
 http://www.parallelpython.com - updates, documentation, examples and support
 forums
 """
+from __future__ import print_function
 
 import atexit
 import logging
@@ -76,7 +77,7 @@ class _NetworkServer(pp.Server):
                 proto, socket_timeout)
         if pid_file:
           with open(pid_file, 'w') as pfile:
-            print >>pfile, os.getpid()
+            print(os.getpid(), file=pfile)
           atexit.register(os.remove, pid_file)
         self.host = interface
         self.bcast = broadcast
@@ -126,7 +127,7 @@ class _NetworkServer(pp.Server):
             self.ssocket.settimeout(LISTEN_SOCKET_TIMEOUT)
             self.ssocket.bind((self.host, self.port))
             self.ssocket.listen(5)
-        except socket.error, e:
+        except socket.error as e:
             self.logger.error("Cannot create socket for %s:%s, %s", self.host, self.port, e)
 
         try:
@@ -216,13 +217,13 @@ def parse_config(file_loc):
     # If we don't have configobj installed then let the user know and exit
     try:
         from configobj import ConfigObj
-    except ImportError, ie:
-        print >> sys.stderr, ("ERROR: You must have config obj installed to use"
-                "configuration files. You can still use command line switches.")
+    except ImportError as ie:
+        print(("ERROR: You must have config obj installed to use"
+                "configuration files. You can still use command line switches."), file=sys.stderr)
         sys.exit(1)
 
     if not os.access(file_loc, os.F_OK):
-        print >> sys.stderr, "ERROR: Can not access %s." % arg
+        print("ERROR: Can not access %s." % arg, file=sys.stderr)
         sys.exit(1)
 
     # Load the configuration file
@@ -295,40 +296,40 @@ def parse_config(file_loc):
 
 def print_usage():
     """Prints help"""
-    print "Parallel Python Network Server (pp-" + version + ")"
-    print "Usage: ppserver.py [-hdar] [-f format] [-n proto]"\
+    print("Parallel Python Network Server (pp-" + version + ")")
+    print("Usage: ppserver.py [-hdar] [-f format] [-n proto]"\
             " [-c config_path] [-i interface] [-b broadcast]"\
             " [-p port] [-w nworkers] [-s secret] [-t seconds]"\
-            " [-k seconds] [-P pid_file]"
-    print
-    print "Options: "
-    print "-h                 : this help message"
-    print "-d                 : set log level to debug"
-    print "-f format          : log format"
-    print "-a                 : enable auto-discovery service"
-    print "-r                 : restart worker process after each"\
-            " task completion"
-    print "-n proto           : protocol number for pickle module"
-    print "-c path            : path to config file"
-    print "-i interface       : interface to listen"
-    print "-b broadcast       : broadcast address for auto-discovery service"
-    print "-p port            : port to listen"
-    print "-w nworkers        : number of workers to start"
-    print "-s secret          : secret for authentication"
-    print "-t seconds         : timeout to exit if no connections with "\
-            "clients exist"
-    print "-k seconds         : socket timeout in seconds"
-    print "-g                 : python path that should be checked and added"
-    print "-P pid_file        : file to write PID to"
-    print
-    print "To print server stats send SIGUSR1 to its main process (unix only). "
-    print
-    print "Due to the security concerns always use a non-trivial secret key."
-    print "Secret key set by -s switch will override secret key assigned by"
-    print "pp_secret variable in .pythonrc.py"
-    print
-    print "Please visit http://www.parallelpython.com for extended up-to-date"
-    print "documentation, examples and support forums"
+            " [-k seconds] [-P pid_file]")
+    print()
+    print("Options: ")
+    print("-h                 : this help message")
+    print("-d                 : set log level to debug")
+    print("-f format          : log format")
+    print("-a                 : enable auto-discovery service")
+    print("-r                 : restart worker process after each"\
+            " task completion")
+    print("-n proto           : protocol number for pickle module")
+    print("-c path            : path to config file")
+    print("-i interface       : interface to listen")
+    print("-b broadcast       : broadcast address for auto-discovery service")
+    print("-p port            : port to listen")
+    print("-w nworkers        : number of workers to start")
+    print("-s secret          : secret for authentication")
+    print("-t seconds         : timeout to exit if no connections with "\
+            "clients exist")
+    print("-k seconds         : socket timeout in seconds")
+    print("-g                 : python path that should be checked and added")
+    print("-P pid_file        : file to write PID to")
+    print()
+    print("To print server stats send SIGUSR1 to its main process (unix only). ")
+    print()
+    print("Due to the security concerns always use a non-trivial secret key.")
+    print("Secret key set by -s switch will override secret key assigned by")
+    print("pp_secret variable in .pythonrc.py")
+    print()
+    print("Please visit http://www.parallelpython.com for extended up-to-date")
+    print("documentation, examples and support forums")
 
 
 def create_network_server(argv):

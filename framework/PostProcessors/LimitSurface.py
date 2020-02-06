@@ -17,8 +17,6 @@ Created on July 10, 2013
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -28,8 +26,7 @@ from collections import OrderedDict
 
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import InputData
-from utils import utils
+from utils import InputData, InputTypes, utils, mathUtils
 import LearningGate
 import GridEntities
 import Files
@@ -53,23 +50,23 @@ class LimitSurface(PostProcessor):
     ## This will replace the lines above
     inputSpecification = super(LimitSurface, cls).getInputSpecification()
 
-    ParametersInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
+    ParametersInput = InputData.parameterInputFactory("parameters", contentType=InputTypes.StringType)
     inputSpecification.addSub(ParametersInput)
 
-    ToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
+    ToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputTypes.FloatType)
     inputSpecification.addSub(ToleranceInput)
 
-    SideInput = InputData.parameterInputFactory("side", contentType=InputData.StringType)
+    SideInput = InputData.parameterInputFactory("side", contentType=InputTypes.StringType)
     inputSpecification.addSub(SideInput)
 
-    ROMInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
-    ROMInput.addParam("class", InputData.StringType)
-    ROMInput.addParam("type", InputData.StringType)
+    ROMInput = InputData.parameterInputFactory("ROM", contentType=InputTypes.StringType)
+    ROMInput.addParam("class", InputTypes.StringType)
+    ROMInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(ROMInput)
 
-    FunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
-    FunctionInput.addParam("class", InputData.StringType)
-    FunctionInput.addParam("type", InputData.StringType)
+    FunctionInput = InputData.parameterInputFactory("Function", contentType=InputTypes.StringType)
+    FunctionInput.addParam("class", InputTypes.StringType)
+    FunctionInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(FunctionInput)
 
     return inputSpecification
@@ -136,7 +133,7 @@ class LimitSurface(PostProcessor):
     self.ROM.reset()
     self.indexes = -1
     for index, inp in enumerate(self.inputs):
-      if utils.isString(inp)  or isinstance(inp, bytes):
+      if mathUtils.isAString(inp)  or isinstance(inp, bytes):
         self.raiseAnError(IOError, 'LimitSurface PostProcessor only accepts Data(s) as inputs. Got string type!')
       if inp.type == 'PointSet':
         self.indexes = index
@@ -394,7 +391,11 @@ class LimitSurface(PostProcessor):
       self.gridCoord[nodeName].shape      = self.gridEntity.returnParameter("gridCoorShape",nodeName) #bring back the grid structure
       self.raiseADebug('LimitSurface: Prediction performed')
       # here next the points that are close to any change are detected by a gradient (it is a pre-screener)
-      toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
+      if self.nVar > 1:
+        toBeTested = np.squeeze(np.dstack(np.nonzero(np.sum(np.abs(np.gradient(self.testMatrix[nodeName])), axis = 0))))
+      else:
+        toBeTested = np.squeeze(np.dstack(np.nonzero(np.abs(np.gradient(self.testMatrix[nodeName])))))
+      toBeTested = np.atleast_2d(toBeTested).T if self.nVar == 1 else toBeTested
       #printing----------------------
       self.raiseADebug('LimitSurface:  Limit surface candidate points')
       if self.getLocalVerbosity() == 'debug':
@@ -407,7 +408,6 @@ class LimitSurface(PostProcessor):
       # check which one of the preselected points is really on the limit surface
       nNegPoints, nPosPoints                       =  0, 0
       listSurfPointNegative, listSurfPointPositive = [], []
-
       if self.lsSide in ["negative", "both"]:
         # it returns the list of points belonging to the limit state surface and resulting in a negative response by the ROM
         listSurfPointNegative = self.__localLimitStateSearch__(toBeTested, -1, nodeName)

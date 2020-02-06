@@ -29,9 +29,6 @@ frameworkDir = os.path.normpath(os.path.join(os.path.dirname(__file__),os.pardir
 sys.path.append(frameworkDir)
 from utils import xmlUtils, utils
 
-from MessageHandler import MessageHandler
-mh = MessageHandler()
-mh.initialize({})
 
 print (xmlUtils)
 
@@ -352,61 +349,86 @@ else:
   results['pass']+=1
 
 
-###################
-# Variable Groups #
-###################
-
+# test StaticXmlElement
 print('')
-# all ( a, b, d)
-# d (some a, some b)
-# ab (a, b)
-# ce (c, e)
-# f is isolated
-example = """<VariableGroups>
-  <Group name="a">a1, a2, a3</Group>
-  <Group name="b">b1, b2, b3</Group>
-  <Group name="c">c1, c2, c3</Group>
-  <Group name="d">a1, b1</Group>
-  <Group name="e">e1, e2 ,e3</Group>
-  <Group name="f">f1, f2, f3</Group>
-  <Group name="ce">c, e</Group>
-  <Group name="ab">a,b</Group>
-  <Group name="abd">a,b,d</Group>
-  <Group name="plus">a,c</Group>
-  <Group name="minus">a,-d</Group>
-  <Group name="intersect">a,^d</Group>
-  <Group name="symmdiff">a,%d</Group>
-  <Group name="symmrev">d,%a</Group>
-</VariableGroups>"""
-node = ET.fromstring(example)
-groups = xmlUtils.readVariableGroups(node,mh,None)
-
-# test contents
-def testVarGroup(groups,g,right):
-  got = groups[g].getVarsString()
-  if got == right:
+static = xmlUtils.StaticXmlElement('testRoot')
+static.addScalar('newTarget','newMetric',42)
+# check new structure was added
+try:
+  val = int(static.getRoot().find('newTarget').find('newMetric').text)
+  if val == 42:
     results['pass']+=1
   else:
-    print('ERROR: Vargroups group "{}" should be "{}" but got "{}"!'.format(g,right,got))
+    print('ERROR: StaticXmlElement value failure: "newTarget.newMetric = {}"'.format(val))
     results['fail']+=1
+except AttributeError:
+  print('ERROR: StaticXmlElement could not find newTarget.newMetric!')
+  results['fail']+=1
 
-# note that order matters for these solutions!
-testVarGroup(groups,'a','a1,a2,a3')             # a and b are first basic sets
-testVarGroup(groups,'b','b1,b2,b3')             # a and b are first basic sets
-testVarGroup(groups,'c','c1,c2,c3')             # c and e are second basic sets
-testVarGroup(groups,'d','a1,b1')                # d is just a1 and b1, to test one-entry-per-variable
-testVarGroup(groups,'e','e1,e2,e3')             # c and e are second basic sets
-testVarGroup(groups,'f','f1,f2,f3')             # f is isolated; nothing else uses it
-testVarGroup(groups,'ce','c1,c2,c3,e1,e2,e3')   # ce combines c and e
-testVarGroup(groups,'ab','a1,a2,a3,b1,b2,b3')   # ab combines a and b
-testVarGroup(groups,'abd','a1,a2,a3,b1,b2,b3')  # ab combines a and b
-testVarGroup(groups,'plus','a1,a2,a3,c1,c2,c3') # plus is OR for a and c
-testVarGroup(groups,'minus','a2,a3')            # minus is a but not d
-testVarGroup(groups,'intersect','a1')           # intersect is AND for a, d
-testVarGroup(groups,'symmdiff','a2,a3,b1')      # symdiff is XOR for a, d
-testVarGroup(groups,'symmrev','b1,a2,a3')       # symmrev shows order depends on how variables are put in
+newTarget = static.getRoot().find('newTarget')
+if newTarget is None:
+  print('ERROR: StaticXmlElement new node missing: "newTarget"')
+  results['fail']+=1
+else:
+  newMetric = newTarget.find('newMetric')
+  if newMetric is None:
+    print('ERROR: StaticXmlElement new node missing: "newTarget.newMetric"')
+    results['fail']+=1
+  else:
+    val = int(newMetric.text)
+    if val == 42:
+      results['pass'] +=1
+    else:
+      print('ERROR: StaticXmlElement value failure: "newTarget.newMetric = {}"'.format(val))
+      results['fail']+=1
+
+static.addVector('newTarget','newVectorMetric',{'A':1,'B':2})
+try:
+  A = int(static.getRoot().find('newTarget').find('newVectorMetric').find('A').text)
+  if A == 1:
+    results['pass']+=1
+  else:
+    print('ERROR: StaticXmlElement value failure: "newTarget.newVectorMetric.A = {}"'.format(A))
+    results['fail']+=1
+except AttributeError:
+  print('ERROR: StaticXmlElement could not find newTarget.newVectorMetric.A!')
+  results['fail']+=1
+
+try:
+  B = int(static.getRoot().find('newTarget').find('newVectorMetric').find('B').text)
+  if B == 2:
+    results['pass']+=1
+  else:
+    print('ERROR: StaticXmlElement value failure: "newTarget.newVectorMetric.B = {}"'.format(B))
+    results['fail']+=1
+except AttributeError:
+  print('ERROR: StaticXmlElement could not find newTarget.newVectorMetric.A!')
+  results['fail']+=1
 
 
+# test DynamicXmlElement
+print('')
+dynamic = xmlUtils.DynamicXmlElement('testRoot',pivotParam='Time')
+values = {0.1: 1, 0.2:1, 0.3:2}
+for t,v in values.items():
+  dynamic.addScalar('newTarget', 'newMetric', v, t)
+
+try:
+  times = dynamic.getRoot().findall('Time')
+  for node in times:
+    t = float(node.attrib['value'])
+    v = float(node.find('newTarget').find('newMetric').text)
+    if v == values[t]:
+      results['pass']+=1
+    else:
+      print('ERROR: DynamicXmlElement value failure: "Time {} newTarget.newMetric = {}"'.format(t,v))
+      results['fail']+=1
+except AttributeError:
+  print('ERROR: DynamicXmlElement has missing elements!')
+  results['fail']+=1
+
+# for debugging:
+#print(xmlUtils.prettify(dynamic._tree,addRavenNewlines=False))
 
 
 

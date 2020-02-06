@@ -18,8 +18,6 @@ Created on April 9, 2013
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -36,7 +34,7 @@ import collections
 from BaseClasses import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DatabasesCollection(InputData.ParameterInput):
@@ -62,10 +60,10 @@ class DateBase(BaseType):
         specifying input of cls.
     """
     inputSpecification = super(DateBase, cls).getInputSpecification()
-    inputSpecification.addParam("directory", InputData.StringType)
-    inputSpecification.addParam("filename", InputData.StringType)
-    inputSpecification.addParam("readMode", InputData.makeEnumType("readMode","readModeType",["overwrite","read"]), True)
-    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringListType))
+    inputSpecification.addParam("directory", InputTypes.StringType)
+    inputSpecification.addParam("filename", InputTypes.StringType)
+    inputSpecification.addParam("readMode", InputTypes.makeEnumType("readMode","readModeType",["overwrite","read"]), True)
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringListType))
     return inputSpecification
 
   def _handleInput(self, paramInput):
@@ -212,15 +210,6 @@ class HDF5(DateBase):
     paramDict['exist'] = self.exist
     return paramDict
 
-  def getEndingGroupPaths(self):
-    """
-      Function to retrieve all the groups' paths of the ending groups
-      @ In, None
-      @ Out, histories, list, List of the ending groups' paths
-    """
-    histories = self.database.retrieveAllHistoryPaths()
-    return histories
-
   def getEndingGroupNames(self):
     """
     Function to retrieve all the groups' names of the ending groups
@@ -244,24 +233,27 @@ class HDF5(DateBase):
     # realization must be a dictionary
     assert(type(rlz).__name__ == "dict")
     # prefix must be present
-    assert('prefix' in rlz)
+    if 'prefix' not in rlz:
+      rlz['prefix'] = len(self.database)
     self.database.addGroup(rlz)
     self.built = True
 
-  def addExpectedMeta(self,keys):
+  def addExpectedMeta(self,keys,params={}):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
-    self.database.addExpectedMeta(keys)
-    self.addMetaKeys(*keys)
+    self.database.addExpectedMeta(keys,params)
+    self.addMetaKeys(keys, params)
 
   def provideExpectedMetaKeys(self):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, set(str), expected keys (empty if none)
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and dictionary of expected keys with respect to their indexes, i.e. {keys:[indexes]}
     """
     return self.database.provideExpectedMetaKeys()
 

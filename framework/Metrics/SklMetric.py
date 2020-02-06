@@ -18,8 +18,6 @@ Created on August 20 2016
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -39,7 +37,7 @@ from sklearn.metrics import r2_score
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
-from utils import InputData
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -73,8 +71,8 @@ class SKL(Metric):
         specifying input of cls.
     """
     inputSpecification = super(SKL, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("metricType",contentType=InputData.StringType),quantity=InputData.Quantity.one)
-    inputSpecification.addSub(InputData.parameterInputFactory("sample_weight",contentType=InputData.FloatListType),quantity=InputData.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("metricType",contentType=InputTypes.StringType),quantity=InputData.Quantity.one)
+    inputSpecification.addSub(InputData.parameterInputFactory("sample_weight",contentType=InputTypes.FloatListType),quantity=InputData.Quantity.zero_to_one)
 
     return inputSpecification
 

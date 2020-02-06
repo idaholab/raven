@@ -1,0 +1,92 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/RAVEN.Code</name>
+    <author>talbpaul</author>
+    <created>2019-10-16</created>
+    <classesTested>Models.Code.RAVEN</classesTested>
+    <description>
+      Basic test of the raven-runs-raven interface.
+      Outer raven runs a grid sampling by changing the upper and lower bounds of the sampledVars distribution on the inner raven.
+      Inner raven runs Grid samples, does basic stats, and returns the mean, sigma to the outer raven.
+      Specifically uses both a File and Function in the inner, to cover testing
+    </description>
+    <revisions>
+      <revision author="ZHOUJ2" date="2019-10-17"> This test will run twice to
+      make sure if a working directory is already exist, warning message will be
+      shown up. Assures the results and the subdirectory generated are identical.</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Code</WorkingDir>
+    <batchSize>1</batchSize>
+    <Sequence>sample,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="Files" type="raven">inner_input</Input>
+      <Input class="Files" type="exec">proj</Input>
+      <Model class="Models" type="Code">raven</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">outer_samples</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">outer_samples</Input>
+      <Output class="OutStreams" type="Print">outer_out</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+    <Input name="inner_input" type="raven" >inner_sample.xml</Input>
+    <Input name="proj" type="exec" perturbable='False' >projectile.py</Input>
+  </Files>
+
+  <Models>
+    <Code name="raven" subType="RAVEN">
+        <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
+        <outputExportOutStreams>inner_out</outputExportOutStreams>
+        <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:v0_dist|lowerBound</alias>
+        <alias variable="innerUpperBound" type="input">Distributions|Uniform@name:v0_dist|upperBound</alias>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dist_lower">
+      <lowerBound>1</lowerBound>
+      <upperBound>10</upperBound>
+    </Uniform>
+    <Uniform name="dist_upper">
+      <lowerBound>11</lowerBound>
+      <upperBound>20</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="innerLowerBound">
+        <distribution>dist_lower</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+      </variable>
+      <variable name="innerUpperBound">
+        <distribution>dist_upper</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="outer_out">
+      <type>csv</type>
+      <source>outer_samples</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="outer_samples">
+      <Input>innerLowerBound,innerUpperBound</Input>
+      <Output>mean_v0, mean_angle, mean_r, mean_t</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

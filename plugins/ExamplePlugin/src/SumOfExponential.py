@@ -3,8 +3,6 @@
   Date  :  11/17/2017
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import numpy as np
@@ -39,7 +37,7 @@ class SumOfExponential(ExternalModelPluginBase):
     monotonicVarNode = xmlNode.find("monotonicVariable")
     if monotonicVarNode is None:
       raise IOError("ExamplePlugin: <monotonicVariable> XML block must be inputted!")
-    container.monotonicVariable = monotonicVarNode.text.strip()
+    container.monotonicVariableName = monotonicVarNode.text.strip()
 
     for child in xmlNode:
       if child.tag.strip() == "variables":
@@ -47,8 +45,8 @@ class SumOfExponential(ExternalModelPluginBase):
         container.variables = [var.strip() for var in child.text.split(",")]
         if container.outputVariable not in container.variables:
           raise IOError("ExamplePlugin: "+container.outputVariable+" variable MUST be present in the <variables> definition!")
-        if "monotonicVariable" not in container.variables:
-          raise IOError("ExamplePlugin: "+container.monotonicVariable+" variable MUST be present in the <variables> definition!")
+        if container.monotonicVariableName not in container.variables:
+          raise IOError("ExamplePlugin: "+container.monotonicVariableName+" variable MUST be present in the <variables> definition!")
         if len(container.variables) < 2:
           raise IOError("ExamplePlugin: at least 1 input and 1 output variable ("+container.outputVariable+") must be listed in the <variables> definition!!")
       if child.tag.strip() == "coefficient":
@@ -107,7 +105,7 @@ class SumOfExponential(ExternalModelPluginBase):
       Xi[step+1] = np.sum(varCoeff*np.exp(varExponents))
       Xi[step+1]+=Xi[step]
     container.__dict__[container.outputVariable] = Xi
-    container.__dict__[container.monotonicVariable] = monotonicVariable
+    container.__dict__[container.monotonicVariableName] = monotonicVariable
   ###############################
   #### RAVEN API methods END ####
   ###############################

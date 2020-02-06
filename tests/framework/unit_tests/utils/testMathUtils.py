@@ -23,10 +23,14 @@ warnings.simplefilter('default',DeprecationWarning)
 
 import os,sys
 import numpy as np
+import xml.etree.ElementTree as ET
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
 from utils import mathUtils
-import numpy as np
+
+from MessageHandler import MessageHandler
+mh = MessageHandler()
+mh.initialize({})
 
 print (mathUtils)
 
@@ -345,7 +349,6 @@ checkAnswer('InfDiff -inf   - inf'   ,mathUtils.diffWithInfinites(-n, n),-i)
 checkAnswer('InfDiff -inf   - finite',mathUtils.diffWithInfinites(-n, 0),-i)
 checkAnswer('InfDiff -inf   - (-inf)',mathUtils.diffWithInfinites(-n,-n), 0)
 
-
 ##########################
 #      TYPE CHECKING     #
 ##########################
@@ -375,7 +378,7 @@ checkAnswer('isSingleValued dict'   ,mathUtils.isSingleValued({1:2}        ),Fal
 
 # isAString
 # TODO how to get a string (not unicode) after import unicode literals?
-#checkAnswer('isAString string',mathUtils.isAString(bytes_to_native_str(b'alpha')),True)
+#checkAnswer('isAString string',utils.isAString(bytes_to_native_str(b'alpha')),True)
 checkAnswer('isAString strish' ,mathUtils.isAString('alpha'),True)
 checkAnswer('isAString unicode',mathUtils.isAString(u'beta'),True)
 checkAnswer('isAString float'  ,mathUtils.isAString(1.0    ),False)
@@ -424,6 +427,61 @@ checkAnswer('isABoolean str'  ,mathUtils.isABoolean("True"),False)
 checkAnswer('isABoolean 3.14' ,mathUtils.isABoolean(3.14  ),False)
 checkAnswer('isABoolean long' ,mathUtils.isABoolean(123456789012345678901234567890),False)
 
+###################
+# Variable Groups #
+###################
+
+print('')
+# all ( a, b, d)
+# d (some a, some b)
+# ab (a, b)
+# ce (c, e)
+# f is isolated
+example = """<VariableGroups>
+  <Group name="a">a1, a2, a3</Group>
+  <Group name="b">b1, b2, b3</Group>
+  <Group name="c">c1, c2, c3</Group>
+  <Group name="d">a1, b1</Group>
+  <Group name="e">e1, e2 ,e3</Group>
+  <Group name="f">f1, f2, f3</Group>
+  <Group name="ce">c, e</Group>
+  <Group name="ab">a,b</Group>
+  <Group name="abd">a,b,d</Group>
+  <Group name="plus">a,c</Group>
+  <Group name="minus">a,-d</Group>
+  <Group name="intersect">a,^d</Group>
+  <Group name="symmdiff">a,%d</Group>
+  <Group name="symmrev">d,%a</Group>
+</VariableGroups>"""
+node = ET.fromstring(example)
+groups = mathUtils.readVariableGroups(node,mh,None)
+
+# test contents
+def testVarGroup(groups,g,right):
+  got = groups[g].getVarsString()
+  if got == right:
+    results['pass']+=1
+  else:
+    print('ERROR: Vargroups group "{}" should be "{}" but got "{}"!'.format(g,right,got))
+    results['fail']+=1
+
+# note that order matters for these solutions!
+testVarGroup(groups,'a','a1,a2,a3')             # a and b are first basic sets
+testVarGroup(groups,'b','b1,b2,b3')             # a and b are first basic sets
+testVarGroup(groups,'c','c1,c2,c3')             # c and e are second basic sets
+testVarGroup(groups,'d','a1,b1')                # d is just a1 and b1, to test one-entry-per-variable
+testVarGroup(groups,'e','e1,e2,e3')             # c and e are second basic sets
+testVarGroup(groups,'f','f1,f2,f3')             # f is isolated; nothing else uses it
+testVarGroup(groups,'ce','c1,c2,c3,e1,e2,e3')   # ce combines c and e
+testVarGroup(groups,'ab','a1,a2,a3,b1,b2,b3')   # ab combines a and b
+testVarGroup(groups,'abd','a1,a2,a3,b1,b2,b3')  # ab combines a and b
+testVarGroup(groups,'plus','a1,a2,a3,c1,c2,c3') # plus is OR for a and c
+testVarGroup(groups,'minus','a2,a3')            # minus is a but not d
+testVarGroup(groups,'intersect','a1')           # intersect is AND for a, d
+testVarGroup(groups,'symmdiff','a2,a3,b1')      # symdiff is XOR for a, d
+testVarGroup(groups,'symmrev','b1,a2,a3')       # symmrev shows order depends on how variables are put in
+
+
 print(results)
 
 sys.exit(results["fail"])
@@ -440,6 +498,7 @@ sys.exit(results["fail"])
     <revisions>
       <revision author="talbpaul" date="2016-11-08">Relocated utils tests</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-04">Moved methods isAString, isAFloat, isAInteger, isABoolean from mathUtils to utils</revision>
     </revisions>
   </TestInfo>
 """

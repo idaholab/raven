@@ -33,10 +33,9 @@
     <PostProcessor name="pp1" subType="CrossValidation">
       <SciKitLearn>
         <SKLtype>LabelShuffleSplit</SKLtype>
-        <labels>[0,0,0,0,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2]</labels>
-        <n_iter>5</n_iter>
+        <labels>0,0,0,0,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2</labels>
+        <n_splits>5</n_splits>
         <test_size>0.2</test_size>
-        <train_size>None</train_size>
         <random_state>10</random_state>
       </SciKitLearn>
       <Metric class="Metrics" type="SKL">m1</Metric>

@@ -3,8 +3,6 @@ Created on June 25th, 2017
 @author: rouxpn
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 import os
 import re
 from decimal import Decimal
@@ -121,9 +119,9 @@ class FissionYieldParser():
                      line[0])  # remove the dashes in isotope names
     spectraUpper = spectra.upper()
     try:
-      for fissionProductID in self.listedYieldDict[spectraUpper].iterkeys():
+      for fissionProductID in self.listedYieldDict[spectraUpper].keys():
         for actinideID in self.listedYieldDict[spectraUpper][
-            fissionProductID].iterkeys():
+            fissionProductID].keys():
           if line[0] == fissionProductID:
             typeOfYieldPerturbed = []
             self.spectrumUpperCase = [x.upper() for x in self.spectrum]
@@ -144,7 +142,7 @@ class FissionYieldParser():
                     'Make sure the fission yields you are perturbing have existing values in the unperturbed fission yield library'
                 )
     except KeyError:
-      pass  # pass you pertub 'FAST': {u'ZN67': {u'U235': '5.659E+00'}} only, the case 'THERMAL': {u'ZN67': {u'U235': '5.659E+00'}} ignored in the line for fissionProductID in self.listedYieldDict[spectraUpper].iterkeys() (because non existent)
+      pass  # pass you pertub 'FAST': {u'ZN67': {u'U235': '5.659E+00'}} only, the case 'THERMAL': {u'ZN67': {u'U235': '5.659E+00'}} ignored in the line for fissionProductID in self.listedYieldDict[spectraUpper].keys() (because non existent)
     try:
       isotopeCounter = isotopeCounter + 1
       line[0] = "{0:<7s}".format(line[0])
@@ -218,7 +216,7 @@ class FissionYieldParser():
     fissioningActinide = []
     resultingFP = []
     spectrumType = []
-    for key in self.pertYieldDict.iterkeys():
+    for key in self.pertYieldDict.keys():
       splittedYieldKeywords = key.split('|')
       spectrumType.append(splittedYieldKeywords[1])
       fissioningActinide.append(splittedYieldKeywords[2])

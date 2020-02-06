@@ -9,6 +9,10 @@
       This is used for testing that mpi can be used directly, without
       a qsub.  This could be used in pbs interactive mode.
     </description>
+    <revisions>
+        <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+    </revisions>
+    <requirements>R-IS-7</requirements>
   </TestInfo>
   <RunInfo>
     <WorkingDir>.</WorkingDir>
@@ -83,14 +87,9 @@
       <Input class="Files" type="">simple_gp_test.i</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
-      <Output class="Databases" type="HDF5">testDatabase</Output>
       <Output class="DataObjects" type="HistorySet">stories</Output>
     </MultiRun>
   </Steps>
-
-  <Databases>
-    <HDF5 name="testDatabase" readMode="overwrite"/>
-  </Databases>
 
   <DataObjects>
     <HistorySet name="stories">

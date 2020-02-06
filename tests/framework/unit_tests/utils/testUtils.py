@@ -118,6 +118,7 @@ sys.exit(results["fail"])
     </description>
     <revisions>
       <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-04">Moved methods isAString, isAFloat, isAInteger, isABoolean from mathUtils to utils</revision>
     </revisions>
   </TestInfo>
 """

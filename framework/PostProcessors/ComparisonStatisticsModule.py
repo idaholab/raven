@@ -17,9 +17,6 @@ Created on July 10, 2013
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import math
@@ -30,7 +27,7 @@ import copy
 from .PostProcessor import PostProcessor
 from utils import utils
 from utils import mathUtils
-from utils import InputData
+from utils import InputData, InputTypes
 import Files
 import Runners
 import Distributions
@@ -278,10 +275,10 @@ class ComparisonStatistics(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(ComparisonStatistics, cls).getInputSpecification()
-    KindInputEnumType = InputData.makeEnumType("kind","kindType",["uniformBins","equalProbability"])
+    KindInputEnumType = InputTypes.makeEnumType("kind", "kindType", ["uniformBins", "equalProbability"])
     KindInput = InputData.parameterInputFactory("kind", contentType=KindInputEnumType)
-    KindInput.addParam("numBins",InputData.IntegerType, False)
-    KindInput.addParam("binMethod", InputData.StringType, False)
+    KindInput.addParam("numBins", InputTypes.IntegerType, False)
+    KindInput.addParam("binMethod", InputTypes.StringType, False)
     inputSpecification.addSub(KindInput)
 
     ## FIXME: Is this class necessary?
@@ -291,23 +288,23 @@ class ComparisonStatistics(PostProcessor):
       """
 
     CSCompareInput.createClass("compare", False)
-    CSDataInput = InputData.parameterInputFactory("data", contentType=InputData.StringType)
+    CSDataInput = InputData.parameterInputFactory("data", contentType=InputTypes.StringType)
     CSCompareInput.addSub(CSDataInput)
     CSReferenceInput = InputData.parameterInputFactory("reference")
-    CSReferenceInput.addParam("name", InputData.StringType, True)
+    CSReferenceInput.addParam("name", InputTypes.StringType, True)
     CSCompareInput.addSub(CSReferenceInput)
     inputSpecification.addSub(CSCompareInput)
 
-    FZInput = InputData.parameterInputFactory("fz", contentType=InputData.StringType) #bool
+    FZInput = InputData.parameterInputFactory("fz", contentType=InputTypes.StringType) #bool
     inputSpecification.addSub(FZInput)
 
-    CSInterpolationEnumType = InputData.makeEnumType("csinterpolation","csinterpolationType",["linear","quadratic"])
+    CSInterpolationEnumType = InputTypes.makeEnumType("csinterpolation","csinterpolationType",["linear","quadratic"])
     CSInterpolationInput = InputData.parameterInputFactory("interpolation",contentType=CSInterpolationEnumType)
     inputSpecification.addSub(CSInterpolationInput)
 
-    DistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputData.StringType)
-    DistributionInput.addParam("class", InputData.StringType)
-    DistributionInput.addParam("type", InputData.StringType)
+    DistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputTypes.StringType)
+    DistributionInput.addParam("class", InputTypes.StringType)
+    DistributionInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(DistributionInput)
 
     return inputSpecification
@@ -339,8 +336,8 @@ class ComparisonStatistics(PostProcessor):
     self.methodInfo = {}  # Information on what stuff to do.
     self.fZStats = False
     self.interpolation = "quadratic"
-    self.requiredAssObject = (True, (['Distribution'], ['-n']))
-    self.distributions = {}
+    # assembler objects to be requested
+    self.addAssemblerObject('Distribution', '-n', True)
 
   def inputToInternal(self, currentInput):
     """
@@ -413,15 +410,6 @@ class ComparisonStatistics(PostProcessor):
           self.raiseADebug('unexpected interpolation method ' + interpolation)
           self.interpolation = interpolation
 
-  def _localGenerateAssembler(self, initDict):
-    """
-      This method  is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-      It is an abstract method -> It must be implemented in the derived class!
-      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
-      @ Out, None
-    """
-    self.distributions = initDict.get('Distributions', {})
-
   def run(self, input):  # inObj,workingDir=None):
     """
       This method executes the postprocessor action. In this case, it just returns the inputs
@@ -464,11 +452,9 @@ class ComparisonStatistics(PostProcessor):
       graphData = []
       if "name" in reference:
         distributionName = reference["name"]
-        if not distributionName in self.distributions:
-          self.raiseAnError(IOError, 'Did not find ' + distributionName +
-                             ' in ' + str(self.distributions.keys()))
-        else:
-          distribution = self.distributions[distributionName]
+        distribution = self.retrieveObjectFromAssemblerDict('Distribution', distributionName)
+        if distribution is None:
+          self.raiseAnError(IOError, 'Did not find Distribution with name ' + distributionName)
         refDataStats = {"mean":distribution.untruncatedMean(),
                         "stdev":distribution.untruncatedStdDev()}
         refDataStats["minBinSize"] = refDataStats["stdev"] / 2.0
@@ -523,4 +509,3 @@ class ComparisonStatistics(PostProcessor):
         extraCsv.write("\n")
         extraCsv.close()
       utils.printCsv(output)
-

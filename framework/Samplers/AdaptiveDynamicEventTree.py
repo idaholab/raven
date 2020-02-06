@@ -21,8 +21,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -33,13 +31,13 @@ from operator import mul
 from functools import reduce
 import xml.etree.ElementTree as ET
 from sklearn import neighbors
+import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .DynamicEventTree import DynamicEventTree
 from .LimitSurfaceSearch import LimitSurfaceSearch
 from utils import utils
-from utils import InputData
 import utils.TreeStructure as ETS
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
@@ -122,7 +120,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ Out, needDict, dict, dictionary listing needed objects
     """
     #adaptNeedInst = self.limitSurfaceInstances.values()[-1]._localWhatDoINeed()
-    needDict = dict(LimitSurfaceSearch._localWhatDoINeed(self).items()+ DynamicEventTree._localWhatDoINeed(self).items())
+    needDict = dict(itertools.chain(LimitSurfaceSearch._localWhatDoINeed(self).items(),DynamicEventTree._localWhatDoINeed(self).items()))
     return needDict
 
   def _checkIfStartAdaptive(self):
@@ -217,7 +215,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     if nntrain is not None:
       neigh = neighbors.NearestNeighbors(n_neighbors=len(mapping.keys()))
       neigh.fit(nntrain)
-      valBranch = self._checkValidityOfBranch(neigh.kneighbors([lowerCdfValues.values()]),mapping)
+      valBranch = self._checkValidityOfBranch(neigh.kneighbors([list(lowerCdfValues.values())]),mapping)
       if self.hybridDETstrategy is not None:
         returnTuple = valBranch,cdfValues,treer
       else:
@@ -330,7 +328,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     # The probability Thresholds are stored here in the cdfValues dictionary... We are sure that they are whitin the ones defined in the grid
     # check is not needed
     self.inputInfo['initiatorDistribution' ] = [self.toBeSampled[key] for key in cdfValues.keys()]
-    self.inputInfo['PbThreshold'           ] = cdfValues.values()
+    self.inputInfo['PbThreshold'           ] = list(cdfValues.values())
     self.inputInfo['ValueThreshold'        ] = [self.distDict[key].ppf(value) for key,value in cdfValues.items()]
     self.inputInfo['SampledVars'           ] = {}
     self.inputInfo['SampledVarsPb'         ] = {}

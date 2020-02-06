@@ -3,8 +3,6 @@ Created on July 11th, 2017
 @author: rouxpn
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 import os
 from decimal import Decimal
 import xml.etree.ElementTree as ET
@@ -72,8 +70,8 @@ class MaterialParser():
       @ Out, genericXMLdict, dictionary, under the format {DENSITY|FUEL1|U238|1.000}
     """
     genericXMLdict = {}
-    for paramXML in XMLdict.iterkeys():
-      for matXML in XMLdict.get(paramXML).iterkeys():
+    for paramXML in XMLdict.keys():
+      for matXML in XMLdict.get(paramXML).keys():
         for isotopeXML, densityValue in XMLdict.get(paramXML).get(matXML).items():
           genericXMLdict[paramXML.upper()+'|'+matXML.upper()+'|'+self.noDash(isotopeXML.upper())] = densityValue
     return genericXMLdict
@@ -124,7 +122,7 @@ class MaterialParser():
     perturbedIsotopes = []
     perturbedMaterials = []
     perturbedPhysicalParameters = []
-    for key in deconstructedDict.iterkeys():
+    for key in deconstructedDict.keys():
       perturbedIsotopes.append(key.split('|')[2])
       perturbedMaterials.append(key.split('|')[1])
       perturbedPhysicalParameters.append(key.split('|')[0])

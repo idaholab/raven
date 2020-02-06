@@ -1,10 +1,4 @@
-<?xml version="1.0" ?>
 <Simulation printTimeStamps="false">
-  <RunInfo>
-    <WorkingDir>scgpc</WorkingDir>
-    <Sequence>UCmake,UCtrain,UCtest,UCprint</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
   <TestInfo>
     <name>framework/Samplers/SparseGrid/uniform_cc</name>
     <author>talbpaul</author>
@@ -14,6 +8,12 @@
       This tests using SparseGridCollocation with Clenshaw Curtis points and weights (on uniformly-distributed variables).
     </description>
   </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>scgpc</WorkingDir>
+    <Sequence>UCmake, UCtrain, UCtest, stats, UCprint</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Distributions>
     <Uniform name="UniDist">
@@ -64,7 +64,7 @@
     </MultiRun>
     <IOStep name="UCprint">
       <Input class="DataObjects" type="PointSet">UCtests</Input>
-      <Input class="Models" type="ROM">UCROM</Input>
+      <Input class="DataObjects" type="DataSet">rom_stats</Input>
       <Output class="OutStreams" type="Print">UCdump</Output>
       <Output class="OutStreams" type="Print">UCdumprom</Output>
     </IOStep>
@@ -72,6 +72,10 @@
       <Input class="DataObjects" type="PointSet">UCsolns</Input>
       <Output class="Models" type="ROM">UCROM</Output>
     </RomTrainer>
+    <IOStep name="stats">
+      <Input class="Models" type="ROM">UCROM</Input>
+      <Output class="DataObjects" type="DataSet">rom_stats</Output>
+    </IOStep>
   </Steps>
 
   <DataObjects>
@@ -87,6 +91,7 @@
       <Input>x1,x2</Input>
       <Output>ans</Output>
     </PointSet>
+    <DataSet name="rom_stats"/>
   </DataObjects>
 
   <OutStreams>
@@ -96,9 +101,8 @@
       <what>input,output</what>
     </Print>
     <Print name="UCdumprom">
-      <type>xml</type>
-      <source>UCROM</source>
-      <what>all</what>
+      <type>csv</type>
+      <source>rom_stats</source>
     </Print>
   </OutStreams>
 

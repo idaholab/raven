@@ -17,12 +17,11 @@ Created on April 14, 2014
 @author: alfoa
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
+import GenericParser
 import MooseData
 import csvUtilities
 
@@ -34,7 +33,7 @@ class MooseBasedApp(CodeInterfaceBase):
     CodeInterfaceBase.__init__(self)
     self.outputPrefix = 'out~'
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None):
+  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None,preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
@@ -44,6 +43,7 @@ class MooseBasedApp(CodeInterfaceBase):
       @ In, executable, string, executable name with absolute path (e.g. /home/path_to_executable/code.exe)
       @ In, clargs, dict, optional, dictionary containing the command-line flags the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 i0extension =0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify in the input (e.g. under the node < Code >< clargstype =0 input0arg =0 aux0extension =0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     found = False
@@ -79,11 +79,15 @@ class MooseBasedApp(CodeInterfaceBase):
       self._samplersDictionary[samplerType] = self.pointSamplerForMooseBasedApp
 
     found = False
-    for index, inputFile in enumerate(currentInputFiles):
-      inputFile = inputFile.getAbsFile()
-      if inputFile.endswith(self.getInputExtension()):
+    genericInput, genericOriInput = [], []
+    for i, inputFile in enumerate(currentInputFiles):
+      inFile = inputFile.getAbsFile()
+      if inFile.endswith(self.getInputExtension()):
+        index = i
         found = True
-        break
+      if inputFile.getType().lower() == "generic":
+        genericInput.append(inputFile)
+        genericOriInput.append(oriInputFiles[i])
     if not found:
       raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outName = self.outputPrefix+currentInputFiles[index].getBase()
@@ -99,6 +103,12 @@ class MooseBasedApp(CodeInterfaceBase):
     #make input
     parser.printInput(currentInputFiles[index].getAbsFile())
     self.vectorPPFound, self.vectorPPDict = parser.vectorPostProcessor()
+
+    if genericInput:
+      parser = GenericParser.GenericParser(genericInput)
+      parser.modifyInternalDictionary(**Kwargs)
+      parser.writeNewInput(genericInput,genericOriInput)
+
     return currentInputFiles
 
   def pointSamplerForMooseBasedApp(self,**Kwargs):
@@ -125,7 +135,6 @@ class MooseBasedApp(CodeInterfaceBase):
     """
     listDict = []
     raise IOError('dynamicEventTreeForMooseBasedApp not yet implemented')
-    return listDict
 
   def finalizeCodeOutput(self,command,output,workingDir):
     """

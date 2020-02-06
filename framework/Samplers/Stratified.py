@@ -20,8 +20,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -31,9 +29,9 @@ from functools import reduce
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from utils import utils, randomUtils, InputData, InputTypes
 from .Grid import Grid
 from .Sampler import Sampler
-from utils import utils,randomUtils,InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -55,18 +53,18 @@ class Stratified(Grid):
     inputSpecification = super(Stratified, cls).getInputSpecification()
 
     samplerInitInput = InputData.parameterInputFactory("samplerInit")
-    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType))
-    samplerInitInput.addSub(InputData.parameterInputFactory("distInit", contentType=InputData.IntegerType))
+    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType))
+    samplerInitInput.addSub(InputData.parameterInputFactory("distInit", contentType=InputTypes.IntegerType))
 
     inputSpecification.addSub(samplerInitInput)
 
-    globalGridInput = InputData.parameterInputFactory("globalGrid", contentType=InputData.StringType)
+    globalGridInput = InputData.parameterInputFactory("globalGrid", contentType=InputTypes.StringType)
 
-    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
-    gridInput.addParam("name", InputData.StringType)
-    gridInput.addParam("type", InputData.StringType)
-    gridInput.addParam("construction", InputData.StringType)
-    gridInput.addParam("steps", InputData.IntegerType)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputTypes.StringType)
+    gridInput.addParam("name", InputTypes.StringType)
+    gridInput.addParam("type", InputTypes.StringType)
+    gridInput.addParam("construction", InputTypes.StringType)
+    gridInput.addParam("steps", InputTypes.IntegerType)
 
     globalGridInput.addSub(gridInput)
 
@@ -97,10 +95,18 @@ class Stratified(Grid):
     #TODO Remove using xmlNode
     Sampler.readSamplerInit(self,xmlNode)
     Grid.localInputAndChecks(self,xmlNode, paramInput)
+    # check that the correct dimensionality was provided
     pointByVar  = [len(self.gridEntity.returnParameter("gridInfo")[variable][2]) for variable in self.gridInfo.keys()]
-    if len(set(pointByVar))!=1:
-      self.raiseAnError(IOError,'the latin Hyper Cube requires the same number of point in each dimension')
-    self.pointByVar         = pointByVar[0]
+    lenPBV = len(set(pointByVar))
+    if lenPBV != 1:
+      if lenPBV == 0:
+        # no sampled vars were given, but allow the Sampler to catch this later.
+        pass
+      else:
+        self.raiseAnError(IOError,'<Stratified> sampler named "{}" requires the same number of point in each dimension!'.format(self.name))
+    else:
+      # correct dimensionality given
+      self.pointByVar         = pointByVar[0]
     self.inputInfo['upper'] = {}
     self.inputInfo['lower'] = {}
 
@@ -182,10 +188,12 @@ class Stratified(Grid):
             dxs = np.zeros(len(self.distributions2variablesMapping[distName]))
             centerCoordinate = np.zeros(len(self.distributions2variablesMapping[distName]))
             positionList = self.distributions2variablesIndexList[distName]
-            for var in self.distributions2variablesMapping[distName]:
+            sorted_mapping = sorted([(utils.first(var.keys()).strip(),
+                                      utils.first(var.values())) for var in
+                                     self.distributions2variablesMapping[distName]])
+            for var in sorted_mapping:
               # if the varName is a comma separated list of strings the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
-              variable = utils.first(var.keys()).strip()
-              position = utils.first(var.values())
+              variable, position = var
               upper = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]+1})[variable]
               lower = self.gridEntity.returnShiftedCoordinate(self.gridEntity.returnIteratorIndexes(),{variable:self.sampledCoordinate[self.counter-1][varCount]})[variable]
               varCount += 1

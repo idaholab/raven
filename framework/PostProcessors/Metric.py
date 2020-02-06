@@ -17,8 +17,6 @@ Created on August 23, 2017
 @author: wangc
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -29,15 +27,13 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
-from utils import utils
-from utils import InputData
-from utils.cached_ndarray import c1darray
+from utils import xmlUtils
+from utils import InputData, InputTypes
 import Files
-import Metrics
 import Runners
 import Distributions
 import MetricDistributor
+from .PostProcessor import PostProcessor
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Metric(PostProcessor):
@@ -55,24 +51,24 @@ class Metric(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(Metric, cls).getInputSpecification()
-    featuresInput = InputData.parameterInputFactory("Features", contentType=InputData.StringListType)
-    featuresInput.addParam("type", InputData.StringType)
+    featuresInput = InputData.parameterInputFactory("Features", contentType=InputTypes.StringListType)
+    featuresInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(featuresInput)
-    targetsInput = InputData.parameterInputFactory("Targets", contentType=InputData.StringListType)
-    targetsInput.addParam("type", InputData.StringType)
+    targetsInput = InputData.parameterInputFactory("Targets", contentType=InputTypes.StringListType)
+    targetsInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(targetsInput)
-    multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=InputData.StringType)
+    multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=InputTypes.StringType)
     inputSpecification.addSub(multiOutputInput)
-    multiOutput = InputData.makeEnumType('MultiOutput', 'MultiOutputType', ['mean','max','min','raw_values'])
+    multiOutput = InputTypes.makeEnumType('MultiOutput', 'MultiOutputType', ['mean','max','min','raw_values'])
     multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=multiOutput)
     inputSpecification.addSub(multiOutputInput)
-    weightInput = InputData.parameterInputFactory("weight", contentType=InputData.FloatListType)
+    weightInput = InputData.parameterInputFactory("weight", contentType=InputTypes.FloatListType)
     inputSpecification.addSub(weightInput)
-    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
     inputSpecification.addSub(pivotParameterInput)
-    metricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
-    metricInput.addParam("class", InputData.StringType, True)
-    metricInput.addParam("type", InputData.StringType, True)
+    metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
+    metricInput.addParam("class", InputTypes.StringType, True)
+    metricInput.addParam("type", InputTypes.StringType, True)
     inputSpecification.addSub(metricInput)
 
     return inputSpecification
@@ -133,7 +129,12 @@ class Metric(PostProcessor):
               requestData = requestData.reshape(-1,1)
             # If requested data are from input space, the shape will be (nSamples, 1)
             # If requested data are from history output space, the shape will be (nSamples, nTimeSteps)
-            metricData = (requestData, metadata['ProbabilityWeight'].values)
+            if 'ProbabilityWeight' in metadata:
+              weights = metadata['ProbabilityWeight'].values
+            else:
+              # TODO is this correct sizing generally?
+              weights = np.ones(requestData.shape[0])
+            metricData = (requestData, weights)
       elif isinstance(currentInput, Distributions.Distribution):
         if currentInput.name == metricDataName and dataName is None:
           if metricData is not None:
@@ -263,16 +264,17 @@ class Metric(PostProcessor):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, "failed!")
     outputDict = evaluation[1]
-    if isinstance(output, Files.File):
-      availExtens = ['xml']
-      outputExtension = output.getExt().lower()
-      if outputExtension not in availExtens:
-        self.raiseAMessage('Metric postprocessor did not recognize extension ".', str(outputExtension), '". The output will be dumped to a text file')
-      output.setPath(self._workingDir)
-      self.raiseADebug('Write Metric prostprocessor output in file with name: ', output.getAbsFile())
-      self._writeXML(output, outputDict)
-    elif output.type in ['PointSet', 'HistorySet']:
-      self.raiseADebug('Dumping output in data object named', output.name)
+    # FIXED: writing directly to file is no longer an option!
+    #if isinstance(output, Files.File):
+    #  availExtens = ['xml']
+    #  outputExtension = output.getExt().lower()
+    #  if outputExtension not in availExtens:
+    #    self.raiseAMessage('Metric postprocessor did not recognize extension ".', str(outputExtension), '". The output will be dumped to a text file')
+    #  output.setPath(self._workingDir)
+    #  self.raiseADebug('Write Metric prostprocessor output in file with name: ', output.getAbsFile())
+    #  self._writeXML(output, outputDict)
+    if output.type in ['PointSet', 'HistorySet']:
+      self.raiseADebug('Adding output in data object named', output.name)
       rlz = {}
       for key, val in outputDict.items():
         newKey = key.replace("|","_")
@@ -280,6 +282,9 @@ class Metric(PostProcessor):
       if self.dynamic:
         rlz[self.pivotParameter] = np.atleast_1d(self.pivotValues)
       output.addRealization(rlz)
+      # add metadata
+      xml = self._writeXML(output, outputDict)
+      output._meta['MetricPP'] = xml
     elif output.type == 'HDF5':
       self.raiseAnError(IOError, 'Output type', str(output.type), 'is not yet implemented. Skip it')
     else:
@@ -287,19 +292,15 @@ class Metric(PostProcessor):
 
   def _writeXML(self,output,outputDictionary):
     """
-      Defines the method for writing the post-processor to a .xml file
-      @ In, output, File object, file to write to
+      Defines the method for writing the post-processor to the metadata within a data object
+      @ In, output, DataObject, instance to write to
       @ In, outputDictionary, dict, dictionary stores importance ranking outputs
-      @ Out, None
+      @ Out, xml, xmlUtils.StaticXmlElement instance, written data in XML format
     """
-    if output.isOpen():
-      output.close()
     if self.dynamic:
-      outputInstance = Files.returnInstance('DynamicXMLOutput', self)
+      outputInstance = xmlUtils.DynamicXmlElement('MetricPostProcessor', pivotParam=self.pivotParameter)
     else:
-      outputInstance = Files.returnInstance('StaticXMLOutput', self)
-    outputInstance.initialize(output.getFilename(), self.messageHandler, path=output.getPath())
-    outputInstance.newTree('MetricPostProcessor', pivotParam=self.pivotParameter)
+      outputInstance = xmlUtils.StaticXmlElement('MetricPostProcessor')
     if self.dynamic:
       for key, values in outputDictionary.items():
         assert("|" in key)
@@ -317,7 +318,7 @@ class Metric(PostProcessor):
           outputInstance.addScalar(nodeName, metricName, values[0])
         else:
           self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
-    outputInstance.writeFile()
+    return outputInstance
 
   def run(self, inputIn):
     """

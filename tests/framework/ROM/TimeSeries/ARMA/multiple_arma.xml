@@ -9,6 +9,15 @@
       Tests creation of multiple INDEPENDENT target ARMA ROMs from a single training run.
       While it uses the entries from the correlated ARMA (VARMA) training data, it does not consider the variables correlated.
     </description>
+    <revisions>
+      <revision author="wangc" date="2018-12-18">
+          In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
+          the pointwise metadata, and will be printed out in the output csv files by default.
+          In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
+      </revision>
+      <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -67,13 +76,10 @@
       <Target>A,B,Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>2</Pmax>
-      <Pmin>2</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
+      <P>2</P>
+      <Q>1</Q>
       <outTruncation domain="positive">A,B,Time</outTruncation>
-      <Fourier>10,20</Fourier>
-      <FourierOrder>2,2</FourierOrder>
+      <Fourier>20.000000, 10.000000, 5.000000</Fourier>
     </ROM>
     <PostProcessor name="stats" subType="BasicStatistics">
       <expectedValue prefix="mean">A,B</expectedValue>
@@ -90,6 +96,7 @@
     <Print name="stats">
       <type>csv</type>
       <source>stats</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

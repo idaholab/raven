@@ -16,12 +16,11 @@ Module where the base class and the specialization of different type of Model ar
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import os
+import sys
 import copy
 import shutil
 import importlib
@@ -34,7 +33,7 @@ import numpy as np
 #Internal Modules------------------------------------------------------------------------------------
 from .Model import Model
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 import Files
 from DataObjects import Data
@@ -58,29 +57,30 @@ class Code(Model):
     """
     inputSpecification = super(Code, cls).getInputSpecification()
     inputSpecification.setStrictMode(False) #Code interfaces can allow new elements.
-    inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("walltime", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("walltime", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputTypes.StringType))
 
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
 
-    ClargsTypeInput = InputData.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend"])
+    ClargsTypeInput = InputTypes.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend","python"])
     ClargsInput.addParam("type", ClargsTypeInput, True)
 
-    ClargsInput.addParam("arg", InputData.StringType, False)
-    ClargsInput.addParam("extension", InputData.StringType, False)
+    ClargsInput.addParam("arg", InputTypes.StringType, False)
+    ClargsInput.addParam("extension", InputTypes.StringType, False)
+    ClargsInput.addParam("delimiter", InputTypes.StringType, False)
     inputSpecification.addSub(ClargsInput)
     ## End command line arguments tag
 
     ## Begin file arguments tag
     FileargsInput = InputData.parameterInputFactory("fileargs")
 
-    FileargsTypeInput = InputData.makeEnumType("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
+    FileargsTypeInput = InputTypes.makeEnumType("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
     FileargsInput.addParam("type", FileargsTypeInput, True)
 
-    FileargsInput.addParam("arg", InputData.StringType, False)
-    FileargsInput.addParam("extension", InputData.StringType, False)
+    FileargsInput.addParam("arg", InputTypes.StringType, False)
+    FileargsInput.addParam("extension", InputTypes.StringType, False)
     inputSpecification.addSub(FileargsInput)
     ## End file arguments tag
 
@@ -101,23 +101,26 @@ class Code(Model):
     cls.validateDict['Input'  ][0]['required'    ] = False
     cls.validateDict['Input'  ][0]['multiplicity'] = 'n'
 
-  def __init__(self,runInfoDict):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
       @ Out, None
     """
     Model.__init__(self,runInfoDict)
-    self.executable         = ''   #name of the executable (abs path)
-    self.preExec            = None   #name of the pre-executable, if any
-    self.oriInputFiles      = []   #list of the original input files (abs path)
-    self.workingDir         = ''   #location where the code is currently running
-    self.outFileRoot        = ''   #root to be used to generate the sequence of output files
-    self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
-    self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
-    self.printTag           = 'CODE MODEL'
-    self.createWorkingDir   = True
-    self.maxWallTime = None
+    self.executable = ''         # name of the executable (abs path)
+    self.preExec = None          # name of the pre-executable, if any
+    self.oriInputFiles = []      # list of the original input files (abs path)
+    self.workingDir = ''         # location where the code is currently running
+    self.outFileRoot = ''        # root to be used to generate the sequence of output files
+    self.currentInputFiles = []  # list of the modified (possibly) input files (abs path)
+    self.codeFlags = None        # flags that need to be passed into code interfaces(if present)
+    self.printTag = 'CODE MODEL'
+    self.createWorkingDir = True
+    self.foundExecutable = True  # True indicates the executable is found, otherwise not found
+    self.foundPreExec = True     # True indicates the pre-executable is found, otherwise not found
+    self.maxWallTime = None      # If set, this indicates the maximum CPU time a job can take.
+    self._ravenWorkingDir = runInfoDict['WorkingDir']
 
   def _readMoreXML(self,xmlNode):
     """
@@ -133,20 +136,24 @@ class Code(Model):
     self.fargs={'input':{}, 'output':'', 'moosevpp':''}
     for child in paramInput.subparts:
       if child.getName() =='executable':
-        self.executable = child.value
+        self.executable = child.value if child.value is not None else ''
       if child.getName() =='walltime':
         self.maxWallTime = child.value
       if child.getName() =='preexec':
         self.preExec = child.value
       elif child.getName() == 'clargs':
-        argtype = child.parameterValues['type']      if 'type'      in child.parameterValues else None
-        arg     = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
-        ext     = child.parameterValues['extension'] if 'extension' in child.parameterValues else None
+        argtype    = child.parameterValues['type']      if 'type'      in child.parameterValues else None
+        arg        = child.parameterValues['arg']       if 'arg'       in child.parameterValues else None
+        ext        = child.parameterValues['extension'] if 'extension' in child.parameterValues else None
+        # The default delimiter is one empty space
+        delimiter  = child.parameterValues['delimiter'] if 'delimiter' in child.parameterValues else ' '
         if argtype == None:
           self.raiseAnError(IOError,'"type" for clarg not specified!')
         elif argtype == 'text':
           if ext != None:
             self.raiseAWarning('"text" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
+          if not delimiter.strip():
+            self.raiseAWarning('"text" nodes only accept "type" and "arg" attributes! Ignoring "delimiter"...')
           if arg == None:
             self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
           self.clargs['text']=arg
@@ -154,11 +161,14 @@ class Code(Model):
           if ext == None:
             self.raiseAnError(IOError,'"extension" for clarg '+argtype+' not specified! Enter filetype to be listed for this flag.')
           if arg == None:
-            self.clargs['input']['noarg'].append(ext)
+            self.clargs['input']['noarg'].append((ext,delimiter))
           else:
             if arg not in self.clargs['input'].keys():
               self.clargs['input'][arg]=[]
-            self.clargs['input'][arg].append(ext)
+            # The delimiter is used to link 'arg' with the input file that have the file extension
+            # given by 'extension'. In general, empty space is used. But in some specific cases, the codes may require
+            # some specific delimiters to link the 'arg' and input files
+            self.clargs['input'][arg].append((ext,delimiter))
         elif argtype == 'output':
           if arg == None:
             self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter flag for output file specification.')
@@ -168,7 +178,16 @@ class Code(Model):
             self.raiseAWarning('"prepend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
           if arg == None:
             self.raiseAnError(IOError,'"arg" for clarg '+argtype+' not specified! Enter text to be used.')
-          self.clargs['pre'] = arg
+          if 'pre' in self.clargs:
+            self.clargs['pre'] = arg+' '+self.clargs['pre']
+          else:
+            self.clargs['pre'] = arg
+        elif argtype == 'python':
+          pythonName = utils.getPythonCommand()
+          if 'pre' in self.clargs:
+            self.clargs['pre'] = self.clargs['pre']+' '+pythonName
+          else:
+            self.clargs['pre'] = pythonName
         elif argtype == 'postpend':
           if ext != None:
             self.raiseAWarning('"postpend" nodes only accept "type" and "arg" attributes! Ignoring "extension"...')
@@ -215,7 +234,8 @@ class Code(Model):
         else:
           self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
       else:
-        self.executable = ''
+        self.foundExecutable = False
+        self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
     if self.preExec is not None:
       if '~' in self.preExec:
         self.preExec = os.path.expanduser(self.preExec)
@@ -223,10 +243,11 @@ class Code(Model):
       if os.path.exists(abspath):
         self.preExec = abspath
       else:
+        self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
-    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
-    self.code.readMoreXML(xmlNode) #TODO figure out how to handle this with InputData
-    self.code.setInputExtension(list(a.strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
+    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType, self)
+    self.code.readMoreXML(xmlNode, self._ravenWorkingDir) #TODO figure out how to handle this with InputData
+    self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
 
@@ -277,7 +298,7 @@ class Code(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
+    self.workingDir = os.path.join(runInfoDict['WorkingDir'], runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     self.oriInputFiles = []
     for inputFile in inputFiles:
@@ -292,8 +313,25 @@ class Code(Model):
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
       self.oriInputFiles[-1].setPath(subSubDirectory)
-    self.currentInputFiles        = None
-    self.outFileRoot              = None
+    self.currentInputFiles = None
+    self.outFileRoot = None
+    if not self.foundExecutable:
+      path = os.path.join(runInfoDict['WorkingDir'],self.executable)
+      if os.path.exists(path):
+        self.executable = path
+      else:
+        self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
+    if not self.foundPreExec:
+      path = os.path.join(runInfoDict['WorkingDir'],self.preExec)
+      if os.path.exists(path):
+        self.preExec = path
+      else:
+        self.raiseAMessage('not found pre-executable '+self.executable,'ExceptedError')
+
+    if 'initialize' in dir(self.code):
+      # the deepcopy is needed to avoid the code interface
+      # developer to modify the content of the runInfoDict
+      self.code.initialize(copy.deepcopy(runInfoDict), self.oriInputFiles)
 
   def createNewInput(self,currentInput,samplerType,**kwargs):
     """
@@ -348,6 +386,24 @@ class Code(Model):
 
     return (newInput,kwargs)
 
+  def _expandCommand(self, origCommand):
+    """
+      Function to expand a command from string to list.
+      RAVEN employs subprocess.Popen to spawn new processes, and RAVEN allows code interface developers
+      to control shell argument of Popen. When shell is True, a string is required for the command. When shell
+      is False, a sequence, i.e. a list of strings, is required.
+      The reasons are: In general, a sequence of arguments is preferred, as it allows the module to
+      take care of any required escaping and quoting of arguments. When shell is True, a string is preferred,
+      since when a sequence is provided, only the first item specifies the command string, and any additional
+      items will be treated as additional arguments to the shell itself.
+      @ In, origCommand, string, The command to check for expantion
+      @ Out, commandSplit, string or String List, the expanded command or the original if not expanded.
+    """
+    if origCommand.strip() == '':
+      return ['echo', 'no command provided']
+    commandSplit = shlex.split(origCommand)
+    return commandSplit
+
   def _expandForWindows(self, origCommand):
     """
       Function to expand a command that has a #! to a windows runnable command
@@ -361,49 +417,47 @@ class Code(Model):
     executable = commandSplit[0]
 
     if os.path.exists(executable):
-      executableFile = open(executable, "r")
-
-      firstTwoChars = executableFile.read(2)
-
-      if firstTwoChars == "#!":
-        realExecutable = shlex.split(executableFile.readline())
-        self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
-        # The below code should work, and would be better than findMsys,
-        # but it doesn't work.
-        # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
-        # print("winExecutable",winExecutable)
-        # realExecutable[0] = winExecutable
-        def findMsys():
-          """
-            Function to try and figure out where the MSYS64 is.
-            @ In, None
-            @ Out, dir, String, If not None, the directory where msys is.
-          """
-          dir = os.getcwd()
-          head, tail = os.path.split(dir)
-          while True:
-            if tail.lower().startswith("msys"):
-              return dir
-            dir = head
+      with open(executable, "r+b") as executableFile:
+        firstTwoChars = executableFile.read(2)
+        if firstTwoChars == "#!":
+          realExecutable = shlex.split(executableFile.readline())
+          self.raiseAMessage("reading #! to find executable:" + repr(realExecutable))
+          # The below code should work, and would be better than findMsys,
+          # but it doesn't work.
+          # winExecutable = subprocess.check_output(['cygpath','-w',realExecutable[0]],shell=True).rstrip()
+          # print("winExecutable",winExecutable)
+          # realExecutable[0] = winExecutable
+          def findMsys():
+            """
+              Function to try and figure out where the MSYS64 is.
+              @ In, None
+              @ Out, dir, String, If not None, the directory where msys is.
+            """
+            dir = os.getcwd()
             head, tail = os.path.split(dir)
-          return None
-        msysDir = findMsys()
-        if msysDir is not None:
-          beginExecutable = realExecutable[0]
-          if beginExecutable.startswith("/"):
-            beginExecutable = beginExecutable.lstrip("/")
-          winExecutable = os.path.join(msysDir, beginExecutable)
-          self.raiseAMessage("winExecutable " + winExecutable)
-          if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
-            #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
-            maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
-            if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
-              winExecutable = maybeWinExecutable
-          realExecutable[0] = winExecutable
-        else:
-          self.raiseAWarning("Could not find msys in "+os.getcwd())
-        commandSplit = realExecutable + [executable] + commandSplit[1:]
-        return commandSplit
+            while True:
+              if tail.lower().startswith("msys"):
+                return dir
+              dir = head
+              head, tail = os.path.split(dir)
+            return None
+          msysDir = findMsys()
+          if msysDir is not None:
+            beginExecutable = realExecutable[0]
+            if beginExecutable.startswith("/"):
+              beginExecutable = beginExecutable.lstrip("/")
+            winExecutable = os.path.join(msysDir, beginExecutable)
+            self.raiseAMessage("winExecutable " + winExecutable)
+            if not os.path.exists(winExecutable) and not os.path.exists(winExecutable + ".exe") and winExecutable.endswith("bash"):
+              #msys64 stores bash in /usr/bin/bash instead of /bin/bash, so try that
+              maybeWinExecutable = winExecutable.replace("bin/bash","usr/bin/bash")
+              if os.path.exists(maybeWinExecutable) or os.path.exists(maybeWinExecutable + ".exe"):
+                winExecutable = maybeWinExecutable
+            realExecutable[0] = winExecutable
+          else:
+            self.raiseAWarning("Could not find msys in "+os.getcwd())
+          commandSplit = realExecutable + [executable] + commandSplit[1:]
+          return commandSplit
     return origCommand
 
   def evaluateSample(self, myInput, samplerType, kwargs):
@@ -490,12 +544,14 @@ class Code(Model):
     self.raiseAMessage('Execution command submitted:',command)
     if platform.system() == 'Windows':
       command = self._expandForWindows(command)
-      self.raiseAMessage("modified command to" + repr(command))
+      self.raiseAMessage("modified command to", repr(command))
       for key, value in localenv.items():
         localenv[key]=str(value)
+    elif not self.code.getRunOnShell():
+      command = self._expandCommand(command)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
-    process = utils.pickleSafeSubprocessPopen(command, shell=True, stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
+    process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
 
     if self.maxWallTime is not None:
       timeout = time.time() + self.maxWallTime
@@ -556,6 +612,8 @@ class Code(Model):
 
         csvLoader = CsvLoader.CsvLoader(self.messageHandler)
         csvData = csvLoader.loadCsvFile(outFile)
+        if np.isnan(csvData).all():
+          self.raiseAnError(IOError, 'The data collected from', outputFile+'.csv', 'only contain "NAN"')
         headers = csvLoader.getAllFieldNames()
 
         ## Numpy by default iterates over rows, thus we transpose the data and
@@ -653,9 +711,9 @@ class Code(Model):
       outputEval[key] = np.atleast_1d(value)
 
     for key, value in sampledVars.items():
-      # FIXME this is a bad check.  The two should be different enough in value to matter before we print.
       if key in outputEval.keys():
-        self.raiseAWarning('The model '+self.type+' reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the raven (%f).' % (outputEval[key][0], key, value, value))
+        if not utils.compare(value,np.atleast_1d(outputEval[key])[-1],relTolerance = 1e-8):
+          self.raiseAWarning('The model '+self.type+' reported a different value (%f) for %s than raven\'s suggested sample (%f). Using the value reported by the raven (%f).' % (outputEval[key][0], key, value, value))
       outputEval[key] = np.atleast_1d(value)
 
     self._replaceVariablesNamesWithAliasSystem(outputEval, 'input',True)
@@ -803,8 +861,8 @@ class Code(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    prefix = kwargs['prefix'] if 'prefix' in kwargs else None
-    uniqueHandler = kwargs['uniqueHandler'] if 'uniqueHandler' in kwargs.keys() else 'any'
+    prefix = kwargs.get("prefix")
+    uniqueHandler = kwargs.get("uniqueHandler",'any')
 
     ## These two are part of the current metadata, so they will be added before
     ## the job is started, so that they will be captured in the metadata and match

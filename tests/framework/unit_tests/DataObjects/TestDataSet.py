@@ -171,7 +171,7 @@ def checkRlz(comment,first,second,tol=1e-10,update=True,skip=None):
     for key,val in first.items():
       if key in skip:
         continue
-      if isinstance(val,(float,int,np.int64)):
+      if isinstance(val,(float,int,np.int64,np.int32)):
         pres = checkFloat('',val,second[key][0],tol,update=False)
       elif type(val).__name__ in ('str','unicode','str_','unicode_'):
         pres = checkSame('',val,second[key][0],update=False)
@@ -474,12 +474,12 @@ data.addMeta('TestPP',{'firstVar':{'scalarMetric1':10.0,
                       })
 # directly test contents, without using API
 checkSame('Metadata top level entries',len(data._meta),2)
-treePP = data._meta['TestPP'].tree.getroot()
+treePP = data._meta['TestPP'].getRoot()
 checkSame('Metadata TestPP',treePP.tag,'TestPP')
 first,second = (c for c in treePP) # TODO always same order?
 
 checkSame('Metadata TestPP/firstVar tag',first.tag,'firstVar')
-sm1,vm,sm2 = (c for c in first) # TODO always same order?
+sm1,sm2,vm = (c for c in first) # TODO always same order?
 checkSame('Metadata TestPP/firstVar/scalarMetric1 tag',sm1.tag,'scalarMetric1')
 checkSame('Metadata TestPP/firstVar/scalarMetric1 value',sm1.text,'10.0')
 checkSame('Metadata TestPP/firstVar/scalarMetric2 tag',sm2.tag,'scalarMetric2')
@@ -503,20 +503,20 @@ child = second[0]
 checkSame('Metadata TestPP/secondVar/scalarMetric1 tag',child.tag,'scalarMetric1')
 checkSame('Metadata TestPP/secondVar/scalarMetric1 value',child.text,'100.0')
 
-treeDS = data._meta['DataSet'].tree.getroot()
+treeDS = data._meta['DataSet'].getRoot()
 checkSame('Metadata DataSet',treeDS.tag,'DataSet')
 checkSame('Metadata DataSet entries',len(treeDS),2)
 dims,general = treeDS[:]
 checkSame('Metadata DataSet/dims tag',dims.tag,'dims')
 checkSame('Metadata DataSet/dims entries',len(dims),2)
-y,c = dims[:]
+c,y = dims[:]
 checkSame('Metadata DataSet/dims/y tag',y.tag,'y')
 checkSame('Metadata DataSet/dims/y value',y.text,'time')
 checkSame('Metadata DataSet/dims/c tag',c.tag,'c')
 checkSame('Metadata DataSet/dims/c value',c.text,'time')
 checkSame('Metadata DataSet/general tag',general.tag,'general')
 checkSame('Metadata DataSet/general entries',len(general),4)
-inputs,pointwise_meta,outputs,sampleTag = general[:]
+inputs, outputs, pointwise_meta, sampleTag = general[:]
 checkSame('Metadata DataSet/general/inputs tag',inputs.tag,'inputs')
 checkSame('Metadata DataSet/general/inputs value',inputs.text,'a,b,c')
 checkSame('Metadata DataSet/general/outputs tag',outputs.tag,'outputs')
@@ -530,9 +530,9 @@ checkSame('Metadata DataSet/general/sampleTag value',sampleTag.text,'RAVEN_sampl
 meta = data.getMeta(pointwise=True,general=True)
 checkArray('Metadata get keys',sorted(meta.keys()),['DataSet','TestPP','prefix'],str)
 # fail to find pointwise in general
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'prefix\'])',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: (prefix)',data.getMeta,kwargs=dict(keys=['prefix'],general=True))
 # fail to find general in pointwise
-checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: set([u\'DataSet\'])',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
+checkFails('Metadata get missing general','Some requested keys could not be found in the requested metadata: (DataSet)',data.getMeta,kwargs=dict(keys=['DataSet'],pointwise=True))
 # check that poorly-aligned set checks out as such
 checkTrue('Check misaligned data is not aligned',not data.checkIndexAlignment())
 # check aligned data too
@@ -574,36 +574,36 @@ csvname = 'DataSetUnitTest'
 data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
 ## test metadata written
 correct = ['<DataObjectMetadata name="DataSet">',
-'  <TestPP type="Static">',
-'    <firstVar>',
-'      <scalarMetric1>10.0</scalarMetric1>',
-'      <vectorMetric>',
-'        <a>1</a>',
-'        <c>3</c>',
-'        <b>2</b>',
-'        <d>4.0</d>',
-'      </vectorMetric>',
-'      <scalarMetric2>20</scalarMetric2>',
-'    </firstVar>',
-'    <secondVar>',
-'      <scalarMetric1>100.0</scalarMetric1>',
-'    </secondVar>',
-'  </TestPP>',
-'  ',
-'  <DataSet type="Static">',
-'    <dims>',
-'      <y>time</y>',
-'      <c>time</c>',
-'    </dims>',
-'    <general>',
-'      <inputs>a,b,c</inputs>',
-'      <pointwise_meta>prefix</pointwise_meta>',
-'      <outputs>x,y,z</outputs>',
-'      <sampleTag>RAVEN_sample_ID</sampleTag>',
-'    </general>',
-'  </DataSet>',
-'  ',
-'</DataObjectMetadata>']
+           '  <DataSet type="Static">',
+           '    <dims>',
+           '      <c>time</c>',
+           '      <y>time</y>',
+           '    </dims>',
+           '    <general>',
+           '      <inputs>a,b,c</inputs>',
+           '      <outputs>x,y,z</outputs>',
+           '      <pointwise_meta>prefix</pointwise_meta>',
+           '      <sampleTag>RAVEN_sample_ID</sampleTag>',
+           '    </general>',
+           '  </DataSet>',
+           '  ',
+           '  <TestPP type="Static">',
+           '    <firstVar>',
+           '      <scalarMetric1>10.0</scalarMetric1>',
+           '      <scalarMetric2>20</scalarMetric2>',
+           '      <vectorMetric>',
+           '        <a>1</a>',
+           '        <b>2</b>',
+           '        <c>3</c>',
+           '        <d>4.0</d>',
+           '      </vectorMetric>',
+           '    </firstVar>',
+           '    <secondVar>',
+           '      <scalarMetric1>100.0</scalarMetric1>',
+           '    </secondVar>',
+           '  </TestPP>',
+           '  ',
+           '</DataObjectMetadata>']
 # read in XML
 lines = open(csvname+'.xml','r').readlines()
 # remove line endings
@@ -728,7 +728,7 @@ seed['a'] = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9])
 data.load(seed,style='dict',dims=data.getDimensions())
 # test contents
 checkArray('load from dict "a"',data.asDataset()['a'].values,seed['a'],float)
-checkArray('load from dict "b"[3]',data.asDataset().isel(True,RAVEN_sample_ID=3)['b'].dropna('t').values,seed['b'][3],float)
+checkArray('load from dict "b"[3]',data.asDataset().isel({'RAVEN_sample_ID':3},True)['b'].dropna('t').values,seed['b'][3],float)
 rlz = data.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)
@@ -756,7 +756,7 @@ dataRe._readMoreXML(xml)
 dataRe.load(convertedDict['data'],style='dict',dims=convertedDict['dims'])
 # use exact same tests as originally loading from dict, but for dataRe
 checkArray('load from dict "a"',dataRe.asDataset()['a'].values,seed['a'],float)
-checkArray('load from dict "b"[3]',dataRe.asDataset().isel(True,RAVEN_sample_ID=3)['b'].dropna('t').values,seed['b'][3],float)
+checkArray('load from dict "b"[3]',dataRe.asDataset().isel({'RAVEN_sample_ID':3},True)['b'].dropna('t').values,seed['b'][3],float)
 rlz = dataRe.realization(index=2)
 checkFloat('load from dict rlz 2 "a"',rlz['a'],1.2)
 checkArray('load from dict rlz 2 "b"',rlz['b'].values,[1.2,1.21,1.22],float)

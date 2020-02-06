@@ -14,9 +14,10 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2017-02-03">Adding this test description.</revision>
-      <revision author="talbpaul" date="2017-07-12">Inserted &quot;reseedCopies&quot; option as False, batchSize to 2</revision>
+      <revision author="talbpaul" date="2017-07-12">Inserted ``reseedCopies'' option as False, batchSize to 2</revision>
       <revision author="alfoa" date="2017-12-13">adapted for new DataObject structure</revision>
       <revision author="alfoa" date="2018-04-26">Modified location of the test (ARMA folder)</revision>
+      <revision author="talbpaul" date="2018-09-13">changed Pmax and Pmin to P (same for Q)</revision>
     </revisions>
   </TestInfo>
 
@@ -28,7 +29,7 @@
   </RunInfo>
 
   <Files>
-    <Input name="rawDataFile">../ARMA/dataSet.csv</Input>
+    <Input name="rawDataFile">../Basic/dataSet.csv</Input>
   </Files>
 
   <Distributions>
@@ -56,13 +57,10 @@
       <Features>scaling</Features>
       <reseedCopies>False</reseedCopies>
       <pivotParameter>Time</pivotParameter>
-      <Pmax>2</Pmax>
-      <Pmin>2</Pmin>
-      <Qmax>1</Qmax>
-      <Qmin>1</Qmin>
       <outTruncation domain="positive">Speed,Time</outTruncation>
-      <Fourier>604800,86400</Fourier>
-      <FourierOrder>2,2</FourierOrder>
+      <Fourier>604800.000000, 302400.000000, 86400.000000, 43200.000000</Fourier>
+      <P>2</P>
+      <Q>1</Q>
     </ROM>
   </Models>
 

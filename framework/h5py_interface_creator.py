@@ -20,7 +20,6 @@ Created on Mar 25, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 from datetime import datetime
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -37,8 +36,7 @@ import difflib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from utils import mathUtils
+from utils import utils, mathUtils
 import MessageHandler
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
@@ -49,7 +47,7 @@ def _dumps(val):
     @ In, val, any, data to encode
     @ Out, _dumps, np.void, encoded data
   """
-  return np.void(pk.dumps(val))
+  return np.void(pk.dumps(val, protocol=0))
 
 def _loads(val):
   """
@@ -58,9 +56,15 @@ def _loads(val):
     @ Out, _loads, any, data decoded
   """
   if hasattr(val,'tostring'):
-    return pk.loads(val.tostring())
+    try:
+      return pk.loads(val.tostring())
+    except UnicodeDecodeError:
+      return pk.loads(val.tostring(),errors='backslashreplace')
   else:
-    return pk.loads(val)
+    try:
+      return pk.loads(val)
+    except UnicodeDecodeError:
+      return pk.loads(val,errors='backslashreplace')
 
 #
 #  *************************
@@ -110,9 +114,9 @@ class hdf5Database(MessageHandler.MessageUser):
     self.fileOpen       = False
     # List of the paths of all the groups that are stored in the database
     self.allGroupPaths = []
-    # Dictonary of boolean variables, true if the corresponding group in self.allGroupPaths
+    # List of boolean variables, true if the corresponding group in self.allGroupPaths
     # is an ending group (no sub-groups appended), false otherwise
-    self.allGroupEnds = {}
+    self.allGroupEnds = []
     # We can create a base empty database or we open an existing one
     if self.fileExist:
       # self.h5FileW is the HDF5 object. Open the database in "update" mode
@@ -122,22 +126,59 @@ class hdf5Database(MessageHandler.MessageUser):
       # Open file
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'r+')
       # Call the private method __createObjFromFile, that constructs the list of the paths "self.allGroupPaths"
-      # and the dictionary "self.allGroupEnds" based on the database that already exists
-      self.parentGroupName = b'/'
+      # and the list "self.allGroupEnds" based on the database that already exists
+      self.parentGroupName = '/'
       self.__createObjFromFile()
       # "self.firstRootGroup", true if the root group is present (or added), false otherwise
       self.firstRootGroup = True
     else:
       # self.h5FileW is the HDF5 object. Open the database in "write only" mode
+      if os.path.exists(self.filenameAndPath):
+        os.remove(self.filenameAndPath)
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'w')
       # Add the root as first group
-      self.allGroupPaths.append("/")
+      self.allGroupPaths.append(b"/")
       # The root group is not an end group
-      self.allGroupEnds["/"] = False
+      self.allGroupEnds.append(False)
       # The first root group has not been added yet
       self.firstRootGroup = False
       # The root name is / . it can be changed if addGroupInit is called
-      self.parentGroupName = b'/'
+      self.parentGroupName = '/'
+      self.__createFileLevelInfoDatasets()
+
+  def __len__(self):
+    """
+      Overload len method
+      @ In, None
+      @ Out, __len__, length
+    """
+    return len(self.allGroupPaths)
+
+  def __createFileLevelInfoDatasets(self):
+    """
+      Method to create datasets that are at the File Level and contains general info
+      to recontruct HDF5 in loading mode
+      @ In, None
+      @ Out, None
+    """
+    self.h5FileW.create_dataset("allGroupPaths", shape=(len(self.allGroupPaths),), dtype=h5.special_dtype(vlen=str), data=self.allGroupPaths, maxshape=(None,))
+    self.h5FileW["allGroupPaths"].resize((max(len(self.allGroupPaths)*2,2000),))
+    self.h5FileW.create_dataset("allGroupEnds", shape=(len(self.allGroupEnds),), dtype=bool, data=self.allGroupEnds, maxshape=(None,))
+    self.h5FileW["allGroupEnds"].resize((max(len(self.allGroupPaths)*2,2000),))
+
+  def __updateFileLevelInfoDatasets(self):
+    """
+      Method to create datasets that are at the File Level and contains general info
+      to recontruct HDF5 in loading mode
+      @ In, None
+      @ Out, None
+    """
+    if len(self.allGroupPaths) > len(self.h5FileW["allGroupPaths"]):
+      self.h5FileW["allGroupPaths"].resize((len(self.allGroupPaths)*2,))
+      self.h5FileW["allGroupEnds"].resize( (len(self.allGroupPaths)*2,) )
+    self.h5FileW["allGroupPaths"][len( self.allGroupPaths) - 1] = self.allGroupPaths[-1]
+    self.h5FileW["allGroupEnds"][len(self.allGroupPaths) - 1] = self.allGroupEnds[-1]
+    self.h5FileW.attrs["nGroups"] = len(self.allGroupPaths)
 
   def __createObjFromFile(self):
     """
@@ -148,14 +189,20 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     self.allGroupPaths = []
-    self.allGroupEnds  = {}
+    self.allGroupEnds  = []
+    if len(self.h5FileW) == 0:
+      # the database is empty. An error must be raised
+      self.raiseAnError(IOError, 'The database '+str(self.name) + ' is empty but "readMode" is "read"!')
     if not self.fileOpen:
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'a')
-    if 'allGroupPaths' in self.h5FileW.attrs and 'allGroupEnds' in self.h5FileW.attrs:
-      self.allGroupPaths = _loads(self.h5FileW.attrs['allGroupPaths'])
-      self.allGroupEnds  = _loads(self.h5FileW.attrs['allGroupEnds'])
+    if 'allGroupPaths' in self.h5FileW and 'allGroupEnds' in self.h5FileW:
+      nGroups = self.h5FileW.attrs.get("nGroups",None)
+      self.allGroupPaths = utils.toBytesIterative(self.h5FileW["allGroupPaths"][:nGroups].tolist())
+      self.allGroupEnds = self.h5FileW["allGroupEnds"][:nGroups].tolist()
     else:
       self.h5FileW.visititems(self.__isGroup)
+      self.__createFileLevelInfoDatasets()
+    self.h5FileW.attrs["nGroups"] = len(self.allGroupPaths)
     self.raiseAMessage('TOTAL NUMBER OF GROUPS = ' + str(len(self.allGroupPaths)))
 
   def __isGroup(self,name,obj):
@@ -167,20 +214,22 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     if isinstance(obj,h5.Group):
-      self.allGroupPaths.append(name)
+      self.allGroupPaths.append(utils.toBytes(name))
       try:
-        self.allGroupEnds[name]  = obj.attrs["endGroup"]
+        self.allGroupEnds.append(obj.attrs["endGroup"])
       except KeyError:
-        self.allGroupEnds[name]  = True
+        self.allGroupEnds.append(True)
       if "rootname" in obj.attrs:
         self.parentGroupName = name
         self.raiseAWarning('not found attribute endGroup in group ' + name + '.Set True.')
     return
 
-  def addExpectedMeta(self, keys):
+  def addExpectedMeta(self, keys, params={}):
     """
       Store expected metadata
       @ In, keys, set(), the metadata list
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
     self.h5FileW.attrs['expectedMetadata'] = _dumps(list(keys))
@@ -189,13 +238,17 @@ class hdf5Database(MessageHandler.MessageUser):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, set(str), expected keys (empty if none)
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and dictionary of expected keys corresponding to their indexes
+        i.e. {keys, [indexes]}
     """
     meta = set()
     gotMeta = self.h5FileW.attrs.get('expectedMetadata',None)
     if gotMeta is not None:
       meta = set(_loads(gotMeta))
-    return meta
+    # FIXME, I'm not sure how to enable the HDF5 to store the time-dependent metadata,
+    # or how to store the time dependent metadata in the HDF5, currently only empty dict of
+    # indexes information is returned
+    return meta,{}
 
   def addGroup(self,rlz):
     """
@@ -207,11 +260,8 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     parentID  = rlz.get("RAVEN_parentID",[None])[0]
     prefix    = rlz.get("prefix")
-    if prefix is not None:
-      groupName = str(prefix[0] if not utils.isString(prefix) else prefix)
-    else:
-      # this can happen when we want to add sampler generated data (e.g. LimitSurface) in the database
-      groupName = str(len(self.allGroupPaths))
+
+    groupName = str(prefix if mathUtils.isSingleValued(prefix) else prefix[0])
     if parentID:
       #If Hierarchical structure, firstly add the root group
       if not self.firstRootGroup or parentID == "None":
@@ -226,8 +276,7 @@ class hdf5Database(MessageHandler.MessageUser):
       self.__addGroupRootLevel(groupName,rlz)
       self.firstRootGroup = True
       self.type = 'MC'
-    self.h5FileW.attrs['allGroupPaths'] = _dumps(self.allGroupPaths)
-    self.h5FileW.attrs['allGroupEnds'] = _dumps(self.allGroupEnds)
+    self.__updateFileLevelInfoDatasets()
     self.h5FileW.flush()
 
 
@@ -243,7 +292,7 @@ class hdf5Database(MessageHandler.MessageUser):
     attribs = {} if attributes is None else attributes
     groupNameInit = groupName+"_"+datetime.now().strftime("%m-%d-%Y-%H-%S")
     for index in range(len(self.allGroupPaths)):
-      comparisonName = self.allGroupPaths[index]
+      comparisonName = utils.toString(self.allGroupPaths[index])
       splittedPath=comparisonName.split('/')
       if len(splittedPath) > 0:
         if groupNameInit in splittedPath[0]:
@@ -253,7 +302,7 @@ class hdf5Database(MessageHandler.MessageUser):
           while True:
             testGroup = groupNameInit +"_"+prefixLetter+asciiAlphabet[alphabetCounter]
             if testGroup not in self.allGroupPaths:
-              groupNameInit = testGroup
+              groupNameInit = utils.toString(testGroup)
               break
             alphabetCounter+=1
             if alphabetCounter >= len(asciiAlphabet):
@@ -269,10 +318,9 @@ class hdf5Database(MessageHandler.MessageUser):
     grp.attrs['rootname'  ] = True
     grp.attrs['endGroup'  ] = False
     grp.attrs[b'groupName'] = groupNameInit
-    self.allGroupPaths.append("/" + groupNameInit)
-    self.allGroupEnds["/" + groupNameInit] = False
-    self.h5FileW.attrs['allGroupPaths'] = _dumps(self.allGroupPaths)
-    self.h5FileW.attrs['allGroupEnds'] = _dumps(self.allGroupEnds)
+    self.allGroupPaths.append(utils.toBytes("/" + groupNameInit))
+    self.allGroupEnds.append(False)
+    self.__updateFileLevelInfoDatasets()
     self.h5FileW.flush()
 
   def __checkTypeHDF5(self, value, neg):
@@ -434,37 +482,11 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, None
     """
     if parentName != "/":
-      self.allGroupPaths.append(parentName + "/" + groupName)
-      self.allGroupEnds[parentName + "/" + groupName] = True
+      self.allGroupPaths.append(utils.toBytes(parentName) + b"/" + utils.toBytes(groupName))
+      self.allGroupEnds.append(True)
     else:
-      self.allGroupPaths.append("/" + groupName)
-      self.allGroupEnds["/" + groupName] = True
-
-  def retrieveAllHistoryPaths(self,rootName=None):
-    """
-      Function to create a list of all the HistorySet paths present in an existing database
-      @ In,  rootName, string, optional, It's the root name, if present, only the groups that have this root are going to be returned
-      @ Out, allHistoryPaths, list, List of the HistorySet paths
-    """
-    if rootName:
-      rname = rootName
-    # Create the "self.allGroupPaths" list from the existing database
-    if not self.fileOpen:
-      self.__createObjFromFile()
-    # Check database type
-    if self.type == 'MC':
-      # Parallel structure => "self.allGroupPaths" already contains the HistorySet' paths
-      if not rootName:
-        allHistoryPaths = self.allGroupPaths
-      else:
-        allHistoryPaths = [k for k in self.allGroupPaths.keys() if k.endswith(rname)]
-    else:
-      # Tree structure => construct the HistorySet' paths
-      if not rootName:
-        allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v ]
-      else:
-        allHistoryPaths = [k for k, v in self.allGroupPaths.items() if v and k.endswith(rname)]
-    return allHistoryPaths
+      self.allGroupPaths.append(b"/" + utils.toBytes(groupName))
+      self.allGroupEnds.append(True)
 
   def retrieveAllHistoryNames(self,rootName=None):
     """
@@ -473,13 +495,13 @@ class hdf5Database(MessageHandler.MessageUser):
       @ Out, workingList, list, List of the HistorySet names
     """
     if rootName:
-      rname = rootName
+      rname = utils.toString(rootName)
     if not self.fileOpen:
       self.__createObjFromFile() # Create the "self.allGroupPaths" list from the existing database
     if not rootName:
-      workingList = [k.split('/')[-1] for k, v in self.allGroupEnds.items() if v ]
+      workingList = [utils.toString(k).split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v ]
     else:
-      workingList = [k.split('/')[-1] for k, v in self.allGroupEnds.items() if v and k.endswith(rname)]
+      workingList = [utils.toString(k).split('/')[-1] for k, v in zip(self.allGroupPaths,self.allGroupEnds) if v and utils.toString(k).endswith(rname)]
 
     return workingList
 
@@ -602,7 +624,7 @@ class hdf5Database(MessageHandler.MessageUser):
     if parentName != '/':
       # this loops takes ~.2 seconds on a 100 milion list (it is accetable)
       for s in self.allGroupPaths:
-        if s.endswith("/"+parentName.strip()):
+        if utils.toString(s).endswith("/"+parentName.strip()):
           parentGroupName = s
           break
     else:

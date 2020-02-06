@@ -19,8 +19,6 @@ Created on July 10, 2013
 
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
@@ -37,11 +35,13 @@ from .SampleSelector import SampleSelector
 from .ImportanceRank import ImportanceRank
 from .BasicStatistics import BasicStatistics
 from .CrossValidation import CrossValidation
+from .FastFourierTransform import FastFourierTransform
 from .LimitSurfaceIntegral import LimitSurfaceIntegral
 from .ExternalPostProcessor import ExternalPostProcessor
 from .InterfacedPostProcessor import InterfacedPostProcessor
 from .TopologicalDecomposition import TopologicalDecomposition
 from .ComparisonStatisticsModule import ComparisonStatistics
+from .RealizationAverager import RealizationAverager
 # from .RavenOutput import RavenOutput # deprecated for now
 
 ## These utilize the optional prequisite library PySide, so don't error if they

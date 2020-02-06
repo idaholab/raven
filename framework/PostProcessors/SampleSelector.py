@@ -17,8 +17,6 @@ Created on August 28, 2018
 @author: giovannimaronati
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import numpy as np
@@ -27,7 +25,7 @@ import numpy as np
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import Runners
 #Internal Modules End-----------------------------------------------------------
 
@@ -49,11 +47,12 @@ class SampleSelector(PostProcessor):
     """
     inSpec= super(SampleSelector, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
-                                                  contentType=InputData.StringType,
-                                                  strictMode=True))
-    inSpec.addSub(InputData.parameterInputFactory('criterion',
-                                                  contentType=InputData.StringType,
-                                                  strictMode=True))
+                                                  contentType=InputTypes.StringType))
+    criterion = InputData.parameterInputFactory('criterion',
+                                                contentType=InputTypes.StringType,
+                                                strictMode=True)
+    criterion.addParam('value', InputTypes.IntegerType)
+    inSpec.addSub(criterion)
     return inSpec
 
   def __init__(self, messageHandler):
@@ -65,6 +64,7 @@ class SampleSelector(PostProcessor):
     PostProcessor.__init__(self, messageHandler)
     self.dynamic = True # from base class, indicates time-dependence is handled internally
     self.target = None # string, variable to apply postprocessor to
+    self.value = None  # only used when the criterion needs a value, the value to use
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -89,8 +89,17 @@ class SampleSelector(PostProcessor):
         self.target = child.value
       if tag == 'criterion':
         self.criterion = child.value
+        self.value = child.parameterValues.get('value',None)
       elif tag == 'number':
         self.numBins = child.value
+
+    # check "target" given if needed
+    if self.criterion not in ['index']:
+      if self.target is None:
+        self.raiseAnError(IOError,'Criterion "{}" requires a <target> be identified!'.format(self.criterion))
+
+
+
 
   def inputToInternal(self, currentInp):
     """
@@ -116,9 +125,16 @@ class SampleSelector(PostProcessor):
     """
     inData = self.inputToInternal(inputIn)
     realizations = []
-    # actual method: pick min/max target
     d = inData.asDataset()
-    i = d[self.target].argmin()
+    # find index we want depending on criterion
+    if self.criterion == 'min':
+      i = d[self.target].argmin()
+    elif self.criterion == 'max':
+      i = d[self.target].argmax()
+    elif self.criterion == 'index':
+      i = self.value
+    else:
+      self.raiseAnError(IOError,'Unrecognized criterion: "{}"'.format(self.criterion))
     pick = inData.realization(index = i)
 
     return pick

@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
@@ -91,7 +89,7 @@ class MAMMOTHInterface(CodeInterfaceBase):
       raise IOError(errorMessage)
     return inputDict
 
-  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       Generate a command to run Mammoth using an input with sampled variables
       See base class.  Collects all the clargs and the executable to produce the command-line call.
@@ -104,6 +102,7 @@ class MAMMOTHInterface(CodeInterfaceBase):
         (e.g. under the node < Code >< clargstype = 0 input0arg = 0 i0extension = 0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify
         in the input (e.g. under the node < Code >< fargstype = 0 input0arg = 0 aux0extension = 0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the
         code (string), returnCommand[1] is the name of the output root
     """

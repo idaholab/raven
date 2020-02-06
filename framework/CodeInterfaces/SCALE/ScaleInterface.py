@@ -19,8 +19,6 @@ Created on April 04, 2018
 comments: Interface for Scale Simulation (current Origen and Triton)
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
@@ -100,7 +98,7 @@ class Scale(CodeInterfaceBase):
       inputDict['triton'] = triton
     return inputDict
 
-  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       Generate a command to run SCALE using an input with sampled variables
       See base class.  Collects all the clargs and the executable to produce the command-line call.
@@ -113,6 +111,7 @@ class Scale(CodeInterfaceBase):
         (e.g. under the node < Code >< clargstype = 0 input0arg = 0 i0extension = 0 .inp0/ >< /Code >)
       @ In, fargs, dict, optional, a dictionary containing the axuiliary input file variables the user can specify
         in the input (e.g. under the node < Code >< fargstype = 0 input0arg = 0 aux0extension = 0 .aux0/ >< /Code >)
+      @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the
         code (string), returnCommand[1] is the name of the output root
     """
@@ -121,7 +120,7 @@ class Scale(CodeInterfaceBase):
     for seq in self.sequence:
       self.outputRoot[seq.lower()] = inputDict[seq.lower()][0].getBase()
       executeCommand.append(('parallel',executable+' '+inputDict[seq.lower()][0].getFilename()))
-    returnCommand = executeCommand, self.outputRoot.values()[-1]
+    returnCommand = executeCommand, list(self.outputRoot.values())[-1]
     return returnCommand
 
   def createNewInput(self, currentInputFiles, origInputFiles, samplerType, **Kwargs):

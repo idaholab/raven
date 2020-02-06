@@ -1,0 +1,76 @@
+[Tests]
+ [./test_interal_parallel_ext_model]
+   # first stes (external model in parallel)
+   #REQUIREMENT_TEST R-IS-8
+   input='test_internal_parallel_extModel.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml'
+   output = 'InternalParallelExtModel/testPrintHistorySet_dump_0.csv InternalParallelExtModel/testPrintHistorySet_dump_25.csv'
+   run_types = 'qsub'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_parallel_scikit_rom]
+   # second test (ROM in parallel)
+   #REQUIREMENT_TEST R-IS-9
+   input='test_internal_parallel_ROM_scikit.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml'
+   output = 'InternalParallelScikit/PrintDataData2.csv InternalParallelScikit/PrintDataData3.csv'
+   run_types = 'qsub'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_parallel_postprocessor]
+   # third test (PostProcessor in parallel)
+   input='test_internal_parallel_PP_LS.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml'
+   output = 'InternalParallelPostProcessorLS/LimitSurfacePositiveNegative_dump.csv InternalParallelPostProcessorLS/LimitSurfaceUnWeightedPb_dump.csv InternalParallelPostProcessorLS/LimitSurfaceWeightedPb_dump.csv InternalParallelPostProcessorLS/PointSetPostProcTest_dump.csv'
+   run_types = 'qsub'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_parallel_msr]
+   # forth test (Topology Picard in parallel)
+   input='test_internal_MSR.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml'
+   output = 'InternalParallelMSR/outDataParallel.csv'
+   run_types = 'qsub'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_parallel_ensemble_picard]
+   # fifth test (Ensamble Model Picard in parallel)
+   input='test_ensemble_model_picard_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml'
+   output='metaModelNonLinearParallel/1-metaModelOutputTestK_scatter.png metaModelNonLinearParallel/1-metaModelOutputTestSolution_scatter.png'
+   run_types = 'qsub'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_parallel_ensemble_linear]
+   # sixth test (Ensamble Model Picard in parallel)
+   input='test_ensemble_model_linear_internal_parallel.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml'
+   output = 'metaModelLinearParallel/1-metaModelOutputTestK_scatter.png metaModelLinearParallel/1-metaModelOutputTestSolution_scatter.png'
+   run_types = 'qsub'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_hybrid_model_code]
+   # seven test (HybridModel Code in parallel)
+   input='test_hybrid_model_code.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml'
+   output = 'hybridModelCode/samples.csv'
+   run_types = 'qsub'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+ [./test_parallel_hybride_model_external]
+   # eighth test (HybridModel External Model in parallel)
+   input = 'test_hybrid_model_external.xml ../pbspro_mpi.xml ../cluster_runinfo_legacy.xml'
+   output = 'hybridModelExternal/metaModelOutputTestDump.csv'
+   run_types = 'qsub'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
+[]
