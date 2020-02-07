@@ -12,10 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Optimizers are a class of Samplers that specialize the Adaptive Samplers.
-
-  Reworked 2020-01
-  @author: talbpaul
+  GradientApproximators are a tool for the GradientDescent Optimizer.
 """
 
 from __future__ import absolute_import
@@ -24,16 +21,9 @@ from __future__ import absolute_import
 # 'from Optimizers.Optimizer import Sampler' outside of this submodule
 
 # TODO
-#from .Optimizer import Optimizer
-from .GradientDescent import GradientDescent
-#from .SPSA import SPSA
+from .StepManipulator import StepManipulator
+from .GradientHistory import GradientHistory
 
-# TODO
 from .Factory import knownTypes
 from .Factory import returnInstance
 from .Factory import returnClass
-
-
-
-# # We should not really need this as we do not use wildcard imports
-# __all__ = ['Optimizer','GradientBasedOptimizer','SPSA']

@@ -117,6 +117,21 @@ class ParameterInput(object):
     return cls.name
 
   @classmethod
+<<<<<<< HEAD
+=======
+  def getSub(cls, name):
+    """
+      Returns the name of this class
+      @ In, name, str, name of the sub to acquire
+      @ Out, getSub, ParameterInput, class with corresponding sub
+    """
+    for sub in cls.subs:
+      if sub.name == name:
+        return sub
+    return None
+
+  @classmethod
+>>>>>>> pt/opt_rw_2020
   def addParam(cls, name, param_type=InputTypes.StringType, required=False, descr=None):
     """
       Adds a direct parameter to this class.  In XML this is an attribute.
@@ -455,6 +470,25 @@ def parameterInputFactory(*paramList, **paramDict):
   newClass.createClass(*paramList, **paramDict)
   return newClass
 
+<<<<<<< HEAD
+=======
+def assemblyInputFactory(*paramList, **paramDict):
+  """
+    Creates a new ParameterInput class with the same parameters as ParameterInput.createClass
+    Also adds the standard "type" and "class" params for assembly objects
+    @ In, same parameters as ParameterInput.createClass
+    @ Out, newClass, ParameterInput, the newly created class.
+  """
+  class newClass(ParameterInput):
+    """
+      The new class to be created by the factory
+    """
+  newClass.createClass(*paramList, **paramDict)
+  newClass.addParam('type', param_type=InputTypes.StringType, required=True)
+  newClass.addParam('class', param_type=InputTypes.StringType, required=True)
+  return newClass
+
+>>>>>>> pt/opt_rw_2020
 def createXSD(outerElement):
   """
     Creates an XSD element.

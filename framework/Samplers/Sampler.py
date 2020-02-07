@@ -66,13 +66,12 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # from StringType to StringNoLeadingSpacesType
     variableInput.addParam("name", InputTypes.StringNoLeadingSpacesType)
     variableInput.addParam("shape", InputTypes.IntegerListType, required=False)
+
     distributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
     distributionInput.addParam("dim", InputTypes.IntegerType)
-
     variableInput.addSub(distributionInput)
 
     functionInput = InputData.parameterInputFactory("function", contentType=InputTypes.StringType)
-
     variableInput.addSub(functionInput)
 
     inputSpecification.addSub(variableInput)
@@ -254,48 +253,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.toBeSampled[prefix+child.parameterValues['name']] = toBeSampled
 
       elif child.getName() == 'variable':
-        # variable for tracking if distributions or functions have been declared
-        foundDistOrFunc = False
-        # store variable name for re-use
-        varName = child.parameterValues['name']
-        # set shape if present
-        if 'shape' in child.parameterValues:
-          self.variableShapes[varName] = child.parameterValues['shape']
-        # read subnodes
-        for childChild in child.subparts:
-          if childChild.getName() =='distribution':
-            # can only have a distribution if doesn't already have a distribution or function
-            if not foundDistOrFunc:
-              foundDistOrFunc = True
-            else:
-              self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function, or more than one of either!')
-            # name of the distribution to sample
-            toBeSampled = childChild.value
-            varData={}
-            varData['name']=childChild.value
-            # variable dimensionality
-            if 'dim' not in childChild.parameterValues:
-              dim=1
-            else:
-              dim=childChild.parameterValues['dim']
-            varData['dim']=dim
-            # set up mapping for variable to distribution
-            self.variables2distributionsMapping[varName] = varData
-            # flag distribution as needing to be sampled
-            self.toBeSampled[prefix+varName] = toBeSampled
-          elif childChild.getName() == 'function':
-            # can only have a function if doesn't already have a distribution or function
-            if not foundDistOrFunc:
-              foundDistOrFunc = True
-            else:
-              self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
-            # function name
-            toBeSampled = childChild.value
-            # track variable as a functional sample
-            self.dependentSample[prefix+varName] = toBeSampled
-
-        if not foundDistOrFunc:
-          self.raiseAnError(IOError,'Sampled variable',varName,'has neither a <distribution> nor <function> node specified!')
+        self._readInVariable(child, prefix)
 
       elif child.getName() == "variablesTransformation":
         transformationDict = {}
@@ -317,7 +275,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.variablesTransformationDict[child.parameterValues['distribution']] = transformationDict
 
       elif child.getName() == "constant":
-        name,value = self._readInConstant(child)
+        name, value = self._readInConstant(child)
         self.constants[name] = value
 
       elif child.getName() == "restartTolerance":
@@ -369,7 +327,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     #Checking the variables transformation
     if self.variablesTransformationDict:
-      for dist,varsDict in self.variablesTransformationDict.items():
+      for dist, varsDict in self.variablesTransformationDict.items():
         maxDim = len(varsDict['manifestVariables'])
         listLatentElement = varsDict['latentVariables']
         if len(set(listLatentElement)) != len(listLatentElement):
@@ -399,7 +357,58 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
     return paramInput
 
-  def _readInConstant(self,inp):
+  def _readInVariable(self, child, prefix):
+    """
+      Reads in a "variable" input parameter node.
+      @ In, child, utils.InputData.ParameterInput, input parameter node to read from
+      @ In, prefix, str, variable prefix, if any # TODO maybe always empty?
+      @ Out, name, string, name of constant
+      @ Out, value, float or np.array,
+    """
+    # variable for tracking if distributions or functions have been declared
+    foundDistOrFunc = False
+    # store variable name for re-use
+    varName = child.parameterValues['name']
+    # set shape if present
+    if 'shape' in child.parameterValues:
+      self.variableShapes[varName] = child.parameterValues['shape']
+    # read subnodes
+    for childChild in child.subparts:
+      if childChild.getName() == 'distribution':
+        # can only have a distribution if doesn't already have a distribution or function
+        if foundDistOrFunc:
+          self.raiseAnError(IOError, 'A sampled variable cannot have both a distribution and a function, or more than one of either!')
+        else:
+          foundDistOrFunc = True
+        # name of the distribution to sample
+        toBeSampled = childChild.value
+        varData = {}
+        varData['name'] = childChild.value
+        # variable dimensionality
+        if 'dim' not in childChild.parameterValues:
+          dim = 1
+        else:
+          dim = childChild.parameterValues['dim']
+        varData['dim'] = dim
+        # set up mapping for variable to distribution
+        self.variables2distributionsMapping[varName] = varData
+        # flag distribution as needing to be sampled
+        self.toBeSampled[prefix + varName] = toBeSampled
+      elif childChild.getName() == 'function':
+        # can only have a function if doesn't already have a distribution or function
+        if not foundDistOrFunc:
+          foundDistOrFunc = True
+        else:
+          self.raiseAnError(IOError, 'A sampled variable cannot have both a distribution and a function!')
+        # function name
+        toBeSampled = childChild.value
+        # track variable as a functional sample
+        self.dependentSample[prefix + varName] = toBeSampled
+
+    if not foundDistOrFunc:
+      self.raiseAnError(IOError, 'Sampled variable', varName, 'has neither a <distribution> nor <function> node specified!')
+
+  def _readInConstant(self, inp):
     """
       Reads in a "constant" input parameter node.
       @ In, inp, utils.InputParameter.ParameterInput, input parameter node to read from
@@ -499,7 +508,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.constants[var] = rlz[data['sourceVar']]
 
     #specializing the self.localInitialize() to account for adaptive sampling
-    if solutionExport != None:
+    if solutionExport is not None:
       self.localInitialize(solutionExport=solutionExport)
     else:
       self.localInitialize()
@@ -541,7 +550,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     return {}
 
-  def localInitialize(self):
+  def localInitialize(self, **kwargs):
     """
       use this function to add initialization features to the derived class
       it is call at the beginning of each step
@@ -662,7 +671,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, ready, bool, is this sampler ready to generate another sample?
     """
-    ready = True if self.counter < self.limit else False
+    if self.counter < self.limit: # can use < since counter is 0-based
+      ready = True
+    else:
+      ready = False
+      self.raiseADebug('Sampling limit reached! No new samples ...')
     ready = self.localStillReady(ready)
     return ready
 
@@ -673,6 +686,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
+    # TODO is this an okay check for ALL samplers?
+    if self.counter > self.limit:
+      ready = False
     return ready
 
   def _checkRestartForEvaluation(self):
@@ -737,9 +753,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #since we are creating the input for the next run we increase the counter and global counter
     self.counter +=1
     self.auxcnt  +=1
-    #exit if over the limit
-    if self.counter > self.limit:
-      self.raiseADebug('Exceeded number of points requested in sampling!  Moving on...')
+    # prep to exit if over the limit
+    if self.counter >= self.limit:
+      self.raiseADebug('Sampling limit reached!')
+      # TODO this is disjointed from readiness check!
     #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
     if self.counter >1:
       for key in self.entitiesToRemove:
@@ -806,7 +823,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     self._incrementCounter()
     model.getAdditionalInputEdits(self.inputInfo)
-    self.localGenerateInput(model,oldInput)
+    self.localGenerateInput(model, oldInput)
     # split the sampled vars Pb among the different correlated variables
     self._reassignSampledVarsPbToFullyCorrVars()
     self._reassignPbWeightToCorrelatedVars()
@@ -819,14 +836,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ##### VECTOR VARS #####
     self._expandVectorVariables()
     ##### RESTART #####
-    index,inExisting = self._checkRestartForEvaluation()
+    index, inExisting = self._checkRestartForEvaluation()
     # reformat metadata into acceptable format for dataojbect
     # DO NOT format here, let that happen when a realization is made in collectOutput for each Model.  Sampler doesn't care about this.
     # self.inputInfo['ProbabilityWeight'] = np.atleast_1d(self.inputInfo['ProbabilityWeight'])
     # self.inputInfo['prefix'] = np.atleast_1d(self.inputInfo['prefix'])
     #if not found or not restarting, we have a new point!
     if inExisting is None:
-      self.raiseADebug('Found new point to sample:',self.values)
+      # we have a new evaluation, so check its contents for consistency
+      self._checkSample()
+      self.raiseADebug(' ... Sample point {}: {}'.format(self.inputInfo['prefix'], self.values))
       ## The new info for the perturbed run will be stored in the sampler's
       ## inputInfo (I don't particularly like this, I think it should be
       ## returned here, but let's get this working and then we can decide how
@@ -835,7 +854,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       ## a copy of the information, otherwise we have to be careful to create a
       ## deep copy of this information when we submit it to a job).
       ## -- DPM 4/18/17
-      return 0,oldInput
+      return 0, oldInput
     #otherwise, return the restart point
     else:
       # TODO use realization format as per new data object (no subspaces)
@@ -846,7 +865,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
       rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
       rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
-      return 1,rlz
+      return 1, rlz
 
   def generateInputBatch(self,myInput,model,batchSize,projector=None):
     """
@@ -900,6 +919,13 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
     self.values.update(manifestVariablesDict)
 
+  def _checkSample(self):
+    """
+      Checks the current sample for consistency with expected contents.
+      @ In, None
+      @ Out, None
+    """
+    pass # nothing to do by default
 
   ### FINALIZING METHODS ####
   def finalizeActualSampling(self,jobObject,model,myInput):

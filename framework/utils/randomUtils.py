@@ -55,8 +55,6 @@ class BoxMullerGenerator:
       val = self.queue[engine].pop()
     return val
 
-
-
   def createSamples(self,engine=None):
     """
       Sample calculator.  Because Box Muller does batches of 2, add them to a queue.
@@ -90,7 +88,11 @@ else:
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 
-def randomSeed(value,seedBoth=False,engine=None):
+#
+# Utilities
+#
+#
+def randomSeed(value, seedBoth=False, engine=None):
   """
     Function to get a random seed
     @ In, value, float, the seed
@@ -123,7 +125,7 @@ def randomSeed(value,seedBoth=False,engine=None):
   if replaceGlobalEnv:
     print('randomUtils: Global random number seed has been changed to',value)
 
-def random(dim=1,samples=1,keepMatrix=False,engine=None):
+def random(dim=1, samples=1, keepMatrix=False, engine=None):
   """
     Function to get a single random value, an array of random values, or a matrix of random values, on [0,1]
     @ In, dim, int, optional, dimensionality of samples
@@ -132,13 +134,13 @@ def random(dim=1,samples=1,keepMatrix=False,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
   """
-  engine=getEngine(engine)
+  engine = getEngine(engine)
   dim = int(dim)
   samples = int(samples)
   if isinstance(engine, np.random.RandomState):
     vals = engine.rand(samples,dim)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-    vals = np.zeros([samples,dim])
+    vals = np.zeros([samples, dim])
     for i in range(len(vals)):
       for j in range(len(vals[0])):
         vals[i][j] = engine.random()
@@ -146,9 +148,9 @@ def random(dim=1,samples=1,keepMatrix=False,engine=None):
   if keepMatrix:
     return vals
   else:
-    return _reduceRedundantListing(vals,dim,samples)
+    return _reduceRedundantListing(vals, dim, samples)
 
-def randomNormal(dim=1,samples=1,keepMatrix=False,engine=None):
+def randomNormal(dim=1, samples=1, keepMatrix=False, engine=None):
   """
     Function to get a single random value, an array of random values, or a matrix of random values, normally distributed
     @ In, dim, int, optional, dimensionality of samples
@@ -157,7 +159,7 @@ def randomNormal(dim=1,samples=1,keepMatrix=False,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
   """
-  engine=getEngine(engine)
+  engine = getEngine(engine)
   dim = int(dim)
   samples = int(samples)
   if isinstance(engine, np.random.RandomState):
@@ -172,7 +174,7 @@ def randomNormal(dim=1,samples=1,keepMatrix=False,engine=None):
   else:
     return _reduceRedundantListing(vals,dim,samples)
 
-def randomIntegers(low,high,caller,engine=None):
+def randomIntegers(low, high, caller, engine=None):
   """
     Function to get a random integer
     @ In, low, int, low boundary
@@ -181,16 +183,16 @@ def randomIntegers(low,high,caller,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, rawInt, int, random int
   """
-  engine=getEngine(engine)
+  engine = getEngine(engine)
   if isinstance(engine, np.random.RandomState):
-    return engine.randint(low,high=high+1)
+    return engine.randint(low, high=high+1)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-    intRange = high-low
+    intRange = high - low
     rawNum = low + random(engine=engine)*intRange
     rawInt = int(round(rawNum))
     if rawInt < low or rawInt > high:
       caller.raiseAMessage("Random int out of range")
-      rawInt = max(low,min(rawInt,high))
+      rawInt = max(low, min(rawInt, high))
     return rawInt
   else:
     raise TypeError('Engine type not recognized! {}'.format(type(engine)))
@@ -203,7 +205,7 @@ def randomPermutation(l,caller,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, newList, list, randomly permuted list
   """
-  engine=getEngine(engine)
+  engine = getEngine(engine)
   if isinstance(engine, np.random.RandomState):
     return engine.permutation(l)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
