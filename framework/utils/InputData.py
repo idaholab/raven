@@ -117,8 +117,6 @@ class ParameterInput(object):
     return cls.name
 
   @classmethod
-<<<<<<< HEAD
-=======
   def getSub(cls, name):
     """
       Returns the name of this class
@@ -131,7 +129,6 @@ class ParameterInput(object):
     return None
 
   @classmethod
->>>>>>> pt/opt_rw_2020
   def addParam(cls, name, param_type=InputTypes.StringType, required=False, descr=None):
     """
       Adds a direct parameter to this class.  In XML this is an attribute.
@@ -470,8 +467,6 @@ def parameterInputFactory(*paramList, **paramDict):
   newClass.createClass(*paramList, **paramDict)
   return newClass
 
-<<<<<<< HEAD
-=======
 def assemblyInputFactory(*paramList, **paramDict):
   """
     Creates a new ParameterInput class with the same parameters as ParameterInput.createClass
@@ -488,7 +483,6 @@ def assemblyInputFactory(*paramList, **paramDict):
   newClass.addParam('class', param_type=InputTypes.StringType, required=True)
   return newClass
 
->>>>>>> pt/opt_rw_2020
 def createXSD(outerElement):
   """
     Creates an XSD element.
