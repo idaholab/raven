@@ -26,16 +26,7 @@ import signal
 import copy
 import sys
 import abc
-from platform import platform
-if "centos-6" in platform().lower():
-  _rayAvailable = False
-else:
-  _rayAvailable = True
-if _rayAvailable:
-  import ray
-else:
-  print("WARNING: NO PARALLELIZZATION AVAILABLE IN CENTOS 6!!!")
-
+import ray
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------

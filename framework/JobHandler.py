@@ -42,15 +42,7 @@ import MessageHandler
 import Runners
 import Models
 # for internal parallel
-from platform import platform
-if "centos-6" in platform().lower():
-  _rayAvailable = False
-else:
-  _rayAvailable = True
-if _rayAvailable:
-  import ray
-else:
-  print("WARNING: NO PARALLELIZZATION AVAILABLE IN CENTOS 6!!!")
+import ray
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
 
@@ -188,7 +180,7 @@ class JobHandler(MessageHandler.MessageUser):
     os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
     ## Check if the list of unique nodes is present and, in case, initialize the
     servers = None
-    if self.runInfoDict['internalParallel'] and _rayAvailable:
+    if self.runInfoDict['internalParallel']:
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         ## identify the local host name and get the number of local processors
