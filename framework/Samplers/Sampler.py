@@ -822,7 +822,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           @ Out, generateInput, tuple(int,dict), (1,realization dictionary)
     """
     self._incrementCounter()
-    model.getAdditionalInputEdits(self.inputInfo)
+    if model is not None:
+      model.getAdditionalInputEdits(self.inputInfo)
     self.localGenerateInput(model, oldInput)
     # split the sampled vars Pb among the different correlated variables
     self._reassignSampledVarsPbToFullyCorrVars()

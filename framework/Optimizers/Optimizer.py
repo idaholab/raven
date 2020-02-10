@@ -33,7 +33,7 @@ from collections import deque
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, randomUtils, InputData, InputTypes
 import SupervisedLearning
-from Samplers import AdaptiveSampler
+from Samplers import AdaptiveSampler, ForwardSampler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Optimizer(AdaptiveSampler):
@@ -107,11 +107,12 @@ class Optimizer(AdaptiveSampler):
     self._initialValues = None  # initial variable values (trajectory starting locations), list of dicts
     self._variableBounds = None # dictionary of upper/lower bounds for each variable (may be inf?)
     self._trajCounter = 0       # tracks numbers to assign to trajectories
+    self._initSampler = None    # sampler to use for picking initial seeds
     # __private
     # additional methods
     self.addAssemblerObject('TargetEvaluation', '1') # Place where realization evaluations go
     self.addAssemblerObject('Constraint', '-1')      # Explicit (input-based) constraints
-    # TODO self.addAssemblerObject('Sampler', '-1')         # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+    self.addAssemblerObject('Sampler', '1')          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
     # register adaptive sample identification criteria
     self.registerIdentifier('traj') # the trajectory of interest
@@ -133,7 +134,9 @@ class Optimizer(AdaptiveSampler):
     AdaptiveSampler._localGenerateAssembler(self, initDict)
     # functions and distributions already collected
     self.assemblerDict['DataObjects'] = []
-    for mainClass in ['DataObjects']:
+    self.assemblerDict['Distributions'] = []
+    self.assemblerDict['Functions'] = []
+    for mainClass in ['DataObjects', 'Distributions', 'Functions']:
       for funct in initDict[mainClass]:
         self.assemblerDict[mainClass].append([mainClass,
                                               initDict[mainClass][funct].type,
@@ -192,13 +195,16 @@ class Optimizer(AdaptiveSampler):
       if varNode.findFirst('function') is not None:
         continue # handled by Sampler base class, so skip it
       var = varNode.parameterValues['name']
-      inits = varNode.findFirst('initial').value
-      # initialize list of dictionaries if needed
-      if not self._initialValues:
-        self._initialValues = [{} for _ in inits]
-      # store initial values
-      for i, init in enumerate(inits):
-        self._initialValues[i][var] = init
+      initsNode = varNode.findFirst('initial')
+      # note: initial values might also come later from samplers!
+      if initsNode:
+        inits = initsNode.value
+        # initialize list of dictionaries if needed
+        if not self._initialValues:
+          self._initialValues = [{} for _ in inits]
+        # store initial values
+        for i, init in enumerate(inits):
+          self._initialValues[i][var] = init
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -208,6 +214,8 @@ class Optimizer(AdaptiveSampler):
       @ Out, None
     """
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    # sampler
+    self._initializeInitSampler(externalSeeding)
     # seed
     if self._seed is not None:
       randomUtils.randomSeed(self._seed)
@@ -280,6 +288,60 @@ class Optimizer(AdaptiveSampler):
     """
     optVal = (-1 if self._minMax == 'max' else 1) * rlz[self._objectiveVar]
     return optVal
+
+  def _initializeInitSampler(self, externalSeeding):
+    """
+      TODO
+    """
+    if not self.assemblerDict.get('Sampler', False):
+      return
+    sampler = self.assemblerDict['Sampler'][0][3]
+    if not isinstance(sampler, ForwardSampler):
+      self.raiseAnError(IOError, 'Initialization samplers must be a Forward sampling type, such as MonteCarlo or Grid!')
+    self._initSampler = sampler
+    ## initialize sampler
+    samplerInit = {}
+    for entity in ['Distributions', 'Functions', 'DataObjects']:
+      print('DEBUGG collecting:', entity)
+      print('DEBUGG avail:', self.assemblerDict.get(entity, 'nada'))
+      samplerInit[entity] = dict((entry[2], entry[3]) for entry in self.assemblerDict.get(entity, []))
+    self._initSampler._localGenerateAssembler(samplerInit)
+    ## assure sampler provides useful info
+    for sampled in self._initSampler.toBeSampled:
+      # all sampled variables should be used in the optimizer TODO is this really required? Or should this be a warning?
+      if sampled not in self.toBeSampled:
+        self.raiseAnError(IOError, 'Variable "{v}" initialized by Sampler "{i}" is not an optimization variable for "{s}"!'
+                                   .format(v=sampled, i=self._initSampler.name, s=self.name))
+    self._initSampler.initialize(externalSeeding)
+    # initialize points
+    numTraj = len(self._initialValues)
+    ## if there are already-initialized variables (i.e. not sampled, but given), then check num samples
+    if numTraj:
+      if numTraj != self._initSampler.limit:
+        self.raiseAnError(IOError, '{n} initial points have been given, but Initialization Sampler "{s}" provides {m} samples!'
+                                   .format(n=numTraj, s=self._initSampler.name, m=self._initSampler.limit))
+    else:
+      numTraj = self._initSampler.limit
+      self._initialValues = [{} for _ in range(numTraj)]
+    for n, info in enumerate(self._initialValues):
+      # prep the sampler, in case it needs it #TODO can we get rid of this for forward sampler?
+      self._initSampler.amIreadyToProvideAnInput()
+      # get the sample
+      self._initSampler.generateInput(None, None)
+      # NOTE this won't do constants, maybe not functions either! Why can't we call generateInput?
+      # self._initSampler.localGenerateInput(None, None)
+      # fake what generateInput does, for consistency # TODO FIXME this is annoying API hacking
+      # self._initSampler.inputInto['prefix'] = self._initSampler.counter
+      rlz = self._initSampler.inputInfo['SampledVars']
+      # NOTE by looping over self.toBeSampled, we could potentially not error out when extra vars are sampled
+      for var in self.toBeSampled:
+        if var in rlz:
+          self._initialValues[n][var] = rlz[var] # TODO float or np.1darray?
+      # more API hacking
+      # self._initSampler.counter += 1
+
+
+
 
   def initializeTrajectory(self, traj=None):
     """

@@ -47,4 +47,16 @@
       zero_threshold = 1e-5
     [../]
   [../]
+
+  [./InitSampler]
+    type = 'RavenFramework'
+    input = 'init_sampler.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'InitSampler/opt_export_0.csv InitSampler/opt_export_1.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
 []
