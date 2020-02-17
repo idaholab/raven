@@ -23,6 +23,7 @@ import numpy as np
 from collections import deque, defaultdict
 
 from utils.utils import findCrowModule
+from utils import mathUtils
 
 # in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
 # Numoy stochastic environment can not pass the test as this point
@@ -312,3 +313,33 @@ def getEngine(eng):
   if not isinstance(eng, np.random.RandomState) and not isinstance(eng, findCrowModule('randomENG').RandomClass):
     raise TypeError('Engine type not recognized! {}'.format(type(eng)))
   return eng
+
+def randomPerpendicularVector(vector):
+  """
+    Finds a random vector perpendicular to the given vector
+    Uses definition of dot product orthogonality:
+    0 = sum_i (p_i * g_i)
+    p_i = rand() forall i != n
+    p_n = -1/g_n * sum_i(p_i * g_i) forall i != n
+    @ In, vector, np.array, ND vector
+    @ Out, perp, np.array, perpendicular vector
+  """
+  # sanity check
+  numNonZero = np.count_nonzero(vector)
+  if not numNonZero:
+    raise RuntimeError('Provided vector is the zero vector!')
+  N = len(vector)
+  indices = np.arange(N)
+  nonZeroMap = vector != 0
+  # choose a random NONZERO index to be dependent (don't divide by zero, mate)
+  depIndex = indices[nonZeroMap][randomIntegers(0, numNonZero - 1, None)]
+  print('DEBUGG index:', depIndex, type(vector))
+  print('DEBUGG index, val:', depIndex, vector[depIndex])
+  # random values for all but chosen variable
+  perp = randomNormal(N)
+  # cheat some math, zero out the random index term by setting the perp value to 0
+  perp[depIndex] = 0
+  dotProd = np.dot(vector, perp)
+  print('DEBUGG dot:', dotProd)
+  perp[depIndex] = - dotProd / vector[depIndex]
+  return perp

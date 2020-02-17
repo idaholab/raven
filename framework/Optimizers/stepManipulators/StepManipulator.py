@@ -30,6 +30,7 @@ import numpy as np
 from utils import utils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
+
 class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
   """
     Base class for handling step sizing in optimization paths
@@ -95,15 +96,18 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, stepSize, float, new step size
     """
 
-  def stepDirection(self, **kwargs):
+  @abc.abstractmethod
+  def fixConstraintViolations(self, proposed, previous, violations):
     """
-      Chooses the next step direction. Defaults to against the steepest gradient.
-      Overwrite to change this behavior.
-      @ In, kwargs, dict, keyword-based specifics as required by individual step sizers
-      @ Out, stepDirection, dict, {var: magnitude} versor
+      Given constraint violations, update the desired optimal point to consider.
+      @ In, proposed, dict, proposed new optimal point
+      @ In, previous, dict, previous optimal point
+      @ In, violations, dict, record of variables and their constraint violations
+      @ Out, new, new proposed point
+      @ Out, stepSize, new step size taken # TODO need?
     """
-    grad = kwargs['gradient']
-    return dict((var, -1*val) for var, val in grad.items())
+
+
 
   ###################
   # Utility Methods #

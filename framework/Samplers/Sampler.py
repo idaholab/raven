@@ -178,7 +178,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.raiseAnError(IOError,'Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!')
       self.distDict[key] = availableDist[self.toBeSampled[key]]
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
-    for key,val in self.dependentSample.items():
+    for key, val in self.dependentSample.items():
       if val not in availableFunc.keys():
         self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())
       self.funcDict[key] = availableFunc[val]

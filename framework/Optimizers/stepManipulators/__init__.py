@@ -20,7 +20,13 @@ from __future__ import absolute_import
 # These lines ensure that we do not have to do something like:
 # 'from Optimizers.Optimizer import Sampler' outside of this submodule
 
-# TODO
+# custom errors
+class NoConstraintResolutionFound(RuntimeError):
+  """
+    Error raised when there's no way to handle the constraint.
+  """
+  pass
+
 from .StepManipulator import StepManipulator
 from .GradientHistory import GradientHistory
 

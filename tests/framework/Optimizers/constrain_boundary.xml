@@ -1,0 +1,113 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.ConstrainBoundary</name>
+    <author>talbpaul</author>
+    <created>2020-01-30</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      This test uses a multidimensional linear function with optima outside the domain space to test
+      boundary constraint handling.
+    </description>
+    <analytic>
+      This test uses the NDSlant function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ConstrainBoundary</WorkingDir>
+    <Sequence>optimize, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">slant</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name='slant_dist'>
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <GradientDescent name="opter">
+      <samplerInit>
+        <limit>500</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+      <gradient>
+        <FiniteDifference/>
+      </gradient>
+      <stepSize>
+        <GradientHistory>
+          <growthFactor>2</growthFactor>
+          <shrinkFactor>2</shrinkFactor>
+        </GradientHistory>
+      </stepSize>
+      <acceptance>
+        <Strict/>
+      </acceptance>
+      <convergence>
+        <gradient>1e-8</gradient>
+        <persistence>5</persistence>
+      </convergence>
+      <variable name="x">
+        <distribution>slant_dist</distribution>
+        <initial>0.9</initial>
+      </variable>
+      <variable name="y">
+        <distribution>slant_dist</distribution>
+        <initial>0.5</initial>
+      </variable>
+      <objective>ans</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+    </GradientDescent>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/nd_slant" name="slant" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>x,y,ans,stepSize,iteration,accepted,conv_gradient</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+
+</Simulation>

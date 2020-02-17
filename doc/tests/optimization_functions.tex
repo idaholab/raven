@@ -91,7 +91,6 @@ $y$ values at low $t$ being more impactful than at later $t$, and $x$ as impactf
 \end{itemize}
 
 
-
 \subsection{Constrained}
 \subsubsection{Mishra's Bird Function}
 The Mishra bird function offers a constrained problem with multiple peaks, local minima, and one steep global
@@ -103,4 +102,13 @@ See \url{https://en.wikipedia.org/wiki/Test_functions_for_optimization}.
   \item Constraint: $(x+5)^2 + (y+5)^2 < 25$
   \item Domain: $-10 \leq x \leq 0$, $-6.5 \leq y \leq 0$
   \item Global Minimum: $f(-3.1302468, -1.5821422) = -106.7645367$
+\end{itemize}
+
+\subsubsection{ND Slant}
+This trivial linear problem extends to arbitrary dimension and has optimal points at infinities,
+which is usually outside the domain of exploration.
+\begin{itemize}
+  \item Function: $f(\vec x) = 1 - \frac{1}{N}\sum_{x_i\in \vec x} x_i$
+  \item Domain: $0 \leq x_i \leq 1 \forall x_i \in \vec x$
+  \item Global Minimum: $f(\{1\}_N) = 0$
 \end{itemize}

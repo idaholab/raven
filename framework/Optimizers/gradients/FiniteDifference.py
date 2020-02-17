@@ -73,8 +73,10 @@ class FiniteDifference(GradientApproximater):
       delta = info['delta']
       activeVar = info['optVar']
       lossDiff = np.atleast_1d(mathUtils.diffWithInfinites(pt[objVar], opt[objVar]))
-      # TODO FIXME flip sign for maximization?? Should be in the optimizer methinks.
+      #if delta != 0:
       grad = (lossDiff) / delta
+      #else:
+      #  grad = 0
       gradient[activeVar] = grad
     # get the magnitude, versor of the gradient
     magnitude, direction, foundInf = mathUtils.calculateMagnitudeAndVersor(list(gradient.values()))

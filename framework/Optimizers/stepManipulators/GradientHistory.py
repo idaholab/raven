@@ -27,8 +27,9 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes, mathUtils
+from utils import InputData, InputTypes, mathUtils, randomUtils
 from .StepManipulator import StepManipulator
+from . import NoConstraintResolutionFound
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GradientHistory(StepManipulator):
@@ -67,6 +68,8 @@ class GradientHistory(StepManipulator):
     self._optVars = None
     self._growth = 1.25
     self._shrink = 1.15
+    self._minRotationAngle = 2.0 # how close to perpendicular should we try rotating towards?
+    self._numRandomPerp = 10     # how many random perpendiculars should we try rotating towards?
     # __private
     # additional methods
 
@@ -121,6 +124,80 @@ class GradientHistory(StepManipulator):
       newOpt[var] = prevOpt[var] - stepSize * gradient[var]
     return newOpt, stepSize
 
+  def fixConstraintViolations(self, proposed, previous, fixInfo):
+    """
+      Given constraint violations, update the desired optimal point to consider.
+      @ In, proposed, dict, proposed new optimal point
+      @ In, previous, dict, previous optimal point
+      @ In, fixInfo, dict, contains record of progress in fixing search
+      @ Out, proposed, new proposed point
+      @ Out, stepSize, new step size taken # TODO need?
+      @ Out, fixInfo, updated fixing info
+    """
+    # DESIGN
+    # While not okay:
+    # 1. See if cutting the step will fix it.
+    # 2. If not, try rotating towards a random perpendicular. Repeat 1.
+    # 3. If not, try a new random perpendicular. Repeat 1. Repeat N times.
+    # TODO should this be specific to step manipulators, or something else?
+    # TODO updating opt point in place! Is this safe?
+    minStepSize = fixInfo['minStepSize']
+    stepVector = dict((var, proposed[var] - previous[var]) for var in self._optVars)
+    stepDistance, stepDirection, _ = mathUtils.calculateMagnitudeAndVersor(list(stepVector.values()))
+    if 'originalStepSize' not in fixInfo:
+      fixInfo['originalStepSize'] = stepDistance
+    if 'perpDir' in fixInfo:
+      perpDir = fixInfo['perpDir']
+    # if not done cutting step, start cutting
+    if stepDistance > minStepSize:
+      # cut step again
+      stepSize = 0.5 * stepDistance # TODO user option?
+      for v, var in enumerate(stepVector):
+        proposed[var] = previous[var] + stepSize * stepDirection[v]
+      print(' ... cutting step ...') # norm step to {}, new norm opt {}'.format(stepSize, proposed))
+      return proposed, stepSize, fixInfo
+    else:
+      ### rotate vector and restore full step size
+      stepSize = fixInfo['originalStepSize']
+      # store original direction
+      if 'originalDirection' not in fixInfo:
+        fixInfo['originalDirection'] = np.atleast_1d(stepDirection)
+      # if this isn't the first time, check if there's angle left to rotate through; reset if not
+      if 'perpDir' in fixInfo:
+        ang = mathUtils.angleBetweenVectors(stepDirection, fixInfo['perpDir'])
+        print(' ... trying angle:', ang)
+        if ang < self._minRotationAngle:
+          del fixInfo['perpDir']
+
+      if 'perpDir' not in fixInfo:
+        # find perpendicular vector
+        perp = randomUtils.randomPerpendicularVector(fixInfo['originalDirection'])
+        # NOTE we could return to point format, but no reason to
+        # normalize perpendicular to versor and resize
+        rotations = fixInfo.get('numRotations', 0)
+        if rotations > self._numRandomPerp:
+          raise NoConstraintResolutionFound
+        _, perpDir, _ = mathUtils.calculateMagnitudeAndVersor(perp)
+        fixInfo['perpDir'] = perpDir
+        fixInfo['numRotations'] = rotations + 1
+      # END fixing perpendicular direction
+      # rotate vector halfway towards perpendicular
+      perpDir = fixInfo['perpDir']
+
+      # rotate towards selected perpendicular
+      splitVector = {} # vector that evenly divides stepDirection and perp
+      for v, var in enumerate(self._optVars):
+        splitVector[var] = stepDirection[v] + perpDir[v]
+        #splitVector[var] = - stepDirection[v] + perpDir[v]
+      _, splitDir, _ = mathUtils.calculateMagnitudeAndVersor(list(splitVector.values()))
+      for v, var in enumerate(self._optVars):
+        proposed[var] = previous[var] + stepSize * splitDir[v]
+      print(' ... rotating step ...') #ed norm direction to {}, new norm opt {}'.format(splitDir, proposed))
+    return proposed, stepSize, fixInfo
+
+  ###################
+  # Utility Methods #
+  ###################
   def _stepSize(self, gradientHist=None, prevStepSize=None, recommend=None, **kwargs):
     """
       Calculates a new step size to use in the optimization path.
@@ -130,15 +207,18 @@ class GradientHistory(StepManipulator):
       @ In, kwargs, dict, keyword-based specifics as required by individual step sizers
       @ Out, stepSize, float, new step size
     """
-    grad0 = gradientHist[-1][1]
-    grad1 = gradientHist[-2][1] if len(gradientHist) > 1 else None
-    gainFactor = self._fractionalStepChange(grad0, grad1, recommend=recommend)
-    stepSize = gainFactor * prevStepSize[-1]
+    # grad0 = gradientHist[-1][1]
+    # grad1 = gradientHist[-2][1] if len(gradientHist) > 1 else None
+    # FIXME try using the step directions instead
+    step0 = prevStepSize[-1]['versor']
+    if step0 is None:
+      step0 = gradientHist[-1][1]
+    step1 = prevStepSize[-2]['versor'] if len(prevStepSize) > 1 else None
+    gainFactor = self._fractionalStepChange(step0, step1, recommend=recommend)
+    # gainFactor = self._fractionalStepChange(grad0, grad1, recommend=recommend)
+    stepSize = gainFactor * prevStepSize[-1]['magnitude']
     return stepSize
 
-  ###################
-  # Utility Methods #
-  ###################
   def _fractionalStepChange(self, grad0, grad1, recommend=None):
     """
       Calculates fractional step change based on gradient history
@@ -161,7 +241,8 @@ class GradientHistory(StepManipulator):
       return 1.0
     # otherwise, figure it out based on the gradient history
     # scalar product
-    prod = np.sum([np.sum(grad0[v] * grad1[v]) for v in grad0.keys()])
+    prod = np.dot(grad0, grad1)
+    # prod = np.sum([np.sum(grad0 * grad1) for v in grad0.keys()])
     if prod > 0:
       factor = self._growth ** prod
     else:

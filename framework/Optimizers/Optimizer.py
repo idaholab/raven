@@ -108,6 +108,8 @@ class Optimizer(AdaptiveSampler):
     self._variableBounds = None # dictionary of upper/lower bounds for each variable (may be inf?)
     self._trajCounter = 0       # tracks numbers to assign to trajectories
     self._initSampler = None    # sampler to use for picking initial seeds
+    self._constraintFunctions = []
+
     # __private
     # additional methods
     self.addAssemblerObject('TargetEvaluation', '1') # Place where realization evaluations go
@@ -214,6 +216,9 @@ class Optimizer(AdaptiveSampler):
       @ Out, None
     """
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    # functional constraints
+    for entry in self.assemblerDict['Constraint']:
+      self._constraintFunctions.append(entry[3])
     # sampler
     self._initializeInitSampler(externalSeeding)
     # seed

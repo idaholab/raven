@@ -65,6 +65,8 @@
       </acceptance>
       <convergence>
         <objective>5e-2</objective>
+        <mean var="y1">1e-6</mean>
+        <variance var="y2">1e-3</variance>
       </convergence>
       <variable name="x">
         <distribution>beale_dist</distribution>

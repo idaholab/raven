@@ -134,6 +134,7 @@ checkAnswer('First float from second seed for local engine provided',randomUtils
 randomUtils.randomSeed(42,engine=None)
 randomUtils.randomSeed(42,engine=eng)
 
+print(' ... sampling ...')
 vals = np.array([randomUtils.random(engine=None) for _ in range(int(1e5))])
 mean = np.average(vals)
 stdv = np.std(vals)
@@ -361,6 +362,7 @@ engine = randomUtils.newRNG()
 engine.seed(42)
 sampled = [engine.random() for _ in range(5)]
 checkArray('Independent RNG, seeded',sampled,correct)
+
 
 print(results)
 

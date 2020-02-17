@@ -940,4 +940,23 @@ def calculateMagnitudeAndVersor(vector, normalizeInfinity=True):
       #  vector[e] = float(vector[e])
   return mag, vector, foundInf
 
-
+def angleBetweenVectors(a, b):
+  """
+    Calculates the angle between two N-dimensional vectors in DEGREES
+    @ In, a, np.array, vector of floats
+    @ In, b, np.array, vector of floats
+    @ Out, ang, float, angle in degrees
+  """
+  nVar = len(a)
+  # if either vector is all zeros, then angle between is also
+  normA = np.linalg.norm(a)
+  normB = np.linalg.norm(b)
+  if normA == 0:
+    ang = 0
+  elif normB == 0:
+    ang = 0
+  else:
+    dot = np.dot(a, b) / normA / normB
+    ang = np.arccos(np.clip(dot, -1, 1))
+  ang = np.rad2deg(ang)
+  return ang
