@@ -72,7 +72,6 @@ class Sampled(Optimizer):
     write = InputData.parameterInputFactory('writeSteps', contentType=whenSolnExpEnum)
     init.addSub(limit)
     init.addSub(write)
-    print('DEbUGG sampled init subs:')
     return specs
 
   def __init__(self):
