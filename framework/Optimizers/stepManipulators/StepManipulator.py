@@ -97,14 +97,15 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
     """
 
   @abc.abstractmethod
-  def fixConstraintViolations(self, proposed, previous, violations):
+  def fixConstraintViolations(self, proposed, previous, fixInfo):
     """
       Given constraint violations, update the desired optimal point to consider.
       @ In, proposed, dict, proposed new optimal point
       @ In, previous, dict, previous optimal point
-      @ In, violations, dict, record of variables and their constraint violations
-      @ Out, new, new proposed point
-      @ Out, stepSize, new step size taken # TODO need?
+      @ In, fixInfo, dict, contains record of progress in fixing search
+      @ Out, proposed, new proposed point
+      @ Out, stepSize, new step size taken
+      @ Out, fixInfo, updated fixing info
     """
 
 

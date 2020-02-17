@@ -114,7 +114,7 @@ class Optimizer(AdaptiveSampler):
     # additional methods
     self.addAssemblerObject('TargetEvaluation', '1') # Place where realization evaluations go
     self.addAssemblerObject('Constraint', '-1')      # Explicit (input-based) constraints
-    self.addAssemblerObject('Sampler', '1')          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+    self.addAssemblerObject('Sampler', '-1')          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
     # register adaptive sample identification criteria
     self.registerIdentifier('traj') # the trajectory of interest
@@ -217,7 +217,7 @@ class Optimizer(AdaptiveSampler):
     """
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     # functional constraints
-    for entry in self.assemblerDict['Constraint']:
+    for entry in self.assemblerDict.get('Constraint', []):
       self._constraintFunctions.append(entry[3])
     # sampler
     self._initializeInitSampler(externalSeeding)
