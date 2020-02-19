@@ -32,6 +32,8 @@ from collections import deque
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, randomUtils, InputData, InputTypes
+from BaseClasses import BaseType
+from Assembler import Assembler
 import SupervisedLearning
 from Samplers import AdaptiveSampler, ForwardSampler
 #Internal Modules End--------------------------------------------------------------------------------
