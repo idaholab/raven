@@ -49,13 +49,8 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
   """
     A sampler that will adaptively locate the limit surface of a given problem
   """
-
-  statErVals = ['expectedValue',
-                'median',
-                'variance',
-                'sigma',
-                'skewness',
-                'kurtosis']
+  statScVals = BasicStatistics.scalarVals
+  statErVals = BasicStatistics.steVals
   @classmethod
   def getInputSpecification(cls):
     """
@@ -70,11 +65,16 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
     convergenceInput.addSub(InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType, strictMode=True))
     convergenceInput.addSub(InputData.parameterInputFactory('forceIteration', contentType=InputTypes.BoolType, strictMode=True))
     convergenceInput.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType, strictMode=True))
-    for statEr in cls.statErVals:
-      statErSpecification = InputData.parameterInputFactory(statEr, contentType=InputTypes.FloatType)
-      statErSpecification.addParam("prefix", InputTypes.StringType)
-      statErSpecification.addParam("var", InputTypes.StringListType)
-      convergenceInput.addSub(statErSpecification)
+    for metric in cls.statScVals:
+
+      statEr = metric + '_ste'
+      if statEr in self.statErVals:
+        statErSpecification = InputData.parameterInputFactory(statEr, contentType=InputTypes.FloatType)
+        statErSpecification.addParam("prefix", InputTypes.StringType)
+        statErSpecification.addParam("var", InputTypes.StringListType)
+        convergenceInput.addSub(statErSpecification)
+      else:
+        self.raiseAnError(IOError,self,'Adaptive Monte Carlo sampler can not converged on '+ metric)
 
     inputSpecification.addSub(convergenceInput)
 
@@ -131,7 +131,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
       creating an empty container to hold the identified surface points, error
       checking the optionally provided solution export and other preset values,
       and initializing the limit surface Post-Processor used by this sampler.
-      @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
+      @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution
       @ Out, None
     """
     self.converged        = False
@@ -144,28 +144,22 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
       self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ solutionExport.type +'!')
     # set number of job request-able after a new evaluation
 
-    self.nVar         = len(self.distDict.keys())              # Total number of variables
-    bounds          = {"lowerBounds":{},"upperBounds":{}}
-    transformMethod = {}
-    for varName in self.distDict.keys():
-      if self.toleranceWeight!='cdf':
-        bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = self.distDict[varName].lowerBound, self.distDict[varName].upperBound
-      else:
-        bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = 0.0, 1.0
-        transformMethod[varName.replace('<distribution>','')] = [self.distDict[varName].ppf]
-    #moving forward building all the information set
-    self.axisName = list(self.distDict.keys())
-    self.axisName.sort()
 
+    # self.nVar         = len(self.distDict.keys())              # Total number of variables
+    # bounds          = {"lowerBounds":{},"upperBounds":{}}
+    # transformMethod = {}
 
+    # # for varName in self.distDict.keys():
+    # #   if self.toleranceWeight!='cdf':
+    # #     bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = self.distDict[varName].lowerBound, self.distDict[varName].upperBound
+    # #   else:
+    # #     bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = 0.0, 1.0
+    # #     transformMethod[varName.replace('<distribution>','')] = [self.distDict[varName].ppf]
+    # #moving forward building all the information set
+    # self.axisName = list(self.distDict.keys())
+    # self.axisName.sort()
     # initialize BasicStatistics PP
-    self.basicStatPP._initFromDict()
-    self.basicStatPP.assemblerDict = self.assemblerDict
-    self.basicStatPP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{'computeCells':self.tolerance != self.subGridTol})
-    matrixShape = self.basicStatPP.getTestMatrix().shape
-    self.persistenceMatrix[self.name+"LSpp"]  = np.zeros(matrixShape) #matrix that for each point of the testing grid tracks the persistence of the limit surface position
-    self.oldTestMatrix[self.name+"LSpp"]      = np.zeros(matrixShape) #swap matrix fro convergence test
-    self.hangingPoints                        = np.ndarray((0, self.nVar))
+    self.basicStatPP.initialize({'WorkingDir':None},[self.lastOutput],{'Output':[]})
     self.raiseADebug('Initialization done')
 
 
@@ -200,141 +194,11 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
       @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    #  Alternatively, though I don't think we do this yet:
-    #  compute the direction normal to the surface, compute the derivative
-    #  normal to the surface of the probability, check the points where the
-    #  derivative probability is the lowest
+    print('flagger flagger flagger',self.inputInfo)
 
-    # create values dictionary
-    self.inputInfo['distributionName'] = {} #Used to determine which distribution to change if needed.
-    self.inputInfo['distributionType'] = {} #Used to determine which distribution type is used
-    self.raiseADebug('generating input')
-    varSet=False
-
-    # DM: This sequence gets used repetitively, so I am promoting it to its own
-    #  variable
-    axisNames = [key.replace('<distribution>','') for key in self.axisName]
-
-    if self.surfPoint is not None and len(self.surfPoint) > 0:
-      if self.batchStrategy == 'none':
-        self.__scoreCandidates()
-        maxDistance, maxGridId, maxId =  0.0, "", 0
-        for key, value in sorted(self.invPointPersistence.items()):
-          if key != self.exceptionGrid and self.surfPoint[key] is not None:
-            localMax = np.max(self.scores[key])
-            if localMax > maxDistance:
-              maxDistance, maxGridId, maxId  = localMax, key,  np.argmax(self.scores[key])
-        if maxDistance > 0.0:
-          for varIndex, _ in enumerate([key.replace('<distribution>','') for key in self.axisName]):
-            self.values[self.axisName[varIndex]] = copy.copy(float(self.surfPoint[maxGridId][maxId,varIndex]))
-            self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-            self.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-          varSet=True
-        else:
-          self.raiseADebug('Maximum score is 0.0')
-      elif self.batchStrategy.startswith('max'):
-        ########################################################################
-        ## Initialize the queue with as many points as requested or as many as
-        ## possible
-        if len(self.toProcess) == 0:
-          self.__scoreCandidates()
-          edges = []
-
-          flattenedSurfPoints = list()
-          flattenedBandPoints = list()
-          flattenedScores     = list()
-          for key in self.bandIndices.keys():
-            flattenedSurfPoints = flattenedSurfPoints + list(self.surfPoint[key])
-            flattenedScores = flattenedScores + list(self.scores[key])
-            flattenedBandPoints = flattenedBandPoints + self.listSurfPoint[key] + self.bandIndices[key]
-
-          flattenedSurfPoints = np.array(flattenedSurfPoints)
-          for i,iCoords in enumerate(flattenedBandPoints):
-            for j in range(i+1, len(flattenedBandPoints)):
-              jCoords = flattenedBandPoints[j]
-              ijValidNeighbors = True
-              for d in range(len(jCoords)):
-                if abs(iCoords[d] - jCoords[d]) > 1:
-                  ijValidNeighbors = False
-                  break
-              if ijValidNeighbors:
-                edges.append((i,j))
-                edges.append((j,i))
-
-          names = axisNames[:] #make copy
-          names.append('score')
-          amsc = AMSC_Object(X=flattenedSurfPoints, Y=flattenedScores,
-                             w=None, names=names, graph='none',
-                             gradient='steepest', normalization='feature',
-                             persistence='difference', edges=edges, debug=False)
-          plevel = self.simplification*(max(flattenedScores)-min(flattenedScores))
-          partitions = amsc.StableManifolds(plevel)
-          mergeSequence = amsc.GetMergeSequence()
-          maxIdxs = list(set(partitions.keys()))
-
-          thresholdLevel = self.threshold*(max(flattenedScores)-min(flattenedScores))+min(flattenedScores)
-          # Sort the maxima based on decreasing function value, thus the top
-          # candidate is the first element.
-          if self.batchStrategy.endswith('V'):
-            sortedMaxima = sorted(maxIdxs, key=lambda idx: flattenedScores[idx], reverse=True)
-          else:
-          # Sort the maxima based on decreasing persistence value, thus the top
-          # candidate is the first element.
-            sortedMaxima = sorted(maxIdxs, key=lambda idx: mergeSequence[idx][1], reverse=True)
-          B = min(self.maxBatchSize,len(sortedMaxima))
-          for idx in sortedMaxima[0:B]:
-            if flattenedScores[idx] >= thresholdLevel:
-              self.toProcess.append(flattenedSurfPoints[idx,:])
-          if len(self.toProcess) == 0:
-            self.toProcess.append(flattenedSurfPoints[np.argmax(flattenedScores),:])
-        ########################################################################
-        ## Select one sample
-        selectedPoint = self.toProcess.pop()
-        for varIndex, varName in enumerate(axisNames):
-          self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
-          self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-          self.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-        varSet=True
-      elif self.batchStrategy == 'naive':
-        ########################################################################
-        ## Initialize the queue with as many points as requested or as many as
-        ## possible
-        if len(self.toProcess) == 0:
-          self.__scoreCandidates()
-          sortedIndices = sorted(range(len(self.scores)), key=lambda k: self.scores[k],reverse=True)
-          B = min(self.maxBatchSize,len(sortedIndices))
-          for idx in sortedIndices[0:B]:
-            self.toProcess.append(self.surfPoint[idx,:])
-          if len(self.toProcess) == 0:
-            self.toProcess.append(self.surfPoint[np.argmax(self.scores),:])
-        ########################################################################
-        ## Select one sample
-        selectedPoint = self.toProcess.pop()
-        for varIndex, varName in enumerate(axisNames):
-          self.values[self.axisName[varIndex]] = float(selectedPoint[varIndex])
-          self.inputInfo['SampledVarsPb'][self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-          self.inputInfo['ProbabilityWeight-'+self.axisName[varIndex]] = self.distDict[self.axisName[varIndex]].pdf(self.values[self.axisName[varIndex]])
-        varSet=True
-
-    if not varSet:
-      #here we are still generating the batch
-      for key in sorted(self.distDict.keys()):
-        if self.toleranceWeight=='cdf':
-          self.values[key]                       = self.distDict[key].ppf(float(randomUtils.random()))
-        else:
-          self.values[key]                       = self.distDict[key].lowerBound+(self.distDict[key].upperBound-self.distDict[key].lowerBound)*float(randomUtils.random())
-        self.inputInfo['distributionName'][key]  = self.toBeSampled[key]
-        self.inputInfo['distributionType'][key]  = self.distDict[key].type
-        self.inputInfo['SampledVarsPb'   ][key]  = self.distDict[key].pdf(self.values[key])
-        self.inputInfo['ProbabilityWeight-'+key] = self.distDict[key].pdf(self.values[key])
-        self.addMetaKeys(['ProbabilityWeight-'+key])
-    self.inputInfo['PointProbability'    ]      = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    # the probability weight here is not used, the post processor is going to recreate the grid associated and use a ROM for the probability evaluation
-    self.inputInfo['ProbabilityWeight']         = self.inputInfo['PointProbability']
-    self.hangingPoints                          = np.vstack((self.hangingPoints,copy.copy(np.array([self.values[axis] for axis in self.axisName]))))
-    self.raiseADebug('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
-    self.inputInfo['SamplerType'] = 'AdaptiveMonteCarlo'
-    self.inputInfo['subGridTol' ] = self.subGridTol
+    # self.raiseADebug('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
+    # self.inputInfo['SamplerType'] = 'AdaptiveMonteCarlo'
+    # self.inputInfo['subGridTol' ] = self.subGridTol
 
   def localGetCurrentSetting(self):
     """
@@ -347,8 +211,6 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
     paramDict = {}
     if self.solutionExport!=None:
       paramDict['The solution is exported in '    ] = 'Name: ' + self.solutionExport.name + 'Type: ' + self.solutionExport.type
-    if self.goalFunction!=None  :
-      paramDict['The function used is '] = self.goalFunction.name
     return paramDict
 
   def localStillReady(self,ready): #,lastOutput=None
