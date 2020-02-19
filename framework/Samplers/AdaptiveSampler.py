@@ -25,11 +25,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules------------------------------------------------------------------------------------
 #External Modules End--------------------------------------------------------------------------------
 
-#Internal
-#Modules------------------------------------------------------------------------------------
+#Internal Modules
 from utils import mathUtils
 from .Sampler import Sampler
-#Internal Modules End--------------------------------------------------------------------------------
+
 
 class AdaptiveSampler(Sampler):
   """
@@ -60,7 +59,12 @@ class AdaptiveSampler(Sampler):
     self._solutionExport = solutionExport
 
   def _registerSample(self, prefix, info):
-    """ TODO """
+    """
+      Register a sample's prefix info before submitting as job
+      @ In, prefix, str, string integer prefix
+      @ In, info, dict, unique information to record associated with the prefix
+      @ Out, None
+    """
     self.checkIdentifiersPresent(info)
     self._prefixToIdentifiers[prefix] = info
 
@@ -103,18 +107,33 @@ class AdaptiveSampler(Sampler):
     self._registeredIdentifiers.add(name)
 
   def checkIdentifiersPresent(self, checkDict):
-    """ TODO checks that all identifiers registered have values """
+    """
+      checks that all registered identifiers have values
+      @ In, checkDict, dict, dictionary of identifying information for a realization
+      @ Out, None
+    """
     assert self._registeredIdentifiers.issubset(set(checkDict.keys())), 'missing identifiers: {}'.format(self._registeredIdentifiers - set(checkDict.keys()))
 
   def getIdentifierFromPrefix(self, prefix, pop=False):
-    """ TODO """
+    """
+      Obtains the identifying info dict given a prefix
+      @ In, prefix, str, identifying prefix
+      @ In, pop, bool, optional, if True then stop tracking prefix after providing it
+      @ Out, ID, dict, identifying information (or None if not present)
+    """
     if pop:
       return self._prefixToIdentifiers.pop(prefix, None)
     else:
       return self._prefixToIdentifiers.get(prefix, None)
 
   def getPrefixFromIdentifier(self, idDict, pop=False, getAll=False):
-    """ TODO get a prefix given identifying information """
+    """
+      Obtains a prefix given identifying information
+      @ In, idDict, dict, identifying information about a realization
+      @ In, pop, bool, optional, if True then stop tracking prefix after providing
+      @ In, getAll, bool, optional, if True then get all matching items instead of the first
+      @ Out, prefix, str, identifying prefix (or None if not found)
+    """
     # make sure the request matches the expected form
     if getAll:
       found = []
@@ -137,7 +156,4 @@ class AdaptiveSampler(Sampler):
     for p in toPop:
       self._prefixToIdentifiers.pop(p)
     return found
-
-
-
 
