@@ -63,16 +63,16 @@
   <Samplers>
     <AdaptiveMonteCarlo name="adaptiveSearch">
       <TargetEvaluation class="DataObjects" type="PointSet">sampledPoints</TargetEvaluation>
-      <Convergence>
-          <forceIteration>False</forceIteration>
-          <limit>3000</limit>
-          <persistence>50</persistence>
-          <!--relative tolerance of standard error-->
-          <expectedValue prefix="mean" var="y1,y2">1e-5</expectedValue>
-          <sigma prefix="sigma" var="y1">1e-6</sigma>
-          <sigma prefix="sigma" var="y2">1e-7</sigma>
-      </Convergence>
 
+      <Convergence>
+        <forceIteration>False</forceIteration>
+        <limit>3000</limit>
+        <persistence>50</persistence>
+        <!--relative tolerance of standard error-->
+        <expectedValue prefix="mean" var="y1,y2">1e-5</expectedValue>
+        <sigma prefix="sigma" var="y1">1e-6</sigma>
+        <sigma prefix="sigma" var="y2">1e-7</sigma>
+      </Convergence>
       <variable name="x1">
         <distribution>x1_dst</distribution>
       </variable>
@@ -91,7 +91,7 @@
 
 
   <OutStreams>
-    <Print name="soldump">
+    <Print name="solDump">
       <type>csv</type>
       <source>sol</source>
     </Print>
