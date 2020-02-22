@@ -139,7 +139,15 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
           else:
             self.raiseAWarning('Unrecognized convergence node "',tag,'" has been ignored!')
         assert (len(self.toDo)>0), self.raiseAnError(IOError, ' No target have been assigned to convergence node')
-    print('flager flager self.toDo ',self.toDo)
+    for metric, infos in self.toDo.items():
+      steMetric = metric + '_ste'
+      if steMetric in self.statErVals:
+        for info in infos:
+          prefix = info['prefix']
+          for target in info['targets']:
+            metaVar = prefix + '_ste_' + target #+ info['tol']
+            self.tolerance[metaVar] = info['tol']
+    print('flaggggggger',self.tolerance)
 
   def localInitialize(self,solutionExport=None):
     """
@@ -179,15 +187,21 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
       @ Out, None
     """
     if self.counter>1:
-      metric = self.basicStatPP.run(self.lastOutput)
-      metric['solutionUpdate'] = np.asarray([self.counter - 1])
-      self.solutionExport.addRealization(metric)
-      self.checkConvergence(metric)
+      output = self.basicStatPP.run(self.lastOutput)
+      output['solutionUpdate'] = np.asarray([self.counter - 1])
+      self.solutionExport.addRealization(output)
+      self.checkConvergence(output)
 
 
-  def checkConvergence(self,metric):
+  def checkConvergence(self,output):
     '''
+
     '''
+    for metric,tol in self.tolerance.items():
+      print('metric:',metric, 'ste is',output[metric])
+      print('tol is',tol)
+
+
     pass
 
   def localStillReady(self,ready): #,lastOutput=None
@@ -200,11 +214,9 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
-
-    print('flagin localStillReady mc.amIreadyToProvideAnInput',self.converged,ready,)
-
     if self.converged:
       self.raiseAMessage(self.name + " converged!")
+
       return False
     else:
       return ready #if we exceeded the limit just return that we are done

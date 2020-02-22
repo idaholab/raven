@@ -43,7 +43,7 @@
     </PointSet>
     <PointSet name="sol">
       <Input>solutionUpdate</Input>
-      <Output>mean_y1,mean_ste_y1,mean_y2,mean_ste_y2</Output>
+      <Output>me_an_y1,me_an_ste_y1,me_an_y2,me_an_ste_y2</Output>
     </PointSet>
   </DataObjects>
 
@@ -69,9 +69,9 @@
         <limit>30</limit>
         <persistence>50</persistence>
         <!--relative tolerance of standard error-->
-        <expectedValue prefix="mean" tol="1e-5">y1,y2</expectedValue>
-        <sigma prefix="sigma" tol="1e-6">y1</sigma>
-        <sigma prefix="sigma" tol="1e-7">y2</sigma>
+        <expectedValue prefix="me_an" tol="1e-1">y1,y2</expectedValue>
+        <sigma prefix="sigma" tol="1e-3">y1</sigma>
+        <sigma prefix="sigma" tol="1e-2">y2</sigma>
       </Convergence>
       <variable name="x1">
         <distribution>x1_dst</distribution>
