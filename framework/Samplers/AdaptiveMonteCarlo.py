@@ -32,8 +32,6 @@ from scipy import spatial
 from math import ceil
 import sys
 
-import pprint
-pp = pprint.PrettyPrinter(indent=2)
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -80,6 +78,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
     targetEvaluationInput.addParam("type", InputTypes.StringType)
     targetEvaluationInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(targetEvaluationInput)
+    inputSpecification.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType))
     return inputSpecification
 
   def __init__(self):
@@ -91,13 +90,14 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
     """
     AdaptiveSampler.__init__(self)
     MonteCarlo.__init__(self)
-    self.persistence         = 5                #this is the number of times the error needs to fell below the tolerance before considering the sim converged
-    self.forceIteration      = False            #this flag control if at least a self.limit number of iteration should be done
-    self.solutionExport      = None             #This is the data used to export the solution (it could also not be present)
-    self.tolerance           = {}               #This is the tolerance for each variables
-    self.converged           = False
-    self.basicStatPP      = None                # post-processor to compute the basic statistics
-    self.converged      = False                 # flag that is set to True when the sampler converged
+    self.persistence         = 5                # this is the number of times the error needs to fell below the tolerance before considering the sim converged
+    self.persistenceCounter  = 0                # Counter for the persistence
+    self.forceIteration      = False            # flag control if at least a self.limit number of iteration should be done
+    self.solutionExport      = None             # data used to export the solution (it could also not be present)
+    self.tolerance           = {}               # dictionary stores the tolerance for each variables
+    self.converged           = False            # flag convergence
+    self.basicStatPP         = None             # post-processor to compute the basic statistics
+    self.converged           = False            # flag that is set to True when the sampler converged
     self.printTag            = 'SAMPLER ADAPTIVE MC'
     self.addAssemblerObject('TargetEvaluation','n')
 
@@ -118,6 +118,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
             self.limit = grandchild.value
             if self.limit is None:
               self.raiseAnError(IOError,self,'Adaptive Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the Convergence block')
+
           elif tag == "persistence":
             self.persistence = grandchild.value
             self.raiseADebug('Persistence is set at',self.persistence)
@@ -139,6 +140,8 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
           else:
             self.raiseAWarning('Unrecognized convergence node "',tag,'" has been ignored!')
         assert (len(self.toDo)>0), self.raiseAnError(IOError, ' No target have been assigned to convergence node')
+      elif child.getName() == "initialSeed":
+        self.initSeed = child.value
     for metric, infos in self.toDo.items():
       steMetric = metric + '_ste'
       if steMetric in self.statErVals:
@@ -147,7 +150,6 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
           for target in info['targets']:
             metaVar = prefix + '_ste_' + target #+ info['tol']
             self.tolerance[metaVar] = info['tol']
-    print('flaggggggger',self.tolerance)
 
   def localInitialize(self,solutionExport=None):
     """
@@ -195,14 +197,26 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
 
   def checkConvergence(self,output):
     '''
-
+      Determine convergence for Adaptive MonteCarlo
+      @ In, output, dictionary containing the results from Basic Statistic
+      @ Out, None
     '''
-    for metric,tol in self.tolerance.items():
-      print('metric:',metric, 'ste is',output[metric])
-      print('tol is',tol)
+    if self.forceIteration:
+      self.converged = False
+    else:
+      converged = all(abs(tol) > abs(output[metric][0]) for metric,tol in self.tolerance.items())
+      if converged:
+        self.raiseAMessage('Checking target convergence for standard error and tolerance')
+        for metric,tol in self.tolerance.items():
+          self.raiseAMessage('Target \"{}\" standard error {:>2.2e} < tolerance {:>2.2e}'.format(''.join(metric.split('_ste')), output[metric][0], tol))
+        self.persistenceCounter += 1
+        # check if we've met persistence requirement; if not, keep going
+        if self.persistenceCounter >= self.persistence:
+          self.raiseAMessage(' ... {} converged {} times consecutively!'.format(self.name,self.persistenceCounter))
+          self.converged = True
+        else:
+          self.raiseAMessage(' ... {} converged {} times, required persistence is {}.'.format(self.name,self.persistenceCounter,self.persistence))
 
-
-    pass
 
   def localStillReady(self,ready): #,lastOutput=None
     """
@@ -215,8 +229,6 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
     if self.converged:
-      self.raiseAMessage(self.name + " converged!")
-
       return False
     else:
-      return ready #if we exceeded the limit just return that we are done
+      return ready

@@ -43,7 +43,7 @@
     </PointSet>
     <PointSet name="sol">
       <Input>solutionUpdate</Input>
-      <Output>me_an_y1,me_an_ste_y1,me_an_y2,me_an_ste_y2</Output>
+      <Output>mean_y1,mean_ste_y1,mean_y2,mean_ste_y2</Output>
     </PointSet>
   </DataObjects>
 
@@ -63,15 +63,15 @@
   <Samplers>
     <AdaptiveMonteCarlo name="adaptiveSearch">
       <TargetEvaluation class="DataObjects" type="PointSet">sampledPoints</TargetEvaluation>
-
+      <initialSeed>901017</initialSeed>
       <Convergence>
         <forceIteration>False</forceIteration>
         <limit>30</limit>
-        <persistence>50</persistence>
+        <persistence>6</persistence>
         <!--relative tolerance of standard error-->
-        <expectedValue prefix="me_an" tol="1e-1">y1,y2</expectedValue>
-        <sigma prefix="sigma" tol="1e-3">y1</sigma>
-        <sigma prefix="sigma" tol="1e-2">y2</sigma>
+        <expectedValue prefix="mean" tol="1e-1">y1,y2</expectedValue>
+        <sigma prefix="sigma" tol="6e-2">y1</sigma>
+        <sigma prefix="sigma" tol="5e-2">y2</sigma>
       </Convergence>
       <variable name="x1">
         <distribution>x1_dst</distribution>
