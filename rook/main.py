@@ -382,7 +382,7 @@ if __name__ == "__main__":
       #print(node.attrib)
       param_handler = tester_params[node.attrib['type']]
       if not param_handler.check_for_required(node.attrib):
-        print("Missing Parameters in:", node.tag)
+        raise IOError("Missing Parameters in: " + node.tag + " for Tester: " + node.attrib['type'])
       if not param_handler.check_for_all_known(node.attrib):
         print("Unknown Parameters in:", node.tag, test_file)
       rel_test_dir = test_dir#[len(base_test_dir)+1:]
@@ -411,13 +411,12 @@ if __name__ == "__main__":
           child_type = child.attrib['type']
           child_param_handler = differs[child_type].get_valid_params()
           if not child_param_handler.check_for_required(child.attrib):
-            print("Missing Parameters in:", child.tag, node.tag, test_file)
+            raise IOError("Missing Parameters in: " +  child.tag + "/" + node.tag + " for Differ: " + child_type + " in test file: "+ test_file)
           if not child_param_handler.check_for_all_known(child.attrib):
             print("Unknown Parameters in:", child.tag, node.tag, test_file)
           differ = differs[child_type](child.tag, dict(child.attrib), test_dir)
           tester.add_differ(differ)
         id_num = len(function_list)
-        #input_filename = node.attrib['input']
         func = tester.run
         if args.load_average > 0:
           func = load_average_adapter(func)
