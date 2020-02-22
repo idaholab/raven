@@ -40,7 +40,7 @@ import cloudpickle
 from BaseClasses import BaseType
 import Files
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import Models
 from OutStreams import OutStreamManager
 from DataObjects import DataObject
@@ -109,17 +109,41 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
         specifying input of cls.
     """
     inputSpecification = super(Step, cls).getInputSpecification()
+    inputSpecification.description = r"""
+                       The \textbf{MultiRun} step allows the user to assemble the calculation flow of
+                       an analysis that requires multiple ``runs'' of the same model.
+                       This step is used, for example, when the input (space) of the model needs to be
+                       perturbed by a particular sampling strategy.
+                       The specifications of this type of step must be defined within a
+                       \xmlNode{MultiRun} XML block."""
 
-    inputSpecification.addParam("sleepTime", InputData.FloatType)
-    inputSpecification.addParam("re-seeding", InputData.StringType)
-    inputSpecification.addParam("pauseAtEnd", InputData.StringType)
-    inputSpecification.addParam("fromDirectory", InputData.StringType)
-    inputSpecification.addParam("repeatFailureRuns", InputData.StringType)
+    inputSpecification.addParam("sleepTime", InputTypes.FloatType,
+        descr='Determines the wait time between successive iterations within this step, in seconds.')
+    inputSpecification.addParam("re-seeding", InputTypes.StringType, descr=r"""
+              this optional
+              attribute could be used to control the seeding of the random number generator (RNG).
+              If inputted, the RNG can be reseeded. The value of this attribute
+              can be: either 1) an integer value with the seed to be used (e.g. \xmlAttr{re-seeding} =
+              ``20021986''), or 2) string value named ``continue'' where the RNG is not re-initialized""")
+    inputSpecification.addParam("pauseAtEnd", InputTypes.StringType)
+    inputSpecification.addParam("fromDirectory", InputTypes.StringType)
+    inputSpecification.addParam("repeatFailureRuns", InputTypes.StringType)
 
-    for stepPart in ["Input","Model","Sampler","Output","Optimizer","SolutionExport","Function"]:
-      stepPartInput = InputData.parameterInputFactory(stepPart, contentType=InputData.StringType)
-      stepPartInput.addParam("class", InputData.StringType, True)
-      stepPartInput.addParam("type", InputData.StringType, True)
+    # for convenience, map subnodes to descriptions and loop through them
+    subOptions = {'Input': 'Inputs to the step operation',
+                  'Model': 'Entity containing the model to be executed',
+                  'Sampler': 'Entity containing the sampling strategy',
+                  'Output': 'Entity to store results of the step',
+                  'Optimizer': 'Entity containing the optimization strategy',
+                  'SolutionExport': 'Entity containing auxiliary output for the solution of this step',
+                  'Function': 'Functional definition for use within this step',
+                 }
+    for stepPart, description in subOptions.items():
+      stepPartInput = InputData.parameterInputFactory(stepPart,
+                                                      contentType=InputTypes.StringType,
+                                                      descr=description)
+      stepPartInput.addParam("class", InputTypes.StringType, True)
+      stepPartInput.addParam("type", InputTypes.StringType, True)
       inputSpecification.addSub(stepPartInput)
 
     return inputSpecification

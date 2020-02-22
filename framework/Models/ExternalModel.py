@@ -27,7 +27,7 @@ import inspect
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
 import CustomCommandExecuter
-from utils import utils, InputData, mathUtils
+from utils import utils, InputData, InputTypes, mathUtils
 import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -47,8 +47,8 @@ class ExternalModel(Dummy):
     """
     inputSpecification = super(ExternalModel, cls).getInputSpecification()
     inputSpecification.setStrictMode(False) #External models can allow new elements
-    inputSpecification.addParam("ModuleToLoad", InputData.StringType, False)
-    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringType))
+    inputSpecification.addParam("ModuleToLoad", InputTypes.StringType, False)
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringType))
 
     return inputSpecification
 
@@ -147,7 +147,6 @@ class ExternalModel(Dummy):
       self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
     ## NOTE we implicitly assume not having ModuleToLoad means you're a plugin or a known type.
     elif paramInput.parameterValues['subType'].strip() is not None:
-      print('DEBUGG known:', ExternalModel.plugins.knownTypes())
       # We assume it is a plugin. Look for the type in the plugins class list
       if paramInput.parameterValues['subType'] not in ExternalModel.plugins.knownTypes():
         self.raiseAnError(IOError,('The "subType" named "{sub}" does not belong to any ' +

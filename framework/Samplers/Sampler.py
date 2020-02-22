@@ -30,7 +30,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils,randomUtils,InputData
+from utils import utils,randomUtils,InputData, InputTypes
 from BaseClasses import BaseType
 from Assembler import Assembler
 #Internal Modules End--------------------------------------------------------------------------------
@@ -54,60 +54,60 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     inputSpecification = super(Sampler, cls).getInputSpecification()
     # FIXME the DET HybridSampler doesn't use the "name" param for the samples it creates,
     #      so we can't require the name yet
-    inputSpecification.addParam("name", InputData.StringType)
+    inputSpecification.addParam("name", InputTypes.StringType)
 
     outerDistributionInput = InputData.parameterInputFactory("Distribution")
-    outerDistributionInput.addParam("name", InputData.StringType)
-    outerDistributionInput.addSub(InputData.parameterInputFactory("distribution", contentType=InputData.StringType))
+    outerDistributionInput.addParam("name", InputTypes.StringType)
+    outerDistributionInput.addSub(InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType))
     inputSpecification.addSub(outerDistributionInput)
 
     variableInput = InputData.parameterInputFactory("variable")
     # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
     # from StringType to StringNoLeadingSpacesType
-    variableInput.addParam("name", InputData.StringNoLeadingSpacesType)
-    variableInput.addParam("shape", InputData.IntegerListType, required=False)
-    distributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
-    distributionInput.addParam("dim", InputData.IntegerType)
+    variableInput.addParam("name", InputTypes.StringNoLeadingSpacesType)
+    variableInput.addParam("shape", InputTypes.IntegerListType, required=False)
+    distributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
+    distributionInput.addParam("dim", InputTypes.IntegerType)
 
     variableInput.addSub(distributionInput)
 
-    functionInput = InputData.parameterInputFactory("function", contentType=InputData.StringType)
+    functionInput = InputData.parameterInputFactory("function", contentType=InputTypes.StringType)
 
     variableInput.addSub(functionInput)
 
     inputSpecification.addSub(variableInput)
 
     variablesTransformationInput = InputData.parameterInputFactory("variablesTransformation")
-    variablesTransformationInput.addParam('distribution', InputData.StringType)
+    variablesTransformationInput.addParam('distribution', InputTypes.StringType)
 
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("latentVariables", contentType=InputData.StringListType))
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariables", contentType=InputData.StringListType))
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariablesIndex", contentType=InputData.StringListType))
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("method", contentType=InputData.StringType))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("latentVariables", contentType=InputTypes.StringListType))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariables", contentType=InputTypes.StringListType))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariablesIndex", contentType=InputTypes.StringListType))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
 
     inputSpecification.addSub(variablesTransformationInput)
 
-    constantInput = InputData.parameterInputFactory("constant", contentType=InputData.InterpretedListType)
+    constantInput = InputData.parameterInputFactory("constant", contentType=InputTypes.InterpretedListType)
     # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
     # from StringType to StringNoLeadingSpacesType
-    constantInput.addParam("name", InputData.StringNoLeadingSpacesType, True)
-    constantInput.addParam("shape", InputData.IntegerListType, required=False)
-    constantInput.addParam("source", InputData.StringType, required=False)
-    constantInput.addParam("index", InputData.IntegerType, required=False)
+    constantInput.addParam("name", InputTypes.StringNoLeadingSpacesType, True)
+    constantInput.addParam("shape", InputTypes.IntegerListType, required=False)
+    constantInput.addParam("source", InputTypes.StringType, required=False)
+    constantInput.addParam("index", InputTypes.IntegerType, required=False)
 
     inputSpecification.addSub(constantInput)
 
-    restartToleranceInput = InputData.parameterInputFactory("restartTolerance", contentType=InputData.FloatType)
+    restartToleranceInput = InputData.parameterInputFactory("restartTolerance", contentType=InputTypes.FloatType)
     inputSpecification.addSub(restartToleranceInput)
 
-    restartInput = InputData.parameterInputFactory("Restart", contentType=InputData.StringType)
-    restartInput.addParam("type", InputData.StringType)
-    restartInput.addParam("class", InputData.StringType)
+    restartInput = InputData.parameterInputFactory("Restart", contentType=InputTypes.StringType)
+    restartInput.addParam("type", InputTypes.StringType)
+    restartInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(restartInput)
 
-    sourceInput = InputData.parameterInputFactory("ConstantSource", contentType=InputData.StringType)
-    sourceInput.addParam("type", InputData.StringType)
-    sourceInput.addParam("class", InputData.StringType)
+    sourceInput = InputData.parameterInputFactory("ConstantSource", contentType=InputTypes.StringType)
+    sourceInput.addParam("type", InputTypes.StringType)
+    sourceInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(sourceInput)
 
     return inputSpecification

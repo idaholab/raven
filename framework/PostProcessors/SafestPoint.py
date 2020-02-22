@@ -28,7 +28,7 @@ import copy
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
-from utils import InputData
+from utils import InputData, InputTypes
 from utils.RAVENiterators import ravenArrayIterator
 import DataObjects
 import Runners
@@ -50,25 +50,25 @@ class SafestPoint(PostProcessor):
     ## This will replace the lines above
     inputSpecification = super(SafestPoint, cls).getInputSpecification()
 
-    OuterDistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputData.StringType)
-    OuterDistributionInput.addParam("class", InputData.StringType)
-    OuterDistributionInput.addParam("type", InputData.StringType)
+    OuterDistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputTypes.StringType)
+    OuterDistributionInput.addParam("class", InputTypes.StringType)
+    OuterDistributionInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(OuterDistributionInput)
 
     VariableInput = InputData.parameterInputFactory("variable")
-    VariableInput.addParam("name", InputData.StringType)
-    InnerDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
+    VariableInput.addParam("name", InputTypes.StringType)
+    InnerDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
     VariableInput.addSub(InnerDistributionInput)
-    InnerGridInput = InputData.parameterInputFactory("grid", contentType=InputData.FloatType)
-    InnerGridInput.addParam("type", InputData.StringType)
-    InnerGridInput.addParam("steps", InputData.IntegerType)
+    InnerGridInput = InputData.parameterInputFactory("grid", contentType=InputTypes.FloatType)
+    InnerGridInput.addParam("type", InputTypes.StringType)
+    InnerGridInput.addParam("steps", InputTypes.IntegerType)
     VariableInput.addSub(InnerGridInput)
-    ControllableInput = InputData.parameterInputFactory("controllable", contentType=InputData.StringType)
+    ControllableInput = InputData.parameterInputFactory("controllable", contentType=InputTypes.StringType)
     ControllableInput.addSub(VariableInput)
     inputSpecification.addSub(ControllableInput)
-    inputSpecification.addSub(InputData.parameterInputFactory("outputName", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("outputName", contentType=InputTypes.StringType))
 
-    NoncontrollableInput = InputData.parameterInputFactory("non-controllable", contentType=InputData.StringType)
+    NoncontrollableInput = InputData.parameterInputFactory("non-controllable", contentType=InputTypes.StringType)
     NoncontrollableInput.addSub(VariableInput)
     inputSpecification.addSub(NoncontrollableInput)
 

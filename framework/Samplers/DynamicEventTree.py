@@ -40,7 +40,7 @@ from .MonteCarlo import MonteCarlo
 from .Stratified import Stratified
 from .Sampler import Sampler
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import utils.TreeStructure as ETS
 #Internal Modules End-------------------------------------------------------------------------------
 
@@ -60,16 +60,16 @@ class DynamicEventTree(Grid):
     """
     inputSpecification = super(DynamicEventTree, cls).getInputSpecification()
 
-    inputSpecification.addParam("printEndXmlSummary", InputData.StringType)
-    inputSpecification.addParam("maxSimulationType", InputData.FloatType)
-    inputSpecification.addParam("removeXmlBranchInfo", InputData.StringType)
+    inputSpecification.addParam("printEndXmlSummary", InputTypes.StringType)
+    inputSpecification.addParam("maxSimulationType", InputTypes.FloatType)
+    inputSpecification.addParam("removeXmlBranchInfo", InputTypes.StringType)
 
     oldSub = inputSpecification.popSub("Distribution")
     newDistributionInput = InputData.parameterInputFactory("Distribution", baseNode=oldSub)
-    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
-    gridInput.addParam("type", InputData.StringType)
-    gridInput.addParam("construction", InputData.StringType)
-    gridInput.addParam("steps", InputData.IntegerType)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputTypes.StringType)
+    gridInput.addParam("type", InputTypes.StringType)
+    gridInput.addParam("construction", InputTypes.StringType)
+    gridInput.addParam("steps", InputTypes.IntegerType)
 
     newDistributionInput.addSub(gridInput)
     inputSpecification.addSub(newDistributionInput)
@@ -77,11 +77,11 @@ class DynamicEventTree(Grid):
     #Strict mode off because basically this allows things to be passed to
     # sub Samplers, which will be checked later.
     hybridSamplerInput = InputData.parameterInputFactory("HybridSampler", strictMode=False)
-    hybridSamplerInput.addParam("type", InputData.StringType)
+    hybridSamplerInput.addParam("type", InputTypes.StringType)
 
     for nodeName in ['variable','Distribution']:
       nodeInput = InputData.parameterInputFactory(nodeName, strictMode=False)
-      nodeInput.addParam("name", InputData.StringType)
+      nodeInput.addParam("name", InputTypes.StringType)
       hybridSamplerInput.addSub(nodeInput)
     inputSpecification.addSub(hybridSamplerInput)
 
