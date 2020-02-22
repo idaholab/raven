@@ -411,7 +411,7 @@ if __name__ == "__main__":
           child_type = child.attrib['type']
           child_param_handler = differs[child_type].get_valid_params()
           if not child_param_handler.check_for_required(child.attrib):
-            raise IOError("Missing Parameters in: " +  child.tag + "/" + node.tag + " for Differ: " + 
+            raise IOError("Missing Parameters in: " +  child.tag + "/" + node.tag + " for Differ: " +
                           child_type + " in test file: "+ test_file)
           if not child_param_handler.check_for_all_known(child.attrib):
             print("Unknown Parameters in:", child.tag, node.tag, test_file)
