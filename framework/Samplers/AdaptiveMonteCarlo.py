@@ -31,6 +31,9 @@ from functools import reduce
 from scipy import spatial
 from math import ceil
 import sys
+
+import pprint
+pp = pprint.PrettyPrinter(indent=2)
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -45,7 +48,7 @@ from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class AdaptiveMonteCarlo(AdaptiveSampler):
+class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
   """
     A sampler that will adaptively locate the limit surface of a given problem
   """
@@ -65,19 +68,14 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
     convergenceInput.addSub(InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType, strictMode=True))
     convergenceInput.addSub(InputData.parameterInputFactory('forceIteration', contentType=InputTypes.BoolType, strictMode=True))
     convergenceInput.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType, strictMode=True))
-    for metric in cls.statScVals:
-
-      statEr = metric + '_ste'
-      if statEr in self.statErVals:
-        statErSpecification = InputData.parameterInputFactory(statEr, contentType=InputTypes.FloatType)
+    for metric in cls.statErVals:
+      statEr, ste = metric.split('_')
+      if statEr in cls.statScVals:
+        statErSpecification = InputData.parameterInputFactory(statEr, contentType=InputTypes.StringListType)
         statErSpecification.addParam("prefix", InputTypes.StringType)
-        statErSpecification.addParam("var", InputTypes.StringListType)
+        statErSpecification.addParam("tol", InputTypes.FloatType)
         convergenceInput.addSub(statErSpecification)
-      else:
-        self.raiseAnError(IOError,self,'Adaptive Monte Carlo sampler can not converged on '+ metric)
-
     inputSpecification.addSub(convergenceInput)
-
     targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputTypes.StringType)
     targetEvaluationInput.addParam("type", InputTypes.StringType)
     targetEvaluationInput.addParam("class", InputTypes.StringType)
@@ -92,17 +90,16 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
       @ Out, None
     """
     AdaptiveSampler.__init__(self)
+    MonteCarlo.__init__(self)
     self.persistence         = 5                #this is the number of times the error needs to fell below the tolerance before considering the sim converged
     self.forceIteration      = False            #this flag control if at least a self.limit number of iteration should be done
-    self.axisName            = None             #this is the ordered list of the variable names (ordering match self.gridStepSize and the ordering in the test matrixes)
     self.solutionExport      = None             #This is the data used to export the solution (it could also not be present)
-    self.nVar                = 0                #this is the number of the variable sampled
+    self.tolerance           = {}               #This is the tolerance for each variables
+    self.converged           = False
     self.basicStatPP      = None                # post-processor to compute the basic statistics
     self.converged      = False                 # flag that is set to True when the sampler converged
-    self.threshold      = 0                     # Post-rank function value
     self.printTag            = 'SAMPLER ADAPTIVE MC'
     self.addAssemblerObject('TargetEvaluation','n')
-
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """
@@ -111,8 +108,10 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    # MonteCarlo.localInputAndChecks(self,xmlNode, paramInput)
+    self.toDo = {}
     for child in paramInput.subparts:
-      if child.getName() == "convergence":
+      if child.getName() == "Convergence":
         for grandchild in child.subparts:
           tag = grandchild.getName()
           if tag == "limit":
@@ -121,9 +120,26 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
               self.raiseAnError(IOError,self,'Adaptive Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the Convergence block')
           elif tag == "persistence":
             self.persistence = grandchild.value
-            self.raiseADebug('Persistence is set at',self.gainGrowthFactor)
+            self.raiseADebug('Persistence is set at',self.persistence)
           elif tag == "forceIteration":
             self.forceIteration = grandchild.value
+          elif tag in self.statScVals:
+            if 'prefix' not in grandchild.parameterValues:
+              self.raiseAnError(IOError, "No prefix is provided for node: ", tag)
+            if 'tol' not in grandchild.parameterValues:
+              self.raiseAnError(IOError, "No tolerance is provided for metric: ", tag)
+            prefix = grandchild.parameterValues['prefix']
+            tol = grandchild.parameterValues['tol']
+            if tag not in self.toDo.keys():
+              self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
+            self.toDo[tag].append({'targets':set(grandchild.value),
+                                  'prefix':prefix,
+                                  'tol':tol
+                                  })
+          else:
+            self.raiseAWarning('Unrecognized convergence node "',tag,'" has been ignored!')
+        assert (len(self.toDo)>0), self.raiseAnError(IOError, ' No target have been assigned to convergence node')
+    print('flager flager self.toDo ',self.toDo)
 
   def localInitialize(self,solutionExport=None):
     """
@@ -142,26 +158,11 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
     # check if solutionExport is actually a "DataObjects" type "PointSet"
     if solutionExport.type != "PointSet":
       self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ solutionExport.type +'!')
-    # set number of job request-able after a new evaluation
 
-
-    # self.nVar         = len(self.distDict.keys())              # Total number of variables
-    # bounds          = {"lowerBounds":{},"upperBounds":{}}
-    # transformMethod = {}
-
-    # # for varName in self.distDict.keys():
-    # #   if self.toleranceWeight!='cdf':
-    # #     bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = self.distDict[varName].lowerBound, self.distDict[varName].upperBound
-    # #   else:
-    # #     bounds["lowerBounds"][varName.replace('<distribution>','')], bounds["upperBounds"][varName.replace('<distribution>','')] = 0.0, 1.0
-    # #     transformMethod[varName.replace('<distribution>','')] = [self.distDict[varName].ppf]
-    # #moving forward building all the information set
-    # self.axisName = list(self.distDict.keys())
-    # self.axisName.sort()
-    # initialize BasicStatistics PP
+    self.basicStatPP.what = self.toDo.keys()
+    self.basicStatPP.toDo = self.toDo
     self.basicStatPP.initialize({'WorkingDir':None},[self.lastOutput],{'Output':[]})
     self.raiseADebug('Initialization done')
-
 
   ###############
   # Run Methods #
@@ -177,41 +178,17 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
       @ In, myInput, list, the generating input
       @ Out, None
     """
-    #check if all sampling is done
-    if self.jobHandler.isFinished():
-      self.batchDone = True
-    else:
-      self.batchDone = False
-    #batchDone is used to check if the sampler should find new points.
+    if self.counter>1:
+      metric = self.basicStatPP.run(self.lastOutput)
+      metric['solutionUpdate'] = np.asarray([self.counter - 1])
+      self.solutionExport.addRealization(metric)
+      self.checkConvergence(metric)
 
-  def localGenerateInput(self,model,oldInput):
-    """
-      Function to select the next most informative point for refining the limit
-      surface search.
-      After this method is called, the self.inputInfo should be ready to be sent
-      to the model
-      @ In, model, model instance, an instance of a model
-      @ In, oldInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
-      @ Out, None
-    """
-    print('flagger flagger flagger',self.inputInfo)
 
-    # self.raiseADebug('At counter '+str(self.counter)+' the generated sampled variables are: '+str(self.values))
-    # self.inputInfo['SamplerType'] = 'AdaptiveMonteCarlo'
-    # self.inputInfo['subGridTol' ] = self.subGridTol
-
-  def localGetCurrentSetting(self):
-    """
-      Appends a given dictionary with class specific information regarding the
-      current status of the object.
-      @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys
-        and each parameter's initial value as the dictionary values
-    """
-    paramDict = {}
-    if self.solutionExport!=None:
-      paramDict['The solution is exported in '    ] = 'Name: ' + self.solutionExport.name + 'Type: ' + self.solutionExport.type
-    return paramDict
+  def checkConvergence(self,metric):
+    '''
+    '''
+    pass
 
   def localStillReady(self,ready): #,lastOutput=None
     """
@@ -223,145 +200,11 @@ class AdaptiveMonteCarlo(AdaptiveSampler):
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
-    self.raiseADebug('From method localStillReady...')
-    # if the limit surface search has converged, we return False
-    if self.converged:
-      return False
-    #test on what to do
-    if not ready:
-      return ready #if we exceeded the limit just return that we are done
-    if type(self.lastOutput) == dict:
-      if self.lastOutput == None and not self.limitSurfacePP.ROM.amITrained:
-        return ready
-    else:
-      #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
-      if len(self.lastOutput) == 0 and not self.limitSurfacePP.ROM.amITrained:
-        return ready
-    #first evaluate the goal function on the newly sampled points and store them in mapping description self.functionValue RecontructEnding
-    oldSizeLsFunctionValue = 0 if len(self.limitSurfacePP.getFunctionValue()) == 0 else len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])
-    if type(self.lastOutput) == dict:
-      self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
-    else:
-      if len(self.lastOutput) > 0:
-        self.limitSurfacePP._initializeLSppROM(self.lastOutput,False)
-    self.raiseADebug('Classifier ' +self.name+' has been trained!')
-    self.oldTestMatrix = copy.deepcopy(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid))    #copy the old solution (contained in the limit surface PP) for convergence check
-    # evaluate the Limit Surface coordinates (return input space coordinates, evaluation vector and grid indexing)
-    self.surfPoint, evaluations, self.listSurfPoint = self.limitSurfacePP.run(returnListSurfCoord = True, exceptionGrid=self.exceptionGrid, merge=False)
-    self.raiseADebug('Limit Surface has been computed!')
-    newSizeLsFunctionValue = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])  if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys() else 0
-    # check hanging points
-    if self.goalFunction.name in self.limitSurfacePP.getFunctionValue().keys():
-      indexLast = len(self.limitSurfacePP.getFunctionValue()[self.goalFunction.name])-1
-    else:
-      indexLast = -1
-    #index of last set of point tested and ready to perform the function evaluation
-    indexEnd  = len(self.limitSurfacePP.getFunctionValue()[self.axisName[0].replace('<distribution>','')])-1
-    tempDict  = {}
-    for myIndex in range(indexLast+1,indexEnd+1):
-      for key, value in self.limitSurfacePP.getFunctionValue().items():
-        tempDict[key] = value[myIndex]
-      if len(self.hangingPoints) > 0:
-        self.hangingPoints = self.hangingPoints[
-          ~(self.hangingPoints==np.array([tempDict[varName]
-                                          for varName in [key.replace('<distribution>','')
-                                                          for key in self.axisName]])).all(axis=1)][:]
-    for key,value in self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).items():
-      self.persistenceMatrix[key] += value
 
-    # get the test matrices' dictionaries to test the error
-    testMatrixDict = list(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid).values())
-    oldTestMatrixDict = list(self.oldTestMatrix.values())
-    # the first test matrices in the list are always represented by the coarse grid
-    # (if subGridTol activated) or the only grid available
-    coarseGridTestMatix, coarseGridOldTestMatix = testMatrixDict.pop(0), oldTestMatrixDict.pop(0)
-    # compute the Linf norm with respect the location of the LS
-    testError = np.sum(np.abs(np.subtract(coarseGridTestMatix,coarseGridOldTestMatix)))
-    if self.sizeGrid is None:
-      self.sizeGrid = float(coarseGridTestMatix.size)
-    if len(testMatrixDict) > 0:
-      # compute the error
-      if self.sizeSubGrid is None:
-        self.sizeSubGrid = float(np.asarray(testMatrixDict).size)
-      testError += np.sum(np.abs(np.subtract(testMatrixDict,oldTestMatrixDict)))/(self.sizeGrid+self.sizeSubGrid)
-    else:
-      testError/= self.sizeGrid
+    print('flagin localStillReady mc.amIreadyToProvideAnInput',self.converged,ready,)
 
-    if (testError > self.errorTolerance) or newSizeLsFunctionValue == oldSizeLsFunctionValue:
-      # we still have error
-      ready, self.repetition = True, 0
-    else:
-      # we are increasing persistence
-      self.repetition +=1
-    if self.persistence<self.repetition:
-      ready =  False
-      if self.subGridTol != self.tolerance \
-         and evaluations is not None \
-         and not self.refinedPerformed and self.limitSurfacePP.crossedLimitSurf:
-        # we refine the grid since we converged on the coarse one. we use the "ceil" method in order to be sure
-        # that the volumetric cell weight is <= of the subGridTol
-        self.raiseAMessage("Grid refinement activated! Refining the evaluation grid!")
-        self.limitSurfacePP.refineGrid(int(ceil((self.tolerance/self.subGridTol)**(1.0/self.nVar))))
-        self.exceptionGrid, self.refinedPerformed, ready, self.repetition = self.name + "LSpp", True, True, 0
-        self.persistenceMatrix.update(copy.deepcopy(self.limitSurfacePP.getTestMatrix("all",exceptionGrid=self.exceptionGrid)))
-        self.errorTolerance = self.subGridTol
-      else:
-        self.converged = True
-        if not self.limitSurfacePP.crossedLimitSurf:
-          self.raiseAWarning("THE LIMIT SURFACE has NOT been crossed. The search FAILED!!!")
-    self.raiseAMessage('counter: '+str(self.counter)+'       Error: {:9.6E} Repetition: {:5d}'.format(testError,self.repetition) )
-    #if the number of point on the limit surface is > than compute persistence
-    realAxisNames, cnt = [key.replace('<distribution>','') for key in self.axisName], 0
-    if self.solutionExport is not None:
-      rlz = {}
-      # reset solution export
-      self.solutionExport.reset()
-    for gridID,listsurfPoint in self.listSurfPoint.items():
-      if len(listsurfPoint)>0:
-        self.invPointPersistence[gridID] = np.ones(len(listsurfPoint))
-        if self.firstSurface == False:
-          for pointID, coordinate in enumerate(listsurfPoint):
-            self.invPointPersistence[gridID][pointID]=abs(self.persistenceMatrix[gridID][tuple(coordinate)])
-          maxPers = np.max(self.invPointPersistence[gridID])
-          if maxPers != 0:
-            self.invPointPersistence[gridID] = (maxPers-self.invPointPersistence[gridID])/maxPers
-        else:
-          self.firstSurface = False
-        if self.solutionExport is not None:
-          # construct the realizations dict
-          localRlz = {varName: (self.surfPoint[gridID][:,varIndex] if varName not in rlz else np.concatenate(( rlz[varName],self.surfPoint[gridID][:,varIndex] )) ) for varIndex,varName in enumerate(realAxisNames) }
-          localRlz[self.goalFunction.name] = evaluations[gridID] if self.goalFunction.name not in rlz else np.concatenate( (rlz[self.goalFunction.name],evaluations[gridID])  )
-          rlz.update(localRlz)
-    # add the full realizations
-    if self.solutionExport is not None:
-      if len(rlz):
-        self.solutionExport.load(rlz,style='dict')
-
-    # Keep track of some extra points that we will add to thicken the limit
-    # surface candidate set
-    self.bandIndices = OrderedDict()
-    for gridID,points in self.listSurfPoint.items():
-      setSurfPoint = set()
-      self.bandIndices[gridID] = set()
-      for surfPoint in points:
-        setSurfPoint.add(tuple(surfPoint))
-      newIndices = set(setSurfPoint)
-      for step in range(1,self.thickness):
-        prevPoints = set(newIndices)
-        newIndices = set()
-        for i,iCoords in enumerate(prevPoints):
-          for d in range(len(iCoords)):
-            offset = np.zeros(len(iCoords),dtype=int)
-            offset[d] = 1
-            if iCoords[d] - offset[d] > 0:
-              newIndices.add(tuple(iCoords - offset))
-            if iCoords[d] + offset[d] < self.oldTestMatrix[gridID].shape[d]-1:
-              newIndices.add(tuple(iCoords + offset))
-        self.bandIndices[gridID].update(newIndices)
-      self.bandIndices[gridID] = self.bandIndices[gridID].difference(setSurfPoint)
-      self.bandIndices[gridID] = list(self.bandIndices[gridID])
-      for coordinate in self.bandIndices[gridID]:
-        self.surfPoint[gridID] = np.vstack((self.surfPoint[gridID],self.limitSurfacePP.gridCoord[gridID][coordinate]))
     if self.converged:
       self.raiseAMessage(self.name + " converged!")
-    return ready
+      return False
+    else:
+      return ready #if we exceeded the limit just return that we are done

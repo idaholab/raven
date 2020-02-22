@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="debug">
   <!-- TestInfo -->
   <TestInfo>
     <name>framework/Samplers/AdaptiveMonteCarlo</name>
@@ -42,7 +42,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="sol">
-      <Input>x2,x1</Input>
+      <Input>solutionUpdate</Input>
       <Output>mean_y1,mean_ste_y1,mean_y2,mean_ste_y2</Output>
     </PointSet>
   </DataObjects>
@@ -66,12 +66,12 @@
 
       <Convergence>
         <forceIteration>False</forceIteration>
-        <limit>3000</limit>
+        <limit>30</limit>
         <persistence>50</persistence>
         <!--relative tolerance of standard error-->
-        <expectedValue prefix="mean" var="y1,y2">1e-5</expectedValue>
-        <sigma prefix="sigma" var="y1">1e-6</sigma>
-        <sigma prefix="sigma" var="y2">1e-7</sigma>
+        <expectedValue prefix="mean" tol="1e-5">y1,y2</expectedValue>
+        <sigma prefix="sigma" tol="1e-6">y1</sigma>
+        <sigma prefix="sigma" tol="1e-7">y2</sigma>
       </Convergence>
       <variable name="x1">
         <distribution>x1_dst</distribution>
