@@ -104,6 +104,9 @@ parser.add_argument('--config-file', dest='config_file',
 parser.add_argument('--unkillable', action='store_true',
                     help='Ignore SIGTERM so test running is harder to be killed')
 
+parser.add_argument('--add-path', dest='add_path',
+                    help='additional paths that need be added in PATH')
+
 args = parser.parse_args()
 
 if args.config_file is not None:
@@ -311,6 +314,12 @@ if __name__ == "__main__":
   else:
     Colors = UseColors
 
+  if args.add_path:
+    # add additional paths
+    for new_path in args.add_path.split(","):
+      print('rook: added new path "{}" in sys.path.'.format(new_path.strip()))
+      sys.path.append(new_path.strip())
+
   test_re = re.compile(args.test_re_raw)
 
   this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -363,10 +372,10 @@ if __name__ == "__main__":
 
   Tester.initialize_current_run_type()
   if args.add_run_types is not None:
-    Tester.add_run_types(set(args.add_run_types.split(",")))
+    Tester.add_run_types(set([el.strip() for el in args.add_run_types.split(",")]))
 
   if args.only_run_types is not None:
-    Tester.set_only_run_types(set(args.only_run_types.split(",")))
+    Tester.set_only_run_types(set([el.strip() for el in args.only_run_types.split(",")]))
 
   function_list = [] #Store the data for the pool runner
   test_name_list = []
