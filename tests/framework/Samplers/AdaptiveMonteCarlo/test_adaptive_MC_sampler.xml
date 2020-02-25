@@ -5,9 +5,9 @@
     <name>framework/Samplers/AdaptiveMonteCarlo</name>
     <author>ZHOUJ2</author>
     <created>2020-02-06</created>
-    <classesTested>Samplers.AdaptiveMonteCarlo</classesTested>
+    <classesTested>Samplers.AdaptiveMonteCarlo, Models.ExternalModel</classesTested>
     <description>
-        This  test is aimed to test the capability of RAVEN to employ sampling with convergence to statistic infomation. It tests theAdaptiveMonteCarlo.
+        This  test is aimed to test the capability of RAVEN to employ sampling with convergence to statistic infomation. It tests the AdaptiveMonteCarlo sampler.
     </description>
   </TestInfo>
 

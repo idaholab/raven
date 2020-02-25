@@ -24,12 +24,7 @@ from __future__ import division, print_function, absolute_import
 
 #External Modules------------------------------------------------------------------------------------
 from collections import OrderedDict
-import copy
 import numpy as np
-from operator import mul
-from functools import reduce
-from scipy import spatial
-from math import ceil
 import sys
 
 #External Modules End--------------------------------------------------------------------------------
@@ -40,8 +35,6 @@ from PostProcessors import BasicStatistics
 from .AdaptiveSampler import AdaptiveSampler
 from .MonteCarlo import MonteCarlo
 import Distributions
-from AMSC_Object import AMSC_Object
-from utils import randomUtils
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -108,7 +101,6 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
-    # MonteCarlo.localInputAndChecks(self,xmlNode, paramInput)
     self.toDo = {}
     for child in paramInput.subparts:
       if child.getName() == "Convergence":
@@ -148,7 +140,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
         for info in infos:
           prefix = info['prefix']
           for target in info['targets']:
-            metaVar = prefix + '_ste_' + target #+ info['tol']
+            metaVar = prefix + '_ste_' + target
             self.tolerance[metaVar] = info['tol']
 
   def localInitialize(self,solutionExport=None):
