@@ -401,6 +401,89 @@ XML node and the requirements for other attributes change:
         \texttt{out\_100.pk}.
     \end{itemize}
 }
+
+\newcommand{\convergenceDescriptionAMC}
+{
+\xmlNode{Convergence},
+
+
+
+  \begin{itemize}
+    \item \xmlAttr{limit}, \xmlDesc{integer required field}, the
+      maximum number of adaptive samples (iterations).
+      %
+      \default{infinite}.
+    \item \xmlAttr{forceIteration}, \xmlDesc{boolean optional field},
+      this attribute controls if at least a number of iterations equal to
+      \textbf{limit} must be performed.
+      %
+      \default{False}.
+    \item \xmlAttr{persistence}, \xmlDesc{integer optional field},
+      offers an additional convergence check.
+      %
+      It represents the number of times the computed error needs to be
+      below the inputted tolerance before convergence is reported.
+      %
+      \default{5}.
+
+      \item \xmlNode{"metric"}, \xmlDesc{comma separated string list, required field},
+      specifications for the metric to be calculated.  The name of each node is the requested metric. The text of the node is a comma-separated list of the
+      parameters for which the metric should be calculated. See the example below.
+
+      \nb When defining the metrics to use, it is possible to have multiple nodes with the same name.  For
+      example, if a problem has inputs $X1$, and $X2$, and the responses are $Y1$, $Y2$, it is possible that
+      the desired metrics are the \xmlNode{sigma} of $Y1$,and $Y2$ on same tolerance, and \xmlNode{expectedValue}
+      of $Y1$,and $Y2$ on different tolerance. The first has the parameters $Y1,Y2$ in the same node with one
+      tolerance attribute, while the second need to divide into two nodes. One has target $Y1$ and another one
+      has target $Y2$ instead.  This could reduce some computation effort in problems with many responses or inputs.
+      An example of this is shown below.
+    %
+    \\ RAVEN will automatically calculate the standard errors on some scalar quantities. Currently the quantities available for request are:
+    \begin{itemize}
+      \item \textbf{expectedValue}: expected value or mean
+      \item \textbf{median}: median
+      \item \textbf{variance}: variance
+      \item \textbf{sigma}: standard deviation
+      \item \textbf{skewness}: skewness
+      \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
+    \end{itemize}
+
+    This XML node needs to contain the attribute:
+    \begin{itemize}
+      \itemsep0em
+      \item \xmlAttr{prefix}, \xmlDesc{required string attribute}, user-defined prefix for the given \textbf{metric}.
+        For scalar quantifies, RAVEN will define a variable with name defined as:  ``prefix'' + ``\_'' + ``parameter name''.
+        For example, if we define ``mean'' as the prefix for \textbf{expectedValue}, and parameter ``x'', then variable
+        ``mean\_x'' will be defined by RAVEN.
+        For matrix quantities, RAVEN will define a variable with name defined as: ``prefix'' + ``\_'' + ``target parameter name'' + ``\_'' + ``feature parameter name''.
+        For example, if we define ``sen'' as the prefix for \textbf{sensitivity}, target ``y'' and feature ``x'', then
+        variable ``sen\_y\_x'' will be defined by RAVEN.
+        \nb These variable will be used by RAVEN for the internal calculations. It is also accessible by the user through
+        \textbf{DataObjects} and \textbf{OutStreams}.
+
+        \item \xmlAttr{tol}, \xmlDesc{required float attribute}, convergence tolerance for the metric.
+
+    \end{itemize}
+    %
+
+    RAVEN will define a variable with name defined as: ``prefix for given \textbf{metric}'' + ``\_ste\_'' + ``parameter name'' to
+    store standard error of given \textbf{metric} with respect to given parameter. This information will be stored in the DataObjects,
+    i.e. \textbf{PointSet} and \textbf{HistorySet}, and by default will be printed out in the ``CSV'' output files by the
+    \textbf{OutStreams}. Option node \xmlNode{what} can be used in the \textbf{OutStreams} to select the information that
+    the users want to print.
+
+    In the case when the users want to store all the calculations results in general \textbf{DataSets}, RAVEN will employ a variable
+    with name defined as: ``\textbf{metric}'' + ``\_ste'' to store standard error with respect to all target parameters. An additional
+    index ``target'' will added in the \textbf{DataSets} with respect to these variables. All these quantities will be automatically
+    computed and stored in the given \textbf{DataSet}, and the users do not need to specify these quantities in their RAVEN input files.
+    %
+  \end{itemize}
+  In summary, this XML node contains the information that is needed in order
+  to control this sampler's convergence criterion.
+}
+%
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The sampler is probably the most important entity in the RAVEN framework.
@@ -630,7 +713,6 @@ bound specified (i.e., \xmlNode{lowerBound} and \xmlNode{upperBound}). Allowed f
  \end{itemize}
  \item \constantVariablesDescription
 \end{itemize}
-%\end{itemize}
 
 If the input parameters are correlated, the \textbf{MonteCarlo} sampling approach can be also used if the user specified a
 multivariate distributions inside the \xmlNode{Distributions} (see Section \ref{subsec:NdDist}). Furthermore, if the
@@ -2114,6 +2196,7 @@ Currently, RAVEN provides support for the following adaptive algorithms:
 
 \begin{itemize}
   \item Limit Surface Search
+  \item Adaptive Monte Carlo
   \item Adaptive Dynamic Event Tree
   \item Adaptive Hybrid Dynamic Event Tree
   \item Adaptive Sparse Grid
@@ -2317,6 +2400,93 @@ def __residuumSign(self):
     return  1
   else:
     return -1
+\end{lstlisting}
+
+%%% Adaptive Samplers: ADMC
+\subsubsection{Adaptive Monte Carlo}
+\label{subsubsubsec:ADMC}
+The \textbf{Adaptive Monte Carlo} approach is an advanced methodology
+employing a smart sampling around .....
+%
+The main idea of the application of the previously explained adaptive sampling
+approach to ......
+
+This process continues until the standard error of all the metrics is less than the specified tolerance.
+%
+
+\specBlock{an}{AdaptiveMonteCarlo}
+%
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+
+\variableIntro{AdaptiveMonteCarlo}
+\begin{itemize}
+\item \variableDescription
+  \variableChildrenIntro
+  \begin{itemize}
+    \item \distributionDescription
+    \item \functionDescription
+  \end{itemize}
+  \item \constantVariablesDescription
+\end{itemize}
+
+ In addition to the \xmlNode{variable} nodes, the main
+\xmlNode{AdaptiveMonteCarlo} node needs to contain a supplementary
+sub-nodes:
+
+\begin{itemize}
+  \item \convergenceDescriptionAMC
+  % Assembler Objects
+  \item \assemblerDescription{AdaptiveMonteCarlo}
+    \begin{itemize}
+      \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator for Monte Carlo sampler.
+      \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+        represents the container where the system evaluations are stored.
+        %
+        From a practical point of view, this XML node must contain the name of
+        a data object defined in the \xmlNode{DataObjects} block (see
+        Section~\ref{sec:DataObjects}).
+        %
+        The adaptive sampling accepts ``DataObjects'' of type
+        ``PointSet'' only.
+    \end{itemize}
+\end{itemize}
+
+
+Example:
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+  <AdaptiveMonteCarlo name = 'AdaptiveName'>
+    <TargetEvaluation class = 'DataObjects' type = 'PointSet'>DataName</TargetEvaluation>
+    <Convergence>
+      <forceIteration>False</forceIteration>
+      <limit>30</limit>
+      <persistence>6</persistence>
+      <expectedValue prefix="mean" tol="1e-1">y1,y2</expectedValue>
+      <sigma prefix="sigma" tol="6e-2">y1</sigma>
+      <sigma prefix="sigma" tol="5e-2">y2</sigma>
+    </Convergence>
+    <variable name = 'var1'>
+        <distribution>
+         aDistributionNameDefinedInDistributionBlock1
+        </distribution>
+    </variable>
+    <variable name = 'var2'>
+        <distribution>
+          aDistributionNameDefinedInDistributionBlock2
+        </distribution>
+    </variable>
+    <variable name = 'var3'>
+        <distribution>
+          aDistributionNameDefinedInDistributionBlock3
+        </distribution>
+    </variable>
+  </AdaptiveMonteCarlo>
+  ...
+</Samplers>
 \end{lstlisting}
 
 %%% Adaptive Samplers: ADET
@@ -2976,3 +3146,4 @@ Example:
   ...
 </Samplers>
 \end{lstlisting}
+
