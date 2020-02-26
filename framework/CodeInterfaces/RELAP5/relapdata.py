@@ -95,7 +95,7 @@ class relapdata:
           i=i+1;
     return tripArray;
 
-  def readMinorBlock(self,lines,i):
+  def readMinorBlock(self, lines, i):
     """
       Method that reads in a block of minor edit data and returns a dictionary of lists
       @ In, lines, list, list of lines of the output file
@@ -142,7 +142,7 @@ class relapdata:
         keepReading = False
     return minorDict
 
-  def checkLine(self,lineList):
+  def checkLine(self, lineList):
     """
       Method that checks the content of a list (i.e., a line); a list must contain only numbers
       @ In, list, lineList, list that contained values located in a single line
