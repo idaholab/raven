@@ -343,14 +343,23 @@ def _parseLibs(config, opSys, install, addOptional=False, limit=None, plugins=No
   for src in ['core', 'forge', 'pip']:
     if config.has_section(src) and (True if limit is None else (src in limit)):
       _addLibsFromSection(config.items(src), libs)
-  # os-specific are part of 'core' right now
+  # os-specific part of 'core' right now
   if config.has_section(opSys) and (True if limit is None else ('core' in limit)):
     _addLibsFromSection(config.items(opSys), libs)
+  # os-specific of specific installer (e.g. pip)
+  if limit:
+    for lim in limit:
+      instSpecOp = "{opSys}-{lim}".format(lim=lim, opSys=opSys)
+      if config.has_section(instSpecOp):
+        _addLibsFromSection(config.items(instSpecOp), libs)
   # optional are part of 'core' right now, but leave that up to the requester?
   if addOptional and config.has_section('optional'):
     _addLibsFromSection(config.items('optional'), libs)
   if install == 'pip' and config.has_section('pip-install'):
     _addLibsFromSection(config.items('pip-install'), libs)
+    instSpecOp = "{opSys}-pip".format(opSys=opSys)
+    if config.has_section(instSpecOp):
+      _addLibsFromSection(config.items(instSpecOp), libs)
   return libs
 
 def _addLibsFromSection(configSection, libs):
