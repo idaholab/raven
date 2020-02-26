@@ -44,6 +44,8 @@ for A in "$@"; do
         --test_all)
             TEST_SET=2
             ;;
+	--pedantic-checks)
+	    ;;
         *)
             ARGS+=("$A")
             ;;
