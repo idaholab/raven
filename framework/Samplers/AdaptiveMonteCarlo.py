@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This module contains the Limit Surface Search sampling strategy
+  This module contains the Adaptive Monte Carlo sampling strategy
 
-  Created on May 21, 2016
-  @author: alfoa
-  supercedes Samplers.py from alfoa
+  Created on Feb 20, 2020
+  @author: ZHOUJ2
+
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, absolute_import
@@ -29,8 +29,6 @@ import sys
 
 #External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-#from PostProcessors import LimitSurface
 from PostProcessors import BasicStatistics
 from .AdaptiveSampler import AdaptiveSampler
 from .MonteCarlo import MonteCarlo
@@ -92,7 +90,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
     self.basicStatPP         = None             # post-processor to compute the basic statistics
     self.converged           = False            # flag that is set to True when the sampler converged
     self.printTag            = 'SAMPLER ADAPTIVE MC'
-    self.addAssemblerObject('TargetEvaluation','n')
+    self.addAssemblerObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """
@@ -188,11 +186,11 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
 
 
   def checkConvergence(self,output):
-    '''
+    """
       Determine convergence for Adaptive MonteCarlo
-      @ In, output, dictionary containing the results from Basic Statistic
+      @ In, output, dict, dictionary containing the results from Basic Statistic
       @ Out, None
-    '''
+    """
     if self.forceIteration:
       self.converged = False
     else:
@@ -216,7 +214,6 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
       ready is returned
       lastOutput should be present when the next point should be chosen on previous iteration and convergence checked
       lastOutput it is not considered to be present during the test performed for generating an input batch
-      ROM if passed in it is used to construct the test matrix otherwise the nearest neighbor value is used
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """

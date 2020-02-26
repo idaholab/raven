@@ -11,7 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#***************************************
+#* Simple analytic test ExternalModule *
+#***************************************
+#
+# This is a simple analytic test function
+# y1 = (x1-1)**2 + x2**2
+# y2 = (x1+1)**2 + x2**2
+
+
 import math
 def run(self,Input):
+  """
+    Simple test function.
+    @ In, self, object, Raven object
+    @ In, Input, dict, variable information from Raven
+    @ Out, None.
+  """
   self.y1 = (self.x1-1)**2 + self.x2**2
   self.y2 = (self.x1+1)**2 + self.x2**2

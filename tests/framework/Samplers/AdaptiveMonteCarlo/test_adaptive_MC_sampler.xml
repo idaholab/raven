@@ -2,20 +2,18 @@
 <Simulation verbosity="debug">
   <!-- TestInfo -->
   <TestInfo>
-    <name>framework/Samplers/AdaptiveMonteCarlo</name>
+    <name>framework/Samplers.AdaptiveMonteCarlo</name>
     <author>ZHOUJ2</author>
     <created>2020-02-06</created>
     <classesTested>Samplers.AdaptiveMonteCarlo, Models.ExternalModel</classesTested>
     <description>
-        This  test is aimed to test the capability of RAVEN to employ sampling with convergence to statistic infomation. It tests the AdaptiveMonteCarlo sampler.
+      This tests the capability of RAVEN to use the AdaptiveMonteCarlo sampler. Converged on expected expectedValue of y1 and y2, as well as the sigma of y1 and y2.
     </description>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Adapt</WorkingDir>
     <Sequence>adapt,adaptdump</Sequence>
-    <batchSize>1</batchSize>
-    <maxQueueSize>1</maxQueueSize>
   </RunInfo>
 
   <Steps>

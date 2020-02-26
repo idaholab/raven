@@ -424,11 +424,11 @@ XML node and the requirements for other attributes change:
         \default{5}.
 
       \item \xmlNode{"metric"}, \xmlDesc{comma separated string list, required field},
-        specifications for the metric to be calculated.  The name of each node is the requested metric. The text of the node is a comma-separated list of the
+        specifications for the aggregate metrics on which \xmlNode{AdaptiveMonteCarlo} will attempt to converge. The name of each node is the requested metric. The text of the node is a comma-separated list of the
         parameters for which the metric should be calculated. See the example below.\\
 
 
-        RAVEN will automatically calculate the standard errors on some scalar quantities. Currently the quantities available for request are:
+        \xmlNode{AdaptiveMonteCarlo} will attempt to converge the standard errors of the requested metrics. Currently the metrics available are:
         \begin{itemize}
           \item \textbf{expectedValue}: expected value or mean
           \item \textbf{median}: median
@@ -440,7 +440,7 @@ XML node and the requirements for other attributes change:
 
 
 
-      This XML node needs to contain the attribute:
+      The nodes containing metrics need to contain the following attributes:
       \begin{itemize}
         \itemsep0em
         \item \xmlAttr{prefix}, \xmlDesc{required string attribute}, user-defined prefix for the given \textbf{metric}.
@@ -453,22 +453,13 @@ XML node and the requirements for other attributes change:
           \nb These variable will be used by RAVEN for the internal calculations. It is also accessible by the user through
           \textbf{DataObjects} and \textbf{OutStreams}.
 
-          \item \xmlAttr{tol}, \xmlDesc{required float attribute}, convergence tolerance for the metric.
+          \item \xmlAttr{tol}, \xmlDesc{required float attribute}, convergence tolerance for the standard error of the metric.
 
       \end{itemize}
       %
-
+      \vspace{12pt}
       RAVEN will define a variable with name defined as: ``prefix for given \textbf{metric}'' + ``\_ste\_'' + ``parameter name'' to
-      store standard error of given \textbf{metric} with respect to given parameter. This information will be stored in the DataObjects,
-      i.e. \textbf{PointSet} and \textbf{HistorySet}, and by default will be printed out in the ``CSV'' output files by the
-      \textbf{OutStreams}. Option node \xmlNode{what} can be used in the \textbf{OutStreams} to select the information that
-      the users want to print.\\
-
-      In the case when the users want to store all the calculations results in general \textbf{DataSets}, RAVEN will employ a variable
-      with name defined as: ``\textbf{metric}'' + ``\_ste'' to store standard error with respect to all target parameters. An additional
-      index ``target'' will added in the \textbf{DataSets} with respect to these variables. All these quantities will be automatically
-      computed and stored in the given \textbf{DataSet}, and the users do not need to specify these quantities in their RAVEN input files.\\
-      %
+      store the standard error of the given \textbf{metric} with respect to the given parameter. This variable needs to be included in the \xmlNode{TargetEvaluation} \xmlNode{DataObject} which is an output of the \xmlNode{Step} in which the \xmlNode{AdaptiveMonteCarlo} is used. This variable is also available for output to the \xmlNode{SolutionExport} \xmlNode{DataObjec}.  \\
 
       \nb When defining the metrics to use, it is possible to have multiple nodes with the same name.  For
       example, if a problem has inputs $X1$, and $X2$, and the responses are $Y1$, $Y2$, it is possible that
@@ -480,8 +471,8 @@ XML node and the requirements for other attributes change:
 
     \end{itemize}
 
-    In summary, this XML node contains the information that is needed in order
-    to control this sampler's convergence criterion.
+    In summary, the \xmlNode{convergence} node contains the information that is needed in order
+    to control the \xmlNode{AdaptiveMonteCarlo} sampler's convergence criteria.
 }
 %
 
@@ -2407,13 +2398,8 @@ def __residuumSign(self):
 %%% Adaptive Samplers: ADMC
 \subsubsection{Adaptive Monte Carlo}
 \label{subsubsubsec:ADMC}
-The \textbf{Adaptive Monte Carlo} approach is an advanced methodology
-employing a smart sampling around .....
-%
-The main idea of the application of the previously explained adaptive sampling
-approach to ......
-
-This process continues until the standard error of all the metrics is less than the specified tolerance.
+The \xmlNode{AdaptiveMonteCarlo} approach is an extension of the \xmlNode{MonteCarlo} sampler.
+However, instead of having a predefined number of samples, the \xmlNode{AdaptiveMonteCarlo} sampler continues sampling until the standard error of all the desired metrics are less than the specified tolerance.
 %
 
 \specBlock{an}{AdaptiveMonteCarlo}
@@ -2435,17 +2421,17 @@ This process continues until the standard error of all the metrics is less than 
 \end{itemize}
 
  In addition to the \xmlNode{variable} nodes, the main
-\xmlNode{AdaptiveMonteCarlo} node needs to contain two supplementary
+\xmlNode{AdaptiveMonteCarlo} node needs to contain the following supplementary
 sub-nodes:
 
 \begin{itemize}
   \item \convergenceDescriptionAMC
+  \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field},
+  initial seeding of random number generator for Monte Carlo sampler. By default, RAVEN uses an internal static seed.
+  \default{20021986}
   % Assembler Objects
   \item \assemblerDescription{AdaptiveMonteCarlo}
     \begin{itemize}
-      \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field},
-      initial seeding of random number generator for Monte Carlo sampler.
-
       \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
         represents the container where the system evaluations are stored.
         %
