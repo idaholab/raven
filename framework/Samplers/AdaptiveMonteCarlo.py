@@ -54,9 +54,9 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
     """
     inputSpecification = super(AdaptiveMonteCarlo, cls).getInputSpecification()
     convergenceInput = InputData.parameterInputFactory('Convergence')
-    convergenceInput.addSub(InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType, strictMode=True))
-    convergenceInput.addSub(InputData.parameterInputFactory('forceIteration', contentType=InputTypes.BoolType, strictMode=True))
-    convergenceInput.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType, strictMode=True))
+    convergenceInput.addSub(InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType))
+    convergenceInput.addSub(InputData.parameterInputFactory('forceIteration', contentType=InputTypes.BoolType))
+    convergenceInput.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType))
     for metric in cls.statErVals:
       statEr, ste = metric.split('_')
       if statEr in cls.statScVals:
@@ -106,9 +106,6 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
           tag = grandchild.getName()
           if tag == "limit":
             self.limit = grandchild.value
-            if self.limit is None:
-              self.raiseAnError(IOError,self,'Adaptive Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the Convergence block')
-
           elif tag == "persistence":
             self.persistence = grandchild.value
             self.raiseADebug('Persistence is set at',self.persistence)
@@ -140,6 +137,8 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
           for target in info['targets']:
             metaVar = prefix + '_ste_' + target
             self.tolerance[metaVar] = info['tol']
+    if self.limit is None:
+      self.raiseAnError(IOError, '{} requires a <limit> to be specified!'.format(self.type))
 
   def localInitialize(self,solutionExport=None):
     """
@@ -212,8 +211,6 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
     """
       first perform some check to understand what it needs to be done possibly perform an early return
       ready is returned
-      lastOutput should be present when the next point should be chosen on previous iteration and convergence checked
-      lastOutput it is not considered to be present during the test performed for generating an input batch
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """

@@ -400,12 +400,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.hangingPoints                        = np.ndarray((0, self.nVar))
     self.raiseADebug('Initialization done')
 
-  def localStillReady(self,ready): #,lastOutput=None
+  def localStillReady(self,ready):
     """
       first perform some check to understand what it needs to be done possibly perform an early return
       ready is returned
-      lastOutput should be present when the next point should be chosen on previous iteration and convergence checked
-      lastOutput it is not considered to be present during the test performed for generating an input batch
       ROM if passed in it is used to construct the test matrix otherwise the nearest neighbor value is used
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.

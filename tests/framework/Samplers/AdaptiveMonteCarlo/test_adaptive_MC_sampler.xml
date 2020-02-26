@@ -7,7 +7,7 @@
     <created>2020-02-06</created>
     <classesTested>Samplers.AdaptiveMonteCarlo, Models.ExternalModel</classesTested>
     <description>
-      This tests the capability of RAVEN to use the AdaptiveMonteCarlo sampler. Converged on expected expectedValue of y1 and y2, as well as the sigma of y1 and y2.
+      This tests the capability of RAVEN to use the AdaptiveMonteCarlo sampler. Converged on expectedValue of y1 and y2, as well as the sigma of y1 and y2.
     </description>
   </TestInfo>
 
