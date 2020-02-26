@@ -61,7 +61,7 @@ class AdaptiveSampler(Sampler):
   def _registerSample(self, prefix, info):
     """
       Register a sample's prefix info before submitting as job
-      @ In, prefix, str, string integer prefix
+      @ In, prefix, str, string integer (or not) prefix (aka JobId)
       @ In, info, dict, unique information to record associated with the prefix
       @ Out, None
     """
