@@ -52,6 +52,8 @@ import utils.TreeStructure as TS
 utils.find_crow(frameworkDir)
 utils.add_path(os.path.join(frameworkDir,'contrib','AMSC'))
 utils.add_path(os.path.join(frameworkDir,'contrib'))
+## REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
+utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
 #Internal Modules
 from Simulation import Simulation
 from Application import __QtAvailable

@@ -26,7 +26,14 @@ import signal
 import copy
 import sys
 import abc
-import ray
+from importlib import util as imutil
+## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
+_rayAvail = False if imutil.find_spec("ray") is None else True
+if _rayAvail:
+  import ray
+else:
+  import pp
+  import inspect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -50,7 +57,7 @@ class DistributedMemoryRunner(InternalRunner):
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
         handler object
-      @ In, args, dict, this is a list of arguments that will be passed as
+      @ In, args, list, this is a list of arguments that will be passed as
         function parameters into whatever method is stored in functionToRun.
         e.g., functionToRun(*args)
       @ In, functionToRun, method or function, function that needs to be run
@@ -70,6 +77,7 @@ class DistributedMemoryRunner(InternalRunner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
+    if not _rayAvail: self.__ppserver, args = args[0], args[1:]
     super(DistributedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler,profile)
 
   def isDone(self):
@@ -85,7 +93,7 @@ class DistributedMemoryRunner(InternalRunner):
     if self.thread is None:
       return True
     else:
-      return self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]
+      return (self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]) if _rayAvail else self.thread.finished
 
   def _collectRunnerResponse(self):
     """
@@ -96,7 +104,7 @@ class DistributedMemoryRunner(InternalRunner):
     """
     if not self.hasBeenAdded:
       if self.thread is not None:
-        self.runReturn = ray.get(self.thread)
+        self.runReturn = ray.get(self.thread) if _rayAvail else self.thread()
       else:
         self.runReturn = None
       self.hasBeenAdded = True
@@ -108,7 +116,11 @@ class DistributedMemoryRunner(InternalRunner):
       @ Out, None
     """
     try:
-      self.thread = self.functionToRun(*self.args)
+      if _rayAvail:
+        self.thread = self.functionToRun(*self.args)
+      else:
+        self.thread = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(),
+                                             modules = tuple([self.functionToRun.__module__]+list(set(utils.returnImportModuleString(inspect.getmodule(self.functionToRun),True)))))
       self.trackTime('runner_started')
       self.started = True
     except Exception as ae:

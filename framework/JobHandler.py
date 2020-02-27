@@ -30,9 +30,10 @@ import copy
 import sys
 import abc
 import threading
-import random
+from random import randint
 import socket
 import time
+from importlib import util as imutil
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -42,10 +43,14 @@ import MessageHandler
 import Runners
 import Models
 # for internal parallel
-import ray
+## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
+_rayAvail = False if imutil.find_spec("ray") is None else True
+if _rayAvail:
+ import ray
+else:
+ import pp
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
-
 
 ## FIXME: Finished jobs can bog down the queue waiting for other objects to take
 ## them away. Can we shove them onto a different list and free up the job queue?
@@ -189,19 +194,21 @@ class JobHandler(MessageHandler.MessageUser):
         nProcsHead = availableNodes.count(localHostName)
         self.raiseADebug("# of local procs    : "+ str(nProcsHead))
         ## initialize ray server with nProcs
-        self.rayServer = ray.init(num_cpus=int(nProcsHead))
+        self.rayServer = ray.init(num_cpus=int(nProcsHead)) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
         ## Get localHost and servers
         servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
-        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']))
-      self.raiseADebug("Head node IP address: " + self.rayServer['node_ip_address'])
-      self.raiseADebug("Redis address       : " + self.rayServer['redis_address'])
-      self.raiseADebug("Object store address: " + self.rayServer['object_store_address'])
-      self.raiseADebug("Raylet socket name  : " + self.rayServer['raylet_socket_name'])
-      self.raiseADebug("Session directory   : " + self.rayServer['session_dir'])
-      if servers:
-        self.raiseADebug("# of remote servers : " + str(len(servers)))
-        self.raiseADebug("Remote servers      : " + " , ".join(servers))
+        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
+                         pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+      if _rayAvail:
+        self.raiseADebug("Head node IP address: " + self.rayServer['node_ip_address'])
+        self.raiseADebug("Redis address       : " + self.rayServer['redis_address'])
+        self.raiseADebug("Object store address: " + self.rayServer['object_store_address'])
+        self.raiseADebug("Raylet socket name  : " + self.rayServer['raylet_socket_name'])
+        self.raiseADebug("Session directory   : " + self.rayServer['session_dir'])
+        if servers:
+          self.raiseADebug("# of remote servers : " + str(len(servers)))
+          self.raiseADebug("Remote servers      : " + " , ".join(servers))
 
     else:
       ## We are just using threading
@@ -265,7 +272,12 @@ class JobHandler(MessageHandler.MessageUser):
 
         ## Activate the remote socketing system
         ## let's build the command and then call the os-agnostic version
-        command=" ".join(["ray start", "--address="+address, "-num-cpus",str(ntasks)])
+        if _rayAvail:
+          command=" ".join(["ray start", "--address="+address, "-num-cpus",str(ntasks)])
+        else:
+          ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+          command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
+
         utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         ## update list of servers
         servers.append(nodeId)
@@ -314,18 +326,22 @@ class JobHandler(MessageHandler.MessageUser):
                                                uniqueHandler,
                                                profile=self.__profileJobs)
     else:
-      @ray.remote
-      def remoteFunction(*args):
-        """
-          Wrapper for remote function.
-          Adding it here, it allows to avoid to create an Actor
-          @ In, args, list, args list of function arguments
-          @ Out, remoteFunction, object, the return object
-        """
-        return functionToRun(*args)
+      if _rayAvail:
+        @ray.remote
+        def remoteFunction(*args):
+          """
+            Wrapper for remote function.
+            Adding it here, it allows to avoid to create an Actor
+            @ In, args, list, args list of function arguments
+            @ Out, remoteFunction, object, the return object
+          """
+          return functionToRun(*args)
+        arguments = args
+      else:
+        arguments = tuple([self.rayServer] + list(args))
 
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
-                                                    args, remoteFunction.remote,
+                                                    arguments, remoteFunction.remote if _rayAvail else functionToRun,
                                                     identifier, metadata,
                                                     uniqueHandler,
                                                     profile=self.__profileJobs)
