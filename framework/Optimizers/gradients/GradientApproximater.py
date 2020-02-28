@@ -104,6 +104,23 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, direction, dict, versor (unit vector) for gradient direction
     """
 
+  def needDenormalized(self):
+    """
+      Determines if this algorithm needs denormalized input spaces
+      @ In, None
+      @ Out, needDenormalized, bool, True if normalizing should NOT be performed
+    """
+    return False
+
+  def updateSolutionExport(self, grads, gradInfos):
+    """
+      Prints information to the solution export.
+      @ In, grads, list, list of gradient magnitudes and versors
+      @ In, gradInfos, list, list of identifying information for each grad entry
+      @ Out, info, dict, realization of data to go in the solutionExport object
+    """
+    # overload in inheriting classes at will
+    return {}
   ###################
   # Utility Methods #
   ###################

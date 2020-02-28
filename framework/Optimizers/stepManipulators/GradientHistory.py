@@ -88,8 +88,11 @@ class GradientHistory(StepManipulator):
       self._shrink = shrink.value
 
   def initialize(self, optVars, **kwargs):
-    """ TODO """
-    self._optVars = optVars
+    """
+      Constructor.
+      @ In, None
+      @ Out, None
+    """
     StepManipulator.initialize(self, optVars, **kwargs)
 
 
@@ -114,6 +117,7 @@ class GradientHistory(StepManipulator):
       @ In, kwargs, dict, keyword-based specifics as required by individual step sizers
       @ Out, newOpt, dict, new opt point
       @ Out, stepSize, float, new step size
+      @ Out, stepInfo, dict, additional information to store about this step
     """
     stepSize = self._stepSize(gradientHist=gradientHist, prevStepSize=prevStepSize,
                               recommend=recommend, **kwargs)
@@ -122,7 +126,7 @@ class GradientHistory(StepManipulator):
     newOpt = {}
     for var in self._optVars:
       newOpt[var] = prevOpt[var] - stepSize * gradient[var]
-    return newOpt, stepSize
+    return newOpt, stepSize, None
 
   def fixConstraintViolations(self, proposed, previous, fixInfo):
     """

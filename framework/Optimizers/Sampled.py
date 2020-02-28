@@ -254,30 +254,6 @@ class Sampled(Optimizer):
     # fix functionals
     normed, funcModded = self._applyFunctionalConstraints(normed, previous)
     modded = boundaryModded or funcModded
-    # passFuncs = self._checkFunctionalConstraints(denormed)
-    # # fix functionals
-    # while not passFuncs:
-    #   modded = True
-    #   # try to find acceptable point
-    #   new = self._applyFunctionalConstraints(denormed, )
-    #   # check functionals
-    #   passFuncs = self._checkFunctionalConstraints(denormed)
-    #   if passFuncs:
-    #     # check boundaries
-    #     denormed, _ = self._applyBoundaryConstraints(denormed)
-    #   TODO
-    if funcModded:
-      print('DEBUGG modified by functional constraint!')
-    elif boundaryModded:
-      print('DEBUGG modified by boundary constraint!')
-    else:
-      print('DEBUGG unmodified by constraints!')
-    # return
-    if modded:
-      #normed = self.normalizeData(denormed)
-      print('DEBUGG had some modding! New:', normed)
-    #else:
-    #  normed = proposed
     return normed, modded
 
   def _checkFunctionalConstraints(self, point):
@@ -337,7 +313,7 @@ class Sampled(Optimizer):
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
-    acceptable, old = self._checkAcceptability(traj, rlz, optVal)
+    acceptable, old = self._checkAcceptability(traj, rlz, optVal, info)
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     self._updatePersistence(traj, converged, optVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt

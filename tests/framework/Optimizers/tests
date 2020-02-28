@@ -48,7 +48,6 @@
     [../]
   [../]
 
-
   [./ConstrainBoundary]
     type = 'RavenFramework'
     input = 'constrain_boundary.xml'
@@ -65,6 +64,17 @@
       type = OrderedCSV
       output = 'InitSampler/opt_export_0.csv InitSampler/opt_export_1.csv'
 
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./FDConjGrad]
+    type = 'RavenFramework'
+    input = 'fd_conjgrad.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'FDConjGrad/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]

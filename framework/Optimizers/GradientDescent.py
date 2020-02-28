@@ -36,7 +36,7 @@ from .gradients import returnClass as gradReturnClass
 from .stepManipulators import knownTypes as stepKnownTypes
 from .stepManipulators import returnInstance as stepReturnInstance
 from .stepManipulators import returnClass as stepReturnClass
-from .stepManipulators import NoConstraintResolutionFound
+from .stepManipulators import NoConstraintResolutionFound, NoMoreStepsNeeded
 from .acceptanceConditions import knownTypes as acceptKnownTypes
 from .acceptanceConditions import returnInstance as acceptReturnInstance
 from .acceptanceConditions import returnClass as acceptReturnClass
@@ -168,13 +168,13 @@ class GradientDescent(Sampled):
     self._gradProximity = 0.01     # TODO user input, the proximity for gradient evaluations
     # history trackers, by traj, are deques (-1 is most recent)
     self._gradHistory = {}         # gradients
-    self._stepHistory = {}         # {'magnitude': size, 'versor': direction} for step
+    self._stepHistory = {}         # {'magnitude': size, 'versor': direction, 'info': dict} for step
     self._acceptHistory = {}       # acceptability
     self._stepRecommendations = {} # by traj, if a 'cut' or 'grow' is recommended else None
     self._acceptRerun = {}         # by traj, if True then override accept for point rerun
     self._convergenceCriteria = defaultdict(giveZero) # names and values for convergence checks
     self._convergenceInfo = {}     # by traj, the persistence and convergence information for most recent opt
-    self._requiredPersistence = 0  # consecutive persistence required to mark convergence
+    self._requiredPersistence = None # consecutive persistence required to mark convergence
     # __private
     # additional methods
     ## register adaptive sample identification criteria
@@ -233,6 +233,10 @@ class GradientDescent(Sampled):
       self._convergenceCriteria['gradient'] = 1e-6
     # same point is ALWAYS a criterion
     self._convergenceCriteria['samePoint'] = 1e-16 # TODO user option?
+    # set persistence to 1 if not set
+    if self._requiredPersistence is None:
+      self.raiseADebug('No persistence given; setting to 1.')
+      self._requiredPersistence = 1
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -243,12 +247,12 @@ class GradientDescent(Sampled):
     """
     Sampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     self._gradientInstance.initialize(self.toBeSampled, self._gradProximity)
-    self._stepInstance.initialize(self.toBeSampled)
+    self._stepInstance.initialize(self.toBeSampled, persistence=self._requiredPersistence)
     self._acceptInstance.initialize()
     # queue up the first run for each trajectory
     initialStepSize = self._stepInstance.initialStepSize(len(self.toBeSampled)) # TODO user scaling option
     for traj, init in enumerate(self._initialValues):
-      self._stepHistory[traj].append({'magnitude': initialStepSize, 'versor': None}) # None is the direction, we don't know it yet
+      self._stepHistory[traj].append({'magnitude': initialStepSize, 'versor': None, 'info': None})
       self._submitOptAndGrads(init, traj, 0, initialStepSize)
 
   ###############
@@ -299,7 +303,6 @@ class GradientDescent(Sampled):
       # get new gradient
       self.raiseADebug('Opt point accepted and gradient points collected, searching new opt point ...')
       opt, _ = self._stepTracker[traj]['opt']
-      print('DEBUGG starting from opt point:', self.denormalizeData(opt))
       grads, gradInfos = zip(*self._stepTracker[traj]['grads'])
       gradMag, gradVersor, _ = self._gradientInstance.evaluate(opt,
                                                                grads, gradInfos,
@@ -307,12 +310,20 @@ class GradientDescent(Sampled):
       self.raiseADebug(' ... gradient calculated ...')
       self._gradHistory[traj].append((gradMag, gradVersor))
       # get new step information
-      newOpt, stepSize = self._stepInstance.step(opt, gradientHist=self._gradHistory[traj],
-                                                 prevStepSize=self._stepHistory[traj],
-                                                 recommend=self._stepRecommendations[traj])
+      try:
+        newOpt, stepSize, stepInfo = self._stepInstance.step(opt,
+                                                  objVar=self._objectiveVar,
+                                                  optHist=self._optPointHistory[traj],
+                                                  gradientHist=self._gradHistory[traj],
+                                                  prevStepSize=self._stepHistory[traj],
+                                                  recommend=self._stepRecommendations[traj]
+                                                  )
+      except NoMoreStepsNeeded:
+        # the stepInstance has decided it's done
+        self.raiseAMessage('Step Manipulator "{}" has declared no more steps needed!'.format(self._stepInstance.type))
+        self._closeTrajectory(traj, 'converge', 'converged', optVal)
+        return
       self.raiseADebug(' ... found new proposed opt point ...')
-      print('DEBUGG ... ... normed stepSize:', stepSize)
-      print('DEBUGG ... ... proposed:', self.denormalizeData(newOpt))
       # check new opt point against constraints
       try:
         suggested, modded = self._handleExplicitConstraints(newOpt, opt, 'opt')
@@ -325,31 +336,12 @@ class GradientDescent(Sampled):
       # update values if modified by constraint handling
       deltas = dict((var, suggested[var] - opt[var]) for var in self.toBeSampled)
       actualStepSize, stepVersor, _ = mathUtils.calculateMagnitudeAndVersor(np.array(list(deltas.values())))
-      # FIXME OLD stepVersor = dict((var, stepVersor[v]) for v, var in enumerate(self.toBeSampled))
-      # if not modded:
-      #   # no modifications, so we took the actual step size in the direction given
-      #   # modStepSize = stepSize
-      #   # stepVersor = gradVersor
-      #   pass
-      # else:
-      #   # update the step size and suggested new opt point
-      #   deltas = dict((var, suggested[var] - opt[var]) for var in self.toBeSampled)
-      #   # TODO how do we use this modded step size?
-      #   modStepSize, stepVersor, _ = mathUtils.calculateMagnitudeAndVersor(np.array(list(deltas.values())))
-      #   # FIXME OLD modStepSize = mathUtils.calculateMultivectorMagnitude(np.array(list(deltas.values())))
-      #   newOpt = suggested
-      #   # TODO what if suggested point ends up being the same as the previous point?
-      #   # If true and if 1 away from persistence convergence, then we could technically quit here!
-      #   # Maybe someday.
 
-      # clear recommendations on step size, since we took the recommendation by now
+      # erase recommendations on step size, since we took the recommendation by now
       self._stepRecommendations[traj] = None
-      # store previous step size (unless it was a SamePoint run!)
-      # if stepSize > 0:
-      # TODO is this the best way to do this?
       # update the step history with the full suggested step size, NOT the actually-used step size
       # that came as a result of the boundary modifications
-      self._stepHistory[traj].append({'magnitude': stepSize, 'versor': stepVersor})
+      self._stepHistory[traj].append({'magnitude': stepSize, 'versor': stepVersor, 'info': stepInfo})
       # start new step
       self._initializeStep(traj)
       self.raiseADebug('Taking step {} for traj {} ...'.format(self._stepCounter[traj], traj))
@@ -504,6 +496,7 @@ class GradientDescent(Sampled):
       @ In, traj, int, trajectory identifier
       @ In, step, int, iteration number identifier
       @ In, stepSize, float, nominal step size to use
+      @ In,
       @ Out, None
     """
     ### OPT POINT
@@ -544,20 +537,27 @@ class GradientDescent(Sampled):
 
   # * * * * * * * * * * * * * * * *
   # Resolving potential opt points
-  def _checkAcceptability(self, traj, opt, optVal):
+  def _checkAcceptability(self, traj, opt, optVal, info):
     """
       Check if new opt point is acceptably better than the old one
       @ In, traj, int, identifier
       @ In, opt, dict, new opt point
       @ In, optVal, float, new optimization value
+      @ In, info, dict, identifying information about the opt point
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
     """
     # Check acceptability
     # NOTE: if self._optPointHistory[traj]: -> faster to use "try" for all but the first time
+
     try:
       old, _ = self._optPointHistory[traj][-1]
       oldVal = self._collectOptValue(old)
+      ## some stepManipulators may need to override the acceptance criteria
+      if self._stepInstance.needsAccessToAcceptance:
+        acceptable = self._stepInstance.modifyAcceptance(old, oldVal, opt, optVal)
+        self._acceptHistory[traj].append(acceptable)
+        return acceptable, old
       # check if same point
       self.raiseADebug(' ... change: {d: 1.3e} new: {n: 1.6e} old: {o: 1.6e}'
                       .format(d=optVal-oldVal, o=oldVal, n=optVal))
@@ -619,7 +619,7 @@ class GradientDescent(Sampled):
     # update persistence
     if converged:
       self._convergenceInfo[traj]['persistence'] += 1
-      self.raiseADebug('Trajectory {} has converged successfully {} time(s)!'.format(traj, self._convergenceInfo[traj]['persistence']))
+      self.raiseADebug('Trajectory {} has converged successfully {} / {} time(s)!'.format(traj, self._convergenceInfo[traj]['persistence'], self._requiredPersistence))
       if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
         self._closeTrajectory(traj, 'converge', 'converged', optVal)
     else:
@@ -653,6 +653,14 @@ class GradientDescent(Sampled):
       solution[var] = val
     for var in self.dependentSample:
       solution[var] = rlz[var]
+    # collect any additions from gradient and stepper
+    ## gradient
+    grads, gradInfos = zip(*self._stepTracker[traj]['grads']) if len(self._stepTracker[traj]['grads']) else [], []
+    fromGrad = self._gradientInstance.updateSolutionExport(grads, gradInfos)
+    solution.update(fromGrad)
+    ## stepper
+    fromStep = self._stepInstance.updateSolutionExport(self._stepHistory[traj])
+    solution.update(fromStep)
     # format rlz for dataobject
     solution = dict((var, np.atleast_1d(val)) for var, val in solution.items())
     self._solutionExport.addRealization(solution)
@@ -750,3 +758,11 @@ class GradientDescent(Sampled):
     return converged
   # END convergence Checks
   # * * * * * * * * * * * * * * * *
+
+  def needDenormalized(self):
+    """
+      Determines if the currently used algorithms should be normalizing the input space or not
+      @ In, None
+      @ Out, needDenormalized, bool, True if normalizing should NOT be performed
+    """
+    return self._stepInstance.needDenormalized() or self._gradientInstance.needDenormalized()

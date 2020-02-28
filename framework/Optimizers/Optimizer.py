@@ -309,8 +309,6 @@ class Optimizer(AdaptiveSampler):
     ## initialize sampler
     samplerInit = {}
     for entity in ['Distributions', 'Functions', 'DataObjects']:
-      print('DEBUGG collecting:', entity)
-      print('DEBUGG avail:', self.assemblerDict.get(entity, 'nada'))
       samplerInit[entity] = dict((entry[2], entry[3]) for entry in self.assemblerDict.get(entity, []))
     self._initSampler._localGenerateAssembler(samplerInit)
     ## assure sampler provides useful info
@@ -386,6 +384,10 @@ class Optimizer(AdaptiveSampler):
       @ In, denormed, dict, dictionary containing the value of decision variables to be normalized, in form of {varName: varValue}
       @ Out, normalized, dict, dictionary containing the value of normalized decision variables, in form of {varName: varValue}
     """
+    # some algorithms should not be normalizing and denormalizing!
+    ## in that case, we allow this method to turn off normalization
+    if self.needDenormalized():
+      return denormed
     normalized = copy.deepcopy(denormed)
     for var in self.toBeSampled:
       val = denormed[var]
@@ -399,9 +401,22 @@ class Optimizer(AdaptiveSampler):
       @ In, normalized, dict, dictionary containing the value of decision variables to be deormalized, in form of {varName: varValue}
       @ Out, denormed, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
     """
+    # some algorithms should not be normalizing and denormalizing!
+    ## in that case, we allow this method to turn off normalization
+    if self.needDenormalized():
+      return normalized
     denormed = copy.deepcopy(normalized)
     for var in self.toBeSampled:
       val = normalized[var]
       lower, upper = self._variableBounds[var]
       denormed[var] = val * (upper - lower) + lower
     return denormed
+
+  def needDenormalized(self):
+    """
+      Determines if the currently used algorithms should be normalizing the input space or not
+      @ In, None
+      @ Out, needDenormalized, bool, True if normalizing should NOT be performed
+    """
+    # overload as needed in inheritors
+    return False
