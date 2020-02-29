@@ -301,6 +301,15 @@ class Optimizer(AdaptiveSampler):
     optVal = (-1 if self._minMax == 'max' else 1) * rlz[self._objectiveVar]
     return optVal
 
+  def _collectOptPoint(self, rlz):
+    """
+      collects the point (dict) from a realization
+      @ In, rlz, dict, realization particularly including objective variable
+      @ Out, point, dict, point used in this realization
+    """
+    point = dict((var, float(rlz[var])) for var in self.toBeSampled.keys())
+    return point  
+
   def _initializeInitSampler(self, externalSeeding):
     """
       TODO

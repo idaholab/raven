@@ -35,6 +35,8 @@ from utils import utils, randomUtils, InputData, InputTypes
 from BaseClasses import BaseType
 from Assembler import Assembler
 from .Optimizer import Optimizer
+from .acceptanceConditions import returnInstance as acceptReturnInstance
+from .acceptanceConditions import returnClass as acceptReturnClass
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Sampled(Optimizer):
@@ -116,6 +118,19 @@ class Sampled(Optimizer):
       writeSteps = init.findFirst('writeSteps')
       if writeSteps is not None:
         self._writeSteps = writeSteps.value
+    
+    # Acceptance
+    acceptNode = paramInput.findFirst('acceptance')
+    if acceptNode:
+      if len(acceptNode.subparts) != 1:
+        self.raiseAnError('The <acceptance> node requires exactly one acceptance strategy! Choose from: ', acceptKnownTypes())
+      acceptNode = next(iter(acceptNode.subparts))
+      acceptType = acceptNode.getName()
+      self._acceptInstance = acceptReturnInstance(acceptType, self)
+      self._acceptInstance.handleInput(acceptNode)
+    else:
+      # default to strict mode acceptance
+      acceptNode = acceptReturnInstance('Strict', self)
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -279,7 +294,6 @@ class Sampled(Optimizer):
     # FIXME TODO check functions
     return allOkay
 
-  @abc.abstractmethod
   def _applyBoundaryConstraints(self, point):
     """
       Checks and fixes boundary constraints of variables in "point" -> DENORMED point expected!
@@ -287,6 +301,30 @@ class Sampled(Optimizer):
       @ Out, point, dict, adjusted variables
       @ Out, modded, bool, whether point was modified or not
     """
+    # TODO should some of this go into the parent Optimizer class, such as the boundary acquiring?
+    modded = False
+    for var in self.toBeSampled:
+      dist = self.distDict[var]
+      val = point[var]
+      lower = dist.lowerBound
+      upper = dist.upperBound
+      if lower is None:
+        lower = -np.inf
+      if upper is None:
+        upper = np.inf
+      if val < lower:
+        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} lower bound: {:1.3e} under by {:1.3e}'
+                         .format(var, val, lower, lower - val))
+        self.raiseADebug(' ... -> for point {}'.format(point))
+        point[var] = lower
+        modded = True
+      elif val > upper:
+        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} upper bound: {:1.3e} over by {:1.3e}'
+                         .format(var, val, upper, val - upper))
+        self.raiseADebug(' ... -> for point {}'.format(point))
+        point[var] = upper
+        modded = True
+    return point, modded
 
   @abc.abstractmethod
   def _applyFunctionalConstraints(self, suggested, previous):
