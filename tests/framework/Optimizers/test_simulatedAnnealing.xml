@@ -1,0 +1,104 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.SimulatedAnnealing</name>
+    <author>MohammadAbdo</author>
+    <created>2020-02-11</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+      Extending on the Basic test, this test assesses the Simulated Annealing algorithm.
+    </description>
+    <analytic>
+      This test uses Beale's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>SimulatedAnnealing</WorkingDir>
+    <Sequence>optimize, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" re-seeding="120504"><!--12052004,032877,120504,080510-->
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">beale</Model>
+      <Optimizer class="Optimizers" type="SPSA">simOpt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name='beale_dist'>
+      <lowerBound>-4.5</lowerBound>
+      <upperBound>4.5</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <SimulatedAnnealing name="simOpt">
+      <samplerInit>
+        <limit>2000</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min</type>
+      </samplerInit>
+      <acceptance>
+        <Strict/>
+      </acceptance>
+      <convergence>
+        <objective>1e-20</objective>
+      </convergence>
+      <coolingSchedule>exponential</coolingSchedule>
+      <variable name="x">
+        <distribution>beale_dist</distribution>
+        <initial>-2</initial>
+      </variable>
+      <variable name="y">
+        <distribution>beale_dist</distribution>
+        <initial>-2</initial>
+      </variable>
+      <objective>ans</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+    </SimulatedAnnealing>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <!-- <Output>x,y,ans,amp_x,amp_y,fraction,delta_x,delta_y,accepted</Output> -->
+      <Output>x,y,ans</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="optOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="opt_export">
+      <type>csv</type>
+      <source>opt_export</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+</Simulation>
