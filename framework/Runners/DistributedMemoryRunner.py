@@ -77,7 +77,8 @@ class DistributedMemoryRunner(InternalRunner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    if not _rayAvail: self.__ppserver, args = args[0], args[1:]
+    if not _rayAvail: 
+      self.__ppserver, args = args[0], args[1:]
     super(DistributedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler,profile)
 
   def isDone(self):
