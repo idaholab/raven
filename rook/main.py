@@ -108,9 +108,10 @@ parser.add_argument('--add-path', dest='add_path',
                     help='additional paths that need be added in PATH')
 
 parser.add_argument('--update-or-add-env-variables', dest='update_or_add_env_variables',
-                    help='comma separated list of environment variables to update or add. The syntax ' \
-                    'is at follows: NAME=NEW_VALUE (if a new env variable needs to be created or updated),' \
-                    'NAME>NEW_VALUE (if an env variable needs to be updated appending NEW_VALUE to it).')
+                    help='comma separated list of environment variables to update or add. ' +
+                    'The syntax is at follows: NAME=NEW_VALUE (if a new env variable needs ' +
+                    'to be created or updated), NAME>NEW_VALUE (if an env variable needs to' +
+                    ' be updated appending NEW_VALUE to it).')
 
 args = parser.parse_args()
 
@@ -329,11 +330,15 @@ if __name__ == "__main__":
     for new_env_var in args.update_or_add_env_variables.split(","):
       sep = "=" if "=" in new_env_var else ">"
       if sep not in new_env_var:
-        raise IOError('Syntax for enviroment variable setting must be ENV_VAR=VALUE (for replacement) or ENV_VAR>VALUE (for update)')
+        raise IOError('Syntax for enviroment variable setting must be ENV_VAR=VALUE ' +
+                      '(for replacement) or ENV_VAR>VALUE (for update)')
       env_var_name, env_var_value = new_env_var.split(sep)
-      cur_env_var = os.environ.get(env_var_name.strip(),"None")
-      env_var_value = env_var_value if sep == "=" else (cur_env_var+env_var_value if cur_env_var != "None" else env_var_value)
-      print('rook: update enviroment variable "{}" from "{}" to "{}".'.format(env_var_name,cur_env_var, env_var_value))
+      cur_env_var = os.environ.get(env_var_name.strip(), "None")
+      if sep == ">":
+        env_var_value = cur_env_var + env_var_value if cur_env_var != "None" else env_var_value
+      print('rook: update enviroment variable "{}" from "{}" to "{}".'.format(env_var_name,
+                                                                              cur_env_var,
+                                                                              env_var_value))
       os.environ[env_var_name] = env_var_value
 
   test_re = re.compile(args.test_re_raw)
@@ -436,8 +441,8 @@ if __name__ == "__main__":
           child_type = child.attrib['type']
           child_param_handler = differs[child_type].get_valid_params()
           if not child_param_handler.check_for_required(child.attrib):
-            raise IOError("Missing Parameters in: " +  child.tag + "/" + node.tag + " for Differ: " +
-                          child_type + " in test file: "+ test_file)
+            raise IOError("Missing Parameters in: " +  child.tag + "/" + node.tag +
+                          " for Differ: " + child_type + " in test file: "+ test_file)
           if not child_param_handler.check_for_all_known(child.attrib):
             print("Unknown Parameters in:", child.tag, node.tag, test_file)
           differ = differs[child_type](child.tag, dict(child.attrib), test_dir)
