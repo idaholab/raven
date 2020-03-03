@@ -393,10 +393,10 @@ if __name__ == "__main__":
 
   Tester.initialize_current_run_type()
   if args.add_run_types is not None:
-    Tester.add_run_types(set([el.strip() for el in args.add_run_types.split(",")]))
+    Tester.add_run_types(set(el.strip() for el in args.add_run_types.split(",")))
 
   if args.only_run_types is not None:
-    Tester.set_only_run_types(set([el.strip() for el in args.only_run_types.split(",")]))
+    Tester.set_only_run_types(set(el.strip() for el in args.only_run_types.split(",")))
 
   function_list = [] #Store the data for the pool runner
   test_name_list = []
