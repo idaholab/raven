@@ -61,16 +61,16 @@
   <Samplers>
     <AdaptiveMonteCarlo name="adaptiveSearch">
       <TargetEvaluation class="DataObjects" type="PointSet">sampledPoints</TargetEvaluation>
-      <initialSeed>901017</initialSeed>
       <Convergence>
-        <forceIteration>False</forceIteration>
         <limit>30</limit>
         <persistence>6</persistence>
+        <forceIteration>False</forceIteration>
         <!--relative tolerance of standard error-->
         <expectedValue prefix="mean" tol="1e-1">y1,y2</expectedValue>
         <sigma prefix="sigma" tol="6e-2">y1</sigma>
         <sigma prefix="sigma" tol="5e-2">y2</sigma>
       </Convergence>
+      <initialSeed>901017</initialSeed>
       <variable name="x1">
         <distribution>x1_dst</distribution>
       </variable>

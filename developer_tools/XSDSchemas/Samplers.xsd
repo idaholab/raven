@@ -438,32 +438,53 @@
         <xsd:element name="initialSeed"      type="xsd:integer"                minOccurs="0" maxOccurs="1"/>
         <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
         <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-            <xsd:complexType mixed="true">
-                <xsd:attribute name="name" type="xsd:string" use="required"/>
-                <xsd:attribute name="shape" type="xsd:string" />
-            </xsd:complexType>
+          <xsd:complexType mixed="true">
+              <xsd:attribute name="name" type="xsd:string" use="required"/>
+              <xsd:attribute name="shape" type="xsd:string" />
+          </xsd:complexType>
         </xsd:element>
       </xsd:sequence>
     <xsd:attribute name="name"      type="xsd:string" use="required"/>
     <xsd:attribute name="verbosity" type="verbosityAttr"/>
     </xsd:complexType>
     <xsd:complexType name="adaptiveMCConvergenceType">
-        <xsd:all>
+        <xsd:sequence>
           <xsd:element name="limit"             type="xsd:integer" minOccurs="0" maxOccurs="1"/>
           <xsd:element name="persistence"       type="xsd:integer" minOccurs="0" maxOccurs="1"/>
-          <xsd:element name="what" type="BasicStatErrorType" minOccurs="1"></xsd:element>
-        </xsd:all>
+          <xsd:element name="forceIteration"       type="RavenBool" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="expectedValue"          minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType mixed="true">
+                <xsd:attribute name="prefix" type="xsd:string" />
+                <xsd:attribute name="tol" type="xsd:float" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="sigma"          minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType mixed="true">
+                <xsd:attribute name="prefix" type="xsd:string" />
+                <xsd:attribute name="tol" type="xsd:float" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="variance"          minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType mixed="true">
+                <xsd:attribute name="prefix" type="xsd:string" />
+                <xsd:attribute name="tol" type="xsd:float" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="skewness"          minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType mixed="true">
+                <xsd:attribute name="prefix" type="xsd:string" />
+                <xsd:attribute name="tol" type="xsd:float" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="kurtosis"          minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType mixed="true">
+                <xsd:attribute name="prefix" type="xsd:string" />
+                <xsd:attribute name="tol" type="xsd:float" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType  name="BasicStatErrorType">
-      <xsd:restriction   base="xsd:string">
-        <xsd:enumeration value="expectedValue" />
-        <xsd:enumeration value="sigma" />
-        <xsd:enumeration value="variance" />
-        <xsd:enumeration value="skewness" />
-        <xsd:enumeration value="kurtosis" />
-      </xsd:restriction>
-    </xsd:simpleType>
 
     <!-- *********************************************************************** -->
     <!--                  Dynamic Event Tree                                     -->
