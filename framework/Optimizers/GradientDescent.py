@@ -283,15 +283,15 @@ class GradientDescent(Sampled):
       convs[conv] = okay
     return any(convs.values()), convs
 
-  def _useRealization(self, info, rlz, optVal):
+  def _useRealization(self, info, rlz):
     """
       Used to feedback the collected runs into actionable items within the sampler.
       @ In, info, dict, identifying information about the realization
       @ In, rlz, dict, realized realization
-      @ In, optVal, float, value of objective variable (corrected for min/max)
       @ Out, None
     """
     traj = info['traj']
+    optVal = rlz[self._objectiveVar]
     info['optVal'] = optVal
     purpose = info['purpose']
     # FIXME we assume all the denoising has already happened by now.
@@ -530,7 +530,7 @@ class GradientDescent(Sampled):
                  'purpose': purpose,
                 })
     # NOTE: explicit constraints have been checked before this!
-    self.raiseADebug('Adding run to queue: {} | {}'.format(point, info))
+    self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
     #for key, inf in info.items():
     #  self.raiseADebug(' ... {}: {}'.format(key, inf))
     #self.raiseADebug(' ... {}: {}'.format('point', point))
@@ -555,7 +555,7 @@ class GradientDescent(Sampled):
 
     try:
       old, _ = self._optPointHistory[traj][-1]
-      oldVal = self._collectOptValue(old)
+      oldVal = old[self._objectiveVar]
       ## some stepManipulators may need to override the acceptance criteria
       if self._stepInstance.needsAccessToAcceptance:
         acceptable = self._stepInstance.modifyAcceptance(old, oldVal, opt, optVal)
@@ -629,44 +629,26 @@ class GradientDescent(Sampled):
       self._convergenceInfo[traj]['persistence'] = 0
       self.raiseADebug('Resetting convergence for trajectory {}.'.format(traj))
 
-  def _updateSolutionExport(self, traj, rlz, acceptable):
+  def _addToSolutionExport(self, traj, rlz, acceptable):
     """
-      Prints information to the solution export.
+      Contributes additional entries to the solution export.
       @ In, traj, int, trajectory which should be written
       @ In, rlz, dict, collected point
       @ In, acceptable, bool, acceptability of opt point
-      @ Out, None
+      @ Out, toAdd, dict, additional entries
     """
-    # FIXME abstract this for Sampled base class!!
-    denormed = self.denormalizeData(rlz)
-    # meta variables
-    solution = {'iteration': self._stepCounter[traj],
-                'trajID': traj,
-                'stepSize': self._stepHistory[traj][-1]['magnitude'],
-                'accepted': acceptable,
-               }
+    toAdd = {'stepSize': self._stepHistory[traj][-1]['magnitude']}
     for key, val in self._convergenceInfo[traj].items():
-      solution['conv_{}'.format(key)] = val
-    # variables, objective function, constants, etc
-    solution[self._objectiveVar] = rlz[self._objectiveVar]
-    for var in self.toBeSampled:
-      # TODO dimensionality?
-      solution[var] = denormed[var]
-    for var, val in self.constants.items():
-      solution[var] = val
-    for var in self.dependentSample:
-      solution[var] = rlz[var]
+      toAdd['conv_{}'.format(key)] = val
     # collect any additions from gradient and stepper
     ## gradient
     grads, gradInfos = zip(*self._stepTracker[traj]['grads']) if len(self._stepTracker[traj]['grads']) else [], []
     fromGrad = self._gradientInstance.updateSolutionExport(grads, gradInfos)
-    solution.update(fromGrad)
+    toAdd.update(fromGrad)
     ## stepper
     fromStep = self._stepInstance.updateSolutionExport(self._stepHistory[traj])
-    solution.update(fromStep)
-    # format rlz for dataobject
-    solution = dict((var, np.atleast_1d(val)) for var, val in solution.items())
-    self._solutionExport.addRealization(solution)
+    toAdd.update(fromStep)
+    return toAdd
 
   def _rejectOptPoint(self, traj, info, old):
     """
@@ -721,6 +703,7 @@ class GradientDescent(Sampled):
       @ Out, converged, bool, convergence state
     """
     gradMag, _ = self._gradHistory[traj][-1]
+    gradMag = self.denormalizeGradient(gradMag)
     converged = gradMag < self._convergenceCriteria['gradient']
     self.raiseADebug(self.convFormat.format(name='gradient',
                                             conv=str(converged),
@@ -752,7 +735,7 @@ class GradientDescent(Sampled):
       return False
     o1, _ = self._optPointHistory[traj][-1]
     o2, _ = self._optPointHistory[traj][-2]
-    delta = mathUtils.relativeDiff(self._collectOptValue(o2), self._collectOptValue(o1))
+    delta = mathUtils.relativeDiff(o2[self._objectiveVar], o1[self._objectiveVar])
     converged = abs(delta) < self._convergenceCriteria['objective']
     self.raiseADebug(self.convFormat.format(name='objective',
                                             conv=str(converged),
@@ -769,3 +752,19 @@ class GradientDescent(Sampled):
       @ Out, needDenormalized, bool, True if normalizing should NOT be performed
     """
     return self._stepInstance.needDenormalized() or self._gradientInstance.needDenormalized()
+
+  def denormalizeGradient(self, gradMag):
+    """
+      Denormalizes the gradient to correspond to the original space.
+      @ In, gradMag, float, normalized space gradient magnitude
+      @ Out, denormed, float, original (denormalized) gradient magnitude
+    """
+    # if no normalization is occuring, then just return as is
+    if self.needDenormalized():
+      return gradMag
+    # scale by the product of the dimensions
+    scale = 1
+    for var in self.toBeSampled:
+      lower, upper = self._variableBounds[var]
+      scale *= upper - lower
+    return gradMag / scale

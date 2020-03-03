@@ -69,7 +69,6 @@
     [../]
   [../]
 
-
   [./CentralDiff]
     type = 'RavenFramework'
     input = 'central_diff.xml'
@@ -87,6 +86,17 @@
     [./data]
       type = OrderedCSV
       output = 'FDConjGrad/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./Max]
+    type = 'RavenFramework'
+    input = 'max.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'Max/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
