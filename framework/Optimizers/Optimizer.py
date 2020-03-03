@@ -23,18 +23,13 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import sys
 import copy
 import abc
 import numpy as np
-from collections import deque
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils, randomUtils, InputData, InputTypes
-from BaseClasses import BaseType
-from Assembler import Assembler
-import SupervisedLearning
+from utils import randomUtils, InputData, InputTypes
 from Samplers import AdaptiveSampler, ForwardSampler
 #Internal Modules End--------------------------------------------------------------------------------
 

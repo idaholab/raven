@@ -365,12 +365,15 @@ class GradientDescent(Sampled):
       @ In, traj, int, identifier for trajectory of interest
       @ Out, ready, bool, True if all required data has been collected
     """
-    # need to make sure opt point, grad points are all present
+    # ready to move step forward if (a) we have the opt point, and (b) we have the grad points
     tracker = self._stepTracker[traj]
+    # check (a) we have the opt point
     if tracker['opt'] is None:
       return False
+    # check (b) we have the grad points
     if len(tracker['grads']) < self._gradientInstance.numGradPoints():
       return False
+    # if all checks passed, we're ready
     return True
 
   def _initializeStep(self, traj):

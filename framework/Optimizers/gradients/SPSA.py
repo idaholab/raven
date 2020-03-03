@@ -12,23 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Implementation of FiniteDifference gradient approximation
+  Simultaneous Perturbation Stochastic Approximation gradient estimation algorithms
+  Author: gairabhi
 """
-import copy
 import numpy as np
-from utils import InputData, InputTypes, randomUtils, mathUtils
+from utils import randomUtils, mathUtils
 from .GradientApproximater import GradientApproximater
 
-class FiniteDifference(GradientApproximater):
+class SPSA(GradientApproximater):
   """
-    Uses FiniteDifference approach to approximating gradients
+    Single-point (zeroth-order) gradient approximation.
+    Note that SPSA is a larger algorithm; this is simply the gradient approximation part of it.
   """
-  ##########################
-  # Initialization Methods #
-  ##########################
-  ###############
-  # Run Methods #
-  ###############
+
   def chooseEvaluationPoints(self, opt, stepSize):
     """
       Determines new point(s) needed to evaluate gradient
@@ -38,21 +34,16 @@ class FiniteDifference(GradientApproximater):
       @ Out, evalInfo, list(dict), identifying information about points
     """
     dh = self._proximity * stepSize
-    evalPoints = []
-    evalInfo = []
-
-    directions = np.asarray(randomUtils.random(self.N) < 0.5) * 2 - 1
-    for o, optVar in enumerate(self._optVars):
-      optValue = opt[optVar]
-      new = copy.deepcopy(opt)
-      delta = dh * directions[o]
-      new[optVar] = optValue + delta
-      evalPoints.append(new)
-      evalInfo.append({'type': 'grad',
-                       'optVar': optVar,
-                       'delta': delta})
-
-
+    perturb = randomUtils.randPointsOnHypersphere(self.N)
+    delta = {}
+    new = {}
+    for i, var in enumerate(self._optVars):
+      delta[var] = perturb[i] * dh
+      new[var] = opt[var] + delta[var]
+    # only one point needed for SPSA, but still needs to store as a list
+    evalPoints = [new]
+    evalInfo = [{'type': 'grad',
+                 'delta': delta}]
     return evalPoints, evalInfo
 
   def evaluate(self, opt, grads, infos, objVar):
@@ -66,26 +57,33 @@ class FiniteDifference(GradientApproximater):
       @ Out, direction, dict, versor (unit vector) for gradient direction
     """
     gradient = {}
-    for g, pt in enumerate(grads):
-      info = infos[g]
-      delta = info['delta']
-      activeVar = info['optVar']
-      lossDiff = np.atleast_1d(mathUtils.diffWithInfinites(pt[objVar], opt[objVar]))
-      grad = lossDiff/delta
-      gradient[activeVar] = grad
-    # obtain the magnitude and versor of the gradient to return
+    lossDiff = np.atleast_1d(mathUtils.diffWithInfinites(grads[0][objVar], opt[objVar]))
+    for var in self._optVars:
+      # don't assume delta is unchanged; calculate it here
+      delta = grads[0][var] - opt[var]
+      gradient[var] = lossDiff / delta
     magnitude, direction, foundInf = mathUtils.calculateMagnitudeAndVersor(list(gradient.values()))
     direction = dict((var, float(direction[v])) for v, var in enumerate(gradient.keys()))
     return magnitude, direction, foundInf
 
-
   def numGradPoints(self):
     """
       Returns the number of grad points required for the method
+      @ In, None
+      @ Out, None
     """
-    return self.N
+    # SPSA always uses 1 point, regardless of anything
+    return 1
 
 
-  ###################
-  # Utility Methods #
-  ###################
+
+
+
+
+
+
+
+
+
+
+
