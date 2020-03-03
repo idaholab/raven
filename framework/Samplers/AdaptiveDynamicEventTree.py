@@ -38,7 +38,6 @@ import itertools
 from .DynamicEventTree import DynamicEventTree
 from .LimitSurfaceSearch import LimitSurfaceSearch
 from utils import utils
-from utils import InputData
 import utils.TreeStructure as ETS
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------

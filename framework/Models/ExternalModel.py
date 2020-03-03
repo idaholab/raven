@@ -27,7 +27,7 @@ import inspect
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
 import CustomCommandExecuter
-from utils import utils, InputData, mathUtils
+from utils import utils, InputData, InputTypes, mathUtils
 import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -47,8 +47,8 @@ class ExternalModel(Dummy):
     """
     inputSpecification = super(ExternalModel, cls).getInputSpecification()
     inputSpecification.setStrictMode(False) #External models can allow new elements
-    inputSpecification.addParam("ModuleToLoad", InputData.StringType, False)
-    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringType))
+    inputSpecification.addParam("ModuleToLoad", InputTypes.StringType, False)
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringType))
 
     return inputSpecification
 

@@ -30,7 +30,7 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
 import pyDOE as doe
-from utils import InputData
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ResponseSurfaceDesign(Grid):
@@ -49,11 +49,11 @@ class ResponseSurfaceDesign(Grid):
     inputSpecification = super(ResponseSurfaceDesign, cls).getInputSpecification()
     responseSurfaceDesignSettingsInput = InputData.parameterInputFactory("ResponseSurfaceDesignSettings")
 
-    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("algorithmType", contentType=InputData.StringType))
-    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("ncenters", contentType=InputData.IntegerType))
-    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("centers", contentType=InputData.StringListType))
-    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("alpha", contentType=InputData.StringType))
-    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("face", contentType=InputData.StringType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("algorithmType", contentType=InputTypes.StringType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("ncenters", contentType=InputTypes.IntegerType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("centers", contentType=InputTypes.StringListType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.StringType))
+    responseSurfaceDesignSettingsInput.addSub(InputData.parameterInputFactory("face", contentType=InputTypes.StringType))
 
     inputSpecification.addSub(responseSurfaceDesignSettingsInput)
 
