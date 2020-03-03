@@ -107,6 +107,11 @@ parser.add_argument('--unkillable', action='store_true',
 parser.add_argument('--add-path', dest='add_path',
                     help='additional paths that need be added in PATH')
 
+parser.add_argument('--update-or-add-env-variables', dest='update_or_add_env_variables',
+                    help='comma separated list of environment variables to update or add. The syntax ' \
+                    'is at follows: NAME=NEW_VALUE (if a new env variable needs to be created or updated),' \
+                    'NAME>NEW_VALUE (if an env variable needs to be updated appending NEW_VALUE to it).')
+
 args = parser.parse_args()
 
 if args.config_file is not None:
@@ -319,6 +324,17 @@ if __name__ == "__main__":
     for new_path in args.add_path.split(","):
       print('rook: added new path "{}" in sys.path.'.format(new_path.strip()))
       sys.path.append(new_path.strip())
+  if args.update_or_add_env_variables:
+    # update enviroment variable
+    for new_env_var in args.update_or_add_env_variables.split(","):
+      sep = "=" if "=" in new_env_var else ">"
+      if sep not in new_env_var:
+        raise IOError('Syntax for enviroment variable setting must be ENV_VAR=VALUE (for replacement) or ENV_VAR>VALUE (for update)')
+      env_var_name, env_var_value = new_env_var.split(sep)
+      cur_env_var = os.environ.get(env_var_name.strip(),"None")
+      env_var_value = env_var_value if sep == "=" else (cur_env_var+env_var_value if cur_env_var != "None" else env_var_value)
+      print('rook: update enviroment variable "{}" from "{}" to "{}".'.format(env_var_name,cur_env_var, env_var_value))
+      os.environ[env_var_name] = env_var_value
 
   test_re = re.compile(args.test_re_raw)
 
