@@ -228,8 +228,8 @@ class SimulatedAnnealing(Sampled):
     self._resolveNewOptPoint(traj, rlz, optVal, info)
     fraction = self._stepCounter[traj]/self.limit
     currentPoint = self._collectOptPoint(rlz)
-    self.T0 = self._temperature(fraction)
-    self.T = self._coolingSchedule(self._stepCounter[traj], self.T0, type=self._coolingMethod, alpha = 0.94, beta = 0.1,d=10)
+    # self.T0 = self._temperature(fraction)
+    self.T = self._coolingSchedule(self._stepCounter[traj],self.T0, self._coolingMethod, alpha = 0.94, beta = 0.1,d=10)
     newPoint = self._nextNeighbour(rlz,fraction)
     # check new opt point against constraints
     try:
@@ -468,7 +468,7 @@ class SimulatedAnnealing(Sampled):
     ## what do do if a point is rejected?
     # TODO user option to EITHER rerun opt point OR cut step!
     # initialize a new step
-    self._initializeStep(traj)
+    ##self._initializeStep(traj)
   # END resolving potential opt points
   # * * * * * * * * * * * * * * * *
   
@@ -549,24 +549,24 @@ class SimulatedAnnealing(Sampled):
     """
     
     nextNeighbour = {}
-    for var in self.toBeSampled.keys():
-      if self._coolingMethod in ['linear' , 'exponential']:
-        amp = (1-fraction) # / 10.
-        delta = (-amp/2.)+ amp * randomUtils.random(dim=1, samples=1)
-      elif self._coolingMethod == 'boltzmann':
-        amp = min(np.sqrt(self.T), 1/3.0/alpha)
-        delta =  randomUtils.randomNormal(dim=1, samples=1)*alpha*amp        
-      elif self._coolingMethod == 'fast':
-        amp = randomUtils.random(dim=1, samples=1)
-        T = self.T
-        delta = np.sign(amp-0.5)*T*((1+1.0/T)**abs(2*amp-1)-1.0)
-      elif self._coolingMethod == 'cauchy':
-        amp = (np.pi - (-np.pi))*randomUtils.random(dim=1, samples=1)-np.pi #(dim=1, samples=1)
-        delta = alpha*self.T*math.tan(amp)
-      nextNeighbour[var] = rlz[var] + delta
+    if self._coolingMethod in ['linear' , 'exponential']:
+      amp = ((fraction)**-1) / 10 
+      delta = (-amp/2.)+ amp * randomUtils.random(dim=len(self.toBeSampled.keys()), samples=1)
+    elif self._coolingMethod == 'boltzmann':
+      amp = min(np.sqrt(self.T), 1/3.0/alpha)
+      delta =  randomUtils.randomNormal(dim=1, samples=1)*alpha*amp        
+    elif self._coolingMethod == 'fast':
+      amp = randomUtils.random(dim=1, samples=1)
+      T = self.T
+      delta = np.sign(amp-0.5)*T*((1+1.0/T)**abs(2*amp-1)-1.0)
+    elif self._coolingMethod == 'cauchy':
+      amp = (np.pi - (-np.pi))*randomUtils.random(dim=1, samples=1)-np.pi #(dim=1, samples=1)
+      delta = alpha*self.T*math.tan(amp)
+    for i,var in enumerate(self.toBeSampled.keys()):
+      nextNeighbour[var] = rlz[var] + delta[i]
       self.info['amp_'+var] = amp
-      self.info['delta_'+var] = delta
-      self.info['fraction'] = fraction
+      self.info['delta_'+var] = delta[i]
+    self.info['fraction'] = fraction
     return nextNeighbour
 
   ##############

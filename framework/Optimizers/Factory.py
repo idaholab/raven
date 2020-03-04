@@ -24,6 +24,7 @@ from .Optimizer import Optimizer
 from .Interfaced import Interfaced
 from .Sampled import Sampled
 from .GradientDescent import GradientDescent
+from .SimulatedAnnealing import SimulatedAnnealing
 # TODO
 
 
@@ -37,6 +38,7 @@ __base = 'Optimizer'
 __interFaceDict = {}
 # TODO
 __interFaceDict['GradientDescent'           ] = GradientDescent
+__interFaceDict['SimulatedAnnealing'        ] = SimulatedAnnealing
 #__interFaceDict['SPSA'                             ] = SPSA
 #__interFaceDict['FiniteDifference'                 ] = FiniteDifference
 #__interFaceDict['ConjugateGradient'                ] = ConjugateGradient
