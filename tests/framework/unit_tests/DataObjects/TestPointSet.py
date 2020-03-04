@@ -320,12 +320,43 @@ checkRlz('PointSet append 1 idx 2',data.realization(index=2),rlz2)
 ######################################
 #      GET MATCHING REALIZATION      #
 ######################################
-m,match = data.realization(matchDict={'a':11.0})
-checkSame('PointSet append 1 match index',m,1)
-checkRlz('PointSet append 1 match',match,rlz1)
-idx,rlz = data.realization(matchDict={'x':1.0})
+print('DEBUGG data:', data._collector)
+m, match = data.realization(matchDict={'a':11.0})
+checkSame('PointSet append 1 match index', m, 1)
+checkRlz('PointSet append 1 match', match, rlz1)
+idx, rlz = data.realization(matchDict={'x':1.0})
 checkSame('PointSet find bogus match index',idx,3)
 checkNone('PointSet find bogus match',rlz)
+print('DEBUGG\n\n')
+
+data2 = copy.deepcopy(data)
+# add a realization that is the same as one, but different in one element
+rlz3 = {'a' :11.0,
+        'b': 12.0,
+        'x': 14.0,
+        'z': 16.0,
+        'prefix': 'fourth',
+       }
+formatRealization(rlz3)
+data2.addRealization(rlz3)
+m, match = data2.realization(matchDict={'a': 11.0}, noMatchDict={'prefix': 'second'})
+print('DEBUGG match3:', m, match,'\n\n')
+checkSame('PointSet append 1 avoid prefix second index', m, 3)
+checkRlz('PointSet append 1 avoid prefix second', match, rlz3)
+m, match = data2.realization(matchDict={'a': 11.0}, noMatchDict={'prefix': 'fourth'})
+print('DEBUGG match1:', m, match,'\n\n')
+checkSame('PointSet append 1 avoid prefix fourth index', m, 1)
+checkRlz('PointSet append 1 avoid prefix fourth', match, rlz1)
+
+# now as a datset
+data2.asDataset()
+m, match = data2.realization(matchDict={'a': 11.0}, noMatchDict={'prefix': 'second'})
+checkSame('PointSet append 1 avoid prefix second index', m, 3)
+checkRlz('PointSet append 1 avoid prefix second', match, rlz3)
+
+m, match = data2.realization(matchDict={'a': 11.0}, noMatchDict={'prefix': 'fourth'})
+checkSame('PointSet append 1 avoid prefix fourth index', m, 1)
+checkRlz('PointSet append 1 avoid prefix fourth', match, rlz1)
 
 ######################################
 #        COLLAPSING DATA SET         #

@@ -147,6 +147,9 @@ class GradientDescent(Sampled):
     for name in cls.convergenceOptions:
       conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType))
     conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType))
+    terminate = InputData.parameterInputFactory('terminateFollowers', contentType=InputTypes.BoolType)
+    terminate.addParam('proximity', param_type=InputTypes.FloatType, required=False)
+    conv.addSub(terminate)
     # NOTE to add new convergence options, add them to convergenceOptions above, not here!
 
     return specs
@@ -173,8 +176,11 @@ class GradientDescent(Sampled):
     self._stepRecommendations = {} # by traj, if a 'cut' or 'grow' is recommended else None
     self._acceptRerun = {}         # by traj, if True then override accept for point rerun
     self._convergenceCriteria = defaultdict(giveZero) # names and values for convergence checks
-    self._convergenceInfo = {}     # by traj, the persistence and convergence information for most recent opt
+    self._convergenceInfo = {}       # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = None # consecutive persistence required to mark convergence
+    self._terminateFollowers = True  # whether trajectories sharing a point should cause termination
+    self._followerProximity = None   # distance at which annihilation can start ocurring, in ?normalized? space
+    self._trajectoryFollowers = defaultdict(list) # map of trajectories to the trajectories following them
     # __private
     # additional methods
     ## register adaptive sample identification criteria
@@ -226,6 +232,9 @@ class GradientDescent(Sampled):
       for sub in convNode.subparts:
         if sub.getName() == 'persistence':
           self._requiredPersistence = sub.value
+        elif sub.getName() == 'terminateFollowers':
+          self._terminateFollowers = sub.value
+          self._followerProximity = sub.parameterValues.get('proximity', 1e-2)
         else:
           self._convergenceCriteria[sub.name] = sub.value
     if not self._convergenceCriteria:
@@ -551,30 +560,39 @@ class GradientDescent(Sampled):
       @ Out, old, dict, old opt point
     """
     # Check acceptability
-    # NOTE: if self._optPointHistory[traj]: -> faster to use "try" for all but the first time
-
-    try:
+    if self._optPointHistory[traj]:
       old, _ = self._optPointHistory[traj][-1]
       oldVal = old[self._objectiveVar]
-      ## some stepManipulators may need to override the acceptance criteria
-      if self._stepInstance.needsAccessToAcceptance:
-        acceptable = self._stepInstance.modifyAcceptance(old, oldVal, opt, optVal)
-        self._acceptHistory[traj].append(acceptable)
-        return acceptable, old
-      # check if same point
+
+      # check if following another trajectory
+      if self._terminateFollowers:
+        following = self._stepInstance.trajIsFollowing(traj, self.denormalizeData(opt), info,
+                                                       self._solutionExport,
+                                                       self._trajectoryFollowers.get(traj, None),
+                                                       self._followerProximity)
+        if following is not None:
+          self.raiseADebug('Cancelling Trajectory {} because it is following Trajectory {}'.format(traj, following))
+          self._trajectoryFollowers[following].append(traj) # "traj" is killed by "following"
+          self._closeTrajectory(traj, 'cancel', 'following {}'.format(following), optVal)
+          return 'accepted', old
+
       self.raiseADebug(' ... change: {d: 1.3e} new: {n: 1.6e} old: {o: 1.6e}'
                       .format(d=optVal-oldVal, o=oldVal, n=optVal))
+      ## some stepManipulators may need to override the acceptance criteria, e.g. conjugate gradient
+      if self._stepInstance.needsAccessToAcceptance:
+        acceptable = self._stepInstance.modifyAcceptance(old, oldVal, opt, optVal)
       # if this is an opt point rerun, accept it without checking.
-      if self._acceptRerun[traj]:
+      elif self._acceptRerun[traj]:
         acceptable = 'rerun'
         self._acceptRerun[traj] = False
         self._stepRecommendations[traj] = 'shrink' # FIXME how much do we really want this?
+      # check if same point
       elif all(opt[var] == old[var] for var in self.toBeSampled):
         # this is the classic "same point" trap; we accept the same point, and check convergence later
         acceptable = 'accepted'
       else:
         acceptable = self._checkForImprovement(optVal, oldVal)
-    except IndexError:
+    else: # no history
       # if first sample, simply assume it's better!
       acceptable = 'first'
       old = None

@@ -21,6 +21,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import copy
 import itertools
+import operator
 try:
   import cPickle as pk
 except ImportError:
@@ -503,13 +504,14 @@ class DataSet(DataObject):
     # after loading, set or reset scaling factors
     self._setScalingFactors()
 
-  def realization(self, index=None, matchDict=None, tol=1e-15, unpackXArray=False):
+  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False):
     """
       Method to obtain a realization from the data, either by index or matching value.
       Either "index" or "matchDict" must be supplied.
       If matchDict and no match is found, will return (len(self),None) after the pattern of numpy, scipy
       @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
+      @ In, noMatchDict, dict, optional, {key:val} to search for antimatches (vars should NOT match vals within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
       @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}) (valid only for dataset)
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
@@ -517,8 +519,8 @@ class DataSet(DataObject):
     """
     # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in?
     ## first, check that some direction was given, either an index or a match to find
-    if (index is None and matchDict is None) or (index is not None and matchDict is not None):
-      self.raiseAnError(TypeError,'Either "index" OR "matchDict" (not both) must be specified to use "realization!"')
+    if (index is None and (matchDict is None and noMatchDict is None)) or (index is not None and (matchDict is not None or noMatchDict is not None)):
+      self.raiseAnError(TypeError,'Either "index" OR ("matchDict" and/or noMatchDict) (not both) must be specified to use "realization!"')
     numInData = len(self._data[self.sampleTag]) if self._data is not None else 0
     numInCollector = len(self._collector) if self._collector is not None else 0
     ## next, depends on if we're doing an index lookup or a realization match
@@ -563,14 +565,14 @@ class DataSet(DataObject):
           return 0, None
         # otherwise, get it from the collector
         else:
-          index, rlz = self._getRealizationFromCollectorByValue(matchDict, tol=tol)
+          index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol)
       # otherwise, first try to find it in the data
       else:
-        index, rlz = self._getRealizationFromDataByValue(matchDict, tol=tol, unpackXArray=unpackXArray)
+        index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, unpackXArray=unpackXArray)
         # if no match found in data, try in the collector (if there's anything in it)
         if rlz is None:
           if numInCollector > 0:
-            index, rlz = self._getRealizationFromCollectorByValue(matchDict, tol=tol)
+            index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol)
       # add index map where necessary
       rlz = self._addIndexMapToRlz(rlz)
       return index, rlz
@@ -1513,37 +1515,58 @@ class DataSet(DataObject):
       rlz[var] = vals
     return rlz
 
-  def _getRealizationFromCollectorByValue(self,toMatch,tol=1e-15):
+  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15):
     """
       Obtains a realization from the collector storage matching the provided index
       @ In, toMatch, dict, elements to match
+      @ In, noMatch, dict, elements to AVOID matching (should not match within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
       @ Out, r, int, index where match was found OR size of data if not found
       @ Out, rlz, dict, realization as {var:value} OR None if not found
     """
+    if toMatch is None:
+      toMatch = {}
+    if noMatch is None:
+      noMatch = {}
     assert(self._collector is not None)
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
-    lookingFor = list(toMatch.values())
-    for r,row in enumerate(self._collector[:,tuple(self._orderedVars.index(var) for var in toMatch.keys())]):
+    matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
+    avoidVars, avoidVals = zip(*noMatch.items()) if noMatch else ([], [])
+    for r, row in enumerate(self._collector[:]):
       match = True
-      for e,element in enumerate(row):
-        # check for matching based on if a number or not
-        if mathUtils.isAFloatOrInt(element):
-          match &= mathUtils.compareFloats(lookingFor[e],element,tol=tol)
-        else:
-          match &= lookingFor[e] == element
-        # if this element doesn't match, the row doesn't match
-        if not match:
-          break
-      # if each element matched, we found a match, so stop looking
+      # find matches first
+      if toMatch:
+        possibleMatch = self._collector[r, tuple(self._orderedVars.index(var) for var in matchVars)]
+        for e, element in enumerate(np.atleast_1d(possibleMatch)):
+          var = matchVars[e]
+          if mathUtils.isAFloatOrInt(element):
+            match &= mathUtils.compareFloats(matchVals[e], element, tol=tol)
+          else:
+            match &= matchVals[e] == element
+          if not match:
+            break
+      # avoid antimatches if we match so far
+      if match and noMatch:
+        # NOTE there may be multiple entries per var in noMatch
+        possibleAvoid = self._collector[r, tuple(self._orderedVars.index(var) for var in avoidVars)]
+        for e, element in enumerate(np.atleast_1d(possibleAvoid)):
+          var = avoidVars[e]
+          if mathUtils.isAFloatOrInt(element):
+            for avoid in np.atleast_1d(avoidVals[e]):
+              match &= not mathUtils.compareFloats(avoid, element, tol=tol)
+              if not match:
+                break
+          else:
+            match &= element not in np.atleast_1d(avoidVals[e]) # TODO histories?
+          if not match:
+            break
       if match:
         break
-    # did we find a match?
     if match:
-      return r,self._getRealizationFromCollectorByIndex(r)
+      return r, self._getRealizationFromCollectorByIndex(r)
     else:
-      return len(self),None
+      return len(self), None
 
   def _getRealizationFromDataByIndex(self,index, unpackXArray=False):
     """
@@ -1557,40 +1580,79 @@ class DataSet(DataObject):
     rlz = self._convertFinalizedDataRealizationToDict(rlz, unpackXArray)
     return rlz
 
-  def _getRealizationFromDataByValue(self,match, tol=1e-15, unpackXArray=False):
+  def _getRealizationFromDataByValue(self, match, noMatch, tol=1e-15, unpackXArray=False):
     """
       Obtains a realization from the data storage using the provided index.
       @ In, match, dict, elements to match
+      @ In, noMatch, dict, elements to AVOID matching (should not match within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
       @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray})
       @ Out, r, int, index where match was found OR size of data if not found
       @ Out, rlz, dict, realization as {var:value} OR None if not found
     """
     assert(self._data is not None)
+    if match is None:
+      match = {}
+    if noMatch is None:
+      noMatch = {}
+    matchVars = list(match.keys())
+    avoidVars = list(noMatch.keys())
+    # TODO what if a variable is in both??
     # TODO this could be slow, should do KD tree instead
     mask = 1.0
-    for var,val in match.items():
+    for var in matchVars: #, val in match.items():
+      val = match[var]
       # float instances are relative, others are absolute
       if mathUtils.isAFloatOrInt(val):
         # scale if we know how
         try:
-          loc,scale = self._scaleFactors[var]
-        #except TypeError:
-        #  # self._scaleFactors is None, so set them
-        #  self._setScalingFactors(var)
-        except KeyError: # IndexError?
-        # variable doesn't have a scale factor (yet? Why not?)
+          loc, scale = self._scaleFactors[var]
+        except KeyError:
+        # variable doesn't have a scale factor (why not? it's a float or int ...)
           loc = 0.0
           scale = 1.0
         if scale == 0:
           # TODO: Seem to me, we need to find a better way to compare data
           # The scale will be zero if Grid Sampler is used, reset to 1.0
           scale = 1.0
-        scaleVal = (val-loc)/scale
+        scaleVal = (val-loc) / scale
         # create mask of where the dataarray matches the desired value
         mask *= abs((self._data[var]-loc)/scale - scaleVal) < tol
       else:
         mask *= self._data[var] == val
+      # if all potential matches eliminated, stop looking
+      if sum(mask) == 0:
+        break
+    # continue checking for avoidance variables
+    ## NOTE that there may be multiple entries per avoidance variable
+    if sum(mask) and avoidVars:
+      for var in avoidVars:
+        vals = np.atleast_1d(noMatch[var]) # values to AVOID matching # TODO what about histories?
+        # float instances are relative, others are absolute
+        if mathUtils.isAFloatOrInt(vals[0]):
+          # scale if we know how
+          try:
+            loc, scale = self._scaleFactors[var]
+          except KeyError:
+          # variable doesn't have a scale factor (why not? it's a float or int ...)
+            loc = 0.0
+            scale = 1.0
+          if scale == 0:
+            # TODO: Seem to me, we need to find a better way to compare data
+            # The scale will be zero if Grid Sampler is used, reset to 1.0
+            scale = 1.0
+          # create mask of where the dataarray matches the desired value
+          dataVal = (self._data[var] - loc) / scale
+          for val in vals:
+            scaleVal = (val-loc) / scale
+            mask *= not abs(dataVal - scaleVal) >= tol
+        else:
+          for val in vals:
+            mask *= np.logical_not(self._data[var] == val)
+        # if all potential matches eliminated, stop looking
+        if sum(mask) == 0:
+          break
+
     rlz = self._data.where(mask,drop=True)
     try:
       idx = rlz[self.sampleTag].item(0)

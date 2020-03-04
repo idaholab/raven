@@ -181,7 +181,7 @@ class Optimizer(AdaptiveSampler):
     init = paramInput.findFirst('samplerInit')
     if init is not None:
       # initialSeed
-      seed = init.findFirst('seed')
+      seed = init.findFirst('initialSeed')
       if seed is not None:
         self._seed = seed.value
       # minmax

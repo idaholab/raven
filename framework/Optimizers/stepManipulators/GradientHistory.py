@@ -199,6 +199,32 @@ class GradientHistory(StepManipulator):
       print(' ... rotating step ...') #ed norm direction to {}, new norm opt {}'.format(splitDir, proposed))
     return proposed, stepSize, fixInfo
 
+  def trajIsFollowing(self, traj, opt, info, dataObject, followers, tolerance):
+    """
+      Determines if the current trajectory is following another trajectory.
+      @ In, traj, int, integer identifier for trajectory that needs to be checked
+      @ In, opt, dict, DENORMALIZED most recent optimal point for trajectory
+      @ In, info, dict, additional information about optimal point
+      @ In, dataObject, DataObject.DataSet, data collected through optimization so far (SolutionExport)
+      @ In, followers, list(int), trajectories that are following traj currently
+      @ In, tolerance, float, termination distance (in scaled space)
+      @ Out, found, int, trajectory that traj is following (or None)
+    """
+    if followers is None:
+      followers = []
+    # we define a trajectory as following if its current opt point is sufficiently near other opt
+    # points from other trajectories
+    matchDict = dict((var, opt[var]) for var in self._optVars)
+    # only look in accepted points #TODO would there be value in looking at others?
+    matchDict['accepted'] = 'accepted'
+    # only look at other trajectories that this trajectory hasn't killed
+    noMatchDict = {'trajID': [traj] + followers}
+
+    _, found = dataObject.realization(matchDict=matchDict, noMatchDict=noMatchDict, tol=tolerance)
+    if found is not None:
+      return found['trajID']
+    return None
+
   ###################
   # Utility Methods #
   ###################
