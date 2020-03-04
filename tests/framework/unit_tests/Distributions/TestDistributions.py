@@ -101,7 +101,7 @@ def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
     @ In, tol, float, optional, the tolerance
     @ Out, None
   """
-  xs=np.linspace(low,high,numpts)
+  xs=np.linspace(low,high,int(numpts))
   dx = (high-low)/float(numpts)
   tot = sum(dist.pdf(x)*dx for x in xs)
   checkAnswer(name+' unity integration',tot,1,tol)
