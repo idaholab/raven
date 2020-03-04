@@ -26,10 +26,9 @@ import signal
 import copy
 import sys
 import abc
-from importlib import util as imutil
+from utils import importerUtils as im
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
-_rayAvail = False if imutil.find_spec("ray") is None else True
-if _rayAvail:
+if im.isLibAvail("ray"):
   import ray
 else:
   import pp
@@ -77,7 +76,7 @@ class DistributedMemoryRunner(InternalRunner):
     ## First, allow the base class to handle the commonalities
     ##   We keep the command here, in order to have the hook for running exec
     ##   code into internal models
-    if not _rayAvail:
+    if not im.isLibAvail("ray"):
       self.__ppserver, args = args[0], args[1:]
     super(DistributedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler,profile)
 
@@ -94,7 +93,7 @@ class DistributedMemoryRunner(InternalRunner):
     if self.thread is None:
       return True
     else:
-      return (self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]) if _rayAvail else self.thread.finished
+      return (self.thread in ray.wait([self.thread], timeout=waitTimeOut)[0]) if im.isLibAvail("ray") else self.thread.finished
 
   def _collectRunnerResponse(self):
     """
@@ -105,7 +104,7 @@ class DistributedMemoryRunner(InternalRunner):
     """
     if not self.hasBeenAdded:
       if self.thread is not None:
-        self.runReturn = ray.get(self.thread) if _rayAvail else self.thread()
+        self.runReturn = ray.get(self.thread) if im.isLibAvail("ray") else self.thread()
       else:
         self.runReturn = None
       self.hasBeenAdded = True
@@ -117,7 +116,7 @@ class DistributedMemoryRunner(InternalRunner):
       @ Out, None
     """
     try:
-      if _rayAvail:
+      if im.isLibAvail("ray"):
         self.thread = self.functionToRun(*self.args)
       else:
         self.thread = self.__ppserver.submit(self.functionToRun, args=self.args, depfuncs=(),

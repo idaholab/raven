@@ -24,11 +24,15 @@ from __future__ import division, print_function, absolute_import
 
 #External Modules------------------------------------------------------------------------------------
 import lazy_import
+from importlib import util as imutil
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 #Internal Modules End--------------------------------------------------------------------------------
 
-def import_module_lazy(moduleString):
+# filled by isLibAvail: store if libraries are available or not e.g. {'numpy':True/False, etc.}.
+__moduleAvailability = {}
+
+def importModuleLazy(moduleString):
   """
     This method is aimed to import a module with lazy_import
     @ In, moduleString, str, the module to import (e.g. numpy or scipy.stats, etc.)
@@ -36,7 +40,7 @@ def import_module_lazy(moduleString):
   """
   return lazy_import.lazy_module(moduleString.strip())
 
-def import_collable_lazy(collableString):
+def importCollableLazy(collableString):
   """
     This method is aimed to import a collable method or attribute
     within a module that needs to be lazy imported
@@ -44,3 +48,15 @@ def import_collable_lazy(collableString):
     @ Out, callable, Object_Pointer, the collable (lazy)
   """
   return lazy_import.lazy_callable(collableString.strip())
+
+
+def isLibAvail(moduleString):
+  """
+    This method is aimed to check if a certain library is available in the system
+    @ In, moduleString, str, the module to look for (e.g.numpy, scipy, etc.)
+    @ Out, isLibraryAvailable, bool, is it available?
+  """
+  global __moduleAvailability
+  if moduleString not in __moduleAvailability:
+    __moduleAvailability[moduleString] = False if imutil.find_spec(moduleString) is None else True
+  return __moduleAvailability.get(moduleString)

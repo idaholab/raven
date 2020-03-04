@@ -23,21 +23,21 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
-from utils.lazyImporterUtils import import_module_lazy, import_collable_lazy
+from utils.importerUtils import importModuleLazy, importCollableLazy
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-sklearn = import_module_lazy("sklearn")
-linear_model = import_module_lazy("sklearn.linear_model")
-svm = import_module_lazy("sklearn.svm")
-multiclass = import_module_lazy("sklearn.multiclass")
-naive_bayes = import_module_lazy("sklearn.naive_bayes")
-neighbors = import_module_lazy("sklearn.neighbors")
-tree = import_module_lazy("sklearn.tree")
-gaussian_process = import_module_lazy("sklearn.gaussian_process")
-da = import_module_lazy("sklearn.discriminant_analysis")
-neural_network = import_module_lazy("sklearn.neural_network")
-np = import_module_lazy("numpy")
+sklearn = importModuleLazy("sklearn")
+linear_model = importModuleLazy("sklearn.linear_model")
+svm = importModuleLazy("sklearn.svm")
+multiclass = importModuleLazy("sklearn.multiclass")
+naive_bayes = importModuleLazy("sklearn.naive_bayes")
+neighbors = importModuleLazy("sklearn.neighbors")
+tree = importModuleLazy("sklearn.tree")
+gaussian_process = importModuleLazy("sklearn.gaussian_process")
+da = importModuleLazy("sklearn.discriminant_analysis")
+neural_network = importModuleLazy("sklearn.neural_network")
+np = importModuleLazy("numpy")
 import ast
 #External Modules End--------------------------------------------------------------------------------
 

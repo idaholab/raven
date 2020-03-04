@@ -33,7 +33,7 @@ import threading
 from random import randint
 import socket
 import time
-from importlib import util as imutil
+from utils import importerUtils as im
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -44,7 +44,7 @@ import Runners
 import Models
 # for internal parallel
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
-_rayAvail = False if imutil.find_spec("ray") is None else True
+_rayAvail = im.isLibAvail("ray")
 if _rayAvail:
  import ray
 else:

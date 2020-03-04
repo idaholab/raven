@@ -343,7 +343,7 @@ def _parseLibs(config, opSys, install, addOptional=False, limit=None, plugins=No
   for src in ['core', 'forge', 'pip']:
     if config.has_section(src) and (True if limit is None else (src in limit)):
       _addLibsFromSection(config.items(src), libs)
-  # os-specific part of 'core' right now
+  # os-specific are part of 'core' right now (if not explicitly reported in the pip section)
   if config.has_section(opSys) and (True if limit is None else ('core' in limit)):
     _addLibsFromSection(config.items(opSys), libs)
   # os-specific of specific installer (e.g. pip)
