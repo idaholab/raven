@@ -43,16 +43,16 @@ class Sampled(Optimizer):
   """
     Base class for Optimizers using RAVEN's internal sampling mechanics.
     Handles the following:
-     - Maintain queue for required realizations
-     - Label and retrieve realizations given labels
-     - Establish API for convergence checking
-     - Establish API to extend labels for particular implementations
-     - Implements constraint checking
-     - Implements model evaluation limitations
-     - Implements rejection strategy (?)
-     - Implements convergence persistence
-     - Establish API for iterative sample output to solution export
-     - Implements specific sampling methods from Sampler (when not present in Optimizer)
+      - Maintain queue for required realizations
+      - Label and retrieve realizations given labels
+      - Establish API for convergence checking
+      - Establish API to extend labels for particular implementations
+      - Implements constraint checking
+      - Implements model evaluation limitations
+      - Implements rejection strategy (?)
+      - Implements convergence persistence
+      - Establish API for iterative sample output to solution export
+      - Implements specific sampling methods from Sampler (when not present in Optimizer)
   """
 
   ##########################

@@ -132,7 +132,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference','ConjugateGradient']
+  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference','ConjugateGradient', 'SimulatedAnnealing']
 
   @classmethod
   def generateValidateDict(cls):
