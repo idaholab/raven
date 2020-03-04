@@ -39,7 +39,7 @@ import Runners
 
 class MCSimporter(PostProcessor):
   """
-    This is the base class of the PostProcessor that imports Event-Trees (ETs) into RAVEN as a PointSet
+    This is the base class of the PostProcessor that imports Minimal Cut Sets (MCSs) into RAVEN as a PointSet
   """
   def __init__(self, messageHandler):
     """
@@ -52,7 +52,6 @@ class MCSimporter(PostProcessor):
     self.expand    = None  # option that controls the structure of the ET. If True, the tree is expanded so that
                            # all possible sequences are generated. Sequence label is maintained according to the
                            # original tree
-    #self.allowedFormats = ['Saphire'] # ET formats that are supported
 
   @classmethod
   def getInputSpecification(cls):
@@ -64,14 +63,12 @@ class MCSimporter(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(MCSimporter, cls).getInputSpecification()
-    #inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("expand", contentType=InputData.BoolType))
-    #inputSpecification.addSub(InputData.parameterInputFactory("BElistColumn", contentType=InputData.StringType))
     return inputSpecification
 
   def initialize(self, runInfo, inputs, initDict) :
     """
-      Method to initialize the pp.
+      Method to initialize the PostProcessor
       @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
       @ In, inputs, list, list of inputs
       @ In, initDict, dict, dictionary with initialization options
@@ -104,9 +101,6 @@ class MCSimporter(PostProcessor):
     
     expand = paramInput.findFirst('expand')
     self.expand = expand.value
-
-    #BElistColumn = paramInput.findFirst('BElistColumn')
-    #self.BElistColumn = BElistColumn.value
         
     # if self.expand = False then the dataObject includes only the Basic Events  listed in the set of MCSs
     # if self.expand = True then the dataObject includes all Basic Events
@@ -171,14 +165,11 @@ class MCSimporter(PostProcessor):
 
     MCSpointSet = {} 
     MCSpointSet['probability'] = self.probability
-    MCSpointSet['MCS_IDs']     = self.MCS_IDs
+    MCSpointSet['MCS_ID']     = self.MCS_IDs
     MCSpointSet['out']         = np.ones((counter))
 
     for be in self.BElist:
       MCSpointSet[be]= np.zeros(counter)
-    
-    # Input variables
-    MCSpointSet['MCS_ID']= np.arange(counter)
     
     # Output variables 
     counter=0
