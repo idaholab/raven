@@ -23,7 +23,7 @@ This is common classes for testing the xsd program.
 from __future__ import division, print_function, unicode_literals, absolute_import
 import xml.etree.ElementTree as ET
 
-from utils import InputData
+from utils import InputData, InputTypes
 
 class Sub1Input(InputData.ParameterInput):
   """
@@ -32,7 +32,7 @@ class Sub1Input(InputData.ParameterInput):
   pass
 
 Sub1Input.createClass("sub_1")
-Sub1Input.setContentType(InputData.StringType)
+Sub1Input.setContentType(InputTypes.StringType)
 
 class Sub2Input(InputData.ParameterInput):
   """
@@ -41,7 +41,7 @@ class Sub2Input(InputData.ParameterInput):
   pass
 
 Sub2Input.createClass("sub_2")
-Sub2Input.setContentType(InputData.StringType)
+Sub2Input.setContentType(InputTypes.StringType)
 
 class Sub3Input(InputData.ParameterInput):
   """
@@ -50,9 +50,9 @@ class Sub3Input(InputData.ParameterInput):
   pass
 
 Sub3Input.createClass("sub_3")
-Sub3Input.setContentType(InputData.IntegerType)
+Sub3Input.setContentType(InputTypes.IntegerType)
 
-Sub4Input = InputData.parameterInputFactory("sub_4", contentType=InputData.FloatType)
+Sub4Input = InputData.parameterInputFactory("sub_4", contentType=InputTypes.FloatType)
 
 class InnerInput(InputData.ParameterInput):
   """
@@ -63,9 +63,9 @@ class InnerInput(InputData.ParameterInput):
 InnerInput.createClass("inner")
 
 InnerInput.addParam("data_1")
-InnerInput.addParam("int_value", InputData.IntegerType)
-InnerInput.addParam("required_string", InputData.StringType, True)
-InnerInput.addParam("list_of_strings", InputData.StringListType)
+InnerInput.addParam("int_value", InputTypes.IntegerType)
+InnerInput.addParam("required_string", InputTypes.StringType, True)
+InnerInput.addParam("list_of_strings", InputTypes.StringListType)
 InnerInput.addSub(Sub1Input)
 InnerInput.addSub(Sub2Input)
 InnerInput.addSub(Sub3Input)
@@ -78,7 +78,7 @@ class SubBool(InputData.ParameterInput):
   pass
 
 SubBool.createClass("sub_bool")
-SubBool.setContentType(InputData.BoolType)
+SubBool.setContentType(InputTypes.BoolType)
 
 class OrderedInput(InputData.ParameterInput):
   """

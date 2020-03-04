@@ -28,7 +28,7 @@ from __future__ import division, print_function, absolute_import
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import utils, InputData
+from utils import utils, InputData, InputTypes
 from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -57,8 +57,8 @@ class External(BaseType):
         specifying input of cls.
     """
     inputSpecification = super(External, cls).getInputSpecification()
-    inputSpecification.addParam("file", InputData.StringType, True)
-    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringListType))
+    inputSpecification.addParam("file", InputTypes.StringType, True)
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringListType))
     return inputSpecification
 
   def __init__(self,runInfoDict):

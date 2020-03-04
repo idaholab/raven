@@ -26,7 +26,7 @@ import xarray as xr
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils, mathUtils
-from utils import InputData
+from utils import InputData, InputTypes
 import Files
 import unSupervisedLearning
 import Runners
@@ -52,112 +52,112 @@ class DataMining(PostProcessor):
     ## This will replace the lines above
     inputSpecification = super(DataMining, cls).getInputSpecification()
 
-    preProcessorInput = InputData.parameterInputFactory("PreProcessor", contentType=InputData.StringType)
-    preProcessorInput.addParam("class", InputData.StringType)
-    preProcessorInput.addParam("type", InputData.StringType)
+    preProcessorInput = InputData.parameterInputFactory("PreProcessor", contentType=InputTypes.StringType)
+    preProcessorInput.addParam("class", InputTypes.StringType)
+    preProcessorInput.addParam("type", InputTypes.StringType)
 
-    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
 
     inputSpecification.addSub(pivotParameterInput)
 
-    dataObjectInput = InputData.parameterInputFactory("DataObject", contentType=InputData.StringType)
-    dataObjectInput.addParam("class", InputData.StringType)
-    dataObjectInput.addParam("type", InputData.StringType)
+    dataObjectInput = InputData.parameterInputFactory("DataObject", contentType=InputTypes.StringType)
+    dataObjectInput.addParam("class", InputTypes.StringType)
+    dataObjectInput.addParam("type", InputTypes.StringType)
 
     inputSpecification.addSub(dataObjectInput)
 
-    metricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
-    metricInput.addParam("class", InputData.StringType)
-    metricInput.addParam("type", InputData.StringType)
+    metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
+    metricInput.addParam("class", InputTypes.StringType)
+    metricInput.addParam("type", InputTypes.StringType)
 
     inputSpecification.addSub(metricInput)
 
     kddInput = InputData.parameterInputFactory("KDD")
-    kddInput.addParam("lib", InputData.StringType)
-    kddInput.addParam("labelFeature", InputData.StringType)
+    kddInput.addParam("lib", InputTypes.StringType)
+    kddInput.addParam("labelFeature", InputTypes.StringType)
 
 
-    sklTypeInput = InputData.parameterInputFactory("SKLtype", contentType=InputData.StringType)
+    sklTypeInput = InputData.parameterInputFactory("SKLtype", contentType=InputTypes.StringType)
     kddInput.addSub(sklTypeInput)
-    sciPyTypeInput = InputData.parameterInputFactory("SCIPYtype", contentType=InputData.StringType)
+    sciPyTypeInput = InputData.parameterInputFactory("SCIPYtype", contentType=InputTypes.StringType)
     kddInput.addSub(sciPyTypeInput)
 
-    for name, inputType in [("interactive",InputData.StringType),
-                            ("Features",InputData.StringType),
-                            ("n_components",InputData.StringType),
-                            ("covariance_type",InputData.StringType),
-                            ("random_state",InputData.StringType),
-                            ("min_covar",InputData.FloatType),
-                            ("thresh",InputData.FloatType),
-                            ("n_iter",InputData.IntegerType),
-                            ("n_init",InputData.IntegerType),
-                            ("params",InputData.StringType),
-                            ("init_params",InputData.StringType),
-                            ("alpha",InputData.FloatType),
-                            ("n_clusters",InputData.IntegerType),
-                            ("max_iter",InputData.IntegerType),
-                            ("init",InputData.StringType),
-                            ("precompute_distances",InputData.StringType),
-                            ("tol",InputData.FloatType),
-                            ("n_jobs",InputData.IntegerType),
-                            ("max_no_improvement",InputData.IntegerType),
-                            ("batch_size",InputData.IntegerType),
-                            ("compute_labels",InputData.StringType),
-                            ("reassignment_ratio",InputData.FloatType),
-                            ("damping",InputData.StringType),
-                            ("convergence_iter",InputData.IntegerType),
-                            ("copy",InputData.StringType),
-                            ("preference",InputData.StringType),
-                            ("affinity",InputData.StringType),
-                            ("verbose",InputData.StringType),
-                            ("bandwidth",InputData.FloatType),
-                            ("seeds",InputData.StringType),
-                            ("bin_seeding",InputData.StringType),
-                            ("min_bin_freq",InputData.IntegerType),
-                            ("cluster_all",InputData.StringType),
-                            ("gamma",InputData.FloatType),
-                            ("degree",InputData.StringType),
-                            ("coef0",InputData.FloatType),
-                            ("n_neighbors",InputData.IntegerType),
-                            ("eigen_solver",InputData.StringType),
-                            ("eigen_tol",InputData.FloatType),
-                            ("assign_labels",InputData.StringType),
-                            ("kernel_params",InputData.StringType),
-                            ("eps",InputData.StringType),
-                            ("min_samples",InputData.IntegerType),
-                            ("metric", InputData.StringType),
-                            ("connectivity",InputData.StringType),
-                            ("linkage",InputData.StringType),
-                            ("whiten",InputData.StringType),
-                            ("iterated_power",InputData.StringType),
-                            ("kernel",InputData.StringType),
-                            ("fit_inverse_transform",InputData.StringType),
-                            ("remove_zero_eig",InputData.StringType),
-                            ("ridge_alpha",InputData.FloatType),
-                            ("method",InputData.StringType),
-                            ("U_init",InputData.StringType),
-                            ("V_init",InputData.StringType),
-                            ("callback",InputData.StringType),
-                            ("shuffle",InputData.StringType),
-                            ("algorithm",InputData.StringType),
-                            ("fun",InputData.StringType),
-                            ("fun_args",InputData.StringType),
-                            ("w_init",InputData.StringType),
-                            ("path_method",InputData.StringType),
-                            ("neighbors_algorithm",InputData.StringType),
-                            ("reg",InputData.FloatType),
-                            ("hessian_tol",InputData.FloatType),
-                            ("modified_tol",InputData.FloatType),
-                            ("dissimilarity",InputData.StringType),
-                            ("level",InputData.StringType),
-                            ("criterion",InputData.StringType),
-                            ("dendrogram",InputData.StringType),
-                            ("truncationMode",InputData.StringType),
-                            ("p",InputData.IntegerType),
-                            ("leafCounts",InputData.StringType),
-                            ("showContracted",InputData.StringType),
-                            ("annotatedAbove",InputData.FloatType),
-                            ("dendFileID",InputData.StringType)]:
+    for name, inputType in [("interactive",InputTypes.StringType),
+                            ("Features",InputTypes.StringType),
+                            ("n_components",InputTypes.StringType),
+                            ("covariance_type",InputTypes.StringType),
+                            ("random_state",InputTypes.StringType),
+                            ("min_covar",InputTypes.FloatType),
+                            ("thresh",InputTypes.FloatType),
+                            ("n_iter",InputTypes.IntegerType),
+                            ("n_init",InputTypes.IntegerType),
+                            ("params",InputTypes.StringType),
+                            ("init_params",InputTypes.StringType),
+                            ("alpha",InputTypes.FloatType),
+                            ("n_clusters",InputTypes.IntegerType),
+                            ("max_iter",InputTypes.IntegerType),
+                            ("init",InputTypes.StringType),
+                            ("precompute_distances",InputTypes.StringType),
+                            ("tol",InputTypes.FloatType),
+                            ("n_jobs",InputTypes.IntegerType),
+                            ("max_no_improvement",InputTypes.IntegerType),
+                            ("batch_size",InputTypes.IntegerType),
+                            ("compute_labels",InputTypes.StringType),
+                            ("reassignment_ratio",InputTypes.FloatType),
+                            ("damping",InputTypes.StringType),
+                            ("convergence_iter",InputTypes.IntegerType),
+                            ("copy",InputTypes.StringType),
+                            ("preference",InputTypes.StringType),
+                            ("affinity",InputTypes.StringType),
+                            ("verbose",InputTypes.StringType),
+                            ("bandwidth",InputTypes.FloatType),
+                            ("seeds",InputTypes.StringType),
+                            ("bin_seeding",InputTypes.StringType),
+                            ("min_bin_freq",InputTypes.IntegerType),
+                            ("cluster_all",InputTypes.StringType),
+                            ("gamma",InputTypes.FloatType),
+                            ("degree",InputTypes.StringType),
+                            ("coef0",InputTypes.FloatType),
+                            ("n_neighbors",InputTypes.IntegerType),
+                            ("eigen_solver",InputTypes.StringType),
+                            ("eigen_tol",InputTypes.FloatType),
+                            ("assign_labels",InputTypes.StringType),
+                            ("kernel_params",InputTypes.StringType),
+                            ("eps",InputTypes.StringType),
+                            ("min_samples",InputTypes.IntegerType),
+                            ("metric", InputTypes.StringType),
+                            ("connectivity",InputTypes.StringType),
+                            ("linkage",InputTypes.StringType),
+                            ("whiten",InputTypes.StringType),
+                            ("iterated_power",InputTypes.StringType),
+                            ("kernel",InputTypes.StringType),
+                            ("fit_inverse_transform",InputTypes.StringType),
+                            ("remove_zero_eig",InputTypes.StringType),
+                            ("ridge_alpha",InputTypes.FloatType),
+                            ("method",InputTypes.StringType),
+                            ("U_init",InputTypes.StringType),
+                            ("V_init",InputTypes.StringType),
+                            ("callback",InputTypes.StringType),
+                            ("shuffle",InputTypes.StringType),
+                            ("algorithm",InputTypes.StringType),
+                            ("fun",InputTypes.StringType),
+                            ("fun_args",InputTypes.StringType),
+                            ("w_init",InputTypes.StringType),
+                            ("path_method",InputTypes.StringType),
+                            ("neighbors_algorithm",InputTypes.StringType),
+                            ("reg",InputTypes.FloatType),
+                            ("hessian_tol",InputTypes.FloatType),
+                            ("modified_tol",InputTypes.FloatType),
+                            ("dissimilarity",InputTypes.StringType),
+                            ("level",InputTypes.StringType),
+                            ("criterion",InputTypes.StringType),
+                            ("dendrogram",InputTypes.StringType),
+                            ("truncationMode",InputTypes.StringType),
+                            ("p",InputTypes.IntegerType),
+                            ("leafCounts",InputTypes.StringType),
+                            ("showContracted",InputTypes.StringType),
+                            ("annotatedAbove",InputTypes.FloatType),
+                            ("dendFileID",InputTypes.StringType)]:
       dataType = InputData.parameterInputFactory(name, contentType=inputType)
       kddInput.addSub(dataType)
 
