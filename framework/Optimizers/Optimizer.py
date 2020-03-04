@@ -184,7 +184,7 @@ class Optimizer(AdaptiveSampler):
     init = paramInput.findFirst('samplerInit')
     if init is not None:
       # initialSeed
-      seed = init.findFirst('seed')
+      seed = init.findFirst('initialSeed')
       if seed is not None:
         self._seed = seed.value
       # minmax
@@ -301,7 +301,7 @@ class Optimizer(AdaptiveSampler):
       @ Out, point, dict, point used in this realization
     """
     point = dict((var, float(rlz[var])) for var in self.toBeSampled.keys())
-    return point  
+    return point
 
   def _initializeInitSampler(self, externalSeeding):
     """

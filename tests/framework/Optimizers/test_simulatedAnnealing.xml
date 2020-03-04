@@ -20,7 +20,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize" re-seeding="032877"><!--120504,,120504,080510-->
+    <MultiRun name="optimize"><!--re-seeding="032877" 120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
       <Optimizer class="Optimizers" type="SimulatedAnnealing">simOpt</Optimizer>
@@ -38,15 +38,15 @@
 
   <Distributions>
     <Uniform name='beale_dist'>
-      <lowerBound>-512</lowerBound>
-      <upperBound>512</upperBound>
+      <lowerBound>-4.5</lowerBound>
+      <upperBound>4.5</upperBound>
     </Uniform>
   </Distributions>
 
   <Optimizers>
     <SimulatedAnnealing name="simOpt">
       <samplerInit>
-        <limit>1000</limit>
+        <limit>500</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
@@ -60,7 +60,7 @@
         <temperature>1e-16</temperature>
         <persistence>1</persistence>
       </convergence>
-      <coolingSchedule>cauchy</coolingSchedule>
+      <coolingSchedule>exponential</coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
         <initial>-2.0</initial>
