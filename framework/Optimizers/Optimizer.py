@@ -41,14 +41,14 @@ class Optimizer(AdaptiveSampler):
     The Optimizer is a specialization of adaptive sampling.
     This base class defines the principle methods required for optimizers and provides some general utilities.
     This base class is responsible for:
-     - Implementing Sampler API
-     - Handling stochastic resampling
-     - Establishing "trajectory" counter
-     - Handling Constant, Function variables
-     - Specifying objective variable
-     - Assembling constraints
-     - API for adding, removing trajectories
-     - Prefix handling for trajectory, denoising
+      - Implementing Sampler API
+      - Handling stochastic resampling
+      - Establishing "trajectory" counter
+      - Handling Constant, Function variables
+      - Specifying objective variable
+      - Assembling constraints
+      - API for adding, removing trajectories
+      - Prefix handling for trajectory, denoising
   """
   ##########################
   # Initialization Methods #

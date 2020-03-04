@@ -20,10 +20,10 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize" re-seeding="120504"><!--12052004,032877,120504,080510-->
+    <MultiRun name="optimize" re-seeding="032877"><!--120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
-      <Optimizer class="Optimizers" type="SPSA">simOpt</Optimizer>
+      <Optimizer class="Optimizers" type="SimulatedAnnealing">simOpt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -38,33 +38,36 @@
 
   <Distributions>
     <Uniform name='beale_dist'>
-      <lowerBound>-4.5</lowerBound>
-      <upperBound>4.5</upperBound>
+      <lowerBound>-512</lowerBound>
+      <upperBound>512</upperBound>
     </Uniform>
   </Distributions>
 
   <Optimizers>
     <SimulatedAnnealing name="simOpt">
       <samplerInit>
-        <limit>2000</limit>
+        <limit>1000</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
       <acceptance>
         <Strict/>
+        <!-- <Probabilistic/> -->
       </acceptance>
       <convergence>
-        <objective>1e-20</objective>
+        <objective>1e-4</objective>
+        <temperature>1e-16</temperature>
+        <persistence>1</persistence>
       </convergence>
-      <coolingSchedule>exponential</coolingSchedule>
+      <coolingSchedule>cauchy</coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
-        <initial>-2</initial>
+        <initial>-2.0</initial>
       </variable>
       <variable name="y">
         <distribution>beale_dist</distribution>
-        <initial>-2</initial>
+        <initial>-2.0</initial>
       </variable>
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
@@ -85,8 +88,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <!-- <Output>x,y,ans,amp_x,amp_y,fraction,delta_x,delta_y,accepted</Output> -->
-      <Output>x,y,ans</Output>
+      <Output>x,y,ans,amp_x,amp_y,delta_x, delta_y,fraction,Temp,accepted</Output>
     </PointSet>
   </DataObjects>
 
