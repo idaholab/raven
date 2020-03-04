@@ -508,7 +508,7 @@ class SimulatedAnnealing(Sampled):
     else:
       raise NotImplementedError('cooling schedule type not implemented.')
   
-  def _nextNeighbour(self, rlz,alpha,fraction=1):
+  def _nextNeighbour(self, rlz,fraction=1,alpha = 0.94):
     """ Perturb x to find the next random neighbour
         for linear  and exponential cooling:
         .. math::
