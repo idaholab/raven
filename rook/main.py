@@ -222,6 +222,7 @@ def get_testers_and_differs(directory):
   """
   # if no testers added, that's fine
   if not os.path.isdir(directory):
+    print("invalid tester directory: "+directory)
     return {}, {}
   tester_dict = {}
   differ_dict = {}

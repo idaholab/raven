@@ -321,7 +321,7 @@ fi
 if [ -z $RAVEN_LIBS_NAME ];
 then
   # check the RC file first
-  RAVEN_LIBS_NAME=$(read_ravenrc "RAVEN_LIBS_NAME")
+  export RAVEN_LIBS_NAME=$(read_ravenrc "RAVEN_LIBS_NAME")
   # if not found through the RC file, will be empty string, so default to raven_libraries
   if [[ ${#RAVEN_LIBS_NAME} == 0 ]];
   then
