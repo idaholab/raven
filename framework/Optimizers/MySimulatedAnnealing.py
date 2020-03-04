@@ -19,8 +19,11 @@
 """
 import numpy as np
 import math
+import sys
 import matplotlib.pyplot as plt
-
+#sys.path.append("/Users/abdomg/projects/raven/framework")
+#import Driver
+#from utils import randomUtils
 class simulatedAnnealing():
   """
   This class performs simulated annealing optimization
@@ -44,14 +47,14 @@ class simulatedAnnealing():
     self._ub = ub
 
   def __str__(self):
-    return  "Initial Guess: " + self._currentPoint + "\nObjective Function: " + self._objectiveFunction + "\nAcceptence Criterion: " + self._acceptanceCriterion + "\nTemperature: " + self._temperature + "\nCooling Schedule: " + self._collingSchedule + "\n Max. Number of iterations: " + self._maxIter    
+    return  "Initial Guess: " + self._currentPoint + "\nObjective Function: " + self._objectiveFunction + "\nAcceptence Criterion: " + self._acceptanceCriterion + "\nTemperature: " + self._temperature + "\nCooling Schedule: " + self._collingSchedule + "\n Max. Number of iterations: " + self._maxIter
 
   def __repr__(self):
     # This is for debugging puposes for developers not users
     # if o is the class instance then:
     # o == eval(__repr__(o)) should be true
     return "simulatedAnnealing('" + str(self._initialGuess) + "', " +  self._objectiveFunction + "', " + self._acceptanceCriterion + "', " + self._temperatue + "', " + self._coolingSchedule + "', " + self._maxIterations +")"
-  
+
   @property
   def currentPoint(self):
     return self._currentPoint
@@ -59,7 +62,7 @@ class simulatedAnnealing():
   @currentPoint.setter
   def currentPoint(self, x0):
     self._currentPoint = x0
-    
+
   @property
   def lb(self):
     return self._lb
@@ -67,14 +70,14 @@ class simulatedAnnealing():
   @lb.setter
   def lb(self, lb):
     self._lb = lb
-    
+
   @property
   def ub(self):
     return self._ub
 
   @ub.setter
   def ub(self, ub):
-    self._ub = ub      
+    self._ub = ub
 
   ##################
   # Static Methods #
@@ -100,8 +103,8 @@ class simulatedAnnealing():
     the cose function (objective function) is often called
     System energy E(x)
     @ In, x, vector, design vector (configuaration in SA literature)
-    @ Out, E(x), scalar, energy at x 
-    """   
+    @ Out, E(x), scalar, energy at x
+    """
     #return self.E(x)
     return model(x)
 
@@ -111,7 +114,7 @@ class simulatedAnnealing():
     else:
       deltaE = (newObjective - oldObjective)
       prob = np.exp(-deltaE/(kB*T))
-      return prob  
+      return prob
 
   def temperature(self, fraction):
     return max(0.01,min(1,1-fraction))
@@ -124,17 +127,18 @@ class simulatedAnnealing():
     elif type == 'Logarithmic':
       return T0/(np.log10(iter + d))
     # elif type == 'exponential':
-    #   return  (T1/T0) ** iter * T0 # Add T1  
+    #   return  (T1/T0) ** iter * T0 # Add T1
     else:
       raise NotImplementedError('Type not implemented.')
-  
+
 
   def nextNeighbour(self, x, lb, ub, fraction=1):
     """ Pertrub x to find the next random neighbour"""
-    nonNormalizedAmp = ((fraction)**-1) / 10 
+    nonNormalizedAmp = ((fraction)**-1) / 10
     amp = (ub - lb) * ((fraction)**-1) / 10
-    nonDelta = (-nonNormalizedAmp/2)+nonNormalizedAmp*np.random.rand(len(x))
-    delta = (-amp/2)+amp*np.random.rand(len(x))
+    r = np.random.random(len(x)) #randomUtils.random(dim=len(x), samples=1)
+    nonDelta = (-nonNormalizedAmp/2)+nonNormalizedAmp*r
+    delta = (-amp/2)+amp*r
     xnew = x + delta
     for i in range(len(xnew)):
       xnew[i] = max(min(xnew[i],ub),lb)
@@ -153,17 +157,17 @@ class simulatedAnnealing():
       T = self.coolingSchedule(step, T0, type='Geometric', alpha = 0.94, beta = 0.1,d=10)
       new_state = self.nextNeighbour(state,self.lb,self.ub,fraction)
       new_cost = self.objectiveFunction(new_state,model)
-      if self.acceptanceCriterion(cost, new_cost, T,1) > np.random.rand():
+      if self.acceptanceCriterion(cost, new_cost, T,1) > 0.5: #np.random.rand(): #TODO Replace the rand back
         state, cost = new_state, new_cost
         states.append(state)
         costs.append(cost)
         print("  ==> Accepted step {}, temperature {}, obj: {}!".format(step,T,cost))
       else:
         print("  ==> Rejected step {}, temperature {}, obj: {}!".format(step,T,cost))
-    return state, self.objectiveFunction(state,model), states, costs  
+    return state, self.objectiveFunction(state,model), states, costs
 
   ##############
-  # Destructor #      
+  # Destructor #
   ##############
   def __del__(self):
     print('simulatedAnnealing() has been destroyed')
@@ -184,6 +188,7 @@ def beale(x):
   return (1.5 - x[0] + x[0]*x[1])**2 + (2.25 - x[0] + x[0]*x[1]*x[1])**2 + (2.625 - x[0] + x[0]*x[1]*x[1]*x[1])**2
 
 if __name__ == "__main__":
+  np.random.seed(42)
   S1 = simulatedAnnealing()
   d = 2
   S1.currentPoint = [-2,-2]#np.random.randn(d)#np.array([0.5,1.5])
@@ -191,13 +196,13 @@ if __name__ == "__main__":
   S1.lb,S1.ub = lb,ub
   model = beale
   Tol = 1e-8
-  S1._maxIter = 1000
+  S1._maxIter = 500
   state, obj, states, costs = S1.anneal(model,Tol)
-  
+
   #state, obj, states, costs = simulatedAnnealing(np.array([0.5,1.5]),lb,ub,objectiveFunction = model(np.array([0.5,1.5]))).anneal(model,Tol)
-  print(state,obj)
+  print('optimal state is {}, energy is{}, numer of iterations is {}'.format(state,obj,len(states)))
   hist = np.array(states).reshape(-1,d)
-  
+
   # Create a contour plot
   plt.figure()
   # Specify contour lines

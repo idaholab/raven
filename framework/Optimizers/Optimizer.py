@@ -308,7 +308,7 @@ class Optimizer(AdaptiveSampler):
       @ Out, point, dict, point used in this realization
     """
     point = dict((var, float(rlz[var])) for var in self.toBeSampled.keys())
-    return point  
+    return point
 
   def _initializeInitSampler(self, externalSeeding):
     """

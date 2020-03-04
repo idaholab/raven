@@ -118,7 +118,7 @@ class Sampled(Optimizer):
       writeSteps = init.findFirst('writeSteps')
       if writeSteps is not None:
         self._writeSteps = writeSteps.value
-    
+
     # Acceptance
     acceptNode = paramInput.findFirst('acceptance')
     if acceptNode:

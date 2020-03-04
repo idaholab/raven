@@ -16,7 +16,7 @@
 
   Created Feb,20,2020
   @author: Mohammad Abdo
-  
+
   References
     ----------
     .. [1] Tsallis C. Possible generalization of Boltzmann-Gibbs
@@ -89,7 +89,7 @@ class SimulatedAnnealing(Sampled):
     write = InputData.parameterInputFactory('writeSteps', contentType=whenSolnExpEnum)
     init.addSub(limit)
     init.addSub(write)
-    
+
     # acceptance conditions
     accept = InputData.parameterInputFactory('acceptance', strictMode=True)
     specs.addSub(accept)
@@ -105,23 +105,23 @@ class SimulatedAnnealing(Sampled):
     specs.addSub(conv)
     for name in cls.convergenceOptions:
       conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType))
-    conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType))    
-    
+    conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType))
+
     # Cooling Schedule
     coolingSchedule = InputData.parameterInputFactory('coolingSchedule',contentType=InputTypes.StringType)
     specs.addSub(coolingSchedule)
     for cooling in cls.coolingOptions:
       coolingSchedule.addSub(InputData.parameterInputFactory(cooling,contentType=InputTypes.StringType))
-    
+
     return specs
-  
+
   def __init__(self):
     Sampled.__init__(self)
     self._convergenceCriteria = defaultdict(giveZero) # names and values for convergence checks
     self._stepHistory = {}         # {'magnitude': size, 'versor': direction} for step
     self._acceptHistory = {}       # acceptability
     self._stepRecommendations = {} # by traj, if a 'cut' or 'grow' is recommended else None
-    self._acceptRerun = {}         # by traj, if True then override accept for point rerun  
+    self._acceptRerun = {}         # by traj, if True then override accept for point rerun
     self._convergenceInfo = {}     # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = 0  # consecutive persistence required to mark convergence
     self._stepInstance = None      # instance of StepManipulator
@@ -129,7 +129,8 @@ class SimulatedAnnealing(Sampled):
     self._stepCounter = {}         # step counter, int
     self.T0 = None                 # initial temperature
     self.T = None                  # current temperature
-      
+    np.random.seed(42) # TODO remove this
+
   def handleInput(self, paramInput):
     """
       Read input specs
@@ -156,7 +157,7 @@ class SimulatedAnnealing(Sampled):
       self._coolingMethod = 'exponential'
     else:
       self._coolingMethod = coolingNode.value
-    
+
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
       This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
@@ -172,7 +173,7 @@ class SimulatedAnnealing(Sampled):
     self._acceptInstance.initialize()
     # queue up the first run for each trajectory
     for traj, init in enumerate(self._initialValues):
-      self._submitRun(init,traj,self._stepCounter[traj])    
+      self._submitRun(init,traj,self._stepCounter[traj])
 
   def initializeTrajectory(self, traj=None):
     """
@@ -210,7 +211,7 @@ class SimulatedAnnealing(Sampled):
     self._submissionQueue.append((point, info))
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
-  
+
   ###############
   # Run Methods #
   ###############
@@ -223,9 +224,16 @@ class SimulatedAnnealing(Sampled):
       @ Out, None
     """
     traj = info['traj']
-    self._stepCounter[traj] += 1
-    info['optVal'] = optVal    
+    #self._stepCounter[traj] += 1
+    info['optVal'] = optVal
     self._resolveNewOptPoint(traj, rlz, optVal, info)
+    if self._stepTracker[traj]['opt'] == None:
+      # revert to the last accepted point
+      rlz = self._optPointHistory[traj][-1][0]
+      info = self._optPointHistory[traj][-1][1]
+      info['step'] = self._stepCounter[traj]
+      optVal = rlz[self._objectiveVar]
+    self._stepCounter[traj] += 1
     fraction = self._stepCounter[traj]/self.limit
     currentPoint = self._collectOptPoint(rlz)
     # self.T0 = self._temperature(fraction)
@@ -323,7 +331,7 @@ class SimulatedAnnealing(Sampled):
         # this is the classic "same point" trap; we accept the same point, and check convergence later
         acceptable = 'accepted'
       else:
-        if self._acceptabilityCriterion(oldVal,optVal)>randomUtils.random(dim=1, samples=1):
+        if self._acceptabilityCriterion(oldVal,optVal)>0.5: #randomUtils.random(dim=1, samples=1): # TODO replace it back
           acceptable = 'accepted'
         else:
           #acceptable = self._checkForImprovement(optVal, oldVal) DO I NEED THIS HERE?!
@@ -335,7 +343,7 @@ class SimulatedAnnealing(Sampled):
     self._acceptHistory[traj].append(acceptable)
     self.raiseADebug(' ... {a}!'.format(a=acceptable))
     return acceptable, old
-    
+
   def _acceptabilityCriterion(self,currentObjective,newObjective):
     """
       Check if new opt point is acceptably better than the old one
@@ -344,19 +352,19 @@ class SimulatedAnnealing(Sampled):
       @ Out, Prob, float, the acceptance probability
     """
     # Boltzman Constant
-    kB = 1.380657799e-23 # or 1
+    kB = 1 #1.380657799e-23 # or 1
     if self.T0 == None:
       self.T0 = 1e4
     if self.T == None:
       self.T = self.T0
-    
+
     if newObjective <= currentObjective:
       prob = 1
     else:
       deltaE = newObjective - currentObjective
       prob = np.exp(-deltaE/(kB * self.T))
     return prob
-  
+
   def _updateConvergence(self, traj, new, old, acceptable):
     """
       Updates convergence information for trajectory
@@ -392,7 +400,7 @@ class SimulatedAnnealing(Sampled):
                                             got=delta,
                                             req=self._convergenceCriteria['objective']))
     return converged
-  
+
   def _checkConvTemperature(self, traj):
     """
       Checks temperature for the current state for convergence
@@ -405,7 +413,7 @@ class SimulatedAnnealing(Sampled):
                                             got=self.T,
                                             req=self._convergenceCriteria['temperature']))
     return converged
-  
+
   def _updatePersistence(self, traj, converged, optVal):
     """
       Update persistence tracking state variables
@@ -465,13 +473,20 @@ class SimulatedAnnealing(Sampled):
       @ In, info, dict, meta information about the opt point
       @ In, old, dict, previous optimal point (to resubmit)
     """
+    # cancel grad runs
+    self._cancelAssociatedJobs(info['traj'], step=info['step'])
+    #self._stepTracker[traj]['opt'] = None
     ## what do do if a point is rejected?
+    # for now, rerun the opt point and gradients, AND cut step
     # TODO user option to EITHER rerun opt point OR cut step!
     # initialize a new step
-    ##self._initializeStep(traj)
+    self._initializeStep(traj)
+    self._acceptRerun[traj] = True
+    #fraction = self._stepCounter[traj]/self.limit
+    #self._nextNeighbour(old,fraction)
   # END resolving potential opt points
   # * * * * * * * * * * * * * * * *
-  
+
   def _applyFunctionalConstraints(self, suggested, previous):
     """
       fixes functional constraints of variables in "point" -> DENORMED point expected!
@@ -480,7 +495,7 @@ class SimulatedAnnealing(Sampled):
       @ Out, point, dict, adjusted variables
       @ Out, modded, bool, whether point was modified or not
     """
-    ## TODO: right now I do not handle functional Constraints  
+    ## TODO: right now I do not handle functional Constraints
     point = suggested
     modded = False
     return point, modded
@@ -507,61 +522,62 @@ class SimulatedAnnealing(Sampled):
       return T0/(iter + d)
     else:
       raise NotImplementedError('cooling schedule type not implemented.')
-  
+
   def _nextNeighbour(self, rlz,fraction=1,alpha = 0.94):
     """ Perturb x to find the next random neighbour
         for linear  and exponential cooling:
         .. math::
-        
+
             fraction = \\frac{iter}{Limit}
-            
+
             amp = 1-fraction
-            
+
             delta = \\frac{-amp}{2} + amp * r
         where :math: `r \sim \mathcal{U}(0,1)`
-        
+
         for boltzmann cooling:
         .. math::
-        
+
             amp = min(np.sqrt(T), \\frac{1}{3*alpha}
-            
+
             delta = r * alpha * amp
-        
+
         where :math: `r \\sim \\mathcal{N}(0,1)`
-        
+
         for fast cooling:
         .. math::
-        
+
             amp = r
-            
+
             delta = sign(amp-0.5)*T*((1+\\frac{1.0}{T})^{\\abs{2*amp-1}-1.0)
-        
+
         where :math: `r \\sim \\mathcal{U}(0,1)`
-        
+
         for cauchy cooling:
         .. math::
-        
+
             amp = r
-            
+
             delta = alpha * T * tan(amp)
-        
+
         where :math: `r \\sim \\mathcal{U}(-\\pi,\\pi)`
     """
-    
+
     nextNeighbour = {}
     if self._coolingMethod in ['linear' , 'exponential']:
-      amp = ((fraction)**-1) / 10 
-      delta = (-amp/2.)+ amp * randomUtils.random(dim=len(self.toBeSampled.keys()), samples=1)
+      amp = ((fraction)**-1) / 10
+      r = np.random.random(len(self.toBeSampled.keys())) #randomUtils.random(dim=len(self.toBeSampled.keys()), samples=1)
+      delta = (-amp/2.)+ amp * r
     elif self._coolingMethod == 'boltzmann':
       amp = min(np.sqrt(self.T), 1/3.0/alpha)
-      delta =  randomUtils.randomNormal(dim=1, samples=1)*alpha*amp        
+      delta =  randomUtils.randomNormal(dim=len(self.toBeSampled.keys()), samples=1)*alpha*amp
     elif self._coolingMethod == 'fast':
       amp = randomUtils.random(dim=1, samples=1)
       T = self.T
       delta = np.sign(amp-0.5)*T*((1+1.0/T)**abs(2*amp-1)-1.0)
     elif self._coolingMethod == 'cauchy':
-      amp = (np.pi - (-np.pi))*randomUtils.random(dim=1, samples=1)-np.pi #(dim=1, samples=1)
-      delta = alpha*self.T*math.tan(amp)
+      amp = (np.pi - (-np.pi))*randomUtils.random(dim=len(self.toBeSampled.keys()), samples=1)-np.pi #(dim=1, samples=1)
+      delta = alpha*self.T*np.tan(amp)
     for i,var in enumerate(self.toBeSampled.keys()):
       nextNeighbour[var] = rlz[var] + delta[i]
       self.info['amp_'+var] = amp
@@ -570,7 +586,7 @@ class SimulatedAnnealing(Sampled):
     return nextNeighbour
 
   ##############
-  # Destructor #      
+  # Destructor #
   ##############
   def __del__(self):
     print('simulatedAnnealing() has been destroyed')
