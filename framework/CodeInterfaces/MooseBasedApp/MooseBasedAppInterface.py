@@ -17,12 +17,11 @@ Created on April 14, 2014
 @author: alfoa
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
+import GenericParser
 import MooseData
 import csvUtilities
 
@@ -80,11 +79,15 @@ class MooseBasedApp(CodeInterfaceBase):
       self._samplersDictionary[samplerType] = self.pointSamplerForMooseBasedApp
 
     found = False
-    for index, inputFile in enumerate(currentInputFiles):
-      inputFile = inputFile.getAbsFile()
-      if inputFile.endswith(self.getInputExtension()):
+    genericInput, genericOriInput = [], []
+    for i, inputFile in enumerate(currentInputFiles):
+      inFile = inputFile.getAbsFile()
+      if inFile.endswith(self.getInputExtension()):
+        index = i
         found = True
-        break
+      if inputFile.getType().lower() == "generic":
+        genericInput.append(inputFile)
+        genericOriInput.append(oriInputFiles[i])
     if not found:
       raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     outName = self.outputPrefix+currentInputFiles[index].getBase()
@@ -100,6 +103,12 @@ class MooseBasedApp(CodeInterfaceBase):
     #make input
     parser.printInput(currentInputFiles[index].getAbsFile())
     self.vectorPPFound, self.vectorPPDict = parser.vectorPostProcessor()
+
+    if genericInput:
+      parser = GenericParser.GenericParser(genericInput)
+      parser.modifyInternalDictionary(**Kwargs)
+      parser.writeNewInput(genericInput,genericOriInput)
+
     return currentInputFiles
 
   def pointSamplerForMooseBasedApp(self,**Kwargs):
@@ -126,7 +135,6 @@ class MooseBasedApp(CodeInterfaceBase):
     """
     listDict = []
     raise IOError('dynamicEventTreeForMooseBasedApp not yet implemented')
-    return listDict
 
   def finalizeCodeOutput(self,command,output,workingDir):
     """

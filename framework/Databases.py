@@ -18,8 +18,6 @@ Created on April 9, 2013
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -36,7 +34,7 @@ import collections
 from BaseClasses import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DatabasesCollection(InputData.ParameterInput):
@@ -62,10 +60,10 @@ class DateBase(BaseType):
         specifying input of cls.
     """
     inputSpecification = super(DateBase, cls).getInputSpecification()
-    inputSpecification.addParam("directory", InputData.StringType)
-    inputSpecification.addParam("filename", InputData.StringType)
-    inputSpecification.addParam("readMode", InputData.makeEnumType("readMode","readModeType",["overwrite","read"]), True)
-    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringListType))
+    inputSpecification.addParam("directory", InputTypes.StringType)
+    inputSpecification.addParam("filename", InputTypes.StringType)
+    inputSpecification.addParam("readMode", InputTypes.makeEnumType("readMode","readModeType",["overwrite","read"]), True)
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringListType))
     return inputSpecification
 
   def _handleInput(self, paramInput):

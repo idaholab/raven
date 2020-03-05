@@ -17,8 +17,6 @@ Created on August 23, 2017
 @author: wangc
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -29,16 +27,13 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
-from utils import utils
 from utils import xmlUtils
-from utils import InputData
-from utils.cached_ndarray import c1darray
+from utils import InputData, InputTypes
 import Files
-import Metrics
 import Runners
 import Distributions
 import MetricDistributor
+from .PostProcessor import PostProcessor
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Metric(PostProcessor):
@@ -56,24 +51,24 @@ class Metric(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(Metric, cls).getInputSpecification()
-    featuresInput = InputData.parameterInputFactory("Features", contentType=InputData.StringListType)
-    featuresInput.addParam("type", InputData.StringType)
+    featuresInput = InputData.parameterInputFactory("Features", contentType=InputTypes.StringListType)
+    featuresInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(featuresInput)
-    targetsInput = InputData.parameterInputFactory("Targets", contentType=InputData.StringListType)
-    targetsInput.addParam("type", InputData.StringType)
+    targetsInput = InputData.parameterInputFactory("Targets", contentType=InputTypes.StringListType)
+    targetsInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(targetsInput)
-    multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=InputData.StringType)
+    multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=InputTypes.StringType)
     inputSpecification.addSub(multiOutputInput)
-    multiOutput = InputData.makeEnumType('MultiOutput', 'MultiOutputType', ['mean','max','min','raw_values'])
+    multiOutput = InputTypes.makeEnumType('MultiOutput', 'MultiOutputType', ['mean','max','min','raw_values'])
     multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=multiOutput)
     inputSpecification.addSub(multiOutputInput)
-    weightInput = InputData.parameterInputFactory("weight", contentType=InputData.FloatListType)
+    weightInput = InputData.parameterInputFactory("weight", contentType=InputTypes.FloatListType)
     inputSpecification.addSub(weightInput)
-    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputData.StringType)
+    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
     inputSpecification.addSub(pivotParameterInput)
-    metricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
-    metricInput.addParam("class", InputData.StringType, True)
-    metricInput.addParam("type", InputData.StringType, True)
+    metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
+    metricInput.addParam("class", InputTypes.StringType, True)
+    metricInput.addParam("type", InputTypes.StringType, True)
     inputSpecification.addSub(metricInput)
 
     return inputSpecification

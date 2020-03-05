@@ -17,8 +17,6 @@ Created on November 6, 2017
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 #External Modules End-----------------------------------------------------------

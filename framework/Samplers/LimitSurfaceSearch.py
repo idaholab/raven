@@ -20,8 +20,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -41,7 +39,7 @@ from .AdaptiveSampler import AdaptiveSampler
 import Distributions
 from AMSC_Object import AMSC_Object
 from utils import randomUtils
-from utils import InputData
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -61,45 +59,45 @@ class LimitSurfaceSearch(AdaptiveSampler):
     """
     inputSpecification = super(LimitSurfaceSearch, cls).getInputSpecification()
 
-    convergenceInput = InputData.parameterInputFactory("Convergence", contentType=InputData.FloatType)
-    convergenceInput.addParam("limit", InputData.IntegerType)
-    convergenceInput.addParam("forceIteration", InputData.StringType)
-    convergenceInput.addParam("weight", InputData.StringType)
-    convergenceInput.addParam("persistence", InputData.IntegerType)
-    convergenceInput.addParam("subGridTol", InputData.FloatType)
+    convergenceInput = InputData.parameterInputFactory("Convergence", contentType=InputTypes.FloatType)
+    convergenceInput.addParam("limit", InputTypes.IntegerType)
+    convergenceInput.addParam("forceIteration", InputTypes.StringType)
+    convergenceInput.addParam("weight", InputTypes.StringType)
+    convergenceInput.addParam("persistence", InputTypes.IntegerType)
+    convergenceInput.addParam("subGridTol", InputTypes.FloatType)
 
     inputSpecification.addSub(convergenceInput)
 
     batchStrategyInput = InputData.parameterInputFactory("batchStrategy",
-                                                         contentType=InputData.StringType)
+                                                         contentType=InputTypes.StringType)
     inputSpecification.addSub(batchStrategyInput)
 
-    maxBatchSizeInput = InputData.parameterInputFactory("maxBatchSize", contentType=InputData.IntegerType)
+    maxBatchSizeInput = InputData.parameterInputFactory("maxBatchSize", contentType=InputTypes.IntegerType)
     inputSpecification.addSub(maxBatchSizeInput)
-    scoringInput = InputData.parameterInputFactory("scoring", contentType=InputData.StringType)
+    scoringInput = InputData.parameterInputFactory("scoring", contentType=InputTypes.StringType)
     inputSpecification.addSub(scoringInput)
-    simplificationInput = InputData.parameterInputFactory("simplification", contentType=InputData.FloatType)
+    simplificationInput = InputData.parameterInputFactory("simplification", contentType=InputTypes.FloatType)
     inputSpecification.addSub(simplificationInput)
 
-    thicknessInput = InputData.parameterInputFactory("thickness", contentType=InputData.IntegerType)
+    thicknessInput = InputData.parameterInputFactory("thickness", contentType=InputTypes.IntegerType)
     inputSpecification.addSub(thicknessInput)
 
-    thresholdInput = InputData.parameterInputFactory("threshold", contentType=InputData.FloatType)
+    thresholdInput = InputData.parameterInputFactory("threshold", contentType=InputTypes.FloatType)
     inputSpecification.addSub(thresholdInput)
 
-    romInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
-    romInput.addParam("type", InputData.StringType)
-    romInput.addParam("class", InputData.StringType)
+    romInput = InputData.parameterInputFactory("ROM", contentType=InputTypes.StringType)
+    romInput.addParam("type", InputTypes.StringType)
+    romInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(romInput)
 
-    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputData.StringType)
-    targetEvaluationInput.addParam("type", InputData.StringType)
-    targetEvaluationInput.addParam("class", InputData.StringType)
+    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputTypes.StringType)
+    targetEvaluationInput.addParam("type", InputTypes.StringType)
+    targetEvaluationInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(targetEvaluationInput)
 
-    functionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
-    functionInput.addParam("type", InputData.StringType)
-    functionInput.addParam("class", InputData.StringType)
+    functionInput = InputData.parameterInputFactory("Function", contentType=InputTypes.StringType)
+    functionInput.addParam("type", InputTypes.StringType)
+    functionInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(functionInput)
 
     return inputSpecification
@@ -116,10 +114,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.tolerance           = None             #this is norm of the error threshold
     self.subGridTol          = None             #This is the tolerance used to construct the testing sub grid
     self.toleranceWeight     = 'cdf'            #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
-    self.persistence         = 5                #this is the number of times the error needs to fell below the tollerance before considering the sim converged
+    self.persistence         = 5                #this is the number of times the error needs to fell below the tolerance before considering the sim converged
     self.repetition          = 0                #the actual number of time the error was below the requested threshold
     self.forceIteration      = False            #this flag control if at least a self.limit number of iteration should be done
-    self.axisName            = None             #this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
+    self.axisName            = None             #this is the ordered list of the variable names (ordering match self.gridStepSize and the ordering in the test matrixes)
     self.oldTestMatrix       = OrderedDict()    #This is the test matrix to use to store the old evaluation of the function
     self.persistenceMatrix   = OrderedDict()    #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
     self.invPointPersistence = OrderedDict()    #this is a matrix that for each point of the testing grid tracks the inverse of the persistence of the limit surface position
@@ -402,12 +400,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.hangingPoints                        = np.ndarray((0, self.nVar))
     self.raiseADebug('Initialization done')
 
-  def localStillReady(self,ready): #,lastOutput=None
+  def localStillReady(self,ready):
     """
       first perform some check to understand what it needs to be done possibly perform an early return
       ready is returned
-      lastOutput should be present when the next point should be chosen on previous iteration and convergence checked
-      lastOutput it is not considered to be present during the test performed for generating an input batch
       ROM if passed in it is used to construct the test matrix otherwise the nearest neighbor value is used
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.

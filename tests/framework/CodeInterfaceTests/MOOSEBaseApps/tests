@@ -1,0 +1,20 @@
+[Tests]
+
+ [./MooseEx18withGenericFile]
+   type = 'RavenFramework'
+   input = test_MC_MooseEx18_with_generic_file.xml
+   output = 'MooseExample18WithGenericFile/myMC/1/ex18.i MooseExample18WithGenericFile/myMC/2/ex18.i'
+   csv = 'MooseExample18WithGenericFile/ps_dump.csv MooseExample18WithGenericFile/hs_dump_1.csv'
+   rel_err = 0.001
+   test_interface_only = True 
+ [../]
+ [./MooseEx18onlyGenericFile]
+   type = 'RavenFramework'
+   input = test_MC_MooseEx18_only_generic_file.xml
+   output = 'MooseExample18OnlyGenericFile/myMC/1/ex18.i MooseExample18OnlyGenericFile/myMC/2/ex18.i'
+   csv = 'MooseExample18OnlyGenericFile/ps_dump.csv MooseExample18OnlyGenericFile/hs_dump_1.csv'
+   rel_err = 0.001
+   test_interface_only = True 
+ [../]
+
+[]

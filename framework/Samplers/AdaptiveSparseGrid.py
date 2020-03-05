@@ -20,8 +20,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -41,7 +39,7 @@ else:
 from .SparseGridCollocation import SparseGridCollocation
 from .AdaptiveSampler import AdaptiveSampler
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import Quadratures
 import IndexSets
 import MessageHandler
@@ -63,19 +61,19 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     """
     inputSpecification = super(AdaptiveSparseGrid, cls).getInputSpecification()
 
-    convergenceInput = InputData.parameterInputFactory("Convergence", contentType=InputData.StringType)
-    convergenceInput.addParam("target", InputData.StringType, True)
-    convergenceInput.addParam("maxPolyOrder", InputData.IntegerType)
-    convergenceInput.addParam("persistence", InputData.IntegerType)
+    convergenceInput = InputData.parameterInputFactory("Convergence", contentType=InputTypes.StringType)
+    convergenceInput.addParam("target", InputTypes.StringType, True)
+    convergenceInput.addParam("maxPolyOrder", InputTypes.IntegerType)
+    convergenceInput.addParam("persistence", InputTypes.IntegerType)
 
     inputSpecification.addSub(convergenceInput)
 
     inputSpecification.addSub(InputData.parameterInputFactory("logFile"))
     inputSpecification.addSub(InputData.parameterInputFactory("maxRuns"))
 
-    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputData.StringType)
-    targetEvaluationInput.addParam("type", InputData.StringType)
-    targetEvaluationInput.addParam("class", InputData.StringType)
+    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputTypes.StringType)
+    targetEvaluationInput.addParam("type", InputTypes.StringType)
+    targetEvaluationInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(targetEvaluationInput)
 
     return inputSpecification

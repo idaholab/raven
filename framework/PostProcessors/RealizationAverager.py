@@ -17,8 +17,6 @@ Created on July 2, 2019
 @author: talbpw
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import numpy as np
@@ -27,7 +25,7 @@ import numpy as np
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import Runners
 #Internal Modules End-----------------------------------------------------------
 
@@ -48,7 +46,7 @@ class RealizationAverager(PostProcessor):
     """
     inSpec= super(RealizationAverager, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
-                                                  contentType=InputData.StringListType))
+                                                  contentType=InputTypes.StringListType))
     return inSpec
 
   def __init__(self, messageHandler):

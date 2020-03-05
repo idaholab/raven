@@ -44,6 +44,8 @@ for A in "$@"; do
         --test_all)
             TEST_SET=2
             ;;
+	--pedantic-checks)
+	    ;;
         *)
             ARGS+=("$A")
             ;;
@@ -82,12 +84,20 @@ for A in "$@"; do
     esac
 done
 
+#Note that this is from the perspective of python
+FRAMEWORK_DIR=`$PYTHON_COMMAND $SCRIPT_DIR/scripts/plugin_handler.py -z`
+
+
 # run the tests
 # success/fail storage
 #   Names of successful test sets are stored in "PASSED"
 #   Names of failed test sets are stored in "FAILED"
 #   Success of most recent test stored in "rc"
 #   Total number of failed test sets stored in "ALL_PASS"
+# initialize vars in case no tests get run
+ALL_PASS=0
+PASSED=()
+FAILED=()
 
 if [[ $DO_RAVEN == 0 ]]; then
   echo
@@ -101,10 +111,10 @@ if [[ $DO_RAVEN == 0 ]]; then
   ALL_PASS=$rc
   if [[ $rc != 0 ]]; then
       echo ' ... there were failed RAVEN tests!'
-      FAILED=( "RAVEN" )
+      FAILED=( "${FAILED[@]}" "RAVEN" )
   else
       echo ' ... RAVEN tests passed successfully.'
-      PASSED=( "RAVEN" )
+      PASSED=( "${PASSED[@]}" "RAVEN" )
   fi # end "if passed"
 
   # test the API for Plugins using the ExamplePlugin
@@ -118,7 +128,9 @@ if [[ $DO_RAVEN == 0 ]]; then
   echo
   echo Running $P tests ...
   # get location of ExamplePlugin test dir
-  $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --add-non-default-run-types qsub "${ARGS[@]}"
+  ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $FRAMEWORK_DIR/../scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
+  # $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --add-non-default-run-types qsub "${ARGS[@]}"
+  $ROOK_COMMAND
   rc=$?
   ALL_PASS=$(($ALL_PASS + $rc))
   if [[ $rc != 0 ]]; then
@@ -143,7 +155,9 @@ if [[ $DO_PLUGINS == 0 ]]; then
     echo "********************************************************************************"
     echo
     echo Starting tests for plugin "$P" ...
-    $PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION "${ARGS[@]}"
+    # add RAVEN testers to plugin testers
+    ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $FRAMEWORK_DIR/../scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
+    $ROOK_COMMAND
     rc=$?
     ALL_PASS=$(($ALL_PASS + $rc))
     if [[ $rc != 0 ]]; then
@@ -163,12 +177,18 @@ echo
 echo "********************************************************************************"
 echo
 if [[ $ALL_PASS != 0 ]]; then
+  # if no tests were run, this should not be possible!
   echo  ... there were failed tests!
   echo The following test sets passed: ${PASSED[@]}
   echo The following test sets failed: ${FAILED[@]}
   exit $ALL_PASS
 else
-  echo Tested sets: ${PASSED[@]}
+  # check if NO tests were run
+  if [ ${#PASSED[@]} -eq 0 ]; then
+    echo WARNING: no test sets were checked!
+  else
+    echo Tested sets: ${PASSED[@]}
+  fi
   echo ... tests passed!
 fi
 

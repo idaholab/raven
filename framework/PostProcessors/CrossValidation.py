@@ -17,9 +17,6 @@ Created on August 30, 2017
 @author: wangc
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import os
@@ -31,7 +28,7 @@ import copy
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import Files
 import Models
 import Runners
@@ -54,28 +51,28 @@ class CrossValidation(PostProcessor):
     """
     inputSpecification = super(CrossValidation, cls).getInputSpecification()
 
-    metricInput = InputData.parameterInputFactory("Metric", contentType=InputData.StringType)
-    metricInput.addParam("class", InputData.StringType, True)
-    metricInput.addParam("type", InputData.StringType, True)
+    metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
+    metricInput.addParam("class", InputTypes.StringType, True)
+    metricInput.addParam("type", InputTypes.StringType, True)
     inputSpecification.addSub(metricInput)
 
     sciKitLearnInput = InputData.parameterInputFactory("SciKitLearn")
 
-    sklTypeInput = InputData.parameterInputFactory("SKLtype", contentType=InputData.StringType)
+    sklTypeInput = InputData.parameterInputFactory("SKLtype", contentType=InputTypes.StringType)
 
     sciKitLearnInput.addSub(sklTypeInput)
 
-    for name, inputType in [("p",InputData.IntegerType),
-                            ("n_splits",InputData.IntegerType),
-                            ("shuffle",InputData.BoolType),
-                            ("random_state",InputData.IntegerType),
-                            ('max_train_size',InputData.IntegerType),
-                            ('test_fold', InputData.FloatListType),
-                            ("test_size",InputData.FloatOrIntType),
-                            ("train_size",InputData.FloatOrIntType),
-                            ('n_groups',InputData.IntegerType),
-                            ("labels",InputData.FloatListType),
-                            ("scores",InputData.StringType)]:
+    for name, inputType in [("p",InputTypes.IntegerType),
+                            ("n_splits",InputTypes.IntegerType),
+                            ("shuffle",InputTypes.BoolType),
+                            ("random_state",InputTypes.IntegerType),
+                            ('max_train_size',InputTypes.IntegerType),
+                            ('test_fold', InputTypes.FloatListType),
+                            ("test_size",InputTypes.FloatOrIntType),
+                            ("train_size",InputTypes.FloatOrIntType),
+                            ('n_groups',InputTypes.IntegerType),
+                            ("labels",InputTypes.FloatListType),
+                            ("scores",InputTypes.StringType)]:
       dataType = InputData.parameterInputFactory(name, contentType=inputType)
       sciKitLearnInput.addSub(dataType)
 

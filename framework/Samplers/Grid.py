@@ -20,8 +20,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -35,7 +33,7 @@ from functools import reduce
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import GridEntities
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -55,10 +53,10 @@ class Grid(ForwardSampler):
     """
     inputSpecification = super(Grid, cls).getInputSpecification()
     # grid input
-    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
-    gridInput.addParam("type", InputData.StringType)
-    gridInput.addParam("construction", InputData.StringType)
-    gridInput.addParam("steps", InputData.IntegerType)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputTypes.StringType)
+    gridInput.addParam("type", InputTypes.StringType)
+    gridInput.addParam("construction", InputTypes.StringType)
+    gridInput.addParam("steps", InputTypes.IntegerType)
     # old outer distribution input
     oldSubOutDist =  inputSpecification.popSub("Distribution")
     newOuterDistributionInput = InputData.parameterInputFactory("Distribution", baseNode=oldSubOutDist)

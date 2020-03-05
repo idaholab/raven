@@ -19,8 +19,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -35,7 +33,7 @@ from itertools import cycle
 #Internal Modules------------------------------------------------------------------------------------
 from .GradientBasedOptimizer import GradientBasedOptimizer
 import Distributions
-from utils import mathUtils,randomUtils,InputData
+from utils import mathUtils, randomUtils, InputData, InputTypes
 import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -57,8 +55,8 @@ class SPSA(GradientBasedOptimizer):
 
     # add additional parameters to "parameter"
     param = inputSpecification.popSub('parameter')
-    param.addSub(InputData.parameterInputFactory('initialStepSize', contentType=InputData.FloatType, strictMode=True))
-    param.addSub(InputData.parameterInputFactory('perturbationDistance', contentType=InputData.FloatType, strictMode=True))
+    param.addSub(InputData.parameterInputFactory('initialStepSize', contentType=InputTypes.FloatType, strictMode=True))
+    param.addSub(InputData.parameterInputFactory('perturbationDistance', contentType=InputTypes.FloatType, strictMode=True))
 
     inputSpecification.addSub(param)
     return inputSpecification

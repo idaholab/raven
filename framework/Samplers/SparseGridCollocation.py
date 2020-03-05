@@ -20,8 +20,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -32,7 +30,7 @@ from functools import reduce
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Grid import Grid
-from utils import utils,InputData,mathUtils
+from utils import utils, InputData, InputTypes
 import Distributions
 import Quadratures
 import OrthoPolynomials
@@ -54,12 +52,12 @@ class SparseGridCollocation(Grid):
         specifying input of cls.
     """
     inputSpecification = super(SparseGridCollocation, cls).getInputSpecification()
-    inputSpecification.addParam("parallel", InputData.StringType)
-    inputSpecification.addParam("outfile", InputData.StringType)
+    inputSpecification.addParam("parallel", InputTypes.StringType)
+    inputSpecification.addParam("outfile", InputTypes.StringType)
 
-    romInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
-    romInput.addParam("type", InputData.StringType)
-    romInput.addParam("class", InputData.StringType)
+    romInput = InputData.parameterInputFactory("ROM", contentType=InputTypes.StringType)
+    romInput.addParam("type", InputTypes.StringType)
+    romInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(romInput)
 
     return inputSpecification

@@ -17,9 +17,6 @@ Created on July 10, 2013
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import math
@@ -30,7 +27,7 @@ import copy
 from .PostProcessor import PostProcessor
 from utils import utils
 from utils import mathUtils
-from utils import InputData
+from utils import InputData, InputTypes
 import Files
 import Runners
 import Distributions
@@ -278,10 +275,10 @@ class ComparisonStatistics(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(ComparisonStatistics, cls).getInputSpecification()
-    KindInputEnumType = InputData.makeEnumType("kind","kindType",["uniformBins","equalProbability"])
+    KindInputEnumType = InputTypes.makeEnumType("kind", "kindType", ["uniformBins", "equalProbability"])
     KindInput = InputData.parameterInputFactory("kind", contentType=KindInputEnumType)
-    KindInput.addParam("numBins",InputData.IntegerType, False)
-    KindInput.addParam("binMethod", InputData.StringType, False)
+    KindInput.addParam("numBins", InputTypes.IntegerType, False)
+    KindInput.addParam("binMethod", InputTypes.StringType, False)
     inputSpecification.addSub(KindInput)
 
     ## FIXME: Is this class necessary?
@@ -291,23 +288,23 @@ class ComparisonStatistics(PostProcessor):
       """
 
     CSCompareInput.createClass("compare", False)
-    CSDataInput = InputData.parameterInputFactory("data", contentType=InputData.StringType)
+    CSDataInput = InputData.parameterInputFactory("data", contentType=InputTypes.StringType)
     CSCompareInput.addSub(CSDataInput)
     CSReferenceInput = InputData.parameterInputFactory("reference")
-    CSReferenceInput.addParam("name", InputData.StringType, True)
+    CSReferenceInput.addParam("name", InputTypes.StringType, True)
     CSCompareInput.addSub(CSReferenceInput)
     inputSpecification.addSub(CSCompareInput)
 
-    FZInput = InputData.parameterInputFactory("fz", contentType=InputData.StringType) #bool
+    FZInput = InputData.parameterInputFactory("fz", contentType=InputTypes.StringType) #bool
     inputSpecification.addSub(FZInput)
 
-    CSInterpolationEnumType = InputData.makeEnumType("csinterpolation","csinterpolationType",["linear","quadratic"])
+    CSInterpolationEnumType = InputTypes.makeEnumType("csinterpolation","csinterpolationType",["linear","quadratic"])
     CSInterpolationInput = InputData.parameterInputFactory("interpolation",contentType=CSInterpolationEnumType)
     inputSpecification.addSub(CSInterpolationInput)
 
-    DistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputData.StringType)
-    DistributionInput.addParam("class", InputData.StringType)
-    DistributionInput.addParam("type", InputData.StringType)
+    DistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputTypes.StringType)
+    DistributionInput.addParam("class", InputTypes.StringType)
+    DistributionInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(DistributionInput)
 
     return inputSpecification

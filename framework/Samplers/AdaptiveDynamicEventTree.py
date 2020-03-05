@@ -21,8 +21,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -40,7 +38,6 @@ import itertools
 from .DynamicEventTree import DynamicEventTree
 from .LimitSurfaceSearch import LimitSurfaceSearch
 from utils import utils
-from utils import InputData
 import utils.TreeStructure as ETS
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------

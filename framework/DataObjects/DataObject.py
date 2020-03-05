@@ -16,8 +16,6 @@
 """
 #For future compatibility with Python 3
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import sys
@@ -35,7 +33,7 @@ import pandas as pd
 import xarray as xr
 
 from BaseClasses import BaseType
-from utils import utils, cached_ndarray, InputData, xmlUtils, mathUtils
+from utils import utils, cached_ndarray, InputData, InputTypes, xmlUtils, mathUtils
 from MessageHandler import MessageHandler
 
 class DataObjectsCollection(InputData.ParameterInput):
@@ -65,35 +63,35 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
     inputSpecification = super(DataObject,cls).getInputSpecification()
-    inputSpecification.addParam('hierarchical', InputData.BoolType)
+    inputSpecification.addParam('hierarchical', InputTypes.BoolType)
 
-    inputInput = InputData.parameterInputFactory('Input',contentType=InputData.StringType) #TODO list
+    inputInput = InputData.parameterInputFactory('Input',contentType=InputTypes.StringType) #TODO list
     inputSpecification.addSub(inputInput)
 
-    outputInput = InputData.parameterInputFactory('Output', contentType=InputData.StringType) #TODO list
+    outputInput = InputData.parameterInputFactory('Output', contentType=InputTypes.StringType) #TODO list
     inputSpecification.addSub(outputInput)
 
     # TODO this should be specific to ND set
-    indexInput = InputData.parameterInputFactory('Index',contentType=InputData.StringType) #TODO list
-    indexInput.addParam('var',InputData.StringType,True)
+    indexInput = InputData.parameterInputFactory('Index',contentType=InputTypes.StringType) #TODO list
+    indexInput.addParam('var',InputTypes.StringType,True)
     inputSpecification.addSub(indexInput)
 
     optionsInput = InputData.parameterInputFactory("options")
     for option in ['operator','pivotParameter']:
-      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.StringType)
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputTypes.StringType)
       optionsInput.addSub(optionSubInput)
     for option in ['inputRow','outputRow']:
-      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.IntegerType)
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputTypes.IntegerType)
       optionsInput.addSub(optionSubInput)
     for option in ['outputPivotValue','inputPivotValue']:
-      optionSubInput = InputData.parameterInputFactory(option, contentType=InputData.FloatType)
+      optionSubInput = InputData.parameterInputFactory(option, contentType=InputTypes.FloatType)
       optionsInput.addSub(optionSubInput)
     inputSpecification.addSub(optionsInput)
 
-    #inputSpecification.addParam('type', param_type = InputData.StringType, required = False)
-    #inputSpecification.addSub(InputData.parameterInputFactory('Input',contentType=InputData.StringType))
-    #inputSpecification.addSub(InputData.parameterInputFactory('Output',contentType=InputData.StringType))
-    #inputSpecification.addSub(InputData.parameterInputFactory('options',contentType=InputData.StringType))
+    #inputSpecification.addParam('type', param_type = InputTypes.StringType, required = False)
+    #inputSpecification.addSub(InputData.parameterInputFactory('Input',contentType=InputTypes.StringType))
+    #inputSpecification.addSub(InputData.parameterInputFactory('Output',contentType=InputTypes.StringType))
+    #inputSpecification.addSub(InputData.parameterInputFactory('options',contentType=InputTypes.StringType))
     return inputSpecification
 
   def __init__(self):

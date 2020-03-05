@@ -17,8 +17,6 @@ Created on Mar 25, 2013
 @author: crisr
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import xml.etree.ElementTree as ET
 import os

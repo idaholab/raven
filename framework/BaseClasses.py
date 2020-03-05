@@ -16,15 +16,13 @@ Created on Mar 16, 2013
 @author: crisr
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #External Modules------------------------------------------------------------------------------------
 import inspect
 import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils, InputData, mathUtils
+from utils import utils, InputData, InputTypes, mathUtils
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -43,7 +41,7 @@ class BaseType(MessageHandler.MessageUser):
         specifying input of cls.
     """
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.RavenBase)
-    inputSpecification.addParam("name", InputData.StringType, True)
+    inputSpecification.addParam("name", InputTypes.StringType, True, descr='User-defined name to designate this entity.')
 
     return inputSpecification
 

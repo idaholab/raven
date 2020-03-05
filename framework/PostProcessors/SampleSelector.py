@@ -17,8 +17,6 @@ Created on August 28, 2018
 @author: giovannimaronati
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import numpy as np
@@ -27,7 +25,7 @@ import numpy as np
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import Runners
 #Internal Modules End-----------------------------------------------------------
 
@@ -49,11 +47,11 @@ class SampleSelector(PostProcessor):
     """
     inSpec= super(SampleSelector, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
-                                                  contentType=InputData.StringType))
+                                                  contentType=InputTypes.StringType))
     criterion = InputData.parameterInputFactory('criterion',
-                                                contentType=InputData.StringType,
+                                                contentType=InputTypes.StringType,
                                                 strictMode=True)
-    criterion.addParam('value', InputData.IntegerType)
+    criterion.addParam('value', InputTypes.IntegerType)
     inSpec.addSub(criterion)
     return inSpec
 

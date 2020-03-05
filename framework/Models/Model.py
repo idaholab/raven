@@ -16,8 +16,6 @@ Module where the base class and the specialization of different type of Model ar
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -32,7 +30,7 @@ import importlib
 from BaseClasses import BaseType
 from utils import utils
 from Assembler import Assembler
-from utils import InputData
+from utils import InputData, InputTypes
 import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -62,12 +60,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         specifying input of cls.
     """
     inputSpecification = super(Model, cls).getInputSpecification()
-    inputSpecification.addParam("subType", InputData.StringType, True)
+    inputSpecification.addParam("subType", InputTypes.StringType, True)
 
     ## Begin alias tag
-    AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
-    AliasInput.addParam("variable", InputData.StringType, True)
-    AliasTypeInput = InputData.makeEnumType("aliasType","aliasTypeType",["input","output"])
+    AliasInput = InputData.parameterInputFactory("alias", contentType=InputTypes.StringType)
+    AliasInput.addParam("variable", InputTypes.StringType, True)
+    AliasTypeInput = InputTypes.makeEnumType("aliasType","aliasTypeType",["input","output"])
     AliasInput.addParam("type", AliasTypeInput, True)
     inputSpecification.addSub(AliasInput)
     ## End alias tag
@@ -128,7 +126,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                 'Sobol',
                                                 'AdaptiveSobol',
                                                 'EnsembleForward',
-                                                'CustomSampler']
+                                                'CustomSampler',
+                                                'AdaptiveMonteCarlo']
   validateDict['Optimizer'].append(testDict.copy())
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False

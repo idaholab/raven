@@ -20,8 +20,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -32,7 +30,7 @@ from functools import reduce
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import utils,randomUtils,InputData
+from utils import utils,randomUtils,InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class MonteCarlo(ForwardSampler):
@@ -52,21 +50,21 @@ class MonteCarlo(ForwardSampler):
     inputSpecification = super(MonteCarlo, cls).getInputSpecification()
 
     samplerInitInput = InputData.parameterInputFactory("samplerInit")
-    limitInput = InputData.parameterInputFactory("limit", contentType=InputData.IntegerType)
+    limitInput = InputData.parameterInputFactory("limit", contentType=InputTypes.IntegerType)
     samplerInitInput.addSub(limitInput)
-    initialSeedInput = InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType)
+    initialSeedInput = InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType)
     samplerInitInput.addSub(initialSeedInput)
-    distInitInput = InputData.parameterInputFactory("distInit", contentType=InputData.StringType)
+    distInitInput = InputData.parameterInputFactory("distInit", contentType=InputTypes.StringType)
     distSubInput = InputData.parameterInputFactory("distribution")
-    distSubInput.addParam("name", InputData.StringType)
-    distSubInput.addSub(InputData.parameterInputFactory("initialGridDisc", contentType=InputData.IntegerType))
-    distSubInput.addSub(InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType))
+    distSubInput.addParam("name", InputTypes.StringType)
+    distSubInput.addSub(InputData.parameterInputFactory("initialGridDisc", contentType=InputTypes.IntegerType))
+    distSubInput.addSub(InputData.parameterInputFactory("tolerance", contentType=InputTypes.FloatType))
 
     distInitInput.addSub(distSubInput)
     samplerInitInput.addSub(distInitInput)
-    samplingTypeInput = InputData.parameterInputFactory("samplingType", contentType=InputData.StringType)
+    samplingTypeInput = InputData.parameterInputFactory("samplingType", contentType=InputTypes.StringType)
     samplerInitInput.addSub(samplingTypeInput)
-    reseedEachIterationInput = InputData.parameterInputFactory("reseedEachIteration", contentType=InputData.StringType)
+    reseedEachIterationInput = InputData.parameterInputFactory("reseedEachIteration", contentType=InputTypes.StringType)
     samplerInitInput.addSub(reseedEachIterationInput)
 
 

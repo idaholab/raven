@@ -17,18 +17,14 @@ Created on July 10, 2013
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import copy
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from BaseClasses import BaseType
-from utils import InputData
+from utils import InputData, InputTypes
 from Assembler import Assembler
-import MessageHandler
 #Internal Modules End-----------------------------------------------------------
 
 class PostProcessor(Assembler):
@@ -59,12 +55,12 @@ class PostProcessor(Assembler):
     """
     ######## Temporary until this class inherits from the BaseType
     inputSpecification = InputData.parameterInputFactory('PostProcessor', ordered=False, baseNode=InputData.RavenBase)
-    inputSpecification.addParam("name", InputData.StringType, True)
+    inputSpecification.addParam("name", InputTypes.StringType, True)
     ######## End Temporary until this class inherits from the BaseType
 
     ## This will replace the lines above
     # inputSpecification = super(PostProcessor, cls).getInputSpecification()
-    inputSpecification.addParam("subType", InputData.StringType, True)
+    inputSpecification.addParam("subType", InputTypes.StringType, True)
 
     return inputSpecification
 

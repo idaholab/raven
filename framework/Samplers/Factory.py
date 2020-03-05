@@ -18,8 +18,6 @@
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
@@ -41,6 +39,8 @@ from Samplers.AdaptiveSampler import AdaptiveSampler
 from Samplers.LimitSurfaceSearch import LimitSurfaceSearch
 from Samplers.AdaptiveSobol import AdaptiveSobol
 from Samplers.AdaptiveSparseGrid import AdaptiveSparseGrid
+from Samplers.AdaptiveMonteCarlo import AdaptiveMonteCarlo
+
 # Dynamic Event Tree-based Samplers
 from Samplers.DynamicEventTree import DynamicEventTree
 from Samplers.AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
@@ -71,6 +71,7 @@ __interFaceDict['AdaptiveSobol'           ] = AdaptiveSobol
 __interFaceDict['AdaptiveSparseGrid'      ] = AdaptiveSparseGrid
 __interFaceDict['DynamicEventTree'        ] = DynamicEventTree
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDynamicEventTree
+__interFaceDict['AdaptiveMonteCarlo'      ] = AdaptiveMonteCarlo
 
 def knownTypes():
   """

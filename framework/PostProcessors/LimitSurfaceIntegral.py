@@ -17,8 +17,6 @@ Created on July 10, 2013
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -30,7 +28,7 @@ import os
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
-from utils import InputData
+from utils import InputData, InputTypes
 import LearningGate
 import Files
 import Runners
@@ -55,30 +53,30 @@ class LimitSurfaceIntegral(PostProcessor):
     inputSpecification = super(LimitSurfaceIntegral, cls).getInputSpecification()
 
     LSIVariableInput = InputData.parameterInputFactory("variable")
-    LSIVariableInput.addParam("name", InputData.StringType)
-    LSIDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
-    LSIDistributionInput.addParam("class", InputData.StringType, True)
-    LSIDistributionInput.addParam("type", InputData.StringType, True)
+    LSIVariableInput.addParam("name", InputTypes.StringType)
+    LSIDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
+    LSIDistributionInput.addParam("class", InputTypes.StringType, True)
+    LSIDistributionInput.addParam("type", InputTypes.StringType, True)
     LSIVariableInput.addSub(LSIDistributionInput)
-    LSILowerBoundInput = InputData.parameterInputFactory("lowerBound", contentType=InputData.FloatType)
+    LSILowerBoundInput = InputData.parameterInputFactory("lowerBound", contentType=InputTypes.FloatType)
     LSIVariableInput.addSub(LSILowerBoundInput)
-    LSIUpperBoundInput = InputData.parameterInputFactory("upperBound", contentType=InputData.FloatType)
+    LSIUpperBoundInput = InputData.parameterInputFactory("upperBound", contentType=InputTypes.FloatType)
     LSIVariableInput.addSub(LSIUpperBoundInput)
     inputSpecification.addSub(LSIVariableInput)
 
-    LSIToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
+    LSIToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputTypes.FloatType)
     inputSpecification.addSub(LSIToleranceInput)
 
-    LSIIntegralTypeInput = InputData.parameterInputFactory("integralType", contentType=InputData.StringType)
+    LSIIntegralTypeInput = InputData.parameterInputFactory("integralType", contentType=InputTypes.StringType)
     inputSpecification.addSub(LSIIntegralTypeInput)
 
-    LSISeedInput = InputData.parameterInputFactory("seed", contentType=InputData.IntegerType)
+    LSISeedInput = InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType)
     inputSpecification.addSub(LSISeedInput)
 
-    LSITargetInput = InputData.parameterInputFactory("target", contentType=InputData.StringType)
+    LSITargetInput = InputData.parameterInputFactory("target", contentType=InputTypes.StringType)
     inputSpecification.addSub(LSITargetInput)
 
-    LSIOutputNameInput = InputData.parameterInputFactory("outputName", contentType=InputData.StringType)
+    LSIOutputNameInput = InputData.parameterInputFactory("outputName", contentType=InputTypes.StringType)
     inputSpecification.addSub(LSIOutputNameInput)
 
     return inputSpecification
