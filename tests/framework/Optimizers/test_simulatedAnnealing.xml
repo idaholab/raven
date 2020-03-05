@@ -57,7 +57,7 @@
       </acceptance>
       <convergence>
         <objective>1e-4</objective>
-        <temperature>1e-16</temperature>
+        <temperature>1e-8</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>exponential</coolingSchedule>
@@ -88,7 +88,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,amp_x,amp_y,delta_x, delta_y,fraction,Temp,accepted</Output>
+      <Output>x,y,ans,iteration,amp_x,amp_y,delta_x, delta_y,fraction,Temp,accepted</Output>
     </PointSet>
   </DataObjects>
 

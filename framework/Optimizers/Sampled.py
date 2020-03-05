@@ -279,7 +279,7 @@ class Sampled(Optimizer):
       @ In, traj, int, identifier
       @ In, point, dict, suggested point to submit (denormalized)
       @ In, info, dict, data about suggested point
-      @ Out, okay, bool, False if violations found else True
+      @ Out, allOkay, bool, False if violations found else True
     """
     allOkay = True
     inputs = dict(point)
@@ -290,7 +290,7 @@ class Sampled(Optimizer):
       if not okay:
         self.raiseADebug('Functional constraint "{n}" was violated!'.format(n=constraint.name))
         self.raiseADebug(' ... point:', point)
-      allOkay *= okay
+      allOkay &= okay
     # FIXME TODO check functions
     return allOkay
 
@@ -364,6 +364,7 @@ class Sampled(Optimizer):
     if acceptable in ['accepted', 'first']:
       # record history
       self._optPointHistory[traj].append((rlz, info))
+      self._stepCounter[traj] += 1
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)

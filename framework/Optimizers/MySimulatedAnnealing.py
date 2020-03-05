@@ -134,8 +134,8 @@ class simulatedAnnealing():
 
   def nextNeighbour(self, x, lb, ub, fraction=1):
     """ Pertrub x to find the next random neighbour"""
-    nonNormalizedAmp = ((fraction)**-1) / 10
-    amp = (ub - lb) * ((fraction)**-1) / 10
+    nonNormalizedAmp = ((fraction)**-1) / 20
+    amp = (ub - lb) * ((fraction)**-1) / 20
     r = np.random.random(len(x)) #randomUtils.random(dim=len(x), samples=1)
     nonDelta = (-nonNormalizedAmp/2)+nonNormalizedAmp*r
     delta = (-amp/2)+amp*r
@@ -144,16 +144,17 @@ class simulatedAnnealing():
       xnew[i] = max(min(xnew[i],ub),lb)
     return xnew
 
-  def anneal(self,model,Tol):
+  def anneal(self,model,absObjTol,absTempTol):
     state = self._currentPoint
     cost = self.objectiveFunction(state,model)
     states, costs = [state], [cost]
+    T = 10
     for step in range(1,self._maxIter):
-      if cost <= Tol:
+      if cost <= absObjTol or T< absTempTol:
         continue
       fraction = step / float(self._maxIter)
-      #T0 = self.temperature(fraction)
-      T0 = 1e4
+      T0 = self.temperature(fraction)
+      #T0 = 1e4
       T = self.coolingSchedule(step, T0, type='Geometric', alpha = 0.94, beta = 0.1,d=10)
       new_state = self.nextNeighbour(state,self.lb,self.ub,fraction)
       new_cost = self.objectiveFunction(new_state,model)
@@ -164,7 +165,7 @@ class simulatedAnnealing():
         print("  ==> Accepted step {}, temperature {}, obj: {}!".format(step,T,cost))
       else:
         print("  ==> Rejected step {}, temperature {}, obj: {}!".format(step,T,cost))
-    return state, self.objectiveFunction(state,model), states, costs
+    return state, self.objectiveFunction(state,model), step,states, costs
 
   ##############
   # Destructor #
@@ -195,12 +196,13 @@ if __name__ == "__main__":
   lb,ub = -4.5,4.5
   S1.lb,S1.ub = lb,ub
   model = beale
-  Tol = 1e-8
+  absObjTol = 1e-8
+  absTempTol = 1e-8
   S1._maxIter = 500
-  state, obj, states, costs = S1.anneal(model,Tol)
+  state, obj, nIter, states, costs = S1.anneal(model, absObjTol, absTempTol)
 
   #state, obj, states, costs = simulatedAnnealing(np.array([0.5,1.5]),lb,ub,objectiveFunction = model(np.array([0.5,1.5]))).anneal(model,Tol)
-  print('optimal state is {}, energy is{}, numer of iterations is {}'.format(state,obj,len(states)))
+  print('optimal state is {}, energy is{}, numer of iterations is {}'.format(state,obj,nIter))
   hist = np.array(states).reshape(-1,d)
 
   # Create a contour plot
