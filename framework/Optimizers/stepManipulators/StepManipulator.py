@@ -60,7 +60,10 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
     # TODO
     ## Instance Variable Initialization
     # public
+    self.type = self.__class__.__name__
+    self.needsAccessToAcceptance = False # if True, then this stepManip may need to modify opt point acceptance criteria
     # _protected
+    self._optVars = None # optimization variable names (e.g. input space vars)
     # __private
     # additional methods
 
@@ -73,7 +76,13 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
     pass
 
   def initialize(self, optVars, **kwargs):
-    """ TODO """
+    """
+      initializes this object
+      @ In, optVars, list(str), optimization variables (e.g. input space)
+      @ In, kwargs, dict, additional arguments
+      @ Out, None
+    """
+    self._optVars = optVars
 
   ###############
   # Run Methods #
@@ -94,6 +103,7 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, kwargs, dict, keyword-based specifics as required by individual step sizers
       @ Out, newOpt, dict, new optimal point
       @ Out, stepSize, float, new step size
+      @ Out, stepInfo, dict, additional information about this step to store
     """
 
   @abc.abstractmethod
@@ -108,8 +118,43 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, fixInfo, updated fixing info
     """
 
+  @abc.abstractmethod
+  def trajIsFollowing(self, traj, opt, info, data):
+    """
+      Determines if the current trajectory is following another trajectory.
+      @ In, traj, int, integer identifier for trajectory that needs to be checked
+      @ In, opt, dict, most recent optimal point for trajectory
+      @ In, info, dict, additional information about optimal point
+      @ In, data, DataObjects.DataSet, data collected through optimization so far (SolutionExport)
+    """
 
+  def modifyAcceptance(self, oldPoint, oldVal, newPoint, newVal):
+    """
+      Allows modification of acceptance criteria.
+      Note this is only called if self.needsAccessToAcceptance is True.
+      @ In, oldPoint, dict, old opt point
+      @ In, oldVal, float, old objective function value
+      @ In, newPoint, dict, new opt point
+      @ In, newVal, float, new objective function value
+    """
+    pass
 
+  def needDenormalized(self):
+    """
+      Determines if this algorithm needs denormalized input spaces
+      @ In, None
+      @ Out, needDenormalized, bool, True if normalizing should NOT be performed
+    """
+    return False
+
+  def updateSolutionExport(self, stepHistory):
+    """
+      Prints information to the solution export.
+      @ In, stepHistory, list, (magnitude, versor, info) for each step entry
+      @ Out, info, dict, realization of data to go in the solutionExport object
+    """
+    # overload in inheriting classes at will
+    return {}
   ###################
   # Utility Methods #
   ###################

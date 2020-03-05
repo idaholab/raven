@@ -27,8 +27,15 @@ class NoConstraintResolutionFound(RuntimeError):
   """
   pass
 
+class NoMoreStepsNeeded(RuntimeError):
+  """
+    Error raised when the new steps process ends during algorithm.
+  """
+  pass
+
 from .StepManipulator import StepManipulator
 from .GradientHistory import GradientHistory
+from .ConjugateGradient import ConjugateGradient
 
 from .Factory import knownTypes
 from .Factory import returnInstance

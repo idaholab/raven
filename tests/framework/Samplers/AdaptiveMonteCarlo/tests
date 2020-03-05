@@ -1,0 +1,7 @@
+[Tests]
+ [./test_adaptive_monte_carlo]
+  type = 'RavenFramework'
+  input = 'test_adaptive_MC_sampler.xml'
+  csv = 'Adapt/solDump.csv'
+ [../]
+[]

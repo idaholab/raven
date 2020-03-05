@@ -14,13 +14,9 @@
 """
   Implementation of FiniteDifference gradient approximation
 """
-import abc
 import copy
-
 import numpy as np
-
 from utils import InputData, InputTypes, randomUtils, mathUtils
-
 from .GradientApproximater import GradientApproximater
 
 class FiniteDifference(GradientApproximater):
@@ -55,6 +51,8 @@ class FiniteDifference(GradientApproximater):
       evalInfo.append({'type': 'grad',
                        'optVar': optVar,
                        'delta': delta})
+
+
     return evalPoints, evalInfo
 
   def evaluate(self, opt, grads, infos, objVar):
@@ -73,15 +71,13 @@ class FiniteDifference(GradientApproximater):
       delta = info['delta']
       activeVar = info['optVar']
       lossDiff = np.atleast_1d(mathUtils.diffWithInfinites(pt[objVar], opt[objVar]))
-      #if delta != 0:
-      grad = (lossDiff) / delta
-      #else:
-      #  grad = 0
+      grad = lossDiff/delta
       gradient[activeVar] = grad
-    # get the magnitude, versor of the gradient
+    # obtain the magnitude and versor of the gradient to return
     magnitude, direction, foundInf = mathUtils.calculateMagnitudeAndVersor(list(gradient.values()))
     direction = dict((var, float(direction[v])) for v, var in enumerate(gradient.keys()))
     return magnitude, direction, foundInf
+
 
   def numGradPoints(self):
     """
@@ -89,7 +85,7 @@ class FiniteDifference(GradientApproximater):
     """
     return self.N
 
+
   ###################
   # Utility Methods #
   ###################
-

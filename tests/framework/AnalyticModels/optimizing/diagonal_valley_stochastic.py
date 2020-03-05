@@ -18,7 +18,7 @@ np.random.seed(42)
 
 def run(raven, Inputs):
   coeffs = [1, 1, 0] # ax + by + c = 0 -> x = y
-  raven.ans = main(coeffs, raven.x, raven.y) + random(scale=raven.stoch)/10
+  raven.ans = main(coeffs, raven.x, raven.y) #+ random(scale=raven.stoch)/10
 
 def main(coeffs, x, y, thresh=0.01):
   distance = dist_to_line(coeffs, x, y)

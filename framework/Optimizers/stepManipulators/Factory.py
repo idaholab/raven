@@ -22,6 +22,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 ################################################################################
 from .StepManipulator import StepManipulator
 from .GradientHistory import GradientHistory
+from .ConjugateGradient import ConjugateGradient
 
 
 
@@ -33,8 +34,7 @@ from .GradientHistory import GradientHistory
 __base = 'StepSizer'
 __interFaceDict = {}
 __interFaceDict['GradientHistory'] = GradientHistory
-#__interFaceDict['CentralDifference'] = CentralDifference
-#__interFaceDict['SPSA'] = SPSA
+__interFaceDict['ConjugateGradient'] = ConjugateGradient
 
 __knownTypes = list(__interFaceDict.keys())
 

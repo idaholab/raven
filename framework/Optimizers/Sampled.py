@@ -145,12 +145,11 @@ class Sampled(Optimizer):
   # Run Methods #
   ###############
   @abc.abstractmethod
-  def _useRealization(self, info, rlz, optVal):
+  def _useRealization(self, info, rlz):
     """
       Used to feedback the collected runs into actionable items within the sampler.
       @ In, info, dict, identifying information about the realization
-      @ In, rlz, dict, realized realization
-      @ In, optVal, float, value of objective variable (corrected for min/max)
+      @ In, rlz, dict, realized realization (corrected for min-max)
       @ Out, None
     """
 
@@ -243,9 +242,12 @@ class Sampled(Optimizer):
     # TODO making a new dict might be costly, maybe worth just passing whole point?
     ## testing suggests no big deal on smaller problem
     rlz = dict((var, full[var]) for var in (list(self.toBeSampled.keys()) + [self._objectiveVar] + list(self.dependentSample.keys())))
-    optVal = self._collectOptValue(rlz)
+    # the sign of the objective function is flipped in case we do maximization
+    # so get the correct-signed value into the realization
+    if self._minMax == 'max':
+      rlz[self._objectiveVar] *= -1
     rlz = self.normalizeData(rlz)
-    self._useRealization(info, rlz, optVal)
+    self._useRealization(info, rlz)
 
   ###################
   # Utility Methods #
@@ -269,30 +271,6 @@ class Sampled(Optimizer):
     # fix functionals
     normed, funcModded = self._applyFunctionalConstraints(normed, previous)
     modded = boundaryModded or funcModded
-    # passFuncs = self._checkFunctionalConstraints(denormed)
-    # # fix functionals
-    # while not passFuncs:
-    #   modded = True
-    #   # try to find acceptable point
-    #   new = self._applyFunctionalConstraints(denormed, )
-    #   # check functionals
-    #   passFuncs = self._checkFunctionalConstraints(denormed)
-    #   if passFuncs:
-    #     # check boundaries
-    #     denormed, _ = self._applyBoundaryConstraints(denormed)
-    #   TODO
-    if funcModded:
-      print('DEBUGG modified by functional constraint!')
-    elif boundaryModded:
-      print('DEBUGG modified by boundary constraint!')
-    else:
-      print('DEBUGG unmodified by constraints!')
-    # return
-    if modded:
-      #normed = self.normalizeData(denormed)
-      print('DEBUGG had some modding! New:', normed)
-    #else:
-    #  normed = proposed
     return normed, modded
 
   def _checkFunctionalConstraints(self, point):
@@ -375,7 +353,7 @@ class Sampled(Optimizer):
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
-    acceptable, old = self._checkAcceptability(traj, rlz, optVal)
+    acceptable, old = self._checkAcceptability(traj, rlz, optVal, info)
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     self._updatePersistence(traj, converged, optVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
@@ -391,6 +369,7 @@ class Sampled(Optimizer):
       self._rejectOptPoint(traj, info, old)
     else: # e.g. rerun
       pass # nothing to do, just keep moving
+
 
   # support methods for _resolveNewOptPoint
   @abc.abstractmethod
@@ -424,16 +403,6 @@ class Sampled(Optimizer):
     """
 
   @abc.abstractmethod
-  def _updateSolutionExport(self, traj, rlz, acceptable):
-    """
-      Prints information to the solution export.
-      @ In, traj, int, trajectory which should be written
-      @ In, rlz, dict, collected point
-      @ In, acceptable, bool, acceptability of opt point
-      @ Out, None
-    """
-
-  @abc.abstractmethod
   def _rejectOptPoint(self, traj, info, old):
     """
       Having rejected the suggested opt point, take actions so we can move forward
@@ -441,6 +410,47 @@ class Sampled(Optimizer):
       @ In, info, dict, meta information about the opt point
       @ In, old, dict, previous optimal point (to resubmit)
     """
+
+  def _updateSolutionExport(self, traj, rlz, acceptable):
+    """
+      Stores information to the solution export.
+      @ In, traj, int, trajectory which should be written
+      @ In, rlz, dict, collected point
+      @ In, acceptable, bool, acceptability of opt point
+      @ Out, None
+    """
+    # make a holder for the realization that will go to the solutionExport
+    toExport = {}
+    # add some meta information
+    toExport.update({'iteration': self._stepCounter[traj],
+                     'trajID': traj,
+                     'accepted': acceptable,
+                    })
+    # optimal point input and output spaces
+    objValue = rlz[self._objectiveVar]
+    if self._minMax == 'max':
+      objValue *= -1
+    toExport[self._objectiveVar] = objValue
+    toExport.update(self.denormalizeData(dict((var, rlz[var]) for var in self.toBeSampled)))
+    # constants and functions
+    toExport.update(self.constants)
+    toExport.update(dict((var, rlz[var]) for var in self.dependentSample))
+    # additional from from inheritors
+    toExport.update(self._addToSolutionExport(traj, rlz, acceptable))
+    # formatting
+    toExport = dict((var, np.atleast_1d(val)) for var, val in toExport.items())
+    self._solutionExport.addRealization(toExport)
+
+  def _addToSolutionExport(self, traj, rlz, acceptable):
+    """
+      Contributes additional entries to the solution export.
+      @ In, traj, int, trajectory which should be written
+      @ In, rlz, dict, collected point
+      @ In, acceptable, bool, acceptability of opt point
+      @ Out, toAdd, dict, additional entries
+    """
+    return {}
+
   # END resolving potential opt points
   # * * * * * * * * * * * * * * * *
 

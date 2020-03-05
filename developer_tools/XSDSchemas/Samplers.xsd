@@ -20,6 +20,8 @@
             <xsd:element name="AdaptiveDynamicEventTree" type="AdaptiveDETSampler"     minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdaptiveSobol"            type="AdaptiveSobolSampler"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="EnsembleForward"          type="EnsembleForwardSampler" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="AdaptiveMonteCarlo"       type="AdaptiveMCSampler"      minOccurs="0" maxOccurs="unbounded"/>
+
         </xsd:sequence>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
@@ -429,6 +431,61 @@
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
     </xsd:complexType>
+    <xsd:complexType name="AdaptiveMCSampler">
+      <xsd:sequence>
+        <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
+        <xsd:element name="Convergence"      type="adaptiveMCConvergenceType" minOccurs="1" maxOccurs="unbounded"/>
+        <xsd:element name="initialSeed"      type="xsd:integer"                minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
+        <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
+          <xsd:complexType mixed="true">
+              <xsd:attribute name="name" type="xsd:string" use="required"/>
+              <xsd:attribute name="shape" type="xsd:string" />
+          </xsd:complexType>
+        </xsd:element>
+      </xsd:sequence>
+    <xsd:attribute name="name"      type="xsd:string" use="required"/>
+    <xsd:attribute name="verbosity" type="verbosityAttr"/>
+    </xsd:complexType>
+    <xsd:complexType name="adaptiveMCConvergenceType">
+        <xsd:sequence>
+          <xsd:element name="limit"             type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="persistence"       type="xsd:integer" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="forceIteration"       type="RavenBool" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="expectedValue"          minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType mixed="true">
+                <xsd:attribute name="prefix" type="xsd:string" />
+                <xsd:attribute name="tol" type="xsd:float" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="sigma"          minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType mixed="true">
+                <xsd:attribute name="prefix" type="xsd:string" />
+                <xsd:attribute name="tol" type="xsd:float" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="variance"          minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType mixed="true">
+                <xsd:attribute name="prefix" type="xsd:string" />
+                <xsd:attribute name="tol" type="xsd:float" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="skewness"          minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType mixed="true">
+                <xsd:attribute name="prefix" type="xsd:string" />
+                <xsd:attribute name="tol" type="xsd:float" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="kurtosis"          minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType mixed="true">
+                <xsd:attribute name="prefix" type="xsd:string" />
+                <xsd:attribute name="tol" type="xsd:float" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
     <!-- *********************************************************************** -->
     <!--                  Dynamic Event Tree                                     -->
     <!-- *********************************************************************** -->

@@ -66,12 +66,15 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     # from StringType to StringNoLeadingSpacesType
     variableInput.addParam("name", InputTypes.StringNoLeadingSpacesType)
     variableInput.addParam("shape", InputTypes.IntegerListType, required=False)
+    distributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
+    distributionInput.addParam("dim", InputTypes.IntegerType)
 
     distributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
     distributionInput.addParam("dim", InputTypes.IntegerType)
     variableInput.addSub(distributionInput)
 
     functionInput = InputData.parameterInputFactory("function", contentType=InputTypes.StringType)
+
     variableInput.addSub(functionInput)
 
     inputSpecification.addSub(variableInput)

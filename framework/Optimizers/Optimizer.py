@@ -23,16 +23,13 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import sys
 import copy
 import abc
 import numpy as np
-from collections import deque
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils, randomUtils, InputData, InputTypes
-import SupervisedLearning
+from utils import randomUtils, InputData, InputTypes
 from Samplers import AdaptiveSampler, ForwardSampler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -266,6 +263,16 @@ class Optimizer(AdaptiveSampler):
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
 
+  @abc.abstractmethod
+  def _updateSolutionExport(self, traj, rlz, acceptable):
+    """
+      Stores information to the solution export.
+      @ In, traj, int, trajectory which should be written
+      @ In, rlz, dict, collected point
+      @ In, acceptable, bool, acceptability of opt point
+      @ Out, None
+    """
+
   def _addTrackingInfo(self, info, **kwargs):
     """
       Creates realization identifiers to identifiy particular realizations as they return from the JobHandler.
@@ -316,8 +323,6 @@ class Optimizer(AdaptiveSampler):
     ## initialize sampler
     samplerInit = {}
     for entity in ['Distributions', 'Functions', 'DataObjects']:
-      print('DEBUGG collecting:', entity)
-      print('DEBUGG avail:', self.assemblerDict.get(entity, 'nada'))
       samplerInit[entity] = dict((entry[2], entry[3]) for entry in self.assemblerDict.get(entity, []))
     self._initSampler._localGenerateAssembler(samplerInit)
     ## assure sampler provides useful info
@@ -353,9 +358,6 @@ class Optimizer(AdaptiveSampler):
           self._initialValues[n][var] = rlz[var] # TODO float or np.1darray?
       # more API hacking
       # self._initSampler.counter += 1
-
-
-
 
   def initializeTrajectory(self, traj=None):
     """
@@ -393,6 +395,10 @@ class Optimizer(AdaptiveSampler):
       @ In, denormed, dict, dictionary containing the value of decision variables to be normalized, in form of {varName: varValue}
       @ Out, normalized, dict, dictionary containing the value of normalized decision variables, in form of {varName: varValue}
     """
+    # some algorithms should not be normalizing and denormalizing!
+    ## in that case, we allow this method to turn off normalization
+    if self.needDenormalized():
+      return denormed
     normalized = copy.deepcopy(denormed)
     for var in self.toBeSampled:
       val = denormed[var]
@@ -406,9 +412,22 @@ class Optimizer(AdaptiveSampler):
       @ In, normalized, dict, dictionary containing the value of decision variables to be deormalized, in form of {varName: varValue}
       @ Out, denormed, dict, dictionary containing the value of denormalized decision variables, in form of {varName: varValue}
     """
+    # some algorithms should not be normalizing and denormalizing!
+    ## in that case, we allow this method to turn off normalization
+    if self.needDenormalized():
+      return normalized
     denormed = copy.deepcopy(normalized)
     for var in self.toBeSampled:
       val = normalized[var]
       lower, upper = self._variableBounds[var]
       denormed[var] = val * (upper - lower) + lower
     return denormed
+
+  def needDenormalized(self):
+    """
+      Determines if the currently used algorithms should be normalizing the input space or not
+      @ In, None
+      @ Out, needDenormalized, bool, True if normalizing should NOT be performed
+    """
+    # overload as needed in inheritors
+    return False
