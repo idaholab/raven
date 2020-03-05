@@ -26,6 +26,33 @@ class FiniteDifference(GradientApproximater):
   ##########################
   # Initialization Methods #
   ##########################
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    specs = super(FiniteDifference, cls).getInputSpecification()
+    specs.description = r"""if node is present, indicates that gradient approximation should be performed
+        using Finite Difference approximation. Finite difference makes use of orthogonal perturbations
+        in each dimension of the input space to estimate the local gradient, requiring a total of $N$
+        perturbations, where $N$ is dimensionality of the input space. For example, if the input space
+        $\mathbf{i} = (x, y, z)$ for objective function $f(\mathbf{i})$, then FiniteDifference chooses
+        three perturbations $(\alpha, \beta, \gamma)$ and evaluates the following perturbation points:
+        \begin{itemize}
+          \item $f(x+\alpha, y, z)$,
+          \item $f(x, y+\beta, z)$,
+          \item $f(x, y, z+\gamma)$
+        \end{itemize}
+        and evaluates the gradient $\nabla f = (\nabla^{(x)} f, \nabla^{(y)} f, \nabla^{(z)} f)$ as
+        \begin{equation*}
+          \nabla^{(x)}f \approx \frac{f(x+\alpha, y, z) - f(x, y, z)}{\alpha},
+        \end{equation*}
+        and so on for $ \nabla^{(y)}f$ and $\nabla^{(z)}f$.
+          """
+    return specs
+
   ###############
   # Run Methods #
   ###############

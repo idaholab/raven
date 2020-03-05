@@ -15,7 +15,7 @@
   Step size manipulations based on gradient history
 
   Created 2020-01
-  @author: talbpaul
+  @author: zhoujia
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -51,6 +51,10 @@ class ConjugateGradient(StepManipulator):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(ConjugateGradient, cls).getInputSpecification()
+    specs.description = r"""if this node is present, indicates that the iterative steps in the gradient
+        descent algorithm should be determined by the conjugate gradient algorithm, which uses the gradient
+        magnitude and line searches to guide optimization pathing. Conjugate gradient step sizing is
+        particularly useful when the gradient is dominated by one input dimension."""
     return specs
 
   def __init__(self):

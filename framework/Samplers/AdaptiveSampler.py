@@ -26,7 +26,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules
-from utils import mathUtils
+from utils import mathUtils, InputData, InputTypes
+
 from .Sampler import Sampler
 
 
@@ -34,6 +35,22 @@ class AdaptiveSampler(Sampler):
   """
     This is a general adaptive sampler
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    specs = super(AdaptiveSampler, cls).getInputSpecification()
+    specs.description = 'Base class for all kinds of adaptive sampling efforts in RAVEN.'
+    specs.addSub(InputData.assemblyInputFactory('TargetEvaluation', contentType=InputTypes.StringType, strictMode=True,
+        printPriority=101,
+        descr=r"""name of the DataObject where the sampled outputs of the Model will be collected.
+              This DataObject is the means by which the sampling entity obtains the results of requested
+              samples, and so should require all the input and output variables needed for adaptive sampling."""))
+    return specs
+
   def __init__(self):
     """
       Constructor.
@@ -46,6 +63,7 @@ class AdaptiveSampler(Sampler):
     self._inputIdentifiers = {}         # identifiers for a single realization
     self._targetEvaluation = None       # data object with feedback from sample realizations
     self._solutionExport = None         # data object for solution printing
+    self.addAssemblerObject('TargetEvaluation', '1') # Place where realization evaluations go
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """

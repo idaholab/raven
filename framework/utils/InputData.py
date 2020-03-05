@@ -49,6 +49,7 @@ class ParameterInput(object):
   contentType = None
   strictMode = True #If true, only allow parameters and subnodes that are listed
   description = '-- no description yet --'
+  printPriority = None
 
   def __init__(self):
     """
@@ -61,14 +62,17 @@ class ParameterInput(object):
 
   @classmethod
   def createClass(cls, name, ordered=False, contentType=None, baseNode=None,
-                  strictMode=True, descr=None):
+                  strictMode=True, descr=None, printPriority=None):
     """
       Initializes a new class.
       @ In, name, string, The name of the node.
       @ In, ordered, bool, optional, If True, then the subnodes are checked to make sure they are in the same order.
       @ In, contentType, InputTypes.InputType, optional, If not None, set contentType.
       @ In, baseNode, ParameterInput, optional, If not None, copy parameters and subnodes, subOrder, and contentType from baseNode.
-      @ In, strictNode, bool, option, If True, then only allow paramters and subnodes that are specifically mentioned.
+      @ In, strictNode, bool, optional, If True, then only allow paramters and subnodes that are
+      specifically mentioned.
+      @ In, printPriority, int, optional, sets the priority for printing this node e.g. in the user
+      manual. Lower is higher priority; priority 0 gets printed first. See generateLatex for details.
       @ Out, None
     """
 
@@ -80,6 +84,11 @@ class ParameterInput(object):
     cls.name = name
     cls.strictMode = strictMode
     cls.description = descr if descr is not None else cls.description
+    if printPriority is None:
+      # TODO set printPriority based on required/not required, but we don't have this system yet.
+      cls.printPriority = 200
+    else:
+      cls.printPriority = printPriority
     if baseNode is not None:
       #Make new copies of data from baseNode
       cls.parameters = dict(baseNode.parameters)
@@ -385,43 +394,36 @@ class ParameterInput(object):
       @ In, recDepth, int, optional, recursion depth of printing
       @ Out, msg, str, LaTeX string representation of user manual entry
     """
-    # indentation is as follows:
-    # main item definition
-    #   main item description
-    #   main item parameters
-    #     main item param 1
-    #     main item param 2
-    #   main item subnodes
-    #     subitem definition
-    #     subitem description
-    #     subitem parameters
-    #     subitem subnodes
-    # etc
     name = cls.name
-    typ = cls.contentType
     desc = wrapText(cls.description, indent=doDent(recDepth, 1))
     msg = ''
     # if this is a main entity, use subsection instead of itemizing
     if recDepth == 0:
       # triple curly braces preserves one set of curls while replacing "n"
       msg += '\subsection{{{n}}}\n{d}\n'.format(n=name, d=desc)
-    # since this is a sub-entity, it's part of a list
     else:
+      # since this is a sub-entity, it's part of a list
       msg += '{i}\\item \\xmlNode{{{n}}}:'.format(i=doDent(recDepth), n=name)
       # add the required text type if it exists
       if cls.contentType:
-        msg += '\\xmlDesc{{{t}}}, '.format(t=cls.contentType.name)
+        msg += ' \\xmlDesc{{{t}}}, '.format(t=cls.contentType.generateLatexType())
       # add description
       msg += '\n{d}'.format(d=desc)
     # add parameter definitions, if any, tabbed in by 1
     msg += '\n' + cls.generateParamsLatex(recDepth+1)
-    # add subnode definitions
+    # add subnode definitions in order of printing priority
     if cls.subs:
       msg += '\n{i}The \\xmlNode{{{n}}} node recognizes the following subnodes:'.format(i=doDent(recDepth, 1), n=name)
       msg += '\n{i}\\begin{{itemize}}'.format(i=doDent(recDepth, 1))
-      for sub in cls.subs:
+      # order subs in printing priority
+      printSubs = [(sub, sub.printPriority) for sub in cls.subs]
+      printSubs = (x[0] for x in sorted(printSubs, key=lambda x: x[1])) # generator
+      for sub in printSubs:
         msg += '\n{sub}'.format(sub=sub.generateLatex(recDepth=recDepth+2))
       msg += '{i}\\end{{itemize}}\n'.format(i=doDent(recDepth, 1))
+    # TODO is this a good idea? -> disables underscores in math mode :(
+    if recDepth == 0:
+      msg = msg.replace('_', '\_')
     return msg
 
   @classmethod
@@ -436,11 +438,13 @@ class ParameterInput(object):
     if not cls.parameters:
       return msg
     specName = cls.name
+    if '_' in cls.name:
+      name = name.replace('_', '\_')
     msg += '{i}The \\xmlNode{{{n}}} node recognizes the following parameters:'.format(i=doDent(recDepth), n=specName)
     msg += '\n{i}\\begin{{itemize}}'.format(i=doDent(recDepth, 1))
     for param, info in cls.parameters.items():
       name = param
-      typ = info['type'].name
+      typ = info['type'].generateLatexType()
       req = 'required' if info['required'] else 'optional'
       desc = wrapText(info['description'], indent=doDent(recDepth, 3))
       msg += '\n{i}  \\item \\xmlAttr{{{n}}}: \\xmlDesc{{{t}, {r}}}, \n{d}'.format(i=doDent(recDepth, 1),
@@ -479,8 +483,10 @@ def assemblyInputFactory(*paramList, **paramDict):
       The new class to be created by the factory
     """
   newClass.createClass(*paramList, **paramDict)
-  newClass.addParam('type', param_type=InputTypes.StringType, required=True)
-  newClass.addParam('class', param_type=InputTypes.StringType, required=True)
+  newClass.addParam('class', param_type=InputTypes.StringType, required=True,
+      descr=r"""RAVEN class for this entity (e.g. Samplers, Models, DataObjects)""")
+  newClass.addParam('type', param_type=InputTypes.StringType, required=True,
+      descr=r"""RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)""")
   return newClass
 
 def createXSD(outerElement):
@@ -505,7 +511,8 @@ class RavenBase(ParameterInput):
     This can be used as a base class for things that inherit from BaseType
   """
 RavenBase.createClass("RavenBase", baseNode=None)
-RavenBase.addParam("verbosity") #XXX should be enumeration
+verbs = InputTypes.makeEnumType('verbosity', 'verbosityType', ['silent', 'quiet', 'all', 'debug'])
+RavenBase.addParam("verbosity", param_type=verbs, descr='Desired verbosity of messages coming from this entity') #XXX should be enumeration
 
 
 #

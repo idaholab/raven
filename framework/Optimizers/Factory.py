@@ -24,7 +24,6 @@ from .Optimizer import Optimizer
 from .Interfaced import Interfaced
 from .Sampled import Sampled
 from .GradientDescent import GradientDescent
-# TODO
 
 
 
@@ -35,11 +34,8 @@ from .GradientDescent import GradientDescent
 # imports defined above.
 __base = 'Optimizer'
 __interFaceDict = {}
-# TODO
+
 __interFaceDict['GradientDescent'           ] = GradientDescent
-#__interFaceDict['SPSA'                             ] = SPSA
-#__interFaceDict['FiniteDifference'                 ] = FiniteDifference
-#__interFaceDict['ConjugateGradient'                ] = ConjugateGradient
 
 __knownTypes = list(__interFaceDict.keys())
 

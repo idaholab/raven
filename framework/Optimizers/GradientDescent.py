@@ -93,11 +93,12 @@ class GradientDescent(Sampled):
        - converge on gradient magnitude, change in evaluation, min step size
      - Implement summary of step iteration to SolutionExport
   """
-  convergenceOptions = ['gradient',    # gradient magnitude
+  # convergence option names and their user manual descriptions
+  convergenceOptions = {'gradient': r"""provides the desired value for the local estimated of the gradient for convergence. \default{1e-6, if no criteria specified}""",
                         # TODO change in input space?
-                        'objective',   # relative change in objective value
-                        'stepSize'  # normalized step size
-                       ]
+                        'objective': r"""provides the maximum relative change in the objective function for convergence.""",
+                        'stepSize': r"""provides the maximum size in relative step size for convergence.""",
+                       }
 
   ##########################
   # Initialization Methods #
@@ -110,19 +111,36 @@ class GradientDescent(Sampled):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(GradientDescent, cls).getInputSpecification()
+    specs.description = r"""The \xmlNode{GradientDescent} optimizer represents an a la carte option
+                            for performing gradient-based optimization with a variety of gradient
+                            estimation techiniques, stepping strategies, and acceptance criteria. \hspace{12pt}
+                            Gradient descent optimization generally behaves as a ball rolling down a hill;
+                            the algorithm estimates the local gradient at a point, and attempts to move
+                            ``downhill'' in the opposite direction of the gradient (if minimizing; the
+                            opposite if maximizing). Once the lowest point along the iterative gradient search
+                            is discovered, the algorithm is considered converged. \hspace{12pt}
+                            Note that gradient descent algorithms are particularly prone to being trapped
+                            in local minima; for this reason, depending on the model, multiple trajectories
+                            may be needed to obtain the global solution.
+                            """
     # gradient estimation options
-    grad = InputData.parameterInputFactory('gradient', strictMode=True)
+    grad = InputData.parameterInputFactory('gradient', strictMode=True,
+        printPriority=106,
+        descr=r"""a required node containing the information about which gradient approximation algorithm to
+              use, and its settings if applicable. Exactly one of the gradient approximation algorithms
+              below may be selected for this Optimizer.""")
     specs.addSub(grad)
-    ## common options to all gradient descenders
-    # TODO grad.addSub(InputData.parameterInputFactory('proximity',
-    # contentType=InputTypes.FloatType))
     ## get specs for each gradient subclass, and add them to this class's options
     for option in gradKnownTypes():
       subSpecs = gradReturnClass(option, cls).getInputSpecification()
       grad.addSub(subSpecs)
 
     # step sizing options
-    step = InputData.parameterInputFactory('stepSize', strictMode=True)
+    step = InputData.parameterInputFactory('stepSize', strictMode=True,
+        printPriority=107,
+        descr=r"""a required node containing the information about which iterative stepping algorithm to
+              use, and its settings if applicable. Exactly one of the stepping algorithms
+              below may be selected for this Optimizer.""")
     specs.addSub(step)
     ## common options to all stepManipulator descenders
     ## TODO
@@ -132,7 +150,12 @@ class GradientDescent(Sampled):
       step.addSub(subSpecs)
 
     # acceptance conditions
-    accept = InputData.parameterInputFactory('acceptance', strictMode=True)
+    accept = InputData.parameterInputFactory('acceptance', strictMode=True,
+        printPriority=108,
+        descr=r"""a required node containing the information about the acceptability criterion for iterative
+              optimization steps, i.e. when a potential new optimal point should be rejected and when
+              it can be accepted. Exactly one of the acceptance criteria
+              below may be selected for this Optimizer.""")
     specs.addSub(accept)
     ## common options to all acceptanceCondition descenders
     ## TODO
@@ -142,14 +165,24 @@ class GradientDescent(Sampled):
       accept.addSub(subSpecs)
 
     # convergence
-    conv = InputData.parameterInputFactory('convergence', strictMode=True)
+    conv = InputData.parameterInputFactory('convergence', strictMode=True,
+        printPriority=109,
+        descr=r"""a node containing the desired convergence criteria for the optimization algorithm.
+              Note that convergence is met when any one of the convergence criteria is met. If no convergence
+              criteria are given, then the \xmlNode{limit} is used.""")
     specs.addSub(conv)
-    for name in cls.convergenceOptions:
-      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType))
-    conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType))
-    terminate = InputData.parameterInputFactory('terminateFollowers', contentType=InputTypes.BoolType)
-    terminate.addParam('proximity', param_type=InputTypes.FloatType, required=False)
-    conv.addSub(terminate)
+    conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType,
+        descr=r"""provides the number of consecutive times convergence should be reached before a trajectory
+              is considered fully converged. This helps in preventing early false convergence."""))
+    for name, descr in cls.convergenceOptions.items():
+      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType, descr=descr))
+    terminate = InputData.parameterInputFactory('terminateFollowers', contentType=InputTypes.BoolType,
+        descr=r"""indicates whether a trajectory should be terminated when it begins following the path
+              of another trajectory.""")
+    terminate.addParam('proximity', param_type=InputTypes.FloatType, required=False,
+        descr=r"""provides the normalized distance at which a trajectory's head should be proximal to
+              another trajectory's path before terminating the following trajectory.""")
+
     # NOTE to add new convergence options, add them to convergenceOptions above, not here!
 
     return specs
