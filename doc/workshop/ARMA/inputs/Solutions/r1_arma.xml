@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>/Users/zhouj2/projects/raven/doc/workshop/ARMA/Inputs.ARMA1</name>
+    <name>/doc/workshop/ARMA/Inputs.ARMA1</name>
     <author>zhouj</author>
     <created>2019-07-09</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
