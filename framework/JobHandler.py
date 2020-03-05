@@ -717,6 +717,9 @@ class JobHandler(MessageHandler.MessageUser):
     @ Out, None
     """
     self.completed = True
+    if _rayAvail:
+     ray.shutdown()
+
 
   def terminateAll(self):
     """
