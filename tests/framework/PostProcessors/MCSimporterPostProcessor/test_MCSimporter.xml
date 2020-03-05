@@ -6,6 +6,7 @@
     <classesTested>MCSimporter</classesTested>
     <description>
       Tests of the MCSimporter post-processor: it reads a list of MCSs generated from Saphire and it imports it as a PointSet. 
+      We specifically test the capability to expand the list of Basic Events from an external file.
     </description>
   </TestInfo>
   
@@ -22,7 +23,6 @@
   
   <Models>
     <PostProcessor name="MCSimporter" subType="MCSimporter">
-      <fileFormat>Saphire</fileFormat>
       <expand>True</expand>
       <BElistColumn>Description</BElistColumn>
     </PostProcessor>   
@@ -56,8 +56,8 @@
               4160 VAC BUS 1A FAILS,
               480 VAC BUS 1A1 FAILS,
               480 VAC BUS 1A2 FAILS,
-              480 VAC BUS 1A3 FAILS
-      <Output>MCS_ID,probability,out</Output>
+              480 VAC BUS 1A3 FAILS </Input>
+      <Output> MCS_ID,probability,out </Output>
     </PointSet>
   </DataObjects>
   

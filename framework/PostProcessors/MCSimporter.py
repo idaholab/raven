@@ -64,6 +64,7 @@ class MCSimporter(PostProcessor):
     """
     inputSpecification = super(MCSimporter, cls).getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("expand", contentType=InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("BElistColumn", contentType=InputData.StringType))
     return inputSpecification
 
   def initialize(self, runInfo, inputs, initDict) :
@@ -100,10 +101,13 @@ class MCSimporter(PostProcessor):
     #  self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', format ' + str(self.fileFormat) + ' : is not supported')
     
     expand = paramInput.findFirst('expand')
-    self.expand = expand.value
-        
+    self.expand = expand.value     
     # if self.expand = False then the dataObject includes only the Basic Events  listed in the set of MCSs
     # if self.expand = True then the dataObject includes all Basic Events
+
+    if self.expand == True:
+      beListColumn = paramInput.findFirst('BElistColumn')
+      self.BElistColumn = beListColumn.value     
 
   def run(self, inputs):
     """
@@ -161,23 +165,24 @@ class MCSimporter(PostProcessor):
           self.BElist.update(elementsList)  
     if self.expand==True: 
       BEdata = pd.read_csv(BElistFile.getFilename())    
-      self.BElist = BEdata[self.BElistColumn]
+      self.BElist = BEdata[self.BElistColumn].values.tolist()
 
     MCSpointSet = {} 
+
+    # MCS Input variables
     MCSpointSet['probability'] = self.probability
-    MCSpointSet['MCS_ID']     = self.MCS_IDs
+    MCSpointSet['MCS_ID']      = self.MCS_IDs
     MCSpointSet['out']         = np.ones((counter))
 
+    # MCS Output variables
     for be in self.BElist:
       MCSpointSet[be]= np.zeros(counter)
-    
-    # Output variables 
     counter=0
     for mcs in self.MCSlist:
       for be in mcs:  
         MCSpointSet[be][counter] = 1.0
       counter = counter+1
-    
+
     return MCSpointSet
 
   def collectOutput(self, finishedJob, output):
