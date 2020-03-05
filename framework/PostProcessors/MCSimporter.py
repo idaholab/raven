@@ -99,15 +99,15 @@ class MCSimporter(PostProcessor):
     #self.fileFormat = fileFormat.value
     #if self.fileFormat not in self.allowedFormats:
     #  self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', format ' + str(self.fileFormat) + ' : is not supported')
-    
+
     expand = paramInput.findFirst('expand')
-    self.expand = expand.value     
+    self.expand = expand.value
     # if self.expand = False then the dataObject includes only the Basic Events  listed in the set of MCSs
     # if self.expand = True then the dataObject includes all Basic Events
 
     if self.expand == True:
       beListColumn = paramInput.findFirst('BElistColumn')
-      self.BElistColumn = beListColumn.value     
+      self.BElistColumn = beListColumn.value
 
   def run(self, inputs):
     """
@@ -118,7 +118,7 @@ class MCSimporter(PostProcessor):
 
     MCSfileFound = False
     BEfileFound  = False
-    
+
     for file in inputs:
       if file.getType()=="MCSlist":
         if MCSfileFound:
@@ -131,43 +131,43 @@ class MCSimporter(PostProcessor):
           self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', A file with type=BElist has been found but expand is set to False')
         if BEfileFound:
           self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', Multiple files with type=BElist have been found')
-        else:            
+        else:
           BElistFile = file
           BEfileFound  = True
-    
+
     if BEfileFound==False and self.expand==True:
       self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', Expand is set to False but no file with type=BElist has been found')
-    
+
     self.MCSlist=[]
-    self.BElist=set()  
+    self.BElist=set()
     self.probability = np.zeros((0))
-    self.MCS_IDs = np.zeros((0))  
-      
-    # construct the list of MCSs and the list of BE  
+    self.MCS_IDs = np.zeros((0))
+
+    # construct the list of MCSs and the list of BE
     counter=0
     with open(MCSlistFile.getFilename(), 'r') as file:
       next(file) # skip header
       lines = file.read().splitlines()
       for l in lines:
-        elementsList = l.split(',') 
+        elementsList = l.split(',')
 
         self.MCS_IDs=np.append(self.MCS_IDs,elementsList[0])
         elementsList.pop(0)
-        
+
         self.probability=np.append(self.probability,elementsList[0])
         elementsList.pop(0)
-        
+
         for element in elementsList:
           element.rstrip('\n')
         self.MCSlist.append(elementsList)
         counter = counter+1
         if self.expand==False:
-          self.BElist.update(elementsList)  
-    if self.expand==True: 
-      BEdata = pd.read_csv(BElistFile.getFilename())    
+          self.BElist.update(elementsList)
+    if self.expand==True:
+      BEdata = pd.read_csv(BElistFile.getFilename())
       self.BElist = BEdata[self.BElistColumn].values.tolist()
 
-    MCSpointSet = {} 
+    MCSpointSet = {}
 
     # MCS Input variables
     MCSpointSet['probability'] = self.probability
@@ -179,7 +179,7 @@ class MCSimporter(PostProcessor):
       MCSpointSet[be]= np.zeros(counter)
     counter=0
     for mcs in self.MCSlist:
-      for be in mcs:  
+      for be in mcs:
         MCSpointSet[be][counter] = 1.0
       counter = counter+1
 
@@ -195,7 +195,7 @@ class MCSimporter(PostProcessor):
     evaluation = finishedJob.getEvaluation()
     outputDict ={}
     outputDict['data'] = evaluation[1]
-    
+
     if output.type in ['PointSet']:
       outputDict['dims'] = {}
       for key in outputDict.keys():
