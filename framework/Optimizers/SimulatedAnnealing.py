@@ -334,6 +334,7 @@ class SimulatedAnnealing(Sampled):
       else:
         if self._acceptabilityCriterion(oldVal,opt[self._objectiveVar])>randomUtils.random(dim=1, samples=1): # TODO replace it back
           acceptable = 'accepted'
+          # self._stepCounter[traj] +=1
         else:
           #acceptable = self._checkForImprovement(opt[self._objectiveVar], oldVal) DO I NEED THIS HERE?!
           acceptable = 'rejected'
@@ -447,16 +448,15 @@ class SimulatedAnnealing(Sampled):
     # meta variables
     solution = {'iteration': self._stepCounter[traj],
                 'trajID': traj,
-                'Temp':self.T,
+                'Temp': self.T,
                 'accepted': acceptable,
-                'fraction':self._stepCounter[traj]/self.limit
+                'fraction': self._stepCounter[traj]/self.limit
                 }
     for key, val in self._convergenceInfo[traj].items():
       solution['conv_{}'.format(key)] = val
     # variables, objective function, constants, etc
     solution[self._objectiveVar] = rlz[self._objectiveVar]
     for var in self.toBeSampled:
-      # TODO dimensionality?
       solution[var] = denormed[var]
       solution['amp_'+var] = self.info['amp_'+var]
       solution['delta_'+var] = self.info['delta_'+var]
@@ -494,43 +494,14 @@ class SimulatedAnnealing(Sampled):
       @ Out, point, dict, adjusted variables
       @ Out, modded, bool, whether point was modified or not
     """
-    ## TODO: right now I do not handle functional Constraints
-    point = suggested
-    modded = False
-    return point, modded
-    
+    # ## TODO: right now I do not handle functional Constraints
+    # point = suggested
+    # modded = False
+    # return point, modded
+
     # assume no modifications until proved otherwise
     modded = False
-    # are we violating functional constraints?
-    passFuncs = self._checkFunctionalConstraints(self.denormalizeData(suggested))
-    # while in violation of constraints ...
-    info = {'minStepSize': self._convergenceCriteria.get('stepSize', 1e-10)} # TODO why 1e-10?
-    tries = 500
-    while not passFuncs:
-      modded = True
-      #  try to find new acceptable point
-      denormed = self.denormalizeData(suggested)
-      ### DEBUGG the following lines will add constraint search attempts to the solution export.
-      # rlz = {'trajID': 0,
-      #        'x': denormed['x'],
-      #        'y': denormed['y'],
-      #        'ans': 1 - tries / 100,
-      #        'stepSize': 9999,
-      #        'iteration': 9999,
-      #        'accepted': 'search',
-      #        'conv_gradient': 0,
-      #       }
-      # rlz = dict((key, np.atleast_1d(val)) for key, val in rlz.items())
-      # self._solutionExport.addRealization(rlz)
-      ### END DEBUGG
-      suggested, modStepSize, info = self._stepInstance.fixConstraintViolations(suggested, previous, info)
-      denormed = self.denormalizeData(suggested)
-      self.raiseADebug(' ... suggested norm step {:1.2e}, new opt {}'.format(modStepSize, denormed))
-      passFuncs = self._checkFunctionalConstraints(denormed)
-      tries -= 1
-      if tries == 0:
-        self.raiseAnError(NotImplementedError, 'No acceptable point findable! Now what?')
-    return suggested, modded
+    return point, modded
 
   ###########
   # Utility Methods #
