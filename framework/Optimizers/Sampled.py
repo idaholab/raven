@@ -279,7 +279,7 @@ class Sampled(Optimizer):
       @ In, traj, int, identifier
       @ In, point, dict, suggested point to submit (denormalized)
       @ In, info, dict, data about suggested point
-      @ Out, okay, bool, False if violations found else True
+      @ Out, allOkay, bool, False if violations found else True
     """
     allOkay = True
     inputs = dict(point)
@@ -290,7 +290,7 @@ class Sampled(Optimizer):
       if not okay:
         self.raiseADebug('Functional constraint "{n}" was violated!'.format(n=constraint.name))
         self.raiseADebug(' ... point:', point)
-      allOkay *= okay
+      allOkay &= okay
     # FIXME TODO check functions
     return allOkay
 
@@ -314,13 +314,13 @@ class Sampled(Optimizer):
         upper = np.inf
       if val < lower:
         self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} lower bound: {:1.3e} under by {:1.3e}'
-                         .format(var, val, lower, lower - val))
+                          .format(var, val, lower, lower - val))
         self.raiseADebug(' ... -> for point {}'.format(point))
         point[var] = lower
         modded = True
       elif val > upper:
         self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} upper bound: {:1.3e} over by {:1.3e}'
-                         .format(var, val, upper, val - upper))
+                          .format(var, val, upper, val - upper))
         self.raiseADebug(' ... -> for point {}'.format(point))
         point[var] = upper
         modded = True
@@ -353,7 +353,7 @@ class Sampled(Optimizer):
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
-    acceptable, old = self._checkAcceptability(traj, rlz, optVal, info)
+    acceptable, old = self._checkAcceptability(traj, rlz)
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     self._updatePersistence(traj, converged, optVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
@@ -364,6 +364,7 @@ class Sampled(Optimizer):
     if acceptable in ['accepted', 'first']:
       # record history
       self._optPointHistory[traj].append((rlz, info))
+      self._stepCounter[traj] += 1
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)
@@ -422,9 +423,9 @@ class Sampled(Optimizer):
     # make a holder for the realization that will go to the solutionExport
     toExport = {}
     # add some meta information
-    toExport.update({'iteration': self._stepCounter[traj],
-                     'trajID': traj,
-                     'accepted': acceptable,
+    toExport.update({ 'iteration': self._stepCounter[traj],
+                      'trajID': traj,
+                      'accepted': acceptable,
                     })
     # optimal point input and output spaces
     objValue = rlz[self._objectiveVar]

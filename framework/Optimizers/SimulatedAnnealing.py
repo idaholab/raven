@@ -129,7 +129,7 @@ class SimulatedAnnealing(Sampled):
     self._stepCounter = {}         # step counter, int
     self.T0 = None                 # initial temperature
     self.T = None                  # current temperature
-    np.random.seed(42) # TODO remove this
+    # np.random.seed(42) # TODO remove this
 
   def handleInput(self, paramInput):
     """
@@ -148,7 +148,7 @@ class SimulatedAnnealing(Sampled):
           self._convergenceCriteria[sub.name] = sub.value
     if not self._convergenceCriteria:
       self.raiseAWarning('No convergence criteria given; using defaults.')
-      self._convergenceCriteria['gradient'] = 1e-6
+      self._convergenceCriteria['objective'] = 1e-6
     # same point is ALWAYS a criterion
     self._convergenceCriteria['samePoint'] = 1e-16 #
     # Cooling Schedule
@@ -215,7 +215,7 @@ class SimulatedAnnealing(Sampled):
   ###############
   # Run Methods #
   ###############
-  def _useRealization(self, info, rlz, optVal):
+  def _useRealization(self, info, rlz):
     """
       Used to feedback the collected runs into actionable items within the sampler.
       @ In, info, dict, identifying information about the realization
@@ -225,30 +225,31 @@ class SimulatedAnnealing(Sampled):
     """
     traj = info['traj']
     #self._stepCounter[traj] += 1
-    info['optVal'] = optVal
-    self._resolveNewOptPoint(traj, rlz, optVal, info)
+    info['optVal'] = rlz[self._objectiveVar]
+    self._resolveNewOptPoint(traj, rlz, rlz[self._objectiveVar], info)
     if self._stepTracker[traj]['opt'] == None:
       # revert to the last accepted point
       rlz = self._optPointHistory[traj][-1][0]
       info = self._optPointHistory[traj][-1][1]
       info['step'] = self._stepCounter[traj]
       optVal = rlz[self._objectiveVar]
-    self._stepCounter[traj] += 1
+    # self._stepCounter[traj] += 1
     fraction = self._stepCounter[traj]/self.limit
     currentPoint = self._collectOptPoint(rlz)
-    # self.T0 = self._temperature(fraction)
-    self.T = self._coolingSchedule(self._stepCounter[traj],self.T0, self._coolingMethod, alpha = 0.94, beta = 0.1,d=10)
-    newPoint = self._nextNeighbour(rlz,fraction)
-    # check new opt point against constraints
-    try:
-      suggested, modded = self._handleExplicitConstraints(newPoint, currentPoint, 'opt')
-    except NoConstraintResolutionFound:
-      # we've tried everything, but we just can't hack it
-      self.raiseAMessage('Optimizer "{}" trajectory {} was unable to continue due to functional or boundary constraints.'
+    self.T0 = self._temperature(fraction)
+    self.T = self._coolingSchedule(self._stepCounter[traj],self.T0, self._coolingMethod, alpha = 0.94, beta = 0.1,d=1.0)
+    if traj in self._activeTraj:
+      newPoint = self._nextNeighbour(rlz,fraction)
+      # check new opt point against constraints
+      try:
+        suggested, modded = self._handleExplicitConstraints(newPoint, currentPoint, 'opt')
+      except NoConstraintResolutionFound:
+        # we've tried everything, but we just can't hack it
+        self.raiseAMessage('Optimizer "{}" trajectory {} was unable to continue due to functional or boundary constraints.'
                           .format(self.name, traj))
-      self._closeTrajectory(traj, 'converge', 'no constraint resolution', newPoint[self._objectiveVar])
-      return
-    self._submitRun(suggested, traj, self._stepCounter[traj])
+        self._closeTrajectory(traj, 'converge', 'no constraint resolution', newPoint[self._objectiveVar])
+        return
+      self._submitRun(suggested, traj, self._stepCounter[traj])
 
   # * * * * * * * * * * * * * * * *
   # Convergence Checks
@@ -305,7 +306,7 @@ class SimulatedAnnealing(Sampled):
     """
     pass
 
-  def _checkAcceptability(self, traj, opt, optVal):
+  def _checkAcceptability(self, traj, opt):
     """
       Check if new opt point is acceptably better than the old one
       @ In, traj, int, identifier
@@ -321,20 +322,20 @@ class SimulatedAnnealing(Sampled):
       oldVal = old[self._objectiveVar]
       # check if same point
       self.raiseADebug(' ... change: {d: 1.3e} new objective: {n: 1.6e} old objective: {o: 1.6e}'
-                      .format(d=optVal-oldVal, o=oldVal, n=optVal))
+                      .format(d=opt[self._objectiveVar]-oldVal, o=oldVal, n=opt[self._objectiveVar]))
       # if this is an opt point rerun, accept it without checking.
       if self._acceptRerun[traj]:
         acceptable = 'rerun'
         self._acceptRerun[traj] = False
-        self._stepRecommendations[traj] = 'shrink' # FIXME how much do we really want this?
+        #self._stepRecommendations[traj] = 'shrink' # FIXME how much do we really want this?
       elif all(opt[var] == old[var] for var in self.toBeSampled):
         # this is the classic "same point" trap; we accept the same point, and check convergence later
         acceptable = 'accepted'
       else:
-        if self._acceptabilityCriterion(oldVal,optVal)>0.5: #randomUtils.random(dim=1, samples=1): # TODO replace it back
+        if self._acceptabilityCriterion(oldVal,opt[self._objectiveVar])>randomUtils.random(dim=1, samples=1): # TODO replace it back
           acceptable = 'accepted'
         else:
-          #acceptable = self._checkForImprovement(optVal, oldVal) DO I NEED THIS HERE?!
+          #acceptable = self._checkForImprovement(opt[self._objectiveVar], oldVal) DO I NEED THIS HERE?!
           acceptable = 'rejected'
     except IndexError:
       # if first sample, simply assume it's better!
@@ -362,6 +363,7 @@ class SimulatedAnnealing(Sampled):
       prob = 1
     else:
       deltaE = newObjective - currentObjective
+      # prob = 1/(1+np.exp(deltaE/(kB * self.T)))
       prob = np.exp(-deltaE/(kB * self.T))
     return prob
 
@@ -477,13 +479,10 @@ class SimulatedAnnealing(Sampled):
     self._cancelAssociatedJobs(info['traj'], step=info['step'])
     #self._stepTracker[traj]['opt'] = None
     ## what do do if a point is rejected?
-    # for now, rerun the opt point and gradients, AND cut step
     # TODO user option to EITHER rerun opt point OR cut step!
     # initialize a new step
     self._initializeStep(traj)
-    self._acceptRerun[traj] = True
-    #fraction = self._stepCounter[traj]/self.limit
-    #self._nextNeighbour(old,fraction)
+    #self._acceptRerun[traj] = True
   # END resolving potential opt points
   # * * * * * * * * * * * * * * * *
 
@@ -499,6 +498,39 @@ class SimulatedAnnealing(Sampled):
     point = suggested
     modded = False
     return point, modded
+    
+    # assume no modifications until proved otherwise
+    modded = False
+    # are we violating functional constraints?
+    passFuncs = self._checkFunctionalConstraints(self.denormalizeData(suggested))
+    # while in violation of constraints ...
+    info = {'minStepSize': self._convergenceCriteria.get('stepSize', 1e-10)} # TODO why 1e-10?
+    tries = 500
+    while not passFuncs:
+      modded = True
+      #  try to find new acceptable point
+      denormed = self.denormalizeData(suggested)
+      ### DEBUGG the following lines will add constraint search attempts to the solution export.
+      # rlz = {'trajID': 0,
+      #        'x': denormed['x'],
+      #        'y': denormed['y'],
+      #        'ans': 1 - tries / 100,
+      #        'stepSize': 9999,
+      #        'iteration': 9999,
+      #        'accepted': 'search',
+      #        'conv_gradient': 0,
+      #       }
+      # rlz = dict((key, np.atleast_1d(val)) for key, val in rlz.items())
+      # self._solutionExport.addRealization(rlz)
+      ### END DEBUGG
+      suggested, modStepSize, info = self._stepInstance.fixConstraintViolations(suggested, previous, info)
+      denormed = self.denormalizeData(suggested)
+      self.raiseADebug(' ... suggested norm step {:1.2e}, new opt {}'.format(modStepSize, denormed))
+      passFuncs = self._checkFunctionalConstraints(denormed)
+      tries -= 1
+      if tries == 0:
+        self.raiseAnError(NotImplementedError, 'No acceptable point findable! Now what?')
+    return suggested, modded
 
   ###########
   # Utility Methods #
@@ -565,8 +597,8 @@ class SimulatedAnnealing(Sampled):
 
     nextNeighbour = {}
     if self._coolingMethod in ['linear' , 'exponential']:
-      amp = ((fraction)**-1) / 10
-      r = np.random.random(len(self.toBeSampled.keys())) #randomUtils.random(dim=len(self.toBeSampled.keys()), samples=1)
+      amp = ((fraction)**-1) / 20
+      r = randomUtils.random(dim=len(self.toBeSampled.keys()), samples=1)
       delta = (-amp/2.)+ amp * r
     elif self._coolingMethod == 'boltzmann':
       amp = min(np.sqrt(self.T), 1/3.0/alpha)
