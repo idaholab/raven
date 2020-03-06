@@ -37,6 +37,7 @@ class AcceptanceCondition(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = InputData.parameterInputFactory(cls.__name__, ordered=False, strictMode=True)
+    specs.description = 'Base class for acceptance conditions in the GradientDescent Optimizer.'
     return specs
 
   def __init__(self):

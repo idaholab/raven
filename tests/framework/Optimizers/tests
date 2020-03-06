@@ -112,4 +112,15 @@
       zero_threshold = 1e-5
     [../]
   [../]
+
+  [./MultiTraj]
+    type = 'RavenFramework'
+    input = 'multitraj.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'MultiTraj/opt_export_0.csv MultiTraj/opt_export_1.csv MultiTraj/opt_export_2.csv MultiTraj/opt_export_3.csv MultiTraj/opt_export_4.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
 []

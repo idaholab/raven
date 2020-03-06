@@ -54,64 +54,140 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     inputSpecification = super(Sampler, cls).getInputSpecification()
     # FIXME the DET HybridSampler doesn't use the "name" param for the samples it creates,
     #      so we can't require the name yet
-    inputSpecification.addParam("name", InputTypes.StringType)
+    # -> it's also in the base class ...
+    # inputSpecification.addParam("name", InputTypes.StringType)
 
-    outerDistributionInput = InputData.parameterInputFactory("Distribution")
-    outerDistributionInput.addParam("name", InputTypes.StringType)
-    outerDistributionInput.addSub(InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType))
-    inputSpecification.addSub(outerDistributionInput)
-
-    variableInput = InputData.parameterInputFactory("variable")
+    variableInput = InputData.parameterInputFactory("variable", printPriority=100,
+              descr='defines the input space variables to be sampled through various means.')
     # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
     # from StringType to StringNoLeadingSpacesType
-    variableInput.addParam("name", InputTypes.StringNoLeadingSpacesType)
-    variableInput.addParam("shape", InputTypes.IntegerListType, required=False)
-    distributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
-    distributionInput.addParam("dim", InputTypes.IntegerType)
-
-    distributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
-    distributionInput.addParam("dim", InputTypes.IntegerType)
+    variableInput.addParam("name", InputTypes.StringNoLeadingSpacesType,
+        descr=r"""user-defined name of this Sampler. \nb As for the other objects,
+              this is the name that can be used to refer to this specific entity from other input blocks""")
+    variableInput.addParam("shape", InputTypes.IntegerListType, required=False,
+        descr=r"""determines the number of samples and shape of samples
+              to be taken.  For example, \xmlAttr{shape}=``2,3'' will provide a 2 by 3
+              matrix of values, while \xmlAttr{shape}=``10'' will produce a vector of 10 values.
+              Omitting this optional attribute will result in a single scalar value instead.
+              Each of the values in the matrix or vector will be the same as the single sampled value.
+              \nb A model interface must be prepared to handle non-scalar inputs to use this option.""")
+    distributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType,
+        descr=r"""name of the distribution that is associated to this variable.
+              Its name needs to be contained in the \xmlNode{Distributions} block explained
+              in Section \ref{sec:distributions}. In addition, if NDDistribution is used,
+              the attribute \xmlAttr{dim} is required. \nb{Alternatively, this node must be omitted
+              if the \xmlNode{function} node is supplied.}""")
+    distributionInput.addParam("dim", InputTypes.IntegerType,
+        descr=r"""for an NDDistribution, indicates the dimension within the NDDistribution that corresponds
+              to this variable.""")
     variableInput.addSub(distributionInput)
-
-    functionInput = InputData.parameterInputFactory("function", contentType=InputTypes.StringType)
-
+    functionInput = InputData.parameterInputFactory("function", contentType=InputTypes.StringType,
+        descr=r"""name of the function that
+              defines the calculation of this variable from other distributed variables.  Its name
+              needs to be contained in the \xmlNode{Functions} block explained in Section
+              \ref{sec:functions}. This function must implement a method named ``evaluate''.
+              \nb{Each \xmlNode{variable} must contain only one \xmlNode{Function} or
+              \xmlNode{Distribution}, but not both.} """)
     variableInput.addSub(functionInput)
-
     inputSpecification.addSub(variableInput)
 
-    variablesTransformationInput = InputData.parameterInputFactory("variablesTransformation")
-    variablesTransformationInput.addParam('distribution', InputTypes.StringType)
+    # DEPRECATED; remove once tests are checked
+    # outerDistributionInput = InputData.parameterInputFactory("Distribution", descr=r"""As an alternative to providing
+    #     a \xmlNode{variable}, this node may be provided to generate a distribution from which samples can be taken.
+    #     This should not be confused with the \xmlNode{distribution} node within the \xmlNode{variable} node.""")
+    # outerDistributionInput.addParam("name", InputTypes.StringType, descr=r"""identifying name for this distribution in RAVEN.""")
+    # outerDistributionInput.addSub(InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType,
+    #     descr=r"""name of the distribution that is associated to this Distribution.
+    #           Its name needs to be contained in the \xmlNode{Distributions} block explained
+    #           in Section \ref{sec:distributions}. In addition, if NDDistribution is used,
+    #           the attribute \xmlAttr{dim} is required. \nb{Alternatively, this node must be omitted
+    #           if the \xmlNode{function} node is supplied.}"""))
+    # inputSpecification.addSub(outerDistributionInput)
 
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("latentVariables", contentType=InputTypes.StringListType))
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariables", contentType=InputTypes.StringListType))
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariablesIndex", contentType=InputTypes.StringListType))
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
-
-    inputSpecification.addSub(variablesTransformationInput)
-
-    constantInput = InputData.parameterInputFactory("constant", contentType=InputTypes.InterpretedListType)
+    constantInput = InputData.parameterInputFactory("constant", contentType=InputTypes.InterpretedListType,
+        printPriority=110,
+        descr=r"""allows variables that do not change value to be part of the input space.""")
     # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
     # from StringType to StringNoLeadingSpacesType
-    constantInput.addParam("name", InputTypes.StringNoLeadingSpacesType, True)
-    constantInput.addParam("shape", InputTypes.IntegerListType, required=False)
-    constantInput.addParam("source", InputTypes.StringType, required=False)
-    constantInput.addParam("index", InputTypes.IntegerType, required=False)
-
+    constantInput.addParam("name", InputTypes.StringNoLeadingSpacesType, required=True,
+        descr=r"""variable name for this constant, which will be provided to the Model. """)
+    constantInput.addParam("shape", InputTypes.IntegerListType, required=False,
+        descr=r"""determines the shape of samples of the constant value.
+              For example, \xmlAttr{shape}=``2,3'' will shape the values into a 2 by 3
+              matrix, while \xmlAttr{shape}=``10'' will shape into a vector of 10 values.
+              Unlike the \xmlNode{variable}, the constant requires each value be entered; the number
+              of required values is equal to the product of the \xmlAttr{shape} values, e.g. 6 entries for shape ``2,3'').
+              \nb A model interface must be prepared to handle non-scalar inputs to use this option. """)
+    constantInput.addParam("source", InputTypes.StringType, required=False,
+        descr=r"""the name of the DataObject containing the value to be used for this constant.
+              Requires \xmlNode{ConstantSource} node with a \xmlNode{DataObject} identified for this
+              Sampler/Optimizer.""")
+    constantInput.addParam("index", InputTypes.IntegerType, required=False,
+        descr=r"""the index of the realization in the \xmlNode{ConstantSource} \xmlNode{DataObject}
+                  containing the value for this constant. Requires \xmlNode{ConstantSource} node with
+                  a \xmlNode{DataObject} identified for this Sampler/Optimizer.""")
     inputSpecification.addSub(constantInput)
 
-    restartToleranceInput = InputData.parameterInputFactory("restartTolerance", contentType=InputTypes.FloatType)
-    inputSpecification.addSub(restartToleranceInput)
-
-    restartInput = InputData.parameterInputFactory("Restart", contentType=InputTypes.StringType)
-    restartInput.addParam("type", InputTypes.StringType)
-    restartInput.addParam("class", InputTypes.StringType)
-    inputSpecification.addSub(restartInput)
-
-    sourceInput = InputData.parameterInputFactory("ConstantSource", contentType=InputTypes.StringType)
-    sourceInput.addParam("type", InputTypes.StringType)
-    sourceInput.addParam("class", InputTypes.StringType)
+    sourceInput = InputData.parameterInputFactory("ConstantSource", contentType=InputTypes.StringType,
+        printPriority=111,
+        descr=r"""identifies a \xmlNode{DataObject} to provide \xmlNode{constant} values to the input
+              space of this entity while sampling. As an alternative to providing predefined values
+              for constants, the \xmlNode{ConstantSource} provides a dynamic means of always providing
+              the same value for a constant. This is often used as part of a larger multi-workflow
+              calculation.""")
+    sourceInput.addParam("class", InputTypes.StringType,
+        descr=r"""The RAVEN class for this source. Options include \xmlString{DataObject}. """)
+    sourceInput.addParam("type", InputTypes.StringType,
+        descr=r"""The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
+              such as HistorySet or PointSet.""")
     inputSpecification.addSub(sourceInput)
 
+    restartInput = InputData.parameterInputFactory("Restart", contentType=InputTypes.StringType,
+        printPriority=200,
+        descr=r"""name of a DataObject. Used to leverage existing data when sampling a model. For
+              example, if a Model has
+              already been sampled, but some samples were not collected, the successful samples can
+              be stored and used instead of rerunning the model for those specific samples. This RAVEN
+              entity definition must be a DataObject with contents including the input and output spaces
+              of the Model being sampled.""")
+    restartInput.addParam("class", InputTypes.StringType,
+        descr=r"""The RAVEN class for this source. Options include \xmlString{DataObject}. """)
+    restartInput.addParam("type", InputTypes.StringType,
+        descr=r"""The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
+              such as HistorySet or PointSet.""")
+    inputSpecification.addSub(restartInput)
+
+    restartToleranceInput = InputData.parameterInputFactory("restartTolerance", contentType=InputTypes.FloatType,
+        printPriority=210,
+        descr=r"""specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
+              the desired sample point in order to be used. If a potential restart point is within a
+              relative Euclidean distance (as specified by the value in this node) of a desired sample point,
+              the restart point will be used instead of sampling the Model. \default{1e-15} """)
+    inputSpecification.addSub(restartToleranceInput)
+
+    variablesTransformationInput = InputData.parameterInputFactory("variablesTransformation",
+        printPriority=500,
+        descr=r"""Allows transformation of variables via translation matrices. This defines two spaces,
+              a ``latent'' transformed space sampled by RAVEN and a ``manifest'' original space understood
+              by the Model.""")
+    variablesTransformationInput.addParam('distribution', InputTypes.StringType,
+        descr=r"""the name for the distribution defined in the XML node \xmlNode{Distributions}.
+              This attribute indicates the values of \xmlNode{manifestVariables} are drawn from
+              \xmlAttr{distribution}. """)
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("latentVariables", contentType=InputTypes.StringListType,
+        descr=r"""user-defined latent variables that are used for the variables transformation.
+              All the variables listed under this node should be also mentioned in \xmlNode{variable}. """))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariables", contentType=InputTypes.StringListType,
+        descr=r"""user-defined manifest variables that can be used by the \xmlNode{Model}. """))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariablesIndex", contentType=InputTypes.StringListType,
+        descr=r"""user-defined manifest variables indices paired with \xmlNode{manifestVariables}.
+              These indices indicate the position of manifest variables associated with multivariate normal
+              distribution defined in the XML node \xmlNode{Distributions}.
+              The indices should be postive integer. If not provided, the code will use the positions
+              of manifest variables listed in \xmlNode{manifestVariables} as the indices. """))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType,
+        descr=r"""the method that is used for the variables transformation. The currently available method is \xmlString{pca}. """))
+    inputSpecification.addSub(variablesTransformationInput)
     return inputSpecification
 
   def __init__(self):

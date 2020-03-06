@@ -83,6 +83,14 @@ class InputType(object):
     """
     return value
 
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return cls.name
 #
 #
 #
@@ -116,6 +124,16 @@ class StringNoLeadingSpacesType(InputType):
       @ Out, convert, string, the converted value
     """
     return ','.join([key.strip() for key in value.split(',')]) if ',' in value else value
+
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return 'string'
+
 #
 #
 #
@@ -181,6 +199,15 @@ class FloatOrIntType(InputType):
       val = float(value)
       return val
 
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return 'float or integer'
+
 FloatOrIntType.createClass("float_or_int", "xsd:string")
 
 #
@@ -211,6 +238,15 @@ class InterpretedListType(InputType):
       conv = float
     return [conv(x.strip()) for x in values]
 
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return 'comma-separated strings, integers, and floats'
+
 #Note, XSD's list type is split by spaces, not commas, so using xsd:string
 InterpretedListType.createClass("interpreted", "xsd:string")
 
@@ -219,7 +255,23 @@ InterpretedListType.createClass("interpreted", "xsd:string")
 #
 #
 #
-class StringListType(InputType):
+class BaseListType(InputType):
+  """
+    A type for generic lists, to inherit from
+  """
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return 'comma-separated {}s'.format(cls.name.split('_')[0])
+#
+#
+#
+#
+class StringListType(BaseListType):
   """
     A type for string lists "1, abc, 3" -> ["1","abc","3"]
   """
@@ -234,7 +286,6 @@ class StringListType(InputType):
     delim = ',' if ',' in value else None
     return [x.strip() for x in value.split(delim) if x.strip()]
 
-#Note, XSD's list type is split by spaces, not commas, so using xsd:string
 StringListType.createClass("string_list", "xsd:string")
 
 
@@ -242,7 +293,7 @@ StringListType.createClass("string_list", "xsd:string")
 #
 #
 #
-class FloatListType(InputType):
+class FloatListType(BaseListType):
   """
     A type for float lists "1.1, 2.0, 3.4" -> [1.1, 2.0, 3.4]
   """
@@ -266,7 +317,7 @@ FloatListType.createClass("float_list", "xsd:string")
 #
 #
 #
-class IntegerListType(InputType):
+class IntegerListType(BaseListType):
   """
     A type for integer lists "1, 2, 3" -> [1,2,3]
   """
@@ -305,6 +356,15 @@ class IntegerOrIntegerTupleType(InputType):
     convertedValue = convertedValue[0] if len(convertedValue) == 1 else convertedValue
     return convertedValue
 
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return 'comma-separated integers'
+
 IntegerOrIntegerTupleType.createClass("integer_or_integer_list", "xsd:string")
 
 #
@@ -325,6 +385,15 @@ class IntegerTupleType(InputType):
     """
     convertedValue = tuple(int(x.strip()) for x in value.split(","))
     return convertedValue
+
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return 'comma-separated integers'
 
 IntegerTupleType.createClass("integer_list", "xsd:string")
 
@@ -387,6 +456,14 @@ class EnumBaseType(InputType):
       enumNode = ET.SubElement(restriction, 'xsd:enumeration')
       enumNode.set('value',enum)
 
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return '[{}]'.format(', '.join(cls.enumList))
 #
 #
 #

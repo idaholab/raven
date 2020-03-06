@@ -64,12 +64,20 @@ class Sampled(Optimizer):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(Sampled, cls).getInputSpecification()
+    specs.description = 'Base class for Optimizers whose iterative sampling is performed through RAVEN.'
     # initialization: add sampling-based options
-    whenSolnExpEnum = InputTypes.makeEnumType('whenWriteEnum', 'whenWriteType', ['final', 'every'])
     init = specs.getSub('samplerInit')
-    #specs.addSub(init)
-    limit = InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType)
-    write = InputData.parameterInputFactory('writeSteps', contentType=whenSolnExpEnum)
+    limit = InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType,
+        printPriority=100,
+        descr=r"""limits the number of Model evaluations that may be performed as part of this optimization.
+              For example, a limit of 100 means at most 100 total Model evaluations may be performed.""")
+    whenSolnExpEnum = InputTypes.makeEnumType('whenWriteEnum', 'whenWriteType', ['final', 'every'])
+    write = InputData.parameterInputFactory('writeSteps', contentType=whenSolnExpEnum,
+        printPriority=100,
+        descr=r"""delineates when the \xmlNode{SolutionExport} DataObject should be written to. In case
+              of \xmlString{final}, only the final optimal solution for each trajectory will be written.
+              In case of \xmlString{every}, the \xmlNode{SolutionExport} will be updated with each iteration
+              of the Optimizer.""")
     init.addSub(limit)
     init.addSub(write)
     return specs

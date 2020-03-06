@@ -41,7 +41,7 @@ class BaseType(MessageHandler.MessageUser):
         specifying input of cls.
     """
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.RavenBase)
-    inputSpecification.addParam("name", InputTypes.StringType, True, descr='User-defined name to designate this entity.')
+    inputSpecification.addParam("name", InputTypes.StringType, True, descr='User-defined name to designate this entity in the RAVEN input file.')
 
     return inputSpecification
 

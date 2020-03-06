@@ -63,6 +63,7 @@
       </acceptance>
       <convergence>
         <gradient>1e-1</gradient>
+        <terminateFollowers proximity='1e-1'>true</terminateFollowers>
       </convergence>
       <variable name="x">
         <distribution>beale_dist</distribution>

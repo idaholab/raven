@@ -16,7 +16,7 @@
   Author: gairabhi
 """
 import numpy as np
-from utils import randomUtils, mathUtils
+from utils import randomUtils, mathUtils, InputData
 from .GradientApproximater import GradientApproximater
 
 class SPSA(GradientApproximater):
@@ -24,6 +24,35 @@ class SPSA(GradientApproximater):
     Single-point (zeroth-order) gradient approximation.
     Note that SPSA is a larger algorithm; this is simply the gradient approximation part of it.
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    specs = super(SPSA, cls).getInputSpecification()
+    specs.description = r"""if node is present, indicates that gradient approximation should be performed
+        using the Simultaneous Perturbation Stochastic Approximation (SPSA).
+        SPSA makes use of a single perturbation as a zeroth-order gradient approximation,
+        requiring exactly $1$
+        perturbation regardless of the dimensionality of the input space. For example, if the input space
+        $\mathbf{i} = (x, y, z)$ for objective function $f(\mathbf{i})$, then SPSA chooses
+        a single perturbation point $(\epsilon^{(x)}, \epsilon^{(y)}, \epsilon^{(z)})$ and evaluates
+        the following perturbation point:
+        \begin{itemize}
+          \item $f(x+\epsilon^{(x)}, y+\epsilon^{(y)}, z+\epsilon^{(z)})$
+        \end{itemize}
+        and evaluates the gradient $\nabla f = (\nabla^{(x)} f, \nabla^{(y)} f, \nabla^{(z)} f)$ as
+        \begin{equation*}
+          \nabla^{(x)}f \approx \frac{f(x+\epsilon^{(x)}, y+\epsilon^{(y)}, z+\epsilon^{(z)})) -
+              f(x, y, z)}{\epsilon^{(x)}},
+        \end{equation*}
+        and so on for $ \nabla^{(y)}f$ and $\nabla^{(z)}f$. This approximation is much less robust
+        than FiniteDifference or CentralDifference, but has the benefit of being dimension agnostic.
+          """
+    return specs
 
   def chooseEvaluationPoints(self, opt, stepSize):
     """

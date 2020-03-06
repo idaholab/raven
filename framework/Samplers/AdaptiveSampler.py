@@ -25,16 +25,32 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules------------------------------------------------------------------------------------
 #External Modules End--------------------------------------------------------------------------------
 
-#Internal
-#Modules------------------------------------------------------------------------------------
-from utils import mathUtils
+#Internal Modules
+from utils import mathUtils, InputData, InputTypes
+
 from .Sampler import Sampler
-#Internal Modules End--------------------------------------------------------------------------------
+
 
 class AdaptiveSampler(Sampler):
   """
     This is a general adaptive sampler
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    specs = super(AdaptiveSampler, cls).getInputSpecification()
+    specs.description = 'Base class for all kinds of adaptive sampling efforts in RAVEN.'
+    specs.addSub(InputData.assemblyInputFactory('TargetEvaluation', contentType=InputTypes.StringType, strictMode=True,
+        printPriority=101,
+        descr=r"""name of the DataObject where the sampled outputs of the Model will be collected.
+              This DataObject is the means by which the sampling entity obtains the results of requested
+              samples, and so should require all the input and output variables needed for adaptive sampling."""))
+    return specs
+
   def __init__(self):
     """
       Constructor.
@@ -47,6 +63,7 @@ class AdaptiveSampler(Sampler):
     self._inputIdentifiers = {}         # identifiers for a single realization
     self._targetEvaluation = None       # data object with feedback from sample realizations
     self._solutionExport = None         # data object for solution printing
+    self.addAssemblerObject('TargetEvaluation', '1') # Place where realization evaluations go
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -60,7 +77,12 @@ class AdaptiveSampler(Sampler):
     self._solutionExport = solutionExport
 
   def _registerSample(self, prefix, info):
-    """ TODO """
+    """
+      Register a sample's prefix info before submitting as job
+      @ In, prefix, str, string integer prefix
+      @ In, info, dict, unique information to record associated with the prefix
+      @ Out, None
+    """
     self.checkIdentifiersPresent(info)
     self._prefixToIdentifiers[prefix] = info
 
@@ -103,18 +125,33 @@ class AdaptiveSampler(Sampler):
     self._registeredIdentifiers.add(name)
 
   def checkIdentifiersPresent(self, checkDict):
-    """ TODO checks that all identifiers registered have values """
+    """
+      checks that all registered identifiers have values
+      @ In, checkDict, dict, dictionary of identifying information for a realization
+      @ Out, None
+    """
     assert self._registeredIdentifiers.issubset(set(checkDict.keys())), 'missing identifiers: {}'.format(self._registeredIdentifiers - set(checkDict.keys()))
 
   def getIdentifierFromPrefix(self, prefix, pop=False):
-    """ TODO """
+    """
+      Obtains the identifying info dict given a prefix
+      @ In, prefix, str, identifying prefix
+      @ In, pop, bool, optional, if True then stop tracking prefix after providing it
+      @ Out, ID, dict, identifying information (or None if not present)
+    """
     if pop:
       return self._prefixToIdentifiers.pop(prefix, None)
     else:
       return self._prefixToIdentifiers.get(prefix, None)
 
   def getPrefixFromIdentifier(self, idDict, pop=False, getAll=False):
-    """ TODO get a prefix given identifying information """
+    """
+      Obtains a prefix given identifying information
+      @ In, idDict, dict, identifying information about a realization
+      @ In, pop, bool, optional, if True then stop tracking prefix after providing
+      @ In, getAll, bool, optional, if True then get all matching items instead of the first
+      @ Out, prefix, str, identifying prefix (or None if not found)
+    """
     # make sure the request matches the expected form
     if getAll:
       found = []
@@ -137,7 +174,4 @@ class AdaptiveSampler(Sampler):
     for p in toPop:
       self._prefixToIdentifiers.pop(p)
     return found
-
-
-
-
+  

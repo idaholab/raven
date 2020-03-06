@@ -49,6 +49,7 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = InputData.parameterInputFactory(cls.__name__, ordered=False, strictMode=True)
+    specs.description = 'Base class for Step Manipulation algorithms in the GradientDescent Optimizer.'
     return specs
 
   def __init__(self):
@@ -116,6 +117,16 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, proposed, new proposed point
       @ Out, stepSize, new step size taken
       @ Out, fixInfo, updated fixing info
+    """
+
+  @abc.abstractmethod
+  def trajIsFollowing(self, traj, opt, info, data):
+    """
+      Determines if the current trajectory is following another trajectory.
+      @ In, traj, int, integer identifier for trajectory that needs to be checked
+      @ In, opt, dict, most recent optimal point for trajectory
+      @ In, info, dict, additional information about optimal point
+      @ In, data, DataObjects.DataSet, data collected through optimization so far (SolutionExport)
     """
 
   def modifyAcceptance(self, oldPoint, oldVal, newPoint, newVal):

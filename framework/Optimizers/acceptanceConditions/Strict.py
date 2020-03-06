@@ -28,6 +28,20 @@ class Strict(AcceptanceCondition):
   ##########################
   # Initialization Methods #
   ##########################
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
+    """
+    specs = super(Strict, cls).getInputSpecification()
+    specs.description = r"""if this node is present, indicates that a Strict acceptance policy for
+        potential new optimal points should be enforced; that is, for a potential optimal point to
+        become the new point from which to take another iterative optimizer step, the new response value
+        must be improved over the old response value. Otherwise, the potential opt point is rejected
+        and the search continues with the previously-discovered optimal point."""
+    return specs
   ###############
   # Run Methods #
   ###############

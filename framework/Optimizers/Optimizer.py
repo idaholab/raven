@@ -51,6 +51,22 @@ class Optimizer(AdaptiveSampler):
   # Initialization Methods #
   ##########################
   @classmethod
+  def userManualDescription(cls):
+    """
+      Provides a user manual description for this actor. Should only be needed for base classes.
+      @ In, None
+      @ Out, descr, string, description
+    """
+    descr = r"""
+    \section{Optimizers} \label{sec:Optimizers}
+    The optimizer is another important entity in the RAVEN framework. It performs the driving of a
+    specific ``goal function'' or ``objective function'' over the model for value optimization. The
+    Optimizer can be used almost anywhere a Sampler can be used, and is only distinguished from other
+    AdaptiveSampler strategies for clarity.
+    """
+    return descr
+
+  @classmethod
   def getInputSpecification(cls):
     """
       Method to get a reference to a class that specifies the input data for class cls.
@@ -58,30 +74,50 @@ class Optimizer(AdaptiveSampler):
       @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(Optimizer, cls).getInputSpecification()
+    specs.description = 'Optimizers'
+
     # objective variable
-    specs.addSub(InputData.parameterInputFactory('objective', contentType=InputTypes.StringType, strictMode=True))
+    specs.addSub(InputData.parameterInputFactory('objective', contentType=InputTypes.StringType, strictMode=True,
+        printPriority=90, # more important than <variable>
+        descr=r"""Name of the response variable (or ``objective function'') that should be optimized
+        (minimized or maximized)."""))
+
     # modify Sampler variable nodes
-    variable = specs.getSub('variable') # TODO use getter?
-    #variable.removeSub('distribution')
-    #variable.removeSub('grid')
-    #variable.addSub(InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType)) # TODO quantity = 1
-    #variable.addSub(InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType)) # TODO quantity = 1
+    variable = specs.getSub('variable')
     variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatListType)) # TODO quantity = 1
+
     # initialization
     ## TODO similar to MonteCarlo and other samplers, maybe overlap?
-    init = InputData.parameterInputFactory('samplerInit', strictMode=True)
+    init = InputData.parameterInputFactory('samplerInit', strictMode=True,
+        printPriority=105, # more important than <variable>
+        descr=r"""collection of nodes that describe the initialization of the optimization algorithm.""")
+    seed = InputData.parameterInputFactory('initialSeed', contentType=InputTypes.IntegerType,
+        descr=r"""seed for random number generation. Note that by default RAVEN uses an internal seed,
+              so this seed must be changed to observe changed behavior. \default{RAVEN-determined}""")
     minMaxEnum = InputTypes.makeEnumType('MinMax', 'MinMaxType', ['min', 'max'])
-    seed = InputData.parameterInputFactory('initialSeed', contentType=InputTypes.IntegerType)
-    minMax = InputData.parameterInputFactory('type', contentType=minMaxEnum)
+    minMax = InputData.parameterInputFactory('type', contentType=minMaxEnum,
+        descr=r"""the type of optimization to perform. \xmlString{min} will search for the lowest
+              \xmlNode{objective} value, while \xmlString{max} will search for the highest value.""")
     init.addSub(seed)
     init.addSub(minMax)
     specs.addSub(init)
 
-    # TODO threshold, stochastic samples
     # assembled objects
-    specs.addSub(InputData.assemblyInputFactory('TargetEvaluation', contentType=InputTypes.StringType, strictMode=True))
-    specs.addSub(InputData.assemblyInputFactory('Constraint', contentType=InputTypes.StringType, strictMode=True))
-    specs.addSub(InputData.assemblyInputFactory('Sampler', contentType=InputTypes.StringType, strictMode=True))
+    specs.addSub(InputData.assemblyInputFactory('Constraint', contentType=InputTypes.StringType, strictMode=True,
+        printPriority=150,
+        descr=r"""name of \xmlNode{Function} which contains explicit constraints for the sampling of
+              the input space of the Model. From a practical point of view, this XML node must contain
+              the name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}).
+              This external function must contain a method called ``constrain'', which returns 1 for
+              inputs satisfying the constraints and 0 otherwise."""))
+    specs.addSub(InputData.assemblyInputFactory('Sampler', contentType=InputTypes.StringType, strictMode=True,
+        printPriority=175,
+        descr=r"""name of a Sampler that can be used to initialize the starting points for the trajectories
+              of some of the variables. From a practical point of view, this XML node must contain the
+              name of a Sampler defined in the \xmlNode{Samplers} block (see Section~\ref{subsec:onceThroughSamplers}).
+              The Sampler will be used to initialize the trajectories' initial points for some or all
+              of the variables. For example, if the Sampler selected samples only 2 of the 5 optimization
+              variables, the \xmlNode{initial} XML node is required only for the remaining 3 variables."""))
     return specs
 
   def __init__(self):
@@ -109,7 +145,6 @@ class Optimizer(AdaptiveSampler):
 
     # __private
     # additional methods
-    self.addAssemblerObject('TargetEvaluation', '1') # Place where realization evaluations go
     self.addAssemblerObject('Constraint', '-1')      # Explicit (input-based) constraints
     self.addAssemblerObject('Sampler', '-1')          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
@@ -181,7 +216,7 @@ class Optimizer(AdaptiveSampler):
     init = paramInput.findFirst('samplerInit')
     if init is not None:
       # initialSeed
-      seed = init.findFirst('seed')
+      seed = init.findFirst('initialSeed')
       if seed is not None:
         self._seed = seed.value
       # minmax
