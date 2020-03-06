@@ -22,7 +22,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 ################################################################################
 from .Optimizer import Optimizer
 from .Interfaced import Interfaced
-from .Sampled import Sampled
+from .RavenSampled import RavenSampled
 from .GradientDescent import GradientDescent
 
 

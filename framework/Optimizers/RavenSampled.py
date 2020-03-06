@@ -37,7 +37,7 @@ from Assembler import Assembler
 from .Optimizer import Optimizer
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Sampled(Optimizer):
+class RavenSampled(Optimizer):
   """
     Base class for Optimizers using RAVEN's internal sampling mechanics.
     Handles the following:
@@ -63,7 +63,7 @@ class Sampled(Optimizer):
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
-    specs = super(Sampled, cls).getInputSpecification()
+    specs = super(RavenSampled, cls).getInputSpecification()
     specs.description = 'Base class for Optimizers whose iterative sampling is performed through RAVEN.'
     # initialization: add sampling-based options
     init = specs.getSub('samplerInit')
@@ -96,7 +96,7 @@ class Sampled(Optimizer):
     # _protected
     self._writeSteps = 'final'
     self._submissionQueue = deque() # TODO change to Queue.Queue if multithreading samples
-    self._stepCounter = {}
+    self.__stepCounter = {}          # tracks the "generation" or "iteration" of each trajectory -> iteration is defined by inheritor
     self._stepTracker = {}          # action tracking: what is collected, what needs collecting?
     self._optPointHistory = {}      # by traj, is a deque (-1 is most recent)
     self._maxHistLen = 2            # FIXME who should set this?
@@ -169,7 +169,6 @@ class Sampled(Optimizer):
       @ In, traj, int, the trajectory of interest
       @ Out, None
     """
-    self._stepCounter[traj] += 1
     self._stepTracker[traj] = {'opt': None} # add entries in inheritors as needed
 
   def amIreadyToProvideAnInput(self):
@@ -242,9 +241,80 @@ class Sampled(Optimizer):
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
 
+  def finalizeSampler(self, failedRuns):
+    """
+      Last tasks to perform before Step is finished.
+      @ In, failedRuns, list, runs that failed as part of this sampling
+      @ Out, None
+    """
+    # get and print the best trajectory obtained
+    bestValue = None
+    bestTraj = None
+    bestPoint = None
+    s = -1 if self._minMax == 'max' else 1
+    # check converged trajectories
+    self.raiseAMessage('*'*80)
+    self.raiseAMessage('Optimizer Final Results:')
+    self.raiseADebug('')
+    self.raiseADebug(' - Trajectory Results:')
+    self.raiseADebug('  TRAJ   STATUS    VALUE')
+    statusTemplate = '   {traj:2d}  {status:^11s}  {val: 1.3e}'
+    # print cancelled traj
+    for traj, info in self._cancelledTraj.items():
+      val = info['value']
+      status = info['reason']
+      self.raiseADebug(statusTemplate.format(status=status, traj=traj, val=s * val))
+    # check converged traj
+    for traj, info in self._convergedTraj.items():
+      opt = self._optPointHistory[traj][-1][0]
+      val = info['value']
+      self.raiseADebug(statusTemplate.format(status='converged', traj=traj, val=s * val))
+      if bestValue is None or val < bestValue:
+        bestTraj = traj
+        bestValue = val
+    # further check active unfinished trajectories
+    for traj in self._activeTraj:
+      opt = self._optPointHistory[traj][-1][0]
+      val = opt[self._objectiveVar]
+      self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
+      if bestValue is None or val < bestValue:
+        bestValue = val
+        bestTraj = traj
+    bestOpt = self.denormalizeData(self._optPointHistory[bestTraj][-1][0])
+    bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
+    self.raiseADebug('')
+    self.raiseAMessage(' - Final Optimal Point:')
+    finalTemplate = '    {name:^20s}  {value: 1.3e}'
+    finalTemplateInt = '    {name:^20s}  {value: 3d}'
+    self.raiseAMessage(finalTemplate.format(name=self._objectiveVar, value=s * bestValue))
+    self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
+    for var, val in bestPoint.items():
+      self.raiseAMessage(finalTemplate.format(name=var, value=val))
+    self.raiseAMessage('*'*80)
+    # write final best solution to soln export
+    self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final')
+
   ###################
   # Utility Methods #
   ###################
+  def incrementIteration(self, traj):
+    """
+      Increments the "generation" or "iteration" of an optimization algorithm.
+      The definition of generation is algorithm-specific; this is a utility for tracking only.
+      @ In, traj, int, identifer for trajectory
+      @ Out, None
+    """
+    self.__stepCounter[traj] += 1
+
+  def getIteration(self, traj):
+    """
+      Provides the "generation" or "iteration" of an optimization algorithm.
+      The definition of generation is algorithm-specific; this is a utility for tracking only.
+      @ In, traj, int, identifer for trajectory
+      @ Out, counter, int, iteration of the trajectory
+    """
+    return self.__stepCounter[traj]
+
   # * * * * * * * * * * * *
   # Constraint Handling
   def _handleExplicitConstraints(self, proposed, previous, pointType):
@@ -328,7 +398,8 @@ class Sampled(Optimizer):
     self._updatePersistence(traj, converged, optVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
-    self._updateSolutionExport(traj, rlz, acceptable) # NOTE: only on opt point!
+    if self._writeSteps == 'every':
+      self._updateSolutionExport(traj, rlz, acceptable)
     self.raiseADebug('*'*80)
     # decide what to do next
     if acceptable in ['accepted', 'first']:
@@ -339,7 +410,6 @@ class Sampled(Optimizer):
       self._rejectOptPoint(traj, info, old)
     else: # e.g. rerun
       pass # nothing to do, just keep moving
-
 
   # support methods for _resolveNewOptPoint
   @abc.abstractmethod
@@ -392,7 +462,7 @@ class Sampled(Optimizer):
     # make a holder for the realization that will go to the solutionExport
     toExport = {}
     # add some meta information
-    toExport.update({'iteration': self._stepCounter[traj],
+    toExport.update({'iteration': self.getIteration(traj),
                      'trajID': traj,
                      'accepted': acceptable,
                     })
@@ -459,7 +529,7 @@ class Sampled(Optimizer):
     """
     traj = Optimizer.initializeTrajectory(self, traj=traj)
     self._optPointHistory[traj] = deque(maxlen=self._maxHistLen)
-    self._stepCounter[traj] = -1
+    self.__stepCounter[traj] = -1 # allows 0-based counting
     self._initializeStep(traj)
     return traj
 

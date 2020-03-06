@@ -123,4 +123,15 @@
       zero_threshold = 1e-5
     [../]
   [../]
+
+  [./WriteFinal]
+    type = 'RavenFramework'
+    input = 'write_final.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'WriteFinal/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
 []

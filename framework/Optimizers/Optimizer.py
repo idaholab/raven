@@ -131,7 +131,7 @@ class Optimizer(AdaptiveSampler):
     # public
     # _protected
     self._seed = None           # random seed to apply
-    self._minMax = None         # maximization or minimization?
+    self._minMax = 'min'        # maximization or minimization?
     self._activeTraj = []       # tracks live trajectories
     self._cancelledTraj = {}    # tracks cancelled trajectories, and reasons
     self._convergedTraj = {}    # tracks converged trajectories, and values obtained

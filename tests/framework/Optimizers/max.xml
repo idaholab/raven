@@ -46,7 +46,7 @@
   <Optimizers>
     <GradientDescent name="opter">
       <samplerInit>
-        <limit>100</limit>
+        <limit>200</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>max</type>
@@ -63,6 +63,10 @@
       <acceptance>
         <Strict/>
       </acceptance>
+      <convergence>
+        <gradient>1e0</gradient>
+        <persistence>3</persistence>
+      </convergence>
       <variable name="x">
         <distribution>beale_dist</distribution>
         <initial>-2</initial>

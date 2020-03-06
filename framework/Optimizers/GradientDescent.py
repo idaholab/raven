@@ -29,7 +29,7 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import InputData, InputTypes, mathUtils
-from .Sampled import Sampled
+from .RavenSampled import RavenSampled
 from .gradients import knownTypes as gradKnownTypes
 from .gradients import returnInstance as gradReturnInstance
 from .gradients import returnClass as gradReturnClass
@@ -42,37 +42,17 @@ from .acceptanceConditions import returnInstance as acceptReturnInstance
 from .acceptanceConditions import returnClass as acceptReturnClass
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Process(Enum):
-  """
-    Enum for processes the GradientDescent is active in
-  """
-  INITIALIZING = 1      # starting trajectory
-  SUBMITTING = 2      # submitting new opt/grad points
-  COLLECTING_OPT = 3  # collecting evaluations of opt point
-  COLLECTING_GRAD = 4 # collecting evaluations of grad point(s)
-  INACTIVE = 9      # no longer active
-
-class Motive(Enum):
-  """
-    Enum for the motivations for the GradientDescent's current process
-  """
-  CONVERGED = 0
-  STARTING = 1
-  SEEKING_OPT = 2
-  ACCEPTED_OPT = 3
-  REJECTED_OPT = 4
-  REDUNDANT = 9
-
 # utility function for defaultdict
 def giveZero():
   """
     Utility function for defaultdict to 0
+    Needed only to avoid lambda pickling issues for defaultdicts
     @ In, None
     @ Out, giveZero, int, zero
   """
   return 0
 
-class GradientDescent(Sampled):
+class GradientDescent(RavenSampled):
   """
     Base class for Sampled Optimizers using gradient descent optimization methods.
     Handles the following:
@@ -182,6 +162,7 @@ class GradientDescent(Sampled):
     terminate.addParam('proximity', param_type=InputTypes.FloatType, required=False,
         descr=r"""provides the normalized distance at which a trajectory's head should be proximal to
               another trajectory's path before terminating the following trajectory.""")
+    conv.addSub(terminate)
 
     # NOTE to add new convergence options, add them to convergenceOptions above, not here!
 
@@ -193,7 +174,7 @@ class GradientDescent(Sampled):
       @ In, None
       @ Out, None
     """
-    Sampled.__init__(self)
+    RavenSampled.__init__(self)
     ## Instance Variable Initialization
     # public
     self.type = 'GradientDescent Optimizer'
@@ -212,7 +193,7 @@ class GradientDescent(Sampled):
     self._convergenceInfo = {}       # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = None # consecutive persistence required to mark convergence
     self._terminateFollowers = True  # whether trajectories sharing a point should cause termination
-    self._followerProximity = None   # distance at which annihilation can start ocurring, in ?normalized? space
+    self._followerProximity = 1e-2   # distance at which annihilation can start ocurring, in ?normalized? space
     self._trajectoryFollowers = defaultdict(list) # map of trajectories to the trajectories following them
     # __private
     # additional methods
@@ -225,7 +206,7 @@ class GradientDescent(Sampled):
       @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
-    Sampled.handleInput(self, paramInput)
+    RavenSampled.handleInput(self, paramInput)
 
     # grad strategy
     gradParentNode = paramInput.findFirst('gradient')
@@ -287,7 +268,7 @@ class GradientDescent(Sampled):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    Sampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     self._gradientInstance.initialize(self.toBeSampled, self._gradProximity)
     self._stepInstance.initialize(self.toBeSampled, persistence=self._requiredPersistence)
     self._acceptInstance.initialize()
@@ -386,7 +367,7 @@ class GradientDescent(Sampled):
       self._stepHistory[traj].append({'magnitude': stepSize, 'versor': stepVersor, 'info': stepInfo})
       # start new step
       self._initializeStep(traj)
-      self.raiseADebug('Taking step {} for traj {} ...'.format(self._stepCounter[traj], traj))
+      self.raiseADebug('Taking step {} for traj {} ...'.format(self.getIteration(traj), traj))
       self.raiseADebug(' ... gradient magn: {:1.2e} direction: {}'.format(gradMag, gradVersor))
       self.raiseADebug(' ... normalized desired step size: {}'.format(stepSize))
       self.raiseADebug(' ... normalized actual  step size: {}'.format(actualStepSize))
@@ -395,7 +376,7 @@ class GradientDescent(Sampled):
       self.raiseADebug(' ... current opt point:', self.denormalizeData(opt))
       self.raiseADebug(' ... new optimum candidate:', self.denormalizeData(suggested))
       # initialize step
-      self._submitOptAndGrads(suggested, traj, self._stepCounter[traj], self._stepHistory[traj][-1]['magnitude'])
+      self._submitOptAndGrads(suggested, traj, self.getIteration(traj), self._stepHistory[traj][-1]['magnitude'])
     # otherwise, continue submitting and collecting
 
   ###################
@@ -424,7 +405,8 @@ class GradientDescent(Sampled):
       @ In, traj, int, the trajectory of interest
       @ Out, None
     """
-    Sampled._initializeStep(self, traj)
+    RavenSampled._initializeStep(self, traj)
+    self.incrementIteration(traj)
     # tracker 'opt' set up in Sampled
     self._stepTracker[traj]['grads'] = []
 
@@ -434,7 +416,7 @@ class GradientDescent(Sampled):
       @ In, traj, int, optional, label to use
       @ Out, traj, int, new trajectory number
     """
-    traj = Sampled.initializeTrajectory(self)
+    traj = RavenSampled.initializeTrajectory(self)
     self._gradHistory[traj] = deque(maxlen=self._maxHistLen)
     self._stepHistory[traj] = deque(maxlen=self._maxHistLen)
     self._acceptHistory[traj] = deque(maxlen=self._maxHistLen)
@@ -640,7 +622,7 @@ class GradientDescent(Sampled):
       @ In, old, float, previous optimization value
       @ Out, improved, bool, True if "sufficiently" improved or False if not.
     """
-    # TODO could this be a base Sampled class?
+    # TODO could this be a base RavenSampled class?
     improved = self._acceptInstance.checkImprovement(new, old)
     return 'accepted' if improved else 'rejected'
 
@@ -718,8 +700,7 @@ class GradientDescent(Sampled):
     # track that the next recommended step size for this traj should be "cut"
     self._stepRecommendations[traj] = 'shrink'
     # get new grads around new point
-    self._stepCounter[traj] += 1
-    self._submitOptAndGrads(old, traj, self._stepCounter[traj], self._stepHistory[traj][-1]['magnitude'])
+    self._submitOptAndGrads(old, traj, self.getIteration(traj), self._stepHistory[traj][-1]['magnitude'])
     self._acceptRerun[traj] = True
   # END resolving potential opt points
   # * * * * * * * * * * * * * * * *

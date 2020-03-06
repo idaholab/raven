@@ -1645,7 +1645,7 @@ class DataSet(DataObject):
           dataVal = (self._data[var] - loc) / scale
           for val in vals:
             scaleVal = (val-loc) / scale
-            mask *= not abs(dataVal - scaleVal) >= tol
+            mask *= np.logical_not(abs(dataVal - scaleVal) < tol)
         else:
           for val in vals:
             mask *= np.logical_not(self._data[var] == val)
