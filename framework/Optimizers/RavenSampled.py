@@ -124,6 +124,9 @@ class RavenSampled(Optimizer):
       writeSteps = init.findFirst('writeSteps')
       if writeSteps is not None:
         self._writeSteps = writeSteps.value
+    # additional checks
+    if self.limit is None:
+      self.raiseAnError(IOError, 'A <limit> is required for any RavenSampled Optimizer!')
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """

@@ -272,11 +272,16 @@ class GradientDescent(RavenSampled):
     self._gradientInstance.initialize(self.toBeSampled, self._gradProximity)
     self._stepInstance.initialize(self.toBeSampled, persistence=self._requiredPersistence)
     self._acceptInstance.initialize()
+    # if single trajectory, turn off follower termination
+    if len(self._initialValues) < 2:
+      self.raiseADebug('Setting terminateFollowers to False since only 1 trajectory exists.')
+      self._terminateFollowers = False
     # queue up the first run for each trajectory
     initialStepSize = self._stepInstance.initialStepSize(len(self.toBeSampled)) # TODO user scaling option
     for traj, init in enumerate(self._initialValues):
       self._stepHistory[traj].append({'magnitude': initialStepSize, 'versor': None, 'info': None})
       self._submitOptAndGrads(init, traj, 0, initialStepSize)
+
 
   ###############
   # Run Methods #
