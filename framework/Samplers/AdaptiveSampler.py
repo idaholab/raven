@@ -174,4 +174,3 @@ class AdaptiveSampler(Sampler):
     for p in toPop:
       self._prefixToIdentifiers.pop(p)
     return found
-  

@@ -1,5 +1,0 @@
-The pickled grid sampling in "beale_plotdata.pk" can be used along with the trajectory histories,
-as shown in "plotWalk.py", to create an animation of the trajectory.
-
-To run the animation, first run raven on ../beale.xml, then run plotWalk.py,
-which will produce the animation "path.mp4".
