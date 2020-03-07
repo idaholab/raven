@@ -245,7 +245,6 @@ class SimulatedAnnealing(Sampled):
       info = self._optPointHistory[traj][-1][1]
       info['step'] = self._stepCounter[traj]
       optVal = rlz[self._objectiveVar]
-    
     # self._stepCounter[traj] += 1
     fraction = self._stepCounter[traj]/self.limit
     currentPoint = self._collectOptPoint(rlz)
