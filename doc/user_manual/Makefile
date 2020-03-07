@@ -17,7 +17,11 @@ raven_user_manual.pdf: $(MANUAL_FILES) ../version.tex conda_command.txt pip_comm
 	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 
 draft: $(MANUAL_FILES) ../version.tex conda_command.txt pip_commands.txt
+<<<<<<< HEAD
 				./generate_docs.sh
+=======
+	./generate_docs.sh
+>>>>>>> ae662dc9ac0e0952c99a085d0faff23bd994215e
 	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
 	bibtex $(SRCFILE)
 	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
@@ -36,7 +40,11 @@ libraries.tex : $(LIB_FILES)
 	python ../../scripts/library_handler.py manual > libraries.tex
 
 optimizer.tex : generated/generateOptimizerDoc.py
+<<<<<<< HEAD
 			./generate_docs.sh
+=======
+	./generate_docs.sh
+>>>>>>> ae662dc9ac0e0952c99a085d0faff23bd994215e
 
 conda_command.txt : $(LIB_FILES)
 	./create_command.sh

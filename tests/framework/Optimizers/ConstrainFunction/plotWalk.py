@@ -22,6 +22,7 @@ ax.set_ylabel('y')
 fig.colorbar(im)
 
 acceptanceMap = {'first': True,
+                 'final': True,
                  'accepted': True,
                  'rerun': True,
                  'rejected': False,

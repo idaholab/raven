@@ -50,8 +50,26 @@ class GradientHistory(StepManipulator):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(GradientHistory, cls).getInputSpecification()
-    specs.addSub(InputData.parameterInputFactory('growthFactor', contentType=InputTypes.FloatType))
-    specs.addSub(InputData.parameterInputFactory('shrinkFactor', contentType=InputTypes.FloatType))
+    specs.description = r"""if this node is present, indicates that the iterative steps in the gradient
+        descent algorithm should be determined by the sequential change in gradient. In particular, rather
+        than using the magnitude of the gradient to determine step size, the directional change of the
+        gradient versor determines whether to take larger or smaller steps. If the gradient in two successive
+        steps changes direction, the step size shrinks. If the gradient instead continues in the same
+        direction, the step size grows. The rate of shrink and growth are controlled by the \xmlNode{shrinkFactor}
+        and \xmlNode{growthFactor}. Note these values have a large impact on the optimization path taken.
+        Large growth factors converge slowly but explore more of the input space; large shrink factors
+        converge quickly but might converge before arriving at a local minimum."""
+    specs.addSub(InputData.parameterInputFactory('growthFactor', contentType=InputTypes.FloatType,
+        descr=r"""specifies the rate at which the step size should grow if the gradient continues in
+              same direction through multiple iterative steps. For example, a growth factor of 2 means
+              that if the gradient is identical twice, the step size is doubled. \default{1.25} """))
+    specs.addSub(InputData.parameterInputFactory('shrinkFactor', contentType=InputTypes.FloatType,
+        descr=r"""specifies the rate at which the step size should shrink if the gradient changes
+              direction through multiple iterative steps. For example, a shrink factor of 2 means
+              that if the gradient completely flips direction, the step size is halved. Note that for
+              stochastic surfaces or low-order gradient approximations such as SPSA, a small value
+              for the shrink factor is recommended. If an optimization path appears to be converging
+              early, increasing the shrink factor might improve the search. \default{1.15} """))
     return specs
 
   def __init__(self):

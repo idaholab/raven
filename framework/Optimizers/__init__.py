@@ -24,7 +24,8 @@ from __future__ import absolute_import
 # 'from Optimizers.Optimizer import Sampler' outside of this submodule
 
 # TODO
-#from .Optimizer import Optimizer
+from .Optimizer import Optimizer
+from .RavenSampled import RavenSampled
 from .GradientDescent import GradientDescent
 #from .SPSA import SPSA
 

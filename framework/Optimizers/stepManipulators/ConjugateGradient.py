@@ -15,7 +15,7 @@
   Step size manipulations based on gradient history
 
   Created 2020-01
-  @author: talbpaul
+  @author: zhoujia
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -275,7 +275,7 @@ class ConjugateGradient(StepManipulator):
     """
     return True
 
-  def _addToSolutionExport(self, stepHistory):
+  def updateSolutionExport(self, stepHistory):
     """
       Prints information to the solution export.
       @ In, stepHistory, list, (magnitude, versor, info) for each step entry

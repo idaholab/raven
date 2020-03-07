@@ -49,6 +49,7 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = InputData.parameterInputFactory(cls.__name__, ordered=False, strictMode=True)
+    specs.description = 'Base class for Step Manipulation algorithms in the GradientDescent Optimizer.'
     return specs
 
   def __init__(self):

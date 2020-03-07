@@ -29,7 +29,7 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import InputData, InputTypes, mathUtils
-from .Sampled import Sampled
+from .RavenSampled import RavenSampled
 from .gradients import knownTypes as gradKnownTypes
 from .gradients import returnInstance as gradReturnInstance
 from .gradients import returnClass as gradReturnClass
@@ -42,37 +42,17 @@ from .acceptanceConditions import returnInstance as acceptReturnInstance
 from .acceptanceConditions import returnClass as acceptReturnClass
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Process(Enum):
-  """
-    Enum for processes the GradientDescent is active in
-  """
-  INITIALIZING = 1      # starting trajectory
-  SUBMITTING = 2      # submitting new opt/grad points
-  COLLECTING_OPT = 3  # collecting evaluations of opt point
-  COLLECTING_GRAD = 4 # collecting evaluations of grad point(s)
-  INACTIVE = 9      # no longer active
-
-class Motive(Enum):
-  """
-    Enum for the motivations for the GradientDescent's current process
-  """
-  CONVERGED = 0
-  STARTING = 1
-  SEEKING_OPT = 2
-  ACCEPTED_OPT = 3
-  REJECTED_OPT = 4
-  REDUNDANT = 9
-
 # utility function for defaultdict
 def giveZero():
   """
     Utility function for defaultdict to 0
+    Needed only to avoid lambda pickling issues for defaultdicts
     @ In, None
     @ Out, giveZero, int, zero
   """
   return 0
 
-class GradientDescent(Sampled):
+class GradientDescent(RavenSampled):
   """
     Base class for Sampled Optimizers using gradient descent optimization methods.
     Handles the following:
@@ -93,11 +73,12 @@ class GradientDescent(Sampled):
        - converge on gradient magnitude, change in evaluation, min step size
      - Implement summary of step iteration to SolutionExport
   """
-  convergenceOptions = ['gradient',    # gradient magnitude
+  # convergence option names and their user manual descriptions
+  convergenceOptions = {'gradient': r"""provides the desired value for the local estimated of the gradient for convergence. \default{1e-6, if no criteria specified}""",
                         # TODO change in input space?
-                        'objective',   # relative change in objective value
-                        'stepSize'  # normalized step size
-                       ]
+                        'objective': r"""provides the maximum relative change in the objective function for convergence.""",
+                        'stepSize': r"""provides the maximum size in relative step size for convergence.""",
+                       }
 
   ##########################
   # Initialization Methods #
@@ -110,19 +91,36 @@ class GradientDescent(Sampled):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(GradientDescent, cls).getInputSpecification()
+    specs.description = r"""The \xmlNode{GradientDescent} optimizer represents an a la carte option
+                            for performing gradient-based optimization with a variety of gradient
+                            estimation techiniques, stepping strategies, and acceptance criteria. \hspace{12pt}
+                            Gradient descent optimization generally behaves as a ball rolling down a hill;
+                            the algorithm estimates the local gradient at a point, and attempts to move
+                            ``downhill'' in the opposite direction of the gradient (if minimizing; the
+                            opposite if maximizing). Once the lowest point along the iterative gradient search
+                            is discovered, the algorithm is considered converged. \hspace{12pt}
+                            Note that gradient descent algorithms are particularly prone to being trapped
+                            in local minima; for this reason, depending on the model, multiple trajectories
+                            may be needed to obtain the global solution.
+                            """
     # gradient estimation options
-    grad = InputData.parameterInputFactory('gradient', strictMode=True)
+    grad = InputData.parameterInputFactory('gradient', strictMode=True,
+        printPriority=106,
+        descr=r"""a required node containing the information about which gradient approximation algorithm to
+              use, and its settings if applicable. Exactly one of the gradient approximation algorithms
+              below may be selected for this Optimizer.""")
     specs.addSub(grad)
-    ## common options to all gradient descenders
-    # TODO grad.addSub(InputData.parameterInputFactory('proximity',
-    # contentType=InputTypes.FloatType))
     ## get specs for each gradient subclass, and add them to this class's options
     for option in gradKnownTypes():
       subSpecs = gradReturnClass(option, cls).getInputSpecification()
       grad.addSub(subSpecs)
 
     # step sizing options
-    step = InputData.parameterInputFactory('stepSize', strictMode=True)
+    step = InputData.parameterInputFactory('stepSize', strictMode=True,
+        printPriority=107,
+        descr=r"""a required node containing the information about which iterative stepping algorithm to
+              use, and its settings if applicable. Exactly one of the stepping algorithms
+              below may be selected for this Optimizer.""")
     specs.addSub(step)
     ## common options to all stepManipulator descenders
     ## TODO
@@ -132,7 +130,12 @@ class GradientDescent(Sampled):
       step.addSub(subSpecs)
 
     # acceptance conditions
-    accept = InputData.parameterInputFactory('acceptance', strictMode=True)
+    accept = InputData.parameterInputFactory('acceptance', strictMode=True,
+        printPriority=108,
+        descr=r"""a required node containing the information about the acceptability criterion for iterative
+              optimization steps, i.e. when a potential new optimal point should be rejected and when
+              it can be accepted. Exactly one of the acceptance criteria
+              below may be selected for this Optimizer.""")
     specs.addSub(accept)
     ## common options to all acceptanceCondition descenders
     ## TODO
@@ -142,14 +145,25 @@ class GradientDescent(Sampled):
       accept.addSub(subSpecs)
 
     # convergence
-    conv = InputData.parameterInputFactory('convergence', strictMode=True)
+    conv = InputData.parameterInputFactory('convergence', strictMode=True,
+        printPriority=109,
+        descr=r"""a node containing the desired convergence criteria for the optimization algorithm.
+              Note that convergence is met when any one of the convergence criteria is met. If no convergence
+              criteria are given, then the \xmlNode{limit} is used.""")
     specs.addSub(conv)
-    for name in cls.convergenceOptions:
-      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType))
-    conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType))
-    terminate = InputData.parameterInputFactory('terminateFollowers', contentType=InputTypes.BoolType)
-    terminate.addParam('proximity', param_type=InputTypes.FloatType, required=False)
+    conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType,
+        descr=r"""provides the number of consecutive times convergence should be reached before a trajectory
+              is considered fully converged. This helps in preventing early false convergence."""))
+    for name, descr in cls.convergenceOptions.items():
+      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType, descr=descr))
+    terminate = InputData.parameterInputFactory('terminateFollowers', contentType=InputTypes.BoolType,
+        descr=r"""indicates whether a trajectory should be terminated when it begins following the path
+              of another trajectory.""")
+    terminate.addParam('proximity', param_type=InputTypes.FloatType, required=False,
+        descr=r"""provides the normalized distance at which a trajectory's head should be proximal to
+              another trajectory's path before terminating the following trajectory.""")
     conv.addSub(terminate)
+
     # NOTE to add new convergence options, add them to convergenceOptions above, not here!
 
     return specs
@@ -160,7 +174,7 @@ class GradientDescent(Sampled):
       @ In, None
       @ Out, None
     """
-    Sampled.__init__(self)
+    RavenSampled.__init__(self)
     ## Instance Variable Initialization
     # public
     self.type = 'GradientDescent Optimizer'
@@ -179,7 +193,7 @@ class GradientDescent(Sampled):
     self._convergenceInfo = {}       # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = None # consecutive persistence required to mark convergence
     self._terminateFollowers = True  # whether trajectories sharing a point should cause termination
-    self._followerProximity = None   # distance at which annihilation can start ocurring, in ?normalized? space
+    self._followerProximity = 1e-2   # distance at which annihilation can start ocurring, in ?normalized? space
     self._trajectoryFollowers = defaultdict(list) # map of trajectories to the trajectories following them
     # __private
     # additional methods
@@ -192,7 +206,7 @@ class GradientDescent(Sampled):
       @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
-    Sampled.handleInput(self, paramInput)
+    RavenSampled.handleInput(self, paramInput)
 
     # grad strategy
     gradParentNode = paramInput.findFirst('gradient')
@@ -254,15 +268,20 @@ class GradientDescent(Sampled):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    Sampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     self._gradientInstance.initialize(self.toBeSampled, self._gradProximity)
     self._stepInstance.initialize(self.toBeSampled, persistence=self._requiredPersistence)
     self._acceptInstance.initialize()
+    # if single trajectory, turn off follower termination
+    if len(self._initialValues) < 2:
+      self.raiseADebug('Setting terminateFollowers to False since only 1 trajectory exists.')
+      self._terminateFollowers = False
     # queue up the first run for each trajectory
     initialStepSize = self._stepInstance.initialStepSize(len(self.toBeSampled)) # TODO user scaling option
     for traj, init in enumerate(self._initialValues):
       self._stepHistory[traj].append({'magnitude': initialStepSize, 'versor': None, 'info': None})
       self._submitOptAndGrads(init, traj, 0, initialStepSize)
+
 
   ###############
   # Run Methods #
@@ -353,7 +372,7 @@ class GradientDescent(Sampled):
       self._stepHistory[traj].append({'magnitude': stepSize, 'versor': stepVersor, 'info': stepInfo})
       # start new step
       self._initializeStep(traj)
-      self.raiseADebug('Taking step {} for traj {} ...'.format(self._stepCounter[traj], traj))
+      self.raiseADebug('Taking step {} for traj {} ...'.format(self.getIteration(traj), traj))
       self.raiseADebug(' ... gradient magn: {:1.2e} direction: {}'.format(gradMag, gradVersor))
       self.raiseADebug(' ... normalized desired step size: {}'.format(stepSize))
       self.raiseADebug(' ... normalized actual  step size: {}'.format(actualStepSize))
@@ -362,7 +381,7 @@ class GradientDescent(Sampled):
       self.raiseADebug(' ... current opt point:', self.denormalizeData(opt))
       self.raiseADebug(' ... new optimum candidate:', self.denormalizeData(suggested))
       # initialize step
-      self._submitOptAndGrads(suggested, traj, self._stepCounter[traj], self._stepHistory[traj][-1]['magnitude'])
+      self._submitOptAndGrads(suggested, traj, self.getIteration(traj), self._stepHistory[traj][-1]['magnitude'])
     # otherwise, continue submitting and collecting
 
   ###################
@@ -391,7 +410,8 @@ class GradientDescent(Sampled):
       @ In, traj, int, the trajectory of interest
       @ Out, None
     """
-    Sampled._initializeStep(self, traj)
+    RavenSampled._initializeStep(self, traj)
+    self.incrementIteration(traj)
     # tracker 'opt' set up in Sampled
     self._stepTracker[traj]['grads'] = []
 
@@ -401,7 +421,7 @@ class GradientDescent(Sampled):
       @ In, traj, int, optional, label to use
       @ Out, traj, int, new trajectory number
     """
-    traj = Sampled.initializeTrajectory(self)
+    traj = RavenSampled.initializeTrajectory(self)
     self._gradHistory[traj] = deque(maxlen=self._maxHistLen)
     self._stepHistory[traj] = deque(maxlen=self._maxHistLen)
     self._acceptHistory[traj] = deque(maxlen=self._maxHistLen)
@@ -607,7 +627,7 @@ class GradientDescent(Sampled):
       @ In, old, float, previous optimization value
       @ Out, improved, bool, True if "sufficiently" improved or False if not.
     """
-    # TODO could this be a base Sampled class?
+    # TODO could this be a base RavenSampled class?
     improved = self._acceptInstance.checkImprovement(new, old)
     return 'accepted' if improved else 'rejected'
 
@@ -685,8 +705,7 @@ class GradientDescent(Sampled):
     # track that the next recommended step size for this traj should be "cut"
     self._stepRecommendations[traj] = 'shrink'
     # get new grads around new point
-    self._stepCounter[traj] += 1
-    self._submitOptAndGrads(old, traj, self._stepCounter[traj], self._stepHistory[traj][-1]['magnitude'])
+    self._submitOptAndGrads(old, traj, self.getIteration(traj), self._stepHistory[traj][-1]['magnitude'])
     self._acceptRerun[traj] = True
   # END resolving potential opt points
   # * * * * * * * * * * * * * * * *
