@@ -355,7 +355,8 @@ class Sampled(Optimizer):
     # FIXME check implicit constraints? Function call, - Jia
     acceptable, old = self._checkAcceptability(traj, rlz)
     converged = self._updateConvergence(traj, rlz, old, acceptable)
-    self._updatePersistence(traj, converged, optVal)
+    if acceptable in ['accepted']:
+      self._updatePersistence(traj, converged, optVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     self._updateSolutionExport(traj, rlz, acceptable) # NOTE: only on opt point!

@@ -46,7 +46,7 @@
   <Optimizers>
     <SimulatedAnnealing name="simOpt">
       <samplerInit>
-        <limit>500</limit>
+        <limit>1000</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
@@ -58,7 +58,7 @@
       <convergence>
         <objective>1e-4</objective>
         <temperature>1e-9</temperature>
-        <persistence>1</persistence>
+        <persistence>3</persistence>
       </convergence>
       <coolingSchedule>exponential</coolingSchedule>
       <variable name="x">

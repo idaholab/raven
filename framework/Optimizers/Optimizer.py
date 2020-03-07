@@ -58,8 +58,13 @@ class Optimizer(AdaptiveSampler):
       @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(Optimizer, cls).getInputSpecification()
+    specs.description = 'Optimizers'
+
     # objective variable
-    specs.addSub(InputData.parameterInputFactory('objective', contentType=InputTypes.StringType, strictMode=True))
+    specs.addSub(InputData.parameterInputFactory('objective', contentType=InputTypes.StringType, strictMode=True))#,
+        # printPriority=90, # more important than <variable>
+        # descr=r"""Name of the response variable (or ``objective function'') that should be optimized
+        # (minimized or maximized)."""))
     # modify Sampler variable nodes
     variable = specs.getSub('variable') # TODO use getter?
     #variable.removeSub('distribution')
@@ -255,6 +260,22 @@ class Optimizer(AdaptiveSampler):
   ###################
   # Utility Methods #
   ###################
+  @classmethod
+  def userManualDescription(cls):
+    """
+      Provides a user manual description for this actor. Should only be needed for base classes.
+      @ In, None
+      @ Out, descr, string, description
+    """
+    descr = r"""
+    \section{Optimizers} \label{sec:Optimizers}
+    The optimizer is another important entity in the RAVEN framework. It performs the driving of a
+    specific ``goal function'' or ``objective function'' over the model for value optimization. The
+    Optimizer can be used almost anywhere a Sampler can be used, and is only distinguished from other
+    AdaptiveSampler strategies for clarity.
+    """
+    return descr
+
   @abc.abstractmethod
   def checkConvergence(self):
     """

@@ -68,7 +68,8 @@ class SimulatedAnnealing(Sampled):
   """
   This class performs simulated annealing optimization
   """
-  convergenceOptions = ['objective','temperature']   # relative change in objective value and absolute temperature respectively
+  convergenceOptions = ['objective',
+                        'temperature']   # relative change in objective value and absolute temperature respectively
   coolingOptions = ['linear','exponential','fast','veryfast','cauchy','boltzmann']
   ##########################
   # Initialization Methods #
@@ -81,17 +82,28 @@ class SimulatedAnnealing(Sampled):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(SimulatedAnnealing, cls).getInputSpecification()
+    specs.description = r"""The \xmlNode{SimulatedAnnealing} optimizer is a metaheuristic approach
+                            to perform a global search in the design space. The methodology rose
+                            from statistical physics and was inspitred by metalurgy cooling where
+                            it was found that fast cooling might lead to unstable states of the
+                            crystals, and that reheating and slowly cooling will lead to better states.
+                            This allows climbing to avoid being stuck in local minima and hence facilitates
+                            finding the global minima for non-convex probloems."""
     # initialization: add sampling-based options
     whenSolnExpEnum = InputTypes.makeEnumType('whenWriteEnum', 'whenWriteType', ['final', 'every'])
     init = specs.getSub('samplerInit')
     specs.addSub(init)
-    limit = InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType)
-    write = InputData.parameterInputFactory('writeSteps', contentType=whenSolnExpEnum)
+    limit = InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType, descr=r"""maximum number of iterations per trajectory""")
+    write = InputData.parameterInputFactory('writeSteps', contentType=whenSolnExpEnum, descr=r"""final for writing only the final step, and \'every\' for writing every step""")
     init.addSub(limit)
     init.addSub(write)
 
     # acceptance conditions
-    accept = InputData.parameterInputFactory('acceptance', strictMode=True)
+    accept = InputData.parameterInputFactory('acceptance', strictMode=True,
+                        descr=r"""a equired node containing the information about the acceptability creterion
+                        for iterative optimization steps, i.e. when a potential new optimal point should be
+                        rejected and when it can be accepted. Exactly one of the acceptance criteria below
+                        may be selected for this optimizer.""")
     specs.addSub(accept)
     ## common options to all acceptanceCondition descenders
     ## TODO
@@ -501,7 +513,7 @@ class SimulatedAnnealing(Sampled):
 
     # assume no modifications until proved otherwise
     modded = False
-    return point, modded
+    return suggested, modded
 
   ###########
   # Utility Methods #
