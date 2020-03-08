@@ -229,7 +229,7 @@ INSTALL_OPTIONAL="" # --optional if installing optional, otherwise blank
 ECE_VERBOSE=0 # 0 for printing, anything else for no printing
 ECE_CLEAN=0 # 0 for yes (remove raven libs env before installing), 1 for don't remove it
 INSTALL_MANAGER="CONDA" # CONDA (default) or PIP
-PROXY_COMM = "" # proxy is none
+PROXY_COMM="" # proxy is none
 
 # parse command-line arguments
 while test $# -gt 0
