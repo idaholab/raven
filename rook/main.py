@@ -105,7 +105,7 @@ parser.add_argument('--unkillable', action='store_true',
                     help='Ignore SIGTERM so test running is harder to be killed')
 
 parser.add_argument('--add-path', dest='add_path',
-                    help='additional paths that need be added in PATH')
+                    help='additional paths that need be added in PYTHON PATH (sys.path)')
 
 parser.add_argument('--update-or-add-env-variables', dest='update_or_add_env_variables',
                     help='comma separated list of environment variables to update or add. ' +
