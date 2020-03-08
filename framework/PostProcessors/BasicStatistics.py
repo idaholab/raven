@@ -34,7 +34,6 @@ from utils import utils
 from utils import InputData, InputTypes
 from utils import mathUtils
 import Files
-import Runners
 #Internal Modules End-----------------------------------------------------------
 
 class BasicStatistics(PostProcessor):
@@ -1220,9 +1219,6 @@ class BasicStatistics(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-
     outputRealization = evaluation[1]
     if output.type in ['PointSet','HistorySet']:
       if self.outputDataset:

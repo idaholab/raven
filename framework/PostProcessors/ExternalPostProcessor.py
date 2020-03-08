@@ -27,7 +27,6 @@ import copy
 from .PostProcessor import PostProcessor
 from utils import InputData, InputTypes, utils
 import Files
-import Runners
 #Internal Modules End-----------------------------------------------------------
 
 class ExternalPostProcessor(PostProcessor):
@@ -178,9 +177,6 @@ class ExternalPostProcessor(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-
     dataLenghtHistory = {}
     inputList,outputDict = evaluation
 

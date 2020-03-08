@@ -34,7 +34,6 @@ from utils import xmlUtils as xmlU
 from utils import utils
 from .FTStructure import FTStructure
 import Files
-import Runners
 #Internal Modules End-----------------------------------------------------------
 
 class FTImporter(PostProcessor):

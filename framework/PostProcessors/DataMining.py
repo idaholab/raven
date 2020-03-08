@@ -29,7 +29,6 @@ from utils import utils, mathUtils
 from utils import InputData, InputTypes
 import Files
 import unSupervisedLearning
-import Runners
 import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
@@ -475,8 +474,6 @@ class DataMining(PostProcessor):
               "Please provide a new empty DataObject for this PostProcessor!")
     ## When does this actually happen?
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
     inputObject, dataMineDict = evaluation
     ## This should not have to be a list
     ## TODO: figure out if there is a case where it can be in this processor

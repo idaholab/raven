@@ -36,7 +36,7 @@ import Models
 import Files
 from utils import InputData, InputTypes
 from utils import utils
-import Runners
+from Runners import Error as rerror
 #Internal Modules End--------------------------------------------------------------------------------
 
 class HybridModel(Dummy):
@@ -617,7 +617,7 @@ class HybridModel(Dummy):
         for finishedRun in finishedJobs:
           self.raiseADebug("collect job with identifier ", identifier)
           evaluation = finishedRun.getEvaluation()
-          if isinstance(evaluation, Runners.Error):
+          if isinstance(evaluation, rerror):
             self.raiseAnError(RuntimeError, "The job identified by "+finishedRun.identifier+" failed!")
           # collect output in temporary data object
           tempExportDict = evaluation
@@ -644,7 +644,7 @@ class HybridModel(Dummy):
       self.raiseADebug("Job finished ", self.modelInstance.name, " with identifier ", identifier)
       finishedRun = jobHandler.getFinished(jobIdentifier = inputKwargs['prefix'], uniqueHandler = uniqueHandler)
       evaluation = finishedRun[0].getEvaluation()
-      if isinstance(evaluation, Runners.Error):
+      if isinstance(evaluation, rerror):
         self.raiseAnError(RuntimeError, "The model "+self.modelInstance.name+" identified by "+finishedRun[0].identifier+" failed!")
       # collect output in temporary data object
       exportDict = evaluation
@@ -661,8 +661,6 @@ class HybridModel(Dummy):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
     useROM = evaluation['useROM']
     try:
       jobIndex = self.tempOutputs['uncollectedJobIds'].index(finishedJob.identifier)

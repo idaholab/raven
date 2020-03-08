@@ -47,6 +47,7 @@ import Models
 _rayAvail = im.isLibAvail("ray")
 if _rayAvail:
  import ray
+ _functionDictionary = {} # dictionary of function to run
 else:
  import pp
 # end internal parallel module
@@ -198,7 +199,7 @@ class JobHandler(MessageHandler.MessageUser):
         ## Get localHost and servers
         servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
-        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
+        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),logging_level=1) if _rayAvail else \
                          pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
         self.raiseADebug("Head node IP address: " + self.rayServer['node_ip_address'])
@@ -339,7 +340,6 @@ class JobHandler(MessageHandler.MessageUser):
         arguments = args
       else:
         arguments = tuple([self.rayServer] + list(args))
-
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
                                                     arguments, remoteFunction.remote if _rayAvail else functionToRun,
                                                     identifier, metadata,

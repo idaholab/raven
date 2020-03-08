@@ -37,7 +37,6 @@ from utils import InputData, InputTypes
 import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 import Files
 from DataObjects import Data
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Code(Model):
@@ -732,10 +731,6 @@ class Code(Model):
     evaluation = finishedJob.getEvaluation()
 
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(AttributeError,"No available Output to collect")
-
-
     # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
     if evaluation.get('RAVEN_isBatch',False):
       for rlz in evaluation['realizations']:

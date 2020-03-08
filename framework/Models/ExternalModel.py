@@ -28,7 +28,6 @@ import inspect
 from .Dummy import Dummy
 import CustomCommandExecuter
 from utils import utils, InputData, InputTypes, mathUtils
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ExternalModel(Dummy):
@@ -291,10 +290,7 @@ class ExternalModel(Dummy):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    # TODO this is done in dummy, so don't do it here?, but need to check before checking history lengths
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError,"No available Output to collect")
-
+    # TODO this is done in dummy, so don't do it here?, but need to check before checking history lengths)
     # OLD instanciatedSelf = evaluation['RAVEN_instantiated_self']
     # OLD outcomes         = evaluatedOutput[0]
 

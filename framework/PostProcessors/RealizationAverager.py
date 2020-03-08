@@ -26,7 +26,6 @@ import numpy as np
 from .PostProcessor import PostProcessor
 from utils import utils
 from utils import InputData, InputTypes
-import Runners
 #Internal Modules End-----------------------------------------------------------
 
 class RealizationAverager(PostProcessor):
@@ -122,9 +121,6 @@ class RealizationAverager(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect!")
-
     result = evaluation[1]
     self.raiseADebug('Sending output to DataSet "{name}"'.format(name=output.name))
     output.load(result, style='dataset')

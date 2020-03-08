@@ -27,10 +27,10 @@ from collections import OrderedDict
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import InputData, InputTypes, utils, mathUtils
+from utils import importerUtils
 import LearningGate
 import GridEntities
 import Files
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class LimitSurface(PostProcessor):
@@ -329,9 +329,6 @@ class LimitSurface(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-
     self.raiseADebug(str(evaluation))
     limitSurf = evaluation[1]
     if limitSurf[0] is not None:

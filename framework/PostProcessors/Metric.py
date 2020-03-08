@@ -30,7 +30,6 @@ import copy
 from utils import xmlUtils
 from utils import InputData, InputTypes
 import Files
-import Runners
 import Distributions
 import MetricDistributor
 from .PostProcessor import PostProcessor
@@ -261,8 +260,6 @@ class Metric(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "Job ", finishedJob.identifier, "failed!")
     outputDict = evaluation[1]
     # FIXED: writing directly to file is no longer an option!
     #if isinstance(output, Files.File):

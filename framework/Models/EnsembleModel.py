@@ -30,7 +30,7 @@ from collections import OrderedDict
 from .Dummy import Dummy
 from utils import utils
 from utils import graphStructure
-import Runners
+from Runners import Error as rerror
 #Internal Modules End--------------------------------------------------------------------------------
 
 class EnsembleModel(Dummy):
@@ -434,8 +434,6 @@ class EnsembleModel(Dummy):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
     outcomes, targetEvaluations, optionalOutputs = evaluation[1]
     joinedResponse = {}
     joinedGeneralMetadata = {}
@@ -652,7 +650,7 @@ class EnsembleModel(Dummy):
           # get job that just finished to gather the results
           finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
           evaluation = finishedRun[0].getEvaluation()
-          if isinstance(evaluation, Runners.Error):
+          if isinstance(evaluation, rerror):
             # the model failed
             for modelToRemove in self.orderList:
               if modelToRemove != modelIn:

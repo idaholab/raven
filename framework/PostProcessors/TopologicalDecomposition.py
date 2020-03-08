@@ -28,7 +28,6 @@ import sys
 from .PostProcessor import PostProcessor
 from utils import InputData, InputTypes
 import Files
-import Runners
 #Internal Modules End-----------------------------------------------------------
 
 
@@ -209,9 +208,6 @@ class TopologicalDecomposition(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-
     inputList,outputDict = evaluation
 
     if output.type == 'PointSet':

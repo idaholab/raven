@@ -26,7 +26,6 @@ import numpy as np
 from .PostProcessor import PostProcessor
 from utils import utils
 from utils import InputData, InputTypes
-import Runners
 #Internal Modules End-----------------------------------------------------------
 
 class SampleSelector(PostProcessor):
@@ -147,9 +146,6 @@ class SampleSelector(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect!")
-
     pick = evaluation[1]
     for key,value in pick.items():
       pick[key] = np.atleast_1d(value)

@@ -31,7 +31,6 @@ from .PostProcessor import PostProcessor
 from utils import InputData, InputTypes
 import Files
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ImportanceRank(PostProcessor):
@@ -203,8 +202,6 @@ class ImportanceRank(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
     outputDict = evaluation[1]
     # Output to DataObjects
     if output.type in ['PointSet','HistorySet']:

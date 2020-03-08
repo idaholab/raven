@@ -48,7 +48,6 @@ import Files
 import Models
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class InterfacedPostProcessor(PostProcessor):
@@ -207,7 +206,5 @@ class InterfacedPostProcessor(PostProcessor):
       @ Out, None
     """
     evaluations = finishedJob.getEvaluation()
-    if isinstance(evaluations, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
     evaluation = evaluations[1]
     output.load(evaluation['data'], style='dict', dims=evaluation['dims'])

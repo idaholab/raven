@@ -31,7 +31,6 @@ from BaseClasses import BaseType
 from utils import utils
 from Assembler import Assembler
 from utils import InputData, InputTypes
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
