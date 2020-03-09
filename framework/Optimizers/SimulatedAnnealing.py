@@ -142,14 +142,15 @@ class SimulatedAnnealing(RavenSampled):
     # Cooling Schedule
     coolingSchedule = InputData.parameterInputFactory('coolingSchedule',contentType=InputTypes.makeEnumType('coolingSchedule','',['linear','exponential','boltzmann','cauchy','fast','veryfast']),
         printPriority=109,
-        descr=r""" The function governing the cooling process. Currently, user can select between, \xmlString{linear}, \xmlString{exponential}, \xmlString{cauchy}, \xmlString{boltzmann}, \xmlString{fast}, or \xmlString{veryfats}.
-                  In case of \xmlString{linear} is provided, The cooling process will be governed by: $$ T^{k} = T^0 - k * \beta$$.
-                  In case of \xmlString{exponential} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \alpha^k $$.
-                  In case of \xmlString{boltzmann} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{log10(k + 1.0)} $$.
-                  In case of \xmlString{cauchy} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{k + 1.0} $$.
-                  In case of \xmlString{fast} is provided, The cooling process will be governed by: $$ T^{k} = T^{k} = T^0 * \exp(-k) $$.
-                  In case of \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 * \exp(-ck^{1/D})$$.
-                  For more information about the selection of learning rates and other parameters, consult the Theory Manual""") # TODO: Update the theory manual for simulated annealing
+        descr=r""" The function governing the cooling process. Currently, user can select between, \xmlString{linear}, \xmlString{exponential}, \xmlString{cauchy}, \xmlString{boltzmann}, \xmlString{fast}, or \xmlString{veryfast}.\\ \\
+                  In case of \xmlString{linear} is provided, The cooling process will be governed by: $$ T^{k} = T^0 - k * \beta$$
+                  In case of \xmlString{exponential} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \alpha^k$$
+                  In case of \xmlString{boltzmann} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{log(k + 1.0)}$$
+                  In case of \xmlString{cauchy} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{k + 1.0}$$
+                  In case of \xmlString{fast} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \exp(-k)$$
+                  In case of \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 * \exp(-ck^{1/D})$$
+                  \default{exponential}. For more information about the selection of learning rates and other parameters,
+                  consult the Theory Manual""") # TODO: Update the theory manual for simulated annealing
     specs.addSub(coolingSchedule)
     return specs
 
