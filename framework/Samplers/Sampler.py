@@ -143,7 +143,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.printTag                      = self.type                 # prefix for all prints (sampler type)
 
     self.restartData                   = None                      # presampled points to restart from
-    self.restartTolerance           = 1e-14                     # strictness with which to find matches in the restart data
+    self.restartTolerance              = 1e-14                     # strictness with which to find matches in the restart data
     self.restartIsCompatible           = None                      # flags restart as compatible with the sampling scheme (used to speed up checking)
     self._jobsToEnd                    = []                        # list of strings, containing job prefixes that should be cancelled.
 
