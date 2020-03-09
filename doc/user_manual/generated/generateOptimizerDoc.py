@@ -64,34 +64,34 @@ minimalSimulatedAnnealing = r"""
 \hspace{24pt}
 Simulated Annealing Example:
 \begin{lstlisting}[style=XML]
-<Optimizers>
-  ...
-  <GradientDescent name="opter">
-    <objective>ans</objective>
-    <variable name="x">
-      <distribution>x_dist</distribution>
-      <initial>-2</initial>
-    </variable>
-    <variable name="y">
-      <distribution>y_dist</distribution>
-      <initial>2</initial>
-    </variable>
-    <samplerInit>
-      <limit>100</limit>
-    </samplerInit>
-    <gradient>
-      <FiniteDifference/>
-    </gradient>
-    <stepSize>
-      <GradientHistory/>
-    </stepSize>
-    <acceptance>
-      <Strict/>
-    </acceptance>
-    <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-  </GradientDescent>
-  ...
-</Optimizers>
+  <Optimizers>
+    ...
+    <SimulatedAnnealing name="simOpt">
+      <samplerInit>
+        <limit>1000</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min</type>
+      </samplerInit>
+      <convergence>
+        <objective>1e-4</objective>
+        <temperature>1e-12</temperature>
+        <persistence>1</persistence>
+      </convergence>
+      <coolingSchedule>exponential</coolingSchedule>
+      <variable name="x">
+        <distribution>beale_dist</distribution>
+        <initial>-2.0</initial>
+      </variable>
+      <variable name="y">
+        <distribution>beale_dist</distribution>
+        <initial>-2.0</initial>
+      </variable>
+      <objective>ans</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+    </SimulatedAnnealing>
+    ...
+  </Optimizers>
 \end{lstlisting}
 
 """

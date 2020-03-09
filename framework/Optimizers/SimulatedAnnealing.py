@@ -51,9 +51,6 @@ from .stepManipulators import knownTypes as stepKnownTypes
 from .stepManipulators import returnInstance as stepReturnInstance
 from .stepManipulators import returnClass as stepReturnClass
 from .stepManipulators import NoConstraintResolutionFound
-from .acceptanceConditions import knownTypes as acceptKnownTypes
-from .acceptanceConditions import returnInstance as acceptReturnInstance
-from .acceptanceConditions import returnClass as acceptReturnClass
 #Internal Modules End--------------------------------------------------------------------------------
 # utility function for defaultdict
 def giveZero():
@@ -104,20 +101,6 @@ class SimulatedAnnealing(RavenSampled):
     whenSolnExpEnum = InputTypes.makeEnumType('whenWriteEnum', 'whenWriteType', ['final', 'every'])
     init = specs.getSub('samplerInit')
     specs.addSub(init)
-
-    # acceptance conditions
-    accept = InputData.parameterInputFactory('acceptance', strictMode=True,
-                        descr=r"""a required node containing the information about the acceptability creterion
-                        for iterative optimization steps, i.e. when a potential new optimal point should be
-                        rejected and when it can be accepted. Exactly one of the acceptance criteria below
-                        may be selected for this optimizer.""")
-    specs.addSub(accept)
-    ## common options to all acceptanceCondition descenders
-    ## TODO
-    ## get specs for each acceptanceCondition subclass, and add them to this class's options
-    for option in acceptKnownTypes():
-      subSpecs = acceptReturnClass(option, cls).getInputSpecification()
-      accept.addSub(subSpecs)
 
     # convergence
     conv = InputData.parameterInputFactory('convergence', strictMode=True,
@@ -204,7 +187,7 @@ class SimulatedAnnealing(RavenSampled):
     for var in self.toBeSampled:
       self.info['amp_'+var] = None
       self.info['delta_'+var] = None
-    self._acceptInstance.initialize()
+#    self._acceptInstance.initialize()
     # queue up the first run for each trajectory
     for traj, init in enumerate(self._initialValues):
       self._submitRun(init,traj,self.getIteration(traj))
