@@ -27,6 +27,7 @@ from __future__ import absolute_import
 from .Optimizer import Optimizer
 from .RavenSampled import RavenSampled
 from .GradientDescent import GradientDescent
+from .SimulatedAnnealing import SimulatedAnnealing
 #from .SPSA import SPSA
 
 # TODO

@@ -19,19 +19,21 @@
 
   References
     ----------
-    .. [1] Tsallis C. Possible generalization of Boltzmann-Gibbs
-        statistics. Journal of Statistical Physics, 52, 479-487 (1998).
-    .. [2] Tsallis C, Stariolo DA. Generalized Simulated Annealing.
+    .. [1] Kirkpatrick, S.; Gelatt Jr, C. D.; Vecchi, M. P. (1983).
+        ``Optimization by Simulated Annealing". Science. 220 (4598): 671–680.
+    .. [2] Tsallis C. ``Possible generalization of Boltzmann-Gibbs
+        statistics". Journal of Statistical Physics, 52, 479-487 (1998).
+    .. [3] Tsallis C, Stariolo DA. ``Generalized Simulated Annealing."
         Physica A, 233, 395-406 (1996).
-    .. [3] Xiang Y, Sun DY, Fan W, Gong XG. Generalized Simulated
-        Annealing Algorithm and Its Application to the Thomson Model.
+    .. [4] Xiang Y, Sun DY, Fan W, Gong XG. ``Generalized Simulated
+        Annealing Algorithm and Its Application to the Thomson Model."
         Physics Letters A, 233, 216-220 (1997).
-    .. [4] Xiang Y, Gong XG. Efficiency of Generalized Simulated
-        Annealing. Physical Review E, 62, 4473 (2000).
-    .. [5] Xiang Y, Gubian S, Suomela B, Hoeng J. Generalized
+    .. [5] Xiang Y, Gong XG. ``Efficiency of Generalized Simulated
+        Annealing". Physical Review E, 62, 4473 (2000).
+    .. [6] Xiang Y, Gubian S, Suomela B, Hoeng J. ``Generalized
         Simulated Annealing for Efficient Global Optimization: the GenSA
-        Package for R. The R Journal, Volume 5/1 (2013).
-    .. [6] Mullen, K. Continuous Global Optimization in R. Journal of
+        Package for R". The R Journal, Volume 5/1 (2013).
+    .. [7] Mullen, K. ``Continuous Global Optimization in R". Journal of
         Statistical Software, 60(6), 1 - 45, (2014). DOI:10.18637/jss.v060.i06
 """
 #External Modules------------------------------------------------------------------------------------
@@ -44,9 +46,7 @@ from collections import deque, defaultdict
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, randomUtils, InputData, InputTypes, mathUtils
-#from BaseClasses import BaseType
-#from Assembler import Assembler
-from .Sampled import Sampled
+from .RavenSampled import RavenSampled
 from .stepManipulators import knownTypes as stepKnownTypes
 from .stepManipulators import returnInstance as stepReturnInstance
 from .stepManipulators import returnClass as stepReturnClass
@@ -64,13 +64,22 @@ def giveZero():
   """
   return 0
 
-class SimulatedAnnealing(Sampled):
+class SimulatedAnnealing(RavenSampled):
   """
   This class performs simulated annealing optimization
   """
-  convergenceOptions = ['objective',
-                        'temperature']   # relative change in objective value and absolute temperature respectively
-  coolingOptions = ['linear','exponential','fast','veryfast','cauchy','boltzmann']
+  convergenceOptions = {'objective': r""" provides the desired value for the convergence creiteron of the objective function
+                        (:math: `\\epsilon_{objective}`), i.e., convergence is reached when: :math:: `\\abs{newObjevtive - oldObjective} \\le \\epsilon_{objective}`.
+                        \default{1e-6, if no criteria is specified}""",
+                        'temperature': r""" provides the desired value for the convergence creiteron of the system temperature,
+                        (:math: `\\epsilon_{objective}`), i.e., convergence is reached when: :math:: `T \\le \\epsilon_{temperature}`
+                        \default{1e-10, if no criteria is specified}"""}
+  coolingOptions = {'linear': r""" $T_{k} = T_0 * \alpha^k $""",
+                    'exponential': r""" $T_{k} = T_0 * \alpha^k $""",
+                    'fast': r""" $T_{k} = T_0 * \alpha^k $""",
+                    'veryfast': r""" $T_{k} = T_0 * \alpha^k $""",
+                    'cauchy':r""" $T_{k} = T_0 * \alpha^k $""",
+                    'boltzmann': r""" .$T_{k} = T_0 * \alpha^k $"""}
   ##########################
   # Initialization Methods #
   ##########################
@@ -100,7 +109,7 @@ class SimulatedAnnealing(Sampled):
 
     # acceptance conditions
     accept = InputData.parameterInputFactory('acceptance', strictMode=True,
-                        descr=r"""a equired node containing the information about the acceptability creterion
+                        descr=r"""a required node containing the information about the acceptability creterion
                         for iterative optimization steps, i.e. when a potential new optimal point should be
                         rejected and when it can be accepted. Exactly one of the acceptance criteria below
                         may be selected for this optimizer.""")
@@ -113,22 +122,29 @@ class SimulatedAnnealing(Sampled):
       accept.addSub(subSpecs)
 
     # convergence
-    conv = InputData.parameterInputFactory('convergence', strictMode=True)
+    conv = InputData.parameterInputFactory('convergence', strictMode=True,
+        printPriority=109,
+        descr=r"""a node containing the desired convergence criteria for the optimization algorithm.
+              Note that convergence is met when any one of the convergence criteria is met. If no convergence
+              criteria are given, then the \xmlNode{limit} is used.""")
     specs.addSub(conv)
-    for name in cls.convergenceOptions:
-      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType))
-    conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType))
+    for name,descr in cls.convergenceOptions.items():
+      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType,descr=descr ))
+
+    # Presistance
+    conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType,
+        descr=r"""provides the number of consecutive times convergence should be reached before a trajectory
+              is considered fully converged. This helps in preventing early false convergence."""))
 
     # Cooling Schedule
-    coolingSchedule = InputData.parameterInputFactory('coolingSchedule',contentType=InputTypes.StringType)
+    coolingSchedule = InputData.parameterInputFactory('coolingSchedule',contentType=InputTypes.makeEnumType('coolingSchedule','',['linear','exponential','boltzmann','cauch','fast','veryfast']),
+        printPriority=109,
+        descr=r""" The function governing the cooling process. Currently, user can select between, linear, exponential, cauchy, boltzmann, fast, or veryfats""")
     specs.addSub(coolingSchedule)
-    for cooling in cls.coolingOptions:
-      coolingSchedule.addSub(InputData.parameterInputFactory(cooling,contentType=InputTypes.StringType))
-
     return specs
 
   def __init__(self):
-    Sampled.__init__(self)
+    RavenSampled.__init__(self)
     self._convergenceCriteria = defaultdict(giveZero) # names and values for convergence checks
     self._stepHistory = {}         # {'magnitude': size, 'versor': direction} for step
     self._acceptHistory = {}       # acceptability
@@ -138,8 +154,6 @@ class SimulatedAnnealing(Sampled):
     self._requiredPersistence = 0  # consecutive persistence required to mark convergence
     self._stepInstance = None      # instance of StepManipulator
     self._acceptInstance = None    # instance of AcceptanceCondition
-    self._stepCounter = {}         # step counter, int
-    self.T0 = None                 # initial temperature
     self.T = None                  # current temperature
     # np.random.seed(42) # TODO remove this
 
@@ -149,7 +163,7 @@ class SimulatedAnnealing(Sampled):
       @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
-    Sampled.handleInput(self, paramInput)
+    RavenSampled.handleInput(self, paramInput)
     # Convergence Criterion
     convNode = paramInput.findFirst('convergence')
     if convNode is not None:
@@ -161,6 +175,7 @@ class SimulatedAnnealing(Sampled):
     if not self._convergenceCriteria:
       self.raiseAWarning('No convergence criteria given; using defaults.')
       self._convergenceCriteria['objective'] = 1e-6
+      self._convergenceCriteria['temperature'] = 1e-10
     # same point is ALWAYS a criterion
     self._convergenceCriteria['samePoint'] = 1e-16 #
     # Cooling Schedule
@@ -177,7 +192,7 @@ class SimulatedAnnealing(Sampled):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    Sampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     self.info = {}
     for var in self.toBeSampled:
       self.info['amp_'+var] = None
@@ -185,7 +200,7 @@ class SimulatedAnnealing(Sampled):
     self._acceptInstance.initialize()
     # queue up the first run for each trajectory
     for traj, init in enumerate(self._initialValues):
-      self._submitRun(init,traj,self._stepCounter[traj])
+      self._submitRun(init,traj,self.getIteration(traj))
 
   def initializeTrajectory(self, traj=None):
     """
@@ -193,7 +208,7 @@ class SimulatedAnnealing(Sampled):
       @ In, traj, int, optional, label to use
       @ Out, traj, int, new trajectory number
     """
-    traj = Sampled.initializeTrajectory(self)
+    traj = RavenSampled.initializeTrajectory(self)
     self._stepHistory[traj] = deque(maxlen=self._maxHistLen)
     self._acceptHistory[traj] = deque(maxlen=self._maxHistLen)
     self._stepRecommendations[traj] = None
@@ -236,20 +251,20 @@ class SimulatedAnnealing(Sampled):
       @ Out, None
     """
     traj = info['traj']
-    #self._stepCounter[traj] += 1
     info['optVal'] = rlz[self._objectiveVar]
     self._resolveNewOptPoint(traj, rlz, rlz[self._objectiveVar], info)
     if self._stepTracker[traj]['opt'] == None:
       # revert to the last accepted point
       rlz = self._optPointHistory[traj][-1][0]
       info = self._optPointHistory[traj][-1][1]
-      info['step'] = self._stepCounter[traj]
+      self.incrementIteration(traj)
+      info['step'] = self.getIteration(traj)
       optVal = rlz[self._objectiveVar]
-    # self._stepCounter[traj] += 1
-    fraction = self._stepCounter[traj]/self.limit
+    iter = self.getIteration(traj) +1
+    fraction = iter/self.limit
     currentPoint = self._collectOptPoint(rlz)
     self.T0 = self._temperature(fraction)
-    self.T = self._coolingSchedule(self._stepCounter[traj],self.T0, self._coolingMethod, alpha = 0.94, beta = 0.1,d=1.0)
+    self.T = self._coolingSchedule(iter,self.T0, self._coolingMethod, alpha = 0.94, beta = 0.1,d=1.0)
     if traj in self._activeTraj:
       newPoint = self._nextNeighbour(rlz,fraction)
       # check new opt point against constraints
@@ -261,7 +276,7 @@ class SimulatedAnnealing(Sampled):
                           .format(self.name, traj))
         self._closeTrajectory(traj, 'converge', 'no constraint resolution', newPoint[self._objectiveVar])
         return
-      self._submitRun(suggested, traj, self._stepCounter[traj])
+      self._submitRun(suggested, traj, self.getIteration(traj))
 
   # * * * * * * * * * * * * * * * *
   # Convergence Checks
@@ -458,11 +473,11 @@ class SimulatedAnnealing(Sampled):
     # FIXME abstract this for Sampled base class!!
     denormed = self.denormalizeData(rlz)
     # meta variables
-    solution = {'iteration': self._stepCounter[traj],
+    solution = {'iteration': self.getIteration(traj),
                 'trajID': traj,
                 'Temp': self.T,
                 'accepted': acceptable,
-                'fraction': self._stepCounter[traj]/self.limit
+                'fraction': self.getIteration(traj)/self.limit
                 }
     for key, val in self._convergenceInfo[traj].items():
       solution['conv_{}'.format(key)] = val

@@ -57,8 +57,8 @@
       </acceptance>
       <convergence>
         <objective>1e-4</objective>
-        <temperature>1e-9</temperature>
-        <persistence>3</persistence>
+        <temperature>1e-20</temperature>
+        <persistence>1</persistence>
       </convergence>
       <coolingSchedule>exponential</coolingSchedule>
       <variable name="x">
