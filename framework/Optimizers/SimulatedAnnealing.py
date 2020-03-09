@@ -104,10 +104,6 @@ class SimulatedAnnealing(RavenSampled):
     whenSolnExpEnum = InputTypes.makeEnumType('whenWriteEnum', 'whenWriteType', ['final', 'every'])
     init = specs.getSub('samplerInit')
     specs.addSub(init)
-    limit = InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType)
-    write = InputData.parameterInputFactory('writeSteps', contentType=whenSolnExpEnum)
-    init.addSub(limit)
-    init.addSub(write)
 
     # acceptance conditions
     accept = InputData.parameterInputFactory('acceptance', strictMode=True,
@@ -125,17 +121,17 @@ class SimulatedAnnealing(RavenSampled):
 
     # convergence
     conv = InputData.parameterInputFactory('convergence', strictMode=True,
-        printPriority=109,
+        printPriority=108,
         descr=r"""a node containing the desired convergence criteria for the optimization algorithm.
               Note that convergence is met when any one of the convergence criteria is met. If no convergence
               criteria are given, then the defaults are used.""")
     specs.addSub(conv)
     for name,descr in cls.convergenceOptions.items():
-      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType,descr=descr ))
+      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType,descr=descr,printPriority=108  ))
 
     # Presistance
     conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType,
-        printPriority = 108,
+        printPriority = 109,
         descr=r"""provides the number of consecutive times convergence should be reached before a trajectory
               is considered fully converged. This helps in preventing early false convergence."""))
 
