@@ -51,9 +51,6 @@ from .stepManipulators import knownTypes as stepKnownTypes
 from .stepManipulators import returnInstance as stepReturnInstance
 from .stepManipulators import returnClass as stepReturnClass
 from .stepManipulators import NoConstraintResolutionFound
-from .acceptanceConditions import knownTypes as acceptKnownTypes
-from .acceptanceConditions import returnInstance as acceptReturnInstance
-from .acceptanceConditions import returnClass as acceptReturnClass
 #Internal Modules End--------------------------------------------------------------------------------
 # utility function for defaultdict
 def giveZero():
@@ -68,18 +65,18 @@ class SimulatedAnnealing(RavenSampled):
   """
   This class performs simulated annealing optimization
   """
-  convergenceOptions = {'objective': r""" provides the desired value for the convergence creiteron of the objective function
-                        (:math: `\\epsilon_{objective}`), i.e., convergence is reached when: :math:: `\\abs{newObjevtive - oldObjective} \\le \\epsilon_{objective}`.
-                        \default{1e-6, if no criteria is specified}""",
+  convergenceOptions = {'objective': r""" provides the desired value for the convergence criterion of the objective function
+                        ($\epsilon^{obj}$), i.e., convergence is reached when: $$ |newObjevtive - oldObjective| \le \epsilon^{obj}$$.
+                        \default{1e-6}, if no criteria specified""",
                         'temperature': r""" provides the desired value for the convergence creiteron of the system temperature,
-                        (:math: `\\epsilon_{objective}`), i.e., convergence is reached when: :math:: `T \\le \\epsilon_{temperature}`
-                        \default{1e-10, if no criteria is specified}"""}
-  coolingOptions = {'linear': r""" $T_{k} = T_0 * \alpha^k $""",
-                    'exponential': r""" $T_{k} = T_0 * \alpha^k $""",
-                    'fast': r""" $T_{k} = T_0 * \alpha^k $""",
-                    'veryfast': r""" $T_{k} = T_0 * \alpha^k $""",
-                    'cauchy':r""" $T_{k} = T_0 * \alpha^k $""",
-                    'boltzmann': r""" .$T_{k} = T_0 * \alpha^k $"""}
+                        ($\epsilon^{temp}$), i.e., convergence is reached when: $$T \le \epsilon^{temp}$$.
+                        \default{1e-10}, if no criteria specified"""}
+  coolingOptions = ['linear',
+                    'exponential',
+                    'fast',
+                    'veryfast',
+                    'cauchy',
+                    'boltzmann']
   ##########################
   # Initialization Methods #
   ##########################
@@ -92,54 +89,47 @@ class SimulatedAnnealing(RavenSampled):
     """
     specs = super(SimulatedAnnealing, cls).getInputSpecification()
     specs.description = r"""The \xmlNode{SimulatedAnnealing} optimizer is a metaheuristic approach
-                            to perform a global search in the design space. The methodology rose
-                            from statistical physics and was inspitred by metalurgy cooling where
-                            it was found that fast cooling might lead to unstable states of the
-                            crystals, and that reheating and slowly cooling will lead to better states.
+                            to perform a global search in large design spaces. The methodology rose
+                            from statistical physics and was inspitred by metallurgy where
+                            it was found that fast cooling might lead to smaller and defected crystals,
+                            and that reheating and slowly controling cooling will lead to better states.
                             This allows climbing to avoid being stuck in local minima and hence facilitates
-                            finding the global minima for non-convex probloems."""
+                            finding the global minima for non-convex probloems.
+                            More information can be found in: Kirkpatrick, S.; Gelatt Jr, C. D.; Vecchi, M. P. (1983).
+                            ``Optimization by Simulated Annealing". Science. 220 (4598): 671–680."""
     # initialization: add sampling-based options
     whenSolnExpEnum = InputTypes.makeEnumType('whenWriteEnum', 'whenWriteType', ['final', 'every'])
     init = specs.getSub('samplerInit')
     specs.addSub(init)
-    limit = InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType, descr=r"""maximum number of iterations per trajectory""")
-    write = InputData.parameterInputFactory('writeSteps', contentType=whenSolnExpEnum, descr=r"""final for writing only the final step, and \'every\' for writing every step""")
-    init.addSub(limit)
-    init.addSub(write)
-
-    # acceptance conditions
-    accept = InputData.parameterInputFactory('acceptance', strictMode=True,
-                        descr=r"""a required node containing the information about the acceptability creterion
-                        for iterative optimization steps, i.e. when a potential new optimal point should be
-                        rejected and when it can be accepted. Exactly one of the acceptance criteria below
-                        may be selected for this optimizer.""")
-    specs.addSub(accept)
-    ## common options to all acceptanceCondition descenders
-    ## TODO
-    ## get specs for each acceptanceCondition subclass, and add them to this class's options
-    for option in acceptKnownTypes():
-      subSpecs = acceptReturnClass(option, cls).getInputSpecification()
-      accept.addSub(subSpecs)
 
     # convergence
     conv = InputData.parameterInputFactory('convergence', strictMode=True,
-        printPriority=109,
+        printPriority=108,
         descr=r"""a node containing the desired convergence criteria for the optimization algorithm.
               Note that convergence is met when any one of the convergence criteria is met. If no convergence
-              criteria are given, then the \xmlNode{limit} is used.""")
+              criteria are given, then the defaults are used.""")
     specs.addSub(conv)
     for name,descr in cls.convergenceOptions.items():
-      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType,descr=descr ))
+      conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType,descr=descr,printPriority=108  ))
 
     # Presistance
     conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType,
+        printPriority = 109,
         descr=r"""provides the number of consecutive times convergence should be reached before a trajectory
               is considered fully converged. This helps in preventing early false convergence."""))
 
     # Cooling Schedule
-    coolingSchedule = InputData.parameterInputFactory('coolingSchedule',contentType=InputTypes.makeEnumType('coolingSchedule','',['linear','exponential','boltzmann','cauch','fast','veryfast']),
+    coolingSchedule = InputData.parameterInputFactory('coolingSchedule',contentType=InputTypes.makeEnumType('coolingSchedule','',['linear','exponential','boltzmann','cauchy','fast','veryfast']),
         printPriority=109,
-        descr=r""" The function governing the cooling process. Currently, user can select between, linear, exponential, cauchy, boltzmann, fast, or veryfats""")
+        descr=r""" The function governing the cooling process. Currently, user can select between, \xmlString{linear}, \xmlString{exponential}, \xmlString{cauchy}, \xmlString{boltzmann}, \xmlString{fast}, or \xmlString{veryfast}.\\ \\
+                  In case of \xmlString{linear} is provided, The cooling process will be governed by: $$ T^{k} = T^0 - k * \beta$$
+                  In case of \xmlString{exponential} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \alpha^k$$
+                  In case of \xmlString{boltzmann} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{log(k + 1.0)}$$
+                  In case of \xmlString{cauchy} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{k + 1.0}$$
+                  In case of \xmlString{fast} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \exp(-k)$$
+                  In case of \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 * \exp(-ck^{1/D})$$
+                  \default{exponential}. For more information about the selection of learning rates and other parameters,
+                  consult the Theory Manual""") # TODO: Update the theory manual for simulated annealing
     specs.addSub(coolingSchedule)
     return specs
 
@@ -197,7 +187,7 @@ class SimulatedAnnealing(RavenSampled):
     for var in self.toBeSampled:
       self.info['amp_'+var] = None
       self.info['delta_'+var] = None
-    self._acceptInstance.initialize()
+#    self._acceptInstance.initialize()
     # queue up the first run for each trajectory
     for traj, init in enumerate(self._initialValues):
       self._submitRun(init,traj,self.getIteration(traj))
@@ -502,14 +492,12 @@ class SimulatedAnnealing(RavenSampled):
       @ In, info, dict, meta information about the opt point
       @ In, old, dict, previous optimal point (to resubmit)
     """
-    # cancel grad runs
     self._cancelAssociatedJobs(info['traj'], step=info['step'])
-    #self._stepTracker[traj]['opt'] = None
     ## what do do if a point is rejected?
     # TODO user option to EITHER rerun opt point OR cut step!
     # initialize a new step
     self._initializeStep(traj)
-    #self._acceptRerun[traj] = True
+    #self._acceptRerun[traj] = True #TODO: What if the model is inherintly stochastic ?!
   # END resolving potential opt points
   # * * * * * * * * * * * * * * * *
 
@@ -553,30 +541,30 @@ class SimulatedAnnealing(RavenSampled):
         for linear  and exponential cooling:
         .. math::
 
-            fraction = \\frac{iter}{Limit}
+            fraction = \frac{iter}{Limit}
 
             amp = 1-fraction
 
-            delta = \\frac{-amp}{2} + amp * r
+            delta = \frac{-amp}{2} + amp * r
         where :math: `r \sim \mathcal{U}(0,1)`
 
         for boltzmann cooling:
         .. math::
 
-            amp = min(np.sqrt(T), \\frac{1}{3*alpha}
+            amp = min(np.sqrt(T), \frac{1}{3*alpha}
 
             delta = r * alpha * amp
 
-        where :math: `r \\sim \\mathcal{N}(0,1)`
+        where :math: `r \sim \mathcal{N}(0,1)`
 
         for fast cooling:
         .. math::
 
             amp = r
 
-            delta = sign(amp-0.5)*T*((1+\\frac{1.0}{T})^{\\abs{2*amp-1}-1.0)
+            delta = sign(amp-0.5)*T*((1+\frac{1.0}{T})^{\abs{2*amp-1}-1.0)
 
-        where :math: `r \\sim \\mathcal{U}(0,1)`
+        where :math: `r \sim \mathcal{U}(0,1)`
 
         for cauchy cooling:
         .. math::
@@ -585,7 +573,7 @@ class SimulatedAnnealing(RavenSampled):
 
             delta = alpha * T * tan(amp)
 
-        where :math: `r \\sim \\mathcal{U}(-\\pi,\\pi)`
+        where :math: `r \sim \mathcal{U}(-\pi,\pi)`
     """
 
     nextNeighbour = {}

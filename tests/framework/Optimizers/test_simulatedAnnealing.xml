@@ -51,13 +51,9 @@
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
-      <acceptance>
-        <Strict/>
-        <!-- <Probabilistic/> -->
-      </acceptance>
       <convergence>
         <objective>1e-4</objective>
-        <temperature>1e-20</temperature>
+        <temperature>1e-12</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>exponential</coolingSchedule>

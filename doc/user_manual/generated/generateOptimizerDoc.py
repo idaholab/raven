@@ -24,23 +24,8 @@ mh = MessageHandler()
 mu = MessageUser()
 mu.messageHandler = mh
 
-#------------#
-# OPTIMIZERS #
-#------------#
-import Optimizers
-all = ''
-# base classes first
-optDescr = wrapText(Optimizers.Optimizer.userManualDescription(), '  ')
-all += optDescr
-# write all known types
-for name in Optimizers.knownTypes():
-  obj = Optimizers.returnClass(name, mu)
-  specs = obj.getInputSpecification()
-  tex = specs.generateLatex()
-  all += tex
-
-# examples
-minimal = r"""
+#examples
+minimalGradientDescent = r"""
 \hspace{24pt}
 Gradient Descent Example:
 \begin{lstlisting}[style=XML]
@@ -75,7 +60,60 @@ Gradient Descent Example:
 \end{lstlisting}
 
 """
-all += minimal
+minimalSimulatedAnnealing = r"""
+\hspace{24pt}
+Simulated Annealing Example:
+\begin{lstlisting}[style=XML]
+  <Optimizers>
+    ...
+    <SimulatedAnnealing name="simOpt">
+      <samplerInit>
+        <limit>1000</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min</type>
+      </samplerInit>
+      <convergence>
+        <objective>1e-4</objective>
+        <temperature>1e-12</temperature>
+        <persistence>1</persistence>
+      </convergence>
+      <coolingSchedule>exponential</coolingSchedule>
+      <variable name="x">
+        <distribution>beale_dist</distribution>
+        <initial>-2.0</initial>
+      </variable>
+      <variable name="y">
+        <distribution>beale_dist</distribution>
+        <initial>-2.0</initial>
+      </variable>
+      <objective>ans</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+    </SimulatedAnnealing>
+    ...
+  </Optimizers>
+\end{lstlisting}
+
+"""
+# examples
+exampleFactory = {'GradientDescent':minimalGradientDescent,'SimulatedAnnealing':minimalSimulatedAnnealing}
+
+#------------#
+# OPTIMIZERS #
+#------------#
+import Optimizers
+all = ''
+# base classes first
+optDescr = wrapText(Optimizers.Optimizer.userManualDescription(), '  ')
+all += optDescr
+# write all known types
+for name in Optimizers.knownTypes():
+  obj = Optimizers.returnClass(name, mu)
+  specs = obj.getInputSpecification()
+  tex = specs.generateLatex()
+  all += tex
+  all += exampleFactory[name]
+
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'optimizer.tex'))
 with open(fName, 'w') as f:
   f.writelines(all)
