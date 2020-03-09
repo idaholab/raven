@@ -63,7 +63,10 @@ class AdaptiveSampler(Sampler):
     self._inputIdentifiers = {}         # identifiers for a single realization
     self._targetEvaluation = None       # data object with feedback from sample realizations
     self._solutionExport = None         # data object for solution printing
-    self.addAssemblerObject('TargetEvaluation', '1') # Place where realization evaluations go
+    # NOTE TargetEvaluations consider all the Step <Output> DataObjects as candidates, so requiring
+    # exactly one TargetEvaluation forces only having one <Output> DataObject in AdaptiveSampling
+    # MultiRun Steps. For now, we leave it as "n".
+    self.addAssemblerObject('TargetEvaluation', 'n') # Place where realization evaluations go
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -72,9 +75,11 @@ class AdaptiveSampler(Sampler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    Sampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    print('DEBUGG assemblable:', self.assemblerDict.keys())
     self._targetEvaluation = self.assemblerDict['TargetEvaluation'][0][3]
     self._solutionExport = solutionExport
+    Sampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    self._validateSolutionExportVariables(solutionExport, targetEvaluation=self._targetEvaluation)
 
   def _registerSample(self, prefix, info):
     """

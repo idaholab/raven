@@ -22,7 +22,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-from enum import Enum
 from collections import deque, defaultdict
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
@@ -163,7 +162,6 @@ class GradientDescent(RavenSampled):
         descr=r"""provides the normalized distance at which a trajectory's head should be proximal to
               another trajectory's path before terminating the following trajectory.""")
     conv.addSub(terminate)
-
     # NOTE to add new convergence options, add them to convergenceOptions above, not here!
 
     return specs
@@ -226,8 +224,7 @@ class GradientDescent(RavenSampled):
     self._stepInstance = stepReturnInstance(stepType, self)
     self._stepInstance.handleInput(stepNode)
 
-    # acceptance strategy # FIXME this might be useful to more than just gradient descent! Maybe
-    # FIXME continued ... move to "sampled"?
+    # acceptance strategy
     acceptNode = paramInput.findFirst('acceptance')
     if acceptNode:
       if len(acceptNode.subparts) != 1:
@@ -322,7 +319,6 @@ class GradientDescent(RavenSampled):
     optVal = rlz[self._objectiveVar]
     info['optVal'] = optVal
     purpose = info['purpose']
-    # FIXME we assume all the denoising has already happened by now.
     if purpose.startswith('opt'):
       self._resolveNewOptPoint(traj, rlz, optVal, info)
     elif purpose.startswith('grad'):
@@ -528,7 +524,6 @@ class GradientDescent(RavenSampled):
       @ In, traj, int, trajectory identifier
       @ In, step, int, iteration number identifier
       @ In, stepSize, float, nominal step size to use
-      @ In,
       @ Out, None
     """
     ### OPT POINT
@@ -560,9 +555,6 @@ class GradientDescent(RavenSampled):
                 })
     # NOTE: explicit constraints have been checked before this!
     self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
-    #for key, inf in info.items():
-    #  self.raiseADebug(' ... {}: {}'.format(key, inf))
-    #self.raiseADebug(' ... {}: {}'.format('point', point))
     self._submissionQueue.append((point, info))
   # END queuing Runs
   # * * * * * * * * * * * * * * * *

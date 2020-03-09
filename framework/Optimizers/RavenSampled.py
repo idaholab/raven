@@ -82,6 +82,17 @@ class RavenSampled(Optimizer):
     init.addSub(write)
     return specs
 
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, vars, list(str), list of acceptable variable names
+    """
+    ok = super(RavenSampled, cls).getSolutionExportVariableNames()
+    ok.extend(['trajID', 'iteration', 'accepted'])
+    return ok
+
   def __init__(self):
     """
       Constructor.
@@ -398,6 +409,8 @@ class RavenSampled(Optimizer):
     # FIXME check implicit constraints? Function call, - Jia
     acceptable, old = self._checkAcceptability(traj, rlz, optVal, info)
     converged = self._updateConvergence(traj, rlz, old, acceptable)
+    # we only want to update persistance if we've accepted a new point.
+    # We don't want rejected points to count against our convergence.
     self._updatePersistence(traj, converged, optVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.

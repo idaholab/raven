@@ -165,7 +165,6 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.acceptedScoringParam = ['distance','distancePersistence']
     self.acceptedBatchParam = ['none','naive','maxV','maxP']
 
-    self.addAssemblerObject('TargetEvaluation','n')
     self.addAssemblerObject('ROM','n')
     self.addAssemblerObject('Function','-n')
 

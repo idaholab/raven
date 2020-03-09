@@ -120,8 +120,6 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     self.newSolutionSizeShouldBe = None   #used to track and debug intended size of solutions
     self.inTraining              = set()  #list of index set points for whom points are being run
 
-    self.addAssemblerObject('TargetEvaluation','1')
-
   def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.

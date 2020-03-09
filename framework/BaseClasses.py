@@ -45,6 +45,15 @@ class BaseType(MessageHandler.MessageUser):
 
     return inputSpecification
 
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, vars, list(str), list of acceptable variable names
+    """
+    return []
+
   def __init__(self):
     self.name             = ''                                                          # name of this istance (alias)
     self.type             = type(self).__name__                                         # specific type within this class
@@ -262,3 +271,34 @@ class BaseType(MessageHandler.MessageUser):
       self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
     self.metadataKeys = self.metadataKeys.union(set(args))
     self.metadataParams.update(params)
+
+  @classmethod
+  def _validateSolutionExportVariables(cls, solutionExport, **otherDataObjects):
+    """
+      Validates entries in the SolutionExport against the list of acceptable ones.
+      @ In, targetEvaluation, DataObjects.DataSet, target evaluation data object
+      @ In, otherDataObjects, dict, name-dataObject pairs for additional data objects to check
+      @ Out, None
+    """
+    # dynamic list of unfound but requested variables
+    remaining = set(solutionExport.getVars())
+    #### check solution export
+    # acceptable magic SolutionExport names
+    acceptable = set(cls.getSolutionExportVariableNames())
+    # remove registered solution export names first
+    remaining -= acceptable
+    #### check other data objects
+    if remaining:
+      for _, obj in otherDataObjects.items():
+        ok = set(obj.getVars())
+        remaining -= ok
+        if not remaining:
+          break
+      else:
+        # use message system if we have it set up, otherwise raise error ourselves
+        err = 'Some requested SolutionExport variables are not generated as part ' +\
+              'of this entity: {}'.format(remaining)
+        if hasattr(cls, 'messageHandler'):
+          cls.raiseAnError(IOError, err)
+        else:
+          raise IOError(err)

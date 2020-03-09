@@ -29,12 +29,12 @@
 
   <Distributions>
     <Uniform name="leftTemperatureDist">
-      <lowerBound>500</lowerBound>
-      <upperBound>1700</upperBound>
+      <lowerBound>249</lowerBound>
+      <upperBound>250</upperBound>
     </Uniform>
     <Uniform name="rightTemperatureDist">
-      <lowerBound>500</lowerBound>
-      <upperBound>1700</upperBound>
+      <lowerBound>249</lowerBound>
+      <upperBound>250</upperBound>
     </Uniform>
   </Distributions>
 
@@ -60,33 +60,35 @@
   </Models>
 
   <Optimizers>
-    <SPSA name="opt_smp">
-      <initialization>
-        <limit>100</limit>
-        <type>min</type>
+    <GradientDescent name="opt_smp">
+      <samplerInit>
+        <limit>150</limit>
         <initialSeed>30</initialSeed>
         <writeSteps>final</writeSteps>
-      </initialization>
+      </samplerInit>
+      <gradient>
+        <SPSA/>
+      </gradient>
+      <stepSize>
+        <GradientHistory/>
+      </stepSize>
+      <acceptance>
+        <Strict/>
+      </acceptance>
       <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
       <convergence>
-        <iterationLimit>100</iterationLimit>
-        <relativeThreshold>1e-6</relativeThreshold>
+        <gradient>1e-6</gradient>
       </convergence>
       <variable name="leftTemperature">
-        <upperBound>250</upperBound>
-        <lowerBound>249</lowerBound>
+        <distribution>leftTemperatureDist</distribution>
         <initial>250</initial>
       </variable>
       <variable name="rightTemperature">
-        <upperBound>250</upperBound>
-        <lowerBound>249</lowerBound>
+        <distribution>rightTemperatureDist</distribution>
         <initial>250</initial>
       </variable>
-      <objectVar>solution</objectVar>
-      <parameter>
-        <numGradAvgIterations>1</numGradAvgIterations>
-      </parameter>
-    </SPSA>
+      <objective>solution</objective>
+    </GradientDescent>
   </Optimizers>
 
   <Steps>

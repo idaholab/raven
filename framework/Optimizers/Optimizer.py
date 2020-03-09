@@ -84,7 +84,14 @@ class Optimizer(AdaptiveSampler):
 
     # modify Sampler variable nodes
     variable = specs.getSub('variable')
-    variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatListType)) # TODO quantity = 1
+    variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatListType,
+        descr=r"""indicates the initial values where independent trajectories for this optimization
+              effort should begin. The number of entries should be the same for all variables, unless
+              a variable is initialized with a sampler (see \xmlNode{samplerInit} below). Note these
+              entries are ordered; that is, if the optimization variables are $x$ and $y$, and the initial
+              values for $x$ are \xmlString{1, 2, 3, 4} and initial values for $y$ are \xmlString{5, 6, 7, 8},
+              then there will be four starting trajectories beginning at the locations (1, 5), (2, 6),
+              (3, 7), and (4, 8)."""))
 
     # initialization
     ## TODO similar to MonteCarlo and other samplers, maybe overlap?

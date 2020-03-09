@@ -46,7 +46,7 @@ import Models
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
+class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
   """
     Adaptive Sobol sampler to obtain points adaptively for training a HDMR ROM.
   """
@@ -92,6 +92,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       @ In, None
       @ Out, None
     """
+    AdaptiveSparseGrid.__init__(self)
     Sobol.__init__(self)
 
     #identification
