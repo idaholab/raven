@@ -129,10 +129,9 @@ class SimulatedAnnealing(RavenSampled):
                   In case of \xmlString{fast} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \exp(-k)$$
                   In case of \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 * \exp(-k^{1/D}),$$
                   where $D$ is the dimentionality of the problem (i.e., number of optimized variables), $k$ is the number of the current iteration
-                  $T^{0} = \min{0.01,1-\frac{k}{\xmlNode{limit}}}$ is the initial temperature, and $T^{k}$ is the current temperature
+                  $T^{0} = \max{(0.01,1-\frac{k}{\xmlNode{limit}})}$ is the initial temperature, and $T^{k}$ is the current temperature
                   according to the specified cooling schedule.
-                  \default{exponential}. For more information about the selection of learning rates and other parameters,
-                  consult the Theory Manual""") # TODO: Update the theory manual for simulated annealing
+                  \default{exponential}.""")
     specs.addSub(coolingSchedule)
     return specs
 
