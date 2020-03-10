@@ -1,0 +1,10 @@
+<DataObjectMetadata name="opt_export">
+  <DataSet type="Static">
+    <general>
+      <inputs>trajID</inputs>
+      <outputs>x,y,ans,iteration,amp_x,amp_y,delta_x,delta_y,fraction,Temp,accepted</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

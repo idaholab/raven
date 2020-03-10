@@ -146,6 +146,7 @@ class SimulatedAnnealing(RavenSampled):
     self._requiredPersistence = 0  # consecutive persistence required to mark convergence
     self._stepInstance = None      # instance of StepManipulator
     self._acceptInstance = None    # instance of AcceptanceCondition
+    self.T0 = None                 # initial temperature
     self.T = None                  # current temperature
     # np.random.seed(42) # TODO remove this
 
@@ -252,11 +253,11 @@ class SimulatedAnnealing(RavenSampled):
       self.incrementIteration(traj)
       info['step'] = self.getIteration(traj)
       optVal = rlz[self._objectiveVar]
-    iter = self.getIteration(traj) +1
+    iter = int(self.getIteration(traj) +1)
     fraction = iter/self.limit
     currentPoint = self._collectOptPoint(rlz)
     self.T0 = self._temperature(fraction)
-    self.T = self._coolingSchedule(iter,self.T0, self._coolingMethod, alpha = 0.94, beta = 0.1,d=1.0)
+    self.T = self._coolingSchedule(iter,self.T0, self._coolingMethod)
     if traj in self._activeTraj:
       newPoint = self._nextNeighbour(rlz,fraction)
       # check new opt point against constraints
@@ -316,6 +317,37 @@ class SimulatedAnnealing(RavenSampled):
                                             req=len(same)))
     return converged
 
+  def _checkConvObjective(self, traj):
+    """
+      Checks the change in objective for convergence
+      @ In, traj, int, trajectory identifier
+      @ Out, converged, bool, convergence state
+    """
+    if len(self._optPointHistory[traj]) < 2:
+      return False
+    o1, _ = self._optPointHistory[traj][-1]
+    o2, _ = self._optPointHistory[traj][-2]
+    delta = o2[self._objectiveVar]-o1[self._objectiveVar]
+    converged = abs(delta) < self._convergenceCriteria['objective']
+    self.raiseADebug(self.convFormat.format(name='objective',
+                                            conv=str(converged),
+                                            got=delta,
+                                            req=self._convergenceCriteria['objective']))
+    return converged
+
+  def _checkConvTemperature(self, traj):
+    """
+      Checks temperature for the current state for convergence
+      @ In, traj, int, trajectory identifier
+      @ Out, converged, bool, convergence state
+    """
+    converged = self.T <= self._convergenceCriteria['temperature']
+    self.raiseADebug(self.convFormat.format(name='temperature',
+                                            conv=str(converged),
+                                            got=self.T,
+                                            req=self._convergenceCriteria['temperature']))
+    return converged
+
   def _checkForImprovement(self, new, old):
     """
       Determine if the new value is sufficient improved over the old.
@@ -323,6 +355,8 @@ class SimulatedAnnealing(RavenSampled):
       @ In, old, float, previous optimization value
       @ Out, improved, bool, True if "sufficiently" improved or False if not.
     """
+    # This is not required for simulated annealing as it's handled in the probabilistic acceptance criteria
+    # But since it is an abstract method it has to exist
     pass
 
   def _checkAcceptability(self, traj, opt):
@@ -383,8 +417,8 @@ class SimulatedAnnealing(RavenSampled):
       prob = 1
     else:
       deltaE = newObjective - currentObjective
-      prob = 1/(1+np.exp(deltaE/(kB * self.T)))
-      # prob = np.exp(-deltaE/(kB * self.T))
+      # prob = 1/(1+np.exp(deltaE/(kB * self.T)))
+      prob = min(1,np.exp(-deltaE/(kB * self.T)))
     return prob
 
   def _updateConvergence(self, traj, new, old, acceptable):
@@ -403,37 +437,6 @@ class SimulatedAnnealing(RavenSampled):
       converged = False
       convDict = dict((var, False) for var in self._convergenceInfo[traj])
     self._convergenceInfo[traj].update(convDict)
-    return converged
-
-  def _checkConvObjective(self, traj):
-    """
-      Checks the change in objective for convergence
-      @ In, traj, int, trajectory identifier
-      @ Out, converged, bool, convergence state
-    """
-    if len(self._optPointHistory[traj]) < 2:
-      return False
-    o1, _ = self._optPointHistory[traj][-1]
-    o2, _ = self._optPointHistory[traj][-2]
-    delta = o2[self._objectiveVar]-o1[self._objectiveVar]
-    converged = abs(delta) < self._convergenceCriteria['objective']
-    self.raiseADebug(self.convFormat.format(name='objective',
-                                            conv=str(converged),
-                                            got=delta,
-                                            req=self._convergenceCriteria['objective']))
-    return converged
-
-  def _checkConvTemperature(self, traj):
-    """
-      Checks temperature for the current state for convergence
-      @ In, traj, int, trajectory identifier
-      @ Out, converged, bool, convergence state
-    """
-    converged = self.T <= self._convergenceCriteria['temperature']
-    self.raiseADebug(self.convFormat.format(name='temperature',
-                                            conv=str(converged),
-                                            got=self.T,
-                                            req=self._convergenceCriteria['temperature']))
     return converged
 
   def _updatePersistence(self, traj, converged, optVal):
@@ -519,8 +522,8 @@ class SimulatedAnnealing(RavenSampled):
   # Utility Methods #
   ###########
   def _temperature(self, fraction):
-    return max(0.01,min(1,1-fraction))
-
+    #return max(0.01,min(1,1-fraction))
+    return max(0.01,1-fraction)
   def _coolingSchedule(self, iter, T0, type='exponential', alpha = 0.94, beta = 0.1,d=1.0,c=1.0):
     """TODO write the math here"""
     if T0 == None:
@@ -594,7 +597,7 @@ class SimulatedAnnealing(RavenSampled):
       T = self.T
       delta = np.sign(amp-0.5)*T*((1+1.0/T)**abs(2*amp-1)-1.0)
     elif self._coolingMethod == 'cauchy':
-      amp = (np.pi - (-np.pi))*randomUtils.random(dim=D, samples=1)-np.pi #(dim=1, samples=1)
+      amp = (np.pi - (-np.pi))*randomUtils.random(dim=D, samples=1)-np.pi
       delta = alpha*self.T*np.tan(amp)
     for i,var in enumerate(self.toBeSampled.keys()):
       nextNeighbour[var] = rlz[var] + delta[i]
