@@ -52,8 +52,8 @@
         <type>min</type>
       </samplerInit>
       <convergence>
-        <objective>1e-4</objective>
-        <temperature>1e-12</temperature>
+        <objective>1e-6</objective>
+        <temperature>1e-20</temperature>
         <persistence>1</persistence>
       </convergence>
       <coolingSchedule>exponential</coolingSchedule>

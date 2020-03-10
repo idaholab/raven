@@ -122,14 +122,16 @@ class SimulatedAnnealing(RavenSampled):
     coolingSchedule = InputData.parameterInputFactory('coolingSchedule',contentType=InputTypes.makeEnumType('coolingSchedule','',['linear','exponential','boltzmann','cauchy','fast','veryfast']),
         printPriority=109,
         descr=r""" The function governing the cooling process. Currently, user can select between, \xmlString{linear}, \xmlString{exponential}, \xmlString{cauchy}, \xmlString{boltzmann}, \xmlString{fast}, or \xmlString{veryfast}.\\ \\
-                  In case of \xmlString{linear} is provided, The cooling process will be governed by: $$ T^{k} = T^0 - k * \beta$$
-                  In case of \xmlString{exponential} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \alpha^k$$
+                  In case of \xmlString{linear} is provided, The cooling process will be governed by: $$ T^{k} = T^0 - 0.1 * k$$
+                  In case of \xmlString{exponential} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * (0.94)^k$$
                   In case of \xmlString{boltzmann} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{log(k + 1.0)}$$
                   In case of \xmlString{cauchy} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{k + 1.0}$$
                   In case of \xmlString{fast} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \exp(-k)$$
-                  In case of \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 * \exp(-ck^{1/D})$$
-                  \default{exponential}. For more information about the selection of learning rates and other parameters,
-                  consult the Theory Manual""") # TODO: Update the theory manual for simulated annealing
+                  In case of \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 * \exp(-k^{1/D}),$$
+                  where $D$ is the dimentionality of the problem (i.e., number of optimized variables), $k$ is the number of the current iteration
+                  $T^{0} = \max{(0.01,1-\frac{k}{\xmlNode{limit}})}$ is the initial temperature, and $T^{k}$ is the current temperature
+                  according to the specified cooling schedule.
+                  \default{exponential}.""")
     specs.addSub(coolingSchedule)
     return specs
 
@@ -381,8 +383,8 @@ class SimulatedAnnealing(RavenSampled):
       prob = 1
     else:
       deltaE = newObjective - currentObjective
-      # prob = 1/(1+np.exp(deltaE/(kB * self.T)))
-      prob = np.exp(-deltaE/(kB * self.T))
+      prob = 1/(1+np.exp(deltaE/(kB * self.T)))
+      # prob = np.exp(-deltaE/(kB * self.T))
     return prob
 
   def _updateConvergence(self, traj, new, old, acceptable):
@@ -519,7 +521,7 @@ class SimulatedAnnealing(RavenSampled):
   def _temperature(self, fraction):
     return max(0.01,min(1,1-fraction))
 
-  def _coolingSchedule(self, iter, T0, type='exponential', alpha = 0.94, beta = 0.1,d=1.0):
+  def _coolingSchedule(self, iter, T0, type='exponential', alpha = 0.94, beta = 0.1,d=1.0,c=1.0):
     """TODO write the math here"""
     if T0 == None:
       T0 = 1e4
@@ -531,6 +533,8 @@ class SimulatedAnnealing(RavenSampled):
       return T0/(np.log10(iter + d))
     elif type == 'fast':
       return np.exp(-iter) * T0
+    elif type == 'veryfast':
+      return np.exp(-c*iter**(1/len(self.toBeSampled.keys()))) * T0
     elif type == 'cauchy':
       return T0/(iter + d)
     else:
@@ -541,30 +545,30 @@ class SimulatedAnnealing(RavenSampled):
         for linear  and exponential cooling:
         .. math::
 
-            fraction = \frac{iter}{Limit}
+            fraction = \\frac{iter}{Limit}
 
             amp = 1-fraction
 
-            delta = \frac{-amp}{2} + amp * r
+            delta = \\frac{-amp}{2} + amp * r
         where :math: `r \sim \mathcal{U}(0,1)`
 
         for boltzmann cooling:
         .. math::
 
-            amp = min(np.sqrt(T), \frac{1}{3*alpha}
+            amp = min(\\sqrt(T), \\frac{1}{3*alpha}
 
             delta = r * alpha * amp
 
-        where :math: `r \sim \mathcal{N}(0,1)`
+        where :math: `r \\sim \\mathcal{N}(0,1)`
 
         for fast cooling:
         .. math::
 
             amp = r
 
-            delta = sign(amp-0.5)*T*((1+\frac{1.0}{T})^{\abs{2*amp-1}-1.0)
+            delta = sign(amp-0.5)*T*((1+\\frac{1.0}{T})^{\\abs{2*amp-1}-1.0)
 
-        where :math: `r \sim \mathcal{U}(0,1)`
+        where :math: `r \\sim \\mathcal{U}(0,1)`
 
         for cauchy cooling:
         .. math::
@@ -573,23 +577,24 @@ class SimulatedAnnealing(RavenSampled):
 
             delta = alpha * T * tan(amp)
 
-        where :math: `r \sim \mathcal{U}(-\pi,\pi)`
+        where :math: `r \\sim \\mathcal{U}(-\\pi,\\pi)`
     """
 
     nextNeighbour = {}
+    D = len(self.toBeSampled.keys())
     if self._coolingMethod in ['linear' , 'exponential']:
       amp = ((fraction)**-1) / 20
-      r = randomUtils.random(dim=len(self.toBeSampled.keys()), samples=1)
+      r = randomUtils.random(dim=D, samples=1)
       delta = (-amp/2.)+ amp * r
     elif self._coolingMethod == 'boltzmann':
       amp = min(np.sqrt(self.T), 1/3.0/alpha)
-      delta =  randomUtils.randomNormal(dim=len(self.toBeSampled.keys()), samples=1)*alpha*amp
-    elif self._coolingMethod == 'fast':
-      amp = randomUtils.random(dim=1, samples=1)
+      delta =  randomUtils.randomNormal(dim=D, samples=1)*alpha*amp
+    elif self._coolingMethod in ['fast','veryfast']:
+      amp = randomUtils.random(dim=D, samples=1)
       T = self.T
       delta = np.sign(amp-0.5)*T*((1+1.0/T)**abs(2*amp-1)-1.0)
     elif self._coolingMethod == 'cauchy':
-      amp = (np.pi - (-np.pi))*randomUtils.random(dim=len(self.toBeSampled.keys()), samples=1)-np.pi #(dim=1, samples=1)
+      amp = (np.pi - (-np.pi))*randomUtils.random(dim=D, samples=1)-np.pi #(dim=1, samples=1)
       delta = alpha*self.T*np.tan(amp)
     for i,var in enumerate(self.toBeSampled.keys()):
       nextNeighbour[var] = rlz[var] + delta[i]
