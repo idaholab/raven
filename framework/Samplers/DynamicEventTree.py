@@ -855,6 +855,7 @@ class DynamicEventTree(Grid):
         # make the hybridsampler sampler read  its own xml block
         childCopy = copy.deepcopy(child)
         childCopy.tag = child.attrib['type']
+        childCopy.attrib['name']='none'
         childCopy.attrib.pop('type')
         self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(childCopy)
         # store the variables that represent the epistemic space

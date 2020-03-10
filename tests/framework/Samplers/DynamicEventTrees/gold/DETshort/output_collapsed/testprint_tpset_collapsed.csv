@@ -1,4 +1,4 @@
-dummy_for_branch,pump_mass_flow_rate,time,ProbabilityWeight,RAVEN_isEnding,PointProbability,ProbabilityWeight-<distribution>zeroToOne,RAVEN_parentID,prefix
+dummy_for_branch,pump_mass_flow_rate,time,ProbabilityWeight,RAVEN_isEnding,PointProbability,ProbabilityWeight-zeroToOne,RAVEN_parentID,prefix
 18.02,4.47,30.0,0.0,1.0,0.0,0.8,DET_test_1-1-2,DET_test_1-1-2-1
 18.04,4.44,30.0,0.18,1.0,0.18,0.5,DET_test_1-1-2,DET_test_1-1-2-2
 18.0,4.5,30.0,0.12,1.0,0.12,0.5,DET_test_1-1-2,DET_test_1-1-2-3

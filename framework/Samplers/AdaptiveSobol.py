@@ -148,7 +148,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     self.submittedNotCollected = [] #list of points that have been generated but not collected
     self.inTraining      = []       #usually just one tuple, unless multiple items in simultaneous training
 
-    self.addAssemblerObject('TargetEvaluation','1')
+    # self.addAssemblerObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """

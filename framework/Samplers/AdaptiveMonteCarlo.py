@@ -43,6 +43,12 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
   """
   statScVals = BasicStatistics.scalarVals
   statErVals = BasicStatistics.steVals
+  usableStats = []
+  for errMetric in statErVals:
+    metric, _ = errMetric.split('_')
+    if metric in statScVals:
+      usableStats.append((metric, errMetric))
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -58,13 +64,11 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
     convergenceInput.addSub(InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType))
     convergenceInput.addSub(InputData.parameterInputFactory('forceIteration', contentType=InputTypes.BoolType))
     convergenceInput.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType))
-    for metric in cls.statErVals:
-      statEr, ste = metric.split('_')
-      if statEr in cls.statScVals:
-        statErSpecification = InputData.parameterInputFactory(statEr, contentType=InputTypes.StringListType)
-        statErSpecification.addParam("prefix", InputTypes.StringType)
-        statErSpecification.addParam("tol", InputTypes.FloatType)
-        convergenceInput.addSub(statErSpecification)
+    for metric, _ in cls.usableStats:
+      statErSpecification = InputData.parameterInputFactory(metric, contentType=InputTypes.StringListType)
+      statErSpecification.addParam("prefix", InputTypes.StringType)
+      statErSpecification.addParam("tol", InputTypes.FloatType)
+      convergenceInput.addSub(statErSpecification)
     inputSpecification.addSub(convergenceInput)
     targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputTypes.StringType)
     targetEvaluationInput.addParam("type", InputTypes.StringType)
@@ -73,6 +77,22 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
     inputSpecification.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType))
     return inputSpecification
 
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, ok, dict, {varName: manual description} for each solution export option
+    """
+    # cannot be determined before run-time due to variables and prefixes.
+    ok = super(AdaptiveMonteCarlo, cls).getSolutionExportVariableNames()
+    new = {'solutionUpdate': 'iteration (or step) number for convergence algorithm',
+           '{PREFIX}_{VAR}': 'value of metric with given prefix {PREFIX} for variable {VAR} at current step in convergence',
+           '{PREFIX}_ste_{VAR}': 'estimate of error in metric with given prefix {PREFIX} for variable {VAR} at current step in convergence',
+          }
+    ok.update(new)
+    return ok
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -80,8 +100,8 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
       @ In, None
       @ Out, None
     """
-    AdaptiveSampler.__init__(self)
     MonteCarlo.__init__(self)
+    AdaptiveSampler.__init__(self)
     self.persistence = 5          # this is the number of times the error needs to fell below the tolerance before considering the sim converged
     self.persistenceCounter = 0   # Counter for the persistence
     self.forceIteration = False   # flag control if at least a self.limit number of iteration should be done
@@ -151,18 +171,17 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
       @ Out, None
     """
     self.converged = False
-    self.basicStatPP = BasicStatistics(self.messageHandler)
-    print('DEBUGG target eval:', self._targetEvaluation)
-    if 'TargetEvaluation' in self.assemblerDict.keys():
-      self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
-    self.solutionExport = solutionExport
+    self.basicStatPP = BasicStatistics(self.messageHandler) # TODO should use factory!
+    # if 'TargetEvaluation' in self.assemblerDict.keys():
+    #   self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
+    # self.solutionExport = solutionExport
     # check if solutionExport is actually a "DataObjects" type "PointSet"
-    if solutionExport.type != "PointSet":
-      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ solutionExport.type +'!')
+    if self._solutionExport.type != "PointSet":
+      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ self._solutionExport.type +'!')
 
     self.basicStatPP.what = self.toDo.keys()
     self.basicStatPP.toDo = self.toDo
-    self.basicStatPP.initialize({'WorkingDir':None},[self.lastOutput],{'Output':[]})
+    self.basicStatPP.initialize({'WorkingDir':None}, [self._targetEvaluation], {'Output':[]})
     self.raiseADebug('Initialization done')
 
   ###############
@@ -180,9 +199,9 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
       @ Out, None
     """
     if self.counter > 1:
-      output = self.basicStatPP.run(self.lastOutput)
+      output = self.basicStatPP.run(self._targetEvaluation)
       output['solutionUpdate'] = np.asarray([self.counter - 1])
-      self.solutionExport.addRealization(output)
+      self._solutionExport.addRealization(output)
       self.checkConvergence(output)
 
   def checkConvergence(self, output):
@@ -207,8 +226,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
         else:
           self.raiseAMessage(' ... {} converged {} times, required persistence is {}.'.format(self.name, self.persistenceCounter, self.persistence))
 
-
-  def localStillReady(self, ready): #,lastOutput=None
+  def localStillReady(self, ready):
     """
       first perform some check to understand what it needs to be done possibly perform an early return
       ready is returned
@@ -218,3 +236,30 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
     if self.converged:
       return False
     return ready
+
+  def _formatSolutionExportVariableNames(self, acceptable):
+    """
+      Does magic formatting for variables, based on this class's needs.
+      Extend in inheritors as needed.
+      @ In, acceptable, set, set of acceptable entries for solution export for this entity
+      @ Out, new, set, modified set of acceptable variables with all formatting complete
+    """
+    # remaking the list is easier than using the existing one
+    acceptable = AdaptiveSampler._formatSolutionExportVariableNames(self, acceptable)
+    new = []
+    while acceptable:
+      # populate each template
+      template = acceptable.pop()
+      # the only "magic" entries have PREFIX and VAR in them
+      if '{VAR}' in template and '{PREFIX}' in template:
+        for metric, info in self.toDo.items():
+          # each metric may have several entries (for different prefixes, tolerances, etc)
+          for entry in info:
+            prefix = entry['prefix']
+            targets = entry['targets']
+            for target in targets:
+              new.append(template.format(PREFIX=prefix, VAR=target))
+      # if not a "magic" entry, just carry it along
+      else:
+        new.append(template)
+    return set(new)

@@ -19,6 +19,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules------------------------------------------------------------------------------------
 import inspect
 import sys
+from functools import partial
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -50,9 +51,9 @@ class BaseType(MessageHandler.MessageUser):
     """
       Compiles a list of acceptable SolutionExport variable options.
       @ In, None
-      @ Out, vars, list(str), list of acceptable variable names
+      @ Out, vars, dict, {varName: manual description} for each solution export option
     """
-    return []
+    return {}
 
   def __init__(self):
     self.name             = ''                                                          # name of this istance (alias)
@@ -272,33 +273,38 @@ class BaseType(MessageHandler.MessageUser):
     self.metadataKeys = self.metadataKeys.union(set(args))
     self.metadataParams.update(params)
 
-  @classmethod
-  def _validateSolutionExportVariables(cls, solutionExport, **otherDataObjects):
+  def _formatSolutionExportVariableNames(self, acceptable):
+    """
+      Does magic formatting for variables, based on this class's needs.
+      Extend in inheritors as needed.
+      @ In, acceptable, set, set of acceptable entries for solution export for this entity
+      @ Out, acceptable, set, modified set of acceptable variables with all formatting complete
+    """
+    # TODO this seems rather difficult to do through inheritance, see if we can find a way.
+    return acceptable
+
+  def _validateSolutionExportVariables(self, solutionExport):
     """
       Validates entries in the SolutionExport against the list of acceptable ones.
-      @ In, targetEvaluation, DataObjects.DataSet, target evaluation data object
+      Overload to write custom checking.
+      @ In, solutionExport, DataObjects.DataSet, target evaluation data object
       @ In, otherDataObjects, dict, name-dataObject pairs for additional data objects to check
       @ Out, None
     """
+    # don't validate non-requests
+    if solutionExport is None:
+      return
     # dynamic list of unfound but requested variables
-    remaining = set(solutionExport.getVars())
-    #### check solution export
-    # acceptable magic SolutionExport names
-    acceptable = set(cls.getSolutionExportVariableNames())
+    requested = set(solutionExport.getVars())
+    # get acceptable names
+    fromSolnExport = set(self.getSolutionExportVariableNames())
+    acceptable = set(self._formatSolutionExportVariableNames(fromSolnExport))
+
     # remove registered solution export names first
-    remaining -= acceptable
-    #### check other data objects
+    remaining = requested - acceptable
+    # anything remaining is unknown!
     if remaining:
-      for _, obj in otherDataObjects.items():
-        ok = set(obj.getVars())
-        remaining -= ok
-        if not remaining:
-          break
-      else:
-        # use message system if we have it set up, otherwise raise error ourselves
-        err = 'Some requested SolutionExport variables are not generated as part ' +\
-              'of this entity: {}'.format(remaining)
-        if hasattr(cls, 'messageHandler'):
-          cls.raiseAnError(IOError, err)
-        else:
-          raise IOError(err)
+      err = 'Some requested SolutionExport variables are not generated as part ' +\
+            'of this entity: {}'.format(remaining)
+      err += '\n-> Valid unused options include: {}'.format(acceptable - requested)
+      self.raiseAnError(IOError, err)

@@ -166,6 +166,28 @@ class GradientDescent(RavenSampled):
 
     return specs
 
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, ok, dict, {varName: description} for valid solution export variable names
+    """
+    # cannot be determined before run-time due to variables and prefixes.
+    ok = super(GradientDescent, cls).getSolutionExportVariableNames()
+    new = {'stepSize': 'the size of step taken in the normalized input space to arrive at each optimal point'}
+    new['conv_{CONV}'] = 'status of each given convergence criteria'
+    # TODO need to include StepManipulators and GradientApproximators solution export entries as well!
+    # # -> but really should only include active ones, not all of them. This seems like it should work
+    # #    when the InputData can scan forward to determine which entities are actually used.
+    for grad in gradKnownTypes():
+      new.update(gradReturnClass(grad, cls).getSolutionExportVariableNames())
+    for step in stepKnownTypes():
+      new.update(stepReturnClass(step, cls).getSolutionExportVariableNames())
+
+    ok.update(new)
+    return ok
+
   def __init__(self):
     """
       Constructor.
@@ -797,3 +819,22 @@ class GradientDescent(RavenSampled):
       lower, upper = self._variableBounds[var]
       scale *= upper - lower
     return gradMag / scale
+
+  def _formatSolutionExportVariableNames(self, acceptable):
+    """
+      Does magic formatting for variables, based on this class's needs.
+      Extend in inheritors as needed.
+      @ In, acceptable, set, set of acceptable entries for solution export for this entity
+      @ Out, new, set, modified set of acceptable variables with all formatting complete
+    """
+    # remaking the list is easier than using the existing one
+    acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
+    new = []
+    print('DEBUGG acceptable:', acceptable)
+    while acceptable:
+      template = acceptable.pop()
+      if '{CONV}' in template:
+        new.extend([template.format(CONV=conv) for conv in self._convergenceCriteria])
+      else:
+        new.append(template)
+    return set(new)

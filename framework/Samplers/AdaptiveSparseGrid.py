@@ -85,8 +85,8 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, None
       @ Out, None
     """
-    AdaptiveSampler.__init__(self)
     SparseGridCollocation.__init__(self)
+    AdaptiveSampler.__init__(self)
     #identification
     self.type                    = 'AdaptiveSparseGridSampler'
     self.printTag                = self.type

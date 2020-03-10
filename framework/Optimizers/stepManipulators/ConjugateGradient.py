@@ -53,6 +53,17 @@ class ConjugateGradient(StepManipulator):
     specs = super(ConjugateGradient, cls).getInputSpecification()
     return specs
 
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, vars, list(str), list of acceptable variable names
+    """
+    ok = super(ConjugateGradient, cls).getSolutionExportVariableNames()
+    ok['CG_task'] = 'for ConjugateGradient, current task of line search. FD suggests continuing the search, and CONV indicates the line search converged and will pivot.'
+    return ok
+
   def __init__(self):
     """
       Constructor.

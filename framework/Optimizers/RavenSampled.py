@@ -90,7 +90,11 @@ class RavenSampled(Optimizer):
       @ Out, vars, list(str), list of acceptable variable names
     """
     ok = super(RavenSampled, cls).getSolutionExportVariableNames()
-    ok.extend(['trajID', 'iteration', 'accepted'])
+    ok.update({'trajID': 'integer identifier for different optimization starting locations and paths',
+               'iteration': 'integer identifying which iteration (or step, or generation) a trajectory is on',
+               'accepted': 'string acceptance status of the potential optimal point (algorithm dependent)',
+               '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.',
+              })
     return ok
 
   def __init__(self):

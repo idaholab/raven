@@ -26,7 +26,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules
-from utils import mathUtils, InputData, InputTypes
+from utils import utils, mathUtils, InputData, InputTypes
 
 from .Sampler import Sampler
 
@@ -75,11 +75,10 @@ class AdaptiveSampler(Sampler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    print('DEBUGG assemblable:', self.assemblerDict.keys())
     self._targetEvaluation = self.assemblerDict['TargetEvaluation'][0][3]
     self._solutionExport = solutionExport
     Sampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-    self._validateSolutionExportVariables(solutionExport, targetEvaluation=self._targetEvaluation)
+    self._validateSolutionExportVariables(solutionExport)
 
   def _registerSample(self, prefix, info):
     """
@@ -179,3 +178,24 @@ class AdaptiveSampler(Sampler):
     for p in toPop:
       self._prefixToIdentifiers.pop(p)
     return found
+
+  def _formatSolutionExportVariableNames(self, acceptable):
+    """
+      Does magic formatting for variables, based on this class's needs.
+      Extend in inheritors as needed.
+      @ In, acceptable, set, set of acceptable entries for solution export for this entity
+      @ Out, new, set, modified set of acceptable variables with all formatting complete
+    """
+    # remaking the list is easier than using the existing one
+    new = []
+    while acceptable:
+      # populate each template
+      template = acceptable.pop()
+      # the only "magic" entries have PREFIX and VAR in them
+      if template == '{VAR}':
+        for var in self._targetEvaluation.getVars():
+          new.append(utils.partialFormat(template, {'VAR': var}))
+      # if not a "magic" entry, just carry it along
+      else:
+        new.append(template)
+    return new
