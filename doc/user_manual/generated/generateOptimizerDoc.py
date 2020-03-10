@@ -36,20 +36,55 @@ mh = MessageHandler()
 mu = MessageUser()
 mu.messageHandler = mh
 
+
+def insertSolnExport(tex, obj):
+  """
+    Inserts solution export blurb into tex.
+    @ In, tex, str, LaTeX
+    @ In, obj, object, identity being written
+    @ Out, tex, str, modified tex
+  """
+  solnVars = obj.getSolutionExportVariableNames()
+  if not solnVars:
+    return tex
+  msg = r"""\vspace{7pt} \\When used as part of a \xmlNode{MultiRun} step, this entity provides
+        additional information through the \xmlNode{SolutionExport} DataObject. The
+        following variables can be requested within the \xmlNode{SolutionExport}:
+        \begin{itemize}
+        """
+  for var, desc in solnVars.items():
+    var = var.replace('_', '\_')
+    var = var.replace('{', '\{')
+    var = var.replace('}', '\}')
+    msg += r"""  \item \texttt{""" + var + r"""}: """ + desc + r"""
+           """
+  msg += r"""
+         \end{itemize}"""
+
+  split = tex.split('\n')
+  for l, line in enumerate(split):
+    if 'node recognizes the following parameters' in line:
+      split.insert(l-1, msg)
+      break
+  tex = '\n'.join(split)
+  return tex
+
+
 #------------#
 # OPTIMIZERS #
 #------------#
 import Optimizers
-all = ''
+msg = ''
 # base classes first
 optDescr = wrapText(Optimizers.Optimizer.userManualDescription(), '  ')
-all += optDescr
+msg += optDescr
 # write all known types
 for name in Optimizers.knownTypes():
   obj = Optimizers.returnClass(name, mu)
   specs = obj.getInputSpecification()
   tex = specs.generateLatex()
-  all += tex
+  tex = insertSolnExport(tex, obj)
+  msg += tex
 
 # examples
 minimal = r"""
@@ -87,7 +122,7 @@ Gradient Descent Example:
 \end{lstlisting}
 
 """
-all += minimal
+msg += minimal
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'optimizer.tex'))
 with open(fName, 'w') as f:
-  f.writelines(all)
+  f.writelines(msg)

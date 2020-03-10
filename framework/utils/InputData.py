@@ -400,7 +400,7 @@ class ParameterInput(object):
     # if this is a main entity, use subsection instead of itemizing
     if recDepth == 0:
       # triple curly braces preserves one set of curls while replacing "n"
-      msg += '\subsection{{{n}}}\n{d}\n'.format(n=name, d=desc)
+      msg += '\n\n\subsection{{{n}}}\n{d}\n'.format(n=name, d=desc)
     else:
       # since this is a sub-entity, it's part of a list
       msg += '{i}\\item \\xmlNode{{{n}}}:'.format(i=doDent(recDepth), n=name)

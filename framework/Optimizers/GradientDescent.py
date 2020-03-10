@@ -92,7 +92,7 @@ class GradientDescent(RavenSampled):
     specs = super(GradientDescent, cls).getInputSpecification()
     specs.description = r"""The \xmlNode{GradientDescent} optimizer represents an a la carte option
                             for performing gradient-based optimization with a variety of gradient
-                            estimation techiniques, stepping strategies, and acceptance criteria. \hspace{12pt}
+                            estimation techniques, stepping strategies, and acceptance criteria. \hspace{12pt}
                             Gradient descent optimization generally behaves as a ball rolling down a hill;
                             the algorithm estimates the local gradient at a point, and attempts to move
                             ``downhill'' in the opposite direction of the gradient (if minimizing; the
