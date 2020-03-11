@@ -71,12 +71,12 @@ class SimulatedAnnealing(RavenSampled):
                         'temperature': r""" provides the desired value for the convergence creiteron of the system temperature,
                         ($\epsilon^{temp}$), i.e., convergence is reached when: $$T \le \epsilon^{temp}$$.
                         \default{1e-10}, if no criteria specified"""}
-  coolingOptions = [#'linear',
-                    'exponential',
-                    #'fast',
-                    'veryfast',
-                    'cauchy',
-                    'boltzmann']
+  coolingOptions = {#'linear': {'beta':r"""slope"""},
+                    'exponential':{'alpha':r"""slowing down constant, should be between 0,1 and preferable very close to 1. \default{0.94}"""},
+                    #'fast':{'c':r"""decay constant, \default{1.0}"""},
+                    'veryfast':{'c':r"""decay constant, \default{1.0}"""},
+                    'cauchy':{'d':r"""bias, \default{1.0}"""},
+                    'boltzmann':{'d':r"""bias, \default{1.0}"""}}
   ##########################
   # Initialization Methods #
   ##########################
@@ -97,10 +97,6 @@ class SimulatedAnnealing(RavenSampled):
                             finding the global minima for non-convex probloems.
                             More information can be found in: Kirkpatrick, S.; Gelatt Jr, C. D.; Vecchi, M. P. (1983).
                             ``Optimization by Simulated Annealing". Science. 220 (4598): 671–680."""
-    # initialization: add sampling-based options
-    whenSolnExpEnum = InputTypes.makeEnumType('whenWriteEnum', 'whenWriteType', ['final', 'every'])
-    init = specs.getSub('samplerInit')
-    specs.addSub(init)
 
     # convergence
     conv = InputData.parameterInputFactory('convergence', strictMode=True,
@@ -119,20 +115,26 @@ class SimulatedAnnealing(RavenSampled):
               is considered fully converged. This helps in preventing early false convergence."""))
 
     # Cooling Schedule
-    coolingSchedule = InputData.parameterInputFactory('coolingSchedule',contentType=InputTypes.makeEnumType('coolingSchedule','',['linear','exponential','boltzmann','cauchy','fast','veryfast']),
+    coolingSchedule = InputData.parameterInputFactory('coolingSchedule',
         printPriority=109,
         descr=r""" The function governing the cooling process. Currently, user can select between, \xmlString{linear}, \xmlString{exponential}, \xmlString{cauchy}, \xmlString{boltzmann}, \xmlString{fast}, or \xmlString{veryfast}.\\ \\
                   #In case of \xmlString{linear} is provided, The cooling process will be governed by: $$ T^{k} = T^0 - 0.1 * k$$
-                  In case of \xmlString{exponential} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * (0.94)^k$$
-                  In case of \xmlString{boltzmann} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{log(k + 1.0)}$$
-                  In case of \xmlString{cauchy} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{k + 1.0}$$
-                  #In case of \xmlString{fast} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \exp(-k)$$
-                  In case of \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 * \exp(-k^{1/D}),$$
+                  In case of \xmlString{exponential} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \alpha^k$$
+                  In case of \xmlString{boltzmann} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{log(k + d)}$$
+                  In case of \xmlString{cauchy} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{k + d}$$
+                  #In case of \xmlString{fast} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \exp(-ck)$$
+                  In case of \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 * \exp(-ck^{1/D}),$$
                   where $D$ is the dimentionality of the problem (i.e., number of optimized variables), $k$ is the number of the current iteration
                   $T^{0} = \max{(0.01,1-\frac{k}{\xmlNode{limit}})}$ is the initial temperature, and $T^{k}$ is the current temperature
                   according to the specified cooling schedule.
                   \default{exponential}.""")
     specs.addSub(coolingSchedule)
+
+    for schedule,param in cls.coolingOptions.items():
+      sch = InputData.parameterInputFactory(schedule, contentType = InputTypes.StringType,descr=schedule+' cooling schedule')
+      for par,descr in param.items():
+        sch.addSub(InputData.parameterInputFactory(par, contentType = InputTypes.FloatType,descr=descr))
+      coolingSchedule.addSub(sch)
     return specs
 
   def __init__(self):
@@ -148,7 +150,8 @@ class SimulatedAnnealing(RavenSampled):
     self._acceptInstance = None    # instance of AcceptanceCondition
     self.T0 = None                 # initial temperature
     self.T = None                  # current temperature
-    # np.random.seed(42) # TODO remove this
+    self._coolingMethod = None     # initializing cooling method
+    self._CoolingParameters = {}   # initializing the cooling schedule parameters
 
   def handleInput(self, paramInput):
     """
@@ -176,8 +179,10 @@ class SimulatedAnnealing(RavenSampled):
     if coolingNode is None:
       self._coolingMethod = 'exponential'
     else:
-      self._coolingMethod = coolingNode.value
-
+      for sub in coolingNode.subparts:
+        self._coolingMethod = sub.name
+        for subSub in sub.subparts:
+          self._CoolingParameters = {subSub.name:subSub.value}
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
       This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
@@ -257,7 +262,7 @@ class SimulatedAnnealing(RavenSampled):
     fraction = iter/self.limit
     currentPoint = self._collectOptPoint(rlz)
     self.T0 = self._temperature(fraction)
-    self.T = self._coolingSchedule(iter,self.T0, self._coolingMethod)
+    self.T = self._coolingSchedule(iter,self.T0)
     if traj in self._activeTraj:
       newPoint = self._nextNeighbour(rlz,fraction)
       # check new opt point against constraints
@@ -380,14 +385,13 @@ class SimulatedAnnealing(RavenSampled):
       if self._acceptRerun[traj]:
         acceptable = 'rerun'
         self._acceptRerun[traj] = False
-        #self._stepRecommendations[traj] = 'shrink' # FIXME how much do we really want this?
+        # self._stepRecommendations[traj] = 'shrink' # FIXME how much do we really want this?
       elif all(opt[var] == old[var] for var in self.toBeSampled):
         # this is the classic "same point" trap; we accept the same point, and check convergence later
         acceptable = 'accepted'
       else:
         if self._acceptabilityCriterion(oldVal,opt[self._objectiveVar])>randomUtils.random(dim=1, samples=1): # TODO replace it back
           acceptable = 'accepted'
-          # self._stepCounter[traj] +=1
         else:
           #acceptable = self._checkForImprovement(opt[self._objectiveVar], oldVal) DO I NEED THIS HERE?!
           acceptable = 'rejected'
@@ -524,28 +528,47 @@ class SimulatedAnnealing(RavenSampled):
   def _temperature(self, fraction):
     #return max(0.01,min(1,1-fraction))
     return max(0.01,1-fraction)
-  def _coolingSchedule(self, iter, T0, type='exponential', alpha = 0.94, beta = 0.1,d=1.0,c=1.0):
+
+  def _coolingSchedule(self, iter, T0):
     """TODO write the math here"""
+    #defaults
     if T0 == None:
       T0 = 1e4
+
+    if not self._coolingMethod:
+      self._coolingMethod = 'exponential'
+
+    if not self._CoolingParameters:
+      self._CoolingParameters['alpha'] = 0.94
+      self._CoolingParameters['beta'] = 0.1
+      self._CoolingParameters['c'] = 1.0
+      self._CoolingParameters['d'] = 1.0
+
+    type = self._coolingMethod
     if type == 'linear':
+      beta = self._CoolingParameters['beta']
       return T0 - iter * beta
-    elif type == 'exponential':
+    elif type in ['exponential','geometric']:
+      alpha = self._CoolingParameters['alpha']
       return alpha ** iter * T0
     elif type == 'boltzmann':
+      d = self._CoolingParameters['d']
       return T0/(np.log10(iter + d))
-    #elif type == 'fast':
-    #  return np.exp(-iter) * T0
+    elif type == 'fast':
+      c = self._CoolingParameters['c']
+      return np.exp(-c*iter) * T0
     elif type == 'veryfast':
+      c = self._CoolingParameters['c']
       return np.exp(-c*iter**(1/len(self.toBeSampled.keys()))) * T0
     elif type == 'cauchy':
+      d = self._CoolingParameters['d']
       return T0/(iter + d)
     else:
       raise NotImplementedError('cooling schedule type not implemented.')
 
   def _nextNeighbour(self, rlz,fraction=1,alpha = 0.94):
     """ Perturb x to find the next random neighbour
-        for linear  and exponential cooling:
+        for linear and exponential cooling:
         .. math::
 
             fraction = \\frac{iter}{Limit}
@@ -585,15 +608,14 @@ class SimulatedAnnealing(RavenSampled):
 
     nextNeighbour = {}
     D = len(self.toBeSampled.keys())
-    if self._coolingMethod in ['linear' , 'exponential']:
+    if self._coolingMethod in ['linear' , 'exponential', 'geometric']:
       amp = ((fraction)**-1) / 20
       r = randomUtils.random(dim=D, samples=1)
       delta = (-amp/2.)+ amp * r
     elif self._coolingMethod == 'boltzmann':
       amp = min(np.sqrt(self.T), 1/3.0/alpha)
       delta =  randomUtils.randomNormal(dim=D, samples=1)*alpha*amp
-    # elif self._coolingMethod in ['fast','veryfast']:
-    elif self._coolingMethod in ['veryfast']:
+    elif self._coolingMethod in ['fast','veryfast']:
       amp = randomUtils.random(dim=D, samples=1)
       T = self.T
       delta = np.sign(amp-0.5)*T*((1+1.0/T)**abs(2*amp-1)-1.0)
