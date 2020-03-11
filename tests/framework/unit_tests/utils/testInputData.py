@@ -51,10 +51,10 @@ else:
   results['fail'] += 1
 
 # cleanup
-#try:
-#  os.remove(fName)
-#except:
-#  print('Test multirun spec file was not able to be removed; continuing ...')
+try:
+  os.remove(fName)
+except:
+  print('Test multirun spec file was not able to be removed; continuing ...')
 
 
 print(results)
