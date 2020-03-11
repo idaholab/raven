@@ -835,10 +835,6 @@ class Code(Model):
       inKey = 'inputs'
       outKey = 'outputs'
 
-    # FIXME: this should be fixed with the new database
-    if output.type == 'HDF5':
-      self.raiseAnError(IOError, "Not yet implemented!")
-
     rlz = {}
     rlz.update(exportDict[inKey])
     rlz.update(exportDict[outKey])
