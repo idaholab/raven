@@ -1,3 +1,6 @@
 [submodule "plugins/CashFlow"]
 	path = plugins/CashFlow
 	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/CashFlow.git
+[submodule "plugins/LOGOS"]
+	path = plugins/LOGOS
+	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/LOGOS.git
