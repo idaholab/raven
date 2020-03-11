@@ -1,3 +1,5 @@
+
+
 \subsection{MultiRun}
    The \textbf{MultiRun} step allows the user to assemble the calculation flow of an analysis that
   requires multiple ``runs'' of the same model. This step is used, for example, when the input
@@ -6,10 +8,10 @@
 
   The \xmlNode{MultiRun} node recognizes the following parameters:
     \begin{itemize}
-      \item \xmlAttr{verbosity}: \xmlDesc{string, optional}, 
-        -- no description yet --
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
       \item \xmlAttr{name}: \xmlDesc{string, required}, 
-        User-defined name to designate this entity.
+        User-defined name to designate this entity in the RAVEN input file.
       \item \xmlAttr{sleepTime}: \xmlDesc{float, optional}, 
         Determines the wait time between successive iterations within this step, in seconds.
       \item \xmlAttr{re-seeding}: \xmlDesc{string, optional}, 
@@ -27,7 +29,7 @@
 
   The \xmlNode{MultiRun} node recognizes the following subnodes:
   \begin{itemize}
-    \item \xmlNode{Input}:\xmlDesc{string}, 
+    \item \xmlNode{Input}: \xmlDesc{string}, 
       Inputs to the step operation
       The \xmlNode{Input} node recognizes the following parameters:
         \begin{itemize}
@@ -37,7 +39,7 @@
             -- no description yet --
       \end{itemize}
 
-    \item \xmlNode{Model}:\xmlDesc{string}, 
+    \item \xmlNode{Model}: \xmlDesc{string}, 
       Entity containing the model to be executed
       The \xmlNode{Model} node recognizes the following parameters:
         \begin{itemize}
@@ -47,7 +49,7 @@
             -- no description yet --
       \end{itemize}
 
-    \item \xmlNode{Sampler}:\xmlDesc{string}, 
+    \item \xmlNode{Sampler}: \xmlDesc{string}, 
       Entity containing the sampling strategy
       The \xmlNode{Sampler} node recognizes the following parameters:
         \begin{itemize}
@@ -57,7 +59,7 @@
             -- no description yet --
       \end{itemize}
 
-    \item \xmlNode{Output}:\xmlDesc{string}, 
+    \item \xmlNode{Output}: \xmlDesc{string}, 
       Entity to store results of the step
       The \xmlNode{Output} node recognizes the following parameters:
         \begin{itemize}
@@ -67,7 +69,7 @@
             -- no description yet --
       \end{itemize}
 
-    \item \xmlNode{Optimizer}:\xmlDesc{string}, 
+    \item \xmlNode{Optimizer}: \xmlDesc{string}, 
       Entity containing the optimization strategy
       The \xmlNode{Optimizer} node recognizes the following parameters:
         \begin{itemize}
@@ -77,7 +79,7 @@
             -- no description yet --
       \end{itemize}
 
-    \item \xmlNode{SolutionExport}:\xmlDesc{string}, 
+    \item \xmlNode{SolutionExport}: \xmlDesc{string}, 
       Entity containing auxiliary output for the solution of this step
       The \xmlNode{SolutionExport} node recognizes the following parameters:
         \begin{itemize}
@@ -87,7 +89,7 @@
             -- no description yet --
       \end{itemize}
 
-    \item \xmlNode{Function}:\xmlDesc{string}, 
+    \item \xmlNode{Function}: \xmlDesc{string}, 
       Functional definition for use within this step
       The \xmlNode{Function} node recognizes the following parameters:
         \begin{itemize}

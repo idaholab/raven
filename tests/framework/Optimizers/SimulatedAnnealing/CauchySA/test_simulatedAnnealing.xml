@@ -56,7 +56,11 @@
         <temperature>1e-3</temperature>
         <persistence>1</persistence>
       </convergence>
-      <coolingSchedule>cauchy</coolingSchedule>
+      <coolingSchedule>
+        <cauchy>
+          <d>1.0</d>
+        </cauchy>
+      </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
         <initial>-2.0</initial>

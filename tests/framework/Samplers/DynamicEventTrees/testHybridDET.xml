@@ -7,7 +7,7 @@
     <classesTested>Samplers.DynamicEventTree, Models.Code</classesTested>
     <description>
        An example of using the Dynamic Event Tree Methodology (Hybrid Dynamic Event Tree) with an external Code (RELAP7-like in this case).
-       This test is a fast executing one that is aimed to check the mechanics of the DET methodology, when epistemic uncertanties 
+       This test is a fast executing one that is aimed to check the mechanics of the DET methodology, when epistemic uncertanties
        need to be modeled.
     </description>
     <revisions>
@@ -82,10 +82,10 @@
           <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
         </variable>
         <!-- RAVEN way for the second distribution-->
-        <Distribution name="testHybridMonteCarloDist2">
+        <variable name="testHybridMonteCarloDist2">
           <distribution>testHybridGridDist2</distribution>
           <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
-        </Distribution>
+        </variable>
       </HybridSampler>
       <HybridSampler type="Stratified">
         <!-- Point sampler way (directly sampling the variable ) -->
@@ -94,16 +94,16 @@
           <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
         </variable>
         <!-- RAVEN way for the second distribution-->
-        <Distribution name="testHybridMonteCarloDist2">
+        <variable name="testHybridMonteCarloDist2">
           <distribution>testHybridLHSDist2</distribution>
           <grid construction="equal" steps="1" type="CDF">0.1 0.2</grid>
-        </Distribution>
+        </variable>
       </HybridSampler>
       <!-- DYNAMIC EVENT TREE INPUT (it goes outside an inner block like HybridSampler) -->
-      <Distribution name="zeroToOne">
+      <variable name="zeroToOne">
         <distribution>zeroToOne</distribution>
         <grid construction="custom" type="CDF">0.1 0.8</grid>
-      </Distribution>
+      </variable>
     </DynamicEventTree>
   </Samplers>
 

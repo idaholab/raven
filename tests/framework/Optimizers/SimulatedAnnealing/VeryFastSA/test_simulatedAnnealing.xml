@@ -56,7 +56,11 @@
         <temperature>1e-20</temperature>
         <persistence>1</persistence>
       </convergence>
-      <coolingSchedule>veryfast</coolingSchedule>
+      <coolingSchedule>
+        <veryfast>
+          <c>1.0</c>
+        </veryfast>
+      </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
         <initial>-2.0</initial>

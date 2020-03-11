@@ -60,6 +60,20 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
 
     return inputSpecification
 
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, ok, dict, {varName: manual description} for each solution export option
+    """
+    # cannot be determined before run-time due to variables and prefixes.
+    ok = super(AdaptiveDynamicEventTree, cls).getSolutionExportVariableNames()
+    new = {'{RESIDUUM}': 'RAVEN input name of module containing __residuumSign method; provides the evaluation of the function.'
+          }
+    ok.update(new)
+    return ok
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -355,7 +369,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     if endInfo:
       subGroup.add('endInfo',copy.deepcopy(endInfo))
 
-  def localStillReady(self,ready): #, lastOutput= None
+  def localStillReady(self,ready):
     """
       first perform some check to understand what it needs to be done possibly perform an early return
       ready is returned
@@ -363,7 +377,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
     if self.counter == 0:
-      return     True
+      return True
     if len(self.RunQueue['queue']) != 0:
       detReady = True
     else:
@@ -371,7 +385,6 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     # since the RunQueue is empty, let's check if there are still branches running => if not => start the adaptive search
     self._checkIfStartAdaptive()
     if self.startAdaptive:
-      #if self._endJobRunnable != 1: self._endJobRunnable = 1
       data = self.lastOutput.asDataset()
       endingData = data.where(data['RAVEN_isEnding']==True,drop=True)
       numCompletedHistories = len(endingData['RAVEN_isEnding'])
@@ -528,7 +541,6 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       if min(val) != 1e-3:
         val.insert(0, 1e-3)
 
-
   def _generateDistributions(self,availableDist,availableFunc):
     """
       Generates the distrbutions and functions.
@@ -556,7 +568,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       if self.hybridDETstrategy == 1:
         gridVector = self.limitSurfacePP.gridEntity.returnParameter("gridVectors")
         # construct an hybrid DET through an XML node
-        distDict, xmlNode = {}, ET.fromstring('<InitNode> <HybridSampler type="Grid"/> </InitNode>')
+        distDict, xmlNode = {}, ET.fromstring('<InitNode> <HybridSampler type="Grid" name="none"/> </InitNode>')
         for varName, dist in self.distDict.items():
           if varName.replace('<distribution>','') in self.epistemicVariables.keys():
             # found an epistemic

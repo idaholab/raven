@@ -40,6 +40,15 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
     specs.description = 'Base class for gradient approximation methods used in the GradientDescent Optimizer.'
     return specs
 
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, vars, dict, acceptable variable names and descriptions
+    """
+    return {}
+
   def __init__(self):
     """
       Constructor.
