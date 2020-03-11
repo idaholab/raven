@@ -148,7 +148,7 @@ class GradientDescent(RavenSampled):
         printPriority=109,
         descr=r"""a node containing the desired convergence criteria for the optimization algorithm.
               Note that convergence is met when any one of the convergence criteria is met. If no convergence
-              criteria are given, then the \xmlNode{limit} is used.""")
+              criteria are given, then nominal convergence on gradient value is used.""")
     specs.addSub(conv)
     conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType,
         descr=r"""provides the number of consecutive times convergence should be reached before a trajectory

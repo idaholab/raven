@@ -19,7 +19,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules------------------------------------------------------------------------------------
 import inspect
 import sys
-from functools import partial
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -280,7 +279,6 @@ class BaseType(MessageHandler.MessageUser):
       @ In, acceptable, set, set of acceptable entries for solution export for this entity
       @ Out, acceptable, set, modified set of acceptable variables with all formatting complete
     """
-    # TODO this seems rather difficult to do through inheritance, see if we can find a way.
     return acceptable
 
   def _validateSolutionExportVariables(self, solutionExport):

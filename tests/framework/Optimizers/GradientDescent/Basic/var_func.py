@@ -12,4 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 def evaluate(self):
+  """
+    Evaluate a simple function.
+    @ In, self, object, container
+    @ Out, None
+  """
   return self.x + self.y + self.const

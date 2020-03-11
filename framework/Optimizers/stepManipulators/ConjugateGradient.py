@@ -71,7 +71,6 @@ class ConjugateGradient(StepManipulator):
       @ Out, None
     """
     StepManipulator.__init__(self)
-    # TODO
     ## Instance Variable Initialization
     # public
     self.needsAccessToAcceptance = True # if True, then this stepManip may need to modify opt point acceptance criteria
@@ -363,7 +362,15 @@ class ConjugateGradient(StepManipulator):
     return 'accepted'
 
   def _startLineSearch(self, lastStepInfo, curPoint, curObjVal, curGrad, curGradMag):
-    """ TODO """
+    """
+      Begins a new line search.
+      @ In, lastStepInfo, dict, information about the last step taken
+      @ In, curPoint, dict, current most-recent collected potential opt point
+      @ In, curObjVal, float, objective value at curPoint
+      @ In, curGrad, dict, magnitude-and-vector gradient estimate
+      @ In, curGradMag, float, magnitude of curGrad
+      @ Out, lastStepInfo, dict, modified with new line search information
+    """
     # use the previous pivots to update the conjugate gradient
     ## first the objective value
     ## then the conjugate gradient

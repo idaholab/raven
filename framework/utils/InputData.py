@@ -69,8 +69,7 @@ class ParameterInput(object):
       @ In, ordered, bool, optional, If True, then the subnodes are checked to make sure they are in the same order.
       @ In, contentType, InputTypes.InputType, optional, If not None, set contentType.
       @ In, baseNode, ParameterInput, optional, If not None, copy parameters and subnodes, subOrder, and contentType from baseNode.
-      @ In, strictNode, bool, optional, If True, then only allow paramters and subnodes that are
-      specifically mentioned.
+      @ In, strictNode, bool, optional, If True, then only allow paramters and subnodes that are specifically mentioned.
       @ In, printPriority, int, optional, sets the priority for printing this node e.g. in the user
       manual. Lower is higher priority; priority 0 gets printed first. See generateLatex for details.
       @ Out, None
@@ -343,7 +342,7 @@ class ParameterInput(object):
         subList = [(sub, Quantity.zero_to_infinity) for sub in cls.subs]
       #generate subnodes
       #print(subList)
-      for sub,quantity in subList:
+      for sub, quantity in subList:
         subNode = ET.SubElement(listNode, 'xsd:element')
         subNode.set('name', sub.getName())
         subNode.set('type', sub.getName()+'_type')
@@ -366,6 +365,9 @@ class ParameterInput(object):
           definedDict[sub.getName()] = sub
           sub.generateXSD(xsdNode, definedDict)
         elif definedDict[sub.getName()] != sub:
+          print('DEBUGG defined:')
+          import pprint
+          pprint.pprint(definedDict)
           print("ERROR: multiple definitions ",sub.getName())
     else:
       if cls.contentType is not None:

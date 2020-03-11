@@ -115,16 +115,22 @@
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 
+    <xsd:complexType name="constantVarType">
+      <xsd:simpleContent>
+        <xsd:extension base="xsd:string"> <!-- string constants are a thing -->
+          <xsd:attribute name="name" type="xsd:string" use="required"/>
+          <xsd:attribute name="shape" type="xsd:string" />
+          <xsd:attribute name="index" type="xsd:string" />
+          <xsd:attribute name="source" type="xsd:string" />
+        </xsd:extension>
+      </xsd:simpleContent>
+    </xsd:complexType>
+
     <xsd:complexType name="MonteCarloSampler">
         <xsd:sequence>
             <xsd:element name="samplerInit" type="samplerInitType" minOccurs="1"/>
             <xsd:element name="variable"     type="variableType"    minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+	    <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
             <xsd:element name="Restart"      type="AssemblerObjectType"   minOccurs="0"  maxOccurs="unbounded"/>
             <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="1"/>
             <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
@@ -144,12 +150,7 @@
             <xsd:element name="index"        type="xsd:string"                minOccurs="0" maxOccurs="1"/>
             <xsd:element name="variable"     type="variableTypeCustomSampler" minOccurs="0" maxOccurs="unbounded"/>
 
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+	    <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
             <xsd:element name="Restart"      type="AssemblerObjectType"   minOccurs="0"  maxOccurs="unbounded"/>
 
         </xsd:sequence>
@@ -162,14 +163,7 @@
         <xsd:sequence>
             <xsd:element name="samplerInit" type="samplerInitType"      minOccurs="0"/>
             <xsd:element name="variable"     type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                    <xsd:attribute name="index" type="xsd:string" />
-                    <xsd:attribute name="source" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+	    <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
             <xsd:element name="Distribution" type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="globalGrid"                              minOccurs="0">
                 <xsd:complexType mixed="true">
@@ -204,12 +198,7 @@
         <xsd:sequence>
             <xsd:element name="variable"        type="variableType"          minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+	    <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
             <!--xsd:element name="Distribution" type="variableType"          minOccurs="0" maxOccurs="unbounded"/-->
             <xsd:element name="ROM"             type="AssemblerObjectType"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Restart"         type="AssemblerObjectType"   minOccurs="0" maxOccurs="unbounded"/>
@@ -251,12 +240,7 @@
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="variable"     type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+	    <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
             <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
@@ -276,12 +260,7 @@
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="variable"     type="extendedVariableType" minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+	    <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
         </xsd:sequence>
         <xsd:attribute name="name" type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
@@ -291,12 +270,7 @@
         <xsd:sequence>
             <xsd:element name="samplerInit" type="samplerInitType"         minOccurs="0"/>
             <xsd:element name="variable"     type="variableType"    minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+	    <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
             <xsd:element name="MonteCarlo" type="MonteCarloSampler" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="Grid" type="GridSampler" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="Stratified" type="GridSampler" minOccurs="0" maxOccurs="1"/>
@@ -360,12 +334,7 @@
             <xsd:element name="thickness"      type="xsd:integer"  minOccurs="0" maxOccurs="1"/>
             <xsd:element name="maxBatchSize"   type="xsd:integer"  minOccurs="0" maxOccurs="1"/>
             <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+	    <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
         </xsd:sequence>
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
@@ -393,12 +362,7 @@
         <xsd:element name="Convergence"      type="adaptiveSobolConvergence" minOccurs="1" maxOccurs="unbounded"/>
         <xsd:element name="convergenceStudy" type="convergenceStudyType" minOccurs="0"/>
         <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
-        <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-            <xsd:complexType mixed="true">
-                <xsd:attribute name="name" type="xsd:string" use="required"/>
-                <xsd:attribute name="shape" type="xsd:string" />
-            </xsd:complexType>
-        </xsd:element>
+	<xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
         <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
         <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
         <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
@@ -418,12 +382,7 @@
             <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="1"/>
             <xsd:element name="convergenceStudy" type="convergenceStudyType" minOccurs="0"/>
             <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+	    <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
             <xsd:element name="variablesTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="ROM"              type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
             <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
@@ -431,18 +390,14 @@
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
     </xsd:complexType>
+
     <xsd:complexType name="AdaptiveMCSampler">
       <xsd:sequence>
         <xsd:element name="TargetEvaluation" type="AssemblerObjectType"      minOccurs="1" maxOccurs="unbounded"/>
         <xsd:element name="Convergence"      type="adaptiveMCConvergenceType" minOccurs="1" maxOccurs="unbounded"/>
         <xsd:element name="initialSeed"      type="xsd:integer"                minOccurs="0" maxOccurs="1"/>
         <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
-        <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-          <xsd:complexType mixed="true">
-              <xsd:attribute name="name" type="xsd:string" use="required"/>
-              <xsd:attribute name="shape" type="xsd:string" />
-          </xsd:complexType>
-        </xsd:element>
+        <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
       </xsd:sequence>
     <xsd:attribute name="name"      type="xsd:string" use="required"/>
     <xsd:attribute name="verbosity" type="verbosityAttr"/>
@@ -513,12 +468,7 @@
             <!-- ****************************************** -->
             <xsd:element name="samplerInit" type="samplerInitType"         minOccurs="0"/>
             <xsd:element name="variable"     type="extendedVariableType"    minOccurs="1" maxOccurs="unbounded"/>
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
             <xsd:element name="Distribution" type="extendedVariableType"    minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="type" type="DETHybridSamplerType" use="required"/>
@@ -532,12 +482,7 @@
             <!-- ****************************************** -->
             <xsd:element name="sampler_init" type="samplerInitType"         minOccurs="0"/>
             <xsd:element name="variable"     type="extendedVariableType"    minOccurs="1" maxOccurs="unbounded"/>
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
             <xsd:element name="Distribution" type="extendedVariableType"    minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="type" type="DETHybridSamplerTypeAdaptive" use="required"/>
@@ -546,12 +491,7 @@
         <xsd:sequence>
             <xsd:element name="HybridSampler" type="HybridSamplerSettingsType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="variable"              type="extendedVariableType"      minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
             <xsd:element name="Distribution"          type="extendedVariableType"      minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="name"              type="xsd:string" use="required"/>
@@ -574,12 +514,7 @@
                 </xsd:complexType>
             </xsd:element>
             <xsd:element name="variable"         type="extendedVariableType"      minOccurs="0" maxOccurs="unbounded"/>
-            <xsd:element name="constant"         minOccurs="0" maxOccurs='unbounded'>
-                <xsd:complexType mixed="true">
-                    <xsd:attribute name="name" type="xsd:string" use="required"/>
-                    <xsd:attribute name="shape" type="xsd:string" />
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
             <xsd:element name="Distribution"     type="extendedVariableType"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="HybridSampler" type="HybridSamplerSettingsTypeAdaptive" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>

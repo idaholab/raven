@@ -22,18 +22,14 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import sys
-import copy
 import abc
 from collections import deque
-from functools import reduce
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from utils import utils, randomUtils, InputData, InputTypes
-from BaseClasses import BaseType
-from Assembler import Assembler
+#Internal
+#Modules------------------------------------------------------------------------------------
+from utils import InputData, InputTypes
 from .Optimizer import Optimizer
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -111,12 +107,11 @@ class RavenSampled(Optimizer):
     # _protected
     self._writeSteps = 'final'
     self._submissionQueue = deque() # TODO change to Queue.Queue if multithreading samples
-    self.__stepCounter = {}          # tracks the "generation" or "iteration" of each trajectory -> iteration is defined by inheritor
     self._stepTracker = {}          # action tracking: what is collected, what needs collecting?
     self._optPointHistory = {}      # by traj, is a deque (-1 is most recent)
     self._maxHistLen = 2            # FIXME who should set this?
-    # self._nextTrajToConsider = 0  # which is the next trajectory to check up on?
     # __private
+    self.__stepCounter = {}         # tracks the "generation" or "iteration" of each trajectory -> iteration is defined by inheritor
     # additional methods
     ## register adaptive sample identification criteria
     self.registerIdentifier('step') # the step within the action
@@ -205,7 +200,12 @@ class RavenSampled(Optimizer):
 
   def localGenerateInput(self, model, inp):
     """
-      TODO
+      Provides the next sample to take.
+      After this method is called, the self.inputInfo should be ready to be sent
+      to the model
+      @ In, model, model instance, an instance of a model
+      @ In, inp, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
+      @ Out, None
     """
     # get point from stack
     point, info = self._submissionQueue.popleft()
@@ -365,14 +365,12 @@ class RavenSampled(Optimizer):
     allOkay = True
     inputs = dict(point)
     inputs.update(self.constants)
-    # TODO add functional evaluations?
     for constraint in self._constraintFunctions:
       okay = constraint.evaluate('constrain', inputs)
       if not okay:
         self.raiseADebug('Functional constraint "{n}" was violated!'.format(n=constraint.name))
         self.raiseADebug(' ... point:', point)
       allOkay *= okay
-    # FIXME TODO check functions
     return allOkay
 
   @abc.abstractmethod
@@ -504,6 +502,7 @@ class RavenSampled(Optimizer):
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
       Contributes additional entries to the solution export.
+      Should be used by inheritors instead of overloading updateSolutionExport
       @ In, traj, int, trajectory which should be written
       @ In, rlz, dict, collected point
       @ In, acceptable, bool, acceptability of opt point

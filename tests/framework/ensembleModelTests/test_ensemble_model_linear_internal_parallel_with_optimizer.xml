@@ -61,6 +61,16 @@
 
   <Optimizers>
     <GradientDescent name="opt_smp">
+      <objective>solution</objective>
+      <variable name="leftTemperature">
+        <distribution>leftTemperatureDist</distribution>
+        <initial>250</initial>
+      </variable>
+      <variable name="rightTemperature">
+        <distribution>rightTemperatureDist</distribution>
+        <initial>250</initial>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
       <samplerInit>
         <limit>150</limit>
         <initialSeed>30</initialSeed>
@@ -75,19 +85,9 @@
       <acceptance>
         <Strict/>
       </acceptance>
-      <TargetEvaluation class="DataObjects" type="PointSet">optOutput</TargetEvaluation>
       <convergence>
         <gradient>1e-6</gradient>
       </convergence>
-      <variable name="leftTemperature">
-        <distribution>leftTemperatureDist</distribution>
-        <initial>250</initial>
-      </variable>
-      <variable name="rightTemperature">
-        <distribution>rightTemperatureDist</distribution>
-        <initial>250</initial>
-      </variable>
-      <objective>solution</objective>
     </GradientDescent>
   </Optimizers>
 

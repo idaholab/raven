@@ -152,8 +152,6 @@ class Assembler(MessageHandler.MessageUser):
             else:
               numerosity = numerosity.replace('n',str(testObjects[toObjectName]))
               if testObjects[toObjectName] != int(numerosity):
-                print('DEBUGG ad:', self.assemblerDict)
-                print('DEBUGG ao:', self.assemblerObjects)
                 self.raiseAnError(IOError,'Exactly {n} <{t}> nodes are required for <{c}> "{m}". Got {g}!'
                                  .format(n=numerosity,
                                          t=toObjectName,
