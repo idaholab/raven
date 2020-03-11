@@ -68,24 +68,28 @@ Simulated Annealing Example:
     ...
     <SimulatedAnnealing name="simOpt">
       <samplerInit>
-        <limit>1000</limit>
+        <limit>2000</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
       <convergence>
-        <objective>1e-4</objective>
-        <temperature>1e-12</temperature>
+        <objective>1e-6</objective>
+        <temperature>1e-20</temperature>
         <persistence>1</persistence>
       </convergence>
-      <coolingSchedule>exponential</coolingSchedule>
+      <coolingSchedule>
+        <exponential>
+          <alpha>0.94</alpha>
+        </exponential>
+      </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
-        <initial>-2.0</initial>
+        <initial>-2.5</initial>
       </variable>
       <variable name="y">
         <distribution>beale_dist</distribution>
-        <initial>-2.0</initial>
+        <initial>3.5</initial>
       </variable>
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>

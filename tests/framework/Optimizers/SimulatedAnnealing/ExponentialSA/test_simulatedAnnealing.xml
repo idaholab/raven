@@ -56,7 +56,11 @@
         <temperature>1e-20</temperature>
         <persistence>1</persistence>
       </convergence>
-      <coolingSchedule>exponential</coolingSchedule>
+      <coolingSchedule>
+        <exponential>
+          <alpha>0.94</alpha>
+        </exponential>
+      </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
         <initial>-2.5</initial>

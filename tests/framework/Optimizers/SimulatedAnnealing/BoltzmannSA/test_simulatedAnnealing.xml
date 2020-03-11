@@ -56,7 +56,11 @@
         <temperature>1e-20</temperature>
         <persistence>1</persistence>
       </convergence>
-      <coolingSchedule>boltzmann</coolingSchedule>
+      <coolingSchedule>
+        <boltzmann>
+          <d>1.0</d>
+        </boltzmann>
+      </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
         <initial>2.5</initial>

@@ -130,7 +130,8 @@ class SimulatedAnnealing(RavenSampled):
                   \default{exponential}.""")
     specs.addSub(coolingSchedule)
 
-    for schedule,param in cls.coolingOptions.items():
+    for schedule,param in cls.coolingOptions.items(): # FIXME: right now this allows multiple cooling schedule, which should be fixed as soon as
+                                                             # InputData can allow having list of subnodes
       sch = InputData.parameterInputFactory(schedule, contentType = InputTypes.StringType,descr=schedule+' cooling schedule')
       for par,descr in param.items():
         sch.addSub(InputData.parameterInputFactory(par, contentType = InputTypes.FloatType,descr=descr))
