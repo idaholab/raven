@@ -85,8 +85,8 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, None
       @ Out, None
     """
-    AdaptiveSampler.__init__(self)
     SparseGridCollocation.__init__(self)
+    AdaptiveSampler.__init__(self)
     #identification
     self.type                    = 'AdaptiveSparseGridSampler'
     self.printTag                = self.type
@@ -119,8 +119,6 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     self.done                    = False  #flipped when converged
     self.newSolutionSizeShouldBe = None   #used to track and debug intended size of solutions
     self.inTraining              = set()  #list of index set points for whom points are being run
-
-    self.addAssemblerObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """

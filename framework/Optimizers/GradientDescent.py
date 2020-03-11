@@ -22,7 +22,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-from enum import Enum
 from collections import deque, defaultdict
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
@@ -93,7 +92,7 @@ class GradientDescent(RavenSampled):
     specs = super(GradientDescent, cls).getInputSpecification()
     specs.description = r"""The \xmlNode{GradientDescent} optimizer represents an a la carte option
                             for performing gradient-based optimization with a variety of gradient
-                            estimation techiniques, stepping strategies, and acceptance criteria. \hspace{12pt}
+                            estimation techniques, stepping strategies, and acceptance criteria. \hspace{12pt}
                             Gradient descent optimization generally behaves as a ball rolling down a hill;
                             the algorithm estimates the local gradient at a point, and attempts to move
                             ``downhill'' in the opposite direction of the gradient (if minimizing; the
@@ -149,7 +148,7 @@ class GradientDescent(RavenSampled):
         printPriority=109,
         descr=r"""a node containing the desired convergence criteria for the optimization algorithm.
               Note that convergence is met when any one of the convergence criteria is met. If no convergence
-              criteria are given, then the \xmlNode{limit} is used.""")
+              criteria are given, then nominal convergence on gradient value is used.""")
     specs.addSub(conv)
     conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType,
         descr=r"""provides the number of consecutive times convergence should be reached before a trajectory
@@ -163,10 +162,31 @@ class GradientDescent(RavenSampled):
         descr=r"""provides the normalized distance at which a trajectory's head should be proximal to
               another trajectory's path before terminating the following trajectory.""")
     conv.addSub(terminate)
-
     # NOTE to add new convergence options, add them to convergenceOptions above, not here!
 
     return specs
+
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, ok, dict, {varName: description} for valid solution export variable names
+    """
+    # cannot be determined before run-time due to variables and prefixes.
+    ok = super(GradientDescent, cls).getSolutionExportVariableNames()
+    new = {'stepSize': 'the size of step taken in the normalized input space to arrive at each optimal point'}
+    new['conv_{CONV}'] = 'status of each given convergence criteria'
+    # TODO need to include StepManipulators and GradientApproximators solution export entries as well!
+    # # -> but really should only include active ones, not all of them. This seems like it should work
+    # #    when the InputData can scan forward to determine which entities are actually used.
+    for grad in gradKnownTypes():
+      new.update(gradReturnClass(grad, cls).getSolutionExportVariableNames())
+    for step in stepKnownTypes():
+      new.update(stepReturnClass(step, cls).getSolutionExportVariableNames())
+
+    ok.update(new)
+    return ok
 
   def __init__(self):
     """
@@ -226,8 +246,7 @@ class GradientDescent(RavenSampled):
     self._stepInstance = stepReturnInstance(stepType, self)
     self._stepInstance.handleInput(stepNode)
 
-    # acceptance strategy # FIXME this might be useful to more than just gradient descent! Maybe
-    # FIXME continued ... move to "sampled"?
+    # acceptance strategy
     acceptNode = paramInput.findFirst('acceptance')
     if acceptNode:
       if len(acceptNode.subparts) != 1:
@@ -322,7 +341,6 @@ class GradientDescent(RavenSampled):
     optVal = rlz[self._objectiveVar]
     info['optVal'] = optVal
     purpose = info['purpose']
-    # FIXME we assume all the denoising has already happened by now.
     if purpose.startswith('opt'):
       self._resolveNewOptPoint(traj, rlz, optVal, info)
     elif purpose.startswith('grad'):
@@ -528,7 +546,6 @@ class GradientDescent(RavenSampled):
       @ In, traj, int, trajectory identifier
       @ In, step, int, iteration number identifier
       @ In, stepSize, float, nominal step size to use
-      @ In,
       @ Out, None
     """
     ### OPT POINT
@@ -560,9 +577,6 @@ class GradientDescent(RavenSampled):
                 })
     # NOTE: explicit constraints have been checked before this!
     self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
-    #for key, inf in info.items():
-    #  self.raiseADebug(' ... {}: {}'.format(key, inf))
-    #self.raiseADebug(' ... {}: {}'.format('point', point))
     self._submissionQueue.append((point, info))
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
@@ -805,3 +819,22 @@ class GradientDescent(RavenSampled):
       lower, upper = self._variableBounds[var]
       scale *= upper - lower
     return gradMag / scale
+
+  def _formatSolutionExportVariableNames(self, acceptable):
+    """
+      Does magic formatting for variables, based on this class's needs.
+      Extend in inheritors as needed.
+      @ In, acceptable, set, set of acceptable entries for solution export for this entity
+      @ Out, new, set, modified set of acceptable variables with all formatting complete
+    """
+    # remaking the list is easier than using the existing one
+    acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
+    new = []
+    print('DEBUGG acceptable:', acceptable)
+    while acceptable:
+      template = acceptable.pop()
+      if '{CONV}' in template:
+        new.extend([template.format(CONV=conv) for conv in self._convergenceCriteria])
+      else:
+        new.append(template)
+    return set(new)

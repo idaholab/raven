@@ -17,7 +17,6 @@ raven_user_manual.pdf: $(MANUAL_FILES) ../version.tex conda_command.txt pip_comm
 	pdflatex $(LATEX_FLAGS) $(SRCFILE).tex
 
 draft: $(MANUAL_FILES) ../version.tex conda_command.txt pip_commands.txt
-	./generate_docs.sh
 	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"
 	bibtex $(SRCFILE)
 	pdflatex $(LATEX_FLAGS) "\def\DRAFT{1}\input{$(SRCFILE).tex}"

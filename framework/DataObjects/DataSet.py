@@ -21,7 +21,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import copy
 import itertools
-import operator
 try:
   import cPickle as pk
 except ImportError:
@@ -520,7 +519,7 @@ class DataSet(DataObject):
     # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in?
     ## first, check that some direction was given, either an index or a match to find
     if (index is None and (matchDict is None and noMatchDict is None)) or (index is not None and (matchDict is not None or noMatchDict is not None)):
-      self.raiseAnError(TypeError,'Either "index" OR ("matchDict" and/or noMatchDict) (not both) must be specified to use "realization!"')
+      self.raiseAnError(TypeError,'Either "index" OR ("matchDict" and/or "noMatchDict") (not both) must be specified to use "realization!"')
     numInData = len(self._data[self.sampleTag]) if self._data is not None else 0
     numInCollector = len(self._collector) if self._collector is not None else 0
     ## next, depends on if we're doing an index lookup or a realization match
@@ -1244,6 +1243,8 @@ class DataSet(DataObject):
         self.addMeta('DataSet',{'Hierarchical':{'path':','.join(p)}})
       # clear alignment tracking for indexes
       self._clearAlignment()
+    else:
+      self.raiseAWarning('No data in DataSet to construct!')
     return self._data
 
   def _formatRealization(self,rlz):

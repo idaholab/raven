@@ -102,6 +102,21 @@ class LimitSurfaceSearch(AdaptiveSampler):
 
     return inputSpecification
 
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, ok, dict, {varName: manual description} for each solution export option
+    """
+    # cannot be determined before run-time due to variables and prefixes.
+    ok = super(LimitSurfaceSearch, cls).getSolutionExportVariableNames()
+    new = {'{VAR}': 'Variable values from the TargetEvaluation DataObject',
+           '{RESIDUUM}': 'RAVEN input name of module containing __residuumSign method; provides the evaluation of the function.'
+          }
+    ok.update(new)
+    return ok
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -165,7 +180,6 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.acceptedScoringParam = ['distance','distancePersistence']
     self.acceptedBatchParam = ['none','naive','maxV','maxP']
 
-    self.addAssemblerObject('TargetEvaluation','n')
     self.addAssemblerObject('ROM','n')
     self.addAssemblerObject('Function','-n')
 
@@ -353,8 +367,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.limitSurfacePP   = LimitSurface(self.messageHandler)
     if 'Function' in self.assemblerDict.keys():
       self.goalFunction = self.assemblerDict['Function'][0][3]
-    if 'TargetEvaluation' in self.assemblerDict.keys():
-      self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
+    # if 'TargetEvaluation' in self.assemblerDict.keys():
+    self.lastOutput = self._targetEvaluation #self.assemblerDict['TargetEvaluation'][0][3]
     #self.memoryStep        = 5               # number of step for which the memory is kept
     self.solutionExport    = solutionExport
     # check if solutionExport is actually a "DataObjects" type "PointSet"
@@ -393,7 +407,9 @@ class LimitSurfaceSearch(AdaptiveSampler):
     # initialize LimitSurface PP
     self.limitSurfacePP._initFromDict({"name":self.name+"LSpp","parameters":[key.replace('<distribution>','') for key in self.axisName],"tolerance":self.tolerance,"side":"both","transformationMethods":transformMethod,"bounds":bounds})
     self.limitSurfacePP.assemblerDict = self.assemblerDict
-    self.limitSurfacePP._initializeLSpp({'WorkingDir':None},[self.lastOutput],{'computeCells':self.tolerance != self.subGridTol})
+    self.limitSurfacePP._initializeLSpp({'WorkingDir': None},
+                                        [self.lastOutput],
+                                        {'computeCells':self.tolerance != self.subGridTol})
     matrixShape = self.limitSurfacePP.getTestMatrix().shape
     self.persistenceMatrix[self.name+"LSpp"]  = np.zeros(matrixShape) #matrix that for each point of the testing grid tracks the persistence of the limit surface position
     self.oldTestMatrix[self.name+"LSpp"]      = np.zeros(matrixShape) #swap matrix fro convergence test
@@ -416,7 +432,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     if not ready:
       return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
-      if self.lastOutput == None and not self.limitSurfacePP.ROM.amITrained:
+      if not self.limitSurfacePP.ROM.amITrained:
         return ready
     else:
       #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
@@ -817,3 +833,22 @@ class LimitSurfaceSearch(AdaptiveSampler):
     #      gradVect = gradVect+centralCoor
     #      for varIndex, varName in enumerate([key.replace('<distribution>','') for key in self.axisName]):
     #        self.values[varName] = copy.copy(float(gradVect[varIndex]))
+
+  def _formatSolutionExportVariableNames(self, acceptable):
+    """
+      Does magic formatting for variables, based on this class's needs.
+      Extend in inheritors as needed.
+      @ In, acceptable, set, set of acceptable entries for solution export for this entity
+      @ Out, new, set, modified set of acceptable variables with all formatting complete
+    """
+    # remaking the list is easier than using the existing one
+    acceptable = AdaptiveSampler._formatSolutionExportVariableNames(self, acceptable)
+    new = []
+    while acceptable:
+      template = acceptable.pop()
+      if template == '{RESIDUUM}':
+        new.append(template.format(RESIDUUM=self.goalFunction.name))
+      else:
+        new.append(template)
+    print('DEBUGG new:', new)
+    return set(new)

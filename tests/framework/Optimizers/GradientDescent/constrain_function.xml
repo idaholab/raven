@@ -39,6 +39,16 @@
 
   <Optimizers>
     <GradientDescent name="opter">
+      <objective>ans</objective>
+      <variable name="x">
+        <distribution>dist</distribution>
+        <initial>0.9</initial>
+      </variable>
+      <variable name="y">
+        <distribution>dist</distribution>
+        <initial>0.7</initial>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
         <limit>500</limit>
         <initialSeed>42</initialSeed>
@@ -62,16 +72,6 @@
         <stepSize>1e-4</stepSize>
       </convergence>
       <Constraint class='Functions' type='External'>goal</Constraint>
-      <variable name="x">
-        <distribution>dist</distribution>
-        <initial>0.9</initial>
-      </variable>
-      <variable name="y">
-        <distribution>dist</distribution>
-        <initial>0.7</initial>
-      </variable>
-      <objective>ans</objective>
-      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     </GradientDescent>
   </Optimizers>
 

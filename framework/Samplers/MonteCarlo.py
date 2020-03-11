@@ -105,10 +105,9 @@ class MonteCarlo(ForwardSampler):
     else:
       self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
 
-  def localGenerateInput(self,model,myInput):
+  def localGenerateInput(self, model, myInput):
     """
-      Function to select the next most informative point for refining the limit
-      surface search.
+      Provides the next sample to take.
       After this method is called, the self.inputInfo should be ready to be sent
       to the model
       @ In, model, model instance, an instance of a model

@@ -45,6 +45,15 @@ class BaseType(MessageHandler.MessageUser):
 
     return inputSpecification
 
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, vars, dict, {varName: manual description} for each solution export option
+    """
+    return {}
+
   def __init__(self):
     self.name             = ''                                                          # name of this istance (alias)
     self.type             = type(self).__name__                                         # specific type within this class
@@ -262,3 +271,38 @@ class BaseType(MessageHandler.MessageUser):
       self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
     self.metadataKeys = self.metadataKeys.union(set(args))
     self.metadataParams.update(params)
+
+  def _formatSolutionExportVariableNames(self, acceptable):
+    """
+      Does magic formatting for variables, based on this class's needs.
+      Extend in inheritors as needed.
+      @ In, acceptable, set, set of acceptable entries for solution export for this entity
+      @ Out, acceptable, set, modified set of acceptable variables with all formatting complete
+    """
+    return acceptable
+
+  def _validateSolutionExportVariables(self, solutionExport):
+    """
+      Validates entries in the SolutionExport against the list of acceptable ones.
+      Overload to write custom checking.
+      @ In, solutionExport, DataObjects.DataSet, target evaluation data object
+      @ In, otherDataObjects, dict, name-dataObject pairs for additional data objects to check
+      @ Out, None
+    """
+    # don't validate non-requests
+    if solutionExport is None:
+      return
+    # dynamic list of unfound but requested variables
+    requested = set(solutionExport.getVars())
+    # get acceptable names
+    fromSolnExport = set(self.getSolutionExportVariableNames())
+    acceptable = set(self._formatSolutionExportVariableNames(fromSolnExport))
+
+    # remove registered solution export names first
+    remaining = requested - acceptable
+    # anything remaining is unknown!
+    if remaining:
+      err = 'Some requested SolutionExport variables are not generated as part ' +\
+            'of this entity: {}'.format(remaining)
+      err += '\n-> Valid unused options include: {}'.format(acceptable - requested)
+      self.raiseAnError(IOError, err)

@@ -35,9 +35,6 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
   """
     Base class for handling step sizing in optimization paths
   """
-  requiredInformation = [] # data required to make step size/direction determination
-  optionalInformation = [] # optional data to make step size/direction determination
-
   ##########################
   # Initialization Methods #
   ##########################
@@ -51,6 +48,15 @@ class StepManipulator(utils.metaclass_insert(abc.ABCMeta, object)):
     specs = InputData.parameterInputFactory(cls.__name__, ordered=False, strictMode=True)
     specs.description = 'Base class for Step Manipulation algorithms in the GradientDescent Optimizer.'
     return specs
+
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, vars, dict, acceptable variable names and descriptions
+    """
+    return {}
 
   def __init__(self):
     """

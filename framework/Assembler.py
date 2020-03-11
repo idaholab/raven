@@ -39,13 +39,14 @@ class Assembler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    self.type               = self.__class__.__name__  # type
-    self.name               = self.__class__.__name__  # name
-    self.assemblerObjects   = {}                       # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
+    self.type = self.__class__.__name__  # type
+    self.name = self.__class__.__name__  # name
+    if not hasattr(self, 'assemblerObjects'): # protect against polyinheritance woes
+      self.assemblerObjects = {}           # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
+      self.requiredAssObject = [False, ([], [])]
+      self.assemblerDict = {}               # {'class':[['class','type','name',instance]]}}
     # list. first entry boolean flag. True if the XML parser must look for objects;
     # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
-    self.requiredAssObject = [False,([],[])]
-    self.assemblerDict      = {}                       # {'class':[['class','type','name',instance]]}}
 
   def whatDoINeed(self):
     """
@@ -77,9 +78,9 @@ class Assembler(MessageHandler.MessageUser):
     if '_localGenerateAssembler' in dir(self):
       self._localGenerateAssembler(initDict)
     for key, value in self.assemblerObjects.items():
-      self.assemblerDict[key] =  []
-      for entity,etype,name in value:
-        self.assemblerDict[key].append([entity,etype,name,initDict[entity][name]])
+      self.assemblerDict[key] = []
+      for entity, etype, name in value:
+        self.assemblerDict[key].append([entity, etype, name, initDict[entity][name]])
 
   def _readAssemblerObjects(self, subXmlNode, found, testObjects):
     """
@@ -95,11 +96,16 @@ class Assembler(MessageHandler.MessageUser):
         if subNode.tag == token:
           found[token] = True
           if 'class' not in subNode.attrib.keys():
-            self.raiseAnError(IOError,'In '+self.type+' Object ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
+            self.raiseAnError(IOError, 'In '+self.type+' Object ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
           if  subNode.tag not in self.assemblerObjects.keys():
             self.assemblerObjects[subNode.tag.strip()] = []
-          self.assemblerObjects[subNode.tag.strip()].append([subNode.attrib['class'],subNode.attrib['type'],subNode.text.strip()])
-          testObjects[token] += 1
+          # check if already present
+          tag = subNode.tag.strip()
+          entry = [subNode.attrib['class'],subNode.attrib['type'],subNode.text.strip()]
+          if entry not in self.assemblerObjects.get(tag, []):
+            print('DEBUGG Tag:', tag, 'Entry:', entry)
+            self.assemblerObjects[tag].append(entry)
+            testObjects[token] += 1
     returnObject = found, testObjects
     return returnObject
 
@@ -146,11 +152,16 @@ class Assembler(MessageHandler.MessageUser):
             else:
               numerosity = numerosity.replace('n',str(testObjects[toObjectName]))
               if testObjects[toObjectName] != int(numerosity):
-                self.raiseAnError(IOError,'Only '+numerosity+' '+toObjectName+' object/s is/are required. Block '+self.name + ' got '+str(testObjects[toObjectName]) + '!')
+                self.raiseAnError(IOError,'Exactly {n} <{t}> nodes are required for <{c}> "{m}". Got {g}!'
+                                 .format(n=numerosity,
+                                         t=toObjectName,
+                                         c=self.type,
+                                         m=self.name,
+                                         g=testObjects[toObjectName]))
     if '_localReadMoreXML' in dir(self):
       self._localReadMoreXML(xmlNode)
 
-  def addAssemblerObject(self, name,flag, newXmlFlg = None):
+  def addAssemblerObject(self, name, flag, newXmlFlg=None):
     """
       Method to add required assembler objects to the requiredAssObject dictionary.
       @ In, name, string, the node name to search for (e.g. Function, Model)

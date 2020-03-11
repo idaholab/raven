@@ -84,7 +84,14 @@ class Optimizer(AdaptiveSampler):
 
     # modify Sampler variable nodes
     variable = specs.getSub('variable')
-    variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatListType)) # TODO quantity = 1
+    variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatListType,
+        descr=r"""indicates the initial values where independent trajectories for this optimization
+              effort should begin. The number of entries should be the same for all variables, unless
+              a variable is initialized with a sampler (see \xmlNode{samplerInit} below). Note these
+              entries are ordered; that is, if the optimization variables are $x$ and $y$, and the initial
+              values for $x$ are \xmlString{1, 2, 3, 4} and initial values for $y$ are \xmlString{5, 6, 7, 8},
+              then there will be four starting trajectories beginning at the locations (1, 5), (2, 6),
+              (3, 7), and (4, 8)."""))
 
     # initialization
     ## TODO similar to MonteCarlo and other samplers, maybe overlap?
@@ -363,7 +370,9 @@ class Optimizer(AdaptiveSampler):
 
   def _initializeInitSampler(self, externalSeeding):
     """
-      TODO
+      Initializes samplers to be used for seeding trajectories.
+      @ In, externalSeeding, int, unused
+      @ Out, None
     """
     if not self.assemblerDict.get('Sampler', False):
       return
@@ -398,17 +407,11 @@ class Optimizer(AdaptiveSampler):
       self._initSampler.amIreadyToProvideAnInput()
       # get the sample
       self._initSampler.generateInput(None, None)
-      # NOTE this won't do constants, maybe not functions either! Why can't we call generateInput?
-      # self._initSampler.localGenerateInput(None, None)
-      # fake what generateInput does, for consistency # TODO FIXME this is annoying API hacking
-      # self._initSampler.inputInto['prefix'] = self._initSampler.counter
       rlz = self._initSampler.inputInfo['SampledVars']
       # NOTE by looping over self.toBeSampled, we could potentially not error out when extra vars are sampled
       for var in self.toBeSampled:
         if var in rlz:
           self._initialValues[n][var] = rlz[var] # TODO float or np.1darray?
-      # more API hacking
-      # self._initSampler.counter += 1
 
   def initializeTrajectory(self, traj=None):
     """

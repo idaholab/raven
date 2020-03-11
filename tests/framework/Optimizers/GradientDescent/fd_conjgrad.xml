@@ -45,6 +45,16 @@
 
   <Optimizers>
     <GradientDescent name="opter">
+      <objective>ans</objective>
+      <variable name="x">
+        <distribution>beale_dist</distribution>
+        <initial>2</initial>
+      </variable>
+      <variable name="y">
+        <distribution>beale_dist</distribution>
+        <initial>2</initial>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
         <limit>100</limit>
         <initialSeed>42</initialSeed>
@@ -60,17 +70,7 @@
       <acceptance>
         <Strict/>
       </acceptance>
-      <variable name="x">
-        <distribution>beale_dist</distribution>
-        <initial>2</initial>
-      </variable>
-      <variable name="y">
-        <distribution>beale_dist</distribution>
-        <initial>2</initial>
-      </variable>
-      <objective>ans</objective>
       <constant name='const'>3.14</constant>
-      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     </GradientDescent>
   </Optimizers>
 

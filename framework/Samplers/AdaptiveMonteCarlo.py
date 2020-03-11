@@ -37,12 +37,18 @@ from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
+class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
   """
     A sampler that will adaptively locate the limit surface of a given problem
   """
   statScVals = BasicStatistics.scalarVals
   statErVals = BasicStatistics.steVals
+  usableStats = []
+  for errMetric in statErVals:
+    metric, _ = errMetric.split('_')
+    if metric in statScVals:
+      usableStats.append((metric, errMetric))
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -53,17 +59,16 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
         specifying input of cls.
     """
     inputSpecification = super(AdaptiveMonteCarlo, cls).getInputSpecification()
+    # TODO this class should use MonteCarlo's "limit" definition, probably?
     convergenceInput = InputData.parameterInputFactory('Convergence')
     convergenceInput.addSub(InputData.parameterInputFactory('limit', contentType=InputTypes.IntegerType))
     convergenceInput.addSub(InputData.parameterInputFactory('forceIteration', contentType=InputTypes.BoolType))
     convergenceInput.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType))
-    for metric in cls.statErVals:
-      statEr, ste = metric.split('_')
-      if statEr in cls.statScVals:
-        statErSpecification = InputData.parameterInputFactory(statEr, contentType=InputTypes.StringListType)
-        statErSpecification.addParam("prefix", InputTypes.StringType)
-        statErSpecification.addParam("tol", InputTypes.FloatType)
-        convergenceInput.addSub(statErSpecification)
+    for metric, _ in cls.usableStats:
+      statErSpecification = InputData.parameterInputFactory(metric, contentType=InputTypes.StringListType)
+      statErSpecification.addParam("prefix", InputTypes.StringType)
+      statErSpecification.addParam("tol", InputTypes.FloatType)
+      convergenceInput.addSub(statErSpecification)
     inputSpecification.addSub(convergenceInput)
     targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputTypes.StringType)
     targetEvaluationInput.addParam("type", InputTypes.StringType)
@@ -72,6 +77,22 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
     inputSpecification.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType))
     return inputSpecification
 
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, ok, dict, {varName: manual description} for each solution export option
+    """
+    # cannot be determined before run-time due to variables and prefixes.
+    ok = super(AdaptiveMonteCarlo, cls).getSolutionExportVariableNames()
+    new = {'solutionUpdate': 'iteration (or step) number for convergence algorithm',
+           '{PREFIX}_{VAR}': 'value of metric with given prefix {PREFIX} for variable {VAR} at current step in convergence',
+           '{PREFIX}_ste_{VAR}': 'estimate of error in metric with given prefix {PREFIX} for variable {VAR} at current step in convergence',
+          }
+    ok.update(new)
+    return ok
+
   def __init__(self):
     """
       Default Constructor that will initialize member variables with reasonable
@@ -79,18 +100,18 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
       @ In, None
       @ Out, None
     """
-    AdaptiveSampler.__init__(self)
     MonteCarlo.__init__(self)
-    self.persistence         = 5                # this is the number of times the error needs to fell below the tolerance before considering the sim converged
-    self.persistenceCounter  = 0                # Counter for the persistence
-    self.forceIteration      = False            # flag control if at least a self.limit number of iteration should be done
-    self.solutionExport      = None             # data used to export the solution (it could also not be present)
-    self.tolerance           = {}               # dictionary stores the tolerance for each variables
-    self.converged           = False            # flag convergence
-    self.basicStatPP         = None             # post-processor to compute the basic statistics
-    self.converged           = False            # flag that is set to True when the sampler converged
-    self.printTag            = 'SAMPLER ADAPTIVE MC'
-    self.addAssemblerObject('TargetEvaluation','1')
+    AdaptiveSampler.__init__(self)
+    self.persistence = 5          # this is the number of times the error needs to fell below the tolerance before considering the sim converged
+    self.persistenceCounter = 0   # Counter for the persistence
+    self.forceIteration = False   # flag control if at least a self.limit number of iteration should be done
+    self.solutionExport = None    # data used to export the solution (it could also not be present)
+    self.tolerance = {}           # dictionary stores the tolerance for each variables
+    self.converged = False        # flag convergence
+    self.basicStatPP = None       # post-processor to compute the basic statistics
+    self.converged = False        # flag that is set to True when the sampler converged
+    self.printTag = 'SAMPLER ADAPTIVE MC'
+    self.toDo = None              # BasicStatistics metrics to calculate
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """
@@ -121,12 +142,12 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
             if tag not in self.toDo.keys():
               self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
             self.toDo[tag].append({'targets':set(grandchild.value),
-                                  'prefix':prefix,
-                                  'tol':tol
+                                   'prefix':prefix,
+                                   'tol':tol
                                   })
           else:
-            self.raiseAWarning('Unrecognized convergence node "',tag,'" has been ignored!')
-        assert (len(self.toDo)>0), self.raiseAnError(IOError, ' No target have been assigned to convergence node')
+            self.raiseAWarning('Unrecognized convergence node "', tag, '" has been ignored!')
+        assert (len(self.toDo) > 0), self.raiseAnError(IOError, ' No target have been assigned to convergence node')
       elif child.getName() == "initialSeed":
         self.initSeed = child.value
     for metric, infos in self.toDo.items():
@@ -140,7 +161,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
     if self.limit is None:
       self.raiseAnError(IOError, '{} requires a <limit> to be specified!'.format(self.type))
 
-  def localInitialize(self,solutionExport=None):
+  def localInitialize(self, solutionExport=None):
     """
       Will perform all initialization specific to this Sampler. For instance,
       creating an empty container to hold the identified surface points, error
@@ -149,18 +170,15 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
       @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution
       @ Out, None
     """
-    self.converged        = False
-    self.basicStatPP   = BasicStatistics(self.messageHandler)
-    if 'TargetEvaluation' in self.assemblerDict.keys():
-      self.lastOutput = self.assemblerDict['TargetEvaluation'][0][3]
-    self.solutionExport    = solutionExport
+    self.converged = False
+    self.basicStatPP = BasicStatistics(self.messageHandler) # TODO should use factory!
     # check if solutionExport is actually a "DataObjects" type "PointSet"
-    if solutionExport.type != "PointSet":
-      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ solutionExport.type +'!')
+    if self._solutionExport.type != "PointSet":
+      self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ self._solutionExport.type +'!')
 
     self.basicStatPP.what = self.toDo.keys()
     self.basicStatPP.toDo = self.toDo
-    self.basicStatPP.initialize({'WorkingDir':None},[self.lastOutput],{'Output':[]})
+    self.basicStatPP.initialize({'WorkingDir':None}, [self._targetEvaluation], {'Output':[]})
     self.raiseADebug('Initialization done')
 
   ###############
@@ -177,14 +195,13 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
       @ In, myInput, list, the generating input
       @ Out, None
     """
-    if self.counter>1:
-      output = self.basicStatPP.run(self.lastOutput)
+    if self.counter > 1:
+      output = self.basicStatPP.run(self._targetEvaluation)
       output['solutionUpdate'] = np.asarray([self.counter - 1])
-      self.solutionExport.addRealization(output)
+      self._solutionExport.addRealization(output)
       self.checkConvergence(output)
 
-
-  def checkConvergence(self,output):
+  def checkConvergence(self, output):
     """
       Determine convergence for Adaptive MonteCarlo
       @ In, output, dict, dictionary containing the results from Basic Statistic
@@ -193,21 +210,20 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
     if self.forceIteration:
       self.converged = False
     else:
-      converged = all(abs(tol) > abs(output[metric][0]) for metric,tol in self.tolerance.items())
+      converged = all(abs(tol) > abs(output[metric][0]) for metric, tol in self.tolerance.items())
       if converged:
         self.raiseAMessage('Checking target convergence for standard error and tolerance')
-        for metric,tol in self.tolerance.items():
+        for metric, tol in self.tolerance.items():
           self.raiseAMessage('Target \"{}\" standard error {:>2.2e} < tolerance {:>2.2e}'.format(''.join(metric.split('_ste')), output[metric][0], tol))
         self.persistenceCounter += 1
         # check if we've met persistence requirement; if not, keep going
         if self.persistenceCounter >= self.persistence:
-          self.raiseAMessage(' ... {} converged {} times consecutively!'.format(self.name,self.persistenceCounter))
+          self.raiseAMessage(' ... {} converged {} times consecutively!'.format(self.name, self.persistenceCounter))
           self.converged = True
         else:
-          self.raiseAMessage(' ... {} converged {} times, required persistence is {}.'.format(self.name,self.persistenceCounter,self.persistence))
+          self.raiseAMessage(' ... {} converged {} times, required persistence is {}.'.format(self.name, self.persistenceCounter, self.persistence))
 
-
-  def localStillReady(self,ready): #,lastOutput=None
+  def localStillReady(self, ready):
     """
       first perform some check to understand what it needs to be done possibly perform an early return
       ready is returned
@@ -216,5 +232,31 @@ class AdaptiveMonteCarlo(AdaptiveSampler,MonteCarlo):
     """
     if self.converged:
       return False
-    else:
-      return ready
+    return ready
+
+  def _formatSolutionExportVariableNames(self, acceptable):
+    """
+      Does magic formatting for variables, based on this class's needs.
+      Extend in inheritors as needed.
+      @ In, acceptable, set, set of acceptable entries for solution export for this entity
+      @ Out, new, set, modified set of acceptable variables with all formatting complete
+    """
+    # remaking the list is easier than using the existing one
+    acceptable = AdaptiveSampler._formatSolutionExportVariableNames(self, acceptable)
+    new = []
+    while acceptable:
+      # populate each template
+      template = acceptable.pop()
+      # the only "magic" entries have PREFIX and VAR in them
+      if '{VAR}' in template and '{PREFIX}' in template:
+        for metric, info in self.toDo.items():
+          # each metric may have several entries (for different prefixes, tolerances, etc)
+          for entry in info:
+            prefix = entry['prefix']
+            targets = entry['targets']
+            for target in targets:
+              new.append(template.format(PREFIX=prefix, VAR=target))
+      # if not a "magic" entry, just carry it along
+      else:
+        new.append(template)
+    return set(new)

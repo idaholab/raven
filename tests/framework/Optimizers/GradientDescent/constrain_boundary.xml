@@ -43,6 +43,16 @@
 
   <Optimizers>
     <GradientDescent name="opter">
+      <objective>ans</objective>
+      <variable name="x">
+        <distribution>slant_dist</distribution>
+        <initial>0.9</initial>
+      </variable>
+      <variable name="y">
+        <distribution>slant_dist</distribution>
+        <initial>0.5</initial>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
         <limit>500</limit>
         <initialSeed>42</initialSeed>
@@ -64,16 +74,6 @@
         <gradient>1e-8</gradient>
         <persistence>5</persistence>
       </convergence>
-      <variable name="x">
-        <distribution>slant_dist</distribution>
-        <initial>0.9</initial>
-      </variable>
-      <variable name="y">
-        <distribution>slant_dist</distribution>
-        <initial>0.5</initial>
-      </variable>
-      <objective>ans</objective>
-      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     </GradientDescent>
   </Optimizers>
 

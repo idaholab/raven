@@ -20,22 +20,12 @@
 
 from __future__ import absolute_import
 
-# These lines ensure that we do not have to do something like:
-# 'from Optimizers.Optimizer import Sampler' outside of this submodule
-
-# TODO
 from .Optimizer import Optimizer
 from .RavenSampled import RavenSampled
 from .GradientDescent import GradientDescent
 from .SimulatedAnnealing import SimulatedAnnealing
-#from .SPSA import SPSA
-
-# TODO
 from .Factory import knownTypes
 from .Factory import returnInstance
 from .Factory import returnClass
 
 
-
-# # We should not really need this as we do not use wildcard imports
-# __all__ = ['Optimizer','GradientBasedOptimizer','SPSA']
