@@ -4,7 +4,7 @@
     <name>framework/Optimizers.SimulatedAnnealing</name>
     <author>MohammadAbdo</author>
     <created>2020-02-11</created>
-    <classesTested>Optimizer</classesTested>
+    <classesTested>SimulatedAnnealing</classesTested>
     <description>
       Extending on the Basic test, this test assesses the Simulated Annealing algorithm.
     </description>
@@ -15,7 +15,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>SimulatedAnnealing</WorkingDir>
+    <WorkingDir>.</WorkingDir>
     <Sequence>optimize, print</Sequence>
   </RunInfo>
 
@@ -56,7 +56,7 @@
         <temperature>1e-20</temperature>
         <persistence>1</persistence>
       </convergence>
-      <coolingSchedule>exponential</coolingSchedule>
+      <coolingSchedule>veryfast</coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
         <initial>-2.0</initial>
@@ -71,7 +71,7 @@
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
