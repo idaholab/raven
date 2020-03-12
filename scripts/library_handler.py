@@ -59,7 +59,7 @@ libAlias = {'scikit-learn': 'sklearn',
 # -> see findLibAndVersion
 metaExceptions = ['pyside2', 'AMSC']
 
-skipChecks = ['python', 'hdf5', 'swig', 'nomkl']
+skipChecks = ['python', 'hdf5', 'swig', 'nomkl', 'ipopt', 'glpk', 'coincbc']
 
 # load up the ravenrc if it's present
 ## TODO we only want to do this once, but does it need to get updated?
