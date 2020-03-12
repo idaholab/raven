@@ -69,7 +69,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     inputSpecification.addSub(convergenceInput)
 
     inputSpecification.addSub(InputData.parameterInputFactory("logFile"))
-    inputSpecification.addSub(InputData.parameterInputFactory("maxRuns"))
+    inputSpecification.addSub(InputData.parameterInputFactory("maxRuns", contentType=InputTypes.IntegerType))
 
     targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputTypes.StringType)
     targetEvaluationInput.addParam("type", InputTypes.StringType)
@@ -137,7 +137,12 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     self.convType     = convnode.attrib.get('target','variance')
     self.maxPolyOrder = int(convnode.attrib.get('maxPolyOrder',10))
     self.persistence  = int(convnode.attrib.get('persistence',2))
-    self.maxRuns      = convnode.attrib.get('maxRuns',None)
+    maxRunsNode = xmlNode.find('maxRuns')
+    if maxRunsNode is not None:
+      self.maxRuns = int(maxRunsNode.text)
+    else:
+      self.maxRuns = None
+
     self.convValue    = float(convnode.text)
     if logNode is not None:
       self.logFile = logNode.text

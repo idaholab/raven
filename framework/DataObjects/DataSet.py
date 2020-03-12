@@ -38,18 +38,18 @@ except ValueError:
 from utils import utils, cached_ndarray, xmlUtils, mathUtils
 
 # for profiling with kernprof
-try:
-  import __builtin__
-  __builtin__.profile
-except (AttributeError,ImportError):
-  # profiler not preset, so pass through
-  def profile(func):
-    """
-      Dummy for when profiler is missing.
-      @ In, func, method, method to run
-      @ Out, func, method, method to run
-    """
-    return func
+# try:
+#   import __builtin__
+#   __builtin__.profile
+# except (AttributeError,ImportError):
+#   # profiler not preset, so pass through
+#   def profile(func):
+#     """
+#       Dummy for when profiler is missing.
+#       @ In, func, method, method to run
+#       @ Out, func, method, method to run
+#     """
+#     return func
 
 #
 #
@@ -503,6 +503,7 @@ class DataSet(DataObject):
     # after loading, set or reset scaling factors
     self._setScalingFactors()
 
+  # @profile
   def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False):
     """
       Method to obtain a realization from the data, either by index or matching value.
@@ -1532,15 +1533,16 @@ class DataSet(DataObject):
     assert(self._collector is not None)
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
-    matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
+    matchVals = list(toMatch.values()) #zip(*toMatch.items()) if toMatch else ([], [])
     avoidVars, avoidVals = zip(*noMatch.items()) if noMatch else ([], [])
-    for r, row in enumerate(self._collector[:]):
+    matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)
+    for r, row in enumerate(self._collector): #[:]):
       match = True
       # find matches first
       if toMatch:
-        possibleMatch = self._collector[r, tuple(self._orderedVars.index(var) for var in matchVars)]
-        for e, element in enumerate(np.atleast_1d(possibleMatch)):
-          var = matchVars[e]
+        # possibleMatch = self._collector[r, matchIndices]
+        for e, element in enumerate(row): # np.atleast_1d
+          # var = matchVars[e]
           if mathUtils.isAFloatOrInt(element):
             match &= mathUtils.compareFloats(matchVals[e], element, tol=tol)
           else:
@@ -1581,6 +1583,7 @@ class DataSet(DataObject):
     rlz = self._convertFinalizedDataRealizationToDict(rlz, unpackXArray)
     return rlz
 
+  # @profile
   def _getRealizationFromDataByValue(self, match, noMatch, tol=1e-15, unpackXArray=False):
     """
       Obtains a realization from the data storage using the provided index.
@@ -1622,11 +1625,11 @@ class DataSet(DataObject):
       else:
         mask *= self._data[var] == val
       # if all potential matches eliminated, stop looking
-      if sum(mask) == 0:
+      if not np.any(mask):
         break
     # continue checking for avoidance variables
     ## NOTE that there may be multiple entries per avoidance variable
-    if sum(mask) and avoidVars:
+    if np.any(mask) and avoidVars:
       for var in avoidVars:
         vals = np.atleast_1d(noMatch[var]) # values to AVOID matching # TODO what about histories?
         # float instances are relative, others are absolute
