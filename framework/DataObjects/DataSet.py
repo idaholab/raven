@@ -1517,7 +1517,7 @@ class DataSet(DataObject):
       rlz[var] = vals
     return rlz
 
-  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15):
+  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-14):
     """
       Obtains a realization from the collector storage matching the provided index
       @ In, toMatch, dict, elements to match

@@ -85,7 +85,7 @@ class MAAP5(GenericCode):
       self.stopSimulation(currentInputFiles, Kwargs)
 ###########
       if Kwargs['RAVEN_parentID'] != 'None':
-        # print('Kwargs',Kwargs)
+        print('Kwargs',Kwargs)
         self.restart(currentInputFiles, Kwargs['RAVEN_parentID'])
 ###########
         if len(self.multiBranchOccurred)>0:

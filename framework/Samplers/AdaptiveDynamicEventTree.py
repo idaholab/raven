@@ -60,19 +60,19 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
 
     return inputSpecification
 
-  @classmethod
-  def getSolutionExportVariableNames(cls):
-    """
-      Compiles a list of acceptable SolutionExport variable options.
-      @ In, None
-      @ Out, ok, dict, {varName: manual description} for each solution export option
-    """
-    # cannot be determined before run-time due to variables and prefixes.
-    ok = super(AdaptiveDynamicEventTree, cls).getSolutionExportVariableNames()
-    new = {'{RESIDUUM}': 'RAVEN input name of module containing __residuumSign method; provides the evaluation of the function.'
-          }
-    ok.update(new)
-    return ok
+  # @classmethod
+  # def getSolutionExportVariableNames(cls):
+  #   """
+  #     Compiles a list of acceptable SolutionExport variable options.
+  #     @ In, None
+  #     @ Out, ok, dict, {varName: manual description} for each solution export option
+  #   """
+  #   # cannot be determined before run-time due to variables and prefixes.
+  #   ok = super(AdaptiveDynamicEventTree, cls).getSolutionExportVariableNames()
+  #   new = {'{RESIDUUM}': 'RAVEN input name of module containing __residuumSign method; provides the evaluation of the function.'
+  #         }
+  #   ok.update(new)
+  #   return ok
 
   def __init__(self):
     """
