@@ -36,9 +36,6 @@ mh = MessageHandler()
 mu = MessageUser()
 mu.messageHandler = mh
 
-#examples
-minimalGradientDescent = r"""
-=======
 
 def insertSolnExport(tex, obj):
   """
@@ -72,25 +69,8 @@ def insertSolnExport(tex, obj):
   tex = '\n'.join(split)
   return tex
 
-
-#------------#
-# OPTIMIZERS #
-#------------#
-import Optimizers
-msg = ''
-# base classes first
-optDescr = wrapText(Optimizers.Optimizer.userManualDescription(), '  ')
-msg += optDescr
-# write all known types
-for name in Optimizers.knownTypes():
-  obj = Optimizers.returnClass(name, mu)
-  specs = obj.getInputSpecification()
-  tex = specs.generateLatex()
-  tex = insertSolnExport(tex, obj)
-  msg += tex
-
 # examples
-minimal = r"""
+minimalGradientDescent = r"""
 \hspace{24pt}
 Gradient Descent Example:
 \begin{lstlisting}[style=XML]
@@ -165,7 +145,7 @@ Simulated Annealing Example:
 \end{lstlisting}
 
 """
-# examples
+# examples Factory
 exampleFactory = {'GradientDescent':minimalGradientDescent,'SimulatedAnnealing':minimalSimulatedAnnealing}
 
 #------------#
@@ -181,8 +161,9 @@ for name in Optimizers.knownTypes():
   obj = Optimizers.returnClass(name, mu)
   specs = obj.getInputSpecification()
   tex = specs.generateLatex()
-  msg += tex
-  msg += exampleFactory[name]
+  tex = insertSolnExport(tex, obj)
+  msg +=tex
+  msg+= exampleFactory[name]
 
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'optimizer.tex'))
 with open(fName, 'w') as f:

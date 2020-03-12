@@ -117,7 +117,13 @@ class SimulatedAnnealing(RavenSampled):
     # Cooling Schedule
     coolingSchedule = InputData.parameterInputFactory('coolingSchedule',
         printPriority=109,
-        descr=r""" The function governing the cooling process. Currently, user can select between, \xmlString{linear}, \xmlString{exponential}, \xmlString{cauchy}, \xmlString{boltzmann}, \xmlString{fast}, or \xmlString{veryfast}.\\ \\
+        descr=r""" The function governing the cooling process. Currently, user can select between, 
+                  #\xmlString{linear},
+                  \xmlString{exponential},
+                  \xmlString{cauchy},
+                  \xmlString{boltzmann},
+                  # \xmlString{fast},
+                  or \xmlString{veryfast}.\\ \\
                   #In case of \xmlString{linear} is provided, The cooling process will be governed by: $$ T^{k} = T^0 - 0.1 * k$$
                   In case of \xmlString{exponential} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \alpha^k$$
                   In case of \xmlString{boltzmann} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{log(k + d)}$$
@@ -131,12 +137,34 @@ class SimulatedAnnealing(RavenSampled):
     specs.addSub(coolingSchedule)
 
     for schedule,param in cls.coolingOptions.items(): # FIXME: right now this allows multiple cooling schedule, which should be fixed as soon as
-                                                             # InputData can allow having list of subnodes
+                                                              # InputData can allow having list of subnodes
       sch = InputData.parameterInputFactory(schedule, contentType = InputTypes.StringType,descr=schedule+' cooling schedule')
       for par,descr in param.items():
         sch.addSub(InputData.parameterInputFactory(par, contentType = InputTypes.FloatType,descr=descr))
       coolingSchedule.addSub(sch)
     return specs
+
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, ok, dict, {varName: description} for valid solution export variable names
+    """
+    # cannot be determined before run-time due to variables and prefixes.
+    ok = super(SimulatedAnnealing, cls).getSolutionExportVariableNames()
+    new = {}
+    # new = {'': 'the size of step taken in the normalized input space to arrive at each optimal point'}
+    new['conv_{CONV}'] = 'status of each given convergence criteria'
+    # TODO need to include StepManipulators and GradientApproximators solution export entries as well!
+    # # -> but really should only include active ones, not all of them. This seems like it should work
+    # #    when the InputData can scan forward to determine which entities are actually used.
+    new['amp_{VAR}'] = 'amplitued associated to each variable used to compute step size based on cooling method and the corresponding next neighbour'
+    new ['delta_{VAR}'] = 'step size associated to each variable'
+    new['Temp'] = 'temperature at current state'
+    new['fraction'] = 'current fraction of the max iteration limit'
+    ok.update(new)
+    return ok
 
   def __init__(self):
     RavenSampled.__init__(self)
@@ -184,6 +212,7 @@ class SimulatedAnnealing(RavenSampled):
         self._coolingMethod = sub.name
         for subSub in sub.subparts:
           self._CoolingParameters = {subSub.name:subSub.value}
+
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
       This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
@@ -322,7 +351,6 @@ class SimulatedAnnealing(RavenSampled):
                                             got=sum(same),
                                             req=len(same)))
     return converged
-
   def _checkConvObjective(self, traj):
     """
       Checks the change in objective for convergence
@@ -365,7 +393,7 @@ class SimulatedAnnealing(RavenSampled):
     # But since it is an abstract method it has to exist
     pass
 
-  def _checkAcceptability(self, traj, opt):
+  def _checkAcceptability(self, traj, opt, optVal, info):
     """
       Check if new opt point is acceptably better than the old one
       @ In, traj, int, identifier
@@ -386,7 +414,6 @@ class SimulatedAnnealing(RavenSampled):
       if self._acceptRerun[traj]:
         acceptable = 'rerun'
         self._acceptRerun[traj] = False
-        # self._stepRecommendations[traj] = 'shrink' # FIXME how much do we really want this?
       elif all(opt[var] == old[var] for var in self.toBeSampled):
         # this is the classic "same point" trap; we accept the same point, and check convergence later
         acceptable = 'accepted'
@@ -394,7 +421,6 @@ class SimulatedAnnealing(RavenSampled):
         if self._acceptabilityCriterion(oldVal,opt[self._objectiveVar])>randomUtils.random(dim=1, samples=1): # TODO replace it back
           acceptable = 'accepted'
         else:
-          #acceptable = self._checkForImprovement(opt[self._objectiveVar], oldVal) DO I NEED THIS HERE?!
           acceptable = 'rejected'
     except IndexError:
       # if first sample, simply assume it's better!
@@ -462,38 +488,90 @@ class SimulatedAnnealing(RavenSampled):
       self._convergenceInfo[traj]['persistence'] = 0
       self.raiseADebug('Resetting convergence for trajectory {}.'.format(traj))
 
-  def _updateSolutionExport(self, traj, rlz, acceptable):
+  # def _updateSolutionExport(self, traj, rlz, acceptable):
+  #   """
+  #     Prints information to the solution export.
+  #     @ In, traj, int, trajectory which should be written
+  #     @ In, rlz, dict, collected point
+  #     @ In, acceptable, bool, acceptability of opt point
+  #     @ Out, None
+  #   """
+  #   # FIXME abstract this for Sampled base class!!
+  #   # denormed = self.denormalizeData(rlz)
+  #   # meta variables
+  #   solution = {#'iteration': self.getIteration(traj),
+  #               #'trajID': traj,
+  #               'Temp': self.T,
+  #               'accepted': acceptable,
+  #               'fraction': self.getIteration(traj)/self.limit
+  #               }
+  #   for key, val in self._convergenceInfo[traj].items():
+  #     solution['conv_{}'.format(key)] = val
+  #   # variables, objective function, constants, etc
+  #   # solution[self._objectiveVar] = rlz[self._objectiveVar]
+  #   for var in self.toBeSampled:
+  #     # solution[var] = denormed[var]
+  #     solution['amp_'+var] = self.info['amp_'+var]
+  #     solution['delta_'+var] = self.info['delta_'+var]
+  #   for var, val in self.constants.items():
+  #     solution[var] = val
+  #   for var in self.dependentSample:
+  #     solution[var] = rlz[var]
+  #   # format rlz for dataobject
+  #   solution = dict((var, np.atleast_1d(val)) for var, val in solution.items())
+  #   # self._addToSolutionExport(traj,solution,acceptable)
+
+  def _addToSolutionExport(self, traj, rlz, acceptable):
     """
-      Prints information to the solution export.
+      Contributes additional entries to the solution export.
       @ In, traj, int, trajectory which should be written
       @ In, rlz, dict, collected point
       @ In, acceptable, bool, acceptability of opt point
-      @ Out, None
+      @ Out, toAdd, dict, additional entries
     """
-    # FIXME abstract this for Sampled base class!!
-    denormed = self.denormalizeData(rlz)
     # meta variables
-    solution = {'iteration': self.getIteration(traj),
-                'trajID': traj,
-                'Temp': self.T,
-                'accepted': acceptable,
+    solution = {'Temp': self.T,
                 'fraction': self.getIteration(traj)/self.limit
                 }
-    for key, val in self._convergenceInfo[traj].items():
-      solution['conv_{}'.format(key)] = val
+    # for key, val in self._convergenceInfo[traj].items():
+    #   solution['conv_{}'.format(key)] = val
     # variables, objective function, constants, etc
-    solution[self._objectiveVar] = rlz[self._objectiveVar]
+    # solution[self._objectiveVar] = rlz[self._objectiveVar]
     for var in self.toBeSampled:
-      solution[var] = denormed[var]
+      # solution[var] = denormed[var]
       solution['amp_'+var] = self.info['amp_'+var]
       solution['delta_'+var] = self.info['delta_'+var]
     for var, val in self.constants.items():
       solution[var] = val
-    for var in self.dependentSample:
-      solution[var] = rlz[var]
+    # for var in self.dependentSample:
+    #   solution[var] = rlz[var]
+    #self._updateSolutionExport(traj,solution,acceptable)
     # format rlz for dataobject
-    solution = dict((var, np.atleast_1d(val)) for var, val in solution.items())
-    self._solutionExport.addRealization(solution)
+    solution = dict((key, np.atleast_1d(val)) for key, val in solution.items())
+    for key, val in self._convergenceInfo[traj].items():
+      solution['conv_{}'.format(key)] = val
+    return solution
+
+  def _formatSolutionExportVariableNames(self, acceptable):
+      """
+        Does magic formatting for variables, based on this class's needs.
+        Extend in inheritors as needed.
+        @ In, acceptable, set, set of acceptable entries for solution export for this entity
+        @ Out, new, set, modified set of acceptable variables with all formatting complete
+      """
+      # remaking the list is easier than using the existing one
+      acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
+      new = []
+      print('DEBUGG acceptable:', acceptable)
+      while acceptable:
+        template = acceptable.pop()
+        if '{CONV}' in template:
+          new.extend([template.format(CONV=conv) for conv in self._convergenceCriteria])
+        elif '{VAR}' in template:
+          new.extend([template.format(VAR=var) for var in self.toBeSampled.keys()])
+        else:
+          new.append(template)
+      return set(new)
 
   def _rejectOptPoint(self, traj, info, old):
     """

@@ -447,7 +447,7 @@ class RavenSampled(Optimizer):
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
-    acceptable, old = self._checkAcceptability(traj, rlz)
+    acceptable, old = self._checkAcceptability(traj, rlz, optVal, info)
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     if acceptable in ['accepted']:
       self._updatePersistence(traj, converged, optVal)
