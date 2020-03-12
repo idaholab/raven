@@ -1533,15 +1533,15 @@ class DataSet(DataObject):
     assert(self._collector is not None)
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
-    matchVals = list(toMatch.values()) #zip(*toMatch.items()) if toMatch else ([], [])
+    matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
     avoidVars, avoidVals = zip(*noMatch.items()) if noMatch else ([], [])
     matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)
-    for r, row in enumerate(self._collector): #[:]):
+    for r, row in enumerate(self._collector[:]):
       match = True
       # find matches first
       if toMatch:
-        # possibleMatch = self._collector[r, matchIndices]
-        for e, element in enumerate(row): # np.atleast_1d
+        possibleMatch = self._collector[r, matchIndices]
+        for e, element in enumerate(np.atleast_1d(possibleMatch)):
           # var = matchVars[e]
           if mathUtils.isAFloatOrInt(element):
             match &= mathUtils.compareFloats(matchVals[e], element, tol=tol)
