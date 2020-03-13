@@ -117,19 +117,19 @@ class SimulatedAnnealing(RavenSampled):
     # Cooling Schedule
     coolingSchedule = InputData.parameterInputFactory('coolingSchedule',
         printPriority=109,
-        descr=r""" The function governing the cooling process. Currently, user can select between, 
-                  #\xmlString{linear},
-                  \xmlString{exponential},
+        descr=r""" The function governing the cooling process. Currently, user can select between,"""
+                  # \xmlString{linear},
+                  +r"""\xmlString{exponential},
                   \xmlString{cauchy},
-                  \xmlString{boltzmann},
+                  \xmlString{boltzmann},"""
                   # \xmlString{fast},
-                  or \xmlString{veryfast}.\\ \\
+                  +r"""or \xmlString{veryfast}.\\ \\"""
                   #In case of \xmlString{linear} is provided, The cooling process will be governed by: $$ T^{k} = T^0 - 0.1 * k$$
-                  In case of \xmlString{exponential} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \alpha^k$$
+                  +r"""In case of \xmlString{exponential} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \alpha^k$$
                   In case of \xmlString{boltzmann} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{log(k + d)}$$
-                  In case of \xmlString{cauchy} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{k + d}$$
+                  In case of \xmlString{cauchy} is provided, The cooling process will be governed by: $$ T^{k} = \frac{T^0}{k + d}$$"""
                   #In case of \xmlString{fast} is provided, The cooling process will be governed by: $$ T^{k} = T^0 * \exp(-ck)$$
-                  In case of \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 * \exp(-ck^{1/D}),$$
+                  +r"""In case of \xmlString{veryfast} is provided, The cooling process will be governed by: $$ T^{k} =  T^0 * \exp(-ck^{1/D}),$$
                   where $D$ is the dimentionality of the problem (i.e., number of optimized variables), $k$ is the number of the current iteration
                   $T^{0} = \max{(0.01,1-\frac{k}{\xmlNode{limit}})}$ is the initial temperature, and $T^{k}$ is the current temperature
                   according to the specified cooling schedule.
@@ -203,6 +203,10 @@ class SimulatedAnnealing(RavenSampled):
       self._convergenceCriteria['temperature'] = 1e-10
     # same point is ALWAYS a criterion
     self._convergenceCriteria['samePoint'] = 1e-16 #
+    # set persistence to 1 if not set
+    if self._requiredPersistence is None:
+      self.raiseADebug('No persistence given; setting to 1.')
+      self._requiredPersistence = 1
     # Cooling Schedule
     coolingNode = paramInput.findFirst('coolingSchedule')
     if coolingNode is None:
@@ -488,39 +492,6 @@ class SimulatedAnnealing(RavenSampled):
       self._convergenceInfo[traj]['persistence'] = 0
       self.raiseADebug('Resetting convergence for trajectory {}.'.format(traj))
 
-  # def _updateSolutionExport(self, traj, rlz, acceptable):
-  #   """
-  #     Prints information to the solution export.
-  #     @ In, traj, int, trajectory which should be written
-  #     @ In, rlz, dict, collected point
-  #     @ In, acceptable, bool, acceptability of opt point
-  #     @ Out, None
-  #   """
-  #   # FIXME abstract this for Sampled base class!!
-  #   # denormed = self.denormalizeData(rlz)
-  #   # meta variables
-  #   solution = {#'iteration': self.getIteration(traj),
-  #               #'trajID': traj,
-  #               'Temp': self.T,
-  #               'accepted': acceptable,
-  #               'fraction': self.getIteration(traj)/self.limit
-  #               }
-  #   for key, val in self._convergenceInfo[traj].items():
-  #     solution['conv_{}'.format(key)] = val
-  #   # variables, objective function, constants, etc
-  #   # solution[self._objectiveVar] = rlz[self._objectiveVar]
-  #   for var in self.toBeSampled:
-  #     # solution[var] = denormed[var]
-  #     solution['amp_'+var] = self.info['amp_'+var]
-  #     solution['delta_'+var] = self.info['delta_'+var]
-  #   for var, val in self.constants.items():
-  #     solution[var] = val
-  #   for var in self.dependentSample:
-  #     solution[var] = rlz[var]
-  #   # format rlz for dataobject
-  #   solution = dict((var, np.atleast_1d(val)) for var, val in solution.items())
-  #   # self._addToSolutionExport(traj,solution,acceptable)
-
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
       Contributes additional entries to the solution export.
@@ -533,23 +504,17 @@ class SimulatedAnnealing(RavenSampled):
     solution = {'Temp': self.T,
                 'fraction': self.getIteration(traj)/self.limit
                 }
-    # for key, val in self._convergenceInfo[traj].items():
-    #   solution['conv_{}'.format(key)] = val
-    # variables, objective function, constants, etc
-    # solution[self._objectiveVar] = rlz[self._objectiveVar]
+
     for var in self.toBeSampled:
-      # solution[var] = denormed[var]
       solution['amp_'+var] = self.info['amp_'+var]
       solution['delta_'+var] = self.info['delta_'+var]
+
     for var, val in self.constants.items():
       solution[var] = val
-    # for var in self.dependentSample:
-    #   solution[var] = rlz[var]
-    #self._updateSolutionExport(traj,solution,acceptable)
-    # format rlz for dataobject
+
     solution = dict((key, np.atleast_1d(val)) for key, val in solution.items())
     for key, val in self._convergenceInfo[traj].items():
-      solution['conv_{}'.format(key)] = val
+      solution['conv_{}'.format(key)] = bool(val)
     return solution
 
   def _formatSolutionExportVariableNames(self, acceptable):
@@ -597,10 +562,24 @@ class SimulatedAnnealing(RavenSampled):
       @ Out, point, dict, adjusted variables
       @ Out, modded, bool, whether point was modified or not
     """
-    # ## TODO: right now I do not handle functional Constraints
+    # assume no modifications until proved otherwise
     modded = False
+    # are we violating functional constraints?
+    passFuncs = self._checkFunctionalConstraints(self.denormalizeData(suggested))
+    # while in violation of constraints ...
+    tries = 500
+    while not passFuncs:
+      modded = True
+      #  try to find new acceptable point
+      denormed = self.denormalizeData(suggested)
+      suggested, _= self._fixFuncConstraintViolations(suggested, previous) # need info, traj
+      denormed = self.denormalizeData(suggested)
+      self.raiseADebug(' ... suggested new opt {}'.format(denormed))
+      passFuncs = self._checkFunctionalConstraints(denormed)
+      tries -= 1
+      if tries == 0:
+        self.raiseAnError(NotImplementedError, 'No acceptable point findable! Now what?')
     return suggested, modded
-
   ###########
   # Utility Methods #
   ###########
@@ -707,6 +686,12 @@ class SimulatedAnnealing(RavenSampled):
       self.info['delta_'+var] = delta[i]
     self.info['fraction'] = fraction
     return nextNeighbour
+
+  def _fixFuncConstraintViolations(self,suggested, previous):
+    fraction = self.info['fraction']
+    new = self._nextNeighbour(suggested,fraction)
+    suggested, modded = self._handleExplicitConstraints(new, suggested, 'opt')
+    return suggested, modded
 
   ##############
   # Destructor #

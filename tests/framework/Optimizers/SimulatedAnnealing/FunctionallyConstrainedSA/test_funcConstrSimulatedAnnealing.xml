@@ -1,29 +1,26 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers.SimulatedAnnealing</name>
-    <author>MohammadAbdo</author>
-    <created>2020-02-11</created>
-    <classesTested>SimulatedAnnealing</classesTested>
+    <name>framework/Optimizers.ConstrainFunction</name>
+    <author>talbpaul</author>
+    <created>2020-02-05</created>
+    <classesTested>Optimizer</classesTested>
     <description>
-      Extending on the Basic test, this test assesses the Simulated Annealing algorithm.
+      This test uses a multidimensional linear function such that the trajectory must pass through
+      a functional constraint to reach the optimal point.
     </description>
-    <analytic>
-      This test uses Beale's function, which is documented in the analytic tests documentation under
-      the Optimizer functions section.
-    </analytic>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>.</WorkingDir>
+    <WorkingDir>ConstrainFunction</WorkingDir>
     <Sequence>optimize, print</Sequence>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize"><!--re-seeding="032877" 120504,,120504,080510-->
+    <MultiRun name="optimize">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
-      <Model class="Models" type="ExternalModel">beale</Model>
-      <Optimizer class="Optimizers" type="SimulatedAnnealing">simOpt</Optimizer>
+      <Model class="Models" type="ExternalModel">goal</Model>
+      <Optimizer class="Optimizers" type="SimulatedAnnealing">opter</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -37,14 +34,14 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='beale_dist'>
-      <lowerBound>-4.5</lowerBound>
-      <upperBound>4.5</upperBound>
+    <Uniform name='dist'>
+      <lowerBound>-1</lowerBound>
+      <upperBound>1</upperBound>
     </Uniform>
   </Distributions>
 
   <Optimizers>
-    <SimulatedAnnealing name="simOpt">
+    <SimulatedAnnealing name="opter">
       <samplerInit>
         <limit>2000</limit>
         <initialSeed>42</initialSeed>
@@ -52,30 +49,33 @@
         <type>min</type>
       </samplerInit>
       <convergence>
-        <objective>1e-6</objective>
-        <temperature>1e-20</temperature>
+        <objective>1e-4</objective>
+        <temperature>1e-16</temperature>
         <persistence>2</persistence>
       </convergence>
-      <coolingSchedule>
-        <exponential>
-          <alpha>0.94</alpha>
-        </exponential>
-      </coolingSchedule>
+      <coolingSchedule>exponential</coolingSchedule>
+      <Constraint class='Functions' type='External'>goal</Constraint>
       <variable name="x">
-        <distribution>beale_dist</distribution>
-        <initial>-2.5</initial>
+        <distribution>dist</distribution>
+        <initial>0.9</initial>
       </variable>
       <variable name="y">
-        <distribution>beale_dist</distribution>
-        <initial>3.5</initial>
+        <distribution>dist</distribution>
+        <initial>0.7</initial>
       </variable>
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     </SimulatedAnnealing>
   </Optimizers>
 
+  <Functions>
+    <External file="../../../../AnalyticModels/optimizing/offset_parabola" name="goal">
+      <variables>x,y</variables>
+    </External>
+  </Functions>
+
   <Models>
-    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+    <ExternalModel ModuleToLoad="../../../../AnalyticModels/optimizing/offset_parabola" name="goal" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
@@ -88,7 +88,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,iteration,amp_x,amp_y,delta_x,delta_y,fraction,Temp,accepted,conv_objective,conv_samePoint,conv_temperature</Output><!--,conv_persistence-->
+      <Output>x,y,ans,iteration,amp_x,amp_y,delta_x, delta_y,fraction,Temp,accepted,conv_temperature,conv_objective,conv_samePoint</Output>
     </PointSet>
   </DataObjects>
 
@@ -103,4 +103,5 @@
       <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>
+
 </Simulation>
