@@ -1803,10 +1803,10 @@ The resulting PointSet has \emph{time} as an input and \emph{first} as an output
 
 %%%%%%%%%%%%%% MCSImporter PP %%%%%%%%%%%%%%%%%%%
 
-\subsubsection{MCSimporter}
+\subsubsection{MCS Importer}
 \label{MCSimporterPP}
-The \textbf{MCSimporter} post-processor has been designed to import Minimal Cut Sets (MCSs) into RAVEN.
-This post-processor reads a csv file which contain the list of MCSs and it save this list as a dataObject 
+The \textbf{MCSImporter} post-processor has been designed to import Minimal Cut Sets (MCSs) into RAVEN.
+This post-processor reads a csv file which contain the list of MCSs and it save this list as a DataObject 
 (i.e.,  a PointSet).
 The csv file is composed by three columns; the first contains the ID number of the MCS, the second one contains
 the MCS probability value, the third one lists all the Basic Events contained in the MCS.
@@ -1854,7 +1854,7 @@ The PointSet generated from the csv file of Table~\ref{MCScsv} is shown in Table
 \end{table}
 
 %
-\ppType{MCSimporter}{MCSimporter}
+\ppType{MCSImporter}{MCSImporter}
 %
 \begin{itemize}
   \item  \xmlNode{expand},\xmlDesc{bool, required parameter}, expand the set of Basic Events by including all PRA Basic Events
@@ -1870,7 +1870,7 @@ The PointSet generated from the csv file of Table~\ref{MCScsv} is shown in Table
   </Files>
   
   <Models>
-    <PostProcessor name="MCSimporter" subType="MCSimporter">
+    <PostProcessor name="MCSImporter" subType="MCSImporter">
       <expand>False</expand>
     </PostProcessor>   
   </Models>
@@ -1878,7 +1878,7 @@ The PointSet generated from the csv file of Table~\ref{MCScsv} is shown in Table
   <Steps>
     <PostProcess name="import">
       <Input   class="Files"        type="MCSlist"         >MCSlistFile</Input>
-      <Model   class="Models"       type="PostProcessor"   >MCSimporter</Model>
+      <Model   class="Models"       type="PostProcessor"   >MCSImporter</Model>
       <Output  class="DataObjects"  type="PointSet"        >MCS_PS</Output>
     </PostProcess>
   </Steps>
@@ -1899,7 +1899,7 @@ The PointSet generated from the csv file of Table~\ref{MCScsv} is shown in Table
   </Files>
   
   <Models>
-    <PostProcessor name="MCSimporter" subType="MCSimporter">
+    <PostProcessor name="MCSImporter" subType="MCSImporter">
       <expand>False</expand>
     </PostProcessor>   
   </Models>

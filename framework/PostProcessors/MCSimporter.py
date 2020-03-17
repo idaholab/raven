@@ -29,15 +29,13 @@ import csv
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import InputData
+from utils import InputData, InputTypes
 from utils import xmlUtils as xmlU
 from utils import utils
-import Files
-import Runners
 #Internal Modules End-----------------------------------------------------------
 
 
-class MCSimporter(PostProcessor):
+class MCSImporter(PostProcessor):
   """
     This is the base class of the PostProcessor that imports Minimal Cut Sets (MCSs) into RAVEN as a PointSet
   """
@@ -56,15 +54,14 @@ class MCSimporter(PostProcessor):
   @classmethod
   def getInputSpecification(cls):
     """
-      Method to get a reference to a class that specifies the input data for
-      class cls.
+      Method to get a reference to a class that specifies the input data for the class cls.
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(MCSimporter, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("expand", contentType=InputData.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("BElistColumn", contentType=InputData.StringType))
+    inputSpecification = super(MCSImporter, cls).getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("expand",       contentType=InputTypes.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("BElistColumn", contentType=InputTypes.StringType))
     return inputSpecification
 
   def initialize(self, runInfo, inputs, initDict) :
@@ -85,7 +82,7 @@ class MCSimporter(PostProcessor):
       @ Out, None
     """
 
-    paramInput = MCSimporter.getInputSpecification()()
+    paramInput = MCSImporter.getInputSpecification()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -95,19 +92,13 @@ class MCSimporter(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    #fileFormat = paramInput.findFirst('fileFormat')
-    #self.fileFormat = fileFormat.value
-    #if self.fileFormat not in self.allowedFormats:
-    #  self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', format ' + str(self.fileFormat) + ' : is not supported')
 
     expand = paramInput.findFirst('expand')
     self.expand = expand.value
-    # if self.expand = False then the dataObject includes only the Basic Events  listed in the set of MCSs
-    # if self.expand = True then the dataObject includes all Basic Events
 
     if self.expand == True:
       beListColumn = paramInput.findFirst('BElistColumn')
-      self.BElistColumn = beListColumn.value
+      self.beListColumn = beListColumn.value
 
   def run(self, inputs):
     """
@@ -116,32 +107,32 @@ class MCSimporter(PostProcessor):
       @ Out, None
     """
 
-    MCSfileFound = False
-    BEfileFound  = False
+    mcsFileFound = False
+    beFileFound  = False
 
     for file in inputs:
       if file.getType()=="MCSlist":
-        if MCSfileFound:
-          self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', Multiple files with type=MCSlist have been found')
+        if mcsFileFound:
+          self.raiseAnError(IOError, 'MCSImporterPostProcessor Post-Processor ' + self.name + ', Multiple files with type=MCSlist have been found')
         else:
           MCSlistFile = file
-          MCSfileFound = True
+          mcsFileFound = True
       if file.getType()=="BElist":
         if self.expand==False:
-          self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', A file with type=BElist has been found but expand is set to False')
-        if BEfileFound:
-          self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', Multiple files with type=BElist have been found')
+          self.raiseAnError(IOError, 'MCSImporterPostProcessor Post-Processor ' + self.name + ', A file with type=BElist has been found but expand is set to False')
+        if beFileFound:
+          self.raiseAnError(IOError, 'MCSImporterPostProcessor Post-Processor ' + self.name + ', Multiple files with type=BElist have been found')
         else:
           BElistFile = file
-          BEfileFound  = True
+          beFileFound  = True
 
-    if BEfileFound==False and self.expand==True:
-      self.raiseAnError(IOError, 'MCSimporterPostProcessor Post-Processor ' + self.name + ', Expand is set to False but no file with type=BElist has been found')
+    if beFileFound==False and self.expand==True:
+      self.raiseAnError(IOError, 'MCSImporterPostProcessor Post-Processor ' + self.name + ', Expand is set to False but no file with type=BElist has been found')
 
-    self.MCSlist=[]
-    self.BElist=set()
+    self.mcsList=[]
+    self.beList=set()
     self.probability = np.zeros((0))
-    self.MCS_IDs = np.zeros((0))
+    self.mcsIDs = np.zeros((0))
 
     # construct the list of MCSs and the list of BE
     counter=0
@@ -151,7 +142,7 @@ class MCSimporter(PostProcessor):
       for l in lines:
         elementsList = l.split(',')
 
-        self.MCS_IDs=np.append(self.MCS_IDs,elementsList[0])
+        self.mcsIDs=np.append(self.mcsIDs,elementsList[0])
         elementsList.pop(0)
 
         self.probability=np.append(self.probability,elementsList[0])
@@ -159,31 +150,31 @@ class MCSimporter(PostProcessor):
 
         for element in elementsList:
           element.rstrip('\n')
-        self.MCSlist.append(elementsList)
+        self.mcsList.append(elementsList)
         counter = counter+1
         if self.expand==False:
-          self.BElist.update(elementsList)
+          self.beList.update(elementsList)
     if self.expand==True:
-      BEdata = pd.read_csv(BElistFile.getFilename())
-      self.BElist = BEdata[self.BElistColumn].values.tolist()
+      beData = pd.read_csv(BElistFile.getFilename())
+      self.beList = beData[self.beListColumn].values.tolist()
 
-    MCSpointSet = {}
+    mcsPointSet = {}
 
     # MCS Input variables
-    MCSpointSet['probability'] = self.probability
-    MCSpointSet['MCS_ID']      = self.MCS_IDs
-    MCSpointSet['out']         = np.ones((counter))
+    mcsPointSet['probability'] = self.probability
+    mcsPointSet['MCS_ID']      = self.mcsIDs
+    mcsPointSet['out']         = np.ones((counter))
 
     # MCS Output variables
-    for be in self.BElist:
-      MCSpointSet[be]= np.zeros(counter)
+    for be in self.beList:
+      mcsPointSet[be]= np.zeros(counter)
     counter=0
-    for mcs in self.MCSlist:
+    for mcs in self.mcsList:
       for be in mcs:
-        MCSpointSet[be][counter] = 1.0
+        mcsPointSet[be][counter] = 1.0
       counter = counter+1
 
-    return MCSpointSet
+    return mcsPointSet
 
   def collectOutput(self, finishedJob, output):
     """
@@ -202,4 +193,4 @@ class MCSimporter(PostProcessor):
         outputDict['dims'][key] = []
       output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
     else:
-        self.raiseAnError(RuntimeError, 'MCSimporter failed: Output type ' + str(output.type) + ' is not supported.')
+        self.raiseAnError(RuntimeError, 'MCSImporter failed: Output type ' + str(output.type) + ' is not supported.')

@@ -49,7 +49,7 @@ from .FTImporter import FTImporter
 from .DataClassifier import DataClassifier
 from .ComparisonStatisticsModule import ComparisonStatistics
 from .RealizationAverager import RealizationAverager
-from .MCSimporter import MCSimporter
+from .MCSimporter import MCSImporter
 # from .RavenOutput import RavenOutput # deprecated for now
 
 additionalModules = []
