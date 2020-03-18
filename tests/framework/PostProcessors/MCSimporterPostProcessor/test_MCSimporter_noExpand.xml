@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors/MCSimporterPostProcessor.MCimporter_noExpand</name>
+    <name>framework/PostProcessors/MCSimporterPostProcessor.MCSimporter_noExpand</name>
     <author>mandd</author>
     <created>2019-11-1</created>
     <classesTested>MCSImporter</classesTested>
