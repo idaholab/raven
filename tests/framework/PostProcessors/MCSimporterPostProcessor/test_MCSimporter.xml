@@ -1,11 +1,11 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors/MCSimporterPostProcessor.MC_importer_Saphire</name>
+    <name>framework/PostProcessors/MCSimporterPostProcessor.MC_importer</name>
     <author>mandd</author>
     <created>2019-11-1</created>
-    <classesTested>MCSimporter</classesTested>
+    <classesTested>MCSImporter</classesTested>
     <description>
-      Tests of the MCSimporter post-processor: it reads a list of MCSs generated from Saphire and it imports it as a PointSet. 
+      Tests of the MCSImporter post-processor: it reads a list of MCSs generated from Saphire and it imports it as a PointSet. 
       We specifically test the capability to expand the list of Basic Events from an external file.
     </description>
   </TestInfo>
@@ -22,7 +22,7 @@
   </Files>
   
   <Models>
-    <PostProcessor name="MCSimporter" subType="MCSimporter">
+    <PostProcessor name="MCSImporter" subType="MCSImporter">
       <expand>True</expand>
       <BElistColumn>Description</BElistColumn>
     </PostProcessor>   
@@ -32,7 +32,7 @@
     <PostProcess name="import">
       <Input   class="Files"        type="MCSlist"         >MCSlistFile</Input>
       <Input   class="Files"        type="BElist"          >BElistFile</Input>
-      <Model   class="Models"       type="PostProcessor"   >MCSimporter</Model>
+      <Model   class="Models"       type="PostProcessor"   >MCSImporter</Model>
       <Output  class="DataObjects"  type="PointSet"        >MCS_PS</Output>
     </PostProcess>
     <IOStep name="printOnFile">
