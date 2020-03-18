@@ -32,17 +32,18 @@ from scipy import stats
 from sklearn import preprocessing
 import os
 
+import contrib.lazy.lazy_loader as lazy_loader
 _tensorflowAvailable = False
 # TensorFlow is optional and Python3 is required in order to use tensorflow for DNNs
 try:
   import tensorflow as tf
   import tensorflow.keras as Keras
-  from tensorflow.keras import models as KerasModels
-  from tensorflow.keras import layers as KerasLayers
-  from tensorflow.keras import optimizers as KerasOptimizers
-  from tensorflow.keras import utils as KerasUtils
-  from tensorflow.python.keras.backend import set_session
-  from tensorflow.python.keras.models import load_model
+  #from tensorflow.keras import models as KerasModels
+  #from tensorflow.keras import layers as KerasLayers
+  #from tensorflow.keras import optimizers as KerasOptimizers
+  #from tensorflow.keras import utils as KerasUtils
+  #from tensorflow.python.keras.backend import set_session
+  #from tensorflow.python.keras.models import load_model
   _tensorflowAvailable = True
   # tf.enable_eager_execution()
 except ImportError as e:
@@ -77,139 +78,139 @@ if isTensorflowAvailable():
     # An optimizer is required for compiling a Keras model
     availOptimizer = {}
     # stochastic gradient descent optimizer, includes support for momentum,learning rate decay, and Nesterov momentum
-    availOptimizer['sgd'] = KerasOptimizers.SGD
+    availOptimizer['sgd'] = Keras.optimizers.SGD
     # RMSprop optimizer, usually a good choice for recurrent neural network
-    availOptimizer['rmsprop'] = KerasOptimizers.RMSprop
+    availOptimizer['rmsprop'] = Keras.optimizers.RMSprop
     # Adagrad is an optimzer with parameter-specific learning rates, which are adapted relative to
     # how frequently a parameter gets updated during training. The more updates  a parameter receives,
     # the smaller the updates.
-    availOptimizer['adagrad'] = KerasOptimizers.Adagrad
+    availOptimizer['adagrad'] = Keras.optimizers.Adagrad
     # Adadelta is a more robust extension of Adagrad that adapts learning rates based on a moving
     # window of gradient updates, instead of accumulating all past gradients. This way, Adadelta
     # continues learning even when many updates have been done.
-    availOptimizer['adadelta'] = KerasOptimizers.Adadelta
+    availOptimizer['adadelta'] = Keras.optimizers.Adadelta
     # Adam optimzer
-    availOptimizer['adam'] = KerasOptimizers.Adam
+    availOptimizer['adam'] = Keras.optimizers.Adam
     # Adamax optimizer from Adam paper's section 7
-    availOptimizer['adamax'] = KerasOptimizers.Adamax
+    availOptimizer['adamax'] = Keras.optimizers.Adamax
     # Nesterov Adam optimizer
-    availOptimizer['nadam'] = KerasOptimizers.Nadam
+    availOptimizer['nadam'] = Keras.optimizers.Nadam
 
     # available convolutional layers
     availLayer = {}
     # dense layer
-    availLayer['dense'] = KerasLayers.Dense
+    availLayer['dense'] = Keras.layers.Dense
     # apply dropout to the input
-    availLayer['dropout'] = KerasLayers.Dropout
+    availLayer['dropout'] = Keras.layers.Dropout
     # Flatten layer
-    availLayer['flatten'] = KerasLayers.Flatten
+    availLayer['flatten'] = Keras.layers.Flatten
     # 1D convolution layer (e.g. temporal convolution).
-    availLayer['conv1d'] = KerasLayers.Conv1D
+    availLayer['conv1d'] = Keras.layers.Conv1D
     # 2D convolution layer (e.g. spatial convolution over images).
-    availLayer['conv2d'] = KerasLayers.Conv2D
+    availLayer['conv2d'] = Keras.layers.Conv2D
     # Depthwise separable 1D convolution.
-    #availConvNet['separableconv1d'] = KerasLayers.SeparableConv1D
+    #availConvNet['separableconv1d'] = Keras.layers.SeparableConv1D
     # Depthwise separable 2D convolution.
-    availLayer['separableconv2d'] = KerasLayers.SeparableConv2D
+    availLayer['separableconv2d'] = Keras.layers.SeparableConv2D
     # Depthwise separable 2D convolution.
-    #availConvNet['depthwiseconv2d'] = KerasLayers.DepthwiseConv2D
+    #availConvNet['depthwiseconv2d'] = Keras.layers.DepthwiseConv2D
     # Transposed convolution layer (sometimes called Deconvolution).
-    availLayer['conv2dtranspose'] = KerasLayers.Conv2DTranspose
+    availLayer['conv2dtranspose'] = Keras.layers.Conv2DTranspose
     # 3D convolution layer (e.g. spatial convolution over volumes).
-    availLayer['conv3d'] = KerasLayers.Conv3D
+    availLayer['conv3d'] = Keras.layers.Conv3D
     # ransposed convolution layer (sometimes called Deconvolution).
-    #availConvNet['conv3dtranspose'] = KerasLayers.Conv3DTranspose
+    #availConvNet['conv3dtranspose'] = Keras.layers.Conv3DTranspose
     # Cropping layer for 1D input (e.g. temporal sequence). It crops along the time dimension (axis 1).
-    availLayer['cropping1d'] = KerasLayers.Cropping1D
+    availLayer['cropping1d'] = Keras.layers.Cropping1D
     # Cropping layer for 2D input (e.g. picture). It crops along spatial dimensions, i.e. height and width.
-    availLayer['cropping2d'] = KerasLayers.Cropping2D
+    availLayer['cropping2d'] = Keras.layers.Cropping2D
     # Cropping layer for 3D data (e.g. spatial or spatio-temporal).
-    availLayer['cropping3d'] = KerasLayers.Cropping3D
+    availLayer['cropping3d'] = Keras.layers.Cropping3D
     # Upsampling layer for 1D inputs
-    availLayer['upsampling1d'] = KerasLayers.UpSampling1D
+    availLayer['upsampling1d'] = Keras.layers.UpSampling1D
     # Upsampling layer for 2D inputs.
-    availLayer['upsampling2d'] = KerasLayers.UpSampling2D
+    availLayer['upsampling2d'] = Keras.layers.UpSampling2D
     # Upsampling layer for 3D inputs.
-    availLayer['upsampling3d'] = KerasLayers.UpSampling3D
+    availLayer['upsampling3d'] = Keras.layers.UpSampling3D
     # Zero-padding layer for 1D input (e.g. temporal sequence).
-    availLayer['zeropadding1d'] = KerasLayers.ZeroPadding1D
+    availLayer['zeropadding1d'] = Keras.layers.ZeroPadding1D
     # Zero-padding layer for 2D input (e.g. picture).
     # This layer can add rows and columns of zeros at the top, bottom, left and right side of an image tensor.
-    availLayer['zeropadding2d'] = KerasLayers.ZeroPadding2D
+    availLayer['zeropadding2d'] = Keras.layers.ZeroPadding2D
     # Zero-padding layer for 3D data (spatial or spatio-tempral)
-    availLayer['zeropadding3d'] = KerasLayers.ZeroPadding3D
+    availLayer['zeropadding3d'] = Keras.layers.ZeroPadding3D
     # Locally-connected layer for 1D inputs.
     # The LocallyConnected1D layer works similarly to the Conv1D layer, except that weights are unshared,
     # that is, a different set of filters is applied at each different patch of the input.
-    availLayer['locallyconnected1d'] = KerasLayers.LocallyConnected1D
+    availLayer['locallyconnected1d'] = Keras.layers.LocallyConnected1D
     # Locally-connected layer for 2D inputs.
     # The LocallyConnected1D layer works similarly to the Conv2D layer, except that weights are unshared,
     # that is, a different set of filters is applied at each different patch of the input.
-    availLayer['locallyconnected2d'] = KerasLayers.LocallyConnected2D
+    availLayer['locallyconnected2d'] = Keras.layers.LocallyConnected2D
 
     # available pooling layers
     # Max pooling operation for temporal data.
-    availLayer['maxpooling1d'] = KerasLayers.MaxPooling1D
+    availLayer['maxpooling1d'] = Keras.layers.MaxPooling1D
     # Max pooling operation for spatial data.
-    availLayer['maxpooling2d'] = KerasLayers.MaxPooling2D
+    availLayer['maxpooling2d'] = Keras.layers.MaxPooling2D
     # Max pooling operation for 3D data (spatial or spatio-temporal).
-    availLayer['maxpooling3d'] = KerasLayers.MaxPooling3D
+    availLayer['maxpooling3d'] = Keras.layers.MaxPooling3D
     # Average pooling for temporal data.
-    availLayer['averagepooling1d'] = KerasLayers.AveragePooling1D
+    availLayer['averagepooling1d'] = Keras.layers.AveragePooling1D
     # Average pooling for spatial data.
-    availLayer['averagepooling2d'] = KerasLayers.AveragePooling2D
+    availLayer['averagepooling2d'] = Keras.layers.AveragePooling2D
     # Average pooling operation for 3D data (spatial or spatio-temporal).
-    availLayer['averagepooling3d'] = KerasLayers.AveragePooling3D
+    availLayer['averagepooling3d'] = Keras.layers.AveragePooling3D
     # Global max pooling operation for temporal data.
-    availLayer['globalmaxpooling1d'] = KerasLayers.GlobalMaxPooling1D
+    availLayer['globalmaxpooling1d'] = Keras.layers.GlobalMaxPooling1D
     # Global average pooling operation for temporal data.
-    availLayer['globalaveragepooling1d'] = KerasLayers.GlobalAveragePooling1D
+    availLayer['globalaveragepooling1d'] = Keras.layers.GlobalAveragePooling1D
     # Global max pooling operation for spatial data.
-    availLayer['globalmaxpooling2d'] = KerasLayers.GlobalMaxPooling2D
+    availLayer['globalmaxpooling2d'] = Keras.layers.GlobalMaxPooling2D
     # Global average pooling operation for spatial data.
-    availLayer['globalaveragepooling2d'] = KerasLayers.GlobalAveragePooling2D
+    availLayer['globalaveragepooling2d'] = Keras.layers.GlobalAveragePooling2D
     # Global Max pooling operation for 3D data.
-    availLayer['globalmaxpooling3d'] = KerasLayers.GlobalMaxPooling3D
+    availLayer['globalmaxpooling3d'] = Keras.layers.GlobalMaxPooling3D
     # Global Average pooling operation for 3D data.
-    availLayer['globalaveragepooling3d'] = KerasLayers.GlobalAveragePooling3D
+    availLayer['globalaveragepooling3d'] = Keras.layers.GlobalAveragePooling3D
 
     # available embedding layers
     # turns positive integers (indexes) into dense vectors of fixed size
     # This layer can only be used as the first layer in a model.
-    availLayer['embedding'] = KerasLayers.Embedding
+    availLayer['embedding'] = Keras.layers.Embedding
 
     # available recurrent layers
     # Fully-connected RNN where the output is to be fed back to input.
-    availLayer['simplernn'] = KerasLayers.SimpleRNN
+    availLayer['simplernn'] = Keras.layers.SimpleRNN
     # Gated Recurrent Unit - Cho et al. 2014.
-    availLayer['gru'] = KerasLayers.GRU
+    availLayer['gru'] = Keras.layers.GRU
     # Long Short-Term Memory layer - Hochreiter 1997.
-    availLayer['lstm'] = KerasLayers.LSTM
+    availLayer['lstm'] = Keras.layers.LSTM
     # Convolutional LSTM.
     # It is similar to an LSTM layer, but the input transformations and recurrent transformations are both convolutional.
-    availLayer['convlstm2d'] = KerasLayers.ConvLSTM2D
+    availLayer['convlstm2d'] = Keras.layers.ConvLSTM2D
     # Fast GRU implementation backed by CuDNN.
-    #availRecurrent['cudnngru'] = KerasLayers.CuDNNGRU
+    #availRecurrent['cudnngru'] = Keras.layers.CuDNNGRU
     # Fast LSTM implementation with CuDNN.
-   # availRecurrent['cudnnlstm'] = KerasLayers.CuDNNLSTM
+   # availRecurrent['cudnnlstm'] = Keras.layers.CuDNNLSTM
 
     # available normalization layers
     availNormalization = {}
-    availNormalization['batchnormalization'] = KerasLayers.BatchNormalization
+    availNormalization['batchnormalization'] = Keras.layers.BatchNormalization
 
     # available noise layers
     availNoise = {}
     # Apply additive zero-centered Gaussian noise.
     # This is useful to mitigate overfitting (you could see it as a form of random data augmentation).
     # Gaussian Noise (GS) is a natural choice as corruption process for real valued inputs.
-    availNoise['gaussiannoise'] = KerasLayers.GaussianNoise
+    availNoise['gaussiannoise'] = Keras.layers.GaussianNoise
     # Apply multiplicative 1-centered Gaussian noise. As it is a regularization layer, it is only active at training time.
-    availNoise['gaussiandropout'] = KerasLayers.GaussianDropout
+    availNoise['gaussiandropout'] = Keras.layers.GaussianDropout
     # Applies Alpha Dropout to the input.
     # Alpha Dropout is a Dropout that keeps mean and variance of inputs to their original values, in order to ensure
     # the self-normalizing property even after this dropout. Alpha Dropout fits well to Scaled Exponential Linear Units
     #  by randomly setting activations to the negative saturation value.
-    #availNoise['alphadropout'] = KerasLayers.AlphaDropout
+    #availNoise['alphadropout'] = Keras.layers.AlphaDropout
     # Temp Model File that used to dump and load Keras Model
     tempModelFile = "a_temporary_file_for_storing_a_keras_model.h5"
     modelAttr = "the_model_all_serialized_and_turned_into_an_hdf5_file_and_stuff"
@@ -271,7 +272,7 @@ if isTensorflowAvailable():
       # a new session (which) does not contain any previously loaded weights, models, and so on)
       # is created for each thread, i.e. for each request. By saving the session that contains all
       # the models and setting it to be used by keras in each thread.
-      set_session(self._session)
+      Keras.backend.set_session(self._session)
 
       modelName = self.initOptionDict.pop('name','')
       # number of classes for classifier
@@ -328,7 +329,7 @@ if isTensorflowAvailable():
         @ Out, state, dict, it contains all the information needed by the ROM to be initialized
       """
       state = supervisedLearning.__getstate__(self)
-      KerasModels.save_model(self._ROM, KerasClassifier.tempModelFile)
+      Keras.models.save_model(self._ROM, KerasClassifier.tempModelFile)
       # another method to save the TensorFlow model
       # self._ROM.save(KerasClassifier.tempModelFile)
       with open(KerasClassifier.tempModelFile, "rb") as f:
@@ -348,8 +349,8 @@ if isTensorflowAvailable():
       with open(KerasClassifier.tempModelFile, "wb") as f:
         f.write(d[KerasClassifier.modelAttr])
       del d[KerasClassifier.modelAttr]
-      set_session(self._session)
-      self._ROM = KerasModels.load_model(KerasClassifier.tempModelFile)
+      Keras.backend.set_session(self._session)
+      self._ROM = Keras.models.load_model(KerasClassifier.tempModelFile)
       os.remove(KerasClassifier.tempModelFile)
       self.__dict__.update(d)
 
@@ -368,7 +369,7 @@ if isTensorflowAvailable():
         @ Out, None
       """
       # start to build the ROM
-      self._ROM = KerasModels.Sequential()
+      self._ROM = Keras.models.Sequential()
       # loop over layers
       for index, layerName in enumerate(self.layerLayout[:-1]):
         layerDict = copy.deepcopy(self.initOptionDict[layerName])
@@ -443,7 +444,7 @@ if isTensorflowAvailable():
       if self.numClasses > 1 and 'categorical_crossentropy' in self.lossFunction:
         # Transform the labels (i.e. numerical or non-numerical) to normalized numerical labels
         targetValues = self.labelEncoder.fit_transform(targetValues.ravel())
-        targetValues = KerasUtils.to_categorical(targetValues)
+        targetValues = Keras.utils.to_categorical(targetValues)
         if self.numClasses != targetValues.shape[-1]:
           self.raiseAWarning('The num_classes:',self.numClasses, 'specified by the user is not equal number of classes',
                              targetValues.shape[-1], ' in the provided data!')
@@ -502,7 +503,7 @@ if isTensorflowAvailable():
       # The following requires pydot-ng and graphviz to be installed (See the manual)
       # https://github.com/keras-team/keras/issues/3210
       if self.plotModel:
-        KerasUtils.plot_model(self._ROM,to_file=self.plotModelFilename,show_shapes=True)
+        Keras.utils.plot_model(self._ROM,to_file=self.plotModelFilename,show_shapes=True)
 
     def writeXML(self, writeTo, targets=None, skip=None):
       """
@@ -540,7 +541,7 @@ if isTensorflowAvailable():
       featureVals = self._preprocessInputs(featureVals)
       prediction = {}
       with self.graph.as_default():
-        set_session(self._session)
+        Keras.backend.set_session(self._session)
         outcome = self._ROM.predict(featureVals)
       if self.numClasses > 1 and self.lossFunction in ['categorical_crossentropy']:
         outcome = np.argmax(outcome,axis=1)
@@ -585,7 +586,7 @@ if isTensorflowAvailable():
         Returns a dictionary with the parameters and their current values
         The model can be reinstantiated from its config via:
         config = model.get_config()
-        self._ROM = KerasModels.Sequential.from_config(config)
+        self._ROM = Keras.models.Sequential.from_config(config)
         @ In, None
         @ Out, params, dict, dictionary of parameter names and current values
       """
