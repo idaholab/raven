@@ -148,7 +148,7 @@ class Optimizer(AdaptiveSampler):
     self._variableBounds = None # dictionary of upper/lower bounds for each variable (may be inf?)
     self._trajCounter = 0       # tracks numbers to assign to trajectories
     self._initSampler = None    # sampler to use for picking initial seeds
-    self._constraintFunctions = []
+    self._constraintFunctions = [] # list of constraint functions
 
     # __private
     # additional methods
@@ -160,6 +160,10 @@ class Optimizer(AdaptiveSampler):
 
   def _localWhatDoINeed(self):
     """
+      This method is a local mirror of the general whatDoINeed method.
+      It is implemented by the optimizers that need to request special objects
+      @ In, None
+      @ Out, needDict, dict, list of objects needed
     """
     needDict = AdaptiveSampler._localWhatDoINeed()
     needDict['Functions'] = [(None, 'all')]

@@ -39,6 +39,7 @@ class RavenSampled(Optimizer):
     Handles the following:
      - Maintain queue for required realizations
      - Label and retrieve realizations given labels
+     - Manage sign flipping for maximization problems
      - Establish API for convergence checking
      - Establish API to extend labels for particular implementations
      - Implements constraint checking
@@ -83,7 +84,7 @@ class RavenSampled(Optimizer):
     """
       Compiles a list of acceptable SolutionExport variable options.
       @ In, None
-      @ Out, vars, list(str), list of acceptable variable names
+      @ Out, ok, list(str), list of acceptable variable names
     """
     ok = super(RavenSampled, cls).getSolutionExportVariableNames()
     ok.update({'trajID': 'integer identifier for different optimization starting locations and paths',
@@ -102,10 +103,10 @@ class RavenSampled(Optimizer):
     Optimizer.__init__(self)
     ## Instance Variable Initialization
     # public
-    self.limit = None
-    self.type = 'Sampled Optimizer'
+    self.limit = None               # max samples
+    self.type = 'Sampled Optimizer' # type
     # _protected
-    self._writeSteps = 'final'
+    self._writeSteps = 'final'      # when steps should be written
     self._submissionQueue = deque() # TODO change to Queue.Queue if multithreading samples
     self._stepTracker = {}          # action tracking: what is collected, what needs collecting?
     self._optPointHistory = {}      # by traj, is a deque (-1 is most recent)
@@ -242,8 +243,6 @@ class RavenSampled(Optimizer):
     ## this usually happens if we've cancelled the run but it's already done
     if not self.stillLookingForPrefix(prefix):
       return
-    if job.getReturnCode() != 0: # TODO shouldn't this be "if job failed"?
-      raise NotImplementedError # FIXME   handle failed runs
     # FIXME implicit constraints probable should be handled here too
     # get information and realization, and update trajectories
     info = self.getIdentifierFromPrefix(prefix, pop=True)
@@ -338,9 +337,8 @@ class RavenSampled(Optimizer):
   def _handleExplicitConstraints(self, proposed, previous, pointType):
     """
       Considers all explicit (i.e. input-based) constraints
-      @ In, traj, int, identifier
       @ In, proposed, dict, NORMALIZED sample opt point
-      @ In, proposed, dict, NORMALIZED previous opt point
+      @ In, previous, dict, NORMALIZED previous opt point
       @ In, pointType, string, type of point to handle constraints for
       @ Out, normed, dict, suggested NORMALIZED contraint-handled point
       @ Out, modded, bool, whether point was modified or not
@@ -357,10 +355,8 @@ class RavenSampled(Optimizer):
   def _checkFunctionalConstraints(self, point):
     """
       Checks that provided point does not violate functional constraints
-      @ In, traj, int, identifier
       @ In, point, dict, suggested point to submit (denormalized)
-      @ In, info, dict, data about suggested point
-      @ Out, okay, bool, False if violations found else True
+      @ Out, allOkay, bool, False if violations found else True
     """
     allOkay = True
     inputs = dict(point)
@@ -517,7 +513,7 @@ class RavenSampled(Optimizer):
     """
       Queues jobs to be cancelled based on opt run
       @ In, traj, int, trajectory identifier
-      @ In, step, int, optional, iteration identifier
+      @ In, step, int, optional, iteration identifier (unused if not provided)
       @ Out, None
     """
     # generic tracking info: we want this trajectory, this step, all purposes

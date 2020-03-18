@@ -60,6 +60,7 @@
   [../]
 
   [./ConstrainBoundary]
+    #REQUIREMENT_TEST R-RM-2
     type = 'RavenFramework'
     input = 'constrain_boundary.xml'
     [./data]
@@ -69,6 +70,7 @@
   [../]
 
   [./ConstrainFunction]
+    #REQUIREMENT_TEST R-RM-3
     type = 'RavenFramework'
     input = 'constrain_function.xml'
     [./data]

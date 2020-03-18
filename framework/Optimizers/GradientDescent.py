@@ -73,7 +73,8 @@ class GradientDescent(RavenSampled):
      - Implement summary of step iteration to SolutionExport
   """
   # convergence option names and their user manual descriptions
-  convergenceOptions = {'gradient': r"""provides the desired value for the local estimated of the gradient for convergence. \default{1e-6, if no criteria specified}""",
+  convergenceOptions = {'gradient': r"""provides the desired value for the local estimated of the gradient
+                                    for convergence. \default{1e-6, if no criteria specified}""",
                         # TODO change in input space?
                         'objective': r"""provides the maximum relative change in the objective function for convergence.""",
                         'stepSize': r"""provides the maximum size in relative step size for convergence.""",
@@ -150,9 +151,17 @@ class GradientDescent(RavenSampled):
               Note that convergence is met when any one of the convergence criteria is met. If no convergence
               criteria are given, then nominal convergence on gradient value is used.""")
     specs.addSub(conv)
+
     conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType,
+        printPriority=300,
         descr=r"""provides the number of consecutive times convergence should be reached before a trajectory
               is considered fully converged. This helps in preventing early false convergence."""))
+    conv.addSub(InputData.parameterInputFactory('constraintExplorationLimit', contentType=InputTypes.IntegerType,
+        printPriority=9999,
+        descr=r"""provides the number of consecutive times a functional constraint boundary can be explored
+              for an acceptable sampling point before aborting search. Only apples if using a
+              \xmlNode{Constraint}. \default{500}"""))
+
     for name, descr in cls.convergenceOptions.items():
       conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType, descr=descr))
     terminate = InputData.parameterInputFactory('terminateFollowers', contentType=InputTypes.BoolType,
@@ -215,6 +224,7 @@ class GradientDescent(RavenSampled):
     self._terminateFollowers = True  # whether trajectories sharing a point should cause termination
     self._followerProximity = 1e-2   # distance at which annihilation can start ocurring, in ?normalized? space
     self._trajectoryFollowers = defaultdict(list) # map of trajectories to the trajectories following them
+    self._functionalConstraintExplorationLimit = 500 # number of input-space explorations allowable for functional constraints
     # __private
     # additional methods
     ## register adaptive sample identification criteria
@@ -268,6 +278,8 @@ class GradientDescent(RavenSampled):
         elif sub.getName() == 'terminateFollowers':
           self._terminateFollowers = sub.value
           self._followerProximity = sub.parameterValues.get('proximity', 1e-2)
+        elif sub.getName() == 'constraintExplorationLimit':
+          self._functionalConstraintExplorationLimit = sub.value
         else:
           self._convergenceCriteria[sub.name] = sub.value
     if not self._convergenceCriteria:
@@ -311,7 +323,7 @@ class GradientDescent(RavenSampled):
       @ In, traj, int, trajectory identifier
       @ In, new, dict, new opt point
       @ In, old, dict, previous opt point
-      @ Out, converged, bool, convergence state
+      @ Out, checkConvergence[0], bool, convergence state
       @ Out, convs, dict, state of convergence criterions
     """
     convs = {}
@@ -396,6 +408,8 @@ class GradientDescent(RavenSampled):
       self.raiseADebug(' ... normalized actual  step size: {}'.format(actualStepSize))
       # TODO denorm calcs could potentially be expensive, maybe not worth running
       ## initial tests show it's not a big deal for small systems
+      ## @alfoa: we might "get the verbosity" here and "compute the denorm just in
+      ##         case the verbosity is == debug...
       self.raiseADebug(' ... current opt point:', self.denormalizeData(opt))
       self.raiseADebug(' ... new optimum candidate:', self.denormalizeData(suggested))
       # initialize step
@@ -409,7 +423,7 @@ class GradientDescent(RavenSampled):
     """
       Checks if enough information has been collected to proceed with optimization
       @ In, traj, int, identifier for trajectory of interest
-      @ Out, ready, bool, True if all required data has been collected
+      @ Out, _checkStepReady, bool, True if all required data has been collected
     """
     # ready to move step forward if (a) we have the opt point, and (b) we have the grad points
     tracker = self._stepTracker[traj]
@@ -507,7 +521,7 @@ class GradientDescent(RavenSampled):
     passFuncs = self._checkFunctionalConstraints(self.denormalizeData(suggested))
     # while in violation of constraints ...
     info = {'minStepSize': self._convergenceCriteria.get('stepSize', 1e-10)} # TODO why 1e-10?
-    tries = 500
+    tries = self._functionalConstraintExplorationLimit
     while not passFuncs:
       modded = True
       #  try to find new acceptable point
@@ -666,7 +680,7 @@ class GradientDescent(RavenSampled):
   def _updatePersistence(self, traj, converged, optVal):
     """
       Update persistence tracking state variables
-      @ In, traj, identifier
+      @ In, traj, int, identifier
       @ In, converged, bool, convergence check result
       @ In, optVal, float, new optimal value
       @ Out, None

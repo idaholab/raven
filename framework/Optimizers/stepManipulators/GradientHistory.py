@@ -83,9 +83,9 @@ class GradientHistory(StepManipulator):
     ## Instance Variable Initialization
     # public
     # _protected
-    self._optVars = None
-    self._growth = 1.25
-    self._shrink = 1.15
+    self._optVars = None         # optimization variables
+    self._growth = 1.25          # rate of step growth
+    self._shrink = 1.15          # rate of step shrinking
     self._minRotationAngle = 2.0 # how close to perpendicular should we try rotating towards?
     self._numRandomPerp = 10     # how many random perpendiculars should we try rotating towards?
     # __private
@@ -129,8 +129,8 @@ class GradientHistory(StepManipulator):
     """
       calculates the step size and direction to take
       @ In, prevOpt, dict, previous opt point
-      @ In, gradientHist, deque, list of gradient dictionaries with 0 being oldest; versors
-      @ In, prevStepSize, deque, list of float step sizes
+      @ In, gradientHist, deque, optional, not used if not provided, list of gradient dictionaries with 0 being oldest; versors
+      @ In, prevStepSize, deque, optional, not used if not provieed, list of float step sizes
       @ In, recommend, str, optional, override to 'grow' or 'shrink' step size
       @ In, kwargs, dict, keyword-based specifics as required by individual step sizers
       @ Out, newOpt, dict, new opt point

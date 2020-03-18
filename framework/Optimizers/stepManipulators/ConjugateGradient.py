@@ -48,7 +48,7 @@ class ConjugateGradient(StepManipulator):
     """
       Method to get a reference to a class that specifies the input data for class cls.
       @ In, cls, the class for which we are retrieving the specification
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(ConjugateGradient, cls).getInputSpecification()
     return specs
@@ -58,7 +58,7 @@ class ConjugateGradient(StepManipulator):
     """
       Compiles a list of acceptable SolutionExport variable options.
       @ In, None
-      @ Out, vars, list(str), list of acceptable variable names
+      @ Out, ok, list(str), list of acceptable variable names
     """
     ok = super(ConjugateGradient, cls).getSolutionExportVariableNames()
     ok['CG_task'] = 'for ConjugateGradient, current task of line search. FD suggests continuing the search, and CONV indicates the line search converged and will pivot.'
@@ -97,7 +97,7 @@ class ConjugateGradient(StepManipulator):
     """
       initializes this object
       @ In, optVars, list(str), list of optimization variables (e.g. input space)
-      @ In, persistence, integer, successive converges required to consider total convergence
+      @ In, persistence, integer, optional, successive converges required to consider total convergence
       @ In, kwargs, dict, additional unused arguments
       @ Out, None
     """
@@ -120,8 +120,8 @@ class ConjugateGradient(StepManipulator):
     """
       calculates the step size and direction to take
       @ In, prevOpt, dict, previous opt point
-      @ In, gradientHist, deque, list of gradient dictionaries with 0 being oldest; versors
-      @ In, prevStepSize, deque, list of float step sizes
+      @ In, gradientHist, deque, optional, if not given then none available; list of gradient dictionaries with 0 being oldest; versors
+      @ In, prevStepSize, deque, optional, if not given then none available; list of float step sizes
       @ In, recommend, str, optional, override to 'grow' or 'shrink' step size
       @ In, kwargs, dict, keyword-based specifics as required by individual step sizers
       @ Out, newOpt, dict, new opt point
@@ -209,10 +209,10 @@ class ConjugateGradient(StepManipulator):
       Given constraint violations, update the desired optimal point to consider.
       @ In, proposed, dict, proposed new optimal point
       @ In, previous, dict, previous optimal point
-      @ In, fixInfo, dict, contains record of progress in fixing search
+      @ In, fixInfo, dict, contains record of progress in fixing search including but not limited to angles, perpendiculars, counters, and step sizes
       @ Out, proposed, new proposed point
-      @ Out, stepSize, new step size taken # TODO need?
-      @ Out, fixInfo, updated fixing info
+      @ Out, stepSize, float, new step size taken
+      @ Out, fixInfo, dict, updated fixing info
     """
     # TODO this is copied from GradientHistory; it should be updated for the ConjugateGradient when
     #      we know how we want to do this
@@ -332,12 +332,13 @@ class ConjugateGradient(StepManipulator):
 
   def _polakRibierePowellStep(self, prevGrad, curGrad, gradDotProduct, searchVector):
     """
-      TODO rename all these variables!
+      Update the search vector (magnitude and direction) for conjugate gradient
       @ In, prevGrad, np.array, previous gradient in order of sampled variables
       @ In, curGrad, np.array, current gradient in order of sampled variables
       @ In, gradDorProduct, float, scalar product of the current grad with itself
       @ In, searchVector, np.array, ongoing search vector (not unit vector)
-      @ Out, gNorm, float, norm of the gradient
+      @ Out, searchVectorMag, float, magnitude of new search vector
+      @ Out, searchVector, dict, search vector
     """
     deltaGradient = curGrad - prevGrad
     gain = max(0, np.dot(deltaGradient, curGrad) / gradDotProduct)

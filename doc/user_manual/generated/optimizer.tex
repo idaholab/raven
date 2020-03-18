@@ -244,17 +244,14 @@
     \item \xmlNode{convergence}:
       a node containing the desired convergence criteria for the optimization algorithm.
       Note that convergence is met when any one of the convergence criteria is met. If no
-      convergence               criteria are given, then the \xmlNode{limit} is used.
+      convergence               criteria are given, then nominal convergence on gradient value is
+      used.
 
       The \xmlNode{convergence} node recognizes the following subnodes:
       \begin{itemize}
-        \item \xmlNode{persistence}: \xmlDesc{integer}, 
-          provides the number of consecutive times convergence should be reached before a trajectory
-          is considered fully converged. This helps in preventing early false convergence.
-
         \item \xmlNode{gradient}: \xmlDesc{float}, 
-          provides the desired value for the local estimated of the gradient for convergence.
-          \default{1e-6, if no criteria specified}
+          provides the desired value for the local estimated of the gradient
+          for convergence. \default{1e-6, if no criteria specified}
 
         \item \xmlNode{objective}: \xmlDesc{float}, 
           provides the maximum relative change in the objective function for convergence.
@@ -271,6 +268,15 @@
                 provides the normalized distance at which a trajectory's head should be proximal to
                 another trajectory's path before terminating the following trajectory.
           \end{itemize}
+
+        \item \xmlNode{persistence}: \xmlDesc{integer}, 
+          provides the number of consecutive times convergence should be reached before a trajectory
+          is considered fully converged. This helps in preventing early false convergence.
+
+        \item \xmlNode{constraintExplorationLimit}: \xmlDesc{integer}, 
+          provides the number of consecutive times a functional constraint boundary can be explored
+          for an acceptable sampling point before aborting search. Only apples if using a
+          \xmlNode{Constraint}. \default{500}
       \end{itemize}
 
     \item \xmlNode{constant}: \xmlDesc{comma-separated strings, integers, and floats}, 

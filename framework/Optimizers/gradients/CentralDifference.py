@@ -81,6 +81,7 @@ class CentralDifference(GradientApproximater):
       @ In, objVar, string, objective variable
       @ Out, magnitude, float, magnitude of gradient
       @ Out, direction, dict, versor (unit vector) for gradient direction
+      @ Out, foundInf, bool, if True then infinity calculations were used
     """
     gradient = {}
     for v, var in enumerate(self._optVars):

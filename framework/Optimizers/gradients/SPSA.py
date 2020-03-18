@@ -104,15 +104,3 @@ class SPSA(GradientApproximater):
     # SPSA always uses 1 point, regardless of anything
     return 1
 
-
-
-
-
-
-
-
-
-
-
-
-

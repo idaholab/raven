@@ -440,9 +440,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
       Reads in a "variable" input parameter node.
       @ In, child, utils.InputData.ParameterInput, input parameter node to read from
-      @ In, prefix, str, variable prefix, if any # TODO maybe always empty?
-      @ Out, name, string, name of constant
-      @ Out, value, float or np.array,
+      @ In, prefix, str, variable prefix, if any
+      @ Out, None
     """
     # variable for tracking if distributions or functions have been declared
     foundDistOrFunc = False

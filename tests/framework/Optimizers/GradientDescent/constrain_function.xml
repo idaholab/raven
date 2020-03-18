@@ -9,6 +9,7 @@
       This test uses a multidimensional linear function such that the trajectory must pass through
       a functional constraint to reach the optimal point.
     </description>
+    <requirements>R-RM-2</requirements>
   </TestInfo>
 
   <RunInfo>

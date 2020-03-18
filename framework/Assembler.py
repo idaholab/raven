@@ -103,7 +103,6 @@ class Assembler(MessageHandler.MessageUser):
           tag = subNode.tag.strip()
           entry = [subNode.attrib['class'],subNode.attrib['type'],subNode.text.strip()]
           if entry not in self.assemblerObjects.get(tag, []):
-            print('DEBUGG Tag:', tag, 'Entry:', entry)
             self.assemblerObjects[tag].append(entry)
             testObjects[token] += 1
     returnObject = found, testObjects

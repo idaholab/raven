@@ -55,7 +55,7 @@ class AcceptanceCondition(utils.metaclass_insert(abc.ABCMeta, object)):
   def handleInput(self, specs):
     """
       Read input specs
-      @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
+      @ In, specs, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
     pass
@@ -63,8 +63,7 @@ class AcceptanceCondition(utils.metaclass_insert(abc.ABCMeta, object)):
   def initialize(self):
     """
       After construction, finishes initialization of this approximator.
-      @ In, optVars, list(str), list of optimization variable names
-      @ In, proximity, float, percentage of step size away that neighbor samples should be taken
+      @ In, None
       @ Out, None
     """
     pass

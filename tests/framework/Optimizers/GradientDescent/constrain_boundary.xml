@@ -9,6 +9,7 @@
       This test uses a multidimensional linear function with optima outside the domain space to test
       boundary constraint handling.
     </description>
+    <requirements>R-RM-2</requirements>
     <analytic>
       This test uses the NDSlant function, which is documented in the analytic tests documentation under
       the Optimizer functions section.

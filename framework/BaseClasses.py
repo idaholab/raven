@@ -286,7 +286,6 @@ class BaseType(MessageHandler.MessageUser):
       Validates entries in the SolutionExport against the list of acceptable ones.
       Overload to write custom checking.
       @ In, solutionExport, DataObjects.DataSet, target evaluation data object
-      @ In, otherDataObjects, dict, name-dataObject pairs for additional data objects to check
       @ Out, None
     """
     # don't validate non-requests

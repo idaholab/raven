@@ -29,7 +29,6 @@ import inspect
 import subprocess
 import platform
 import copy
-from collections import defaultdict
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.
 from difflib import SequenceMatcher

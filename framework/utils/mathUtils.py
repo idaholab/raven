@@ -916,6 +916,7 @@ def calculateMagnitudeAndVersor(vector, normalizeInfinity=True):
     @ In, normalizeInfinity, bool, optional, if True then normalize vector if infinites present
     @ Out, mag, float, magnitude of vector
     @ Out, versor, np.array, vector divided by magnitude
+    @ Out, foundInf, bool, if True than infinity calcs were used
   """
   # protect original data
   vector = copy.deepcopy(vector)

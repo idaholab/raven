@@ -33,7 +33,7 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
   def getInputSpecification(cls):
     """
       Method to get a reference to a class that specifies the input data for class cls.
-      @ In, cls, the class for which we are retrieving the specification
+      @ In, None
       @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = InputData.parameterInputFactory(cls.__name__, ordered=False, strictMode=True)
@@ -58,16 +58,16 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
     ## Instance Variable Initialization
     # public
     # _protected
-    self._optVars = None
-    self._proximity = None
-    self.N = None
+    self._optVars = None   # list(str) of opt variables
+    self._proximity = None # float, scaling for perturbation distance
+    self.N = None          # int, dimensionality
     # __private
     # additional methods
 
   def handleInput(self, specs):
     """
       Read input specs
-      @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
+      @ In, specs, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
     pass
@@ -112,6 +112,7 @@ class GradientApproximater(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, objVar, string, objective variable
       @ Out, magnitude, float, magnitude of gradient
       @ Out, direction, dict, versor (unit vector) for gradient direction
+      @ Out, foundInf, bool, if True then infinity calculations were used
     """
 
   def needDenormalized(self):
