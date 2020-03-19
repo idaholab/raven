@@ -2,7 +2,7 @@
   <TestInfo>
     <name>framework/PostProcessors/MCSimporterPostProcessor.MCSimporter_noExpand</name>
     <author>mandd</author>
-    <created>2019-11-1</created>
+    <created>2019-11-01</created>
     <classesTested>MCSImporter</classesTested>
     <description>
       Tests of the MCSImporter post-processor: it reads a list of MCSs generated from Saphire and it imports it as a PointSet. 
