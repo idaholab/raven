@@ -37,11 +37,3 @@ def import_module_lazy(moduleString):
   name = moduleString.strip()
   return lazy_loader.LazyLoader(name, globals(), name)
 
-#def import_collable_lazy(collableString):
-#  """
-#    This method is aimed to import a collable method or attribute
-#    within a module that needs to be lazy imported
-#    @ In, moduleString, str, the collable to point (e.g. numpy.arange, numpy.ndarray, etc.)
-#    @ Out, callable, Object_Pointer, the collable (lazy)
-#  """
-#  return lazy_import.lazy_callable(collableString.strip())
