@@ -66,9 +66,9 @@ if __name__ == '__main__':
   os.chdir(cwd)
   subsOut = os.popen('git config --file .gitmodules --name-only --get-regexp path').read()
   ## subsInit are the initialized ones
-  subsInit = [x.split(' ')[1] for x in os.popen('git submodule status').read().split(os.linesep) if x.strip() != '']
+  subsInit = [x.split(' ')[1] for x in os.popen('git submodule status').read().split("\n") if x.strip() != '']
   submods = []
-  for m, sub in enumerate(subsOut.split(os.linesep)):
+  for m, sub in enumerate(subsOut.split("\n")):
     if sub.strip() != '':
       submods.append(os.path.basename(sub)[:-5]) #trim off path, ".path"
 
