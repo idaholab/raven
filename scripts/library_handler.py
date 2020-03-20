@@ -538,4 +538,7 @@ if __name__ == '__main__':
                          .format(lib=lib,
                                  ver=('{}{}'.format(equals, ver) if ver is not None else ''))
                          for lib, ver in libs.items()])
-    print(preamble + libTexts)
+    if len(libTexts) > 0:
+      print(preamble + libTexts)
+    else:
+      print("echo no libs")
