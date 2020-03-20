@@ -4,3 +4,6 @@
 [submodule "plugins/SR2ML"]
 	path = plugins/SR2ML
 	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SR2ML.git
+[submodule "plugins/LOGOS"]
+	path = plugins/LOGOS
+	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/LOGOS.git
