@@ -23,7 +23,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
-from utils.lazyImporterUtils import import_module_lazy, import_collable_lazy
+from utils.lazyImporterUtils import import_module_lazy
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
