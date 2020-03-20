@@ -367,6 +367,12 @@ def _parseLibs(config, opSys, install, addOptional=False, limit=None, plugins=No
   # os-specific are part of 'core' right now
   if config.has_section(opSys) and (True if limit is None else ('core' in limit)):
     _addLibsFromSection(config.items(opSys), libs)
+  # os-specific of specific installer (e.g. pip)
+  if limit:
+    for lim in limit:
+      instSpecOp = "{opSys}-{lim}".format(lim=lim, opSys=opSys)
+      if config.has_section(instSpecOp):
+        _addLibsFromSection(config.items(instSpecOp), libs)
   # optional are part of 'core' right now, but leave that up to the requester?
   if addOptional and config.has_section('optional'):
     _addLibsFromSection(config.items('optional'), libs)
