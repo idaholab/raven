@@ -210,7 +210,7 @@ class GradientDescent(RavenSampled):
     # _protected
     self._gradientInstance = None  # instance of GradientApproximater
     self._stepInstance = None      # instance of StepManipulator
-    self._acceotInstance = None    # instance of AcceptanceCondition
+    self._acceptInstance = None    # instance of AcceptanceCondition
     self._gradProximity = 0.01     # TODO user input, the proximity for gradient evaluations
     # history trackers, by traj, are deques (-1 is most recent)
     self._gradHistory = {}         # gradients

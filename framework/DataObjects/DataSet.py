@@ -507,7 +507,7 @@ class DataSet(DataObject):
   def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False):
     """
       Method to obtain a realization from the data, either by index or matching value.
-      Either "index" or "matchDict" must be supplied.
+      Either "index" or one of ("matchDict", "noMatchDict") must be supplied.
       If matchDict and no match is found, will return (len(self),None) after the pattern of numpy, scipy
       @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
@@ -1517,7 +1517,7 @@ class DataSet(DataObject):
       rlz[var] = vals
     return rlz
 
-  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-14):
+  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15):
     """
       Obtains a realization from the collector storage matching the provided index
       @ In, toMatch, dict, elements to match
@@ -1542,7 +1542,6 @@ class DataSet(DataObject):
       if toMatch:
         possibleMatch = self._collector[r, matchIndices]
         for e, element in enumerate(np.atleast_1d(possibleMatch)):
-          # var = matchVars[e]
           if mathUtils.isAFloatOrInt(element):
             match &= mathUtils.compareFloats(matchVals[e], element, tol=tol)
           else:
@@ -1586,7 +1585,9 @@ class DataSet(DataObject):
   # @profile
   def _getRealizationFromDataByValue(self, match, noMatch, tol=1e-15, unpackXArray=False):
     """
-      Obtains a realization from the data storage using the provided index.
+      Obtains a realization from the data storage using the provided matching (or antimatching) dictionaries.
+      For "match", valid entries must be within tol of the provided value for each variable
+      For "noMatch", valid entries must NOT be within tol of the provided value for each variable
       @ In, match, dict, elements to match
       @ In, noMatch, dict, elements to AVOID matching (should not match within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
@@ -1609,16 +1610,7 @@ class DataSet(DataObject):
       # float instances are relative, others are absolute
       if mathUtils.isAFloatOrInt(val):
         # scale if we know how
-        try:
-          loc, scale = self._scaleFactors[var]
-        except KeyError:
-        # variable doesn't have a scale factor (why not? it's a float or int ...)
-          loc = 0.0
-          scale = 1.0
-        if scale == 0:
-          # TODO: Seem to me, we need to find a better way to compare data
-          # The scale will be zero if Grid Sampler is used, reset to 1.0
-          scale = 1.0
+        loc, scale = self._getScalingFactors(var)
         scaleVal = (val-loc) / scale
         # create mask of where the dataarray matches the desired value
         mask *= abs((self._data[var]-loc)/scale - scaleVal) < tol
@@ -1635,16 +1627,7 @@ class DataSet(DataObject):
         # float instances are relative, others are absolute
         if mathUtils.isAFloatOrInt(vals[0]):
           # scale if we know how
-          try:
-            loc, scale = self._scaleFactors[var]
-          except KeyError:
-          # variable doesn't have a scale factor (why not? it's a float or int ...)
-            loc = 0.0
-            scale = 1.0
-          if scale == 0:
-            # TODO: Seem to me, we need to find a better way to compare data
-            # The scale will be zero if Grid Sampler is used, reset to 1.0
-            scale = 1.0
+          loc, scale = self._getScalingFactors(var)
           # create mask of where the dataarray matches the desired value
           dataVal = (self._data[var] - loc) / scale
           for val in vals:
@@ -1691,6 +1674,22 @@ class DataSet(DataObject):
       # BY DEFAULT keep everything needed to reload this entity.  Inheritors can define _neededForReload to specify what that is.
       keep = set(self._inputs + self._outputs + self._metavars + self._neededForReload)
     return keep
+
+  def _getScalingFactors(self, var):
+    """
+      Returns (or defaults) scaling factors.
+      @ In, var, str, name of variable for which factors should be obtained
+      @ Out, loc, float, translation scalar
+      @ Out, scale, float, scaling scalar
+    """
+    try:
+      loc, scale = self._scaleFactors[var]
+    except KeyError:
+      loc = 0.0
+      scale = 1.0
+    if scale == 0:
+      scale = 1.0
+    return loc, scale
 
   def _getVariableIndex(self,var):
     """

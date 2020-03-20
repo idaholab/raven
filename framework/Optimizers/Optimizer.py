@@ -302,10 +302,10 @@ class Optimizer(AdaptiveSampler):
   # Utility Methods #
   ###################
   @abc.abstractmethod
-  def checkConvergence(self):
+  def checkConvergence(self, traj):
     """
       Method to check whether the convergence criteria has been met.
-      @ In, none,
+      @ In, traj, int, trajectory identifier
       @ Out, convergence, bool, variable indicating whether the convergence criteria has been met.
     """
 
@@ -329,14 +329,6 @@ class Optimizer(AdaptiveSampler):
     """
     # TODO shouldn't this require the realization and information to do right?
     info['traj'] = kwargs['traj']
-
-  def checkConstraint(self, optVars):
-    """
-      Method to check whether a set of decision variables satisfy the constraint or not in UNNORMALIZED input space
-      @ In, optVars, dict, dictionary containing the value of decision variables to be checked, in form of {varName: varValue}
-      @ Out, satisfaction, tuple, (bool,list) => (variable indicating the satisfaction of constraints at the point optVars, masks for the under/over violations)
-    """
-    TODO
 
   def _collectOptValue(self, rlz):
     """

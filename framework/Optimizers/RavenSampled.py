@@ -165,7 +165,7 @@ class RavenSampled(Optimizer):
     """
       Check for trajectory convergence
       @ In, traj, int, trajectory to consider
-      @ Out, None? FIXME
+      @ Out, None
     """
 
   @abc.abstractmethod
