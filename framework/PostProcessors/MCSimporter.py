@@ -154,7 +154,7 @@ class MCSImporter(PostProcessor):
         counter = counter+1
         if self.expand==False:
           self.beList.update(elementsList)
-    if self.expand==True:
+    if self.expand:
       beData = pd.read_csv(BElistFile.getFilename())
       self.beList = beData[self.beListColumn].values.tolist()
 
