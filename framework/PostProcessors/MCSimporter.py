@@ -96,7 +96,7 @@ class MCSImporter(PostProcessor):
     expand = paramInput.findFirst('expand')
     self.expand = expand.value
 
-    if self.expand == True:
+    if self.expand:
       beListColumn = paramInput.findFirst('BElistColumn')
       self.beListColumn = beListColumn.value
 
