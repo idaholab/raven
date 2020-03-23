@@ -25,10 +25,10 @@ from __future__ import division, print_function, absolute_import
 #External Modules------------------------------------------------------------------------------------
 import copy
 import collections
+import contrib.lazy.lazy_loader as lazy_loader
+statsmodels = lazy_loader.LazyLoader("statsmodels", globals(), "statsmodels")
 import numpy as np
-import statsmodels.api as sm # VARMAX is in sm.tsa
 import functools
-from statsmodels.tsa.arima_model import ARMA as smARMA
 from scipy.linalg import solve_discrete_lyapunov
 from scipy import stats
 from sklearn import linear_model
@@ -717,14 +717,15 @@ class ARMA(supervisedLearning):
       numSamples =  len(self.pivotParameterValues)
     if randEngine is None:
       randEngine=self.randomEng
-    hist = sm.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
-                                       ma = np.append(1., model.maparams),
-                                       nsample = numSamples,
-                                       distrvs = functools.partial(randomUtils.randomNormal,engine=randEngine),
+    import statsmodels.api
+    hist = statsmodels.api.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
+                                                    ma = np.append(1., model.maparams),
+                                                    nsample = numSamples,
+                                                    distrvs = functools.partial(randomUtils.randomNormal,engine=randEngine),
                                        # functool.partial provide the random number generator as a function
                                        # with normal distribution and take engine as the positional arguments keywords.
-                                       sigma = np.sqrt(model.sigma2),
-                                       burnin = 2*max(self.P,self.Q)) # @epinas, 2018
+                                                    sigma = np.sqrt(model.sigma2),
+                                                    burnin = 2*max(self.P,self.Q)) # @epinas, 2018
     return hist
 
   def _generateFourierSignal(self, pivots, periods):
@@ -894,7 +895,8 @@ class ARMA(supervisedLearning):
     """
     if masks is not None:
       data = data[masks]
-    results = smARMA(data, order = (self.P, self.Q)).fit(disp = False)
+    import statsmodels.api
+    results =  statsmodels.tsa.arima_model.ARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
   def _trainCDF(self, data, binOps=None):
@@ -1067,7 +1069,8 @@ class ARMA(supervisedLearning):
       @ Out, stateDist, Distributions.MultivariateNormal, MVN from which VARMA noise is taken
       @ Out, initDist, Distributions.MultivariateNormal, MVN from which VARMA initial state is taken
     """
-    model = sm.tsa.VARMAX(endog=data, order=(self.P, self.Q))
+    import statsmodels.api
+    model = statsmodels.api.tsa.VARMAX(endog=data, order=(self.P, self.Q))
     self.raiseADebug('... ... ... fitting VARMA ...')
     results = model.fit(disp=False, maxiter=1000)
     lenHist, numVars = data.shape
