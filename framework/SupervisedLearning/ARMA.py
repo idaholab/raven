@@ -31,7 +31,7 @@ import numpy as np
 import functools
 from scipy.linalg import solve_discrete_lyapunov
 from scipy import stats
-from sklearn import linear_model
+sklearn = lazy_loader.LazyLoader("sklearn", globals(), "sklearn")
 from scipy.signal import find_peaks
 from scipy.stats import rv_histogram
 #External Modules End--------------------------------------------------------------------------------
@@ -982,7 +982,7 @@ class ARMA(supervisedLearning):
     #                 1:   cos(2pi*t/period[0]),
     #                 2:   sin(2pi*t/period[1]),
     #                 3:   cos(2pi*t/period[1]), ...
-    fourierEngine = linear_model.LinearRegression(normalize=False)
+    fourierEngine = sklearn.linear_model.LinearRegression(normalize=False)
     fourierSignals = fourierSignalsFull[masks, :]
     values = values[masks]
     # check collinearity
@@ -999,7 +999,7 @@ class ARMA(supervisedLearning):
       coeffs = np.zeros(F2)
       for fn in range(F2):
         fSignal = fourierSignals[:,fn]
-        eng = linear_model.LinearRegression(normalize=False)
+        eng = sklearn.linear_model.LinearRegression(normalize=False)
         eng.fit(fSignal.reshape(H,1), signalToFit)
         thisIntercept = eng.intercept_
         thisCoeff = eng.coef_[0]

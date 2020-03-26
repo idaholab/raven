@@ -27,7 +27,8 @@ import math
 import copy
 import numpy as np
 from itertools import product
-from sklearn import neighbors
+import contrib.lazy.lazy_loader as lazy_loader
+sklearn = lazy_loader.LazyLoader("sklearn", globals(), "sklearn")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -82,7 +83,7 @@ class NDsplineRom(NDinterpolatorRom):
       newTargetVals = np.zeros( (newNumberSamples,len(self.target)) )
       for index in range(len(self.target)):
         # not a tensor grid => interpolate
-        nr = neighbors.KNeighborsRegressor(n_neighbors= min(2**len(self.features),len(targetVals)), weights='distance')
+        nr = sklearn.neighbors.KNeighborsRegressor(n_neighbors= min(2**len(self.features),len(targetVals)), weights='distance')
         nr.fit(featureVals, targetVals[:,index])
         # new target values
         newTargetVals[:,index] = nr.predict(newFeatureVals)
