@@ -114,10 +114,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.tolerance           = None             #this is norm of the error threshold
     self.subGridTol          = None             #This is the tolerance used to construct the testing sub grid
     self.toleranceWeight     = 'cdf'            #this is the a flag that controls if the convergence is checked on the hyper-volume or the probability
-    self.persistence         = 5                #this is the number of times the error needs to fell below the tollerance before considering the sim converged
+    self.persistence         = 5                #this is the number of times the error needs to fell below the tolerance before considering the sim converged
     self.repetition          = 0                #the actual number of time the error was below the requested threshold
     self.forceIteration      = False            #this flag control if at least a self.limit number of iteration should be done
-    self.axisName            = None             #this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
+    self.axisName            = None             #this is the ordered list of the variable names (ordering match self.gridStepSize and the ordering in the test matrixes)
     self.oldTestMatrix       = OrderedDict()    #This is the test matrix to use to store the old evaluation of the function
     self.persistenceMatrix   = OrderedDict()    #this is a matrix that for each point of the testing grid tracks the persistence of the limit surface position
     self.invPointPersistence = OrderedDict()    #this is a matrix that for each point of the testing grid tracks the inverse of the persistence of the limit surface position
@@ -400,12 +400,10 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.hangingPoints                        = np.ndarray((0, self.nVar))
     self.raiseADebug('Initialization done')
 
-  def localStillReady(self,ready): #,lastOutput=None
+  def localStillReady(self,ready):
     """
       first perform some check to understand what it needs to be done possibly perform an early return
       ready is returned
-      lastOutput should be present when the next point should be chosen on previous iteration and convergence checked
-      lastOutput it is not considered to be present during the test performed for generating an input batch
       ROM if passed in it is used to construct the test matrix otherwise the nearest neighbor value is used
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.

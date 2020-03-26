@@ -23,8 +23,7 @@ from __future__ import division, print_function, absolute_import
 #----- end python 2 - 3 compatibility
 
 #External Modules------------------------------------------------------------------------------------
-import lazy_import
-from importlib import util as imutil
+import contrib.lazy.lazy_loader as lazy_loader
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 #Internal Modules End--------------------------------------------------------------------------------
@@ -38,17 +37,8 @@ def importModuleLazy(moduleString):
     @ In, moduleString, str, the module to import (e.g. numpy or scipy.stats, etc.)
     @ Out, mod, Object, the imported module (lazy)
   """
-  return lazy_import.lazy_module(moduleString.strip())
-
-def importCollableLazy(collableString):
-  """
-    This method is aimed to import a collable method or attribute
-    within a module that needs to be lazy imported
-    @ In, moduleString, str, the collable to point (e.g. numpy.arange, numpy.ndarray, etc.)
-    @ Out, callable, Object_Pointer, the collable (lazy)
-  """
-  return lazy_import.lazy_callable(collableString.strip())
-
+  name = moduleString.strip()
+  return lazy_loader.LazyLoader(name, globals(), name)
 
 def isLibAvail(moduleString):
   """

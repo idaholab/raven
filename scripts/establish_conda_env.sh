@@ -91,6 +91,7 @@ function install_libraries()
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`
+    if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
   else
@@ -99,6 +100,7 @@ function install_libraries()
     # pip install
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pip ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} pip --action install)`
+    if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pip command: ${COMMAND}; fi
     ${COMMAND}
   fi
@@ -122,6 +124,7 @@ function create_libraries()
     activate_env
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from PIP-ONLY ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} conda --action install --subset pip)`
+    if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ...pip-only command: ${COMMAND}; fi
     ${COMMAND}
   else
@@ -134,6 +137,7 @@ function create_libraries()
     # pip install
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Installing libraries from pip ...; fi
     local COMMAND=`echo $($PYTHON_COMMAND ${RAVEN_LIB_HANDLER}  ${INSTALL_OPTIONAL} ${OSOPTION} pip --action install)`
+    if [[ "$PROXY_COMM" != "" ]]; then COMMAND=`echo $COMMAND --proxy $PROXY_COMM`; fi
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... pip command: ${COMMAND}; fi
     ${COMMAND}
   fi
@@ -160,6 +164,9 @@ function display_usage()
 	echo ''
 	echo '    --installation-manager'
 	echo '      Package installation manager. (CONDA, PIP). If not provided, default to CONDA'
+	echo ''
+	echo '    --proxy <proxy>'
+	echo '      Specify a proxy to be used in the form [user:passwd@]proxy.server:port.'
 	echo ''
 	echo '    --install'
 	echo '      Installs current python library versions for this release of RAVEN using conda'
@@ -222,6 +229,7 @@ INSTALL_OPTIONAL="" # --optional if installing optional, otherwise blank
 ECE_VERBOSE=0 # 0 for printing, anything else for no printing
 ECE_CLEAN=0 # 0 for yes (remove raven libs env before installing), 1 for don't remove it
 INSTALL_MANAGER="CONDA" # CONDA (default) or PIP
+PROXY_COMM="" # proxy is none
 
 # parse command-line arguments
 while test $# -gt 0
@@ -234,6 +242,10 @@ do
     --installation-manager)
       shift
       INSTALL_MANAGER=$1
+      ;;
+    --proxy)
+      shift
+      PROXY_COMM=$1
       ;;
     --load)
       ECE_MODE=1

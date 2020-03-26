@@ -9475,6 +9475,14 @@ MINOR EDIT time=  4.90000000E+01 adv=   796 M.Ed. Lines    50
    47.0000       1024.5       918.61       907.60      1.95555E-03  3.29790E-04   0.0000       920.93    
    48.0000       1015.2       918.86       907.93      4.51263E-03  8.37150E-04   0.0000       908.18    
    49.0000       1008.5       919.14       908.22      7.75776E-03  2.16307E-02  1.17042E-06   899.37    
+0Reflood calculation became suspect at timehy = 2.52388E+04 because the code did not allocate enough storage for the axial
+nodes required for this transient; storage can not be increased by input data or jcl change, but the number of axial nodes can.
+0 nmy =       161 iglrfl(ih) =       159 numbers of axial    nodes are ... 
+           2           2           4          16           8           8           8           8
+           8           8           8           8           8           8           8           8
+           8           8           8           8           8
+ Reducing time step due to max number of repeats                584470
+ Reducing time step due to max number of repeats                588786
   MINOR EDIT
 MINOR EDIT time=  9.90000000E+01 adv=  1392 M.Ed. Lines   100
 1 time        p            p            p            voidg        voidg        voidg        mflowj       

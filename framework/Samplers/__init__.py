@@ -41,6 +41,7 @@ from .AdaptiveSampler      import AdaptiveSampler
 from .LimitSurfaceSearch   import LimitSurfaceSearch
 from .AdaptiveSobol        import AdaptiveSobol
 from .AdaptiveSparseGrid   import AdaptiveSparseGrid
+from .AdaptiveMonteCarlo   import AdaptiveMonteCarlo
 # Dynamic Event Tree-based Samplers
 from .DynamicEventTree         import DynamicEventTree
 from .AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
@@ -52,4 +53,4 @@ from .Factory import returnClass
 # We should not really need this as we do not use wildcard imports
 __all__ = ['Sampler','AdaptiveSampler','ForwardSampler','MonteCarlo','Grid','CustomSampler','Stratified',
            'FactorialDesign','ResponseSurfaceDesign','Sobol','EnsembleForward','SparseGridCollocation',
-           'DynamicEventTree','LimitSurfaceSearch','AdaptiveDynamicEventTree','AdaptiveSparseGrid','AdaptiveSobol']
+           'DynamicEventTree','LimitSurfaceSearch','AdaptiveDynamicEventTree','AdaptiveSparseGrid','AdaptiveSobol','AdaptiveMonteCarlo']
