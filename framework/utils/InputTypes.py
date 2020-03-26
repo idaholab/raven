@@ -404,15 +404,16 @@ class BoolType(EnumBaseType):
       @ In, value, string, the value to convert
       @ Out, convert, bool, the converted value
     """
-    if value.lower() in utils.stringsThatMeanTrue():
+    if utils.stringIsTrue(value):
       return True
-    elif value.lower() in utils.stringsThatMeanFalse():
+    elif utils.stringIsFalse(value):
       return False
     else:
-      raise IOError('Unrecognized boolean value: "{}"! Expected "True" or "False", or similar.'.format(value))
-
-boolTypeList = utils.stringsThatMeanTrue() + utils.stringsThatMeanFalse()
-BoolType.createClass("bool", "boolType", boolTypeList + [elm.capitalize() for elm in boolTypeList])
+      raise IOError('Unrecognized boolean value: "{}"! Expected one of {}'.format(value, utils.boolThingsFull))
+# NOTE this is not a perfect fit; technically the rules for being bool are in utils.utils
+# and are not easily captured by this enum structure. This could potentially be fixed if we
+# made a clear finite set of "true" and "false" options with capitalization.
+BoolType.createClass("bool", "boolType", list(utils.boolThingsFull) + list(utils.trueThings) + list(utils.falseThings))
 
 
 

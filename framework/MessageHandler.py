@@ -194,7 +194,7 @@ class MessageHandler(object):
     self.verbosity     = initDict.get('verbosity','all').lower()
     self.callerLength  = initDict.get('callerLength',40)
     self.tagLength     = initDict.get('tagLength',30)
-    self.suppressErrs  = initDict['suppressErrs'] in utils.stringsThatMeanTrue() if 'suppressErrs' in initDict.keys() else False
+    self.suppressErrs  = utils.stringIsTrue(initDict.get('suppressErrs', 'False'))
 
   def printWarnings(self):
     """
@@ -234,11 +234,11 @@ class MessageHandler(object):
       @ In, msg, string, the string that means true or false
       @ Out, None
     """
-    if msg.lower() in utils.stringsThatMeanTrue():
+    if utils.stringIsTrue(msg):
       self.callerLength = 40
       self.tagLength = 30
       self.printTime = True
-    elif msg.lower() in utils.stringsThatMeanFalse():
+    elif utils.stringIsFalse(msg):
       self.callerLength = 25
       self.tagLength = 15
       self.printTime = False
@@ -249,7 +249,7 @@ class MessageHandler(object):
       @ In, inColor, string, boolean value
       @ Out, None
     """
-    if inColor.lower() in utils.stringsThatMeanTrue():
+    if utils.stringIsTrue(inColor):
       self.inColor = True
 
   def getStringFromCaller(self,obj):

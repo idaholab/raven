@@ -187,12 +187,13 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
 
     self.pauseEndStep = False
     if 'pauseAtEnd' in paramInput.parameterValues:
-      if   paramInput.parameterValues['pauseAtEnd'].lower() in utils.stringsThatMeanTrue():
+      if utils.stringIsTrue(paramInput.parameterValues['pauseAtEnd']):
         self.pauseEndStep = True
-      elif paramInput.parameterValues['pauseAtEnd'].lower() in utils.stringsThatMeanFalse():
+      elif utils.stringIsFalse(paramInput.parameterValues['pauseAtEnd']):
         self.pauseEndStep = False
       else:
-        self.raiseAnError(IOError,printString.format(self.type,self.name,paramInput.parameterValues['pauseAtEnd'],'pauseAtEnd'))
+        self.raiseAnError(IOError,printString.format(self.type,self.name,paramInput.parameterValues['pauseAtEnd'],'pauseAtEnd'),
+                                  'expected one of {}'.format(utils.boolThingsFull))
     if 'repeatFailureRuns' in paramInput.parameterValues:
       failureSettings = str(paramInput.parameterValues['repeatFailureRuns']).split("|")
       self.failureHandling['fail'] = False

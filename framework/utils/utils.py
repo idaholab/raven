@@ -222,23 +222,44 @@ def convertMultipleToBytes(sizeString):
     except:
       raise IOError(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
 
-def stringsThatMeanTrue():
-  """
-    Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
-    @ In, None
-    @ Out, listOfStrings, list, list of strings that mean True in RAVEN
-  """
-  listOfStrings = list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
-  return listOfStrings
+# I don't think there's a reason to make this an enum, but it could be done.
+trueThingsFull = ('True', 'Yes', '1')
+trueThings = tuple(x[0].lower() for x in trueThingsFull)
+trueThingLegacy = ['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on']
 
-def stringsThatMeanFalse():
+def stringIsTrue(s):
   """
-    Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
-    @ In, None
-    @ Out, listOfStrings, list, list of strings that mean False in RAVEN
+    Determines if provided entity corresponds to a truth statement
+    @ In, s, string or castable, entity to check
+    @ Out, stringIsTrue, bool, True if string is recognized by RAVEN as evaluating to True
   """
-  listOfStrings = list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
-  return listOfStrings
+  # as far as I know, nothing in python cannot be cast as a string.
+  s = str(s).strip()
+  return s.lower().startswith(trueThings)
+
+# I don't think there's a reason to make this an enum, but it could be done.
+falseThingsFull = ('False', 'No', '0')
+falseThings = tuple(x[0].lower() for x in falseThingsFull)
+falseThingLegacy = ['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off']
+def stringIsFalse(s):
+  """
+    Determines if provided entity corresponds to a falsehood statement
+    @ In, s, string or castable, entity to check
+    @ Out, stringIsFalse, bool, False if string is recognized by RAVEN as evaluating to False
+  """
+  # as far as I know, nothing in python cannot be cast as a string.
+  s = str(s).strip()
+  return s.lower().startswith(falseThings)
+
+boolThingsFull = tuple(list(trueThingsFull)+list(falseThingsFull))
+
+def stringIsBoolean(s):
+  """
+    Determines if string is recognizable by RAVEN as an acceptable boolean value
+    @ In, s, string or castable, entity to check
+    @ Out, stringIsBoolean, bool, True if string recognized at True or False
+  """
+  return stringIsTrue(s) or stringIsFalse(s)
 
 def stringsThatMeanSilent():
   """
@@ -282,9 +303,9 @@ def interpretBoolean(inArg):
     else:
       return True
   elif type(inArg).__name__ in ['str','bytes','unicode']:
-    if inArg.lower().strip() in stringsThatMeanTrue():
+    if stringIsTrue(inArg):
       return True
-    elif inArg.lower().strip() in stringsThatMeanFalse():
+    elif stringIsFalse(inArg):
       return False
     else:
       raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
