@@ -31,7 +31,6 @@ import numpy as np
 import functools
 from scipy.linalg import solve_discrete_lyapunov
 from scipy import stats
-sklearn = lazy_loader.LazyLoader("sklearn", globals(), "sklearn")
 from scipy.signal import find_peaks
 from scipy.stats import rv_histogram
 #External Modules End--------------------------------------------------------------------------------
@@ -970,6 +969,7 @@ class ARMA(supervisedLearning):
       @ In, target, string, optional, target of the training
       @ Out, fourierResult, dict, results of this training in keys 'residues', 'fourierSet', 'predict', 'regression'
     """
+    import sklearn.linear_model
     # XXX fix for no order
     if masks is None:
       masks = np.ones(len(values), dtype=bool)

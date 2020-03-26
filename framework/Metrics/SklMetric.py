@@ -61,16 +61,12 @@ class SKL(Metric):
     """
     Metric.__init__(self)
 
-    if len(self.availMetrics) > 0:
+    if len(self.availMetrics) == 0:
       import sklearn
-      import sklearn.metrics.pairwise
-      import sklearn.metrics.explained_variance_score
-      import sklearn.metrics.mean_absolute_error
-      import sklearn.metrics.mean_squared_error
+      import sklearn.metrics
       # FIXME: median_absolute_error only accepts 1-D numpy array, and if we want to use this metric, it should
       # be handled differently.
       #from sklearn.metrics import median_absolute_error
-      import sklearn.metrics.r2_score
 
       # regression metrics
       self.availMetrics['regression'] = {}

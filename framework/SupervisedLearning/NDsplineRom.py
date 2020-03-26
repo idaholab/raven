@@ -27,8 +27,6 @@ import math
 import copy
 import numpy as np
 from itertools import product
-import contrib.lazy.lazy_loader as lazy_loader
-sklearn = lazy_loader.LazyLoader("sklearn", globals(), "sklearn")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -64,6 +62,7 @@ class NDsplineRom(NDinterpolatorRom):
       @ Out, targetVals, array, shape = [n_samples], an array of output target
         associated with the corresponding points in featureVals
     """
+    import sklearn.neighbors
     numDiscrPerDimension = int(math.ceil(len(targetVals)**(1./len(self.features))))
     newNumberSamples     = numDiscrPerDimension**len(self.features)
     # get discretizations
