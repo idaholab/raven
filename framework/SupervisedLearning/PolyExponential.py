@@ -140,7 +140,7 @@ class PolyExponential(supervisedLearning):
       @ In, targetVals, numpy.ndarray, shape = (n_samples, n_timeStep), an array of time series data
     """
     import sklearn.preprocessing
-    import sklearn.pipeline.make_pipeline
+    import sklearn.pipeline
     import sklearn.linear_model
     import sklearn.neighbors
     # check if the data are time-dependent, otherwise error out

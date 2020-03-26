@@ -29,7 +29,6 @@ import random as rn
 import matplotlib
 import platform
 from scipy import stats
-from sklearn import preprocessing
 import os
 
 import contrib.lazy.lazy_loader as lazy_loader
@@ -245,6 +244,7 @@ if isTensorflowAvailable():
                          self.kerasROMDict['kerasAdvancedActivationLayersList'] + self.kerasROMDict['kerasNormalizationLayersList'] + \
                          self.kerasROMDict['kerasNoiseLayersList']
       # LabelEncoder can be used to normalize labels
+      from sklearn import preprocessing
       self.labelEncoder = preprocessing.LabelEncoder()
       # perform z-score normalization if True
       self.externalNorm = True

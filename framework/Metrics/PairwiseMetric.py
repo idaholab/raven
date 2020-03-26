@@ -25,16 +25,7 @@ import numpy as np
 import scipy
 import ast
 from utils import utils
-import sklearn
-import sklearn.metrics.pairwise as pairwise
-from sklearn.metrics import explained_variance_score
-from sklearn.metrics import mean_absolute_error
-from sklearn.metrics import mean_squared_error
 import scipy.spatial.distance as spatialDistance
-# FIXME: median_absolute_error only accepts 1-D numpy array, and if we want to use this metric, it should
-# be handled differently.
-#from sklearn.metrics import median_absolute_error
-from sklearn.metrics import r2_score
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -48,37 +39,6 @@ class PairwiseMetric(Metric):
     Scikit-learn pairwise metrics
   """
   availMetrics ={}
-  # pairwised kernel metrics
-  availMetrics['kernel'] = {}
-  availMetrics['kernel']['additive_chi2']       = pairwise.additive_chi2_kernel
-  availMetrics['kernel']['chi2']                = pairwise.chi2_kernel
-  availMetrics['kernel']['cosine_similarity']   = pairwise.cosine_similarity
-  availMetrics['kernel']['laplacian']           = pairwise.laplacian_kernel
-  availMetrics['kernel']['linear']              = pairwise.linear_kernel
-  availMetrics['kernel']['polynomial']          = pairwise.polynomial_kernel
-  availMetrics['kernel']['rbf']                 = pairwise.rbf_kernel
-  availMetrics['kernel']['sigmoid']             = pairwise.sigmoid_kernel
-  # pairwised distance metrices
-  availMetrics['pairwise'] = {}
-  availMetrics['pairwise']['euclidean']         = pairwise.euclidean_distances
-  availMetrics['pairwise']['manhattan']         = pairwise.manhattan_distances
-  # pairwised metrics from scipy
-  availMetrics['pairwise']['minkowski']         = None
-  availMetrics['pairwise']['mahalanobis']       = None
-  availMetrics['pairwise']['braycurtis']        = None
-  availMetrics['pairwise']['canberra']          = None
-  availMetrics['pairwise']['chebyshev']         = None
-  availMetrics['pairwise']['correlation']       = None
-  availMetrics['pairwise']['dice']              = None
-  availMetrics['pairwise']['hamming']           = None
-  availMetrics['pairwise']['jaccard']           = None
-  availMetrics['pairwise']['kulsinki']          = None
-  availMetrics['pairwise']['matching']          = None
-  availMetrics['pairwise']['rogerstanimoto']    = None
-  availMetrics['pairwise']['russellrao']        = None
-  availMetrics['pairwise']['sokalmichener']     = None
-  availMetrics['pairwise']['sokalsneath']       = None
-  availMetrics['pairwise']['yule']              = None
 
   @classmethod
   def getInputSpecification(cls):
@@ -104,6 +64,42 @@ class PairwiseMetric(Metric):
       @ Out, None
     """
     Metric.__init__(self)
+    if len(self.availMetrics) == 0:
+      import sklearn
+      import sklearn.metrics.pairwise
+
+      # pairwised kernel metrics
+      self.availMetrics['kernel'] = {}
+      self.availMetrics['kernel']['additive_chi2']       = sklearn.metrics.pairwise.additive_chi2_kernel
+      self.availMetrics['kernel']['chi2']                = sklearn.metrics.pairwise.chi2_kernel
+      self.availMetrics['kernel']['cosine_similarity']   = sklearn.metrics.pairwise.cosine_similarity
+      self.availMetrics['kernel']['laplacian']           = sklearn.metrics.pairwise.laplacian_kernel
+      self.availMetrics['kernel']['linear']              = sklearn.metrics.pairwise.linear_kernel
+      self.availMetrics['kernel']['polynomial']          = sklearn.metrics.pairwise.polynomial_kernel
+      self.availMetrics['kernel']['rbf']                 = sklearn.metrics.pairwise.rbf_kernel
+      self.availMetrics['kernel']['sigmoid']             = sklearn.metrics.pairwise.sigmoid_kernel
+      # pairwised distance metrices
+      self.availMetrics['pairwise'] = {}
+      self.availMetrics['pairwise']['euclidean']         = sklearn.metrics.pairwise.euclidean_distances
+      self.availMetrics['pairwise']['manhattan']         = sklearn.metrics.pairwise.manhattan_distances
+      # pairwised metrics from scipy
+      self.availMetrics['pairwise']['minkowski']         = None
+      self.availMetrics['pairwise']['mahalanobis']       = None
+      self.availMetrics['pairwise']['braycurtis']        = None
+      self.availMetrics['pairwise']['canberra']          = None
+      self.availMetrics['pairwise']['chebyshev']         = None
+      self.availMetrics['pairwise']['correlation']       = None
+      self.availMetrics['pairwise']['dice']              = None
+      self.availMetrics['pairwise']['hamming']           = None
+      self.availMetrics['pairwise']['jaccard']           = None
+      self.availMetrics['pairwise']['kulsinki']          = None
+      self.availMetrics['pairwise']['matching']          = None
+      self.availMetrics['pairwise']['rogerstanimoto']    = None
+      self.availMetrics['pairwise']['russellrao']        = None
+      self.availMetrics['pairwise']['sokalmichener']     = None
+      self.availMetrics['pairwise']['sokalsneath']       = None
+      self.availMetrics['pairwise']['yule']              = None
+
     self.metricType = None
     # True indicates the metric needs to be able to handle pairwise data
     self._pairwiseHandling = True

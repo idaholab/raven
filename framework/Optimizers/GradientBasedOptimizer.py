@@ -28,7 +28,6 @@ import copy
 import abc
 import numpy as np
 from numpy import linalg as LA
-from sklearn.neighbors import NearestNeighbors
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
