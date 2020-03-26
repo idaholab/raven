@@ -432,7 +432,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     if not ready:
       return ready #if we exceeded the limit just return that we are done
     if type(self.lastOutput) == dict:
-      if not self.limitSurfacePP.ROM.amITrained:
+      if self.lastOutput == None and not self.limitSurfacePP.ROM.amITrained:
         return ready
     else:
       #if the last output is not provided I am still generating an input batch, if the rom was not trained before we need to start clean
