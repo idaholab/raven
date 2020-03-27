@@ -23,6 +23,7 @@ import numpy as np
 from collections import deque, defaultdict
 
 from utils.utils import findCrowModule
+from utils import mathUtils
 
 # in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
 # Numoy stochastic environment can not pass the test as this point
@@ -54,8 +55,6 @@ class BoxMullerGenerator:
         self.queue[engine].extend(self.createSamples(engine=engine))
       val = self.queue[engine].pop()
     return val
-
-
 
   def createSamples(self,engine=None):
     """
@@ -90,7 +89,11 @@ else:
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 
-def randomSeed(value,seedBoth=False,engine=None):
+#
+# Utilities
+#
+#
+def randomSeed(value, seedBoth=False, engine=None):
   """
     Function to get a random seed
     @ In, value, float, the seed
@@ -123,7 +126,7 @@ def randomSeed(value,seedBoth=False,engine=None):
   if replaceGlobalEnv:
     print('randomUtils: Global random number seed has been changed to',value)
 
-def random(dim=1,samples=1,keepMatrix=False,engine=None):
+def random(dim=1, samples=1, keepMatrix=False, engine=None):
   """
     Function to get a single random value, an array of random values, or a matrix of random values, on [0,1]
     @ In, dim, int, optional, dimensionality of samples
@@ -132,13 +135,13 @@ def random(dim=1,samples=1,keepMatrix=False,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
   """
-  engine=getEngine(engine)
+  engine = getEngine(engine)
   dim = int(dim)
   samples = int(samples)
   if isinstance(engine, np.random.RandomState):
     vals = engine.rand(samples,dim)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-    vals = np.zeros([samples,dim])
+    vals = np.zeros([samples, dim])
     for i in range(len(vals)):
       for j in range(len(vals[0])):
         vals[i][j] = engine.random()
@@ -146,9 +149,9 @@ def random(dim=1,samples=1,keepMatrix=False,engine=None):
   if keepMatrix:
     return vals
   else:
-    return _reduceRedundantListing(vals,dim,samples)
+    return _reduceRedundantListing(vals, dim, samples)
 
-def randomNormal(dim=1,samples=1,keepMatrix=False,engine=None):
+def randomNormal(dim=1, samples=1, keepMatrix=False, engine=None):
   """
     Function to get a single random value, an array of random values, or a matrix of random values, normally distributed
     @ In, dim, int, optional, dimensionality of samples
@@ -157,7 +160,7 @@ def randomNormal(dim=1,samples=1,keepMatrix=False,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
   """
-  engine=getEngine(engine)
+  engine = getEngine(engine)
   dim = int(dim)
   samples = int(samples)
   if isinstance(engine, np.random.RandomState):
@@ -172,7 +175,7 @@ def randomNormal(dim=1,samples=1,keepMatrix=False,engine=None):
   else:
     return _reduceRedundantListing(vals,dim,samples)
 
-def randomIntegers(low,high,caller,engine=None):
+def randomIntegers(low, high, caller, engine=None):
   """
     Function to get a random integer
     @ In, low, int, low boundary
@@ -181,16 +184,16 @@ def randomIntegers(low,high,caller,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, rawInt, int, random int
   """
-  engine=getEngine(engine)
+  engine = getEngine(engine)
   if isinstance(engine, np.random.RandomState):
-    return engine.randint(low,high=high+1)
+    return engine.randint(low, high=high+1)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-    intRange = high-low
+    intRange = high - low
     rawNum = low + random(engine=engine)*intRange
     rawInt = int(round(rawNum))
     if rawInt < low or rawInt > high:
       caller.raiseAMessage("Random int out of range")
-      rawInt = max(low,min(rawInt,high))
+      rawInt = max(low, min(rawInt, high))
     return rawInt
   else:
     raise TypeError('Engine type not recognized! {}'.format(type(engine)))
@@ -203,7 +206,7 @@ def randomPermutation(l,caller,engine=None):
     @ In, engine, instance, optional, random number generator
     @ Out, newList, list, randomly permuted list
   """
-  engine=getEngine(engine)
+  engine = getEngine(engine)
   if isinstance(engine, np.random.RandomState):
     return engine.permutation(l)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
@@ -310,3 +313,30 @@ def getEngine(eng):
   if not isinstance(eng, np.random.RandomState) and not isinstance(eng, findCrowModule('randomENG').RandomClass):
     raise TypeError('Engine type not recognized! {}'.format(type(eng)))
   return eng
+
+def randomPerpendicularVector(vector):
+  """
+    Finds a random vector perpendicular to the given vector
+    Uses definition of dot product orthogonality:
+    0 = sum_i (p_i * g_i)
+    p_i = rand() forall i != n
+    p_n = -1/g_n * sum_i(p_i * g_i) forall i != n
+    @ In, vector, np.array, ND vector
+    @ Out, perp, np.array, perpendicular vector
+  """
+  # sanity check
+  numNonZero = np.count_nonzero(vector)
+  if not numNonZero:
+    raise RuntimeError('Provided vector is the zero vector!')
+  N = len(vector)
+  indices = np.arange(N)
+  nonZeroMap = vector != 0
+  # choose a random NONZERO index to be dependent (don't divide by zero, mate)
+  depIndex = indices[nonZeroMap][randomIntegers(0, numNonZero - 1, None)]
+  # random values for all but chosen variable
+  perp = randomNormal(N)
+  # cheat some math, zero out the random index term by setting the perp value to 0
+  perp[depIndex] = 0
+  dotProd = np.dot(vector, perp)
+  perp[depIndex] = - dotProd / vector[depIndex]
+  return perp
