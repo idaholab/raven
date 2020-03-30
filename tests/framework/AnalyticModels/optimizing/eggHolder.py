@@ -20,7 +20,8 @@
 import math
 import numpy as np
 def evaluate(x,y):
-  return -(y+47)*math.sin(np.sqrt(abs(x/2+y+47))-x*math.sin(np.sqrt(abs(x-y-47))))
+  return (-(y + 47) * np.sin(np.sqrt(abs(x/2 + (y  + 47))))
+          -x * np.sin(np.sqrt(abs(x - (y  + 47)))))
 
 def run(self,Inputs):
   self.ans = evaluate(self.x,self.y)
