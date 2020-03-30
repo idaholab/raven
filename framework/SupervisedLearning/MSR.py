@@ -26,8 +26,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import numpy as np
 import math
 import sys
-import contrib.lazy.lazy_loader as lazy_loader
-sklearn = lazy_loader.LazyLoader("sklearn", globals(), "sklearn")
+import utils.lazyImporterUtils
+sklearn = utils.lazyImporterUtils.import_module_lazy("sklearn", globals())
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
