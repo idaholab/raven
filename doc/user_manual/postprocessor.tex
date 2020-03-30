@@ -1274,13 +1274,24 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independent of the \xmlAttr{subType} specified:
 
 \begin{itemize}
-   \item \xmlNode{samplingType}, \xmlDesc{string, required field}, specifies the type of sampling method to be used (uniform, firstDerivative secondDerivative, filteredFirstDerivative or
-   filteredSecondDerivative).
-   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, number of samples (required only for the following sampling types: uniform, firstDerivative secondDerivative)
+   \item \xmlNode{samplingType}, \xmlDesc{string, required field}, specifies the type of sampling method to be used:
+   \begin{itemize}
+     \item uniform: the set of $N$ samples are uniformly distributed along the time axis
+     \item firstDerivative: the set of $N$ samples are distributed along the time axis in regions with higher first order derivative
+     \item secondDerivative: the set of $N$ samples are distributed along the time axis in regions with higher second order derivative
+     \item filteredFirstDerivative: samples are located where the first derivative is greater than the specified \xmlNode{tolerance} value 
+                                    (hence, the number of samples can vary from history to history)
+     \item filteredSecondDerivative: samples are located where the second derivative is greater than the specified \xmlNode{tolerance} value
+                                     (hence, the number of samples can vary from history to history)
+   \end{itemize}                                 
+   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, number of samples (required only for the following sampling 
+                                             types: uniform, firstDerivative secondDerivative)
    \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, ID of the temporal variable
-   \item \xmlNode{interpolation}, \xmlDesc{string, optional field}, type of interpolation to be employed for the history recostruction (required only for the following sampling types: uniform,
-   firstDerivative secondDerivative). Valid types of interpolation to specified: linear, nearest, zero, slinear, quadratic, cubic, intervalAverage;
-   \item \xmlNode{tolerance}, \xmlDesc{string, optional field}, tolerance level (required only for the following sampling types: filteredFirstDerivative or filteredSecondDerivative)
+   \item \xmlNode{interpolation}, \xmlDesc{string, optional field}, type of interpolation to be employed for the history reconstruction 
+                                           (required only for the following sampling types: uniform, firstDerivative secondDerivative). 
+                                           Valid types of interpolation to specified: linear, nearest, zero, slinear, quadratic, cubic, intervalAverage
+   \item \xmlNode{tolerance}, \xmlDesc{string, optional field}, tolerance level (required only for the following sampling types: 
+                                       filteredFirstDerivative or filteredSecondDerivative)
 \end{itemize}
 
 \paragraph{Method: HistorySetSync}
@@ -1313,8 +1324,8 @@ independent of the \xmlAttr{subType} specified:
 \end{itemize}
 
 \paragraph{Method: HistorySetSnapShot}
-This Post-Processor performs the conversion from HistorySet to PointSet
-The conversion is made so that each history H is converted to a single point P.
+This Post-Processor performs a conversion from HistorySet to PointSet.
+The conversion is made so that each history $H$ is converted to a single point $P$.
 There are several methods that can be employed to choose the single point from the history:
 \begin{itemize}
   \item min: Take a time slice when the \xmlNode{pivotVar} is at its smallest value,
@@ -1405,11 +1416,11 @@ time$=0.245$ for $y$, and the value of $z$ at $x=4.0$ for $z$.
 \end{lstlisting}
 
 
-\paragraph{Method: HSPS}
+\paragraph{Method: HS2PS}
 
-This Post-Processor performs the conversion from HistorySet to PointSet
-The conversion is made so that each history H is converted to a single point P.
-Assume that each history H is a dict of n output variables $x_1=[...],x_n=[...]$, then the resulting point P is as follows; $P=[x_1,...,x_n]$
+This Post-Processor performs a conversion from HistorySet to PointSet.
+The conversion is made so that each history $H$ is converted to a single point $P$.
+Assume that each history $H$ is a dict of n output variables $x_1=[...],x_n=[...]$, then the resulting point $P$ is as follows; $P=[x_1,...,x_n]$
 Note: it is here assumed that all histories have been sync so that they have the same length, start point and end point. If you are not sure, do a pre-processing the the original history set.
 
 In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
@@ -1467,7 +1478,8 @@ independently of the \xmlAttr{subType} specified:
    \item \xmlNode{clusterIDs}, \xmlDesc{integers, required field}, ID of the selected clusters. Note that more than one ID can be provided as input
 \end{itemize}
 
-\paragraph{Method: HSPS}
+\paragraph{Method: HSPS} 
+%%%%%%%%   [does this PP exists?????]   %%%%%%%%
 The \xmlNode{HSPS} Post-Processor performs a filtering of the dataObject. This particular filtering is based on the labels generated by any clustering algorithm.
 Given the selected label, this Post-Processor filters out all histories or points having a different label.
 In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required:
