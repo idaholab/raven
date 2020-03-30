@@ -112,7 +112,7 @@ class ParetoFrontier(PostProcessor):
     for index,elem in enumerate(sortedData[self.costID].values):
       if (index>1) and (sortedData[self.valueID].values[index]>sortedData[self.valueID].values[coordinates[-1]]):
         coordinates = np.append(coordinates,index)
-        
+
     paretoFrontierData = sortedData.isel(RAVEN_sample_ID=coordinates[0]).to_array().values
     for index,coord in enumerate(coordinates):
       if index>0:
