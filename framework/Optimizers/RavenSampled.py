@@ -367,9 +367,8 @@ class RavenSampled(Optimizer):
         self.raiseADebug('Functional constraint "{n}" was violated!'.format(n=constraint.name))
         self.raiseADebug(' ... point:', point)
       allOkay *= okay
-    return allOkay
+    return bool(allOkay)
 
-  @abc.abstractmethod
   def _applyBoundaryConstraints(self, point):
     """
       Checks and fixes boundary constraints of variables in "point" -> DENORMED point expected!
@@ -377,6 +376,30 @@ class RavenSampled(Optimizer):
       @ Out, point, dict, adjusted variables
       @ Out, modded, bool, whether point was modified or not
     """
+    # TODO should some of this go into the parent Optimizer class, such as the boundary acquiring?
+    modded = False
+    for var in self.toBeSampled:
+      dist = self.distDict[var]
+      val = point[var]
+      lower = dist.lowerBound
+      upper = dist.upperBound
+      if lower is None:
+        lower = -np.inf
+      if upper is None:
+        upper = np.inf
+      if val < lower:
+        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} lower bound: {:1.3e} under by {:1.3e}'
+                          .format(var, val, lower, lower - val))
+        self.raiseADebug(' ... -> for point {}'.format(point))
+        point[var] = lower
+        modded = True
+      elif val > upper:
+        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} upper bound: {:1.3e} over by {:1.3e}'
+                          .format(var, val, upper, val - upper))
+        self.raiseADebug(' ... -> for point {}'.format(point))
+        point[var] = upper
+        modded = True
+    return point, modded
 
   @abc.abstractmethod
   def _applyFunctionalConstraints(self, suggested, previous):
@@ -409,7 +432,8 @@ class RavenSampled(Optimizer):
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     # we only want to update persistance if we've accepted a new point.
     # We don't want rejected points to count against our convergence.
-    self._updatePersistence(traj, converged, optVal)
+    if acceptable in ['accepted']:
+      self._updatePersistence(traj, converged, optVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':
@@ -419,6 +443,7 @@ class RavenSampled(Optimizer):
     if acceptable in ['accepted', 'first']:
       # record history
       self._optPointHistory[traj].append((rlz, info))
+      self.incrementIteration(traj)
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)

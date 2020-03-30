@@ -476,38 +476,6 @@ class GradientDescent(RavenSampled):
 
   # * * * * * * * * * * * * * * * *
   # Resolving potential opt points
-  def _applyBoundaryConstraints(self, point):
-    """
-      Checks and fixes boundary constraints of variables in "point" -> DENORMED point expected!
-      @ In, point, dict, potential point against which to check
-      @ Out, point, dict, adjusted variables
-      @ Out, modded, bool, whether point was modified or not
-    """
-    # TODO should some of this go into the parent Optimizer class, such as the boundary acquiring?
-    modded = False
-    for var in self.toBeSampled:
-      dist = self.distDict[var]
-      val = point[var]
-      lower = dist.lowerBound
-      upper = dist.upperBound
-      if lower is None:
-        lower = -np.inf
-      if upper is None:
-        upper = np.inf
-      if val < lower:
-        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} lower bound: {:1.3e} under by {:1.3e}'
-                         .format(var, val, lower, lower - val))
-        self.raiseADebug(' ... -> for point {}'.format(point))
-        point[var] = lower
-        modded = True
-      elif val > upper:
-        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} upper bound: {:1.3e} over by {:1.3e}'
-                         .format(var, val, upper, val - upper))
-        self.raiseADebug(' ... -> for point {}'.format(point))
-        point[var] = upper
-        modded = True
-    return point, modded
-
   def _applyFunctionalConstraints(self, suggested, previous):
     """
       @ In, suggested, dict, NORMALIZED suggested point
