@@ -1,4 +1,4 @@
-dummy_for_branch,ProbabilityWeight,RAVEN_isEnding,PointProbability,ProbabilityWeight-<distribution>zeroToOne,RAVEN_parentID,prefix,filename
+dummy_for_branch,ProbabilityWeight,RAVEN_isEnding,PointProbability,ProbabilityWeight-zeroToOne,RAVEN_parentID,prefix,filename
 18.02,0.0,1.0,0.0,0.8,DET_test_1-1-2,DET_test_1-1-2-1,testprint_hist_collapsed_15.csv
 18.04,0.18,1.0,0.18,0.5,DET_test_1-1-2,DET_test_1-1-2-2,testprint_hist_collapsed_16.csv
 18.0,0.12,1.0,0.12,0.5,DET_test_1-1-2,DET_test_1-1-2-3,testprint_hist_collapsed_17.csv
