@@ -112,8 +112,8 @@ class ParetoFrontier(PostProcessor):
     for index,elem in enumerate(sortedData[self.costID].values):
       if (index>1) and (sortedData[self.valueID].values[index]>sortedData[self.valueID].values[coordinates[-1]]):
         coordinates = np.append(coordinates,index)
+        
     paretoFrontierData = sortedData.isel(RAVEN_sample_ID=coordinates[0]).to_array().values
-
     for index,coord in enumerate(coordinates):
       if index>0:
         slicedData = sortedData.isel(RAVEN_sample_ID=coord).to_array().values
@@ -122,7 +122,6 @@ class ParetoFrontier(PostProcessor):
     paretoFrontierDict = {}
     for index,varID in enumerate(sortedData.data_vars):
       paretoFrontierDict[varID] = paretoFrontierData[:,index]
-    print(paretoFrontierDict)
     return paretoFrontierDict
 
   def collectOutput(self, finishedJob, output):
@@ -145,4 +144,4 @@ class ParetoFrontier(PostProcessor):
         outputDict['dims'][key] = []
       output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
     else:
-        self.raiseAnError(RuntimeError, 'MCSImporter failed: Output type ' + str(output.type) + ' is not supported.')
+        self.raiseAnError(RuntimeError, 'ParetoFrontier failed: Output type ' + str(output.type) + ' is not supported.')
