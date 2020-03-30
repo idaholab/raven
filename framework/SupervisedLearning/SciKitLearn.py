@@ -76,16 +76,16 @@ class SciKitLearn(supervisedLearning):
       @ Out, None
     """
     supervisedLearning.__init__(self,messageHandler,**kwargs)
-    import sklearn # = import_module_lazy("sklearn")
-    import sklearn.linear_model #= import_module_lazy("sklearn.linear_model")
-    import sklearn.svm #= import_module_lazy("sklearn.svm")
-    import sklearn.multiclass #= import_module_lazy("sklearn.multiclass")
-    import sklearn.naive_bayes #= import_module_lazy("sklearn.naive_bayes")
-    import sklearn.neighbors #= import_module_lazy("sklearn.neighbors")
-    import sklearn.tree #= import_module_lazy("sklearn.tree")
-    import sklearn.gaussian_process #= import_module_lazy("sklearn.gaussian_process")
-    import sklearn.discriminant_analysis #da = import_module_lazy("sklearn.discriminant_analysis")
-    import sklearn.neural_network #= import_module_lazy("sklearn.neural_network")
+    import sklearn
+    import sklearn.linear_model
+    import sklearn.svm
+    import sklearn.multiclass
+    import sklearn.naive_bayes
+    import sklearn.neighbors
+    import sklearn.tree
+    import sklearn.gaussian_process
+    import sklearn.discriminant_analysis
+    import sklearn.neural_network
 
     if len(self.availImpl) == 0:
       self.availImpl['lda']                                          = {}                                                            #Linear Discriminant Analysis
