@@ -34,7 +34,7 @@ from utils import utils
 from .Dummy import Dummy
 import Models
 import Files
-from utils import InputData
+from utils import InputData, InputTypes
 from utils import utils
 import Runners
 #Internal Modules End--------------------------------------------------------------------------------
@@ -52,32 +52,32 @@ class HybridModel(Dummy):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
     inputSpecification = super(HybridModel, cls).getInputSpecification()
-    modelInput = InputData.parameterInputFactory("Model", contentType=InputData.StringType)
-    modelInput.addParam("class", InputData.StringType)
-    modelInput.addParam("type", InputData.StringType)
+    modelInput = InputData.parameterInputFactory("Model", contentType=InputTypes.StringType)
+    modelInput.addParam("class", InputTypes.StringType)
+    modelInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(modelInput)
-    romInput = InputData.parameterInputFactory("ROM", contentType=InputData.StringType)
-    romInput.addParam("class", InputData.StringType)
-    romInput.addParam("type", InputData.StringType)
+    romInput = InputData.parameterInputFactory("ROM", contentType=InputTypes.StringType)
+    romInput.addParam("class", InputTypes.StringType)
+    romInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(romInput)
-    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputData.StringType)
-    targetEvaluationInput.addParam("class", InputData.StringType)
-    targetEvaluationInput.addParam("type", InputData.StringType)
+    targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputTypes.StringType)
+    targetEvaluationInput.addParam("class", InputTypes.StringType)
+    targetEvaluationInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(targetEvaluationInput)
 
     # add settings block
-    tolInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
-    maxTrainStepInput = InputData.parameterInputFactory("maxTrainSize", contentType=InputData.IntegerType)
-    initialTrainStepInput = InputData.parameterInputFactory("minInitialTrainSize", contentType=InputData.IntegerType)
-    settingsInput = InputData.parameterInputFactory("settings", contentType=InputData.StringType)
+    tolInput = InputData.parameterInputFactory("tolerance", contentType=InputTypes.FloatType)
+    maxTrainStepInput = InputData.parameterInputFactory("maxTrainSize", contentType=InputTypes.IntegerType)
+    initialTrainStepInput = InputData.parameterInputFactory("minInitialTrainSize", contentType=InputTypes.IntegerType)
+    settingsInput = InputData.parameterInputFactory("settings", contentType=InputTypes.StringType)
     settingsInput.addSub(tolInput)
     settingsInput.addSub(maxTrainStepInput)
     settingsInput.addSub(initialTrainStepInput)
     inputSpecification.addSub(settingsInput)
     # add validationMethod block
-    threshold = InputData.parameterInputFactory("threshold", contentType=InputData.FloatType)
-    validationMethodInput = InputData.parameterInputFactory("validationMethod", contentType=InputData.StringType)
-    validationMethodInput.addParam("name", InputData.StringType)
+    threshold = InputData.parameterInputFactory("threshold", contentType=InputTypes.FloatType)
+    validationMethodInput = InputData.parameterInputFactory("validationMethod", contentType=InputTypes.StringType)
+    validationMethodInput.addParam("name", InputTypes.StringType)
     validationMethodInput.addSub(threshold)
     inputSpecification.addSub(validationMethodInput)
 

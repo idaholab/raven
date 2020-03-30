@@ -19,8 +19,60 @@
 # parameter range is -4.5 <= x,y <= 4.5
 
 def evaluate(x,y):
+  """
+    Evaluates Beale function.
+    @ In, x, float, value
+    @ In, y, float, value
+    @ Out, evaluate, value at x, y
+  """
   return (1.5 - x + x*y)**2 + (2.25 - x + x*y*y)**2 + (2.625 - x + x*y*y*y)**2
 
 def run(self,Inputs):
+  """
+    RAVEN API
+    @ In, self, object, RAVEN container
+    @ In, Inputs, dict, additional inputs
+    @ Out, None
+  """
   self.ans = evaluate(self.x,self.y)
 
+def grad(x, y):
+  """
+    Evaluates gradient of Beale at x, y
+    @ In, x, float, value
+    @ In, y, float, value
+    @ Out, grad, list, gradient of Beale
+  """
+  return [gradX(x, y), gradY(x, y)]
+
+def gradX(x, y):
+  """
+    Evaluates X-gradient of Beale at x, y
+    @ In, x, float, value
+    @ In, y, float, value
+    @ Out, gradX, float, X-gradient of Beale
+  """
+  tot = 0
+  consts = (1.5, 2.25, 2.625)
+  for i in range(1, 4):
+    tot += 2 * (y**i - 1) * (x * (y**i - 1) + consts[i-1])
+  return tot
+
+def gradY(x, y):
+  """
+    Evaluates Y-gradient of Beale at x, y
+    @ In, x, float, value
+    @ In, y, float, value
+    @ Out, gradY, float, Y-gradient of Beale
+  """
+  tot = 0
+  consts = (1.5, 2.25, 2.625)
+  for i in range(1, 4):
+    tot += 2 * i * x * (x * (y**i - 1) + consts[i-1])
+  return tot
+
+if __name__ == '__main__':
+  import sys
+  x = float(sys.argv[1])
+  y = float(sys.argv[2])
+  print(evaluate(x, y), grad(x, y))

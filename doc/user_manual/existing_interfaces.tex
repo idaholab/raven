@@ -892,18 +892,27 @@ the code to run should be specified.
 %
 In the case of any MooseBasedApp, the files typically needed are the following:
 \begin{itemize}
-  \item MooseBasedApp YAML input file
+  \item MooseBasedApp GetPot input file
   \item Restart Files (if the calculation is instantiated from a restart point)
+  \item Mesh Files (in case the mesh is externally specified)
+  \item Any other generic input file (CSVs with Power histories, boundary conditions files, etc.)
 \end{itemize}
 Example:
 \begin{lstlisting}[style=XML]
 <Files>
   <Input name='mooseBasedApp.i' type=''>mooseBasedApp.i</Input>
   <Input name='0020_mesh.cpr' type=''>0020_mesh.cpr</Input>
-  <Input name='0020.xdr.0000'>0020.xdr.0000</Input>
-  <Input name='0020.rd-0'>0020.rd-0</Input>
+  <Input name='0020.xdr.0000' type="">0020.xdr.0000</Input>
+  <Input name='0020.rd-0' type="">0020.rd-0</Input>
+  <Input name='exodus_mesh.e' type="">exodus_mesh.e</Input>
+  <Input name='a_generic_additional_input_file.csv' type="Generic">a_generic_additional_input_file.csv</Input>
 </Files>
 \end{lstlisting}
+If any file is tagged with the type \texttt{Generic}, it will be perturbable with the approach (wildcards)
+ explained in the generic code interface (see  \ref{subsec:genericInterface}).
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Models}
 In the \xmlNode{Models} block particular MooseBasedApp executable needs to be specified.
@@ -994,8 +1003,30 @@ the variable name in the Sampler input block needs to be named as follows:
 ...
 \end{lstlisting}
 %
-In this example, we proceed to do so for both the Grid sampling and the Monte-Carlo sampling.
+In case some variables in external (\texttt{Generic} input files) need to be perturbed, 
+the wildcard approach can be used (for those variables):
+\begin{lstlisting}[style=XML]
+...
+<Samplers>
+  <aSampler name='aUserDefinedName' >
+    <variable name='aWildCard1'>
+      ...
+    </variable>
+        <variable name='aWildCard2'>
+      ...
+    </variable>
+    <variable name='Materials|heatStructure|thermal_conductivity'>
+      ...
+    </variable>
+  </aSampler>
+</Samplers>
+...
+\end{lstlisting}
+In this case the tagged file (\texttt{Generic}) will be parsed to find the variables
+\texttt{\$RAVEN-aWildCard1\$} and \texttt{\$RAVEN-aWildCard1\$} and to replace their values
+with the corresponding sampled variables (for more details, see  \ref{subsec:genericInterface})
 
+In this example, we proceed to do so for both the Grid sampling and the Monte-Carlo sampling.
 \begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
 <Samplers verbosity='debug'>
     <Grid name='myGrid'>
@@ -1011,6 +1042,10 @@ In this example, we proceed to do so for both the Grid sampling and the Monte-Ca
         <distribution  >ThermalConductivity2</distribution>
         <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
       </variable>
+      <variable name='aWildCard1'>
+        <distribution  >ThermalConductivity2</distribution>
+        <grid type='value' upperBound='4' construction='equal' steps='1'>0.5</grid>
+      </variable>
     </Grid>
   <MonteCarlo name='MC_Sampler' limit='1000'>
       <variable name='Materials|heatStructure1|thermal_conductivity' >
@@ -1020,6 +1055,9 @@ In this example, we proceed to do so for both the Grid sampling and the Monte-Ca
         <distribution >SpecificHeat</distribution>
       </variable>
       <variable name='Materials|heatStructure2|thermal_conductivity'>
+        <distribution  >ThermalConductivity2</distribution>
+      </variable>
+      <variable name='aWildCard1'>
         <distribution  >ThermalConductivity2</distribution>
       </variable>
   </MonteCarlo>

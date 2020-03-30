@@ -30,7 +30,7 @@ from functools import reduce
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import InputData
+from utils import InputData, InputTypes
 from .ForwardSampler        import ForwardSampler
 from .MonteCarlo            import MonteCarlo
 from .Grid                  import Grid
@@ -68,7 +68,7 @@ class EnsembleForward(ForwardSampler):
 
     samplerInitInput = InputData.parameterInputFactory("samplerInit")
 
-    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType))
+    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType))
 
     inputSpecification.addSub(samplerInitInput)
     return inputSpecification

@@ -59,8 +59,6 @@ libAlias = {'scikit-learn': 'sklearn',
 # -> see findLibAndVersion
 metaExceptions = ['pyside2', 'AMSC']
 
-skipChecks = ['python', 'hdf5', 'swig', 'nomkl']
-
 # load up the ravenrc if it's present
 ## TODO we only want to do this once, but does it need to get updated?
 rcFile = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.ravenrc'))
@@ -100,10 +98,11 @@ def checkLibraries(buildReport=False):
   notQA = []
   plugins = pluginHandler.getInstalledPlugins()
   need = getRequiredLibs(plugins=plugins)
+  skipCheckLibs = getSkipCheckLibs(plugins=plugins)
   messages = []
   for lib, needVersion in need.items():
     # some libs aren't checked from within python
-    if lib in skipChecks:
+    if lib in skipCheckLibs:
       continue
     found, msg, foundVersion = checkSingleLibrary(lib, version=needVersion)
     if not found:
@@ -240,6 +239,28 @@ def getRequiredLibs(useOS=None, installMethod=None, addOptional=False, limit=Non
       libs.update(pluginLibs)
   return libs
 
+def getSkipCheckLibs(plugins=None):
+  """
+    Assembles dictionary of libraries that would not be checked.
+    @ In, plugins, list(tuple(str,str)), optional, plugins (name, location) that should be added to
+                   the required libs
+    @ Out, skipCheckLibs, dict, dictionary of libraries {name: version}
+  """
+  skipCheckLibs = OrderedDict()
+  mainConfigFile = os.path.abspath(os.path.expanduser(os.path.join(os.path.dirname(__file__),
+                                                                   '..', 'dependencies.ini')))
+  config = _readDependencies(mainConfigFile)
+  if config.has_section('skip-check'):
+    _addLibsFromSection(config.items('skip-check'), skipCheckLibs)
+  # extend config with plugin libs
+  for pluginName, pluginLoc in plugins:
+    pluginConfigFile = os.path.join(pluginLoc, 'dependencies.ini')
+    if os.path.isfile(pluginConfigFile):
+      pluginConfig = _readDependencies(pluginConfigFile)
+      if pluginConfig.has_section('skip-check'):
+        _addLibsFromSection(pluginConfig.items('skip-check'), skipCheckLibs)
+  return skipCheckLibs
+
 def _checkForUpdates(libs, pluginLibs, pluginName):
   """
     Checks requested lib updates for conflicts
@@ -346,6 +367,12 @@ def _parseLibs(config, opSys, install, addOptional=False, limit=None, plugins=No
   # os-specific are part of 'core' right now
   if config.has_section(opSys) and (True if limit is None else ('core' in limit)):
     _addLibsFromSection(config.items(opSys), libs)
+  # os-specific of specific installer (e.g. pip)
+  if limit:
+    for lim in limit:
+      instSpecOp = "{opSys}-{lim}".format(lim=lim, opSys=opSys)
+      if config.has_section(instSpecOp):
+        _addLibsFromSection(config.items(instSpecOp), libs)
   # optional are part of 'core' right now, but leave that up to the requester?
   if addOptional and config.has_section('optional'):
     _addLibsFromSection(config.items('optional'), libs)
@@ -511,4 +538,7 @@ if __name__ == '__main__':
                          .format(lib=lib,
                                  ver=('{}{}'.format(equals, ver) if ver is not None else ''))
                          for lib, ver in libs.items()])
-    print(preamble + libTexts)
+    if len(libTexts) > 0:
+      print(preamble + libTexts)
+    else:
+      print("echo no libs")

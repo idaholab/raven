@@ -25,7 +25,7 @@ import numpy as np
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import Runners
 #Internal Modules End-----------------------------------------------------------
 
@@ -46,7 +46,7 @@ class RealizationAverager(PostProcessor):
     """
     inSpec= super(RealizationAverager, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
-                                                  contentType=InputData.StringListType))
+                                                  contentType=InputTypes.StringListType))
     return inSpec
 
   def __init__(self, messageHandler):

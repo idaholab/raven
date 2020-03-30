@@ -26,7 +26,7 @@ import sys
 
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import InputData
+from utils import InputData, InputTypes
 import Files
 import Runners
 #Internal Modules End-----------------------------------------------------------
@@ -51,37 +51,37 @@ class TopologicalDecomposition(PostProcessor):
     ## This will replace the lines above
     inputSpecification = super(TopologicalDecomposition, cls).getInputSpecification()
 
-    TDGraphInput = InputData.parameterInputFactory("graph", contentType=InputData.StringType)
+    TDGraphInput = InputData.parameterInputFactory("graph", contentType=InputTypes.StringType)
     inputSpecification.addSub(TDGraphInput)
 
-    TDGradientInput = InputData.parameterInputFactory("gradient", contentType=InputData.StringType)
+    TDGradientInput = InputData.parameterInputFactory("gradient", contentType=InputTypes.StringType)
     inputSpecification.addSub(TDGradientInput)
 
-    TDBetaInput = InputData.parameterInputFactory("beta", contentType=InputData.FloatType)
+    TDBetaInput = InputData.parameterInputFactory("beta", contentType=InputTypes.FloatType)
     inputSpecification.addSub(TDBetaInput)
 
-    TDKNNInput = InputData.parameterInputFactory("knn", contentType=InputData.IntegerType)
+    TDKNNInput = InputData.parameterInputFactory("knn", contentType=InputTypes.IntegerType)
     inputSpecification.addSub(TDKNNInput)
 
-    TDWeightedInput = InputData.parameterInputFactory("weighted", contentType=InputData.StringType) #bool
+    TDWeightedInput = InputData.parameterInputFactory("weighted", contentType=InputTypes.StringType) #bool
     inputSpecification.addSub(TDWeightedInput)
 
-    TDInteractiveInput = InputData.parameterInputFactory("interactive", contentType=InputData.StringType) #bool
+    TDInteractiveInput = InputData.parameterInputFactory("interactive", contentType=InputTypes.StringType) #bool
     inputSpecification.addSub(TDInteractiveInput)
 
-    TDPersistenceInput = InputData.parameterInputFactory("persistence", contentType=InputData.StringType)
+    TDPersistenceInput = InputData.parameterInputFactory("persistence", contentType=InputTypes.StringType)
     inputSpecification.addSub(TDPersistenceInput)
 
-    TDSimplificationInput = InputData.parameterInputFactory("simplification", contentType=InputData.FloatType)
+    TDSimplificationInput = InputData.parameterInputFactory("simplification", contentType=InputTypes.FloatType)
     inputSpecification.addSub(TDSimplificationInput)
 
-    TDParametersInput = InputData.parameterInputFactory("parameters", contentType=InputData.StringType)
+    TDParametersInput = InputData.parameterInputFactory("parameters", contentType=InputTypes.StringType)
     inputSpecification.addSub(TDParametersInput)
 
-    TDResponseInput = InputData.parameterInputFactory("response", contentType=InputData.StringType)
+    TDResponseInput = InputData.parameterInputFactory("response", contentType=InputTypes.StringType)
     inputSpecification.addSub(TDResponseInput)
 
-    TDNormalizationInput = InputData.parameterInputFactory("normalization", contentType=InputData.StringType)
+    TDNormalizationInput = InputData.parameterInputFactory("normalization", contentType=InputTypes.StringType)
     inputSpecification.addSub(TDNormalizationInput)
 
     return inputSpecification

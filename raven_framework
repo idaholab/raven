@@ -59,6 +59,7 @@ if [[ ! $SKIP_CONDA == 0 ]]; then
 else
   source $RAVEN_DIR/scripts/establish_conda_env.sh --quiet --installation-manager PIP
 fi
+
 PYTHON_COMMAND=${PYTHON_COMMAND:=python}
 
 # if there's no file to run after parsing arguments, run "help" after warning of the problem.

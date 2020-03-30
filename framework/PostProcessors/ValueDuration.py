@@ -25,7 +25,7 @@ import numpy as np
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import Runners
 #Internal Modules End-----------------------------------------------------------
 
@@ -48,10 +48,10 @@ class ValueDuration(PostProcessor):
     ## This will replace the lines above
     inSpec= super(ValueDuration, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
-                                                  contentType=InputData.StringListType,
+                                                  contentType=InputTypes.StringListType,
                                                   strictMode=True))
     inSpec.addSub(InputData.parameterInputFactory('bins',
-                                                  contentType=InputData.IntegerType))
+                                                  contentType=InputTypes.IntegerType))
     return inSpec
 
   def __init__(self, messageHandler):

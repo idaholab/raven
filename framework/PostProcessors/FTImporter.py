@@ -29,7 +29,7 @@ from collections import OrderedDict
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import InputData
+from utils import InputData, InputTypes
 from utils import xmlUtils as xmlU
 from utils import utils
 from .FTStructure import FTStructure
@@ -62,9 +62,9 @@ class FTImporter(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(FTImporter, cls).getInputSpecification()
-    fileAllowedFormats = InputData.makeEnumType("FTFileFormat", "FTFileFormatType", ["OpenPSA"])
+    fileAllowedFormats = InputTypes.makeEnumType("FTFileFormat", "FTFileFormatType", ["OpenPSA"])
     inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=fileAllowedFormats))
-    inputSpecification.addSub(InputData.parameterInputFactory("topEventID", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("topEventID", contentType=InputTypes.StringType))
     return inputSpecification
 
   def initialize(self, runInfo, inputs, initDict) :
