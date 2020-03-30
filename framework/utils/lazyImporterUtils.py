@@ -38,7 +38,7 @@ def import_module_lazy(moduleString, parentGlobals=None):
   """
   name = moduleString.strip()
   if parentGlobals is None:
-    parentGlobales = globals()
+    parentGlobals = globals()
   return lazy_loader.LazyLoader(name, parentGlobals, name)
 
 def import_module_lazy_renamed(localName, parentGlobals, name):
