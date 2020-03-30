@@ -48,7 +48,7 @@
   
   <DataObjects>
     <PointSet name="candidates">
-      <Input>var2</Input>
+      <Input>var1,var2</Input>
       <Output>cost,value</Output>
     </PointSet>
     <PointSet name="paretoPoints">

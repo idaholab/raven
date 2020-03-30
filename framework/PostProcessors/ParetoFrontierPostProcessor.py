@@ -110,11 +110,20 @@ class ParetoFrontier(PostProcessor):
 
     coordinates = np.zeros(1,dtype=int)
     for index,elem in enumerate(sortedData[self.costID].values):
-      print(coordinates[-1])
       if (index>1) and (sortedData[self.valueID].values[index]>sortedData[self.valueID].values[coordinates[-1]]):
         coordinates = np.append(coordinates,index)
+    paretoFrontierData = sortedData.isel(RAVEN_sample_ID=coordinates[0]).to_array().values
 
-    return sortedData
+    for index,coord in enumerate(coordinates):
+      if index>0:
+        slicedData = sortedData.isel(RAVEN_sample_ID=coord).to_array().values
+        paretoFrontierData = np.vstack((paretoFrontierData,slicedData))
+
+    paretoFrontierDict = {}
+    for index,varID in enumerate(sortedData.data_vars):
+      paretoFrontierDict[varID] = paretoFrontierData[:,index]
+    print(paretoFrontierDict)
+    return paretoFrontierDict
 
   def collectOutput(self, finishedJob, output):
     """
@@ -127,7 +136,13 @@ class ParetoFrontier(PostProcessor):
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "No available output to collect!")
 
-    pick = evaluation[1]
-    for key,value in pick.items():
-      pick[key] = np.atleast_1d(value)
-    output.addRealization(pick)
+    outputDict ={}
+    outputDict['data'] = evaluation[1]
+
+    if output.type in ['PointSet']:
+      outputDict['dims'] = {}
+      for key in outputDict.keys():
+        outputDict['dims'][key] = []
+      output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
+    else:
+        self.raiseAnError(RuntimeError, 'MCSImporter failed: Output type ' + str(output.type) + ' is not supported.')
