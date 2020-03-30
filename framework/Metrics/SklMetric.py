@@ -111,10 +111,6 @@ class SKL(Metric):
     if self.metricType[0] not in self.__class__.availMetrics.keys() or self.metricType[1] not in self.__class__.availMetrics[self.metricType[0]].keys():
       self.raiseAnError(IOError, "Metric '", self.name, "' with metricType '", self.metricType[0], "|", self.metricType[1], "' is not valid!")
 
-    # Are we supporting sklearn < 0.18 anymore?
-    #if self.metricType[0] == 'paired_distance' and int(sklearn.__version__.split(".")[1]) < 18:
-    #  self.raiseAnError(IOError, "paired_distance is not supported in your SciKit-Learn version, if you want to use this metric, please make sure your SciKit-Learn version >= 18!")
-
   def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
     """
       This method computes difference between two points x and y based on given metric
