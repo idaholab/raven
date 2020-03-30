@@ -50,6 +50,7 @@ from .DataClassifier import DataClassifier
 from .ComparisonStatisticsModule import ComparisonStatistics
 from .RealizationAverager import RealizationAverager
 from .ParetoFrontierPostProcessor import ParetoFrontier
+from .MCSimporter import MCSImporter
 # from .RavenOutput import RavenOutput # deprecated for now
 
 additionalModules = []
