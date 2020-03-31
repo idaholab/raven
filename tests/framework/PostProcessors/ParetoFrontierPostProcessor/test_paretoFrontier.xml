@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors/ParetoFrontier</name>
+    <name>framework/PostProcessors.ParetoFrontier</name>
     <author>mandd</author>
     <created>2020-03-25</created>
     <classesTested>ParetoFrontier</classesTested>

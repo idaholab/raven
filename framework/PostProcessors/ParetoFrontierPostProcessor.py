@@ -101,8 +101,8 @@ class ParetoFrontier(PostProcessor):
   def run(self, inputIn):
     """
       This method executes the postprocessor action.
-      @ In, inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, realizations, list, list of realizations obtained
+      @ In, inputIn, DataObject, point set that contains the data to be processed
+      @ Out, paretoFrontierDict, dict, dictionary containning the Pareto Frontier information
     """
     inData = self.inputToInternal(inputIn)
     data = inData.asDataset()

@@ -1801,12 +1801,12 @@ The RAVEN input to extract this information would appear as follows:
 \end{lstlisting}
 The resulting PointSet has \emph{time} as an input and \emph{first} as an output.
 
-%%%%%%%%%%%%%% MCSImporter PP %%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%% ParetoFrontier PP %%%%%%%%%%%%%%%%%%%
 
 \subsubsection{ParetoFrontier}
 \label{ParetoFrontierPP}
 The \textbf{ParetoFrontier} post-processor is designed to identify the points lying on the Pareto Frontier in a cost-value space.
-This post-processor receives as input a dataObject (a PointSet only) which contains all data points in the cost-value space and it 
+This post-processor receives as input a \textbf{DataObject} (a PointSet only) which contains all data points in the cost-value space and it 
 returns the subset of points lying in the Pareto Frontier as a PointSet.
 
 It is here assumed that each data point of the input PointSet is a realization of the system under consideration for a 
@@ -1826,7 +1826,7 @@ The \textbf{ParetoFrontier} post-processor takes the ``candidates'' PointSet and
 (the ``paretoPoints'' PointSet).
 
 \textbf{Example:}
-\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=MCS Importer input example (no expand)., label=lst:MCS_PP_InputExample]
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=ParetoFrontier input example (no expand)., label=lst:ParetoFrontier_PP_InputExample]
   <Models>
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
       <costID>cost</costID>
