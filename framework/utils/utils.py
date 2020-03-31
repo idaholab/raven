@@ -225,7 +225,6 @@ def convertMultipleToBytes(sizeString):
 # I don't think there's a reason to make this an enum, but it could be done.
 trueThingsFull = ('True', 'Yes', '1')
 trueThings = tuple(x[0].lower() for x in trueThingsFull)
-trueThingLegacy = ['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on']
 
 def stringIsTrue(s):
   """
@@ -240,7 +239,6 @@ def stringIsTrue(s):
 # I don't think there's a reason to make this an enum, but it could be done.
 falseThingsFull = ('False', 'No', '0')
 falseThings = tuple(x[0].lower() for x in falseThingsFull)
-falseThingLegacy = ['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off']
 def stringIsFalse(s):
   """
     Determines if provided entity corresponds to a falsehood statement
@@ -252,14 +250,6 @@ def stringIsFalse(s):
   return s.lower().startswith(falseThings)
 
 boolThingsFull = tuple(list(trueThingsFull)+list(falseThingsFull))
-
-def stringIsBoolean(s):
-  """
-    Determines if string is recognizable by RAVEN as an acceptable boolean value
-    @ In, s, string or castable, entity to check
-    @ Out, stringIsBoolean, bool, True if string recognized at True or False
-  """
-  return stringIsTrue(s) or stringIsFalse(s)
 
 def stringsThatMeanSilent():
   """
