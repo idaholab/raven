@@ -31,13 +31,10 @@
   </Steps>
 
   <DataObjects>
+    <PointSet name="dummy"/>
     <PointSet name="sampledPoints">
       <Input>x1,x2</Input>
       <Output>y1,y2</Output>
-    </PointSet>
-    <PointSet name="dummy">
-      <Input>x1,x2</Input>
-      <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="sol">
       <Input>solutionUpdate</Input>
@@ -86,7 +83,6 @@
     </ExternalModel>
 
   </Models>
-
 
   <OutStreams>
     <Print name="solDump">

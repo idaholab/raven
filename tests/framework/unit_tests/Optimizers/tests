@@ -1,0 +1,8 @@
+[Tests]
+
+  # gradients
+  [./FiniteDifference]
+    type = 'RavenPython'
+    input = 'testFiniteDifference.py'
+  [../]
+[]

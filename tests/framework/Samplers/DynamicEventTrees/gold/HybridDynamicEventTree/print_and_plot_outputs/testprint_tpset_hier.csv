@@ -1,4 +1,4 @@
-dummy_for_branch,pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,inlet_TDV_p_bc,time,ProbabilityWeight,prefix,RAVEN_isEnding,ProbabilityWeight-<distribution>zeroToOne,PointProbability,RAVEN_parentID
+dummy_for_branch,pump_mass_flow_rate,outlet_TDV_T_bc,outlet_TDV_p_bc,inlet_TDV_T_bc,inlet_TDV_p_bc,time,ProbabilityWeight,prefix,RAVEN_isEnding,ProbabilityWeight-zeroToOne,PointProbability,RAVEN_parentID
 12.08,4.03,298.1,55.12,123.8,45.12,19.0,0.1,HybridDET_test_1,False,0.1,0.1,None
 12.08,4.03,298.1,55.12,123.8,45.12,19.0,0.1,HybridDET_test_2,False,0.1,0.1,None
 12.08,4.03,298.1,55.12,123.8,45.12,19.0,0.1,HybridDET_test_3,False,0.1,0.1,None

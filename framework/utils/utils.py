@@ -62,6 +62,31 @@ class byPass(object):
     """
     pass
 
+class StringPartialFormatDict(dict):
+  """
+    Allows partially formatting a template string.
+    See https://stackoverflow.com/questions/17215400/python-format-string-unused-named-arguments
+    Use as '{a} {b} {a}'.format_map(StringPartialFormatDict(a='one')) -> 'one {b} one'
+  """
+  def __missing__(self, key):
+    """
+      Replaces missing keys with formatting entries. May not work for any formats like {b:1.3e}.
+      @ In, key, str, formatting string key (the friend between the braces)
+      @ Out, key, str, re-formatted string
+    """
+    return '{' + key + '}'
+
+def partialFormat(msg, info):
+  """
+    Automates the partial formatting of a string (msg) with a format dictionary (info).
+    Example: '{a} {b} {c}'.partialFormat({b:'two'}) -> '{a} two {c}'
+    Note formatting is lost or may cause errors; that is,
+    Example: '{a:3s} {b:2d} {c:3s}'.partialFormat({b=2}) -> '{a}  2 {c}'
+    @ In, msg, string, string to partially format
+    @ In, info, dict, keywords to apply
+  """
+  return msg.format_map(StringPartialFormatDict(**info))
+
 # ID separator that should be used cross the code when combined ids need to be assembled.
 # For example, when the "EnsembleModel" creates new  ``prefix`` ids for sub-models
 __idSeparator = "++"
@@ -688,7 +713,7 @@ def find_crow(framework_dir):
     for crowDir in crowDirs:
       if os.path.exists(os.path.join(crowDir,"tests")):
         raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow was found in '+crowDir+' but does not seem to be compiled')
-    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow has not been found. It location is supposed to be one of '+str(crowDirs))
+    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow has not been found. It location is supposed to be one of '+str(crowDirs)+'. Has RAVEN been built?')
 
 def add_path(absolutepath):
   """

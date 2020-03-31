@@ -69,7 +69,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     inputSpecification.addSub(convergenceInput)
 
     inputSpecification.addSub(InputData.parameterInputFactory("logFile"))
-    inputSpecification.addSub(InputData.parameterInputFactory("maxRuns"))
+    inputSpecification.addSub(InputData.parameterInputFactory("maxRuns", contentType=InputTypes.IntegerType))
 
     targetEvaluationInput = InputData.parameterInputFactory("TargetEvaluation", contentType=InputTypes.StringType)
     targetEvaluationInput.addParam("type", InputTypes.StringType)
@@ -85,8 +85,8 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, None
       @ Out, None
     """
-    AdaptiveSampler.__init__(self)
     SparseGridCollocation.__init__(self)
+    AdaptiveSampler.__init__(self)
     #identification
     self.type                    = 'AdaptiveSparseGridSampler'
     self.printTag                = self.type
@@ -120,8 +120,6 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     self.newSolutionSizeShouldBe = None   #used to track and debug intended size of solutions
     self.inTraining              = set()  #list of index set points for whom points are being run
 
-    self.addAssemblerObject('TargetEvaluation','1')
-
   def localInputAndChecks(self,xmlNode, paramInput):
     """
       Class specific xml inputs will be read here and checked for validity.
@@ -139,7 +137,12 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
     self.convType     = convnode.attrib.get('target','variance')
     self.maxPolyOrder = int(convnode.attrib.get('maxPolyOrder',10))
     self.persistence  = int(convnode.attrib.get('persistence',2))
-    self.maxRuns      = convnode.attrib.get('maxRuns',None)
+    maxRunsNode = xmlNode.find('maxRuns')
+    if maxRunsNode is not None:
+      self.maxRuns = int(maxRunsNode.text)
+    else:
+      self.maxRuns = None
+
     self.convValue    = float(convnode.text)
     if logNode is not None:
       self.logFile = logNode.text
