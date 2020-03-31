@@ -57,17 +57,12 @@
         <temperature>1e-16</temperature>
         <persistence>1</persistence>
       </convergence>
-            <convergence>
-        <objective>-1</objective>
-        <temperature>1e-20</temperature>
-        <persistence>1</persistence>
-      </convergence>
       <coolingSchedule>
         <exponential>
           <alpha>0.94</alpha>
         </exponential>
       </coolingSchedule>
-      <!-- <Constraint class='Functions' type='External'>goal</Constraint> -->
+      <Constraint class='Functions' type='External'>goal</Constraint>
       <variable name="x">
         <distribution>dist</distribution>
         <initial>0.9</initial>
@@ -101,7 +96,7 @@
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,iteration,amp_x,amp_y,delta_x, delta_y,fraction,Temp,accepted</Output>
+      <Output>x,y,ans,iteration,amp_x,amp_y,delta_x,delta_y,fraction,Temp,accepted,conv_objective,conv_samePoint,conv_temperature</Output>
     </PointSet>
   </DataObjects>
 
