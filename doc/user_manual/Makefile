@@ -1,6 +1,6 @@
 SRCFILE = raven_user_manual
 # MANUAL_FILES = optimizer.tex rom.tex postprocessor.tex database_data.tex OutStreamSystem.tex sampler.tex existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex introduction.tex raven_user_manual.tex model.tex runInfo.tex libraries.tex DataMining.tex HowToRun.tex metrics.tex
-MANUAL_FILES = optimizer.tex rom.tex kerasROM.tex postprocessor.tex database_data.tex OutStreamSystem.tex sampler.tex variablegroups.tex \
+MANUAL_FILES = generated/optimizer.tex rom.tex kerasROM.tex postprocessor.tex database_data.tex OutStreamSystem.tex sampler.tex variablegroups.tex \
 existing_interfaces.tex ProbabilityDistributions.tex  step.tex functions.tex ravenStructure.tex Summary.tex \
 introduction.tex raven_user_manual.tex model.tex runInfo.tex libraries.tex DataMining.tex HowToRun.tex metrics.tex \
 Installation/clone.tex Installation/conda.tex Installation/linux.tex Installation/macosx.tex Installation/main.tex \
@@ -34,8 +34,10 @@ clean:
 libraries.tex : $(LIB_FILES)
 	python ../../scripts/library_handler.py manual > libraries.tex
 
-optimizer.tex : generated/generateOptimizerDoc.py
-	./generate_docs.sh
+# right now we have a catch-22, need to build RAVEN to build docs, but need docs to know how to build RAVEN
+#   so for now we do NOT automatically generate docs, but leave tools for developers to do so in place.
+#optimizer.tex : generated/generateOptimizerDoc.py
+#	./generate_docs.sh
 
 conda_command.txt : $(LIB_FILES)
 	./create_command.sh
