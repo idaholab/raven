@@ -78,7 +78,7 @@
 
   [./FunctionallyConstrainedSA]
     type = 'RavenFramework'
-    input = 'FunctionallyConstrainedSA/test_simulatedAnnealing.xml'
+    input = 'FunctionallyConstrainedSA/test_funcConstrSimulatedAnnealing.xml'
     [./data]
       type = OrderedCSV
       output = 'FunctionallyConstrainedSA/opt_export_0.csv'

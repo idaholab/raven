@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers.ConstrainFunction</name>
+    <name>framework/Optimizers.SimulatedAnnealing</name>
     <author>talbpaul</author>
     <created>2020-02-05</created>
     <classesTested>Optimizer</classesTested>
@@ -48,10 +48,6 @@
         <writeSteps>every</writeSteps>
         <type>min</type>
       </samplerInit>
-      <!-- <acceptance>
-        <Strict/>
-        <!~~ <Probabilistic/> ~~>
-      </acceptance> -->
       <convergence>
         <objective>1e-4</objective>
         <temperature>1e-16</temperature>
@@ -111,5 +107,5 @@
       <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>
-
+  
 </Simulation>
