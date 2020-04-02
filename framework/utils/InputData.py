@@ -440,12 +440,12 @@ class ParameterInput(object):
     if not cls.parameters:
       return msg
     specName = cls.name
-    if '_' in cls.name:
-      name = name.replace('_', '\_')
+    if '_' in specName:
+      specName = specName.replace('_', '\_')
     msg += '{i}The \\xmlNode{{{n}}} node recognizes the following parameters:'.format(i=doDent(recDepth), n=specName)
     msg += '\n{i}\\begin{{itemize}}'.format(i=doDent(recDepth, 1))
     for param, info in cls.parameters.items():
-      name = param
+      name = param.replace('_', '\_')
       typ = info['type'].generateLatexType()
       req = 'required' if info['required'] else 'optional'
       desc = wrapText(info['description'], indent=doDent(recDepth, 3))
