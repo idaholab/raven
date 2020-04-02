@@ -77,7 +77,7 @@ class OutStreamManager(BaseType):
       In case of a code the syntax is specified by the code interface itself
     """
     if 'overwrite' in xmlNode.attrib.keys():
-      if xmlNode.attrib['overwrite'].lower() in utils.stringsThatMeanTrue():
+      if utils.stringIsTrue(xmlNode.attrib['overwrite']):
         self.overwrite = True
       else:
         self.overwrite = False

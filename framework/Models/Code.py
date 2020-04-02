@@ -225,7 +225,7 @@ class Code(Model):
     if self.executable == '':
       self.raiseAWarning('The node "<executable>" was not found in the body of the code model '+str(self.name)+' so no code will be run...')
     else:
-      if os.environ.get('RAVENinterfaceCheck','False').lower() in utils.stringsThatMeanFalse():
+      if utils.stringIsFalse(os.environ.get('RAVENinterfaceCheck','False')):
         if '~' in self.executable:
           self.executable = os.path.expanduser(self.executable)
         abspath = os.path.abspath(str(self.executable))
@@ -235,7 +235,7 @@ class Code(Model):
           self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
       else:
         self.foundExecutable = False
-        self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
+        self.raiseAMessage('InterfaceCheck: ignored executable '+self.executable, 'ExceptedError')
     if self.preExec is not None:
       if '~' in self.preExec:
         self.preExec = os.path.expanduser(self.preExec)
