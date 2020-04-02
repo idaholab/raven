@@ -30,7 +30,6 @@ import numpy as np
 from operator import mul
 from functools import reduce
 import xml.etree.ElementTree as ET
-from sklearn import neighbors
 import itertools
 #External Modules End--------------------------------------------------------------------------------
 
@@ -148,6 +147,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         - if not self.hybridDETstrategy and branch found     -> returnTuple = (valBranch,cdfValues)
         - if not self.hybridDETstrategy and branch not found -> returnTuple = (None,cdfValues)
     """
+    from sklearn import neighbors
+
     # compute cdf of sampled vars
     lowerCdfValues = {}
     cdfValues         = {}
