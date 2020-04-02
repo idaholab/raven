@@ -443,7 +443,7 @@ class RavenSampled(Optimizer):
     if acceptable in ['accepted', 'first']:
       # record history
       self._optPointHistory[traj].append((rlz, info))
-      self.incrementIteration(traj)
+      # self.incrementIteration(traj)
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)

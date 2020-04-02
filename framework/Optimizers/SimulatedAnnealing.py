@@ -244,7 +244,6 @@ class SimulatedAnnealing(RavenSampled):
     for var in self.toBeSampled:
       self.info['amp_'+var] = None
       self.info['delta_'+var] = None
-#    self._acceptInstance.initialize()
     # queue up the first run for each trajectory
     for traj, init in enumerate(self._initialValues):
       self._submitRun(init,traj,self.getIteration(traj))
@@ -299,12 +298,12 @@ class SimulatedAnnealing(RavenSampled):
     """
     traj = info['traj']
     info['optVal'] = rlz[self._objectiveVar]
+    self.incrementIteration(traj)
     self._resolveNewOptPoint(traj, rlz, rlz[self._objectiveVar], info)
     if self._stepTracker[traj]['opt'] == None:
       # revert to the last accepted point
       rlz = self._optPointHistory[traj][-1][0]
       info = self._optPointHistory[traj][-1][1]
-      self.incrementIteration(traj)
       info['step'] = self.getIteration(traj)
       optVal = rlz[self._objectiveVar]
     iter = int(self.getIteration(traj) +1) # Is that ok or should we always keep the traj in case I have multiple trajectories in parallel?
