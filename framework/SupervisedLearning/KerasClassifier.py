@@ -29,23 +29,14 @@ import random as rn
 import matplotlib
 import platform
 from scipy import stats
-from sklearn import preprocessing
 import os
 
-import contrib.lazy.lazy_loader as lazy_loader
+import utils.lazyImporterUtils
 _tensorflowAvailable = False
 # TensorFlow is optional and Python3 is required in order to use tensorflow for DNNs
 #try:
 # import tensorflow as tf
-tf = lazy_loader.LazyLoader("tf", globals(), "tensorflow")
-# import tensorflow.keras as Keras
-#Keras = lazy_loader.LazyLoader("Keras", globals(), "tensorflow.keras")
-#from tensorflow.keras import models as KerasModels
-#from tensorflow.keras import layers as KerasLayers
-#from tensorflow.keras import optimizers as KerasOptimizers
-#from tensorflow.keras import utils as KerasUtils
-#from tensorflow.python.keras.backend import set_session
-#from tensorflow.python.keras.models import load_model
+tf =  utils.lazyImporterUtils.import_module_lazy_renamed("tf", globals(), "tensorflow")
 _tensorflowAvailable = True
   # tf.enable_eager_execution()
 #except ImportError as e:
@@ -245,6 +236,7 @@ if isTensorflowAvailable():
                          self.kerasROMDict['kerasAdvancedActivationLayersList'] + self.kerasROMDict['kerasNormalizationLayersList'] + \
                          self.kerasROMDict['kerasNoiseLayersList']
       # LabelEncoder can be used to normalize labels
+      from sklearn import preprocessing
       self.labelEncoder = preprocessing.LabelEncoder()
       # perform z-score normalization if True
       self.externalNorm = True

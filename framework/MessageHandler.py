@@ -30,6 +30,7 @@ import bisect
 from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
+_starttime = time.time()
 
 #custom exceptions
 class NoMoreSamplesNeeded(GeneratorExit):
@@ -166,7 +167,7 @@ class MessageHandler(object):
       @ In, None
       @ Out, None
     """
-    self.starttime    = time.time()
+    self.starttime    = _starttime
     self.printTag     = 'MESSAGE HANDLER'
     self.verbosity    = None
     self.suppressErrs = False
@@ -389,3 +390,14 @@ class MessageHandler(object):
         msgend = self.paint(msgend,self.colorDict[tag.lower()])
     msg+=msgend
     return msg
+
+def timePrint(message):
+  """
+    Prints the time since start then the message
+    @ In, message, string
+    @ Out, None
+  """
+  curtime = time.time()-_starttime
+  msg = ''
+  msg+='('+'{:8.2f}'.format(curtime)+' sec) '
+  print(msg + message)
