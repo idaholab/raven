@@ -59,7 +59,7 @@ def isLibAvail(moduleString):
   """
     This method is aimed to check if a certain library is available in the system
     @ In, moduleString, str, the module to look for (e.g.numpy, scipy, etc.)
-    @ Out, isLibraryAvailable, bool, is it available?
+    @ Out, isLibAvail, bool, is it available?
   """
   global __moduleAvailability
   if moduleString not in __moduleAvailability:

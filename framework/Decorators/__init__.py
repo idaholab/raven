@@ -16,5 +16,5 @@
  @author: alfoa
 """
 
-__all__ = ['parallelization']
+__all__ = ['Parallelization']
 

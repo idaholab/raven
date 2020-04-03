@@ -28,7 +28,7 @@ import numpy as np
 from .Model import Model
 from utils import utils
 from utils.cached_ndarray import c1darray
-from RAVENdecorators import parallelization
+from Decorators.Parallelization import Parallel
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Dummy(Model):
@@ -151,7 +151,7 @@ class Dummy(Model):
       pass
     return [(inputDict)],copy.deepcopy(kwargs)
 
-  @parallelization.parallel()
+  @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters

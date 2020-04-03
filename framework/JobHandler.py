@@ -42,11 +42,10 @@ import MessageHandler
 import Runners
 import Models
 # for internal parallel
-## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
+## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWS
 _rayAvail = im.isLibAvail("ray")
 if _rayAvail:
  import ray
- #_functionDictionary = {} # dictionary of function to run
 else:
  import pp
 # end internal parallel module
@@ -190,9 +189,9 @@ class JobHandler(MessageHandler.MessageUser):
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         ## identify the local host name and get the number of local processors
         localHostName = self.__getLocalHost()
-        self.raiseADebug("Local host name is  : "+ localHostName)
+        self.raiseADebug("Local host name is  : ", localHostName)
         nProcsHead = availableNodes.count(localHostName)
-        self.raiseADebug("# of local procs    : "+ str(nProcsHead))
+        self.raiseADebug("# of local procs    : ", str(nProcsHead))
         ## initialize ray server with nProcs
         self.rayServer = ray.init(num_cpus=int(nProcsHead)) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
         ## Get localHost and servers
@@ -201,14 +200,14 @@ class JobHandler(MessageHandler.MessageUser):
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
                          pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
-        self.raiseADebug("Head node IP address: " + self.rayServer['node_ip_address'])
-        self.raiseADebug("Redis address       : " + self.rayServer['redis_address'])
-        self.raiseADebug("Object store address: " + self.rayServer['object_store_address'])
-        self.raiseADebug("Raylet socket name  : " + self.rayServer['raylet_socket_name'])
-        self.raiseADebug("Session directory   : " + self.rayServer['session_dir'])
+        self.raiseADebug("Head node IP address: ", self.rayServer['node_ip_address'])
+        self.raiseADebug("Redis address       : ", self.rayServer['redis_address'])
+        self.raiseADebug("Object store address: ", self.rayServer['object_store_address'])
+        self.raiseADebug("Raylet socket name  : ", self.rayServer['raylet_socket_name'])
+        self.raiseADebug("Session directory   : ", self.rayServer['session_dir'])
         if servers:
-          self.raiseADebug("# of remote servers : " + str(len(servers)))
-          self.raiseADebug("Remote servers      : " + " , ".join(servers))
+          self.raiseADebug("# of remote servers : ", str(len(servers)))
+          self.raiseADebug("Remote servers      : ", " , ".join(servers))
 
     else:
       ## We are just using threading
@@ -226,7 +225,7 @@ class JobHandler(MessageHandler.MessageUser):
     ## collect the qualified hostnames for each remote node
     for nodeId in list(set(self.runInfoDict['Nodes'])):
       hostNameMapping[nodeId.strip()] = socket.gethostbyname(nodeId.strip())
-      self.raiseADebug("Remote Host identified " + hostNameMapping[nodeId.strip()])
+      self.raiseADebug("Remote Host identified ", hostNameMapping[nodeId.strip()])
 
     return hostNameMapping
 

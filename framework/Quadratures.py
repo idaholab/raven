@@ -36,7 +36,7 @@ from BaseClasses import BaseType
 from JobHandler import JobHandler
 import MessageHandler
 from utils import utils
-from RAVENdecorators import parallelization
+from Decorators.Parallelization import Parallel
 from utils import importerUtils as im
 _rayAvail = im.isLibAvail("ray")
 #Internal Modules End-----------------------------------------------------------------
@@ -347,7 +347,7 @@ class SparseGrid(MessageHandler.MessageUser):
       except TypeError:
         return list(self.SG.values())[n]
 
-  @parallelization.parallel()
+  @Parallel()
   def tensorGrid(self, m):
     """
       Creates a tensor itertools.product of quadrature points.
@@ -560,24 +560,6 @@ class SmolyakSparseGrid(SparseGrid):
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:
           break
       #TODO optimize this with a sleep time
-
-  #def makeSingleCoeff(self,N,i,idx,iSet):
-    #"""
-      #Batch-style algorithm to calculate a single coefficient
-      #@ In, N, int, required arguments
-      #@ In, i, int, required arguments
-      #@ In, idx, tuple(int), required arguments
-      #@ In, iSet, int, required arguments
-      #@ Out, float, coefficient for subtensor i
-    #"""
-    ##N,i,idx,iSet = arglist
-    #c=1
-    #for j in range(i+1,N):
-      #jdx = iSet[j]
-      #d = jdx-idx
-      #if all(np.logical_and(d>=0,d<=1)):
-        #c += (-1)**sum(d)
-    #return c
 #
 #
 #
@@ -797,7 +779,7 @@ def GaussQuadRule(i):
 
 
 #Debug module-level method
-@parallelization.parallel()
+@Parallel()
 def makeSingleCoeff(N,i,idx,iSet):
   """
     Batch-style algorithm to calculate a single coefficient

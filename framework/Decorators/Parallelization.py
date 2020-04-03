@@ -29,7 +29,7 @@ if im.isLibAvail("ray"):
 # end internal parallel module
 #External Modules End-----------------------------------------------------------
 
-class parallel(object):
+class Parallel(object):
   """
     RAVEN parallel decorator
     It is used to mask ray parallel remote
@@ -50,7 +50,7 @@ class parallel(object):
     """
       This is the constructor of the decorator for parallel execution
       @ In, None (it uses the _remote global variable)
-      @ Out,
+      @ Out, None
     """
     self.decorator = _remote
 
