@@ -410,7 +410,7 @@ class TensorGrid(SparseGrid):
         largest[i] = max(idx[i],largest[i])
     #construct tensor grid using largest in each dimension
     quadSizes = self.quadRule(largest)+1 #TODO give user access to this +1 rule
-    points,weights = self.tensorGrid(quadSizes)._function if _rayAvail else self.tensorGrid(quadSizes)
+    points,weights = self.tensorGrid._function(self, quadSizes) if _rayAvail else self.tensorGrid(quadSizes)
     for i,pt in enumerate(points):
       self.SG[pt] = weights[i]
 
@@ -462,7 +462,7 @@ class SmolyakSparseGrid(SparseGrid):
       for j,cof in enumerate(self.c):
         idx = self.indexSet[j]
         m = self.quadRule(idx)+1
-        new =   self.tensorGrid(m)._function if _rayAvail else self.tensorGrid(m)
+        new =   self.tensorGrid._function(self, m) if _rayAvail else self.tensorGrid(m)
         for i in range(len(new[0])):
           newpt=tuple(new[0][i])
           newwt=new[1][i]*cof

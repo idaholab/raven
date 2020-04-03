@@ -188,11 +188,7 @@ class Dummy(Model):
     # TODO apparently sometimes "options" can include 'exportDict'; what do we do for this?
     # TODO consistency with old HDF5; fix this when HDF5 api is in place
     # TODO expensive deepcopy prevents modification when sent to multiple outputs
-    from Runners import Error
     result = finishedJob.getEvaluation()
-    if isinstance(result, Error):
-        print("whattttt")
-        self.raiseAnError( Error, "figa")
     # alias system
     self._replaceVariablesNamesWithAliasSystem(result,'output',True)
     output.addRealization(result)
