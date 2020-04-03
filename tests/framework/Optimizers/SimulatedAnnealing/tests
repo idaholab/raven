@@ -24,6 +24,8 @@
   [./BoltzmanSA]
     type = 'RavenFramework'
     input = 'BoltzmanSA/test_simulatedAnnealing.xml'
+    heavy = true
+    max_time = 700
     [./data]
       type = OrderedCSV
       output = 'BoltzmanSA/opt_export_0.csv'
