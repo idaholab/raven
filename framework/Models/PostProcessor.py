@@ -26,6 +26,7 @@ import inspect
 #Internal Modules------------------------------------------------------------------------------------
 from .Model import Model
 from utils import utils
+from RAVENdecorators import parallelization
 import PostProcessors
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -165,6 +166,7 @@ class PostProcessor(Model):
     kwargs['forceThreads'] = True
     Model.submit(self,myInput, samplerType, jobHandler, **kwargs)
 
+  @parallelization.parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters

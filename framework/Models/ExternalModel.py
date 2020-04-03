@@ -28,6 +28,7 @@ import inspect
 from .Dummy import Dummy
 import CustomCommandExecuter
 from utils import utils, InputData, InputTypes, mathUtils
+from RAVENdecorators import parallelization
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ExternalModel(Dummy):
@@ -252,6 +253,7 @@ class ExternalModel(Dummy):
     outcomes = dict((k, np.atleast_1d(val)) for k, val in outcomes.items())
     return outcomes, self
 
+  @parallelization.parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters

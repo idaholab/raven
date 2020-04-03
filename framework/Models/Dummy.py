@@ -28,6 +28,7 @@ import numpy as np
 from .Model import Model
 from utils import utils
 from utils.cached_ndarray import c1darray
+from RAVENdecorators import parallelization
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Dummy(Model):
@@ -150,6 +151,7 @@ class Dummy(Model):
       pass
     return [(inputDict)],copy.deepcopy(kwargs)
 
+  @parallelization.parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
@@ -186,7 +188,11 @@ class Dummy(Model):
     # TODO apparently sometimes "options" can include 'exportDict'; what do we do for this?
     # TODO consistency with old HDF5; fix this when HDF5 api is in place
     # TODO expensive deepcopy prevents modification when sent to multiple outputs
+    from Runners import Error
     result = finishedJob.getEvaluation()
+    if isinstance(result, Error):
+        print("whattttt")
+        self.raiseAnError( Error, "figa")
     # alias system
     self._replaceVariablesNamesWithAliasSystem(result,'output',True)
     output.addRealization(result)

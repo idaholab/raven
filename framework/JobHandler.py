@@ -24,7 +24,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import time
 import collections
 import subprocess
-
 import os
 import copy
 import sys
@@ -33,10 +32,10 @@ import threading
 from random import randint
 import socket
 import time
-from utils import importerUtils as im
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
+from utils import importerUtils as im
 from utils import utils
 from BaseClasses import BaseType
 import MessageHandler
@@ -47,7 +46,7 @@ import Models
 _rayAvail = im.isLibAvail("ray")
 if _rayAvail:
  import ray
- _functionDictionary = {} # dictionary of function to run
+ #_functionDictionary = {} # dictionary of function to run
 else:
  import pp
 # end internal parallel module
@@ -199,7 +198,7 @@ class JobHandler(MessageHandler.MessageUser):
         ## Get localHost and servers
         servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
-        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),logging_level=1) if _rayAvail else \
+        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
                          pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
         self.raiseADebug("Head node IP address: " + self.rayServer['node_ip_address'])
@@ -322,26 +321,14 @@ class JobHandler(MessageHandler.MessageUser):
     """
     if self.rayServer is None or forceUseThreads:
       internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
-                                               functionToRun,
+                                               functionToRun._function if _rayAvail else functionToRun,
                                                identifier, metadata,
                                                uniqueHandler,
                                                profile=self.__profileJobs)
     else:
-      if _rayAvail:
-        @ray.remote
-        def remoteFunction(*args):
-          """
-            Wrapper for remote function.
-            Adding it here, it allows to avoid to create an Actor
-            @ In, args, list, args list of function arguments
-            @ Out, remoteFunction, object, the return object
-          """
-          return functionToRun(*args)
-        arguments = args
-      else:
-        arguments = tuple([self.rayServer] + list(args))
+      arguments = args  if _rayAvail else  tuple([self.rayServer] + list(args))
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
-                                                    arguments, remoteFunction.remote if _rayAvail else functionToRun,
+                                                    arguments, functionToRun.remote if _rayAvail else functionToRun,
                                                     identifier, metadata,
                                                     uniqueHandler,
                                                     profile=self.__profileJobs)

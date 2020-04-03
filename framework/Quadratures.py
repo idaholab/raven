@@ -36,6 +36,9 @@ from BaseClasses import BaseType
 from JobHandler import JobHandler
 import MessageHandler
 from utils import utils
+from RAVENdecorators import parallelization
+from utils import importerUtils as im
+_rayAvail = im.isLibAvail("ray")
 #Internal Modules End-----------------------------------------------------------------
 
 
@@ -344,6 +347,7 @@ class SparseGrid(MessageHandler.MessageUser):
       except TypeError:
         return list(self.SG.values())[n]
 
+  @parallelization.parallel()
   def tensorGrid(self, m):
     """
       Creates a tensor itertools.product of quadrature points.
@@ -406,7 +410,7 @@ class TensorGrid(SparseGrid):
         largest[i] = max(idx[i],largest[i])
     #construct tensor grid using largest in each dimension
     quadSizes = self.quadRule(largest)+1 #TODO give user access to this +1 rule
-    points,weights = self.tensorGrid(quadSizes)
+    points,weights = self.tensorGrid(quadSizes)._function if _rayAvail else self.tensorGrid(quadSizes)
     for i,pt in enumerate(points):
       self.SG[pt] = weights[i]
 
@@ -458,7 +462,7 @@ class SmolyakSparseGrid(SparseGrid):
       for j,cof in enumerate(self.c):
         idx = self.indexSet[j]
         m = self.quadRule(idx)+1
-        new = self.tensorGrid(m)
+        new =   self.tensorGrid(m)._function if _rayAvail else self.tensorGrid(m)
         for i in range(len(new[0])):
           newpt=tuple(new[0][i])
           newwt=new[1][i]*cof
@@ -497,7 +501,7 @@ class SmolyakSparseGrid(SparseGrid):
           cof=self.c[j]
           idx = self.indexSet[j]
           m=self.quadRule(idx)+1
-          handler.addJob((m,),self.tensorGrid,prefix+str(cof))
+          handler.addJob((self, m,),self.tensorGrid,prefix+str(cof))
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:
           break #FIXME this is significantly the second-most expensive line in this method
@@ -557,23 +561,23 @@ class SmolyakSparseGrid(SparseGrid):
           break
       #TODO optimize this with a sleep time
 
-  def makeSingleCoeff(self,N,i,idx,iSet):
-    """
-      Batch-style algorithm to calculate a single coefficient
-      @ In, N, int, required arguments
-      @ In, i, int, required arguments
-      @ In, idx, tuple(int), required arguments
-      @ In, iSet, int, required arguments
-      @ Out, float, coefficient for subtensor i
-    """
-    #N,i,idx,iSet = arglist
-    c=1
-    for j in range(i+1,N):
-      jdx = iSet[j]
-      d = jdx-idx
-      if all(np.logical_and(d>=0,d<=1)):
-        c += (-1)**sum(d)
-    return c
+  #def makeSingleCoeff(self,N,i,idx,iSet):
+    #"""
+      #Batch-style algorithm to calculate a single coefficient
+      #@ In, N, int, required arguments
+      #@ In, i, int, required arguments
+      #@ In, idx, tuple(int), required arguments
+      #@ In, iSet, int, required arguments
+      #@ Out, float, coefficient for subtensor i
+    #"""
+    ##N,i,idx,iSet = arglist
+    #c=1
+    #for j in range(i+1,N):
+      #jdx = iSet[j]
+      #d = jdx-idx
+      #if all(np.logical_and(d>=0,d<=1)):
+        #c += (-1)**sum(d)
+    #return c
 #
 #
 #
@@ -793,6 +797,7 @@ def GaussQuadRule(i):
 
 
 #Debug module-level method
+@parallelization.parallel()
 def makeSingleCoeff(N,i,idx,iSet):
   """
     Batch-style algorithm to calculate a single coefficient
