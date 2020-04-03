@@ -58,7 +58,6 @@
           <alpha>0.94</alpha>
         </exponential>
       </coolingSchedule>
-      <Constraint class='Functions' type='External'>goal</Constraint>
       <variable name="x">
         <distribution>dist</distribution>
         <initial>0.9</initial>
@@ -69,6 +68,7 @@
       </variable>
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+            <Constraint class='Functions' type='External'>goal</Constraint>
     </SimulatedAnnealing>
   </Optimizers>
 
