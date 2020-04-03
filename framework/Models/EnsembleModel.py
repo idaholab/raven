@@ -24,6 +24,7 @@ import numpy as np
 import time
 import itertools
 from collections import OrderedDict
+from RAVENdecorators import parallelization
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -473,6 +474,7 @@ class EnsembleModel(Dummy):
     for modelIn in self.modelsDictionary.keys():
       self.modelsDictionary[modelIn]['Instance'].getAdditionalInputEdits(inputInfo)
 
+  @parallelization.parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
       This will evaluate an individual sample on this model. Note, parameters

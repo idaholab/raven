@@ -27,6 +27,7 @@ from numpy import linalg
 import time
 import itertools
 from collections import OrderedDict
+from RAVENdecorators import parallelization
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -556,6 +557,7 @@ class HybridModel(Dummy):
     ## class and pass self in as the first parameter
     jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
+  @parallelization.parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
       This will evaluate an individual sample on this model. Note, parameters

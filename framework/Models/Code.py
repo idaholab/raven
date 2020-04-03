@@ -34,6 +34,7 @@ import numpy as np
 from .Model import Model
 from utils import utils
 from utils import InputData, InputTypes
+from RAVENdecorators import parallelization
 import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 import Files
 from DataObjects import Data
@@ -459,6 +460,7 @@ class Code(Model):
           return commandSplit
     return origCommand
 
+  @parallelization.parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
