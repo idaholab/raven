@@ -31,15 +31,29 @@ from importlib import util as imutil
 
 # filled by isLibAvail: store if libraries are available or not e.g. {'numpy':True/False, etc.}.
 __moduleAvailability = {}
-
-def importModuleLazy(moduleString):
+def importModuleLazy(moduleString, parentGlobals=None):
   """
     This method is aimed to import a module with lazy_import
     @ In, moduleString, str, the module to import (e.g. numpy or scipy.stats, etc.)
+    @ In, parentGlobals, dict, the globals to put the name in (should be a call to
+       globals() )
     @ Out, mod, Object, the imported module (lazy)
   """
   name = moduleString.strip()
-  return lazy_loader.LazyLoader(name, globals(), name)
+  if parentGlobals is None:
+    parentGlobals = globals()
+  return lazy_loader.LazyLoader(name, parentGlobals, name)
+
+def importModuleLazyRenamed(localName, parentGlobals, name):
+  """
+    This method is aimed to import a module with lazy_import
+    @ In, localName, str, the name to use for the module
+    @ In, parentGlobals, dict, the globals to put the name in (should be a call to
+       globals() )
+    @ In, name, str, the module to import (e.g. numpy or scipy.stats, etc.)
+    @ Out, mod, Object, the imported module (lazy)
+  """
+  return lazy_loader.LazyLoader(localName, parentGlobals, name)
 
 def isLibAvail(moduleString):
   """

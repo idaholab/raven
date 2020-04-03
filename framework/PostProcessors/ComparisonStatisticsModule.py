@@ -398,7 +398,7 @@ class ComparisonStatistics(PostProcessor):
         if 'binMethod' in outer.parameterValues:
           self.methodInfo['binMethod'] = outer.parameterValues['binMethod'].lower()
       if outer.getName() == 'fz':
-        self.fZStats = (outer.value.lower() in utils.stringsThatMeanTrue())
+        self.fZStats = utils.stringIsTrue(outer.value.lower())
       if outer.getName() == 'interpolation':
         interpolation = outer.value.lower()
         if interpolation == 'linear':

@@ -23,7 +23,6 @@ import numpy as np
 import os
 import copy
 from collections import OrderedDict, defaultdict
-from sklearn.linear_model import LinearRegression
 import six
 import xarray as xr
 #External Modules End-----------------------------------------------------------
@@ -1116,6 +1115,7 @@ class BasicStatistics(PostProcessor):
       @ In, intersectionSet, boolean, True if some target variables are in the list of features
       @ Out, da, xarray.DataArray, contains the calculations of sensitivity coefficients
     """
+    from sklearn.linear_model import LinearRegression
     if self.multipleFeatures:
       # intersectionSet is flag that used to check the relationship between the features and targets.
       # If True, part of the target variables are listed in teh feature set, then multivariate linear

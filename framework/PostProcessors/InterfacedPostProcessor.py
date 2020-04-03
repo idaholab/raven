@@ -27,7 +27,6 @@ import copy
 import math
 from collections import OrderedDict, defaultdict
 import time
-from sklearn.linear_model import LinearRegression
 import importlib
 import abc
 import six
