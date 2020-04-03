@@ -27,7 +27,6 @@ from collections import OrderedDict
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import InputData, InputTypes, utils, mathUtils
-from utils import importerUtils
 import LearningGate
 import GridEntities
 import Files
