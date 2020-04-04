@@ -2,12 +2,13 @@
 <Simulation verbosity="all">
   <TestInfo>
     <name>framework/Optimizers.SimulatedAnnealing</name>
-    <author>talbpaul</author>
+    <author>Mohammad Abdo</author>
     <created>2020-02-05</created>
     <classesTested>Optimizer</classesTested>
     <description>
       This test uses a multidimensional linear function such that the trajectory must pass through
       a functional constraint to reach the optimal point.
+      The test is designed by @talbpaul and is applied to simulated annealing.
     </description>
   </TestInfo>
 

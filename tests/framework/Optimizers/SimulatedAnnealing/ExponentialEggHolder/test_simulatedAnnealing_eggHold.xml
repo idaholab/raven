@@ -6,7 +6,12 @@
     <created>2020-02-11</created>
     <classesTested>SimulatedAnnealing</classesTested>
     <description>
-      Extending on the Basic test, this test assesses the Simulated Annealing algorithm.
+      This test assesses the Simulated Annealing algorithm using Boltzmann cooling schedule on the Eggholder function.
+      The eggholder function is a very challenging objective function, as it has enourmous number of local minima,
+      The nominal dimensionality of the problem is 2, i.e., variables are x, y.
+      The objective variable is ans.
+      The global minimum is at: ans(512,404.2319) = -959.6407
+      parameter range is $-512 \leq x,y \leq 512$
     </description>
     <analytic>
       This test uses eggHolder's function, which is documented in the analytic tests documentation under
