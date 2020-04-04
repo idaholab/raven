@@ -1,12 +1,16 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers.SimulatedAnnealing</name>
+    <name>framework/Optimizers.SimulatedAnnealing.Boltzmann</name>
     <author>MohammadAbdo</author>
     <created>2020-02-11</created>
     <classesTested>SimulatedAnnealing</classesTested>
     <description>
-      Extending on the Basic test, this test assesses the Simulated Annealing algorithm.
+      This test assesses the Simulated Annealing algorithm using Boltzmann cooling schedule on the Beale function.
+      The nominal dimensionality of the problem is 2, i.e., variables are x, y.
+      The objective variable is ans.
+      The global minimum is at: ans(3,0.5) = 0.0
+      Parameter range is $-4.5 \leq x,y \leq 4.5$.
     </description>
     <analytic>
       This test uses Beale's function, which is documented in the analytic tests documentation under

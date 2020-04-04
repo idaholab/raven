@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers.SimulatedAnnealing</name>
-    <author>Mohammad Abdo</author>
+    <name>framework/Optimizers.SimulatedAnnealing.Exponential.FuncionallyConstrained</name>
+    <author>MohammadAbdo</author>
     <created>2020-02-05</created>
     <classesTested>Optimizer</classesTested>
     <description>
@@ -108,5 +108,5 @@
       <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>
-  
+
 </Simulation>

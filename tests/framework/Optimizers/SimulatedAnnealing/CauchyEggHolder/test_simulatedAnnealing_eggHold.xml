@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers.SimulatedAnnealing</name>
+    <name>framework/Optimizers.SimulatedAnnealing.Cauchy.EggHolder</name>
     <author>MohammadAbdo</author>
     <created>2020-02-11</created>
     <classesTested>SimulatedAnnealing</classesTested>
@@ -68,12 +68,10 @@
       </coolingSchedule>
       <variable name="x">
         <distribution>eggHolder_dist</distribution>
-        <!-- <initial>-2.0</initial> -->
         <initial>400</initial>
       </variable>
       <variable name="y">
         <distribution>eggHolder_dist</distribution>
-        <!-- <initial>-2.0</initial> -->
         <initial>400</initial>
       </variable>
       <objective>ans</objective>
