@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers.SimulatedAnnealing.Exponential.FuncionallyConstrained</name>
+    <name>framework/Optimizers.SimulatedAnnealing.Exponential.FuncionallyConstrainedSA</name>
     <author>MohammadAbdo</author>
     <created>2020-02-05</created>
     <classesTested>Optimizer</classesTested>
