@@ -50,8 +50,9 @@ import cloudpickle as pickle
 def importable(func): # the original code
     #get lines of the source and adjust indent
     sourcelines = inspect.getsourcelines(func)[0]
-    if "@Parallel" in sourcelines[0].strip() or "@Parallelization.Parallel" in sourcelines[0].strip():
-      #ALFOA: temporary fix (but soon we remove Parallel Python, so I did not want to spend more time in fixing this)
+    if sourcelines[0].strip().startswith("@"):
+      #ALFOA: temporary fix (but soon we remove Parallel Python,
+      #       so I did not want to spend more time in fixing this)
       sourcelines.pop(0)
     #remove indentation from the first line
     sourcelines[0] = sourcelines[0].lstrip()
