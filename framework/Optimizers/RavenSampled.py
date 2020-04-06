@@ -383,10 +383,6 @@ class RavenSampled(Optimizer):
       val = point[var]
       lower = dist.lowerBound
       upper = dist.upperBound
-      if lower is None:
-        lower = -np.inf
-      if upper is None:
-        upper = np.inf
       if val < lower:
         self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} lower bound: {:1.3e} under by {:1.3e}'
                           .format(var, val, lower, lower - val))
