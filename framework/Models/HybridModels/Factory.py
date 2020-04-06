@@ -11,25 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
-Factory for generating the instances of the  Models Module
+  Factory for generating the instances of the  HybridModels Module
+
+  Created on April 3, 2020
+  @author: wangc
 """
-#for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
 
 from utils import utils
+from .HybridModelBase import HybridModelBase
+from .HybridModel   import HybridModel
 
-from .Model         import Model
-from .Dummy         import Dummy
-from .ROM           import ROM
-from .ExternalModel import ExternalModel
-from .Code          import Code
-from .EnsembleModel import EnsembleModel
-from .PostProcessor import PostProcessor
-from .HybridModels import HybridModel
-
-__base = 'Model'
+__base = 'HybridModelBase'
 __interFaceDict = {}
 
 for classObj in utils.getAllSubclasses(eval(__base)):
@@ -61,7 +55,7 @@ def returnInstance(Type,runInfoDict,caller):
     return __interFaceDict[Type](runInfoDict)
   except KeyError:
     availableClasses = ','.join(__interFaceDict.keys())
-    caller.raiseAnError(NameError,'MODELS','not known {} type {} (Available options: {})'.format(__base,Type,availableClasses))
+    caller.raiseAnError(NameError,'HybridModels','not known {} type {} (Available options: {})'.format(__base,Type,availableClasses))
 
 def validate(className,role,what,caller):
   """
@@ -75,4 +69,4 @@ def validate(className,role,what,caller):
   if className in __interFaceDict:
     return __interFaceDict[className].localValidateMethod(role,what)
   else:
-    caller.raiseAnError(IOError,'MODELS','the class '+str(className)+' it is not a registered model')
+    caller.raiseAnError(IOError,'HybridModels','the class '+str(className)+' it is not a registered model')
