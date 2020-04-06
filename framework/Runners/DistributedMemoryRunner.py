@@ -51,7 +51,7 @@ class DistributedMemoryRunner(InternalRunner):
   """
   def __init__(self, messageHandler, args, functionToRun,
                     identifier=None, metadata=None,
-                     uniqueHandler = "any", profile = False):
+                    uniqueHandler = "any", profile = False):
     """
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
