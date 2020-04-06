@@ -318,6 +318,8 @@ class JobHandler(MessageHandler.MessageUser):
         clientQueue
       @ Out, None
     """
+    assert "original_function" in dir(functionToRun), "to parallelize a function, it must be" \
+                                                          " decorated with RAVEN Parallel decorator"
     if self.rayServer is None or forceUseThreads:
       internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
                                                functionToRun.original_function,
