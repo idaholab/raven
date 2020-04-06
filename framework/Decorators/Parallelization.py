@@ -18,6 +18,7 @@
 """
 #Internal Modules---------------------------------------------------------------
 from utils import importerUtils as im
+from utils.utils import Object
 #Internal Modules End-----------------------------------------------------------
 
 #External Modules---------------------------------------------------------------
@@ -61,10 +62,14 @@ class Parallel(object):
       @ Out, decorated, FunctionType, or Class, the decorated function or class
     """
     if self.decorator is None:
-      # Return the function unchanged, not decorated.
-      decorated = func
+      # Return the function decorated with a wrapper
+      # this is basically not decarate but we keep the same
+      # approach for accessing to the original underlying function
+      # in case of multi-threading
+      decorated = Object()
     else:
       # decorate the function
       decorated = self.decorator(func)
+    decorated.__dict__['original_function'] = func
     return decorated
 

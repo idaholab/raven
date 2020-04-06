@@ -320,14 +320,14 @@ class JobHandler(MessageHandler.MessageUser):
     """
     if self.rayServer is None or forceUseThreads:
       internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
-                                               functionToRun._function if _rayAvail else functionToRun,
+                                               functionToRun.original_function,
                                                identifier, metadata,
                                                uniqueHandler,
                                                profile=self.__profileJobs)
     else:
       arguments = args  if _rayAvail else  tuple([self.rayServer] + list(args))
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
-                                                    arguments, functionToRun.remote if _rayAvail else functionToRun,
+                                                    arguments, functionToRun.remote if _rayAvail else functionToRun.original_function,
                                                     identifier, metadata,
                                                     uniqueHandler,
                                                     profile=self.__profileJobs)
