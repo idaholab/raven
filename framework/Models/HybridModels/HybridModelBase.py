@@ -74,7 +74,7 @@ class HybridModelBase(Dummy):
       @ Out, None
     """
     Dummy.__init__(self,runInfoDict)
-    self.modelInstance            = None             # Instance of given model
+    self.modelInstances        = {}                  # dictionary {modelName: modelInstance}: instances of given model
     self.sleepTime             = 0.005               # waiting time before checking if a run is finished.
     self.printTag              = 'HybridModelBase MODEL' # print tag
     self.createWorkingDir      = False               # If the type of model is 'Code', this will set to true
@@ -92,8 +92,8 @@ class HybridModelBase(Dummy):
     paramInput = self.getInputSpecification()()
     paramInput.parseNode(xmlNode)
     for modelNode in paramInput.findAll('Model'):
-      self.modelInstance = modelNode.value
-      if modelNode.parameterValues['type'] == 'Code':
+      self.modelInstances.update({modelNode.value: None})
+      if not self.createWorkingDir and modelNode.parameterValues['type'] == 'Code':
         self.createWorkingDir = True
 
   def initialize(self,runInfo,inputs,initDict=None):
@@ -104,16 +104,17 @@ class HybridModelBase(Dummy):
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    if isinstance(self.modelInstance, Models.Model):
-      self.raiseAnError(IOError, "Model {} has already been initialized, and it can not be initialized again!".format(self.modelInstance.name))
-    self.modelInstance = self.retrieveObjectFromAssemblerDict('Model', self.modelInstance)
-    if self.modelInstance.type == 'Code':
-      codeInput = []
-      for elem in inputs:
-        if isinstance(elem, Files.File):
-          codeInput.append(elem)
-      self.modelInstance.initialize(runInfo, codeInput, initDict)
-
+    for model in self.modelInstances:
+      if isinstance(model, Models.Model):
+        self.raiseAnError(IOError, "Model {} has already been initialized, and it can not be initialized again!".format(model.name))
+      modelInstance = self.retrieveObjectFromAssemblerDict('Model', model)
+      if modelInstance.type == 'Code':
+        codeInput = []
+        for elem in inputs:
+          if isinstance(elem, Files.File):
+            codeInput.append(elem)
+        modelInstance.initialize(runInfo, codeInput, initDict)
+      self.modelInstances[model] = modelInstance
   def getInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
@@ -130,7 +131,8 @@ class HybridModelBase(Dummy):
       @ In, inputInfo, dict, dictionary in which to add edits
       @ Out, None.
     """
-    self.modelInstance.getAdditionalInputEdits(inputInfo)
+    for _, modelInstance in self.modelInstances.items():
+      modelInstance.getAdditionalInputEdits(inputInfo)
 
   @abc.abstractmethod
   def createNewInput(self,myInput,samplerType,**kwargs):

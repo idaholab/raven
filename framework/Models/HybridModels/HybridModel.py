@@ -92,6 +92,7 @@ class HybridModel(HybridModelBase):
       @ Out, None
     """
     HybridModelBase.__init__(self,runInfoDict)
+    self.modelInstance         = None                # instance of given model
     self.targetEvaluationInstance = None             # Instance of data object used to store the inputs and outputs of HybridModel
     self.tempTargetEvaluation     = None             # Instance of data object that are used to store the training set
     self.romsDictionary        = {}                  # dictionary of models that is going to be employed, i.e. {'romName':Instance}
@@ -161,8 +162,10 @@ class HybridModel(HybridModelBase):
       self.raiseAWarning("The provided TargetEvaluation data object is not empty, the existing data will also be used to train the ROMs!")
       self.existTrainSize = len(self.targetEvaluationInstance)
     self.tempTargetEvaluation = copy.deepcopy(self.targetEvaluationInstance)
-    if self.modelInstance is None:
-      self.raiseAnError(IOError,'Model XML block needs to be inputted!')
+    if len(self.modelInstances) != 1:
+      self.raiseAnError(IOError, 'Required one "Model" XML subnode under node "HybridModel" can be accepted!',
+                        '"{}" "Model" subnodes are provided.'.format(len(self.modelInstances)))
+    self.modelInstance = list(self.modelInstances.values())[0]
     if self.targetEvaluationInstance is None:
       self.raiseAnError(IOError, 'TargetEvaluation XML block needs to be inputted!')
     for romName, romInfo in self.romsDictionary.items():
