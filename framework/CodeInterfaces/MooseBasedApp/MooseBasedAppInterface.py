@@ -36,8 +36,8 @@ class MooseBasedApp(CodeInterfaceBase):
     """
     CodeInterfaceBase.__init__(self)
     self.outputPrefix = 'out~'
-    self.vectorPPFound = None # TODO description, entry added after the fact
-    self.vectorPPDict = None  # TODO description, entry added after the fact
+    self.vectorPPFound = None # Indicates if a MOOSE vector postprocessor is in use
+    self.vectorPPDict = None  # Contains information about the postprocessor used
 
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """

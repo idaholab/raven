@@ -26,6 +26,7 @@ validIndicators = ('=', '[')
 def preprocessGetpot(getpot):
   """
     Minimize user readability to accentuate computer readability
+    Note all comments will be removed, as they aren't computer read
     @ In, getpot, string, string to read in (with newlines, could be open file object)
     @ Out, tree, TreeStructure.NodeTree, tree with information
   """
@@ -57,24 +58,17 @@ def getpotToInputTree(getpot):
   roots = []
   parentNodes = [] # stack trace of parent nodes, as [First, Second, Third] nested
   currentNode = None # current node having objects added to it
-  # track comments and the node they "belong to"
-  comment = None
   # track multiline vectors
   multilineKey = None       # attribute name
   multilineValue = None     # multiline value
   multilineIndicator = None # indicator to open/close, either ' or "
   for line in getpot:
-    print('DEBUGG line, multi:', line[:-1], multilineValue is not None)
     if multilineValue is not None:
       if multilineIndicator in line:
         # the multiline is done, so close and record it
         value, leftover = line.split(multilineIndicator, maxsplit=1)
         addSpace = ' ' if value.strip() else ''
         multilineValue += addSpace + value.strip() + multilineIndicator
-        # ASSUME: anything after the vector should just be comments
-        comment = leftover.strip(' #\n')
-        if not comment:
-          comment = None
         # set up to close entry
         attribute = multilineKey
         value = multilineValue
@@ -90,9 +84,6 @@ def getpotToInputTree(getpot):
         closeEntry = False
     else:
       line = line.strip()
-      #if comment in line, store it for now
-      if '#' in line:
-        line, comment = (x.strip() for x in line.split('#', maxsplit=1))
       #------------------
       # starting new node
       if line.startswith(('[./', '[')) and line.endswith(']') and line not in ('[../]','[]'):
@@ -100,10 +91,6 @@ def getpotToInputTree(getpot):
         if currentNode is not None:
           parentNodes.append(currentNode)
         currentNode = TreeStructure.InputNode(tag=line.strip('[]./'))
-        # stash the comment cache
-        #if comment is not None:
-        #  currentNode.addComment(comment)
-        #  comment = None
         closeEntry = False
       #------------------
       # closing node
@@ -116,29 +103,18 @@ def getpotToInputTree(getpot):
           #this is a root
           roots.append(currentNode)
           currentNode = None
-        # stash comment stash
-        #if comment is not None:
-        #  currentNode.addComment(comment)
-        #  comment = None
-        closeEntry = False
-      #------------------
-      # empty line
-      elif line == '':
-        if comment is not None:
-          currentNode.addComment(comment)
-          comment = None
         closeEntry = False
       #------------------
       # attributes and values
       elif '=' in line:
-        attribute, value = (x.strip() for x in line.split('='))
+        attribute, value = (x.strip() for x in line.split('=', maxsplit=1))
         # TODO multilline, if "'" or '"' in line
         # ASSUME: both " and ' aren't used in the same line
-        if '\'' in line or '\"' in line or value.strip() == '':
-          indicator = '\'' if '\'' in line else ('\"' if '\"' in line else 'TBD')
-          if indicator in ('\'', '"') and line.count(indicator) % 2 == 0: # NOTE this may be more complex than needed, can you really use 4, 6?
+        if any(x in line for x in multiIndicators):
+          indicator = '\'' if '\'' in line else '\"'
+          if line.count(indicator) % 2 == 0: # NOTE this may be more complex than needed, can you really use 4, 6?
             # closes within line
-            value = value.strip('\'')
+            value = value.strip('\'\"')
             closeEntry = True
           else:
             # multiline
@@ -155,22 +131,14 @@ def getpotToInputTree(getpot):
       #------------------
       # we don't know what's going on here
       else:
-        #if comment is not None:
-        #  currentNode.addComment(comment)
-        #  comment = None
         raise IOError('Unrecognized line syntax: "{}"'.format(line))
     #------------------
     # if the "value" if the "attribute" is closed, record the entry
     if closeEntry:
       if attribute in (c.tag for c in currentNode.children): #currentNode.attrib:
         raise IOError('Multiple entries defined with same name "{a}"!'.format(a=attribute))
-      #elif attribute == 'value':
-      #  currentNode.text = value
       else:
         new = TreeStructure.InputNode(tag=attribute, text=value)
-        if comment is not None:
-          new.addComment(comment)
-        comment = None
         currentNode.append(new)
 
   if multilineValue:

@@ -52,7 +52,7 @@ class MOOSEparser():
       @ Out, roots, list, root nodes of input file as utils.TreeStructure.InputTree instances
     """
     if not os.path.exists(inputFile):
-      raise IOError('MOOSE input file not found ')
+      raise IOError('MOOSE input file not found: "{}"'.format(inputFile))
     with open(inputFile, 'r') as f:
       roots = MooseInputParser.getpotToInputTree(f)
     return roots
@@ -66,7 +66,7 @@ class MOOSEparser():
       @ Out, modified, list(TreeStructure.InputTrees), the tree(s) that got modified
     """
     modified = copy.deepcopy(self.roots)
-    for mod in modiDictionaryList: # range(len(modiDictionaryList)):
+    for mod in modiDictionaryList:
       name = mod.pop('name')
       modified = self._modifySingleEntry(modified, name, mod)
     return modified
@@ -78,10 +78,6 @@ class MOOSEparser():
       @ In, trees, list(TreeStructure.InputTrees), the tree(s) to write
       @ Out, None
     """
-    # TODO future investigation: is it possible not to have the output file specified?
-    #  -> short answer is I don't think so. Keeping the following in case it comes up.
-    # if outfile is None:
-    #   outfile = self.inputFile
     gp = MooseInputParser.writeGetpot(trees)
     with open(outFile, 'w') as f:
       f.writelines(gp)
@@ -117,12 +113,9 @@ class MOOSEparser():
     # modification or addition
     if found:
       # modification
-      print('DEBUGG found, modification:', target, shortName, mod)
       found[-1].text = str(mod)
-      print('DEBUGG ... new:', found[-1].text)
     else:
       # addition
-      print('DEBUGG not found, modification:', target, shortName, mod)
       trees = MooseInputParser.addNewPath(trees, target, mod)
     return trees
 
