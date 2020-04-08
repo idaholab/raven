@@ -367,6 +367,7 @@ if [[ "$INSTALL_MANAGER" == "CONDA" ]];
     if [[ $ECE_VERBOSE == 0 ]]; then
 	echo ... conda:
 	which conda || echo no conda
+	conda info || echo conda info failed
     fi
   else
     echo ... Conda definitions not found at \"${CONDA_DEFS}\"!
