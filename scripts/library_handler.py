@@ -491,8 +491,8 @@ if __name__ == '__main__':
       actionArgs = '--name {env} -y {src}'
       # which part of the install are we doing?
       if args.subset == 'core':
-        # no special source
-        src = ''
+        # from defaults
+        src = '-c defaults'
         addOptional = args.addOptional
         limit = ['core']
       elif args.subset == 'forge':
