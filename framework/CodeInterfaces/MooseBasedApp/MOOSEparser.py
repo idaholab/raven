@@ -97,26 +97,28 @@ class MOOSEparser():
     # get the target object to modify
     found = MooseInputParser.findInGetpot(trees, target)
 
+    # if asking to erase a block ...
     # TODO is this untested code?
     if 'erase_block' in specials:
       if found:
         found[-2].remove(found[-1])
-        return
 
+    # if asking to check on a block ...
     # TODO is this untested code?
-    if 'assert_match' in specials:
+    elif 'assert_match' in specials:
       if found is None:
         raise IOError('MOOSEParser: Target path not found in provided input file: "{}"'.format(target))
-      return
 
-    shortName, mod = next(iter(modification.items()))
-    # modification or addition
-    if found:
-      # modification
-      found[-1].text = str(mod)
+    # if asking to modify on a block ...
     else:
-      # addition
-      trees = MooseInputParser.addNewPath(trees, target, mod)
+      shortName, mod = next(iter(modification.items()))
+      # modification or addition
+      if found:
+        # modification
+        found[-1].text = str(mod)
+      else:
+        # addition
+        trees = MooseInputParser.addNewPath(trees, target, mod)
     return trees
 
   def vectorPostProcessor(self):

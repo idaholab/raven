@@ -47,7 +47,6 @@ def preprocessGetpot(getpot):
       lines[-1] += addSpace + line
   return lines
 
-
 def getpotToInputTree(getpot):
   """
     Converts getpot input to RAVEN InputTree structure

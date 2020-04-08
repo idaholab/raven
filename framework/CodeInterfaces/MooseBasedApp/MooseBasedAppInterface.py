@@ -165,3 +165,29 @@ class MooseBasedApp(CodeInterfaceBase):
       modifDict[pathedName[-1]] = Kwargs['SampledVars'][var]
       requests.append(modifDict)
     return requests
+
+  # TODO neither of these are used here, but in the RELAP7 interface. Maybe they should be moved?
+  def pointSamplerForMooseBasedApp(self,**Kwargs):
+    """
+      This method is used to create a list of dictionaries that can be interpreted by the input Parser
+      in order to change the input file based on the information present in the Kwargs dictionary.
+      This is specific for point samplers (Grid, Stratified, etc.)
+      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
+    """
+    # the position in, eventually, a vector variable is not available yet...
+    # the MOOSEparser needs to be modified in order to accept this variable type
+    # for now the position (i.e. ':' at the end of a variable name) is discarded
+    listDict = self._expandVarNames(**Kwargs)
+    return listDict
+
+  def dynamicEventTreeForMooseBasedApp(self,**Kwargs):
+    """
+      This method is used to create a list of dictionaries that can be interpreted by the input Parser
+      in order to change the input file based on the information present in the Kwargs dictionary.
+      This is specific for DET samplers (DynamicEventTree, AdaptiveDynamicEventTree, etc.)
+      @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
+      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
+    """
+    listDict = []
+    raise IOError('dynamicEventTreeForMooseBasedApp not yet implemented')

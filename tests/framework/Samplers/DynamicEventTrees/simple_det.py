@@ -62,8 +62,8 @@ def get_params(line):
     return None, None
   equalsIndex = line.index("=")
   name = line[:equalsIndex].strip()
-  if line.rstrip().endswith('"'):
-    params = line[equalsIndex + 1:].strip().strip('"').split()
+  if line.rstrip().endswith(('\"','\'')):
+    params = line[equalsIndex + 1:].strip().strip('\"\'').split()
     return name,params
   else:
     return name,line[equalsIndex + 1:].strip()
@@ -72,8 +72,8 @@ triggerLow = []
 triggerHigh = []
 
 for name, params in [get_params(l) for l in lines]:
-  print(name,params)
   if name == "names":
+    print('DEBUGG params:', params)
     nameList = params
     names = ",".join(["time","x"]+params)
     nameIndexs = {}
