@@ -57,7 +57,7 @@ libAlias = {'scikit-learn': 'sklearn',
 # some bad actors can't use the metadata correctly
 # and so need special treatment
 # -> see findLibAndVersion
-metaExceptions = ['pyside2', 'AMSC']
+metaExceptions = ['pyside2', 'AMSC', 'PIL']
 
 # load up the ravenrc if it's present
 ## TODO we only want to do this once, but does it need to get updated?
@@ -171,6 +171,8 @@ def findLibAndVersion(lib, version=None):
     elif lib == 'AMSC':
       # FIXME improve AMSC setup.py so it's compatible with importlib_metadata!
       return findLibAndVersionSubprocess('AMSC')
+    elif lib == 'PIL':
+      return findLibAndVersionSubprocess('PIL')
     else:
       raise NotImplementedError('Library "{}" on exception list, but no exception implemented!'.format(lib))
   return found, output, foundVersion

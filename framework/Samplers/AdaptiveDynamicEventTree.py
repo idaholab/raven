@@ -159,7 +159,12 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       self.raiseADebug("Distrbution name: "+str(self.toBeSampled[key]))
       if key not in self.epistemicVariables.keys():
         cdfValues[key] = self.distDict[key].cdf(value)
-        lowerCdfValues[key] = utils.find_le(self.branchProbabilities[key],cdfValues[key])[0]
+        try:
+          index = np.max(np.where(self.branchProbabilities[key] <= cdfValues[key]))
+          val = self.branchProbabilities[key][index]
+        except ValueError:
+          val = None
+        lowerCdfValues[key] = val
         self.raiseADebug("CDF value       : "+str(cdfValues[key]))
         self.raiseADebug("Lower CDF found : "+str(lowerCdfValues[key]))
       self.raiseADebug("_"*50)
@@ -416,8 +421,9 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       # add pbthresholds in the grid
       investigatedPoint = {}
       for key,value in cdfValues.items():
-        ind = utils.find_le_index(self.branchProbabilities[key],value)
-        if not ind:
+        try:
+          ind = np.max(np.where(self.branchProbabilities[key] <= value))
+        except ValueError:
           ind = 0
         if value not in self.branchProbabilities[key]:
           self.branchProbabilities[key].insert(ind,value)
@@ -442,7 +448,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         elm.add('completedHistory', False)
         branchedLevel = {}
         for key,value in cdfValues.items():
-          branchedLevel[key] = utils.index(self.branchProbabilities[key],value)
+          branchedLevel[key] = np.max(np.where(self.branchProbabilities[key] == value))
         # The dictionary branchedLevel is stored in the xml tree too. That's because
         # the advancement of the thresholds must follow the tree structure
         elm.add('branchedLevel', branchedLevel)
