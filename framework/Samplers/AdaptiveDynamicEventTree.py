@@ -162,7 +162,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         try:
           index = utils.first(np.where(np.asarray(self.branchProbabilities[key]) <= cdfValues[key]))[-1]
           val = self.branchProbabilities[key][index]
-        except ValueError:
+        except (ValueError, IndexError):
           val = None
         lowerCdfValues[key] = val
         self.raiseADebug("CDF value       : "+str(cdfValues[key]))
@@ -423,7 +423,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       for key,value in cdfValues.items():
         try:
           ind = utils.first(np.where(np.asarray(self.branchProbabilities[key]) <= value))[-1]
-        except ValueError:
+        except (IndexError, ValueError):
           ind = 0
         if value not in self.branchProbabilities[key]:
           self.branchProbabilities[key].insert(ind,value)
