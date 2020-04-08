@@ -160,7 +160,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       if key not in self.epistemicVariables.keys():
         cdfValues[key] = self.distDict[key].cdf(value)
         try:
-          index = np.max(np.where(np.asarray(self.branchProbabilities[key]) <= cdfValues[key]))
+          index = utils.first(np.where(np.asarray(self.branchProbabilities[key]) <= cdfValues[key]))[-1]
           val = self.branchProbabilities[key][index]
         except ValueError:
           val = None
@@ -422,7 +422,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       investigatedPoint = {}
       for key,value in cdfValues.items():
         try:
-          ind = np.max(np.where(np.asarray(self.branchProbabilities[key]) <= value))
+          ind = utils.first(np.where(np.asarray(self.branchProbabilities[key]) <= value))[-1]
         except ValueError:
           ind = 0
         if value not in self.branchProbabilities[key]:
@@ -448,7 +448,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         elm.add('completedHistory', False)
         branchedLevel = {}
         for key,value in cdfValues.items():
-          branchedLevel[key] = np.max(np.where(np.asarray(self.branchProbabilities[key]) == value))
+          branchedLevel[key] = utils.first(np.where(np.asarray(self.branchProbabilities[key]) == value))[-1]
         # The dictionary branchedLevel is stored in the xml tree too. That's because
         # the advancement of the thresholds must follow the tree structure
         elm.add('branchedLevel', branchedLevel)
