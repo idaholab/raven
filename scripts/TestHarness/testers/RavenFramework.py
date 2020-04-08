@@ -135,8 +135,7 @@ class RavenFramework(Tester):
 
   def __init__(self, name, params):
     Tester.__init__(self, name, params)
-    self.img_files = self.specs['image'].split(" ") if len(self.specs['image']) > 0 else []
-    self.all_files = self.img_files
+    self.all_files = []
     self.__make_differ('output', ExistsDiff.Exists)
     self.__make_differ('csv', OrderedCSVDiffer.OrderedCSV)
     self.__make_differ('UnorderedCsv', UnorderedCSVDiffer.UnorderedCSV)
@@ -149,9 +148,6 @@ class RavenFramework(Tester):
       if len(self.specs['required_libraries']) > 0 else []
     self.minimum_libraries = self.specs['minimum_library_versions'].split(' ')\
       if len(self.specs['minimum_library_versions']) > 0 else []
-    #for image tests, minimum library is always scipy 0.15.0
-    if len(self.img_files) > 0:
-      self.minimum_libraries += ['scipy', '0.15.0']
     self.required_executable = self.required_executable.replace("%METHOD%",
                                                                 os.environ.get("METHOD", "opt"))
     self.specs['scale_refine'] = False
