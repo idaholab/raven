@@ -70,6 +70,8 @@ class SimulatedAnnealing(RavenSampled):
   to smaller and defected crystals, and that reheating and slowly controling cooling
   will lead to better states. This allows climbing to avoid being stuck in local minima
   and hence facilitates finding the global minima for non-convex probloems.
+  @ In, RavenSampled, parent class
+  @ out, None
   """
   convergenceOptions = {'objective': r""" provides the desired value for the convergence criterion of the objective function
                         ($\epsilon^{obj}$), i.e., convergence is reached when: $$ |newObjevtive - oldObjective| \le \epsilon^{obj}$$.
@@ -315,13 +317,14 @@ class SimulatedAnnealing(RavenSampled):
   convFormat = RavenSampled.convFormat
 
   # NOTE checkConvSamePoint has a different call than the others
-  # should this become an informational dict that can be passed to any of them?
-
   def checkConvergence(self, traj, new, old):
     """
       Check for trajectory convergence
       @ In, traj, int, trajectory to consider
-      @ Out, None? FIXME
+      @ In, new, dict, new point
+      @ In, old, dict, old point
+      @ Out, any(convs.values()), bool, True of any of the convergence criteria was reached
+      @ Out, convs, dict, on the form convs[conv] = bool, where conv is in self._convergenceCriteria
     """
     convs = {}
     for conv in self._convergenceCriteria:
