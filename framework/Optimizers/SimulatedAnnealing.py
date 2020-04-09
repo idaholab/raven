@@ -56,22 +56,20 @@ from collections import deque, defaultdict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils, randomUtils, InputData, InputTypes
+from utils import mathUtils, randomUtils, InputData, InputTypes
 from .RavenSampled import RavenSampled
-
 #Internal Modules End--------------------------------------------------------------------------------
-# utility function for defaultdict
-def giveZero():
-  """
-    Utility function for defaultdict to 0
-    @ In, None
-    @ Out, giveZero, int, zero
-  """
-  return 0
 
 class SimulatedAnnealing(RavenSampled):
   """
-  This class performs simulated annealing optimization
+  This class performs simulated annealing optimization utilizing several cooling scheduling methods.
+  Cooling Schedule includes Boltzmann, Exponential, Cauchy, and VeryFast cooling.
+  The Simulated Annealing optimizer is a metaheuristic approach to perform a global
+  search in large design spaces. The methodology rose from statistical physics
+  and was inspitred by metallurgy where it was found that fast cooling might lead
+  to smaller and defected crystals, and that reheating and slowly controling cooling
+  will lead to better states. This allows climbing to avoid being stuck in local minima
+  and hence facilitates finding the global minima for non-convex probloems.
   """
   convergenceOptions = {'objective': r""" provides the desired value for the convergence criterion of the objective function
                         ($\epsilon^{obj}$), i.e., convergence is reached when: $$ |newObjevtive - oldObjective| \le \epsilon^{obj}$$.
@@ -93,7 +91,7 @@ class SimulatedAnnealing(RavenSampled):
     """
       Method to get a reference to a class that specifies the input data for class cls.
       @ In, cls, the class for which we are retrieving the specification
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = super(SimulatedAnnealing, cls).getInputSpecification()
     specs.description = r"""The \xmlNode{SimulatedAnnealing} optimizer is a metaheuristic approach
@@ -156,7 +154,7 @@ class SimulatedAnnealing(RavenSampled):
   def getSolutionExportVariableNames(cls):
     """
       Compiles a list of acceptable SolutionExport variable options.
-      @ In, None
+      @ In, cls, the class for which we are retrieving the solution export
       @ Out, ok, dict, {varName: description} for valid solution export variable names
     """
     # cannot be determined before run-time due to variables and prefixes.
@@ -176,19 +174,15 @@ class SimulatedAnnealing(RavenSampled):
 
   def __init__(self):
     RavenSampled.__init__(self)
-    self._convergenceCriteria = defaultdict(giveZero) # names and values for convergence checks
-    self._stepHistory = {}         # {'magnitude': size, 'versor': direction} for step
-    self._acceptHistory = {}       # acceptability
-    self._stepRecommendations = {} # by traj, if a 'cut' or 'grow' is recommended else None
-    self._acceptRerun = {}         # by traj, if True then override accept for point rerun
-    self._convergenceInfo = {}     # by traj, the persistence and convergence information for most recent opt
-    self._requiredPersistence = 0  # consecutive persistence required to mark convergence
-    self._stepInstance = None      # instance of StepManipulator
-    self._acceptInstance = None    # instance of AcceptanceCondition
-    self.T0 = None                 # initial temperature
-    self.T = None                  # current temperature
-    self._coolingMethod = None     # initializing cooling method
-    self._CoolingParameters = {}   # initializing the cooling schedule parameters
+    self._convergenceCriteria = defaultdict(mathUtils.giveZero) # names and values for convergence checks
+    self._acceptHistory = {}                                    # acceptability
+    self._acceptRerun = {}                                      # by traj, if True then override accept for point rerun
+    self._convergenceInfo = {}                                  # by traj, the persistence and convergence information for most recent opt
+    self._requiredPersistence = 0                               # consecutive persistence required to mark convergence
+    self.T0 = None                                              # initial temperature
+    self.T = None                                               # current temperature
+    self._coolingMethod = None                                  # initializing cooling method
+    self._coolingParameters = {}                                # initializing the cooling schedule parameters
 
   def handleInput(self, paramInput):
     """
@@ -224,7 +218,7 @@ class SimulatedAnnealing(RavenSampled):
       for sub in coolingNode.subparts:
         self._coolingMethod = sub.name
         for subSub in sub.subparts:
-          self._CoolingParameters = {subSub.name:subSub.value}
+          self._coolingParameters = {subSub.name:subSub.value}
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -249,9 +243,7 @@ class SimulatedAnnealing(RavenSampled):
       @ Out, traj, int, new trajectory number
     """
     traj = RavenSampled.initializeTrajectory(self)
-    self._stepHistory[traj] = deque(maxlen=self._maxHistLen)
     self._acceptHistory[traj] = deque(maxlen=self._maxHistLen)
-    self._stepRecommendations[traj] = None
     self._acceptRerun[traj] = False
     self._convergenceInfo[traj] = {'persistence': 0}
     for criteria in self._convergenceCriteria:
@@ -320,8 +312,7 @@ class SimulatedAnnealing(RavenSampled):
 
   # * * * * * * * * * * * * * * * *
   # Convergence Checks
-  # Note these names need to be formatted according to checkConvergence check!
-  convFormat = ' ... {name:^12s}: {conv:5s}, {got:1.2e} / {req:1.2e}'
+  convFormat = RavenSampled.convFormat
 
   # NOTE checkConvSamePoint has a different call than the others
   # should this become an informational dict that can be passed to any of them?
@@ -403,7 +394,7 @@ class SimulatedAnnealing(RavenSampled):
     """
     # This is not required for simulated annealing as it's handled in the probabilistic acceptance criteria
     # But since it is an abstract method it has to exist
-    pass
+    return True
 
   def _checkAcceptability(self, traj, opt, optVal, info):
     """
@@ -447,10 +438,10 @@ class SimulatedAnnealing(RavenSampled):
       Check if new opt point is acceptably better than the old one
       @ In, currentObjective, float, the current value of the objective function (i.e., current energy)
       @ In, newObjective, float, the value of the objective function at the new candidate
-      @ Out, Prob, float, the acceptance probability
+      @ Out, prob, float, the acceptance probability
     """
     # Boltzman Constant
-    kB = 1 #1.380657799e-23 # or 1
+    kB = 1
     if self.T0 == None:
       self.T0 = 1e4
     if self.T == None:
@@ -460,7 +451,6 @@ class SimulatedAnnealing(RavenSampled):
       prob = 1
     else:
       deltaE = newObjective - currentObjective
-      # prob = 1/(1+np.exp(deltaE/(kB * self.T)))
       prob = min(1,np.exp(-deltaE/(kB * self.T)))
     return prob
 
@@ -468,7 +458,9 @@ class SimulatedAnnealing(RavenSampled):
     """
       Updates convergence information for trajectory
       @ In, traj, int, identifier
-      @ In, acceptable, str, condition of point
+      @ In, new, dict, new point
+      @ In, old, dict, old point
+      @ In, acceptable, str, condition of new point
       @ Out, converged, bool, True if converged on ANY criteria
     """
     ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
@@ -509,21 +501,21 @@ class SimulatedAnnealing(RavenSampled):
       @ Out, toAdd, dict, additional entries
     """
     # meta variables
-    solution = {'Temp': self.T,
+    toAdd = {'Temp': self.T,
                 'fraction': self.getIteration(traj)/self.limit
                 }
 
     for var in self.toBeSampled:
-      solution['amp_'+var] = self.info['amp_'+var]
-      solution['delta_'+var] = self.info['delta_'+var]
+      toAdd['amp_'+var] = self.info['amp_'+var]
+      toAdd['delta_'+var] = self.info['delta_'+var]
 
     for var, val in self.constants.items():
-      solution[var] = val
+      toAdd[var] = val
 
-    solution = dict((key, np.atleast_1d(val)) for key, val in solution.items())
+    toAdd = dict((key, np.atleast_1d(val)) for key, val in toAdd.items())
     for key, val in self._convergenceInfo[traj].items():
-      solution['conv_{}'.format(key)] = bool(val)
-    return solution
+      toAdd['conv_{}'.format(key)] = bool(val)
+    return toAdd
 
   def _formatSolutionExportVariableNames(self, acceptable):
       """
@@ -535,7 +527,6 @@ class SimulatedAnnealing(RavenSampled):
       # remaking the list is easier than using the existing one
       acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
       new = []
-      print('DEBUGG acceptable:', acceptable)
       while acceptable:
         template = acceptable.pop()
         if '{CONV}' in template:
@@ -552,6 +543,7 @@ class SimulatedAnnealing(RavenSampled):
       @ In, traj, int, identifier
       @ In, info, dict, meta information about the opt point
       @ In, old, dict, previous optimal point (to resubmit)
+      @ Out, none
     """
     self._cancelAssociatedJobs(info['traj'], step=info['step'])
     ## what do do if a point is rejected?
@@ -604,30 +596,30 @@ class SimulatedAnnealing(RavenSampled):
     if not self._coolingMethod:
       self._coolingMethod = 'exponential'
 
-    if not self._CoolingParameters:
-      self._CoolingParameters['alpha'] = 0.94
-      self._CoolingParameters['beta'] = 0.1
-      self._CoolingParameters['c'] = 1.0
-      self._CoolingParameters['d'] = 1.0
+    if not self._coolingParameters:
+      self._coolingParameters['alpha'] = 0.94
+      self._coolingParameters['beta'] = 0.1
+      self._coolingParameters['c'] = 1.0
+      self._coolingParameters['d'] = 1.0
 
     type = self._coolingMethod
     if type == 'linear':
-      beta = self._CoolingParameters['beta']
+      beta = self._coolingParameters['beta']
       return T0 - iter * beta
     elif type in ['exponential','geometric']:
-      alpha = self._CoolingParameters['alpha']
+      alpha = self._coolingParameters['alpha']
       return alpha ** iter * T0
     elif type == 'boltzmann':
-      d = self._CoolingParameters['d']
+      d = self._coolingParameters['d']
       return T0/(np.log10(iter + d))
     elif type == 'fast':
-      c = self._CoolingParameters['c']
+      c = self._coolingParameters['c']
       return np.exp(-c*iter) * T0
     elif type == 'veryfast':
-      c = self._CoolingParameters['c']
+      c = self._coolingParameters['c']
       return np.exp(-c*iter**(1/len(self.toBeSampled.keys()))) * T0
     elif type == 'cauchy':
-      d = self._CoolingParameters['d']
+      d = self._coolingParameters['d']
       return T0/(iter + d)
     else:
       raise NotImplementedError('cooling schedule type not implemented.')

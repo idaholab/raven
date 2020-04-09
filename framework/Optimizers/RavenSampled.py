@@ -49,6 +49,10 @@ class RavenSampled(Optimizer):
      - Establish API for iterative sample output to solution export
      - Implements specific sampling methods from Sampler (when not present in Optimizer)
   """
+  # * * * * * * * * * * * * * * * *
+  # Convergence Checks
+  # Note these names need to be formatted according to checkConvergence check!
+  convFormat = ' ... {name:^12s}: {conv:5s}, {got:1.2e} / {req:1.2e}'
 
   ##########################
   # Initialization Methods #

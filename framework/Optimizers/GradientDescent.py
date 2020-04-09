@@ -28,6 +28,7 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import InputData, InputTypes, mathUtils
+# from utils.mathUtils import giveZero
 from .RavenSampled import RavenSampled
 from .gradients import knownTypes as gradKnownTypes
 from .gradients import returnInstance as gradReturnInstance
@@ -40,16 +41,6 @@ from .acceptanceConditions import knownTypes as acceptKnownTypes
 from .acceptanceConditions import returnInstance as acceptReturnInstance
 from .acceptanceConditions import returnClass as acceptReturnClass
 #Internal Modules End--------------------------------------------------------------------------------
-
-# utility function for defaultdict
-def giveZero():
-  """
-    Utility function for defaultdict to 0
-    Needed only to avoid lambda pickling issues for defaultdicts
-    @ In, None
-    @ Out, giveZero, int, zero
-  """
-  return 0
 
 class GradientDescent(RavenSampled):
   """
@@ -218,7 +209,7 @@ class GradientDescent(RavenSampled):
     self._acceptHistory = {}       # acceptability
     self._stepRecommendations = {} # by traj, if a 'cut' or 'grow' is recommended else None
     self._acceptRerun = {}         # by traj, if True then override accept for point rerun
-    self._convergenceCriteria = defaultdict(giveZero) # names and values for convergence checks
+    self._convergenceCriteria = defaultdict(mathUtils.giveZero) # names and values for convergence checks
     self._convergenceInfo = {}       # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = None # consecutive persistence required to mark convergence
     self._terminateFollowers = True  # whether trajectories sharing a point should cause termination
@@ -631,7 +622,9 @@ class GradientDescent(RavenSampled):
     """
       Updates convergence information for trajectory
       @ In, traj, int, identifier
-      @ In, acceptable, str, condition of point
+      @ In, new, dict, new point
+      @ In, old, dict, old point
+      @ In, acceptable, str, condition of new point
       @ Out, converged, bool, True if converged on ANY criteria
     """
     ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
@@ -690,6 +683,7 @@ class GradientDescent(RavenSampled):
       @ In, traj, int, identifier
       @ In, info, dict, meta information about the opt point
       @ In, old, dict, previous optimal point (to resubmit)
+      @ Out, none
     """
     # cancel grad runs
     self._cancelAssociatedJobs(info['traj'], step=info['step'])
@@ -708,8 +702,7 @@ class GradientDescent(RavenSampled):
 
   # * * * * * * * * * * * * * * * *
   # Convergence Checks
-  # Note these names need to be formatted according to checkConvergence check!
-  convFormat = ' ... {name:^12s}: {conv:5s}, {got:1.2e} / {req:1.2e}'
+  convFormat = RavenSampled.convFormat
 
   # NOTE checkConvSamePoint has a different call than the others
   # should this become an informational dict that can be passed to any of them?
