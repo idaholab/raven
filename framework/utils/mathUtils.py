@@ -961,3 +961,13 @@ def angleBetweenVectors(a, b):
     ang = np.arccos(np.clip(dot, -1, 1))
   ang = np.rad2deg(ang)
   return ang
+
+# utility function for defaultdict
+def giveZero():
+  """
+    Utility function for defaultdict to 0
+    Needed only to avoid lambda pickling issues for defaultdicts
+    @ In, None
+    @ Out, giveZero, int, zero
+  """
+  return 0
