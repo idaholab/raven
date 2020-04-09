@@ -172,7 +172,7 @@ def inputTreeToGetpot(entry, rec=0):
   if not(len(root) or root.attrib):
     val = root.text
     if ' ' in root.text:
-      val = '\'{}\''.format(val)
+      val = '\"{}\"'.format(val)
     gp = '  '*rec + '{k} = {v}\n'.format(k=root.tag, v=val)
   else:
     if rec == 0:

@@ -165,7 +165,8 @@ class RELAP7(CodeInterfaceBase):
     if 'initiatorDistribution' in Kwargs.keys():
       for i in range(len(Kwargs['initiatorDistribution'])):
         modifDict = {}
-        modifDict['name'] = ['Distributions',Kwargs['initiatorDistribution'][i]]
+        varName = Kwargs['initiatorDistribution'][i]
+        modifDict['name'] = ['Distributions', varName, 'ProbabilityThreshold']
         modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
         listDict.append(modifDict)
         del modifDict
