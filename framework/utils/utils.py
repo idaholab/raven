@@ -29,10 +29,10 @@ import inspect
 import subprocess
 import platform
 import copy
+from importlib import import_module
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.
 from difflib import SequenceMatcher
-import importlib
 
 class Object(object):
   """
@@ -746,11 +746,11 @@ def findCrowModule(name):
   # find the module
   ext = 'py3' if sys.version_info.major > 2 else 'py2'
   try:
-    module = importlib.import_module("crow_modules.{}{}".format(name,ext))
+    module = import_module("crow_modules.{}{}".format(name,ext))
   except ImportError as ie:
     if not str(ie).startswith("No module named"):
       raise ie
-    module = importlib.import_module("{}{}".format(name,ext))
+    module = import_module("{}{}".format(name,ext))
   return module
 
 def getPythonCommand():

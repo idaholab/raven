@@ -24,11 +24,14 @@ from __future__ import division, print_function, absolute_import
 
 #External Modules------------------------------------------------------------------------------------
 import contrib.lazy.lazy_loader as lazy_loader
+from importlib import util as imutil
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 #Internal Modules End--------------------------------------------------------------------------------
 
-def import_module_lazy(moduleString, parentGlobals=None):
+# filled by isLibAvail: store if libraries are available or not e.g. {'numpy':True/False, etc.}.
+__moduleAvailability = {}
+def importModuleLazy(moduleString, parentGlobals=None):
   """
     This method is aimed to import a module with lazy_import
     @ In, moduleString, str, the module to import (e.g. numpy or scipy.stats, etc.)
@@ -41,7 +44,7 @@ def import_module_lazy(moduleString, parentGlobals=None):
     parentGlobals = globals()
   return lazy_loader.LazyLoader(name, parentGlobals, name)
 
-def import_module_lazy_renamed(localName, parentGlobals, name):
+def importModuleLazyRenamed(localName, parentGlobals, name):
   """
     This method is aimed to import a module with lazy_import
     @ In, localName, str, the name to use for the module
@@ -52,3 +55,13 @@ def import_module_lazy_renamed(localName, parentGlobals, name):
   """
   return lazy_loader.LazyLoader(localName, parentGlobals, name)
 
+def isLibAvail(moduleString):
+  """
+    This method is aimed to check if a certain library is available in the system
+    @ In, moduleString, str, the module to look for (e.g.numpy, scipy, etc.)
+    @ Out, isLibAvail, bool, is it available?
+  """
+  global __moduleAvailability
+  if moduleString not in __moduleAvailability:
+    __moduleAvailability[moduleString] = False if imutil.find_spec(moduleString) is None else True
+  return __moduleAvailability.get(moduleString)
