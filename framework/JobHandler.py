@@ -24,29 +24,32 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import time
 import collections
 import subprocess
-
 import os
 import copy
 import sys
 import abc
 import threading
-import random
+from random import randint
 import socket
 import time
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
+from utils import importerUtils as im
 from utils import utils
 from BaseClasses import BaseType
 import MessageHandler
 import Runners
 import Models
 # for internal parallel
-import pp
-import ppserver
+## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWS
+_rayAvail = im.isLibAvail("ray")
+if _rayAvail:
+ import ray
+else:
+ import pp
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
-
 
 ## FIXME: Finished jobs can bog down the queue waiting for other objects to take
 ## them away. Can we shove them onto a different list and free up the job queue?
@@ -62,12 +65,19 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
+    ## Print tag of this object
     self.printTag         = 'Job Handler'
+    ## Container of the running info (RunInfo block in the input file)
     self.runInfoDict      = {}
+    ## Is Ray Initialized?
+    self.isRayInitialized = False
+    ## Variable containing the info about the RAY parallel server. If None, multi-threading is used
+    self.rayServer = None
 
-    self.isParallelPythonInitialized = False
-
+    ## Sleep time for collecting/inquiring/submitting new jobs
     self.sleepTime  = 1e-4 #0.005
+
+    ## Is the execution completed? When True, the JobHandler is shut down
     self.completed = False
 
     ## Determines whether to collect and print job timing summaries at the end of job runs.
@@ -105,14 +115,11 @@ class JobHandler(MessageHandler.MessageUser):
     ############################################################################
 
     self.__queueLock = threading.RLock()
-
     ## List of submitted job identifiers, includes jobs that have completed as
     ## this list is not cleared until a new step is entered
     self.__submittedJobs = []
     ## Dict of failed jobs of the form { identifer: metadata }
     self.__failedJobs = {}
-
-    #self.__noResourcesJobs = []
 
   def initialize(self, runInfoDict, messageHandler):
     """
@@ -139,6 +146,9 @@ class JobHandler(MessageHandler.MessageUser):
     with self.__queueLock:
       self.__running       = [None]*self.runInfoDict['batchSize']
       self.__clientRunning = [None]*self.runInfoDict['batchSize']
+    ## internal server is initialized only in case an internal calc is requested
+    if not self.isRayInitialized:
+      self.__initializeRay()
 
   def __checkAndRemoveFinished(self, running):
     """
@@ -161,106 +171,98 @@ class JobHandler(MessageHandler.MessageUser):
         self.raiseAMessage(" Process Failed " + str(running) + " internal returnCode " + str(returnCode))
         self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metadataToKeep))
 
-  def __initializeParallelPython(self):
+  def __initializeRay(self):
     """
       Internal method that is aimed to initialize the internal parallel system.
-      It initilizes the paralle python implementation (with socketing system) in
+      It initilizes the RAY implementation (with socketing system) in
       case RAVEN is run in a cluster with multiple nodes or the NumMPI > 1,
       otherwise multi-threading is used.
       @ In, None
       @ Out, None
     """
+    ## set up enviroment
+    os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
     ## Check if the list of unique nodes is present and, in case, initialize the
-    ## socket
+    servers = None
     if self.runInfoDict['internalParallel']:
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
-
-        ## Set the initial port randomly among the user accessible ones
-        ## Is there any problem if we select the same port as something else?
-        randomPort = random.randint(1024,65535)
-
+        ## identify the local host name and get the number of local processors
+        localHostName = self.__getLocalHost()
+        self.raiseADebug("Local host name is  : ", localHostName)
+        nProcsHead = availableNodes.count(localHostName)
+        self.raiseADebug("# of local procs    : ", str(nProcsHead))
+        ## initialize ray server with nProcs
+        self.rayServer = ray.init(num_cpus=int(nProcsHead)) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
         ## Get localHost and servers
-        localHostName, ppservers = self.__runRemoteListeningSockets(randomPort)
-        self.raiseADebug("Local host is "+ localHostName)
-
-        if len(ppservers) == 0:
-          ## We are on a single node
-          self.ppserver = pp.Server(ncpus=len(availableNodes))
-        else:
-          ## We are using multiple nodes
-          self.raiseADebug("Servers found are " + ','.join(ppservers))
-          self.raiseADebug("Server port in use is " + str(randomPort))
-          self.ppserver = pp.Server(ncpus=0, ppservers=tuple(ppservers))
+        servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
-         ## We are using the parallel python system
-        self.ppserver = pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
+                         pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+      if _rayAvail:
+        self.raiseADebug("Head node IP address: ", self.rayServer['node_ip_address'])
+        self.raiseADebug("Redis address       : ", self.rayServer['redis_address'])
+        self.raiseADebug("Object store address: ", self.rayServer['object_store_address'])
+        self.raiseADebug("Raylet socket name  : ", self.rayServer['raylet_socket_name'])
+        self.raiseADebug("Session directory   : ", self.rayServer['session_dir'])
+        if servers:
+          self.raiseADebug("# of remote servers : ", str(len(servers)))
+          self.raiseADebug("Remote servers      : ", " , ".join(servers))
+
     else:
       ## We are just using threading
-      self.ppserver = None
+      self.rayServer = None
 
-    self.isParallelPythonInitialized = True
+    self.isRayInitialized = True
 
   def __getLocalAndRemoteMachineNames(self):
     """
       Method to get the qualified host and remote nodes' names
       @ In, None
-      @ Out, hostNameMapping, dict, dictionary containing the qualified names
-        {'local':hostName,'remote':{nodeName1:IP1,nodeName2:IP2,etc}}
+      @ Out, hostNameMapping, dict, dictionary containing the qualified names of the remote nodes
     """
-    hostNameMapping = {'local':"",'remote':{}}
-
-    ## Store the local machine name as its fully-qualified domain name (FQDN)
-    hostNameMapping['local'] = str(socket.getfqdn()).strip()
-    self.raiseADebug("Local Host is " + hostNameMapping['local'])
-
+    hostNameMapping = {}
     ## collect the qualified hostnames for each remote node
     for nodeId in list(set(self.runInfoDict['Nodes'])):
-      hostNameMapping['remote'][nodeId.strip()] = socket.gethostbyname(nodeId.strip())
-      self.raiseADebug("Remote Host identified " + hostNameMapping['remote'][nodeId.strip()])
+      hostNameMapping[nodeId.strip()] = socket.gethostbyname(nodeId.strip())
+      self.raiseADebug("Remote Host identified ", hostNameMapping[nodeId.strip()])
 
     return hostNameMapping
 
-  def __runRemoteListeningSockets(self,newPort):
+  def __getLocalHost(self):
+    """
+      Method to get the name of the local host
+      @ In, None
+      @ Out, __getLocalHost, string, the local host name
+    """
+    return str(socket.getfqdn()).strip()
+
+  def __runRemoteListeningSockets(self,address):
     """
       Method to activate the remote sockets for parallel python
-      @ In, newPort, integer, the comunication port to use
-      @ Out, (qualifiedHostName, ppservers), tuple, tuple containining:
-             - in position 0 the host name and
-             - in position 1 the list containing the nodes in which the remote
-               sockets have been activated
+      @ In, address, string, the head node redis address
+      @ Out, servers, list, list containing the nodes in which the remote sockets have been activated
     """
     ## Get the local machine name and the remote nodes one
-    hostNameMapping = self.__getLocalAndRemoteMachineNames()
-    qualifiedHostName =  hostNameMapping['local']
-    remoteNodesIP = hostNameMapping['remote']
+    remoteNodesIP = self.__getLocalAndRemoteMachineNames()
 
     ## Strip out the nodes' names
     availableNodes = [node.strip() for node in self.runInfoDict['Nodes']]
 
     ## Get unique nodes
-    uniqueNodes    = list(set(availableNodes))
-    ppservers      = []
+    uniqueNodes  = list(set(availableNodes))
+    servers      = []
 
     if len(uniqueNodes) > 1:
       ## There are remote nodes that need to be activated
-
-      ## Locate the ppserver script to be executed
-      if sys.version_info.major == 2:
-        ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
-      else:
-        ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp3","ppserver.py")
-
       ## Modify the python path used by the local environment
       localenv = os.environ.copy()
       pathSeparator = os.pathsep
       localenv["PYTHONPATH"] = pathSeparator.join(sys.path)
-
+      ## Start
       for nodeId in uniqueNodes:
         ## Build the filename
-        outFileName = nodeId.strip()+"_port:"+str(newPort)+"_server_out.log"
-        outFileName = os.path.join(self.runInfoDict['WorkingDir'], outFileName)
-
+        outFileName = os.path.join(self.runInfoDict['WorkingDir'], nodeId.strip()+"_server_out.log")
         outFile = open(outFileName, 'w')
 
         ## Check how many processors are available in the node
@@ -268,21 +270,18 @@ class JobHandler(MessageHandler.MessageUser):
         remoteHostName =  remoteNodesIP[nodeId]
 
         ## Activate the remote socketing system
+        ## let's build the command and then call the os-agnostic version
+        if _rayAvail:
+          command=" ".join(["ray start", "--address="+address, "-num-cpus",str(ntasks)])
+        else:
+          ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+          command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
 
-        ## Next line is a direct execute of a ppserver:
-        #subprocess.Popen(['ssh', nodeId, "python2.7", ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","1000","-g",localenv["PYTHONPATH"],"-d"],shell=False,stdout=outFile,stderr=outFile,env=localenv)
-
-        ## Instead, let's build the command and then call the os-agnostic version
-        pythonCommand = utils.getPythonCommand()
-
-        command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(newPort),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
         utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
-        ## e.g., ssh nodeId COMMAND='python ppserverScript -w stuff'
-
         ## update list of servers
-        ppservers.append(nodeId+":"+str(newPort))
+        servers.append(nodeId)
 
-    return qualifiedHostName, ppservers
+    return servers
 
   def startLoop(self):
     """
@@ -298,7 +297,7 @@ class JobHandler(MessageHandler.MessageUser):
       ## probably when we move to Python 3.
       time.sleep(self.sleepTime)
 
-  def addJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], forceUseThreads = False, uniqueHandler="any", clientQueue = False):
+  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads = False, uniqueHandler="any", clientQueue = False):
     """
       Method to add an internal run (function execution)
       @ In, args, dict, this is a list of arguments that will be passed as
@@ -309,9 +308,6 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, identifier, string, the job identifier
       @ In, metadata, dict, optional, dictionary of metadata associated to this
         run
-      @ In, modulesToImport, list, optional, list of modules that need to be
-        imported for internal parallelization (parallel python). This list
-        should be generated with the method returnImportModuleString in utils.py
       @ In, forceUseThreads, bool, optional, flag that, if True, is going to
         force the usage of multi-threading even if parallel python is activated
       @ In, uniqueHandler, string, optional, it is a special keyword attached to
@@ -322,23 +318,19 @@ class JobHandler(MessageHandler.MessageUser):
         clientQueue
       @ Out, None
     """
-    ## internal server is initialized only in case an internal calc is requested
-    if not self.isParallelPythonInitialized:
-      self.__initializeParallelPython()
-
-    if self.ppserver is None or forceUseThreads:
+    assert "original_function" in dir(functionToRun), "to parallelize a function, it must be" \
+                                                          " decorated with RAVEN Parallel decorator"
+    if self.rayServer is None or forceUseThreads:
       internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
-                                               functionToRun,
+                                               functionToRun.original_function,
                                                identifier, metadata,
                                                uniqueHandler,
                                                profile=self.__profileJobs)
     else:
-      skipFunctions = [utils.metaclass_insert(abc.ABCMeta,BaseType)]
+      arguments = args  if _rayAvail else  tuple([self.rayServer] + list(args))
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
-                                                    self.ppserver, args,
-                                                    functionToRun,
-                                                    modulesToImport, identifier,
-                                                    metadata, skipFunctions,
+                                                    arguments, functionToRun.remote if _rayAvail else functionToRun.original_function,
+                                                    identifier, metadata,
                                                     uniqueHandler,
                                                     profile=self.__profileJobs)
 
@@ -362,7 +354,7 @@ class JobHandler(MessageHandler.MessageUser):
         runner.trackTime('queue')
       self.__submittedJobs.append(runner.identifier)
 
-  def addClientJob(self, args, functionToRun, identifier, metadata=None, modulesToImport = [], uniqueHandler="any"):
+  def addClientJob(self, args, functionToRun, identifier, metadata=None, uniqueHandler="any"):
     """
       Method to add an internal run (function execution), without consuming
       resources (free spots). This can be used for client handling (see
@@ -381,7 +373,7 @@ class JobHandler(MessageHandler.MessageUser):
         If uniqueHandler == 'any', every "client" can get this runner.
       @ Out, None
     """
-    self.addJob(args, functionToRun, identifier, metadata, modulesToImport,
+    self.addJob(args, functionToRun, identifier, metadata,
                 forceUseThreads = True, uniqueHandler = uniqueHandler,
                 clientQueue = True)
 
@@ -713,6 +705,9 @@ class JobHandler(MessageHandler.MessageUser):
     @ Out, None
     """
     self.completed = True
+    if _rayAvail:
+     ray.shutdown()
+
 
   def terminateAll(self):
     """

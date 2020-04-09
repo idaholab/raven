@@ -25,8 +25,8 @@ from __future__ import division, print_function, absolute_import
 #External Modules------------------------------------------------------------------------------------
 import copy
 import collections
-import utils.lazyImporterUtils
-statsmodels = utils.lazyImporterUtils.import_module_lazy("statsmodels", globals())
+import utils.importerUtils
+statsmodels = utils.importerUtils.importModuleLazy("statsmodels", globals())
 import numpy as np
 import functools
 from scipy.linalg import solve_discrete_lyapunov
