@@ -48,7 +48,6 @@
         Journal of Statistical Physics, 1983.
     .. [13] M. P. Vecchi and S. Kirkpatrick, "Global wiring by simulated annealing",
         IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems, 1983.
-    .. [14] R. Azencott, "Simulated annealing: parallelization techniques", Wiley, 1992.
 """
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -635,7 +634,8 @@ class SimulatedAnnealing(RavenSampled):
     """ Perturbs the state to find the next random neighbour based on the cooling schedule
     @ In, rlz, dict, current realization
     @ In, fraction, float, the current iteration devided by the iteration limit i.e., $\frac{iter}{Limit}$
-    @ In, cont, bool, True if it is the contineous version of Simulated annealing, and False if it is the List-based Simulated Annealing
+    @ In, cont, bool, True if it is the continuous version of Simulated annealing,
+                      and False if it is the List-based Simulated Annealing
     @ Out, nextNeighbour, dict, the next random state
 
         for linear and exponential cooling:
