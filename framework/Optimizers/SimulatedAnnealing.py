@@ -596,7 +596,7 @@ class SimulatedAnnealing(RavenSampled):
     A utility function to compute the initial temperaturte
     currently it is just a function of how far in the process are we
     @ In, fraction, float, the current iteration devided by the iteration limit i.e., $\frac{iter}{Limit}$
-    @ Out, T0, float, initial temperature, i.e., $T0 = max(0.01,1-fraction) $
+    @ Out, _temperature, float, initial temperature, i.e., $T0 = max(0.01,1-fraction) $
     """
     return max(0.01,1-fraction)
 
@@ -606,7 +606,7 @@ class SimulatedAnnealing(RavenSampled):
     based on the user-selected cooling schedule methodology
     @ In, iter, int, the iteration number
     @ In, T0, float, The previous temperature before cooling
-    @ Out, Tk, float, the cooled state temperature i.e., $T^{k} = f(T^0, coolingSchedule);$ where k is the iteration number
+    @ Out, _coolingSchedule, float, the cooled state temperature i.e., $T^{k} = f(T^0, coolingSchedule);$ where k is the iteration number
     """
     type = self._coolingMethod
     if type in ['exponential','geometric']:
@@ -678,20 +678,19 @@ class SimulatedAnnealing(RavenSampled):
     if cont:
       nextNeighbour = {}
       D = len(self.toBeSampled.keys())
-      alpha = self._coolingParameters['alpha']
       if self._coolingMethod in ['linear' , 'exponential', 'geometric']:
         amp = ((fraction)**-1) / 20
         r = randomUtils.random(dim=D, samples=1)
         delta = (-amp/2.)+ amp * r
       elif self._coolingMethod == 'boltzmann':
-        amp = min(np.sqrt(self.T), 1/3.0/alpha)
-        delta =  randomUtils.randomNormal(dim=D, samples=1)*alpha*amp
+        amp = min(np.sqrt(self.T), 1/3.0/self._coolingParameters['alpha'])
+        delta =  randomUtils.randomNormal(dim=D, samples=1)*self._coolingParameters['alpha']*amp
       elif self._coolingMethod in ['fast','veryfast']:
         amp = randomUtils.random(dim=D, samples=1)
         delta = np.sign(amp-0.5)*self.T*((1+1.0/self.T)**abs(2*amp-1)-1.0)
       elif self._coolingMethod == 'cauchy':
         amp = (np.pi - (-np.pi))*randomUtils.random(dim=D, samples=1)-np.pi
-        delta = alpha*self.T*np.tan(amp)
+        delta = self._coolingParameters['alpha']*self.T*np.tan(amp)
       for i,var in enumerate(self.toBeSampled.keys()):
         nextNeighbour[var] = rlz[var] + delta[i]
         self.info['amp_'+var] = amp
