@@ -222,6 +222,16 @@ class SimulatedAnnealing(RavenSampled):
         for subSub in sub.subparts:
           self._coolingParameters = {subSub.name:subSub.value}
 
+    #defaults
+    if not self._coolingMethod:
+      self._coolingMethod = 'exponential'
+
+    if not self._coolingParameters:
+      self._coolingParameters['alpha'] = 0.94
+      self._coolingParameters['beta'] = 0.1
+      self._coolingParameters['c'] = 1.0
+      self._coolingParameters['d'] = 1.0
+
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
       This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
@@ -445,10 +455,6 @@ class SimulatedAnnealing(RavenSampled):
     """
     # Boltzman Constant
     kB = 1
-    if self.T0 == None:
-      self.T0 = 1e4
-    if self.T == None:
-      self.T = self.T0
 
     if newObjective <= currentObjective:
       prob = 1
@@ -587,37 +593,35 @@ class SimulatedAnnealing(RavenSampled):
   # Utility Methods #
   ###########
   def _temperature(self, fraction):
-    #return max(0.01,min(1,1-fraction))
+    """
+    A utility function to compute the initial temperaturte
+    currently it is just a function of how far in the process are we
+    @ In, fraction, float, the current iteration devided by the iteration limit i.e., $\frac{iter}{Limit}$
+    @ Out, T0, float, initial temperature, i.e., $T0 = max(0.01,1-fraction) $
+    """
     return max(0.01,1-fraction)
 
   def _coolingSchedule(self, iter, T0):
-    """TODO write the math here"""
-    #defaults
-    if T0 == None:
-      T0 = 1e4
-
-    if not self._coolingMethod:
-      self._coolingMethod = 'exponential'
-
-    if not self._coolingParameters:
-      self._coolingParameters['alpha'] = 0.94
-      self._coolingParameters['beta'] = 0.1
-      self._coolingParameters['c'] = 1.0
-      self._coolingParameters['d'] = 1.0
-
+    """
+    A utility function to compute the current cooled state temperature
+    based on the user-selected cooling schedule methodology
+    @ In, iter, int, the iteration number
+    @ In, T0, float, The previous temperature before cooling
+    @ Out, Tk, float, the cooled state temperature i.e., $T^{k} = f(T^0, coolingSchedule);$ where k is the iteration number
+    """
     type = self._coolingMethod
-    if type == 'linear':
-      beta = self._coolingParameters['beta']
-      return T0 - iter * beta
-    elif type in ['exponential','geometric']:
+    if type in ['exponential','geometric']:
       alpha = self._coolingParameters['alpha']
       return alpha ** iter * T0
+    # elif type == 'linear':
+    #   beta = self._coolingParameters['beta']
+    #   return T0 - iter * beta
     elif type == 'boltzmann':
       d = self._coolingParameters['d']
       return T0/(np.log10(iter + d))
-    elif type == 'fast':
-      c = self._coolingParameters['c']
-      return np.exp(-c*iter) * T0
+    # elif type == 'fast':
+    #   c = self._coolingParameters['c']
+    #   return np.exp(-c*iter) * T0
     elif type == 'veryfast':
       c = self._coolingParameters['c']
       return np.exp(-c*iter**(1/len(self.toBeSampled.keys()))) * T0
@@ -627,8 +631,13 @@ class SimulatedAnnealing(RavenSampled):
     else:
       raise NotImplementedError('cooling schedule type not implemented.')
 
-  def _nextNeighbour(self, rlz,fraction=1,alpha = 0.94,cont = True):
-    """ Perturb x to find the next random neighbour
+  def _nextNeighbour(self, rlz,fraction=1,cont = True):
+    """ Perturbs the state to find the next random neighbour based on the cooling schedule
+    @ In, rlz, dict, current realization
+    @ In, fraction, float, the current iteration devided by the iteration limit i.e., $\frac{iter}{Limit}$
+    @ In, cont, bool, True if it is the contineous version of Simulated annealing, and False if it is the List-based Simulated Annealing
+    @ Out, nextNeighbour, dict, the next random state
+
         for linear and exponential cooling:
         .. math::
 
@@ -669,6 +678,7 @@ class SimulatedAnnealing(RavenSampled):
     if cont:
       nextNeighbour = {}
       D = len(self.toBeSampled.keys())
+      alpha = self._coolingParameters['alpha']
       if self._coolingMethod in ['linear' , 'exponential', 'geometric']:
         amp = ((fraction)**-1) / 20
         r = randomUtils.random(dim=D, samples=1)
@@ -678,8 +688,7 @@ class SimulatedAnnealing(RavenSampled):
         delta =  randomUtils.randomNormal(dim=D, samples=1)*alpha*amp
       elif self._coolingMethod in ['fast','veryfast']:
         amp = randomUtils.random(dim=D, samples=1)
-        T = self.T
-        delta = np.sign(amp-0.5)*T*((1+1.0/T)**abs(2*amp-1)-1.0)
+        delta = np.sign(amp-0.5)*self.T*((1+1.0/self.T)**abs(2*amp-1)-1.0)
       elif self._coolingMethod == 'cauchy':
         amp = (np.pi - (-np.pi))*randomUtils.random(dim=D, samples=1)-np.pi
         delta = alpha*self.T*np.tan(amp)
@@ -688,10 +697,11 @@ class SimulatedAnnealing(RavenSampled):
         self.info['amp_'+var] = amp
         self.info['delta_'+var] = delta[i]
       self.info['fraction'] = fraction
+    """
+    TODO:
     else:
       # This is for list-baed SA
-      # TODO
-      pass
+    """
     return nextNeighbour
 
   def _fixFuncConstraintViolations(self,suggested, previous):
