@@ -61,16 +61,16 @@ from .RavenSampled import RavenSampled
 
 class SimulatedAnnealing(RavenSampled):
   """
-  This class performs simulated annealing optimization utilizing several cooling scheduling methods.
-  Cooling Schedule includes Boltzmann, Exponential, Cauchy, and VeryFast cooling.
-  The Simulated Annealing optimizer is a metaheuristic approach to perform a global
-  search in large design spaces. The methodology rose from statistical physics
-  and was inspitred by metallurgy where it was found that fast cooling might lead
-  to smaller and defected crystals, and that reheating and slowly controling cooling
-  will lead to better states. This allows climbing to avoid being stuck in local minima
-  and hence facilitates finding the global minima for non-convex probloems.
-  @ In, RavenSampled, parent class
-  @ out, None
+    This class performs simulated annealing optimization utilizing several cooling scheduling methods.
+    Cooling Schedule includes Boltzmann, Exponential, Cauchy, and VeryFast cooling.
+    The Simulated Annealing optimizer is a metaheuristic approach to perform a global
+    search in large design spaces. The methodology rose from statistical physics
+    and was inspitred by metallurgy where it was found that fast cooling might lead
+    to smaller and defected crystals, and that reheating and slowly controling cooling
+    will lead to better states. This allows climbing to avoid being stuck in local minima
+    and hence facilitates finding the global minima for non-convex probloems.
+    @ In, RavenSampled, parent class
+    @ out, None
   """
   convergenceOptions = {'objective': r""" provides the desired value for the convergence criterion of the objective function
                         ($\epsilon^{obj}$), i.e., convergence is reached when: $$ |newObjevtive - oldObjective| \le \epsilon^{obj}$$.
@@ -452,7 +452,6 @@ class SimulatedAnnealing(RavenSampled):
       @ In, newObjective, float, the value of the objective function at the new candidate
       @ Out, prob, float, the acceptance probability
     """
-    # Boltzman Constant
     kB = 1
 
     if newObjective <= currentObjective:
@@ -612,15 +611,9 @@ class SimulatedAnnealing(RavenSampled):
     if type in ['exponential','geometric']:
       alpha = self._coolingParameters['alpha']
       return alpha ** iter * T0
-    # elif type == 'linear':
-    #   beta = self._coolingParameters['beta']
-    #   return T0 - iter * beta
     elif type == 'boltzmann':
       d = self._coolingParameters['d']
       return T0/(np.log10(iter + d))
-    # elif type == 'fast':
-    #   c = self._coolingParameters['c']
-    #   return np.exp(-c*iter) * T0
     elif type == 'veryfast':
       c = self._coolingParameters['c']
       return np.exp(-c*iter**(1/len(self.toBeSampled.keys()))) * T0
@@ -628,79 +621,74 @@ class SimulatedAnnealing(RavenSampled):
       d = self._coolingParameters['d']
       return T0/(iter + d)
     else:
-      raise NotImplementedError('cooling schedule type not implemented.')
+      self.raiseAnError(NotImplementedError,'cooling schedule type not implemented.')
 
-  def _nextNeighbour(self, rlz,fraction=1,cont = True):
-    """ Perturbs the state to find the next random neighbour based on the cooling schedule
+  def _nextNeighbour(self, rlz,fraction=1):
+    """
+    Perturbs the state to find the next random neighbour based on the cooling schedule
     @ In, rlz, dict, current realization
-    @ In, fraction, float, the current iteration devided by the iteration limit i.e., $\frac{iter}{Limit}$
-    @ In, cont, bool, True if it is the continuous version of Simulated annealing,
-                      and False if it is the List-based Simulated Annealing
-    @ Out, nextNeighbour, dict, the next random state
+    @ In, fraction, float, optional, the current iteration divided by the iteration limit i.e., $\frac{iter}{Limit}$
+    @ Out, nextNeighbour, dict, the next random s
 
-        for linear and exponential cooling:
-        .. math::
+    for exponential cooling:
+    .. math::
 
-            fraction = \\frac{iter}{Limit}
+        fraction = \\frac{iter}{Limit}
 
-            amp = 1-fraction
+        amp = 1-fraction
 
-            delta = \\frac{-amp}{2} + amp * r
-        where :math: `r \sim \mathcal{U}(0,1)`
+        delta = \\frac{-amp}{2} + amp * r
 
-        for boltzmann cooling:
-        .. math::
+    where :math: `r \sim \mathcal{U}(0,1)`
 
-            amp = min(\\sqrt(T), \\frac{1}{3*alpha}
+    for boltzmann cooling:
+    .. math::
 
-            delta = r * alpha * amp
+        amp = min(\\sqrt(T), \\frac{1}{3*alpha}
 
-        where :math: `r \\sim \\mathcal{N}(0,1)`
+        delta = r * alpha * amp
 
-        for fast cooling:
-        .. math::
+    where :math: `r \\sim \\mathcal{N}(0,1)`
 
-            amp = r
+    for cauchy cooling:
+    .. math::
 
-            delta = sign(amp-0.5)*T*((1+\\frac{1.0}{T})^{\\abs{2*amp-1}-1.0)
+        amp = r
 
-        where :math: `r \\sim \\mathcal{U}(0,1)`
+        delta = alpha * T * tan(amp)
 
-        for cauchy cooling:
-        .. math::
+    where :math: `r \\sim \\mathcal{U}(-\\pi,\\pi)`
 
-            amp = r
+    for veryfast cooling:
+    .. math::
 
-            delta = alpha * T * tan(amp)
+        amp = r
 
-        where :math: `r \\sim \\mathcal{U}(-\\pi,\\pi)`
+        delta = \\sign(amp-0.5)*T*((1.0+\\frac{1.0}{T})^{\\abs{2*amp-1}-1.0}
+
+    where :math: `r \\sim \\mathcal{U}(0,1)`
     """
-    if cont:
-      nextNeighbour = {}
-      D = len(self.toBeSampled.keys())
-      if self._coolingMethod in ['linear' , 'exponential', 'geometric']:
-        amp = ((fraction)**-1) / 20
-        r = randomUtils.random(dim=D, samples=1)
-        delta = (-amp/2.)+ amp * r
-      elif self._coolingMethod == 'boltzmann':
-        amp = min(np.sqrt(self.T), 1/3.0/self._coolingParameters['alpha'])
-        delta =  randomUtils.randomNormal(dim=D, samples=1)*self._coolingParameters['alpha']*amp
-      elif self._coolingMethod in ['fast','veryfast']:
-        amp = randomUtils.random(dim=D, samples=1)
-        delta = np.sign(amp-0.5)*self.T*((1+1.0/self.T)**abs(2*amp-1)-1.0)
-      elif self._coolingMethod == 'cauchy':
-        amp = (np.pi - (-np.pi))*randomUtils.random(dim=D, samples=1)-np.pi
-        delta = self._coolingParameters['alpha']*self.T*np.tan(amp)
-      for i,var in enumerate(self.toBeSampled.keys()):
-        nextNeighbour[var] = rlz[var] + delta[i]
-        self.info['amp_'+var] = amp
-        self.info['delta_'+var] = delta[i]
-      self.info['fraction'] = fraction
-    """
-    TODO:
-    else:
-      # This is for list-baed SA
-    """
+    nextNeighbour = {}
+    D = len(self.toBeSampled.keys())
+    alpha = 0.94
+    if self._coolingMethod in ['exponential', 'geometric']:
+      amp = ((fraction)**-1) / 20
+      r = randomUtils.random(dim=D, samples=1)
+      delta = (-amp/2.)+ amp * r
+    elif self._coolingMethod == 'boltzmann':
+      amp = min(np.sqrt(self.T), 1/3.0/alpha)
+      delta =  randomUtils.randomNormal(dim=D, samples=1)*alpha*amp
+    elif self._coolingMethod == 'veryfast':
+      amp = randomUtils.random(dim=D, samples=1)
+      delta = np.sign(amp-0.5)*self.T*((1+1.0/self.T)**abs(2*amp-1)-1.0)
+    elif self._coolingMethod == 'cauchy':
+      amp = (np.pi - (-np.pi))*randomUtils.random(dim=D, samples=1)-np.pi
+      delta = alpha*self.T*np.tan(amp)
+    for i,var in enumerate(self.toBeSampled.keys()):
+      nextNeighbour[var] = rlz[var] + delta[i]
+      self.info['amp_'+var] = amp
+      self.info['delta_'+var] = delta[i]
+    self.info['fraction'] = fraction
     return nextNeighbour
 
   def _fixFuncConstraintViolations(self,suggested, previous):
