@@ -958,6 +958,8 @@ class OutStreamPlot(OutStreamManager):
             plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]])
           else:
             self.plt3D = plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]], projection = '3d')
+      elif self.dim == 3:
+        self.plt3D = plt.subplot(111, projection='3d')
 
       # calling "plt.hold" has been deprecated.
       # If the figure isn't cleared (or a new figure opened), it will keep adding plots.
