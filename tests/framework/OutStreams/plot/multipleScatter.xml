@@ -17,8 +17,8 @@
   <Steps>
     <MultiRun name="sample">
       <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
-      <Sampler class="Samplers"    type="SparseGridCollocation">sparse_grid</Sampler>
       <Model   class="Models"      type="ExternalModel">wave</Model>
+      <Sampler class="Samplers"    type="SparseGridCollocation">sparse_grid</Sampler>
       <Output  class="DataObjects" type="PointSet"     >training</Output>
     </MultiRun>
     <RomTrainer name="train">
@@ -27,14 +27,14 @@
     </RomTrainer>
     <MultiRun name="validate_rom">
       <Input   class="DataObjects" type="PointSet" >placeholder</Input>
-      <Sampler class="Samplers"    type="Grid"     >validation_grid</Sampler>
       <Model   class="Models"      type="ROM"      >rom</Model>
+      <Sampler class="Samplers"    type="Grid"     >validation_grid</Sampler>
       <Output  class="DataObjects" type="PointSet" >rom_results</Output>
     </MultiRun>
     <MultiRun name="validate_model">
       <Input   class="DataObjects" type="PointSet"      >placeholder</Input>
-      <Sampler class="Samplers"    type="Grid"          >validation_grid</Sampler>
       <Model   class="Models"      type="ExternalModel" >wave</Model>
+      <Sampler class="Samplers"    type="Grid"          >validation_grid</Sampler>
       <Output  class="DataObjects" type="PointSet"      >model_results</Output>
     </MultiRun>
     <IOStep name="output" pauseAtEnd="True">
@@ -80,16 +80,6 @@
   </Models>
 
   <Samplers>
-    <SparseGridCollocation name='sparse_grid'>
-      <variable name="A">
-        <distribution>A</distribution>
-      </variable>
-      <variable name="k">
-        <distribution>k</distribution>
-      </variable>
-      <ROM class="Models" type="ROM">rom</ROM>
-    </SparseGridCollocation>
-
     <Grid name="validation_grid">
       <variable name="A">
         <distribution>A</distribution>
@@ -100,6 +90,16 @@
         <grid type="CDF" construction="equal" steps="9">0 1</grid>
       </variable>
     </Grid>
+
+    <SparseGridCollocation name='sparse_grid'>
+      <variable name="A">
+        <distribution>A</distribution>
+      </variable>
+      <variable name="k">
+        <distribution>k</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">rom</ROM>
+    </SparseGridCollocation>
   </Samplers>
 
   <Distributions>
@@ -125,7 +125,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>png,screen</how>
+        <how>png</how>
         <title><text>ROM Validation</text></title>
       </actions>
     </Plot>
@@ -140,7 +140,7 @@
         </plot>
       </plotSettings>
       <actions>
-        <how>png,screen</how>
+        <how>png</how>
         <title><text>Model Validation</text></title>
       </actions>
     </Plot>
@@ -173,7 +173,7 @@
          </legend>
       </plotSettings>
       <actions>
-        <how>png,screen</how>
+        <how>png</how>
         <title><text>How the ROM does</text></title>
       </actions>
     </Plot>
