@@ -69,8 +69,6 @@ class SimulatedAnnealing(RavenSampled):
     to smaller and defected crystals, and that reheating and slowly controling cooling
     will lead to better states. This allows climbing to avoid being stuck in local minima
     and hence facilitates finding the global minima for non-convex probloems.
-    @ In, RavenSampled, parent class
-    @ out, None
   """
   convergenceOptions = {'objective': r""" provides the desired value for the convergence criterion of the objective function
                         ($\epsilon^{obj}$), i.e., convergence is reached when: $$ |newObjevtive - oldObjective| \le \epsilon^{obj}$$.
@@ -185,7 +183,6 @@ class SimulatedAnnealing(RavenSampled):
     self._acceptRerun = {}                                      # by traj, if True then override accept for point rerun
     self._convergenceInfo = {}                                  # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = 0                               # consecutive persistence required to mark convergence
-    self.T0 = None                                              # initial temperature
     self.T = None                                               # current temperature
     self._coolingMethod = None                                  # initializing cooling method
     self._coolingParameters = {}                                # initializing the cooling schedule parameters
@@ -311,8 +308,8 @@ class SimulatedAnnealing(RavenSampled):
     iter = int(self.getIteration(traj) +1) # Is that ok or should we always keep the traj in case I have multiple trajectories in parallel?
     fraction = iter/self.limit
     currentPoint = self._collectOptPoint(rlz)
-    self.T0 = self._temperature(fraction)
-    self.T = self._coolingSchedule(iter,self.T0)
+    T0 = self._temperature(fraction)
+    self.T = self._coolingSchedule(iter,T0)
     if traj in self._activeTraj:
       newPoint = self._nextNeighbour(rlz,fraction)
       # check new opt point against constraints
@@ -419,6 +416,7 @@ class SimulatedAnnealing(RavenSampled):
       @ In, traj, int, identifier
       @ In, opt, dict, new opt point
       @ In, optVal, float, new optimization value
+      @ In, info, dict, meta information about the opt point
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
     """
@@ -530,24 +528,24 @@ class SimulatedAnnealing(RavenSampled):
     return toAdd
 
   def _formatSolutionExportVariableNames(self, acceptable):
-      """
-        Does magic formatting for variables, based on this class's needs.
-        Extend in inheritors as needed.
-        @ In, acceptable, set, set of acceptable entries for solution export for this entity
-        @ Out, new, set, modified set of acceptable variables with all formatting complete
-      """
-      # remaking the list is easier than using the existing one
-      acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
-      new = []
-      while acceptable:
-        template = acceptable.pop()
-        if '{CONV}' in template:
-          new.extend([template.format(CONV=conv) for conv in self._convergenceCriteria])
-        elif '{VAR}' in template:
-          new.extend([template.format(VAR=var) for var in self.toBeSampled.keys()])
-        else:
-          new.append(template)
-      return set(new)
+    """
+      Does magic formatting for variables, based on this class's needs.
+      Extend in inheritors as needed.
+      @ In, acceptable, set, set of acceptable entries for solution export for this entity
+      @ Out, new, set, modified set of acceptable variables with all formatting complete
+    """
+    # remaking the list is easier than using the existing one
+    acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
+    new = []
+    while acceptable:
+      template = acceptable.pop()
+      if '{CONV}' in template:
+        new.extend([template.format(CONV=conv) for conv in self._convergenceCriteria])
+      elif '{VAR}' in template:
+        new.extend([template.format(VAR=var) for var in self.toBeSampled.keys()])
+      else:
+        new.append(template)
+    return set(new)
 
   def _rejectOptPoint(self, traj, info, old):
     """
@@ -558,17 +556,14 @@ class SimulatedAnnealing(RavenSampled):
       @ Out, none
     """
     self._cancelAssociatedJobs(info['traj'], step=info['step'])
-    ## what do do if a point is rejected?
-    # TODO user option to EITHER rerun opt point OR cut step!
     # initialize a new step
     self._initializeStep(traj)
-    #self._acceptRerun[traj] = True #TODO: What if the model is inherintly stochastic ?!
   # END resolving potential opt points
   # * * * * * * * * * * * * * * * *
 
   def _applyFunctionalConstraints(self, suggested, previous):
     """
-      fixes functional constraints of variables in "point" -> DENORMED point expected!
+      applies functional constraints of variables in "suggested" -> DENORMED point expected!
       @ In, suggested, dict, potential point to apply constraints to
       @ In, previous, dict, previous opt point in consideration
       @ Out, point, dict, adjusted variables
@@ -584,7 +579,7 @@ class SimulatedAnnealing(RavenSampled):
       modded = True
       #  try to find new acceptable point
       denormed = self.denormalizeData(suggested)
-      suggested, _= self._fixFuncConstraintViolations(suggested, previous) # need info, traj
+      suggested, _= self._fixFuncConstraintViolations(suggested)
       denormed = self.denormalizeData(suggested)
       self.raiseADebug(' ... suggested new opt {}'.format(denormed))
       passFuncs = self._checkFunctionalConstraints(denormed)
@@ -597,20 +592,20 @@ class SimulatedAnnealing(RavenSampled):
   ###########
   def _temperature(self, fraction):
     """
-    A utility function to compute the initial temperaturte
-    currently it is just a function of how far in the process are we
-    @ In, fraction, float, the current iteration devided by the iteration limit i.e., $\frac{iter}{Limit}$
-    @ Out, _temperature, float, initial temperature, i.e., $T0 = max(0.01,1-fraction) $
+      A utility function to compute the initial temperaturte
+      currently it is just a function of how far in the process are we
+      @ In, fraction, float, the current iteration devided by the iteration limit i.e., $\frac{iter}{Limit}$
+      @ Out, _temperature, float, initial temperature, i.e., $T0 = max(0.01,1-fraction) $
     """
     return max(0.01,1-fraction)
 
   def _coolingSchedule(self, iter, T0):
     """
-    A utility function to compute the current cooled state temperature
-    based on the user-selected cooling schedule methodology
-    @ In, iter, int, the iteration number
-    @ In, T0, float, The previous temperature before cooling
-    @ Out, _coolingSchedule, float, the cooled state temperature i.e., $T^{k} = f(T^0, coolingSchedule);$ where k is the iteration number
+      A utility function to compute the current cooled state temperature
+      based on the user-selected cooling schedule methodology
+      @ In, iter, int, the iteration number
+      @ In, T0, float, The previous temperature before cooling
+      @ Out, _coolingSchedule, float, the cooled state temperature i.e., $T^{k} = f(T^0, coolingSchedule);$ where k is the iteration number
     """
     type = self._coolingMethod
     if type in ['exponential','geometric']:
@@ -630,48 +625,48 @@ class SimulatedAnnealing(RavenSampled):
 
   def _nextNeighbour(self, rlz,fraction=1):
     """
-    Perturbs the state to find the next random neighbour based on the cooling schedule
-    @ In, rlz, dict, current realization
-    @ In, fraction, float, optional, the current iteration divided by the iteration limit i.e., $\frac{iter}{Limit}$
-    @ Out, nextNeighbour, dict, the next random s
+      Perturbs the state to find the next random neighbour based on the cooling schedule
+      @ In, rlz, dict, current realization
+      @ In, fraction, float, optional, the current iteration divided by the iteration limit i.e., $\frac{iter}{Limit}$
+      @ Out, nextNeighbour, dict, the next random state
 
-    for exponential cooling:
-    .. math::
+      for exponential cooling:
+      .. math::
 
-        fraction = \\frac{iter}{Limit}
+          fraction = \\frac{iter}{Limit}
 
-        amp = 1-fraction
+          amp = 1-fraction
 
-        delta = \\frac{-amp}{2} + amp * r
+          delta = \\frac{-amp}{2} + amp * r
 
-    where :math: `r \sim \mathcal{U}(0,1)`
+      where :math: `r \sim \mathcal{U}(0,1)`
 
-    for boltzmann cooling:
-    .. math::
+      for boltzmann cooling:
+      .. math::
 
-        amp = min(\\sqrt(T), \\frac{1}{3*alpha}
+          amp = min(\\sqrt(T), \\frac{1}{3*alpha}
 
-        delta = r * alpha * amp
+          delta = r * alpha * amp
 
-    where :math: `r \\sim \\mathcal{N}(0,1)`
+      where :math: `r \\sim \\mathcal{N}(0,1)`
 
-    for cauchy cooling:
-    .. math::
+      for cauchy cooling:
+      .. math::
 
-        amp = r
+          amp = r
 
-        delta = alpha * T * tan(amp)
+          delta = alpha * T * tan(amp)
 
-    where :math: `r \\sim \\mathcal{U}(-\\pi,\\pi)`
+      where :math: `r \\sim \\mathcal{U}(-\\pi,\\pi)`
 
-    for veryfast cooling:
-    .. math::
+      for veryfast cooling:
+      .. math::
 
-        amp = r
+          amp = r
 
-        delta = \\sign(amp-0.5)*T*((1.0+\\frac{1.0}{T})^{\\abs{2*amp-1}-1.0}
+          delta = \\sign(amp-0.5)*T*((1.0+\\frac{1.0}{T})^{\\abs{2*amp-1}-1.0}
 
-    where :math: `r \\sim \\mathcal{U}(0,1)`
+      where :math: `r \\sim \\mathcal{U}(0,1)`
     """
     nextNeighbour = {}
     D = len(self.toBeSampled.keys())
@@ -696,14 +691,26 @@ class SimulatedAnnealing(RavenSampled):
     self.info['fraction'] = fraction
     return nextNeighbour
 
-  def _fixFuncConstraintViolations(self,suggested, previous):
+  def _fixFuncConstraintViolations(self,suggested):
+    """
+      fixes functional constraints of variables in "suggested"
+      and finds the new point that does not violate the constraints
+      @ In, suggested, dict, potential point to apply constraints to
+      @ Out, point, dict, adjusted variables
+      @ Out, modded, bool, whether point was modified or not
+    """
     fraction = self.info['fraction']
     new = self._nextNeighbour(suggested,fraction)
-    suggested, modded = self._handleExplicitConstraints(new, suggested, 'opt')
-    return suggested, modded
+    point, modded = self._handleExplicitConstraints(new, suggested, 'opt')
+    return point, modded
 
   ##############
   # Destructor #
   ##############
   def __del__(self):
-    print('simulatedAnnealing() has been destroyed')
+    """
+      Destructor.
+      @ In, None
+      @ Out, None
+    """
+    return
