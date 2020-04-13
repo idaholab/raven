@@ -102,6 +102,7 @@
     <Print name="PrintHS">
       <type>csv</type>
       <source>outHS</source>
+      <what>input,output</what>
     </Print>
     <Plot  name="plotStatus" overwrite="False">
       <plotSettings>

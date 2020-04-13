@@ -52,6 +52,7 @@
     <Print name="dump_interval_average">
       <type>csv</type>
       <source>windTypDataResampled</source>
+      <what>input,output</what>
     </Print>
     <Plot  name="plot_interval_average" overwrite="False">
       <plotSettings>

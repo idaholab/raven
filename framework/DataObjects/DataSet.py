@@ -677,7 +677,7 @@ class DataSet(DataObject):
     """
     data = self.asDataset()
     # if empty, nothing to do
-    if self._data is None or len(self._data) == 0:
+    if self._data is None or len(self._data.variables) == 0:
       self.raiseAWarning('Tried to return sliced data, but DataObject is empty!')
       return []
     # assert that index is indeed an index
@@ -2107,6 +2107,8 @@ class DataSet(DataObject):
       path = [ending['prefix']]
       while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
+        if ending is None:
+          break
         path.append(ending['prefix'])
       # sort it in order by progression
       path.reverse()

@@ -33,8 +33,8 @@ from SupervisedLearning import NDsplineRom
 
 
 class PolyExponential(supervisedLearning):
-  """
-    This surrogate is aimed to construct a time-dep surrogate based on a polynomial sum of exponentials
+  r"""
+    This surrogate is aimed to construct a "time-dep" surrogate based on a polynomial sum of exponentials
     The surrogate will have the form:
     SM(X,z) = sum_{i=1}^N P_i(X) exp ( - Q_i(X) z )
     where:
@@ -81,7 +81,7 @@ class PolyExponential(supervisedLearning):
     self.muAndSigmaFeatures[feat] = (0.0,1.0)
 
   def __computeExpTerms(self, x, y, returnPredictDiff=True):
-    """
+    r"""
       Method to compute the coefficients of "n" exponential terms that minimize the
       difference between the training data and the "predicted" data
       y(x) = sum_{i=1}**n a_i exp ( - bi x )
@@ -123,7 +123,7 @@ class PolyExponential(supervisedLearning):
     return fi, 1./taui, predictionErr
 
   def __evaluateExpTerm(self,x, a, b):
-    """
+    r"""
       Evaluate exponential term given x, a and b
       y(x) = sum_{i=1}**n ai exp ( - bi x )
       @ In, x, numpy.ndarray, the x values

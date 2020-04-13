@@ -96,34 +96,42 @@
     <Print name="out_PP_HStoPSRows_dump">
       <type>csv</type>
       <source>out_PP_HStoPSRows</source>
+      <what>input,output</what>
     </Print>
     <Print name="out_PP_HStoPSPivotValuesNearest_dump">
         <type>csv</type>
         <source>out_PP_HStoPSPivotValuesNearest</source>
+        <what>input,output</what>
     </Print>
     <Print name="out_PP_HStoPSPivotValuesNearestFloor_dump">
         <type>csv</type>
         <source>out_PP_HStoPSPivotValuesNearestFloor</source>
+        <what>input,output</what>
     </Print>
     <Print name="out_PP_HStoPSPivotValuesNearestCeling_dump">
         <type>csv</type>
         <source>out_PP_HStoPSPivotValuesNearestCeling</source>
+        <what>input,output</what>
     </Print>
     <Print name="out_PP_HStoPSPivotValuesInterpolate_dump">
         <type>csv</type>
         <source>out_PP_HStoPSPivotValuesInterpolate</source>
+        <what>input,output</what>
     </Print>
     <Print name="out_PP_HStoPSPivotOperatorMax_dump">
         <type>csv</type>
         <source>out_PP_HStoPSPivotOperatorMax</source>
+        <what>input,output</what>
     </Print>
     <Print name="out_PP_HStoPSPivotOperatorMin_dump">
         <type>csv</type>
         <source>out_PP_HStoPSPivotOperatorMin</source>
+        <what>input,output</what>
     </Print>
     <Print name="out_PP_HStoPSPivotOperatorAverage_dump">
         <type>csv</type>
         <source>out_PP_HStoPSPivotOperatorAverage</source>
+        <what>input,output</what>
     </Print>
   </OutStreams>
 

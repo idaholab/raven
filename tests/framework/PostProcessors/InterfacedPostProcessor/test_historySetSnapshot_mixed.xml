@@ -101,10 +101,12 @@
     <Print name="point_dump1">
       <type>csv</type>
       <source>point1</source>
+      <what>input,output</what>
     </Print>
     <Print name="point_dump2">
       <type>csv</type>
       <source>point2</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

@@ -43,7 +43,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
       @ In, pivotParameter, str, ID of the pivot paramter (e.g., time)
       @ In, extension, type of extension to be employed
       @ In, syncMethod, type of syncrhonization method
-      @ Out, None,
+      @ Out, None
     """
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'HistorySet'

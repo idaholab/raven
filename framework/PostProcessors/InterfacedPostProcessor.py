@@ -145,7 +145,6 @@ class InterfacedPostProcessor(PostProcessor):
           self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor named "'+ self.name +
                             '" : The input object "'+ inp.name +'" provided is of the wrong type. Got "'+
                             inp.type + '" but expected "'+self.returnFormat("input") + '"!')
-
     inputDic= self.inputToInternal(inputIn)
     self.raiseADebug('InterfacedPostProcessor Post-Processor '+ self.name +' : start to run')
     outputDic = self.postProcessor.run(inputDic)
@@ -204,6 +203,16 @@ class InterfacedPostProcessor(PostProcessor):
       @ In, output, dataObjects, The object where we want to place our computed results
       @ Out, None
     """
+    metaKeys =  []
     evaluations = finishedJob.getEvaluation()
     evaluation = evaluations[1]
+    if 'prefix' in evaluation['data']:
+      metaKeys.append('prefix')
+    if 'ProbabilityWeight' in evaluation['data']:
+      metaKeys.append('ProbabilityWeight')
+    if 'conditionalPb' in evaluation['data']:
+      metaKeys.append('conditionalPb')
+    if 'triggeredVariable' in evaluation['data']:
+      metaKeys.append('triggeredVariable')
+    output.addExpectedMeta(metaKeys)
     output.load(evaluation['data'], style='dict', dims=evaluation['dims'])

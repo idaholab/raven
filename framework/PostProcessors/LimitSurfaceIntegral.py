@@ -23,6 +23,7 @@ import numpy as np
 import xarray
 import math
 import os
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -92,7 +93,8 @@ class LimitSurfaceIntegral(PostProcessor):
     self.tolerance = 0.0001  # integration tolerance
     self.integralType = 'montecarlo'  # integral type (which alg needs to be used). Either montecarlo or quadrature(quadrature not yet)
     self.seed = 20021986  # seed for montecarlo
-    self.matrixDict = {}  # dictionary of arrays and target
+    self.matrixDictPos = {}  # dictionary of arrays and target (positive)
+    self.matrixDictNeg = {}  # dictionary of arrays and target (negative)
     self.lowerUpperDict = {}
     self.functionS = None
     self.computationPrefix = None
@@ -183,10 +185,17 @@ class LimitSurfaceIntegral(PostProcessor):
     if self.integralType in ['montecarlo']:
       self.stat.toDo = {'expectedValue':[{'targets':set([self.target]), 'prefix':self.computationPrefix}]}
       self.stat.initialize(runInfo, inputs, initDict)
-    self.functionS = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':','.join(list(self.variableDist.keys())), 'Target':self.target})
-    self.functionS.train(self.matrixDict)
+    self.functionTricked = LearningGate.returnInstance('SupervisedGate','SciKitLearn',
+                                                 self, **{'SKLtype':'neighbors|KNeighborsClassifier',
+                                                          'Features':','.join(list(self.variableDist.keys())),
+                                                          'Target':self.target})
+    self.functionSNeg = LearningGate.returnInstance('SupervisedGate','SciKitLearn',
+                                                   self, **{'SKLtype':'neighbors|KNeighborsClassifier',
+                                                            'Features':','.join(list(self.variableDist.keys())),
+                                                            'Target':self.target})
+    self.functionSNeg.train(self.matrixDictNeg)
     self.raiseADebug('DATA SET MATRIX:')
-    self.raiseADebug(self.matrixDict)
+    self.raiseADebug(self.matrixDictNeg)
     for varName, distName in self.variableDist.items():
       if distName != None:
         self.variableDist[varName] = self.retrieveObjectFromAssemblerDict('distribution', distName)
@@ -214,12 +223,17 @@ class LimitSurfaceIntegral(PostProcessor):
         self.raiseAnError(IOError, 'The target ' + self.target + 'is not present among the outputs of the PointSet ' + item.name)
       # construct matrix
       dataSet = item.asDataset()
-      self.matrixDict = {varName: dataSet[varName].values for varName in self.variableDist}
-      responseArray = dataSet[self.target].values
+      self.matrixDictNeg = {varName: dataSet[varName].values for varName in self.variableDist}
+      self.matrixDictPos = copy.deepcopy(self.matrixDictNeg)
+      responseArray = copy.copy(dataSet[self.target].values)
       if len(np.unique(responseArray)) != 2:
         self.raiseAnError(IOError, 'The target ' + self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
       responseArray[responseArray == -1] = 0.0
-      self.matrixDict[self.target] = responseArray
+      self.matrixDictNeg[self.target] = responseArray
+      responseArray = dataSet[self.target].values
+      responseArray[responseArray == 1] = 0.0
+      responseArray[responseArray == -1] = 1.0
+      self.matrixDictPos[self.target] = responseArray
     else:
       self.raiseAnError(IOError, 'Only PointSet is accepted as input!!!!')
 
@@ -240,9 +254,27 @@ class LimitSurfaceIntegral(PostProcessor):
           f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float])
           randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
-      pb = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+      #{'targets':{self.target:xarray.DataArray(self.functionSPos.evaluate(tempDict)[self.target])}}
+      targetOutput =  xarray.DataArray(self.functionSNeg.evaluate(tempDict)[self.target])
+      targetDict =  {self.target:targetOutput.values}
+      tempDict.update(targetDict)
+      pbNeg =  len(np.where(targetOutput.values ==1.)[0] ) / len(targetOutput.values)
+      #pbNeg = self.stat.run({'targets':{self.target:targetOutput}})[self.computationPrefix +"_"+self.target]
+      # the computation of the error bound is done using
+      self.raiseAMessage("Starting training form error bound")
+      self.functionTricked.train(tempDict)
+      self.raiseAMessage("Error bound training done!")
+      pbPos =  len(np.where(self.functionTricked.evaluate(tempDict)[self.target] ==1.)[0] ) / len(randomMatrix)
+      self.raiseAMessage("Compute bounds!")
+      #pbPos = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionTricked.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+      pb = pbNeg
+      # we assume the limit surface is in the middle between the -1 and +1 boundaries
+      #pb = (pbNeg + pbPos) / 2.
+      errorBound = 2 * abs( pbNeg - pbPos )
+      self.raiseAMessage("Error Bound for Limit Surface Location is: "+str(float(errorBound)))
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
+
     return pb
 
   def collectOutput(self, finishedJob, output):

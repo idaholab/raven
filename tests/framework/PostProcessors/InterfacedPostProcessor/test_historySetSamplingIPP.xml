@@ -167,22 +167,27 @@
     <Print name="PrintPPHistorySet_dump1">
       <type>csv</type>
       <source>outMC_PP1</source>
+      <what>input,output</what>
     </Print>
     <Print name="PrintPPHistorySet_dump2">
       <type>csv</type>
       <source>outMC_PP2</source>
+      <what>input,output</what>
     </Print>
     <Print name="PrintPPHistorySet_dump3">
       <type>csv</type>
       <source>outMC_PP3</source>
+      <what>input,output</what>
     </Print>
     <Print name="PrintPPHistorySet_dump4">
       <type>csv</type>
       <source>outMC_PP4</source>
+      <what>input,output</what>
     </Print>
     <Print name="PrintPPHistorySet_dump5">
       <type>csv</type>
       <source>outMC_PP5</source>
+      <what>input,output</what>
     </Print>
     <Plot  name="plot1" overwrite="False">
       <plotSettings>

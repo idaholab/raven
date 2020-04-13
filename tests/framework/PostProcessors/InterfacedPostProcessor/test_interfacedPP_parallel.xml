@@ -77,6 +77,7 @@
     <Print name="PrintPPHistorySet_dump">
       <type>csv</type>
       <source>outMC_PP</source>
+      <what>input,output</what>
     </Print>
   </OutStreams>
 

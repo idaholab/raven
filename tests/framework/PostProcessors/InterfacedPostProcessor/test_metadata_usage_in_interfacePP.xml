@@ -126,10 +126,12 @@
     <Print name="historiesSetSyncronized_dump">
         <type>csv</type>
         <source> HistorySetPostProcTestSyncronized </source>
+        <what>input,output</what>
     </Print>
     <Print name="outputDataMChistory">
         <type>csv</type>
         <source>timeDepBasicStat_DNBR</source>
+        <what>input,output</what>
     </Print>
     <Print name="outputDataMCpoint">
         <type>csv</type>
