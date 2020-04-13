@@ -174,6 +174,11 @@ class SimulatedAnnealing(RavenSampled):
     return ok
 
   def __init__(self):
+    """
+      Constructor.
+      @ In, None
+      @ Out, None
+    """
     RavenSampled.__init__(self)
     self._convergenceCriteria = defaultdict(mathUtils.giveZero) # names and values for convergence checks
     self._acceptHistory = {}                                    # acceptability
