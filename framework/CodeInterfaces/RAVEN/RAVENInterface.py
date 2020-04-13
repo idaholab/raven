@@ -287,7 +287,7 @@ class RAVEN(CodeInterfaceBase):
       return True
     # check for completed run
     readLines = outputToRead.readlines()
-    if not any("Run complete" in x for x in readLines[-min(200,len(readLines)):]):
+    if not any("Run complete" in x for x in readLines[:]):
       del readLines
       return True
     # check for output CSV (and data)
