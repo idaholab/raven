@@ -259,7 +259,7 @@ class DynamicEventTree(Grid):
     branchedLevel = {}
     for distk, distpb in zip(endInfo['parentNode'].get('SampledVarsPb').keys(),endInfo['parentNode'].get('SampledVarsPb').values()):
       if distk not in self.epistemicVariables.keys():
-        branchedLevel[distk] = utils.first(np.asarray(self.branchProbabilities[distk]) == distpb).nonzero()[-1]
+        branchedLevel[distk] = utils.first(np.atleast_1d(np.asarray(self.branchProbabilities[distk]) == distpb).nonzero())[-1]
     if not branchedLevel:
       self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
     # Loop of the parameters that have been changed after a trigger gets activated
@@ -606,6 +606,7 @@ class DynamicEventTree(Grid):
       #  for this particular distribution
       if not (branchedLevel[endInfo['branchDist']] >= len(self.branchProbabilities[endInfo['branchDist']])):
         self.inputInfo['initiatorDistribution'] = [self.toBeSampled[endInfo['branchDist']]]
+        print(branchedLevel[endInfo['branchDist']])
         self.inputInfo['PbThreshold'           ] = [self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]]
         self.inputInfo['ValueThreshold'        ] = [self.branchValues[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]]
       #  For the other distributions, we put the unbranched thresholds
