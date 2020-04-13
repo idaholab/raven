@@ -29,10 +29,10 @@ import inspect
 import subprocess
 import platform
 import copy
+from importlib import import_module
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.
 from difflib import SequenceMatcher
-import importlib
 
 class Object(object):
   """
@@ -247,23 +247,34 @@ def convertMultipleToBytes(sizeString):
     except:
       raise IOError(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
 
-def stringsThatMeanTrue():
-  """
-    Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
-    @ In, None
-    @ Out, listOfStrings, list, list of strings that mean True in RAVEN
-  """
-  listOfStrings = list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
-  return listOfStrings
+# I don't think there's a reason to make this an enum, but it could be done.
+trueThingsFull = ('True', 'Yes', '1')
+trueThings = tuple(x[0].lower() for x in trueThingsFull)
 
-def stringsThatMeanFalse():
+def stringIsTrue(s):
   """
-    Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
-    @ In, None
-    @ Out, listOfStrings, list, list of strings that mean False in RAVEN
+    Determines if provided entity corresponds to a truth statement
+    @ In, s, string or castable, entity to check
+    @ Out, stringIsTrue, bool, True if string is recognized by RAVEN as evaluating to True
   """
-  listOfStrings = list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
-  return listOfStrings
+  # as far as I know, nothing in python cannot be cast as a string.
+  s = str(s).strip()
+  return s.lower().startswith(trueThings)
+
+# I don't think there's a reason to make this an enum, but it could be done.
+falseThingsFull = ('False', 'No', '0')
+falseThings = tuple(x[0].lower() for x in falseThingsFull)
+def stringIsFalse(s):
+  """
+    Determines if provided entity corresponds to a falsehood statement
+    @ In, s, string or castable, entity to check
+    @ Out, stringIsFalse, bool, False if string is recognized by RAVEN as evaluating to False
+  """
+  # as far as I know, nothing in python cannot be cast as a string.
+  s = str(s).strip()
+  return s.lower().startswith(falseThings)
+
+boolThingsFull = tuple(list(trueThingsFull)+list(falseThingsFull))
 
 def stringsThatMeanSilent():
   """
@@ -307,9 +318,9 @@ def interpretBoolean(inArg):
     else:
       return True
   elif type(inArg).__name__ in ['str','bytes','unicode']:
-    if inArg.lower().strip() in stringsThatMeanTrue():
+    if stringIsTrue(inArg):
       return True
-    elif inArg.lower().strip() in stringsThatMeanFalse():
+    elif stringIsFalse(inArg):
       return False
     else:
       raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
@@ -735,11 +746,11 @@ def findCrowModule(name):
   # find the module
   ext = 'py3' if sys.version_info.major > 2 else 'py2'
   try:
-    module = importlib.import_module("crow_modules.{}{}".format(name,ext))
+    module = import_module("crow_modules.{}{}".format(name,ext))
   except ImportError as ie:
     if not str(ie).startswith("No module named"):
       raise ie
-    module = importlib.import_module("{}{}".format(name,ext))
+    module = import_module("{}{}".format(name,ext))
   return module
 
 def getPythonCommand():

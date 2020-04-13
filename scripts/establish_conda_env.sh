@@ -364,6 +364,12 @@ if [[ "$INSTALL_MANAGER" == "CONDA" ]];
   then
     if [[ $ECE_VERBOSE == 0 ]]; then echo ... Found conda definitions at ${CONDA_DEFS}; fi
     source ${CONDA_DEFS}
+    #The next lines are useful sometimes, but excessivly verbose.
+    #if [[ $ECE_VERBOSE == 0 ]]; then
+    #  echo ... conda:
+    #  which conda || echo no conda
+    #  conda info || echo conda info failed
+    #fi
   else
     echo ... Conda definitions not found at \"${CONDA_DEFS}\"!
     echo ... \>\> Specify the location of miniconda3/etc/profile.d/conda.sh through the --conda-defs option.

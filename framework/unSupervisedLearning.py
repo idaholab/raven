@@ -27,9 +27,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
-from sklearn import cluster, mixture, manifold, decomposition, covariance, neural_network
-from sklearn import metrics
-from sklearn.neighbors import kneighbors_graph
 import scipy.cluster as hier
 import numpy as np
 import abc
@@ -389,67 +386,6 @@ class SciKitLearn(unSupervisedLearning):
   """
   modelType = 'SciKitLearn'
   availImpl = {}
-  availImpl['cluster'] = {}  # Generalized Cluster
-  availImpl['cluster']['AffinityPropogation'    ] = (cluster.AffinityPropagation    , 'float')  # Perform Affinity Propagation Clustering of data.
-  availImpl['cluster']['DBSCAN'                 ] = (cluster.DBSCAN                 , 'float')  # Perform DBSCAN clustering from vector array or distance matrix.
-  availImpl['cluster']['KMeans'                 ] = (cluster.KMeans                 , 'float')  # K-Means Clustering
-  availImpl['cluster']['MiniBatchKMeans'        ] = (cluster.MiniBatchKMeans        , 'float')  # Mini-Batch K-Means Clustering
-  availImpl['cluster']['MeanShift'              ] = (cluster.MeanShift              , 'float')  # Mean Shift Clustering
-  availImpl['cluster']['SpectralClustering'     ] = (cluster.SpectralClustering     , 'float')  # Apply clustering to a projection to the normalized laplacian.
-  availImpl['cluster']['Agglomerative'          ] = (cluster.AgglomerativeClustering, 'float')  # Agglomerative Clustering - Feature of SciKit-Learn version 0.15
-  #  availImpl['cluster']['FeatureAgglomeration'   ] = (cluster.FeatureAgglomeration   , 'float')  # - Feature of SciKit-Learn version 0.15
-  #  availImpl['cluster']['Ward'                   ] = (cluster.Ward                   , 'float')  # Ward hierarchical clustering: constructs a tree and cuts it.
-
-  #  availImpl['bicluster'] = {}
-  #  availImpl['bicluster']['SpectralBiclustering'] = (cluster.bicluster.SpectralBiclustering, 'float')  # Spectral biclustering (Kluger, 2003).
-  #  availImpl['bicluster']['SpectralCoclustering'] = (cluster.bicluster.SpectralCoclustering, 'float')  # Spectral Co-Clustering algorithm (Dhillon, 2001).
-
-  availImpl['mixture'] = {}  # Generalized Gaussion Mixture Models (Classification)
-  availImpl['mixture']['GMM'  ] = (mixture.GaussianMixture  , 'float')  # Gaussian Mixture Model
-  ## Comment is not even right on it, but the DPGMM is being deprecated by SKL who
-  ## admits that it is not working correctly which also explains why it is buried in
-  ## their documentation.
-  # availImpl['mixture']['DPGMM'] = (mixture.DPGMM, 'float')  # Variational Inference for the Infinite Gaussian Mixture Model.
-  availImpl['mixture']['VBGMM'] = (mixture.BayesianGaussianMixture, 'float')  # Variational Inference for the Gaussian Mixture Model
-
-  availImpl['manifold'] = {}  # Manifold Learning (Embedding techniques)
-  availImpl['manifold']['LocallyLinearEmbedding'  ] = (manifold.LocallyLinearEmbedding  , 'float')  # Locally Linear Embedding
-  availImpl['manifold']['Isomap'                  ] = (manifold.Isomap                  , 'float')  # Isomap
-  availImpl['manifold']['MDS'                     ] = (manifold.MDS                     , 'float')  # MultiDimensional Scaling
-  availImpl['manifold']['SpectralEmbedding'       ] = (manifold.SpectralEmbedding       , 'float')  # Spectral Embedding for Non-linear Dimensionality Reduction
-  #  availImpl['manifold']['locally_linear_embedding'] = (manifold.locally_linear_embedding, 'float')  # Perform a Locally Linear Embedding analysis on the data.
-  #  availImpl['manifold']['spectral_embedding'      ] = (manifold.spectral_embedding      , 'float')  # Project the sample on the first eigen vectors of the graph Laplacian.
-
-  availImpl['decomposition'] = {}  # Matrix Decomposition
-  availImpl['decomposition']['PCA'                 ] = (decomposition.PCA                 , 'float')  # Principal component analysis (PCA)
- # availImpl['decomposition']['ProbabilisticPCA'    ] = (decomposition.ProbabilisticPCA    , 'float')  # Additional layer on top of PCA that adds a probabilistic evaluationPrincipal component analysis (PCA)
-  availImpl['decomposition']['RandomizedPCA'       ] = (decomposition.PCA       , 'float')  # Principal component analysis (PCA) using randomized SVD
-  availImpl['decomposition']['KernelPCA'           ] = (decomposition.KernelPCA           , 'float')  # Kernel Principal component analysis (KPCA)
-  availImpl['decomposition']['FastICA'             ] = (decomposition.FastICA             , 'float')  # FastICA: a fast algorithm for Independent Component Analysis.
-  availImpl['decomposition']['TruncatedSVD'        ] = (decomposition.TruncatedSVD        , 'float')  # Dimensionality reduction using truncated SVD (aka LSA).
-  availImpl['decomposition']['SparsePCA'           ] = (decomposition.SparsePCA           , 'float')  # Sparse Principal Components Analysis (SparsePCA)
-  availImpl['decomposition']['MiniBatchSparsePCA'  ] = (decomposition.MiniBatchSparsePCA  , 'float')  # Mini-batch Sparse Principal Components Analysis
-  #  availImpl['decomposition']['ProjectedGradientNMF'] = (decomposition.ProjectedGradientNMF, 'float')  # Non-Negative matrix factorization by Projected Gradient (NMF)
-  #  availImpl['decomposition']['FactorAnalysis'      ] = (decomposition.FactorAnalysis      , 'float')  # Factor Analysis (FA)
-  #  availImpl['decomposition']['NMF'                 ] = (decomposition.NMF                 , 'float')  # Non-Negative matrix factorization by Projected Gradient (NMF)
-  #  availImpl['decomposition']['SparseCoder'         ] = (decomposition.SparseCoder         , 'float')  # Sparse coding
-  #  availImpl['decomposition']['DictionaryLearning'  ] = (decomposition.DictionaryLearning  , 'float')  # Dictionary Learning
-  #  availImpl['decomposition']['MiniBatchDictionaryLearning'] = (decomposition.MiniBatchDictionaryLearning, 'float')  # Mini-batch dictionary learning
-  #  availImpl['decomposition']['fastica'                    ] = (decomposition.fastica                    , 'float')  # Perform Fast Independent Component Analysis.
-  #  availImpl['decomposition']['dict_learning'              ] = (decomposition.dict_learning              , 'float')  # Solves a dictionary learning matrix factorization problem.
-
-  #  availImpl['covariance'] = {}  # Covariance Estimators
-  #  availImpl['covariance']['EmpiricalCovariance'] = (covariance.EmpiricalCovariance, 'float')  # Maximum likelihood covariance estimator
-  #  availImpl['covariance']['EllipticEnvelope'   ] = (covariance.EllipticEnvelope   , 'float')  # An object for detecting outliers in a Gaussian distributed dataset.
-  #  availImpl['covariance']['GraphLasso'         ] = (covariance.GraphLasso         , 'float')  # Sparse inverse covariance estimation with an l1-penalized estimator.
-  #  availImpl['covariance']['GraphLassoCV'       ] = (covariance.GraphLassoCV       , 'float')  # Sparse inverse covariance w/ cross-validated choice of the l1 penalty
-  #  availImpl['covariance']['LedoitWolf'         ] = (covariance.LedoitWolf         , 'float')  # LedoitWolf Estimator
-  #  availImpl['covariance']['MinCovDet'          ] = (covariance.MinCovDet          , 'float')  # Minimum Covariance Determinant (MCD): robust estimator of covariance
-  #  availImpl['covariance']['OAS'                ] = (covariance.OAS                , 'float')  # Oracle Approximating Shrinkage Estimator
-  #  availImpl['covariance']['ShrunkCovariance'   ] = (covariance.ShrunkCovariance   , 'float')  # Covariance estimator with shrinkage
-
-  #  availImpl['neuralNetwork'] = {}  # Covariance Estimators
-  #  availImpl['neuralNetwork']['BernoulliRBM'] = (neural_network.BernoulliRBM, 'float')  # Bernoulli Restricted Boltzmann Machine (RBM).
 
   def __init__(self, messageHandler, **kwargs):
     """
@@ -459,6 +395,73 @@ class SciKitLearn(unSupervisedLearning):
      @ Out, None
     """
     unSupervisedLearning.__init__(self, messageHandler, **kwargs)
+    if len(self.availImpl) == 0:
+      import sklearn.cluster
+      import sklearn.mixture
+      import sklearn.manifold
+      import sklearn.decomposition
+      self.availImpl['cluster'] = {}  # Generalized Cluster
+      self.availImpl['cluster']['AffinityPropogation'    ] = (sklearn.cluster.AffinityPropagation    , 'float')  # Perform Affinity Propagation Clustering of data.
+      self.availImpl['cluster']['DBSCAN'                 ] = (sklearn.cluster.DBSCAN                 , 'float')  # Perform DBSCAN clustering from vector array or distance matrix.
+      self.availImpl['cluster']['KMeans'                 ] = (sklearn.cluster.KMeans                 , 'float')  # K-Means Clustering
+      self.availImpl['cluster']['MiniBatchKMeans'        ] = (sklearn.cluster.MiniBatchKMeans        , 'float')  # Mini-Batch K-Means Clustering
+      self.availImpl['cluster']['MeanShift'              ] = (sklearn.cluster.MeanShift              , 'float')  # Mean Shift Clustering
+      self.availImpl['cluster']['SpectralClustering'     ] = (sklearn.cluster.SpectralClustering     , 'float')  # Apply clustering to a projection to the normalized laplacian.
+      self.availImpl['cluster']['Agglomerative'          ] = (sklearn.cluster.AgglomerativeClustering, 'float')  # Agglomerative Clustering - Feature of SciKit-Learn version 0.15
+      #  self.availImpl['cluster']['FeatureAgglomeration'   ] = (cluster.FeatureAgglomeration   , 'float')  # - Feature of SciKit-Learn version 0.15
+      #  self.availImpl['cluster']['Ward'                   ] = (cluster.Ward                   , 'float')  # Ward hierarchical clustering: constructs a tree and cuts it.
+
+      #  self.availImpl['bicluster'] = {}
+      #  self.availImpl['bicluster']['SpectralBiclustering'] = (cluster.bicluster.SpectralBiclustering, 'float')  # Spectral biclustering (Kluger, 2003).
+      #  self.availImpl['bicluster']['SpectralCoclustering'] = (cluster.bicluster.SpectralCoclustering, 'float')  # Spectral Co-Clustering algorithm (Dhillon, 2001).
+
+      self.availImpl['mixture'] = {}  # Generalized Gaussion Mixture Models (Classification)
+      self.availImpl['mixture']['GMM'  ] = (sklearn.mixture.GaussianMixture  , 'float')  # Gaussian Mixture Model
+      ## Comment is not even right on it, but the DPGMM is being deprecated by SKL who
+      ## admits that it is not working correctly which also explains why it is buried in
+      ## their documentation.
+      # self.availImpl['mixture']['DPGMM'] = (sklearn.mixture.DPGMM, 'float')  # Variational Inference for the Infinite Gaussian Mixture Model.
+      self.availImpl['mixture']['VBGMM'] = (sklearn.mixture.BayesianGaussianMixture, 'float')  # Variational Inference for the Gaussian Mixture Model
+
+      self.availImpl['manifold'] = {}  # Manifold Learning (Embedding techniques)
+      self.availImpl['manifold']['LocallyLinearEmbedding'  ] = (sklearn.manifold.LocallyLinearEmbedding  , 'float')  # Locally Linear Embedding
+      self.availImpl['manifold']['Isomap'                  ] = (sklearn.manifold.Isomap                  , 'float')  # Isomap
+      self.availImpl['manifold']['MDS'                     ] = (sklearn.manifold.MDS                     , 'float')  # MultiDimensional Scaling
+      self.availImpl['manifold']['SpectralEmbedding'       ] = (sklearn.manifold.SpectralEmbedding       , 'float')  # Spectral Embedding for Non-linear Dimensionality Reduction
+      #  self.availImpl['manifold']['locally_linear_embedding'] = (sklearn.manifold.locally_linear_embedding, 'float')  # Perform a Locally Linear Embedding analysis on the data.
+      #  self.availImpl['manifold']['spectral_embedding'      ] = (sklearn.manifold.spectral_embedding      , 'float')  # Project the sample on the first eigen vectors of the graph Laplacian.
+
+      self.availImpl['decomposition'] = {}  # Matrix Decomposition
+      self.availImpl['decomposition']['PCA'                 ] = (sklearn.decomposition.PCA                 , 'float')  # Principal component analysis (PCA)
+     # self.availImpl['decomposition']['ProbabilisticPCA'    ] = (sklearn.decomposition.ProbabilisticPCA    , 'float')  # Additional layer on top of PCA that adds a probabilistic evaluationPrincipal component analysis (PCA)
+      self.availImpl['decomposition']['RandomizedPCA'       ] = (sklearn.decomposition.PCA       , 'float')  # Principal component analysis (PCA) using randomized SVD
+      self.availImpl['decomposition']['KernelPCA'           ] = (sklearn.decomposition.KernelPCA           , 'float')  # Kernel Principal component analysis (KPCA)
+      self.availImpl['decomposition']['FastICA'             ] = (sklearn.decomposition.FastICA             , 'float')  # FastICA: a fast algorithm for Independent Component Analysis.
+      self.availImpl['decomposition']['TruncatedSVD'        ] = (sklearn.decomposition.TruncatedSVD        , 'float')  # Dimensionality reduction using truncated SVD (aka LSA).
+      self.availImpl['decomposition']['SparsePCA'           ] = (sklearn.decomposition.SparsePCA           , 'float')  # Sparse Principal Components Analysis (SparsePCA)
+      self.availImpl['decomposition']['MiniBatchSparsePCA'  ] = (sklearn.decomposition.MiniBatchSparsePCA  , 'float')  # Mini-batch Sparse Principal Components Analysis
+      #  self.availImpl['decomposition']['ProjectedGradientNMF'] = (sklearn.decomposition.ProjectedGradientNMF, 'float')  # Non-Negative matrix factorization by Projected Gradient (NMF)
+      #  self.availImpl['decomposition']['FactorAnalysis'      ] = (sklearn.decomposition.FactorAnalysis      , 'float')  # Factor Analysis (FA)
+      #  self.availImpl['decomposition']['NMF'                 ] = (sklearn.decomposition.NMF                 , 'float')  # Non-Negative matrix factorization by Projected Gradient (NMF)
+      #  self.availImpl['decomposition']['SparseCoder'         ] = (sklearn.decomposition.SparseCoder         , 'float')  # Sparse coding
+      #  self.availImpl['decomposition']['DictionaryLearning'  ] = (sklearn.decomposition.DictionaryLearning  , 'float')  # Dictionary Learning
+      #  self.availImpl['decomposition']['MiniBatchDictionaryLearning'] = (sklearn.decomposition.MiniBatchDictionaryLearning, 'float')  # Mini-batch dictionary learning
+      #  self.availImpl['decomposition']['fastica'                    ] = (sklearn.decomposition.fastica                    , 'float')  # Perform Fast Independent Component Analysis.
+      #  self.availImpl['decomposition']['dict_learning'              ] = (sklearn.decomposition.dict_learning              , 'float')  # Solves a dictionary learning matrix factorization problem.
+
+      #  self.availImpl['covariance'] = {}  # Covariance Estimators
+      #  self.availImpl['covariance']['EmpiricalCovariance'] = (sklearn.covariance.EmpiricalCovariance, 'float')  # Maximum likelihood covariance estimator
+      #  self.availImpl['covariance']['EllipticEnvelope'   ] = (sklearn.covariance.EllipticEnvelope   , 'float')  # An object for detecting outliers in a Gaussian distributed dataset.
+      #  self.availImpl['covariance']['GraphLasso'         ] = (sklearn.covariance.GraphLasso         , 'float')  # Sparse inverse covariance estimation with an l1-penalized estimator.
+      #  self.availImpl['covariance']['GraphLassoCV'       ] = (sklearn.covariance.GraphLassoCV       , 'float')  # Sparse inverse covariance w/ cross-validated choice of the l1 penalty
+      #  self.availImpl['covariance']['LedoitWolf'         ] = (sklearn.covariance.LedoitWolf         , 'float')  # LedoitWolf Estimator
+      #  self.availImpl['covariance']['MinCovDet'          ] = (sklearn.covariance.MinCovDet          , 'float')  # Minimum Covariance Determinant (MCD): robust estimator of covariance
+      #  self.availImpl['covariance']['OAS'                ] = (sklearn.covariance.OAS                , 'float')  # Oracle Approximating Shrinkage Estimator
+      #  self.availImpl['covariance']['ShrunkCovariance'   ] = (sklearn.covariance.ShrunkCovariance   , 'float')  # Covariance estimator with shrinkage
+
+      #  self.availImpl['neuralNetwork'] = {}  # Covariance Estimators
+      #  self.availImpl['neuralNetwork']['BernoulliRBM'] = (neural_network.BernoulliRBM, 'float')  # Bernoulli Restricted Boltzmann Machine (RBM).
+
     self.printTag = 'SCIKITLEARN'
 
     if 'SKLtype' not in self.initOptionDict.keys():
@@ -506,17 +509,19 @@ class SciKitLearn(unSupervisedLearning):
       @ In, None
       @ Out, None
     """
+    import sklearn.cluster
+    import sklearn.neighbors
     ## set bandwidth for MeanShift clustering
     if hasattr(self.Method, 'bandwidth'):
       if 'bandwidth' not in self.initOptionDict.keys():
-        self.initOptionDict['bandwidth'] = cluster.estimate_bandwidth(self.normValues,quantile=0.3)
+        self.initOptionDict['bandwidth'] = sklearn.cluster.estimate_bandwidth(self.normValues,quantile=0.3)
       self.Method.set_params(**self.initOptionDict)
 
     ## We need this connectivity if we want to use structured ward
     if hasattr(self.Method, 'connectivity'):
       ## we should find a smart way to define the number of neighbors instead of
       ## default constant integer value(10)
-      connectivity = kneighbors_graph(self.normValues, n_neighbors = min(10,len(self.normValues[:,0])-1))
+      connectivity = sklearn.neighbors.kneighbors_graph(self.normValues, n_neighbors = min(10,len(self.normValues[:,0])-1))
       connectivity = 0.5 * (connectivity + connectivity.T)
       self.initOptionDict['connectivity'] = connectivity
       self.Method.set_params(**self.initOptionDict)
@@ -706,6 +711,7 @@ class SciKitLearn(unSupervisedLearning):
       @ Out, self.outputdict['confidence'], dict, dictionary of the confidence
       metrics of the algorithms
     """
+    import sklearn.metrics
     self.outputDict['confidence'] = {}
 
     ## I believe you should always have labels populated when dealing with a
@@ -714,7 +720,7 @@ class SciKitLearn(unSupervisedLearning):
       labels = self.outputDict['outputs']['labels']
 
       if np.unique(labels).size > 1:
-        self.outputDict['confidence']['silhouetteCoefficient'] = metrics.silhouette_score(self.normValues , labels)
+        self.outputDict['confidence']['silhouetteCoefficient'] = sklearn.metrics.silhouette_score(self.normValues , labels)
 
       if hasattr(self.Method, 'inertia_'):
         self.outputDict['confidence']['inertia'] = self.Method.inertia_
@@ -722,11 +728,11 @@ class SciKitLearn(unSupervisedLearning):
       ## If we have ground truth labels, then compute some additional confidence
       ## metrics
       if self.labelValues is not None:
-        self.outputDict['confidence']['homogeneity'              ] =          metrics.homogeneity_score(self.labelValues, labels)
-        self.outputDict['confidence']['completenes'              ] =         metrics.completeness_score(self.labelValues, labels)
-        self.outputDict['confidence']['vMeasure'                 ] =            metrics.v_measure_score(self.labelValues, labels)
-        self.outputDict['confidence']['adjustedRandIndex'        ] =        metrics.adjusted_rand_score(self.labelValues, labels)
-        self.outputDict['confidence']['adjustedMutualInformation'] = metrics.adjusted_mutual_info_score(self.labelValues, labels)
+        self.outputDict['confidence']['homogeneity'              ] =          sklearn.metrics.homogeneity_score(self.labelValues, labels)
+        self.outputDict['confidence']['completenes'              ] =         sklearn.metrics.completeness_score(self.labelValues, labels)
+        self.outputDict['confidence']['vMeasure'                 ] =            sklearn.metrics.v_measure_score(self.labelValues, labels)
+        self.outputDict['confidence']['adjustedRandIndex'        ] =        sklearn.metrics.adjusted_rand_score(self.labelValues, labels)
+        self.outputDict['confidence']['adjustedMutualInformation'] = sklearn.metrics.adjusted_mutual_info_score(self.labelValues, labels)
     elif 'mixture' == self.SKLtype:
       if hasattr(self.Method, 'aic'):
         self.outputDict['confidence']['aic'  ] = self.Method.aic(self.normValues)   ## Akaike Information Criterion

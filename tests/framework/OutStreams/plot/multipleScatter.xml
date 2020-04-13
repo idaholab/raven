@@ -1,0 +1,181 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/OutStreams.MultipleScatteredData</name>
+    <author>MohammadAbdo</author>
+    <created>2020-04-07</created>
+    <classesTested>OutStreams</classesTested>
+    <description>
+      This test assesses the ability of the outstreams to plot two different scatter plots on the same 3D axes
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>sample,train,validate_rom,validate_model,output</Sequence>
+  </RunInfo>
+  <Steps>
+    <MultiRun name="sample">
+      <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
+      <Model   class="Models"      type="ExternalModel">wave</Model>
+      <Sampler class="Samplers"    type="SparseGridCollocation">sparse_grid</Sampler>
+      <Output  class="DataObjects" type="PointSet"     >training</Output>
+    </MultiRun>
+    <RomTrainer name="train">
+      <Input  class="DataObjects" type="PointSet"     >training</Input>
+      <Output class="Models"      type="ROM"          >rom</Output>
+    </RomTrainer>
+    <MultiRun name="validate_rom">
+      <Input   class="DataObjects" type="PointSet" >placeholder</Input>
+      <Model   class="Models"      type="ROM"      >rom</Model>
+      <Sampler class="Samplers"    type="Grid"     >validation_grid</Sampler>
+      <Output  class="DataObjects" type="PointSet" >rom_results</Output>
+    </MultiRun>
+    <MultiRun name="validate_model">
+      <Input   class="DataObjects" type="PointSet"      >placeholder</Input>
+      <Model   class="Models"      type="ExternalModel" >wave</Model>
+      <Sampler class="Samplers"    type="Grid"          >validation_grid</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >model_results</Output>
+    </MultiRun>
+    <IOStep name="output" pauseAtEnd="True">
+      <Input  class="DataObjects" type="PointSet" >model_results</Input>
+      <Input  class="DataObjects" type="PointSet" >rom_results</Input>
+      <Output class="OutStreams"  type="Plot"     >plot_both</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>A,k</Input>
+    </PointSet>
+    <PointSet name="wave">
+      <Input>A,k</Input>
+      <Output>mag</Output>
+    </PointSet>
+    <PointSet name="training">
+      <Input>A,k</Input>
+      <Output>mag</Output>
+    </PointSet>
+    <PointSet name="rom_results">
+      <Input>A,k</Input>
+      <Output>mag</Output>
+    </PointSet>
+    <PointSet name="model_results">
+      <Input>A,k</Input>
+      <Output>mag</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Models>
+    <ROM name="rom" subType="GaussPolynomialRom">
+      <Target>mag</Target>
+      <Features>A,k</Features>
+      <IndexSet>TotalDegree</IndexSet>
+      <PolynomialOrder>2</PolynomialOrder>
+    </ROM>
+
+    <ExternalModel ModuleToLoad="wave" name="wave" subType="">
+      <variables>A,k,mag</variables>
+    </ExternalModel>
+  </Models>
+
+  <Samplers>
+    <Grid name="validation_grid">
+      <variable name="A">
+        <distribution>A</distribution>
+        <grid type="CDF" construction="equal" steps="9">0 1</grid>
+      </variable>
+      <variable name="k">
+        <distribution>k</distribution>
+        <grid type="CDF" construction="equal" steps="9">0 1</grid>
+      </variable>
+    </Grid>
+
+    <SparseGridCollocation name='sparse_grid'>
+      <variable name="A">
+        <distribution>A</distribution>
+      </variable>
+      <variable name="k">
+        <distribution>k</distribution>
+      </variable>
+      <ROM class="Models" type="ROM">rom</ROM>
+    </SparseGridCollocation>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name="A">
+      <lowerBound>0.5</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+    <Uniform name="k">
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <OutStreams>
+    <Plot name="plot_rom">
+      <filename>validate_rom</filename>
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>rom_results|Input|A</x>
+          <y>rom_results|Input|k</y>
+          <z>rom_results|Output|mag</z>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title><text>ROM Validation</text></title>
+      </actions>
+    </Plot>
+    <Plot name="plot_model">
+      <filename>validate_model</filename>
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>model_results|Input|A</x>
+          <y>model_results|Input|k</y>
+          <z>model_results|Output|mag</z>
+        </plot>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title><text>Model Validation</text></title>
+      </actions>
+    </Plot>
+    <Plot name="plot_both" overwrite="false">
+      <plotSettings>
+         <plot>
+            <type>scatter</type>
+            <x>model_results|Input|A</x>
+            <y>model_results|Input|k</y>
+            <z>model_results|Output|mag</z>
+            <c>black</c>
+            <!-- For now, the label tag needs to be put under the kwarguments tag -->
+            <kwargs>
+               <label>Model</label>
+            </kwargs>
+         </plot>
+         <plot>
+            <type>scatter</type>
+            <x>rom_results|Input|A</x>
+            <y>rom_results|Input|k</y>
+            <z>rom_results|Output|mag</z>
+            <c>red</c>
+            <kwargs>
+               <label>ROM</label>
+            </kwargs>
+         </plot>
+         <legend>
+            <loc>best</loc>
+            <ncol>2</ncol>
+         </legend>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title><text>How the ROM does</text></title>
+      </actions>
+    </Plot>
+  </OutStreams>
+</Simulation>

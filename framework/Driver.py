@@ -50,13 +50,10 @@ sys.path.pop() #remove scripts path for cleanliness
 from utils import utils
 import utils.TreeStructure as TS
 utils.find_crow(frameworkDir)
-
-if sys.version_info.major == 2:
-  utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
-else:
-  utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp3'))
 utils.add_path(os.path.join(frameworkDir,'contrib','AMSC'))
 utils.add_path(os.path.join(frameworkDir,'contrib'))
+##TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
+utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
 #Internal Modules
 from Simulation import Simulation
 from Application import __QtAvailable
