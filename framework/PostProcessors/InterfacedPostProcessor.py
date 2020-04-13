@@ -27,7 +27,6 @@ import copy
 import math
 from collections import OrderedDict, defaultdict
 import time
-from sklearn.linear_model import LinearRegression
 import importlib
 import abc
 import six
@@ -48,7 +47,6 @@ import Files
 import Models
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class InterfacedPostProcessor(PostProcessor):
@@ -207,8 +205,6 @@ class InterfacedPostProcessor(PostProcessor):
     """
     metaKeys =  []
     evaluations = finishedJob.getEvaluation()
-    if isinstance(evaluations, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
     evaluation = evaluations[1]
     if 'prefix' in evaluation['data']:
       metaKeys.append('prefix')

@@ -36,6 +36,8 @@ from BaseClasses import BaseType
 from JobHandler import JobHandler
 import MessageHandler
 from utils import utils
+from Decorators.Parallelization import Parallel
+from utils import importerUtils as im
 #Internal Modules End-----------------------------------------------------------------
 
 
@@ -61,7 +63,6 @@ class SparseGrid(MessageHandler.MessageUser):
     self.N              = None                                                    # dimensionality of input space
     self.SG             = None                                                    # dict{ (point,point,point): weight}
     self.messageHandler = None                                                    # message handler
-    self.mods           = utils.returnImportModuleString(inspect.getmodule(self)) # list of modules this class depends on (needed for automatic parallel python)
 
   def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
     """
@@ -345,6 +346,7 @@ class SparseGrid(MessageHandler.MessageUser):
       except TypeError:
         return list(self.SG.values())[n]
 
+  @Parallel()
   def tensorGrid(self, m):
     """
       Creates a tensor itertools.product of quadrature points.
@@ -407,7 +409,7 @@ class TensorGrid(SparseGrid):
         largest[i] = max(idx[i],largest[i])
     #construct tensor grid using largest in each dimension
     quadSizes = self.quadRule(largest)+1 #TODO give user access to this +1 rule
-    points,weights = self.tensorGrid(quadSizes)
+    points,weights = self.tensorGrid.original_function(self, quadSizes)
     for i,pt in enumerate(points):
       self.SG[pt] = weights[i]
 
@@ -459,7 +461,7 @@ class SmolyakSparseGrid(SparseGrid):
       for j,cof in enumerate(self.c):
         idx = self.indexSet[j]
         m = self.quadRule(idx)+1
-        new = self.tensorGrid(m)
+        new =   self.tensorGrid.original_function(self, m)
         for i in range(len(new[0])):
           newpt=tuple(new[0][i])
           newwt=new[1][i]*cof
@@ -498,7 +500,7 @@ class SmolyakSparseGrid(SparseGrid):
           cof=self.c[j]
           idx = self.indexSet[j]
           m=self.quadRule(idx)+1
-          handler.addJob((m,),self.tensorGrid,prefix+str(cof),modulesToImport = self.mods)
+          handler.addJob((self, m,),self.tensorGrid,prefix+str(cof))
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:
           break #FIXME this is significantly the second-most expensive line in this method
@@ -552,29 +554,11 @@ class SmolyakSparseGrid(SparseGrid):
         #load new inputs, up to 100 at a time
         for k in range(min(handler.availability(),N-1-i)):
           i+=1
-          handler.addJob((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i),modulesToImport = self.mods)
+          handler.addJob((N,i,self.indexSet[i],self.indexSet[:]),makeSingleCoeff,prefix+str(i))
       else:
         if handler.isFinished() and len(handler.getFinishedNoPop())==0:
           break
       #TODO optimize this with a sleep time
-
-  def makeSingleCoeff(self,N,i,idx,iSet):
-    """
-      Batch-style algorithm to calculate a single coefficient
-      @ In, N, int, required arguments
-      @ In, i, int, required arguments
-      @ In, idx, tuple(int), required arguments
-      @ In, iSet, int, required arguments
-      @ Out, float, coefficient for subtensor i
-    """
-    #N,i,idx,iSet = arglist
-    c=1
-    for j in range(i+1,N):
-      jdx = iSet[j]
-      d = jdx-idx
-      if all(np.logical_and(d>=0,d<=1)):
-        c += (-1)**sum(d)
-    return c
 #
 #
 #
@@ -794,6 +778,7 @@ def GaussQuadRule(i):
 
 
 #Debug module-level method
+@Parallel()
 def makeSingleCoeff(N,i,idx,iSet):
   """
     Batch-style algorithm to calculate a single coefficient

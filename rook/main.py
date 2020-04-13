@@ -104,6 +104,15 @@ parser.add_argument('--config-file', dest='config_file',
 parser.add_argument('--unkillable', action='store_true',
                     help='Ignore SIGTERM so test running is harder to be killed')
 
+parser.add_argument('--add-path', dest='add_path',
+                    help='additional paths that need be added in PYTHON PATH (sys.path)')
+
+parser.add_argument('--update-or-add-env-variables', dest='update_or_add_env_variables',
+                    help='comma separated list of environment variables to update or add. ' +
+                    'The syntax is at follows: NAME=NEW_VALUE (if a new env variable needs ' +
+                    'to be created or updated), NAME>NEW_VALUE (if an env variable needs to' +
+                    ' be updated appending NEW_VALUE to it).')
+
 args = parser.parse_args()
 
 if args.config_file is not None:
@@ -312,6 +321,27 @@ if __name__ == "__main__":
   else:
     Colors = UseColors
 
+  if args.add_path:
+    # add additional paths
+    for new_path in args.add_path.split(","):
+      print('rook: added new path "{}" in sys.path.'.format(new_path.strip()))
+      sys.path.append(new_path.strip())
+  if args.update_or_add_env_variables:
+    # update enviroment variable
+    for new_env_var in args.update_or_add_env_variables.split(","):
+      sep = "=" if "=" in new_env_var else ">"
+      if sep not in new_env_var:
+        raise IOError('Syntax for enviroment variable setting must be ENV_VAR=VALUE ' +
+                      '(for replacement) or ENV_VAR>VALUE (for update)')
+      env_var_name, env_var_value = new_env_var.split(sep)
+      cur_env_var = os.environ.get(env_var_name.strip(), "None")
+      if sep == ">":
+        env_var_value = cur_env_var + env_var_value if cur_env_var != "None" else env_var_value
+      print('rook: update enviroment variable "{}" from "{}" to "{}".'.format(env_var_name,
+                                                                              cur_env_var,
+                                                                              env_var_value))
+      os.environ[env_var_name] = env_var_value
+
   test_re = re.compile(args.test_re_raw)
 
   this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -364,10 +394,10 @@ if __name__ == "__main__":
 
   Tester.initialize_current_run_type()
   if args.add_run_types is not None:
-    Tester.add_run_types(set(args.add_run_types.split(",")))
+    Tester.add_run_types(set(el.strip() for el in args.add_run_types.split(",")))
 
   if args.only_run_types is not None:
-    Tester.set_only_run_types(set(args.only_run_types.split(",")))
+    Tester.set_only_run_types(set(el.strip() for el in args.only_run_types.split(",")))
 
   function_list = [] #Store the data for the pool runner
   test_name_list = []
@@ -383,7 +413,7 @@ if __name__ == "__main__":
       #print(node.attrib)
       param_handler = tester_params[node.attrib['type']]
       if not param_handler.check_for_required(node.attrib):
-        print("Missing Parameters in:", node.tag)
+        raise IOError("Missing Parameters in: " + node.tag + " for Tester: " + node.attrib['type'])
       if not param_handler.check_for_all_known(node.attrib):
         print("Unknown Parameters in:", node.tag, test_file)
       rel_test_dir = test_dir#[len(base_test_dir)+1:]
@@ -412,13 +442,13 @@ if __name__ == "__main__":
           child_type = child.attrib['type']
           child_param_handler = differs[child_type].get_valid_params()
           if not child_param_handler.check_for_required(child.attrib):
-            print("Missing Parameters in:", child.tag, node.tag, test_file)
+            raise IOError("Missing Parameters in: " +  child.tag + "/" + node.tag +
+                          " for Differ: " + child_type + " in test file: "+ test_file)
           if not child_param_handler.check_for_all_known(child.attrib):
             print("Unknown Parameters in:", child.tag, node.tag, test_file)
           differ = differs[child_type](child.tag, dict(child.attrib), test_dir)
           tester.add_differ(differ)
         id_num = len(function_list)
-        #input_filename = node.attrib['input']
         func = tester.run
         if args.load_average > 0:
           func = load_average_adapter(func)

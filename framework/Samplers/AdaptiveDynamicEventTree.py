@@ -30,7 +30,6 @@ import numpy as np
 from operator import mul
 from functools import reduce
 import xml.etree.ElementTree as ET
-from sklearn import neighbors
 import itertools
 #External Modules End--------------------------------------------------------------------------------
 
@@ -148,6 +147,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         - if not self.hybridDETstrategy and branch found     -> returnTuple = (valBranch,cdfValues)
         - if not self.hybridDETstrategy and branch not found -> returnTuple = (None,cdfValues)
     """
+    from sklearn import neighbors
+
     # compute cdf of sampled vars
     lowerCdfValues = {}
     cdfValues         = {}
@@ -355,7 +356,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     if endInfo:
       subGroup.add('endInfo',copy.deepcopy(endInfo))
 
-  def localStillReady(self,ready): #, lastOutput= None
+  def localStillReady(self,ready):
     """
       first perform some check to understand what it needs to be done possibly perform an early return
       ready is returned
@@ -363,7 +364,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
     if self.counter == 0:
-      return     True
+      return True
     if len(self.RunQueue['queue']) != 0:
       detReady = True
     else:
@@ -371,7 +372,6 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
     # since the RunQueue is empty, let's check if there are still branches running => if not => start the adaptive search
     self._checkIfStartAdaptive()
     if self.startAdaptive:
-      #if self._endJobRunnable != 1: self._endJobRunnable = 1
       data = self.lastOutput.asDataset()
       endingData = data.where(data['RAVEN_isEnding']==True,drop=True)
       numCompletedHistories = len(endingData['RAVEN_isEnding'])
@@ -521,13 +521,12 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       else:
         self.raiseAnError(IOError,'unknown noTransitionStrategy '+xmlNode.attrib['noTransitionStrategy']+'. Available are "mc" and "grid"!')
     if 'updateGrid' in xmlNode.attrib.keys():
-      if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue():
+      if utils.stringIsTrue(xmlNode.attrib['updateGrid']):
         self.insertAdaptBPb = True
     # we add an artificial threshold because I need to find a way to prepend a rootbranch into a Tree object
     for  val in self.branchProbabilities.values():
       if min(val) != 1e-3:
         val.insert(0, 1e-3)
-
 
   def _generateDistributions(self,availableDist,availableFunc):
     """
@@ -556,7 +555,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       if self.hybridDETstrategy == 1:
         gridVector = self.limitSurfacePP.gridEntity.returnParameter("gridVectors")
         # construct an hybrid DET through an XML node
-        distDict, xmlNode = {}, ET.fromstring('<InitNode> <HybridSampler type="Grid"/> </InitNode>')
+        distDict, xmlNode = {}, ET.fromstring('<InitNode> <HybridSampler type="Grid" name="none"/> </InitNode>')
         for varName, dist in self.distDict.items():
           if varName.replace('<distribution>','') in self.epistemicVariables.keys():
             # found an epistemic

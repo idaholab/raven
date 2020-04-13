@@ -116,6 +116,8 @@
    input = 'varma_heavy.xml'
    output = 'VARMAheavy/plot_VARMA.png VARMAheavy/plot_input.png VARMAheavy/stats.xml VARMAheavy/rommeta.xml VARMAheavy/rommeta.csv VARMAheavy/samples_0.csv'
    heavy = true
+   # 3/23/2020, on master, this test took ~342s
+   max_time = 450
     [./stats]
       type = OrderedCSV
       output = 'VARMAheavy/stats.csv'

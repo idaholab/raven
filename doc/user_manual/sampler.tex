@@ -342,7 +342,7 @@ XML node and the requirements for other attributes change:
         supplied for this \xmlNode{Sampler}, this node offers a way to determine how strictly matching points
         are determined.  Given a point in the input space, if that point is within a relative Euclidean
         distance (equal to the tolerance) of a restart point, the nearest restart point will be used.
-        \default{1e-15}
+        \default{1e-14}
     \end{itemize}
 }
 \newcommand{\constantSourceDescription}[1]
@@ -743,7 +743,7 @@ Example:
       <distribution>aDistributionNameDefinedInDistributionBlock
       </distribution>
     </variable>
-    <Restart class='DataObject' type='PointSet'>data</Restart>
+    <Restart class='DataObjects' type='PointSet'>data</Restart>
   </MonteCarlo>
   ...
 </Samplers>
@@ -849,7 +849,7 @@ Example:
       </distribution>
       <grid type='CDF' construction='custom'>0.2 0.5 1.0</grid>
     </variable>
-    <Restart class='DataObject' type='PointSet'>data</Restart>
+    <Restart class='DataObjects' type='PointSet'>data</Restart>
     <restartTolerance>1e-6</restartTolerance>
   </Grid>
   ...

@@ -23,10 +23,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-from sklearn import preprocessing
-from sklearn.pipeline import make_pipeline
-from sklearn import linear_model
-from sklearn import neighbors
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -143,6 +139,10 @@ class PolyExponential(supervisedLearning):
       @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data
       @ In, targetVals, numpy.ndarray, shape = (n_samples, n_timeStep), an array of time series data
     """
+    import sklearn.preprocessing
+    import sklearn.pipeline
+    import sklearn.linear_model
+    import sklearn.neighbors
     # check if the data are time-dependent, otherwise error out
     if (len(targetVals.shape) != 3) :
       self.raiseAnError(Exception, "This ROM is specifically usable for time-series data surrogating (i.e. HistorySet)!")
@@ -168,14 +168,14 @@ class PolyExponential(supervisedLearning):
     # store the pivot values
     self.pivotValues = targetVals[0,:,pivotParamIndex]
     if self.polyExpParams['coeffRegressor']== 'nearest':
-      self.scaler = preprocessing.StandardScaler().fit(featureVals)
+      self.scaler = sklearn.preprocessing.StandardScaler().fit(featureVals)
     # construct poly
     for target in targetIndexes:
       # the targets are the coefficients
       expTermCoeff = np.concatenate( (self.aij[target],self.bij[target]), axis=1)
       if self.polyExpParams['coeffRegressor']== 'poly':
         # now that we have the coefficients, we can construct the polynomial expansion whose targets are the just computed coefficients
-        self.model[target] = make_pipeline(preprocessing.PolynomialFeatures(self.polyExpParams['polyOrder']), linear_model.Ridge())
+        self.model[target] = sklearn.pipeline.make_pipeline(sklearn.preprocessing.PolynomialFeatures(self.polyExpParams['polyOrder']), sklearn.linear_model.Ridge())
         self.model[target].fit(featureVals, expTermCoeff)
         # print the coefficient
         self.raiseADebug('poly coefficients for target "'+target+'":')
@@ -189,7 +189,7 @@ class PolyExponential(supervisedLearning):
         # construct nearest
         self.model[target] = [None for _ in range(self.polyExpParams['expTerms']*2)]
         for cnt in range(len(self.model[target] )):
-          self.model[target][cnt] = neighbors.KNeighborsRegressor(n_neighbors=min(nsamples, 2**len(self.features)), weights='distance')
+          self.model[target][cnt] = sklearn.neighbors.KNeighborsRegressor(n_neighbors=min(nsamples, 2**len(self.features)), weights='distance')
           self.model[target][cnt].fit(self.scaler.transform(featureVals),expTermCoeff[:,cnt])
       else:
         # construct spline

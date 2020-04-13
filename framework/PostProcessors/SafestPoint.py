@@ -31,7 +31,6 @@ from .BasicStatistics import BasicStatistics
 from utils import InputData, InputTypes
 from utils.RAVENiterators import ravenArrayIterator
 import DataObjects
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SafestPoint(PostProcessor):
@@ -359,8 +358,6 @@ class SafestPoint(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
     dataCollector = evaluation[1]
 
     if output.type != 'PointSet':

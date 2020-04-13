@@ -28,7 +28,7 @@ import inspect
 from .Dummy import Dummy
 import CustomCommandExecuter
 from utils import utils, InputData, InputTypes, mathUtils
-import Runners
+from Decorators.Parallelization import Parallel
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ExternalModel(Dummy):
@@ -95,7 +95,6 @@ class ExternalModel(Dummy):
     if 'initialize' in dir(self.sim):
       self.sim.initialize(self.initExtSelf,runInfo,inputs)
     Dummy.initialize(self, runInfo, inputs)
-    self.mods.extend(utils.returnImportModuleString(inspect.getmodule(self.sim)))
 
   def createNewInput(self,myInput,samplerType,**kwargs):
     """
@@ -147,6 +146,7 @@ class ExternalModel(Dummy):
       self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
     ## NOTE we implicitly assume not having ModuleToLoad means you're a plugin or a known type.
     elif paramInput.parameterValues['subType'].strip() is not None:
+      ExternalModel.plugins.loadPlugin("ExternalModel",paramInput.parameterValues['subType'])
       # We assume it is a plugin. Look for the type in the plugins class list
       if paramInput.parameterValues['subType'] not in ExternalModel.plugins.knownTypes():
         self.raiseAnError(IOError,('The "subType" named "{sub}" does not belong to any ' +
@@ -254,6 +254,7 @@ class ExternalModel(Dummy):
     outcomes = dict((k, np.atleast_1d(val)) for k, val in outcomes.items())
     return outcomes, self
 
+  @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
@@ -292,10 +293,7 @@ class ExternalModel(Dummy):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    # TODO this is done in dummy, so don't do it here?, but need to check before checking history lengths
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError,"No available Output to collect")
-
+    # TODO this is done in dummy, so don't do it here?, but need to check before checking history lengths)
     # OLD instanciatedSelf = evaluation['RAVEN_instantiated_self']
     # OLD outcomes         = evaluatedOutput[0]
 

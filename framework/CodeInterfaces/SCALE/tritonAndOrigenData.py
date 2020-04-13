@@ -14,7 +14,6 @@
 import numpy as np
 import os
 import copy
-from sklearn import neighbors
 import re
 """
 Created on March 25, 2018
@@ -123,6 +122,7 @@ class origenAndTritonData:
       @ In, None
       @ Out, None
     """
+    from sklearn import neighbors
     timeGrid = []
     for data in self.data.values():
       if data is not None:

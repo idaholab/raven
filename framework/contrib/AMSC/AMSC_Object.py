@@ -51,15 +51,13 @@ try:
   import amsc
 except ImportError as e:
   makeFilePath = os.path.realpath(os.path.join(myPath,'..','..','amsc.mk'))
+  sys.stderr.write(str(e)+"\n")
   sys.stderr.write('It appears you do not have the AMSC library. Try '
                    + 'running the following command:' + os.linesep
                    + '\tmake -f ' + makeFilePath + os.linesep)
   sys.exit(1)
 ################################################################################
 
-import sklearn.neighbors
-import sklearn.linear_model
-import sklearn.preprocessing
 
 import scipy.optimize
 import scipy.stats
@@ -226,6 +224,10 @@ class AMSC_Object(object):
           multiplying the probability of the extremum and its saddle, and count
           will make the larger point counts more persistent.
     """
+    import sklearn.neighbors
+    import sklearn.linear_model
+    import sklearn.preprocessing
+
     self.partitions = {}
     self.persistence = 0.
 

@@ -24,7 +24,6 @@ from __future__ import division, print_function, absolute_import
 #External Modules------------------------------------------------------------------------------------
 import os
 from glob import glob
-from sklearn import neighbors
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -159,6 +158,7 @@ class csvUtilityClass(object):
       raise Exception ("the variables "+str(variablesToExpandFrom) + " have not been found in all files!!!!")
     dataFinal = np.zeros((len(variablesToExpandFromValuesSet),len(self.allHeaders)))
     # we use a neighbors.KNeighborsRegressor to merge the csvs
+    from sklearn import neighbors
     nearest = neighbors.KNeighborsRegressor(n_neighbors=1)
     for filename, data in self.dataContainer.items():
       for _, varToExpandFrom in enumerate(variablesToExpandFrom):

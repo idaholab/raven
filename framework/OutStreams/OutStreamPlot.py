@@ -543,9 +543,9 @@ class OutStreamPlot(OutStreamManager):
       elif key == 'autoscale':
         if 'enable' not in self.options[key].keys():
           self.options[key]['enable'] = 'True'
-        elif self.options[key]['enable'].lower() in utils.stringsThatMeanTrue():
+        elif utils.stringIsTrue(self.options[key]['enable']):
           self.options[key]['enable'] = 'True'
-        elif self.options[key]['enable'].lower() in utils.stringsThatMeanFalse():
+        elif utils.stringIsFalse(self.options[key]['enable']):
           self.options[key]['enable'] = 'False'
         if 'axis' not in self.options[key].keys():
           self.options[key]['axis'] = 'both'
@@ -618,9 +618,9 @@ class OutStreamPlot(OutStreamManager):
       elif key == 'grid':
         if 'b' not in self.options[key].keys():
           self.options[key]['b'] = 'off'
-        if self.options[key]['b'].lower() in utils.stringsThatMeanTrue():
+        if utils.stringIsTrue(self.options[key]['b']):
           self.options[key]['b'] = 'on'
-        elif self.options[key]['b'].lower() in utils.stringsThatMeanFalse():
+        elif utils.stringIsFalse(self.options[key]['b']):
           self.options[key]['b'] = 'off'
         if 'which' not in self.options[key].keys():
           self.options[key]['which'] = 'major'
@@ -717,9 +717,9 @@ class OutStreamPlot(OutStreamManager):
         self.options[key]['edgecolor'] = 'None'
       if 'frameon' not in self.options[key].keys():
         self.options[key]['frameon'  ] = 'True'
-      elif self.options[key]['frameon'].lower() in utils.stringsThatMeanTrue():
+      elif utils.stringIsTrue(self.options[key]['frameon']):
         self.options[key]['frameon'] = 'True'
-      elif self.options[key]['frameon'].lower() in utils.stringsThatMeanFalse():
+      elif utils.stringIsFalse(self.options[key]['frameon']):
         self.options[key]['frameon'] = 'False'
       self.fig = plt.figure(self.name, figsize = self.options[key]['figsize'], dpi = ast.literal_eval(self.options[key]['dpi']), facecolor = self.options[key]['facecolor'], edgecolor = self.options[key]['edgecolor'], frameon = ast.literal_eval(self.options[key]['frameon']), **self.options[key].get('attributes', {}))
     else:
@@ -958,8 +958,6 @@ class OutStreamPlot(OutStreamManager):
             plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]])
           else:
             self.plt3D = plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]], projection = '3d')
-      elif self.dim == 3:
-        self.plt3D = plt.subplot(111, projection='3d')
 
       # calling "plt.hold" has been deprecated.
       # If the figure isn't cleared (or a new figure opened), it will keep adding plots.
