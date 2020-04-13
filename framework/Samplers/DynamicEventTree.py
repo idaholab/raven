@@ -606,7 +606,6 @@ class DynamicEventTree(Grid):
       #  for this particular distribution
       if not (branchedLevel[endInfo['branchDist']] >= len(self.branchProbabilities[endInfo['branchDist']])):
         self.inputInfo['initiatorDistribution'] = [self.toBeSampled[endInfo['branchDist']]]
-        print(branchedLevel[endInfo['branchDist']])
         self.inputInfo['PbThreshold'           ] = [self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]]
         self.inputInfo['ValueThreshold'        ] = [self.branchValues[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]]
       #  For the other distributions, we put the unbranched thresholds
