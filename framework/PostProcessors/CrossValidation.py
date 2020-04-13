@@ -31,7 +31,6 @@ from utils import utils
 from utils import InputData, InputTypes
 import Files
 import Models
-import Runners
 import CrossValidations
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -349,8 +348,6 @@ class CrossValidation(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, ' No available output to collect')
     outputDict = evaluation[1]
     if self.cvScore is not None:
       output.addRealization(outputDict)

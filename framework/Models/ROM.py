@@ -32,6 +32,7 @@ import SupervisedLearning
 from utils import utils
 from utils import xmlUtils
 from utils import InputData, InputTypes
+from Decorators.Parallelization import Parallel
 import Files
 import LearningGate
 #Internal Modules End--------------------------------------------------------------------------------
@@ -1329,8 +1330,6 @@ class ROM(Dummy):
     self.initializationOptionDict['paramInput'] = paramInput
     self._initializeSupervisedGate(**self.initializationOptionDict)
     #the ROM is instanced and initialized
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -1443,6 +1442,7 @@ class ROM(Dummy):
     self._replaceVariablesNamesWithAliasSystem(inRun, 'input', True)
     return returnDict
 
+  @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters

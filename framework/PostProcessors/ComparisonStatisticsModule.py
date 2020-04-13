@@ -29,7 +29,6 @@ from utils import utils
 from utils import mathUtils
 from utils import InputData, InputTypes
 import Files
-import Runners
 import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -399,7 +398,7 @@ class ComparisonStatistics(PostProcessor):
         if 'binMethod' in outer.parameterValues:
           self.methodInfo['binMethod'] = outer.parameterValues['binMethod'].lower()
       if outer.getName() == 'fz':
-        self.fZStats = (outer.value.lower() in utils.stringsThatMeanTrue())
+        self.fZStats = utils.stringIsTrue(outer.value.lower())
       if outer.getName() == 'interpolation':
         interpolation = outer.value.lower()
         if interpolation == 'linear':
@@ -430,8 +429,6 @@ class ComparisonStatistics(PostProcessor):
     """
     self.raiseADebug("finishedJob: " + str(finishedJob) + ", output " + str(output))
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
 
     outputDictionary = evaluation[1]
     self.dataDict.update(outputDictionary)

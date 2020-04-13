@@ -40,12 +40,10 @@ from .DynamicModeDecomposition import DynamicModeDecomposition
 from .ROMCollection      import Collection, Segments, Clusters, Interpolated
 
 # KERAS classifiers
-from .KerasClassifier import isTensorflowAvailable
-if isTensorflowAvailable():
-  from .KerasClassifier import KerasClassifier
-  from .KerasMLPClassifier import KerasMLPClassifier
-  from .KerasConvNetClassifier import KerasConvNetClassifier
-  from .KerasLSTMClassifier import KerasLSTMClassifier
+from .KerasClassifier import KerasClassifier
+from .KerasMLPClassifier import KerasMLPClassifier
+from .KerasConvNetClassifier import KerasConvNetClassifier
+from .KerasLSTMClassifier import KerasLSTMClassifier
 
 # Factory methods
 from .Factory import knownTypes

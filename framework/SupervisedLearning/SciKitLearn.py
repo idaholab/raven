@@ -23,21 +23,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
-from utils.lazyImporterUtils import import_module_lazy
+from utils.importerUtils import importModuleLazy
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-sklearn = import_module_lazy("sklearn")
-linear_model = import_module_lazy("sklearn.linear_model")
-svm = import_module_lazy("sklearn.svm")
-multiclass = import_module_lazy("sklearn.multiclass")
-naive_bayes = import_module_lazy("sklearn.naive_bayes")
-neighbors = import_module_lazy("sklearn.neighbors")
-tree = import_module_lazy("sklearn.tree")
-gaussian_process = import_module_lazy("sklearn.gaussian_process")
-da = import_module_lazy("sklearn.discriminant_analysis")
-neural_network = import_module_lazy("sklearn.neural_network")
-np = import_module_lazy("numpy")
+np = importModuleLazy("numpy")
 import ast
 #External Modules End--------------------------------------------------------------------------------
 
@@ -77,90 +67,6 @@ class SciKitLearn(supervisedLearning):
 
 
   availImpl                                                 = {}                                                            # dictionary of available ROMs {mainClass:{subtype:(classPointer,Output type (float or int), boolean -> External Z-normalization needed)}
-  availImpl['lda']                                          = {}                                                            #Linear Discriminant Analysis
-  availImpl['qda']                                          = {}                                                            #Quadratic Discriminant Analysis
-  availImpl['lda']['LDA'                                  ] = (da.LinearDiscriminantAnalysis            , 'int'    , False) #Linear Discriminant Analysis (LDA)
-  availImpl['qda']['QDA'                                  ] = (da.QuadraticDiscriminantAnalysis         , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
-  availImpl['linear_model']                                 = {}                                                            #Generalized Linear Models
-  availImpl['linear_model']['ARDRegression'               ] = (linear_model.ARDRegression               , 'float'  , False) #Bayesian ARD regression.
-  availImpl['linear_model']['BayesianRidge'               ] = (linear_model.BayesianRidge               , 'float'  , False) #Bayesian ridge regression
-  availImpl['linear_model']['ElasticNet'                  ] = (linear_model.ElasticNet                  , 'float'  , False) #Linear Model trained with L1 and L2 prior as regularizer
-  availImpl['linear_model']['ElasticNetCV'                ] = (linear_model.ElasticNetCV                , 'float'  , False) #Elastic Net model with iterative fitting along a regularization path
-  availImpl['linear_model']['Lars'                        ] = (linear_model.Lars                        , 'float'  , False) #Least Angle Regression model a.k.a.
-  availImpl['linear_model']['LarsCV'                      ] = (linear_model.LarsCV                      , 'float'  , False) #Cross-validated Least Angle Regression model
-  availImpl['linear_model']['Lasso'                       ] = (linear_model.Lasso                       , 'float'  , False) #Linear Model trained with L1 prior as regularizer (aka the Lasso)
-  availImpl['linear_model']['LassoCV'                     ] = (linear_model.LassoCV                     , 'float'  , False) #Lasso linear model with iterative fitting along a regularization path
-  availImpl['linear_model']['LassoLars'                   ] = (linear_model.LassoLars                   , 'float'  , False) #Lasso model fit with Least Angle Regression a.k.a.
-  availImpl['linear_model']['LassoLarsCV'                 ] = (linear_model.LassoLarsCV                 , 'float'  , False) #Cross-validated Lasso, using the LARS algorithm
-  availImpl['linear_model']['LassoLarsIC'                 ] = (linear_model.LassoLarsIC                 , 'float'  , False) #Lasso model fit with Lars using BIC or AIC for model selection
-  availImpl['linear_model']['LinearRegression'            ] = (linear_model.LinearRegression            , 'float'  , False) #Ordinary least squares Linear Regression.
-  availImpl['linear_model']['LogisticRegression'          ] = (linear_model.LogisticRegression          , 'float'  , True ) #Logistic Regression (aka logit, MaxEnt) classifier.
-  availImpl['linear_model']['MultiTaskLasso'              ] = (linear_model.MultiTaskLasso              , 'float'  , False) #Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer
-  availImpl['linear_model']['MultiTaskElasticNet'         ] = (linear_model.MultiTaskElasticNet         , 'float'  , False) #Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer
-  availImpl['linear_model']['OrthogonalMatchingPursuit'   ] = (linear_model.OrthogonalMatchingPursuit   , 'float'  , False) #Orthogonal Mathching Pursuit model (OMP)
-  availImpl['linear_model']['OrthogonalMatchingPursuitCV' ] = (linear_model.OrthogonalMatchingPursuitCV , 'float'  , False) #Cross-validated Orthogonal Mathching Pursuit model (OMP)
-  availImpl['linear_model']['PassiveAggressiveClassifier' ] = (linear_model.PassiveAggressiveClassifier , 'int'    , True ) #Passive Aggressive Classifier
-  availImpl['linear_model']['PassiveAggressiveRegressor'  ] = (linear_model.PassiveAggressiveRegressor  , 'float'  , True ) #Passive Aggressive Regressor
-  availImpl['linear_model']['Perceptron'                  ] = (linear_model.Perceptron                  , 'float'  , True ) #Perceptron
-  availImpl['linear_model']['Ridge'                       ] = (linear_model.Ridge                       , 'float'  , False) #Linear least squares with l2 regularization.
-  availImpl['linear_model']['RidgeClassifier'             ] = (linear_model.RidgeClassifier             , 'float'  , False) #Classifier using Ridge regression.
-  availImpl['linear_model']['RidgeClassifierCV'           ] = (linear_model.RidgeClassifierCV           , 'int'    , False) #Ridge classifier with built-in cross-validation.
-  availImpl['linear_model']['RidgeCV'                     ] = (linear_model.RidgeCV                     , 'float'  , False) #Ridge regression with built-in cross-validation.
-  availImpl['linear_model']['SGDClassifier'               ] = (linear_model.SGDClassifier               , 'int'    , True ) #Linear classifiers (SVM, logistic regression, a.o.) with SGD training.
-  availImpl['linear_model']['SGDRegressor'                ] = (linear_model.SGDRegressor                , 'float'  , True ) #Linear model fitted by minimizing a regularized empirical loss with SGD
-
-  availImpl['svm']                                          = {}                                                            #support Vector Machines
-  availImpl['svm']['LinearSVC'                            ] = (svm.LinearSVC                            , 'bool'   , True ) #Linear Support vector classifier
-  availImpl['svm']['SVC'                                  ] = (svm.SVC                                  , 'bool'   , True ) #Support vector classifier
-  availImpl['svm']['NuSVC'                                ] = (svm.NuSVC                                , 'bool'   , True ) #Nu Support vector classifier
-  availImpl['svm']['SVR'                                  ] = (svm.SVR                                  , 'float'  , True ) #Support vector regressor
-
-  availImpl['multiClass']                                   = {} #Multiclass and multilabel classification
-  availImpl['multiClass']['OneVsRestClassifier'           ] = (multiclass.OneVsRestClassifier           , 'int'   ,  False) # One-vs-the-rest (OvR) multiclass/multilabel strategy
-  availImpl['multiClass']['OneVsOneClassifier'            ] = (multiclass.OneVsOneClassifier            , 'int'   ,  False) # One-vs-one multiclass strategy
-  availImpl['multiClass']['OutputCodeClassifier'          ] = (multiclass.OutputCodeClassifier          , 'int'   ,  False) # (Error-Correcting) Output-Code multiclass strategy
-
-  availImpl['naiveBayes']                                   = {}
-  availImpl['naiveBayes']['GaussianNB'                    ] = (naive_bayes.GaussianNB                   , 'float' ,  True )
-  availImpl['naiveBayes']['MultinomialNB'                 ] = (naive_bayes.MultinomialNB                , 'float' ,  False)
-  availImpl['naiveBayes']['BernoulliNB'                   ] = (naive_bayes.BernoulliNB                  , 'float' ,  True )
-
-  availImpl['neighbors']                                    = {}
-  availImpl['neighbors']['KNeighborsClassifier'           ] = (neighbors.KNeighborsClassifier           , 'int'   ,  True )# Classifier implementing the k-nearest neighbors vote.
-  availImpl['neighbors']['RadiusNeighbors'                ] = (neighbors.RadiusNeighborsClassifier      , 'int'   ,  True )# Classifier implementing a vote among neighbors within a given radius
-  availImpl['neighbors']['KNeighborsRegressor'            ] = (neighbors.KNeighborsRegressor            , 'float' ,  True )# Regression based on k-nearest neighbors.
-  availImpl['neighbors']['RadiusNeighborsRegressor'       ] = (neighbors.RadiusNeighborsRegressor       , 'float' ,  True )# Regression based on neighbors within a fixed radius.
-  availImpl['neighbors']['NearestCentroid'                ] = (neighbors.NearestCentroid                , 'int'   ,  True )# Nearest centroid classifier.
-  availImpl['neighbors']['BallTree'                       ] = (neighbors.BallTree                       , 'float' ,  True )# BallTree for fast generalized N-point problems
-  availImpl['neighbors']['KDTree'                         ] = (neighbors.KDTree                         , 'float' ,  True )# KDTree for fast generalized N-point problems
-
-  availImpl['tree'] = {}
-  availImpl['tree']['DecisionTreeClassifier'              ] = (tree.DecisionTreeClassifier              , 'int'   ,  True )# A decision tree classifier.
-  availImpl['tree']['DecisionTreeRegressor'               ] = (tree.DecisionTreeRegressor               , 'float' ,  True )# A tree regressor.
-  availImpl['tree']['ExtraTreeClassifier'                 ] = (tree.ExtraTreeClassifier                 , 'int'   ,  True )# An extremely randomized tree classifier.
-  availImpl['tree']['ExtraTreeRegressor'                  ] = (tree.ExtraTreeRegressor                  , 'float' ,  True )# An extremely randomized tree regressor.
-
-  availImpl['GaussianProcess'] = {}
-  availImpl['GaussianProcess']['GaussianProcess'          ] = (gaussian_process.GaussianProcessRegressor         , 'float' ,  False)
-  # Neural network models (supervised)
-  # To be removed when the supported minimum version of sklearn is moved to 0.18
-  if int(sklearn.__version__.split(".")[1]) > 17:
-    availImpl['neural_network'] = {}
-    availImpl['neural_network']['MLPClassifier'              ] = (neural_network.MLPClassifier             , 'int'   ,  True)  # Multi-layer perceptron classifier.
-    availImpl['neural_network']['MLPRegressor'               ] = (neural_network.MLPRegressor              , 'float' ,  True)  # Multi-layer perceptron regressor.
-
-  #test if a method to estimate the probability of the prediction is available
-  qualityEstTypeDict = {}
-  for key1, myDict in availImpl.items():
-    qualityEstTypeDict[key1] = {}
-    for key2 in myDict:
-      qualityEstTypeDict[key1][key2] = []
-      if  callable(getattr(myDict[key2][0], "predict_proba", None)):
-        qualityEstTypeDict[key1][key2] += ['probability']
-      elif  callable(getattr(myDict[key2][0], "score"        , None)):
-        qualityEstTypeDict[key1][key2] += ['score']
-      else:
-        qualityEstTypeDict[key1][key2] = False
 
   def __init__(self,messageHandler,**kwargs):
     """
@@ -170,6 +76,103 @@ class SciKitLearn(supervisedLearning):
       @ Out, None
     """
     supervisedLearning.__init__(self,messageHandler,**kwargs)
+    import sklearn
+    import sklearn.linear_model
+    import sklearn.svm
+    import sklearn.multiclass
+    import sklearn.naive_bayes
+    import sklearn.neighbors
+    import sklearn.tree
+    import sklearn.gaussian_process
+    import sklearn.discriminant_analysis
+    import sklearn.neural_network
+
+    if len(self.availImpl) == 0:
+      self.availImpl['lda']                                          = {}                                                            #Linear Discriminant Analysis
+      self.availImpl['qda']                                          = {}                                                            #Quadratic Discriminant Analysis
+      self.availImpl['lda']['LDA'                                  ] = (sklearn.discriminant_analysis.LinearDiscriminantAnalysis            , 'int'    , False) #Linear Discriminant Analysis (LDA)
+      self.availImpl['qda']['QDA'                                  ] = (sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis         , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+      self.availImpl['linear_model']                                 = {}                                                            #Generalized Linear Models
+      self.availImpl['linear_model']['ARDRegression'               ] = (sklearn.linear_model.ARDRegression               , 'float'  , False) #Bayesian ARD regression.
+      self.availImpl['linear_model']['BayesianRidge'               ] = (sklearn.linear_model.BayesianRidge               , 'float'  , False) #Bayesian ridge regression
+      self.availImpl['linear_model']['ElasticNet'                  ] = (sklearn.linear_model.ElasticNet                  , 'float'  , False) #Linear Model trained with L1 and L2 prior as regularizer
+      self.availImpl['linear_model']['ElasticNetCV'                ] = (sklearn.linear_model.ElasticNetCV                , 'float'  , False) #Elastic Net model with iterative fitting along a regularization path
+      self.availImpl['linear_model']['Lars'                        ] = (sklearn.linear_model.Lars                        , 'float'  , False) #Least Angle Regression model a.k.a.
+      self.availImpl['linear_model']['LarsCV'                      ] = (sklearn.linear_model.LarsCV                      , 'float'  , False) #Cross-validated Least Angle Regression model
+      self.availImpl['linear_model']['Lasso'                       ] = (sklearn.linear_model.Lasso                       , 'float'  , False) #Linear Model trained with L1 prior as regularizer (aka the Lasso)
+      self.availImpl['linear_model']['LassoCV'                     ] = (sklearn.linear_model.LassoCV                     , 'float'  , False) #Lasso linear model with iterative fitting along a regularization path
+      self.availImpl['linear_model']['LassoLars'                   ] = (sklearn.linear_model.LassoLars                   , 'float'  , False) #Lasso model fit with Least Angle Regression a.k.a.
+      self.availImpl['linear_model']['LassoLarsCV'                 ] = (sklearn.linear_model.LassoLarsCV                 , 'float'  , False) #Cross-validated Lasso, using the LARS algorithm
+      self.availImpl['linear_model']['LassoLarsIC'                 ] = (sklearn.linear_model.LassoLarsIC                 , 'float'  , False) #Lasso model fit with Lars using BIC or AIC for model selection
+      self.availImpl['linear_model']['LinearRegression'            ] = (sklearn.linear_model.LinearRegression            , 'float'  , False) #Ordinary least squares Linear Regression.
+      self.availImpl['linear_model']['LogisticRegression'          ] = (sklearn.linear_model.LogisticRegression          , 'float'  , True ) #Logistic Regression (aka logit, MaxEnt) classifier.
+      self.availImpl['linear_model']['MultiTaskLasso'              ] = (sklearn.linear_model.MultiTaskLasso              , 'float'  , False) #Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer
+      self.availImpl['linear_model']['MultiTaskElasticNet'         ] = (sklearn.linear_model.MultiTaskElasticNet         , 'float'  , False) #Multi-task ElasticNet model trained with L1/L2 mixed-norm as regularizer
+      self.availImpl['linear_model']['OrthogonalMatchingPursuit'   ] = (sklearn.linear_model.OrthogonalMatchingPursuit   , 'float'  , False) #Orthogonal Mathching Pursuit model (OMP)
+      self.availImpl['linear_model']['OrthogonalMatchingPursuitCV' ] = (sklearn.linear_model.OrthogonalMatchingPursuitCV , 'float'  , False) #Cross-validated Orthogonal Mathching Pursuit model (OMP)
+      self.availImpl['linear_model']['PassiveAggressiveClassifier' ] = (sklearn.linear_model.PassiveAggressiveClassifier , 'int'    , True ) #Passive Aggressive Classifier
+      self.availImpl['linear_model']['PassiveAggressiveRegressor'  ] = (sklearn.linear_model.PassiveAggressiveRegressor  , 'float'  , True ) #Passive Aggressive Regressor
+      self.availImpl['linear_model']['Perceptron'                  ] = (sklearn.linear_model.Perceptron                  , 'float'  , True ) #Perceptron
+      self.availImpl['linear_model']['Ridge'                       ] = (sklearn.linear_model.Ridge                       , 'float'  , False) #Linear least squares with l2 regularization.
+      self.availImpl['linear_model']['RidgeClassifier'             ] = (sklearn.linear_model.RidgeClassifier             , 'float'  , False) #Classifier using Ridge regression.
+      self.availImpl['linear_model']['RidgeClassifierCV'           ] = (sklearn.linear_model.RidgeClassifierCV           , 'int'    , False) #Ridge classifier with built-in cross-validation.
+      self.availImpl['linear_model']['RidgeCV'                     ] = (sklearn.linear_model.RidgeCV                     , 'float'  , False) #Ridge regression with built-in cross-validation.
+      self.availImpl['linear_model']['SGDClassifier'               ] = (sklearn.linear_model.SGDClassifier               , 'int'    , True ) #Linear classifiers (SVM, logistic regression, a.o.) with SGD training.
+      self.availImpl['linear_model']['SGDRegressor'                ] = (sklearn.linear_model.SGDRegressor                , 'float'  , True ) #Linear model fitted by minimizing a regularized empirical loss with SGD
+
+      self.availImpl['svm']                                          = {}                                                            #support Vector Machines
+      self.availImpl['svm']['LinearSVC'                            ] = (sklearn.svm.LinearSVC                            , 'bool'   , True ) #Linear Support vector classifier
+      self.availImpl['svm']['SVC'                                  ] = (sklearn.svm.SVC                                  , 'bool'   , True ) #Support vector classifier
+      self.availImpl['svm']['NuSVC'                                ] = (sklearn.svm.NuSVC                                , 'bool'   , True ) #Nu Support vector classifier
+      self.availImpl['svm']['SVR'                                  ] = (sklearn.svm.SVR                                  , 'float'  , True ) #Support vector regressor
+
+      self.availImpl['multiClass']                                   = {} #Multiclass and multilabel classification
+      self.availImpl['multiClass']['OneVsRestClassifier'           ] = (sklearn.multiclass.OneVsRestClassifier           , 'int'   ,  False) # One-vs-the-rest (OvR) multiclass/multilabel strategy
+      self.availImpl['multiClass']['OneVsOneClassifier'            ] = (sklearn.multiclass.OneVsOneClassifier            , 'int'   ,  False) # One-vs-one multiclass strategy
+      self.availImpl['multiClass']['OutputCodeClassifier'          ] = (sklearn.multiclass.OutputCodeClassifier          , 'int'   ,  False) # (Error-Correcting) Output-Code multiclass strategy
+
+      self.availImpl['naiveBayes']                                   = {}
+      self.availImpl['naiveBayes']['GaussianNB'                    ] = (sklearn.naive_bayes.GaussianNB                   , 'float' ,  True )
+      self.availImpl['naiveBayes']['MultinomialNB'                 ] = (sklearn.naive_bayes.MultinomialNB                , 'float' ,  False)
+      self.availImpl['naiveBayes']['BernoulliNB'                   ] = (sklearn.naive_bayes.BernoulliNB                  , 'float' ,  True )
+
+      self.availImpl['neighbors']                                    = {}
+      self.availImpl['neighbors']['KNeighborsClassifier'           ] = (sklearn.neighbors.KNeighborsClassifier           , 'int'   ,  True )# Classifier implementing the k-nearest neighbors vote.
+      self.availImpl['neighbors']['RadiusNeighbors'                ] = (sklearn.neighbors.RadiusNeighborsClassifier      , 'int'   ,  True )# Classifier implementing a vote among neighbors within a given radius
+      self.availImpl['neighbors']['KNeighborsRegressor'            ] = (sklearn.neighbors.KNeighborsRegressor            , 'float' ,  True )# Regression based on k-nearest neighbors.
+      self.availImpl['neighbors']['RadiusNeighborsRegressor'       ] = (sklearn.neighbors.RadiusNeighborsRegressor       , 'float' ,  True )# Regression based on neighbors within a fixed radius.
+      self.availImpl['neighbors']['NearestCentroid'                ] = (sklearn.neighbors.NearestCentroid                , 'int'   ,  True )# Nearest centroid classifier.
+      self.availImpl['neighbors']['BallTree'                       ] = (sklearn.neighbors.BallTree                       , 'float' ,  True )# BallTree for fast generalized N-point problems
+      self.availImpl['neighbors']['KDTree'                         ] = (sklearn.neighbors.KDTree                         , 'float' ,  True )# KDTree for fast generalized N-point problems
+
+      self.availImpl['tree'] = {}
+      self.availImpl['tree']['DecisionTreeClassifier'              ] = (sklearn.tree.DecisionTreeClassifier              , 'int'   ,  True )# A decision tree classifier.
+      self.availImpl['tree']['DecisionTreeRegressor'               ] = (sklearn.tree.DecisionTreeRegressor               , 'float' ,  True )# A tree regressor.
+      self.availImpl['tree']['ExtraTreeClassifier'                 ] = (sklearn.tree.ExtraTreeClassifier                 , 'int'   ,  True )# An extremely randomized tree classifier.
+      self.availImpl['tree']['ExtraTreeRegressor'                  ] = (sklearn.tree.ExtraTreeRegressor                  , 'float' ,  True )# An extremely randomized tree regressor.
+
+      self.availImpl['GaussianProcess'] = {}
+      self.availImpl['GaussianProcess']['GaussianProcess'          ] = (sklearn.gaussian_process.GaussianProcessRegressor         , 'float' ,  False)
+      # Neural network models (supervised)
+      # To be removed when the supported minimum version of sklearn is moved to 0.18
+      if int(sklearn.__version__.split(".")[1]) > 17:
+        self.availImpl['neural_network'] = {}
+        self.availImpl['neural_network']['MLPClassifier'              ] = (sklearn.neural_network.MLPClassifier             , 'int'   ,  True)  # Multi-layer perceptron classifier.
+        self.availImpl['neural_network']['MLPRegressor'               ] = (sklearn.neural_network.MLPRegressor              , 'float' ,  True)  # Multi-layer perceptron regressor.
+
+      #test if a method to estimate the probability of the prediction is available
+      self.__class__.qualityEstTypeDict = {}
+      for key1, myDict in self.availImpl.items():
+        self.__class__.qualityEstTypeDict[key1] = {}
+        for key2 in myDict:
+          self.__class__.qualityEstTypeDict[key1][key2] = []
+          if  callable(getattr(myDict[key2][0], "predict_proba", None)):
+            self.__class__.qualityEstTypeDict[key1][key2] += ['probability']
+          elif  callable(getattr(myDict[key2][0], "score"        , None)):
+            self.__class__.qualityEstTypeDict[key1][key2] += ['score']
+          else:
+            self.__class__.qualityEstTypeDict[key1][key2] = False
+
     name  = self.initOptionDict.pop('name','')
     # some keywords aren't useful for this ROM
     if 'pivotParameter' in self.initOptionDict:

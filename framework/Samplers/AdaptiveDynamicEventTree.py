@@ -30,7 +30,6 @@ import numpy as np
 from operator import mul
 from functools import reduce
 import xml.etree.ElementTree as ET
-from sklearn import neighbors
 import itertools
 #External Modules End--------------------------------------------------------------------------------
 
@@ -148,6 +147,8 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         - if not self.hybridDETstrategy and branch found     -> returnTuple = (valBranch,cdfValues)
         - if not self.hybridDETstrategy and branch not found -> returnTuple = (None,cdfValues)
     """
+    from sklearn import neighbors
+
     # compute cdf of sampled vars
     lowerCdfValues = {}
     cdfValues         = {}
@@ -520,7 +521,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       else:
         self.raiseAnError(IOError,'unknown noTransitionStrategy '+xmlNode.attrib['noTransitionStrategy']+'. Available are "mc" and "grid"!')
     if 'updateGrid' in xmlNode.attrib.keys():
-      if xmlNode.attrib['updateGrid'].lower() in utils.stringsThatMeanTrue():
+      if utils.stringIsTrue(xmlNode.attrib['updateGrid']):
         self.insertAdaptBPb = True
     # we add an artificial threshold because I need to find a way to prepend a rootbranch into a Tree object
     for  val in self.branchProbabilities.values():
