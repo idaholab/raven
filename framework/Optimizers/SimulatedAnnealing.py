@@ -279,7 +279,7 @@ class SimulatedAnnealing(RavenSampled):
                   'step': step
                 })
     # NOTE: explicit constraints have been checked before this!
-    self.raiseADebug('Adding run to queue: {} | {}'.format(point, info))
+    self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
     self._submissionQueue.append((point, info))
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
