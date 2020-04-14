@@ -543,12 +543,11 @@ class BasicStatistics(PostProcessor):
     sortedWeightsAndPoints = np.insert(np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs]))),0,[0.0,arrayIn[idxs[0]]],axis=0)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
     try:
-      index = utils.find_le_index(weightsCDF,percent)
+      index = utils.first(np.asarray(weightsCDF <= percent).nonzero())[-1]
       result = sortedWeightsAndPoints[index,1]
     except ValueError:
       result = np.percentile(arrayIn,percent,interpolation='lower')
     return result
-
 
   def __runLocal(self, inputData):
     """
