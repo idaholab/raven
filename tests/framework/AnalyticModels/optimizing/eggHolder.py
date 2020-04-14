@@ -20,10 +20,22 @@
 import math
 import numpy as np
 def evaluate(x,y):
+  """
+    evaluates the Eggholder function at each given x,y.
+    @ In, x, float, first input dimention.
+    @ In, y, float, second input dimention.
+    @ Out, evaluate, float, f(x,y)
+  """
   return (-(y + 47) * np.sin(np.sqrt(abs(x/2 + (y  + 47))))
           -x * np.sin(np.sqrt(abs(x - (y  + 47)))))
 
 def run(self,Inputs):
+  """
+    RAVEN API
+    @ In, self, object, RAVEN container
+    @ In, Inputs, dict, additional inputs
+    @ Out, None
+  """
   self.ans = evaluate(self.x,self.y)
 
 if __name__ == '__main__':
