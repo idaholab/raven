@@ -32,6 +32,7 @@ from functools import reduce
 import xml.etree.ElementTree as ET
 import itertools
 from collections import Counter
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -258,7 +259,7 @@ class DynamicEventTree(Grid):
     branchedLevel = {}
     for distk, distpb in zip(endInfo['parentNode'].get('SampledVarsPb').keys(),endInfo['parentNode'].get('SampledVarsPb').values()):
       if distk not in self.epistemicVariables.keys():
-        branchedLevel[distk] = utils.index(self.branchProbabilities[distk],distpb)
+        branchedLevel[distk] = utils.first(np.atleast_1d(np.asarray(self.branchProbabilities[distk]) == distpb).nonzero())[-1]
     if not branchedLevel:
       self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
     # Loop of the parameters that have been changed after a trigger gets activated
