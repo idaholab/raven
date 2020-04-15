@@ -21,8 +21,6 @@ Created on April, 2020
 import copy
 import abc
 import numpy as np
-from numpy import linalg
-import time
 import itertools
 from collections import OrderedDict
 from Decorators.Parallelization import Parallel
@@ -33,8 +31,6 @@ from Models import Dummy
 import Models
 import Files
 from utils import InputData, InputTypes
-from utils import utils
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class HybridModelBase(Dummy):
@@ -116,6 +112,7 @@ class HybridModelBase(Dummy):
             codeInput.append(elem)
         modelInstance.initialize(runInfo, codeInput, initDict)
       self.modelInstances[model] = modelInstance
+
   def getInitParams(self):
     """
       Method used to export to the printer in the base class the additional PERMANENT your local class have
