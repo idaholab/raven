@@ -145,6 +145,7 @@ class HybridModelBase(Dummy):
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
 
+  @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
       This will evaluate an individual sample on this model. Note, parameters

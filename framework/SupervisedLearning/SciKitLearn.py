@@ -23,11 +23,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
-from utils.lazyImporterUtils import import_module_lazy
+from utils.importerUtils import importModuleLazy
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-np = import_module_lazy("numpy")
+np = importModuleLazy("numpy")
 import ast
 #External Modules End--------------------------------------------------------------------------------
 
