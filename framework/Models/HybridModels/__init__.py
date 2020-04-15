@@ -25,9 +25,4 @@
 from .HybridModelBase import HybridModelBase
 from .HybridModel import HybridModel
 
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import needsRunInfo
-from .Factory import validate
-
 __all__ = ['HybridModel']

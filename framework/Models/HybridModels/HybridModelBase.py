@@ -25,6 +25,7 @@ from numpy import linalg
 import time
 import itertools
 from collections import OrderedDict
+from Decorators.Parallelization import Parallel
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
