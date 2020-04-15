@@ -23,6 +23,7 @@ import numpy as np
 import xarray
 import math
 import os
+import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -95,6 +96,7 @@ class LimitSurfaceIntegral(PostProcessor):
     self.matrixDict = {}  # dictionary of arrays and target
     self.lowerUpperDict = {}
     self.functionS = None
+    self.errorModel = None
     self.computationPrefix = None
     self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue']
@@ -170,6 +172,7 @@ class LimitSurfaceIntegral(PostProcessor):
       self.raiseAnError(IOError,'The required XML node <outputName> has not been inputted!!!')
     if self.target == None:
       self.raiseAWarning('integral target has not been provided. The postprocessor is going to take the last output it finds in the provided limitsurface!!!')
+    self.computeErrrorBounds = True
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -183,10 +186,28 @@ class LimitSurfaceIntegral(PostProcessor):
     if self.integralType in ['montecarlo']:
       self.stat.toDo = {'expectedValue':[{'targets':set([self.target]), 'prefix':self.computationPrefix}]}
       self.stat.initialize(runInfo, inputs, initDict)
-    self.functionS = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier', 'Features':','.join(list(self.variableDist.keys())), 'Target':self.target})
+    self.functionS = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self,
+                                                          **{'SKLtype':'neighbors|KNeighborsClassifier',
+                                                             'Features':','.join(list(self.variableDist.keys())),
+                                                             'Target':self.target}) 
     self.functionS.train(self.matrixDict)
     self.raiseADebug('DATA SET MATRIX:')
     self.raiseADebug(self.matrixDict)
+    self.computeErrrorBounds = True
+    if self.computeErrrorBounds:
+      #  create a model for computing the "error"
+      self.errorModel = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self,
+                                                          **{'SKLtype':'neighbors|KNeighborsClassifier',
+                                                             'Features':','.join(list(self.variableDist.keys())),
+                                                             'Target':self.target})
+      #modify the self.matrixDict to compute half of the "error"
+      indecesToModify = np.argwhere(self.matrixDict[self.target] < 1.0)
+      modifiedMatrixDict = {}
+      for key in self.matrixDict:
+        perturb =  np.average(self.matrixDict[key]) * 2. * sys.float_info.epsilon
+        modifiedMatrixDict[key] = self.matrixDict[key][indecesToModify] + perturb if key != self.target else self.matrixDict[key]
+      self.errorModel.train(modifiedMatrixDict)
+
     for varName, distName in self.variableDist.items():
       if distName != None:
         self.variableDist[varName] = self.retrieveObjectFromAssemblerDict('distribution', distName)
@@ -241,6 +262,10 @@ class LimitSurfaceIntegral(PostProcessor):
           randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
       pb = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+      if self.errorModel:
+        tightPb =  self.stat.run({'targets':{self.target:xarray.DataArray(self.errorModel.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+        pbError = abs(pb-tightPb) * 2.0
+        print(pbError)
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
     return pb
