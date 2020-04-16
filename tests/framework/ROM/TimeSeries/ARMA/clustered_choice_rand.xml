@@ -69,7 +69,6 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
-    <DataSet name="romMeta"/>
   </DataObjects>
 
   <Models>
