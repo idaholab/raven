@@ -64,7 +64,7 @@ def get_params(line):
   """
   equalsIndex = line.index("=")
   name = line[:equalsIndex].strip()
-  params = line[equalsIndex + 1:].strip().strip('"').split()
+  params = line[equalsIndex + 1:].strip().strip('\"\'').split()
   return name,params
 
 for name, params in [get_params(l) for l in lines[1:4]]:

@@ -3,15 +3,17 @@
   type = 'RavenFramework'
   input = 'testDETshort.xml'
   output = 'DETshort/DETrunTest/DET_test_1-1-2/out~simple_det_test DETshort/output_collapsed/1-2DHistoryPlot_tpsCollapsed_scatter.pdf'
-  UnorderedCsv = 'DETshort/output_collapsed/testprint_tpset_collapsed.csv DETshort/output_collapsed/testprint_hist_collapsed.csv' 
+  UnorderedCsv = 'DETshort/output_collapsed/testprint_tpset_collapsed.csv DETshort/output_collapsed/testprint_hist_collapsed.csv'
+  skip = 'RELAP7 control system was removed, see #1215'
  [../]
 
  [./testHybridDETshortRAVEN]
   type = 'RavenFramework'
   input = 'testHybridDET.xml'
-  output = 'HybridDynamicEventTree/HybridDETrunTest/HybridDET_test_5-1-2/out~pump_fake HybridDynamicEventTree/print_and_plot_outputs/testprint_hist_hier_28.csv HybridDynamicEventTree/print_and_plot_outputs/2DHistoryPlot_line.pdf'
+  output = 'HybridDynamicEventTree/HybridDETrunTest/HybridDET_test_1-2-3/out~pump_fake HybridDynamicEventTree/print_and_plot_outputs/testprint_hist_hier_28.csv HybridDynamicEventTree/print_and_plot_outputs/2DHistoryPlot_line.pdf'
   UnorderedCsv = 'HybridDynamicEventTree/print_and_plot_outputs/testprint_tpset_hier.csv'
   python3_only = true
+  skip = 'RELAP7 control system was removed, see #1215'
  [../]
 
  [./testAdaptiveDynamicEventTreeRAVEN]
