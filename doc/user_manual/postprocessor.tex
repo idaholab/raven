@@ -812,7 +812,12 @@ both boundary sides (-1.0, +1.0).
     \item  \xmlNode{computeBounds}, \xmlDesc{bool, optional field}, 
     activates the computation of the bounding error of the limit 
     surface integral ( maximum error in the identification of the 
-    limit surface location)
+    limit surface location). If True, the bounding error is stored 
+    in a variable named as \xmlNode{outputName} appending the suffix
+    ``_err''. For example, if \xmlNode{outputName} is 
+    ``EventProbability'', the bounding error will be stored as 
+    ``EventProbability_err'' (this variable name must be listed as 
+    variable in the output DataObject).
                 \default{False}
      \item  \xmlNode{seed}, \xmlDesc{integer, optional field}, specifies the random number generator seed.
                 \default{20021986}

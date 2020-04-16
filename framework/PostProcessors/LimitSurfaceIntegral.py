@@ -97,6 +97,7 @@ class LimitSurfaceIntegral(PostProcessor):
     self.integralType = 'montecarlo'  # integral type (which alg needs to be used). Either montecarlo or quadrature(quadrature not yet)
     self.seed = 20021986  # seed for montecarlo
     self.matrixDict = {}  # dictionary of arrays and target
+    self.computeErrrorBounds = False #  compute the bounding error?
     self.lowerUpperDict = {}
     self.functionS = None
     self.errorModel = None
