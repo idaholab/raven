@@ -64,6 +64,7 @@ class ROM(Dummy):
     segment = InputData.parameterInputFactory("Segment", strictMode=True)
     segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
     segment.addParam('grouping', segmentGroups)
+    segment.addParam('choice', InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid']))
     subspace = InputData.parameterInputFactory('subspace', contentType=InputTypes.StringType)
     subspace.addParam('divisions', InputTypes.IntegerType, False)
     subspace.addParam('pivotLength', InputTypes.FloatType, False)

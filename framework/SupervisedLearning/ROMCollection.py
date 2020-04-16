@@ -172,6 +172,7 @@ class Segments(Collection):
     self._divisionMetrics = None       # requested metrics to apply; if None, implies everything we know about
     self._divisionInfo = {}            # data that should persist across methods
     self._divisionPivotShift = {}      # whether and how to normalize/shift subspaces
+    self._evaluationChoice = None      # how the segmented rom evaluation should be performed
     self._indexValues = {}             # original index values, by index
     self.divisions = None              # trained subdomain division information
     # allow some ROM training to happen globally, seperate from individual segment training
@@ -181,6 +182,8 @@ class Segments(Collection):
     # set up segmentation
     # get input specifications from inputParams
     inputSpecs = kwargs['paramInput'].findFirst('Segment')
+    # choice?
+    self._evaluationChoice = inputSpecs.parameterValues['choice'].strip().lower() if "choice" in inputSpecs.parameterValues else None
     # initialize settings
     divisionMode = {}
     for node in inputSpecs.subparts:
@@ -215,6 +218,7 @@ class Segments(Collection):
           self._divisionPivotShift[subspace] = shift
         else:
           self._divisionPivotShift[subspace] = None
+
     self._divisionInstructions = divisionMode
     if len(self._divisionInstructions) > 1:
       self.raiseAnError(NotImplementedError, 'Segmented ROMs do not yet handle multiple subspaces!')
@@ -829,7 +833,8 @@ class Clusters(Segments):
     pivotLen = 0
     for cluster in clusters:
       # choose a ROM
-      chooseRomMode = 'first' # TODO user option? alternative is random, or ? centroids ?
+      # TODO user option? alternative is random, or ? centroids ?
+      chooseRomMode = 'first' if self._evaluationChoice is None else self._evaluationChoice
       if chooseRomMode == 'first':
         ## option 1: just take the first one
         segmentIndex, clusterIndex = self._getSegmentIndexFromClusterIndex(cluster, labelMap, clusterIndex=0)
