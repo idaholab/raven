@@ -172,15 +172,7 @@ def findLibAndVersion(lib, version=None):
       # FIXME improve AMSC setup.py so it's compatible with importlib_metadata!
       return findLibAndVersionSubprocess('AMSC')
     elif lib == 'PIL':
-      try:
-        import PIL
-        found = True
-        foundVersion = PIL.__version__
-        output = 'Library found.'
-      except impErr:
-        found = False
-        foundVersion = None
-        output = 'Library not found.'
+      return findLibAndVersionSubprocess('PIL')
     else:
       raise NotImplementedError('Library "{}" on exception list, but no exception implemented!'.format(lib))
   return found, output, foundVersion
@@ -374,7 +366,7 @@ def _parseLibs(config, opSys, install, addOptional=False, limit=None, plugins=No
   for src in ['core', 'forge', 'pip']:
     if config.has_section(src) and (True if limit is None else (src in limit)):
       _addLibsFromSection(config.items(src), libs)
-  # os-specific are part of 'core' right now
+  # os-specific are part of 'core' right now (if not explicitly reported in the pip section)
   if config.has_section(opSys) and (True if limit is None else ('core' in limit)):
     _addLibsFromSection(config.items(opSys), libs)
   # os-specific of specific installer (e.g. pip)
@@ -388,6 +380,9 @@ def _parseLibs(config, opSys, install, addOptional=False, limit=None, plugins=No
     _addLibsFromSection(config.items('optional'), libs)
   if install == 'pip' and config.has_section('pip-install'):
     _addLibsFromSection(config.items('pip-install'), libs)
+    instSpecOp = "{opSys}-pip".format(opSys=opSys)
+    if config.has_section(instSpecOp):
+      _addLibsFromSection(config.items(instSpecOp), libs)
   return libs
 
 def _addLibsFromSection(configSection, libs):
@@ -501,8 +496,8 @@ if __name__ == '__main__':
       actionArgs = '--name {env} -y {src}'
       # which part of the install are we doing?
       if args.subset == 'core':
-        # no special source
-        src = ''
+        # from defaults
+        src = '-c defaults'
         addOptional = args.addOptional
         limit = ['core']
       elif args.subset == 'forge':

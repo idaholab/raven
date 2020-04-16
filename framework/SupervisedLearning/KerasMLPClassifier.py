@@ -22,24 +22,21 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .KerasClassifier import isTensorflowAvailable
-if isTensorflowAvailable():
-  from .KerasClassifier import KerasClassifier
+from .KerasClassifier import KerasClassifier
 #Internal Modules End--------------------------------------------------------------------------------
 
-if isTensorflowAvailable():
-  class KerasMLPClassifier(KerasClassifier):
-    """
-      Multi-layer perceptron classifier constructed using Keras API in TensorFlow
-    """
+class KerasMLPClassifier(KerasClassifier):
+  """
+    Multi-layer perceptron classifier constructed using Keras API in TensorFlow
+  """
 
-    def __init__(self,messageHandler,**kwargs):
-      """
-        A constructor that will appropriately intialize a supervised learning object
-        @ In, messageHandler, MessageHandler, a MessageHandler object in charge of raising errors, and printing messages
-        @ In, kwargs, dict, an arbitrary dictionary of keywords and values
-        @ Out, None
-      """
-      KerasClassifier.__init__(self,messageHandler,**kwargs)
-      self.printTag = 'KerasMLPClassifier'
-      self.allowedLayers = self.basicLayers
+  def __init__(self,messageHandler,**kwargs):
+    """
+      A constructor that will appropriately intialize a supervised learning object
+      @ In, messageHandler, MessageHandler, a MessageHandler object in charge of raising errors, and printing messages
+      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ Out, None
+    """
+    KerasClassifier.__init__(self,messageHandler,**kwargs)
+    self.printTag = 'KerasMLPClassifier'
+    self.allowedLayers = self.basicLayers

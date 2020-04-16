@@ -28,7 +28,7 @@ import numpy as np
 from .Model import Model
 from utils import utils
 from utils.cached_ndarray import c1darray
-import Runners
+from Decorators.Parallelization import Parallel
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Dummy(Model):
@@ -151,6 +151,7 @@ class Dummy(Model):
       pass
     return [(inputDict)],copy.deepcopy(kwargs)
 
+  @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
@@ -190,8 +191,6 @@ class Dummy(Model):
     result = finishedJob.getEvaluation()
     # alias system
     self._replaceVariablesNamesWithAliasSystem(result,'output',True)
-    if isinstance(result,Runners.Error):
-      self.raiseAnError(Runners.Error,'No available output to collect!')
     output.addRealization(result)
     # END can be abstracted to base class
 
