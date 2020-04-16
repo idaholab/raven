@@ -172,7 +172,6 @@ class Segments(Collection):
     self._divisionMetrics = None       # requested metrics to apply; if None, implies everything we know about
     self._divisionInfo = {}            # data that should persist across methods
     self._divisionPivotShift = {}      # whether and how to normalize/shift subspaces
-    self._evaluationChoice = None      # how the segmented rom evaluation should be performed
     self._indexValues = {}             # original index values, by index
     self.divisions = None              # trained subdomain division information
     # allow some ROM training to happen globally, seperate from individual segment training
@@ -182,8 +181,6 @@ class Segments(Collection):
     # set up segmentation
     # get input specifications from inputParams
     inputSpecs = kwargs['paramInput'].findFirst('Segment')
-    # choice?
-    self._evaluationChoice = inputSpecs.parameterValues['choice'].strip().lower() if "choice" in inputSpecs.parameterValues else None
     # initialize settings
     divisionMode = {}
     for node in inputSpecs.subparts:
@@ -640,6 +637,13 @@ class Clusters(Segments):
       self.raiseAMessage('No evalMode specified for clustered ROM, so defaulting to "truncated".')
       self._evaluationMode = 'truncated'
     self.raiseADebug('Clustered ROM evaluation mode set to "{}"'.format(self._evaluationMode))
+    # choice?
+    evalChoice = segmentNode.findFirst('evaluationClusterChoice')
+    if evalChoice is not None:
+      self._evaluationChoice = evalChoice.value
+    else:
+      self.raiseAMessage('No evaluationClusterChoice specified for clustered ROM, so defaulting to "first".')
+      self._evaluationChoice = 'first'
 
     # interpret clusterable parameter requests, if any
     inputRequestsNode = segmentNode.findFirst('clusterFeatures')
@@ -981,8 +985,7 @@ class Clusters(Segments):
     eligible = indices[labelMap == cluster]
     # if random, choose now
     if chooseRandom:
-      i = randomUtils.randomIntegers(0, len(eligible) - 1, self)
-      clusterIndex = eligible[i]
+      clusterIndex = randomUtils.randomIntegers(0, len(eligible) - 1, self)
     # global index
     segmentIndex = eligible[clusterIndex]
     return segmentIndex, clusterIndex

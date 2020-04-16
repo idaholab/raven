@@ -64,7 +64,6 @@ class ROM(Dummy):
     segment = InputData.parameterInputFactory("Segment", strictMode=True)
     segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
     segment.addParam('grouping', segmentGroups)
-    segment.addParam('choice', InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid']))
     subspace = InputData.parameterInputFactory('subspace', contentType=InputTypes.StringType)
     subspace.addParam('divisions', InputTypes.IntegerType, False)
     subspace.addParam('pivotLength', InputTypes.FloatType, False)
@@ -72,6 +71,7 @@ class ROM(Dummy):
     segment.addSub(subspace)
     clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
     segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum))
+    segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
     ## clusterFeatures
     segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
     ## classifier
