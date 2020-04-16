@@ -34,7 +34,7 @@
       <Input class="DataObjects" type="HistorySet">input</Input>
       <Output class="Models" type="ROM">arma</Output>
     </RomTrainer>
-    <MultiRun name="sample">
+    <MultiRun name="sample" re-seeding="200286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ROM">arma</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
