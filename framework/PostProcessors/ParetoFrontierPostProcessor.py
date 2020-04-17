@@ -16,7 +16,6 @@ Created on March 25, 2020
 
 @author: mandd
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
 
 #External Modules---------------------------------------------------------------
 import numpy as np
@@ -48,16 +47,6 @@ class ParetoFrontier(PostProcessor):
     inputSpecification.addSub(InputData.parameterInputFactory('costID' , contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory('valueID', contentType=InputTypes.StringType))
     return inputSpecification
-
-  def initialize(self, runInfo, inputs, initDict) :
-    """
-      Method to initialize the PostProcessor
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-      @ Out, None
-    """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -113,11 +102,8 @@ class ParetoFrontier(PostProcessor):
       if (index>1) and (sortedData[self.valueID].values[index]>sortedData[self.valueID].values[coordinates[-1]]):
         coordinates = np.append(coordinates,index)
 
-    paretoFrontierData = sortedData.isel(RAVEN_sample_ID=coordinates[0]).to_array().values
-    for index,coord in enumerate(coordinates):
-      if index>0:
-        slicedData = sortedData.isel(RAVEN_sample_ID=coord).to_array().values
-        paretoFrontierData = np.vstack((paretoFrontierData,slicedData))
+    selection = sortedData.isel(RAVEN_sample_ID=coordinates).to_array().values
+    paretoFrontierData = np.transpose(selection)
 
     paretoFrontierDict = {}
     for index,varID in enumerate(sortedData.data_vars):
@@ -132,8 +118,6 @@ class ParetoFrontier(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect!")
 
     outputDict ={}
     outputDict['data'] = evaluation[1]
