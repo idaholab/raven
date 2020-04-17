@@ -98,14 +98,14 @@ class LimitSurfaceIntegral(PostProcessor):
     self.seed = 20021986  # seed for montecarlo
     self.matrixDict = {}  # dictionary of arrays and target
     self.computeErrrorBounds = False #  compute the bounding error?
-    self.lowerUpperDict = {}
-    self.functionS = None
-    self.errorModel = None
-    self.computationPrefix = None
+    self.lowerUpperDict = {} # dictionary of lower and upper bounds (used if no distributions are inputted)
+    self.functionS = None # evaluation classifier for the integration
+    self.errorModel = None # classifier used for the error estimation
+    self.computationPrefix = None # output prefix for the storage of the probability and, if requested, bounding error
     self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
-    self.stat.what = ['expectedValue']
-    self.addAssemblerObject('distribution','-n', newXmlFlg = True)
-    self.printTag = 'POSTPROCESSOR INTEGRAL'
+    self.stat.what = ['expectedValue'] # expected value calculation
+    self.addAssemblerObject('distribution','-n', newXmlFlg = True) # distributions are optional
+    self.printTag = 'POSTPROCESSOR INTEGRAL' # print tag
 
   def _localReadMoreXML(self, xmlNode):
     """
