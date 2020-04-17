@@ -19,7 +19,7 @@
     <MonteCarlo name="mc">
       <samplerInit>
         <limit>1</limit>
-        <initialSeed>2</initialSeed>
+        <initialSeed>20021986</initialSeed>
       </samplerInit>
       <constant name="scaling">1.0</constant>
     </MonteCarlo>
@@ -34,7 +34,7 @@
       <Input class="DataObjects" type="HistorySet">input</Input>
       <Output class="Models" type="ROM">arma</Output>
     </RomTrainer>
-    <MultiRun name="sample" re-seeding="200286">
+    <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ROM">arma</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
@@ -78,6 +78,8 @@
       <pivotParameter>Time</pivotParameter>
       <P>0</P>
       <Q>0</Q>
+      <seed>20021986</seed>
+      <reseedCopies>False</reseedCopies>
       <Fourier>100, 5, 3</Fourier>
       <preserveInputCDF>True</preserveInputCDF>
       <Segment grouping='cluster'>
