@@ -211,7 +211,7 @@ class LimitSurfaceIntegral(PostProcessor):
       modifiedMatrixDict = {}
       for key in self.matrixDict:
         modifiedMatrixDict[key] = np.concatenate((self.matrixDict[key][indecesToModifyOnes], self.matrixDict[key][indecesToModifyOnes]
-                                                  * (1. + sys.float_info.epsilon * 2.))) if key != self.target else res
+                                                  * (1. + 2.e-16))) if key != self.target else res
       self.errorModel.train(modifiedMatrixDict)
 
     for varName, distName in self.variableDist.items():
