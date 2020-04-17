@@ -97,6 +97,9 @@
           <requirement id_code="R-RA-7">
               <description>RAVEN shall be able to compute probability of failure based on generated data and goal functions</description>
           </requirement>
+          <requirement id_code="R-RA-8">
+              <description>RAVEN shall be able to estimate the maximum (bounding) error in the computation of the probability of failure based on generated data and goal functions</description>
+          </requirement>
       </requirement_set>
 
       <requirement_set caption="Risk Mitigation">
