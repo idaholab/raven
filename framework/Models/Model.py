@@ -31,7 +31,6 @@ from BaseClasses import BaseType
 from utils import utils
 from Assembler import Assembler
 from utils import InputData, InputTypes
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -132,7 +131,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference','ConjugateGradient']
+  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference','ConjugateGradient','SimulatedAnnealing']
 
   @classmethod
   def generateValidateDict(cls):
@@ -388,7 +387,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler, forceUseThreads=forceThreads)
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, uniqueHandler=uniqueHandler, forceUseThreads=forceThreads)
 
   def addOutputFromExportDictionary(self,exportDict,output,options,jobIdentifier):
     """

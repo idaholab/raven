@@ -32,6 +32,7 @@ import SupervisedLearning
 from utils import utils
 from utils import xmlUtils
 from utils import InputData, InputTypes
+from Decorators.Parallelization import Parallel
 import Files
 import LearningGate
 #Internal Modules End--------------------------------------------------------------------------------
@@ -70,6 +71,7 @@ class ROM(Dummy):
     segment.addSub(subspace)
     clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
     segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum))
+    segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
     ## clusterFeatures
     segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
     ## classifier
@@ -1329,8 +1331,6 @@ class ROM(Dummy):
     self.initializationOptionDict['paramInput'] = paramInput
     self._initializeSupervisedGate(**self.initializationOptionDict)
     #the ROM is instanced and initialized
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(SupervisedLearning),True)) - set(self.mods))
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(LearningGate),True)) - set(self.mods))
 
   def initialize(self,runInfo,inputs,initDict=None):
     """
@@ -1443,6 +1443,7 @@ class ROM(Dummy):
     self._replaceVariablesNamesWithAliasSystem(inRun, 'input', True)
     return returnDict
 
+  @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters

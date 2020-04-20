@@ -34,13 +34,13 @@ import logging
 import os
 import socket
 import struct
-import types
+import six
 
 copyright = "Copyright (c) 2005-2012 Vitalii Vanovschi. All rights reserved"
-version = "1.6.4"
+__version__ = version = "1.6.4.4"
 
 
-# compartibility with Python 2.6
+# compatibility with Python 2.6
 try:
     import hashlib
     sha_new = hashlib.sha1
@@ -51,6 +51,7 @@ except ImportError:
     sha_new = sha.new
     md5_new = md5.new
 
+import ppcommon as ppc
 
 class Transport(object):
 
@@ -63,17 +64,18 @@ class Transport(object):
                 "in a subclass")
 
     def authenticate(self, secret):
-        remote_version = self.receive()
+        remote_version = ppc.str_(self.receive())
         if version != remote_version:
             logging.error("PP version mismatch (local: pp-%s, remote: pp-%s)"
                 % (version, remote_version))
             logging.error("Please install the same version of PP on all nodes")
             return False
-        srandom = self.receive()
+        srandom = ppc.b_(self.receive())
+        secret = ppc.b_(secret)
         answer = sha_new(srandom+secret).hexdigest()
         self.send(answer)
-        response = self.receive()
-        if response == "OK":
+        response = ppc.b_(self.receive())
+        if response == ppc.b_("OK"):
             return True
         else:
             return False
@@ -91,67 +93,111 @@ class CTransport(Transport):
     rcache = {}
 
     def hash(self, msg):
-        return md5_new(msg).hexdigest()
+        return md5_new(ppc.b_(msg)).hexdigest()
 
     def csend(self, msg):
+       #if hasattr(self, 'w'):
+       #    open('/tmp/pp.debug', 'a+').write(repr(('cs', self.w, msg))+'\n')
+       #else:
+       #    open('/tmp/pp.debug', 'a+').write(repr(('cs', self.socket, msg))+'\n')
+        msg = ppc.b_(msg)
         hash1 = self.hash(msg)
         if hash1 in self.scache:
-            self.send("H" + hash1)
+            self.send(ppc.b_("H" + hash1))
         else:
-            self.send("N" + msg)
+            self.send(ppc.b_("N") + msg)
             self.scache[hash1] = True
 
     def creceive(self, preprocess=None):
         msg = self.receive()
-        if msg[0] == 'H':
-            hash1 = msg[1:]
+       #if hasattr(self, 'r'):
+       #    open('/tmp/pp.debug', 'a+').write(repr(('cr',  self.r, msg))+'\n')
+       #else:
+       #    open('/tmp/pp.debug', 'a+').write(repr(('cr', self.socket, msg))+'\n')
+        msg = ppc.b_(msg)
+        if msg[:1] == ppc.b_('H'):
+            hash1 = ppc.str_(msg[1:])
         else:
             msg = msg[1:]
             hash1 = self.hash(msg)
-            self.rcache[hash1] = map(preprocess, (msg, ))[0]
+            if preprocess is None: preprocess = lambda x:x
+            self.rcache[hash1] = tuple(map(preprocess, (msg, )))[0]
         return self.rcache[hash1]
 
 
 class PipeTransport(Transport):
 
     def __init__(self, r, w):
+       #open('/tmp/pp.debug', 'a+').write(repr((r,w))+'\n')
         self.scache = {}
         self.exiting = False
-        if isinstance(r, types.FileType) and isinstance(w, types.FileType):
+        if isinstance(r, ppc.file) and isinstance(w, ppc.file):
             self.r = r
             self.w = w
         else:
             raise TypeError("Both arguments of PipeTransport constructor " \
                     "must be file objects")
+        if six.PY3 and hasattr(self.w, 'buffer'):
+            self.wb = self.w.buffer
+            self.has_wb = True
+        else:
+            self.wb = self.w
+            self.has_wb = False
+        if six.PY3 and hasattr(self.r, 'buffer'):
+            self.rb = self.r.buffer
+            self.has_rb = True
+        else:
+            self.rb = self.r
+            self.has_rb = False
+        
 
     def send(self, msg):
-        self.w.write(struct.pack("!Q", len(msg)))
-        self.w.flush()
-        self.w.write(msg)
+       #l = len(ppc.b_(msg)) if (self.has_wb or self.w.mode == 'wb') else len(ppc.str_(msg))
+       #open('/tmp/pp.debug', 'a+').write(repr(('s', l, self.w, msg))+'\n')
+        if self.has_wb or self.w.mode == 'wb':
+            msg = ppc.b_(msg)
+            self.wb.write(struct.pack("!Q", len(msg)))
+            self.w.flush()
+        else: #HACK: following may be > 8 bytes, needed for len(msg) >= 256
+            msg = ppc.str_(msg)
+            self.wb.write(ppc.str_(struct.pack("!Q", len(msg))))
+            self.w.flush()
+        self.wb.write(msg)
         self.w.flush()
 
     def receive(self, preprocess=None):
-        e_size = struct.calcsize("!Q")
+        e_size = struct.calcsize("!Q") # 8
+        c_size = struct.calcsize("!c") # 1
         r_size = 0
-        data = ""
+        stub = ppc.b_("") if (self.has_rb or self.r.mode == 'rb') else ""
+        data = stub
         while r_size < e_size:
-            msg = self.r.read(e_size-r_size)
-            if msg == "":
+            msg = self.rb.read(e_size-r_size)
+           #l = len(msg)
+           #open('/tmp/pp.debug', 'a+').write(repr(('_r', l, self.r, msg))+'\n')
+            if msg == stub:
+                raise RuntimeError("Communication pipe read error")
+            if stub == "" and msg.startswith('['): #HACK to get str_ length
+                while not msg.endswith('{B}'):
+                    msg += self.rb.read(c_size)
+            r_size += len(msg)
+            data += msg
+        e_size = struct.unpack("!Q", ppc.b_(data))[0] # get size of msg
+
+        r_size = 0
+        data = stub
+        while r_size < e_size:
+            msg = self.rb.read(e_size-r_size)
+           #l = len(msg)
+           #open('/tmp/pp.debug', 'a+').write(repr(('r_', l, self.r, msg))+'\n')
+            if msg == stub:
                 raise RuntimeError("Communication pipe read error")
             r_size += len(msg)
             data += msg
-        e_size = struct.unpack("!Q", data)[0]
+        data = ppc.b_(data)
 
-        r_size = 0
-        data = ""
-        while r_size < e_size:
-            msg = self.r.read(e_size-r_size)
-            if msg == "":
-                raise RuntimeError("Communication pipe read error")
-            r_size += len(msg)
-            data += msg
-
-        return map(preprocess, (data, ))[0]
+        if preprocess is None: preprocess = lambda x:x
+        return tuple(map(preprocess, (data, )))[0]
 
     def close(self):
         self.w.close()
@@ -169,9 +215,12 @@ class SocketTransport(Transport):
         self.scache = {}
 
     def send(self, data):
+       #l = len(ppc.b_(data))
+       #open('/tmp/pp.debug', 'a+').write(repr(('ss', l, self.socket, data))+'\n')
+        data = ppc.b_(data)
         size = struct.pack("!Q", len(data))
         t_size = struct.calcsize("!Q")
-        s_size = 0L
+        s_size = ppc.long(0)
         while s_size < t_size:
             p_size = self.socket.send(size[s_size:])
             if p_size == 0:
@@ -179,7 +228,7 @@ class SocketTransport(Transport):
             s_size += p_size
 
         t_size = len(data)
-        s_size = 0L
+        s_size = ppc.long(0)
         while s_size < t_size:
             p_size = self.socket.send(data[s_size:])
             if p_size == 0:
@@ -189,23 +238,29 @@ class SocketTransport(Transport):
     def receive(self, preprocess=None):
         e_size = struct.calcsize("!Q")
         r_size = 0
-        data = ""
+        stub = ppc.b_("")
+        data = stub
         while r_size < e_size:
             msg = self.socket.recv(e_size-r_size)
-            if msg == "":
+           #l = len(msg)
+           #open('/tmp/pp.debug', 'a+').write(repr(('_sr', l, self.socket, msg))+'\n')
+            if msg == stub:
                 raise RuntimeError("Socket connection is broken")
             r_size += len(msg)
             data += msg
-        e_size = struct.unpack("!Q", data)[0]
+        e_size = struct.unpack("!Q", ppc.b_(data))[0] # get size of msg
 
         r_size = 0
-        data = ""
+        data = stub
         while r_size < e_size:
             msg = self.socket.recv(e_size-r_size)
-            if msg == "":
+           #l = len(msg)
+           #open('/tmp/pp.debug', 'a+').write(repr(('sr_', l, self.socket, msg))+'\n')
+            if msg == stub:
                 raise RuntimeError("Socket connection is broken")
             r_size += len(msg)
             data += msg
+        data = ppc.b_(data)
         return data
 
     def close(self):
@@ -221,5 +276,5 @@ class CPipeTransport(PipeTransport, CTransport):
 
 class CSocketTransport(SocketTransport, CTransport):
     pass
-
+    
 # Parallel Python Software: http://www.parallelpython.com

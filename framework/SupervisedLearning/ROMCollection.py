@@ -215,6 +215,7 @@ class Segments(Collection):
           self._divisionPivotShift[subspace] = shift
         else:
           self._divisionPivotShift[subspace] = None
+
     self._divisionInstructions = divisionMode
     if len(self._divisionInstructions) > 1:
       self.raiseAnError(NotImplementedError, 'Segmented ROMs do not yet handle multiple subspaces!')
@@ -636,6 +637,13 @@ class Clusters(Segments):
       self.raiseAMessage('No evalMode specified for clustered ROM, so defaulting to "truncated".')
       self._evaluationMode = 'truncated'
     self.raiseADebug('Clustered ROM evaluation mode set to "{}"'.format(self._evaluationMode))
+    # choice?
+    evalChoice = segmentNode.findFirst('evaluationClusterChoice')
+    if evalChoice is not None:
+      self._evaluationChoice = evalChoice.value
+    else:
+      self.raiseAMessage('No evaluationClusterChoice specified for clustered ROM, so defaulting to "first".')
+      self._evaluationChoice = 'first'
 
     # interpret clusterable parameter requests, if any
     inputRequestsNode = segmentNode.findFirst('clusterFeatures')
@@ -829,7 +837,8 @@ class Clusters(Segments):
     pivotLen = 0
     for cluster in clusters:
       # choose a ROM
-      chooseRomMode = 'first' # TODO user option? alternative is random, or ? centroids ?
+      # TODO user option? alternative is random, or ? centroids ?
+      chooseRomMode = 'first' if self._evaluationChoice is None else self._evaluationChoice
       if chooseRomMode == 'first':
         ## option 1: just take the first one
         segmentIndex, clusterIndex = self._getSegmentIndexFromClusterIndex(cluster, labelMap, clusterIndex=0)
@@ -976,8 +985,7 @@ class Clusters(Segments):
     eligible = indices[labelMap == cluster]
     # if random, choose now
     if chooseRandom:
-      i = randomUtils.randomIntegers(0, len(eligible) - 1, self)
-      clusterIndex = eligible[i]
+      clusterIndex = randomUtils.randomIntegers(0, len(eligible) - 1, self)
     # global index
     segmentIndex = eligible[clusterIndex]
     return segmentIndex, clusterIndex

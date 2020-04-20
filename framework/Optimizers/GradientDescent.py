@@ -41,16 +41,6 @@ from .acceptanceConditions import returnInstance as acceptReturnInstance
 from .acceptanceConditions import returnClass as acceptReturnClass
 #Internal Modules End--------------------------------------------------------------------------------
 
-# utility function for defaultdict
-def giveZero():
-  """
-    Utility function for defaultdict to 0
-    Needed only to avoid lambda pickling issues for defaultdicts
-    @ In, None
-    @ Out, giveZero, int, zero
-  """
-  return 0
-
 class GradientDescent(RavenSampled):
   """
     Base class for Sampled Optimizers using gradient descent optimization methods.
@@ -218,7 +208,7 @@ class GradientDescent(RavenSampled):
     self._acceptHistory = {}       # acceptability
     self._stepRecommendations = {} # by traj, if a 'cut' or 'grow' is recommended else None
     self._acceptRerun = {}         # by traj, if True then override accept for point rerun
-    self._convergenceCriteria = defaultdict(giveZero) # names and values for convergence checks
+    self._convergenceCriteria = defaultdict(mathUtils.giveZero) # names and values for convergence checks
     self._convergenceInfo = {}       # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = None # consecutive persistence required to mark convergence
     self._terminateFollowers = True  # whether trajectories sharing a point should cause termination
@@ -476,38 +466,6 @@ class GradientDescent(RavenSampled):
 
   # * * * * * * * * * * * * * * * *
   # Resolving potential opt points
-  def _applyBoundaryConstraints(self, point):
-    """
-      Checks and fixes boundary constraints of variables in "point" -> DENORMED point expected!
-      @ In, point, dict, potential point against which to check
-      @ Out, point, dict, adjusted variables
-      @ Out, modded, bool, whether point was modified or not
-    """
-    # TODO should some of this go into the parent Optimizer class, such as the boundary acquiring?
-    modded = False
-    for var in self.toBeSampled:
-      dist = self.distDict[var]
-      val = point[var]
-      lower = dist.lowerBound
-      upper = dist.upperBound
-      if lower is None:
-        lower = -np.inf
-      if upper is None:
-        upper = np.inf
-      if val < lower:
-        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} lower bound: {:1.3e} under by {:1.3e}'
-                         .format(var, val, lower, lower - val))
-        self.raiseADebug(' ... -> for point {}'.format(point))
-        point[var] = lower
-        modded = True
-      elif val > upper:
-        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} upper bound: {:1.3e} over by {:1.3e}'
-                         .format(var, val, upper, val - upper))
-        self.raiseADebug(' ... -> for point {}'.format(point))
-        point[var] = upper
-        modded = True
-    return point, modded
-
   def _applyFunctionalConstraints(self, suggested, previous):
     """
       @ In, suggested, dict, NORMALIZED suggested point
@@ -663,7 +621,9 @@ class GradientDescent(RavenSampled):
     """
       Updates convergence information for trajectory
       @ In, traj, int, identifier
-      @ In, acceptable, str, condition of point
+      @ In, new, dict, new point
+      @ In, old, dict, old point
+      @ In, acceptable, str, condition of new point
       @ Out, converged, bool, True if converged on ANY criteria
     """
     ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
@@ -722,6 +682,7 @@ class GradientDescent(RavenSampled):
       @ In, traj, int, identifier
       @ In, info, dict, meta information about the opt point
       @ In, old, dict, previous optimal point (to resubmit)
+      @ Out, none
     """
     # cancel grad runs
     self._cancelAssociatedJobs(info['traj'], step=info['step'])
@@ -740,8 +701,7 @@ class GradientDescent(RavenSampled):
 
   # * * * * * * * * * * * * * * * *
   # Convergence Checks
-  # Note these names need to be formatted according to checkConvergence check!
-  convFormat = ' ... {name:^12s}: {conv:5s}, {got:1.2e} / {req:1.2e}'
+  convFormat = RavenSampled.convFormat
 
   # NOTE checkConvSamePoint has a different call than the others
   # should this become an informational dict that can be passed to any of them?

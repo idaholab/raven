@@ -672,7 +672,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             except ValueError:
               self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute initialSeed with value ' + str(childChild.value))
           elif childChild.getName() == "reseedEachIteration":
-            if childChild.value.lower() in utils.stringsThatMeanTrue():
+            if utils.stringIsTrue(childChild.value):
               self.reseedAtEachIteration = True
           elif childChild.getName() == "distInit":
             for childChildChild in childChild.subparts:

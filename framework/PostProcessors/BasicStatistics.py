@@ -23,7 +23,6 @@ import numpy as np
 import os
 import copy
 from collections import OrderedDict, defaultdict
-from sklearn.linear_model import LinearRegression
 import six
 import xarray as xr
 #External Modules End-----------------------------------------------------------
@@ -34,7 +33,6 @@ from utils import utils
 from utils import InputData, InputTypes
 from utils import mathUtils
 import Files
-import Runners
 #Internal Modules End-----------------------------------------------------------
 
 class BasicStatistics(PostProcessor):
@@ -545,12 +543,11 @@ class BasicStatistics(PostProcessor):
     sortedWeightsAndPoints = np.insert(np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs]))),0,[0.0,arrayIn[idxs[0]]],axis=0)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
     try:
-      index = utils.find_le_index(weightsCDF,percent)
+      index = utils.first(np.asarray(weightsCDF <= percent).nonzero())[-1]
       result = sortedWeightsAndPoints[index,1]
     except ValueError:
       result = np.percentile(arrayIn,percent,interpolation='lower')
     return result
-
 
   def __runLocal(self, inputData):
     """
@@ -1117,6 +1114,7 @@ class BasicStatistics(PostProcessor):
       @ In, intersectionSet, boolean, True if some target variables are in the list of features
       @ Out, da, xarray.DataArray, contains the calculations of sensitivity coefficients
     """
+    from sklearn.linear_model import LinearRegression
     if self.multipleFeatures:
       # intersectionSet is flag that used to check the relationship between the features and targets.
       # If True, part of the target variables are listed in teh feature set, then multivariate linear
@@ -1220,9 +1218,6 @@ class BasicStatistics(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-
     outputRealization = evaluation[1]
     if output.type in ['PointSet','HistorySet']:
       if self.outputDataset:

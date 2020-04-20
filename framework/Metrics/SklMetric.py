@@ -24,15 +24,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import numpy as np
 import ast
 from utils import utils
-import sklearn
-import sklearn.metrics.pairwise as pairwise
-from sklearn.metrics import explained_variance_score
-from sklearn.metrics import mean_absolute_error
-from sklearn.metrics import mean_squared_error
-# FIXME: median_absolute_error only accepts 1-D numpy array, and if we want to use this metric, it should
-# be handled differently.
-#from sklearn.metrics import median_absolute_error
-from sklearn.metrics import r2_score
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -46,20 +37,6 @@ class SKL(Metric):
     Scikit-learn metrics
   """
   availMetrics ={}
-  # regression metrics
-  availMetrics['regression'] = {}
-  availMetrics['regression']['explained_variance_score'] = explained_variance_score
-  availMetrics['regression']['mean_absolute_error']      = mean_absolute_error
-  availMetrics['regression']['r2_score']                 = r2_score
-  availMetrics['regression']['mean_squared_error']       = mean_squared_error
-  # paired distance metrics, no weights
-  if int(sklearn.__version__.split(".")[1]) > 17:
-    availMetrics['paired_distance'] = {}
-    availMetrics['paired_distance']['euclidean']         = pairwise.paired_euclidean_distances
-    availMetrics['paired_distance']['manhattan']         = pairwise.paired_manhattan_distances
-    availMetrics['paired_distance']['cosine']            = pairwise.paired_cosine_distances
-  # TODO: add more metrics here
-  # metric from scipy.spatial.distance, for example mahalanobis, minkowski
 
   @classmethod
   def getInputSpecification(cls):
@@ -83,6 +60,30 @@ class SKL(Metric):
       @ Out, None
     """
     Metric.__init__(self)
+
+    if len(self.availMetrics) == 0:
+      import sklearn
+      import sklearn.metrics
+      # FIXME: median_absolute_error only accepts 1-D numpy array, and if we want to use this metric, it should
+      # be handled differently.
+      #from sklearn.metrics import median_absolute_error
+
+      # regression metrics
+      self.availMetrics['regression'] = {}
+      self.availMetrics['regression']['explained_variance_score'] = sklearn.metrics.explained_variance_score
+      self.availMetrics['regression']['mean_absolute_error']      = sklearn.metrics.mean_absolute_error
+      self.availMetrics['regression']['r2_score']                 = sklearn.metrics.r2_score
+      self.availMetrics['regression']['mean_squared_error']       = sklearn.metrics.mean_squared_error
+      # paired distance metrics, no weights
+      if int(sklearn.__version__.split(".")[1]) > 17:
+        self.availMetrics['paired_distance'] = {}
+        self.availMetrics['paired_distance']['euclidean']         = sklearn.metrics.pairwise.paired_euclidean_distances
+        self.availMetrics['paired_distance']['manhattan']         = sklearn.metrics.pairwise.paired_manhattan_distances
+        self.availMetrics['paired_distance']['cosine']            = sklearn.metrics.pairwise.paired_cosine_distances
+      # TODO: add more metrics here
+      # metric from scipy.spatial.distance, for example mahalanobis, minkowski
+
+
     # The type of given metric, None or List of two elements, first element should be in availMetrics.keys()
     # and sencond element should be in availMetrics.values()[firstElement].keys()
     self.metricType = None
@@ -109,9 +110,6 @@ class SKL(Metric):
 
     if self.metricType[0] not in self.__class__.availMetrics.keys() or self.metricType[1] not in self.__class__.availMetrics[self.metricType[0]].keys():
       self.raiseAnError(IOError, "Metric '", self.name, "' with metricType '", self.metricType[0], "|", self.metricType[1], "' is not valid!")
-
-    if self.metricType[0] == 'paired_distance' and int(sklearn.__version__.split(".")[1]) < 18:
-      self.raiseAnError(IOError, "paired_distance is not supported in your SciKit-Learn version, if you want to use this metric, please make sure your SciKit-Learn version >= 18!")
 
   def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
     """

@@ -1,0 +1,61 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/MOOSEBaseApps.InputParser</name>
+    <author>talbpaul</author>
+    <created>2020-04-06</created>
+    <classesTested>Models.Code.MooseBasedApp</classesTested>
+    <description>
+       Various challenging moose-based input parsing tests. As far as I know would not actually
+       run in MOOSE.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>InputParser</WorkingDir>
+    <Sequence>sample</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="Files" type="">mooseinp</Input>
+      <Model class="Models" type="Code">exampleMooseApp</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">ps</Output>
+    </MultiRun>
+  </Steps>
+
+  <Files>
+    <Input name="mooseinp" type="">formattest.i</Input>
+  </Files>
+
+  <Models>
+    <Code name="exampleMooseApp" subType="MooseBasedApp">
+      <executable>none</executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dist">
+      <lowerBound>-1</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <initialSeed>42</initialSeed>
+        <limit>2</limit>
+      </samplerInit>
+      <variable name="ParserChallenges|scalar">
+        <distribution>dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="ps"/>
+  </DataObjects>
+
+</Simulation>
