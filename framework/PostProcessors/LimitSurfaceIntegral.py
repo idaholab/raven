@@ -212,6 +212,9 @@ class LimitSurfaceIntegral(PostProcessor):
       for key in self.matrixDict:
         modifiedMatrixDict[key] = np.concatenate((self.matrixDict[key][indecesToModifyOnes], self.matrixDict[key][indecesToModifyOnes]
                                                   * (1. + 2.e-16))) if key != self.target else res
+        print("DEBUG ****** key:", key)
+        for el in modifiedMatrixDict[key]:
+          print(el)
       self.errorModel.train(modifiedMatrixDict)
 
     for varName, distName in self.variableDist.items():
@@ -270,7 +273,12 @@ class LimitSurfaceIntegral(PostProcessor):
         tempDict[varName] = randomMatrix[:, index]
       pb = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
       if self.errorModel:
-        boundError = abs(pb-self.stat.run({'targets':{self.target:xarray.DataArray(self.errorModel.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target])
+        
+        print("DEBUG *****: EVALUATION")
+        eval = self.errorModel.evaluate(tempDict)[self.target]
+        for el in self.errorModel.evaluate(tempDict)[self.target]:
+          print(el)
+        boundError = abs(pb-self.stat.run({'targets':{self.target:xarray.DataArray(eval)}})[self.computationPrefix +"_"+self.target])
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
     return pb, boundError
