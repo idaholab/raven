@@ -273,7 +273,7 @@ class LimitSurfaceIntegral(PostProcessor):
         tempDict[varName] = randomMatrix[:, index]
       pb = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
       if self.errorModel:
-        
+
         print("DEBUG *****: EVALUATION")
         eval = self.errorModel.evaluate(tempDict)[self.target]
         for el in self.errorModel.evaluate(tempDict)[self.target]:
