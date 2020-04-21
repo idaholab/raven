@@ -276,8 +276,8 @@ class LimitSurfaceIntegral(PostProcessor):
 
         print("DEBUG *****: EVALUATION")
         eval = self.errorModel.evaluate(tempDict)[self.target]
-        for el in self.errorModel.evaluate(tempDict)[self.target]:
-          print(el)
+        print(len(eval))
+        print(randomMatrix[:, 0].shape)
         boundError = abs(pb-self.stat.run({'targets':{self.target:xarray.DataArray(eval)}})[self.computationPrefix +"_"+self.target])
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
