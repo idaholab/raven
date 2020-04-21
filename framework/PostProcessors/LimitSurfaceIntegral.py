@@ -212,10 +212,7 @@ class LimitSurfaceIntegral(PostProcessor):
       for key in self.matrixDict:
         avg = np.average(self.matrixDict[key][indecesToModifyOnes])
         modifiedMatrixDict[key] = np.concatenate((self.matrixDict[key][indecesToModifyOnes], self.matrixDict[key][indecesToModifyOnes]
-                                                  * avg * (1. + 2.e-16))) if key != self.target else res
-        print("DEBUG ****** key:", key)
-        for el in modifiedMatrixDict[key]:
-          print(el)
+                                                  + (self.matrixDict[key][indecesToModifyOnes]/avg * 1.e-14))) if key != self.target else res
       self.errorModel.train(modifiedMatrixDict)
 
     for varName, distName in self.variableDist.items():
@@ -274,12 +271,7 @@ class LimitSurfaceIntegral(PostProcessor):
         tempDict[varName] = randomMatrix[:, index]
       pb = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
       if self.errorModel:
-
-        print("DEBUG *****: EVALUATION")
-        eval = self.errorModel.evaluate(tempDict)[self.target]
-        print(len(eval))
-        print(randomMatrix[:, 0].shape)
-        boundError = abs(pb-self.stat.run({'targets':{self.target:xarray.DataArray(eval)}})[self.computationPrefix +"_"+self.target])
+        boundError = abs(pb-self.stat.run({'targets':{self.target:xarray.DataArray(self.errorModel.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target])
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
     return pb, boundError
