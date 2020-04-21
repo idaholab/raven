@@ -210,8 +210,9 @@ class LimitSurfaceIntegral(PostProcessor):
       res = np.concatenate((np.ones(len(indecesToModifyOnes)), np.zeros(len(indecesToModifyOnes))))
       modifiedMatrixDict = {}
       for key in self.matrixDict:
+        avg = np.average(self.matrixDict[key][indecesToModifyOnes])
         modifiedMatrixDict[key] = np.concatenate((self.matrixDict[key][indecesToModifyOnes], self.matrixDict[key][indecesToModifyOnes]
-                                                  * (1. + 2.e-16))) if key != self.target else res
+                                                  * avg * (1. + 2.e-16))) if key != self.target else res
         print("DEBUG ****** key:", key)
         for el in modifiedMatrixDict[key]:
           print(el)
