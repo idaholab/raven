@@ -25,7 +25,7 @@
     type = 'RavenFramework'
     input = 'BoltzmanSA/test_simulatedAnnealing.xml'
     heavy = true
-    max_time = 700
+    max_time = 1500
     [./data]
       type = OrderedCSV
       output = 'BoltzmanSA/opt_export_0.csv'
@@ -38,7 +38,7 @@
     type = 'RavenFramework'
     input = 'BoltzmanEggHolder/test_simulatedAnnealing_eggHold.xml'
     heavy = true
-    max_time = 700
+    max_time = 1500
     [./data]
       type = OrderedCSV
       output = 'BoltzmanEggHolder/opt_export_0.csv'
@@ -62,7 +62,7 @@
     type = 'RavenFramework'
     input = 'CauchyEggHolder/test_simulatedAnnealing_eggHold.xml'
     heavy = true
-    max_time = 700
+    max_time = 1500
     [./data]
       type = OrderedCSV
       output = 'CauchyEggHolder/opt_export_0.csv'
