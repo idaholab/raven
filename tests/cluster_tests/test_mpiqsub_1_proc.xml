@@ -10,14 +10,13 @@
       processor can be used (issue 1023)
     </description>
     <revisions>
-        <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+        <revision author="alfoa" date="2020-14-22">This test shows that issue #1023 is fixed.</revision>
     </revisions>
-    <requirements>R-IS-7</requirements>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>.</WorkingDir>
-    <Sequence>FirstMQRun</Sequence>
+    <Sequence>FirstMQ1ProcRun</Sequence>
     <batchSize>1</batchSize>
     <NumMPI>2</NumMPI>
     <expectedTime>0:10:00</expectedTime>
@@ -75,7 +74,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="FirstMQRun">
+    <MultiRun name="FirstMQ1ProcRun">
       <Input class="Files" type="">simple_gp_test.i</Input>
       <Model class="Models" type="Code">MyRAVEN</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
