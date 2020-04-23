@@ -117,6 +117,12 @@ class Optimizer(AdaptiveSampler):
               the name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}).
               This external function must contain a method called ``constrain'', which returns 1 for
               inputs satisfying the constraints and 0 otherwise."""))
+    specs.addSub(InputData.assemblyInputFactory('implicitConstraint', contentType=InputTypes.StringType, strictMode=True,
+        printPriority=150,
+        descr=r"""name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
+              point of view, this XML node must contain the name of a function defined in the \xmlNode{Functions}
+              block (see Section~\ref{sec:functions}). This external function must contain a method called
+              ``implicitConstrain'', which returns 1 for outputs satisfying the constraints and 0 otherwise."""))
     specs.addSub(InputData.assemblyInputFactory('Sampler', contentType=InputTypes.StringType, strictMode=True,
         printPriority=175,
         descr=r"""name of a Sampler that can be used to initialize the starting points for the trajectories
