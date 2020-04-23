@@ -92,8 +92,8 @@ class DateBase(BaseType):
     self.raiseADebug('HDF5 Read Mode is "'+self.readMode+'".')
     if self.readMode == 'overwrite':
       # check if self.databaseDir exists or create in case not
-      if not os.path.exists(self.databaseDir):
-        os.mkdir(self.databaseDir)
+      if not os.path.isdir(self.databaseDir):
+        os.makedirs(self.databaseDir, exist_ok=True)
     # get full path
     fullpath = os.path.join(self.databaseDir,self.filename)
     if os.path.isfile(fullpath):
