@@ -1244,8 +1244,6 @@ class DataSet(DataObject):
         self.addMeta('DataSet',{'Hierarchical':{'path':','.join(p)}})
       # clear alignment tracking for indexes
       self._clearAlignment()
-    else:
-      self.raiseAWarning('No data in DataSet to construct!')
     return self._data
 
   def _formatRealization(self,rlz):

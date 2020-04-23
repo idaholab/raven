@@ -850,5 +850,4 @@ class LimitSurfaceSearch(AdaptiveSampler):
         new.append(template.format(RESIDUUM=self.goalFunction.name))
       else:
         new.append(template)
-    print('DEBUGG new:', new)
     return set(new)
