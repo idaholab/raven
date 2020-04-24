@@ -33,38 +33,6 @@
     </Code>
   </Models>
 
-  <Distributions>
-    <Normal name="Gauss1">
-      <mean>1</mean>
-      <sigma>0.001</sigma>
-      <lowerBound>0</lowerBound>
-      <upperBound>2</upperBound>
-    </Normal>
-    <Normal name="auxBackUpTimeDist">
-      <mean>1</mean>
-      <sigma>0.001</sigma>
-      <lowerBound>0</lowerBound>
-      <upperBound>2</upperBound>
-    </Normal>
-    <Normal name="Gauss2">
-      <mean>1</mean>
-      <sigma>0.4</sigma>
-      <lowerBound>0</lowerBound>
-      <upperBound>2</upperBound>
-    </Normal>
-    <Triangular name="CladFailureDist">
-      <apex>1</apex>
-      <min>-0.1</min>
-      <max>3</max>
-      <!--
-        <lowerBound>0</lowerBound>
-         This is not yet supported
-        <upperBound>2</upperBound>
-        <adjustement>up</adjustement>
-      -->
-    </Triangular>
-  </Distributions>
-
   <Samplers>
     <MonteCarlo name="RAVENmc6">
       <samplerInit>
