@@ -160,8 +160,8 @@ class HybridModel(HybridModelBase):
       self.existTrainSize = len(self.targetEvaluationInstance)
     self.tempTargetEvaluation = copy.deepcopy(self.targetEvaluationInstance)
     if len(self.modelInstances) != 1:
-      self.raiseAnError(IOError, 'Required one "Model" XML subnode under node "HybridModel" can be accepted!',
-                        '"{}" "Model" subnodes are provided.'.format(len(self.modelInstances)))
+      self.raiseAnError(IOError, '"HybridModel" can only accept one "Model" XML subnode!',
+                        'The following "Models" are provided "{}"'.format(','.join(list(self.modelInstances.keys()))))
     self.modelInstance = list(self.modelInstances.values())[0]
     if self.targetEvaluationInstance is None:
       self.raiseAnError(IOError, 'TargetEvaluation XML block needs to be inputted!')
