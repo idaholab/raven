@@ -69,25 +69,8 @@ def insertSolnExport(tex, obj):
   tex = '\n'.join(split)
   return tex
 
-
-#------------#
-# OPTIMIZERS #
-#------------#
-import Optimizers
-msg = ''
-# base classes first
-optDescr = wrapText(Optimizers.Optimizer.userManualDescription(), '  ')
-msg += optDescr
-# write all known types
-for name in Optimizers.knownTypes():
-  obj = Optimizers.returnClass(name, mu)
-  specs = obj.getInputSpecification()
-  tex = specs.generateLatex()
-  tex = insertSolnExport(tex, obj)
-  msg += tex
-
 # examples
-minimal = r"""
+minimalGradientDescent = r"""
 \hspace{24pt}
 Gradient Descent Example:
 \begin{lstlisting}[style=XML]
@@ -122,7 +105,66 @@ Gradient Descent Example:
 \end{lstlisting}
 
 """
-msg += minimal
+
+minimalSimulatedAnnealing = r"""
+\hspace{24pt}
+Simulated Annealing Example:
+\begin{lstlisting}[style=XML]
+  <Optimizers>
+    ...
+    <SimulatedAnnealing name="simOpt">
+      <samplerInit>
+        <limit>2000</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min</type>
+      </samplerInit>
+      <convergence>
+        <objective>1e-6</objective>
+        <temperature>1e-20</temperature>
+        <persistence>1</persistence>
+      </convergence>
+      <coolingSchedule>
+        <exponential>
+          <alpha>0.94</alpha>
+        </exponential>
+      </coolingSchedule>
+      <variable name="x">
+        <distribution>beale_dist</distribution>
+        <initial>-2.5</initial>
+      </variable>
+      <variable name="y">
+        <distribution>beale_dist</distribution>
+        <initial>3.5</initial>
+      </variable>
+      <objective>ans</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+    </SimulatedAnnealing>
+    ...
+  </Optimizers>
+\end{lstlisting}
+
+"""
+# examples Factory
+exampleFactory = {'GradientDescent':minimalGradientDescent,'SimulatedAnnealing':minimalSimulatedAnnealing}
+
+#------------#
+# OPTIMIZERS #
+#------------#
+import Optimizers
+msg = ''
+# base classes first
+optDescr = wrapText(Optimizers.Optimizer.userManualDescription(), '  ')
+msg += optDescr
+# write all known types
+for name in Optimizers.knownTypes():
+  obj = Optimizers.returnClass(name, mu)
+  specs = obj.getInputSpecification()
+  tex = specs.generateLatex()
+  tex = insertSolnExport(tex, obj)
+  msg +=tex
+  msg+= exampleFactory[name]
+
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'optimizer.tex'))
 with open(fName, 'w') as f:
   f.writelines(msg)

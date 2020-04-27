@@ -213,7 +213,7 @@ class InputNode:
     Node in an input tree.  Simulates all the behavior of an XML node.
   """
   #built-in functions
-  def __init__(self,tag='',attrib=None,text='',comment=None):
+  def __init__(self, tag='', attrib=None, text='', comment=None):
     """
       Constructor.
       @ In, tag, string, node name

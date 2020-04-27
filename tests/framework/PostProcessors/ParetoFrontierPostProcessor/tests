@@ -1,0 +1,9 @@
+[Tests]
+ [./ParetoFrontier]
+  type = 'RavenFramework'
+  input = 'test_paretoFrontier.xml'
+  csv = 'ParetoFrontier/PrintPareto.csv'
+ [../]
+[]
+
+

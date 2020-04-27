@@ -23,7 +23,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 from .Optimizer import Optimizer
 from .RavenSampled import RavenSampled
 from .GradientDescent import GradientDescent
-
+from .SimulatedAnnealing import SimulatedAnnealing
 
 
 """
@@ -35,7 +35,7 @@ __base = 'Optimizer'
 __interFaceDict = {}
 
 __interFaceDict['GradientDescent'           ] = GradientDescent
-
+__interFaceDict['SimulatedAnnealing'        ] = SimulatedAnnealing
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():
