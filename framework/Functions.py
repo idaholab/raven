@@ -21,8 +21,6 @@ This module contains interfaces to import external functions
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, absolute_import
 # WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -30,7 +28,7 @@ warnings.simplefilter('default',DeprecationWarning)
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import utils, InputData
+from utils import utils, InputData, InputTypes
 from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -59,8 +57,8 @@ class External(BaseType):
         specifying input of cls.
     """
     inputSpecification = super(External, cls).getInputSpecification()
-    inputSpecification.addParam("file", InputData.StringType, True)
-    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputData.StringListType))
+    inputSpecification.addParam("file", InputTypes.StringType, True)
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringListType))
     return inputSpecification
 
   def __init__(self,runInfoDict):

@@ -17,8 +17,6 @@ Created on Jan 29, 2018
 @author: Congjian Wang
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import copy
@@ -28,7 +26,7 @@ import numpy as np
 
 #Internal Modules---------------------------------------------------------------
 from BaseClasses import BaseType
-from utils import InputData, utils
+from utils import InputData, InputTypes, utils
 from .PostProcessor import PostProcessor
 import MessageHandler
 import Files
@@ -53,13 +51,13 @@ class DataClassifier(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(DataClassifier, cls).getInputSpecification()
-    VariableInput = InputData.parameterInputFactory("variable", contentType=InputData.StringType)
-    VariableInput.addParam("name", InputData.StringType, True)
-    FunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
-    FunctionInput.addParam("class", InputData.StringType, True)
-    FunctionInput.addParam("type", InputData.StringType, True)
+    VariableInput = InputData.parameterInputFactory("variable", contentType=InputTypes.StringType)
+    VariableInput.addParam("name", InputTypes.StringType, True)
+    FunctionInput = InputData.parameterInputFactory("Function", contentType=InputTypes.StringType)
+    FunctionInput.addParam("class", InputTypes.StringType, True)
+    FunctionInput.addParam("type", InputTypes.StringType, True)
     VariableInput.addSub(FunctionInput, InputData.Quantity.one)
-    LabelInput = InputData.parameterInputFactory("label",contentType=InputData.StringType)
+    LabelInput = InputData.parameterInputFactory("label",contentType=InputTypes.StringType)
     inputSpecification.addSub(VariableInput, InputData.Quantity.one_to_infinity)
     inputSpecification.addSub(LabelInput, InputData.Quantity.one)
 

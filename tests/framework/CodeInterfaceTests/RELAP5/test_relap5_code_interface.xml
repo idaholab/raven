@@ -16,7 +16,8 @@
       <revision author="alfoa" date="2016-11-17">Closes #750</revision>
       <revision author="alfoa" date="2016-11-17">Added alias for output system</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
-      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now. Req. R-SI-1</revision>
+      <revision author="alfoa" date="2019-12-05">Modified to check we can handle multiple words in the same card.</revision>
     </revisions>
     <requirements>R-SI-1</requirements>
   </TestInfo>
@@ -71,6 +72,13 @@
           <upperBound>1</upperBound>
           <lowerBound>0</lowerBound>
       </Normal>
+      <Normal name="test2WordsSameCard">
+          <mean>392.0</mean>
+          <sigma>0.01</sigma>
+          <upperBound>392.1</upperBound>
+          <lowerBound>391.9</lowerBound>
+      </Normal>
+      
   </Distributions>
 
   <Samplers>
@@ -78,6 +86,13 @@
       <samplerInit>
         <limit>5</limit>
       </samplerInit>
+      <!--
+       the actions on card 20100154 test that we are able to
+       modify in the RELAP5 interface 2 words in the same card
+       -->
+      <variable name="20100154:1">
+          <distribution>test2WordsSameCard</distribution>
+      </variable>
       <variable name="20100154:2">
         <distribution>heat_capacity_154</distribution>
       </variable>
@@ -103,11 +118,28 @@
       <Model class="Models" type="Code">MyRELAP</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
       <Output class="Databases" type="HDF5">DataB_REL5_1</Output>
+      <Output class="DataObjects" type="PointSet">outputResults</Output>
+      <Output class="OutStreams" type="Print">outputResults_dump</Output>
     </MultiRun>
   </Steps>
 
   <Databases>
     <HDF5 name="DataB_REL5_1" readMode="overwrite"/>
   </Databases>
-
+  
+  <DataObjects>
+      <PointSet name="outputResults">
+          <Input>20100154:1,20100154:2,20100155:2,20100156:2,20100157:2,13550801:6</Input>
+          <Output>p_345010000,p_180010000,p_280010000,voidg_345010000,
+              voidg_335060000,voidg_212010000,mflowj_505000000</Output>
+      </PointSet>
+  </DataObjects>
+  
+  <OutStreams>
+      <Print name="outputResults_dump">
+          <type>csv</type>
+          <source>outputResults</source>
+      </Print>
+  </OutStreams>
+  
 </Simulation>

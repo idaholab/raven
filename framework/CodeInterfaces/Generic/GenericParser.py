@@ -17,8 +17,6 @@ Created on Mar 10, 2015
 @author: talbpaul
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import sys

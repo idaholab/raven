@@ -18,8 +18,6 @@ Created on Nov 14, 2013
 """
 ## for future compatibility with Python 3---------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 ## End compatibility block for Python 3-----------------------------------------
 
 ## External Modules-------------------------------------------------------------
@@ -541,13 +539,13 @@ class OutStreamPlot(OutStreamManager):
         if self.dim == 2 :
           plt.text(float(self.options[key]['position'].split(',')[0]), float(self.options[key]['position'].split(',')[1]), self.options[key]['text'], fontdict = ast.literal_eval(self.options[key]['fontdict']), **self.options[key].get('attributes', {}))
         elif self.dim == 3:
-          self.plt3D.text(float(self.options[key]['position'].split(',')[0]), float(self.options[key]['position'].split(',')[1]), float(self.options[key]['position'].split(',')[2]), self.options[key]['text'], fontdict = ast.literal_eval(self.options[key]['fontdict']), withdash = ast.literal_eval(self.options[key]['withdash']), **self.options[key].get('attributes', {}))
+          self.plt3D.text(float(self.options[key]['position'].split(',')[0]), float(self.options[key]['position'].split(',')[1]), float(self.options[key]['position'].split(',')[2]), self.options[key]['text'], fontdict = ast.literal_eval(self.options[key]['fontdict']), **self.options[key].get('attributes', {}))
       elif key == 'autoscale':
         if 'enable' not in self.options[key].keys():
           self.options[key]['enable'] = 'True'
-        elif self.options[key]['enable'].lower() in utils.stringsThatMeanTrue():
+        elif utils.stringIsTrue(self.options[key]['enable']):
           self.options[key]['enable'] = 'True'
-        elif self.options[key]['enable'].lower() in utils.stringsThatMeanFalse():
+        elif utils.stringIsFalse(self.options[key]['enable']):
           self.options[key]['enable'] = 'False'
         if 'axis' not in self.options[key].keys():
           self.options[key]['axis'] = 'both'
@@ -620,9 +618,9 @@ class OutStreamPlot(OutStreamManager):
       elif key == 'grid':
         if 'b' not in self.options[key].keys():
           self.options[key]['b'] = 'off'
-        if self.options[key]['b'].lower() in utils.stringsThatMeanTrue():
+        if utils.stringIsTrue(self.options[key]['b']):
           self.options[key]['b'] = 'on'
-        elif self.options[key]['b'].lower() in utils.stringsThatMeanFalse():
+        elif utils.stringIsFalse(self.options[key]['b']):
           self.options[key]['b'] = 'off'
         if 'which' not in self.options[key].keys():
           self.options[key]['which'] = 'major'
@@ -719,9 +717,9 @@ class OutStreamPlot(OutStreamManager):
         self.options[key]['edgecolor'] = 'None'
       if 'frameon' not in self.options[key].keys():
         self.options[key]['frameon'  ] = 'True'
-      elif self.options[key]['frameon'].lower() in utils.stringsThatMeanTrue():
+      elif utils.stringIsTrue(self.options[key]['frameon']):
         self.options[key]['frameon'] = 'True'
-      elif self.options[key]['frameon'].lower() in utils.stringsThatMeanFalse():
+      elif utils.stringIsFalse(self.options[key]['frameon']):
         self.options[key]['frameon'] = 'False'
       self.fig = plt.figure(self.name, figsize = self.options[key]['figsize'], dpi = ast.literal_eval(self.options[key]['dpi']), facecolor = self.options[key]['facecolor'], edgecolor = self.options[key]['edgecolor'], frameon = ast.literal_eval(self.options[key]['frameon']), **self.options[key].get('attributes', {}))
     else:
@@ -960,8 +958,6 @@ class OutStreamPlot(OutStreamManager):
             plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]])
           else:
             self.plt3D = plt.subplot(self.gridSpace[x[0]:x[-1], y[0]:y[-1]], projection = '3d')
-      elif self.dim == 3:
-        self.plt3D = plt.subplot(111, projection='3d')
 
       # calling "plt.hold" has been deprecated.
       # If the figure isn't cleared (or a new figure opened), it will keep adding plots.
@@ -1117,7 +1113,6 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        #self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         try:
                           self.actcm.draw_all()
                         except:
@@ -1135,7 +1130,8 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                 else:
                   if 'color' not in scatterPlotOptions:
@@ -1158,7 +1154,6 @@ class OutStreamPlot(OutStreamManager):
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                         else:
-                          #self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                           self.actcm.draw_all()
                     else:
                       scatterPlotOptions['cmap'] = plotSettings['cmap']
@@ -1170,7 +1165,8 @@ class OutStreamPlot(OutStreamManager):
                           self.actcm = self.fig.colorbar(m)
                           self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                         else:
-                          self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                          m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                          m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                           self.actcm.draw_all()
                   else:
                     if 'color' not in scatterPlotOptions:
@@ -1207,7 +1203,6 @@ class OutStreamPlot(OutStreamManager):
                     if self.actcm is None:
                       self.actcm = self.fig.colorbar(cmap)
                       self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
-                      # self.actcm.set_clim(vmin = minV, vmax = maxV)
                     else:
                       self.actcm.draw_all()
                 else:
@@ -1223,7 +1218,6 @@ class OutStreamPlot(OutStreamManager):
                       if self.actcm is None:
                         self.actcm = self.fig.colorbar(cmap)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
-                        # self.actcm.set_clim(vmin = minV, vmax = maxV)
                       else:
                         self.actcm.draw_all()
                   else:
@@ -1294,7 +1288,7 @@ class OutStreamPlot(OutStreamManager):
             except:
               colorss = plotSettings['color']
             if self.dim == 2:
-              plt.hist(self.xValues[pltIndex][key][xIndex], bins = ast.literal_eval(plotSettings['bins']), normed = ast.literal_eval(plotSettings['normed']), weights = ast.literal_eval(plotSettings['weights']),
+              plt.hist(self.xValues[pltIndex][key][xIndex], bins = ast.literal_eval(plotSettings['bins']), density = ast.literal_eval(plotSettings['normed']), weights = ast.literal_eval(plotSettings['weights']),
                             cumulative = ast.literal_eval(plotSettings['cumulative']), histtype = plotSettings['histtype'], align = plotSettings['align'],
                             orientation = plotSettings['orientation'], rwidth = ast.literal_eval(plotSettings['rwidth']), log = ast.literal_eval(plotSettings['log']),
                             color = colorss, stacked = ast.literal_eval(plotSettings['stacked']), **plotSettings.get('attributes', {}))
@@ -1334,7 +1328,9 @@ class OutStreamPlot(OutStreamManager):
           for xIndex in range(len(self.xValues[pltIndex][key])):
             for yIndex in range(len(self.yValues[pltIndex][key])):
               if self.dim == 2:
-                self.actPlot = plt.stem(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], linefmt = plotSettings['linefmt'], markerfmt = plotSettings['markerfmt'], basefmt = plotSettings['linefmt'], **plotSettings.get('attributes', {}))
+                self.actPlot = plt.stem(self.xValues[pltIndex][key][xIndex], self.yValues[pltIndex][key][yIndex], linefmt = plotSettings['linefmt'],
+                                        markerfmt = plotSettings['markerfmt'], basefmt = plotSettings['linefmt'],
+                                        use_line_collection=True, **plotSettings.get('attributes', {}))
               elif self.dim == 3:
                 # it is a basic stem plot constructed using a standard line plot. For now we do not use the previous defined keywords...
                 for zIndex in range(len(self.zValues[pltIndex][key])):
@@ -1445,7 +1441,8 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                   else:
                     if plotSettings['cmap'] == 'None':
@@ -1510,7 +1507,8 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                   else:
                     if plotSettings['cmap'] != 'None':
@@ -1561,7 +1559,8 @@ class OutStreamPlot(OutStreamManager):
                         self.actcm = self.fig.colorbar(m)
                         self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                       else:
-                        self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                        m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                        m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                         self.actcm.draw_all()
                   else:
                     if plotSettings['cmap'] == 'None':
@@ -1620,7 +1619,8 @@ class OutStreamPlot(OutStreamManager):
                       self.actcm = plt.colorbar(self.actPlot, shrink = 0.8, extend = 'both')
                       self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                     else:
-                      self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                      m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                      m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                       self.actcm.draw_all()
         elif self.dim == 3:
           self.raiseAWarning('contour/filledContour is a 2-D plot, where x,y are the surface coordinates and colorMap vector is the array to visualize!\n               contour3D/filledContour3D are 3-D! ')
@@ -1667,14 +1667,15 @@ class OutStreamPlot(OutStreamManager):
                   else:
                     if plotSettings['cmap'] == 'None':
                       plotSettings['cmap'] = 'jet'
-                    self.actPlot = self.plt3D.contourf3D(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins, extend3d = ext3D, cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), **plotSettings.get('attributes', {}))
+                    self.actPlot = self.plt3D.contourf3D(xig, yig, ma.masked_where(np.isnan(Ci), Ci), nbins, cmap = matplotlib.cm.get_cmap(name = plotSettings['cmap']), **plotSettings.get('attributes', {}))
                   plt.clabel(self.actPlot, inline = 1, fontsize = 10)
                   if 'colorbar' not in self.options.keys() or self.options['colorbar']['colorbar'] != 'off':
                     if first:
                       self.actcm = plt.colorbar(self.actPlot, shrink = 0.8, extend = 'both')
                       self.actcm.set_label(self.colorMapCoordinates[pltIndex][0].split('|')[-1].replace(')', ''))
                     else:
-                      self.actcm.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
+                      m = matplotlib.cm.ScalarMappable(cmap = self.actPlot.cmap, norm = self.actPlot.norm)
+                      m.set_clim(vmin = min(self.colorMapValues[pltIndex][key][-1]), vmax = max(self.colorMapValues[pltIndex][key][-1]))
                       self.actcm.draw_all()
       ########################
       #   DataMining PLOT    #

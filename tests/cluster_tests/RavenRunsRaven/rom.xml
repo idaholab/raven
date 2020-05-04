@@ -47,7 +47,7 @@
         <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
         <outputExportOutStreams>outputMontecarloRom_dump,outputMontecarloRomHS_dump</outputExportOutStreams>
         <conversion>
-          <module source="Rom/testConversionModule.py">
+          <module source="testConversionModule.py">
             <variables>Models|ROM@subType:SciKitLearn@name:ROM1|C</variables>
           </module>
         </conversion>

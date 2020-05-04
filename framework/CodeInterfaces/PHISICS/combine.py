@@ -16,8 +16,6 @@ Created on March 8th 2018
 @author: rouxpn
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 import os
 import re
 import csv

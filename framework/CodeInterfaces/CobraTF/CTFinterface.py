@@ -17,8 +17,6 @@ July 2018
 """
 
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 from ctfdata import ctfdata
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from GenericCodeInterface import GenericParser

@@ -18,8 +18,6 @@ Created on Apr 20, 2015
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -32,6 +30,7 @@ import bisect
 from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
+_starttime = time.time()
 
 #custom exceptions
 class NoMoreSamplesNeeded(GeneratorExit):
@@ -168,7 +167,7 @@ class MessageHandler(object):
       @ In, None
       @ Out, None
     """
-    self.starttime    = time.time()
+    self.starttime    = _starttime
     self.printTag     = 'MESSAGE HANDLER'
     self.verbosity    = None
     self.suppressErrs = False
@@ -196,7 +195,7 @@ class MessageHandler(object):
     self.verbosity     = initDict.get('verbosity','all').lower()
     self.callerLength  = initDict.get('callerLength',40)
     self.tagLength     = initDict.get('tagLength',30)
-    self.suppressErrs  = initDict['suppressErrs'] in utils.stringsThatMeanTrue() if 'suppressErrs' in initDict.keys() else False
+    self.suppressErrs  = utils.stringIsTrue(initDict.get('suppressErrs', 'False'))
 
   def printWarnings(self):
     """
@@ -236,11 +235,11 @@ class MessageHandler(object):
       @ In, msg, string, the string that means true or false
       @ Out, None
     """
-    if msg.lower() in utils.stringsThatMeanTrue():
+    if utils.stringIsTrue(msg):
       self.callerLength = 40
       self.tagLength = 30
       self.printTime = True
-    elif msg.lower() in utils.stringsThatMeanFalse():
+    elif utils.stringIsFalse(msg):
       self.callerLength = 25
       self.tagLength = 15
       self.printTime = False
@@ -251,7 +250,7 @@ class MessageHandler(object):
       @ In, inColor, string, boolean value
       @ Out, None
     """
-    if inColor.lower() in utils.stringsThatMeanTrue():
+    if utils.stringIsTrue(inColor):
       self.inColor = True
 
   def getStringFromCaller(self,obj):
@@ -391,3 +390,14 @@ class MessageHandler(object):
         msgend = self.paint(msgend,self.colorDict[tag.lower()])
     msg+=msgend
     return msg
+
+def timePrint(message):
+  """
+    Prints the time since start then the message
+    @ In, message, string
+    @ Out, None
+  """
+  curtime = time.time()-_starttime
+  msg = ''
+  msg+='('+'{:8.2f}'.format(curtime)+' sec) '
+  print(msg + message)

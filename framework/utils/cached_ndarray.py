@@ -18,16 +18,12 @@ Created on Feb 4, 2015
 """
 #----- python 2 - 3 compatibility
 from __future__ import division, print_function, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #----- end python 2 - 3 compatibility
 #External Modules------------------------------------------------------------------------------------
 import sys
 import threading
 from numpy import ndarray
 import numpy as np
-import xarray as xr
-import pandas as pd
 lock = threading.Lock()
 #External Modules End--------------------------------------------------------------------------------
 

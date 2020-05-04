@@ -19,8 +19,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -30,7 +28,7 @@ import copy
 
 #Internal Modules------------------------------------------------------------------------------------
 from .ForwardSampler import ForwardSampler
-from utils import InputData, utils, mathUtils
+from utils import InputData, InputTypes, utils, mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CustomSampler(ForwardSampler):
@@ -48,16 +46,16 @@ class CustomSampler(ForwardSampler):
         specifying input of cls.
     """
     inputSpecification = super(CustomSampler, cls).getInputSpecification()
-    sourceInput = InputData.parameterInputFactory("Source", contentType=InputData.StringType)
-    sourceInput.addParam("type", InputData.StringType)
-    sourceInput.addParam("class", InputData.StringType)
+    sourceInput = InputData.parameterInputFactory("Source", contentType=InputTypes.StringType)
+    sourceInput.addParam("type", InputTypes.StringType)
+    sourceInput.addParam("class", InputTypes.StringType)
     inputSpecification.addSub(sourceInput)
 
-    inputSpecification.addSub(InputData.parameterInputFactory('index', contentType=InputData.IntegerListType))
+    inputSpecification.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.IntegerListType))
 
     # add "nameInSource" attribute to <variable>
     var = inputSpecification.popSub('variable')
-    var.addParam("nameInSource", InputData.StringType, required=False)
+    var.addParam("nameInSource", InputTypes.StringType, required=False)
     inputSpecification.addSub(var)
 
     return inputSpecification
@@ -86,27 +84,41 @@ class CustomSampler(ForwardSampler):
     """
     #TODO remove using xmlNode
     self.readSamplerInit(xmlNode)
+    paramInput = self.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+
     self.nameInSource = {}
-    for child in xmlNode:
-      if child.tag == 'variable':
+    for child in paramInput.subparts:
+      if child.getName() == 'variable':
         # acquire name
-        name = child.attrib['name']
+        name = child.parameterValues['name']
         # check for an "alias" source name
-        self.nameInSource[name] = child.attrib.get('nameInSource',name)
+        self.nameInSource[name] = child.parameterValues.get('nameInSource',name)
         # determine if a sampling function is used
-        funct = child.find("function")
+        funct = child.findFirst("function")
         if funct is None:
           # custom samples use a "custom" distribution
           self.toBeSampled[name] = 'custom'
         else:
-          self.dependentSample[name] = funct.text.strip()
-      elif child.tag == 'Source'  :
-        if child.attrib['class'] not in ['Files','DataObjects']:
-          self.raiseAnError(IOError, "Source class attribute must be either 'Files' or 'DataObjects'!!!")
-      elif child.tag == 'index':
-        self.indexes = list(int(x) for x in child.text.split(','))
+          self.dependentSample[name] = funct.value
+
+      elif child.getName() == 'constant':
+        name, value = self._readInConstant(child)
+        self.constants[name] = value
+
+      elif child.getName() == 'Source':
+        okaySourceClasses = ['Files', 'DataObjects']
+        sourceClass = child.parameterValues.get('class')
+        if sourceClass not in okaySourceClasses:
+          self.raiseAnError(IOError, ('For CustomSampler "{name}" node "<Source>" with attribute ' +
+                                      '"class", received "{got}" but must be one of {okay}!')
+                                      .format(name=self.name, got=sourceClass, okay=okaySourceClasses))
+
+      elif child.getName() == 'index':
+        self.indexes = child.value
+
     if len(self.toBeSampled.keys()) == 0:
-      self.raiseAnError(IOError,"no variables got inputted!!!!!!")
+      self.raiseAnError(IOError, 'CustomSampler "{}" has no variables to sample!'.format(self.name))
 
   def _localWhatDoINeed(self):
     """

@@ -18,8 +18,6 @@ Created on Nov 14, 2013
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3-------------------------------------------
 
 #External Modules---------------------------------------------------------------
@@ -79,7 +77,7 @@ class OutStreamManager(BaseType):
       In case of a code the syntax is specified by the code interface itself
     """
     if 'overwrite' in xmlNode.attrib.keys():
-      if xmlNode.attrib['overwrite'].lower() in utils.stringsThatMeanTrue():
+      if utils.stringIsTrue(xmlNode.attrib['overwrite']):
         self.overwrite = True
       else:
         self.overwrite = False

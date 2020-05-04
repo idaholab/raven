@@ -3,8 +3,6 @@ Created on September 1st, 2017
 @author: rouxpn
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 import os
 from decimal import Decimal
 import xml.etree.ElementTree as ET

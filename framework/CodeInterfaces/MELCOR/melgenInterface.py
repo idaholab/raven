@@ -18,8 +18,6 @@
   It is not an interface that can work on its own
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 from utils import utils

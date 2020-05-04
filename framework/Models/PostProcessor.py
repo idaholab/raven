@@ -16,8 +16,6 @@ Module where the base class and the specialization of different type of Model ar
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -28,6 +26,7 @@ import inspect
 #Internal Modules------------------------------------------------------------------------------------
 from .Model import Model
 from utils import utils
+from Decorators.Parallelization import Parallel
 import PostProcessors
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -150,7 +149,6 @@ class PostProcessor(Model):
     """
     self.workingDir = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
     self.interface.initialize(runInfo, inputs, initDict)
-    self.mods = self.mods + list(set(utils.returnImportModuleString(inspect.getmodule(PostProcessors),True)) - set(self.mods))
     self.inputCheckInfo = [(inp.name, inp.type) for inp in inputs]
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
@@ -166,8 +164,9 @@ class PostProcessor(Model):
         @ Out, None
     """
     kwargs['forceThreads'] = True
-    Model.submit(self,myInput, samplerType, jobHandler,**kwargs)
+    Model.submit(self,myInput, samplerType, jobHandler, **kwargs)
 
+  @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters

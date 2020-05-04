@@ -17,8 +17,6 @@ Created on July 10, 2013
 @author: alfoa
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -29,7 +27,6 @@ import copy
 import math
 from collections import OrderedDict, defaultdict
 import time
-from sklearn.linear_model import LinearRegression
 import importlib
 import abc
 import six
@@ -50,7 +47,6 @@ import Files
 import Models
 import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class InterfacedPostProcessor(PostProcessor):
@@ -209,7 +205,5 @@ class InterfacedPostProcessor(PostProcessor):
       @ Out, None
     """
     evaluations = finishedJob.getEvaluation()
-    if isinstance(evaluations, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
     evaluation = evaluations[1]
     output.load(evaluation['data'], style='dict', dims=evaluation['dims'])

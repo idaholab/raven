@@ -16,8 +16,6 @@ Module where the base class and the specialization of different type of Model ar
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -32,8 +30,7 @@ import importlib
 from BaseClasses import BaseType
 from utils import utils
 from Assembler import Assembler
-from utils import InputData
-import Runners
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
@@ -62,12 +59,12 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         specifying input of cls.
     """
     inputSpecification = super(Model, cls).getInputSpecification()
-    inputSpecification.addParam("subType", InputData.StringType, True)
+    inputSpecification.addParam("subType", InputTypes.StringType, True)
 
     ## Begin alias tag
-    AliasInput = InputData.parameterInputFactory("alias", contentType=InputData.StringType)
-    AliasInput.addParam("variable", InputData.StringType, True)
-    AliasTypeInput = InputData.makeEnumType("aliasType","aliasTypeType",["input","output"])
+    AliasInput = InputData.parameterInputFactory("alias", contentType=InputTypes.StringType)
+    AliasInput.addParam("variable", InputTypes.StringType, True)
+    AliasTypeInput = InputTypes.makeEnumType("aliasType","aliasTypeType",["input","output"])
     AliasInput.addParam("type", AliasTypeInput, True)
     inputSpecification.addSub(AliasInput)
     ## End alias tag
@@ -128,12 +125,13 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                 'Sobol',
                                                 'AdaptiveSobol',
                                                 'EnsembleForward',
-                                                'CustomSampler']
+                                                'CustomSampler',
+                                                'AdaptiveMonteCarlo']
   validateDict['Optimizer'].append(testDict.copy())
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference','ConjugateGradient']
+  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference','ConjugateGradient','SimulatedAnnealing']
 
   @classmethod
   def generateValidateDict(cls):
@@ -389,7 +387,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler, forceUseThreads=forceThreads)
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, uniqueHandler=uniqueHandler, forceUseThreads=forceThreads)
 
   def addOutputFromExportDictionary(self,exportDict,output,options,jobIdentifier):
     """

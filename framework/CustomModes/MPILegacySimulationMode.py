@@ -16,14 +16,14 @@ Module that contains a SimulationMode for PBSPro and mpiexec
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 import os
 import math
 import string
 import Simulation
+
+from utils import utils
 
 #For the mode information
 modeName = "mpilegacy"
@@ -247,7 +247,7 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
           self.__maxOnNode = int(self.__maxOnNode)
         else:
           self.raiseAnError(IOError, "maxOnNode must be specified with LimitNode")
-        if "noOverlap" in child.attrib and child.attrib["noOverlap"].lower() in utils.stringsThatMeanTrue():
+        if utils.stringIsTrue(child.attrib.get("noOverlap", None)):
           self.__noOverlap = True
       else:
         self.raiseADebug("We should do something with child "+str(child))

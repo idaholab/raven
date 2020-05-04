@@ -17,11 +17,7 @@ Created on October 28, 2015
 """
 
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
-
-
 import os
 import numpy as np
 from scipy import interpolate

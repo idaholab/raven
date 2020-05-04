@@ -16,8 +16,6 @@ Module that contains the driver for the whole the simulation flow (Simulation Cl
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -586,7 +584,7 @@ class Simulation(MessageHandler.MessageUser):
         if len(text) >= 4 and text[-4:].lower() == '.xml':
           text = text[:-4]
         # if the user asked to not print input instead of leaving off tag, respect it
-        if text.lower() in utils.stringsThatMeanFalse():
+        if utils.stringIsFalse(text):
           self.runInfoDict['printInput'] = False
         # if the user didn't provide a name, provide a default
         elif len(text)<1:
@@ -663,7 +661,7 @@ class Simulation(MessageHandler.MessageUser):
       elif element.tag == 'deleteOutExtension':
         self.runInfoDict['deleteOutExtension'] = element.text.strip().split(',')
       elif element.tag == 'delSucLogFiles'    :
-        if element.text.lower() in utils.stringsThatMeanTrue():
+        if utils.stringIsTrue(element.text):
           self.runInfoDict['delSucLogFiles'    ] = True
         else:
           self.runInfoDict['delSucLogFiles'    ] = False

@@ -17,8 +17,6 @@ Created on Sept 10, 2017
 @author: alfoa
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
@@ -123,7 +121,7 @@ class RAVENparser():
         # this is the absolute path of the file on the system
         absPath = os.path.abspath(os.path.expanduser(os.path.join(workingDir, subDirectory, child.text.strip())))
         # is this file meant to be perturbed? Default to true.
-        perturbable = child.attrib.get('perturbable', 'true').lower() in utils.stringsThatMeanTrue()
+        perturbable = utils.stringIsTrue(child.attrib.get('perturbable', 't'))
         if perturbable:
           # since it will be perturbed, track it so we can copy it to the eventual inner workdir
           slaveFiles.append(absPath)

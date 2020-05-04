@@ -17,8 +17,6 @@
 """
 
 from __future__ import division, print_function, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import lxml.etree as ET

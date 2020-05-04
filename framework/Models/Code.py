@@ -16,8 +16,6 @@ Module where the base class and the specialization of different type of Model ar
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -35,11 +33,11 @@ import numpy as np
 #Internal Modules------------------------------------------------------------------------------------
 from .Model import Model
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
+from Decorators.Parallelization import Parallel
 import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 import Files
 from DataObjects import Data
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Code(Model):
@@ -59,30 +57,30 @@ class Code(Model):
     """
     inputSpecification = super(Code, cls).getInputSpecification()
     inputSpecification.setStrictMode(False) #Code interfaces can allow new elements.
-    inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("walltime", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("executable", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("walltime", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("preexec", contentType=InputTypes.StringType))
 
     ## Begin command line arguments tag
     ClargsInput = InputData.parameterInputFactory("clargs")
 
-    ClargsTypeInput = InputData.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend","python"])
+    ClargsTypeInput = InputTypes.makeEnumType("clargsType","clargsTypeType",["text","input","output","prepend","postpend","python"])
     ClargsInput.addParam("type", ClargsTypeInput, True)
 
-    ClargsInput.addParam("arg", InputData.StringType, False)
-    ClargsInput.addParam("extension", InputData.StringType, False)
-    ClargsInput.addParam("delimiter", InputData.StringType, False)
+    ClargsInput.addParam("arg", InputTypes.StringType, False)
+    ClargsInput.addParam("extension", InputTypes.StringType, False)
+    ClargsInput.addParam("delimiter", InputTypes.StringType, False)
     inputSpecification.addSub(ClargsInput)
     ## End command line arguments tag
 
     ## Begin file arguments tag
     FileargsInput = InputData.parameterInputFactory("fileargs")
 
-    FileargsTypeInput = InputData.makeEnumType("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
+    FileargsTypeInput = InputTypes.makeEnumType("fileargsType", "fileargsTypeType",["input","output","moosevpp"])
     FileargsInput.addParam("type", FileargsTypeInput, True)
 
-    FileargsInput.addParam("arg", InputData.StringType, False)
-    FileargsInput.addParam("extension", InputData.StringType, False)
+    FileargsInput.addParam("arg", InputTypes.StringType, False)
+    FileargsInput.addParam("extension", InputTypes.StringType, False)
     inputSpecification.addSub(FileargsInput)
     ## End file arguments tag
 
@@ -103,25 +101,26 @@ class Code(Model):
     cls.validateDict['Input'  ][0]['required'    ] = False
     cls.validateDict['Input'  ][0]['multiplicity'] = 'n'
 
-  def __init__(self,runInfoDict):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
       @ Out, None
     """
     Model.__init__(self,runInfoDict)
-    self.executable         = ''   #name of the executable (abs path)
-    self.preExec            = None   #name of the pre-executable, if any
-    self.oriInputFiles      = []   #list of the original input files (abs path)
-    self.workingDir         = ''   #location where the code is currently running
-    self.outFileRoot        = ''   #root to be used to generate the sequence of output files
-    self.currentInputFiles  = []   #list of the modified (possibly) input files (abs path)
-    self.codeFlags          = None #flags that need to be passed into code interfaces(if present)
-    self.printTag           = 'CODE MODEL'
-    self.createWorkingDir   = True
-    self.foundExecutable    = True # True indicates the executable is found, otherwise not found
-    self.foundPreExec       = True # True indicates the pre-executable is found, otherwise not found
-    self.maxWallTime        = None # If set, this indicates the maximum CPU time a job can take.
+    self.executable = ''         # name of the executable (abs path)
+    self.preExec = None          # name of the pre-executable, if any
+    self.oriInputFiles = []      # list of the original input files (abs path)
+    self.workingDir = ''         # location where the code is currently running
+    self.outFileRoot = ''        # root to be used to generate the sequence of output files
+    self.currentInputFiles = []  # list of the modified (possibly) input files (abs path)
+    self.codeFlags = None        # flags that need to be passed into code interfaces(if present)
+    self.printTag = 'CODE MODEL'
+    self.createWorkingDir = True
+    self.foundExecutable = True  # True indicates the executable is found, otherwise not found
+    self.foundPreExec = True     # True indicates the pre-executable is found, otherwise not found
+    self.maxWallTime = None      # If set, this indicates the maximum CPU time a job can take.
+    self._ravenWorkingDir = runInfoDict['WorkingDir']
 
   def _readMoreXML(self,xmlNode):
     """
@@ -226,7 +225,7 @@ class Code(Model):
     if self.executable == '':
       self.raiseAWarning('The node "<executable>" was not found in the body of the code model '+str(self.name)+' so no code will be run...')
     else:
-      if os.environ.get('RAVENinterfaceCheck','False').lower() in utils.stringsThatMeanFalse():
+      if utils.stringIsFalse(os.environ.get('RAVENinterfaceCheck','False')):
         if '~' in self.executable:
           self.executable = os.path.expanduser(self.executable)
         abspath = os.path.abspath(str(self.executable))
@@ -236,7 +235,7 @@ class Code(Model):
           self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
       else:
         self.foundExecutable = False
-        self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
+        self.raiseAMessage('InterfaceCheck: ignored executable '+self.executable, 'ExceptedError')
     if self.preExec is not None:
       if '~' in self.preExec:
         self.preExec = os.path.expanduser(self.preExec)
@@ -246,8 +245,8 @@ class Code(Model):
       else:
         self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
-    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType,self)
-    self.code.readMoreXML(xmlNode) #TODO figure out how to handle this with InputData
+    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType, self)
+    self.code.readMoreXML(xmlNode, self._ravenWorkingDir) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
     self.code.addDefaultExtension()
@@ -299,7 +298,7 @@ class Code(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    self.workingDir               = os.path.join(runInfoDict['WorkingDir'],runInfoDict['stepName']) #generate current working dir
+    self.workingDir = os.path.join(runInfoDict['WorkingDir'], runInfoDict['stepName']) #generate current working dir
     runInfoDict['TempWorkingDir'] = self.workingDir
     self.oriInputFiles = []
     for inputFile in inputFiles:
@@ -314,8 +313,8 @@ class Code(Model):
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
       self.oriInputFiles[-1].setPath(subSubDirectory)
-    self.currentInputFiles        = None
-    self.outFileRoot              = None
+    self.currentInputFiles = None
+    self.outFileRoot = None
     if not self.foundExecutable:
       path = os.path.join(runInfoDict['WorkingDir'],self.executable)
       if os.path.exists(path):
@@ -461,6 +460,7 @@ class Code(Model):
           return commandSplit
     return origCommand
 
+  @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
@@ -550,10 +550,11 @@ class Code(Model):
         localenv[key]=str(value)
     elif not self.code.getRunOnShell():
       command = self._expandCommand(command)
+    ## reset python path
+    localenv.pop('PYTHONPATH',None)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
-
     if self.maxWallTime is not None:
       timeout = time.time() + self.maxWallTime
       while True:
@@ -732,10 +733,6 @@ class Code(Model):
     evaluation = finishedJob.getEvaluation()
 
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(AttributeError,"No available Output to collect")
-
-
     # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
     if evaluation.get('RAVEN_isBatch',False):
       for rlz in evaluation['realizations']:
@@ -836,10 +833,6 @@ class Code(Model):
       inKey = 'inputs'
       outKey = 'outputs'
 
-    # FIXME: this should be fixed with the new database
-    if output.type == 'HDF5':
-      self.raiseAnError(IOError, "Not yet implemented!")
-
     rlz = {}
     rlz.update(exportDict[inKey])
     rlz.update(exportDict[outKey])
@@ -903,5 +896,5 @@ class Code(Model):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, uniqueHandler=uniqueHandler)
     self.raiseAMessage('job "' + str(prefix) + '" submitted!')

@@ -20,8 +20,6 @@
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -39,7 +37,7 @@ import itertools
 from .Sobol import Sobol
 from .AdaptiveSparseGrid import AdaptiveSparseGrid
 from utils import utils
-from utils import InputData
+from utils import InputData, InputTypes
 import DataObjects
 import SupervisedLearning
 import Quadratures
@@ -48,7 +46,7 @@ import Models
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
+class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
   """
     Adaptive Sobol sampler to obtain points adaptively for training a HDMR ROM.
   """
@@ -69,21 +67,20 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     inputSpecification.popSub("convergenceStudy")
     convergenceInput = InputData.parameterInputFactory("Convergence")
 
-    convergenceInput.addSub(InputData.parameterInputFactory("relTolerance", contentType=InputData.FloatType))
-    convergenceInput.addSub(InputData.parameterInputFactory("maxRuns", contentType=InputData.IntegerType))
-    convergenceInput.addSub(InputData.parameterInputFactory("maxSobolOrder", contentType=InputData.IntegerType))
-    convergenceInput.addSub(InputData.parameterInputFactory("progressParam", contentType=InputData.FloatType))
-    convergenceInput.addSub(InputData.parameterInputFactory("logFile", contentType=InputData.StringType))
-    convergenceInput.addSub(InputData.parameterInputFactory("subsetVerbosity", contentType=InputData.StringType))
+    convergenceInput.addSub(InputData.parameterInputFactory("relTolerance", contentType=InputTypes.FloatType))
+    convergenceInput.addSub(InputData.parameterInputFactory("maxRuns", contentType=InputTypes.IntegerType))
+    convergenceInput.addSub(InputData.parameterInputFactory("maxSobolOrder", contentType=InputTypes.IntegerType))
+    convergenceInput.addSub(InputData.parameterInputFactory("progressParam", contentType=InputTypes.FloatType))
+    convergenceInput.addSub(InputData.parameterInputFactory("logFile", contentType=InputTypes.StringType))
+    convergenceInput.addSub(InputData.parameterInputFactory("subsetVerbosity", contentType=InputTypes.StringType))
 
     inputSpecification.addSub(convergenceInput)
 
     convergenceStudyInput = InputData.parameterInputFactory("convergenceStudy")
 
-    convergenceStudyInput.addSub(InputData.parameterInputFactory("runStatePoints", contentType=InputData.StringType))
-    convergenceStudyInput.addSub(InputData.parameterInputFactory("baseFilename", contentType=InputData.StringType))
+    convergenceStudyInput.addSub(InputData.parameterInputFactory("runStatePoints", contentType=InputTypes.StringType))
+    convergenceStudyInput.addSub(InputData.parameterInputFactory("baseFilename", contentType=InputTypes.StringType))
     convergenceStudyInput.addSub(InputData.parameterInputFactory("pickle"))
-    print(convergenceStudyInput.subs)
 
     inputSpecification.addSub(convergenceStudyInput)
 
@@ -95,6 +92,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       @ In, None
       @ Out, None
     """
+    AdaptiveSparseGrid.__init__(self)
     Sobol.__init__(self)
 
     #identification
@@ -149,8 +147,6 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.sorted          = []       #points that have been sorted into appropriate objects
     self.submittedNotCollected = [] #list of points that have been generated but not collected
     self.inTraining      = []       #usually just one tuple, unless multiple items in simultaneous training
-
-    self.addAssemblerObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """

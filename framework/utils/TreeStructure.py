@@ -18,8 +18,6 @@ Created on Jan 28, 2014
 
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 import xml.etree.ElementTree as ET
@@ -215,7 +213,7 @@ class InputNode:
     Node in an input tree.  Simulates all the behavior of an XML node.
   """
   #built-in functions
-  def __init__(self,tag='',attrib=None,text='',comment=None):
+  def __init__(self, tag='', attrib=None, text='', comment=None):
     """
       Constructor.
       @ In, tag, string, node name

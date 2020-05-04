@@ -20,7 +20,6 @@ Created on Mar 25, 2013
 from __future__ import division, print_function, unicode_literals, absolute_import
 import warnings
 from datetime import datetime
-warnings.simplefilter('default',DeprecationWarning)
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
@@ -535,7 +534,7 @@ class hdf5Database(MessageHandler.MessageUser):
       nVarsIntfloat      = group.attrs[b'nVarsIntfloat']
       varShapeIntfloat   = _loads(group.attrs[b'data_shapesIntfloat'])
       varKeysIntfloat    = _loads(group.attrs[b'data_namesIntfloat'])
-      begin, end          = _loads(group.attrs[b'data_begin_endIntfloat'])
+      begin, end         = _loads(group.attrs[b'data_begin_endIntfloat'])
       # Reconstruct the dataset
       newData = {key : np.reshape(dataSetIntFloat[begin[cnt]:end[cnt]], varShapeIntfloat[cnt]) for cnt,key in enumerate(varKeysIntfloat)}
     if hasOther:

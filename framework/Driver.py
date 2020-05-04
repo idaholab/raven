@@ -23,9 +23,12 @@ This is the Driver of RAVEN
 from __future__ import division, print_function, unicode_literals, absolute_import
 # if in debug mode, activate deprication warnings
 ## TODO does this need to be done in all modules, or just this one?
-if __debug__:
-  import warnings
-  warnings.simplefilter('default', DeprecationWarning)
+import warnings
+
+if not __debug__:
+  warnings.filterwarnings("ignore")
+else:
+  warnings.simplefilter("default", DeprecationWarning)
 
 import os
 import sys
@@ -47,13 +50,10 @@ sys.path.pop() #remove scripts path for cleanliness
 from utils import utils
 import utils.TreeStructure as TS
 utils.find_crow(frameworkDir)
-
-if sys.version_info.major == 2:
-  utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
-else:
-  utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp3'))
 utils.add_path(os.path.join(frameworkDir,'contrib','AMSC'))
 utils.add_path(os.path.join(frameworkDir,'contrib'))
+##TODO REMOVE PP3 WHEN RAY IS AVAILABLE FOR WINDOWS
+utils.add_path_recursively(os.path.join(frameworkDir,'contrib','pp'))
 #Internal Modules
 from Simulation import Simulation
 from Application import __QtAvailable

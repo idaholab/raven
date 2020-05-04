@@ -1,0 +1,60 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/ParetoFrontierPostProcessor.ParetoFrontier</name>
+    <author>mandd</author>
+    <created>2020-03-25</created>
+    <classesTested>Models.PostProcessors.ParetoFrontier</classesTested>
+    <description>
+      This post-processor identifies the points lying on the Pareto Frontier in a cost-value space
+    </description>
+  </TestInfo>
+  
+  <Files>
+    <Input name="data" type="">data.csv</Input>
+  </Files>
+  
+  <RunInfo>
+    <WorkingDir>ParetoFrontier</WorkingDir>
+    <Sequence>LoadPS,PP</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+  
+  <Models>
+    <PostProcessor name="paretoPP" subType="ParetoFrontier">
+      <costID>cost</costID>
+      <valueID>value</valueID>
+    </PostProcessor>   
+  </Models>
+
+  <Steps>
+    <IOStep      name='LoadPS'>
+      <Input     class='Files'        type=''                >data</Input>
+      <Output    class='DataObjects'  type='PointSet'        >candidates</Output>
+    </IOStep>
+    <PostProcess name="PP">
+      <Input     class="DataObjects"  type="PointSet"        >candidates</Input>
+      <Model     class="Models"       type="PostProcessor"   >paretoPP</Model>
+      <Output    class="DataObjects"  type="PointSet"        >paretoPoints</Output>
+      <Output    class="OutStreams"   type="Print"           >PrintPareto</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="PrintPareto">
+      <type>csv</type>
+      <source>paretoPoints</source>
+    </Print>
+  </OutStreams>
+  
+  <DataObjects>
+    <PointSet name="candidates">
+      <Input>var1,var2</Input>
+      <Output>cost,value</Output>
+    </PointSet>
+    <PointSet name="paretoPoints">
+      <Input>var1,var2</Input>
+      <Output>cost,value</Output>
+    </PointSet>
+  </DataObjects>
+  
+</Simulation>

@@ -16,8 +16,6 @@
   @author: Matteo Donorio (University of Rome La Sapienza)
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
 
 import os
 import copy
