@@ -116,6 +116,8 @@
    input = 'varma_heavy.xml'
    output = 'VARMAheavy/plot_VARMA.png VARMAheavy/plot_input.png VARMAheavy/stats.xml VARMAheavy/rommeta.xml VARMAheavy/rommeta.csv VARMAheavy/samples_0.csv'
    heavy = true
+   # 3/23/2020, on master, this test took ~342s
+   max_time = 450
     [./stats]
       type = OrderedCSV
       output = 'VARMAheavy/stats.csv'
@@ -173,6 +175,17 @@
       type = XML
       unordered = true
       output = 'ClusteredTruncated/romMeta.xml'
+      rel_err = 1e-5
+    [../]
+  [../]
+
+  [./ClusteredRand]
+    type = 'RavenFramework'
+    input = 'clustered_choice_rand.xml'
+    # signal test!
+    [./rom_meta]
+      type = OrderedCSV
+      output = 'ClusteredRand/samples_0.csv'
       rel_err = 1e-5
     [../]
   [../]

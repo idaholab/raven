@@ -46,7 +46,7 @@ import Models
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
+class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
   """
     Adaptive Sobol sampler to obtain points adaptively for training a HDMR ROM.
   """
@@ -92,6 +92,7 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
       @ In, None
       @ Out, None
     """
+    AdaptiveSparseGrid.__init__(self)
     Sobol.__init__(self)
 
     #identification
@@ -146,8 +147,6 @@ class AdaptiveSobol(Sobol,AdaptiveSparseGrid):
     self.sorted          = []       #points that have been sorted into appropriate objects
     self.submittedNotCollected = [] #list of points that have been generated but not collected
     self.inTraining      = []       #usually just one tuple, unless multiple items in simultaneous training
-
-    self.addAssemblerObject('TargetEvaluation','1')
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """

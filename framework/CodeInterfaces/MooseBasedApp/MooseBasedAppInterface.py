@@ -19,21 +19,27 @@ Created on April 14, 2014
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import os
-import copy
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import GenericParser
 import MooseData
-import csvUtilities
+import MOOSEparser
 
 class MooseBasedApp(CodeInterfaceBase):
   """
     this class is used as part of a code dictionary to specialize Model.Code for RAVEN
   """
   def __init__(self):
+    """
+      Constructor.
+      @ In, None
+      @ Out, None
+    """
     CodeInterfaceBase.__init__(self)
     self.outputPrefix = 'out~'
+    self.vectorPPFound = None # Indicates if a MOOSE vector postprocessor is in use
+    self.vectorPPDict = None  # Contains information about the postprocessor used
 
-  def generateCommand(self,inputFiles,executable,clargs=None,fargs=None,preExec=None):
+  def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
       Returns tuple of commands and base file name for run.
@@ -61,7 +67,7 @@ class MooseBasedApp(CodeInterfaceBase):
     returnCommand = executeCommand, outputfile
     return returnCommand
 
-  def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
+  def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
     """
       this generates a new input file depending on which sampler has been chosen
       @ In, currentInputFiles, list,  list of current input files (input files from last this method call)
@@ -71,15 +77,11 @@ class MooseBasedApp(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    import MOOSEparser
-    self._samplersDictionary                = {}
-    if 'dynamiceventtree' in str(samplerType).lower():
-      self._samplersDictionary[samplerType] = self.dynamicEventTreeForMooseBasedApp
-    else:
-      self._samplersDictionary[samplerType] = self.pointSamplerForMooseBasedApp
+    # TODO not currently maintained: dynamic event tree sampling for MOOSE applications
 
     found = False
     genericInput, genericOriInput = [], []
+    # identify modifyable input files
     for i, inputFile in enumerate(currentInputFiles):
       inFile = inputFile.getAbsFile()
       if inFile.endswith(self.getInputExtension()):
@@ -90,27 +92,81 @@ class MooseBasedApp(CodeInterfaceBase):
         genericOriInput.append(oriInputFiles[i])
     if not found:
       raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    outName = self.outputPrefix+currentInputFiles[index].getBase()
+    # build output file names # TODO this probably isn't necessary thanks to file structures anymore
+    outName = self.outputPrefix + currentInputFiles[index].getBase()
+    # get a parser for the input file
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
-    modifDict = {}
-    if 'None' not in str(samplerType):
-      modifDict = self._samplersDictionary[samplerType](**Kwargs)
-    #set up output
-    modifDict.append({'csv':'true','name':['Outputs']})
-    modifDict.append({'file_base':outName,'name':['Outputs']})
-    #make tree
-    parser.modifyOrAdd(modifDict,False)
-    #make input
-    parser.printInput(currentInputFiles[index].getAbsFile())
+    # apply the requested modifications
+    modifDict = self._expandVarNames(**Kwargs)
+    ### set up output to place in a csv
+    modifDict.append({'csv':'true', 'name':['Outputs', 'csv']})
+    modifDict.append({'file_base': outName, 'name':['Outputs', 'file_base']})
+    ### do modifications
+    modified = parser.modifyOrAdd(modifDict)
+    # write new input
+    parser.printInput(currentInputFiles[index].getAbsFile(), modified)
+    # I don't know what this is.
     self.vectorPPFound, self.vectorPPDict = parser.vectorPostProcessor()
-
+    # or this.
     if genericInput:
       parser = GenericParser.GenericParser(genericInput)
       parser.modifyInternalDictionary(**Kwargs)
-      parser.writeNewInput(genericInput,genericOriInput)
+      parser.writeNewInput(genericInput, genericOriInput)
 
     return currentInputFiles
 
+  def finalizeCodeOutput(self, command, output, workingDir):
+    """
+      this method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
+      It can be used for those codes, that do not create CSV files to convert the whatever output formats into a csv
+      @ In, command, string, the command used to run the just ended job
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, returnOut, string, optional, present in case the root of the output file gets changed in this method.
+    """
+    returnOut = output
+    if self.vectorPPFound:
+      returnOut = self.__mergeTime(output,workingDir)[0]
+    return returnOut
+
+  def __mergeTime(self, output, workingDir):
+    """
+      Merges the vector PP output files created with the MooseApp
+      @ In, output, string, the Output name root
+      @ In, workingDir, string, current working dir
+      @ Out, vppFiles, list, the list of files merged from the outputs of the vector PP
+    """
+    files2Merge, vppFiles  = [], []
+    for time in range(int(self.vectorPPDict['timeStep'][0])):
+      files2Merge.append(os.path.join(workingDir,str(output+self.mooseVPPFile+("%04d" % (time+1))+'.csv')))
+      outputObj = MooseData.mooseData(files2Merge,workingDir,output,self.mooseVPPFile)
+      vppFiles.append(os.path.join(workingDir,str(outputObj.vppFiles)))
+    return vppFiles
+
+  def _expandVarNames(self, **Kwargs):
+    """
+      This method will assure the full proper variable names are returned in a dictionary.
+      @ In, Kwargs, dict, keyworded dictionary. Arguments include:
+          - SampleVars, short name -> sampled value dictionary
+      @ Out, requests, list(dict), dictionaries contain:
+               'name': [path,to,name],
+               short varname: var value
+    """
+    requests = []
+    for var in Kwargs['SampledVars']:
+      modifDict = {}
+      # When are colons used? I don't see any in the user manual example.
+      request, = var.split(':')
+      if '|' not in request:
+        # what modifications don't have the path in them?
+        continue
+      pathedName = request.split('|')
+      modifDict['name'] = pathedName
+      modifDict[pathedName[-1]] = Kwargs['SampledVars'][var]
+      requests.append(modifDict)
+    return requests
+
+  # TODO neither of these are used here, but in the RELAP7 interface. Maybe they should be moved?
   def pointSamplerForMooseBasedApp(self,**Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
@@ -135,53 +191,3 @@ class MooseBasedApp(CodeInterfaceBase):
     """
     listDict = []
     raise IOError('dynamicEventTreeForMooseBasedApp not yet implemented')
-
-  def finalizeCodeOutput(self,command,output,workingDir):
-    """
-      this method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
-      It can be used for those codes, that do not create CSV files to convert the whatever output formats into a csv
-      @ In, command, string, the command used to run the just ended job
-      @ In, output, string, the Output name root
-      @ In, workingDir, string, current working dir
-      @ Out, returnOut, string, optional, present in case the root of the output file gets changed in this method.
-    """
-    returnOut = output
-    if self.vectorPPFound:
-      returnOut = self.__mergeTime(output,workingDir)[0]
-    return returnOut
-
-  def __mergeTime(self,output,workingDir):
-    """
-      Merges the vector PP output files created with the MooseApp
-      @ In, output, string, the Output name root
-      @ In, workingDir, string, current working dir
-      @ Out, vppFiles, list, the list of files merged from the outputs of the vector PP
-    """
-    files2Merge, vppFiles  = [], []
-    for time in range(int(self.vectorPPDict['timeStep'][0])):
-      files2Merge.append(os.path.join(workingDir,str(output+self.mooseVPPFile+("%04d" % (time+1))+'.csv')))
-      outputObj = MooseData.mooseData(files2Merge,workingDir,output,self.mooseVPPFile)
-      vppFiles.append(os.path.join(workingDir,str(outputObj.vppFiles)))
-    return vppFiles
-
-  def _expandVarNames(self,**Kwargs):
-    """
-      This method will assure the full proper variable names are returned in a dictionary.
-      @ In, Kwargs, dict, keyworded dictionary. Arguments include:
-          - SampleVars, short name -> sampled value dictionary
-      @ Out, listDict, list, list of dictionaries. The dictionaries contain:
-               ['name'][path,to,name]
-               [short varname][var value]
-    """
-    listDict=[]
-    modifDict={}
-    for var in Kwargs['SampledVars']:
-      key = var.split(':')
-      modifDict = {}
-      if '|' not in key[0]:
-        continue
-      modifDict['name'] = key[0].split('|')[:-1]
-      modifDict[key[0].split('|')[-1]] = Kwargs['SampledVars'][var]
-      listDict.append(modifDict)
-      del modifDict
-    return listDict

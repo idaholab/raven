@@ -26,7 +26,8 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import numpy as np
 import math
 import sys
-from sklearn import neighbors, svm
+import utils.importerUtils
+sklearn = utils.importerUtils.importModuleLazy("sklearn", globals())
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -295,7 +296,7 @@ class MSR(NDinterpolatorRom):
       self.__amsc[index].BuildLinearModels(self.simplification)
 
     # We need a KD-Tree for querying neighbors
-    self.kdTree = neighbors.KDTree(self.X)
+    self.kdTree = sklearn.neighbors.KDTree(self.X)
 
     distances,_ = self.kdTree.query(self.X,k=self.knn)
     distances = distances.flatten()
@@ -530,7 +531,7 @@ class MSR(NDinterpolatorRom):
         # In order to make this deterministic for testing purposes, let's fix
         # the random state of the SVM object. Maybe, this could be exposed to the
         # user, but it shouldn't matter too much what the seed is for this.
-        svc = svm.SVC(probability=True,random_state=np.random.RandomState(8),tol=1e-15)
+        svc = sklearn.svm.SVC(probability=True,random_state=np.random.RandomState(8),tol=1e-15)
         svc.fit(self.X,labels)
         probabilities = svc.predict_proba(featureVals)
 

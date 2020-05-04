@@ -54,62 +54,140 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     inputSpecification = super(Sampler, cls).getInputSpecification()
     # FIXME the DET HybridSampler doesn't use the "name" param for the samples it creates,
     #      so we can't require the name yet
-    inputSpecification.addParam("name", InputTypes.StringType)
+    # -> it's also in the base class ...
+    # inputSpecification.addParam("name", InputTypes.StringType)
 
-    outerDistributionInput = InputData.parameterInputFactory("Distribution")
-    outerDistributionInput.addParam("name", InputTypes.StringType)
-    outerDistributionInput.addSub(InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType))
-    inputSpecification.addSub(outerDistributionInput)
-
-    variableInput = InputData.parameterInputFactory("variable")
+    variableInput = InputData.parameterInputFactory("variable", printPriority=100,
+              descr='defines the input space variables to be sampled through various means.')
     # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
     # from StringType to StringNoLeadingSpacesType
-    variableInput.addParam("name", InputTypes.StringNoLeadingSpacesType)
-    variableInput.addParam("shape", InputTypes.IntegerListType, required=False)
-    distributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
-    distributionInput.addParam("dim", InputTypes.IntegerType)
-
+    variableInput.addParam("name", InputTypes.StringNoLeadingSpacesType,
+        descr=r"""user-defined name of this Sampler. \nb As for the other objects,
+              this is the name that can be used to refer to this specific entity from other input blocks""")
+    variableInput.addParam("shape", InputTypes.IntegerListType, required=False,
+        descr=r"""determines the number of samples and shape of samples
+              to be taken.  For example, \xmlAttr{shape}=``2,3'' will provide a 2 by 3
+              matrix of values, while \xmlAttr{shape}=``10'' will produce a vector of 10 values.
+              Omitting this optional attribute will result in a single scalar value instead.
+              Each of the values in the matrix or vector will be the same as the single sampled value.
+              \nb A model interface must be prepared to handle non-scalar inputs to use this option.""")
+    distributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType,
+        descr=r"""name of the distribution that is associated to this variable.
+              Its name needs to be contained in the \xmlNode{Distributions} block explained
+              in Section \ref{sec:distributions}. In addition, if NDDistribution is used,
+              the attribute \xmlAttr{dim} is required. \nb{Alternatively, this node must be omitted
+              if the \xmlNode{function} node is supplied.}""")
+    distributionInput.addParam("dim", InputTypes.IntegerType,
+        descr=r"""for an NDDistribution, indicates the dimension within the NDDistribution that corresponds
+              to this variable.""")
     variableInput.addSub(distributionInput)
-
-    functionInput = InputData.parameterInputFactory("function", contentType=InputTypes.StringType)
-
+    functionInput = InputData.parameterInputFactory("function", contentType=InputTypes.StringType,
+        descr=r"""name of the function that
+              defines the calculation of this variable from other distributed variables.  Its name
+              needs to be contained in the \xmlNode{Functions} block explained in Section
+              \ref{sec:functions}. This function must implement a method named ``evaluate''.
+              \nb{Each \xmlNode{variable} must contain only one \xmlNode{Function} or
+              \xmlNode{Distribution}, but not both.} """)
     variableInput.addSub(functionInput)
-
     inputSpecification.addSub(variableInput)
 
-    variablesTransformationInput = InputData.parameterInputFactory("variablesTransformation")
-    variablesTransformationInput.addParam('distribution', InputTypes.StringType)
+    # DEPRECATED; remove once tests are checked
+    # outerDistributionInput = InputData.parameterInputFactory("Distribution", descr=r"""As an alternative to providing
+    #     a \xmlNode{variable}, this node may be provided to generate a distribution from which samples can be taken.
+    #     This should not be confused with the \xmlNode{distribution} node within the \xmlNode{variable} node.""")
+    # outerDistributionInput.addParam("name", InputTypes.StringType, descr=r"""identifying name for this distribution in RAVEN.""")
+    # outerDistributionInput.addSub(InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType,
+    #     descr=r"""name of the distribution that is associated to this Distribution.
+    #           Its name needs to be contained in the \xmlNode{Distributions} block explained
+    #           in Section \ref{sec:distributions}. In addition, if NDDistribution is used,
+    #           the attribute \xmlAttr{dim} is required. \nb{Alternatively, this node must be omitted
+    #           if the \xmlNode{function} node is supplied.}"""))
+    # inputSpecification.addSub(outerDistributionInput)
 
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("latentVariables", contentType=InputTypes.StringListType))
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariables", contentType=InputTypes.StringListType))
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariablesIndex", contentType=InputTypes.StringListType))
-    variablesTransformationInput.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
-
-    inputSpecification.addSub(variablesTransformationInput)
-
-    constantInput = InputData.parameterInputFactory("constant", contentType=InputTypes.InterpretedListType)
+    constantInput = InputData.parameterInputFactory("constant", contentType=InputTypes.InterpretedListType,
+        printPriority=110,
+        descr=r"""allows variables that do not change value to be part of the input space.""")
     # Added by alfoa: the variable name is always considered a single string. If a comma is present, we remove any leading spaces here
     # from StringType to StringNoLeadingSpacesType
-    constantInput.addParam("name", InputTypes.StringNoLeadingSpacesType, True)
-    constantInput.addParam("shape", InputTypes.IntegerListType, required=False)
-    constantInput.addParam("source", InputTypes.StringType, required=False)
-    constantInput.addParam("index", InputTypes.IntegerType, required=False)
-
+    constantInput.addParam("name", InputTypes.StringNoLeadingSpacesType, required=True,
+        descr=r"""variable name for this constant, which will be provided to the Model. """)
+    constantInput.addParam("shape", InputTypes.IntegerListType, required=False,
+        descr=r"""determines the shape of samples of the constant value.
+              For example, \xmlAttr{shape}=``2,3'' will shape the values into a 2 by 3
+              matrix, while \xmlAttr{shape}=``10'' will shape into a vector of 10 values.
+              Unlike the \xmlNode{variable}, the constant requires each value be entered; the number
+              of required values is equal to the product of the \xmlAttr{shape} values, e.g. 6 entries for shape ``2,3'').
+              \nb A model interface must be prepared to handle non-scalar inputs to use this option. """)
+    constantInput.addParam("source", InputTypes.StringType, required=False,
+        descr=r"""the name of the DataObject containing the value to be used for this constant.
+              Requires \xmlNode{ConstantSource} node with a \xmlNode{DataObject} identified for this
+              Sampler/Optimizer.""")
+    constantInput.addParam("index", InputTypes.IntegerType, required=False,
+        descr=r"""the index of the realization in the \xmlNode{ConstantSource} \xmlNode{DataObject}
+                  containing the value for this constant. Requires \xmlNode{ConstantSource} node with
+                  a \xmlNode{DataObject} identified for this Sampler/Optimizer.""")
     inputSpecification.addSub(constantInput)
 
-    restartToleranceInput = InputData.parameterInputFactory("restartTolerance", contentType=InputTypes.FloatType)
-    inputSpecification.addSub(restartToleranceInput)
-
-    restartInput = InputData.parameterInputFactory("Restart", contentType=InputTypes.StringType)
-    restartInput.addParam("type", InputTypes.StringType)
-    restartInput.addParam("class", InputTypes.StringType)
-    inputSpecification.addSub(restartInput)
-
-    sourceInput = InputData.parameterInputFactory("ConstantSource", contentType=InputTypes.StringType)
-    sourceInput.addParam("type", InputTypes.StringType)
-    sourceInput.addParam("class", InputTypes.StringType)
+    sourceInput = InputData.parameterInputFactory("ConstantSource", contentType=InputTypes.StringType,
+        printPriority=111,
+        descr=r"""identifies a \xmlNode{DataObject} to provide \xmlNode{constant} values to the input
+              space of this entity while sampling. As an alternative to providing predefined values
+              for constants, the \xmlNode{ConstantSource} provides a dynamic means of always providing
+              the same value for a constant. This is often used as part of a larger multi-workflow
+              calculation.""")
+    sourceInput.addParam("class", InputTypes.StringType,
+        descr=r"""The RAVEN class for this source. Options include \xmlString{DataObject}. """)
+    sourceInput.addParam("type", InputTypes.StringType,
+        descr=r"""The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
+              such as HistorySet or PointSet.""")
     inputSpecification.addSub(sourceInput)
 
+    restartInput = InputData.parameterInputFactory("Restart", contentType=InputTypes.StringType,
+        printPriority=200,
+        descr=r"""name of a DataObject. Used to leverage existing data when sampling a model. For
+              example, if a Model has
+              already been sampled, but some samples were not collected, the successful samples can
+              be stored and used instead of rerunning the model for those specific samples. This RAVEN
+              entity definition must be a DataObject with contents including the input and output spaces
+              of the Model being sampled.""")
+    restartInput.addParam("class", InputTypes.StringType,
+        descr=r"""The RAVEN class for this source. Options include \xmlString{DataObject}. """)
+    restartInput.addParam("type", InputTypes.StringType,
+        descr=r"""The RAVEN type for this source. Options include any valid \xmlNode{DataObject} type,
+              such as HistorySet or PointSet.""")
+    inputSpecification.addSub(restartInput)
+
+    restartToleranceInput = InputData.parameterInputFactory("restartTolerance", contentType=InputTypes.FloatType,
+        printPriority=210,
+        descr=r"""specifies how strictly a matching point from a \xmlNode{Restart} DataObject must match
+              the desired sample point in order to be used. If a potential restart point is within a
+              relative Euclidean distance (as specified by the value in this node) of a desired sample point,
+              the restart point will be used instead of sampling the Model. \default{1e-15} """)
+    inputSpecification.addSub(restartToleranceInput)
+
+    variablesTransformationInput = InputData.parameterInputFactory("variablesTransformation",
+        printPriority=500,
+        descr=r"""Allows transformation of variables via translation matrices. This defines two spaces,
+              a ``latent'' transformed space sampled by RAVEN and a ``manifest'' original space understood
+              by the Model.""")
+    variablesTransformationInput.addParam('distribution', InputTypes.StringType,
+        descr=r"""the name for the distribution defined in the XML node \xmlNode{Distributions}.
+              This attribute indicates the values of \xmlNode{manifestVariables} are drawn from
+              \xmlAttr{distribution}. """)
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("latentVariables", contentType=InputTypes.StringListType,
+        descr=r"""user-defined latent variables that are used for the variables transformation.
+              All the variables listed under this node should be also mentioned in \xmlNode{variable}. """))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariables", contentType=InputTypes.StringListType,
+        descr=r"""user-defined manifest variables that can be used by the \xmlNode{Model}. """))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("manifestVariablesIndex", contentType=InputTypes.StringListType,
+        descr=r"""user-defined manifest variables indices paired with \xmlNode{manifestVariables}.
+              These indices indicate the position of manifest variables associated with multivariate normal
+              distribution defined in the XML node \xmlNode{Distributions}.
+              The indices should be postive integer. If not provided, the code will use the positions
+              of manifest variables listed in \xmlNode{manifestVariables} as the indices. """))
+    variablesTransformationInput.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType,
+        descr=r"""the method that is used for the variables transformation. The currently available method is \xmlString{pca}. """))
+    inputSpecification.addSub(variablesTransformationInput)
     return inputSpecification
 
   def __init__(self):
@@ -179,7 +257,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.raiseAnError(IOError,'Distribution '+self.toBeSampled[key]+' not found among available distributions (check input)!')
       self.distDict[key] = availableDist[self.toBeSampled[key]]
       self.inputInfo['crowDist'][key] = json.dumps(self.distDict[key].getCrowDistDict())
-    for key,val in self.dependentSample.items():
+    for key, val in self.dependentSample.items():
       if val not in availableFunc.keys():
         self.raiseAnError('Function',val,'was not found among the available functions:',availableFunc.keys())
       self.funcDict[key] = availableFunc[val]
@@ -254,48 +332,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.toBeSampled[prefix+child.parameterValues['name']] = toBeSampled
 
       elif child.getName() == 'variable':
-        # variable for tracking if distributions or functions have been declared
-        foundDistOrFunc = False
-        # store variable name for re-use
-        varName = child.parameterValues['name']
-        # set shape if present
-        if 'shape' in child.parameterValues:
-          self.variableShapes[varName] = child.parameterValues['shape']
-        # read subnodes
-        for childChild in child.subparts:
-          if childChild.getName() =='distribution':
-            # can only have a distribution if doesn't already have a distribution or function
-            if not foundDistOrFunc:
-              foundDistOrFunc = True
-            else:
-              self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function, or more than one of either!')
-            # name of the distribution to sample
-            toBeSampled = childChild.value
-            varData={}
-            varData['name']=childChild.value
-            # variable dimensionality
-            if 'dim' not in childChild.parameterValues:
-              dim=1
-            else:
-              dim=childChild.parameterValues['dim']
-            varData['dim']=dim
-            # set up mapping for variable to distribution
-            self.variables2distributionsMapping[varName] = varData
-            # flag distribution as needing to be sampled
-            self.toBeSampled[prefix+varName] = toBeSampled
-          elif childChild.getName() == 'function':
-            # can only have a function if doesn't already have a distribution or function
-            if not foundDistOrFunc:
-              foundDistOrFunc = True
-            else:
-              self.raiseAnError(IOError,'A sampled variable cannot have both a distribution and a function!')
-            # function name
-            toBeSampled = childChild.value
-            # track variable as a functional sample
-            self.dependentSample[prefix+varName] = toBeSampled
-
-        if not foundDistOrFunc:
-          self.raiseAnError(IOError,'Sampled variable',varName,'has neither a <distribution> nor <function> node specified!')
+        self._readInVariable(child, prefix)
 
       elif child.getName() == "variablesTransformation":
         transformationDict = {}
@@ -317,7 +354,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.variablesTransformationDict[child.parameterValues['distribution']] = transformationDict
 
       elif child.getName() == "constant":
-        name,value = self._readInConstant(child)
+        name, value = self._readInConstant(child)
         self.constants[name] = value
 
       elif child.getName() == "restartTolerance":
@@ -369,7 +406,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
     #Checking the variables transformation
     if self.variablesTransformationDict:
-      for dist,varsDict in self.variablesTransformationDict.items():
+      for dist, varsDict in self.variablesTransformationDict.items():
         maxDim = len(varsDict['manifestVariables'])
         listLatentElement = varsDict['latentVariables']
         if len(set(listLatentElement)) != len(listLatentElement):
@@ -399,7 +436,57 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.variablesTransformationDict[dist]['latentVariablesIndex'] = listIndex
     return paramInput
 
-  def _readInConstant(self,inp):
+  def _readInVariable(self, child, prefix):
+    """
+      Reads in a "variable" input parameter node.
+      @ In, child, utils.InputData.ParameterInput, input parameter node to read from
+      @ In, prefix, str, variable prefix, if any
+      @ Out, None
+    """
+    # variable for tracking if distributions or functions have been declared
+    foundDistOrFunc = False
+    # store variable name for re-use
+    varName = child.parameterValues['name']
+    # set shape if present
+    if 'shape' in child.parameterValues:
+      self.variableShapes[varName] = child.parameterValues['shape']
+    # read subnodes
+    for childChild in child.subparts:
+      if childChild.getName() == 'distribution':
+        # can only have a distribution if doesn't already have a distribution or function
+        if foundDistOrFunc:
+          self.raiseAnError(IOError, 'A sampled variable cannot have both a distribution and a function, or more than one of either!')
+        else:
+          foundDistOrFunc = True
+        # name of the distribution to sample
+        toBeSampled = childChild.value
+        varData = {}
+        varData['name'] = childChild.value
+        # variable dimensionality
+        if 'dim' not in childChild.parameterValues:
+          dim = 1
+        else:
+          dim = childChild.parameterValues['dim']
+        varData['dim'] = dim
+        # set up mapping for variable to distribution
+        self.variables2distributionsMapping[varName] = varData
+        # flag distribution as needing to be sampled
+        self.toBeSampled[prefix + varName] = toBeSampled
+      elif childChild.getName() == 'function':
+        # can only have a function if doesn't already have a distribution or function
+        if not foundDistOrFunc:
+          foundDistOrFunc = True
+        else:
+          self.raiseAnError(IOError, 'A sampled variable cannot have both a distribution and a function!')
+        # function name
+        toBeSampled = childChild.value
+        # track variable as a functional sample
+        self.dependentSample[prefix + varName] = toBeSampled
+
+    if not foundDistOrFunc:
+      self.raiseAnError(IOError, 'Sampled variable', varName, 'has neither a <distribution> nor <function> node specified!')
+
+  def _readInConstant(self, inp):
     """
       Reads in a "constant" input parameter node.
       @ In, inp, utils.InputParameter.ParameterInput, input parameter node to read from
@@ -499,7 +586,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         self.constants[var] = rlz[data['sourceVar']]
 
     #specializing the self.localInitialize() to account for adaptive sampling
-    if solutionExport != None:
+    if solutionExport is not None:
       self.localInitialize(solutionExport=solutionExport)
     else:
       self.localInitialize()
@@ -541,7 +628,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     return {}
 
-  def localInitialize(self):
+  def localInitialize(self, **kwargs):
     """
       use this function to add initialization features to the derived class
       it is call at the beginning of each step
@@ -585,7 +672,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
             except ValueError:
               self.raiseAnError(IOError,'reading the attribute for the sampler '+self.name+' it was not possible to perform the conversion to integer for the attribute initialSeed with value ' + str(childChild.value))
           elif childChild.getName() == "reseedEachIteration":
-            if childChild.value.lower() in utils.stringsThatMeanTrue():
+            if utils.stringIsTrue(childChild.value):
               self.reseedAtEachIteration = True
           elif childChild.getName() == "distInit":
             for childChildChild in childChild.subparts:
@@ -662,7 +749,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, ready, bool, is this sampler ready to generate another sample?
     """
-    ready = True if self.counter < self.limit else False
+    if self.counter < self.limit: # can use < since counter is 0-based
+      ready = True
+    else:
+      ready = False
+      self.raiseADebug('Sampling limit reached! No new samples ...')
     ready = self.localStillReady(ready)
     return ready
 
@@ -673,6 +764,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
+    # TODO is this an okay check for ALL samplers?
+    if self.counter > self.limit:
+      ready = False
     return ready
 
   def _checkRestartForEvaluation(self):
@@ -737,9 +831,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     #since we are creating the input for the next run we increase the counter and global counter
     self.counter +=1
     self.auxcnt  +=1
-    #exit if over the limit
-    if self.counter > self.limit:
-      self.raiseADebug('Exceeded number of points requested in sampling!  Moving on...')
+    # prep to exit if over the limit
+    if self.counter >= self.limit:
+      self.raiseADebug('Sampling limit reached!')
+      # TODO this is disjointed from readiness check!
     #FIXME, the following condition check is make sure that the require info is only printed once when dump metadata to xml, this should be removed in the future when we have a better way to dump the metadata
     if self.counter >1:
       for key in self.entitiesToRemove:
@@ -805,8 +900,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
           @ Out, generateInput, tuple(int,dict), (1,realization dictionary)
     """
     self._incrementCounter()
-    model.getAdditionalInputEdits(self.inputInfo)
-    self.localGenerateInput(model,oldInput)
+    if model is not None:
+      model.getAdditionalInputEdits(self.inputInfo)
+    self.localGenerateInput(model, oldInput)
     # split the sampled vars Pb among the different correlated variables
     self._reassignSampledVarsPbToFullyCorrVars()
     self._reassignPbWeightToCorrelatedVars()
@@ -819,14 +915,16 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ##### VECTOR VARS #####
     self._expandVectorVariables()
     ##### RESTART #####
-    index,inExisting = self._checkRestartForEvaluation()
+    index, inExisting = self._checkRestartForEvaluation()
     # reformat metadata into acceptable format for dataojbect
     # DO NOT format here, let that happen when a realization is made in collectOutput for each Model.  Sampler doesn't care about this.
     # self.inputInfo['ProbabilityWeight'] = np.atleast_1d(self.inputInfo['ProbabilityWeight'])
     # self.inputInfo['prefix'] = np.atleast_1d(self.inputInfo['prefix'])
     #if not found or not restarting, we have a new point!
     if inExisting is None:
-      self.raiseADebug('Found new point to sample:',self.values)
+      # we have a new evaluation, so check its contents for consistency
+      self._checkSample()
+      self.raiseADebug(' ... Sample point {}: {}'.format(self.inputInfo['prefix'], self.values))
       ## The new info for the perturbed run will be stored in the sampler's
       ## inputInfo (I don't particularly like this, I think it should be
       ## returned here, but let's get this working and then we can decide how
@@ -835,7 +933,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       ## a copy of the information, otherwise we have to be careful to create a
       ## deep copy of this information when we submit it to a job).
       ## -- DPM 4/18/17
-      return 0,oldInput
+      return 0, oldInput
     #otherwise, return the restart point
     else:
       # TODO use realization format as per new data object (no subspaces)
@@ -846,7 +944,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       rlz['inputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('input'))
       rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
       rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
-      return 1,rlz
+      return 1, rlz
 
   def generateInputBatch(self,myInput,model,batchSize,projector=None):
     """
@@ -900,6 +998,13 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     manifestVariablesDict = dict(zip(varsDict['manifestVariables'],manifestVariablesValues))
     self.values.update(manifestVariablesDict)
 
+  def _checkSample(self):
+    """
+      Checks the current sample for consistency with expected contents.
+      @ In, None
+      @ Out, None
+    """
+    pass # nothing to do by default
 
   ### FINALIZING METHODS ####
   def finalizeActualSampling(self,jobObject,model,myInput):

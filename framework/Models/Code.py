@@ -34,10 +34,10 @@ import numpy as np
 from .Model import Model
 from utils import utils
 from utils import InputData, InputTypes
+from Decorators.Parallelization import Parallel
 import CsvLoader #note: "from CsvLoader import CsvLoader" currently breaks internalParallel with Files and genericCodeInterface - talbpaul 2017-08-24
 import Files
 from DataObjects import Data
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Code(Model):
@@ -225,7 +225,7 @@ class Code(Model):
     if self.executable == '':
       self.raiseAWarning('The node "<executable>" was not found in the body of the code model '+str(self.name)+' so no code will be run...')
     else:
-      if os.environ.get('RAVENinterfaceCheck','False').lower() in utils.stringsThatMeanFalse():
+      if utils.stringIsFalse(os.environ.get('RAVENinterfaceCheck','False')):
         if '~' in self.executable:
           self.executable = os.path.expanduser(self.executable)
         abspath = os.path.abspath(str(self.executable))
@@ -235,7 +235,7 @@ class Code(Model):
           self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
       else:
         self.foundExecutable = False
-        self.raiseAMessage('not found executable '+self.executable,'ExceptedError')
+        self.raiseAMessage('InterfaceCheck: ignored executable '+self.executable, 'ExceptedError')
     if self.preExec is not None:
       if '~' in self.preExec:
         self.preExec = os.path.expanduser(self.preExec)
@@ -460,6 +460,7 @@ class Code(Model):
           return commandSplit
     return origCommand
 
+  @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
@@ -549,10 +550,11 @@ class Code(Model):
         localenv[key]=str(value)
     elif not self.code.getRunOnShell():
       command = self._expandCommand(command)
+    ## reset python path
+    localenv.pop('PYTHONPATH',None)
     ## This code should be evaluated by the job handler, so it is fine to wait
     ## until the execution of the external subprocess completes.
     process = utils.pickleSafeSubprocessPopen(command, shell=self.code.getRunOnShell(), stdout=outFileObject, stderr=outFileObject, cwd=localenv['PWD'], env=localenv)
-
     if self.maxWallTime is not None:
       timeout = time.time() + self.maxWallTime
       while True:
@@ -731,10 +733,6 @@ class Code(Model):
     evaluation = finishedJob.getEvaluation()
 
     self._replaceVariablesNamesWithAliasSystem(evaluation, 'input',True)
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(AttributeError,"No available Output to collect")
-
-
     # in the event a batch is run, the evaluations will be a dict as {'RAVEN_isBatch':True, 'realizations': [...]}
     if evaluation.get('RAVEN_isBatch',False):
       for rlz in evaluation['realizations']:
@@ -898,5 +896,5 @@ class Code(Model):
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, modulesToImport=self.mods, uniqueHandler=uniqueHandler)
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, uniqueHandler=uniqueHandler)
     self.raiseAMessage('job "' + str(prefix) + '" submitted!')

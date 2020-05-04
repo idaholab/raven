@@ -29,10 +29,10 @@ import inspect
 import subprocess
 import platform
 import copy
+from importlib import import_module
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.
 from difflib import SequenceMatcher
-import importlib
 
 class Object(object):
   """
@@ -61,6 +61,31 @@ class byPass(object):
       @ Out, None
     """
     pass
+
+class StringPartialFormatDict(dict):
+  """
+    Allows partially formatting a template string.
+    See https://stackoverflow.com/questions/17215400/python-format-string-unused-named-arguments
+    Use as '{a} {b} {a}'.format_map(StringPartialFormatDict(a='one')) -> 'one {b} one'
+  """
+  def __missing__(self, key):
+    """
+      Replaces missing keys with formatting entries. May not work for any formats like {b:1.3e}.
+      @ In, key, str, formatting string key (the friend between the braces)
+      @ Out, key, str, re-formatted string
+    """
+    return '{' + key + '}'
+
+def partialFormat(msg, info):
+  """
+    Automates the partial formatting of a string (msg) with a format dictionary (info).
+    Example: '{a} {b} {c}'.partialFormat({b:'two'}) -> '{a} two {c}'
+    Note formatting is lost or may cause errors; that is,
+    Example: '{a:3s} {b:2d} {c:3s}'.partialFormat({b=2}) -> '{a}  2 {c}'
+    @ In, msg, string, string to partially format
+    @ In, info, dict, keywords to apply
+  """
+  return msg.format_map(StringPartialFormatDict(**info))
 
 # ID separator that should be used cross the code when combined ids need to be assembled.
 # For example, when the "EnsembleModel" creates new  ``prefix`` ids for sub-models
@@ -222,23 +247,34 @@ def convertMultipleToBytes(sizeString):
     except:
       raise IOError(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag('ERROR') + '->  can not understand how to convert expression '+str(sizeString)+' to number of bytes. Accepted Mb,Gb,Kb (no case sentive)!')
 
-def stringsThatMeanTrue():
-  """
-    Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
-    @ In, None
-    @ Out, listOfStrings, list, list of strings that mean True in RAVEN
-  """
-  listOfStrings = list(['yes','y','true','t','si','vero','dajie','oui','ja','yao','verum', 'evet', 'dogru', '1', 'on'])
-  return listOfStrings
+# I don't think there's a reason to make this an enum, but it could be done.
+trueThingsFull = ('True', 'Yes', '1')
+trueThings = tuple(x[0].lower() for x in trueThingsFull)
 
-def stringsThatMeanFalse():
+def stringIsTrue(s):
   """
-    Return list of strings with the meaning of true in RAVEN (eng,ita,roman,french,german,chinese,latin, turkish, bool)
-    @ In, None
-    @ Out, listOfStrings, list, list of strings that mean False in RAVEN
+    Determines if provided entity corresponds to a truth statement
+    @ In, s, string or castable, entity to check
+    @ Out, stringIsTrue, bool, True if string is recognized by RAVEN as evaluating to True
   """
-  listOfStrings = list(['no','n','false','f','nono','falso','nahh','non','nicht','bu','falsus', 'hayir', 'yanlis', '0', 'off'])
-  return listOfStrings
+  # as far as I know, nothing in python cannot be cast as a string.
+  s = str(s).strip()
+  return s.lower().startswith(trueThings)
+
+# I don't think there's a reason to make this an enum, but it could be done.
+falseThingsFull = ('False', 'No', '0')
+falseThings = tuple(x[0].lower() for x in falseThingsFull)
+def stringIsFalse(s):
+  """
+    Determines if provided entity corresponds to a falsehood statement
+    @ In, s, string or castable, entity to check
+    @ Out, stringIsFalse, bool, False if string is recognized by RAVEN as evaluating to False
+  """
+  # as far as I know, nothing in python cannot be cast as a string.
+  s = str(s).strip()
+  return s.lower().startswith(falseThings)
+
+boolThingsFull = tuple(list(trueThingsFull)+list(falseThingsFull))
 
 def stringsThatMeanSilent():
   """
@@ -282,9 +318,9 @@ def interpretBoolean(inArg):
     else:
       return True
   elif type(inArg).__name__ in ['str','bytes','unicode']:
-    if inArg.lower().strip() in stringsThatMeanTrue():
+    if stringIsTrue(inArg):
       return True
-    elif inArg.lower().strip() in stringsThatMeanFalse():
+    elif stringIsFalse(inArg):
       return False
     else:
       raise Exception(UreturnPrintTag('UTILITIES')+': ' +UreturnPrintPostTag("ERROR") + '-> can not convert string to boolean in method interpretBoolean!!!!')
@@ -452,14 +488,6 @@ def first(c):
   """
   return next(iter(c))
 
-def iter_len(c):
-  """
-    Method to count the number of elements in an iterable.
-    @ In, c, the iterable
-    @ Out, the number of items in the first level of the iterable
-  """
-  return sum(1 for _ in c)
-
 def importFromPath(filename, printImporting = True):
   """
     Method to import a module from a given path
@@ -478,78 +506,6 @@ def importFromPath(filename, printImporting = True):
   except Exception as ae:
     raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
   return importedModule
-
-def index(a, x):
-  """
-    Method to locate the leftmost value exactly equal to x in the list a (assumed to be sorted)
-    @ In, a, list, the list that needs to be inquired
-    @ In, x, float, the inquiring value
-    @ Out, i, int, the index of the leftmost value exactly equal to x
-  """
-  i = bisect.bisect_left(a, x)
-  if i != len(a) and a[i] == x:
-    return i
-  return None
-
-def find_lt(a, x):
-  """
-    Method to Find rightmost value less than x in the list a (assumed to be sorted)
-    @ In, a, list, the list that needs to be inquired
-    @ In, x, float, the inquiring value
-    @ Out, i, int, the index of the Find rightmost value less than x
-  """
-  i = bisect.bisect_left(a, x)
-  if i:
-    return a[i-1],i-1
-  return None,None
-
-def find_le_index(a,x):
-  """
-    Method to Find the index of the rightmost value less than or equal to x in the list a (assumed to be sorted)
-    @ In, a, list, the list that needs to be inquired
-    @ In, x, float, the inquiring value
-    @ Out, i, int, the index of the rightmost value less than or equal to x
-  """
-  i = bisect.bisect_right(a, x)
-  if i:
-    return i
-  return None
-
-def find_le(a, x):
-  """
-    Method to Find the rightmost value less than or equal to x in the list a (assumed to be sorted)
-    @ In, a, list, the list that needs to be inquired
-    @ In, x, float, the inquiring value
-    @ Out, i, tuple, tuple[0] -> the rightmost value less than or equal to x, tuple[1] -> index
-  """
-  i = bisect.bisect_right(a, x)
-  if i:
-    return a[i-1],i-1
-  return None,None
-
-def find_gt(a, x):
-  """
-    Method to Find the leftmost value greater than x in the list a (assumed to be sorted)
-    @ In, a, list, the list that needs to be inquired
-    @ In, x, float, the inquiring value
-    @ Out, i, tuple, tuple[0] -> the leftmost value greater than x, tuple[1] -> index
-  """
-  i = bisect.bisect_right(a, x)
-  if i != len(a):
-    return a[i],i
-  return None,None
-
-def find_ge(a, x):
-  """
-    Method to Find the leftmost item greater than or equal to x in the list a (assumed to be sorted)
-    @ In, a, list, the list that needs to be inquired
-    @ In, x, float, the inquiring value
-    @ Out, i, tuple, tuple[0] ->leftmost item greater than or equal to x, tuple[1] -> index
-  """
-  i = bisect.bisect_left(a, x)
-  if i != len(a):
-    return a[i],i
-  return None,None
 
 def getRelativeSortedListEntry(sortedList,value,tol=1e-15):
   """
@@ -677,7 +633,7 @@ def find_crow(framework_dir):
     for crowDir in crowDirs:
       if os.path.exists(os.path.join(crowDir,"tests")):
         raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow was found in '+crowDir+' but does not seem to be compiled')
-    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow has not been found. It location is supposed to be one of '+str(crowDirs))
+    raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> Crow has not been found. It location is supposed to be one of '+str(crowDirs)+'. Has RAVEN been built?')
 
 def add_path(absolutepath):
   """
@@ -710,11 +666,11 @@ def findCrowModule(name):
   # find the module
   ext = 'py3' if sys.version_info.major > 2 else 'py2'
   try:
-    module = importlib.import_module("crow_modules.{}{}".format(name,ext))
+    module = import_module("crow_modules.{}{}".format(name,ext))
   except ImportError as ie:
     if not str(ie).startswith("No module named"):
       raise ie
-    module = importlib.import_module("{}{}".format(name,ext))
+    module = import_module("{}{}".format(name,ext))
   return module
 
 def getPythonCommand():

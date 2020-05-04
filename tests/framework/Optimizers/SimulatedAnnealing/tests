@@ -1,0 +1,95 @@
+[Tests]
+  [./ExponentialSA]
+    type = 'RavenFramework'
+    input = 'ExponentialSA/test_simulatedAnnealing.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'ExponentialSA/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./ExponentialEggHolder]
+    type = 'RavenFramework'
+    input = 'ExponentialEggHolder/test_simulatedAnnealing_eggHold.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'ExponentialEggHolder/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./BoltzmanSA]
+    type = 'RavenFramework'
+    input = 'BoltzmanSA/test_simulatedAnnealing.xml'
+    heavy = true
+    max_time = 1500
+    [./data]
+      type = OrderedCSV
+      output = 'BoltzmanSA/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./BoltzmanEggHolder]
+    type = 'RavenFramework'
+    input = 'BoltzmanEggHolder/test_simulatedAnnealing_eggHold.xml'
+    heavy = true
+    max_time = 1500
+    [./data]
+      type = OrderedCSV
+      output = 'BoltzmanEggHolder/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./CauchySA]
+    type = 'RavenFramework'
+    input = 'CauchySA/test_simulatedAnnealing.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'CauchySA/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./CauchyEggHolder]
+    type = 'RavenFramework'
+    input = 'CauchyEggHolder/test_simulatedAnnealing_eggHold.xml'
+    heavy = true
+    max_time = 1500
+    [./data]
+      type = OrderedCSV
+      output = 'CauchyEggHolder/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./VeryFastSA]
+    type = 'RavenFramework'
+    input = 'VeryFastSA/test_simulatedAnnealing.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'VeryFastSA/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./FunctionallyConstrainedSA]
+    type = 'RavenFramework'
+    input = 'FunctionallyConstrainedSA/test_funcConstrSimulatedAnnealing.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'FunctionallyConstrainedSA/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+[]

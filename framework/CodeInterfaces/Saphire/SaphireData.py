@@ -15,7 +15,6 @@
 import numpy as np
 import os
 import copy
-from sklearn import neighbors
 import re
 """
 Created on July 12, 2018

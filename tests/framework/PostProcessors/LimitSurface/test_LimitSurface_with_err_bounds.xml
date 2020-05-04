@@ -1,0 +1,138 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/LimitSurface.testLimitSurfaceIntegralPPWihtBoundingError</name>
+    <author>alfoa</author>
+    <created>2020-04-15</created>
+    <classesTested>Models.PostProcessors.LimitSurface, Models.PostProcessors.LimitSurfaceIntegral</classesTested>
+    <description>
+       This test is aimed to check the capability of RAVEN to compute the integral of the Limit Surface (e.g.
+       Failure probability) reporting the bounding error as well (the maximum error, in probability, in the computation of the limit surface )
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2020-04-15">Added test for computation of the error bound and linked to new requirement</revision>
+    </revisions>
+    <requirements>R-RA-8</requirements>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>limitSurfaceBoundingError</WorkingDir>
+    <Sequence>FirstMRun,ComputeLimitSurfacePositiveNegative,ComputeLimitSurfaceIntegralWeighted</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../limitSurface_integral/limitSurfaceTestExternalModel" name="PythonModule" subType="">
+      <variables>z,x0,y0</variables>
+    </ExternalModel>
+    <PostProcessor name="computeLimitSurfacePositiveNegative" subType="LimitSurface" verbosity="quiet">
+      <parameters>x0,y0</parameters>
+      <side>both</side>
+      <ROM class="Models" type="ROM">Acc</ROM>
+      <Function class="Functions" type="External">goalFunctionForLimitSurface</Function>
+    </PostProcessor>
+    <PostProcessor name="LimitSurfaceIntegralWeighted" subType="LimitSurfaceIntegral">
+      <tolerance>0.0025</tolerance>
+      <integralType>MonteCarlo</integralType>
+      <seed>20021986</seed>
+      <target>goalFunctionForLimitSurface</target>
+      <outputName>EventProbability</outputName>
+      <computeBounds>True</computeBounds>
+      <variable name="x0">
+        <distribution class="Distributions" type="Normal">x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution class="Distributions" type="Normal">y0_distrib</distribution>
+      </variable>
+    </PostProcessor>
+    <ROM name="Acc" subType="SciKitLearn">
+      <Features>x0,y0</Features>
+      <Target>goalFunctionForLimitSurface</Target>
+      <SKLtype>svm|LinearSVC</SKLtype>
+      <verbose>1</verbose>
+      <tol>0.0001</tol>
+      <C>10</C>
+    </ROM>
+  </Models>
+
+  <Functions>
+    <External file="../limitSurface_integral/goalFunctionTest" name="goalFunctionForLimitSurface">
+      <variables>z</variables>
+    </External>
+  </Functions>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>2</sigma>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>8.0</upperBound>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>5</mean>
+      <sigma>2</sigma>
+      <lowerBound>0.0</lowerBound>
+      <upperBound>10.0</upperBound>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="Grid_external">
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+        <grid construction="equal" steps="10" type="CDF">0.1 0.9</grid>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+        <grid construction="equal" steps="10" type="CDF">0.1 0.9</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMRun" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">Dummy</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">Grid_external</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSetPostProcTest</Output>
+    </MultiRun>
+    <PostProcess name="ComputeLimitSurfacePositiveNegative">
+      <Input class="DataObjects" type="PointSet">PointSetPostProcTest</Input>
+      <Model class="Models" type="PostProcessor">computeLimitSurfacePositiveNegative</Model>
+      <Output class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Output>
+    </PostProcess>
+    <PostProcess name="ComputeLimitSurfaceIntegralWeighted">
+      <Input class="DataObjects" type="PointSet">LimitSurfacePositiveNegative</Input>
+      <Model class="Models" type="PostProcessor">LimitSurfaceIntegralWeighted</Model>
+      <Output class="DataObjects" type="PointSet">LimitSurfaceWeightedPb</Output>
+      <Output class="OutStreams" type="Print">LimitSurfaceWeightedPb_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="LimitSurfaceWeightedPb_dump">
+      <type>csv</type>
+      <source>LimitSurfaceWeightedPb</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="PointSetPostProcTest">
+      <Input>x0,y0</Input>
+      <Output>z</Output>
+    </PointSet>
+    <PointSet name="LimitSurfacePositiveNegative">
+      <Input>y0,x0</Input>
+      <Output>goalFunctionForLimitSurface</Output>
+    </PointSet>
+    <PointSet name="LimitSurfaceWeightedPb">
+      <Input>y0,x0</Input>
+      <Output>EventProbability,EventProbability_err,goalFunctionForLimitSurface</Output>
+    </PointSet>
+    <PointSet name="Dummy">
+      <Input>x0,y0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

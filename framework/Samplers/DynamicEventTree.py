@@ -32,6 +32,7 @@ from functools import reduce
 import xml.etree.ElementTree as ET
 import itertools
 from collections import Counter
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -258,7 +259,7 @@ class DynamicEventTree(Grid):
     branchedLevel = {}
     for distk, distpb in zip(endInfo['parentNode'].get('SampledVarsPb').keys(),endInfo['parentNode'].get('SampledVarsPb').values()):
       if distk not in self.epistemicVariables.keys():
-        branchedLevel[distk] = utils.index(self.branchProbabilities[distk],distpb)
+        branchedLevel[distk] = utils.first(np.atleast_1d(np.asarray(self.branchProbabilities[distk]) == distpb).nonzero())[-1]
     if not branchedLevel:
       self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
     # Loop of the parameters that have been changed after a trigger gets activated
@@ -765,10 +766,8 @@ class DynamicEventTree(Grid):
       @ Out, None
     """
     Grid.localInputAndChecks(self,xmlNode, paramInput)
-    if 'printEndXmlSummary'  in xmlNode.attrib.keys():
-      self.printEndXmlSummary  = xmlNode.attrib['printEndXmlSummary'].lower()  in utils.stringsThatMeanTrue()
-    if 'removeXmlBranchInfo' in xmlNode.attrib.keys():
-      self.removeXmlBranchInfo = xmlNode.attrib['removeXmlBranchInfo'].lower() in utils.stringsThatMeanTrue()
+    self.printEndXmlSummary = utils.stringIsTrue(xmlNode.attrib.get('printEndXmlSummary', None))
+    self.removeXmlBranchInfo = utils.stringIsTrue(xmlNode.attrib.get('removeXmlBranchInfo', None))
     if 'maxSimulationTime'   in xmlNode.attrib.keys():
       try:
         self.maxSimulTime = float(xmlNode.attrib['maxSimulationTime'])
@@ -855,6 +854,7 @@ class DynamicEventTree(Grid):
         # make the hybridsampler sampler read  its own xml block
         childCopy = copy.deepcopy(child)
         childCopy.tag = child.attrib['type']
+        childCopy.attrib['name']='none'
         childCopy.attrib.pop('type')
         self.hybridStrategyToApply[child.attrib['type']]._readMoreXML(childCopy)
         # store the variables that represent the epistemic space

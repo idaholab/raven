@@ -7,3 +7,6 @@
 [submodule "plugins/LOGOS"]
 	path = plugins/LOGOS
 	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/LOGOS.git
+[submodule "plugins/SRAW"]
+	path = plugins/SRAW
+	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SRAW.git
