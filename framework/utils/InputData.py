@@ -19,6 +19,7 @@ Created on 2016-Jan-26
 This a library for defining the data used and for reading it in.
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
+import re
 from collections import OrderedDict
 import xml.etree.ElementTree as ET
 from utils import InputTypes
@@ -425,7 +426,8 @@ class ParameterInput(object):
       msg += '{i}\\end{{itemize}}\n'.format(i=doDent(recDepth, 1))
     # TODO is this a good idea? -> disables underscores in math mode :(
     if recDepth == 0:
-      msg = msg.replace('_', '\_')
+      msg = re.sub(r'(?<!\\)_', '\_', msg)
+      # msg = msg.replace('_', '\_')
     return msg
 
   @classmethod
@@ -441,11 +443,13 @@ class ParameterInput(object):
       return msg
     specName = cls.name
     if '_' in specName:
-      specName = specName.replace('_', '\_')
+      specName = re.sub(r'(?<!\\)_', '\_', specName)
+      # specName = specName.replace('_', '\_')
     msg += '{i}The \\xmlNode{{{n}}} node recognizes the following parameters:'.format(i=doDent(recDepth), n=specName)
     msg += '\n{i}\\begin{{itemize}}'.format(i=doDent(recDepth, 1))
     for param, info in cls.parameters.items():
-      name = param.replace('_', '\_')
+      name = re.sub(r'(?<!\\)_', '\_', param)
+      # name = param.replace('_', '\_')
       typ = info['type'].generateLatexType()
       req = 'required' if info['required'] else 'optional'
       desc = wrapText(info['description'], indent=doDent(recDepth, 3))
