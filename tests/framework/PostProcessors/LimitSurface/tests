@@ -34,6 +34,7 @@
   csv = 'limitSurfaceBoundingError/LimitSurfaceWeightedPb_dump.csv'
   max_time = 300
   rel_err = 0.001
+  skip_if_OS = windows
  [../]
 
 
