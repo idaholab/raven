@@ -24,7 +24,6 @@ import numpy as np
 
 #Internal Modules---------------------------------------------------------------
 from utils import InputData, InputTypes
-import Runners
 from .PostProcessor import PostProcessor
 #Internal Modules End-----------------------------------------------------------
 
@@ -158,9 +157,6 @@ class FastFourierTransform(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect!")
-
     realizations = evaluation[1]
     for rlz in realizations:
       output.addRealization(rlz)

@@ -48,7 +48,7 @@
  [./RELAP5interfaceTestAliasAndMetadataTransfer]
   type = 'RavenFramework'
   input = 'test_relap5_code_ensemble_alias_metadata.xml'
-  output = 'RELAP5ensemble2relaps/testEnsemble2Relaps/MyRELAP_restart++1/out~snc01_restart.csv RELAP5ensemble2relaps/testEnsemble2Relaps/MyRELAP_restart++2/out~snc01_restart.csv'
+  output = 'RELAP5ensemble2relaps/testEnsemble2Relaps/MyRELAP_restart++1/out~snc01_restart.csv RELAP5ensemble2relaps/testEnsemble2Relaps/MyRELAP_restart++2/out~snc01_restart.csv RELAP5ensemble2relaps/testEnsemble2Relaps/MyRELAP_restart++2/restrt RELAP5ensemble2relaps/testEnsemble2Relaps/MyRELAP_restart++1/restrt'
   test_interface_only = True
  [../]
 

@@ -26,7 +26,6 @@ import numpy as np
 from .PostProcessor import PostProcessor
 from utils import utils
 from utils import InputData, InputTypes
-import Runners
 #Internal Modules End-----------------------------------------------------------
 
 class ValueDuration(PostProcessor):
@@ -147,9 +146,6 @@ class ValueDuration(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect!")
-
     realizations = evaluation[1]
     for rlz in realizations:
       output.addRealization(rlz)

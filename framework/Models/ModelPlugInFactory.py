@@ -56,9 +56,17 @@ def registerSubtypes(typeName, typeDict):
     __interfaceDict[typeName][name] = subtype
     __knownTypes.append(name)
 
-for baseType, baseName in __basePluginClasses.items():
-  plugins = PluginFactory.getEntities(baseType)
-  registerSubtypes(baseType, plugins)
+def _registerAllPlugins():
+  """
+    Method to register all plugins
+    @ In, None
+    @ Out, None
+  """
+  for baseType, baseName in __basePluginClasses.items():
+    plugins = PluginFactory.getEntities(baseType)
+    registerSubtypes(baseType, plugins)
+
+_registerAllPlugins()
 
 def knownTypes():
   """
@@ -67,6 +75,17 @@ def knownTypes():
     @ Out, __knownTypes, list, the list of known types
   """
   return __knownTypes
+
+def loadPlugin(Type, subType):
+  """
+    Tries to load the subType to make it available
+    @ In, Type, string, the type of plugin main class (e.g. ExternalModel)
+    @ In, subType, string, the subType of the plugin specialized class (e.g. CashFlow)
+    @ Out, None
+  """
+  name = subType.split(".")[0]
+  PluginFactory.finishLoadPlugin(name)
+  _registerAllPlugins()
 
 def returnPlugin(Type,subType,caller):
   """

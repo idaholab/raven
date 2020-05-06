@@ -60,7 +60,7 @@
       <preserveInputCDF>True</preserveInputCDF>
       <Segment grouping='cluster'>
         <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
-        <subspace divisions='10' shift='first'>Time</subspace>
+        <subspace divisions='10' shift='first' >Time</subspace>
       </Segment>
     </ROM>
     <PostProcessor name="classifier" subType="DataMining">

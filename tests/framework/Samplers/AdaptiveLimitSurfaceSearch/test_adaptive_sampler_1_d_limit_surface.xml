@@ -31,6 +31,7 @@
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
       <Output class="DataObjects" type="PointSet">sampledPoints</Output>
+      <Output class="OutStreams" type="Print">sampledPointsDump</Output>
     </MultiRun>
     <IOStep name="adaptdump" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">limitSurface</Input>
@@ -58,7 +59,7 @@
       <upperBound>1</upperBound>
       <lowerBound>-1</lowerBound>
       <mean>0.05</mean>
-      <sigma>0.01</sigma>
+      <sigma>0.1</sigma>
     </Normal>
   </Distributions>
 
@@ -102,6 +103,10 @@
     <Print name="limitSurfaceDump">
       <type>csv</type>
       <source>limitSurface</source>
+    </Print>
+    <Print name="sampledPointsDump">
+      <type>csv</type>
+      <source>sampledPoints</source>
     </Print>
   </OutStreams>
 

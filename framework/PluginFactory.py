@@ -63,6 +63,9 @@ def loadPlugins(path, catalogue):
     module = loadPluginModule(name, location)
     loadEntities(name, module)
 
+#Stores the name of the plugin, and the (spec, plugin, loaded)
+_delayedPlugins = {}
+
 def loadPluginModule(name, location):
   """
     Loads the plugin as a package
@@ -80,9 +83,28 @@ def loadPluginModule(name, location):
   # add it to the namespace TODO is this a good idea?
   sys.modules[spec.name] = plugin
   # load the module
-  spec.loader.exec_module(plugin)
+  #Save plugin so spec.loader.exec_module(plugin) can be called later
+  _delayedPlugins[name] = (spec, plugin, False)
   print(' ... successfully imported "{}" ...'.format(name))
   return plugin
+
+def finishLoadPlugin(name):
+  """
+    Finishes loading the plugin. This takes time, so should
+    only be used when the plugin is needed (such as when it is encountered in
+    the input file.
+    @ In, name, str, name of the plugin package
+    @ Out, available, bool, if True then plugin is available to use
+  """
+  if name not in _delayedPlugins:
+    return False
+  spec, plugin, loaded = _delayedPlugins[name]
+  if not loaded:
+    spec.loader.exec_module(plugin)
+    loadEntities(name, plugin)
+    #Set loaded flag to true to prevent reloading
+    _delayedPlugins[name] =  (spec, plugin, True)
+  return True
 
 def loadEntities(name, plugin):
   """
@@ -110,22 +132,22 @@ def loadEntities(name, plugin):
           if not candidate.isAValidPlugin():
             raise PluginError('Invalid plugin entity: "{}" from plugin "{}"'.format(candidateName, name))
           registerName = '{}.{}'.format(name, candidateName)
-          pluginEntities[candidate.entityType][registerName] = candidate
+          _pluginEntities[candidate.entityType][registerName] = candidate
           print(' ... registered "{}" as a "{}" RAVEN entity.'.format(registerName, candidate.entityType))
 
 def getEntities(entityType):
   """
     Provides loaded entities.
     @ In, entityType, str, class of entity to load (e.g. ExternalModel)
-    @ Out, pluginEntities, dict, name: class of plugin entities
+    @ Out, _pluginEntities, dict, name: class of plugin entities
   """
-  return pluginEntities.get(entityType, {})
+  return _pluginEntities.get(entityType, {})
 
 ## factory loading
 
 # storage for available entities
-# structure is pluginEntities[raven entity name] = {name: import command} (TODO check this is good)
-pluginEntities = defaultdict(dict)
+# structure is _pluginEntities[raven entity name] = {name: import command} (TODO check this is good)
+_pluginEntities = defaultdict(dict)
 
 # load plugins directory and collect plugins
 pluginsPath = os.path.join(os.path.dirname(__file__), '..', 'plugins')

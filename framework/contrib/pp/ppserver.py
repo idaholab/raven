@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Parallel Python Software: http://www.parallelpython.com
 # Copyright (c) 2005-2012, Vitalii Vanovschi
 # All rights reserved.
@@ -30,7 +30,7 @@ Parallel Python Software, Network Server
 http://www.parallelpython.com - updates, documentation, examples and support
 forums
 """
-from __future__ import print_function
+from __future__ import with_statement
 
 import atexit
 import logging
@@ -44,16 +44,15 @@ import string
 import signal
 import time
 import os
-import inspect
-cmd_subfolder = os.path.realpath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())),"../"))
-if cmd_subfolder not in sys.path: sys.path.insert(0, cmd_subfolder)
+import six
+
 import pp
 import ppauto
-import ppcommon
+import ppcommon as ppc
 import pptransport
 
 copyright = "Copyright (c) 2005-2012 Vitalii Vanovschi. All rights reserved"
-version = "1.6.4"
+__version__ = version = "1.6.4.4"
 
 LISTEN_SOCKET_TIMEOUT = 20
 
@@ -77,14 +76,14 @@ class _NetworkServer(pp.Server):
                 proto, socket_timeout)
         if pid_file:
           with open(pid_file, 'w') as pfile:
-            print(os.getpid(), file=pfile)
+            six.print_(os.getpid(), file=pfile)
           atexit.register(os.remove, pid_file)
         self.host = interface
         self.bcast = broadcast
         if port is not None:
             self.port = port
         else:
-            self.port = self.default_port
+            self.port = ppc.randomport()
         self.timeout = timeout
         self.ncon = 0
         self.last_con_time = time.time()
@@ -95,7 +94,7 @@ class _NetworkServer(pp.Server):
         if self.timeout is not None:
             self.logger.debug("ppserver will exit in %i seconds if no "\
                     "connections with clients exist" % (self.timeout))
-            ppcommon.start_thread("timeout_check",  self.check_timeout)
+            ppc.start_thread("timeout_check",  self.check_timeout)
 
     def ncon_add(self, val):
         """Keeps track of the number of connections and time of the last one"""
@@ -127,7 +126,8 @@ class _NetworkServer(pp.Server):
             self.ssocket.settimeout(LISTEN_SOCKET_TIMEOUT)
             self.ssocket.bind((self.host, self.port))
             self.ssocket.listen(5)
-        except socket.error as e:
+        except socket.error:
+            e = sys.exc_info()[1]
             self.logger.error("Cannot create socket for %s:%s, %s", self.host, self.port, e)
 
         try:
@@ -139,7 +139,8 @@ class _NetworkServer(pp.Server):
                 except socket.timeout:
                     pass
                 # don't exit on an interupt due to a signal
-                except socket.error as e:
+                except socket.error:
+                    e = sys.exc_info()[1]
                     if e.errno == errno.EINTR:
                       pass
                 if self._exiting:
@@ -147,7 +148,7 @@ class _NetworkServer(pp.Server):
                 # now do something with the clientsocket
                 # in this case, we'll pretend this is a threaded server
                 if csocket:
-                    ppcommon.start_thread("client_socket",  self.crun, (csocket,  ))
+                    ppc.start_thread("client_socket",  self.crun, (csocket,  ))
         except KeyboardInterrupt:
             pass
         except:
@@ -165,8 +166,8 @@ class _NetworkServer(pp.Server):
         srandom = "".join([random.choice(string.ascii_letters)
                 for i in range(16)])
         mysocket.send(srandom)
-        answer = sha_new(srandom+self.secret).hexdigest()
-        clientanswer = mysocket.receive()
+        answer = sha_new(ppc.b_(srandom+self.secret)).hexdigest()
+        clientanswer = ppc.str_(mysocket.receive())
         if answer != clientanswer:
             self.logger.warning("Authentication failed, client host=%s, port=%i"
                     % csocket.getpeername())
@@ -176,24 +177,33 @@ class _NetworkServer(pp.Server):
         else:
             mysocket.send("OK")
 
-        ctype = mysocket.receive()
+        ctype = ppc.str_(mysocket.receive())
         self.logger.debug("Control message received: " + ctype)
         self.ncon_add(1)
         try:
             if ctype == "STAT":
                 #reset time at each new connection
                 self.get_stats()["local"].time = 0.0
+               #open('/tmp/pp.debug', 'a+').write('STAT: \n')
                 mysocket.send(str(self.get_ncpus()))
+               #open('/tmp/pp.debug', 'a+').write('STAT: get_ncpus\n')
                 while 1:
                     mysocket.receive()
+                   #open('/tmp/pp.debug', 'a+').write('STAT: recvd\n')
                     mysocket.send(str(self.get_stats()["local"].time))
+                   #open('/tmp/pp.debug', 'a+').write('STAT: _\n')
             elif ctype=="EXEC":
                 while 1:
+                   #open('/tmp/pp.debug', 'a+').write('EXEC: \n')
                     sfunc = mysocket.creceive()
+                   #open('/tmp/pp.debug', 'a+').write('EXEC: '+repr((sfunc,))+'\n')
                     sargs = mysocket.receive()
+                   #open('/tmp/pp.debug', 'a+').write('EXEC: '+repr((sargs,))+'\n')
                     fun = self.insert(sfunc, sargs)
                     sresult = fun(True)
+                   #open('/tmp/pp.debug', 'a+').write('EXEC: '+repr((sresult,))+'\n')
                     mysocket.send(sresult)
+                   #open('/tmp/pp.debug', 'a+').write('EXEC: _\n')
         except:
             if self._exiting:
                 return
@@ -206,7 +216,7 @@ class _NetworkServer(pp.Server):
     def broadcast(self):
         """Initiaates auto-discovery mechanism"""
         discover = ppauto.Discover(self)
-        ppcommon.start_thread("server_broadcast",  discover.run,
+        ppc.start_thread("server_broadcast",  discover.run,
                 ((self.host, self.port), (self.bcast, self.port)))
 
 
@@ -217,13 +227,15 @@ def parse_config(file_loc):
     # If we don't have configobj installed then let the user know and exit
     try:
         from configobj import ConfigObj
-    except ImportError as ie:
-        print(("ERROR: You must have config obj installed to use"
+    except ImportError:
+        ie = sys.exc_info()[1]
+       #sysstderr = getattr(sys.stderr, 'buffer', sys.stderr)
+        six.print_(("ERROR: You must have config obj installed to use"
                 "configuration files. You can still use command line switches."), file=sys.stderr)
         sys.exit(1)
 
     if not os.access(file_loc, os.F_OK):
-        print("ERROR: Can not access %s." % arg, file=sys.stderr)
+        six.print_("ERROR: Can not access %s." % arg, file=sys.stderr)
         sys.exit(1)
 
     # Load the configuration file
@@ -301,7 +313,7 @@ def print_usage():
             " [-c config_path] [-i interface] [-b broadcast]"\
             " [-p port] [-w nworkers] [-s secret] [-t seconds]"\
             " [-k seconds] [-P pid_file]")
-    print()
+    print("")
     print("Options: ")
     print("-h                 : this help message")
     print("-d                 : set log level to debug")
@@ -321,13 +333,13 @@ def print_usage():
     print("-k seconds         : socket timeout in seconds")
     print("-g                 : python path that should be checked and added")
     print("-P pid_file        : file to write PID to")
-    print()
+    print("")
     print("To print server stats send SIGUSR1 to its main process (unix only). ")
-    print()
+    print("")
     print("Due to the security concerns always use a non-trivial secret key.")
     print("Secret key set by -s switch will override secret key assigned by")
     print("pp_secret variable in .pythonrc.py")
-    print()
+    print("")
     print("Please visit http://www.parallelpython.com for extended up-to-date")
     print("documentation, examples and support forums")
 
@@ -346,7 +358,6 @@ def create_network_server(argv):
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
     for opt, arg in opts:
-        print(opt,arg)
         if opt in ("-h", "--help"):
             print_usage()
             sys.exit()

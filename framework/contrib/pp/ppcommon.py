@@ -31,13 +31,41 @@ forums
 """
 
 import threading
+try: # workaround for install process
+    import six
+except ImportError:
+    import types
+    import sys
+    six = types.ModuleType('six')
+    six.PY3 = sys.version_info[0] == 3
+    six.b = lambda x:x
+if six.PY3:
+    long = int
+    import io
+    file = io.IOBase
+    def str_(byte): # convert to unicode
+        if not hasattr(byte, 'decode'): return byte
+        try:
+            return byte.decode('ascii')
+        except UnicodeDecodeError: # non-ascii needs special handling
+            return repr([i for i in byte])+'{B}'
+    def b_(string):
+        if not hasattr(string, 'encode'): return string
+        if not string.endswith(']{B}'): return six.b(string)
+        return bytes(eval(string[:-3])) # special handling for non-ascii
+else:
+    long = long
+    file = file
+    def str_(string): # is already str
+        return string
+    def b_(string):
+        return six.b(string)
 
 copyright = "Copyright (c) 2005-2012 Vitalii Vanovschi. All rights reserved"
-version = "1.6.4"
+__version__ = version = "1.6.4.4"
 
 def start_thread(name,  target,  args=(),  kwargs={},  daemon=True):
     """Starts a thread"""
-    #print(name+str(target)+str(args)+str(kwargs))
     thread = threading.Thread(name=name,  target=target, args=args,  kwargs=kwargs)
     thread.daemon = daemon
     thread.start()
@@ -60,5 +88,58 @@ def is_not_imported(arg, modules):
         if args_module == module or args_module.startswith(module + "."):
             return False
     return True
+
+
+class portnumber(object):
+    '''port selector
+
+Usage:
+    >>> pick = portnumber(min=1024,max=65535)
+    >>> print( pick() )
+    '''
+
+    def __init__(self, min=0, max=64*1024):
+        '''select a port number from a given range.
+
+The first call will return a random number from the available range,
+and each subsequent call will return the next number in the range.
+
+Inputs:
+    min -- minimum port number  [default = 0]
+    max -- maximum port number  [default = 65536]
+        '''
+        self.min = min
+        self.max = max
+        self.first = -1
+        self.current = -1
+        return
+
+    def __call__(self):
+        import random
+        
+        if self.current < 0: #first call
+            self.current = random.randint(self.min, self.max)
+            self.first = self.current
+            return self.current
+        else:
+            self.current += 1
+            
+            if self.current > self.max:
+                self.current = self.min
+            if self.current == self.first: 
+                raise RuntimeError( 'Range exhausted' )
+            return self.current
+        return
+
+
+def randomport(min=1024, max=65536):
+    '''select a random port number
+
+Inputs:
+    min -- minimum port number  [default = 1024]
+    max -- maximum port number  [default = 65536]
+    '''
+    return portnumber(min, max)()
+
 
 # Parallel Python Software: http://www.parallelpython.com

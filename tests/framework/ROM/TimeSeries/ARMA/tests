@@ -179,6 +179,17 @@
     [../]
   [../]
 
+  [./ClusteredRand]
+    type = 'RavenFramework'
+    input = 'clustered_choice_rand.xml'
+    # signal test!
+    [./rom_meta]
+      type = OrderedCSV
+      output = 'ClusteredRand/samples_0.csv'
+      rel_err = 1e-5
+    [../]
+  [../]
+
   [./PreserveCdf]
     type = 'RavenFramework'
     input = 'preserve_cdf.xml'
