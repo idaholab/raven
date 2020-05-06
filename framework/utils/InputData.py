@@ -427,7 +427,7 @@ class ParameterInput(object):
     # TODO is this a good idea? -> disables underscores in math mode :(
     if recDepth == 0:
       # assure underscore is escaped, but not doubly
-      msg = re.sub(r'(?<!\\)_', 'r\_', msg)
+      msg = re.sub(r'(?<!\\)_', r'\_', msg)
     return msg
 
   @classmethod
