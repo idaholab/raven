@@ -88,6 +88,11 @@ The {\tt main.py} command takes an argument {\tt --config-file} which can be use
 \item[add\_run\_types] add run types to the ones to be run. Equivalent to {\tt --run-types}
 \item[only\_run\_types] only run the listed types. Equivalent to {\tt --only-run-types}
 \item[add\_non\_default\_run\_types] add a run type that is not run by default. Equivalent to {\tt --add-non-default-run-types}
+\item[add\_path] comma separated list of additional paths that need be added in PYTHON PATH (sys.path).  Equivalent to {\tt --add-path}
+\item[update\_or\_add\_env\_variables] comma separated list of environment variables to update or add. 
+The syntax is at follows: $NAME=NEW\_VALUE$ (if a new env variable needs to be created or updated), 
+$NAME>NEW\_VALUE$ (if an env variable needs to be updated appending NEW\_VALUE to it).  Equivalent to {\tt --update-or-add-env-variables}
+\item[test\_dir] directory where the tests are located.  Equivalent to {\tt --test-dir}
 \item[command\_prefix] prefix for the test commands.  Equivalent to {\tt --command-prefix}
 \item[python\_command] command to run python. Equivalent to {\tt --python-command}
 \end{description}

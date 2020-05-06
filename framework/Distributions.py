@@ -42,8 +42,7 @@ from BaseClasses import BaseType
 from utils import utils
 from utils.randomUtils import random
 distribution1D = utils.findCrowModule('distribution1D')
-from utils import InputData
-from utils import mathUtils
+from utils import mathUtils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 def factorial(x):
@@ -104,8 +103,8 @@ class Distribution(BaseType):
         specifying input of cls.
     """
     inputSpecification = super(Distribution, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory('upperBound', contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory('lowerBound', contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -605,8 +604,8 @@ class Normal(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Normal, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("mean", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("sigma", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("mean", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("sigma", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -758,9 +757,9 @@ class Gamma(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Gamma, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -912,11 +911,11 @@ class Beta(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Beta, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("high", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("peakFactor", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("beta", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("high", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("peakFactor", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1089,9 +1088,9 @@ class Triangular(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Triangular, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("apex", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("min", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("max", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("apex", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("min", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("max", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1207,7 +1206,7 @@ class Poisson(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Poisson, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("mu", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("mu", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1301,8 +1300,8 @@ class Binomial(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Binomial, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("n", contentType=InputData.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("n", contentType=InputTypes.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1403,7 +1402,7 @@ class Bernoulli(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Bernoulli, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1496,7 +1495,7 @@ class Geometric(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Geometric, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1589,13 +1588,13 @@ class Categorical(Distribution):
     """
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
 
-    StatePartInput = InputData.parameterInputFactory("state", contentType=InputData.FloatType)
-    StatePartInput.addParam("outcome", InputData.FloatType, True)
+    StatePartInput = InputData.parameterInputFactory("state", contentType=InputTypes.FloatType)
+    StatePartInput.addParam("outcome", InputTypes.FloatType, True)
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
 
     ## Because we do not inherit from the base class, we need to manually
     ## add the name back in.
-    inputSpecification.addParam("name", InputData.StringType, True)
+    inputSpecification.addParam("name", InputTypes.StringType, True)
 
     return inputSpecification
 
@@ -1730,16 +1729,16 @@ class MarkovCategorical(Categorical):
     """
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
 
-    StatePartInput = InputData.parameterInputFactory("state", contentType=InputData.StringType)
-    StatePartInput.addParam("outcome", InputData.FloatType, True)
-    StatePartInput.addParam("index", InputData.IntegerType, True)
-    TransitionInput = InputData.parameterInputFactory("transition", contentType=InputData.StringType)
+    StatePartInput = InputData.parameterInputFactory("state", contentType=InputTypes.StringType)
+    StatePartInput.addParam("outcome", InputTypes.FloatType, True)
+    StatePartInput.addParam("index", InputTypes.IntegerType, True)
+    TransitionInput = InputData.parameterInputFactory("transition", contentType=InputTypes.StringType)
     inputSpecification.addSub(StatePartInput, InputData.Quantity.one_to_infinity)
     inputSpecification.addSub(TransitionInput, InputData.Quantity.zero_to_one)
-    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputTypes.StringType))
     ## Because we do not inherit from the base class, we need to manually
     ## add the name back in.
-    inputSpecification.addParam("name", InputData.StringType, True)
+    inputSpecification.addParam("name", InputTypes.StringType, True)
 
     return inputSpecification
 
@@ -1855,8 +1854,8 @@ class Logistic(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Logistic, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("location", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("scale", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("location", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("scale", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -1965,8 +1964,8 @@ class Laplace(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Laplace, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("location", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("scale", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("location", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("scale", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2068,8 +2067,8 @@ class Exponential(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Exponential, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("lambda", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2206,9 +2205,9 @@ class LogNormal(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(LogNormal, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("mean", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("sigma", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("mean", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("sigma", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2323,9 +2322,9 @@ class Weibull(BoostDistribution):
         specifying input of cls.
     """
     inputSpecification = super(Weibull, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("k", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("lambda", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("low", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("k", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lambda", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -2440,11 +2439,11 @@ class Custom1D(Distribution):
         specifying input of cls.
     """
     inputSpecification = super(Custom1D, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("functionType", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("functionID", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("variableID", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("functionType", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("dataFilename", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("functionID", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("variableID", contentType=InputTypes.StringType))
 
     return inputSpecification
 
@@ -2591,10 +2590,10 @@ class LogUniform(Distribution):
     """
     inputSpecification = super(LogUniform, cls).getInputSpecification()
 
-    BaseInputType = InputData.makeEnumType("base", "baseType", ["natural","decimal"])
+    BaseInputType = InputTypes.makeEnumType("base", "baseType", ["natural","decimal"])
 
-    inputSpecification.addSub(InputData.parameterInputFactory("lowerBound", contentType=InputData.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("upperBound", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("lowerBound", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("upperBound", contentType=InputTypes.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("base"      , BaseInputType))
 
     return inputSpecification
@@ -2701,7 +2700,7 @@ class NDimensionalDistributions(Distribution):
         specifying input of cls.
     """
     inputSpecification = super(NDimensionalDistributions, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputData.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("workingDir", contentType=InputTypes.StringType))
 
     return inputSpecification
 
@@ -2815,11 +2814,11 @@ class NDInverseWeight(NDimensionalDistributions):
     inputSpecification = super(NDInverseWeight, cls).getInputSpecification()
 
 
-    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
-    DataFilenameParameterInput.addParam("type", InputData.StringType, True)
+    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputTypes.StringType)
+    DataFilenameParameterInput.addParam("type", InputTypes.StringType, True)
     inputSpecification.addSub(DataFilenameParameterInput)
 
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputData.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.FloatType))
 
     return inputSpecification
 
@@ -3016,8 +3015,8 @@ class NDCartesianSpline(NDimensionalDistributions):
     """
     inputSpecification = super(NDCartesianSpline, cls).getInputSpecification()
 
-    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputData.StringType)
-    DataFilenameParameterInput.addParam("type", InputData.StringType, True)
+    DataFilenameParameterInput = InputData.parameterInputFactory("dataFilename", contentType=InputTypes.StringType)
+    DataFilenameParameterInput.addParam("type", InputTypes.StringType, True)
     inputSpecification.addSub(DataFilenameParameterInput)
 
     return inputSpecification
@@ -3206,20 +3205,20 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     inputSpecification = super(MultivariateNormal, cls).getInputSpecification()
 
-    MuListParameterInput = InputData.parameterInputFactory("mu", contentType=InputData.StringType)
+    MuListParameterInput = InputData.parameterInputFactory("mu", contentType=InputTypes.StringType)
 
-    CovarianceListParameterInput = InputData.parameterInputFactory("covariance", contentType=InputData.StringType)
-    CovarianceListParameterInput.addParam("type", InputData.StringType, False)
+    CovarianceListParameterInput = InputData.parameterInputFactory("covariance", contentType=InputTypes.StringType)
+    CovarianceListParameterInput.addParam("type", InputTypes.StringType, False)
 
     TransformationParameterInput = InputData.parameterInputFactory("transformation")
-    RankParameterInput = InputData.parameterInputFactory("rank", contentType=InputData.IntegerType)
+    RankParameterInput = InputData.parameterInputFactory("rank", contentType=InputTypes.IntegerType)
     TransformationParameterInput.addSub(RankParameterInput)
 
     inputSpecification.addSub(MuListParameterInput)
     inputSpecification.addSub(CovarianceListParameterInput)
     inputSpecification.addSub(TransformationParameterInput)
 
-    MultivariateMethodType = InputData.makeEnumType("multivariateMethod","multivariateMethodType",["pca","spline"])
+    MultivariateMethodType = InputTypes.makeEnumType("multivariateMethod","multivariateMethodType",["pca","spline"])
     inputSpecification.addParam("method", MultivariateMethodType, True)
 
     return inputSpecification

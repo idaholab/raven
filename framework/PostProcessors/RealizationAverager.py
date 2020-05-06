@@ -25,8 +25,7 @@ import numpy as np
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
-from utils import InputData
-import Runners
+from utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
 class RealizationAverager(PostProcessor):
@@ -46,7 +45,7 @@ class RealizationAverager(PostProcessor):
     """
     inSpec= super(RealizationAverager, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
-                                                  contentType=InputData.StringListType))
+                                                  contentType=InputTypes.StringListType))
     return inSpec
 
   def __init__(self, messageHandler):
@@ -122,9 +121,6 @@ class RealizationAverager(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect!")
-
     result = evaluation[1]
     self.raiseADebug('Sending output to DataSet "{name}"'.format(name=output.name))
     output.load(result, style='dataset')

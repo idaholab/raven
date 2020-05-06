@@ -25,8 +25,7 @@ import numpy as np
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
-from utils import InputData
-import Runners
+from utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
 class SampleSelector(PostProcessor):
@@ -47,11 +46,11 @@ class SampleSelector(PostProcessor):
     """
     inSpec= super(SampleSelector, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
-                                                  contentType=InputData.StringType))
+                                                  contentType=InputTypes.StringType))
     criterion = InputData.parameterInputFactory('criterion',
-                                                contentType=InputData.StringType,
+                                                contentType=InputTypes.StringType,
                                                 strictMode=True)
-    criterion.addParam('value', InputData.IntegerType)
+    criterion.addParam('value', InputTypes.IntegerType)
     inSpec.addSub(criterion)
     return inSpec
 
@@ -147,9 +146,6 @@ class SampleSelector(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect!")
-
     pick = evaluation[1]
     for key,value in pick.items():
       pick[key] = np.atleast_1d(value)

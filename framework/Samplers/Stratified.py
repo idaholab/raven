@@ -29,9 +29,9 @@ from functools import reduce
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from utils import utils, randomUtils, InputData, InputTypes
 from .Grid import Grid
 from .Sampler import Sampler
-from utils import utils,randomUtils,InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -53,18 +53,18 @@ class Stratified(Grid):
     inputSpecification = super(Stratified, cls).getInputSpecification()
 
     samplerInitInput = InputData.parameterInputFactory("samplerInit")
-    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputData.IntegerType))
-    samplerInitInput.addSub(InputData.parameterInputFactory("distInit", contentType=InputData.IntegerType))
+    samplerInitInput.addSub(InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType))
+    samplerInitInput.addSub(InputData.parameterInputFactory("distInit", contentType=InputTypes.IntegerType))
 
     inputSpecification.addSub(samplerInitInput)
 
-    globalGridInput = InputData.parameterInputFactory("globalGrid", contentType=InputData.StringType)
+    globalGridInput = InputData.parameterInputFactory("globalGrid", contentType=InputTypes.StringType)
 
-    gridInput = InputData.parameterInputFactory("grid", contentType=InputData.StringType)
-    gridInput.addParam("name", InputData.StringType)
-    gridInput.addParam("type", InputData.StringType)
-    gridInput.addParam("construction", InputData.StringType)
-    gridInput.addParam("steps", InputData.IntegerType)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputTypes.StringType)
+    gridInput.addParam("name", InputTypes.StringType)
+    gridInput.addParam("type", InputTypes.StringType)
+    gridInput.addParam("construction", InputTypes.StringType)
+    gridInput.addParam("steps", InputTypes.IntegerType)
 
     globalGridInput.addSub(gridInput)
 

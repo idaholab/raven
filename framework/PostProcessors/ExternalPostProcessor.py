@@ -25,9 +25,8 @@ import copy
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import InputData, utils
+from utils import InputData, InputTypes, utils
 import Files
-import Runners
 #Internal Modules End-----------------------------------------------------------
 
 class ExternalPostProcessor(PostProcessor):
@@ -70,9 +69,9 @@ class ExternalPostProcessor(PostProcessor):
     EMethodInput = InputData.parameterInputFactory("method")
     inputSpecification.addSub(EMethodInput)
 
-    EFunctionInput = InputData.parameterInputFactory("Function", contentType=InputData.StringType)
-    EFunctionInput.addParam("class", InputData.StringType)
-    EFunctionInput.addParam("type", InputData.StringType)
+    EFunctionInput = InputData.parameterInputFactory("Function", contentType=InputTypes.StringType)
+    EFunctionInput.addParam("class", InputTypes.StringType)
+    EFunctionInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(EFunctionInput)
 
     return inputSpecification
@@ -178,9 +177,6 @@ class ExternalPostProcessor(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-
     dataLenghtHistory = {}
     inputList,outputDict = evaluation
 

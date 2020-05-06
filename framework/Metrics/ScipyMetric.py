@@ -30,7 +30,7 @@ import scipy.spatial.distance as spatialDistance
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
-from utils import utils, InputData
+from utils import utils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ScipyMetric(Metric):
@@ -66,9 +66,9 @@ class ScipyMetric(Metric):
         specifying input of cls.
     """
     inputSpecification = super(ScipyMetric, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("metricType",contentType=InputData.StringType),quantity=InputData.Quantity.one)
-    inputSpecification.addSub(InputData.parameterInputFactory("w",contentType=InputData.FloatListType),quantity=InputData.Quantity.zero_to_one)
-    inputSpecification.addSub(InputData.parameterInputFactory("p",contentType=InputData.FloatType),quantity=InputData.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("metricType",contentType=InputTypes.StringType),quantity=InputData.Quantity.one)
+    inputSpecification.addSub(InputData.parameterInputFactory("w",contentType=InputTypes.FloatListType),quantity=InputData.Quantity.zero_to_one)
+    inputSpecification.addSub(InputData.parameterInputFactory("p",contentType=InputTypes.FloatType),quantity=InputData.Quantity.zero_to_one)
 
     return inputSpecification
 

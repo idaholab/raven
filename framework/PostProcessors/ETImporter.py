@@ -27,11 +27,10 @@ import copy
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import InputData
+from utils import InputData, InputTypes
 from utils import xmlUtils as xmlU
 from utils import utils
 import Files
-import Runners
 from .ETStructure import ETStructure
 #Internal Modules End-----------------------------------------------------------
 
@@ -64,8 +63,8 @@ class ETImporter(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(ETImporter, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputData.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("expand"    , contentType=InputData.BoolType))
+    inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("expand"    , contentType=InputTypes.BoolType))
     return inputSpecification
 
   def initialize(self, runInfo, inputs, initDict) :
@@ -123,8 +122,6 @@ class ETImporter(PostProcessor):
     evaluation = finishedJob.getEvaluation()
     outputDict ={}
     outputDict['data'], variables = evaluation[1]
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, ' No available output to collect (Run probably is not finished yet) via',self.printTag)
     if not set(output.getVars('input')) == set(variables):
       self.raiseAnError(RuntimeError, ' ETImporter: set of branching variables in the '
                                       'ET ( ' + str(variables)  + ' ) is not identical to the'

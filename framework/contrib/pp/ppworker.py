@@ -31,47 +31,34 @@ forums
 """
 import sys
 import os
-import inspect
-frameworkFolder = os.path.realpath(os.path.join(os.path.dirname(inspect.getfile(inspect.currentframe())),"..",".."))
-if frameworkFolder not in sys.path: sys.path.insert(0, frameworkFolder)
-from utils.utils import add_path_recursively, add_path, find_crow
-find_crow(frameworkFolder)
-#add_path_recursively(os.path.join(frameworkFolder,'contrib'))
-add_path_recursively(os.path.join(frameworkFolder,'contrib','pp'))
-#add_path_recursively(os.path.join(frameworkFolder,'contrib','StringIO'))
-add_path(os.path.join(frameworkFolder,'contrib','AMSC'))
-add_path(os.path.join(frameworkFolder,'contrib'))
-
-
-#filepath = os.path.dirname(os.path.abspath(inspect.getsourcefile(lambda _: None)))
-#sys.path.append(os.path.abspath(os.path.join(filepath,'..'+os.path.sep+'..'+os.path.sep ,'utils')))
-#frameworkDir = os.path.abspath(os.path.join(filepath,'..'+os.path.sep+'..'+os.path.sep))
-#from utils import add_path_recursively
-#add_path_recursively(frameworkDir)
-import StringIO
-#import dill as pickle
-#import cPickle as pickle
-import pickle
-import cloudpickle
+try:
+    import io
+    ioStringIO = io.StringIO
+   #ioStringIO = io.BytesIO
+except ImportError:
+    import StringIO as io
+    ioStringIO = io.StringIO
+#RAVEN CHANGE: switching to cloudpickle
+import cloudpickle as pickle
+import six
 import pptransport
+import ppcommon as ppc
 
 copyright = "Copyright (c) 2005-2012 Vitalii Vanovschi. All rights reserved"
-version = "1.6.4"
+__version__ = version = "1.6.4.4"
 
 
 def preprocess(msg):
-    # fname, fsources, imports, pytpath = pickle.loads(msg)
-    fname, fsources, imports = pickle.loads(msg)
-    # print(pytpath)
+    fname, fsources, imports = pickle.loads(ppc.b_(msg))
     fobjs = [compile(fsource, '<string>', 'exec') for fsource in fsources]
     for module in imports:
-        try:
+        try:            
             if not module.startswith("from ") and not module.startswith("import "):
                 module = "import " + module
-            exec module
+            six.exec_(module)
             globals().update(locals())
         except:
-            print "An error has occured during the module import. Module " + module
+            print("An error has occured during the module import")
             sys.excepthook(*sys.exc_info())
     return fname, fobjs
 
@@ -80,13 +67,18 @@ class _WorkerProcess(object):
     def __init__(self):
         self.hashmap = {}
         self.e = sys.__stderr__
-        self.sout = StringIO.StringIO()
+        self.sout = ioStringIO()
 #        self.sout = open("/tmp/pp.debug","a+")
         sys.stdout = self.sout
         sys.stderr = self.sout
         self.t = pptransport.CPipeTransport(sys.stdin, sys.__stdout__)
+       #open('/tmp/pp.debug', 'a+').write('Starting _WorkerProcess\n')
+       #open('/tmp/pp.debug', 'a+').write('send... \n')
         self.t.send(str(os.getpid()))
+       #open('/tmp/pp.debug', 'a+').write('send: %s\n' % str(os.getpid()))
+       #open('/tmp/pp.debug', 'a+').write('receive... \n')
         self.pickle_proto = int(self.t.receive())
+       #open('/tmp/pp.debug', 'a+').write('receive: %s\n' % self.pickle_proto)
 
     def run(self):
         try:
@@ -98,31 +90,33 @@ class _WorkerProcess(object):
 
                 for __fobj in __fobjs:
                     try:
-                        exec __fobj
+                        six.exec_(__fobj)
                         globals().update(locals())
                     except:
-                        print "An error has occured during the " + \
-                              "function import"
+                        print("An error has occured during the " + \
+                              "function import")
                         sys.excepthook(*sys.exc_info())
-                __args = pickle.loads(__sargs)
-                __f = locals()[__fname]
+
+                __args = pickle.loads(ppc.b_(__sargs))
+            
+                __f = locals()[ppc.str_(__fname)]
                 try:
                     __result = __f(*__args)
                 except:
-                    print "An error has occured during the function execution"
+                    print("An error has occured during the function execution")
                     sys.excepthook(*sys.exc_info())
                     __result = None
 
-                __sresult = cloudpickle.dumps((__result, self.sout.getvalue()),
+                __sresult = pickle.dumps((__result, self.sout.getvalue()),
                         self.pickle_proto)
 
                 self.t.send(__sresult)
                 self.sout.truncate(0)
         except:
-            print "A fatal error has occured during the function execution"
+            print("A fatal error has occured during the function execution")
             sys.excepthook(*sys.exc_info())
             __result = None
-            __sresult = cloudpickle.dumps((__result, self.sout.getvalue()),
+            __sresult = pickle.dumps((__result, self.sout.getvalue()),
                     self.pickle_proto)
             self.t.send(__sresult)
 
