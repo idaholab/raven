@@ -426,8 +426,8 @@ class ParameterInput(object):
       msg += '{i}\\end{{itemize}}\n'.format(i=doDent(recDepth, 1))
     # TODO is this a good idea? -> disables underscores in math mode :(
     if recDepth == 0:
+      # assure underscore is escaped, but not doubly
       msg = re.sub(r'(?<!\\)_', '\_', msg)
-      # msg = msg.replace('_', '\_')
     return msg
 
   @classmethod
@@ -443,13 +443,13 @@ class ParameterInput(object):
       return msg
     specName = cls.name
     if '_' in specName:
+      # assure underscore is escaped, but not doubly
       specName = re.sub(r'(?<!\\)_', '\_', specName)
-      # specName = specName.replace('_', '\_')
     msg += '{i}The \\xmlNode{{{n}}} node recognizes the following parameters:'.format(i=doDent(recDepth), n=specName)
     msg += '\n{i}\\begin{{itemize}}'.format(i=doDent(recDepth, 1))
     for param, info in cls.parameters.items():
+      # assure underscore is escaped, but not doubly
       name = re.sub(r'(?<!\\)_', '\_', param)
-      # name = param.replace('_', '\_')
       typ = info['type'].generateLatexType()
       req = 'required' if info['required'] else 'optional'
       desc = wrapText(info['description'], indent=doDent(recDepth, 3))
