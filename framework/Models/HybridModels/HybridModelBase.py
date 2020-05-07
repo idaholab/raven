@@ -161,8 +161,9 @@ class HybridModelBase(Dummy):
     ## Hybrid models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but
     ## will suffice until we can better redesign this whole process.
+    prefix = kwargs['prefix']
     kwargs['jobHandler'] = jobHandler
-    Dummy.submit(self, myInput, samplerType, jobHandler, **kwargs)
+    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
   @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):

@@ -502,17 +502,9 @@ class HybridModel(HybridModelBase):
       self.modelIndicator[prefix] = 1
     else:
       self.modelIndicator[prefix] = 0
-    ## Ensemble models need access to the job handler, so let's stuff it in our
-    ## catch all kwargs where evaluateSample can pick it up, not great, but
-    ## will suffice until we can better redesign this whole process.
-    kwargs['jobHandler'] = jobHandler
-    self.raiseADebug("Submit job with job identifier: {},  Runing ROM: {} ".format(kwargs['prefix'], self.romValid))
     kwargs['useROM'] = self.romValid
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+    self.raiseADebug("Submit job with job identifier: {},  Runing ROM: {} ".format(kwargs['prefix'], self.romValid))
+    HybridModelBase.submit(self,myInput,samplerType,jobHandler,**kwargs)
 
   def _externalRun(self,inRun, jobHandler):
     """
