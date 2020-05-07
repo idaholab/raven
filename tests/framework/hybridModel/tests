@@ -22,7 +22,7 @@
   rel_err = 0.00001
   remove_unicode_identifier = true
  [../]
- 
+
  [./romTrainRom]
   type = 'RavenFramework'
   input = 'test_rom_rom.xml'
@@ -30,4 +30,13 @@
   rel_err = 0.00001
   remove_unicode_identifier = true
  [../]
+
+ [./logicalModel]
+  type = 'RavenFramework'
+  input = 'test_logical_model.xml'
+  csv = 'multiple/dumpOut.csv'
+  rel_err = 0.00001
+  remove_unicode_identifier = true
+ [../]
+
 []

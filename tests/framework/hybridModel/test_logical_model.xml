@@ -60,7 +60,7 @@
   <Samplers>
     <MonteCarlo name="MonteCarlo">
       <samplerInit>
-        <limit>50</limit>
+        <limit>5</limit>
       </samplerInit>
       <variable name="x">
         <distribution>uni_a</distribution>
