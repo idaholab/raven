@@ -152,10 +152,10 @@ class ParameterInput(object):
   @classmethod
   def removeParam(cls, name, param_type=InputTypes.StringType, required=False):
     """
-      Adds a direct parameter to this class.  In XML this is an attribute.
+      Removes a direct parameter to this class.  In XML this is an attribute.
       @ In, name, string, the name of the parameter
-      @ In, param_type, subclass of InputTypes.InputType, optional, that specifies the type of the attribute.
-      @ In, required, bool, optional, if True, this parameter is required.
+      @ In, param_type, subclass of InputTypes.InputType, optional, that specifies the type of the attribute. UNUSED
+      @ In, required, bool, optional, if True, this parameter is required. UNUSED
       @ Out, None
     """
     del cls.parameters[name]
