@@ -19,6 +19,7 @@ Created on May 6, 2020
 
 #External Modules------------------------------------------------------------------------------------
 import copy
+import time
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
@@ -69,7 +70,6 @@ class LogicalModel(HybridModelBase):
     HybridModelBase.__init__(self,runInfoDict)
     self.printTag              = 'LogicalModel MODEL' # print tag
     self.controlFunction       = None
-    self.modelIndicator        = {}
     # assembler objects to be requested
     self.addAssemblerObject('ControlFunction','1')
 
@@ -111,15 +111,20 @@ class LogicalModel(HybridModelBase):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
-    self.raiseADebug("{}: Create new input for {}".format(self.name))
+    self.raiseADebug("{}: Create new input.".format(self.name))
     # TODO: standardize the way to handle code/external model/rom inputs
-    if self.modelInstance.type == 'Code':
+    modelToRun = self.controlFunction.evaluate("evaluate", kwargs)
+    if modelToRun not in self.modelInstances:
+      self.raiseAnError(IOError, 'Model (i.e. {}) returned from "ControlFunction" is not valid!'.format(modelToRun),
+                        'Available models are: {}'.format(','.join(self.modelInstances.keys())))
+    kwargs['modelToRun'] = modelToRun
+    if self.modelInstances[modelToRun].type == 'Code':
       codeInput = []
       for elem in myInput:
         if isinstance(elem, Files.File):
           codeInput.append(elem)
-        return (codeInput, samplerType, newKwargs)
-    return (myInput, samplerType, newKwargs)
+        return (codeInput, samplerType, kwargs)
+    return (myInput, samplerType, kwargs)
 
   def _externalRun(self,inRun, jobHandler):
     """
@@ -134,11 +139,8 @@ class LogicalModel(HybridModelBase):
     samplerType = inRun[1]
     inputKwargs = inRun[2]
     identifier = inputKwargs.pop('prefix')
-    # execute control function
-    modelToRun = self.controlFunction.evaluate("evaluate", inputKwargs)
-    if modelToRun not in self.modelInstances:
-      self.raiseAnError(IOError, 'Model (i.e. {}) returned from "ControlFunction" is not valid!'.format(modelToRun),
-                        'Available models are: {}'.format(','.join(self.modelInstances.keys())))
+    # TODO: execute control function, move this to createNewInput
+    modelToRun = inputKwargs.pop('modelToRun')
     inputKwargs['prefix'] = modelToRun + utils.returnIdSeparator() + identifier
     inputKwargs['uniqueHandler'] = self.name + identifier
     moveOn = False
@@ -152,7 +154,7 @@ class LogicalModel(HybridModelBase):
     while not jobHandler.isThisJobFinished(inputKwargs['prefix']):
       time.sleep(self.sleepTime)
     self.raiseADebug("Job finished", modelToRun, "with identifier", identifier)
-    finishedRun = jobHandler.getFinished(jobIdentifier=inputKwargs['prefix'], uniqueHandler=uniqueHandler)
+    finishedRun = jobHandler.getFinished(jobIdentifier=inputKwargs['prefix'], uniqueHandler=inputKwargs['uniqueHandler'])
     evaluation = finishedRun[0].getEvaluation()
     if isinstance(evaluation, rerror):
       self.raiseAnError(RuntimeError, "The model", modelToRun, "identified by", finishedRun[0].identifier, "failed!")
