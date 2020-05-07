@@ -143,6 +143,27 @@ class HybridModelBase(Dummy):
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
 
+  def submit(self,myInput,samplerType,jobHandler,**kwargs):
+    """
+     This will submit an individual sample to be evaluated by this model to a
+     specified jobHandler as a client job. Note, some parameters are needed
+     by createNewInput and thus descriptions are copied from there.
+     @ In, myInput, list, the inputs (list) to start from to generate the new
+       one
+     @ In, samplerType, string, is the type of sampler that is calling to
+       generate a new input
+     @ In,  jobHandler, JobHandler instance, the global job handler instance
+     @ In, **kwargs, dict,  is a dictionary that contains the information
+       coming from the sampler, a mandatory key is the sampledVars' that
+       contains a dictionary {'name variable':value}
+     @ Out, None
+    """
+    ## Hybrid models need access to the job handler, so let's stuff it in our
+    ## catch all kwargs where evaluateSample can pick it up, not great, but
+    ## will suffice until we can better redesign this whole process.
+    kwargs['jobHandler'] = jobHandler
+    Dummy.submit(self, myInput, samplerType, jobHandler, **kwargs)
+
   @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """

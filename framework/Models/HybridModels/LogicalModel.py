@@ -97,6 +97,9 @@ class LogicalModel(HybridModelBase):
     """
     HybridModelBase.initialize(self,runInfo,inputs,initDict)
     self.controlFunction = self.retrieveObjectFromAssemblerDict('ControlFunction', self.controlFunction)
+    if "evaluate" not in self.controlFunction.availableMethods():
+      self.raiseAnError(IOError,'Function', self.controlFunction.name, 'does not contain a method named "evaluate".',
+                        'It must be present if this needs to be used in a {}!'.format(self.name))
     # check models inputs and outputs
 
   def createNewInput(self,myInput,samplerType,**kwargs):
@@ -108,7 +111,8 @@ class LogicalModel(HybridModelBase):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
-    self.raiseADebug("Create New Input")
+    self.raiseADebug("{}: Create new input for {}".format(self.name))
+    # TODO: standardize the way to handle code/external model/rom inputs
     if self.modelInstance.type == 'Code':
       codeInput = []
       for elem in myInput:
@@ -116,26 +120,6 @@ class LogicalModel(HybridModelBase):
           codeInput.append(elem)
         return (codeInput, samplerType, newKwargs)
     return (myInput, samplerType, newKwargs)
-
-  def submit(self,myInput,samplerType,jobHandler,**kwargs):
-    """
-      This will submit an individual sample to be evaluated by this model to a
-      specified jobHandler as a client job. Note, some parameters are needed
-      by createNewInput and thus descriptions are copied from there.
-      @ In, myInput, list, the inputs (list) to start from to generate the new
-        one
-      @ In, samplerType, string, is the type of sampler that is calling to
-        generate a new input
-      @ In,  jobHandler, JobHandler instance, the global job handler instance
-      @ In, **kwargs, dict,  is a dictionary that contains the information
-        coming from the sampler, a mandatory key is the sampledVars' that
-        contains a dictionary {'name variable':value}
-      @ Out, None
-    """
-    prefix = kwargs['prefix']
-    self.counter = prefix
-    kwargs['jobHandler'] = jobHandler
-    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
   def _externalRun(self,inRun, jobHandler):
     """
@@ -145,32 +129,36 @@ class LogicalModel(HybridModelBase):
       @ In, jobHandler, instance, instance of jobHandler
       @ Out, exportDict, dict, dict of results from this hybrid model
     """
-    self.raiseADebug("External Run")
+    self.raiseADebug("{}: External Run".format(self.name))
     originalInput = inRun[0]
     samplerType = inRun[1]
     inputKwargs = inRun[2]
     identifier = inputKwargs.pop('prefix')
-
-    inputKwargs['prefix'] = self.modelInstance.name+utils.returnIdSeparator()+identifier
+    # execute control function
+    modelToRun = self.controlFunction.evaluate("evaluate", inputKwargs)
+    if modelToRun not in self.modelInstances:
+      self.raiseAnError(IOError, 'Model (i.e. {}) returned from "ControlFunction" is not valid!'.format(modelToRun),
+                        'Available models are: {}'.format(','.join(self.modelInstances.keys())))
+    inputKwargs['prefix'] = modelToRun + utils.returnIdSeparator() + identifier
     inputKwargs['uniqueHandler'] = self.name + identifier
     moveOn = False
     while not moveOn:
       if jobHandler.availability() > 0:
-        self.modelInstance.submit(originalInput, samplerType, jobHandler, **inputKwargs)
-        self.raiseADebug("Job submitted for model ", self.modelInstance.name, " with identifier ", identifier)
+        self.modelInstances[modelToRun].submit(originalInput, samplerType, jobHandler, **inputKwargs)
+        self.raiseADebug("Job submitted for model", modelToRun, "with identifier", identifier)
         moveOn = True
       else:
         time.sleep(self.sleepTime)
-    while not jobHandler.isThisJobFinished(self.modelInstance.name+utils.returnIdSeparator()+identifier):
+    while not jobHandler.isThisJobFinished(inputKwargs['prefix']):
       time.sleep(self.sleepTime)
-    self.raiseADebug("Job finished ", self.modelInstance.name, " with identifier ", identifier)
-    finishedRun = jobHandler.getFinished(jobIdentifier = inputKwargs['prefix'], uniqueHandler = uniqueHandler)
+    self.raiseADebug("Job finished", modelToRun, "with identifier", identifier)
+    finishedRun = jobHandler.getFinished(jobIdentifier=inputKwargs['prefix'], uniqueHandler=uniqueHandler)
     evaluation = finishedRun[0].getEvaluation()
     if isinstance(evaluation, rerror):
-      self.raiseAnError(RuntimeError, "The model "+self.modelInstance.name+" identified by "+finishedRun[0].identifier+" failed!")
+      self.raiseAnError(RuntimeError, "The model", modelToRun, "identified by", finishedRun[0].identifier, "failed!")
     # collect output in temporary data object
     exportDict = evaluation
-    self.raiseADebug("Create exportDict")
+    self.raiseADebug("{}: Create exportDict".format(self.name))
     return exportDict
 
   def collectOutput(self,finishedJob,output):
