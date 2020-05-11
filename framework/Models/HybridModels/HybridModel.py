@@ -508,7 +508,7 @@ class HybridModel(HybridModelBase):
 
   def _externalRun(self,inRun, jobHandler):
     """
-      Method that performs the actual run of the essembled model (separated from run method for parallelization purposes)
+      Method that performs the actual run of the hybrid model (separated from run method for parallelization purposes)
       @ In, inRun, tuple, tuple of Inputs (inRun[0] actual input, inRun[1] type of sampler,
         inRun[2] dictionary that contains information coming from sampler)
       @ In, jobHandler, instance, instance of jobHandler

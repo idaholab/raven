@@ -1,13 +1,13 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/hybridModel.MultipleModel</name>
+    <name>framework/hybridModel.logicalModel</name>
     <author>wangc</author>
     <created>2020-03-31</created>
     <classesTested>Models.LogicalModel</classesTested>
     <description>
-       Example of usage of the Hybrid Model capability in RAVEN
-       This test is intended to check the functionality of Hybrid Model
+       Example of usage of the Logical Model capability in RAVEN
+       This test is intended to check the functionality of Logical Model
        with multiple external models.
     </description>
   </TestInfo>
