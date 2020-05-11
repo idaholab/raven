@@ -1,0 +1,132 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/hybridModel.logicalRom</name>
+    <author>wangc</author>
+    <created>2020-05-11</created>
+    <classesTested>Models.LogicalModel</classesTested>
+    <description>
+      Example of usage of the Logical Model capability in RAVEN
+      This test is intended to check the functionality of Logical Model
+      with ROMs.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>logicalRom</WorkingDir>
+    <Sequence>runModel, trainRom, runLogicalModel</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="leftTemperatureDist">
+      <lowerBound>500</lowerBound>
+      <upperBound>1700</upperBound>
+    </Uniform>
+    <Uniform name="rightTemperatureDist">
+      <lowerBound>500</lowerBound>
+      <upperBound>1700</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Functions>
+    <External file="control" name="control">
+      <variables>leftTemperature, rightTemperature</variables>
+    </External>
+  </Functions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
+      <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
+    </ExternalModel>
+    <ROM name="svr" subType="SciKitLearn">
+      <SKLtype>svm|SVR</SKLtype>
+      <Features>leftTemperature, rightTemperature</Features>
+      <Target>k</Target>
+      <C>1.0</C>
+      <epsilon>0.1</epsilon>
+      <kernel>rbf</kernel>
+      <degree>3</degree>
+      <coef0>0.0</coef0>
+      <shrinking>True</shrinking>
+      <tol>1e-3</tol>
+      <cache_size>200</cache_size>
+      <verbose>False</verbose>
+      <max_iter>-1</max_iter>
+    </ROM>
+    <LogicalModel name="logical" subType="">
+      <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>
+      <Model class="Models" type="ROM">svr</Model>
+      <ControlFunction class="Functions" type="External">control</ControlFunction>
+    </LogicalModel>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="MonteCarlo">
+      <samplerInit>
+        <limit>40</limit>
+      </samplerInit>
+      <variable name="leftTemperature">
+        <distribution>leftTemperatureDist</distribution>
+      </variable>
+      <variable name="rightTemperature">
+        <distribution>rightTemperatureDist</distribution>
+      </variable>
+    </MonteCarlo>
+    <Stratified name="LHS">
+      <variable name="leftTemperature">
+        <distribution>leftTemperatureDist</distribution>
+        <grid construction="equal" steps="50" type="CDF">0.3 0.7</grid>
+      </variable>
+      <variable name="rightTemperature">
+        <distribution>rightTemperatureDist</distribution>
+        <grid construction="equal" steps="50" type="CDF">0.2 0.8</grid>
+      </variable>
+    </Stratified>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="runModel">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>
+      <Sampler class="Samplers" type="Stratified">LHS</Sampler>
+      <Output class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Output>
+    </MultiRun>
+    <RomTrainer name="trainRom" verbosity="debug">
+      <Input class="DataObjects" type="PointSet">thermalConductivityComputationContainer</Input>
+      <Output class="Models" type="ROM">svr</Output>
+    </RomTrainer>
+    <MultiRun name="runLogicalModel">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="LogicalModel">logical</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MonteCarlo</Sampler>
+      <Output class="DataObjects" type="PointSet">metaModelOutputTest</Output>
+      <Output class="OutStreams" type="Print">metaModelOutputTestDump</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="metaModelOutputTestDump">
+      <type>csv</type>
+      <source>metaModelOutputTest</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="thermalConductivityComputationContainer">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>k</Output>
+    </PointSet>
+    <PointSet name="metaModelOutputTest">
+      <Input>leftTemperature,rightTemperature</Input>
+      <Output>k</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

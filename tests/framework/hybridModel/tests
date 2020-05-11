@@ -47,4 +47,12 @@
   remove_unicode_identifier = true
  [../]
 
+ [./logicalRom]
+  type = 'RavenFramework'
+  input = 'test_logical_rom.xml'
+  csv = 'logicalRom/metaModelOutputTestDump.csv'
+  rel_err = 0.00001
+  remove_unicode_identifier = true
+ [../]
+
 []
