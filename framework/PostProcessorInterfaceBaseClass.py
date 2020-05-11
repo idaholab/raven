@@ -27,6 +27,7 @@ import numpy as np
 from utils.cached_ndarray import c1darray
 from utils import utils
 import MessageHandler
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),MessageHandler.MessageUser):
@@ -37,6 +38,21 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),Mess
       - run
       - readMoreXML
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False)
+    inputSpecification.addParam("subType", InputTypes.StringType)
+    inputSpecification.addParam("name", InputTypes.StringType)
+
+    return inputSpecification
 
   def __init__(self, messageHandler):
     """
