@@ -13,34 +13,27 @@
 # limitations under the License.
 """
 Created on September, 2017
+Restructured on April, 2020
 
 @author: wangc
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import copy
 import numpy as np
 from numpy import linalg
 import time
-import itertools
-from collections import OrderedDict
-from Decorators.Parallelization import Parallel
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from .Dummy import Dummy
-import Models
+from .HybridModelBase import HybridModelBase
 import Files
 from utils import InputData, InputTypes
 from utils import utils
 from Runners import Error as rerror
 #Internal Modules End--------------------------------------------------------------------------------
 
-class HybridModel(Dummy):
+class HybridModel(HybridModelBase):
   """
     HybridModel Class. This class is aimed to automatically select the model to run among different models
   """
@@ -53,10 +46,6 @@ class HybridModel(Dummy):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying input of cls.
     """
     inputSpecification = super(HybridModel, cls).getInputSpecification()
-    modelInput = InputData.parameterInputFactory("Model", contentType=InputTypes.StringType)
-    modelInput.addParam("class", InputTypes.StringType)
-    modelInput.addParam("type", InputTypes.StringType)
-    inputSpecification.addSub(modelInput)
     romInput = InputData.parameterInputFactory("ROM", contentType=InputTypes.StringType)
     romInput.addParam("class", InputTypes.StringType)
     romInput.addParam("type", InputTypes.StringType)
@@ -99,8 +88,8 @@ class HybridModel(Dummy):
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
       @ Out, None
     """
-    Dummy.__init__(self,runInfoDict)
-    self.modelInstance            = None             # Instance of given model
+    HybridModelBase.__init__(self,runInfoDict)
+    self.modelInstance         = None                # instance of given model
     self.targetEvaluationInstance = None             # Instance of data object used to store the inputs and outputs of HybridModel
     self.tempTargetEvaluation     = None             # Instance of data object that are used to store the training set
     self.romsDictionary        = {}                  # dictionary of models that is going to be employed, i.e. {'romName':Instance}
@@ -108,21 +97,18 @@ class HybridModel(Dummy):
     self.romTrainMaxSize       = 1.0e6               # the maximum size of training set
     self.romValidateSize       = 10                  # the size of rom validation set
     self.romTrained            = False               # True if all roms are trained
-    self.sleepTime             = 0.005               # waiting time before checking if a run is finished.
     self.romConverged          = False               # True if all roms are converged
     self.romValid              = False               # True if all roms are valid for given input data
     self.romConvergence        = 0.01                # The criterion used to check ROM convergence
     self.validationMethod      = {}                  # dict used to store the validation methods and their settings
     self.existTrainSize        = 0                   # The size of existing training set in the provided data object via 'TargetEvaluation'
     self.printTag              = 'HYBRIDMODEL MODEL' # print tag
-    self.createWorkingDir      = False               # If the type of model is 'Code', this will set to true
     self.tempOutputs           = {}                  # Indicators used to collect model inputs/outputs for rom training
     self.oldTrainingSize       = 0                   # The size of training set that is previous used to train the rom
     self.modelIndicator        = {}                  # a dict i.e. {jobPrefix: 1 or 0} used to indicate the runs: model or rom. '1' indicates ROM run, and '0' indicates Code run
     self.crowdingDistance      = None
     self.metricCategories      = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
     # assembler objects to be requested
-    self.addAssemblerObject('Model','1',True)
     self.addAssemblerObject('ROM','n')
     self.addAssemblerObject('TargetEvaluation','1')
 
@@ -133,14 +119,10 @@ class HybridModel(Dummy):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    Dummy.localInputAndChecks(self, xmlNode)
+    HybridModelBase.localInputAndChecks(self, xmlNode)
     paramInput = HybridModel.getInputSpecification()()
     paramInput.parseNode(xmlNode)
     for child in paramInput.subparts:
-      if child.getName() == 'Model':
-        self.modelInstance = child.value.strip()
-        if child.parameterValues['type'] == 'Code':
-          self.createWorkingDir = True
       if child.getName() == 'TargetEvaluation':
         self.targetEvaluationInstance = child.value.strip()
       if child.getName() == 'ROM':
@@ -171,23 +153,16 @@ class HybridModel(Dummy):
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
       @ Out, None
     """
-    if isinstance(self.modelInstance, Models.Model):
-      self.raiseAnError(IOError, "HybridModel has already been initialized, and it can not be initialized again!")
-    self.modelInstance = self.retrieveObjectFromAssemblerDict('Model', self.modelInstance)
-    if self.modelInstance.type == 'Code':
-      codeInput = []
-      for elem in inputs:
-        if isinstance(elem, Files.File):
-          codeInput.append(elem)
-      self.modelInstance.initialize(runInfo, codeInput, initDict)
-
+    HybridModelBase.initialize(self,runInfo,inputs,initDict)
     self.targetEvaluationInstance = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self.targetEvaluationInstance)
     if len(self.targetEvaluationInstance):
       self.raiseAWarning("The provided TargetEvaluation data object is not empty, the existing data will also be used to train the ROMs!")
       self.existTrainSize = len(self.targetEvaluationInstance)
     self.tempTargetEvaluation = copy.deepcopy(self.targetEvaluationInstance)
-    if self.modelInstance is None:
-      self.raiseAnError(IOError,'Model XML block needs to be inputted!')
+    if len(self.modelInstances) != 1:
+      self.raiseAnError(IOError, '"HybridModel" can only accept one "Model" XML subnode!',
+                        'The following "Models" are provided "{}"'.format(','.join(list(self.modelInstances.keys()))))
+    self.modelInstance = list(self.modelInstances.values())[0]
     if self.targetEvaluationInstance is None:
       self.raiseAnError(IOError, 'TargetEvaluation XML block needs to be inputted!')
     for romName, romInfo in self.romsDictionary.items():
@@ -239,7 +214,7 @@ class HybridModel(Dummy):
       @ In, None
       @ Out, tempDict, dict, dictionary to be updated. {'attribute name':value}
     """
-    tempDict = OrderedDict()
+    tempDict = HybridModelBase.getInitParams(self)
     tempDict['ROMs contained in HybridModel are '] = self.romsDictionary.keys()
     return tempDict
 
@@ -250,7 +225,7 @@ class HybridModel(Dummy):
       @ In, inputInfo, dict, dictionary in which to add edits
       @ Out, None.
     """
-    self.modelInstance.getAdditionalInputEdits(inputInfo)
+    HybridModelBase.getAdditionalInputEdits(self,inputInfo)
 
   def __selectInputSubset(self,romName, kwargs):
     """
@@ -441,24 +416,6 @@ class HybridModel(Dummy):
         allValid = False
     return allValid
 
-  def _extractInputs(self,dataIn, paramsList):
-    """
-      Extract the the parameters in the paramsList from the given data object dataIn
-      @ dataIn, Instance or Dict, data object or dictionary contains the input and output parameters
-      @ paramsList, List, List of parameter names
-      @ localInput, numpy.array, array contains the values of selected input and output parameters
-    """
-    localInput = []
-    if type(dataIn) == dict:
-      for elem in paramsList:
-        if elem in dataIn.keys():
-          localInput.append(np.atleast_1d(dataIn[elem]))
-        else:
-          self.raiseAnError(IOError, "Parameter ", elem, " is not found!")
-    else:
-      self.raiseAnError(IOError, "The input type '", inputType, "' can not be accepted!")
-    return np.asarray(localInput)
-
   def computeCrowdingDistance(self, trainSet):
     """
       This function will compute the Crowding distance coefficients among the input parameters
@@ -557,32 +514,6 @@ class HybridModel(Dummy):
     ## class and pass self in as the first parameter
     jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
-  @Parallel()
-  def evaluateSample(self, myInput, samplerType, kwargs):
-    """
-      This will evaluate an individual sample on this model. Note, parameters
-      are needed by createNewInput and thus descriptions are copied from there.
-      @ In, myInput, list, the inputs (list) to start from to generate the new one
-      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-        a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, rlz, dict, This holds the output information of the evaluated sample.
-    """
-    self.raiseADebug("Evaluate Sample")
-    kwargsKeys = list(kwargs.keys())
-    kwargsKeys.pop(kwargsKeys.index("jobHandler"))
-    kwargsToKeep = {keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
-    jobHandler = kwargs['jobHandler']
-    newInput = self.createNewInput(myInput, samplerType, **kwargsToKeep)
-    ## Unpack the specifics for this class, namely just the jobHandler
-    result = self._externalRun(newInput,jobHandler)
-    # assure rlz has all metadata
-    rlz = dict((var,np.atleast_1d(kwargsToKeep[var])) for var in kwargsToKeep.keys())
-    # update rlz with input space from inRun and output space from result
-    rlz.update(dict((var,np.atleast_1d(kwargsToKeep['SampledVars'][var] if var in kwargs['SampledVars'] else result[var])) for var in set(itertools.chain(result.keys(),kwargsToKeep['SampledVars'].keys()))))
-
-    return rlz
-
   def _externalRun(self,inRun, jobHandler):
     """
       Method that performs the actual run of the essembled model (separated from run method for parallelization purposes)
@@ -623,7 +554,7 @@ class HybridModel(Dummy):
             self.raiseAnError(RuntimeError, "The job identified by "+finishedRun.identifier+" failed!")
           # collect output in temporary data object
           tempExportDict = evaluation
-          exportDict = self.__mergeDict(exportDict, tempExportDict)
+          exportDict = self._mergeDict(exportDict, tempExportDict)
         if jobHandler.areTheseJobsFinished(uniqueHandler=uniqueHandler):
           self.raiseADebug("Jobs with uniqueHandler ", uniqueHandler, "are collected!")
           break
@@ -672,26 +603,4 @@ class HybridModel(Dummy):
     if jobIndex is not None and not useROM:
       self.tempTargetEvaluation.addRealization(evaluation)
       self.raiseADebug("ROM is invalid, collect ouptuts of Model with job identifier: {}".format(finishedJob.identifier))
-    Dummy.collectOutput(self, finishedJob, output )
-
-  def __mergeDict(self,exportDict, tempExportDict):
-    """
-      This function will combine two dicts into one
-      @ In, exportDict, dict, dictionary stores the input, output and metadata
-      @ In, tempExportDict, dict, dictionary stores the input, output and metadata
-      @ Out,
-    """
-    if not exportDict:
-      outputDict = copy.deepcopy(tempExportDict)
-    else:
-      outputDict = copy.deepcopy(exportDict)
-      inKey = 'inputSpaceParams'
-      outKey = 'outputSpaceParams'
-      for key, value in tempExportDict[inKey].items():
-        outputDict[inKey][key] = value
-      for key, value in tempExportDict[outKey].items():
-        output[outKey][key] = value
-      for key, value in tempExportDict['metadata'].items():
-        output['metadata'][key] = value
-    self.raiseADebug("The exportDict has been updated")
-    return outputDict
+    HybridModelBase.collectOutput(self, finishedJob, output)

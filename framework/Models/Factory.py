@@ -27,7 +27,7 @@ from .ExternalModel import ExternalModel
 from .Code          import Code
 from .EnsembleModel import EnsembleModel
 from .PostProcessor import PostProcessor
-from .HybridModel   import HybridModel
+from .HybridModels import HybridModel
 
 __base = 'Model'
 __interFaceDict = {}
@@ -61,7 +61,8 @@ def returnInstance(Type,runInfoDict,caller):
     return __interFaceDict[Type](runInfoDict)
   except KeyError:
     availableClasses = ','.join(__interFaceDict.keys())
-    caller.raiseAnError(NameError,'MODELS','not known {} type {} (Available options: {})'.format(__base,Type,availableClasses))
+    caller.raiseAnError(NameError,
+      'Requested {}, i.e. "{}", is not recognized (Available options: {})'.format(__base, Type, availableClasses))
 
 def validate(className,role,what,caller):
   """
@@ -75,4 +76,4 @@ def validate(className,role,what,caller):
   if className in __interFaceDict:
     return __interFaceDict[className].localValidateMethod(role,what)
   else:
-    caller.raiseAnError(IOError,'MODELS','the class '+str(className)+' it is not a registered model')
+    caller.raiseAnError(IOError, 'The model "{}" is not registered for class "{}"'.format(className, __base))
