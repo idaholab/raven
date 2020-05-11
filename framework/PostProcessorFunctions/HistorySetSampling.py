@@ -27,6 +27,7 @@ from scipy import interpolate
 from scipy import integrate
 import copy
 
+from utils import InputData, InputTypes
 
 class HistorySetSampling(PostProcessorInterfaceBase):
   """
@@ -34,6 +35,27 @@ class HistorySetSampling(PostProcessorInterfaceBase):
    The conversion is made so that each history H is re-sampled accordingly to a specific sampling strategy.
    It can be used to reduce the amount of space required by the HistorySet.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super().getInputSpecification()
+    HSSamplingType = InputTypes.makeEnumType("HSSampling", "HSSamplingType", ['uniform','firstDerivative','secondDerivative','filteredFirstDerivative','filteredSecondDerivative'])
+    inputSpecification.addSub(InputData.parameterInputFactory("samplingType", contentType=HSSamplingType))
+    inputSpecification.addSub(InputData.parameterInputFactory("numberOfSamples", contentType=InputTypes.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("tolerance", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
+    HSInterpolationType = InputTypes.makeEnumType("HSInterpolation", "HSInterpolationType", ['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'intervalAverage'])
+    inputSpecification.addSub(InputData.parameterInputFactory("interpolation", contentType=HSInterpolationType))
+    #Should method be in super class?
+    inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
+    return inputSpecification
+
   def initialize(self):
     """
      Method to initialize the Interfaced Post-processor
@@ -58,32 +80,29 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
+    paramInput = HistorySetSampling.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
 
-    for child in xmlNode:
-      if child.tag == 'samplingType':
-        self.samplingType = child.text
-      elif child.tag == 'numberOfSamples':
-        self.numberOfSamples = int(child.text)
-      elif child.tag == 'tolerance':
-        self.tolerance = float(child.text)
-      elif child.tag == 'pivotParameter':
-        self.pivotParameter = child.text
-      elif child.tag == 'interpolation':
-        self.interpolation = child.text
-      elif child.tag !='method':
+    for child in paramInput.subparts:
+      if child.getName() == 'samplingType':
+        self.samplingType = child.value
+      elif child.getName() == 'numberOfSamples':
+        self.numberOfSamples = child.value
+      elif child.getName() == 'tolerance':
+        self.tolerance = child.value
+      elif child.getName() == 'pivotParameter':
+        self.pivotParameter = child.value
+      elif child.getName() == 'interpolation':
+        self.interpolation = child.value
+      elif child.getName() !='method':
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
-    if self.samplingType not in set(['uniform','firstDerivative','secondDerivative','filteredFirstDerivative','filteredSecondDerivative']):
-      self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : sampling type is not correctly specified')
     if self.pivotParameter is None:
       self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : time ID is not specified')
 
     if self.samplingType == 'uniform' or self.samplingType == 'firstDerivative' or self.samplingType == 'secondDerivative':
       if self.numberOfSamples is None or self.numberOfSamples < 0:
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not specified or less than 0')
-      if self.interpolation not in set(['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'intervalAverage']):
-        self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : interpolation is not correctly specified; possible values: linear, nearest, zero, slinear, quadratic, cubic')
-
     if self.samplingType == 'filteredFirstDerivative' or self.samplingType == 'filteredSecondDerivative':
       if self.tolerance is  None or self.tolerance < 0.0:
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : tolerance is not specified or less than 0')

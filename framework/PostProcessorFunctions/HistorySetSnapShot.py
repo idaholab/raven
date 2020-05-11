@@ -27,6 +27,7 @@ import copy
 import importlib
 
 import HistorySetSync as HSS
+from utils import InputData, InputTypes
 
 class HistorySetSnapShot(PostProcessorInterfaceBase):
   """
@@ -37,6 +38,35 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
      - type = timeSlice: at time instant t: P=[x_1[t],...,x_n[t]]
      - type = min, max, average, value
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super().getInputSpecification()
+    HSSSTypeType = InputTypes.makeEnumType("HSSSType", "HSSSTypeType", ['min','max','average','value','timeSlice','mixed'])
+    inputSpecification.addSub(InputData.parameterInputFactory("type", contentType=HSSSTypeType))
+    inputSpecification.addSub(InputData.parameterInputFactory("numberOfSamples", contentType=InputTypes.IntegerType))
+    HSSSExtensionType = InputTypes.makeEnumType("HSSSExtension", "HSSSExtensionType",  ['zeroed','extended'])
+    inputSpecification.addSub(InputData.parameterInputFactory("extension", contentType=HSSSExtensionType))
+    inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("pivotVar", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("pivotVal", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("timeInstant", contentType=InputTypes.IntegerType))
+    inputSpecification.addSub(InputData.parameterInputFactory("mixed", contentType=InputTypes.StringListType))
+    for tag in ['min','max','average']:
+      inputSpecification.addSub(InputData.parameterInputFactory(tag, contentType=InputTypes.StringListType))
+    valueSub = InputData.parameterInputFactory("value")
+    valueSub.addParam("pivotVar", InputTypes.StringType)
+    valueSub.addParam("pivotVal", InputTypes.StringType)
+    inputSpecification.addSub(valueSub)
+    #Should method be in super class?
+    inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
+    return inputSpecification
 
   def initialize(self):
     """
@@ -67,24 +97,27 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
       @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      tag = child.tag
+    paramInput = HistorySetSnapShot.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+
+    for child in paramInput.subparts:
+      tag = child.getName()
       if tag =='type':
-        self.type = child.text
+        self.type = child.value
       elif tag == 'numberOfSamples':
-        self.numberOfSamples = int(child.text)
+        self.numberOfSamples = child.value
       elif tag == 'extension':
-        self.extension = child.text
+        self.extension = child.value
       elif tag == 'pivotParameter':
-        self.pivotParameter = child.text
+        self.pivotParameter = child.value
       elif tag == 'pivotVar':
-        self.pivotVar = child.text
+        self.pivotVar = child.value
       elif tag == 'pivotVal':
-        self.pivotVal = float(child.text)
+        self.pivotVal = child.value
       elif tag == 'timeInstant':
-        self.timeInstant = int(child.text)
+        self.timeInstant = child.value
       elif self.type == 'mixed':
-        entries = list(c.strip() for c in child.text.strip().split(','))
+        entries = child.value
         if tag not in self.classifiers.keys():
           self.classifiers[tag] = []
         #min,max,avg need no additional information to run, so list is [varName, varName, ...]
@@ -100,13 +133,13 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
         #    self.classifiers[tag].append( (entry,float(time)) )
         #value requires the dependent variable and dependent value, so list is [ (varName,depVar,depVal), ...]
         elif tag == 'value':
-          depVar = child.attrib.get('pivotVar',None)
-          depVal = child.attrib.get('pivotVal',None)
+          depVar = child.parameterValues.get('pivotVar',None)
+          depVal = child.parameterValues.get('pivotVal',None)
           if depVar is None or depVal is None:
             self.raiseAnError('For "mixed" mode, must specify both "pivotVar" and "pivotVal" as an attribute for each "value" node!')
           for entry in entries:
             self.classifiers[tag].append( (entry,depVar,float(depVal)) )
-        else:
+        elif tag != 'method':
           self.raiseAnError(IOError,'Unrecognized node for HistorySetSnapShot in "mixed" mode:',tag)
       elif tag !='method':
         self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child.tag) + ' is not recognized')
@@ -123,15 +156,15 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
         self.raiseIOError(IOError,'When using "timeSlice" a "numberOfSamples" must be specified for synchronizing!')
       if self.extension is None:
         self.raiseAnError(IOError,'When using "timeSlice" an "extension" method must be specified for synchronizing!')
-      if self.extension not in ['zeroed','extended']:
-        self.raiseAnError(IOError,'Unrecognized "extension" method:',self.extension)
+      #if self.extension not in ['zeroed','extended']:
+      #  self.raiseAnError(IOError,'Unrecognized "extension" method:',self.extension)
       #perform sync
       PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
       self.HSsyncPP = PostProcessorInterfaces.returnPostProcessorInterface('HistorySetSync',self)
       self.HSsyncPP.initialize(self.numberOfSamples,self.pivotParameter,self.extension,syncMethod='grid')
 
-    if self.type not in set(['min','max','average','value','timeSlice','mixed']):
-      self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor "' + str(self.name) + '" : type "%s" is not recognized' %self.type)
+    #if self.type not in set(['min','max','average','value','timeSlice','mixed']):
+    #  self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor "' + str(self.name) + '" : type "%s" is not recognized' %self.type)
 
   def run(self,inputDic, pivotVal=None):
     """
