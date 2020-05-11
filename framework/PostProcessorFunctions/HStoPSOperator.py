@@ -27,6 +27,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from utils import InputData, InputTypes
 
 
 class HStoPSOperator(PostProcessorInterfaceBase):
@@ -37,6 +38,26 @@ class HStoPSOperator(PostProcessorInterfaceBase):
    - pivot value
    - operator
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super().getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("row", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("pivotValue", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("operator", contentType=InputTypes.StringType))
+    PivotStategyType = InputTypes.makeEnumType("PivotStategy", "PivotStategyType", ['nearest','floor','ceiling','interpolate'])
+    inputSpecification.addSub(InputData.parameterInputFactory("pivotStrategy", contentType=PivotStategyType))
+    #Should method be in super class?
+    inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
+
+    return inputSpecification
 
   def initialize(self):
     """
@@ -58,18 +79,19 @@ class HStoPSOperator(PostProcessorInterfaceBase):
       @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
+    paramInput = HStoPSOperator.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+
     foundPivot = False
-    for child in xmlNode:
-      if child.tag  == 'pivotParameter':
-        foundPivot, self.pivotParameter = True,child.text.strip()
-      elif child.tag in ['row','pivotValue','operator']:
-        self.settings['operationType'] = child.tag
-        self.settings['operationValue'] = float(child.text) if child.tag != 'operator' else child.text
-      elif child.tag  == 'pivotStrategy':
-        self.settings[child.tag] = child.text.strip()
-        if child.text not in ['nearest','floor','ceiling','interpolate']:
-          self.raiseAnError(IOError, '"pivotStrategy" can be only "nearest","floor","ceiling" or "interpolate"!')
-      elif child.tag !='method':
+    for child in paramInput.subparts:
+      if child.getName()  == 'pivotParameter':
+        foundPivot, self.pivotParameter = True,child.value.strip()
+      elif child.getName() in ['row','pivotValue','operator']:
+        self.settings['operationType'] = child.getName()
+        self.settings['operationValue'] = child.value
+      elif child.getName()  == 'pivotStrategy':
+        self.settings[child.getName()] = child.value.strip()
+      elif child.getName() !='method':
         self.raiseAnError(IOError, 'XML node ' + str(child.tag) + ' is not recognized')
     if not foundPivot:
       self.raiseAWarning('"pivotParameter" is not inputted! Default is "'+ self.pivotParameter +'"!')
