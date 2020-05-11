@@ -13,7 +13,6 @@
 # limitations under the License.
 """
   Created on Dec. 20, 2018
-
   @author: wangc
   module for Convolutional neural network (CNN)
 """
@@ -24,35 +23,32 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import numpy as np
 ######
 #Internal Modules------------------------------------------------------------------------------------
-from .KerasClassifier import isTensorflowAvailable
-if isTensorflowAvailable():
-  from .KerasClassifier import KerasClassifier
+from .KerasClassifier import KerasClassifier
 #Internal Modules End--------------------------------------------------------------------------------
 
-if isTensorflowAvailable():
-  class KerasConvNetClassifier(KerasClassifier):
-    """
-      Convolutional neural network (CNN) classifier constructed using Keras API in TensorFlow
-    """
+class KerasConvNetClassifier(KerasClassifier):
+  """
+    Convolutional neural network (CNN) classifier constructed using Keras API in TensorFlow
+  """
 
-    def __init__(self,messageHandler,**kwargs):
-      """
-        A constructor that will appropriately intialize a supervised learning object
-        @ In, messageHandler, MessageHandler, a MessageHandler object in charge of raising errors, and printing messages
-        @ In, kwargs, dict, an arbitrary dictionary of keywords and values
-        @ Out, None
-      """
-      KerasClassifier.__init__(self,messageHandler,**kwargs)
-      self.printTag = 'KerasConvNetClassifier'
-      self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasConvNetLayersList'] + self.kerasROMDict['kerasPoolingLayersList']
+  def __init__(self,messageHandler,**kwargs):
+    """
+      A constructor that will appropriately intialize a supervised learning object
+      @ In, messageHandler, MessageHandler, a MessageHandler object in charge of raising errors, and printing messages
+      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ Out, None
+    """
+    KerasClassifier.__init__(self,messageHandler,**kwargs)
+    self.printTag = 'KerasConvNetClassifier'
+    self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasConvNetLayersList'] + self.kerasROMDict['kerasPoolingLayersList']
 
-    def _preprocessInputs(self,featureVals):
-      """
-        Perform input feature values before sending to ROM prediction
-        @ In, featureVals, numpy.array, i.e. [shapeFeatureValue,numFeatures], values of features
-        @ Out, featureVals, numpy.array, predicted values
-      """
-      shape = featureVals.shape
-      if len(shape) == 2:
-        featureVals = np.reshape(featureVals,(1, shape[0], shape[1]))
-      return featureVals
+  def _preprocessInputs(self,featureVals):
+    """
+      Perform input feature values before sending to ROM prediction
+      @ In, featureVals, numpy.array, i.e. [shapeFeatureValue,numFeatures], values of features
+      @ Out, featureVals, numpy.array, predicted values
+    """
+    shape = featureVals.shape
+    if len(shape) == 2:
+      featureVals = np.reshape(featureVals,(1, shape[0], shape[1]))
+    return featureVals

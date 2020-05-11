@@ -21,11 +21,9 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 ################################################################################
 from .Optimizer import Optimizer
-from .GradientBasedOptimizer import GradientBasedOptimizer
-from .SPSA import SPSA
-from .FiniteDifference import FiniteDifference
-from .Conjugate import ConjugateGradient
-## [ Add new class here ]
+from .RavenSampled import RavenSampled
+from .GradientDescent import GradientDescent
+from .SimulatedAnnealing import SimulatedAnnealing
 
 
 """
@@ -35,11 +33,9 @@ from .Conjugate import ConjugateGradient
 # imports defined above.
 __base = 'Optimizer'
 __interFaceDict = {}
-__interFaceDict['GradientBasedOptimizer'           ] = GradientBasedOptimizer
-__interFaceDict['SPSA'                             ] = SPSA
-__interFaceDict['FiniteDifference'                 ] = FiniteDifference
-__interFaceDict['ConjugateGradient'                ] = ConjugateGradient
 
+__interFaceDict['GradientDescent'           ] = GradientDescent
+__interFaceDict['SimulatedAnnealing'        ] = SimulatedAnnealing
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():

@@ -47,10 +47,10 @@
 
   <Samplers>
     <DynamicEventTree name="DET_test" printEndXmlSummary="True">
-      <Distribution name="zeroToOne">
+      <variable name="zeroToOne">
         <distribution>zeroToOne</distribution>
         <grid construction="custom" type="CDF">0.1 0.5 0.8</grid>
-      </Distribution>
+      </variable>
     </DynamicEventTree>
   </Samplers>
 

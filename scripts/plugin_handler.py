@@ -18,6 +18,7 @@
 # It takes the following command line arguments
 # -s, the plugin directory that needs to be installed
 # -f, force the copy if the directory in the destination location already exists
+# -z, print the framework directory
 # to run the script use the following command:
 #  python install_plugins -s path/to/plugin -f
 import os
@@ -182,6 +183,8 @@ if __name__ == '__main__':
                       help='provides location of requested plugin')
   parser.add_argument('-l', '--list', dest='list', action='store_true',
                       help='lists installed plugins')
+  parser.add_argument('-z', '--framework-dir', dest='framework_dir',
+                      action='store_true', help='prints framework directory')
 
   # no arguments? get some help!
   if len(sys.argv) == 1:
@@ -189,6 +192,8 @@ if __name__ == '__main__':
     sys.exit(1)
 
   args = parser.parse_args()
+  if args.framework_dir:
+    print(os.path.abspath(frameworkDir))
   # plugins list
   doList = args.list
   if doList:

@@ -25,8 +25,7 @@ import numpy as np
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from utils import utils
-from utils import InputData
-import Runners
+from utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
 class ValueDuration(PostProcessor):
@@ -48,10 +47,10 @@ class ValueDuration(PostProcessor):
     ## This will replace the lines above
     inSpec= super(ValueDuration, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
-                                                  contentType=InputData.StringListType,
+                                                  contentType=InputTypes.StringListType,
                                                   strictMode=True))
     inSpec.addSub(InputData.parameterInputFactory('bins',
-                                                  contentType=InputData.IntegerType))
+                                                  contentType=InputTypes.IntegerType))
     return inSpec
 
   def __init__(self, messageHandler):
@@ -147,9 +146,6 @@ class ValueDuration(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect!")
-
     realizations = evaluation[1]
     for rlz in realizations:
       output.addRealization(rlz)

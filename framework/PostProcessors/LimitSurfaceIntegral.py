@@ -29,10 +29,9 @@ import copy
 #Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
 from .BasicStatistics import BasicStatistics
-from utils import InputData
+from utils import InputData, InputTypes
 import LearningGate
 import Files
-import Runners
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -54,30 +53,33 @@ class LimitSurfaceIntegral(PostProcessor):
     inputSpecification = super(LimitSurfaceIntegral, cls).getInputSpecification()
 
     LSIVariableInput = InputData.parameterInputFactory("variable")
-    LSIVariableInput.addParam("name", InputData.StringType)
-    LSIDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputData.StringType)
-    LSIDistributionInput.addParam("class", InputData.StringType, True)
-    LSIDistributionInput.addParam("type", InputData.StringType, True)
+    LSIVariableInput.addParam("name", InputTypes.StringType)
+    LSIDistributionInput = InputData.parameterInputFactory("distribution", contentType=InputTypes.StringType)
+    LSIDistributionInput.addParam("class", InputTypes.StringType, True)
+    LSIDistributionInput.addParam("type", InputTypes.StringType, True)
     LSIVariableInput.addSub(LSIDistributionInput)
-    LSILowerBoundInput = InputData.parameterInputFactory("lowerBound", contentType=InputData.FloatType)
+    LSILowerBoundInput = InputData.parameterInputFactory("lowerBound", contentType=InputTypes.FloatType)
     LSIVariableInput.addSub(LSILowerBoundInput)
-    LSIUpperBoundInput = InputData.parameterInputFactory("upperBound", contentType=InputData.FloatType)
+    LSIUpperBoundInput = InputData.parameterInputFactory("upperBound", contentType=InputTypes.FloatType)
     LSIVariableInput.addSub(LSIUpperBoundInput)
     inputSpecification.addSub(LSIVariableInput)
 
-    LSIToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputData.FloatType)
+    LSIToleranceInput = InputData.parameterInputFactory("tolerance", contentType=InputTypes.FloatType)
     inputSpecification.addSub(LSIToleranceInput)
 
-    LSIIntegralTypeInput = InputData.parameterInputFactory("integralType", contentType=InputData.StringType)
+    LSIIntegralTypeInput = InputData.parameterInputFactory("integralType", contentType=InputTypes.StringType)
     inputSpecification.addSub(LSIIntegralTypeInput)
 
-    LSISeedInput = InputData.parameterInputFactory("seed", contentType=InputData.IntegerType)
+    LSISeedInput = InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType)
     inputSpecification.addSub(LSISeedInput)
 
-    LSITargetInput = InputData.parameterInputFactory("target", contentType=InputData.StringType)
+    LSITargetInput = InputData.parameterInputFactory("target", contentType=InputTypes.StringType)
     inputSpecification.addSub(LSITargetInput)
 
-    LSIOutputNameInput = InputData.parameterInputFactory("outputName", contentType=InputData.StringType)
+    LSIOutputNameInput = InputData.parameterInputFactory("outputName", contentType=InputTypes.StringType)
+    inputSpecification.addSub(LSIOutputNameInput)
+
+    LSIOutputNameInput = InputData.parameterInputFactory("computeBounds", contentType=InputTypes.BoolType)
     inputSpecification.addSub(LSIOutputNameInput)
 
     return inputSpecification
@@ -94,15 +96,16 @@ class LimitSurfaceIntegral(PostProcessor):
     self.tolerance = 0.0001  # integration tolerance
     self.integralType = 'montecarlo'  # integral type (which alg needs to be used). Either montecarlo or quadrature(quadrature not yet)
     self.seed = 20021986  # seed for montecarlo
-    self.matrixDictPos = {}  # dictionary of arrays and target (positive)
-    self.matrixDictNeg = {}  # dictionary of arrays and target (negative)
-    self.lowerUpperDict = {}
-    self.functionS = None
-    self.computationPrefix = None
+    self.matrixDict = {}  # dictionary of arrays and target
+    self.computeErrrorBounds = False #  compute the bounding error?
+    self.lowerUpperDict = {} # dictionary of lower and upper bounds (used if no distributions are inputted)
+    self.functionS = None # evaluation classifier for the integration
+    self.errorModel = None # classifier used for the error estimation
+    self.computationPrefix = None # output prefix for the storage of the probability and, if requested, bounding error
     self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
-    self.stat.what = ['expectedValue']
-    self.addAssemblerObject('distribution','-n', newXmlFlg = True)
-    self.printTag = 'POSTPROCESSOR INTEGRAL'
+    self.stat.what = ['expectedValue'] # expected value calculation
+    self.addAssemblerObject('distribution','-n', newXmlFlg = True) # distributions are optional
+    self.printTag = 'POSTPROCESSOR INTEGRAL' # print tag
 
   def _localReadMoreXML(self, xmlNode):
     """
@@ -162,6 +165,8 @@ class LimitSurfaceIntegral(PostProcessor):
         self.target = child.value
       elif child.getName() == 'outputName':
         self.computationPrefix = child.value
+      elif child.getName() == 'computeBounds':
+        self.computeErrrorBounds = child.value
       else:
         self.raiseAnError(NameError, 'invalid or missing labels after the variables call. Only "variable" is accepted.tag: ' + child.getName())
       # if no distribution, we look for the integration domain in the input
@@ -169,10 +174,11 @@ class LimitSurfaceIntegral(PostProcessor):
         if self.variableDist[varName] == None:
           if 'lowerBound' not in self.lowerUpperDict[varName].keys() or 'upperBound' not in self.lowerUpperDict[varName].keys():
             self.raiseAnError(NameError, 'either a distribution name or lowerBound and upperBound need to be specified for variable ' + varName)
-    if self.computationPrefix == None:
+    if self.computationPrefix is None:
       self.raiseAnError(IOError,'The required XML node <outputName> has not been inputted!!!')
-    if self.target == None:
+    if self.target is None:
       self.raiseAWarning('integral target has not been provided. The postprocessor is going to take the last output it finds in the provided limitsurface!!!')
+    True
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -186,18 +192,28 @@ class LimitSurfaceIntegral(PostProcessor):
     if self.integralType in ['montecarlo']:
       self.stat.toDo = {'expectedValue':[{'targets':set([self.target]), 'prefix':self.computationPrefix}]}
       self.stat.initialize(runInfo, inputs, initDict)
-    self.functionSPos = LearningGate.returnInstance('SupervisedGate','SciKitLearn',
-                                                 self, **{'SKLtype':'neighbors|KNeighborsClassifier',
-                                                          'Features':','.join(list(self.variableDist.keys())),
-                                                          'Target':self.target})
-    self.functionSNeg = LearningGate.returnInstance('SupervisedGate','SciKitLearn',
-                                                   self, **{'SKLtype':'neighbors|KNeighborsClassifier',
-                                                            'Features':','.join(list(self.variableDist.keys())),
-                                                            'Target':self.target})
-    self.functionSPos.train(self.matrixDictPos)
-    self.functionSNeg.train(self.matrixDictNeg)
+    self.functionS = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self,
+                                                          **{'SKLtype':'neighbors|KNeighborsClassifier',
+                                                             'Features':','.join(list(self.variableDist.keys())),
+                                                             'Target':self.target, 'n_jobs': -1})
+    self.functionS.train(self.matrixDict)
     self.raiseADebug('DATA SET MATRIX:')
-    self.raiseADebug(self.matrixDictNeg)
+    self.raiseADebug(self.matrixDict)
+    if self.computeErrrorBounds:
+      #  create a model for computing the "error"
+      self.errorModel = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self,
+                                                          **{'SKLtype':'neighbors|KNeighborsClassifier',
+                                                             'Features':','.join(list(self.variableDist.keys())),
+                                                             'Target':self.target, 'weights': 'distance', 'n_jobs': -1})
+      #modify the self.matrixDict to compute half of the "error"
+      indecesToModifyOnes = np.argwhere(self.matrixDict[self.target] > 0.).flatten()
+      res = np.concatenate((np.ones(len(indecesToModifyOnes)), np.zeros(len(indecesToModifyOnes))))
+      modifiedMatrixDict = {}
+      for key in self.matrixDict:
+        avg = np.average(self.matrixDict[key][indecesToModifyOnes])
+        modifiedMatrixDict[key] = np.concatenate((self.matrixDict[key][indecesToModifyOnes], self.matrixDict[key][indecesToModifyOnes]
+                                                  + (self.matrixDict[key][indecesToModifyOnes]/avg * 1.e-14))) if key != self.target else res
+      self.errorModel.train(modifiedMatrixDict)
     for varName, distName in self.variableDist.items():
       if distName != None:
         self.variableDist[varName] = self.retrieveObjectFromAssemblerDict('distribution', distName)
@@ -225,17 +241,12 @@ class LimitSurfaceIntegral(PostProcessor):
         self.raiseAnError(IOError, 'The target ' + self.target + 'is not present among the outputs of the PointSet ' + item.name)
       # construct matrix
       dataSet = item.asDataset()
-      self.matrixDictNeg = {varName: dataSet[varName].values for varName in self.variableDist}
-      self.matrixDictPos = copy.deepcopy(self.matrixDictNeg)
-      responseArray = copy.copy(dataSet[self.target].values)
+      self.matrixDict = {varName: dataSet[varName].values for varName in self.variableDist}
+      responseArray = dataSet[self.target].values
       if len(np.unique(responseArray)) != 2:
         self.raiseAnError(IOError, 'The target ' + self.target + ' needs to be a classifier output (-1 +1 or 0 +1)!')
       responseArray[responseArray == -1] = 0.0
-      self.matrixDictNeg[self.target] = responseArray
-      responseArray = dataSet[self.target].values
-      responseArray[responseArray == 1] = 0.0
-      responseArray[responseArray == -1] = 1.0
-      self.matrixDictPos[self.target] = responseArray
+      self.matrixDict[self.target] = responseArray
     else:
       self.raiseAnError(IOError, 'Only PointSet is accepted as input!!!!')
 
@@ -244,8 +255,9 @@ class LimitSurfaceIntegral(PostProcessor):
       This method executes the postprocessor action. In this case, it performs the computation of the LS integral
       @ In,  input, object, object contained the data to process. (inputToInternal output)
       @ Out, pb, float, integral outcome (probability of the event)
+      @ Out, boundError, float, optional, error bound (maximum error of the computed probability)
     """
-    pb = None
+    pb, boundError = None, None
     if self.integralType == 'montecarlo':
       tempDict = {}
       randomMatrix = np.random.rand(int(math.ceil(1.0 / self.tolerance**2)), len(self.variableDist.keys()))
@@ -256,15 +268,12 @@ class LimitSurfaceIntegral(PostProcessor):
           f = np.vectorize(self.variableDist[varName].ppf, otypes=[np.float])
           randomMatrix[:, index] = f(randomMatrix[:, index])
         tempDict[varName] = randomMatrix[:, index]
-      pbNeg = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionSNeg.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
-      pbPos = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionSPos.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
-      # we assume the limit surface is in the middle between the -1 and +1 boundaries
-      pb = (pbNeg + pbPos) / 2.
-      errorBound = abs( pbNeg - pbPos )
-      self.raiseAMessage("Error Bound for Limit Surface Location is: "+str(float(errorBound)))
+      pb = self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+      if self.errorModel:
+        boundError = abs(pb-self.stat.run({'targets':{self.target:xarray.DataArray(self.errorModel.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target])
     else:
       self.raiseAnError(NotImplemented, "quadrature not yet implemented")
-    return pb
+    return pb, boundError
 
   def collectOutput(self, finishedJob, output):
     """
@@ -274,15 +283,18 @@ class LimitSurfaceIntegral(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-    pb = evaluation[1]
+    pb, boundError = evaluation[1]
     lms = evaluation[0][0]
     if output.type == 'PointSet':
       # we store back the limitsurface
       dataSet = lms.asDataset()
       loadDict = {key: dataSet[key].values for key in lms.getVars()}
       loadDict[self.computationPrefix] = np.full(len(lms), pb)
+      if self.computeErrrorBounds:
+        if self.computationPrefix+"_err" not in output.getVars():
+          self.raiseAWarning('ERROR Bounds have been computed but the output DataObject does not request the variable: "', self.computationPrefix+"_err", '"!')
+        else:
+          loadDict[self.computationPrefix+"_err"] = np.full(len(lms), boundError)
       output.load(loadDict,'dict')
     # NB I keep this commented part in case we want to keep the possibility to have outputfiles for PP
     #elif isinstance(output,Files.File):

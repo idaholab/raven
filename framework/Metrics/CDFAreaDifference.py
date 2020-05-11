@@ -23,7 +23,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
 import Metrics.MetricUtilities
-from utils import InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CDFAreaDifference(Metric):

@@ -27,9 +27,8 @@ import copy
 from .PostProcessor import PostProcessor
 from utils import utils
 from utils import mathUtils
-from utils import InputData
+from utils import InputData, InputTypes
 import Files
-import Runners
 import Distributions
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -275,10 +274,10 @@ class ComparisonStatistics(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(ComparisonStatistics, cls).getInputSpecification()
-    KindInputEnumType = InputData.makeEnumType("kind","kindType",["uniformBins","equalProbability"])
+    KindInputEnumType = InputTypes.makeEnumType("kind", "kindType", ["uniformBins", "equalProbability"])
     KindInput = InputData.parameterInputFactory("kind", contentType=KindInputEnumType)
-    KindInput.addParam("numBins",InputData.IntegerType, False)
-    KindInput.addParam("binMethod", InputData.StringType, False)
+    KindInput.addParam("numBins", InputTypes.IntegerType, False)
+    KindInput.addParam("binMethod", InputTypes.StringType, False)
     inputSpecification.addSub(KindInput)
 
     ## FIXME: Is this class necessary?
@@ -288,23 +287,23 @@ class ComparisonStatistics(PostProcessor):
       """
 
     CSCompareInput.createClass("compare", False)
-    CSDataInput = InputData.parameterInputFactory("data", contentType=InputData.StringType)
+    CSDataInput = InputData.parameterInputFactory("data", contentType=InputTypes.StringType)
     CSCompareInput.addSub(CSDataInput)
     CSReferenceInput = InputData.parameterInputFactory("reference")
-    CSReferenceInput.addParam("name", InputData.StringType, True)
+    CSReferenceInput.addParam("name", InputTypes.StringType, True)
     CSCompareInput.addSub(CSReferenceInput)
     inputSpecification.addSub(CSCompareInput)
 
-    FZInput = InputData.parameterInputFactory("fz", contentType=InputData.StringType) #bool
+    FZInput = InputData.parameterInputFactory("fz", contentType=InputTypes.StringType) #bool
     inputSpecification.addSub(FZInput)
 
-    CSInterpolationEnumType = InputData.makeEnumType("csinterpolation","csinterpolationType",["linear","quadratic"])
+    CSInterpolationEnumType = InputTypes.makeEnumType("csinterpolation","csinterpolationType",["linear","quadratic"])
     CSInterpolationInput = InputData.parameterInputFactory("interpolation",contentType=CSInterpolationEnumType)
     inputSpecification.addSub(CSInterpolationInput)
 
-    DistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputData.StringType)
-    DistributionInput.addParam("class", InputData.StringType)
-    DistributionInput.addParam("type", InputData.StringType)
+    DistributionInput = InputData.parameterInputFactory("Distribution", contentType=InputTypes.StringType)
+    DistributionInput.addParam("class", InputTypes.StringType)
+    DistributionInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(DistributionInput)
 
     return inputSpecification
@@ -399,7 +398,7 @@ class ComparisonStatistics(PostProcessor):
         if 'binMethod' in outer.parameterValues:
           self.methodInfo['binMethod'] = outer.parameterValues['binMethod'].lower()
       if outer.getName() == 'fz':
-        self.fZStats = (outer.value.lower() in utils.stringsThatMeanTrue())
+        self.fZStats = utils.stringIsTrue(outer.value.lower())
       if outer.getName() == 'interpolation':
         interpolation = outer.value.lower()
         if interpolation == 'linear':
@@ -430,8 +429,6 @@ class ComparisonStatistics(PostProcessor):
     """
     self.raiseADebug("finishedJob: " + str(finishedJob) + ", output " + str(output))
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
 
     outputDictionary = evaluation[1]
     self.dataDict.update(outputDictionary)

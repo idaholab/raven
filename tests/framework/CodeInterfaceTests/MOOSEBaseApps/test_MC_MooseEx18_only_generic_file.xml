@@ -1,0 +1,100 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/MOOSEBaseApps.MooseEx18onlyGenericFile</name>
+    <author>alfoa</author>
+    <created>2020-01-31</created>
+    <classesTested>Models.Code.MooseBasedApp</classesTested>
+    <description>
+       An example of using the MooseBasedApp code interface, perturbing a generic external input file ONLY (e.g. CSV file)
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2020-01-31">Created test</revision>
+    </revisions>
+  </TestInfo>
+  
+  <RunInfo>
+    <WorkingDir>MooseExample18OnlyGenericFile</WorkingDir>
+    <Sequence>myMC</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="ex18.i" type="">ex18.i</Input>
+    <Input name="a_mesh_file.e" type="">a_mesh_file.e</Input>
+    <Input name="generic_external_file.csv" type="Generic">generic_external_file.csv</Input>
+  </Files>
+
+  <Models>
+    <Code name="exampleMooseApp" subType="MooseBasedApp">
+      <executable>moose/examples/ex18_scalar_kernel/ex18-opt</executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Triangular name="power2">
+      <apex>30</apex>
+      <min>29</min>
+      <max>31</max>
+    </Triangular>
+    <Triangular name="power3">
+      <apex>40</apex>
+      <min>39</min>
+      <max>41</max>
+    </Triangular>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="myMC">
+      <samplerInit>
+        <initialSeed>20021986</initialSeed>
+        <limit>2</limit>
+      </samplerInit>
+      <variable name="p2.0">
+        <distribution>power2</distribution>
+      </variable>
+      <variable name="p3.0">
+        <distribution>power3</distribution>
+      </variable>
+      
+    </MonteCarlo>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="ps">
+      <Input>p2.0,p3.0</Input>
+      <Output>x,y</Output>
+    </PointSet>
+    <HistorySet name="hs">
+      <Input>p2.0,p3.0</Input>
+      <Output>x,y,time</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <Steps>
+    <MultiRun name="myMC">
+      <Input class="Files" type="">ex18.i</Input>
+      <Input class="Files" type="">a_mesh_file.e</Input>
+      <Input class="Files" type="Generic">generic_external_file.csv</Input>
+      <Model class="Models" type="Code">exampleMooseApp</Model>
+      <Sampler class="Samplers" type="MonteCarlo">myMC</Sampler>
+      <Output class="DataObjects" type="HistorySet">hs</Output>
+      <Output class="DataObjects" type="PointSet">ps</Output>
+      <Output class="OutStreams" type="Print">hs_dump</Output>
+      <Output class="OutStreams" type="Print">ps_dump</Output>
+    </MultiRun>
+  </Steps>
+
+
+  <OutStreams>
+    <Print name="hs_dump">
+      <type>csv</type>
+      <source>hs</source>
+    </Print>
+    <Print name="ps_dump">
+      <type>csv</type>
+      <source>ps</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

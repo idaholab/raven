@@ -28,7 +28,7 @@ import scipy.spatial.distance as spatialDistance
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Metric import Metric
-from utils import InputData
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 class DTW(Metric):
@@ -47,9 +47,9 @@ class DTW(Metric):
         specifying input of cls.
     """
     inputSpecification = super(DTW, cls).getInputSpecification()
-    orderInputType = InputData.makeEnumType("order","orderType",["0","1"])
+    orderInputType = InputTypes.makeEnumType("order","orderType",["0","1"])
     inputSpecification.addSub(InputData.parameterInputFactory("order",contentType=orderInputType),quantity=InputData.Quantity.one)
-    inputSpecification.addSub(InputData.parameterInputFactory("localDistance",contentType=InputData.StringType),quantity=InputData.Quantity.one)
+    inputSpecification.addSub(InputData.parameterInputFactory("localDistance",contentType=InputTypes.StringType),quantity=InputData.Quantity.one)
 
     return inputSpecification
 

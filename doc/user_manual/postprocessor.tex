@@ -27,6 +27,7 @@ Currently, the following types are available in RAVEN:
   \item \textbf{ValueDuration}
   \item \textbf{FastFourierTransform}
   \item \textbf{SampleSelector}
+  \item \textbf{MCSImporter}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
@@ -809,6 +810,16 @@ both boundary sides (-1.0, +1.0).
      \item  \xmlNode{integralType}, \xmlDesc{string, optional field}, specifies the type of integrations that
                 need to be used. Currently only MonteCarlo integration is available
                 \default{MonteCarlo}
+    \item  \xmlNode{computeBounds}, \xmlDesc{bool, optional field}, 
+    activates the computation of the bounding error of the limit 
+    surface integral ( maximum error in the identification of the 
+    limit surface location). If True, the bounding error is stored 
+    in a variable named as \xmlNode{outputName} appending the suffix
+    ``\_err''. For example, if \xmlNode{outputName} is 
+    ``EventProbability'', the bounding error will be stored as 
+    ``EventProbability\_err'' (this variable name must be listed as 
+    variable in the output DataObject).
+                \default{False}
      \item  \xmlNode{seed}, \xmlDesc{integer, optional field}, specifies the random number generator seed.
                 \default{20021986}
      \item  \xmlNode{target}, \xmlDesc{string, optional field}, specifies the target name that represents
@@ -1274,13 +1285,26 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are requ
 independent of the \xmlAttr{subType} specified:
 
 \begin{itemize}
-   \item \xmlNode{samplingType}, \xmlDesc{string, required field}, specifies the type of sampling method to be used (uniform, firstDerivative secondDerivative, filteredFirstDerivative or
-   filteredSecondDerivative).
-   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, number of samples (required only for the following sampling types: uniform, firstDerivative secondDerivative)
+   \item \xmlNode{samplingType}, \xmlDesc{string, required field}, specifies the type of sampling method to be used:
+   \begin{itemize}
+     \item uniform: the set of \xmlNode{numberOfSamples} samples are uniformly distributed along the time axis
+     \item firstDerivative: the set of \xmlNode{numberOfSamples} samples are distributed along the time axis in regions with 
+                            higher first order derivative
+     \item secondDerivative: the set of \xmlNode{numberOfSamples} samples are distributed along the time axis in regions with 
+                             higher second order derivative
+     \item filteredFirstDerivative: samples are located where the first derivative is greater than the specified \xmlNode{tolerance} value 
+                                    (hence, the number of samples can vary from history to history)
+     \item filteredSecondDerivative: samples are located where the second derivative is greater than the specified \xmlNode{tolerance} value
+                                     (hence, the number of samples can vary from history to history)
+   \end{itemize}                                 
+   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, number of samples (required only for the following sampling 
+                                             types: uniform, firstDerivative secondDerivative)
    \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, ID of the temporal variable
-   \item \xmlNode{interpolation}, \xmlDesc{string, optional field}, type of interpolation to be employed for the history recostruction (required only for the following sampling types: uniform,
-   firstDerivative secondDerivative). Valid types of interpolation to specified: linear, nearest, zero, slinear, quadratic, cubic, intervalAverage;
-   \item \xmlNode{tolerance}, \xmlDesc{string, optional field}, tolerance level (required only for the following sampling types: filteredFirstDerivative or filteredSecondDerivative)
+   \item \xmlNode{interpolation}, \xmlDesc{string, optional field}, type of interpolation to be employed for the history reconstruction 
+                                           (required only for the following sampling types: uniform, firstDerivative secondDerivative). 
+                                           Valid types of interpolation to specified: linear, nearest, zero, slinear, quadratic, cubic, intervalAverage
+   \item \xmlNode{tolerance}, \xmlDesc{string, optional field}, tolerance level (required only for the following sampling types: 
+                                       filteredFirstDerivative or filteredSecondDerivative)
 \end{itemize}
 
 \paragraph{Method: HistorySetSync}
@@ -1313,8 +1337,8 @@ independent of the \xmlAttr{subType} specified:
 \end{itemize}
 
 \paragraph{Method: HistorySetSnapShot}
-This Post-Processor performs the conversion from HistorySet to PointSet
-The conversion is made so that each history H is converted to a single point P.
+This Post-Processor performs a conversion from HistorySet to PointSet.
+The conversion is made so that each history $H$ is converted to a single point $P$.
 There are several methods that can be employed to choose the single point from the history:
 \begin{itemize}
   \item min: Take a time slice when the \xmlNode{pivotVar} is at its smallest value,
@@ -1405,11 +1429,11 @@ time$=0.245$ for $y$, and the value of $z$ at $x=4.0$ for $z$.
 \end{lstlisting}
 
 
-\paragraph{Method: HSPS}
+\paragraph{Method: HS2PS}
 
-This Post-Processor performs the conversion from HistorySet to PointSet
-The conversion is made so that each history H is converted to a single point P.
-Assume that each history H is a dict of n output variables $x_1=[...],x_n=[...]$, then the resulting point P is as follows; $P=[x_1,...,x_n]$
+This Post-Processor performs a conversion from HistorySet to PointSet.
+The conversion is made so that each history $H$ is converted to a single point $P$.
+Assume that each history $H$ is a dict of $n$ output variables $x_1=[...],x_n=[...]$, then the resulting point $P$ is $P=concat(x_1,...,x_n)$.
 Note: it is here assumed that all histories have been sync so that they have the same length, start point and end point. If you are not sure, do a pre-processing the the original history set.
 
 In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
@@ -1467,19 +1491,9 @@ independently of the \xmlAttr{subType} specified:
    \item \xmlNode{clusterIDs}, \xmlDesc{integers, required field}, ID of the selected clusters. Note that more than one ID can be provided as input
 \end{itemize}
 
-\paragraph{Method: HSPS}
-The \xmlNode{HSPS} Post-Processor performs a filtering of the dataObject. This particular filtering is based on the labels generated by any clustering algorithm.
-Given the selected label, this Post-Processor filters out all histories or points having a different label.
-In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required:
-
-\begin{itemize}
-   \item \xmlNode{dataType}, \xmlDesc{string, required field}, type of dataObject (HistorySet or PointSet)
-   \item \xmlNode{label}, \xmlDesc{string, required field}, varaiable which contains the cluster labels
-   \item \xmlNode{clusterIDs}, \xmlDesc{int, required field}, cluster labels considered
-\end{itemize}
 
 \paragraph{Method: Discrete Risk Measures}
-This Post-Processor calculates a series of risk importance measures from a PointSet. This calculation if performed for a set of input paramteres given an output target.
+This Post-Processor calculates a series of risk importance measures from a PointSet. This calculation if performed for a set of input parameters given an output target.
 
 The user is required to provide the following information:
 \begin{itemize}
@@ -1590,7 +1604,7 @@ This can be performed by:
 
 \end{itemize}
 
-This post-processor can be made time dependendent if a single HistorySet is provided among the other data objects.
+This post-processor can be made time dependent if a single HistorySet is provided among the other data objects.
 The HistorySet contains the temporal profiles of a subset of the input variables. This temporal profile can be only
 boolean, i.e., 0 (component offline) or 1 (component online).
 Note that the provided history set must contains a single History; multiple Histories are not allowed.
@@ -1799,6 +1813,179 @@ The RAVEN input to extract this information would appear as follows:
 </Simulation>
 \end{lstlisting}
 The resulting PointSet has \emph{time} as an input and \emph{first} as an output.
+
+%%%%%%%%%%%%%% ParetoFrontier PP %%%%%%%%%%%%%%%%%%%
+
+\subsubsection{ParetoFrontier}
+\label{ParetoFrontierPP}
+The \textbf{ParetoFrontier} post-processor is designed to identify the points lying on the Pareto Frontier in a cost-value space.
+This post-processor receives as input a \textbf{DataObject} (a PointSet only) which contains all data points in the cost-value space and it 
+returns the subset of points lying in the Pareto Frontier as a PointSet.
+
+It is here assumed that each data point of the input PointSet is a realization of the system under consideration for a 
+specific configuration to which corresponds a cost and a value.
+
+%
+\ppType{ParetoFrontier}{ParetoFrontier}
+%
+\begin{itemize}
+  \item  \xmlNode{costID},\xmlDesc{string, required parameter}, ID of the input PointSet variable that is considered the cost variable 
+  \item  \xmlNode{valueID},\xmlDesc{string, required parameter}, ID of the input PointSet variable that is considered the value variable
+\end{itemize}
+
+The following is an example where a set of realizations (the ``candidates'' PointSet) has been generated by changing two parameters 
+(var1 and var2) which produced two output variables (cost and value).
+The \textbf{ParetoFrontier} post-processor takes the ``candidates'' PointSet and populates a Point similar in structure 
+(the ``paretoPoints'' PointSet).
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=ParetoFrontier input example (no expand)., label=lst:ParetoFrontier_PP_InputExample]
+  <Models>
+    <PostProcessor name="paretoPP" subType="ParetoFrontier">
+      <costID>cost</costID>
+      <valueID>value</valueID>
+    </PostProcessor>   
+  </Models>
+
+  <Steps>
+    <PostProcess name="PP">
+      <Input     class="DataObjects"  type="PointSet"        >candidates</Input>
+      <Model     class="Models"       type="PostProcessor"   >paretoPP</Model>
+      <Output    class="DataObjects"  type="PointSet"        >paretoPoints</Output>
+    </PostProcess>
+  </Steps>
+  
+  <DataObjects>
+    <PointSet name="candidates">
+      <Input>var1,var2</Input>
+      <Output>cost,value</Output>
+    </PointSet>
+    <PointSet name="paretoPoints">
+      <Input>var1,var2</Input>
+      <Output>cost,value</Output>
+    </PointSet>
+  </DataObjects>
+\end{lstlisting}
+
+%%%%%%%%%%%%%% MCSImporter PP %%%%%%%%%%%%%%%%%%%
+
+\subsubsection{MCSImporter}
+\label{MCSimporterPP}
+The \textbf{MCSImporter} post-processor has been designed to import Minimal Cut Sets (MCSs) into RAVEN.
+This post-processor reads a csv file which contain the list of MCSs and it save this list as a DataObject 
+(i.e.,  a PointSet).
+The csv file is composed by three columns; the first contains the ID number of the MCS, the second one contains
+the MCS probability value, the third one lists all the Basic Events contained in the MCS.
+An example of csv file is shown in Table~\ref{MCScsv}.
+
+\begin{table}[h]
+    \centering
+    \caption{Example of csv file which contains four MCSs.}
+    \label{MCScsv}
+	\begin{tabular}{c  c  c}
+		\hline
+		ID, & Prob, & MCS, \\
+		\hline
+		1.,  &  1.8E-2, &  D  \\
+		2.,  &  4.0E-3, &  B \\
+		3.,  &  3.0E-4, &  A,C  \\
+		4.,  &  2.1E-5, &  E,C \\
+		\hline
+	\end{tabular}
+\end{table}
+
+The PointSet is structured to include all Basic Event, the MCS ID, the MCS probability, and the outcome of such MCS 
+(always set to 1).
+MCS ID and MCS probability are copied directly from the csv file.
+For each MCS, the Basic Events can have two possible values:
+  \begin{itemize}
+    \item  0: Basic Event is not included in the MCS
+    \item  1: Basic Event is included in the MCS
+  \end{itemize}
+The PointSet generated from the csv file of Table~\ref{MCScsv} is shown in Table~\ref{PointSetMCSExpandFalse}.
+\begin{table}[h]
+    \centering
+    \caption{PointSet generated by RAVEN for the list of MCSs shown in Table~\ref{MCScsv}.}
+    \label{PointSetMCSExpandFalse}
+	\begin{tabular}{c | c | c | c | c | c | c | c }
+		\hline
+		A & B & C & D & E & MCS\_ID & probability & out \\
+		\hline
+		0 & 0 & 0 & 1 & 0 & 1 & 1.8E-2 & 1 \\
+		0 & 1 & 0 & 0 & 0 & 2 & 4.0E-3 & 1 \\
+		1 & 0 & 1 & 0 & 0 & 3 & 3.0E-4 & 1 \\
+		0 & 0 & 1 & 0 & 1 & 4 & 4.0E-3 & 1 \\
+		\hline
+	\end{tabular}
+\end{table}
+
+%
+\ppType{MCSImporter}{MCSImporter}
+%
+\begin{itemize}
+  \item  \xmlNode{expand},\xmlDesc{bool, required parameter}, expand the set of Basic Events by including all PRA Basic Events
+  and not only the once listed in the MCSs
+  \item  \xmlNode{BElistColumn},\xmlDesc{string, optional parameter}, if expand is set to True, then this node contains the 
+  column of the csv file which contains all the PRA Basic Events
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=MCS Importer input example (no expand)., label=lst:MCS_PP_InputExample]
+  <Files>
+    <Input name="MCSlistFile" type="MCSlist">MCSlist.csv</Input>
+  </Files>
+  
+  <Models>
+    <PostProcessor name="MCSImporter" subType="MCSImporter">
+      <expand>False</expand>
+    </PostProcessor>   
+  </Models>
+
+  <Steps>
+    <PostProcess name="import">
+      <Input   class="Files"        type="MCSlist"         >MCSlistFile</Input>
+      <Model   class="Models"       type="PostProcessor"   >MCSImporter</Model>
+      <Output  class="DataObjects"  type="PointSet"        >MCS_PS</Output>
+    </PostProcess>
+  </Steps>
+  
+  <DataObjects>
+    <PointSet name="MCS_PS">
+      <Input>A,B,C,D,E</Input>
+      <Output>MCS_ID,probability,out</Output>
+    </PointSet>
+  </DataObjects>
+\end{lstlisting}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=MCS Importer input example (expanded)., label=lst:MCS_PP_InputExample]
+  <Files>
+    <Input name="MCSlistFile" type="MCSlist">MCSlist.csv</Input>
+    <Input name="BElistFile"  type="BElist" >BElist.csv</Input>
+  </Files>
+  
+  <Models>
+    <PostProcessor name="MCSImporter" subType="MCSImporter">
+      <expand>False</expand>
+    </PostProcessor>   
+  </Models>
+
+  <Steps>
+    <PostProcess name="import">
+      <Input   class="Files"        type="MCSlist"         >MCSlistFile</Input>
+      <Input   class="Files"        type="BElist"          >BElistFile</Input>
+      <Model   class="Models"       type="PostProcessor"   >MCSimporter</Model>
+      <Output  class="DataObjects"  type="PointSet"        >MCS_PS</Output>
+    </PostProcess>
+  </Steps>
+  
+  <DataObjects>
+    <PointSet name="MCS_PS">
+      <Input>A,B,C,D,E,F,G</Input>
+      <Output>MCS_ID,probability,out</Output>
+    </PointSet>
+  </DataObjects>
+\end{lstlisting}
 
 %%%%%%%%%%%%%% ETImporter PP %%%%%%%%%%%%%%%%%%%
 

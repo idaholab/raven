@@ -24,13 +24,14 @@ import numpy as np
 import time
 import itertools
 from collections import OrderedDict
+from Decorators.Parallelization import Parallel
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
 from utils import utils
 from utils import graphStructure
-import Runners
+from Runners import Error as rerror
 #Internal Modules End--------------------------------------------------------------------------------
 
 class EnsembleModel(Dummy):
@@ -255,8 +256,6 @@ class EnsembleModel(Dummy):
 
       # initialize model
       self.modelsDictionary[modelName]['Instance'].initialize(runInfo,inputInstancesForModel,initDict)
-      # Generate a list of modules that needs to be imported for internal parallelization (parallel python)
-      self.mods = self.mods +list(set(self.modelsDictionary[modelName]['Instance'].mods) - set(self.mods))
       # retrieve 'TargetEvaluation' DataObjects
       targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation',self.modelsInputDictionary[modelName]['TargetEvaluation'], True)
       # assert acceptable TargetEvaluation types are used
@@ -332,9 +331,9 @@ class EnsembleModel(Dummy):
 
     for modelIn in self.modelsDictionary.keys():
       # in case there are metadataToTransfer, let's check if the source model is executed before the one that requests info
-      if self.modelsDictionary[modelIn]['metadataToTransfer']:
+      if self.modelsInputDictionary[modelIn]['metadataToTransfer']:
         indexModelIn = self.orderList.index(modelIn)
-        for metadataToGet, source, _ in self.modelsDictionary[modelIn]['metadataToTransfer']:
+        for metadataToGet, source, _ in self.modelsInputDictionary[modelIn]['metadataToTransfer']:
           if self.orderList.index(source) >= indexModelIn:
             self.raiseAnError(IOError, 'In model "'+modelIn+'" the "metadataToTransfer" named "'+metadataToGet+
                                        '" is linked to the source"'+source+'" that will be executed after this model.')
@@ -436,8 +435,6 @@ class EnsembleModel(Dummy):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError,"Job " + finishedJob.identifier +" failed!")
     outcomes, targetEvaluations, optionalOutputs = evaluation[1]
     joinedResponse = {}
     joinedGeneralMetadata = {}
@@ -477,6 +474,7 @@ class EnsembleModel(Dummy):
     for modelIn in self.modelsDictionary.keys():
       self.modelsDictionary[modelIn]['Instance'].getAdditionalInputEdits(inputInfo)
 
+  @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
       This will evaluate an individual sample on this model. Note, parameters
@@ -512,7 +510,6 @@ class EnsembleModel(Dummy):
           contains a dictionary {'name variable':value}
         @ Out, None
     """
-    self.mods = self.mods +list(set(utils.returnImportModuleString(jobHandler)) - set(self.mods))
     prefix = kwargs['prefix']
 
     ## Ensemble models need access to the job handler, so let's stuff it in our
@@ -596,9 +593,9 @@ class EnsembleModel(Dummy):
         # clear the model's Target Evaluation data object
         # in case there are metadataToTransfer, let's collect them from the source
         metadataToTransfer = None
-        if self.modelsDictionary[modelIn]['metadataToTransfer']:
+        if self.modelsInputDictionary[modelIn]['metadataToTransfer']:
           metadataToTransfer = {}
-        for metadataToGet, source, alias in self.modelsDictionary[modelIn]['metadataToTransfer']:
+        for metadataToGet, source, alias in self.modelsInputDictionary[modelIn]['metadataToTransfer']:
           if metadataToGet in returnDict[source]['general_metadata']:
             metaDataValue = returnDict[source]['general_metadata'][metadataToGet]
             metaDataValue = metaDataValue[0] if len(metaDataValue) == 1 else metaDataValue
@@ -655,7 +652,7 @@ class EnsembleModel(Dummy):
           # get job that just finished to gather the results
           finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
           evaluation = finishedRun[0].getEvaluation()
-          if isinstance(evaluation, Runners.Error):
+          if isinstance(evaluation, rerror):
             # the model failed
             for modelToRemove in self.orderList:
               if modelToRemove != modelIn:
