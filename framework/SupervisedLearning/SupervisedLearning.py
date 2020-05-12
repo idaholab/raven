@@ -98,8 +98,6 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       self.raiseAnError(IOError,'Target name not provided')
     self.features = self.initOptionDict.pop('Features')
     self.target = self.initOptionDict.pop('Target')
-    print(self.target)
-    print(self.features)
     self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
     for target in self.target:
       if target in self.features: #self.features.count(target) > 0:
