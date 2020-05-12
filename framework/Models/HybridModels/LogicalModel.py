@@ -73,7 +73,7 @@ class LogicalModel(HybridModelBase):
     # assembler objects to be requested
     self.addAssemblerObject('ControlFunction','1')
 
-  def localInputAndChecks(self,xmlNode):
+  def localInputAndChecks(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some stuff based on the inputs got
@@ -87,7 +87,7 @@ class LogicalModel(HybridModelBase):
       if child.getName() == 'ControlFunction':
         self.controlFunction = child.value
 
-  def initialize(self,runInfo,inputs,initDict=None):
+  def initialize(self, runInfo, inputs, initDict=None):
     """
       Method to initialize this model class
       @ In, runInfo, dict, is the run info from the jobHandler
@@ -100,9 +100,67 @@ class LogicalModel(HybridModelBase):
     if "evaluate" not in self.controlFunction.availableMethods():
       self.raiseAnError(IOError,'Function', self.controlFunction.name, 'does not contain a method named "evaluate".',
                         'It must be present if this needs to be used in a {}!'.format(self.name))
-    # check models inputs and outputs
+    # check models inputs and outputs, we require all models under LogicalModel should have
+    # exactly the same inputs and outputs from RAVEN piont of view.
+    # TODO: currently, the above statement could not fully verified by the following checks.
+    # This is mainly because: 1) we do not provide prior check for Codes, 2) we do not have
+    # a standardize treatment of variables in ExternalModels and ROMs
+    # if DataObjects among the inputs, check input consistency with ExternalModels and ROMs
+    inpVars = None
+    inpObjName = None
+    for inpObj in inputs:
+      if inpObj.type in ['PointSet', 'HistorySet']:
+        if not inpVars:
+          inputVars = inpObj.getVars('input')
+          inpObjName = inpObj.name
+        else:
+          self.raiseAnError(IOError, 'Only one input DataObject can be accepted for {}!'.format(self.name))
+      elif inpObj.type in ['DataSet']:
+        self.raiseAnError(IOError, 'DataSet "{}" is not allowed as input for {}!'.format(inpObj.name, self.name))
 
-  def createNewInput(self,myInput,samplerType,**kwargs):
+    extModelVars = None
+    extModelName = None
+    romInpVars = None
+    romOutVars = None
+    romName = None
+    for modelName, modelInst in self.modelInstances.items():
+      if modelInst.type == 'ExternalModel':
+        vars = list(modelInst.modelVariableType.keys())
+        if not extModelVars:
+          extModelVars = vars
+          extModelName = modelName
+        elif set(extModelVars) != set(vars):
+          self.raiseAnError(IOError,'"Variables" provided to model "{}" are not the same as model "{}"!'.format(modelName, extModelName))
+      elif modelInst.type == 'ROM':
+        inpVars = modelInst.initializationOptionDict['Features']
+        outVars = modelInst.initializationOptionDict['Target']
+        if not romInpVars:
+          romInpVars = inpVars
+          romOutVars = outVars
+          romName = modelName
+        elif set(romInpVars) != set(inpVars) or set(romOutVars) != set(outVars):
+          self.raiseAnError(IOError,'ROM "{}" does not have the same Features and Targets as ROM "{}"!'.format(modelName, romName))
+      elif modelInst.type == 'Code':
+        self.raiseAWarning('The input/output consistency check is not performed for Model "{}" among {}!'.format(modelName, self.name))
+      else:
+        self.raiseAnError(IOError, 'Model "{}" with type "{}" can not be accepted by {}!'.format(modelName, modelInst.type, self.name))
+    if extModelVars is not None and romInpVars is not None:
+      romVars = romInpVars + romOutVars
+      if set(romVars) != set(extModelVars):
+        self.raiseAnError(IOError,'"Variables" provided to model "{}" are not the same as ROM "{}"!'.format(extModelName, romName),
+                          'The variables listed in "Target" and "Features" of ROM should be also listed for ExternalModel under "Variables" node!')
+    if extModelVars is not None or romInpVars is not None:
+      if not inputVars:
+        modelName = romName if romInpVars else extModelName
+        self.raiseAnError(IOError, 'An input DataObject is required for {}!'.format(self.name),
+                          'This is because model "{}" expects a DataObject as input.'.format(modelName))
+      else:
+        error = set(inputVars) - set(romInpVars) if romInpVars else set(inputVars) - set(extModelVars)
+        modelName = romName if romInpVars else extModelName
+        if len(error) > 0:
+          self.raiseAnError(IOError, 'Variable(s) listed under DataObject "{}" could not be find in model "{}"!'.format(','.join(error), modelName))
+
+  def createNewInput(self, myInput, samplerType, **kwargs):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.
       @ In, myInput, list, the inputs (list) to start from to generate the new one
@@ -126,7 +184,7 @@ class LogicalModel(HybridModelBase):
       return (codeInput, samplerType, kwargs)
     return (myInput, samplerType, kwargs)
 
-  def _externalRun(self,inRun, jobHandler):
+  def _externalRun(self, inRun, jobHandler):
     """
       Method that performs the actual run of the logical model (separated from run method for parallelization purposes)
       @ In, inRun, tuple, tuple of Inputs (inRun[0] actual input, inRun[1] type of sampler,
@@ -163,7 +221,7 @@ class LogicalModel(HybridModelBase):
     self.raiseADebug("{}: Create exportDict".format(self.name))
     return exportDict
 
-  def collectOutput(self,finishedJob,output):
+  def collectOutput(self, finishedJob, output):
     """
       Method that collects the outputs from the previous run
       @ In, finishedJob, ClientRunner object, instance of the run just finished

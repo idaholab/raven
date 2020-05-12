@@ -38,7 +38,7 @@
 
   <Models>
     <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
-      <variables>leftTemperature,rightTemperature,k,averageTemperature</variables>
+      <variables>leftTemperature,rightTemperature,k</variables>
     </ExternalModel>
     <ROM name="svr" subType="SciKitLearn">
       <SKLtype>svm|SVR</SKLtype>

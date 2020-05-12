@@ -58,8 +58,8 @@ class ROM(Dummy):
     CriterionInputType = InputTypes.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
 
     # general
-    inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
     # segmenting and clustering
     segment = InputData.parameterInputFactory("Segment", strictMode=True)
     segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
