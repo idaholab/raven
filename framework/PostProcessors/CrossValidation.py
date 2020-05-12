@@ -211,7 +211,7 @@ class CrossValidation(PostProcessor):
       self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
 
     if type(currentInput) != dict:
-      dictKeys = list(cvEstimator.initializationOptionDict['Features'].split(',')) + list(cvEstimator.initializationOptionDict['Target'].split(','))
+      dictKeys = cvEstimator.initializationOptionDict['Features'] + cvEstimator.initializationOptionDict['Target']
       newInput = dict.fromkeys(dictKeys, None)
       if not len(currentInput) == 0:
         dataSet = currentInput.asDataset()
