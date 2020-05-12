@@ -176,6 +176,18 @@ class ParameterInput(object):
            sub.getName()," in ",cls.getName())
 
   @classmethod
+  def addSubSimple(cls, name, contentType, quantity=Quantity.zero_to_infinity):
+    """
+      Adds a subnode to this class.
+      @ In, name, String, the name of the subnode
+      @ In, contentType, InputTypes.InputType
+      @ In, quantity, value in Quantity, the number of this subnode to allow.
+      @ Out, None
+    """
+    cls.addSub(parameterInputFactory(name, contentType=contentType),
+               quantity)
+
+  @classmethod
   def removeSub(cls, sub):
     """
       Removes a subnode from this class.
