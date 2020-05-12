@@ -23,11 +23,30 @@ import numpy as np
 from scipy import interpolate
 import copy
 
+from utils import InputData, InputTypes
 
 class dataObjectLabelFilter(PostProcessorInterfaceBase):
   """
    This Post-Processor filters out the points or histories accordingly to a chosen clustering label
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super().getInputSpecification()
+    DOLFDataTypeType = InputTypes.makeEnumType("DOLFDataType", "DOLFDataTypeType", ['HistorySet','PointSet'])
+    inputSpecification.addSubSimple("dataType", DOLFDataTypeType)
+    inputSpecification.addSubSimple("label", InputTypes.StringType)
+    inputSpecification.addSubSimple("clusterIDs", InputTypes.IntegerListType)
+    #Should method be in super class?
+    inputSpecification.addSubSimple("method", contentType=InputTypes.StringType)
+    return inputSpecification
+
   def initialize(self):
     """
      Method to initialize the Interfaced Post-processor
@@ -49,22 +68,23 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
       @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
+    paramInput = dataObjectLabelFilter.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
 
-    for child in xmlNode:
-      if child.tag == 'dataType':
-        dataType = child.text
+    for child in paramInput.subparts:
+      if child.getName() == 'dataType':
+        dataType = child.value
         if dataType in set(['HistorySet','PointSet']):
           self.inputFormat  = dataType
           self.outputFormat = dataType
         else:
           self.raiseAnError(IOError, 'dataObjectLabelFilter Interfaced Post-Processor ' + str(self.name) + ' : dataType ' + str(dataType) + ' is not recognized (available are HistorySet, PointSet)')
-      elif child.tag == 'label':
-        self.label = child.text
-      elif child.tag == 'clusterIDs':
-        for clusterID in child.text.split(','):
-          clusterID = clusterID.strip()
-          self.clusterIDs.append(int(clusterID))
-      elif child.tag !='method':
+      elif child.getName() == 'label':
+        self.label = child.value
+      elif child.getName() == 'clusterIDs':
+        for clusterID in child.value:
+          self.clusterIDs.append(clusterID)
+      elif child.getName() !='method':
         self.raiseAnError(IOError, 'dataObjectLabelFilter Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
   def run(self,inputDic):

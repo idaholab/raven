@@ -26,6 +26,7 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from utils import InputData, InputTypes
 
 class riskMeasuresDiscrete(PostProcessorInterfaceBase):
   """
@@ -36,6 +37,32 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       - readMoreXML
   """
   _availableMeasures = set(['B','FV','RAW','RRW','R0'])
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super().getInputSpecification()
+    inputSpecification.addSubSimple("measures", InputTypes.StringListType)
+    variableSub = InputData.parameterInputFactory("variable", contentType=InputTypes.StringType)
+    variableSub.addParam("R0values", InputTypes.FloatListType)
+    variableSub.addParam("R1values", InputTypes.FloatListType)
+    inputSpecification.addSub(variableSub)
+    targetSub = InputData.parameterInputFactory("target", contentType=InputTypes.StringType)
+    targetSub.addParam("values", InputTypes.FloatListType)
+    inputSpecification.addSub(targetSub)
+    dataSub = InputData.parameterInputFactory("data")
+    dataSub.addParam("freq", InputTypes.FloatType)
+    inputSpecification.addSub(dataSub)
+    inputSpecification.addSubSimple("temporalID", InputTypes.StringType)
+    #Should method be in super class?
+    inputSpecification.addSubSimple("method", contentType=InputTypes.StringType)
+    return inputSpecification
+
 
   def availableMeasures(cls):
     """
@@ -60,31 +87,35 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
+
+    paramInput = riskMeasuresDiscrete.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+
     self.variables = {}
     self.target    = {}
     self.IEData = {}
     self.temporalID = None
 
-    for child in xmlNode:
-      if child.tag == 'measures':
-        self.measures = set(child.text.split(','))
+    for child in paramInput.subparts:
+      if child.getName() == 'measures':
+        self.measures = set(child.value)
 
         if not self.measures.issubset(self.availableMeasures()):
           unrecognizedMeasures  = self.measures.difference(self.availableMeasures())
           self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) + ' : measures '
                             + str(list(unrecognizedMeasures)) + ' are not recognized')
 
-      elif child.tag == 'variable':
-        variableID = child.text
+      elif child.getName() == 'variable':
+        variableID = child.value
         self.variables[variableID] = {}
-        if 'R0values' in child.attrib.keys():
-          values = child.attrib['R0values'].split(',')
+        if 'R0values' in child.parameterValues:
+          values = child.parameterValues['R0values']
           if len(values) != 2:
             self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                               ' : attribute node R0 for XML node: ' + str(child) + ' has one or more than two values')
           try:
-            val1 = float(values[0])
-            val2 = float(values[1])
+            val1 = values[0]
+            val2 = values[1]
           except:
             self.raiseAnError(IOError,' Wrong R0values associated to riskMeasuresDiscrete Post-Processor')
           self.variables[variableID]['R0low']  = min(val1,val2)
@@ -92,14 +123,14 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         else:
           self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                             ' : attribute node R0 is not present for XML node: ' + str(child) )
-        if 'R1values' in child.attrib.keys():
-          values = child.attrib['R1values'].split(',')
+        if 'R1values' in child.parameterValues:
+          values = child.parameterValues['R1values']
           if len(values)>2:
             self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                               ' : attribute node R1 for XML node: ' + str(child) + ' has more than two values')
           try:
-            val1 = float(values[0])
-            val2 = float(values[1])
+            val1 = values[0]
+            val2 = values[1]
           except:
             self.raiseAnError(IOError,' Wrong R1values associated to riskMeasuresDiscrete Post-Processor')
           self.variables[variableID]['R1low']  = min(val1,val2)
@@ -108,16 +139,16 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                             ' : attribute node R1 is not present for XML node: ' + str(child) )
 
-      elif child.tag == 'target':
-        self.target['targetID'] = child.text
-        if 'values' in child.attrib.keys():
-          values = child.attrib['values'].split(',')
+      elif child.getName() == 'target':
+        self.target['targetID'] = child.value
+        if 'values' in child.parameterValues:
+          values = child.parameterValues['values']
           if len(values) != 2:
             self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                               ' : attribute node values for XML node: ' + str(child) + ' has one or more than two values')
           try:
-            val1 = float(values[0])
-            val2 = float(values[1])
+            val1 = values[0]
+            val2 = values[1]
           except:
             self.raiseAnError(IOError,' Wrong target values associated to riskMeasuresDiscrete Post-Processor')
           self.target['low']  = min(val1,val2)
@@ -126,13 +157,13 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
           self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                             ' : attribute node values is not present for XML node: ' + str(child) )
 
-      elif child.tag == 'data':
-        self.IEData[child.text] = float(child.attrib['freq'])
+      elif child.getName() == 'data':
+        self.IEData[child.value] = child.parameterValues['freq']
 
-      elif child.tag == 'temporalID':
-        self.temporalID = child.text
+      elif child.getName() == 'temporalID':
+        self.temporalID = child.value
 
-      elif child.tag !='method':
+      elif child.getName() !='method':
         self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
                           ' : XML node ' + str(child) + ' is not recognized')
 

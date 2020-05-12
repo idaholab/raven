@@ -27,6 +27,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from utils import InputData, InputTypes
 
 
 class HistorySetSync(PostProcessorInterfaceBase):
@@ -35,6 +36,24 @@ class HistorySetSync(PostProcessorInterfaceBase):
     The conversion is made so that all histories are syncronized in time.
     It can be used to allow the histories to be sampled at the same time instant.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super().getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("numberOfSamples", contentType=InputTypes.IntegerType))
+    HSSSyncType = InputTypes.makeEnumType("HSSSync", "HSSSyncType", ['all','grid','max','min'])
+    inputSpecification.addSub(InputData.parameterInputFactory("syncMethod", contentType=HSSSyncType))
+    inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("extension", contentType=InputTypes.StringType))
+    #Should method be in super class?
+    inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
+    return inputSpecification
 
   def initialize(self, numberOfSamples=None, pivotParameter=None, extension=None, syncMethod=None):
     """
@@ -60,21 +79,24 @@ class HistorySetSync(PostProcessorInterfaceBase):
       @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == 'numberOfSamples':
-        self.numberOfSamples = int(child.text)
-      elif child.tag == 'syncMethod':
-        self.syncMethod = child.text
-      elif child.tag == 'pivotParameter':
-        self.pivotParameter = child.text
-      elif child.tag == 'extension':
-        self.extension = child.text
-      elif child.tag !='method':
+    paramInput = HistorySetSync.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+
+    for child in paramInput.subparts:
+      if child.getName() == 'numberOfSamples':
+        self.numberOfSamples = child.value
+      elif child.getName() == 'syncMethod':
+        self.syncMethod = child.value
+      elif child.getName() == 'pivotParameter':
+        self.pivotParameter = child.value
+      elif child.getName() == 'extension':
+        self.extension = child.value
+      elif child.getName() !='method':
         self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
-    validSyncMethods = ['all','grid','max','min']
-    if self.syncMethod not in validSyncMethods:
-      self.raiseAnError(NotImplementedError,'Method for synchronizing was not recognized: \'',self.syncMethod,'\'. Options are:',validSyncMethods)
+    #validSyncMethods = ['all','grid','max','min']
+    #if self.syncMethod not in validSyncMethods:
+    #  self.raiseAnError(NotImplementedError,'Method for synchronizing was not recognized: \'',self.syncMethod,'\'. Options are:',validSyncMethods)
     if self.syncMethod == 'grid' and not isinstance(self.numberOfSamples, int):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not correctly specified (either not specified or not integer)')
     if self.pivotParameter is None:

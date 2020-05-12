@@ -22,7 +22,7 @@ import numpy as np
 import copy
 from collections import defaultdict
 from functools import partial
-from utils import mathUtils, utils
+from utils import mathUtils, utils, InputData, InputTypes
 
 class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
   """
@@ -31,6 +31,22 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     S. WIlcox and W. Marion, "User Manual for TMY3 Data Sets," Technical Report, NREL/TP-581-43156,
     National Renewable Energy Laboratory Golden, CO, May 2008
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super().getInputSpecification()
+    inputSpecification.addSub(InputData.parameterInputFactory("subseqLen", contentType=InputTypes.IntegerListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("outputLen", contentType=InputTypes.FloatType))
+    #Should method be in super class?
+    inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
+    return inputSpecification
 
   def initialize(self):
     """
@@ -52,14 +68,17 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
-    self.name = xmlNode.attrib['name']
-    for child in xmlNode:
-      if child.tag == 'subseqLen':
-        self.subseqLen = list(map(int, child.text.split(',')))
-      elif child.tag == 'pivotParameter':
-        self.pivotParameter = child.text
-      elif child.tag == 'outputLen':
-        self.outputLen = float(child.text)
+    paramInput = TypicalHistoryFromHistorySet.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+
+    self.name = paramInput.parameterValues['name']
+    for child in paramInput.subparts:
+      if child.getName() == 'subseqLen':
+        self.subseqLen = child.value
+      elif child.getName() == 'pivotParameter':
+        self.pivotParameter = child.value
+      elif child.getName() == 'outputLen':
+        self.outputLen = child.value
 
     # checks
     if not hasattr(self, 'pivotParameter'):

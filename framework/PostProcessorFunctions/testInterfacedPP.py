@@ -22,6 +22,7 @@ import itertools
 import numpy as np
 
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from utils import InputData, InputTypes
 
 class testInterfacedPP(PostProcessorInterfaceBase):
   """ This class represents the most basic interfaced post-processor
@@ -30,6 +31,19 @@ class testInterfacedPP(PostProcessorInterfaceBase):
       - run
       - readMoreXML
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super().getInputSpecification()
+    inputSpecification.addSubSimple("xmlNodeExample", InputTypes.StringType)
+    inputSpecification.addSubSimple("method", InputTypes.StringType)
+    return inputSpecification
 
   def initialize(self):
     """
@@ -67,6 +81,9 @@ class testInterfacedPP(PostProcessorInterfaceBase):
       @ In, xmlNode, ElementTree, Xml element node
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == 'xmlNodeExample':
-        self.xmlNodeExample = child.text
+    paramInput = testInterfacedPP.getInputSpecification()()
+    paramInput.parseNode(xmlNode)
+
+    for child in paramInput.subparts:
+      if child.getName() == 'xmlNodeExample':
+        self.xmlNodeExample = child.value
