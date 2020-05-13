@@ -81,6 +81,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         descr=r"""for an NDDistribution, indicates the dimension within the NDDistribution that corresponds
               to this variable.""")
     variableInput.addSub(distributionInput)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputTypes.StringType)
+    gridInput.addParam("type", InputTypes.StringType)
+    gridInput.addParam("construction", InputTypes.StringType)
+    variableInput.addSub(gridInput)
     functionInput = InputData.parameterInputFactory("function", contentType=InputTypes.StringType,
         descr=r"""name of the function that
               defines the calculation of this variable from other distributed variables.  Its name

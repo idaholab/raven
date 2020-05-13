@@ -51,6 +51,10 @@ class ParameterInput(object):
   strictMode = True #If true, only allow parameters and subnodes that are listed
   description = '-- no description yet --'
   printPriority = None
+  _checkCanRead = None #If not none, call this function before trying to read
+  # an xml file.  The function should return true or false depending on if
+  # this can be read by this class.
+  _subDict = {}
 
   def __init__(self):
     """
@@ -93,6 +97,7 @@ class ParameterInput(object):
       #Make new copies of data from baseNode
       cls.parameters = dict(baseNode.parameters)
       cls.subs = OrderedDict.fromkeys(baseNode.subs)
+      cls._subDict = dict(baseNode._subDict)
       if ordered:
         cls.subOrder = list(baseNode.subOrder)
       else:
@@ -102,6 +107,7 @@ class ParameterInput(object):
     else:
       cls.parameters = {}
       cls.subs = OrderedDict() #set()
+      cls._subDict = dict()
       if ordered:
         cls.subOrder = []
       else:
@@ -161,6 +167,31 @@ class ParameterInput(object):
     del cls.parameters[name]
 
   @classmethod
+  def addCheckedParams(cls, checkDict):
+    """
+      Adds checking for all the parameters and values in the checkDict.
+      Otherwise this will not process the node.
+      This allows multiple subs with the same name
+      @ In, checkDict, dict, the keys are used to look at the parameters and the values are checked against the parameter values.
+      @ Out, None
+    """
+    def checkCanRead(node):
+      """
+        Checks the node to see if it matches the checkDict
+        @ In, node, xml node to check
+        @ Out, bool, true if matches
+      """
+      match = True
+      for key in checkDict:
+        if key in node.attrib:
+          match = match and (checkDict[key] == node.attrib[key])
+        else:
+          match = False
+      return match
+
+    cls._checkCanRead = checkCanRead
+
+  @classmethod
   def addSub(cls, sub, quantity=Quantity.zero_to_infinity):
     """
       Adds a subnode to this class.
@@ -169,6 +200,13 @@ class ParameterInput(object):
       @ Out, None
     """
     cls.subs[sub] = None
+    subsSet = cls._subDict.get(sub.getName(), set())
+    if (len(subsSet) == 1 and next(iter(subsSet))._checkCanRead is None) or \
+       (len(subsSet) > 0 and sub._checkCanRead is not None):
+       print("ERROR adding checked and unchecked to", sub.getName()," in ",
+                 cls.getName()+" len "+str(len(subsSet)))
+    subsSet.add(sub)
+    cls._subDict[sub.getName()] = subsSet
     if cls.subOrder is not None:
       cls.subOrder.append((sub, quantity))
     elif quantity != Quantity.zero_to_infinity:
@@ -194,6 +232,7 @@ class ParameterInput(object):
       @ In, sub, subclass of ParameterInput, the subnode to allow
       @ Out, None
     """
+    cls._subDict[sub.getName()].remove(sub)
     for have in cls.subs:
       if have.name == sub:
         toRemove = have
@@ -218,6 +257,7 @@ class ParameterInput(object):
       if sub.getName() == subname:
         poppedSub = sub
     if poppedSub is not None:
+      cls._subDict[poppedSub.getName()].remove(poppedSub)
       cls.subs.pop(poppedSub)
     else:
       return None
@@ -263,6 +303,8 @@ class ParameterInput(object):
       #should this be an error or a warning? Or even that?
       #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
       print('InputData: Using param spec "{}" to read XML node "{}.'.format(self.name,node.tag))
+    if self._checkCanRead is not None and not self.__class__._checkCanRead(node):
+      handleError("CheckCanRead failed for "+node.tag)
 
     # check content type
     if self.contentType:
@@ -293,13 +335,31 @@ class ParameterInput(object):
       subs = self.subs
     # read in subnodes
     subNames = set()
-    for sub in subs:
-      subName = sub.getName()
-      subNames.add(subName)
-      for subNode in node.findall(subName):
-        subInstance = sub()
-        subInstance.parseNode(subNode, errorList)
+    #for sub in subs:
+    #  subName = sub.getName()
+    #  subNames.add(subName)
+    #  for subNode in node.findall(subName):
+    #    subInstance = sub()
+    #    subInstance.parseNode(subNode, errorList)
+    #    self.subparts.append(subInstance)
+    for child in node:
+      childName = child.tag
+      subsSet = self._subDict.get(childName,set())
+      foundSubs = 0
+      for sub in subsSet:
+        if sub._checkCanRead is None:
+          subInstance = sub()
+          foundSubs += 1
+        elif sub._checkCanRead(child):
+          subInstance = sub()
+          foundSub += 1
+      if foundSubs > 0:
+        subNames.add(childName)
+        subInstance.parseNode(child, errorList)
         self.subparts.append(subInstance)
+      elif self.strictMode:
+        allowed = [s.getName() for s in subs]
+        handleError('no class to handle '+str(child)+' tried '+str(subsSet)+" allowed:"+str(allowed)) #Extra if debugging: + ' keys: '+str(set(self._subDict.keys()))+ str({k: [j.getName() for j in self._subDict[k]] for k in self._subDict.keys()}))
     if self.strictMode:
       nodeNames = set([child.tag for child in node])
       if nodeNames != subNames:

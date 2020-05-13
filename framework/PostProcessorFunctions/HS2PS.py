@@ -45,6 +45,8 @@ class HS2PS(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
+    inputSpecification.addCheckedParams({"name":"HS2PS",
+                                         "subType":"InterfacedPostProcessor"})
     inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("features", contentType=InputTypes.StringListType))
     #Should method be in super class?
