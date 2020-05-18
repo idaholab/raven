@@ -12,22 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Optimizers are a class of Samplers that specialize the Adaptive Samplers.
-
-  Reworked 2020-01
-  @author: talbpaul
+  GradientApproximators are a tool for the GradientDescent Optimizer.
 """
 
 from __future__ import absolute_import
 
-from .Optimizer import Optimizer
-from .RavenSampled import RavenSampled
-from .GradientDescent import GradientDescent
-from .SimulatedAnnealing import SimulatedAnnealing
-from .GeneticAlgorithm import GeneticAlgorithm
+# These lines ensure that we do not have to do something like:
+# 'from Optimizers.Optimizer import Sampler' outside of this submodule
+
+# TODO
+from .Mutators import Mutators
+from .BitFlip import BitFlip
+from .RandomResetting import RandomResetting
+from .Swap import Swap
+from .Scramble import Scramble
+from .Inversion import Inversion
 
 from .Factory import knownTypes
 from .Factory import returnInstance
 from .Factory import returnClass
-
-

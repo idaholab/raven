@@ -12,20 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on May 21, 2016
-  @author: chenj
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
-from .Optimizer import Optimizer
-from .RavenSampled import RavenSampled
-from .GradientDescent import GradientDescent
-from .SimulatedAnnealing import SimulatedAnnealing
-from .GeneticAlgorithm import GeneticAlgorithm
-
+from .parentSelectors import parentSelectors
+from .RouletteWheel import RouletteWheel
+from .SUS import SUS
+from .Tournament import Tournament
+from .Rank import Rank
+from .Random import Random
 """
  Interface Dictionary (factory) (private)
 """
@@ -33,10 +31,13 @@ from .GeneticAlgorithm import GeneticAlgorithm
 # imports defined above.
 __base = 'Optimizer'
 __interFaceDict = {}
+__interFaceDict['parentSelectors'] = parentSelectors
+__interFaceDict['RouletteWheel'] = RouletteWheel
+__interFaceDict['SUS'] = SUS
+__interFaceDict['Tournament'] = Tournament
+__interFaceDict['Rank'] = Rank
+__interFaceDict['Random'] = Random
 
-__interFaceDict['GradientDescent'           ] = GradientDescent
-__interFaceDict['SimulatedAnnealing'        ] = SimulatedAnnealing
-__interFaceDict['GeneticAlgorithm'          ] = GeneticAlgorithm
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():
@@ -49,7 +50,7 @@ def knownTypes():
   return __interFaceDict.keys()
 
 
-def returnInstance(Type,caller):
+def returnInstance(Type, caller):
   """
     Attempts to create and return an instance of a particular type of object
     available to this factory.
@@ -63,7 +64,7 @@ def returnInstance(Type,caller):
     print(knownTypes())
     caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
 
-def returnClass(Type,caller):
+def returnClass(Type, caller):
   """
     Attempts to return a particular class type available to this factory.
     @ In, Type, string, string should be one of the knownTypes.
