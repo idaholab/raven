@@ -37,7 +37,7 @@ def constrain(raven):
   """
     Constrain.
     @ In, raven, object, raven self
-    @ Out, constrain, point ok or not?
+    @ Out, explicit constrain, point ok or not?
   """
   x = raven.x
   y = raven.y
@@ -49,3 +49,16 @@ def constrain(raven):
   if 0.25 < x < 0.75 and 0 < y < 1:
     return False
   return True
+
+def implicitConstrain(raven):
+  """
+    Implicit constrain.
+    @ In, raven, object, raven self
+    @ Out, implicit constrain, point ok or not?
+  """
+  x = raven.x
+  ans = raven.ans
+  if x+ans <= -0.25999:
+    return False
+  else:
+    return True

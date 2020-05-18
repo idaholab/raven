@@ -9,6 +9,9 @@
       This test uses a multidimensional linear function such that the trajectory must pass through
       a functional constraint to reach the optimal point.
     </description>
+    <revisions>
+      <revision author="zhouj" date="2020-05-15">Add implicit constriant node in optimizer and function node with objective as variable.</revision>
+    </revisions>
     <requirements>R-RM-2</requirements>
   </TestInfo>
 
@@ -73,12 +76,16 @@
         <stepSize>1e-4</stepSize>
       </convergence>
       <Constraint class='Functions' type='External'>goal</Constraint>
+      <ImplicitConstraint class='Functions' type='External'>goalimp</ImplicitConstraint>
     </GradientDescent>
   </Optimizers>
 
   <Functions>
     <External file="../../AnalyticModels/optimizing/offset_parabola" name="goal">
       <variables>x,y</variables>
+    </External>
+    <External file="../../AnalyticModels/optimizing/offset_parabola" name="goalimp">
+      <variables>x,y,ans</variables>
     </External>
   </Functions>
 
