@@ -11,30 +11,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
+  Interface Dictionary (factory) (private)
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
-from .GradientApproximater import GradientApproximater
-from .FiniteDifference import FiniteDifference
-from .CentralDifference import CentralDifference
-from .SPSA import SPSA
+from . import Crossovers
+from .OnePoint import OnePoint
+from .MultiPoint import MultiPoint
+from .Uniform import Uniform
+from .Recombination import Recombination
+from .Davis import Davis
 
-"""
- Interface Dictionary (factory) (private)
-"""
 # This machinery will automatically populate the "knownTypes" given the
 # imports defined above.
 __base = 'Optimizer'
 __interFaceDict = {}
-__interFaceDict['onePoint'] = OnePoint
-__interFaceDict['multiPoint'] = MultiPoint
-__interFaceDict['uniform'] = Uniform
-__interFaceDict['recombination'] = Recombination
-__interFaceDict['davis'] = Davis
+__interFaceDict['OnePoint'] = OnePoint
+__interFaceDict['MultiPoint'] = MultiPoint
+__interFaceDict['Uniform'] = Uniform
+__interFaceDict['Recombination'] = Recombination
+__interFaceDict['Davis'] = Davis
 __knownTypes = list(__interFaceDict.keys())
 
 def knownTypes():

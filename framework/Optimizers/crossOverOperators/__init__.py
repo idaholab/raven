@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  GradientApproximators are a tool for the GradientDescent Optimizer.
+  Crossovers class is a tool for the Genetic Algorithm Optimizer.
 """
 
 from __future__ import absolute_import
@@ -21,10 +21,12 @@ from __future__ import absolute_import
 # 'from Optimizers.Optimizer import Sampler' outside of this submodule
 
 # TODO
-from .GradientApproximater import GradientApproximater
-from .FiniteDifference import FiniteDifference
-#from .CentralDifference import CentralDifference
-#from .SPSA import SPSA
+from . import Crossovers
+from .OnePoint import OnePoint
+from .MultiPoint import MultiPoint
+from .Uniform import Uniform
+from .Recombination import Recombination
+from .Davis import Davis
 
 from .Factory import knownTypes
 from .Factory import returnInstance

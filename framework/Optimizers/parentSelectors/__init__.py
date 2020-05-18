@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  GradientApproximators are a tool for the GradientDescent Optimizer.
+  parentSelector is a tool for the Genetic Algorithm Optimizer.
 """
 
 from __future__ import absolute_import
@@ -21,12 +21,12 @@ from __future__ import absolute_import
 # 'from Optimizers.Optimizer import Sampler' outside of this submodule
 
 # TODO
-from .Mutators import Mutators
-from .BitFlip import BitFlip
-from .RandomResetting import RandomResetting
-from .Swap import Swap
-from .Scramble import Scramble
-from .Inversion import Inversion
+from . import parentSelectors
+from .RouletteWheel import RouletteWheel
+from .SUS import SUS
+from .Tournament import Tournament
+from .Rank import Rank
+from .Random import Random
 
 from .Factory import knownTypes
 from .Factory import returnInstance

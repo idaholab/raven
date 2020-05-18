@@ -11,22 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
+  Interface Dictionary (factory) (private)
 """
 #for future compatibility with Python 3-----------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
-from .Mutators import Mutators
+from . import Mutators
 from .BitFlip import BitFlip
 from .RandomResetting import RandomResetting
 from .Swap import Swap
 from .Scramble import Scramble
 from .Inversion import Inversion
-"""
- Interface Dictionary (factory) (private)
-"""
+
 # This machinery will automatically populate the "knownTypes" given the
 # imports defined above.
 __base = 'Optimizer'

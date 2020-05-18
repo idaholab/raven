@@ -18,14 +18,14 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
-from .parentSelectors import parentSelectors
+from . import parentSelectors
 from .RouletteWheel import RouletteWheel
 from .SUS import SUS
 from .Tournament import Tournament
 from .Rank import Rank
 from .Random import Random
 """
- Interface Dictionary (factory) (private)
+  Interface Dictionary (factory) (private)
 """
 # This machinery will automatically populate the "knownTypes" given the
 # imports defined above.
