@@ -122,7 +122,7 @@ class Optimizer(AdaptiveSampler):
         descr=r"""RAVEN type for this source. Options include \xmlNode{External}.""")
 
 
-    ImplicitConstraintInput =  InputData.assemblyInputFactory('ImplicitConstraint', contentType=InputTypes.StringType, strictMode=True,
+    ImplicitConstraintInput =  InputData.parameterInputFactory('ImplicitConstraint', contentType=InputTypes.StringType, strictMode=True,
         printPriority=150,
         descr=r"""name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
               point of view, this XML node must contain the name of a function defined in the \xmlNode{Functions}

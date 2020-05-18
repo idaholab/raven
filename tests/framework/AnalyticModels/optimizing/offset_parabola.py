@@ -58,7 +58,7 @@ def implicitConstrain(raven):
   """
   x = raven.x
   ans = raven.ans
-  if x+ans <= -0.25999:
+  if x+ans <= -0.2:
     return False
   else:
     return True
