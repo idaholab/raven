@@ -17,8 +17,8 @@
   @author: Mohammad Abdo
 """
 import abc
-
-from utils import utils, InputData, InputTypes
+import numpy as np
+from utils import utils, randomUtils, InputData, InputTypes
 
 class ParentSelectors(utils.metaclass_insert(abc.ABCMeta, object)):
   """
@@ -73,11 +73,32 @@ class ParentSelectors(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     pass
 
-  def initialize(self, optVars, proximity):
+  def initialize(self):
     """
       After construction, finishes initialization of this approximator.
-      @ In, optVars, list(str), list of optimization variable names
-      @ In, proximity, float, percentage of step size away that neighbor samples should be taken
+      @ In,
       @ Out, None
     """
     pass
+
+  def _rouletteSelection(population, fitnesses):
+    """
+      Roulette Selection mechanism for parent selection
+      @ In, population, array, population is a pool of chromosomes (individuals), i.e., np.shape(population) = population size x nGenes
+      @ In, fitnesses, a list or a 1D array, fitness of each chromosome in the population
+      @ Out, selectedParent, a list or a 1D array, selected Parent
+    """
+    selectionProb = fitnesses/np.sum(fitnesses)
+    # imagine a wheel that is partitioned according to the selection probabilities
+
+    # set a random pointer
+    roulettePointer = randomUtils.random(dim=1, samples=1)
+    # Rotate the wheel
+    counter = 0
+    # intialize Probability
+    sumProb = selectionProb[counter]
+    while sumProb < roulettePointer:
+      counter += 1
+      sumProb += selectionProb[counter]
+    selectedParent = population[counter]
+    return selectedParent

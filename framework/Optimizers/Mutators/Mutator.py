@@ -18,14 +18,14 @@
 """
 import abc
 
-from utils import utils, InputData, InputTypes
+from utils import utils, randomUtils, InputData, InputTypes
 
 class Mutators(utils.metaclass_insert(abc.ABCMeta, object)):
   """
     Mutators control the mutation process via several implemented mechanisms.
     Currently, the mutation options include:
 
-    1.
+    1. Random Mutation
   """
   ##########################
   # Initialization Methods #
@@ -81,3 +81,16 @@ class Mutators(utils.metaclass_insert(abc.ABCMeta, object)):
       @ Out, None
     """
     pass
+
+  def _randomMutator(chromosome, mutationProb):
+    """
+      Random Mutator is the mechanism governing the mutation process
+      @ In, chromosome, a list or a 1D array, the original chromosome before mutation
+      @ In, mutationProb, a float, mutationProb between [0,1],
+      @ Out, Chromosome, a list or a 1D array, the mutated chromosome
+    """
+    for i in range(len(chromosome)):
+      if randomUtils.random(dim=1,samples=1) < mutationProb:
+        chromosome[1,i] = not chromosome[i]
+      return chromosome
+
