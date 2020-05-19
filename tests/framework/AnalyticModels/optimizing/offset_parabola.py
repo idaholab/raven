@@ -37,7 +37,7 @@ def constrain(raven):
   """
     Constrain.
     @ In, raven, object, raven self
-    @ Out, explicit constrain, point ok or not?
+    @ Out, explicitConstrain, point ok or not?
   """
   x = raven.x
   y = raven.y
@@ -54,7 +54,7 @@ def implicitConstrain(raven):
   """
     Implicit constrain.
     @ In, raven, object, raven self
-    @ Out, implicit constrain, point ok or not?
+    @ Out, implicitConstrain, point ok or not?
   """
   x = raven.x
   ans = raven.ans

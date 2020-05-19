@@ -416,7 +416,7 @@ class RavenSampled(Optimizer):
     """
       Considers all implicit constraints
       @ In, previous, dict, NORMALIZED previous opt point
-      @ Out, accept, bool, whether point was satisfy implicit constraints
+      @ Out, accept, bool, whether point was satisfied implicit constraints
     """
     normed = copy.deepcopy(previous)
     oldVal = normed[self._objectiveVar]
