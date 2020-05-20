@@ -12,7 +12,7 @@
        A control function "control" is required to select the external
        model to run based on the values of input variables x and y.
        If x > 0 and y > 1, the model "sum" will be selected. if x > 0
-       and y <= 1, the model "multiply" will be selected. In other
+       and y is less than or equal 1, the model "multiply" will be selected. In other
        conditions, the model "minus" will be selected.
     </description>
   </TestInfo>
