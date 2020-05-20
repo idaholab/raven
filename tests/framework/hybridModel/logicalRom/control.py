@@ -14,7 +14,7 @@
 
 def evaluate(self):
   """
-    Method required by RAVEN to run this as an external model.
+    Method required by RAVEN to run this as an ControlFunction in LogicalModel.
     @ In, self, object, object to store members on
     @ Out, model, str, the name of external model that
       will be executed by hybrid model

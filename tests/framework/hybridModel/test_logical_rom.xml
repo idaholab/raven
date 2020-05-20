@@ -8,7 +8,12 @@
     <description>
       Example of usage of the Logical Model capability in RAVEN
       This test is intended to check the functionality of Logical Model
-      with ROMs.
+      with ROMs. A control function "control" is required to select the right
+      model to run based on the values of input variables leftTemperature and
+      rightTemperatureDist.
+      If leftTemperature \in (860,1340) and rightTemperatureDist \in (740, 1460),
+      the ROM "svr" will be selected, else the model "thermalConductivityComputation"
+      will be selected.
     </description>
   </TestInfo>
 
@@ -37,7 +42,7 @@
   </Functions>
 
   <Models>
-    <ExternalModel ModuleToLoad="EM2linear" name="thermalConductivityComputation" subType="">
+    <ExternalModel ModuleToLoad="../../ensembleModelTests/EM2linear" name="thermalConductivityComputation" subType="">
       <variables>leftTemperature,rightTemperature,k</variables>
     </ExternalModel>
     <ROM name="svr" subType="SciKitLearn">

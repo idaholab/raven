@@ -35,26 +35,28 @@ def run(inp):
     @ In, inp, str, input file name
     @ Out, None
   """
-  inx = open(inp,'r')
-  for line in inx:
-    if   line.startswith('x ='      ):
-      x=float(line.split('=')[1])
-    elif line.startswith('case ='   ):
-      case=line.split('=')[1].strip()
-    elif line.startswith('auxfile ='):
-      aux=line.split('=')[1].strip()
-  iny = open(aux,'r')
-  for line in iny:
-    if line.startswith('y ='):
-      y=float(line.split('=')[1])
+
+  with open(inp,'r') as inx:
+    for line in inx:
+      if line.startswith('x ='):
+        x=float(line.split('=')[1])
+      elif line.startswith('case ='):
+        case=line.split('=')[1].strip()
+      elif line.startswith('auxfile ='):
+        aux=line.split('=')[1].strip()
+
+  with open(aux,'r') as iny:
+    for line in iny:
+      if line.startswith('y ='):
+        y=float(line.split('=')[1])
 
   dat = eval(x,y)
 
-  outf = open(case+'.csv','w')
-  outf.writelines('step,i,j,x,y,poly\n')
-  for e in dat:
-    outf.writelines(','.join(str(i) for i in e)+'\n')
-  outf.close()
+  with open(case+'.csv','w') as out:
+    out.writelines('step,i,j,x,y,poly\n')
+    for e in dat:
+      out.writelines(','.join(str(i) for i in e)+'\n')
+
 
 if __name__=='__main__':
   import sys

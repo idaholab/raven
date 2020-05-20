@@ -69,6 +69,7 @@ class LogicalModel(HybridModelBase):
     """
     HybridModelBase.__init__(self,runInfoDict)
     self.printTag              = 'LogicalModel MODEL' # print tag
+    # Function object that is used to control the execution of models
     self.controlFunction       = None
     # assembler objects to be requested
     self.addAssemblerObject('ControlFunction','1')
@@ -83,9 +84,9 @@ class LogicalModel(HybridModelBase):
     HybridModelBase.localInputAndChecks(self, xmlNode)
     paramInput = self.getInputSpecification()()
     paramInput.parseNode(xmlNode)
-    for child in paramInput.subparts:
-      if child.getName() == 'ControlFunction':
-        self.controlFunction = child.value
+    self.controlFunction = paramInput.findFirst('ControlFunction').value
+    if self.controlFunction is None:
+      self.raiseAnError(IOError, '"ControlFunction" is required for "{}", but it is not provided!'.format(self.name))
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -201,6 +202,7 @@ class LogicalModel(HybridModelBase):
     modelToRun = inputKwargs.pop('modelToRun')
     inputKwargs['prefix'] = modelToRun + utils.returnIdSeparator() + identifier
     inputKwargs['uniqueHandler'] = self.name + identifier
+
     moveOn = False
     while not moveOn:
       if jobHandler.availability() > 0:
