@@ -47,8 +47,8 @@ class GeneticAlgorithm(RavenSampled):
     RavenSampled.__init__(self)
     self._parentSelection = None                                  # mechanism for parent selection
     self._convergenceCriteria = defaultdict(mathUtils.giveZero)  # names and values for convergence checks
-    #self._acceptHistory = {}                                    # acceptability
-    #self._acceptRerun = {}                                      # by traj, if True then override accept for point rerun
+    self._acceptHistory = {}                                    # acceptability
+    self._acceptRerun = {}                                      # by traj, if True then override accept for point rerun
     self._convergenceInfo = {}                                   # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = 0                                # consecutive persistence required to mark convergence
 
@@ -139,7 +139,13 @@ class GeneticAlgorithm(RavenSampled):
       @ In, cls, the class for which we are retrieving the solution export
       @ Out, ok, dict, {varName: description} for valid solution export variable names
     """
-    pass
+    # cannot be determined before run-time due to variables and prefixes.
+    ok = super(GeneticAlgorithm, cls).getSolutionExportVariableNames()
+    new = {}
+    # new = {'': 'the size of step taken in the normalized input space to arrive at each optimal point'}
+    new['conv_{CONV}'] = 'status of each given convergence criteria'
+    ok.update(new)
+    return ok
 
   def handleInput(self, paramInput):
     """
@@ -189,7 +195,9 @@ class GeneticAlgorithm(RavenSampled):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    pass
+    RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    for traj, init in enumerate(self._initialValues):
+      self._submitRun(init,traj,self.getIteration(traj))
 
   ###############
   # Run Methods #
@@ -198,12 +206,39 @@ class GeneticAlgorithm(RavenSampled):
   def _useRealization(self, info, rlz):
     """
       Used to feedback the collected runs into actionable items within the sampler.
+      This is called by localFinalizeActualSampling, and hence should contain the main skeleton.
       @ In, info, dict, identifying information about the realization
       @ In, rlz, dict, realized realization
       @ In, optVal, float, value of objective variable (corrected for min/max)
       @ Out, None
     """
-    pass
+    ## TODO the whole skeleton should be here, this should be calling all classes and _private methods.
+    traj = info['traj']
+    info['optVal'] = rlz[self._objectiveVar]
+    self.incrementIteration(traj)
+    info['step'] = self.counter
+    #
+
+  def _submitRun(self, point, traj, step, moreInfo=None):
+    """
+      Submits a single run with associated info to the submission queue
+      @ In, point, dict, point to submit
+      @ In, traj, int, trajectory identifier
+      @ In, step, int, iteration number identifier
+      @ In, moreInfo, dict, optional, additional run-identifying information to track
+      @ Out, None
+    """
+    info = {}
+    if moreInfo is not None:
+      info.update(moreInfo)
+    info.update({'traj': traj,
+                  'step': step
+                })
+    # NOTE: explicit constraints have been checked before this!
+    self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
+    self._submissionQueue.append((point, info))
+  # END queuing Runs
+  # * * * * * * * * * * * * * * * *
 
   def checkConvergence(self, traj):
     """
