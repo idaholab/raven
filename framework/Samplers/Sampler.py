@@ -84,6 +84,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     gridInput = InputData.parameterInputFactory("grid", contentType=InputTypes.StringType)
     gridInput.addParam("type", InputTypes.StringType)
     gridInput.addParam("construction", InputTypes.StringType)
+    gridInput.addParam("steps", InputTypes.IntegerType)
     variableInput.addSub(gridInput)
     functionInput = InputData.parameterInputFactory("function", contentType=InputTypes.StringType,
         descr=r"""name of the function that
