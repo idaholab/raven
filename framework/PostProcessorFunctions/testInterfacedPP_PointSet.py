@@ -18,7 +18,7 @@ Created on December 1, 2015
 from __future__ import division, print_function, unicode_literals, absolute_import
 
 import copy
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 from utils import InputData, InputTypes
 
 class testInterfacedPP_PointSet(PostProcessorInterfaceBase):
@@ -38,6 +38,7 @@ class testInterfacedPP_PointSet(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
+    inputSpecification.setCheckClass(CheckInterfacePP("testInterfacedPP_PointSet"))
     inputSpecification.addSubSimple("xmlNodeExample", InputTypes.StringType)
     inputSpecification.addSubSimple("method", InputTypes.StringType)
     return inputSpecification

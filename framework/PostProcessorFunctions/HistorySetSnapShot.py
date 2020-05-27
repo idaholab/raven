@@ -18,7 +18,7 @@ Created on October 28, 2015
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 
 import os
 import numpy as np
@@ -48,6 +48,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
+    inputSpecification.setCheckClass(CheckInterfacePP("HistorySetSnapShot"))
     HSSSTypeType = InputTypes.makeEnumType("HSSSType", "HSSSTypeType", ['min','max','average','value','timeSlice','mixed'])
     inputSpecification.addSub(InputData.parameterInputFactory("type", contentType=HSSSTypeType))
     inputSpecification.addSub(InputData.parameterInputFactory("numberOfSamples", contentType=InputTypes.IntegerType))

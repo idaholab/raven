@@ -26,7 +26,7 @@ import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 from utils import InputData, InputTypes
 
 
@@ -46,6 +46,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
+    inputSpecification.setCheckClass(CheckInterfacePP("HistorySetSync"))
     inputSpecification.addSub(InputData.parameterInputFactory("numberOfSamples", contentType=InputTypes.IntegerType))
     HSSSyncType = InputTypes.makeEnumType("HSSSync", "HSSSyncType", ['all','grid','max','min'])
     inputSpecification.addSub(InputData.parameterInputFactory("syncMethod", contentType=HSSSyncType))

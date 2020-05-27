@@ -35,8 +35,69 @@ class Quantity:
   one = (1,1)
   one_to_infinity = (1,2)
 
-#
-#
+
+class CheckClass(object):
+  """
+  This checks to figure out if a node is a ParameterInput type
+  If the check passes, then it is.
+  """
+
+  def check(self, node):
+    """
+      Checks the node to see if it matches the checkDict
+      @ In, node, xml node to check
+      @ Out, bool, true if matches
+    """
+    assert False, "check function not implemented"
+
+
+  def failCheckReason(self, node):
+    """
+      returns a string about why the check failed
+      @ In, node, xml node to check
+      @ Out, string, message for user about why check failed.
+    """
+    return "Check failed"
+
+class CheckParams(CheckClass):
+
+  def __init__(self, checkDict):
+    """
+      create CheckParams class
+      @ In, checkDict, dict, the keys are used to look at the parameters and the values are checked against the parameter values.
+      @ Out, None
+    """
+    self.checkDict = checkDict
+
+  def check(self, node):
+    """
+      Checks the node to see if it matches the checkDict
+      @ In, node, xml node to check
+      @ Out, bool, true if matches
+    """
+    match = True
+    for key in self.checkDict:
+      if key in node.attrib:
+        match = match and (self.checkDict[key] == node.attrib[key])
+      else:
+        match = False
+    return match
+
+  def failCheckReason(self, node):
+    """
+      returns a string about why the check failed
+      @ In, node, xml node to check
+      @ Out, string, message for user about why check failed.
+    """
+    reason = ""
+    for key in self.checkDict:
+      if key in node.attrib:
+        if self.checkDict[key] != node.attrib[key]:
+          reason += "Mismatch of param: "+key+" "+self.checkDict[key]+"!="+node.attrib[key]+" "
+      else:
+        reason += "Missing param: "+key+" "
+    return reason
+
 #
 #
 class ParameterInput(object):
@@ -175,21 +236,19 @@ class ParameterInput(object):
       @ In, checkDict, dict, the keys are used to look at the parameters and the values are checked against the parameter values.
       @ Out, None
     """
-    def checkCanRead(node):
-      """
-        Checks the node to see if it matches the checkDict
-        @ In, node, xml node to check
-        @ Out, bool, true if matches
-      """
-      match = True
-      for key in checkDict:
-        if key in node.attrib:
-          match = match and (checkDict[key] == node.attrib[key])
-        else:
-          match = False
-      return match
 
-    cls._checkCanRead = checkCanRead
+    cls._checkCanRead = CheckParams(checkDict)
+
+  @classmethod
+  def setCheckClass(cls, checkClass):
+    """
+      sets the CheckClass, which is used to check if this ParameterInput can
+      handle a specific node
+      @ In, checkClass, CheckClass, class to use for checking node
+      @ Out, None
+    """
+    assert isinstance(checkClass, CheckClass)
+    cls._checkCanRead = checkClass
 
   @classmethod
   def addSub(cls, sub, quantity=Quantity.zero_to_infinity):
@@ -303,8 +362,8 @@ class ParameterInput(object):
       #should this be an error or a warning? Or even that?
       #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
       print('InputData: Using param spec "{}" to read XML node "{}.'.format(self.name,node.tag))
-    if self._checkCanRead is not None and not self.__class__._checkCanRead(node):
-      handleError("CheckCanRead failed for "+node.tag)
+    if self._checkCanRead is not None and not self.__class__._checkCanRead.check(node):
+      handleError("CheckCanRead failed for "+node.tag+"Reason: "+self.__class__._checkCanRead.failCheckReason(node))
 
     # check content type
     if self.contentType:
@@ -350,7 +409,7 @@ class ParameterInput(object):
         if sub._checkCanRead is None:
           subInstance = sub()
           foundSubs += 1
-        elif sub._checkCanRead(child):
+        elif sub._checkCanRead.check(child):
           subInstance = sub()
           foundSub += 1
       if foundSubs > 0:

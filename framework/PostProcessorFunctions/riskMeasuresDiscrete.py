@@ -25,7 +25,7 @@ import numpy as np
 import copy
 #External Modules End--------------------------------------------------------------------------------
 
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 from utils import InputData, InputTypes
 
 class riskMeasuresDiscrete(PostProcessorInterfaceBase):
@@ -47,6 +47,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
+    inputSpecification.setCheckClass(CheckInterfacePP("riskMeasuresDiscrete"))
     inputSpecification.addSubSimple("measures", InputTypes.StringListType)
     variableSub = InputData.parameterInputFactory("variable", contentType=InputTypes.StringType)
     variableSub.addParam("R0values", InputTypes.FloatListType)

@@ -21,7 +21,7 @@ import copy
 import itertools
 import numpy as np
 
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 from utils import InputData, InputTypes
 
 class testInterfacedPP(PostProcessorInterfaceBase):
@@ -41,6 +41,7 @@ class testInterfacedPP(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
+    inputSpecification.setCheckClass(CheckInterfacePP("testInterfacedPP"))
     inputSpecification.addSubSimple("xmlNodeExample", InputTypes.StringType)
     inputSpecification.addSubSimple("method", InputTypes.StringType)
     return inputSpecification

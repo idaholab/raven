@@ -17,7 +17,7 @@
 '''
 from __future__ import division, print_function, unicode_literals, absolute_import
 
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 import numpy as np
 import copy
 from collections import defaultdict
@@ -41,6 +41,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
+    inputSpecification.setCheckClass(CheckInterfacePP("TypicalHistoryFromHistorySet"))
     inputSpecification.addSub(InputData.parameterInputFactory("subseqLen", contentType=InputTypes.IntegerListType))
     inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("outputLen", contentType=InputTypes.FloatType))

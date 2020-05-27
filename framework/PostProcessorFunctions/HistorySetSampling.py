@@ -18,7 +18,7 @@ Created on October 28, 2015
 """
 
 from __future__ import division, print_function, unicode_literals, absolute_import
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 
 
 import os
@@ -45,6 +45,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
+    inputSpecification.setCheckClass(CheckInterfacePP("HistorySetSampling"))
     HSSamplingType = InputTypes.makeEnumType("HSSampling", "HSSamplingType", ['uniform','firstDerivative','secondDerivative','filteredFirstDerivative','filteredSecondDerivative'])
     inputSpecification.addSub(InputData.parameterInputFactory("samplingType", contentType=HSSamplingType))
     inputSpecification.addSub(InputData.parameterInputFactory("numberOfSamples", contentType=InputTypes.IntegerType))

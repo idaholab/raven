@@ -17,7 +17,7 @@ Created on October 28, 2015
 """
 
 from __future__ import division, print_function, unicode_literals, absolute_import
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 import os
 import numpy as np
 from scipy import interpolate
@@ -39,6 +39,7 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
+    inputSpecification.setCheckClass(CheckInterfacePP("dataObjectLabelFilter"))
     DOLFDataTypeType = InputTypes.makeEnumType("DOLFDataType", "DOLFDataTypeType", ['HistorySet','PointSet'])
     inputSpecification.addSubSimple("dataType", DOLFDataTypeType)
     inputSpecification.addSubSimple("label", InputTypes.StringType)

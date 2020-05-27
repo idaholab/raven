@@ -26,7 +26,7 @@ import copy
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 from utils import InputData, InputTypes
 
 
@@ -48,6 +48,7 @@ class HStoPSOperator(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
+    inputSpecification.setCheckClass(CheckInterfacePP("HStoPSOperator"))
     inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("row", contentType=InputTypes.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("pivotValue", contentType=InputTypes.FloatType))

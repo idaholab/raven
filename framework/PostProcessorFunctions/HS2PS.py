@@ -23,7 +23,7 @@ import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 from utils import InputData, InputTypes
 
 
@@ -45,8 +45,7 @@ class HS2PS(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
-    inputSpecification.addCheckedParams({"name":"HS2PS",
-                                         "subType":"InterfacedPostProcessor"})
+    inputSpecification.setCheckClass(CheckInterfacePP("HS2PS"))
     inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("features", contentType=InputTypes.StringListType))
     #Should method be in super class?
