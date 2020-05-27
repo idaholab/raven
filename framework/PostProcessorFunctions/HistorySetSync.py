@@ -36,7 +36,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
     It can be used to allow the histories to be sampled at the same time instant.
   """
 
-  def initialize(self, numberOfSamples=None, pivotParameter=None, extension=None, syncMethod=None):
+  def initialize(self, numberOfSamples=None, pivotParameter=None, extension=None, syncMethod=None, boundaries=None):
     """
       Method to initialize the Interfaced Post-processor
       @ In, numberOfSamples, int, (default None)
@@ -50,9 +50,10 @@ class HistorySetSync(PostProcessorInterfaceBase):
     self.outputFormat = 'HistorySet'
 
     self.numberOfSamples = numberOfSamples
-    self.pivotParameter  = pivotParameter
-    self.extension       = extension
-    self.syncMethod      = syncMethod
+    self.pivotParameter = pivotParameter
+    self.extension = extension
+    self.syncMethod = syncMethod
+    self.boundaries = boundaries # min and maximum boundaries of the pivot parameter (optional)
 
   def readMoreXML(self,xmlNode):
     """
@@ -69,14 +70,23 @@ class HistorySetSync(PostProcessorInterfaceBase):
         self.pivotParameter = child.text
       elif child.tag == 'extension':
         self.extension = child.text
+      elif child.tag == 'boundaries':
+        self.boundaries = [float(el) for el in child.text.split(",")]
+        if len(self.boundaries) != 2:
+          self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) +
+                            ' must containe a comma separated list (lenhgt 2) of floats (boundaries)')
       elif child.tag !='method':
         self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
-    validSyncMethods = ['all','grid','max','min']
+    validSyncMethods = ['all','grid','max','min','bound']
     if self.syncMethod not in validSyncMethods:
       self.raiseAnError(NotImplementedError,'Method for synchronizing was not recognized: \'',self.syncMethod,'\'. Options are:',validSyncMethods)
     if self.syncMethod == 'grid' and not isinstance(self.numberOfSamples, int):
-      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : number of samples is not correctly specified (either not specified or not integer)')
+      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
+                        ' : <numberOfSamples>  is not correctly specified (either not specified or not integer)')
+    if self.syncMethod is 'bound' and not isinstance(self.numberOfSamples, int) and self.boundaries is None:
+      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) +
+                        ' : <numberOfSamples> is not correctly specified (either not specified or not integer) or <boundaries> not provided')
     if self.pivotParameter is None:
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : pivotParameter is not specified')
     if self.extension is None or not (self.extension == 'zeroed' or self.extension == 'extended'):
@@ -104,6 +114,8 @@ class HistorySetSync(PostProcessorInterfaceBase):
         maxTime = max(maxEndTime)
         minTime = min(minInitTime)
         newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
+      elif self.syncMethod == 'bound':
+        newTime = np.linspace(min(self.boundaries),max(self.boundaries),self.numberOfSamples)
       elif self.syncMethod == 'all':
         times = []
         for hist in inputDic['data'][self.pivotParameter]:
