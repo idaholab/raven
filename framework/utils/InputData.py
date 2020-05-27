@@ -60,6 +60,9 @@ class CheckClass(object):
     return "Check failed"
 
 class CheckParams(CheckClass):
+  """
+    Checks that some parameters exist in the class
+  """
 
   def __init__(self, checkDict):
     """
