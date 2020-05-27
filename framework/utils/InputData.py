@@ -359,7 +359,7 @@ class ParameterInput(object):
         self.subparts.append(subInstance)
       elif self.strictMode:
         allowed = [s.getName() for s in subs]
-        handleError('no class to handle '+str(child)+' tried '+str(subsSet)+" allowed:"+str(allowed)) #Extra if debugging: + ' keys: '+str(set(self._subDict.keys()))+ str({k: [j.getName() for j in self._subDict[k]] for k in self._subDict.keys()}))
+        handleError('no class to handle '+childName+' tried '+str(subsSet)+" allowed:"+str(allowed)) #Extra if debugging: + ' keys: '+str(set(self._subDict.keys()))+ str({k: [j.getName() for j in self._subDict[k]] for k in self._subDict.keys()}))
     if self.strictMode:
       nodeNames = set([child.tag for child in node])
       if nodeNames != subNames:
