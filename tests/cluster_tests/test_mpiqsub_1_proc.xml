@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+      <name>cluster_tests.test_mpiqsub_1_proc</name>
+    <author>alfoa</author>
+    <created>2020-04-22</created>
+    <classesTested>MPISimulationMode</classesTested>
+    <description>
+      This tests running with mpi and a qsub and test that a single
+      processor can be used (issue 1023)
+    </description>
+    <revisions>
+        <revision date="2020-04-22" author="alfoa" >This test shows that issue #1023 is fixed.</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>FirstMQ1ProcRun</Sequence>
+    <batchSize>1</batchSize>
+    <NumMPI>2</NumMPI>
+    <expectedTime>0:10:00</expectedTime>
+    <JobName>test_mpiqsu</JobName>
+  </RunInfo>
+
+  <Files>
+    <Input name="simple_gp_test.i" type="">simple_gp_test.i</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyRAVEN" subType="RELAP7">
+      <executable>%FRAMEWORK_DIR%/../tests/cluster_tests/simple_gp.py </executable>
+    </Code>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="RAVENmc6">
+      <samplerInit>
+        <limit>6</limit>
+      </samplerInit>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="FirstMQ1ProcRun">
+      <Input class="Files" type="">simple_gp_test.i</Input>
+      <Model class="Models" type="Code">MyRAVEN</Model>
+      <Sampler class="Samplers" type="MonteCarlo">RAVENmc6</Sampler>
+      <Output class="DataObjects" type="HistorySet">stories</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="stories">
+      <Input>pipe_Area</Input>
+      <Output>pipe_Hw,pipe_Tw</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

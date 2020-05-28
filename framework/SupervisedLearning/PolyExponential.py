@@ -196,8 +196,8 @@ class PolyExponential(supervisedLearning):
         numbTerms = self.polyExpParams['expTerms']
         targets   = ["a_"+str(cnt+1) if cnt < numbTerms else "b_"+str((cnt-numbTerms)+1) for cnt in range(numbTerms*2)]
         self.model[target] = NDsplineRom(self.messageHandler,
-                                         **{'Features':','.join(self.features),
-                                            'Target':",".join(targets)})
+                                         **{'Features':self.features,
+                                            'Target':targets})
         self.model[target].__class__.__trainLocal__(self.model[target],featureVals,expTermCoeff)
     self.featureVals = featureVals
 

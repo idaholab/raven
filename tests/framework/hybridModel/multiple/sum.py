@@ -12,7 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def run(self, Input):
-  # self.leftTemperature (boundary condition - left) self.rightTemperature (boundary condition - right)
-  self.averageTemperature = (self.leftTemperature + self.rightTemperature)/2.0
-  self.k = 38.23/(129.2 + self.averageTemperature) + 0.6077E-12*self.averageTemperature
+def run(self, inputDict):
+  """
+    Method required by RAVEN to run this as an external model.
+    @ In, self, object, object to store members on
+    @ In, inputDict, dict, dictionary containing inputs from RAVEN
+    @ Out, None
+  """
+  self.x = inputDict['x']
+  self.y = inputDict['y']
+  self.z = self.x + self.y
