@@ -82,6 +82,14 @@ class HStoPSOperator(PostProcessorInterfaceBase):
     """
     paramInput = HStoPSOperator.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
 
     foundPivot = False
     for child in paramInput.subparts:

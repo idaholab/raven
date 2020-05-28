@@ -629,6 +629,24 @@ def assemblyInputFactory(*paramList, **paramDict):
       descr=r"""RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)""")
   return newClass
 
+def parseFromList(node, inputList):
+  """
+    Try all the ParameterInput classes in the inputList and parse the node
+    with the first that passes.
+    @ In, node, xml.etree.Element to parse
+    @ In, inputList, list of ParameterInput to try and parse node with
+    @ Out, paramInput, a ParameterInput instance or None if none found in the
+     list
+  """
+  paramInput = None
+  for inputClass in inputList:
+    #print(node.tag, inputClass.getName(), inputClass._checkCanRead is None or  inputClass._checkCanRead.check(node))
+    if inputClass._checkCanRead is None or inputClass._checkCanRead.check(node):
+      paramInput = inputClass()
+      paramInput.parseNode(node)
+      return paramInput
+  return paramInput
+
 def createXSD(outerElement):
   """
     Creates an XSD element.

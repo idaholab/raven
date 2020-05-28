@@ -71,6 +71,14 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     """
     paramInput = TypicalHistoryFromHistorySet.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
 
     self.name = paramInput.parameterValues['name']
     for child in paramInput.subparts:

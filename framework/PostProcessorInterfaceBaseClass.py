@@ -91,6 +91,7 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),Mess
         specifying input of cls.
     """
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False)
+    inputSpecification.setCheckClass(CheckInterfacePP("PostProcessorInterfaceBaseClass"))
     inputSpecification.addParam("subType", InputTypes.StringType)
     inputSpecification.addParam("name", InputTypes.StringType)
 

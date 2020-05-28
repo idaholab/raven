@@ -91,6 +91,14 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
 
     paramInput = riskMeasuresDiscrete.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    self._handleInput(paramInput)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
 
     self.variables = {}
     self.target    = {}
