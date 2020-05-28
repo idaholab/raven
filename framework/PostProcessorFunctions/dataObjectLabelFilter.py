@@ -63,16 +63,6 @@ class dataObjectLabelFilter(PostProcessorInterfaceBase):
     self.label        = None
     self.clusterIDs   = []
 
-  def readMoreXML(self,xmlNode):
-    """
-      Function that reads elements this post-processor will use
-      @ In, xmlNode, ElementTree, Xml element node
-      @ Out, None
-    """
-    paramInput = dataObjectLabelFilter.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parameter input.

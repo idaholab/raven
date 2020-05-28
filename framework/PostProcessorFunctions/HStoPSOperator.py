@@ -74,16 +74,6 @@ class HStoPSOperator(PostProcessorInterfaceBase):
     self.pivotParameter = 'time'
     self.settings       = {'operationType':None,'operationValue':None,'pivotStrategy':'nearest'}
 
-  def readMoreXML(self,xmlNode):
-    """
-      Function that reads elements this post-processor will use
-      @ In, xmlNode, ElementTree, Xml element node
-      @ Out, None
-    """
-    paramInput = HStoPSOperator.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parameter input.

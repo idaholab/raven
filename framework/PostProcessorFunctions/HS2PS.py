@@ -69,16 +69,6 @@ class HS2PS(PostProcessorInterfaceBase):
     self.features     = 'all'
 
 
-  def readMoreXML(self,xmlNode):
-    """
-      Function that reads elements this post-processor will use
-      @ In, xmlNode, ElementTree, Xml element node
-      @ Out, None
-    """
-    paramInput = HS2PS.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parameter input.

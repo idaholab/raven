@@ -75,16 +75,6 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     self.pivotParameter  = None
     self.interpolation   = None
 
-  def readMoreXML(self,xmlNode):
-    """
-      Function that reads elements this post-processor will use
-      @ In, xmlNode, ElementTree, Xml element node
-      @ Out, None
-    """
-    paramInput = HistorySetSampling.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parameter input.

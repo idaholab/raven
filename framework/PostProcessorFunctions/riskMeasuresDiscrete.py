@@ -34,7 +34,6 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     This class inherits form the base class PostProcessorInterfaceBase and it contains three methods:
       - initialize
       - run
-      - readMoreXML
   """
   _availableMeasures = set(['B','FV','RAW','RRW','R0'])
   @classmethod
@@ -81,17 +80,6 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     PostProcessorInterfaceBase.initialize(self)
     self.inputFormat  = 'PointSet|HistorySet'
     self.outputFormat = 'PointSet'
-
-  def readMoreXML(self,xmlNode):
-    """
-      Function that reads elements this post-processor will use
-      @ In, xmlNode, ElementTree, Xml element node
-      @ Out, None
-    """
-
-    paramInput = riskMeasuresDiscrete.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """

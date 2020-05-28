@@ -29,7 +29,6 @@ class testInterfacedPP(PostProcessorInterfaceBase):
       This class inherits form the base class PostProcessorInterfaceBase and it contains the three methods that need to be implemented:
       - initialize
       - run
-      - readMoreXML
   """
   @classmethod
   def getInputSpecification(cls):
@@ -75,16 +74,6 @@ class testInterfacedPP(PostProcessorInterfaceBase):
       for key in inputDict['metaKeys']:
         outputDict['data'][key] = inputDict['data'][key]
       return outputDict
-
-  def readMoreXML(self,xmlNode):
-    """
-      Function that reads elements this post-processor will use
-      @ In, xmlNode, ElementTree, Xml element node
-      @ Out, None
-    """
-    paramInput = testInterfacedPP.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """

@@ -92,16 +92,6 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
 
     self.classifiers = {} #for "mixed" mode
 
-  def readMoreXML(self,xmlNode):
-    """
-      Function that reads elements this post-processor will use
-      @ In, xmlNode, ElementTree, Xml element node
-      @ Out, None
-    """
-    paramInput = HistorySetSnapShot.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parameter input.
