@@ -11,7 +11,7 @@
       with ROMs. A control function "control" is required to select the right
       model to run based on the values of input variables leftTemperature and
       rightTemperatureDist.
-      If leftTemperature \in (860,1340) and rightTemperatureDist \in (740, 1460),
+      If leftTemperature in (860,1340) and rightTemperatureDist in (740, 1460),
       the ROM "svr" will be selected, else the model "thermalConductivityComputation"
       will be selected.
     </description>
