@@ -12,7 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def run(self, Input):
-  # self.leftTemperature (boundary condition - left) self.rightTemperature (boundary condition - right)
-  self.averageTemperature = (self.leftTemperature + self.rightTemperature)/2.0
-  self.k = 38.23/(129.2 + self.averageTemperature) + 0.6077E-12*self.averageTemperature
+def evaluate(self):
+  """
+    Method required by RAVEN to run this as an ControlFunction in LogicalModel.
+    @ In, self, object, object to store members on
+    @ Out, model, str, the name of external model that
+      will be executed by hybrid model
+  """
+  model = None
+  if self.x > 0 and self.y > 1:
+    model = 'sum'
+  elif self.x > 0 and self.y <= 1:
+    model = 'multiply'
+  else:
+    model = 'minus'
+
+  return model
