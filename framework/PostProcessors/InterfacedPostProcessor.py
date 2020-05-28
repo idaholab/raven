@@ -112,12 +112,8 @@ class InterfacedPostProcessor(PostProcessor):
     # paramInput.parseNode(xmlNode)
 
     interfaceClasses = [c.getInputSpecification() for c in InterfacedPostProcessor.PostProcessorInterfaces.interfaceClasses()]
-    #print(interfaceClasses,[c.getName() for c in interfaceClasses])
     paramInput = InputData.parseFromList(xmlNode, interfaceClasses)
 
-    #for child in xmlNode:
-    #  if child.tag == 'method':
-    #    self.methodToRun = child.text
     self.methodToRun = paramInput.getName()
     self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
     if not isinstance(self.postProcessor,PostProcessorInterfaceBase):
@@ -125,7 +121,6 @@ class InterfacedPostProcessor(PostProcessor):
                         ' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
 
     self.postProcessor.initialize()
-    #self.postProcessor.readMoreXML(xmlNode)
     self.postProcessor._handleInput(paramInput)
     if not set(self.returnFormat("input").split("|")) <= set(['HistorySet','PointSet']):
       self.raiseAnError(IOError,'InterfacedPostProcessor Post-Processor '+ self.name +

@@ -397,13 +397,6 @@ class ParameterInput(object):
       subs = self.subs
     # read in subnodes
     subNames = set()
-    #for sub in subs:
-    #  subName = sub.getName()
-    #  subNames.add(subName)
-    #  for subNode in node.findall(subName):
-    #    subInstance = sub()
-    #    subInstance.parseNode(subNode, errorList)
-    #    self.subparts.append(subInstance)
     for child in node:
       childName = child.tag
       subsSet = self._subDict.get(childName,set())
@@ -640,7 +633,6 @@ def parseFromList(node, inputList):
   """
   paramInput = None
   for inputClass in inputList:
-    #print(node.tag, inputClass.getName(), inputClass._checkCanRead is None or  inputClass._checkCanRead.check(node))
     if inputClass._checkCanRead is None or inputClass._checkCanRead.check(node):
       paramInput = inputClass()
       paramInput.parseNode(node)

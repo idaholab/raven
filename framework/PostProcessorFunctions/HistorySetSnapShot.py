@@ -155,15 +155,10 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
         self.raiseIOError(IOError,'When using "timeSlice" a "numberOfSamples" must be specified for synchronizing!')
       if self.extension is None:
         self.raiseAnError(IOError,'When using "timeSlice" an "extension" method must be specified for synchronizing!')
-      #if self.extension not in ['zeroed','extended']:
-      #  self.raiseAnError(IOError,'Unrecognized "extension" method:',self.extension)
       #perform sync
       PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
       self.HSsyncPP = PostProcessorInterfaces.returnPostProcessorInterface('HistorySetSync',self)
       self.HSsyncPP.initialize(self.numberOfSamples,self.pivotParameter,self.extension,syncMethod='grid')
-
-    #if self.type not in set(['min','max','average','value','timeSlice','mixed']):
-    #  self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor "' + str(self.name) + '" : type "%s" is not recognized' %self.type)
 
   def run(self,inputDic, pivotVal=None):
     """
