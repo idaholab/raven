@@ -145,9 +145,13 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     else:
       featVals = np.asarray(feat[0])
       targVals = np.asarray(targ[0])
-      assert(featVals.shape[0] == targVals.shape[0])
+      differentShape = False
+      if featVals.shape[0] != targVals.shape[0]:
+        self.raiseADebug("Features and Targets have different number of realizzation.")
+        differentShape = True
       if feat[1] is not None:
         dataWeight = np.asarray(feat[1])
+        dataWeight2 = np.asarray(targ[1])
         assert(featVals.shape[0] == dataWeight.shape[0])
       else:
         dataWeight = None
@@ -155,21 +159,30 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
       # can be biased or uncorrect. The correct way is to use the joint probability weight.
       # This needs to be improved in the future when RAVEN can handle the joint probability weight correctly.
       if self.canHandleDynamicData:
-        dynamicOutput = self.estimator.evaluate(featVals, targVals, dataWeight)
+        if differentShape:
+          dynamicOutput = []
+          # for now we do it one by one
+          for hist1 in range(featVals.shape[0]):
+            for hist2 in range(targVals.shape[0]):
+              dynOutput = self.estimator.evaluate(featVals[hist1, :], targVals[hist2, :], dataWeight[hist1]*dataWeight2[hist2])
+              dynamicOutput.append(dynOutput)
+          dynamicOutput = np.atleast_2d(dynamicOutput)
+        else:
+          dynamicOutput = self.estimator.evaluate(featVals, targVals, dataWeight)
       else:
-        for hist in range(featVals.shape[1]):
-          out = self.estimator.evaluate(featVals[:,hist], targVals[:,hist], dataWeight)
+        for ts in range(featVals.shape[1]):
+          out = self.estimator.evaluate(featVals[:,ts], targVals[:,ts], dataWeight)
           dynamicOutput.append(out)
-    if multiOutput == 'mean':
-      output = [np.average(dynamicOutput, weights = weights)]
-    elif multiOutput == 'max':
-      output = [np.amax(dynamicOutput)]
-    elif multiOutput == 'min':
-      output = [np.amin(dynamicOutput)]
-    elif multiOutput == 'raw_values':
-      output = dynamicOutput
-    else:
-      self.raiseAnError(IOError, "multiOutput: ", multiOutput, " is not acceptable! Please use 'mean', 'max', 'min' or 'full'")
+      if multiOutput == 'mean':
+        output = [np.average(dynamicOutput, weights = weights)]
+      elif multiOutput == 'average_time':
+        output = np.mean(np.atleast_2d(dynamicOutput) , axis=0)
+      elif multiOutput == 'max':
+        output = [np.amax(dynamicOutput)]
+      elif multiOutput == 'min':
+        output = [np.amin(dynamicOutput)]
+      elif multiOutput == 'raw_values':
+        output = dynamicOutput
     output = np.asarray(output)
     return output
 

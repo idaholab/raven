@@ -58,7 +58,7 @@ class Metric(PostProcessor):
     inputSpecification.addSub(targetsInput)
     multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=InputTypes.StringType)
     inputSpecification.addSub(multiOutputInput)
-    multiOutput = InputTypes.makeEnumType('MultiOutput', 'MultiOutputType', ['mean','max','min','raw_values'])
+    multiOutput = InputTypes.makeEnumType('MultiOutput', 'MultiOutputType', ['mean','max','min','raw_values', 'average_time'])
     multiOutputInput = InputData.parameterInputFactory("multiOutput", contentType=multiOutput)
     inputSpecification.addSub(multiOutputInput)
     weightInput = InputData.parameterInputFactory("weight", contentType=InputTypes.FloatListType)
@@ -172,7 +172,7 @@ class Metric(PostProcessor):
         hasPointSet = True
       elif inputType == 'HistorySet':
         hasHistorySet = True
-        if self.multiOutput == 'raw_values':
+        if self.multiOutput == 'raw_values' or self.multiOutput == 'average_time':
           self.dynamic = True
           if self.pivotParameter not in currentInput.getVars('indexes'):
             self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter,'has not been found in DataObject', currentInput.name)
