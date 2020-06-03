@@ -766,7 +766,9 @@ class Gamma(BoostDistribution):
   def __init__(self, low=0.0, alpha=0.0, beta=1.0):
     """
       Constructor
-      @ In, None
+      @ In, low, float, lower domain boundary
+      @ In, alpha, float, shape parameter
+      @ In, beta, float, 1/scale or the inverse scale parameter
       @ Out, None
     """
     BoostDistribution.__init__(self)

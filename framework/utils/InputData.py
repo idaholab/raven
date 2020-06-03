@@ -38,14 +38,14 @@ class Quantity:
 
 class CheckClass(object):
   """
-  This checks to figure out if a node is a ParameterInput type
-  If the check passes, then it is.
+    This checks to figure out if a node is a ParameterInput type
+    If the check passes, then it is.
   """
 
   def check(self, node):
     """
       Checks the node to see if it matches the checkDict
-      @ In, node, xml node to check
+      @ In, node, xml.etree.ElementTree.Element, xml node to check
       @ Out, bool, true if matches
     """
     assert False, "check function not implemented"
@@ -54,7 +54,7 @@ class CheckClass(object):
   def failCheckReason(self, node):
     """
       returns a string about why the check failed
-      @ In, node, xml node to check
+      @ In, node, xml.etree.ElementTree.Element, xml node to check
       @ Out, string, message for user about why check failed.
     """
     return "Check failed"
