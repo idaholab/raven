@@ -945,6 +945,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
       rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
       return 1, rlz
+    
+    for dist in self.distDict:
+      if dist.getMemory is True:
+        dist.reset()
 
   def generateInputBatch(self,myInput,model,batchSize,projector=None):
     """

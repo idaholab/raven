@@ -123,6 +123,7 @@ class Distribution(BaseType):
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
     self.disttype             = None # distribution type (continuous or discrete)
+    self.memory               = False
     self.printTag             = 'DISTRIBUTIONS'
     self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
     self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
@@ -361,6 +362,22 @@ class Distribution(BaseType):
       @ Out, disttype, string,  ('Continuous' or 'Discrete')
     """
     return self.disttype
+  
+  def getMemory(self):
+    """
+      Function return the value of the memory variable
+      @ In, None
+      @ Out, memory, boolean, value which indicates if distribution has memory
+    """
+    return self.memory
+
+  def reset(self):
+    """
+      Function that reset the distribution
+      @ In, None
+      @ Out, None
+    """
+    pass
 
 class BoostDistribution(Distribution):
   """
@@ -1571,6 +1588,7 @@ class Geometric(BoostDistribution):
 
 DistributionsCollection.addSub(Geometric.getInputSpecification())
 
+  
 class Categorical(Distribution):
   """
     Class for the categorical distribution also called " generalized Bernoulli distribution"
@@ -1656,7 +1674,7 @@ class Categorical(Distribution):
       totPsum += self.mapping[element]
     if not mathUtils.compareFloats(totPsum,1.0):
       self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
-                         repr(totPsum), ', not 1.0!', 'Please renomlize it to 1!')
+                         repr(totPsum), ', not 1.0!', 'Please re-normalize it to 1!')
     self.lowerBound = min(self.mapping.keys())
     self.upperBound = max(self.mapping.keys())
 
@@ -1711,6 +1729,138 @@ class Categorical(Distribution):
     return rvsValue
 
 DistributionsCollection.addSub(Categorical.getInputSpecification())
+
+class Permutation(Distribution):
+  """
+    Class for the permutation discrete distribution 
+  """  
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
+    inputSpecification.addSub(InputData.parameterInputFactory("minValue"   , contentType=InputTypes.IntType))
+    inputSpecification.addSub(InputData.parameterInputFactory("maxValue"   , contentType=InputTypes.IntType))
+    inputSpecification.addSub(InputData.parameterInputFactory("replacement", contentType=InputTypes.BoolType))
+
+    return inputSpecification
+
+  def __init__(self):
+    """
+      Function that initializes the categorical distribution
+      @ In, None
+      @ Out, none
+    """
+    Distribution.__init__(self)
+    self.type           = 'UniformDiscrete'
+    self.dimensionality = 1
+    self.disttype       = 'Discrete'
+    self.memory         = True
+    
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the distribution parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    BoostDistribution._handleInput(self, paramInput)
+    minValue = paramInput.findFirst('minValue')
+    if minValue != None:
+      self.minValue = minValue.value
+    else: 
+      self.raiseAnError(IOError,'minValue value needed for Permutation distribution')
+
+    maxValue = paramInput.findFirst('maxValue')
+    if maxValue != None:
+      self.maxValue = maxValue.value
+    else: 
+      self.raiseAnError(IOError,'maxValue value needed for Permutation distribution')
+          
+    replacement = paramInput.findFirst('replacement')
+    if replacement != None:
+      self.replacement = replacement.value
+    else: 
+      self.raiseAnError(IOError,'p value needed for Geometric distribution')
+    self.initializeDistribution()
+    
+  def getInitParams(self):
+    """
+      Function to get the initial values of the input parameters that belong to
+      this class
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = Distribution.getInitParams(self)
+    paramDict['minValue'] = self.minValue
+    paramDict['maxValue'] = self.maxValue
+    paramDict['replacement'] = self.replacement
+    return paramDict
+  
+  def initializeDistribution(self):
+    """
+      Function that initializes the distribution 
+      @ In, None
+      @ Out, None
+    """
+    if self.maxValue < self.minValue:
+      self.raiseAnError(IOError,'Permutation distribution: minValue is greater than maxValue')
+        
+    self.xArray   = np.arange(self.minValue,self.maxValue+1)
+    self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
+    self.categoricalDist = Categorical()
+    self.categoricalDist.initializeDistributionFromData(self.xArray,self.pdfArray)
+    
+    self.pot = np.random(self.xArray)
+
+  def pdf(self,x):
+    """
+      Function that calculates the pdf value of x
+      @ In, x, float/string, value to get the pdf at
+      @ Out, pdfValue, float, requested pdf
+    """
+    return self.categoricalDist.pdf(x)
+
+  def cdf(self,x):
+    """
+      Function to get the cdf value of x
+      @ In, x, float/string, value to get the cdf at
+      @ Out, cumulative, float, requested cdf
+    """
+    return self.categoricalDist.cdf(x)
+
+  def ppf(self,x):
+    """
+      Function that calculates the inverse of the cdf given 0 =< x =< 1
+      @ In, x, float, value to get the ppf at
+      @ Out, element[0], float/string, requested inverse cdf
+    """
+    return self.categoricalDist.ppf(x)
+
+  def rvs(self):
+    """
+      Return a random state of the categorical distribution
+      @ In, None
+      @ Out, rvsValue, float/string, the random state
+    """
+    if self.replacement == True:
+      return self.categoricalDist.rvs()
+    else:
+      if self.pot.size == 0:
+        # re-initialize the distribution
+        self.reset()
+      rvsValue = self.pot[-1]
+      self.pot = np.resize(self.pot, self.pot.size - 1)
+    return rvsValue
+  
+  def reset(self):
+    self.pot = np.random(self.xArray)
+
+DistributionsCollection.addSub(Permutation.getInputSpecification())
 
 class MarkovCategorical(Categorical):
   """
