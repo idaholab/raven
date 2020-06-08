@@ -272,7 +272,7 @@ class ParameterInput(object):
     if self.strictMode:
       for parameter in node.attrib:
         if not parameter in self.parameters:
-          handleError(parameter + " not in attributes and strict mode on in "+node.tag)
+          handleError(parameter + " not in attributes and strict mode in "+node.tag)
 
     # handle ordering of subnodes
     if self.subOrder is not None:

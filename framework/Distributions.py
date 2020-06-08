@@ -119,11 +119,11 @@ class Distribution(BaseType):
     self.upperBoundUsed       = False  # True if the distribution is right truncated
     self.lowerBoundUsed       = False  # True if the distribution is left truncated
     self.hasInfiniteBound     = False  # True if the untruncated distribution has bounds of +- system max
-    self.upperBound           = None  # Right bound
-    self.lowerBound           = None  # Left bound
+    self.upperBound           = None   # Right bound
+    self.lowerBound           = None   # Left bound
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
-    self.dimensionality       = None # Dimensionality of the distribution (1D or ND)
-    self.disttype             = None # distribution type (continuous or discrete)
+    self.dimensionality       = None   # Dimensionality of the distribution (1D or ND)
+    self.disttype             = None   # Distribution type (continuous or discrete)
     self.memory               = False
     self.printTag             = 'DISTRIBUTIONS'
     self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
@@ -131,7 +131,7 @@ class Distribution(BaseType):
     self.compatibleQuadrature = [] #list of compatible quadratures
     self.convertToDistrDict   = {} #dict of methods keyed on quadrature types to convert points from quadrature measure and domain to distribution measure and domain
     self.convertToQuadDict    = {} #dict of methods keyed on quadrature types to convert points from distribution measure and domain to quadrature measure and domain
-    self.measureNormDict     = {} #dict of methods keyed on quadrature types to provide scalar adjustment for measure transformation (from quad to distr)
+    self.measureNormDict      = {} #dict of methods keyed on quadrature types to provide scalar adjustment for measure transformation (from quad to distr)
     self.convertToDistrDict['CDFLegendre'] = self.CDFconvertToDistr
     self.convertToQuadDict ['CDFLegendre'] = self.CDFconvertToQuad
     self.measureNormDict   ['CDFLegendre'] = self.CDFMeasureNorm
@@ -1648,6 +1648,16 @@ class Categorical(Distribution):
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
     self.initializeDistribution()
+    
+  def initializeFromDict(self, inputDict):
+    """
+      Function that initializes the distribution provided a dictionary
+      @ In, inputDict, dict, dictionary containing the np.arrays for state and outcome
+      @ Out, None
+    """
+    for idx, val in enumerate(inputDict['state']): 
+      self.mapping[val] = inputDict['outcome'][idx]
+      self.values.add(val) 
 
   def getInitParams(self):
     """
@@ -1661,7 +1671,17 @@ class Categorical(Distribution):
     paramDict['mapping'] = self.mapping
     paramDict['values'] = self.values
     return paramDict
-
+  
+  def initializeFromDict(self, inputDict):
+    """
+      Function that initializes the distribution provided a dictionary
+      @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
+      @ Out, None
+    """
+    for idx, val in enumerate(inputDict['xAxis']): 
+      self.mapping[val] = inputDict['pAxis'][idx]
+      self.values.add(val)   
+    
   def initializeDistribution(self):
     """
       Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
@@ -1746,7 +1766,12 @@ class UniformDiscrete(Distribution):
     BaseInputType = InputTypes.makeEnumType("base", "baseType", ["orderedWithReplacement","orderedWithoutReplacement"])
     
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
+    
+    inputSpecification.addSub(InputData.parameterInputFactory("lowerBound", contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory("upperBound", contentType=InputTypes.FloatType))
+    
     inputSpecification.addSub(InputData.parameterInputFactory("strategy", BaseInputType))
+    inputSpecification.addParam("name", InputTypes.StringType, True)
     return inputSpecification
 
   def __init__(self):
@@ -1767,7 +1792,7 @@ class UniformDiscrete(Distribution):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    BoostDistribution._handleInput(self, paramInput)
+    Distribution._handleInput(self, paramInput)
     if self.lowerBound is None:
       self.raiseAnError(IOError,'lowerBound value needed for UniformDiscrete distribution')
 
@@ -1801,10 +1826,13 @@ class UniformDiscrete(Distribution):
     """ 
     self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
     self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
+    paramsDict={}
+    paramsDict['xAxis'] = self.xArray
+    paramsDict['pAxis'] = self.pdfArray
     self.categoricalDist = Categorical()
-    self.categoricalDist.initializeFromData(self.xArray,self.pdfArray)
-    
-    self.pot = np.random(self.xArray)
+    self.categoricalDist.initializeFromDict(paramsDict)
+    print(type(self.xArray))
+    self.pot = np.random.permutation(self.xArray)
 
   def pdf(self,x):
     """
@@ -1847,7 +1875,7 @@ class UniformDiscrete(Distribution):
     return rvsValue
   
   def reset(self):
-    self.pot = np.random(self.xArray)
+    self.pot = np.random.permutation(self.xArray)
 
 DistributionsCollection.addSub(UniformDiscrete.getInputSpecification())
 
