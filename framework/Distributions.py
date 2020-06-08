@@ -1859,7 +1859,7 @@ class UniformDiscrete(Distribution):
 
   def rvs(self):
     """
-      Return a random state of the categorical distribution
+      Return a random state of the distribution
       @ In, None
       @ Out, rvsValue, float, the random state
     """
@@ -1874,6 +1874,11 @@ class UniformDiscrete(Distribution):
     return rvsValue
 
   def reset(self):
+    """
+      Reset the distribution
+      @ In, None
+      @ Out, None
+    """
     self.pot = np.random.permutation(self.xArray)
 
 DistributionsCollection.addSub(UniformDiscrete.getInputSpecification())
