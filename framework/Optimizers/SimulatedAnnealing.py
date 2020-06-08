@@ -419,6 +419,7 @@ class SimulatedAnnealing(RavenSampled):
       @ In, info, dict, meta information about the opt point
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
+      @ Out, rejectReason, int, reject reason of opt point
     """
     # Check acceptability
     # NOTE: if self._optPointHistory[traj]: -> faster to use "try" for all but the first time
@@ -446,7 +447,7 @@ class SimulatedAnnealing(RavenSampled):
       old = None
     self._acceptHistory[traj].append(acceptable)
     self.raiseADebug(' ... {a}!'.format(a=acceptable))
-    return acceptable, old
+    return acceptable, old, None
 
   def _acceptabilityCriterion(self,currentObjective,newObjective):
     """
