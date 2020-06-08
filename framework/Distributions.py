@@ -1831,7 +1831,6 @@ class UniformDiscrete(Distribution):
     paramsDict['pAxis'] = self.pdfArray
     self.categoricalDist = Categorical()
     self.categoricalDist.initializeFromDict(paramsDict)
-    print(type(self.xArray))
     self.pot = np.random.permutation(self.xArray)
 
   def pdf(self,x):
