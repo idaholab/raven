@@ -584,20 +584,19 @@ class GradientDescent(RavenSampled):
 
       self.raiseADebug(' ... change: {d: 1.3e} new: {n: 1.6e} old: {o: 1.6e}'
                       .format(d=optVal-oldVal, o=oldVal, n=optVal))
+      rejectReason = None
       ## some stepManipulators may need to override the acceptance criteria, e.g. conjugate gradient
       if self._stepInstance.needsAccessToAcceptance:
         acceptable = self._stepInstance.modifyAcceptance(old, oldVal, opt, optVal)
       # if this is an opt point rerun, accept it without checking.
       elif self._acceptRerun[traj]:
         acceptable = 'rerun'
-        rejectReason = None
         self._acceptRerun[traj] = False
         self._stepRecommendations[traj] = 'shrink' # FIXME how much do we really want this?
       # check if same point
       elif all(opt[var] == old[var] for var in self.toBeSampled):
         # this is the classic "same point" trap; we accept the same point, and check convergence later
         acceptable = 'accepted'
-        rejectReason = None
       else:
         if self._impConstraintFunctions:
           accept = self._handleImplicitConstraints(opt)
