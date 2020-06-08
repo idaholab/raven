@@ -1723,7 +1723,7 @@ class Categorical(Distribution):
     """
       Return a random state of the categorical distribution
       @ In, None
-      @ Out, rvsValue, float/string, the random state
+      @ Out, rvsValue, float, the random state
     """
     rvsValue = self.ppf(random())
     return rvsValue
@@ -1746,7 +1746,6 @@ class Permutation(Distribution):
     
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
     inputSpecification.addSub(InputData.parameterInputFactory("strategy", BaseInputType))
-    #TODO create enumerator!!!
     return inputSpecification
 
   def __init__(self):
@@ -1802,7 +1801,7 @@ class Permutation(Distribution):
     self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
     self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
     self.categoricalDist = Categorical()
-    self.categoricalDist.initializeDistributionFromData(self.xArray,self.pdfArray)
+    self.categoricalDist.initializeFromData(self.xArray,self.pdfArray)
     
     self.pot = np.random(self.xArray)
 
