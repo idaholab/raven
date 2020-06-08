@@ -95,6 +95,7 @@ class RavenSampled(Optimizer):
     ok.update({'trajID': 'integer identifier for different optimization starting locations and paths',
                'iteration': 'integer identifying which iteration (or step, or generation) a trajectory is on',
                'accepted': 'string acceptance status of the potential optimal point (algorithm dependent)',
+               'rejectReason':'index of reject reason, 1 means rejected for no improvement, 2 means rejected by implicit constraints',
                '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.',
               })
     return ok
@@ -314,7 +315,7 @@ class RavenSampled(Optimizer):
       self.raiseAMessage(finalTemplate.format(name=var, value=val))
     self.raiseAMessage('*'*80)
     # write final best solution to soln export
-    self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final')
+    self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', None)
 
   ###################
   # Utility Methods #
@@ -460,7 +461,7 @@ class RavenSampled(Optimizer):
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
-    acceptable, old = self._checkAcceptability(traj, rlz, optVal, info)
+    acceptable, old, rejectReason = self._checkAcceptability(traj, rlz, optVal, info)
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     # we only want to update persistance if we've accepted a new point.
     # We don't want rejected points to count against our convergence.
@@ -469,7 +470,7 @@ class RavenSampled(Optimizer):
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':
-      self._updateSolutionExport(traj, rlz, acceptable)
+      self._updateSolutionExport(traj, rlz, acceptable, rejectReason)
     self.raiseADebug('*'*80)
     # decide what to do next
     if acceptable in ['accepted', 'first']:
@@ -492,6 +493,7 @@ class RavenSampled(Optimizer):
       @ In, optVal, float, new optimization value
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
+      @ Out, rejectReason, int, reject reason of opt point
     """
 
   @abc.abstractmethod
@@ -522,12 +524,13 @@ class RavenSampled(Optimizer):
       @ In, old, dict, previous optimal point (to resubmit)
     """
 
-  def _updateSolutionExport(self, traj, rlz, acceptable):
+  def _updateSolutionExport(self, traj, rlz, acceptable, rejectReason):
     """
       Stores information to the solution export.
       @ In, traj, int, trajectory which should be written
       @ In, rlz, dict, collected point
       @ In, acceptable, bool, acceptability of opt point
+      @ In, rejectReason, int, reject reason of opt point
       @ Out, None
     """
     # make a holder for the realization that will go to the solutionExport
@@ -536,6 +539,7 @@ class RavenSampled(Optimizer):
     toExport.update({'iteration': self.getIteration(traj),
                      'trajID': traj,
                      'accepted': acceptable,
+                     'rejectReason': rejectReason
                     })
     # optimal point input and output spaces
     objValue = rlz[self._objectiveVar]
