@@ -15,4 +15,4 @@ import math
 import numpy
 
 def run(self, Input):
-  self.y = (self.x3 + self.x4 + self.x5) / 6.
+  self.y = (self.x3 + self.x4 + self.x5) / 3.

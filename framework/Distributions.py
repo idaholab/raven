@@ -363,7 +363,7 @@ class Distribution(BaseType):
       @ Out, disttype, string,  ('Continuous' or 'Discrete')
     """
     return self.disttype
-  
+
   def getMemory(self):
     """
       Function return the value of the memory variable
@@ -1589,7 +1589,7 @@ class Geometric(BoostDistribution):
 
 DistributionsCollection.addSub(Geometric.getInputSpecification())
 
-  
+
 class Categorical(Distribution):
   """
     Class for the categorical distribution also called " generalized Bernoulli distribution"
@@ -1648,16 +1648,16 @@ class Categorical(Distribution):
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
     self.initializeDistribution()
-    
+
   def initializeFromDict(self, inputDict):
     """
       Function that initializes the distribution provided a dictionary
       @ In, inputDict, dict, dictionary containing the np.arrays for state and outcome
       @ Out, None
     """
-    for idx, val in enumerate(inputDict['state']): 
+    for idx, val in enumerate(inputDict['state']):
       self.mapping[val] = inputDict['outcome'][idx]
-      self.values.add(val) 
+      self.values.add(val)
 
   def getInitParams(self):
     """
@@ -1671,17 +1671,17 @@ class Categorical(Distribution):
     paramDict['mapping'] = self.mapping
     paramDict['values'] = self.values
     return paramDict
-  
+
   def initializeFromDict(self, inputDict):
     """
       Function that initializes the distribution provided a dictionary
       @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
       @ Out, None
     """
-    for idx, val in enumerate(inputDict['xAxis']): 
+    for idx, val in enumerate(inputDict['xAxis']):
       self.mapping[val] = inputDict['pAxis'][idx]
-      self.values.add(val)   
-    
+      self.values.add(val)
+
   def initializeDistribution(self):
     """
       Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
@@ -1753,8 +1753,8 @@ DistributionsCollection.addSub(Categorical.getInputSpecification())
 
 class UniformDiscrete(Distribution):
   """
-    Class for the uniform discrete distribution 
-  """  
+    Class for the uniform discrete distribution
+  """
   @classmethod
   def getInputSpecification(cls):
     """
@@ -1764,12 +1764,12 @@ class UniformDiscrete(Distribution):
         specifying input of cls.
     """
     BaseInputType = InputTypes.makeEnumType("base", "baseType", ["orderedWithReplacement","orderedWithoutReplacement"])
-    
+
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
-    
+
     inputSpecification.addSub(InputData.parameterInputFactory("lowerBound", contentType=InputTypes.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("upperBound", contentType=InputTypes.FloatType))
-    
+
     inputSpecification.addSub(InputData.parameterInputFactory("strategy", BaseInputType))
     inputSpecification.addParam("name", InputTypes.StringType, True)
     return inputSpecification
@@ -1785,7 +1785,7 @@ class UniformDiscrete(Distribution):
     self.dimensionality = 1
     self.disttype       = 'Discrete'
     self.memory         = True
-    
+
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
@@ -1798,14 +1798,14 @@ class UniformDiscrete(Distribution):
 
     if self.upperBound is None:
       self.raiseAnError(IOError,'upperBound value needed for UniformDiscrete distribution')
-          
+
     strategy = paramInput.findFirst('strategy')
     if strategy != None:
       self.strategy = strategy.value
-    else: 
+    else:
       self.raiseAnError(IOError,'strategy specification needed for UniformDiscrete distribution')
     self.initializeDistribution()
-    
+
   def getInitParams(self):
     """
       Function to get the initial values of the input parameters that belong to
@@ -1817,13 +1817,13 @@ class UniformDiscrete(Distribution):
     paramDict = Distribution.getInitParams(self)
     paramDict['strategy'] = self.strategy
     return paramDict
-  
+
   def initializeDistribution(self):
     """
-      Function that initializes the distribution 
+      Function that initializes the distribution
       @ In, None
       @ Out, None
-    """ 
+    """
     self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
     self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
     paramsDict={}
@@ -1873,7 +1873,7 @@ class UniformDiscrete(Distribution):
       rvsValue = self.pot[-1]
       self.pot = np.resize(self.pot, self.pot.size - 1)
     return rvsValue
-  
+
   def reset(self):
     self.pot = np.random.permutation(self.xArray)
 
