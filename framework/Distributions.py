@@ -1742,11 +1742,11 @@ class Permutation(Distribution):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
+    BaseInputType = InputTypes.makeEnumType("base", "baseType", ["orderedWithReplacement","orderedWithoutReplacement"])
+    
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
-    inputSpecification.addSub(InputData.parameterInputFactory("minValue"   , contentType=InputTypes.IntType))
-    inputSpecification.addSub(InputData.parameterInputFactory("maxValue"   , contentType=InputTypes.IntType))
-    inputSpecification.addSub(InputData.parameterInputFactory("replacement", contentType=InputTypes.BoolType))
-
+    inputSpecification.addSub(InputData.parameterInputFactory("strategy", BaseInputType))
+    #TODO create enumerator!!!
     return inputSpecification
 
   def __init__(self):
@@ -1768,23 +1768,17 @@ class Permutation(Distribution):
       @ Out, None
     """
     BoostDistribution._handleInput(self, paramInput)
-    minValue = paramInput.findFirst('minValue')
-    if minValue != None:
-      self.minValue = minValue.value
-    else: 
-      self.raiseAnError(IOError,'minValue value needed for Permutation distribution')
+    if self.lowerBound is None:
+      self.raiseAnError(IOError,'lowerBound value needed for Permutation distribution')
 
-    maxValue = paramInput.findFirst('maxValue')
-    if maxValue != None:
-      self.maxValue = maxValue.value
-    else: 
-      self.raiseAnError(IOError,'maxValue value needed for Permutation distribution')
+    if self.upperBound is None:
+      self.raiseAnError(IOError,'upperBound value needed for Permutation distribution')
           
-    replacement = paramInput.findFirst('replacement')
-    if replacement != None:
-      self.replacement = replacement.value
+    strategy = paramInput.findFirst('strategy')
+    if strategy != None:
+      self.strategy = strategy.value
     else: 
-      self.raiseAnError(IOError,'p value needed for Geometric distribution')
+      self.raiseAnError(IOError,'strategy specification needed for Permutation distribution')
     self.initializeDistribution()
     
   def getInitParams(self):
@@ -1796,9 +1790,7 @@ class Permutation(Distribution):
         and each parameter's initial value as the dictionary values
     """
     paramDict = Distribution.getInitParams(self)
-    paramDict['minValue'] = self.minValue
-    paramDict['maxValue'] = self.maxValue
-    paramDict['replacement'] = self.replacement
+    paramDict['strategy'] = self.strategy
     return paramDict
   
   def initializeDistribution(self):
@@ -1806,11 +1798,8 @@ class Permutation(Distribution):
       Function that initializes the distribution 
       @ In, None
       @ Out, None
-    """
-    if self.maxValue < self.minValue:
-      self.raiseAnError(IOError,'Permutation distribution: minValue is greater than maxValue')
-        
-    self.xArray   = np.arange(self.minValue,self.maxValue+1)
+    """ 
+    self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
     self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
     self.categoricalDist = Categorical()
     self.categoricalDist.initializeDistributionFromData(self.xArray,self.pdfArray)
@@ -1845,9 +1834,9 @@ class Permutation(Distribution):
     """
       Return a random state of the categorical distribution
       @ In, None
-      @ Out, rvsValue, float/string, the random state
+      @ Out, rvsValue, float, the random state
     """
-    if self.replacement == True:
+    if self.strategy == 'orderedWithReplacement':
       return self.categoricalDist.rvs()
     else:
       if self.pot.size == 0:
