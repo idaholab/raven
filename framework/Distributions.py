@@ -78,6 +78,7 @@ _FrameworkToCrowDistNames = { 'Uniform':'UniformDistribution',
                               'Laplace' : 'LaplaceDistribution',
                               'Geometric' : 'GeometricDistribution',
                               'LogUniform' : 'LogUniformDistribution',
+                              'UniformDiscrete' : 'UniformDiscreteDistribution'
 }
 
 class DistributionsCollection(InputData.ParameterInput):
@@ -1730,9 +1731,9 @@ class Categorical(Distribution):
 
 DistributionsCollection.addSub(Categorical.getInputSpecification())
 
-class Permutation(Distribution):
+class UniformDiscrete(Distribution):
   """
-    Class for the permutation discrete distribution 
+    Class for the uniform discrete distribution 
   """  
   @classmethod
   def getInputSpecification(cls):
@@ -1768,16 +1769,16 @@ class Permutation(Distribution):
     """
     BoostDistribution._handleInput(self, paramInput)
     if self.lowerBound is None:
-      self.raiseAnError(IOError,'lowerBound value needed for Permutation distribution')
+      self.raiseAnError(IOError,'lowerBound value needed for UniformDiscrete distribution')
 
     if self.upperBound is None:
-      self.raiseAnError(IOError,'upperBound value needed for Permutation distribution')
+      self.raiseAnError(IOError,'upperBound value needed for UniformDiscrete distribution')
           
     strategy = paramInput.findFirst('strategy')
     if strategy != None:
       self.strategy = strategy.value
     else: 
-      self.raiseAnError(IOError,'strategy specification needed for Permutation distribution')
+      self.raiseAnError(IOError,'strategy specification needed for UniformDiscrete distribution')
     self.initializeDistribution()
     
   def getInitParams(self):
@@ -1848,7 +1849,7 @@ class Permutation(Distribution):
   def reset(self):
     self.pot = np.random(self.xArray)
 
-DistributionsCollection.addSub(Permutation.getInputSpecification())
+DistributionsCollection.addSub(UniformDiscrete.getInputSpecification())
 
 class MarkovCategorical(Categorical):
   """
@@ -3778,6 +3779,7 @@ __interFaceDict['MultivariateNormal'] = MultivariateNormal
 __interFaceDict['Laplace'           ] = Laplace
 __interFaceDict['Geometric'         ] = Geometric
 __interFaceDict['LogUniform'        ] = LogUniform
+__interFaceDict['UniformDiscrete'   ] = UniformDiscrete
 __knownTypes                          = __interFaceDict.keys()
 
 def knownTypes():
