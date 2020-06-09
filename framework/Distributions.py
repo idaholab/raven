@@ -763,16 +763,18 @@ class Gamma(BoostDistribution):
 
     return inputSpecification
 
-  def __init__(self):
+  def __init__(self, low=0.0, alpha=0.0, beta=1.0):
     """
       Constructor
-      @ In, None
+      @ In, low, float, lower domain boundary
+      @ In, alpha, float, shape parameter
+      @ In, beta, float, 1/scale or the inverse scale parameter
       @ Out, None
     """
     BoostDistribution.__init__(self)
-    self.low = 0.0
-    self.alpha = 0.0
-    self.beta = 1.0
+    self.low = low
+    self.alpha = alpha
+    self.beta = beta
     self.type = 'Gamma'
     self.disttype = 'Continuous'
     self.hasInfiniteBound = True
