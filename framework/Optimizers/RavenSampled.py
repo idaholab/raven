@@ -95,7 +95,7 @@ class RavenSampled(Optimizer):
     ok.update({'trajID': 'integer identifier for different optimization starting locations and paths',
                'iteration': 'integer identifying which iteration (or step, or generation) a trajectory is on',
                'accepted': 'string acceptance status of the potential optimal point (algorithm dependent)',
-               'rejectReason':'index of reject reason, 1 means rejected for no improvement, 2 means rejected by implicit constraints',
+               'rejectReason':'discription of reject reason, \'noImprovement\' means rejected the new optimization point for no improvement from last point, \'implicitConstraintsViolation\' means rejected by implicit constraints violation, return None if the point is accepted',
                '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.',
               })
     return ok
@@ -493,7 +493,7 @@ class RavenSampled(Optimizer):
       @ In, optVal, float, new optimization value
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
-      @ Out, rejectReason, int, reject reason of opt point
+      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
 
   @abc.abstractmethod
@@ -530,7 +530,7 @@ class RavenSampled(Optimizer):
       @ In, traj, int, trajectory which should be written
       @ In, rlz, dict, collected point
       @ In, acceptable, bool, acceptability of opt point
-      @ In, rejectReason, int, reject reason of opt point
+      @ In, rejectReason, str, reject reason of opt point, or return None if accepted
       @ Out, None
     """
     # make a holder for the realization that will go to the solutionExport

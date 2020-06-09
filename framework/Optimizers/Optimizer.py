@@ -342,7 +342,7 @@ class Optimizer(AdaptiveSampler):
       @ In, traj, int, trajectory which should be written
       @ In, rlz, dict, collected point
       @ In, acceptable, bool, acceptability of opt point
-      @ In, rejectReason, int, reject reason of opt point
+      @ In, rejectReason, str, reject reason of opt point, or return None if accepted
       @ Out, None
     """
 

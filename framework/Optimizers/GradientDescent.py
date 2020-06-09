@@ -564,7 +564,7 @@ class GradientDescent(RavenSampled):
       @ In, info, dict, identifying information about the opt point
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
-      @ Out, rejectReason, int, reject reason of opt point
+      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
     # Check acceptability
     if self._optPointHistory[traj]:
@@ -604,7 +604,7 @@ class GradientDescent(RavenSampled):
             acceptable, rejectReason = self._checkForImprovement(optVal, oldVal)
           else:
             acceptable = 'rejected'
-            rejectReason = 2
+            rejectReason = 'implicitConstraintsViolation'
         else:
           acceptable, rejectReason = self._checkForImprovement(optVal, oldVal)
     else: # no history
@@ -627,14 +627,14 @@ class GradientDescent(RavenSampled):
       @ In, new, float, new optimization value
       @ In, old, float, previous optimization value
       @ Out, improved, bool, True if "sufficiently" improved or False if not.
-      @ Out, rejectReason, int, reject reason of opt point
+      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
     # TODO could this be a base RavenSampled class?
     improved = self._acceptInstance.checkImprovement(new, old)
     if improved:
       return 'accepted', None
     else:
-      return 'rejected', 1
+      return 'rejected', 'noImprovement'
 
   def _updateConvergence(self, traj, new, old, acceptable):
     """
