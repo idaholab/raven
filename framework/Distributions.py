@@ -41,6 +41,8 @@ import math as math
 from BaseClasses import BaseType
 from utils import utils
 from utils.randomUtils import random
+from utils import randomUtils
+#from utils.randomUtils import randomPermutation
 distribution1D = utils.findCrowModule('distribution1D')
 from utils import mathUtils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
@@ -1831,7 +1833,8 @@ class UniformDiscrete(Distribution):
     paramsDict['pAxis'] = self.pdfArray
     self.categoricalDist = Categorical()
     self.categoricalDist.initializeFromDict(paramsDict)
-    self.pot = np.random.permutation(self.xArray)
+    initialPerm = randomUtils.randomPermutation(self.xArray.tolist(),self)
+    self.pot = np.asarray(initialPerm)
 
   def pdf(self,x):
     """
@@ -1879,7 +1882,8 @@ class UniformDiscrete(Distribution):
       @ In, None
       @ Out, None
     """
-    self.pot = np.random.permutation(self.xArray)
+    newPerm = randomUtils.randomPermutation(self.xArray.tolist(),self)
+    self.pot = np.asarray(newPerm)
 
 DistributionsCollection.addSub(UniformDiscrete.getInputSpecification())
 
