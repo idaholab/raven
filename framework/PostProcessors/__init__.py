@@ -51,6 +51,7 @@ from .ComparisonStatisticsModule import ComparisonStatistics
 from .RealizationAverager import RealizationAverager
 from .ParetoFrontierPostProcessor import ParetoFrontier
 from .MCSimporter import MCSImporter
+from .FeatureSelection import FeatureSelection
 # from .RavenOutput import RavenOutput # deprecated for now
 
 additionalModules = []
@@ -90,5 +91,6 @@ __all__ = ['PostProcessor',
            'SampleSelector',
            'ETImporter',
            'RealizationAverager',
-           'ParetoFrontier'] + additionalModules
+           'ParetoFrontier',
+           'FeatureSelection'] + additionalModules
 #           'RavenOutput', # deprecated for now
