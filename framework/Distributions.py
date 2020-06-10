@@ -381,7 +381,7 @@ class Distribution(BaseType):
       @ Out, None
     """
     pass
-  
+
   def initializeFromDict(self, inputDict):
     """
       Function which initializes the distribution given a the information contained in inputDict
@@ -1776,25 +1776,25 @@ class UniformDiscrete(Distribution):
         specifying input of cls.
     """
     BaseInputType = InputTypes.makeEnumType("base", "baseType", ["withReplacement","withoutReplacement"])
-  
+
     specs = super(UniformDiscrete, cls).getInputSpecification()
-    specs.description = r"""The UniformDiscrete distribution is a discrete distribution which describes a random variable 
-                            that can have $N$ values having equal probability value. This distribution allows the user to 
-                            choose two kinds of sampling strategies: with or without replacement. 
-                            In case the ``without replacement'' strategy is used, the distribution samples from the set of 
-                            specified $N$ values reduced by the previously sampled values. After, the sampler has generated 
-                            values for all variables, the distribution is resetted (i.e., the set of values that can be sampled 
-                            is returned to $N$). In case the ``with replacement'' strategy is used, the distribution samples 
+    specs.description = r"""The UniformDiscrete distribution is a discrete distribution which describes a random variable
+                            that can have $N$ values having equal probability value. This distribution allows the user to
+                            choose two kinds of sampling strategies: with or without replacement.
+                            In case the ``without replacement'' strategy is used, the distribution samples from the set of
+                            specified $N$ values reduced by the previously sampled values. After, the sampler has generated
+                            values for all variables, the distribution is resetted (i.e., the set of values that can be sampled
+                            is returned to $N$). In case the ``with replacement'' strategy is used, the distribution samples
                             always from the complete set of specified $N$ values.
                             """
     lb = InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType, printPriority=109,
     descr=r""" Lower bound of the set of allowed sample values. """)
     specs.addSub(lb)
-    
+
     ub = InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType, printPriority=109,
     descr=r""" Upper bound of the set of allowed sample values. """)
     specs.addSub(ub)
-    
+
     np = InputData.parameterInputFactory('nPoints', contentType=InputTypes.IntegerType, printPriority=109,
     descr=r""" Number of points between lower and upper bound. """)
     specs.addSub(np)
@@ -1802,9 +1802,9 @@ class UniformDiscrete(Distribution):
     strategy = InputData.parameterInputFactory('strategy', BaseInputType, printPriority=109,
     descr=r""" Type of sampling strategy. """)
     specs.addSub(strategy)
-        
+
     return specs
-    
+
   def __init__(self):
     """
       Function that initializes the Uniform Discrete distribution
