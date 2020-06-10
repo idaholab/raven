@@ -829,7 +829,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def _incrementCounter(self):
     """
-      Incrementes counter and sets up prefix.
+      Increments counter and sets up prefix.
       @ In, None
       @ Out, None
     """
@@ -920,6 +920,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     ##### VECTOR VARS #####
     self._expandVectorVariables()
     ##### RESTART #####
+    for key in self.distDict:
+      if self.distDict[key].getMemory() is True:
+        self.distDict[key].reset()
+
     index, inExisting = self._checkRestartForEvaluation()
     # reformat metadata into acceptable format for dataojbect
     # DO NOT format here, let that happen when a realization is made in collectOutput for each Model.  Sampler doesn't care about this.
@@ -950,10 +954,6 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       rlz['outputs'] = dict((var,np.atleast_1d(inExisting[var])) for var in self.restartData.getVars('output')+self.restartData.getVars('indexes'))
       rlz['metadata'] = copy.deepcopy(self.inputInfo) # TODO need deepcopy only because inputInfo is on self
       return 1, rlz
-
-    for dist in self.distDict:
-      if dist.getMemory is True:
-        dist.reset()
 
   def generateInputBatch(self,myInput,model,batchSize,projector=None):
     """

@@ -39,7 +39,7 @@
     <UniformDiscrete name="x_dist">
       <lowerBound>3</lowerBound>
       <upperBound>8</upperBound>
-      <strategy>orderedWithoutReplacement</strategy>
+      <strategy>withoutReplacement</strategy>
     </UniformDiscrete>
   </Distributions>
 

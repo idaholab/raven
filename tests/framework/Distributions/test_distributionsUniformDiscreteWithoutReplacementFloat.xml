@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework.Distributions.uniformDiscreteWithoutReplacementSmall</name>
+    <name>framework.Distributions.uniformDiscreteWithoutReplacementFloat</name>
     <author>mandd</author>
     <created>2020-06-05</created>
     <classesTested>Distributions.UniformDiscrete</classesTested>
@@ -25,20 +25,21 @@
     </MultiRun>
     <IOStep name="OutStreams" pauseAtEnd="false">
       <Input   class="DataObjects" type="PointSet"      >PointSet_MC</Input>
-      <Output  class="OutStreams"  type="Print"         >MC_dumpWOreplecSmall</Output>
+      <Output  class="OutStreams"  type="Print"         >MC_dumpWOreplecFloat</Output>
     </IOStep>
   </Steps>
 
   <Models>
-    <ExternalModel ModuleToLoad="localSumSmall" name="PythonModule" subType="">
-      <variables>x3,x4,x5,y</variables>
+    <ExternalModel ModuleToLoad="localSum" name="PythonModule" subType="">
+      <variables>x3,x4,x5,x6,x7,x8,y</variables>
     </ExternalModel>
   </Models>
 
   <Distributions>
     <UniformDiscrete name="x_dist">
       <lowerBound>3</lowerBound>
-      <upperBound>8</upperBound>
+      <upperBound>10</upperBound>
+      <nPoints>10</nPoints>
       <strategy>withoutReplacement</strategy>
     </UniformDiscrete>
   </Distributions>
@@ -58,11 +59,20 @@
       <variable name="x5">
         <distribution>x_dist</distribution>
       </variable>
+      <variable name="x6">
+        <distribution>x_dist</distribution>
+      </variable>
+      <variable name="x7">
+        <distribution>x_dist</distribution>
+      </variable>
+      <variable name="x8">
+        <distribution>x_dist</distribution>
+      </variable>
     </MonteCarlo>
   </Samplers>
 
   <OutStreams>
-    <Print name="MC_dumpWOreplecSmall">
+    <Print name="MC_dumpWOreplecFloat">
       <type>csv</type>
       <source>PointSet_MC</source>
       <what>input,output</what>
@@ -71,11 +81,11 @@
 
   <DataObjects>
     <PointSet name="inputPlaceHolder">
-      <Input>x3,x4,x5</Input>
+      <Input>x3,x4,x5,x6,x7,x8</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="PointSet_MC">
-      <Input>x3,x4,x5</Input>
+      <Input>x3,x4,x5,x6,x7,x8</Input>
       <Output>y</Output>
     </PointSet>
   </DataObjects>

@@ -52,4 +52,10 @@
    input  = 'test_distributionsUniformDiscreteWithoutReplacementSmall.xml'
    csv    = 'test_uniformDiscrete/MC_dumpWOreplecSmall.csv'
  [../]
+ 
+ [./uniformDiscreteWithoutReplacementFloat]
+   type   = 'RavenFramework'
+   input  = 'test_distributionsUniformDiscreteWithoutReplacementFloat.xml'
+   csv    = 'test_uniformDiscrete/MC_dumpWOreplecFloat.csv'
+ [../]
 []

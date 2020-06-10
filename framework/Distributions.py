@@ -1767,20 +1767,20 @@ class UniformDiscrete(Distribution):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    BaseInputType = InputTypes.makeEnumType("base", "baseType", ["orderedWithReplacement","orderedWithoutReplacement"])
+    BaseInputType = InputTypes.makeEnumType("base", "baseType", ["withReplacement","withoutReplacement"])
 
     inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
 
     inputSpecification.addSub(InputData.parameterInputFactory("lowerBound", contentType=InputTypes.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory("upperBound", contentType=InputTypes.FloatType))
-
+    inputSpecification.addSub(InputData.parameterInputFactory("nPoints",    contentType=InputTypes.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("strategy", BaseInputType))
     inputSpecification.addParam("name", InputTypes.StringType, True)
     return inputSpecification
 
   def __init__(self):
     """
-      Function that initializes the categorical distribution
+      Function that initializes the Uniform Discrete distribution
       @ In, None
       @ Out, none
     """
@@ -1808,6 +1808,13 @@ class UniformDiscrete(Distribution):
       self.strategy = strategy.value
     else:
       self.raiseAnError(IOError,'strategy specification needed for UniformDiscrete distribution')
+
+    nPoints = paramInput.findFirst('nPoints')
+    if nPoints != None:
+      self.nPoints = nPoints.value
+    else:
+      self.nPoints = None
+
     self.initializeDistribution()
 
   def getInitParams(self):
@@ -1820,6 +1827,7 @@ class UniformDiscrete(Distribution):
     """
     paramDict = Distribution.getInitParams(self)
     paramDict['strategy'] = self.strategy
+    paramDict['nPoints'] = self.nPoints
     return paramDict
 
   def initializeDistribution(self):
@@ -1828,11 +1836,16 @@ class UniformDiscrete(Distribution):
       @ In, None
       @ Out, None
     """
-    self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
+    if self.nPoints is None:
+      self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
+    else:
+      self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
+
     self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
     paramsDict={}
     paramsDict['xAxis'] = self.xArray
     paramsDict['pAxis'] = self.pdfArray
+
     self.categoricalDist = Categorical()
     self.categoricalDist.initializeFromDict(paramsDict)
     initialPerm = randomUtils.randomPermutation(self.xArray.tolist(),self)
@@ -1868,12 +1881,13 @@ class UniformDiscrete(Distribution):
       @ In, None
       @ Out, rvsValue, float, the random state
     """
-    if self.strategy == 'orderedWithReplacement':
+    if self.strategy == 'withReplacement':
       return self.categoricalDist.rvs()
     else:
       if self.pot.size == 0:
         # re-initialize the distribution
         self.reset()
+        self.raiseAWarning("The Uniform Discrete distribution " + str(self.name) + " has been internally reset outside the sampler.")
       rvsValue = self.pot[-1]
       self.pot = np.resize(self.pot, self.pot.size - 1)
     return rvsValue
@@ -2824,7 +2838,6 @@ class LogUniform(Distribution):
       pdfValue = 1./(self.upperBound-self.lowerBound) * 1./x
     else:
       pdfValue = 1./(self.upperBound-self.lowerBound) * 1./x * 1./math.log(10.)
-      print(x,pdfValue)
     return pdfValue
 
   def cdf(self,x):
