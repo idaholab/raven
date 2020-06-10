@@ -907,8 +907,13 @@ Example:
 \label{subsec:UniformDiscrete}
 
 The \textbf{UniformDiscrete} distribution is a discrete distribution which describes a random variable 
-that can have $N$ integer values having equal probability value.
+that can have $N$ values having equal probability value.
 This distribution allows the user to choose two kinds of sampling strategies: with or without replacement.
+In case the ``without replacement'' strategy is used, the distribution samples from the set of specified $N$ values 
+reduced by the previously sampled values. 
+After, the sampler has generated values for all variables, the distribution is 
+resetted (i.e., the set of values that can be sampled is returned to $N$).
+In case the ``with replacement'' strategy is used, the distribution samples always from the complete set of specified $N$ values.
 
 \specBlock{a}{Uniform Discrete}
 %
@@ -923,8 +928,9 @@ This distribution allows the user to choose two kinds of sampling strategies: wi
 \begin{itemize}
   \item \xmlNode{lowerBound}, \xmlDesc{integer, required parameter}, lower bound.
   \item \xmlNode{upperBound}, \xmlDesc{integer, required parameter}, upper bound.
+  \item \xmlNode{nPoints},    \xmlDesc{integer, optional parameter}, number of points between lower and upper bound
   \item \xmlNode{strategy},   \xmlDesc{string,  required parameter}, type of sampling strategy 
-  (orderedWithReplacement or orderedWithoutReplacement).
+  (withReplacement or withoutReplacement).
   %
 \end{itemize}
 

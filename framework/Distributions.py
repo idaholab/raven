@@ -126,7 +126,7 @@ class Distribution(BaseType):
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality       = None   # Dimensionality of the distribution (1D or ND)
     self.disttype             = None   # Distribution type (continuous or discrete)
-    self.memory               = False
+    self.memory               = False  # This variable flags if the distribution has history dependence in the sampling process (True) or not (False)
     self.printTag             = 'DISTRIBUTIONS'
     self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
     self.preferredQuadrature  = None  # best quadrature for probability-weighted norm of error
@@ -378,6 +378,14 @@ class Distribution(BaseType):
     """
       Function that reset the distribution
       @ In, None
+      @ Out, None
+    """
+    pass
+  
+  def initializeFromDict(self, inputDict):
+    """
+      Function which initializes the distribution given a the information contained in inputDict
+      @ In, inputDict, dict, dictionary containing the values required to initialize the distribution
       @ Out, None
     """
     pass
@@ -1768,16 +1776,35 @@ class UniformDiscrete(Distribution):
         specifying input of cls.
     """
     BaseInputType = InputTypes.makeEnumType("base", "baseType", ["withReplacement","withoutReplacement"])
+  
+    specs = super(UniformDiscrete, cls).getInputSpecification()
+    specs.description = r"""The UniformDiscrete distribution is a discrete distribution which describes a random variable 
+                            that can have $N$ values having equal probability value. This distribution allows the user to 
+                            choose two kinds of sampling strategies: with or without replacement. 
+                            In case the ``without replacement'' strategy is used, the distribution samples from the set of 
+                            specified $N$ values reduced by the previously sampled values. After, the sampler has generated 
+                            values for all variables, the distribution is resetted (i.e., the set of values that can be sampled 
+                            is returned to $N$). In case the ``with replacement'' strategy is used, the distribution samples 
+                            always from the complete set of specified $N$ values.
+                            """
+    lb = InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType, printPriority=109,
+    descr=r""" Lower bound of the set of allowed sample values. """)
+    specs.addSub(lb)
+    
+    ub = InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType, printPriority=109,
+    descr=r""" Upper bound of the set of allowed sample values. """)
+    specs.addSub(ub)
+    
+    np = InputData.parameterInputFactory('nPoints', contentType=InputTypes.IntegerType, printPriority=109,
+    descr=r""" Number of points between lower and upper bound. """)
+    specs.addSub(np)
 
-    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=True, baseNode=None)
-
-    inputSpecification.addSub(InputData.parameterInputFactory("lowerBound", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("upperBound", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("nPoints",    contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("strategy", BaseInputType))
-    inputSpecification.addParam("name", InputTypes.StringType, True)
-    return inputSpecification
-
+    strategy = InputData.parameterInputFactory('strategy', BaseInputType, printPriority=109,
+    descr=r""" Type of sampling strategy. """)
+    specs.addSub(strategy)
+        
+    return specs
+    
   def __init__(self):
     """
       Function that initializes the Uniform Discrete distribution

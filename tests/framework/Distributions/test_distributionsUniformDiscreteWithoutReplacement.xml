@@ -6,7 +6,7 @@
     <created>2020-06-05</created>
     <classesTested>Distributions.UniformDiscrete</classesTested>
     <description>
-       This test checks the capability of RAVEN to use UniformDiscrete distribution.
+       This test checks the capability of RAVEN to use UniformDiscrete distribution (strategy=withoutReplacement)..
     </description>
   </TestInfo>
 

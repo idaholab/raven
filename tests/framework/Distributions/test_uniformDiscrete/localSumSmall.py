@@ -11,8 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import math
-import numpy
 
 def run(self, Input):
+  """
+    Function to calculate the average of the sampled 3 variables. This is used to check distribution for large number of samples.
+    @ In, Input, ParameterInput, RAVEN sampled params.
+    @ Out, None
+  """
   self.y = (self.x3 + self.x4 + self.x5) / 3.
