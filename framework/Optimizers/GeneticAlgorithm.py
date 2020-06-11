@@ -199,7 +199,8 @@ class GeneticAlgorithm(RavenSampled):
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     for traj, init in enumerate(self._initialValues):
       self._submitRun(init,traj,self.getIteration(traj))
-
+    
+    
   ###############
   # Run Methods #
   ###############
@@ -219,6 +220,16 @@ class GeneticAlgorithm(RavenSampled):
     self.incrementIteration(traj)
     info['step'] = self.counter
     #
+    
+    # 5 : Population replacement from previous iteration (children+parents merging)
+    
+    # 1 : Parent selection from population
+    
+    # 2 : Crossover from set of parents
+    
+    # 3 : Mutation
+    
+    # 4: Submit runs for children
 
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
