@@ -14,7 +14,7 @@
 """
   Genetic Algorithm class for global optimization.
   This class contains the API and interface for performing
-  Genetic Algorithm-based optimizzation. Multiple strategies for
+  Genetic Algorithm-based optimization. Multiple strategies for
   mutations, cross-overs, etc. are available.
   Created June,3,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
@@ -46,10 +46,10 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     RavenSampled.__init__(self)
-    self._parentSelection = None                                  # mechanism for parent selection
+    self._parentSelection = None                                 # mechanism for parent selection
     self._convergenceCriteria = defaultdict(mathUtils.giveZero)  # names and values for convergence checks
-    self._acceptHistory = {}                                    # acceptability
-    self._acceptRerun = {}                                      # by traj, if True then override accept for point rerun
+    self._acceptHistory = {}                                     # acceptability
+    self._acceptRerun = {}                                       # by traj, if True then override accept for point rerun
     self._convergenceInfo = {}                                   # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = 0                                # consecutive persistence required to mark convergence
 
@@ -126,7 +126,7 @@ class GeneticAlgorithm(RavenSampled):
     for name,descr in cls.convergenceOptions.items():
       conv.addSub(InputData.parameterInputFactory(name, contentType=InputTypes.FloatType,descr=descr,printPriority=108  ))
 
-    # Presistance
+    # Persistence
     conv.addSub(InputData.parameterInputFactory('persistence', contentType=InputTypes.IntegerType,
         printPriority = 109,
         descr=r"""provides the number of consecutive times convergence should be reached before a trajectory
