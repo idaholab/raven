@@ -580,11 +580,11 @@ class GradientDescent(RavenSampled):
           self.raiseADebug('Cancelling Trajectory {} because it is following Trajectory {}'.format(traj, following))
           self._trajectoryFollowers[following].append(traj) # "traj" is killed by "following"
           self._closeTrajectory(traj, 'cancel', 'following {}'.format(following), optVal)
-          return 'accepted', old, None
+          return 'accepted', old, 'None'
 
       self.raiseADebug(' ... change: {d: 1.3e} new: {n: 1.6e} old: {o: 1.6e}'
                       .format(d=optVal-oldVal, o=oldVal, n=optVal))
-      rejectReason = None
+      rejectReason = 'None'
       ## some stepManipulators may need to override the acceptance criteria, e.g. conjugate gradient
       if self._stepInstance.needsAccessToAcceptance:
         acceptable = self._stepInstance.modifyAcceptance(old, oldVal, opt, optVal)
@@ -609,12 +609,12 @@ class GradientDescent(RavenSampled):
           acceptable, rejectReason = self._checkForImprovement(optVal, oldVal)
     else: # no history
       # if first sample, simply assume it's better!
-      rejectReason = None
+      rejectReason = 'None'
       if self._impConstraintFunctions:
         accept = self._handleImplicitConstraints(opt)
         if not accept:
           self.raiseAWarning('First point violate Implicit constraint, please change another point to start!')
-          rejectReason = 2
+          rejectReason = 'implicitConstraintsViolation'
       acceptable = 'first'
       old = None
     self._acceptHistory[traj].append(acceptable)
@@ -632,7 +632,7 @@ class GradientDescent(RavenSampled):
     # TODO could this be a base RavenSampled class?
     improved = self._acceptInstance.checkImprovement(new, old)
     if improved:
-      return 'accepted', None
+      return 'accepted', 'None'
     else:
       return 'rejected', 'noImprovement'
 

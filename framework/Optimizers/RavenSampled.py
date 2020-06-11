@@ -315,7 +315,7 @@ class RavenSampled(Optimizer):
       self.raiseAMessage(finalTemplate.format(name=var, value=val))
     self.raiseAMessage('*'*80)
     # write final best solution to soln export
-    self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', None)
+    self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
 
   ###################
   # Utility Methods #
