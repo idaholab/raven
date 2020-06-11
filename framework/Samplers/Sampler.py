@@ -829,7 +829,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def _incrementCounter(self):
     """
-      Incrementes counter and sets up prefix.
+      Increments counter and sets up prefix.
       @ In, None
       @ Out, None
     """
@@ -919,6 +919,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self._functionalVariables()
     ##### VECTOR VARS #####
     self._expandVectorVariables()
+    ##### RESET DISTRIBUTIONS WITH MEMORY #####
+    for key in self.distDict:
+      if self.distDict[key].getMemory():
+        self.distDict[key].reset()
     ##### RESTART #####
     index, inExisting = self._checkRestartForEvaluation()
     # reformat metadata into acceptable format for dataojbect
