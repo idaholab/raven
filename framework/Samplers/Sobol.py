@@ -127,8 +127,8 @@ class Sobol(SparseGridCollocation):
       initDict={'IndexSet'       :iset.type,             # type of index set
                 'PolynomialOrder':SVL.maxPolyOrder,      # largest polynomial
                 'Interpolation'  :SVL.itpDict,           # polys, quads per input
-                'Features'       :','.join(combo),       # input variables
-                'Target'         :','.join(SVL.target)}# set below, per-case basis
+                'Features'       :combo,       # input variables
+                'Target'         :SVL.target}# set below, per-case basis
       #initializeDict is for SVL.initialize()
       initializeDict={'SG'   :self.SQs[combo],      # sparse grid
                       'dists':distDict,             # distributions
@@ -221,4 +221,3 @@ class Sobol(SparseGridCollocation):
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = np.atleast_1d(1.0) # weight has no meaning for sobol
     self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
-
