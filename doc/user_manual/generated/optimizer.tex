@@ -259,7 +259,7 @@
         \item \xmlNode{stepSize}: \xmlDesc{float}, 
           provides the maximum size in relative step size for convergence.
 
-        \item \xmlNode{terminateFollowers}: \xmlDesc{[yes, y, true, t, si, vero, dajie, oui, ja, yao, verum, evet, dogru, 1, on, no, n, false, f, nono, falso, nahh, non, nicht, bu, falsus, hayir, yanlis, 0, off, Yes, Y, True, T, Si, Vero, Dajie, Oui, Ja, Yao, Verum, Evet, Dogru, 1, On, No, N, False, F, Nono, Falso, Nahh, Non, Nicht, Bu, Falsus, Hayir, Yanlis, 0, Off]}, 
+        \item \xmlNode{terminateFollowers}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0]}, 
           indicates whether a trajectory should be terminated when it begins following the path
           of another trajectory.
           The \xmlNode{terminateFollowers} node recognizes the following parameters:
@@ -323,14 +323,28 @@
       the input space of the Model. From a practical point of view, this XML node must contain
       the name of a function defined in the \xmlNode{Functions} block (see
       Section~\ref{sec:functions}).               This external function must contain a method
-      called ``constrain'', which returns 1 for               inputs satisfying the constraints and
-      0 otherwise.
+      called ``constrain'', which returns True for               inputs satisfying the explicit
+      constraints and False otherwise.
       The \xmlNode{Constraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required}, 
-            RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
+            RAVEN class for this source. Options include \xmlString{Functions}.
           \item \xmlAttr{type}: \xmlDesc{string, required}, 
-            RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
+            RAVEN type for this source. Options include \xmlNode{External}.
+      \end{itemize}
+
+    \item \xmlNode{ImplicitConstraint}: \xmlDesc{string}, 
+      name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
+      point of view, this XML node must contain the name of a function defined in the
+      \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
+      function must contain a method called               ``implicitConstrain'', which returns True
+      for outputs satisfying the implicit constraints and False otherwise.
+      The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            RAVEN class for this source. Options include \xmlString{Functions}.
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            RAVEN type for this source. Options include \xmlNode{External}.
       \end{itemize}
 
     \item \xmlNode{Sampler}: \xmlDesc{string}, 
@@ -688,14 +702,28 @@ Gradient Descent Example:
       the input space of the Model. From a practical point of view, this XML node must contain
       the name of a function defined in the \xmlNode{Functions} block (see
       Section~\ref{sec:functions}).               This external function must contain a method
-      called ``constrain'', which returns 1 for               inputs satisfying the constraints and
-      0 otherwise.
+      called ``constrain'', which returns True for               inputs satisfying the explicit
+      constraints and False otherwise.
       The \xmlNode{Constraint} node recognizes the following parameters:
         \begin{itemize}
           \item \xmlAttr{class}: \xmlDesc{string, required}, 
-            RAVEN class for this entity (e.g. Samplers, Models, DataObjects)
+            RAVEN class for this source. Options include \xmlString{Functions}.
           \item \xmlAttr{type}: \xmlDesc{string, required}, 
-            RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)
+            RAVEN type for this source. Options include \xmlNode{External}.
+      \end{itemize}
+
+    \item \xmlNode{ImplicitConstraint}: \xmlDesc{string}, 
+      name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
+      point of view, this XML node must contain the name of a function defined in the
+      \xmlNode{Functions}               block (see Section~\ref{sec:functions}). This external
+      function must contain a method called               ``implicitConstrain'', which returns True
+      for outputs satisfying the implicit constraints and False otherwise.
+      The \xmlNode{ImplicitConstraint} node recognizes the following parameters:
+        \begin{itemize}
+          \item \xmlAttr{class}: \xmlDesc{string, required}, 
+            RAVEN class for this source. Options include \xmlString{Functions}.
+          \item \xmlAttr{type}: \xmlDesc{string, required}, 
+            RAVEN type for this source. Options include \xmlNode{External}.
       \end{itemize}
 
     \item \xmlNode{Sampler}: \xmlDesc{string}, 

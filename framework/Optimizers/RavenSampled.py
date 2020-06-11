@@ -25,6 +25,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import abc
 from collections import deque
 import numpy as np
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal
@@ -410,6 +411,37 @@ class RavenSampled(Optimizer):
       @ Out, point, dict, adjusted variables
       @ Out, modded, bool, whether point was modified or not
     """
+
+  def _handleImplicitConstraints(self, previous):
+    """
+      Considers all implicit constraints
+      @ In, previous, dict, NORMALIZED previous opt point
+      @ Out, accept, bool, whether point was satisfied implicit constraints
+    """
+    normed = copy.deepcopy(previous)
+    oldVal = normed[self._objectiveVar]
+    normed.pop(self._objectiveVar,oldVal)
+    denormed = self.denormalizeData(normed)
+    denormed[self._objectiveVar] = oldVal
+    accept = self._checkImpFunctionalConstraints(denormed)
+    return accept
+
+  def _checkImpFunctionalConstraints(self, previous):
+    """
+      Checks that provided point does not violate implicit functional constraints
+      @ In, previous, dict, previous opt point (denormalized)
+      @ Out, allOkay, bool, False if violations found else True
+    """
+    allOkay = True
+    inputs = dict(previous)
+    for impConstrain in self._impConstraintFunctions:
+      okay = impConstrain.evaluate('implicitConstrain', inputs)
+      if not okay:
+        self.raiseADebug('Implicit constraint "{n}" was violated!'.format(n=impConstrain.name))
+        self.raiseADebug(' ... point:', previous)
+      allOkay *= okay
+    return bool(allOkay)
+
   # END constraint handling
   # * * * * * * * * * * * *
 

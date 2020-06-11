@@ -109,14 +109,36 @@ class Optimizer(AdaptiveSampler):
     init.addSub(minMax)
     specs.addSub(init)
 
-    # assembled objects
-    specs.addSub(InputData.assemblyInputFactory('Constraint', contentType=InputTypes.StringType, strictMode=True,
+    ConstraintInput = InputData.parameterInputFactory('Constraint', contentType=InputTypes.StringType, strictMode=True,
         printPriority=150,
         descr=r"""name of \xmlNode{Function} which contains explicit constraints for the sampling of
               the input space of the Model. From a practical point of view, this XML node must contain
               the name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}).
-              This external function must contain a method called ``constrain'', which returns 1 for
-              inputs satisfying the constraints and 0 otherwise."""))
+              This external function must contain a method called ``constrain'', which returns True for
+              inputs satisfying the explicit constraints and False otherwise.""")
+    ConstraintInput.addParam("class", InputTypes.StringType, True,
+        descr=r"""RAVEN class for this source. Options include \xmlString{Functions}. """)
+    ConstraintInput.addParam("type", InputTypes.StringType, True,
+        descr=r"""RAVEN type for this source. Options include \xmlNode{External}.""")
+
+
+    ImplicitConstraintInput =  InputData.parameterInputFactory('ImplicitConstraint', contentType=InputTypes.StringType, strictMode=True,
+        printPriority=150,
+        descr=r"""name of \xmlNode{Function} which contains implicit constraints of the Model. From a practical
+              point of view, this XML node must contain the name of a function defined in the \xmlNode{Functions}
+              block (see Section~\ref{sec:functions}). This external function must contain a method called
+              ``implicitConstrain'', which returns True for outputs satisfying the implicit constraints and False otherwise.""")
+    ImplicitConstraintInput.addParam("class", InputTypes.StringType, True,
+        descr=r"""RAVEN class for this source. Options include \xmlString{Functions}. """)
+    ImplicitConstraintInput.addParam("type", InputTypes.StringType, True,
+        descr=r"""RAVEN type for this source. Options include \xmlNode{External}.""")
+
+    specs.addSub(ConstraintInput)
+    specs.addSub(ImplicitConstraintInput)
+
+
+    # assembled objects
+
     specs.addSub(InputData.assemblyInputFactory('Sampler', contentType=InputTypes.StringType, strictMode=True,
         printPriority=175,
         descr=r"""name of a Sampler that can be used to initialize the starting points for the trajectories
@@ -149,10 +171,11 @@ class Optimizer(AdaptiveSampler):
     self._trajCounter = 0       # tracks numbers to assign to trajectories
     self._initSampler = None    # sampler to use for picking initial seeds
     self._constraintFunctions = [] # list of constraint functions
-
+    self._impConstraintFunctions = [] # list of implicit constraint functions
     # __private
     # additional methods
     self.addAssemblerObject('Constraint', '-1')      # Explicit (input-based) constraints
+    self.addAssemblerObject('ImplicitConstraint', '-1')      # Implicit constraints
     self.addAssemblerObject('Sampler', '-1')          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
     # register adaptive sample identification criteria
@@ -262,6 +285,9 @@ class Optimizer(AdaptiveSampler):
     # functional constraints
     for entry in self.assemblerDict.get('Constraint', []):
       self._constraintFunctions.append(entry[3])
+
+    for entry in self.assemblerDict.get('ImplicitConstraint', []):
+      self._impConstraintFunctions.append(entry[3])
     # sampler
     self._initializeInitSampler(externalSeeding)
     # seed

@@ -24,6 +24,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules------------------------------------------------------------------------------------
 from collections import deque, defaultdict
 import numpy as np
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -569,7 +570,6 @@ class GradientDescent(RavenSampled):
     if self._optPointHistory[traj]:
       old, _ = self._optPointHistory[traj][-1]
       oldVal = old[self._objectiveVar]
-
       # check if following another trajectory
       if self._terminateFollowers:
         following = self._stepInstance.trajIsFollowing(traj, self.denormalizeData(opt), info,
@@ -597,9 +597,20 @@ class GradientDescent(RavenSampled):
         # this is the classic "same point" trap; we accept the same point, and check convergence later
         acceptable = 'accepted'
       else:
-        acceptable = self._checkForImprovement(optVal, oldVal)
+        if self._impConstraintFunctions:
+          accept = self._handleImplicitConstraints(old)
+          if accept:
+            acceptable = self._checkForImprovement(optVal, oldVal)
+          else:
+            acceptable = 'rejected'
+        else:
+          acceptable = self._checkForImprovement(optVal, oldVal)
     else: # no history
       # if first sample, simply assume it's better!
+      if self._impConstraintFunctions:
+        accept = self._handleImplicitConstraints(opt)
+        if not accept:
+          self.raiseAWarning('First point violate Implicit constraint, please change another point to start!')
       acceptable = 'first'
       old = None
     self._acceptHistory[traj].append(acceptable)
