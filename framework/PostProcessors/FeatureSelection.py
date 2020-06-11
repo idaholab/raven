@@ -23,7 +23,8 @@ import numpy as np
 import os
 from collections import OrderedDict
 import copy
-from sklearn.feature_selection import RFE, RFECV, mutual_info_regression,  mutual_info_classif
+from sklearn.feature_selection import RFE, RFECV, mutual_info_regression,  mutual_info_classif,  VarianceThreshold
+from sklearn.decomposition import FactorAnalysis
 from sklearn.linear_model import LinearRegression
 #External Modules End--------------------------------------------------------------------------------
 
@@ -135,26 +136,18 @@ class FeatureSelection(PostProcessor):
       @ In, currentInput, object, an object that needs to be converted
       @ Out, inputList, list, list of input dictionaries
     """
-    if type(currentInp) == list:
-      currentInput = currentInp[-1]
-    else:
-      currentInput = currentInp
+    currentInput = currentInp[-1]  if type(currentInp) == list else currentInp
     if type(currentInput) == dict:
       if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys():
         self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
       return currentInput
 
-    if hasattr(currentInput,'type'):
-      inType = currentInput.type
-    else:
-      if type(currentInput).__name__ == 'list':
-        inType = 'list'
-      else:
-        self.raiseAnError(IOError, self, 'FeatureSelection postprocessor accepts Files, HDF5, PointSet, DataObject(s) only! Got ' + str(type(currentInput)))
-    if inType not in ['PointSet','HistorySet', 'list']:
-      self.raiseAnError(IOError, self, 'FeatureSelection postprocessor accepts Files, HDF5, HistorySet, PointSet, DataObject(s) only! Got ' + str(inType) + '!!!!')
+    if not hasattr(currentInput,'type'):
+      self.raiseAnError(IOError, self, 'FeatureSelection postprocessor accepts DataObject(s) only! Got ' + str(type(currentInput)))
+    if currentInput.type not in ['PointSet','HistorySet']:
+      self.raiseAnError(IOError, self, 'FeatureSelection postprocessor accepts DataObject(s) only! Got ' + str(currentInput.type) + '!!!!')
     # get input from PointSet DataObject
-    if inType in ['PointSet']:
+    if currentInput.type in ['PointSet']:
       dataSet = currentInput.asDataset()
       inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
       for feat in list(set(list(dataSet.keys())) - set(list(self.targets))):
@@ -167,7 +160,7 @@ class FeatureSelection(PostProcessor):
       inputDict['metadata'] = currentInput.getMeta(pointwise=True)
       inputList = [inputDict]
     # get input from HistorySet DataObject
-    if inType in ['HistorySet']:
+    if currentInput.type in ['HistorySet']:
       dataSet = currentInput.asDataset()
       if self.pivotParameter is None:
         self.raiseAnError(IOError, self, 'Time-dependent FeatureSelection is requested (HistorySet) but no pivotParameter got inputted!')
@@ -222,18 +215,28 @@ class FeatureSelection(PostProcessor):
     nFeatures = self.settings.get('minimumNumberOfFeatures', None)
     # compute importance rank
     outputDict = {}
+    # transformer = FactorAnalysis(n_components=10, random_state=0)
+    # tt = transformer.fit(np.atleast_2d(list(inputDict['features'].values())).T)
     if self.what == "RFE":
       selectors = [RFE(LinearRegression(), n_features_to_select=nFeatures, step=step) for _ in range(len(self.targets))]
       for i, targ in enumerate(self.targets):
         selectors[i] = selectors[i].fit(np.atleast_2d(list(inputDict['features'].values())).T, inputDict['targets'][targ])
         self.raiseAMessage("Features downselected to "+str( selectors[i].n_features_) +" for target "+targ)
         outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[selectors[i].support_])
-     
-      # To be implemented
-      #if what == 'CumulativeSenitivityIndex':
-      #  self.raiseAnError(NotImplementedError,'CumulativeSensitivityIndex is not yet implemented for ' + self.printTag)
-      #if what == 'CumulativeImportanceIndex':
-      #  self.raiseAnError(NotImplementedError,'CumulativeImportanceIndex is not yet implemented for ' + self.printTag)
+    elif self.what == 'RFECV':
+      selectors = [RFECV(LinearRegression(), step=step, min_features_to_select=nFeatures, n_jobs=-1) for _ in range(len(self.targets))]
+      for i, targ in enumerate(self.targets):
+        selectors[i] = selectors[i].fit(np.atleast_2d(list(inputDict['features'].values())).T, inputDict['targets'][targ])
+        self.raiseAMessage("Features downselected to "+str( selectors[i].n_features_) +" for target "+targ)
+        outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[selectors[i].support_])
+    elif self.what == 'mutualInformation':
+      selectors = []
+      for i, targ in enumerate(self.targets):
+        sortedFeatures = mutual_info_regression(np.atleast_2d(list(inputDict['features'].values())).T, inputDict['targets'][targ]).argsort()
+        outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[sortedFeatures][-nFeatures:])
+    elif self.what == 'mutualInformation':
+      
+       
 
     return outputDict
 
