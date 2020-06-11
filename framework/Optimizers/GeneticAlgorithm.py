@@ -221,7 +221,7 @@ class GeneticAlgorithm(RavenSampled):
     info['step'] = self.counter
     #
     
-    # 5 : Population replacement from previous iteration (children+parents merging)
+    # 5 : Population replacement from previous iteration (children+parents merging from prevoius generation)
     
     # 1 : Parent selection from population
     
