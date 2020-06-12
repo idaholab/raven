@@ -225,10 +225,13 @@ class FeatureSelection(PostProcessor):
         outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[selectors[i].support_])
     elif self.what == 'RFECV':
       selectors = [RFECV(LinearRegression(), step=step, min_features_to_select=nFeatures, n_jobs=-1) for _ in range(len(self.targets))]
+      minFeaturesSelected = int(1e6)
       for i, targ in enumerate(self.targets):
         selectors[i] = selectors[i].fit(np.atleast_2d(list(inputDict['features'].values())).T, inputDict['targets'][targ])
         self.raiseAMessage("Features downselected to "+str( selectors[i].n_features_) +" for target "+targ)
-        outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[selectors[i].support_])
+        minFeaturesSelected = min(minFeaturesSelected, selectors[i].n_features_)
+      for i, targ in enumerate(self.targets):
+        outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[selectors[i].support_])[:minFeaturesSelected]
     elif self.what == 'mutualInformation':
       selectors = []
       for i, targ in enumerate(self.targets):
