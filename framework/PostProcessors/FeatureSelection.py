@@ -235,7 +235,7 @@ class FeatureSelection(PostProcessor):
         sortedFeatures = mutual_info_regression(np.atleast_2d(list(inputDict['features'].values())).T, inputDict['targets'][targ]).argsort()
         outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[sortedFeatures][-nFeatures:])
     elif self.what == 'mutualInformation':
-      
+      pass
        
 
     return outputDict
