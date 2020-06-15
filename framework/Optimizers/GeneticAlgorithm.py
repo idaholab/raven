@@ -224,6 +224,7 @@ class GeneticAlgorithm(RavenSampled):
     #
     
     # 5 @ n-1: Population replacement from previous iteration (children+parents merging from previous generation)
+    #fitnesCalculation(rlz)
     #self.population <-- self.population + rlz
     #replacementMethod(rlz)
     
