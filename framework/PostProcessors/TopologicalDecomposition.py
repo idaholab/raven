@@ -148,8 +148,6 @@ class TopologicalDecomposition(PostProcessor):
     paramInput = TopologicalDecomposition.getInputSpecification()()
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
-    # register metadata
-    self.addMetaKeys(['maxLabel','minLabel'])
 
   def _handleInput(self, paramInput):
     """
@@ -199,6 +197,8 @@ class TopologicalDecomposition(PostProcessor):
           self.raiseAnError(IOError, 'Requested unknown normalization type: ',
                             self.normalization, '. Available options: ',
                             self.acceptedNormalizationParam)
+    # register metadata
+    self.addMetaKeys(['maxLabel','minLabel'])
 
   def collectOutput(self, finishedJob, output):
     """
