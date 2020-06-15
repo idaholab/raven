@@ -157,7 +157,14 @@ class Assembler(MessageHandler.MessageUser):
                                          c=self.type,
                                          m=self.name,
                                          g=testObjects[toObjectName]))
-    if '_localReadMoreXML' in dir(self):
+
+    if '_handleInput' in dir(self) and self._handleInput.__func__.__qualname__.split(".")[0] == self.__class__.__name__:
+      #_handleInput in class and not from superclass
+      print(self, self.getInputSpecification, self.getInputSpecification.__func__.__qualname__, self._handleInput, self._handleInput.__func__.__qualname__)
+      paramInput = self.getInputSpecification()()
+      paramInput.parseNode(xmlNode)
+      self._handleInput(paramInput)
+    elif '_localReadMoreXML' in dir(self):
       self._localReadMoreXML(xmlNode)
 
   def addAssemblerObject(self, name, flag, newXmlFlg=None):
