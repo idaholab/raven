@@ -52,6 +52,8 @@ class GeneticAlgorithm(RavenSampled):
     self._acceptRerun = {}                                       # by traj, if True then override accept for point rerun
     self._convergenceInfo = {}                                   # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = 0                                # consecutive persistence required to mark convergence
+    
+    self.population = None # container containing the population at the beginning of each generation iteration
 
   ##########################
   # Initialization Methods #
@@ -221,15 +223,21 @@ class GeneticAlgorithm(RavenSampled):
     info['step'] = self.counter
     #
     
-    # 5 : Population replacement from previous iteration (children+parents merging from prevoius generation)
+    # 5 @ n-1: Population replacement from previous iteration (children+parents merging from previous generation)
+    #self.population <-- self.population + rlz
+    #replacementMethod(rlz)
     
-    # 1 : Parent selection from population
+    # 1 @ n: Parent selection from population
+    #parentSet = selection(params={})
     
-    # 2 : Crossover from set of parents
+    # 2 @ n: Crossover from set of parents
+    #children = crossover(parentSet,params={})
     
-    # 3 : Mutation
+    # 3 @ n: Mutation
+    #children = mutation(parentSet,params={})
     
-    # 4: Submit runs for children
+    # 4 @ n: Submit runs for children
+    # submit children coordinates
 
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
