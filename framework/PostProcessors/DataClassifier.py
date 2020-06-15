@@ -89,16 +89,6 @@ class DataClassifier(PostProcessor):
     for key, val in self.mapping.items():
      self.funcDict[key] = self.retrieveObjectFromAssemblerDict('Function',val[1])
 
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Method to read the portion of the XML input that belongs to this specialized class
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node
-      @ Out, None
-    """
-    paramInput = DataClassifier.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Method that handles PostProcessor parameter input block
