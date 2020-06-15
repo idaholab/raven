@@ -118,18 +118,6 @@ class CrossValidation(PostProcessor):
       metricName = self.metricsDict.keys()[list(self.metricsDict.values()).index(None)]
       self.raiseAnError(IOError, "Missing definition for Metric: ", metricName)
 
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs
-      @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against
-        the available options specific to this Sampler
-      @ Out, None
-    """
-    paramInput = self.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parsed paramInput for this class.

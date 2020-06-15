@@ -107,17 +107,6 @@ class LimitSurfaceIntegral(PostProcessor):
     self.addAssemblerObject('distribution','-n', newXmlFlg = True) # distributions are optional
     self.printTag = 'POSTPROCESSOR INTEGRAL' # print tag
 
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    paramInput = LimitSurfaceIntegral.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parsed paramInput for this class.

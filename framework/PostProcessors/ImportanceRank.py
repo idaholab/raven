@@ -114,17 +114,6 @@ class ImportanceRank(PostProcessor):
     # assembler objects to be requested
     self.addAssemblerObject('mvnDistribution', '1', True)
 
-  def _localReadMoreXML(self,xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs
-      @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against the available options specific to this Sampler
-      @ Out, None
-    """
-    paramInput = ImportanceRank.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parsed paramInput for this class.
