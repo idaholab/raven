@@ -391,17 +391,6 @@ class DataMining(PostProcessor):
     if 'Metric' in self.assemblerDict:
       self.metric = self.assemblerDict['Metric'][0][3]
 
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function that reads the portion of the xml input that belongs to this specialized class
-      and initializes some elements based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    paramInput = self.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parsed paramInput for this class.
@@ -918,6 +907,18 @@ if __QtAvailable:
       cloud consisting of an arbitrary number of input parameters
     """
     requestUI = qtc.Signal(str,str,dict)
+    @classmethod
+    def getInputSpecification(cls):
+      """
+        Method to get a reference to a class that specifies the input data for
+        class cls.
+        @ In, cls, the class for which we are retrieving the specification
+        @ Out, inputSpecification, InputData.ParameterInput, class to use for
+          specifying input of cls.
+      """
+      inputSpecification = super(QDataMining, cls).getInputSpecification()
+      return inputSpecification
+
     def __init__(self, messageHandler):
       """
        Constructor
@@ -935,10 +936,20 @@ if __QtAvailable:
         @ In, xmlNode    : Xml element node
         @ Out, None
       """
-      DataMining._localReadMoreXML(self, xmlNode)
-      for child in xmlNode:
-        for grandchild in child:
-          if grandchild.tag == 'interactive':
+      paramInput = QDataMining.getInputSpecification()()
+      paramInput.parseNode(xmlNode)
+      self._handleInput(paramInput)
+
+    def _handleInput(self, paramInput):
+      """
+        Function to handle the parsed paramInput for this class.
+        @ In, paramInput, ParameterInput, the already parsed input.
+        @ Out, None
+      """
+      DataMining._handleInput(self, paramInput)
+      for child in paramInput.subparts:
+        for grandchild in child.subparts:
+          if grandchild.getName() == 'interactive':
             self.interactive = True
 
     def _localWhatDoINeed(self):
