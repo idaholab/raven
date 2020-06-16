@@ -222,16 +222,19 @@ class GeneticAlgorithm(RavenSampled):
     info['optVal'] = rlz[self._objectiveVar]
     self.incrementIteration(traj)
     info['step'] = self.counter
-
+    
+    # model is generating [y1,..,yl] = F(x1,...,xm)
     
     # 5 @ n-1: Population replacement from previous iteration (children+parents merging from previous generation)
     # 5.1 fitnessCalculation(rlz)
+    # rlz is a dataFrame containing N realization [y1,..,yl,x1,...,xm]
     if self.fitnessType == 'fitnessType1':
       # perform fitness calculation
       # add fitness variable to children dataFrame
     else:
       # other methods ...
-    
+      
+    # 5.2 replacementCalculation(rlz)
     if self.replacementType == 'generational':
       # the following method remove the parents and leave the children
       # i.e., self.population <-- rlz
