@@ -54,7 +54,7 @@ class GeneticAlgorithm(RavenSampled):
     self._requiredPersistence = 0                                # consecutive persistence required to mark convergence
     
     ### TBD ####
-    self.population = None # container containing the population at the beginning of each generation iteration
+    self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
 
   ##########################
   # Initialization Methods #
@@ -243,7 +243,7 @@ class GeneticAlgorithm(RavenSampled):
     # 1 @ n: Parent selection from population
     if self.selectionType = 'stdRoulette':
       # create a list of pairs of parents: a list of panda dataframe containing two parents
-      # parentSet = selection(params={})
+      # parentSet = stdRouletteSelection(params={})
     else:
       # other methods ...
     
