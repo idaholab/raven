@@ -53,6 +53,7 @@ class GeneticAlgorithm(RavenSampled):
     self._convergenceInfo = {}                                   # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = 0                                # consecutive persistence required to mark convergence
     
+    ### TBD ####
     self.population = None # container containing the population at the beginning of each generation iteration
 
   ##########################
@@ -221,22 +222,46 @@ class GeneticAlgorithm(RavenSampled):
     info['optVal'] = rlz[self._objectiveVar]
     self.incrementIteration(traj)
     info['step'] = self.counter
-    #
+
     
     # 5 @ n-1: Population replacement from previous iteration (children+parents merging from previous generation)
-    #fitnesCalculation(rlz)
-    #self.population <-- self.population + rlz
-    #replacementMethod(rlz)
+    # 5.1 fitnessCalculation(rlz)
+    if self.fitnessType == 'fitnessType1':
+      # perform fitness calculation
+      # add fitness variable to children dataFrame
+    else:
+      # other methods ...
+    
+    if self.replacementType == 'generational':
+      # the following method remove the parents and leave the children
+      # i.e., self.population <-- rlz
+      # self.population = generationalReplacement(children = rlz)
+    else:
+      # other methods ...
+      # self.population = generationalReplacement(parents = self.population, children = rlz)
     
     # 1 @ n: Parent selection from population
-    #parentSet = selection(params={})
+    if self.selectionType = 'stdRoulette':
+      # create a list of pairs of parents: a list of panda dataframe containing two parents
+      # parentSet = selection(params={})
+    else:
+      # other methods ...
     
     # 2 @ n: Crossover from set of parents
-    #children = crossover(parentSet,params={})
+
+    if self.crossoverType == 'bitSplice':
+      # create children: a panda dataframe 
+      # children = crossover(parentSet,params={})
+    else:
+      # other methods ...  
     
     # 3 @ n: Mutation
-    #children = mutation(parentSet,params={})
-    
+    # perform random mutation on children
+    if self.mutationType ='bitWise':
+      # children= mutation(children, params={})
+    else:
+      # other methods ... 
+      
     # 4 @ n: Submit runs for children
     # submit children coordinates
 
