@@ -372,7 +372,7 @@ class GeneticAlgorithm(RavenSampled):
     return newPopulation
   
   def __selectionCalculationHandler(self,parents,params):
-    # create a list of pairs of parents: a list of list containing two parents indexes (e.g., [[2,5],[6,3],...])
+    # create a list of pairs of parents: a list of list containing two (or more) parents indexes (e.g., [[2,5],[6,3],...])
     if params['selectionType'] = 'stdRoulette':
       # parentSet = stdRouletteSelection(population=parents,params={})
     else:
