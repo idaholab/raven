@@ -224,13 +224,15 @@ class GeneticAlgorithm(RavenSampled):
     info['step'] = self.counter
     
     # model is generating [y1,..,yl] = F(x1,...,xm)
+    # population format [y1,..,yl,x1,...,xm,fitness]
     
     # 5 @ n-1: Population replacement from previous iteration (children+parents merging from previous generation)
     # 5.1 fitnessCalculation(rlz)
-    # rlz is a dataFrame containing N realization [y1,..,yl,x1,...,xm]
+    # rlz is a dataFrame containing N realization of [y1,..,yl,x1,...,xm]
     if self.fitnessType == 'fitnessType1':
       # perform fitness calculation
-      # add fitness variable to children dataFrame
+      # add fitness variable to children dataFrame: [y1,..,yl,x1,...,xm,fitness]
+      # self.children = fitnessType1Calculation(rlz)
     else:
       # other methods ...
       
@@ -238,35 +240,37 @@ class GeneticAlgorithm(RavenSampled):
     if self.replacementType == 'generational':
       # the following method remove the parents and leave the children
       # i.e., self.population <-- rlz
-      # self.population = generationalReplacement(children = rlz)
+      # self.population = generationalReplacement(children = self.children)
     else:
       # other methods ...
-      # self.population = generationalReplacement(parents = self.population, children = rlz)
+      # self.population = otherReplacement(parents = self.population, children = self.children)
     
     # 1 @ n: Parent selection from population
     if self.selectionType = 'stdRoulette':
       # create a list of pairs of parents: a list of panda dataframe containing two parents
-      # parentSet = stdRouletteSelection(params={})
+      # self.parentSet = stdRouletteSelection(params={}, population=self.population)
     else:
       # other methods ...
+      #self.parentSet = otherSelection(params={}, population=self.population)
     
     # 2 @ n: Crossover from set of parents
 
     if self.crossoverType == 'bitSplice':
       # create children: a panda dataframe 
-      # children = crossover(parentSet,params={})
+      # self.children = crossoverBitSplice(parents=self.parentSet,params={})
     else:
       # other methods ...  
+      # self.children = otherCrossover(parents=self.parentSet,params={})
     
     # 3 @ n: Mutation
     # perform random mutation on children
     if self.mutationType ='bitWise':
-      # children= mutation(children, params={})
+      # self.children= mutation(self.children, params={})
     else:
       # other methods ... 
       
     # 4 @ n: Submit runs for children
-    # submit children coordinates
+    # submit self.children coordinates (x1,...,xm)
 
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
