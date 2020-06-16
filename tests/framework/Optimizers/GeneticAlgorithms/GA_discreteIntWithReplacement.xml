@@ -38,11 +38,21 @@
 		
 			<GAparams>
 			  <populationSize>[int]</populationSize>
-			  <parentSelection>selectionType</parentSelection>
-			  <crossover>crossoverType</crossover>
-			  <mutation>mutationType</mutation>
-			  <replacement>replacementType</replacement>
-			  <fitness>fitnessType</fitness>
+			  <parentSelection type='selectionType'>
+			    <node1></node1>
+			  </parentSelection>
+			  <crossover type='crossoverType'>
+			    <node2></node2>
+			  </crossover>
+			  <mutation type='mutationType'>
+			    <node3></node3>
+			  </mutation>
+			  <replacement type='replacementType'>
+			    <node4></node4>
+			  </replacement>
+			  <fitness type='fitnessType'>
+			    <node5></node5>
+			  </fitness>
 			</GAparams>
 			
 		  <convergence>
