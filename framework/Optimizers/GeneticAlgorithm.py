@@ -247,7 +247,7 @@ class GeneticAlgorithm(RavenSampled):
     
     # 1 @ n: Parent selection from population
     if self.selectionType = 'stdRoulette':
-      # create a list of pairs of parents: a list of panda dataframe containing two parents
+      # create a list of pairs of parents: a list of list containing two parents indices
       # self.parentSet = stdRouletteSelection(params={}, population=self.population)
     else:
       # other methods ...
