@@ -249,7 +249,7 @@ class GeneticAlgorithm(RavenSampled):
       
     # 4 @ n: Submit runs for children
     # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
-    # --> how should this be handled? By handleInput?
+    # --> how should this be handled? By initialize?
 
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
