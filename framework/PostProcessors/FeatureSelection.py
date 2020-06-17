@@ -245,10 +245,14 @@ class FeatureSelection(PostProcessor):
       for i, targ in enumerate(self.targets):
         outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[selectors[i].support_])[:minFeaturesSelected]
     elif self.what == 'mutualInformation':
-      selectors = []
-      for i, targ in enumerate(self.targets):
-        sortedFeatures = mutual_info_regression(np.atleast_2d(list(inputDict['features'].values())).T, newTarget if aggregateTargets else inputDict['targets'][targ]).argsort()
-        outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[sortedFeatures][-nFeatures:])
+      if aggregateTargets:
+        sortedFeatures = mutual_info_regression(np.atleast_2d(list(inputDict['features'].values())).T, newTarget).argsort()
+        for i, targ in enumerate(self.targets):
+          outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[sortedFeatures][-nFeatures:])
+      else:
+        for i, targ in enumerate(self.targets):
+          sortedFeatures = mutual_info_regression(np.atleast_2d(list(inputDict['features'].values())).T, inputDict['targets'][targ]).argsort()
+          outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[sortedFeatures][-nFeatures:])
     elif self.what == 'PCA':
       transformer = KernelPCA(n_components=nFeatures, kernel = "rbf", random_state=0).fit(np.atleast_2d(list(inputDict['features'].values()) + list(inputDict['targets'].values())).T)
        
