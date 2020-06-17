@@ -24,7 +24,7 @@ import os
 from collections import OrderedDict
 import copy
 from sklearn.feature_selection import RFE, RFECV, mutual_info_regression,  mutual_info_classif,  VarianceThreshold
-from sklearn.decomposition import FactorAnalysis
+from sklearn.decomposition import KernelPCA
 from sklearn.linear_model import LinearRegression
 #External Modules End--------------------------------------------------------------------------------
 
@@ -33,6 +33,7 @@ from .PostProcessor import PostProcessor
 from utils import InputData, InputTypes
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class FeatureSelection(PostProcessor):
   """
@@ -60,7 +61,9 @@ class FeatureSelection(PostProcessor):
     numberOfFeatures = InputData.parameterInputFactory("minimumNumberOfFeatures", contentType=InputTypes.IntegerType)
     inputSpecification.addSub(numberOfFeatures)
     step = InputData.parameterInputFactory("step", contentType=InputTypes.FloatOrIntType)
-    inputSpecification.addSub(step)    
+    inputSpecification.addSub(step)
+    aTarg = InputData.parameterInputFactory("aggregateTargets", contentType=InputTypes.BoolType)
+    inputSpecification.addSub(aTarg)        
     return inputSpecification
 
   def __init__(self, messageHandler):
@@ -102,6 +105,8 @@ class FeatureSelection(PostProcessor):
         self.settings[child.getName()] = child.value
       elif child.getName() == 'minimumNumberOfFeatures':
         self.settings[child.getName()] = child.value
+      elif child.getName() == 'aggregateTargets':
+        self.settings[child.getName()] = child.value        
       else:
         self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.getName() + '!')
 
@@ -213,6 +218,13 @@ class FeatureSelection(PostProcessor):
     # compute sensitivities of targets with respect to features
     step = self.settings.get('step', 1)
     nFeatures = self.settings.get('minimumNumberOfFeatures', None)
+    aggregateTargets = self.settings.get("aggregateTargets", False)
+    if aggregateTargets:
+      # perform a PCA and analyze the first principal component
+      kpca = KernelPCA(n_components=1, kernel = "rbf", random_state=0)
+      newTarget =  kpca.fit_transform(np.atleast_2d(list(inputDict['targets'].values())).T)
+      # print(kpca.explained_variance_ratio_)
+    newTarget if aggregateTargets else inputDict['targets'][targ]  
     # compute importance rank
     outputDict = {}
     # transformer = FactorAnalysis(n_components=10, random_state=0)
@@ -220,14 +232,14 @@ class FeatureSelection(PostProcessor):
     if self.what == "RFE":
       selectors = [RFE(LinearRegression(), n_features_to_select=nFeatures, step=step) for _ in range(len(self.targets))]
       for i, targ in enumerate(self.targets):
-        selectors[i] = selectors[i].fit(np.atleast_2d(list(inputDict['features'].values())).T, inputDict['targets'][targ])
+        selectors[i] = selectors[i].fit(np.atleast_2d(list(inputDict['features'].values())).T, newTarget if aggregateTargets else inputDict['targets'][targ])
         self.raiseAMessage("Features downselected to "+str( selectors[i].n_features_) +" for target "+targ)
         outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[selectors[i].support_])
     elif self.what == 'RFECV':
       selectors = [RFECV(LinearRegression(), step=step, min_features_to_select=nFeatures, n_jobs=-1) for _ in range(len(self.targets))]
       minFeaturesSelected = int(1e6)
       for i, targ in enumerate(self.targets):
-        selectors[i] = selectors[i].fit(np.atleast_2d(list(inputDict['features'].values())).T, inputDict['targets'][targ])
+        selectors[i] = selectors[i].fit(np.atleast_2d(list(inputDict['features'].values())).T, newTarget if aggregateTargets else inputDict['targets'][targ])
         self.raiseAMessage("Features downselected to "+str( selectors[i].n_features_) +" for target "+targ)
         minFeaturesSelected = min(minFeaturesSelected, selectors[i].n_features_)
       for i, targ in enumerate(self.targets):
@@ -235,10 +247,10 @@ class FeatureSelection(PostProcessor):
     elif self.what == 'mutualInformation':
       selectors = []
       for i, targ in enumerate(self.targets):
-        sortedFeatures = mutual_info_regression(np.atleast_2d(list(inputDict['features'].values())).T, inputDict['targets'][targ]).argsort()
+        sortedFeatures = mutual_info_regression(np.atleast_2d(list(inputDict['features'].values())).T, newTarget if aggregateTargets else inputDict['targets'][targ]).argsort()
         outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[sortedFeatures][-nFeatures:])
-    elif self.what == 'mutualInformation':
-      pass
+    elif self.what == 'PCA':
+      transformer = KernelPCA(n_components=nFeatures, kernel = "rbf", random_state=0).fit(np.atleast_2d(list(inputDict['features'].values()) + list(inputDict['targets'].values())).T)
        
 
     return outputDict
