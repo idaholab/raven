@@ -20,8 +20,6 @@ from __future__ import division, print_function , unicode_literals, absolute_imp
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
-import os
-from collections import OrderedDict
 import copy
 from sklearn.feature_selection import RFE, RFECV, mutual_info_regression,  mutual_info_classif,  VarianceThreshold
 from sklearn.decomposition import KernelPCA
