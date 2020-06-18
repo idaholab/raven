@@ -224,7 +224,6 @@ class FeatureSelection(PostProcessor):
       kpca = KernelPCA(n_components=1, kernel = "rbf", random_state=0)
       newTarget =  kpca.fit_transform(np.atleast_2d(list(inputDict['targets'].values())).T)
       # print(kpca.explained_variance_ratio_)
-    newTarget if aggregateTargets else inputDict['targets'][targ]  
     # compute importance rank
     outputDict = {}
     # transformer = FactorAnalysis(n_components=10, random_state=0)
