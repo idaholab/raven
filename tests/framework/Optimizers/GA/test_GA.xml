@@ -1,0 +1,203 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <TestInfo>
+    <name>framework/Optimizers/GA</name>
+    <author>MohammadAbdo</author>
+    <created>2020-05-16</created>
+    <classesTested>GeneticAlgorithm</classesTested>
+    <description>
+      This test assesses the Genetic algorithm using on the myLocalSum function.
+      The nominal dimensionality of the problem is 5.
+      The objective variable is ans.
+    </description>
+    <analytic>
+      This test uses myLocalSum's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>.</WorkingDir>
+    <Sequence>optimize, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" >
+      <!--re-seeding="032877" 120504,,120504,080510-->
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">myLocalSum</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <UniformDiscrete name='uniform_dist_woRepl_1'>
+      <!-- <varType>int</varType>
+      <strategy>
+        <order>False</order>
+        <replacement>True</replacement>
+      </strategy> -->
+      <lowerBound>1</lowerBound>
+      <upperBound>20</upperBound>
+      <strategy>withoutReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+
+  <Optimizers>
+    <GeneticAlgorithm name="GAopt">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>10</populationSize>
+        <parentSelection>rouletteWheel</parentSelection>
+        <reproduction nParents="2">
+          <crossover type="onePointCrossover">
+            <points>3</points>
+            <crossoverProb>0.2</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator">
+            <locs>2,5</locs>
+            <mutationProb>0.3</mutationProb>
+          </mutation>
+        </reproduction>
+        <survivorSelection>AgeBased</survivorSelection>
+      </GAparams>
+
+      <convergence>
+        <objective>-1</objective>
+      </convergence>
+
+      <variable name="x1">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>1</initial>
+      </variable>
+
+      <variable name="x2">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>2</initial>
+      </variable>
+
+      <variable name="x3">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>3</initial>
+      </variable>
+
+      <variable name="x4">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>4</initial>
+      </variable>
+
+      <variable name="x5">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>5</initial>
+      </variable>
+
+      <variable name="x6">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>6</initial>
+      </variable>
+<!--
+      <variable name=" fuelLocation_3">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>3</initial>
+      </variable>
+
+      <variable name=" fuelLocation_4">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>4</initial>
+      </variable>
+
+      <variable name=" fuelLocation_5">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>5</initial>
+      </variable>
+
+      <variable name=" fuelLocation_6">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>6</initial>
+      </variable>
+
+      <variable name=" fuelLocation_7">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>7</initial>
+      </variable>
+
+      <variable name=" fuelLocation_8">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>8</initial>
+      </variable>
+
+      <variable name=" fuelLocation_9">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>9</initial>
+      </variable>
+
+      <variable name=" fuelLocation_10">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>10</initial>
+      </variable>
+
+      <variable name=" fuelLocation_11">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>11</initial>
+      </variable>
+
+      <variable name=" fuelLocation_12">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>12</initial>
+      </variable>
+
+      <variable name=" fuelLocation_13">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>13</initial>
+      </variable> -->
+
+      <objective>ans</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+    </GeneticAlgorithm>
+  </Optimizers>
+
+    <Models>
+      <ExternalModel ModuleToLoad="../../AnalyticModels/optimizing/myLocalSum.py" name="myLocalSum" subType="">
+        <variables>x1,x2,x3,x4,x5,x6,ans</variables>
+      </ExternalModel>
+    </Models>
+
+    <DataObjects>
+      <PointSet name="placeholder"/>
+      <PointSet name="optOut">
+        <Input>x1,x2,x3,x4,x5,x6</Input>
+        <Output>ans</Output>
+      </PointSet>
+      <PointSet name="opt_export">
+        <Input>trajID</Input>
+        <Output>x1,x2,x3,x4,x5,x6,ans</Output>
+        <!-- <Output>x,y,ans,iteration,amp_x,amp_y,delta_x,delta_y,fraction,Temp,accepted,conv_objective,conv_samePoint,conv_temperature</Output> -->
+      </PointSet>
+    </DataObjects>
+
+    <OutStreams>
+      <Print name="optOut">
+        <type>csv</type>
+        <source>optOut</source>
+      </Print>
+      <Print name="opt_export">
+        <type>csv</type>
+        <source>opt_export</source>
+        <clusterLabel>trajID</clusterLabel>
+      </Print>
+    </OutStreams>
+</Simulation>

@@ -30,6 +30,12 @@ from collections import deque, defaultdict
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils, randomUtils, InputData, InputTypes
 from .RavenSampled import RavenSampled
+# from .parentSelectors import parentSelectors
+from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
+# from .crossOverOperators import crossovers
+from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
+# from .mutators import mutators
+from .mutators.mutators import returnInstance as mutatorsReturnInstance
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GeneticAlgorithm(RavenSampled):
@@ -52,7 +58,8 @@ class GeneticAlgorithm(RavenSampled):
     self._acceptRerun = {}                                       # by traj, if True then override accept for point rerun
     self._convergenceInfo = {}                                   # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = 0                                # consecutive persistence required to mark convergence
-    
+    self.needDenormalized() # the default in all optimizers is to normalize the data which is not the case here
+
     ### TBD ####
     self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
 
@@ -69,25 +76,40 @@ class GeneticAlgorithm(RavenSampled):
     specs = super(GeneticAlgorithm, cls).getInputSpecification()
     specs.description = r"""The \xmlNode{GeneticAlgorithm} optimizer is a metaheuristic approach
                             to perform a global search in large design spaces. The methodology rose
-                            from the process of natural selection, and like others  in the large class of the evolutionary algorithms, it utilizes genetic operations such as selection crossover and mutations to avoid being stuck in local minima and hence facilitates
+                            from the process of natural selection, and like others in the large class of the evolutionary algorithms, it utilizes genetic operations such as selection, crossover, and mutations to avoid being stuck in local minima and hence facilitates
                             finding the global minima. More information can be found in:
                             Holland, John H. "Genetic algorithms." Scientific american 267.1 (1992): 66-73."""
 
+    # GA Params
+    GAparams = InputData.parameterInputFactory('GAparams', strictMode=True,
+        printPriority=108,
+        descr=r""" Genetic Algorithm Parameters.""")
+    # Population Size
+    populationSize = InputData.parameterInputFactory('populationSize', strictMode=True,
+        contentType=InputTypes.IntegerType,
+        printPriority=108,
+        descr=r"""The number of chromosomes in each population.""")
+    GAparams.addSub(populationSize)
     # Parent Selection
     parentSelection = InputData.parameterInputFactory('parentSelection', strictMode=True,
+        contentType=InputTypes.StringType,
         printPriority=108,
-        descr=r"""a node containing the criterion based on which the parents are selected. This can be a. a fitness proportionate selection such as Roulette Wheer, Stochastic Universal Sampling,
-                  b. Tournament, c. Rank, or d. Random selection""")
-    specs.addSub(parentSelection)
+        descr=r"""A node containing the criterion based on which the parents are selected. This can be
+                  a. a fitness proportionate selection such as Roulette Wheer, Stochastic Universal Sampling,
+                  b. Tournament,
+                  c. Rank, or
+                  d. Random selection""")
+    GAparams.addSub(parentSelection)
+
     # Reproduction
     reproduction = InputData.parameterInputFactory('reproduction', strictMode=True,
         printPriority=108,
         descr=r"""a node containing the reproduction methods.
                   This accepts subnodes that specifies the types of crossover and mutation.""")
-    reproduction.addParam("Nrepl", InputTypes.IntegerType, True)
-    # specs.addSub(reproduction)
+    reproduction.addParam("nParents", InputTypes.IntegerType, True)
     # 1.  Crossover
     crossover = InputData.parameterInputFactory('crossover', strictMode=True,
+        contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented crossover mechanisms.
                   This includes: a.    One Point Crossover,
@@ -95,29 +117,96 @@ class GeneticAlgorithm(RavenSampled):
                                  c.    Uniform Crossover,
                                  d.    Whole Arithmetic Recombination, or
                                  e.    Davis’ Order Crossover.""")
-    crossover.addParam("crossoverPoint", InputTypes.IntegerType, True)
+    crossover.addParam("type", InputTypes.StringType, True)
+    crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
+        contentType=InputTypes.IntegerListType,
+        printPriority=108,
+        descr=r""" point/gene(s) at which crossover will occur.""")
+    crossover.addSub(crossoverPoint)
+    crossoverProbability = InputData.parameterInputFactory('crossoverProb', strictMode=True,
+        contentType=InputTypes.FloatType,
+        printPriority=108,
+        descr=r""" The probability governing the crossover occurance, i.e., the probability that if exceeded crossover will ocur.""")
+    crossover.addSub(crossoverProbability)
     reproduction.addSub(crossover)
-    # specs.addSub(crossover)
     # 2.  Mutation
     mutation = InputData.parameterInputFactory('mutation', strictMode=True,
+        contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented mutation mechanisms.
-                  This includes: a. Bit Flip,
+                  This includes: a.    Bit Flip,
                                  b.    Random Resetting,
                                  c.    Swap,
                                  d.    Scramble, or
                                  e.    Inversion.""")
+    mutation.addParam("type", InputTypes.StringType, True)
+    mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
+        contentType=InputTypes.IntegerListType,
+        printPriority=108,
+        descr=r""" locations at which mutation will occur.""")
+    mutation.addSub(mutationLocs)
+    mutationProbability = InputData.parameterInputFactory('mutationProb', strictMode=True,
+        contentType=InputTypes.FloatType,
+        printPriority=108,
+        descr=r""" The probability governing the mutation occurance, i.e., the probability that if exceeded mutation will ocur.""")
+    mutation.addSub(mutationProbability)
     reproduction.addSub(mutation)
-    # specs.addSub(mutation)
-    specs.addSub(reproduction)
+    GAparams.addSub(reproduction)
 
     # Survivor Selection
     survivorSelection = InputData.parameterInputFactory('survivorSelection', strictMode=True,
+        contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented servivor selection mechanisms.
                   This includes: a.    AgeBased, or
-                                 b. Fitness Based.""")
-    specs.addSub(survivorSelection)
+                                 b.    Fitness Based.""")
+    GAparams.addSub(survivorSelection)
+    specs.addSub(GAparams)
+    # # Parent Selection
+    # parentSelection = InputData.parameterInputFactory('parentSelection', strictMode=True,
+    #     printPriority=108,
+    #     descr=r"""a node containing the criterion based on which the parents are selected. This can be a. a fitness proportionate selection such as Roulette Wheer, Stochastic Universal Sampling,
+    #               b. Tournament, c. Rank, or d. Random selection""")
+    # specs.addSub(parentSelection)
+    # # Reproduction
+    # reproduction = InputData.parameterInputFactory('reproduction', strictMode=True,
+    #     printPriority=108,
+    #     descr=r"""a node containing the reproduction methods.
+    #               This accepts subnodes that specifies the types of crossover and mutation.""")
+    # reproduction.addParam("Nrepl", InputTypes.IntegerType, True)
+    # # specs.addSub(reproduction)
+    # # 1.  Crossover
+    # crossover = InputData.parameterInputFactory('crossover', strictMode=True,
+    #     printPriority=108,
+    #     descr=r"""a subnode containing the implemented crossover mechanisms.
+    #               This includes: a.    One Point Crossover,
+    #                              b.    MultiPoint Crossover,
+    #                              c.    Uniform Crossover,
+    #                              d.    Whole Arithmetic Recombination, or
+    #                              e.    Davis’ Order Crossover.""")
+    # crossover.addParam("crossoverPoint", InputTypes.IntegerType, True)
+    # reproduction.addSub(crossover)
+    # # specs.addSub(crossover)
+    # # 2.  Mutation
+    # mutation = InputData.parameterInputFactory('mutation', strictMode=True,
+    #     printPriority=108,
+    #     descr=r"""a subnode containing the implemented mutation mechanisms.
+    #               This includes: a. Bit Flip,
+    #                              b.    Random Resetting,
+    #                              c.    Swap,
+    #                              d.    Scramble, or
+    #                              e.    Inversion.""")
+    # reproduction.addSub(mutation)
+    # # specs.addSub(mutation)
+    # specs.addSub(reproduction)
+
+    # # Survivor Selection
+    # survivorSelection = InputData.parameterInputFactory('survivorSelection', strictMode=True,
+    #     printPriority=108,
+    #     descr=r"""a subnode containing the implemented servivor selection mechanisms.
+    #               This includes: a.    AgeBased, or
+    #                              b. Fitness Based.""")
+    # specs.addSub(survivorSelection)
 
     # convergence
     conv = InputData.parameterInputFactory('convergence', strictMode=True,
@@ -134,6 +223,7 @@ class GeneticAlgorithm(RavenSampled):
         printPriority = 109,
         descr=r"""provides the number of consecutive times convergence should be reached before a trajectory
               is considered fully converged. This helps in preventing early false convergence."""))
+    specs.addSub(conv)
     return specs
 
   @classmethod
@@ -158,18 +248,32 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     RavenSampled.handleInput(self, paramInput)
+    # GAparams
+    GAparamsNode = paramInput.findFirst('GAparams')
+    # populationSize
+    populationSizeNode = GAparamsNode.findFirst('populationSize')
+    self._populationSize = populationSizeNode.value
+    # parent selection
+    parentSelectionNode = GAparamsNode.findFirst('parentSelection')
+    self._parentSelectionType = parentSelectionNode.value
+    self._parentSelectionInstance = parentSelectionReturnInstance(self,name = parentSelectionNode.value)
+    # reproduction node
+    reproductionNode = GAparamsNode.findFirst('reproduction')
+    self._nParents = reproductionNode.parameterValues['nParents']
+    # crossover node
+    crossoverNode = reproductionNode.findFirst('crossover')
+    self._crossoverType = crossoverNode.parameterValues['type']
+    self._crossoverPoints = crossoverNode.findFirst('points').value
+    self._crossoverProb = crossoverNode.findFirst('crossoverProb').value
+    self._crossoverInstance = crossoversReturnInstance(self,name = self._crossoverType)
+    # mutation node
+    mutationNode = reproductionNode.findFirst('mutation')
+    self._mutationType = mutationNode.parameterValues['type']
+    self._mutationlocs = mutationNode.findFirst('locs').value
+    self._mutationProb = mutationNode.findFirst('mutationProb').value
+    self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
+    # Survivor selection
 
-    # Parent Selection
-    parentNode = paramInput.findFirst('parentSelection')
-    if parentNode is not None:
-      for sub in parentNode.subparts:
-        self._parentSelection = sub.value
-
-    # reproduction
-    reproductionNode = paramInput.findFirst('reproduction')
-    if reproductionNode is not None:
-      for sub in reproductionNode.subparts:
-        setattr(self,str('_'+sub.name),sub.value)
 
     # Convergence Criterion
     convNode = paramInput.findFirst('convergence')
@@ -202,8 +306,16 @@ class GeneticAlgorithm(RavenSampled):
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     for traj, init in enumerate(self._initialValues):
       self._submitRun(init,traj,self.getIteration(traj))
-    
-    
+
+  def needDenormalized(self):
+    """
+      Determines if the currently used algorithms should be normalizing the input space or not
+      @ In, None
+      @ Out, needDenormalized, bool, True if normalizing should NOT be performed
+    """
+    # overload as needed in inheritors
+    return True
+
   ###############
   # Run Methods #
   ###############
@@ -222,31 +334,65 @@ class GeneticAlgorithm(RavenSampled):
     info['optVal'] = rlz[self._objectiveVar]
     self.incrementIteration(traj)
     info['step'] = self.counter
-    
+
+    # separate population from model evaluations
+    # This part is just a dumb emulation of what should be passed by the job handeler batch
+    # This part will totally be removed later.
+    population = np.zeros((self._populationSize,len(self.toBeSampled)))
+    fitnesses = np.zeros(len(self.toBeSampled))
+    # For now I will assume
+    fitnesses = rlz[self._objectiveVar]*np.random.random(self._populationSize) # All np.random should be replaced with randomUtils.random etc.
+    chromosome = rlz.copy()
+    chromosome.pop(self._objectiveVar)
+    chromosome = list(chromosome.values())
+    for i in range(self._populationSize):
+      population[i] = np.random.choice(chromosome,size=len(self.toBeSampled),replace=False)
+
+    # Step1. Initiate population
+    # If this is the first generation then no survivor selection needed
+    # else a survivor selection is needed to pick the new population from the rlz dataframe wich contains parents of
+    #      prev generation and children from current generation
+
+    # if self.Counter > 0:
+      # population = self._survivorSelectionInstance(rlz)
+
+    # Step2. Parent selection
+    parents = np.zeros((self._nParents,len(self.toBeSampled)))
+    for i in range(self._nParents):
+      ind, parents[i] = self._parentSelectionInstance(population=population,fitnesses=fitnesses)
+      population = np.delete(population, ind, axis=0)
+
+    # Step3. crossover
+    children = self._crossoverInstance(parents=parents,crossoverProb=self._crossoverProb,points=self._crossoverPoints)
+
+
+
+
+
     # model is generating [y1,..,yL] = F(x1,...,xM)
     # population format [y1,..,yL,x1,...,xM,fitness]
-    
+
     # 5 @ n-1: Population replacement from previous iteration (children+parents merging from previous generation)
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    childrenCont = self.__fitnessCalculationHandler(rlz,params=paramsDict)
-      
+    # childrenCont = self.__fitnessCalculationHandler(rlz,params=paramsDict)
+
     # 5.2@ n-1: replacementCalculation(rlz)
     # update population container given obtained children
-    self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
-    
+    # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
+
     # 1 @ n: Parent selection from population
     # pair parents together by indexes
-    parentSet = self.__selectionCalculationHandler(parents=self.population,params=paramsDict)
-    
+    # parentSet = self.__selectionCalculationHandler(parents=self.population,params=paramsDict)
+
     # 2 @ n: Crossover from set of parents
-    # create childrenCoordinates (x1,...,xM) 
-    self.childrenCoordinates = self.__crossoverCalculationHandler(parentSet=parentSet,population=self.population,params=paramsDict)
-    
+    # create childrenCoordinates (x1,...,xM)
+    # self.childrenCoordinates = self.__crossoverCalculationHandler(parentSet=parentSet,population=self.population,params=paramsDict)
+
     # 3 @ n: Mutation
     # perform random directly on childrenCoordinates
-    self.__mutationCalculationHandler(children=self.childrenCoordinates,params=paramsDict)
-      
+    # self.__mutationCalculationHandler(children=self.childrenCoordinates,params=paramsDict)
+
     # 4 @ n: Submit runs for children
     # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
     # --> how should this be handled? By initialize?
@@ -349,51 +495,60 @@ class GeneticAlgorithm(RavenSampled):
   #     @ Out, None
   #   """
   #   pass
-  
+
   def __fitnessCalculationHandler(self,children,params):
     # rlz is a Pandas dataFrame containing N realization of [y1,..,yL,x1,...,xM]
     if params['fitnessType'] == 'fitnessType1':
+      pass
       # perform fitness calculation
       # add fitness variable to children dataFrame: [y1,..,yL,x1,...,xM,fitness]
       # children = fitnessType1Calculation(rlz)
     else:
-      # other methods ...     
+      pass
+      # other methods ...
     return children
-  
+
   def __replacementCalculationHandler(self,parents,children,params):
     if params['replacementType'] == 'generational':
+      pass
       # the following method remove the parents and leave the children
       # i.e., newPopulation <-- children
       # newPopulation = generationalReplacement(children = self.children)
     else:
+      pass
       # other methods ...
       # e.g., newPopulation = mix of parents and children
-      # newPopulation = otherReplacement(parents,children,paramsDict)
-    return newPopulation
-  
+      #newPopulation = otherReplacement(parents,children,paramsDict)
+    return
+
   def __selectionCalculationHandler(self,parents,params):
     # create a list of pairs of parents: a list of list containing two (or more) parents indexes (e.g., [[2,5],[6,3],...])
-    if params['selectionType'] = 'stdRoulette':
+    if params['selectionType'] == 'stdRoulette':
+      pass
       # parentSet = stdRouletteSelection(population=parents,params={})
     else:
+      pass
       # other methods ...
       # parentSet = otherSelection(population=parents,params={})
-    return parentSet
-  
+    return #parentSet
+
   def __crossoverCalculationHandler(self,parentSet,population,params):
     if params['crossoverType'] == 'bitSplice':
-      # create childrenCoordinates: a panda dataframe 
+      pass
+      # create childrenCoordinates: a panda dataframe
       # childrenCoordinates = crossoverBitSplice(parentSet,params={})
     else:
-      # other methods ...  
+      pass
+      # other methods ...
       # childrenCoordinates = otherCrossover(parentSet,params={})
-    return childrenCoordinates
+    return #childrenCoordinates
 
   def mutationCalculationHandler(self,children,params):
     # this method does not return anything
     # It simply acts on childrenCoordinates directly
-    if params['mutationType'] ='bitWise':
+    if params['mutationType'] =='bitWise':
+      pass
       #  mutation(childrenCoordinates, params={})
     else:
-      # other methods ... 
-      
+      pass
+      # other methods ...

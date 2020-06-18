@@ -27,7 +27,7 @@ from .SimulatedAnnealing import SimulatedAnnealing
 from .GeneticAlgorithm import GeneticAlgorithm
 
 """
- Interface Dictionary (factory) (private)
+  Interface Dictionary (factory) (private)
 """
 # This machinery will automatically populate the "knownTypes" given the
 # imports defined above.
