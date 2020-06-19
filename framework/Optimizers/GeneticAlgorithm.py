@@ -30,12 +30,10 @@ from collections import deque, defaultdict
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils, randomUtils, InputData, InputTypes
 from .RavenSampled import RavenSampled
-# from .parentSelectors import parentSelectors
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
-# from .crossOverOperators import crossovers
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
-# from .mutators import mutators
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
+from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GeneticAlgorithm(RavenSampled):
@@ -162,51 +160,6 @@ class GeneticAlgorithm(RavenSampled):
                                  b.    Fitness Based.""")
     GAparams.addSub(survivorSelection)
     specs.addSub(GAparams)
-    # # Parent Selection
-    # parentSelection = InputData.parameterInputFactory('parentSelection', strictMode=True,
-    #     printPriority=108,
-    #     descr=r"""a node containing the criterion based on which the parents are selected. This can be a. a fitness proportionate selection such as Roulette Wheer, Stochastic Universal Sampling,
-    #               b. Tournament, c. Rank, or d. Random selection""")
-    # specs.addSub(parentSelection)
-    # # Reproduction
-    # reproduction = InputData.parameterInputFactory('reproduction', strictMode=True,
-    #     printPriority=108,
-    #     descr=r"""a node containing the reproduction methods.
-    #               This accepts subnodes that specifies the types of crossover and mutation.""")
-    # reproduction.addParam("Nrepl", InputTypes.IntegerType, True)
-    # # specs.addSub(reproduction)
-    # # 1.  Crossover
-    # crossover = InputData.parameterInputFactory('crossover', strictMode=True,
-    #     printPriority=108,
-    #     descr=r"""a subnode containing the implemented crossover mechanisms.
-    #               This includes: a.    One Point Crossover,
-    #                              b.    MultiPoint Crossover,
-    #                              c.    Uniform Crossover,
-    #                              d.    Whole Arithmetic Recombination, or
-    #                              e.    Davis’ Order Crossover.""")
-    # crossover.addParam("crossoverPoint", InputTypes.IntegerType, True)
-    # reproduction.addSub(crossover)
-    # # specs.addSub(crossover)
-    # # 2.  Mutation
-    # mutation = InputData.parameterInputFactory('mutation', strictMode=True,
-    #     printPriority=108,
-    #     descr=r"""a subnode containing the implemented mutation mechanisms.
-    #               This includes: a. Bit Flip,
-    #                              b.    Random Resetting,
-    #                              c.    Swap,
-    #                              d.    Scramble, or
-    #                              e.    Inversion.""")
-    # reproduction.addSub(mutation)
-    # # specs.addSub(mutation)
-    # specs.addSub(reproduction)
-
-    # # Survivor Selection
-    # survivorSelection = InputData.parameterInputFactory('survivorSelection', strictMode=True,
-    #     printPriority=108,
-    #     descr=r"""a subnode containing the implemented servivor selection mechanisms.
-    #               This includes: a.    AgeBased, or
-    #                              b. Fitness Based.""")
-    # specs.addSub(survivorSelection)
 
     # convergence
     conv = InputData.parameterInputFactory('convergence', strictMode=True,
@@ -273,7 +226,9 @@ class GeneticAlgorithm(RavenSampled):
     self._mutationProb = mutationNode.findFirst('mutationProb').value
     self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
     # Survivor selection
-
+    survivorSelectionNode = GAparamsNode.findFirst('survivorSelection')
+    self._survivorSelectionType = survivorSelectionNode.value
+    self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
 
     # Convergence Criterion
     convNode = paramInput.findFirst('convergence')
@@ -304,6 +259,11 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+
+    self.info = {}
+    for var in self.toBeSampled:
+      self.info[var+'_Age'] = None
+
     for traj, init in enumerate(self._initialValues):
       self._submitRun(init,traj,self.getIteration(traj))
 
@@ -348,27 +308,6 @@ class GeneticAlgorithm(RavenSampled):
     for i in range(self._populationSize):
       population[i] = np.random.choice(chromosome,size=len(self.toBeSampled),replace=False)
 
-    # Step1. Initiate population
-    # If this is the first generation then no survivor selection needed
-    # else a survivor selection is needed to pick the new population from the rlz dataframe wich contains parents of
-    #      prev generation and children from current generation
-
-    # if self.Counter > 0:
-      # population = self._survivorSelectionInstance(rlz)
-
-    # Step2. Parent selection
-    parents = np.zeros((self._nParents,len(self.toBeSampled)))
-    for i in range(self._nParents):
-      ind, parents[i] = self._parentSelectionInstance(population=population,fitnesses=fitnesses)
-      population = np.delete(population, ind, axis=0)
-
-    # Step3. crossover
-    children = self._crossoverInstance(parents=parents,crossoverProb=self._crossoverProb,points=self._crossoverPoints)
-
-
-
-
-
     # model is generating [y1,..,yL] = F(x1,...,xM)
     # population format [y1,..,yL,x1,...,xM,fitness]
 
@@ -380,22 +319,37 @@ class GeneticAlgorithm(RavenSampled):
     # 5.2@ n-1: replacementCalculation(rlz)
     # update population container given obtained children
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
+    if self.counter > 1:
+      # right now these are lists, but this should be changed to xarrays when the realization is ready as an xarray dataset
+      population,Fitness,Age = self._survivorSelectionInstance(rlz)
+      # This will be added once the rlz is treated as a xarray DataSet
+      # for var in self.toBeSampled:
+        # self.info[var+'_Age'] = Age[var]
 
     # 1 @ n: Parent selection from population
     # pair parents together by indexes
     # parentSet = self.__selectionCalculationHandler(parents=self.population,params=paramsDict)
+    parents = np.zeros((self._nParents,len(self.toBeSampled)))
+    for i in range(self._nParents):
+      ind, parents[i] = self._parentSelectionInstance(population=population,fitnesses=fitnesses)
+      population = np.delete(population, ind, axis=0)
 
     # 2 @ n: Crossover from set of parents
     # create childrenCoordinates (x1,...,xM)
     # self.childrenCoordinates = self.__crossoverCalculationHandler(parentSet=parentSet,population=self.population,params=paramsDict)
+    children = self._crossoverInstance(parents=parents,crossoverProb=self._crossoverProb,points=self._crossoverPoints)
 
     # 3 @ n: Mutation
     # perform random directly on childrenCoordinates
     # self.__mutationCalculationHandler(children=self.childrenCoordinates,params=paramsDict)
+    for i in range(np.shape(children)[0]):
+      children[i] = self._mutationInstance(chromosome=children[i],locs = self._mutationlocs, mutationProb=self._mutationProb)
+    ## TODO WHAT IF AFTER CROSSOVER AND/OR MUTATION OUR CHROMOSOME NO LONGER SATISFIES THE WITHOUT REPLACEMENT CONSTRAINT
 
-    # 4 @ n: Submit runs for children
+    # 4 @ n: Submit children batch
     # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
     # --> how should this be handled? By initialize?
+
 
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
@@ -485,6 +439,28 @@ class GeneticAlgorithm(RavenSampled):
     pass
   # END constraint handling
   # * * * * * * * * * * * *
+  def _addToSolutionExport(self, traj, rlz, acceptable):
+    """
+      Contributes additional entries to the solution export.
+      @ In, traj, int, trajectory which should be written
+      @ In, rlz, dict, collected point
+      @ In, acceptable, bool, acceptability of opt point
+      @ Out, toAdd, dict, additional entries
+    """
+    # meta variables
+    toAdd = {'PopulationAge': self.popAge,
+                }
+
+    for var in self.toBeSampled:
+      toAdd[var+'_Age'] = self.info[var+'_Age']
+
+    for var, val in self.constants.items():
+      toAdd[var] = val
+
+    toAdd = dict((key, np.atleast_1d(val)) for key, val in toAdd.items())
+    for key, val in self._convergenceInfo[traj].items():
+      toAdd['conv_{}'.format(key)] = bool(val)
+    return toAdd
 
   # def _updateSolutionExport(self, traj, rlz, acceptable):
   #   """
