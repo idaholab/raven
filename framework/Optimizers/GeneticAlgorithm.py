@@ -311,12 +311,13 @@ class GeneticAlgorithm(RavenSampled):
     # model is generating [y1,..,yL] = F(x1,...,xM)
     # population format [y1,..,yL,x1,...,xM,fitness]
 
-    # 5 @ n-1: Population replacement from previous iteration (children+parents merging from previous generation)
+    # 5 @ n-1: Survivor Selection from previous iteration (children+parents merging from previous generation)
+
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
     # childrenCont = self.__fitnessCalculationHandler(rlz,params=paramsDict)
 
-    # 5.2@ n-1: replacementCalculation(rlz)
+    # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
     if self.counter > 1:
