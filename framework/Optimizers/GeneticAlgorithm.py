@@ -34,6 +34,7 @@ from .parentSelectors.parentSelectors import returnInstance as parentSelectionRe
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
+from .fitness.fitness import returnInstance as fitnessReturnInstance
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GeneticAlgorithm(RavenSampled):
@@ -156,9 +157,28 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented servivor selection mechanisms.
-                  This includes: a.    AgeBased, or
-                                 b.    Fitness Based.""")
+                  This includes: a.    ageBased, or
+                                 b.    fitnessBased.""")
     GAparams.addSub(survivorSelection)
+
+    # Fitness
+    fitness = InputData.parameterInputFactory('fitness', strictMode=True,
+        contentType=InputTypes.StringType,
+        printPriority=108,
+        descr=r"""a subnode containing the implemented fitness functions.
+                  This includes: a.    invLinear.""")
+    fitness.addParam("type", InputTypes.StringType, True)
+    objCoeff = InputData.parameterInputFactory('a', strictMode=True,
+        contentType=InputTypes.FloatType,
+        printPriority=108,
+        descr=r""" a: coefficient of objective function.""")
+    fitness.addSub(objCoeff)
+    penaltyCoeff = InputData.parameterInputFactory('b', strictMode=True,
+        contentType=InputTypes.FloatType,
+        printPriority=108,
+        descr=r""" b: coefficient of constraint penalty.""")
+    fitness.addSub(penaltyCoeff)
+    GAparams.addSub(fitness)
     specs.addSub(GAparams)
 
     # convergence
@@ -229,7 +249,12 @@ class GeneticAlgorithm(RavenSampled):
     survivorSelectionNode = GAparamsNode.findFirst('survivorSelection')
     self._survivorSelectionType = survivorSelectionNode.value
     self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
-
+    # Fitness
+    fitnessNode = GAparamsNode.findFirst('fitness')
+    self._fitnessType = fitnessNode.parameterValues['type']
+    self._objCoeff = fitnessNode.findFirst('a').value
+    self._penaltyCoeff = fitnessNode.findFirst('b').value
+    self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     # Convergence Criterion
     convNode = paramInput.findFirst('convergence')
     if convNode is not None:
@@ -299,14 +324,16 @@ class GeneticAlgorithm(RavenSampled):
     # This part is just a dumb emulation of what should be passed by the job handeler batch
     # This part will totally be removed later.
     population = np.zeros((self._populationSize,len(self.toBeSampled)))
-    fitnesses = np.zeros(len(self.toBeSampled))
+    obj = np.zeros((self._populationSize))
+    fitness = np.zeros((self._populationSize))
     # For now I will assume
-    fitnesses = rlz[self._objectiveVar]*np.random.random(self._populationSize) # All np.random should be replaced with randomUtils.random etc.
+    # fitnesses = rlz[self._objectiveVar]*np.random.random(self._populationSize) # All np.random should be replaced with randomUtils.random etc.
     chromosome = rlz.copy()
     chromosome.pop(self._objectiveVar)
     chromosome = list(chromosome.values())
     for i in range(self._populationSize):
       population[i] = np.random.choice(chromosome,size=len(self.toBeSampled),replace=False)
+    obj = rlz[self._objectiveVar] * randomUtils.random(dim=10,samples=1)
 
     # model is generating [y1,..,yL] = F(x1,...,xM)
     # population format [y1,..,yL,x1,...,xM,fitness]
@@ -316,6 +343,8 @@ class GeneticAlgorithm(RavenSampled):
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
     # childrenCont = self.__fitnessCalculationHandler(rlz,params=paramsDict)
+    for i in range(self._populationSize):
+      fitness[i] = self._fitnessInstance(a=self._objCoeff,b=self._penaltyCoeff,obj=obj[i],penalty = None)
 
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
@@ -332,7 +361,7 @@ class GeneticAlgorithm(RavenSampled):
     # parentSet = self.__selectionCalculationHandler(parents=self.population,params=paramsDict)
     parents = np.zeros((self._nParents,len(self.toBeSampled)))
     for i in range(self._nParents):
-      ind, parents[i] = self._parentSelectionInstance(population=population,fitnesses=fitnesses)
+      ind, parents[i] = self._parentSelectionInstance(population=population,fitness=fitness)
       population = np.delete(population, ind, axis=0)
 
     # 2 @ n: Crossover from set of parents
