@@ -23,7 +23,8 @@
 import numpy as np
 from utils import randomUtils
 from copy import deepcopy
-
+from scipy.special import comb
+from itertools import combinations
 def onePointCrossover(**kwargs):
   """
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
@@ -33,7 +34,7 @@ def onePointCrossover(**kwargs):
     @ Out, children, np.array, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
   """
   nParents,nGenes = np.shape(kwargs['parents'])
-  children = np.zeros((np.shape(kwargs['parents'])))
+  children = np.zeros((int(2*comb(nParents,2)),np.shape(kwargs['parents'])[1]))
   parents = kwargs['parents']
   # defaults
   if kwargs['points'] is None:
@@ -47,17 +48,15 @@ def onePointCrossover(**kwargs):
     crossoverProb = kwargs['crossoverProb']
 
   # create children
-  if randomUtils.random(dim=1,samples=1) < crossoverProb:
-    # TODO right nChildren is equal to nParents whereas it should be nChildren = 2 x nParentsChoose2
-    for i in range(nGenes):
-      if i<point:
-        children[:,i]=parents[:,i]
-      else:
-        for j in range(np.shape(parents)[0]):
-          children[j,i]=parents[np.shape(parents)[0]-j-1,i]
-  else:
-    # Each child is just a copy of the parents
-    children = deepcopy(parents)
+  parentsPairs = list(combinations(parents,2))
+  for ind,parent in enumerate(parentsPairs):
+    parent = np.array(parent).reshape(2,-1)
+    if randomUtils.random(dim=1,samples=1) < crossoverProb:
+      for i in range(nGenes):
+        children[2*ind:2*ind+2,i]=parent[np.arange(0,2)*(i<point[0])+np.arange(-1,-3,-1)*(i>=point[0]),i]
+    else:
+      # Each child is just a copy of the parents
+      children[2*ind:2*ind+2,:] = deepcopy(parent)
   return children
 
 __crossovers = {}

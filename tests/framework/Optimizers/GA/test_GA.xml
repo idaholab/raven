@@ -63,17 +63,21 @@
       <GAparams>
         <populationSize>10</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="2">
+        <reproduction nParents="3">
           <crossover type="onePointCrossover">
             <points>3</points>
-            <crossoverProb>0.2</crossoverProb>
+            <crossoverProb>0.8</crossoverProb>
           </crossover>
           <mutation type="swapMutator">
             <locs>2,5</locs>
             <mutationProb>0.3</mutationProb>
           </mutation>
         </reproduction>
-        <survivorSelection>AgeBased</survivorSelection>
+        <fitness type="invLinear">
+          <a>2.0</a>
+          <b>1.0</b>
+        </fitness>
+        <survivorSelection>ageBased</survivorSelection>
       </GAparams>
 
       <convergence>
