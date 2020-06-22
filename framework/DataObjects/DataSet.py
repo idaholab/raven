@@ -504,7 +504,7 @@ class DataSet(DataObject):
     self._setScalingFactors()
 
   # @profile
-  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False):
+  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False, asDataSet = False):
     """
       Method to obtain a realization from the data, either by index or matching value.
       Either "index" or one of ("matchDict", "noMatchDict") must be supplied.
@@ -575,6 +575,12 @@ class DataSet(DataObject):
             index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol)
       # add index map where necessary
       rlz = self._addIndexMapToRlz(rlz)
+      if asDataSet:
+        d = {}
+        dims =  self.getDimensions()
+        for k, v in rlz.items():
+          d[k] = {'dims':tuple(dims[k]) ,'data': v}
+        rlz =  xr.Dataset.from_dict(d)
       return index, rlz
 
   def remove(self,variable):

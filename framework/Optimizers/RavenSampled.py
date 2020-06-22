@@ -251,11 +251,12 @@ class RavenSampled(Optimizer):
     # FIXME implicit constraints probable should be handled here too
     # get information and realization, and update trajectories
     info = self.getIdentifierFromPrefix(prefix, pop=True)
-    _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
+    _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=True) 
+    # _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False) 
     # trim down opt point to the useful parts
     # TODO making a new dict might be costly, maybe worth just passing whole point?
     ## testing suggests no big deal on smaller problem
-    rlz = dict((var, full[var]) for var in (list(self.toBeSampled.keys()) + [self._objectiveVar] + list(self.dependentSample.keys())))
+    # rlz = dict((var, full[var]) for var in (list(self.toBeSampled.keys()) + [self._objectiveVar] + list(self.dependentSample.keys())))
     # the sign of the objective function is flipped in case we do maximization
     # so get the correct-signed value into the realization
     if self._minMax == 'max':
