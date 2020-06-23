@@ -323,17 +323,18 @@ class GeneticAlgorithm(RavenSampled):
     # separate population from model evaluations
     # This part is just a dumb emulation of what should be passed by the job handeler batch
     # This part will totally be removed later.
-    population = np.zeros((self._populationSize,len(self.toBeSampled)))
-    obj = np.zeros((self._populationSize))
+    # population = np.zeros((self._populationSize,len(self.toBeSampled)))
+    # obj = np.zeros((self._populationSize))
     fitness = np.zeros((self._populationSize))
     # For now I will assume
     # fitnesses = rlz[self._objectiveVar]*np.random.random(self._populationSize) # All np.random should be replaced with randomUtils.random etc.
-    chromosome = rlz.copy()
-    chromosome.pop(self._objectiveVar)
-    chromosome = list(chromosome.values())
-    for i in range(self._populationSize):
-      population[i] = np.random.choice(chromosome,size=len(self.toBeSampled),replace=False)
-    obj = rlz[self._objectiveVar] * randomUtils.random(dim=10,samples=1)
+    # for var in self.toBeSampled:
+    #   chromosome = rlz.copy()
+    # chromosome.pop(self._objectiveVar)
+    # chromosome = list(chromosome.values())
+    # for i in range(self._populationSize):
+    #   population[i] = np.random.choice(chromosome,size=len(self.toBeSampled),replace=False)
+    # obj = rlz[self._objectiveVar] * randomUtils.random(dim=10,samples=1)
 
     # model is generating [y1,..,yL] = F(x1,...,xM)
     # population format [y1,..,yL,x1,...,xM,fitness]
@@ -344,7 +345,7 @@ class GeneticAlgorithm(RavenSampled):
     # perform fitness calculation for newly obtained children (rlz)
     # childrenCont = self.__fitnessCalculationHandler(rlz,params=paramsDict)
     for i in range(self._populationSize):
-      fitness[i] = self._fitnessInstance(a=self._objCoeff,b=self._penaltyCoeff,obj=obj[i],penalty = None)
+      fitness[i] = self._fitnessInstance(rlz,objVar = self._objectiveVar,a=self._objCoeff,b=self._penaltyCoeff,penalty = None)
 
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children

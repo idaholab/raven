@@ -19,7 +19,7 @@
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
 """
 
-def invLinear(**kwargs):
+def invLinear(rlz,**kwargs):
   """
     .. math::
 
@@ -45,8 +45,9 @@ def invLinear(**kwargs):
   else:
     penalty = kwargs['penalty']
 
-  obj = kwargs['obj']
-  fitness = 1/(a*obj+b*penalty)
+  objVar = kwargs['objVar']
+  obj = eval(str('rlz.'+objVar+'.data'))
+  fitness = 1/(a * obj + b * penalty)
   return fitness
 
 __fitness = {}
