@@ -24,6 +24,7 @@ import copy
 from sklearn.feature_selection import RFE, RFECV, mutual_info_regression,  mutual_info_classif,  VarianceThreshold
 from sklearn.decomposition import KernelPCA
 from sklearn.linear_model import LinearRegression
+import pandas as pd
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -61,7 +62,9 @@ class FeatureSelection(PostProcessor):
     step = InputData.parameterInputFactory("step", contentType=InputTypes.FloatOrIntType)
     inputSpecification.addSub(step)
     aTarg = InputData.parameterInputFactory("aggregateTargets", contentType=InputTypes.BoolType)
-    inputSpecification.addSub(aTarg)        
+    inputSpecification.addSub(aTarg)
+    corrS = InputData.parameterInputFactory("correlationScreening", contentType=InputTypes.BoolType)
+    inputSpecification.addSub(corrS)
     return inputSpecification
 
   def __init__(self, messageHandler):
@@ -76,7 +79,7 @@ class FeatureSelection(PostProcessor):
     self.settings = {}
     self.dynamic  = False # is it time-dependent?
     self.printTag = 'POSTPROCESSOR FEATURE SELECTION'
-    
+
   def _localReadMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -95,7 +98,7 @@ class FeatureSelection(PostProcessor):
       @ Out, None
     """
     for child in paramInput.subparts:
-      if child.getName() == 'what': 
+      if child.getName() == 'what':
         self.what = child.value.strip()
       elif child.getName() == 'targets':
         self.targets = list(inp.strip() for inp in child.value.strip().split(','))
@@ -104,7 +107,9 @@ class FeatureSelection(PostProcessor):
       elif child.getName() == 'minimumNumberOfFeatures':
         self.settings[child.getName()] = child.value
       elif child.getName() == 'aggregateTargets':
-        self.settings[child.getName()] = child.value        
+        self.settings[child.getName()] = child.value
+      elif child.getName() == 'correlationScreening':
+        self.settings[child.getName()] = child.value
       else:
         self.raiseAnError(IOError, 'Unrecognized xml node name: ' + child.getName() + '!')
 
@@ -132,7 +137,7 @@ class FeatureSelection(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    
+
   def inputToInternal(self, currentInp):
     """
       Method to convert an input object into the internal format that is understandable by this pp.
@@ -217,6 +222,24 @@ class FeatureSelection(PostProcessor):
     step = self.settings.get('step', 1)
     nFeatures = self.settings.get('minimumNumberOfFeatures', None)
     aggregateTargets = self.settings.get("aggregateTargets", False)
+    correlationScreening = self.settings.get("correlationScreening", False)
+    if correlationScreening:
+      # Create correlation matrix
+      df = pd.DataFrame.from_dict(inputDict['features'])
+      # Create correlation matrix
+      corr_matrix = df.corr().abs()
+      # Select upper triangle of correlation matrix
+      upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
+      # Find features with correlation greater than 0.95
+      to_drop = [column for column in upper.columns if any(upper[column] > 0.995)]
+      inputDict['features'] =  {key:inputDict['features'][key] for key in list(set(list( inputDict['features'].keys())) - set(to_drop))}
+      # a = copy.deepcopy(inputDict['features'])
+      # a.update(inputDict['targets'])
+      # corrwithtarget = pd.DataFrame.from_dict(a).corr().abs()
+      if nFeatures > len(inputDict['features']):
+        self.raiseAWarning("number of features selected via correlation analysis is < minimumNumberOfFeatures!")
+      nFeatures = min(nFeatures, len(inputDict['features']))
+
     if aggregateTargets:
       # perform a PCA and analyze the first principal component
       kpca = KernelPCA(n_components=1, kernel = "rbf", random_state=0)
@@ -251,8 +274,8 @@ class FeatureSelection(PostProcessor):
           sortedFeatures = mutual_info_regression(np.atleast_2d(list(inputDict['features'].values())).T, inputDict['targets'][targ]).argsort()
           outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[sortedFeatures][-nFeatures:])
     elif self.what == 'PCA':
-      transformer = KernelPCA(n_components=nFeatures, kernel = "rbf", random_state=0).fit(np.atleast_2d(list(inputDict['features'].values()) + list(inputDict['targets'].values())).T)
-       
+      transformer = PCA(n_components=nFeatures, random_state=0).fit(np.atleast_2d(list(inputDict['features'].values()) + list(inputDict['targets'].values())).T)
+
 
     return outputDict
 
