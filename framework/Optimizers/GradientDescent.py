@@ -184,7 +184,6 @@ class GradientDescent(RavenSampled):
       new.update(gradReturnClass(grad, cls).getSolutionExportVariableNames())
     for step in stepKnownTypes():
       new.update(stepReturnClass(step, cls).getSolutionExportVariableNames())
-
     ok.update(new)
     return ok
 
@@ -565,6 +564,7 @@ class GradientDescent(RavenSampled):
       @ In, info, dict, identifying information about the opt point
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
+      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
     # Check acceptability
     if self._optPointHistory[traj]:
@@ -580,10 +580,11 @@ class GradientDescent(RavenSampled):
           self.raiseADebug('Cancelling Trajectory {} because it is following Trajectory {}'.format(traj, following))
           self._trajectoryFollowers[following].append(traj) # "traj" is killed by "following"
           self._closeTrajectory(traj, 'cancel', 'following {}'.format(following), optVal)
-          return 'accepted', old
+          return 'accepted', old, 'None'
 
       self.raiseADebug(' ... change: {d: 1.3e} new: {n: 1.6e} old: {o: 1.6e}'
                       .format(d=optVal-oldVal, o=oldVal, n=optVal))
+      rejectReason = 'None'
       ## some stepManipulators may need to override the acceptance criteria, e.g. conjugate gradient
       if self._stepInstance.needsAccessToAcceptance:
         acceptable = self._stepInstance.modifyAcceptance(old, oldVal, opt, optVal)
@@ -598,24 +599,27 @@ class GradientDescent(RavenSampled):
         acceptable = 'accepted'
       else:
         if self._impConstraintFunctions:
-          accept = self._handleImplicitConstraints(old)
+          accept = self._handleImplicitConstraints(opt)
           if accept:
-            acceptable = self._checkForImprovement(optVal, oldVal)
+            acceptable, rejectReason = self._checkForImprovement(optVal, oldVal)
           else:
             acceptable = 'rejected'
+            rejectReason = 'implicitConstraintsViolation'
         else:
-          acceptable = self._checkForImprovement(optVal, oldVal)
+          acceptable, rejectReason = self._checkForImprovement(optVal, oldVal)
     else: # no history
       # if first sample, simply assume it's better!
+      rejectReason = 'None'
       if self._impConstraintFunctions:
         accept = self._handleImplicitConstraints(opt)
         if not accept:
           self.raiseAWarning('First point violate Implicit constraint, please change another point to start!')
+          rejectReason = 'implicitConstraintsViolation'
       acceptable = 'first'
       old = None
     self._acceptHistory[traj].append(acceptable)
     self.raiseADebug(' ... {a}!'.format(a=acceptable))
-    return acceptable, old
+    return acceptable, old, rejectReason
 
   def _checkForImprovement(self, new, old):
     """
@@ -623,10 +627,14 @@ class GradientDescent(RavenSampled):
       @ In, new, float, new optimization value
       @ In, old, float, previous optimization value
       @ Out, improved, bool, True if "sufficiently" improved or False if not.
+      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
     # TODO could this be a base RavenSampled class?
     improved = self._acceptInstance.checkImprovement(new, old)
-    return 'accepted' if improved else 'rejected'
+    if improved:
+      return 'accepted', 'None'
+    else:
+      return 'rejected', 'noImprovement'
 
   def _updateConvergence(self, traj, new, old, acceptable):
     """
@@ -815,7 +823,6 @@ class GradientDescent(RavenSampled):
     # remaking the list is easier than using the existing one
     acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
     new = []
-    print('DEBUGG acceptable:', acceptable)
     while acceptable:
       template = acceptable.pop()
       if '{CONV}' in template:
