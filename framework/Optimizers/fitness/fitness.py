@@ -13,7 +13,7 @@
 # limitations under the License.
 """
   Implementation of fitness function for Genetic Algorithm
-  currently the implemented fitness function is a linear combination of the objective function and prenalty function for constraint violation:
+  currently the implemented fitness function is a linear combination of the objective function and penalty function for constraint violation:
 
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
@@ -26,9 +26,9 @@ def invLinear(rlz,**kwargs):
     fitness = \\frac{1}{a * obj + b * penalty}
 
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
-          obj, float, the value of the objectiove function at the chromosome for which fitness is computed
+          obj, float, the value of the objective function at the chromosome for which fitness is computed
           a, float, linear coefficient for the objective function (default = 1.0)
-          penalty, float, measuring the saverity of the constraint violation. (defazult = 1.0)
+          penalty, float, measuring the severity of the constraint violation. (default = 1.0)
           b, float, linear coefficient for the penalty measure. (default = 1.0)
     @ Out, fitness, float, the fitness function of the given objective corresponding to a specific chromosome.
   """

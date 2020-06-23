@@ -23,6 +23,7 @@
 
 from operator import itemgetter
 from utils import randomUtils
+
 def swapMutator(**kwargs):
   """
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
@@ -45,7 +46,7 @@ def scrambleMutator(**kwargs):
   """
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           chromosome, numpy.array, the chromosome that will mutate to the new child
-          locs, list, the locations of the genes to be randomly scrampled
+          locs, list, the locations of the genes to be randomly scrambled
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
     @ Out, child, np.array, the mutated chromosome, i.e., the child.
   """

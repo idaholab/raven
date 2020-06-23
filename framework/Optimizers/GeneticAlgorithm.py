@@ -504,7 +504,7 @@ class GeneticAlgorithm(RavenSampled):
   #   pass
 
   def __fitnessCalculationHandler(self,children,params):
-    # rlz is a Pandas dataFrame containing N realization of [y1,..,yL,x1,...,xM]
+    # children is a Pandas dataFrame containing N realization of [y1,..,yL,x1,...,xM]
     if params['fitnessType'] == 'fitnessType1':
       pass
       # perform fitness calculation
@@ -540,10 +540,14 @@ class GeneticAlgorithm(RavenSampled):
     return #parentSet
 
   def __crossoverCalculationHandler(self,parentSet,population,params):
-    if params['crossoverType'] == 'bitSplice':
+    if params['crossoverType'] == 'onePointCrossover':
       pass
       # create childrenCoordinates: a panda dataframe
-      # childrenCoordinates = crossoverBitSplice(parentSet,params={})
+      # childrenCoordinates = onePointCrossover(parents=parentSet,params={})
+    elif params['twoPointsCrossover'] == 'twoPointsCrossover':
+      pass
+      # create childrenCoordinates: a panda dataframe
+      # childrenCoordinates = twoPointsCrossover(parents=parentSet,params={})
     else:
       pass
       # other methods ...
