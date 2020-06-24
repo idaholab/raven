@@ -530,7 +530,7 @@ class GeneticAlgorithm(RavenSampled):
 
   def __selectionCalculationHandler(self,parents,params):
     # create a list of pairs of parents: a list of list containing two (or more) parents indexes (e.g., [[2,5],[6,3],...])
-    if params['selectionType'] == 'stdRoulette':
+    if params['selectionType'] == 'rouletteWheel':
       pass
       # parentSet = stdRouletteSelection(population=parents,params={})
     else:
@@ -557,9 +557,11 @@ class GeneticAlgorithm(RavenSampled):
   def mutationCalculationHandler(self,children,params):
     # this method does not return anything
     # It simply acts on childrenCoordinates directly
-    if params['mutationType'] =='bitWise':
+    if params['mutationType'] =='swapMutator':
       pass
       #  mutation(childrenCoordinates, params={})
+    elif params['mutationType'] =='scrambleMutator':
+      pass
     else:
       pass
       # other methods ...

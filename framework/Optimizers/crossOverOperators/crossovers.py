@@ -78,8 +78,7 @@ def twoPointsCrossover(**kwargs):
     crossoverProb = randomUtils.random(dim=1, samples=1)
   else:
     crossoverProb = kwargs['crossoverProb']
-
-
+    
   for ind,parent in enumerate(parents):
     listToSample = list(range(1,nGenes-1))
     initialPerm = randomUtils.randomPermutation(listToSample)

@@ -28,7 +28,7 @@ def rouletteWheel(**kwargs):
     Roulette Selection mechanism for parent selection
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
-          population, np.array, all chromosomes (idividuals) candidate to be parents, i.e. np.shape(population) = populationSize x nGenes.
+          population, np.array, all chromosomes (individuals) candidate to be parents, i.e. np.shape(population) = populationSize x nGenes.
     @ Out, counter, integer, the id of the selected parent
     @ Out, selectedParents, np.array, selected parents, i.e. np.shape(selectedParents) = nParents x nGenes.
   """
