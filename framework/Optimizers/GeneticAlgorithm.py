@@ -516,6 +516,7 @@ class GeneticAlgorithm(RavenSampled):
     return children
 
   def __replacementCalculationHandler(self,parents,children,params):
+    # parents and children are two Pandas dataFrame containing realization of [y1,..,yL,x1,...,xM,fitness]
     if params['replacementType'] == 'generational':
       pass
       # the following method remove the parents and leave the children
