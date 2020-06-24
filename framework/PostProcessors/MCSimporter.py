@@ -128,7 +128,8 @@ class MCSImporter(PostProcessor):
 
     if beFileFound==False and self.expand==True:
       self.raiseAnError(IOError, 'MCSImporterPostProcessor Post-Processor ' + self.name + ', Expand is set to False but no file with type=BElist has been found')
-
+    
+    '''
     self.mcsList=[]
     self.beList=set()
     self.probability = np.zeros((0))
@@ -154,6 +155,9 @@ class MCSImporter(PostProcessor):
         counter = counter+1
         if self.expand==False:
           self.beList.update(elementsList)
+    '''  
+    self.mcsIDs, self.probability, self.mcsList, self.beList = MCSreader(MCSlistFile)     
+              
     if self.expand:
       beData = pd.read_csv(BElistFile.getFilename())
       self.beList = beData[self.beListColumn].values.tolist()
@@ -163,11 +167,13 @@ class MCSImporter(PostProcessor):
     # MCS Input variables
     mcsPointSet['probability'] = self.probability
     mcsPointSet['MCS_ID']      = self.mcsIDs
-    mcsPointSet['out']         = np.ones((counter))
+    #mcsPointSet['out']         = np.ones((counter))
+    mcsPointSet['out']         = np.ones((self.probability.size))
 
     # MCS Output variables
     for be in self.beList:
-      mcsPointSet[be]= np.zeros(counter)
+      #mcsPointSet[be]= np.zeros(counter)
+      mcsPointSet[be]= np.zeros(self.probability.size)
     counter=0
     for mcs in self.mcsList:
       for be in mcs:
@@ -194,3 +200,40 @@ class MCSImporter(PostProcessor):
       output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
     else:
         self.raiseAnError(RuntimeError, 'MCSImporter failed: Output type ' + str(output.type) + ' is not supported.')
+        
+def MCSreader(MCSlistFile):
+  """
+    Function designed to read a file containing the set of MCSs and to save it as list of list
+    @ In, MCSlistFile, string, name of the file containing the set of MCSs 
+    @ Out, mcsIDs, np array, array containing the ID associated to each MCS
+    @ Out, probability, np array, array containing the probability associated to each MCS
+    @ Out, mcsList, list, list of MCS, each element is also a list containing the basic events of each MCS
+    @ Out, beList, list, list of all basic events contained in the MCSs
+  """  
+  mcsList=[]
+  beList=set()
+  probability = np.zeros((0))
+  mcsIDs = np.zeros((0))
+
+  # construct the list of MCSs and the list of BE
+  counter=0
+  with open(MCSlistFile.getFilename(), 'r') as file:
+    next(file) # skip header
+    lines = file.read().splitlines()
+    for l in lines:
+      elementsList = l.split(',')
+
+      mcsIDs = np.append(mcsIDs,elementsList[0])
+      elementsList.pop(0)
+
+      probability=np.append(probability,elementsList[0])
+      elementsList.pop(0)
+
+      for element in elementsList:
+        element.rstrip('\n')
+      mcsList.append(elementsList)
+      counter = counter+1
+      
+      beList.update(elementsList)
+  
+  return mcsIDs, probability, mcsList, beList
