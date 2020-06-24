@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import math
+
 def run(self, Input):
   # self.leftTemperature (boundary condition - left) self.rightTemperature (boundary condition - right)
   self.averageTemperature = (self.leftTemperature + self.rightTemperature)/2.0

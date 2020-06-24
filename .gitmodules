@@ -10,3 +10,6 @@
 [submodule "plugins/SRAW"]
 	path = plugins/SRAW
 	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SRAW.git
+[submodule "plugins/heron"]
+	path = plugins/heron
+	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/heron.git

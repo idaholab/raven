@@ -27,7 +27,8 @@ from .ExternalModel import ExternalModel
 from .Code          import Code
 from .EnsembleModel import EnsembleModel
 from .PostProcessor import PostProcessor
-from .HybridModels import HybridModel
+from .HybridModels  import HybridModel
+from .HybridModels  import LogicalModel
 
 __base = 'Model'
 __interFaceDict = {}
