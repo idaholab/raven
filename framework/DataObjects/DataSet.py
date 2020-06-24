@@ -783,7 +783,8 @@ class DataSet(DataObject):
     """
     if rlz is None:
       return rlz
-    need = any(len(val.shape) > 1 for val in rlz.values() if hasattr(val, 'shape'))
+    # an index map is needed if you're not a scalar; i.e. you depend on at least 1 non-null index
+    need = any(val.size > 1 for val in rlz.values() if hasattr(val, 'size'))
     if need:
       rlz['_indexMap'] = self.getDimensions()
     return rlz
@@ -866,10 +867,12 @@ class DataSet(DataObject):
     """
     # check that indexMap and expected indexes line up
     ## This check can be changed when we can automatically collapse dimensions intelligently
-    if indexMap is not None:
+    ## NOTE that if this dataset is non-indexed, don't check index alignment
+    if indexMap is not None and self.indexes:
       mapIndices = set()
       mapIndices.update(*list(indexMap.values()))
       if mapIndices != set(self.indexes):
+        print('DEBUGG pivots:', self._pivotParams)
         self.raiseAWarning('Realization indexes do not match expected indexes!\n',
                            'Extra from realization: {}\n'.format(mapIndices-set(self.indexes)),
                            'Missing from realization: {}'.format(set(self.indexes) - mapIndices))
