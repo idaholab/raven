@@ -439,6 +439,15 @@ class BoostDistribution(Distribution):
     returnPdf = self._distribution.pdf(x)
     return returnPdf
 
+  def logpdf(self,x):
+    """
+      Function to get the log pdf at a provided coordinate
+      @ In, x, float, value to get the pdf at
+      @ Out, logpdf, float, requested log pdf
+    """
+    logpdf = np.log(self._distribution.pdf(x))
+    return logpdf
+
   def untruncatedCdfComplement(self, x):
     """
       Function to get the untruncated  cdf complement at a provided coordinate
