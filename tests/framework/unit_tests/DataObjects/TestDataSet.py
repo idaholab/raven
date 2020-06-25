@@ -909,13 +909,18 @@ correct = {'a':np.array([  1.0,  1.1]),
            'x':np.array([ 10.0, 10.1]),
            'y':np.array([100.0,100.1]),
            'trajID':np.array([1])}
-checkRlz('Cluster read [0]',data2.realization(index=0),correct)
+indexMap = dict((var, ['varsUpdate']) for var in correct)
+indexMap['trajID'] = []
+indexMap = np.atleast_1d(indexMap)
+correct['_indexMap'] = indexMap
+checkRlz('Cluster read [0]', data2.realization(index=0), correct, skip=['_indexMap'])
 correct = {'a':np.array([  2.0,  2.1]),
            'b':np.array([  6.0,  6.1]),
            'x':np.array([ 20.0, 20.1]),
            'y':np.array([200.0,200.1]),
            'trajID':np.array([2])}
-checkRlz('Cluster read [1]',data2.realization(index=1),correct)
+correct['_indexMap'] = indexMap
+checkRlz('Cluster read [1]',data2.realization(index=1),correct, skip=['_indexMap'])
 
 ######################################
 #             DATA TYPING            #
@@ -995,7 +1000,8 @@ correct0 = {'alpha':np.array([0.0]),
             'gamma':np.array([0.5]),
             'delta':np.array([0.5, 0.6, 0.7]),
             'jobID':np.array(['0']),
-            'timelike':np.array([0.01, 0.02, 0.03])}
+            'timelike':np.array([0.01, 0.02, 0.03]),
+            '_indexMap': None} # dummy, matches length of correct realization
 checkRlz('Rename in collector: variables',data2.realization(index=0),correct0,skip=['timelike', '_indexMap'])
 checkArray('Rename in collector: index',data2.indexes,['timelike'],str)
 
@@ -1009,7 +1015,7 @@ data3.renameVariable('d','delta')
 data3.renameVariable('prefix','jobID')
 data3.renameVariable('t','timelike')
 checkRlz('Rename in dataset: variables',data3.realization(index=0),correct0,skip=['timelike', '_indexMap'])
-checkArray('Rename in dataset: index',data3.indexes,['timelike', '_indexMap'],str)
+checkArray('Rename in dataset: index', data3.indexes, ['timelike'], str)
 
 # now asDatset, then append, then rename
 data.asDataset()

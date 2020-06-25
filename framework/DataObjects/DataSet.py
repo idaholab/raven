@@ -869,14 +869,45 @@ class DataSet(DataObject):
     ## This check can be changed when we can automatically collapse dimensions intelligently
     ## NOTE that if this dataset is non-indexed, don't check index alignment
     if indexMap is not None and self.indexes:
-      mapIndices = set()
+      okay = True         # track if the indexes provided are okay
+      mapIndices = set()  # these are the indices provided by the realization
       mapIndices.update(*list(indexMap.values()))
+      # see if the provided indices match the required indices for this data object
       if mapIndices != set(self.indexes):
-        print('DEBUGG pivots:', self._pivotParams)
-        self.raiseAWarning('Realization indexes do not match expected indexes!\n',
-                           'Extra from realization: {}\n'.format(mapIndices-set(self.indexes)),
-                           'Missing from realization: {}'.format(set(self.indexes) - mapIndices))
-        return False
+        extra = mapIndices-set(self.indexes)      # extra indices not expected
+        missing = set(self.indexes) - mapIndices  # indices expected but not provided
+        if extra:
+          # perhaps someday we can collapse dimensions intelligently, but for not, this is an error state
+          okay = False # if there's extra indices listed that aren't part of the DataObject, we don't handle this yet
+        elif missing:
+          # if the variables depending on an index ONLY depend on that one index, we can infer the
+          #   structure and allow the contributing source to not explicitly provide the index map.
+          #   Should we be, though? Should this be an action of the CSV loader? a Realization class?
+          for missed in missing:
+            # the missing index has to be in the provided realization for us to infer the structure and values
+            if missed in rlz:
+              # update the mapping for each variable that is meant to depend on this index
+              for var in self._pivotParams[missed]:
+                if var in indexMap:
+                  # this variable already has dependencies, but not the missed dependency, so we
+                  # cannot infer the structure without help from the data source
+                  okay = False
+                  break
+                else:
+                  indexMap[var] = [missed]
+              if not okay:
+                break
+            else:
+              okay = False
+              break
+        if not okay:
+          # update extra/missing in case there have been changes
+          extra = mapIndices-set(self.indexes)
+          missing = set(self.indexes) - mapIndices
+          self.raiseAWarning('Realization indexes do not match expected indexes!\n',
+                            f'Extra from realization: {extra}\n',
+                            f'Missing from realization: {missing}')
+          return False
     if not isinstance(rlz, dict):
       self.raiseAWarning('Realization is not a "dict" instance!')
       return False
