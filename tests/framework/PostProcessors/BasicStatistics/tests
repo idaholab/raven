@@ -70,7 +70,7 @@
     type = 'RavenFramework'
     input = 'print_xml.xml'
     [./CSV]
-      type = CSV
+      type = OrderedCSV
       output = 'basicStatisticsXml/InputOutput_basicStatPP_dump.csv'
       rel_err = 1e-6
       zero_threshold = 1e-14
