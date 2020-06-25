@@ -97,10 +97,10 @@ class Assembler(MessageHandler.MessageUser):
           found[token] = True
           if 'class' not in subNode.attrib.keys():
             self.raiseAnError(IOError, 'In '+self.type+' Object ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
-          if  subNode.tag not in self.assemblerObjects.keys():
-            self.assemblerObjects[subNode.tag.strip()] = []
-          # check if already present
           tag = subNode.tag.strip()
+          if  tag not in self.assemblerObjects:
+            self.assemblerObjects[tag] = []
+          # check if already present
           entry = [subNode.attrib['class'],subNode.attrib['type'],subNode.text.strip()]
           if entry not in self.assemblerObjects.get(tag, []):
             self.assemblerObjects[tag].append(entry)
@@ -113,6 +113,7 @@ class Assembler(MessageHandler.MessageUser):
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some variables based on the inputs got. This method is used to automatically generate the Assembler 'request'
       based on the input of the daughter class.
+      @ In, self, Any, an instance of the class to read into this.
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
       @ Out, None
     """
@@ -122,6 +123,8 @@ class Assembler(MessageHandler.MessageUser):
     self.printTag = self.type
     if 'verbosity' in xmlNode.attrib.keys():
       self.verbosity = xmlNode.attrib['verbosity'].lower()
+    #XXX Once InputData checks numbers of subnodes, everything in this
+    # if block can be removed
     if self.requiredAssObject[0]:
       testObjects = {}
       for token in self.requiredAssObject[1][0]:
