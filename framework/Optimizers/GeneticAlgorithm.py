@@ -350,13 +350,15 @@ class GeneticAlgorithm(RavenSampled):
     # childrenCont = self.__fitnessCalculationHandler(rlz,params=paramsDict)
     for i in range(self._populationSize):
       fitness[i] = self._fitnessInstance(rlz,objVar = self._objectiveVar,a=self._objCoeff,b=self._penaltyCoeff,penalty = None)
-
+    variables = []
+    for var in self.toBeSampled:
+      variables.append(var)
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
-    if self.counter > 1:
+    if self.counter > 0:
       # right now these are lists, but this should be changed to xarrays when the realization is ready as an xarray dataset
-      population,Fitness,Age = self._survivorSelectionInstance(rlz)
+      population,Fitness,Age = self._survivorSelectionInstance(rlz,objVar = self._objectiveVar,variables = variables,popAge = np.zeros((self._populationSize,1)))
       # This will be added once the rlz is treated as a xarray DataSet
       # for var in self.toBeSampled:
         # self.info[var+'_Age'] = Age[var]
@@ -366,7 +368,7 @@ class GeneticAlgorithm(RavenSampled):
     # parentSet = self.__selectionCalculationHandler(parents=self.population,params=paramsDict)
     parents = np.zeros((self._nParents,len(self.toBeSampled)))
     for i in range(self._nParents):
-      ind, parents[i] = self._parentSelectionInstance(population=population,fitness=fitness)
+      ind, parents[i] = self._parentSelectionInstance(rlz,fitness=fitness)
       population = np.delete(population, ind, axis=0)
 
     # 2 @ n: Crossover from set of parents

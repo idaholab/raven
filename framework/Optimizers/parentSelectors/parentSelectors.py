@@ -23,7 +23,7 @@
 import numpy as np
 from utils import randomUtils
 
-def rouletteWheel(**kwargs):
+def rouletteWheel(rlz,**kwargs):
   """
     Roulette Selection mechanism for parent selection
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
