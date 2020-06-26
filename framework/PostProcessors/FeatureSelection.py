@@ -22,7 +22,7 @@ from __future__ import division, print_function , unicode_literals, absolute_imp
 import numpy as np
 import copy
 from sklearn.feature_selection import RFE, RFECV, mutual_info_regression,  mutual_info_classif,  VarianceThreshold
-from sklearn.decomposition import KernelPCA
+from sklearn.decomposition import KernelPCA,  PCA, FastICA
 from sklearn.linear_model import LinearRegression
 import pandas as pd
 #External Modules End--------------------------------------------------------------------------------
@@ -231,20 +231,54 @@ class FeatureSelection(PostProcessor):
       # Select upper triangle of correlation matrix
       upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(np.bool))
       # Find features with correlation greater than 0.95
-      to_drop = [column for column in upper.columns if any(upper[column] > 0.995)]
+      to_drop = [column for column in upper.columns if any(upper[column] > 0.9999)]
       inputDict['features'] =  {key:inputDict['features'][key] for key in list(set(list( inputDict['features'].keys())) - set(to_drop))}
-      # a = copy.deepcopy(inputDict['features'])
-      # a.update(inputDict['targets'])
       # corrwithtarget = pd.DataFrame.from_dict(a).corr().abs()
       if nFeatures > len(inputDict['features']):
         self.raiseAWarning("number of features selected via correlation analysis is < minimumNumberOfFeatures!")
       nFeatures = min(nFeatures, len(inputDict['features']))
 
+    #kpca = PCA(n_components=10)
+    #newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)    
+    #headers = ["PCA_" + str(i+1) for i in range(10)] +  list(inputDict['targets'].keys())
+  
+    #np.savetxt("pca_10components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
+    
+    #kpca = KernelPCA(n_components=10, kernel = "rbf", random_state=0)
+    #newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)
+    
+    #np.savetxt("kernelpca_10components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
+     
+    
+    #fica = FastICA(n_components=10)
+    #newFeatures = fica.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)
+  
+    #np.savetxt("ica_10components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
+
+    ## 5
+
+    #kpca = PCA(n_components=5)
+    #newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)    
+    #headers = ["PCA_" + str(i+1) for i in range(5)] +  list(inputDict['targets'].keys())
+  
+    #np.savetxt("pca_5components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
+    
+    #kpca = KernelPCA(n_components=5, kernel = "rbf", random_state=0)
+    #newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)
+    
+    #np.savetxt("kernelpca_5components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
+     
+    
+    #fica = FastICA(n_components=5)
+    #newFeatures = fica.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)
+  
+    #np.savetxt("ica_5components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
+    
+      
     if aggregateTargets:
       # perform a PCA and analyze the first principal component
       kpca = KernelPCA(n_components=1, kernel = "rbf", random_state=0)
       newTarget =  kpca.fit_transform(np.atleast_2d(list(inputDict['targets'].values())).T)
-      # print(kpca.explained_variance_ratio_)
     # compute importance rank
     outputDict = {}
     # transformer = FactorAnalysis(n_components=10, random_state=0)
@@ -273,7 +307,8 @@ class FeatureSelection(PostProcessor):
         for i, targ in enumerate(self.targets):
           sortedFeatures = mutual_info_regression(np.atleast_2d(list(inputDict['features'].values())).T, inputDict['targets'][targ]).argsort()
           outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[sortedFeatures][-nFeatures:])
-    elif self.what == 'PCA':
+    elif self.what == 'kbest':
+      X_new = SelectKBest(f_regression, k=nFeatures).fit_transform(X, y)
       transformer = PCA(n_components=nFeatures, random_state=0).fit(np.atleast_2d(list(inputDict['features'].values()) + list(inputDict['targets'].values())).T)
 
 
