@@ -347,7 +347,6 @@ class GeneticAlgorithm(RavenSampled):
 
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    # childrenCont = self.__fitnessCalculationHandler(rlz,params=paramsDict)
     for i in range(self._populationSize):
       fitness[i] = self._fitnessInstance(rlz,objVar = self._objectiveVar,a=self._objCoeff,b=self._penaltyCoeff,penalty = None)
     variables = []
@@ -355,7 +354,6 @@ class GeneticAlgorithm(RavenSampled):
       variables.append(var)
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
-    # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
     if self.counter > 0:
       # right now these are lists, but this should be changed to xarrays when the realization is ready as an xarray dataset
       population,Fitness,Age = self._survivorSelectionInstance(rlz,objVar = self._objectiveVar,variables = variables,popAge = np.zeros((self._populationSize,1)))
@@ -365,7 +363,6 @@ class GeneticAlgorithm(RavenSampled):
 
     # 1 @ n: Parent selection from population
     # pair parents together by indexes
-    # parentSet = self.__selectionCalculationHandler(parents=self.population,params=paramsDict)
     parents = np.zeros((self._nParents,len(self.toBeSampled)))
     for i in range(self._nParents):
       ind, parents[i] = self._parentSelectionInstance(rlz,fitness=fitness)
@@ -373,12 +370,10 @@ class GeneticAlgorithm(RavenSampled):
 
     # 2 @ n: Crossover from set of parents
     # create childrenCoordinates (x1,...,xM)
-    # self.childrenCoordinates = self.__crossoverCalculationHandler(parentSet=parentSet,population=self.population,params=paramsDict)
     children = self._crossoverInstance(parents=parents,crossoverProb=self._crossoverProb,points=self._crossoverPoints)
 
     # 3 @ n: Mutation
     # perform random directly on childrenCoordinates
-    # self.__mutationCalculationHandler(children=self.childrenCoordinates,params=paramsDict)
     for i in range(np.shape(children)[0]):
       children[i] = self._mutationInstance(chromosome=children[i],locs = self._mutationlocs, mutationProb=self._mutationProb)
     ## TODO WHAT IF AFTER CROSSOVER AND/OR MUTATION OUR CHROMOSOME NO LONGER SATISFIES THE WITHOUT REPLACEMENT CONSTRAINT
@@ -508,67 +503,3 @@ class GeneticAlgorithm(RavenSampled):
   #     @ Out, None
   #   """
   #   pass
-
-  def __fitnessCalculationHandler(self,children,params):
-    # children is a Pandas dataFrame containing N realization of [y1,..,yL,x1,...,xM]
-    if params['fitnessType'] == 'fitnessType1':
-      pass
-      # perform fitness calculation
-      # add fitness variable to children dataFrame: [y1,..,yL,x1,...,xM,fitness]
-      # children = fitnessType1Calculation(rlz)
-    else:
-      pass
-      # other methods ...
-    return children
-
-  def __replacementCalculationHandler(self,parents,children,params):
-    # parents and children are two Pandas dataFrame containing realization of [y1,..,yL,x1,...,xM,fitness]
-    if params['replacementType'] == 'generational':
-      pass
-      # the following method remove the parents and leave the children
-      # i.e., newPopulation <-- children
-      # newPopulation = generationalReplacement(children = self.children)
-    else:
-      pass
-      # other methods ...
-      # e.g., newPopulation = mix of parents and children
-      #newPopulation = otherReplacement(parents,children,paramsDict)
-    return
-
-  def __selectionCalculationHandler(self,parents,params):
-    # create a list of pairs of parents: a list of list containing two (or more) parents indexes (e.g., [[2,5],[6,3],...])
-    if params['selectionType'] == 'rouletteWheel':
-      pass
-      # parentSet = stdRouletteSelection(population=parents,params={})
-    else:
-      pass
-      # other methods ...
-      # parentSet = otherSelection(population=parents,params={})
-    return #parentSet
-
-  def __crossoverCalculationHandler(self,parentSet,population,params):
-    if params['crossoverType'] == 'onePointCrossover':
-      pass
-      # create childrenCoordinates: a panda dataframe
-      # childrenCoordinates = onePointCrossover(parents=parentSet,params={})
-    elif params['twoPointsCrossover'] == 'twoPointsCrossover':
-      pass
-      # create childrenCoordinates: a panda dataframe
-      # childrenCoordinates = twoPointsCrossover(parents=parentSet,params={})
-    else:
-      pass
-      # other methods ...
-      # childrenCoordinates = otherCrossover(parentSet,params={})
-    return #childrenCoordinates
-
-  def mutationCalculationHandler(self,children,params):
-    # this method does not return anything
-    # It simply acts on childrenCoordinates directly
-    if params['mutationType'] =='swapMutator':
-      pass
-      #  mutation(childrenCoordinates, params={})
-    elif params['mutationType'] =='scrambleMutator':
-      pass
-    else:
-      pass
-      # other methods ...
