@@ -33,7 +33,7 @@ from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
-from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
+#from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 from .fitness.fitness import returnInstance as fitnessReturnInstance
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -248,7 +248,7 @@ class GeneticAlgorithm(RavenSampled):
     # Survivor selection
     survivorSelectionNode = GAparamsNode.findFirst('survivorSelection')
     self._survivorSelectionType = survivorSelectionNode.value
-    self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
+    # self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
     # Fitness
     fitnessNode = GAparamsNode.findFirst('fitness')
     self._fitnessType = fitnessNode.parameterValues['type']
@@ -314,6 +314,10 @@ class GeneticAlgorithm(RavenSampled):
       @ In, optVal, float, value of objective variable (corrected for min/max)
       @ Out, None
     """
+    ## THIS IS HOW THE POPULATION RLZ (BATCH) WOULD LOOK LIKE
+    ## IN THIS CASE we will have 3 children 
+    populationRlz =  xr.concat((rlz, rlz, rlz))
+    
     ## TODO the whole skeleton should be here, this should be calling all classes and _private methods.
     traj = info['traj']
     info['optVal'] = rlz[self._objectiveVar]
