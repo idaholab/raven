@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/MarkovChains.Metropolis</name>
+    <author>wangc</author>
+    <created>2020-06-26</created>
+    <classesTested>Samplers.Metropolis</classesTested>
+    <description>
+
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>metropolis</WorkingDir>
+    <Sequence>mh</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Normal name="normal">
+      <mean>5</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="likelihood" name="likelihood" subType="">
+      <variables>xin, yout</variables>
+    </ExternalModel>
+  </Models>
+
+  <MarkovChains>
+    <Metropolis name="Metropolis">
+      <samplerInit>
+        <limit>1000</limit>
+        <tune>10</tune>
+      </samplerInit>
+      <variable name="xin">
+        <distribution>normal</distribution>
+      </variable>
+    </Metropolis>
+  </MarkovChains>
+
+  <Steps>
+    <MultiRun name="mh">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">likelihood</Model>
+      <MarkovChain class="MarkovChains" type="Metropolis">Metropolis</MarkovChain>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="OutStreams" type="Print">dumpOut</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dumpOut">
+      <type>csv</type>
+      <source>outSet</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>xin</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+
+    <PointSet name="outSet">
+      <Input>xin</Input>  <!-- xin will be updated based on metropolis hastings sampling, do we want to keep the original sampled value? -->
+      <Output>yout</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
