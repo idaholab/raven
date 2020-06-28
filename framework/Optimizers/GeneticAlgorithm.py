@@ -25,6 +25,7 @@
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 from collections import deque, defaultdict
+import xarray as xr
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -33,7 +34,7 @@ from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
-#from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
+from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 from .fitness.fitness import returnInstance as fitnessReturnInstance
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -248,7 +249,7 @@ class GeneticAlgorithm(RavenSampled):
     # Survivor selection
     survivorSelectionNode = GAparamsNode.findFirst('survivorSelection')
     self._survivorSelectionType = survivorSelectionNode.value
-    # self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
+    self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
     # Fitness
     fitnessNode = GAparamsNode.findFirst('fitness')
     self._fitnessType = fitnessNode.parameterValues['type']
@@ -315,9 +316,17 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     ## THIS IS HOW THE POPULATION RLZ (BATCH) WOULD LOOK LIKE
-    ## IN THIS CASE we will have 3 children 
-    populationRlz =  xr.concat((rlz, rlz, rlz))
-    
+    ## IN THIS CASE we will have 3 children
+    ## TODO: This is to be removed
+    size = self._nParents if self.counter > 1 else self._populationSize
+    populationRlz =  xr.concat((rlz for _ in range(size)))#((rlz, rlz, rlz))
+    population = xr.DataArray(populationRlz[list(self.toBeSampled)].to_array().transpose(),
+                              dims=['chromosome','Gene'],
+                              coords={'chromosome': np.arange(size),
+                                      'Gene':np.arange(len(self.toBeSampled))})
+    # TODO: This is to be removed once the rlz is consistent with the expected batch
+    for i in range(1,size):
+      population[i,:] = np.random.choice(population[0,:], replace=False)
     ## TODO the whole skeleton should be here, this should be calling all classes and _private methods.
     traj = info['traj']
     info['optVal'] = rlz[self._objectiveVar]
@@ -349,24 +358,27 @@ class GeneticAlgorithm(RavenSampled):
     # perform fitness calculation for newly obtained children (rlz)
     for i in range(self._populationSize):
       fitness[i] = self._fitnessInstance(rlz,objVar = self._objectiveVar,a=self._objCoeff,b=self._penaltyCoeff,penalty = None)
-    variables = []
-    for var in self.toBeSampled:
-      variables.append(var)
+    # variables = []
+    # for var in self.toBeSampled:
+    #   variables.append(var)
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
-    if self.counter > 0:
+    # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
+    if self.counter > 1:
       # right now these are lists, but this should be changed to xarrays when the realization is ready as an xarray dataset
-      population,Fitness,Age = self._survivorSelectionInstance(rlz,objVar = self._objectiveVar,variables = variables,popAge = np.zeros((self._populationSize,1)))
+      population,Fitness,Age = self._survivorSelectionInstance(populationRlz,objVar = self._objectiveVar,variables = variables,popAge = np.zeros((self._populationSize,1)))
       # This will be added once the rlz is treated as a xarray DataSet
       # for var in self.toBeSampled:
         # self.info[var+'_Age'] = Age[var]
 
     # 1 @ n: Parent selection from population
     # pair parents together by indexes
-    parents = np.zeros((self._nParents,len(self.toBeSampled)))
-    for i in range(self._nParents):
-      ind, parents[i] = self._parentSelectionInstance(rlz,fitness=fitness)
-      population = np.delete(population, ind, axis=0)
+    # parentSet = self.__selectionCalculationHandler(parents=self.population,params=paramsDict)
+    parents = xr.DataArray(
+        np.zeros((self._nParents,len(self.toBeSampled))))
+    # for i in range(self._nParents):
+    parents = self._parentSelectionInstance(rlz=population,fitness=fitness,nParents=self._nParents)
+    # population = np.delete(population, ind, axis=0)
 
     # 2 @ n: Crossover from set of parents
     # create childrenCoordinates (x1,...,xM)
