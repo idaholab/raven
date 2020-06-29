@@ -26,6 +26,7 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+import Distributions
 from Samplers import ForwardSampler
 from utils import utils,randomUtils,InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
@@ -86,7 +87,7 @@ class MCMC(ForwardSampler):
     inputSpecification.addSub(samplerInitInput)
     # modify Sampler variable nodes
     variable = specs.getSub('variable')
-    variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatListType,
+    variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatType,
         descr=r"""inital value for given variable"""))
     variable.addSub(InputData.parameterInputFactory('proposal', contentType=InputTypes.StringType,
         descr=r"""name of the Distribution that is used as proposal distribution"""))
@@ -109,12 +110,17 @@ class MCMC(ForwardSampler):
     """
     ForwardSampler.__init__(self)
     self.limit = None
-    self._initialValues = None
+    self._initialValues = {}
     self._proposal = {}
     self._tune = 0
-    self._seed = None
+    self.initSeed = None
+    self._targetEvaluation = None
+    self._availProposal = {'normal': Distributions.Normal(0.0, 1.0),
+                           'uniform': Distributions.Uniform(-1.0, 1.0)}
+    self._rejectDist = Distributions.Uniform(0.0, 1.0)
     # assembler objects to be requested
-    self.addAssemblerObject('TargetEvaluation', '1')
+    self.addAssemblerObject('TargetEvaluation', '1', True)
+    self.addAssemblerObject('proposal', '-n', True)
 
   def localInputAndChecks(self, xmlNode, paramInput):
     """
@@ -144,37 +150,48 @@ class MCMC(ForwardSampler):
       # initialSeed
       seed = init.findFirst('initialSeed')
       if seed is not None:
-        self._seed = seed.value
+        self.initSeed = seed.value
       else:
-        self._seed = randomUtils.randomIntegers(0,2**31,self)
+        self.initSeed = randomUtils.randomIntegers(0,2**31,self)
       tune = init.findFirst('tune')
       if tune is not None:
         self._tune = tune.value
     else:
-      self.raiseAnError(IOError,self,'MCMC', self.name, 'needs the samplerInit block')
+      self.raiseAnError(IOError, self, 'MCMC', self.name, 'needs the samplerInit block')
     # variables additional reading
     for varNode in paramInput.findAll('variable'):
-      if varNode.findFirst('function') is not None:
-        continue # handled by Sampler base class, so skip it
       var = varNode.parameterValues['name']
-      initsNode = varNode.findFirst('initial')
-      # note: initial values might also come later from samplers!
-      if initsNode:
-        inits = initsNode.value
-        # initialize list of dictionaries if needed
-        if not self._initialValues:
-          self._initialValues = [{} for _ in inits]
-        # store initial values
-        for i, init in enumerate(inits):
-          self._initialValues[i][var] = init
+      initNode = varNode.findFirst('initial')
+      if initNode:
+        self._initialValues[var] = initNode.value
+      else:
+        self._initialValues[var] = None
       proposal = varNode.findFirst('proposal')
       if proposal:
-        dist = proposal.value
-        self._proposal[var] = dist
+        self._proposal[var] = proposal.value
       else:
         self._proposal[var] = None
-    # TargetEvaluation Node
+    # TargetEvaluation Node (Required)
+    targetEval = paramInput.findFirst('TargetEvaluation')
+    self._targetEvaluation = targetEval.value
 
+  def initialize(self, externalSeeding=None, solutionExport=None):
+    """
+      This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
+      @ In, externalSeeding, int, optional, external seed
+      @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
+      @ Out, None
+    """
+    self._targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self._targetEvaluation)
+    # TODO: currently, we only consider uncorrelated case
+    for var, dist in self._proposal.items():
+      if dist:
+        self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', dist)
+      else:
+        self._proposal[var] = self._availProposal['normal']
+    self._solutionExport = solutionExport
+    Sampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    self._validateSolutionExportVariables(solutionExport)
 
   def localGenerateInput(self, model, myInput):
     """
