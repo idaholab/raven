@@ -135,6 +135,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
                   'Sampler': 'Entity containing the sampling strategy',
                   'Output': 'Entity to store results of the step',
                   'Optimizer': 'Entity containing the optimization strategy',
+                  'MCMC': 'Entity containing the Markov chain Monte Carlo strategy',
                   'SolutionExport': 'Entity containing auxiliary output for the solution of this step',
                   'Function': 'Functional definition for use within this step',
                  }
@@ -385,8 +386,12 @@ class SingleRun(Step):
     roles      = set(rolesItem)
     if 'Optimizer' in roles:
       self.samplerType = 'Optimizer'
-      if 'Sampler' in roles:
-        self.raiseAnError(IOError, 'Only Sampler or Optimizer is alloweed for the step named '+str(self.name))
+      if 'Sampler' in roles or 'MCMC' in roles:
+        self.raiseAnError(IOError, 'Only Sampler or Optimizer or MCMC is alloweed for the step named '+str(self.name))
+    if 'MCMC' in roles:
+      self.samplerType = 'MCMC'
+      if 'Sampler' in roles or 'Optimizer' in roles:
+        self.raiseAnError(IOError, 'Only Sampler or Optimizer or MCMC is alloweed for the step named '+str(self.name))
     #if single run, make sure model is an instance of Code class
     if self.type == 'SingleRun':
       if self.parList[modelIndex][2] != 'Code':
@@ -559,7 +564,7 @@ class MultiRun(SingleRun):
     """
     SingleRun._localInputAndCheckParam(self,paramInput)
     if self.samplerType not in [item[0] for item in self.parList]:
-      self.raiseAnError(IOError,'It is not possible a multi-run without a sampler or optimizer!')
+      self.raiseAnError(IOError,'It is not possible a multi-run without a sampler or optimizer or MCMC!')
 
   def _initializeSampler(self,inDictionary):
     """

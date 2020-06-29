@@ -18,7 +18,7 @@
   created on June 26, 2020
   @author: wangc
 """
-
+from .MCMC import MCMC
 from .Metropolis import Metropolis
 
 

@@ -56,7 +56,7 @@
     <MultiRun name="mh">
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">likelihood</Model>
-      <MarkovChain class="MarkovChains" type="Metropolis">Metropolis</MarkovChain>
+      <MCMC class="MCMC" type="Metropolis">Metropolis</MCMC>
       <Output class="DataObjects" type="PointSet">outSet</Output>
       <Output class="OutStreams" type="Print">dumpOut</Output>
     </MultiRun>

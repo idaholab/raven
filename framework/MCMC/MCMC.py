@@ -86,11 +86,13 @@ class MCMC(ForwardSampler):
     samplerInitInput.addSub(tuneInput)
     inputSpecification.addSub(samplerInitInput)
     # modify Sampler variable nodes
-    variable = specs.getSub('variable')
+    variable = inputSpecification.getSub('variable')
     variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatType,
         descr=r"""inital value for given variable"""))
-    variable.addSub(InputData.parameterInputFactory('proposal', contentType=InputTypes.StringType,
+    variable.addSub(InputData.assemblyInputFactory('proposal', contentType=InputTypes.StringType, strictMode=True,
+        printPriority=30,
         descr=r"""name of the Distribution that is used as proposal distribution"""))
+
     inputSpecification.addSub(variable)
     # assembler object
     inputSpecification.addSub(InputData.assemblyInputFactory('TargetEvaluation', contentType=InputTypes.StringType, strictMode=True,
@@ -98,6 +100,7 @@ class MCMC(ForwardSampler):
         descr=r"""name of the DataObject where the sampled outputs of the Model will be collected.
               This DataObject is the means by which the MCMC entity obtains the results of requested
               samples, and so should require all the input and output variables needed for adaptive sampling."""))
+
 
     return inputSpecification
 
