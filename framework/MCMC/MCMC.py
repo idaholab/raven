@@ -12,31 +12,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This module contains the Monte Carlo sampling strategy
+  Markov Chain Monte Carlo
+  This base class defines the principle methods required for MCMC
 
-  Created on May 21, 2016
-  @author: alfoa
-  supercedes Samplers.py from crisr
+  Created on June 26, 2020
+  @author: wangc
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
-from operator import mul
-from functools import reduce
+import copy
+import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .MonteCarlo import MonteCarlo
+from Samplers import ForwardSampler
 from utils import utils,randomUtils,InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Metropolis(MonteCarlo):
+class MCMC(ForwardSampler):
   """
     Metropolis Sampler
   """
+  @classmethod
+  def userManualDescription(cls):
+    """
+      Provides a user manual description for this actor. Should only be needed for base classes.
+      @ In, None
+      @ Out, descr, string, description
+    """
+    descr = r"""
+    \section{Markov Chain Monte Carlo} \label{sec:MCMC}
+    The Markov chain Monte Carlo (MCMC) is another important entity in the RAVEN framework.
+    It provides enormous scope for realistic statistical modeling. MCMC is essentially
+    Monte Carlo integration using Markov chain. Bayesians, and sometimes also frequentists,
+    need to integrate over possibly high-dimensional probability distributions to make inference
+    about model parameters or to make predictions. Bayesians need to integrate over the posterior
+    distributions of model parameters given the data, and frequentists may need to integrate
+    over the distribution of observables given parameter values. Monte Carlo integration draws
+    samples from the required distribution, and then forms samples averages to approximate expectations.
+    MCMC draws these samples by running a cleverly constructed Markov chain for a long time.
+    There are a large number of MCMC algorithms, and popular families include Gibbs sampling,
+    Metropolis-Hastings, slice sampling, Hamiltonian Monte Carlo, and many others. Regardless
+    of the algorithm, the goal in Bayesian inference is to maximize the unnormalized joint
+    posterior distribution and collect samples of the target distributions, which are marginal
+    posterior distributions, later to be used for inference.
+    """
+    return descr
 
   @classmethod
   def getInputSpecification(cls):
@@ -47,28 +69,34 @@ class Metropolis(MonteCarlo):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(Metropolis, cls).getInputSpecification()
+    inputSpecification = super(MCMC, cls).getInputSpecification()
 
-    samplerInitInput = InputData.parameterInputFactory("samplerInit")
-    limitInput = InputData.parameterInputFactory("limit", contentType=InputTypes.IntegerType)
+    samplerInitInput = InputData.parameterInputFactory("samplerInit", strictMode=True,
+        printPriority=10,
+        descr=r"""collection of nodes that describe the initialization of the MCMC algorithm.""")
+    limitInput = InputData.parameterInputFactory("limit", contentType=InputTypes.IntegerType,
+        descr=r"""the limit for the total samples""")
     samplerInitInput.addSub(limitInput)
-    initialSeedInput = InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType)
+    initialSeedInput = InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType,
+        descr='')
     samplerInitInput.addSub(initialSeedInput)
-    distInitInput = InputData.parameterInputFactory("distInit", contentType=InputTypes.StringType)
-    distSubInput = InputData.parameterInputFactory("distribution")
-    distSubInput.addParam("name", InputTypes.StringType)
-    distSubInput.addSub(InputData.parameterInputFactory("initialGridDisc", contentType=InputTypes.IntegerType))
-    distSubInput.addSub(InputData.parameterInputFactory("tolerance", contentType=InputTypes.FloatType))
-
-    distInitInput.addSub(distSubInput)
-    samplerInitInput.addSub(distInitInput)
-    samplingTypeInput = InputData.parameterInputFactory("samplingType", contentType=InputTypes.StringType)
-    samplerInitInput.addSub(samplingTypeInput)
-    reseedEachIterationInput = InputData.parameterInputFactory("reseedEachIteration", contentType=InputTypes.StringType)
-    samplerInitInput.addSub(reseedEachIterationInput)
-
-
+    tuneInput = InputData.parameterInputFactory("tune", contentType=InputTypes.IntegerType,
+        descr='')
+    samplerInitInput.addSub(tuneInput)
     inputSpecification.addSub(samplerInitInput)
+    # modify Sampler variable nodes
+    variable = specs.getSub('variable')
+    variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatListType,
+        descr=r"""inital value for given variable"""))
+    variable.addSub(InputData.parameterInputFactory('proposal', contentType=InputTypes.StringType,
+        descr=r"""name of the Distribution that is used as proposal distribution"""))
+    inputSpecification.addSub(variable)
+    # assembler object
+    inputSpecification.addSub(InputData.assemblyInputFactory('TargetEvaluation', contentType=InputTypes.StringType, strictMode=True,
+        printPriority=20,
+        descr=r"""name of the DataObject where the sampled outputs of the Model will be collected.
+              This DataObject is the means by which the MCMC entity obtains the results of requested
+              samples, and so should require all the input and output variables needed for adaptive sampling."""))
 
     return inputSpecification
 
@@ -80,30 +108,73 @@ class Metropolis(MonteCarlo):
       @ Out, None
     """
     ForwardSampler.__init__(self)
-    self.printTag = 'SAMPLER MONTECARLO'
-    self.samplingType = None
     self.limit = None
+    self._initialValues = None
+    self._proposal = {}
+    self._tune = 0
+    self._seed = None
+    # assembler objects to be requested
+    self.addAssemblerObject('TargetEvaluation', '1')
 
-  def localInputAndChecks(self,xmlNode, paramInput):
+  def localInputAndChecks(self, xmlNode, paramInput):
     """
-      Class specific xml inputs will be read here and checked for validity.
-      @ In, xmlNode, xml.etree.ElementTree.Element, The xml element node that will be checked against the available options specific to this Sampler.
-      @ In, paramInput, InputData.ParameterInput, the parsed parameters
+      unfortunately-named method that serves as a pass-through for input reading.
+      comes from inheriting from Sampler and _readMoreXML chain.
+      @ In, xmlNode, xml.etree.ElementTree.Element, xml element node (don't use!)
+      @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
-    #TODO remove using xmlNode
-    ForwardSampler.readSamplerInit(self,xmlNode)
-    if paramInput.findFirst('samplerInit') != None:
-      if self.limit is None:
-        self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
-      if paramInput.findFirst('samplerInit').findFirst('samplingType')!= None:
-        self.samplingType = paramInput.findFirst('samplerInit').findFirst('samplingType').value
-        if self.samplingType not in ['uniform']:
-          self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+': specified type of samplingType is not recognized. Allowed type is: uniform')
+    # this is just a passthrough until sampler gets reworked or renamed
+    self.handleInput(paramInput)
+
+  def handleInput(self, paramInput):
+    """
+      Read input specs
+      @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
+      @ Out, None
+    """
+    init = paramInput.findFirst('samplerInit')
+    if init is not None:
+      # limit
+      limit = init.findFirst('limit')
+      if limit is not None:
+        self.limit = limit.value
       else:
-        self.samplingType = None
+        self.raiseAnError(IOError, self, 'MCMC', self.name, 'needs the limit block (number of samples) in the samplerInit block')
+      # initialSeed
+      seed = init.findFirst('initialSeed')
+      if seed is not None:
+        self._seed = seed.value
+      else:
+        self._seed = randomUtils.randomIntegers(0,2**31,self)
+      tune = init.findFirst('tune')
+      if tune is not None:
+        self._tune = tune.value
     else:
-      self.raiseAnError(IOError,self,'Monte Carlo sampler '+self.name+' needs the samplerInit block')
+      self.raiseAnError(IOError,self,'MCMC', self.name, 'needs the samplerInit block')
+    # variables additional reading
+    for varNode in paramInput.findAll('variable'):
+      if varNode.findFirst('function') is not None:
+        continue # handled by Sampler base class, so skip it
+      var = varNode.parameterValues['name']
+      initsNode = varNode.findFirst('initial')
+      # note: initial values might also come later from samplers!
+      if initsNode:
+        inits = initsNode.value
+        # initialize list of dictionaries if needed
+        if not self._initialValues:
+          self._initialValues = [{} for _ in inits]
+        # store initial values
+        for i, init in enumerate(inits):
+          self._initialValues[i][var] = init
+      proposal = varNode.findFirst('proposal')
+      if proposal:
+        dist = proposal.value
+        self._proposal[var] = dist
+      else:
+        self._proposal[var] = None
+    # TargetEvaluation Node
+
 
   def localGenerateInput(self, model, myInput):
     """
@@ -114,75 +185,13 @@ class Metropolis(MonteCarlo):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    # create values dictionary
-    weight = 1.0
-    for key in sorted(self.distDict):
-      # check if the key is a comma separated list of strings
-      # in this case, the user wants to sample the comma separated variables with the same sampled value => link the value to all comma separated variables
 
-      dim    = self.variables2distributionsMapping[key]['dim']
-      totDim = self.variables2distributionsMapping[key]['totDim']
-      dist   = self.variables2distributionsMapping[key]['name']
-      reducedDim = self.variables2distributionsMapping[key]['reducedDim']
-      weight = 1.0
-      if totDim == 1:
-        if self.samplingType == 'uniform':
-          distData = self.distDict[key].getCrowDistDict()
-          if ('xMin' not in distData.keys()) or ('xMax' not in distData.keys()):
-            self.raiseAnError(IOError,"In the Monte-Carlo sampler a uniform sampling type has been chosen;"
-                   + " however, one or more distributions have not specified either the lowerBound or the upperBound")
-          lower = distData['xMin']
-          upper = distData['xMax']
-          rvsnum = lower + (upper - lower) * randomUtils.random()
-          epsilon = (upper-lower)/self.limit
-          midPlusCDF  = self.distDict[key].cdf(rvsnum + epsilon)
-          midMinusCDF = self.distDict[key].cdf(rvsnum - epsilon)
-          weight *= midPlusCDF - midMinusCDF
-        else:
-          rvsnum = self.distDict[key].rvs()
-        for kkey in key.split(','):
-          self.values[kkey] = np.atleast_1d(rvsnum)[0]
-        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
-        self.inputInfo['ProbabilityWeight-' + key] = 1.
-      elif totDim > 1:
-        if reducedDim == 1:
-          if self.samplingType is None:
-            rvsnum = self.distDict[key].rvs()
-            coordinate = np.atleast_1d(rvsnum).tolist()
-          else:
-            coordinate = np.zeros(totDim)
-            for i in range(totDim):
-              lower = self.distDict[key].returnLowerBound(i)
-              upper = self.distDict[key].returnUpperBound(i)
-              coordinate[i] = lower + (upper - lower) * randomUtils.random()
-          if reducedDim > len(coordinate):
-            self.raiseAnError(IOError,"The dimension defined for variables drew from the multivariate normal distribution is exceeded by the dimension used in Distribution (MultivariateNormal) ")
-          probabilityValue = self.distDict[key].pdf(coordinate)
-          self.inputInfo['SampledVarsPb'][key] = probabilityValue
-          for var in self.distributions2variablesMapping[dist]:
-            varID  = utils.first(var.keys())
-            varDim = var[varID]
-            for kkey in varID.strip().split(','):
-              self.values[kkey] = np.atleast_1d(rvsnum)[varDim-1]
-          self.inputInfo['ProbabilityWeight-' + dist] = 1.
-      else:
-        self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
 
-    if len(self.inputInfo['SampledVarsPb'].keys()) > 0:
-      self.inputInfo['PointProbability'] = reduce(mul, self.inputInfo['SampledVarsPb'].values())
-    else:
-      self.inputInfo['PointProbability'] = 1.0
-    if self.samplingType == 'uniform':
-      self.inputInfo['ProbabilityWeight'  ] = weight
-    else:
-      self.inputInfo['ProbabilityWeight' ] = 1.0 #MC weight is 1/N => weight is one
-    self.inputInfo['SamplerType'] = 'MonteCarlo'
-
-  def _localHandleFailedRuns(self,failedRuns):
+  def _localHandleFailedRuns(self, failedRuns):
     """
       Specialized method for samplers to handle failed runs.  Defaults to failing runs.
       @ In, failedRuns, list, list of JobHandler.ExternalRunner objects
       @ Out, None
     """
     if len(failedRuns)>0:
-      self.raiseADebug('  Continuing with reduced-size Monte-Carlo sampling.')
+      self.raiseADebug('  Continuing with reduced-size MCMC sampling.')
