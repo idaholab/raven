@@ -33,7 +33,7 @@ from utils import utils,randomUtils,InputData, InputTypes
 
 class MCMC(ForwardSampler):
   """
-    Metropolis Sampler
+    Markov Chain Monte Carlo Sampler
   """
   @classmethod
   def userManualDescription(cls):
@@ -177,7 +177,7 @@ class MCMC(ForwardSampler):
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
-      This function should be called every time a clean optimizer is needed. Called before takeAstep in <Step>
+      This function should be called every time a clean MCMC is needed. Called before takeAstep in <Step>
       @ In, externalSeeding, int, optional, external seed
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
@@ -190,7 +190,7 @@ class MCMC(ForwardSampler):
       else:
         self._proposal[var] = self._availProposal['normal']
     self._solutionExport = solutionExport
-    Sampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    ForwardSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     self._validateSolutionExportVariables(solutionExport)
 
   def localGenerateInput(self, model, myInput):
@@ -202,7 +202,24 @@ class MCMC(ForwardSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-
+    for key in sorted(self.distDict):
+      dim    = self.variables2distributionsMapping[key]['dim']
+      totDim = self.variables2distributionsMapping[key]['totDim']
+      dist   = self.variables2distributionsMapping[key]['name']
+      reducedDim = self.variables2distributionsMapping[key]['reducedDim']
+      if totDim == 1:
+        rvsnum = self.distDict[key].rvs()
+        for kkey in key.split(','):
+          self.values[kkey] = np.atleast_1d(rvsnum)[0]
+        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
+        self.inputInfo['ProbabilityWeight-' + key] = 1.
+      elif totDim > 1:
+        self.raiseAnError(NotImplementedError, 'MCMC for correlated input parameters has not been implemented yet!')
+      else:
+        self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
+    self.inputInfo['PointProbability'] = 1.0
+    self.inputInfo['ProbabilityWeight' ] = 1.0
+    self.inputInfo['SamplerType'] = 'MCMC'
 
   def _localHandleFailedRuns(self, failedRuns):
     """

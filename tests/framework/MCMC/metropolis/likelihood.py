@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from scipy.stats import norm
+import scipy.stats as st
+import numpy as np
 
 def run(self, inputDict):
   """
@@ -22,4 +23,8 @@ def run(self, inputDict):
     @ In, inputDict, dict, dictionary containing inputs from RAVEN
     @ Out, None
   """
-  self.x = inputDict['xin']
+  self.xin = inputDict['xin']
+  self.yin = inputDict['yin']
+  mus = np.array([5, 5])
+  sigmas = np.array([[1, .9], [.9, 1]])
+  self.zout = np.log(st.multivariate_normal.pdf([self.xin, self.yin], mean=mus, cov=sigmas))

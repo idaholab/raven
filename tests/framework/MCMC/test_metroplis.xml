@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/MarkovChains.Metropolis</name>
+    <name>framework/MCMC.Metropolis</name>
     <author>wangc</author>
     <created>2020-06-26</created>
-    <classesTested>Samplers.Metropolis</classesTested>
+    <classesTested>MCMC.Metropolis</classesTested>
     <description>
-
+      Markov Chain Monte Carlo
     </description>
   </TestInfo>
 
@@ -19,28 +19,38 @@
 
   <Distributions>
     <Normal name="normal">
-      <mean>5</mean>
+      <mean>0</mean>
       <sigma>1</sigma>
     </Normal>
   </Distributions>
 
   <Models>
     <ExternalModel ModuleToLoad="likelihood" name="likelihood" subType="">
-      <variables>xin, yout</variables>
+      <variables>xin, yin, zout</variables>
     </ExternalModel>
   </Models>
 
-  <MarkovChains>
+  <MCMC>
     <Metropolis name="Metropolis">
       <samplerInit>
         <limit>1000</limit>
+        <initialSeed>070419</initialSeed>
         <tune>10</tune>
       </samplerInit>
       <variable name="xin">
         <distribution>normal</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">normal</proposal>
       </variable>
+      <variable name="yin">
+        <distribution>normal</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">normal</proposal>
+        <!-- <proposal>normal</proposal> -->
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
     </Metropolis>
-  </MarkovChains>
+  </MCMC>
 
   <Steps>
     <MultiRun name="mh">
@@ -62,13 +72,13 @@
 
   <DataObjects>
     <PointSet name="inputHolder">
-      <Input>xin</Input>
+      <Input>xin, yin</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
 
     <PointSet name="outSet">
-      <Input>xin</Input>  <!-- xin will be updated based on metropolis hastings sampling, do we want to keep the original sampled value? -->
-      <Output>yout</Output>
+      <Input>xin, yin</Input>  <!-- xin will be updated based on metropolis hastings sampling, do we want to keep the original sampled value? -->
+      <Output>zout</Output>
     </PointSet>
   </DataObjects>
 
