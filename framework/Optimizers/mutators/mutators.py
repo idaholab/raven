@@ -72,10 +72,39 @@ def scrambleMutator(offSprings,**kwargs):
         children[i,locs[0]:locs[-1]+1] = np.random.permutation(offSprings[i,locs[0]:locs[-1]+1])
   return children
 
+def bitFlipMutator(offSprings,**kwargs):
+  """
+    This method is designed to flip a single gene in each chromosome with probability = mutationProb.
+    The gene to be flipped is completely random.
+    The new value of the flipped gene is is completely random.
+    @ In, offSprings, xr.DataArray, children resulting from the crossover process
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
+    @ Out, offSprings, xr.DataArray, children resulting from the crossover process
+  """
+  for child in offSprings:
+    if randomUtils.random(dim=1,samples=1)>kwargs['mutationProb']:
+      # sample gene location to be flipped
+      chromosomeSize = child.values.shape[0]
+      loc = randomUtils.randomIntegers(0, chromosomeSize, caller=None, engine=None)
+      # sample value
+      if kwargs['sampleRange']=='local':
+        rangeValues = list(set(offSprings[:,loc].values))
+      else: 
+        #kwargs['sampleRange']=='global'
+        rangeValues = offSprings.values.ravel().tolist()
+      rangeValues.pop(child.values[loc])
+      newValuePos = randomUtils.randomIntegers(0, len(rangeValues), caller=None, engine=None)
+      newValue = rangeValues[newValuePos]
+      
+      child.child.values[loc] = newValue
+      
+  return offSprings
 
 __mutators = {}
-__mutators['swapMutator'] = swapMutator
+__mutators['swapMutator']     = swapMutator
 __mutators['scrambleMutator'] = scrambleMutator
+__mutators['bitFlipMutator']  = bitFlipMutator
 
 
 def returnInstance(cls, name):
