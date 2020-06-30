@@ -47,7 +47,7 @@ def rouletteWheel(population,**kwargs):
         np.zeros((nParents,np.shape(pop)[1])),
         dims=['chromosomes','Genes'],
         coords={'chromosomes':np.arange(nParents),
-                     'Genes': np.arange(np.shape(pop)[1])})
+                'Genes': ['x1','x2','x3','x4','x5','x6']})#np.arange(np.shape(pop)[1]
   # imagine a wheel that is partitioned according to the selection
   # probabilities
 
