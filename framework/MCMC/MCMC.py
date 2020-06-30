@@ -27,11 +27,11 @@ import abc
 
 #Internal Modules------------------------------------------------------------------------------------
 import Distributions
-from Samplers import ForwardSampler
+from Samplers import AdaptiveSampler
 from utils import utils,randomUtils,InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class MCMC(ForwardSampler):
+class MCMC(AdaptiveSampler):
   """
     Markov Chain Monte Carlo Sampler
   """
@@ -85,6 +85,10 @@ class MCMC(ForwardSampler):
         descr='')
     samplerInitInput.addSub(tuneInput)
     inputSpecification.addSub(samplerInitInput)
+
+    inputSpecification.addSub(InputData.parameterInputFactory("likelihood",contentType=InputTypes.StringType,
+        printPriority=5,
+        descr=r"""Output of likelihood function"""))
     # modify Sampler variable nodes
     variable = inputSpecification.getSub('variable')
     variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatType,
@@ -94,15 +98,22 @@ class MCMC(ForwardSampler):
         descr=r"""name of the Distribution that is used as proposal distribution"""))
 
     inputSpecification.addSub(variable)
-    # assembler object
-    inputSpecification.addSub(InputData.assemblyInputFactory('TargetEvaluation', contentType=InputTypes.StringType, strictMode=True,
-        printPriority=20,
-        descr=r"""name of the DataObject where the sampled outputs of the Model will be collected.
-              This DataObject is the means by which the MCMC entity obtains the results of requested
-              samples, and so should require all the input and output variables needed for adaptive sampling."""))
-
-
     return inputSpecification
+
+  @classmethod
+  def getSolutionExportVariableNames(cls):
+    """
+      Compiles a list of acceptable SolutionExport variable options.
+      @ In, None
+      @ Out, vars, dict, {varName: manual description} for each solution export option
+    """
+    vars = super(AdaptiveSampler, cls).getSolutionExportVariableNames()
+    # TODO: multiple chains for MCMC
+    new = {'traceID': 'integer identifying which iteration a Markov chain is on',
+           '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output at current iteration'
+           }
+    vars.update(new)
+    return vars
 
   def __init__(self):
     """
@@ -111,18 +122,19 @@ class MCMC(ForwardSampler):
       @ In, None
       @ Out, None
     """
-    ForwardSampler.__init__(self)
-    self.limit = None
+    AdaptiveSampler.__init__(self)
     self._initialValues = {}
+    self._updateValues = {}
+    self._currentValues = {}
     self._proposal = {}
     self._tune = 0
-    self.initSeed = None
-    self._targetEvaluation = None
+    self._likelihood = None
     self._availProposal = {'normal': Distributions.Normal(0.0, 1.0),
                            'uniform': Distributions.Uniform(-1.0, 1.0)}
-    self._rejectDist = Distributions.Uniform(0.0, 1.0)
-    # assembler objects to be requested
-    self.addAssemblerObject('TargetEvaluation', '1', True)
+    self._acceptDist = Distributions.Uniform(0.0, 1.0)
+    self._localReady = True
+    self._currentRlz = None
+
     self.addAssemblerObject('proposal', '-n', True)
 
   def localInputAndChecks(self, xmlNode, paramInput):
@@ -142,6 +154,11 @@ class MCMC(ForwardSampler):
       @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
+    likelihood = paramInput.findFirst('likelihood')
+    if likelihood is not None:
+      self._likelihood = likelihood.value
+    else:
+      self.raiseAnError(IOError, "likelihood is required, but not provided!")
     init = paramInput.findFirst('samplerInit')
     if init is not None:
       # limit
@@ -149,7 +166,7 @@ class MCMC(ForwardSampler):
       if limit is not None:
         self.limit = limit.value
       else:
-        self.raiseAnError(IOError, self, 'MCMC', self.name, 'needs the limit block (number of samples) in the samplerInit block')
+        self.raiseAnError(IOError, 'MCMC', self.name, 'needs the limit block (number of samples) in the samplerInit block')
       # initialSeed
       seed = init.findFirst('initialSeed')
       if seed is not None:
@@ -160,7 +177,7 @@ class MCMC(ForwardSampler):
       if tune is not None:
         self._tune = tune.value
     else:
-      self.raiseAnError(IOError, self, 'MCMC', self.name, 'needs the samplerInit block')
+      self.raiseAnError(IOError, 'MCMC', self.name, 'needs the samplerInit block')
     # variables additional reading
     for varNode in paramInput.findAll('variable'):
       var = varNode.parameterValues['name']
@@ -178,6 +195,8 @@ class MCMC(ForwardSampler):
     targetEval = paramInput.findFirst('TargetEvaluation')
     self._targetEvaluation = targetEval.value
 
+    self._updateValues = copy.copy(self._initialValues)
+
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
       This function should be called every time a clean MCMC is needed. Called before takeAstep in <Step>
@@ -185,16 +204,16 @@ class MCMC(ForwardSampler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    self._targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self._targetEvaluation)
     # TODO: currently, we only consider uncorrelated case
     for var, dist in self._proposal.items():
       if dist:
         self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', dist)
       else:
         self._proposal[var] = self._availProposal['normal']
-    self._solutionExport = solutionExport
-    ForwardSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-    self._validateSolutionExportVariables(solutionExport)
+    AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    # retrieve target evaluation
+    # self._targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self._targetEvaluation)
+
 
   def localGenerateInput(self, model, myInput):
     """
@@ -205,24 +224,96 @@ class MCMC(ForwardSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    for key in sorted(self.distDict):
-      dim    = self.variables2distributionsMapping[key]['dim']
+    for key, value in self._updateValues.items():
       totDim = self.variables2distributionsMapping[key]['totDim']
-      dist   = self.variables2distributionsMapping[key]['name']
-      reducedDim = self.variables2distributionsMapping[key]['reducedDim']
-      if totDim == 1:
-        rvsnum = self.distDict[key].rvs()
-        for kkey in key.split(','):
-          self.values[kkey] = np.atleast_1d(rvsnum)[0]
-        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(rvsnum)
-        self.inputInfo['ProbabilityWeight-' + key] = 1.
-      elif totDim > 1:
-        self.raiseAnError(NotImplementedError, 'MCMC for correlated input parameters has not been implemented yet!')
-      else:
-        self.raiseAnError(IOError,"Total dimension for given distribution should be >= 1")
+      dist = self.distDict[key]
+      if totDim != 1:
+        self.raiseAnError(IOError,"Total dimension for given distribution {} should be 1".format(dist.type))
+      if value is None:
+        value = dist.rvs()
+      if self.counter > 1:
+        self._localReady = False
+        # update value based on proposal distribution
+        value += self._proposal[key].rvs()
+      self.values[key] = value
+      self.inputInfo['SampledVarsPb'][key] = dist.pdf(value)
+      self.inputInfo['ProbabilityWeight-' + key] = 1.
     self.inputInfo['PointProbability'] = 1.0
     self.inputInfo['ProbabilityWeight' ] = 1.0
     self.inputInfo['SamplerType'] = 'MCMC'
+
+  #### start to track current and previous value and runs
+
+  def localFinalizeActualSampling(self, jobObject, model, myInput):
+    """
+      General function (available to all samplers) that finalize the sampling
+      calculation just ended. In this case, The function is aimed to check if
+      all the batch calculations have been performed
+      @ In, jobObject, instance, an instance of a JobHandler
+      @ In, model, model instance, it is the instance of a RAVEN model
+      @ In, myInput, list, the generating input
+      @ Out, None
+    """
+    self._localReady = True
+    AdaptiveSampler.localFinalizeActualSampling(self, jobObject, model, myInput)
+    prefix = jobObject.getMetadata()['prefix']
+    _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
+    rlz = dict((var, full[var]) for var in (list(self.toBeSampled.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
+    rlz['traceID'] = self.counter
+    if self.counter == 1:
+      self._addToSolutionExport(rlz)
+      self._currentRlz = rlz
+    if self.counter > 1:
+      acceptable = self._useRealization(rlz, self._currentRlz)
+      if acceptable:
+        self._currentRlz = rlz
+        self._addToSolutionExport(rlz)
+      else:
+        self._addToSolutionExport(currentRlz)
+        self._updateValues = dict((var, currentRlz[var]) for var in self._updateValues)
+
+  def _addToSolutionExport(self, rlz):
+    """
+      add realizations to solution export
+      @ In, rlz, dict, sampled realization
+      @ Out, None
+    """
+    rlz = dict((var, np.atleast_1d(val)) for var, val in rlz.items())
+    self._solutionExport.addRealization(rlz)
+
+  def _useRealization(self, newRlz, currentRlz):
+    """
+      Used to feedback the collected runs within the sampler
+      @ In, newRlz, dict, new generated realization
+      @ In, currentRlz, dict, the current existing realization
+      @ Out, acceptable, bool, True if we accept the new sampled point
+    """
+    netLogPosterior = 0
+    # compute net log prior
+    for var in self._updateValues:
+      newVal = newRlz[var]
+      currVal = currentRlz[var]
+      dist = self.distDict[var]
+      netLogPrior = dist.logpdf(newVal) - dist.logpdf(currVal)
+      netLogPosterior += netLogPrior
+    netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
+    netLogPosterior += netLogLikelihood
+    acceptValue = np.log(self._acceptDist.rvs())
+    acceptable = netLogPosterior > acceptable
+    return acceptable
+
+    # update input values through self._updateValues
+
+  def localStillReady(self, ready):
+    """
+      Determines if sampler is prepared to provide another input.  If not, and
+      if jobHandler is finished, this will end sampling.
+      @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
+      @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
+    """
+    ready = self._localReady
+    ready = AdaptiveSampler.localStillReady(self, ready)
+    return ready
 
   def _localHandleFailedRuns(self, failedRuns):
     """
@@ -232,3 +323,14 @@ class MCMC(ForwardSampler):
     """
     if len(failedRuns)>0:
       self.raiseADebug('  Continuing with reduced-size MCMC sampling.')
+
+
+  def _formatSolutionExportVariableNames(self, acceptable):
+    """
+      Does magic formatting for variables, based on this class's needs.
+      Extend in inheritors as needed.
+      @ In, acceptable, set, set of acceptable entries for solution export for this entity
+      @ Out, acceptable, set, modified set of acceptable variables with all formatting complete
+    """
+    acceptable = AdaptiveSampler._formatSolutionExportVariableNames(self, acceptable)
+    return acceptable

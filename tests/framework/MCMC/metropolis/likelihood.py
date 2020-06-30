@@ -27,4 +27,4 @@ def run(self, inputDict):
   self.yin = inputDict['yin']
   mus = np.array([5, 5])
   sigmas = np.array([[1, .9], [.9, 1]])
-  self.zout = np.log(st.multivariate_normal.pdf([self.xin, self.yin], mean=mus, cov=sigmas))
+  self.zout = st.multivariate_normal.pdf([self.xin, self.yin], mean=mus, cov=sigmas)
