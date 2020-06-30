@@ -85,7 +85,7 @@ def bitFlipMutator(offSprings,**kwargs):
   """
   for child in offSprings:
     # the mutation is performed for each child independently
-    if randomUtils.random(dim=1,samples=1)>kwargs['mutationProb']:
+    if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
       # sample gene location to be flipped: i.e., determine loc
       chromosomeSize = child.values.shape[0]
       loc = randomUtils.randomIntegers(0, chromosomeSize, caller=None, engine=None)
@@ -104,10 +104,48 @@ def bitFlipMutator(offSprings,**kwargs):
       
   return offSprings
 
+def inversionMutator(offSprings,**kwargs):
+  """
+    This method is designed mirror a sequence of genes in each chromosome with probability = mutationProb.
+    The sequence of genes to be mirrored is completely random.
+    E.g. given chromosome C = [0,1,2,3,4,5,6,7,8,9] and sampled locL=2 locU=6; 
+         New chromosome  C' = [0,1,6,5,4,3,2,7,8,9]
+    @ In, offSprings, xr.DataArray, children resulting from the crossover process
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
+    @ Out, offSprings, xr.DataArray, children resulting from the crossover process
+  """
+  for child in offSprings:
+    # the mutation is performed for each child independently
+    if randomUtils.random(dim=1,samples=1)<kwargs['mutationProb']:
+      # sample gene locations: i.e., determine loc1 and loc2
+      locRangeList = list(range(0,child.values.shape[0]))
+      index1 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
+      loc1 = locRangeList[index1]
+      locRangeList.pop(loc1)
+      index2 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
+      loc2 = locRangeList[index2]
+      if loc1>loc2:
+        locL=loc2
+        locU=loc1
+      elif loc1<loc2:
+        locL=loc1
+        locU=loc2
+      ##############
+      # select sequence to be mirrored and mirror it
+      seq=child.values[locL:locU+1]
+      mirrSeq = seq[::-1]
+      ##############
+      # insert mirrored sequence into child     
+      child.values[locL:locU+1]=mirrSeq
+      
+  return offSprings
+
 __mutators = {}
-__mutators['swapMutator']     = swapMutator
-__mutators['scrambleMutator'] = scrambleMutator
-__mutators['bitFlipMutator']  = bitFlipMutator
+__mutators['swapMutator']       = swapMutator
+__mutators['scrambleMutator']   = scrambleMutator
+__mutators['bitFlipMutator']    = bitFlipMutator
+__mutators['inversionMutator']  = inversionMutator
 
 
 def returnInstance(cls, name):
