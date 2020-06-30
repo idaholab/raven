@@ -205,6 +205,10 @@ class MCMC(AdaptiveSampler):
       @ Out, None
     """
     # TODO: currently, we only consider uncorrelated case
+    # initialize distributions
+    for _, dist in self._availProposal.items():
+      dist.initializeDistribution()
+    self._acceptDist.initializeDistribution()
     for var, dist in self._proposal.items():
       if dist:
         self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', dist)
@@ -269,8 +273,9 @@ class MCMC(AdaptiveSampler):
         self._currentRlz = rlz
         self._addToSolutionExport(rlz)
       else:
-        self._addToSolutionExport(currentRlz)
-        self._updateValues = dict((var, currentRlz[var]) for var in self._updateValues)
+        self._addToSolutionExport(self._currentRlz)
+        # update input values through self._updateValues
+        self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
 
   def _addToSolutionExport(self, rlz):
     """
@@ -299,10 +304,8 @@ class MCMC(AdaptiveSampler):
     netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
     netLogPosterior += netLogLikelihood
     acceptValue = np.log(self._acceptDist.rvs())
-    acceptable = netLogPosterior > acceptable
+    acceptable = netLogPosterior > acceptValue
     return acceptable
-
-    # update input values through self._updateValues
 
   def localStillReady(self, ready):
     """
