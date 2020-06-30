@@ -132,7 +132,6 @@ class MCMC(AdaptiveSampler):
     self._availProposal = {'normal': Distributions.Normal(0.0, 1.0),
                            'uniform': Distributions.Uniform(-1.0, 1.0)}
     self._acceptDist = Distributions.Uniform(0.0, 1.0)
-    self._localReady = True
     self._currentRlz = None
 
     self.addAssemblerObject('proposal', '-n', True)
@@ -218,6 +217,15 @@ class MCMC(AdaptiveSampler):
     # retrieve target evaluation
     # self._targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self._targetEvaluation)
 
+    # initialize the input variable values
+    for key, value in self._updateValues.items():
+      totDim = self.variables2distributionsMapping[key]['totDim']
+      dist = self.distDict[key]
+      if totDim != 1:
+        self.raiseAnError(IOError,"Total dimension for given distribution {} should be 1".format(dist.type))
+      if value is None:
+        value = dist.rvs()
+        self._updateValues[key] = value
 
   def localGenerateInput(self, model, myInput):
     """
@@ -229,24 +237,11 @@ class MCMC(AdaptiveSampler):
       @ Out, None
     """
     for key, value in self._updateValues.items():
-      totDim = self.variables2distributionsMapping[key]['totDim']
-      dist = self.distDict[key]
-      if totDim != 1:
-        self.raiseAnError(IOError,"Total dimension for given distribution {} should be 1".format(dist.type))
-      if value is None:
-        value = dist.rvs()
-      if self.counter > 1:
-        self._localReady = False
-        # update value based on proposal distribution
-        value += self._proposal[key].rvs()
       self.values[key] = value
-      self.inputInfo['SampledVarsPb'][key] = dist.pdf(value)
+      self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(value)
       self.inputInfo['ProbabilityWeight-' + key] = 1.
     self.inputInfo['PointProbability'] = 1.0
     self.inputInfo['ProbabilityWeight' ] = 1.0
-    self.inputInfo['SamplerType'] = 'MCMC'
-
-  #### start to track current and previous value and runs
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
@@ -258,24 +253,7 @@ class MCMC(AdaptiveSampler):
       @ In, myInput, list, the generating input
       @ Out, None
     """
-    self._localReady = True
     AdaptiveSampler.localFinalizeActualSampling(self, jobObject, model, myInput)
-    prefix = jobObject.getMetadata()['prefix']
-    _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
-    rlz = dict((var, full[var]) for var in (list(self.toBeSampled.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
-    rlz['traceID'] = self.counter
-    if self.counter == 1:
-      self._addToSolutionExport(rlz)
-      self._currentRlz = rlz
-    if self.counter > 1:
-      acceptable = self._useRealization(rlz, self._currentRlz)
-      if acceptable:
-        self._currentRlz = rlz
-        self._addToSolutionExport(rlz)
-      else:
-        self._addToSolutionExport(self._currentRlz)
-        # update input values through self._updateValues
-        self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
 
   def _addToSolutionExport(self, rlz):
     """
@@ -286,27 +264,6 @@ class MCMC(AdaptiveSampler):
     rlz = dict((var, np.atleast_1d(val)) for var, val in rlz.items())
     self._solutionExport.addRealization(rlz)
 
-  def _useRealization(self, newRlz, currentRlz):
-    """
-      Used to feedback the collected runs within the sampler
-      @ In, newRlz, dict, new generated realization
-      @ In, currentRlz, dict, the current existing realization
-      @ Out, acceptable, bool, True if we accept the new sampled point
-    """
-    netLogPosterior = 0
-    # compute net log prior
-    for var in self._updateValues:
-      newVal = newRlz[var]
-      currVal = currentRlz[var]
-      dist = self.distDict[var]
-      netLogPrior = dist.logpdf(newVal) - dist.logpdf(currVal)
-      netLogPosterior += netLogPrior
-    netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
-    netLogPosterior += netLogLikelihood
-    acceptValue = np.log(self._acceptDist.rvs())
-    acceptable = netLogPosterior > acceptValue
-    return acceptable
-
   def localStillReady(self, ready):
     """
       Determines if sampler is prepared to provide another input.  If not, and
@@ -314,7 +271,6 @@ class MCMC(AdaptiveSampler):
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
-    ready = self._localReady
     ready = AdaptiveSampler.localStillReady(self, ready)
     return ready
 
@@ -326,7 +282,6 @@ class MCMC(AdaptiveSampler):
     """
     if len(failedRuns)>0:
       self.raiseADebug('  Continuing with reduced-size MCMC sampling.')
-
 
   def _formatSolutionExportVariableNames(self, acceptable):
     """
