@@ -22,18 +22,20 @@
   </Models>
 
   <Distributions>
-    <Bernoulli name="distrib1">
-      <p>0.5</p>
-    </Bernoulli>
-    <Bernoulli name="distrib2">
-      <p>0.2</p>
-    </Bernoulli>
+    <Uniform name='distrib1'>
+      <lowerBound>0.</lowerBound>
+      <upperBound>0.01</upperBound>
+    </Uniform>
+    <Uniform name='distrib2'>
+      <lowerBound>0.</lowerBound>
+      <upperBound>0.1</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
-        <limit>10</limit>
+        <limit>1</limit>
       </samplerInit>
       <variable name="statusBE1">
         <distribution>distrib1</distribution>

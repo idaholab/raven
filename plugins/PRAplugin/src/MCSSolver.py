@@ -56,17 +56,17 @@ class MCSSolver(ExternalModelPluginBase):
     container.InvMapping = {}
 
     for child in xmlNode:
-      if child.tag == 'topEvent':
+      if child.tag == 'topEventID':
         container.topEventID = child.text.strip()
-      if child.tag == 'solverOrder':
-        container.solverOrder = child.text.strip()
+      elif child.tag == 'solverOrder':
+        container.solverOrder = int(child.text.strip())
       elif child.tag == 'map':
         container.mapping[child.get('var')]      = child.text.strip()
         container.InvMapping[child.text.strip()] = child.get('var')
       elif child.tag == 'variables':
         variables = [str(var.strip()) for var in child.text.split(",")]
       else:
-        raise IOError("MCSSolver: xml node " + str (child.tag) + " is not allowed")
+        raise IOError("MCSSolver: xml node " + str(child.tag) + " is not allowed")
   
   def initialize(self, container, runInfoDict, inputFiles):
     """
@@ -87,8 +87,10 @@ class MCSSolver(ExternalModelPluginBase):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
+    if len(inputs) > 1:
+      raise IOError("MCSSolver: More than one file has been passed to the MCS solver")
     
-    mcsIDs, probability, mcsList, beList = MCSreader(inputs) 
+    mcsIDs, probability, mcsList, beList = MCSreader(inputs[0]) 
     
     self.topEventTerms = {}
     
@@ -120,17 +122,23 @@ class MCSSolver(ExternalModelPluginBase):
       This method determines the status of the TopEvent of the FT provided the status of its Basic Events
       @ In, container, object, self-like object where all the variables can be stored
       @ In, Inputs, dict, dictionary of inputs from RAVEN
-    """   
-    self.TEprobability = 0.0   
+    """
+    inputForSolver = {}
+    for key in container.InvMapping.keys():
+      inputForSolver[key] = Inputs[container.InvMapping[key]]
+    value = self.MCSsolver(container,inputForSolver)
+    return value
+  
+  def MCSsolver(self,container,inputs): 
+    print(inputs)
+    self.TEprobability = 0.0 
     for order in range(1,container.solverOrder+1):
       orderProbability=0
       for term in self.topEventTerms[order]:
-        orderProbability = orderProbability + math.prod(term)
+        print(term)
+        orderProbability = orderProbability + np.prod(term)
       self.TEprobability = self.TEprobability + orderProbability   
     
     container.__dict__[container.TEprobability]= self.TEprobability
-      
-      
-      
-      
-      
+
+  
