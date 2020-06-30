@@ -323,7 +323,7 @@ class GeneticAlgorithm(RavenSampled):
     population = xr.DataArray(populationRlz[list(self.toBeSampled)].to_array().transpose(),
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(size),
-                                      'Gene':np.arange(len(self.toBeSampled))})
+                                      'Gene':list(self.toBeSampled)})#np.arange(len(self.toBeSampled))
     # TODO: This is to be removed once the rlz is consistent with the expected batch
     for i in range(1,size):
       population[i,:] = np.random.choice(population[0,:], replace=False)
@@ -332,7 +332,7 @@ class GeneticAlgorithm(RavenSampled):
     info['optVal'] = rlz[self._objectiveVar]
     self.incrementIteration(traj)
     info['step'] = self.counter
-
+    self.population = population
 
 
     # model is generating [y1,..,yL] = F(x1,...,xM)
@@ -342,17 +342,17 @@ class GeneticAlgorithm(RavenSampled):
 
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    # childrenCont = self.__fitnessCalculationHandler(rlz,params=paramsDict)
-    fitness = np.zeros((self._populationSize))
-    for i in range(self._populationSize):
-      fitness[i] = self._fitnessInstance(rlz,objVar = self._objectiveVar,a=self._objCoeff,b=self._penaltyCoeff,penalty = None)
+    # for i in range(self._populationSize):
+    fitness = self._fitnessInstance(populationRlz,objVar = self._objectiveVar,a=self._objCoeff,b=self._penaltyCoeff,penalty = None)
 
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
-    if self.counter > 1:
+    if self.counter > 0:
       # right now these are lists, but this should be changed to xarrays when the realization is ready as an xarray dataset
-      population,Fitness,Age = self._survivorSelectionInstance(populationRlz,objVar = self._objectiveVar,variables = variables,popAge = np.zeros((self._populationSize,1)))
+      population,Fitness,Age = self._survivorSelectionInstance(populationRlz,objVar = self._objectiveVar,popAge = np.zeros((self._populationSize,1)))
+      self.population = population
+      self.Age
       # This will be added once the rlz is treated as a xarray DataSet
       # for var in self.toBeSampled:
         # self.info[var+'_Age'] = Age[var]
@@ -361,7 +361,10 @@ class GeneticAlgorithm(RavenSampled):
     # pair parents together by indexes
     # initialization of parents
     parents = xr.DataArray(
-        np.zeros((self._nParents,len(self.toBeSampled))))
+                          np.zeros((self._nParents,len(self.toBeSampled))),
+                          dims=['chromosome','Gene'],
+                          coords={'chromosome': np.arange(self._nParents),
+                                  'Gene':list(self.toBeSampled)})
 
     parents = self._parentSelectionInstance(population,fitness=fitness,nParents=self._nParents)
 
@@ -372,14 +375,17 @@ class GeneticAlgorithm(RavenSampled):
 
     # 3 @ n: Mutation
     # perform random directly on childrenCoordinates
-    # self.__mutationCalculationHandler(children=self.childrenCoordinates,params=paramsDict)
-    for i in range(np.shape(children)[0]):
-      children[i] = self._mutationInstance(chromosome=children[i],locs = self._mutationlocs, mutationProb=self._mutationProb)
+    children = self._mutationInstance(offSprings=children,locs = self._mutationlocs, mutationProb=self._mutationProb)
     ## TODO WHAT IF AFTER CROSSOVER AND/OR MUTATION OUR CHROMOSOME NO LONGER SATISFIES THE WITHOUT REPLACEMENT CONSTRAINT
 
     # 4 @ n: Submit children batch
     # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
-    # --> how should this be handled? By initialize?
+    # self._submitRun(children,traj,self.counter)
+    for i in range(np.shape(children)[0]):
+      newRlz={}
+      for _,var in enumerate(self.toBeSampled.keys()):
+        newRlz[var] = float(children.loc[i,var].values)
+      self._submitRun(newRlz, traj, self.getIteration(traj))
 
 
   def _submitRun(self, point, traj, step, moreInfo=None):

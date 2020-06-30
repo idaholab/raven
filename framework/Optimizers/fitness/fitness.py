@@ -18,6 +18,8 @@
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
 """
+import numpy as np
+import xarray as xr
 
 def invLinear(rlz,**kwargs):
   """
@@ -25,8 +27,11 @@ def invLinear(rlz,**kwargs):
 
     fitness = \\frac{1}{a * obj + b * penalty}
 
+    @ In, rlz, xr.Dataset, containing the evaluation of a certain
+              set of individuals (can be the initial population for the very first iteration,
+              or a population of offsprings)
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
-          obj, float, the value of the objective function at the chromosome for which fitness is computed
+          objVar, string, the name of the objective variable
           a, float, linear coefficient for the objective function (default = 1.0)
           penalty, float, measuring the severity of the constraint violation. (default = 1.0)
           b, float, linear coefficient for the penalty measure. (default = 1.0)
@@ -46,8 +51,13 @@ def invLinear(rlz,**kwargs):
     penalty = kwargs['penalty']
 
   objVar = kwargs['objVar']
-  obj = eval(str('rlz.'+objVar+'.data'))
-  fitness = 1/(a * obj + b * penalty)
+  # Intializing fitness
+  fitness = xr.DataArray(np.zeros((eval('rlz[\'' + objVar + '\'].size'))),
+                              dims=['chromosome'],
+                              coords={'chromosome': np.arange(eval('rlz[\'' + objVar + '\'].size'))})
+  for i in range(eval('rlz[\'' + objVar + '\'].size')):
+    obj = eval('rlz[\'' + objVar + '\'].data[i]')#.data
+    fitness[i] = 1/(a * obj + b * penalty)
   return fitness
 
 __fitness = {}

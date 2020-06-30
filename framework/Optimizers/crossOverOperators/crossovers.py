@@ -21,23 +21,31 @@
 """
 
 import numpy as np
+import xarray as xr
 import copy
 from utils import randomUtils
 from copy import deepcopy
 from scipy.special import comb
 from itertools import combinations
 
-def onePointCrossover(**kwargs):
+def onePointCrossover(parents,**kwargs):
   """
+    @ n, parents, xr.DataArray, parents involved in the mating process.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           parents, 2D array, parents in the current mating process. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
           crossoverProb, float, crossoverProb determines when child takes genes from a specific parent, default is random
           points, integer, point at which the cross over happens, default is random
     @ Out, children, np.array, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
   """
-  nParents,nGenes = np.shape(kwargs['parents'])
-  children = np.zeros((int(2*comb(nParents,2)),np.shape(kwargs['parents'])[1]))
-  parents = kwargs['parents']
+  # parents = kwargs['parents']
+  nParents,nGenes = np.shape(parents)
+  # Number of children = 2* (nParents choose 2)
+  children = xr.DataArray(np.zeros((int(2*comb(nParents,2)),np.shape(parents)[1])),
+                              dims=['chromosome','Gene'],
+                              coords={'chromosome': np.arange(int(2*comb(nParents,2))),
+                                      'Gene':['x1','x2','x3','x4','x5','x6']})
+
+
   # defaults
   if kwargs['points'] is None:
     point = randomUtils.randomIntegers(1,nGenes-1)
@@ -52,7 +60,7 @@ def onePointCrossover(**kwargs):
   # create children
   parentsPairs = list(combinations(parents,2))
   for ind,parent in enumerate(parentsPairs):
-    parent = np.array(parent).reshape(2,-1)
+    parent = np.array(parent).reshape(2,-1) # two parents at a time
     if randomUtils.random(dim=1,samples=1) < crossoverProb:
       for i in range(nGenes):
         children[2*ind:2*ind+2,i]=parent[np.arange(0,2)*(i<point[0])+np.arange(-1,-3,-1)*(i>=point[0]),i]
@@ -64,7 +72,7 @@ def onePointCrossover(**kwargs):
 def twoPointsCrossover(**kwargs):
   """
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
-          parents, 2D array, parents in the current mating process. 
+          parents, 2D array, parents in the current mating process.
           Shape is nParents x len(chromosome) i.e, number of Genes/Vars
           crossoverProb, float, crossoverProb determines when child takes genes from a specific parent, default is random
           points, integer, point at which the cross over happens, default is random
@@ -78,7 +86,7 @@ def twoPointsCrossover(**kwargs):
     crossoverProb = randomUtils.random(dim=1, samples=1)
   else:
     crossoverProb = kwargs['crossoverProb']
-    
+
   for ind,parent in enumerate(parents):
     listToSample = list(range(1,nGenes-1))
     initialPerm = randomUtils.randomPermutation(listToSample)
@@ -89,8 +97,8 @@ def twoPointsCrossover(**kwargs):
       secondPoint = p1
     else:
       firstPoint  = p1
-      secondPoint = p2    
-    
+      secondPoint = p2
+
   return children
 
 __crossovers = {}
