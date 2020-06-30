@@ -59,7 +59,7 @@ class MCSSolver(ExternalModelPluginBase):
       if child.tag == 'topEventID':
         container.topEventID = child.text.strip()
       elif child.tag == 'solverOrder':
-        container.solverOrder = int(child.text.strip())
+        self.solverOrder = int(child.text.strip())
       elif child.tag == 'map':
         container.mapping[child.get('var')]      = child.text.strip()
         container.InvMapping[child.text.strip()] = child.get('var')
@@ -102,7 +102,7 @@ class MCSSolver(ExternalModelPluginBase):
     #                      - ABCD - ABCE - ACDE
     #                      + ABCDE
     
-    for order in range(1,container.solverOrder+1):
+    for order in range(1,self.solverOrder+1):
       self.topEventTerms[order]=[]
       terms = list(itertools.combinations(mcsList,order))
       # terms is a list of tuples   
@@ -126,19 +126,18 @@ class MCSSolver(ExternalModelPluginBase):
     inputForSolver = {}
     for key in container.InvMapping.keys():
       inputForSolver[key] = Inputs[container.InvMapping[key]]
-    value = self.MCSsolver(container,inputForSolver)
+    value = self.MCSsolver(**inputForSolver)
     return value
   
-  def MCSsolver(self,container,inputs): 
-    print(inputs)
-    self.TEprobability = 0.0 
-    for order in range(1,container.solverOrder+1):
+  def MCSsolver(self,**kwargs): 
+    TEprobability = 0.0 
+    for order in range(1,self.solverOrder+1):
       orderProbability=0
       for term in self.topEventTerms[order]:
         print(term)
         orderProbability = orderProbability + np.prod(term)
-      self.TEprobability = self.TEprobability + orderProbability   
-    
-    container.__dict__[container.TEprobability]= self.TEprobability
+      TEprobability = TEprobability + orderProbability   
+    return TEprobability
+
 
   
