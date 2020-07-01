@@ -41,7 +41,7 @@ def rouletteWheel(population,**kwargs):
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:
     return population
-  # begine the roulette selection algorithm
+  # begin the roulette selection algorithm
   selectionProb = fitness/np.sum(fitness) # Share of the pie (rouletteWheel)
   selectedParent = xr.DataArray(
         np.zeros((nParents,np.shape(pop)[1])),
@@ -56,7 +56,7 @@ def rouletteWheel(population,**kwargs):
   # Rotate the wheel
 
   for i in range(nParents):
-    # intialize Probability
+    # initialize Probability
     counter = 0
     sumProb = selectionProb[counter]
     while sumProb < roulettePointer :
