@@ -144,6 +144,8 @@ def twoPointsCrossover(parents, parentIndexes,**kwargs):
 __crossovers = {}
 __crossovers['onePointCrossover']  = onePointCrossover
 __crossovers['twoPointsCrossover'] = twoPointsCrossover
+__crossovers['uniformCrossover']   = uniformCrossover
+
 
 def returnInstance(cls, name):
   if name not in __crossovers:
