@@ -129,7 +129,7 @@ class PointSet(DataSet):
           method,indic = self._selectInput
         elif var in self._outputs or var in self._metavars:
           # TODO where does metadata get picked from?  Seems like output fits best?
-          method,indic = self._selectOutput
+          method, indic = self._selectOutput
         # pivot variables are included here in "else"; remove them after they're used in operators
         else:
           toRemove.append(var)
@@ -146,7 +146,7 @@ class PointSet(DataSet):
             rlz[var] = float(val)
           else:
             rlz[var] = float(val[indic])
-        elif method in ['inputPivotValue','outputPivotValue']:
+        elif method in ['inputPivotValue', 'outputPivotValue']:
           pivotParam = self.getDimensions(var)
           assert(len(pivotParam) == 1) # TODO only handle History for now
           pivotParam = pivotParam[var][0]
