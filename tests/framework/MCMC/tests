@@ -5,7 +5,7 @@
   max_time = 500
   [./csv]
    type = OrderedCSV
-   output = 'metropolis/dumpExport.csv metropolis/dumpOut.xml'
+   output = 'metropolis/dumpExport.csv metropolis/dumpOut.csv'
    rel_err = 0.001
   [../]
  [../]
