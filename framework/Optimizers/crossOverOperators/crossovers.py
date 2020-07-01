@@ -113,6 +113,21 @@ def returnInstance(cls, name):
   return __crossovers[name]
 
 def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
+  """
+    Method designed to perform a twopoint crossover on 2 arrays:
+    Partition each array in three sequences (A,B,C):
+    parent1 = A1 B1 C1
+    parent2 = A2 B2 C2
+    Then:
+    children1 = A1 B2 C1
+    children2 = A2 B1 C2    
+    @ In, parent1: first array
+    @ In, parent2: second array
+    @ In, LocL: first location
+    @ In, LocU: second location
+    @ Out, children1: first generated array
+    @ Out, children2: second generated array
+  """  
   children1 = copy.deepcopy(parent1)
   children2 = copy.deepcopy(parent2)
   
