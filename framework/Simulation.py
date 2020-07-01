@@ -425,7 +425,7 @@ class Simulation(MessageHandler.MessageUser):
     for child in xmlNode:
       if child.tag=='VariableGroups':
         continue #we did these before the for loop
-      if child.tag in list(self.whichDict.keys()):
+      if child.tag in self.whichDict:
         self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
         if len(child.attrib.keys()) == 0:
