@@ -65,14 +65,24 @@
     rel_err = 0.00001
     zero_threshold = 1e-14
   [../]
+
   [./printXml]
     type = 'RavenFramework'
     input = 'print_xml.xml'
-    UnorderedXml = 'basicStatisticsXml/InputOutput_basicStatPP_dump.xml'
-    UnorderedCsv = 'basicStatisticsXml/InputOutput_basicStatPP_dump.csv'
-    rel_err = 1e-6
-    zero_threshold = 1e-14
+    [./CSV]
+      type = OrderedCSV
+      output = 'basicStatisticsXml/InputOutput_basicStatPP_dump.csv'
+      rel_err = 5e-1
+      zero_threshold = 1e-14
+    [../]
+    [./XML]
+      type = XML
+      output = 'basicStatisticsXml/InputOutput_basicStatPP_dump.xml'
+      rel_err = 5e-1
+      zero_threshold = 1e-14
+    [../]
   [../]
+
   [./sensitivity]
     type = 'RavenFramework'
     input = 'sensitivity.xml'
