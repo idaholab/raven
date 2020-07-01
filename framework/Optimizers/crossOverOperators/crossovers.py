@@ -69,7 +69,7 @@ def onePointCrossover(parents,**kwargs):
       children[2*ind:2*ind+2,:] = deepcopy(parent)
   return children
 
-def twoPointsCrossover(**kwargs):
+def twoPointsCrossover(parents, parentIndexes,**kwargs):
   """
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           parents, 2D array, parents in the current mating process.
@@ -78,27 +78,29 @@ def twoPointsCrossover(**kwargs):
           points, integer, point at which the cross over happens, default is random
     @ Out, children, np.array, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
   """
-  nParents,nGenes = np.shape(kwargs['parents'])
-  children = np.zeros((int(2*comb(nParents,2)),np.shape(kwargs['parents'])[1]))
-  parents = kwargs['parents']
-
-  if kwargs['crossoverProb'] is None:
-    crossoverProb = randomUtils.random(dim=1, samples=1)
-  else:
-    crossoverProb = kwargs['crossoverProb']
-
-  for ind,parent in enumerate(parents):
-    listToSample = list(range(1,nGenes-1))
-    initialPerm = randomUtils.randomPermutation(listToSample)
-    p1 = initialPerm[0]
-    p2 = initialPerm[1]
-    if p1>p2:
-      firstPoint  = p2
-      secondPoint = p1
-    else:
-      firstPoint  = p1
-      secondPoint = p2
-
+  nParents,nGenes = np.shape(parents)
+  children = xr.DataArray(np.zeros((int(2*comb(nParents,2)),np.shape(parents)[1])),
+                              dims=['chromosome','Gene'],
+                              coords={'chromosome': np.arange(int(2*comb(nParents,2))),
+                                      'Gene':parents.coords['Gene'].values})  
+  for couples in parentIndexes:
+    locRangeList = list(range(0,nGenes))
+    index1 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
+    loc1 = locRangeList[index1]
+    locRangeList.pop(loc1)
+    index2 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
+    loc2 = locRangeList[index2]
+    if loc1>loc2:
+      locL=loc2
+      locU=loc1
+    elif loc1<loc2:
+      locL=loc1
+      locU=loc2
+    
+    parent1 = parents[couples[0]].values
+    parent2 = parents[couples[1]].values
+    children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
+    
   return children
 
 __crossovers = {}
@@ -109,3 +111,19 @@ def returnInstance(cls, name):
   if name not in __crossovers:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __crossovers[name]
+
+def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
+  children1 = parent2
+  children2 = parent1
+  
+  seqB1 = parent1.values[locL:locU+1]
+  seqB2 = parent2.values[locL:locU+1]
+  
+  children1[locL:locU+1] = seqB2
+  children2[locL:locU+1] = seqB1
+  
+  return children1,children2
+  
+  
+  
+  
