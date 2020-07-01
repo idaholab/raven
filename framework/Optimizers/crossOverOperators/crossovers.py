@@ -69,20 +69,54 @@ def onePointCrossover(parents,**kwargs):
       children[2*ind:2*ind+2,:] = deepcopy(parent)
   return children
 
-def twoPointsCrossover(parents, parentIndexes,**kwargs):
+def uniformCrossover(parents, parentIndexes,**kwargs):
   """
+    Method designed 
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           parents, 2D array, parents in the current mating process.
           Shape is nParents x len(chromosome) i.e, number of Genes/Vars
-          crossoverProb, float, crossoverProb determines when child takes genes from a specific parent, default is random
-          points, integer, point at which the cross over happens, default is random
-    @ Out, children, np.array, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
+    @ Out, children, xr.DataArray, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
   """
   nParents,nGenes = np.shape(parents)
   children = xr.DataArray(np.zeros((int(2*comb(nParents,2)),np.shape(parents)[1])),
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(int(2*comb(nParents,2))),
                                       'Gene':parents.coords['Gene'].values})  
+  index = 0
+  for couples in parentIndexes:    
+    parent1 = parents[couples[0]].values
+    parent2 = parents[couples[1]].values
+    children1,children2 = uniformCrossoverMethod(parent1,parent2)
+    
+    children[index]=copy.deepcopy(children1)
+    children[index+1]=copy.deepcopy(children2)
+    index = index + 2
+    
+  return children
+
+
+def twoPointsCrossover(parents, parentIndexes,**kwargs):
+  """
+    Method designed to perform a twopoint crossover on 2 parents:
+    Partition each parents in three sequences (A,B,C):
+    parent1 = A1 B1 C1
+    parent2 = A2 B2 C2
+    Then:
+    children1 = A1 B2 C1
+    children2 = A2 B1 C2 
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          parents, 2D array, parents in the current mating process.
+          Shape is nParents x len(chromosome) i.e, number of Genes/Vars
+          crossoverProb, float, crossoverProb determines when child takes genes from a specific parent, default is random
+          points, integer, point at which the cross over happens, default is random
+    @ Out, children, xr.DataArray, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
+  """
+  nParents,nGenes = np.shape(parents)
+  children = xr.DataArray(np.zeros((int(2*comb(nParents,2)),np.shape(parents)[1])),
+                              dims=['chromosome','Gene'],
+                              coords={'chromosome': np.arange(int(2*comb(nParents,2))),
+                                      'Gene':parents.coords['Gene'].values})  
+  index = 0
   for couples in parentIndexes:
     locRangeList = list(range(0,nGenes))
     index1 = randomUtils.randomIntegers(0, len(locRangeList), caller=None, engine=None)
@@ -100,6 +134,10 @@ def twoPointsCrossover(parents, parentIndexes,**kwargs):
     parent1 = parents[couples[0]].values
     parent2 = parents[couples[1]].values
     children1,children2 = twoPointsCrossoverMethod(parent1,parent2,locL,locU)
+    
+    children[index]=copy.deepcopy(children1)
+    children[index+1]=copy.deepcopy(children2)
+    index = index + 2
     
   return children
 
@@ -137,6 +175,21 @@ def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
   children1[locL:locU+1] = seqB2
   children2[locL:locU+1] = seqB1
   return children1,children2
+
+def uniformCrossoverMethod(parent1,parent2):
+  children1 = np.zeros(parent1.size)
+  children2 = np.zeros(parent2.size)
+  
+  for pos in range(parent1.size):
+    if randomUtils.random(dim=1,samples=1)>0.5:
+      children1[pos] = parent1[pos]
+      children2[pos] = parent2[pos]
+    else:
+      children1[pos] = parent2[pos]
+      children2[pos] = parent1[pos]      
+  
+  return children1,children2
+  
   
   
   
