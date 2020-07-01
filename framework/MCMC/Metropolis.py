@@ -90,9 +90,9 @@ class Metropolis(MCMC):
       self._localReady = False
       for key, value in self._updateValues.items():
         # update value based on proposal distribution
-        value += self._proposal[key].rvs()
-        self.values[key] = value
-        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(value)
+        newVal = value + self._proposal[key].rvs()
+        self.values[key] = newVal
+        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(newVal)
         self.inputInfo['ProbabilityWeight-' + key] = 1.
     self.inputInfo['PointProbability'] = 1.0
     self.inputInfo['ProbabilityWeight' ] = 1.0
@@ -120,8 +120,9 @@ class Metropolis(MCMC):
     if self.counter > 1:
       acceptable = self._useRealization(rlz, self._currentRlz)
       if acceptable:
-        self._currentRlz = rlz
+        self._currentRlz = copy.copy(rlz)
         self._addToSolutionExport(rlz)
+        self._updateValues = dict((var, rlz[var]) for var in self._updateValues)
       else:
         self._addToSolutionExport(self._currentRlz)
         # update input values through self._updateValues
@@ -143,9 +144,13 @@ class Metropolis(MCMC):
       netLogPrior = dist.logpdf(newVal) - dist.logpdf(currVal)
       netLogPosterior += netLogPrior
     netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
+    # netLogLikelihood = newRlz[self._likelihood]/currentRlz[self._likelihood]
     netLogPosterior += netLogLikelihood
     acceptValue = np.log(self._acceptDist.rvs())
+    # acceptValue = self._acceptDist.rvs()
     acceptable = netLogPosterior > acceptValue
+    # Debug
+    # acceptable = netLogLikelihood > acceptValue
     return acceptable
 
   def localStillReady(self, ready):

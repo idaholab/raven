@@ -1,0 +1,13 @@
+[Tests]
+ [./Metropolis]
+  type = 'RavenFramework'
+  input = 'test_metropolis.xml'
+  max_time = 500
+  [./csv]
+   type = OrderedCSV
+   output = 'metropolis/dumpExport.csv metropolis/dumpOut.xml'
+   rel_err = 0.001
+  [../]
+ [../]
+
+[]
