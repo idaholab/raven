@@ -113,15 +113,14 @@ def returnInstance(cls, name):
   return __crossovers[name]
 
 def twoPointsCrossoverMethod(parent1,parent2,locL,locU):
-  children1 = parent2
-  children2 = parent1
+  children1 = copy.deepcopy(parent1)
+  children2 = copy.deepcopy(parent2)
   
   seqB1 = parent1.values[locL:locU+1]
   seqB2 = parent2.values[locL:locU+1]
   
   children1[locL:locU+1] = seqB2
   children2[locL:locU+1] = seqB1
-  
   return children1,children2
   
   
