@@ -35,7 +35,6 @@ class Metropolis(MCMC):
   """
     Metropolis Sampler
   """
-
   @classmethod
   def getInputSpecification(cls):
     """
@@ -56,7 +55,8 @@ class Metropolis(MCMC):
       @ Out, None
     """
     MCMC.__init__(self)
-    self._localReady = True
+    self._localReady = True # True if the submitted job finished
+    self._currentRlz = None # dict stores the current realizations, i.e. {var: val}
 
   def handleInput(self, paramInput):
     """
@@ -120,12 +120,11 @@ class Metropolis(MCMC):
     if self.counter > 1:
       acceptable = self._useRealization(rlz, self._currentRlz)
       if acceptable:
-        self._currentRlz = copy.copy(rlz)
+        self._currentRlz = rlz
         self._addToSolutionExport(rlz)
         self._updateValues = dict((var, rlz[var]) for var in self._updateValues)
       else:
         self._addToSolutionExport(self._currentRlz)
-        # update input values through self._updateValues
         self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
 
   def _useRealization(self, newRlz, currentRlz):
@@ -144,13 +143,9 @@ class Metropolis(MCMC):
       netLogPrior = dist.logpdf(newVal) - dist.logpdf(currVal)
       netLogPosterior += netLogPrior
     netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
-    # netLogLikelihood = newRlz[self._likelihood]/currentRlz[self._likelihood]
     netLogPosterior += netLogLikelihood
     acceptValue = np.log(self._acceptDist.rvs())
-    # acceptValue = self._acceptDist.rvs()
     acceptable = netLogPosterior > acceptValue
-    # Debug
-    # acceptable = netLogLikelihood > acceptValue
     return acceptable
 
   def localStillReady(self, ready):
@@ -160,6 +155,5 @@ class Metropolis(MCMC):
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
-    ready = self._localReady
-    ready = MCMC.localStillReady(self, ready)
+    ready = self._localReady and MCMC.localStillReady(self, ready)
     return ready

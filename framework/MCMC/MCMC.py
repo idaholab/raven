@@ -123,17 +123,15 @@ class MCMC(AdaptiveSampler):
       @ Out, None
     """
     AdaptiveSampler.__init__(self)
-    self._initialValues = {}
-    self._updateValues = {}
-    self._currentValues = {}
-    self._proposal = {}
-    self._tune = 0
-    self._likelihood = None
+    self._initialValues = {} # dict stores the user provided initial values, i.e. {var: val}
+    self._updateValues = {} # dict stores input variables values for the current MCMC iteration, i.e. {var:val}
+    self._proposal = {} # dict stores the proposal distributions for input variables, i.e. {var:dist}
+    self._tune = 0      # integers indicate how many samples will be discarded
+    self._likelihood = None # stores the output from the likelihood
     self._availProposal = {'normal': Distributions.Normal(0.0, 1.0),
-                           'uniform': Distributions.Uniform(-1.0, 1.0)}
-    self._acceptDist = Distributions.Uniform(0.0, 1.0)
-    self._currentRlz = None
-
+                           'uniform': Distributions.Uniform(-1.0, 1.0)} # available proposal distributions
+    self._acceptDist = Distributions.Uniform(0.0, 1.0) # uniform distribution for accept/rejection purpose
+    # assembler objects
     self.addAssemblerObject('proposal', '-n', True)
 
   def localInputAndChecks(self, xmlNode, paramInput):
@@ -193,7 +191,6 @@ class MCMC(AdaptiveSampler):
     # TargetEvaluation Node (Required)
     targetEval = paramInput.findFirst('TargetEvaluation')
     self._targetEvaluation = targetEval.value
-
     self._updateValues = copy.copy(self._initialValues)
 
   def initialize(self, externalSeeding=None, solutionExport=None):
@@ -214,6 +211,8 @@ class MCMC(AdaptiveSampler):
       else:
         self._proposal[var] = self._availProposal['normal']
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    ## TODO: currently AdaptiveSampler is still using self.assemblerDict to retrieve the target evaluation.
+    # We should change it to using the following method.
     # retrieve target evaluation
     # self._targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self._targetEvaluation)
 
@@ -255,15 +254,6 @@ class MCMC(AdaptiveSampler):
     """
     AdaptiveSampler.localFinalizeActualSampling(self, jobObject, model, myInput)
 
-  def _addToSolutionExport(self, rlz):
-    """
-      add realizations to solution export
-      @ In, rlz, dict, sampled realization
-      @ Out, None
-    """
-    rlz = dict((var, np.atleast_1d(val)) for var, val in rlz.items())
-    self._solutionExport.addRealization(rlz)
-
   def localStillReady(self, ready):
     """
       Determines if sampler is prepared to provide another input.  If not, and
@@ -292,3 +282,12 @@ class MCMC(AdaptiveSampler):
     """
     acceptable = AdaptiveSampler._formatSolutionExportVariableNames(self, acceptable)
     return acceptable
+
+  def _addToSolutionExport(self, rlz):
+    """
+      add realizations to solution export
+      @ In, rlz, dict, sampled realization
+      @ Out, None
+    """
+    rlz = dict((var, np.atleast_1d(val)) for var, val in rlz.items())
+    self._solutionExport.addRealization(rlz)
