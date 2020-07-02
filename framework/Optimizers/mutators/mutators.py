@@ -31,7 +31,8 @@ def swapMutator(offSprings,**kwargs):
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           locs, list, the 2 locations of the genes to be swapped
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
-    @ Out, child, numpy.array, the mutated chromosome, i.e., the child.
+          variables, list, variables names.
+    @ Out, children, xr.DataArray, the mutated chromosome, i.e., the child.
   """
   loc1 = kwargs['locs'][0]
   loc2 = kwargs['locs'][1]
@@ -39,7 +40,7 @@ def swapMutator(offSprings,**kwargs):
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
                           dims=['chromosome','Gene'],
                           coords={'chromosome': np.arange(np.shape(offSprings)[0]),
-                                  'Gene':['x1','x2','x3','x4','x5','x6']})
+                                  'Gene':kwargs['variables']})
   for i in range(np.shape(offSprings)[0]):
     children[i] = offSprings[i].copy()
     ## TODO What happens if loc1 or 2 is out of range?! should we raise an error?
@@ -67,9 +68,9 @@ def scrambleMutator(offSprings,**kwargs):
     children[i] = offSprings[i].copy()
     new = list(itemgetter(*locs)(offSprings[i].values))
     for ind,element in enumerate(locs):
-      if randomUtils.random(dim=1,samples=1)>0.0001:#kwargs['mutationProb']:
+      if randomUtils.random(dim=1,samples=1)< kwargs['mutationProb']:
         ## TODO: use randomUtils instead
-        children[i,locs[0]:locs[-1]+1] = np.random.permutation(offSprings[i,locs[0]:locs[-1]+1])
+        children[i,locs[0]:locs[-1]+1] = np.random.permutation(offSprings[i,locs[0]:locs[-1]+1]) #randomUtils.randomPermutation(offSprings[i,locs[0]:locs[-1]+1],None)
   return children
 
 def bitFlipMutator(offSprings,**kwargs):
@@ -101,14 +102,14 @@ def bitFlipMutator(offSprings,**kwargs):
       ##############
       # gene at location loc is flipped from current value to newValue
       child.values[loc] = newValue
-      
+
   return offSprings
 
 def inversionMutator(offSprings,**kwargs):
   """
     This method is designed mirror a sequence of genes in each chromosome with probability = mutationProb.
     The sequence of genes to be mirrored is completely random.
-    E.g. given chromosome C = [0,1,2,3,4,5,6,7,8,9] and sampled locL=2 locU=6; 
+    E.g. given chromosome C = [0,1,2,3,4,5,6,7,8,9] and sampled locL=2 locU=6;
          New chromosome  C' = [0,1,6,5,4,3,2,7,8,9]
     @ In, offSprings, xr.DataArray, children resulting from the crossover process
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
@@ -136,9 +137,9 @@ def inversionMutator(offSprings,**kwargs):
       seq=child.values[locL:locU+1]
       mirrSeq = seq[::-1]
       ##############
-      # insert mirrored sequence into child     
+      # insert mirrored sequence into child
       child.values[locL:locU+1]=mirrSeq
-      
+
   return offSprings
 
 __mutators = {}

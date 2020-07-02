@@ -30,41 +30,45 @@ def rouletteWheel(population,**kwargs):
     Roulette Selection mechanism for parent selection
     @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
-          fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
+          fitness, xr.DataArray, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
+          variables, list, variable names.
           nParents, int, number of required parents.
-    @ Out, selectedParents, np.array, selected parents, i.e. np.shape(selectedParents) = nParents x nGenes.
+    @ Out, selectedParents, xr.DataArray, selected parents, i.e. np.shape(selectedParents) = nParents x nGenes.
   """
   # Arguments
   pop = population.copy()
-  fitness = kwargs['fitness']
+  fitness = kwargs['fitness'].copy()
   nParents= kwargs['nParents']
-
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:
     return population
-  # begin the roulette selection algorithm
-  selectionProb = fitness/np.sum(fitness) # Share of the pie (rouletteWheel)
+  elif nParents > pop.shape[0]:
+    raise IOError('Number of parents is greater than population size')
+  # begine the roulette selection algorithm
   selectedParent = xr.DataArray(
         np.zeros((nParents,np.shape(pop)[1])),
-        dims=['chromosomes','Genes'],
-        coords={'chromosomes':np.arange(nParents),
-                'Genes': ['x1','x2','x3','x4','x5','x6']})#np.arange(np.shape(pop)[1]
+        dims=['chromosome','Gene'],
+        coords={'chromosome':np.arange(nParents),
+                'Gene': kwargs['variables']})#np.arange(np.shape(pop)[1]
   # imagine a wheel that is partitioned according to the selection
   # probabilities
 
-  # set a random pointer
-  roulettePointer = randomUtils.random(dim=1, samples=1)
-  # Rotate the wheel
-
   for i in range(nParents):
-    # initialize Probability
+    # set a random pointer
+    roulettePointer = randomUtils.random(dim=1, samples=1)
+    # Rotate the wheel
+
+    # intialize Probability
     counter = 0
+    selectionProb = fitness.data/np.sum(fitness.data) # Share of the pie (rouletteWheel)
     sumProb = selectionProb[counter]
+
     while sumProb < roulettePointer :
       counter += 1
       sumProb += selectionProb[counter]
     selectedParent[i,:] = pop.values[counter,:]
     pop = np.delete(pop, counter, axis=0)
+    fitness = np.delete(fitness,counter,axis=0)
   return selectedParent
 
 def rankSelection(population,**kwargs):

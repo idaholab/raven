@@ -56,7 +56,7 @@ def invLinear(rlz,**kwargs):
                               dims=['chromosome'],
                               coords={'chromosome': np.arange(eval('rlz[\'' + objVar + '\'].size'))})
   for i in range(eval('rlz[\'' + objVar + '\'].size')):
-    obj = eval('rlz[\'' + objVar + '\'].data[i]')#.data
+    obj = eval('rlz[\'' + objVar + '\'].data[i]')*np.random.rand()#.data
     fitness[i] = 1/(a * obj + b * penalty)
   return fitness
 
