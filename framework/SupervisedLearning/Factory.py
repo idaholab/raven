@@ -34,7 +34,8 @@ from SupervisedLearning.NDsplineRom        import NDsplineRom
 from SupervisedLearning.SciKitLearn        import SciKitLearn
 from SupervisedLearning.pickledROM         import pickledROM
 from SupervisedLearning.PolyExponential    import PolyExponential
-from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
+# from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
+from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition, DynamicModeDecompositionControl
 from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters, Interpolated
 from .KerasClassifier import KerasClassifier
 from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
@@ -64,6 +65,7 @@ __interfaceDict['ARMA'                  ] = ARMA
 __interfaceDict['pickledROM'            ] = pickledROM
 __interfaceDict['PolyExponential'       ] = PolyExponential
 __interfaceDict['DMD'                   ] = DynamicModeDecomposition
+__interfaceDict['DMDC'                  ] = DynamicModeDecompositionControl
 __interfaceDict['Segments'              ] = Segments
 __interfaceDict['Clusters'              ] = Clusters
 __interfaceDict['Interpolated'          ] = Interpolated
