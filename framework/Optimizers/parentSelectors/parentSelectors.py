@@ -44,7 +44,7 @@ def rouletteWheel(population,**kwargs):
     return population
   elif nParents > pop.shape[0]:
     raise IOError('Number of parents is greater than population size')
-  # begine the roulette selection algorithm
+  # begin the roulette selection algorithm
   selectedParent = xr.DataArray(
         np.zeros((nParents,np.shape(pop)[1])),
         dims=['chromosome','Gene'],
@@ -58,7 +58,7 @@ def rouletteWheel(population,**kwargs):
     roulettePointer = randomUtils.random(dim=1, samples=1)
     # Rotate the wheel
 
-    # intialize Probability
+    # initialize Probability
     counter = 0
     selectionProb = fitness.data/np.sum(fitness.data) # Share of the pie (rouletteWheel)
     sumProb = selectionProb[counter]
