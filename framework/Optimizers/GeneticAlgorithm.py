@@ -88,7 +88,22 @@ class GeneticAlgorithm(RavenSampled):
     # GA Params
     GAparams = InputData.parameterInputFactory('GAparams', strictMode=True,
         printPriority=108,
-        descr=r""" Genetic Algorithm Parameters.""")
+        descr=r""" Genetic Algorithm Parameters: 1. populationSize.
+                                                 2. parentSelectors:
+                                                                    a.  rouletteWheel.
+                                                 3. Reproduction:
+                                                                  a.  crossover:
+                                                                                  i.    onePointCrossover.
+                                                                                  ii.   TwoPointsCrossover.
+                                                                                  iii.  uniformCrossover
+                                                                  b.  mutators:
+                                                                                i.    swapMutator.
+                                                                                ii.   scrambleMutator.
+                                                                                iii.  inversionMutator.
+                                                                                iv.   bitFlipMutator.
+                                                 4. survivorSelectors:
+                                                                      a.  ageBased.
+                                                                      b.  fitnessBased.""")
     # Population Size
     populationSize = InputData.parameterInputFactory('populationSize', strictMode=True,
         contentType=InputTypes.IntegerType,
@@ -100,10 +115,12 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""A node containing the criterion based on which the parents are selected. This can be
-                  a. a fitness proportionate selection such as Roulette Wheer, Stochastic Universal Sampling,
-                  b. Tournament,
-                  c. Rank, or
-                  d. Random selection""")
+                  a fitness proportionate selection such as:
+                  a. rouletteWheel,
+                  b. Stochastic Universal Sampling,
+                  c. Tournament,
+                  d. Rank, or
+                  e. Random selection""")
     GAparams.addSub(parentSelection)
 
     # Reproduction
