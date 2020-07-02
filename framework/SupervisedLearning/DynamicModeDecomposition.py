@@ -559,12 +559,12 @@ class DynamicModeDecompositionControl(supervisedLearning):
     if "Atilde" in what:
       # print(self.__Atilde)
       # write the real part of Atilde
-      AtildeReal = "\n".join(
+      AtildeReal = "; ".join(
         " ".join('%.6e' % self.__Atilde[row,col].real for col in range(len(self.__Atilde[0])))
         for row in range(len(self.__Atilde)))
       writeTo.addScalar("Atilde","real",AtildeReal,root=targNode)
       # write the imaginary part of Atilde
-      AtildeImage = "\n".join(
+      AtildeImage = "; ".join(
         " ".join('%.6e' % self.__Atilde[row,col].imag for col in range(len(self.__Atilde[0])))
         for row in range(len(self.__Atilde)))
       writeTo.addScalar("Atilde","imaginary",AtildeImage,root=targNode)
@@ -575,12 +575,12 @@ class DynamicModeDecompositionControl(supervisedLearning):
     if "Btilde" in what:
       # print(self.__Btilde)
       # write the real part of Btilde
-      BtildeReal = "\n".join(
+      BtildeReal = "; ".join(
         " ".join('%.6e' % self.__Btilde[row,col].real for col in range(len(self.__Btilde[0])))
         for row in range(len(self.__Btilde)))
       writeTo.addScalar("Btilde","real",BtildeReal,root=targNode)
       # write the imaginary part of Btilde
-      BtildeImage = "\n".join(
+      BtildeImage = "; ".join(
         " ".join('%.6e' % self.__Btilde[row,col].imag for col in range(len(self.__Btilde[0])))
         for row in range(len(self.__Btilde)))
       writeTo.addScalar("Btilde","imaginary",BtildeImage,root=targNode)
