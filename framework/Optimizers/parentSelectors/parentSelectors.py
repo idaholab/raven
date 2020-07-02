@@ -35,35 +35,48 @@ def rouletteWheel(population,**kwargs):
   """
   # Arguments
   pop = population.copy()
-  fitness = kwargs['fitness']
+  fitness = kwargs['fitness'].copy()
   nParents= kwargs['nParents']
 
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:
     return population
+<<<<<<< HEAD
   # begin the roulette selection algorithm
   selectionProb = fitness/np.sum(fitness) # Share of the pie (rouletteWheel)
+=======
+  elif nParents > pop.shape[0]:
+    raise IOError('Number of parents is greater than population size')
+  # begine the roulette selection algorithm
+>>>>>>> changing genetic operators againnnnnnn
   selectedParent = xr.DataArray(
         np.zeros((nParents,np.shape(pop)[1])),
-        dims=['chromosomes','Genes'],
-        coords={'chromosomes':np.arange(nParents),
-                'Genes': ['x1','x2','x3','x4','x5','x6']})#np.arange(np.shape(pop)[1]
+        dims=['chromosome','Gene'],
+        coords={'chromosome':np.arange(nParents),
+                'Gene': ['x1','x2','x3','x4','x5','x6']})#np.arange(np.shape(pop)[1]
   # imagine a wheel that is partitioned according to the selection
   # probabilities
 
-  # set a random pointer
-  roulettePointer = randomUtils.random(dim=1, samples=1)
-  # Rotate the wheel
-
   for i in range(nParents):
+<<<<<<< HEAD
     # initialize Probability
+=======
+    # set a random pointer
+    roulettePointer = randomUtils.random(dim=1, samples=1)
+    # Rotate the wheel
+
+    # intialize Probability
+>>>>>>> changing genetic operators againnnnnnn
     counter = 0
+    selectionProb = fitness.data/np.sum(fitness.data) # Share of the pie (rouletteWheel)
     sumProb = selectionProb[counter]
+
     while sumProb < roulettePointer :
       counter += 1
       sumProb += selectionProb[counter]
     selectedParent[i,:] = pop.values[counter,:]
     pop = np.delete(pop, counter, axis=0)
+    fitness = np.delete(fitness,counter,axis=0)
   return selectedParent
 
 __parentSelectors = {}

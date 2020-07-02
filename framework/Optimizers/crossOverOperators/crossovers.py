@@ -63,7 +63,7 @@ def onePointCrossover(parents,**kwargs):
     parent = np.array(parent).reshape(2,-1) # two parents at a time
     if randomUtils.random(dim=1,samples=1) < crossoverProb:
       for i in range(nGenes):
-        children[2*ind:2*ind+2,i]=parent[np.arange(0,2)*(i<point[0])+np.arange(-1,-3,-1)*(i>=point[0]),i]
+        children[2*ind:2*ind+2,i] = parent[np.arange(0,2)*(i<point[0])+np.arange(-1,-3,-1)*(i>=point[0]),i]
     else:
       # Each child is just a copy of the parents
       children[2*ind:2*ind+2,:] = deepcopy(parent)
