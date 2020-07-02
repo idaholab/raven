@@ -30,9 +30,8 @@ from itertools import combinations
 
 def onePointCrossover(parents,**kwargs):
   """
-    @ n, parents, xr.DataArray, parents involved in the mating process.
+    @ In, parents, xr.DataArray, parents involved in the mating process.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
-          parents, 2D array, parents in the current mating process. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
           crossoverProb, float, crossoverProb determines when child takes genes from a specific parent, default is random
           points, integer, point at which the cross over happens, default is random
           variables, list, variables names.
