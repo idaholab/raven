@@ -22,6 +22,7 @@
 
 import numpy as np
 import xarray as xr
+import copy
 from utils import randomUtils
 
 def rouletteWheel(population,**kwargs):
@@ -66,8 +67,22 @@ def rouletteWheel(population,**kwargs):
     pop = np.delete(pop, counter, axis=0)
   return selectedParent
 
+def rankSelection(population,**kwargs):
+  """
+    Rank Selection mechanism for parent selection
+    @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
+          nParents, int, number of required parents.
+    @ Out, newPopulation, xr.DataArray, selected parents, 
+  """
+  newPopulation = copy.deepcopy(population)
+  
+  return newPopulation
+
 __parentSelectors = {}
 __parentSelectors['rouletteWheel'] = rouletteWheel
+__parentSelectors['rankSelection'] = rankSelection
 
 
 def returnInstance(cls, name):
