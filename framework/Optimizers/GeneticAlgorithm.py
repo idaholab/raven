@@ -338,7 +338,7 @@ class GeneticAlgorithm(RavenSampled):
     info['optVal'] = rlz[self._objectiveVar]
     self.incrementIteration(traj)
     info['step'] = self.counter
-    variables = list(self.toBeSampled)
+
     if self.counter == 1:
       self.population = population
     # self.population = population
@@ -360,7 +360,7 @@ class GeneticAlgorithm(RavenSampled):
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
     if self.counter > 1:
       # right now these are lists, but this should be changed to xarrays when the realization is ready as an xarray dataset
-      population,fitness,Age = self._survivorSelectionInstance(self,newRlz=populationRlz,offSpringsFitness=fitness,variables = variables)
+      population,fitness,Age = self._survivorSelectionInstance(self,newRlz=populationRlz,offSpringsFitness=fitness,variables = list(self.toBeSampled))
       self.population = population
       self.Age = Age
       self.fitness = fitness
@@ -370,23 +370,16 @@ class GeneticAlgorithm(RavenSampled):
 
     # 1 @ n: Parent selection from population
     # pair parents together by indexes
-    # # initialization of parents
-    # parents = xr.DataArray(
-    #                       np.zeros((self._nParents,len(self.toBeSampled))),
-    #                       dims=['chromosome','Gene'],
-    #                       coords={'chromosome': np.arange(self._nParents),
-    #                               'Gene':list(self.toBeSampled)})
-
-    parents = self._parentSelectionInstance(population,fitness=fitness,nParents=self._nParents)
+    parents = self._parentSelectionInstance(population,variables=list(self.toBeSampled),fitness=fitness,nParents=self._nParents)
 
     # 2 @ n: Crossover from set of parents
     # create childrenCoordinates (x1,...,xM)
     # self.childrenCoordinates = self.__crossoverCalculationHandler(parentSet=parentSet,population=self.population,params=paramsDict)
-    children = self._crossoverInstance(parents=parents,crossoverProb=self._crossoverProb,points=self._crossoverPoints)
+    children = self._crossoverInstance(parents=parents,variables=list(self.toBeSampled),crossoverProb=self._crossoverProb,points=self._crossoverPoints)
 
     # 3 @ n: Mutation
     # perform random directly on childrenCoordinates
-    children = self._mutationInstance(offSprings=children,locs = self._mutationlocs, mutationProb=self._mutationProb)
+    children = self._mutationInstance(offSprings=children,locs = self._mutationlocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
     ## TODO WHAT IF AFTER CROSSOVER AND/OR MUTATION OUR CHROMOSOME NO LONGER SATISFIES THE WITHOUT REPLACEMENT CONSTRAINT
 
     # 4 @ n: Submit children batch

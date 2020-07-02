@@ -29,15 +29,15 @@ def rouletteWheel(population,**kwargs):
     Roulette Selection mechanism for parent selection
     @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
-          fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
+          fitness, xr.DataArray, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
+          variables, list, variable names.
           nParents, int, number of required parents.
-    @ Out, selectedParents, np.array, selected parents, i.e. np.shape(selectedParents) = nParents x nGenes.
+    @ Out, selectedParents, xr.DataArray, selected parents, i.e. np.shape(selectedParents) = nParents x nGenes.
   """
   # Arguments
   pop = population.copy()
   fitness = kwargs['fitness'].copy()
   nParents= kwargs['nParents']
-
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:
     return population
@@ -48,7 +48,7 @@ def rouletteWheel(population,**kwargs):
         np.zeros((nParents,np.shape(pop)[1])),
         dims=['chromosome','Gene'],
         coords={'chromosome':np.arange(nParents),
-                'Gene': ['x1','x2','x3','x4','x5','x6']})#np.arange(np.shape(pop)[1]
+                'Gene': kwargs['variables']})#np.arange(np.shape(pop)[1]
   # imagine a wheel that is partitioned according to the selection
   # probabilities
 
