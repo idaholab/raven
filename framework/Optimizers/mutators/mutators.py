@@ -14,8 +14,10 @@
 """
   Implementation of mutators for Mutation process of Genetic Algorithm
   currently the implemented mutation algorithms are:
-  1.  Swap Mutator
-  2.  Scramble Mutator
+  1.  swapMutator
+  2.  scrambleMutator
+  3.  bitFlipMutator
+  4.  inversionMutator
 
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
