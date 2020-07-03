@@ -72,7 +72,7 @@ def scrambleMutator(offSprings,**kwargs):
     for ind,element in enumerate(locs):
       if randomUtils.random(dim=1,samples=1)< kwargs['mutationProb']:
         ## TODO: use randomUtils instead
-        children[i,locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(offSprings.data[i,locs[0]:locs[-1]+1]),None)#np.random.permutation(offSprings[i,locs[0]:locs[-1]+1])
+        children[i,locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(offSprings.data[i,locs[0]:locs[-1]+1]),None)
   return children
 
 def bitFlipMutator(offSprings,**kwargs):
