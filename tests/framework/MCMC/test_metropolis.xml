@@ -38,12 +38,12 @@
 
   <Samplers>
     <Metropolis name="Metropolis">
-      <likelihood>zout</likelihood>
       <samplerInit>
         <limit>1000</limit>
         <initialSeed>070419</initialSeed>
         <tune>10</tune>
       </samplerInit>
+      <likelihood>zout</likelihood>
       <variable name="xin">
         <distribution>normal</distribution>
         <initial>0</initial>
