@@ -72,7 +72,7 @@ def ageBased(self,newRlz,**kwargs):
 def fitnessBased(newRlz,**kwargs):
   """
     fitnessBased survivorSelection mechanism for new generation selection
-    It combines the parents and children/offsprings then keeps the fittest indivduals
+    It combines the parents and children/offsprings then keeps the fittest individuals
     to revert to the same population size.
     @ In, newRlz, xr.DataSet, containing either a single realization, or a batch of realizations.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:

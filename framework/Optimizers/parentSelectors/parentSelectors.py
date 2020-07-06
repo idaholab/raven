@@ -74,28 +74,6 @@ def rouletteWheel(population,**kwargs):
     fitness = np.delete(fitness,counter,axis=0)
   return selectedParent
 
-def rankSelection(population,**kwargs):
-  """
-    Rank Selection mechanism for parent selection
-    
-    @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
-          fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
-          nParents, int, number of required parents.
-    @ Out, newPopulation, xr.DataArray, selected parents, 
-  """
-  fitness = kwargs['fitness'].copy()
-  nParents= kwargs['nParents']
-  pop = population.copy()
-  
-  selectedParent = xr.DataArray(
-      np.zeros((nParents,np.shape(pop)[1])),
-      dims=['chromosome','Gene'],
-      coords={'chromosome':np.arange(nParents),
-              'Gene': kwargs['variables']})
-  
-  return selectedParent
-
 def tournamentSelection(population,**kwargs):
   """
     Tournament Selection mechanism for parent selection
@@ -117,22 +95,51 @@ def tournamentSelection(population,**kwargs):
       coords={'chromosome':np.arange(nParents),
               'Gene': kwargs['variables']})
   
-  populationInexes = np.arange(0,popSize)
-  if nParents > popSize/2.0:
+  if nParents >= popSize/2.0:
     # generate combination of 2 with replacement
-    pass
-  elif nParents < popSize/2.0:
+    selectionList = np.random.choice(np.arange(0,pop), 2*nParents, replace=False)
+  else: # nParents < popSize/2.0
     # generate combination of 2 without replacement
-    pass
-  else: # nParents = popSize/2.0
-    pass
+    # mandd: raise a debug
+    selectionList = np.random.choice(np.arange(0,pop), 2*nParents, replace=True)
+  
+  selectionList = selectionList.reshape(nParents,2)
+  
+  for index,pair in enumerate(selectionList):
+    if fitness[pair[0]]>fitness[pair[1]]:
+      selectedParent[index,:] = pop.values[pair[0],:]
+    else: # fitness[pair[1]]>fitness[pair[0]]:
+      selectedParent[index,:] = pop.values[pair[1],:]
+  return selectedParent
+
+
+def rankSelection(population,**kwargs):
+  """
+    Rank Selection mechanism for parent selection [MANDD: THIS METHOD IS NOT YET COMPLETED]
+    
+    @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
+    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+          fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
+          nParents, int, number of required parents.
+    @ Out, newPopulation, xr.DataArray, selected parents, 
+  """
+  fitness = kwargs['fitness'].copy()
+  nParents= kwargs['nParents']
+  pop = population.copy()
+  
+  selectedParent = xr.DataArray(
+      np.zeros((nParents,np.shape(pop)[1])),
+      dims=['chromosome','Gene'],
+      coords={'chromosome':np.arange(nParents),
+              'Gene': kwargs['variables']})
   
   return selectedParent
+
 
 __parentSelectors = {}
 __parentSelectors['rouletteWheel'] = rouletteWheel
 __parentSelectors['rankSelection'] = rankSelection
-
+__parentSelectors['tournamentSelection'] = rankSelection
 
 def returnInstance(cls, name):
   if name not in __parentSelectors:
