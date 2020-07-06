@@ -80,10 +80,11 @@ def tournamentSelection(population,**kwargs):
     @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
-          nParents, int, number of required parents.
+          nParents, int, number of required parents
+          variables, list, variable names
     @ Out, newPopulation, xr.DataArray, selected parents, 
   """
-  fitness = kwargs['fitness'].copy()
+  fitness = kwargs['fitness']
   nParents= kwargs['nParents']
   pop = population.copy()
   
@@ -97,11 +98,11 @@ def tournamentSelection(population,**kwargs):
   
   if nParents >= popSize/2.0:
     # generate combination of 2 with replacement
-    selectionList = np.random.choice(np.arange(0,pop), 2*nParents, replace=False)
+    selectionList = np.random.choice(np.arange(0,popSize), 2*nParents, replace=False)
   else: # nParents < popSize/2.0
     # generate combination of 2 without replacement
     # mandd: raise a debug
-    selectionList = np.random.choice(np.arange(0,pop), 2*nParents, replace=True)
+    selectionList = np.random.choice(np.arange(0,popSize), 2*nParents, replace=True)
   
   selectionList = selectionList.reshape(nParents,2)
   
@@ -110,6 +111,7 @@ def tournamentSelection(population,**kwargs):
       selectedParent[index,:] = pop.values[pair[0],:]
     else: # fitness[pair[1]]>fitness[pair[0]]:
       selectedParent[index,:] = pop.values[pair[1],:]
+  
   return selectedParent
 
 
