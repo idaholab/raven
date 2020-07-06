@@ -36,7 +36,7 @@
     </ExternalModel>
   </Models>
 
-  <MCMC>
+  <Samplers>
     <Metropolis name="Metropolis">
       <likelihood>zout</likelihood>
       <samplerInit>
@@ -57,13 +57,13 @@
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
     </Metropolis>
-  </MCMC>
+  </Samplers>
 
   <Steps>
     <MultiRun name="mh">
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">likelihood</Model>
-      <MCMC class="MCMC" type="Metropolis">Metropolis</MCMC>
+      <Sampler class="Samplers" type="Metropolis">Metropolis</MCMC>
       <SolutionExport class="DataObjects" type="PointSet">out_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">outSet</Output>
     </MultiRun>

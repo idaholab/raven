@@ -76,7 +76,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Output' ]       = []
   validateDict['Sampler']       = []
   validateDict['Optimizer']     = []
-  validateDict['MCMC']     = []
   testDict                      = {}
   testDict                      = {'class':'','type':[''],'multiplicity':0,'required':False}
   #FIXME: a multiplicity value is needed to control role that can have different class
@@ -133,11 +132,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
   validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference','ConjugateGradient','SimulatedAnnealing']
-  validateDict['MCMC'].append(testDict.copy())
-  validateDict['MCMC'][0]['class'       ] ='MCMC'
-  validateDict['MCMC'][0]['required'    ] = False
-  validateDict['MCMC'][0]['multiplicity'] = 1
-  validateDict['MCMC'][0]['type']         = ['Metropolis']
 
   @classmethod
   def generateValidateDict(cls):

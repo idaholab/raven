@@ -28,6 +28,3 @@ def run(self, inputDict):
   mus = np.array([5, 5])
   sigmas = np.array([[1, .9], [.9, 1]])
   self.zout = st.multivariate_normal.pdf(np.concatenate((self.xin, self.yin)), mean=mus, cov=sigmas)
-  # print("xin", self.xin)
-  # print("yin", self.yin)
-  # print("zout", self.zout)
