@@ -21,6 +21,7 @@
             <xsd:element name="AdaptiveSobol"            type="AdaptiveSobolSampler"   minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="EnsembleForward"          type="EnsembleForwardSampler" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdaptiveMonteCarlo"       type="AdaptiveMCSampler"      minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="Metropolis"               type="MetropolisSampler"             minOccurs="0" maxOccurs="unbounded"/>
 
         </xsd:sequence>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
@@ -524,5 +525,41 @@
         <xsd:attribute name="maxSimulationTime" type="xsd:float"/>
         <xsd:attribute name="mode"              type="modeAttr"  default="post"/>
         <xsd:attribute name="updateGrid"        type="RavenBool" default="true"/>
+    </xsd:complexType>
+
+    <!-- *********************************************************************** -->
+    <!--                  Markov Chain Monte Carlo                                     -->
+    <!-- *********************************************************************** -->
+    <xsd:complexType name="metropolisInitType">
+      <xsd:all>
+        <xsd:element name="limit"                    type="xsd:string"  minOccurs="0"/>
+        <xsd:element name="initialSeed"              type="xsd:integer" minOccurs="0"/>
+        <xsd:element name="tune"                     type="xsd:string"  minOccurs="0"/>
+      </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="metropolisVariableType">
+      <xsd:complexContent>
+        <xsd:extension base="variableType">
+          <xsd:sequence>
+            <xsd:element name="initial" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="proposal" type="AssemblerObjectType"    minOccurs="1" maxOccurs="1"/>
+          </xsd:sequence>
+        </xsd:extension>
+      </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="MetropolisSampler">
+        <xsd:sequence>
+            <xsd:element name="samplerInit" type="metropolisInitType" minOccurs="1"/>
+            <xsd:element name="likelihood" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="variable"     type="metropolisVariableType"    minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="TargetEvaluation" type="AssemblerObjectType"    minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
+            <xsd:element name="Restart"      type="AssemblerObjectType"   minOccurs="0"  maxOccurs="unbounded"/>
+            <xsd:element name="restartTolerance" type="xsd:float"   minOccurs="0"  maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="name" type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
 </xsd:schema>
