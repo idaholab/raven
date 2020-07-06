@@ -14,8 +14,10 @@
 """
   Implementation of mutators for Mutation process of Genetic Algorithm
   currently the implemented mutation algorithms are:
-  1.  Swap Mutator
-  2.  Scramble Mutator
+  1.  swapMutator
+  2.  scrambleMutator
+  3.  bitFlipMutator
+  4.  inversionMutator
 
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
@@ -70,7 +72,7 @@ def scrambleMutator(offSprings,**kwargs):
     for ind,element in enumerate(locs):
       if randomUtils.random(dim=1,samples=1)< kwargs['mutationProb']:
         ## TODO: use randomUtils instead
-        children[i,locs[0]:locs[-1]+1] = np.random.permutation(offSprings[i,locs[0]:locs[-1]+1]) #randomUtils.randomPermutation(offSprings[i,locs[0]:locs[-1]+1],None)
+        children[i,locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(offSprings.data[i,locs[0]:locs[-1]+1]),None)
   return children
 
 def bitFlipMutator(offSprings,**kwargs):

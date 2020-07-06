@@ -377,7 +377,7 @@ class GeneticAlgorithm(RavenSampled):
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
     if self.counter > 1:
       # right now these are lists, but this should be changed to xarrays when the realization is ready as an xarray dataset
-      population,fitness,Age = self._survivorSelectionInstance(self,newRlz=populationRlz,offSpringsFitness=fitness,variables = list(self.toBeSampled))
+      population,fitness,Age = self._survivorSelectionInstance(age=self.Age,popSize=self._populationSize,variables=list(self.toBeSampled),population = self.population,fitness = self.fitness,newRlz=populationRlz,offSpringsFitness=fitness)
       self.population = population
       self.Age = Age
       self.fitness = fitness

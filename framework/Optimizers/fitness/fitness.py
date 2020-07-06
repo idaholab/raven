@@ -18,8 +18,11 @@
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
 """
+# External Imports
 import numpy as np
 import xarray as xr
+# Internal Imports
+from utils import randomUtils
 
 def invLinear(rlz,**kwargs):
   """
@@ -56,7 +59,7 @@ def invLinear(rlz,**kwargs):
                               dims=['chromosome'],
                               coords={'chromosome': np.arange(eval('rlz[\'' + objVar + '\'].size'))})
   for i in range(eval('rlz[\'' + objVar + '\'].size')):
-    obj = eval('rlz[\'' + objVar + '\'].data[i]')*np.random.rand()#.data
+    obj = eval('rlz[\'' + objVar + '\'].data[i]')*randomUtils.random(dim=1,samples=1)
     fitness[i] = 1/(a * obj + b * penalty)
   return fitness
 
