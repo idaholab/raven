@@ -25,6 +25,9 @@ import xarray as xr
 import copy
 from utils import randomUtils
 
+# For mandd: to be updated with RAVEN official tools
+from itertools import combinations 
+
 def rouletteWheel(population,**kwargs):
   """
     Roulette Selection mechanism for parent selection
@@ -74,15 +77,24 @@ def rouletteWheel(population,**kwargs):
 def rankSelection(population,**kwargs):
   """
     Rank Selection mechanism for parent selection
+    
     @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
           nParents, int, number of required parents.
     @ Out, newPopulation, xr.DataArray, selected parents, 
   """
-  newPopulation = copy.deepcopy(population)
+  fitness = kwargs['fitness'].copy()
+  nParents= kwargs['nParents']
+  pop = population.copy()
   
-  return newPopulation
+  selectedParent = xr.DataArray(
+      np.zeros((nParents,np.shape(pop)[1])),
+      dims=['chromosome','Gene'],
+      coords={'chromosome':np.arange(nParents),
+              'Gene': kwargs['variables']})
+  
+  return selectedParent
 
 def tournamentSelection(population,**kwargs):
   """
@@ -93,9 +105,29 @@ def tournamentSelection(population,**kwargs):
           nParents, int, number of required parents.
     @ Out, newPopulation, xr.DataArray, selected parents, 
   """
-  newPopulation = copy.deepcopy(population)
+  fitness = kwargs['fitness'].copy()
+  nParents= kwargs['nParents']
+  pop = population.copy()
   
-  return newPopulation
+  popSize = population.values.shape[0]
+  
+  selectedParent = xr.DataArray(
+      np.zeros((nParents,np.shape(pop)[1])),
+      dims=['chromosome','Gene'],
+      coords={'chromosome':np.arange(nParents),
+              'Gene': kwargs['variables']})
+  
+  populationInexes = np.arange(0,popSize)
+  if nParents > popSize/2.0:
+    # generate combination of 2 with replacement
+    pass
+  elif nParents < popSize/2.0:
+    # generate combination of 2 without replacement
+    pass
+  else: # nParents = popSize/2.0
+    pass
+  
+  return selectedParent
 
 __parentSelectors = {}
 __parentSelectors['rouletteWheel'] = rouletteWheel
