@@ -21,6 +21,4 @@
 from .MCMC import MCMC
 from .Metropolis import Metropolis
 
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
+__all__ = ['Metroplis']
