@@ -47,7 +47,7 @@ from .DynamicEventTree         import DynamicEventTree
 from .AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
 
 # MCMC Samplers
-from .MCMC import Metroplis
+from .MCMC import Metropolis
 
 # Factory methods
 from .Factory import knownTypes

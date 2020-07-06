@@ -63,7 +63,7 @@
     <MultiRun name="mh">
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">likelihood</Model>
-      <Sampler class="Samplers" type="Metropolis">Metropolis</MCMC>
+      <Sampler class="Samplers" type="Metropolis">Metropolis</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">out_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">outSet</Output>
     </MultiRun>
