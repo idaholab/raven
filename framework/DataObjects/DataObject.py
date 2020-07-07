@@ -32,7 +32,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 from utils import utils, cached_ndarray, InputData, InputTypes, xmlUtils, mathUtils
 from MessageHandler import MessageHandler
 

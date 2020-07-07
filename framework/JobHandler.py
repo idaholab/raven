@@ -37,7 +37,7 @@ import time
 #Internal Modules---------------------------------------------------------------
 from utils import importerUtils as im
 from utils import utils
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 import MessageHandler
 import Runners
 import Models
@@ -275,7 +275,7 @@ class JobHandler(MessageHandler.MessageUser):
           command=" ".join(["ray start", "--address="+address, "-num-cpus",str(ntasks)])
         else:
           ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
-          command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
+          command=" ".join([ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
 
         utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
         ## update list of servers

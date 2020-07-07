@@ -31,7 +31,7 @@ import collections
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 from h5py_interface_creator import hdf5Database as h5Data
 from utils import utils
 from utils import InputData, InputTypes

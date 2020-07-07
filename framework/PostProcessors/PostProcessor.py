@@ -24,7 +24,7 @@ import copy
 
 #Internal Modules---------------------------------------------------------------
 from utils import InputData, InputTypes
-from Assembler import Assembler
+from BaseClasses.Assembler import Assembler
 #Internal Modules End-----------------------------------------------------------
 
 class PostProcessor(Assembler):

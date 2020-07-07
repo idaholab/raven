@@ -25,7 +25,7 @@ import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 from utils import InputData, InputTypes, utils
 from .PostProcessor import PostProcessor
 import MessageHandler

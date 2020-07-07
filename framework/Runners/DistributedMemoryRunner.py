@@ -37,7 +37,7 @@ else:
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 import MessageHandler
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------

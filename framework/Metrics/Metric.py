@@ -25,7 +25,7 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 

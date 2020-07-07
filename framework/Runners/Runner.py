@@ -28,7 +28,7 @@ import datetime
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 import MessageHandler
 from .Error import Error
 #Internal Modules End--------------------------------------------------------------------------------

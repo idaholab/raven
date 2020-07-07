@@ -32,7 +32,7 @@ import inspect
 #External Modules End-----------------------------------------------------------------
 
 #Internal Modules
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 from JobHandler import JobHandler
 import MessageHandler
 from utils import utils

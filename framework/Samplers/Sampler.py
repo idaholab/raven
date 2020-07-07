@@ -31,8 +31,8 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils,randomUtils,InputData, InputTypes
-from BaseClasses import BaseType
-from Assembler import Assembler
+from BaseClasses.BaseType import BaseType
+from BaseClasses.Assembler import Assembler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):

@@ -25,7 +25,7 @@ import os
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 import DataObjects
 import Models
 from utils import utils

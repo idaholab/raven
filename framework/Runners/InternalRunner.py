@@ -30,7 +30,7 @@ import abc
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 import MessageHandler
 from .Runner import Runner
 from .Error import Error

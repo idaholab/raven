@@ -31,7 +31,7 @@ import itertools
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils.utils import UreturnPrintTag,partialEval,floatConversion,compare, metaclass_insert
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 import utils.TreeStructure as ETS
 from utils.RAVENiterators import ravenArrayIterator
 #import TreeStructure as TS

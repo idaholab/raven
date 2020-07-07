@@ -14,6 +14,8 @@
 """
 Created on Mar 16, 2013
 @author: crisr
+Renamed BaseType.py on July 1, 2020
+@author: alfoa
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 #External Modules------------------------------------------------------------------------------------

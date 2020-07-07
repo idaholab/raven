@@ -37,7 +37,7 @@ import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 import Files
 from utils import utils
 from utils import InputData, InputTypes

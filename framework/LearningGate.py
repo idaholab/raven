@@ -29,7 +29,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 from utils import mathUtils
 from utils import utils
 import SupervisedLearning

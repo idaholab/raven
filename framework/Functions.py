@@ -27,7 +27,7 @@ from __future__ import division, print_function, absolute_import
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 from utils import utils, InputData, InputTypes
 from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------

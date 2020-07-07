@@ -29,7 +29,7 @@ import xml.etree.ElementTree as ET
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 import Distributions
 import Quadratures
 import MessageHandler

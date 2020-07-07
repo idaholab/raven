@@ -27,9 +27,9 @@ import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
+from BaseClasses.Assembler import Assembler
 from utils import utils
-from Assembler import Assembler
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 

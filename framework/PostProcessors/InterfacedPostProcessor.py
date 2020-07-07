@@ -40,7 +40,7 @@ from utils import xmlUtils
 from utils.RAVENiterators import ravenArrayIterator
 from utils import InputData
 import DataObjects
-from Assembler import Assembler
+from BaseClasses.Assembler import Assembler
 import LearningGate
 import MessageHandler
 import GridEntities

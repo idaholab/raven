@@ -28,7 +28,7 @@ import bisect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 from utils import utils, mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 

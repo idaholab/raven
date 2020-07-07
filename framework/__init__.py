@@ -16,7 +16,8 @@ Created on September 16, 2015
 @author: maljdp
 """
 
-__all__ = ['CrossValidations',
+__all__ = ['BaseClasses',
+           'CrossValidations',
            'CustomModes',
            'DataObjects',
            'InputTemplates',

@@ -38,7 +38,7 @@ import math as math
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses.BaseType import BaseType
 from utils import utils
 from utils.randomUtils import random
 from utils import randomUtils

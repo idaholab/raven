@@ -26,14 +26,14 @@ from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import BaseClasses
+from BaseClasses.BaseType import BaseType
 #Internal Modules End--------------------------------------------------------------------------------
 
 #
 #
 #
 #
-class VariableGroup(BaseClasses.BaseType):
+class VariableGroup(BaseType):
   """
     Allows grouping of variables for ease of access
   """
