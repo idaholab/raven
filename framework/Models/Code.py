@@ -618,11 +618,6 @@ class Code(Model):
         for header in headers:
           returnDict[header] = np.array(csvData[header])
 
-        ## Numpy by default iterates over rows, thus we transpose the data and
-        ## zip it with the headers in order to do store it very cleanly into a
-        ## dictionary.
-        # for header,data in zip(headers, csvData.T):
-        #   returnDict[header] = data
       if not ravenCase:
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
         returnDict.update(kwargs)
