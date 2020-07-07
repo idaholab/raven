@@ -126,14 +126,19 @@ def rankSelection(population,**kwargs):
     @ Out, newPopulation, xr.DataArray, selected parents, 
   """
   fitness = kwargs['fitness'].copy()
-  nParents= kwargs['nParents']
+
   pop = population.copy()
   
-  selectedParent = xr.DataArray(
-      np.zeros((nParents,np.shape(pop)[1])),
-      dims=['chromosome','Gene'],
-      coords={'chromosome':np.arange(nParents),
-              'Gene': kwargs['variables']})
+  index = np.arange(0,pop.shape[0])
+  rank = np.arange(0,pop.shape[0])
+  
+  data = np.vstack((fitness,index))
+  dataOrderedByDecreasingFitness = data[:,(-data[0]).argsort()]
+  dataOrderedByDecreasingFitness[0,:] = rank
+  dataOrderedByIncreasingPos = dataOrderedByDecreasingFitness[:,dataOrderedByDecreasingFitness[1].argsort()]
+  orderedRank = dataOrderedByIncreasingPos[0,:]
+  
+  selectedParent = rouletteWheel(population, fitness=orderedRank , nParents=kwargs['nParents'])
   
   return selectedParent
 
