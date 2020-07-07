@@ -613,16 +613,16 @@ class Code(Model):
         outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
 
         csvLoader = CsvLoader.CsvLoader(self.messageHandler)
-        csvData = csvLoader.loadCsvFile(outFile)
-        if np.isnan(csvData).all():
-          self.raiseAnError(IOError, 'The data collected from', outputFile+'.csv', 'only contain "NAN"')
+        csvData = csvLoader.loadCsvFile(outFile.getAbsFile(), nullOK=False)
         headers = csvLoader.getAllFieldNames()
+        for header in headers:
+          returnDict[header] = np.array(csvData[header])
 
         ## Numpy by default iterates over rows, thus we transpose the data and
         ## zip it with the headers in order to do store it very cleanly into a
         ## dictionary.
-        for header,data in zip(headers, csvData.T):
-          returnDict[header] = data
+        # for header,data in zip(headers, csvData.T):
+        #   returnDict[header] = data
       if not ravenCase:
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
         returnDict.update(kwargs)
