@@ -81,6 +81,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         descr=r"""for an NDDistribution, indicates the dimension within the NDDistribution that corresponds
               to this variable.""")
     variableInput.addSub(distributionInput)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputTypes.StringType)
+    gridInput.addParam("type", InputTypes.StringType)
+    gridInput.addParam("construction", InputTypes.StringType)
+    gridInput.addParam("steps", InputTypes.IntegerType)
+    variableInput.addSub(gridInput)
     functionInput = InputData.parameterInputFactory("function", contentType=InputTypes.StringType,
         descr=r"""name of the function that
               defines the calculation of this variable from other distributed variables.  Its name
@@ -824,7 +829,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def _incrementCounter(self):
     """
-      Incrementes counter and sets up prefix.
+      Increments counter and sets up prefix.
       @ In, None
       @ Out, None
     """
@@ -914,6 +919,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self._functionalVariables()
     ##### VECTOR VARS #####
     self._expandVectorVariables()
+    ##### RESET DISTRIBUTIONS WITH MEMORY #####
+    for key in self.distDict:
+      if self.distDict[key].getMemory():
+        self.distDict[key].reset()
     ##### RESTART #####
     index, inExisting = self._checkRestartForEvaluation()
     # reformat metadata into acceptable format for dataojbect
