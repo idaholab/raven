@@ -19,8 +19,8 @@
   <Steps>
     <MultiRun name="sample">
       <Input class="Files" type="">template</Input>
-      <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Model class='Models' type='Code'>code</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">ps</Output>
       <Output class="DataObjects" type="HistorySet">hs</Output>
       <Output class="DataObjects" type="DataSet">ds</Output>
