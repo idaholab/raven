@@ -130,10 +130,12 @@ class MCSSolver(ExternalModelPluginBase):
 
     TEprobability = 0.0
     multiplier = 1.0
-
+    
+    # perform probability calculation for each order level
     for order in range(1,self.solverOrder+1):
       orderProbability=0
       for term in self.topEventTerms[order]:
+        # map the sampled values of the basic event probabilities to the MCS basic events ID
         termValues = list(map(inputForSolver.get,term))
         orderProbability = orderProbability + np.prod(termValues)
       TEprobability = TEprobability + multiplier * orderProbability
