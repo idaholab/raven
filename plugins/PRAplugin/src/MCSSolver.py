@@ -43,7 +43,7 @@ class MCSSolver(ExternalModelPluginBase):
       @ Out, None
     """
     ExternalModelPluginBase.__init__(self)
-    
+
   def _readMoreXML(self, container, xmlNode):
     """
       Method to read the portion of the XML that belongs to the MCS solver model
@@ -51,7 +51,7 @@ class MCSSolver(ExternalModelPluginBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, XML node that needs to be read
       @ Out, None
     """
-    container.filename = None 
+    container.filename = None
     container.mapping    = {}
     container.InvMapping = {}
 
@@ -67,7 +67,7 @@ class MCSSolver(ExternalModelPluginBase):
         variables = [str(var.strip()) for var in child.text.split(",")]
       else:
         raise IOError("MCSSolver: xml node " + str(child.tag) + " is not allowed")
-  
+
   def initialize(self, container, runInfoDict, inputFiles):
     """
       Method to initialize this plugin
@@ -77,7 +77,7 @@ class MCSSolver(ExternalModelPluginBase):
       @ Out, None
     """
     pass
-      
+
   def createNewInput(self, container, inputs, samplerType, **Kwargs):
     """
       This function has been added for this model in order to be able to create a FTstructure from multiple files
@@ -89,35 +89,35 @@ class MCSSolver(ExternalModelPluginBase):
     """
     if len(inputs) > 1:
       raise IOError("MCSSolver: More than one file has been passed to the MCS solver")
-    
-    mcsIDs, probability, mcsList, beList = MCSreader(inputs[0]) 
-    
+
+    mcsIDs, probability, mcsList, beList = MCSreader(inputs[0])
+
     self.topEventTerms = {}
-    
+
     # mcsList is supposed to be a list of lists
     # E.g., if the MCS are ABC CD and AE --> MCS1=['A','B','C'], MCS2=['D','C'], MCS3=['A','E']
-    #       then mcsList = [MCS1,MCS2,MCS3] = 
+    #       then mcsList = [MCS1,MCS2,MCS3] =
     #                    = [['A', 'B', 'C'], ['D', 'C'], ['A', 'E']]
     # Top event should be:   ABC + CD + AE +
     #                      - ABCD - ABCE - ACDE
     #                      + ABCDE
-    
+
     for order in range(1,self.solverOrder+1):
       self.topEventTerms[order]=[]
       terms = list(itertools.combinations(mcsList,order))
-      # terms is a list of tuples   
-      # E.g., for order=2: [ (['A', 'B', 'C'], ['D', 'C']), 
-      #                      (['A', 'B', 'C'], ['A', 'E']), 
-      #                      (['D', 'C'], ['A', 'E']) ]   
+      # terms is a list of tuples
+      # E.g., for order=2: [ (['A', 'B', 'C'], ['D', 'C']),
+      #                      (['A', 'B', 'C'], ['A', 'E']),
+      #                      (['D', 'C'], ['A', 'E']) ]
       self.topEventTerms[order] = []
       for term in terms:
         basicEventCombined = set(itertools.chain(*term))
         # E.g. if                 term=(['A', 'B', 'C'], ['D', 'C'])
         #      then basicEventCombined={'A', 'B', 'D', 'C'}
-        if basicEventCombined not in self.topEventTerms[order]: 
+        if basicEventCombined not in self.topEventTerms[order]:
           self.topEventTerms[order].append(list(basicEventCombined))
     return Kwargs
-  
+
   def run(self, container, Inputs):
     """
       This method determines the status of the TopEvent of the FT provided the status of its Basic Events
@@ -127,18 +127,18 @@ class MCSSolver(ExternalModelPluginBase):
     inputForSolver = {}
     for key in container.InvMapping.keys():
       inputForSolver[key] = Inputs[container.InvMapping[key]]
-      
-    TEprobability = 0.0 
+
+    TEprobability = 0.0
     multiplier = 1.0
-    
+
     for order in range(1,self.solverOrder+1):
       orderProbability=0
       for term in self.topEventTerms[order]:
         termValues = list(map(inputForSolver.get,term))
         orderProbability = orderProbability + np.prod(termValues)
-      TEprobability = TEprobability + multiplier * orderProbability 
-      multiplier = -1.0 * multiplier  
-      
-    container.__dict__[container.topEventID] = np.asarray(float(TEprobability)) 
+      TEprobability = TEprobability + multiplier * orderProbability
+      multiplier = -1.0 * multiplier
 
-  
+    container.__dict__[container.topEventID] = np.asarray(float(TEprobability))
+
+

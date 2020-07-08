@@ -128,7 +128,7 @@ class MCSImporter(PostProcessor):
 
     if beFileFound==False and self.expand==True:
       self.raiseAnError(IOError, 'MCSImporterPostProcessor Post-Processor ' + self.name + ', Expand is set to False but no file with type=BElist has been found')
-    
+
     '''
     self.mcsList=[]
     self.beList=set()
@@ -155,9 +155,9 @@ class MCSImporter(PostProcessor):
         counter = counter+1
         if self.expand==False:
           self.beList.update(elementsList)
-    '''  
-    self.mcsIDs, self.probability, self.mcsList, self.beList = MCSreader(MCSlistFile)     
-              
+    '''
+    self.mcsIDs, self.probability, self.mcsList, self.beList = MCSreader(MCSlistFile)
+
     if self.expand:
       beData = pd.read_csv(BElistFile.getFilename())
       self.beList = beData[self.beListColumn].values.tolist()
@@ -200,16 +200,16 @@ class MCSImporter(PostProcessor):
       output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
     else:
         self.raiseAnError(RuntimeError, 'MCSImporter failed: Output type ' + str(output.type) + ' is not supported.')
-        
+
 def MCSreader(MCSlistFile):
   """
     Function designed to read a file containing the set of MCSs and to save it as list of list
-    @ In, MCSlistFile, string, name of the file containing the set of MCSs 
+    @ In, MCSlistFile, string, name of the file containing the set of MCSs
     @ Out, mcsIDs, np array, array containing the ID associated to each MCS
     @ Out, probability, np array, array containing the probability associated to each MCS
     @ Out, mcsList, list, list of MCS, each element is also a list containing the basic events of each MCS
     @ Out, beList, list, list of all basic events contained in the MCSs
-  """  
+  """
   mcsList=[]
   beList=set()
   probability = np.zeros((0))
@@ -233,7 +233,7 @@ def MCSreader(MCSlistFile):
         element.rstrip('\n')
       mcsList.append(elementsList)
       counter = counter+1
-      
+
       beList.update(elementsList)
-  
+
   return mcsIDs, probability, mcsList, beList
