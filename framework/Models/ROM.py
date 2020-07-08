@@ -265,7 +265,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("exactModes", contentType=InputTypes.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("optimized", contentType=InputTypes.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("dmdType", contentType=InputTypes.StringType))
-
+    inputSpecification.addSub(InputData.parameterInputFactory("Actuators", contentType=InputTypes.StringType))
     # for deep learning neural network
     #inputSpecification.addSub(InputData.parameterInputFactory("DNN", InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", contentType=InputTypes.IntegerTupleType)) # list of integer

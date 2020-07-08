@@ -54,9 +54,11 @@
 
   <Models>
     <ROM name="DMDrom" subType="DMDC">
-      <Target>VirtualTarget</Target>
+      <Target>Time</Target>
       <Features>u1,u2,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16,x17,x18,x19</Features>
-      <pivotParameter>u1,u2</pivotParameter>
+      <Actuators>u1,u2</Actuators>
+	  <pivotParameter>Time</pivotParameter>
+      
       <rankSVD>-1</rankSVD>
     </ROM>
   </Models>
@@ -118,7 +120,7 @@
   <DataObjects>
     <PointSet name="TrainData">
       <Input>u1,u2</Input>
-      <Output>x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16,x17,x18,x19,VirtualTarget</Output>
+      <Output>x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16,x17,x18,x19,Time</Output>
     </PointSet>
     <PointSet name="EvalData">
       <Input>u1,u2</Input>

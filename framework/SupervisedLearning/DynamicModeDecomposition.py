@@ -402,7 +402,9 @@ class DynamicModeDecompositionControl(supervisedLearning):
     self.dmdParams                   = {}                                   # dmd settings container
     self.printTag                    = 'DMDC'                               # print tag
     self.pivotParameterID = kwargs.get("pivotParameter", "time")  # pivot parameter
-    self.pivotParameterID = self.pivotParameterID.split(',')  # pivot parameter
+    # self.pivotParameterID = self.pivotParameterID.split(',')  # pivot parameter
+    self.actuatorsID = kwargs.get("Actuators", None)
+    self.actuatorsID = self.actuatorsID.split(',')
 
     self._dynamicHandling            = True                                 # This ROM is able to manage the time-series on its own. No need for special treatment outside
     self.dmdParams['rankSVD'       ] = kwargs.get('rankSVD',-1)           # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
@@ -413,7 +415,8 @@ class DynamicModeDecompositionControl(supervisedLearning):
     # self._modes                      = {}                                   # {'target1': matrix of dynamic modes,'target2':matrix of dynamic modes, etc.}
     self.__Atilde                    = {}                                   # {'target1': matrix of lowrank operator from the SVD,'target2':matrix of lowrank operator from the SVD, etc.}
     self.__Btilde                    = {}
-    self.pivotVals                   = []                                   # pivot values (e.g. U), the variable names are in self.pivotParameterID
+    self.pivotVals                   = []                                   # pivot values (e.g. Time), the variable names are in self.pivotParameterID
+    self.actuatorVals                = []                                   # Actuator values (e.g. U), the variable names are in self.ActuatorID
     self.stateID                     = []                                   # state variables names (e.g. X)
     self.stateVals                   = []                                   # state values (e.g. X)
     self.timeScales                  = {}                                   # time-scales (training and dmd). {'training' and 'dmd':{t0:float,'dt':float,'intervals':int}}
@@ -421,6 +424,9 @@ class DynamicModeDecompositionControl(supervisedLearning):
     # some checks
     if self.dmdParams['dmdType'] not in self.availDmdAlgorithms:
       self.raiseAnError(IOError,'dmdType(s) available are "'+', '.join(self.availDmdAlgorithms)+'"!')
+
+    # print(self.pivotParameterID)
+    # print(self.actuatorsID)
 
   def __returnInitialParametersLocal__(self):
     # print("__returnInitialParametersLocal__")
@@ -451,22 +457,28 @@ class DynamicModeDecompositionControl(supervisedLearning):
       @ In, targetVals, numpy.ndarray, shape = [n_timeStep, n_dimensions], an array of time series data
     """
     ### Extract the Pivot Values (Actuator, U) ###
-    for pivotParameter in self.pivotParameterID: # self.pivotParameterID = ['u1', 'u2']
-      pivotParamIndex   = self.features.index(pivotParameter)
-      self.pivotVals.append(featureVals[:,pivotParamIndex])
-    self.pivotVals = np.asarray(self.pivotVals).T # self.pivotVals is Num_Entries*2 array, the snapshots of [u1, u2]
+    for actuator in self.actuatorsID: # self.actuatorsID = ['u1', 'u2']
+      actuatorIndex   = self.features.index(actuator)
+      self.actuatorVals.append(featureVals[:,actuatorIndex])
+    self.actuatorVals = np.asarray(self.actuatorVals).T # self.ActuatorVals is Num_Entries*2 array, the snapshots of [u1, u2]
 
-    ### Extract the time scale (discrete, in time step marks) ###
-    (ts,_) = np.shape(self.pivotVals)
-    self.timeScales = np.arange(0,ts,1)
+    # print(self.actuatorsID)
+    # print(np.shape(self.actuatorVals))
+    # print(a)
 
-    ### Extract the Target Values (Virtual Target, all 0) ###
-    # print(self.target) # ['VirtualTarget']
-    # print(np.shape(targetVals)) # 500*1 array, the snapshots of ['VirtualTarget']
+    ### Extract the time marks (discrete, in time step marks) ###
+    pivotParamIndex = self.target.index(self.pivotParameterID)
+    # print(pivotParamIndex) #0
+    # print(np.shape(targetVals))
+    # print(targetVals)
+    self.pivotVals = targetVals[:, pivotParamIndex]
+    ts = len(self.pivotVals)
+    # print(self.pivotVals)
+    # print(a)
 
     ### Extract the State Values (State, X) ###
     for VarID in self.features: # features = ['u1', 'u2', 'x1', 'x2', ..., 'x19']
-      if VarID not in self.pivotParameterID:
+      if VarID not in self.actuatorsID:
         self.stateID.append(VarID)
     # print(self.stateID) # ['x1', ..., 'x19']
 
@@ -476,15 +488,15 @@ class DynamicModeDecompositionControl(supervisedLearning):
       self.stateVals.append(featureVals[:, VarIndex])
     self.stateVals = np.asarray(self.stateVals).T  # self.stateVals is Num_Entries*19 array, the snapshots of [x1, x2, ..., x19]
 
-    X1 = self.stateVals[:-1,:].T   # 19*(Num_Entries-1) array, snapshot of X[0:Num_Entries-1]
-    X2 = self.stateVals[1: ,:].T   # 19*(Num_Entries-1) array, snapshot of X[1:Num_Entries]
-    U  = self.pivotVals[:-1,:].T   # 2* (Num_Entries-1) array, snapshot of U[0:Num_Entries-1]
+    X1 = self.stateVals[:-1,:].T      # 19*(Num_Entries-1) array, snapshot of X[0:Num_Entries-1]
+    X2 = self.stateVals[1: ,:].T      # 19*(Num_Entries-1) array, snapshot of X[1:Num_Entries]
+    U  = self.actuatorVals[:-1,:].T   # 2* (Num_Entries-1) array, snapshot of U[0:Num_Entries-1]
 
     self.__Atilde, self.__Btilde = self.fun_DMDc(X1, X2, U, self.dmdParams['rankSVD'])
 
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
-    self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': 0, 'intervals': ts - 1, 'dt': 1})
-    # print(self.timeScales) # {'training': {'t0': 0, 'intervals': 7, 'dt': 1}, 'dmd': {'t0': 0, 'intervals': 7, 'dt': 1}}
+    self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotVals[0], 'intervals': ts, 'dt': self.pivotVals[1]-self.pivotVals[0]})
+    # print(self.timeScales) # {'training': {'t0': 1, 'intervals': 399, 'dt': 1}, 'dmd': {'t0': 1, 'intervals': 399, 'dt': 1}}
 
   def writeXMLPreamble(self, writeTo, targets = None):
     # print("writeXMLPreamble")
@@ -546,9 +558,9 @@ class DynamicModeDecompositionControl(supervisedLearning):
 
     targNode = writeTo._findTarget(writeTo.getRoot(), target)
     if "acturators" in what:
-      writeTo.addScalar(target, "acturators", ' '.join(self.pivotParameterID))
+      writeTo.addScalar(target, "acturators", ' '.join(self.actuatorsID))
     if "acturatorsCount" in what:
-      writeTo.addScalar(target, "acturatorsCount", len(self.pivotParameterID))
+      writeTo.addScalar(target, "acturatorsCount", len(self.actuatorsID))
     if "states" in what:
       writeTo.addScalar(target, "states", ' '.join(self.stateID))
     if "statesCount" in what:
@@ -615,7 +627,7 @@ class DynamicModeDecompositionControl(supervisedLearning):
 
     ### Extract the Actuator signal U ###
     Eval_U = []
-    for VarID in self.pivotParameterID:
+    for VarID in self.actuatorsID:
       VarIndex = self.features.index(VarID)
       Eval_U.append(featureVals[:, VarIndex])
       returnEvaluation.update({VarID: featureVals[:, VarIndex]})
