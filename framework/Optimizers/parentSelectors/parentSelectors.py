@@ -78,10 +78,10 @@ def rankSelection(population,**kwargs):
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
           nParents, int, number of required parents.
-    @ Out, newPopulation, xr.DataArray, selected parents, 
+    @ Out, newPopulation, xr.DataArray, selected parents,
   """
   newPopulation = copy.deepcopy(population)
-  
+
   return newPopulation
 
 def tournamentSelection(population,**kwargs):
@@ -91,10 +91,10 @@ def tournamentSelection(population,**kwargs):
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           fitness, np.array, fitness of each chromosome (individual) in the population, i.e., np.shape(fitness) = 1 x populationSize
           nParents, int, number of required parents.
-    @ Out, newPopulation, xr.DataArray, selected parents, 
+    @ Out, newPopulation, xr.DataArray, selected parents,
   """
   newPopulation = copy.deepcopy(population)
-  
+
   return newPopulation
 
 __parentSelectors = {}

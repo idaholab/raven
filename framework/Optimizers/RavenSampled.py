@@ -251,8 +251,8 @@ class RavenSampled(Optimizer):
     # FIXME implicit constraints probable should be handled here too
     # get information and realization, and update trajectories
     info = self.getIdentifierFromPrefix(prefix, pop=True)
-    _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=True) 
-    # _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False) 
+    _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=True)
+    # _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
     # trim down opt point to the useful parts
     # TODO making a new dict might be costly, maybe worth just passing whole point?
     ## testing suggests no big deal on smaller problem

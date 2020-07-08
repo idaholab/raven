@@ -266,7 +266,7 @@ class GeneticAlgorithm(RavenSampled):
     # mutation node
     mutationNode = reproductionNode.findFirst('mutation')
     self._mutationType = mutationNode.parameterValues['type']
-    self._mutationlocs = mutationNode.findFirst('locs').value
+    self._mutationLocs = mutationNode.findFirst('locs').value
     self._mutationProb = mutationNode.findFirst('mutationProb').value
     self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
     # Survivor selection
@@ -335,7 +335,6 @@ class GeneticAlgorithm(RavenSampled):
       This is called by localFinalizeActualSampling, and hence should contain the main skeleton.
       @ In, info, dict, identifying information about the realization
       @ In, rlz, dict, realized realization
-      @ In, optVal, float, value of objective variable (corrected for min/max)
       @ Out, None
     """
     ## THIS IS HOW THE POPULATION RLZ (BATCH) WOULD LOOK LIKE
@@ -396,7 +395,7 @@ class GeneticAlgorithm(RavenSampled):
 
     # 3 @ n: Mutation
     # perform random directly on childrenCoordinates
-    children = self._mutationInstance(offSprings=children,locs = self._mutationlocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+    children = self._mutationInstance(offSprings=children,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
     ## TODO WHAT IF AFTER CROSSOVER AND/OR MUTATION OUR CHROMOSOME NO LONGER SATISFIES THE WITHOUT REPLACEMENT CONSTRAINT
 
     # 4 @ n: Submit children batch
@@ -429,6 +428,39 @@ class GeneticAlgorithm(RavenSampled):
     self._submissionQueue.append((point, info))
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
+  def _resolveNewGeneration(self, traj, rlz, info):
+    """
+      Consider and store a new optimal point
+      @ In, traj, int, trajectory for this new point
+      @ In, info, dict, identifying information about the realization
+      @ In, rlz, dict, realized realization
+    """
+    self.raiseADebug('*'*80)
+    self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))
+    # note the collection of the opt point
+    self._stepTracker[traj]['opt'] = (rlz, info)
+    # FIXME check implicit constraints? Function call, - Jia
+    acceptable, old = self._checkAcceptability(traj, rlz, info)
+    converged = self._updateConvergence(traj, rlz, old, acceptable)
+    # we only want to update persistance if we've accepted a new point.
+    # We don't want rejected points to count against our convergence.
+    if acceptable in ['accepted']:
+      self._updatePersistence(traj, converged, optVal)
+    # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
+    #       point history.
+    if self._writeSteps == 'every':
+      self._updateSolutionExport(traj, rlz, acceptable)
+    self.raiseADebug('*'*80)
+    # decide what to do next
+    if acceptable in ['accepted', 'first']:
+      # record history
+      self._optPointHistory[traj].append((rlz, info))
+      # self.incrementIteration(traj)
+      # nothing else to do but wait for the grad points to be collected
+    elif acceptable == 'rejected':
+      self._rejectOptPoint(traj, info, old)
+    else: # e.g. rerun
+      pass # nothing to do, just keep moving
 
   def checkConvergence(self, traj):
     """
@@ -530,67 +562,3 @@ class GeneticAlgorithm(RavenSampled):
   #     @ Out, None
   #   """
   #   pass
-
-  def __fitnessCalculationHandler(self,children,params):
-    # children is a Pandas dataFrame containing N realization of [y1,..,yL,x1,...,xM]
-    if params['fitnessType'] == 'fitnessType1':
-      pass
-      # perform fitness calculation
-      # add fitness variable to children dataFrame: [y1,..,yL,x1,...,xM,fitness]
-      # children = fitnessType1Calculation(rlz)
-    else:
-      pass
-      # other methods ...
-    return children
-
-  def __replacementCalculationHandler(self,parents,children,params):
-    # parents and children are two Pandas dataFrame containing realization of [y1,..,yL,x1,...,xM,fitness]
-    if params['replacementType'] == 'generational':
-      pass
-      # the following method remove the parents and leave the children
-      # i.e., newPopulation <-- children
-      # newPopulation = generationalReplacement(children = self.children)
-    else:
-      pass
-      # other methods ...
-      # e.g., newPopulation = mix of parents and children
-      #newPopulation = otherReplacement(parents,children,paramsDict)
-    return
-
-  def __selectionCalculationHandler(self,parents,params):
-    # create a list of pairs of parents: a list of list containing two (or more) parents indexes (e.g., [[2,5],[6,3],...])
-    if params['selectionType'] == 'rouletteWheel':
-      pass
-      # parentSet = stdRouletteSelection(population=parents,params={})
-    else:
-      pass
-      # other methods ...
-      # parentSet = otherSelection(population=parents,params={})
-    return #parentSet
-
-  def __crossoverCalculationHandler(self,parentSet,population,params):
-    if params['crossoverType'] == 'onePointCrossover':
-      pass
-      # create childrenCoordinates: a panda dataframe
-      # childrenCoordinates = onePointCrossover(parents=parentSet,params={})
-    elif params['twoPointsCrossover'] == 'twoPointsCrossover':
-      pass
-      # create childrenCoordinates: a panda dataframe
-      # childrenCoordinates = twoPointsCrossover(parents=parentSet,params={})
-    else:
-      pass
-      # other methods ...
-      # childrenCoordinates = otherCrossover(parentSet,params={})
-    return #childrenCoordinates
-
-  def mutationCalculationHandler(self,children,params):
-    # this method does not return anything
-    # It simply acts on childrenCoordinates directly
-    if params['mutationType'] =='swapMutator':
-      pass
-      #  mutation(childrenCoordinates, params={})
-    elif params['mutationType'] =='scrambleMutator':
-      pass
-    else:
-      pass
-      # other methods ...
