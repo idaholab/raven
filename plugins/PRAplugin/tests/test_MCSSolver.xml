@@ -1,5 +1,11 @@
 <Simulation verbosity="debug">
-
+  <!--
+  This is an analytical test for the system: TopEvent = BE1 or BE3 or (BE2 or BE4)
+  MCS = BE1, BE3, BE2 BE4
+  Hence: P(TopEvent) = P(BE1) + P(BE3) + P(BE2)*P(BE4) 
+                     - P(BE1)*P(BE3) - P(BE1)*P(BE2)*P(BE4) - P(BE2)*P(BE3)*P(BE4)
+                     + P(BE1)*P(BE2)*P(BE3)*P(BE4)
+  -->
   <RunInfo>
     <WorkingDir>MCSSolver</WorkingDir>
     <Sequence>simRun</Sequence>
@@ -12,40 +18,25 @@
 
   <Models>
     <ExternalModel name="MCSmodel" subType="PRAplugin.MCSSolver">
-      <variables>statusBE1,statusBE2,statusBE3,TOP</variables>
+      <variables>statusBE1,statusBE2,statusBE3,statusBE4,TOP</variables>
       <solverOrder>3</solverOrder>
       <topEventID>TOP</topEventID>>
       <map var='statusBE1'>BE1</map>
       <map var='statusBE2'>BE2</map>
       <map var='statusBE3'>BE3</map>
+      <map var='statusBE4'>BE4</map>
     </ExternalModel>
   </Models>
-
-  <Distributions>
-    <Uniform name='distrib1'>
-      <lowerBound>0.</lowerBound>
-      <upperBound>0.01</upperBound>
-    </Uniform>
-    <Uniform name='distrib2'>
-      <lowerBound>0.</lowerBound>
-      <upperBound>0.1</upperBound>
-    </Uniform>
-  </Distributions>
 
   <Samplers>
     <MonteCarlo name="MC_external">
       <samplerInit>
         <limit>1</limit>
       </samplerInit>
-      <variable name="statusBE1">
-        <distribution>distrib1</distribution>
-      </variable>
-      <variable name="statusBE2">
-        <distribution>distrib1</distribution>
-      </variable>
-      <variable name="statusBE3">
-        <distribution>distrib2</distribution>
-      </variable>
+      <constant name="statusBE1">0.1</constant>
+      <constant name="statusBE2">0.2</constant>
+      <constant name="statusBE3">0.3</constant>
+      <constant name="statusBE4">0.4</constant>
     </MonteCarlo>
   </Samplers>
 
@@ -69,11 +60,11 @@
 
   <DataObjects>
     <PointSet name="inputPlaceHolder">
-      <Input>statusBE1,statusBE2,statusBE3</Input>
+      <Input>statusBE1,statusBE2,statusBE3,statusBE4</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="sim_PS">
-      <Input>statusBE1,statusBE2,statusBE3</Input>
+      <Input>statusBE1,statusBE2,statusBE3,statusBE4</Input>
       <Output>TOP</Output>
     </PointSet>
   </DataObjects>

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on June 24, 2018
+Created on June 24, 2020
 
 @author: mandd
 """
@@ -114,7 +114,8 @@ class MCSSolver(ExternalModelPluginBase):
         basicEventCombined = set(itertools.chain(*term))
         # E.g. if                 term=(['A', 'B', 'C'], ['D', 'C'])
         #      then basicEventCombined={'A', 'B', 'D', 'C'}
-        self.topEventTerms[order].append(basicEventCombined)
+        if basicEventCombined not in self.topEventTerms[order]: 
+          self.topEventTerms[order].append(list(basicEventCombined))
     return Kwargs
   
   def run(self, container, Inputs):
@@ -126,18 +127,18 @@ class MCSSolver(ExternalModelPluginBase):
     inputForSolver = {}
     for key in container.InvMapping.keys():
       inputForSolver[key] = Inputs[container.InvMapping[key]]
-    value = self.MCSsolver(**inputForSolver)
-    return value
-  
-  def MCSsolver(self,**kwargs): 
+      
     TEprobability = 0.0 
+    multiplier = 1.0
+    
     for order in range(1,self.solverOrder+1):
       orderProbability=0
       for term in self.topEventTerms[order]:
-        print(term)
-        orderProbability = orderProbability + np.prod(term)
-      TEprobability = TEprobability + orderProbability   
-    return TEprobability
-
+        termValues = list(map(inputForSolver.get,term))
+        orderProbability = orderProbability + np.prod(termValues)
+      TEprobability = TEprobability + multiplier * orderProbability 
+      multiplier = -1.0 * multiplier  
+      
+    container.__dict__[container.topEventID] = np.asarray(float(TEprobability)) 
 
   

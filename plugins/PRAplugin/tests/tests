@@ -77,4 +77,10 @@
   input = 'test_ensemblePRAModel_mixed.xml'
   UnorderedCsv   = 'ensembleMixed/Print_sim_PS.csv'
  [../]
+ 
+ [./TestMCSSolver]
+  type  = 'RavenFramework'
+  input = 'test_MCSSolver.xml'
+  UnorderedCsv   = 'MCSSolver/Print_sim_PS.csv'
+ [../]
 []
