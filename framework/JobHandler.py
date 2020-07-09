@@ -193,12 +193,13 @@ class JobHandler(MessageHandler.MessageUser):
         nProcsHead = availableNodes.count(localHostName)
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
         ## initialize ray server with nProcs
-        self.rayServer = ray.init(num_cpus=int(nProcsHead)) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
+        self.rayServer = ray.init(num_cpus=int(nProcsHead), include_webui = self.runInfoDict['dashBoardMonitor']) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
         ## Get localHost and servers
         servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
-        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
+        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']), include_webui = self.runInfoDict['dashBoardMonitor']) if _rayAvail else \
                          pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+      print(self.runInfoDict['dashBoardMonitor'])
       if _rayAvail:
         self.raiseADebug("Head node IP address: ", self.rayServer['node_ip_address'])
         self.raiseADebug("Redis address       : ", self.rayServer['redis_address'])

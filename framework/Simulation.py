@@ -240,6 +240,7 @@ class Simulation(MessageHandler.MessageUser):
     self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threads by number of mpi)
     self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
     self.runInfoDict['internalParallel'  ] = False        # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
+    self.runInfoDict['dashBoardMonitor' ] = False         # activate ray dashboard for monitoring the processors and clusters (include_dashboard)
     self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
     self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded
     self.runInfoDict['totalNumCoresUsed' ] = 1            # total number of cores used by driver
@@ -648,6 +649,8 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['NumMPI'            ] = int(element.text)
       elif element.tag == 'internalParallel':
         self.runInfoDict['internalParallel'  ] = utils.interpretBoolean(element.text)
+      elif element.tag == 'dashBoardMonitor':
+        self.runInfoDict['dashBoardMonitor'  ] = utils.interpretBoolean(element.text)
       elif element.tag == 'batchSize':
         self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag.lower() == 'maxqueuesize':
