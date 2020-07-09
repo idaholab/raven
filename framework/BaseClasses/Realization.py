@@ -14,8 +14,11 @@
 """
 Created on Jan 20, 2015
 
-@author: alfoa
+@author: senrs
+based on alfoa design
+
 """
+from __future__ import division, print_function, unicode_literals, absolute_import
 #External Modules------------------------------------------------------------------------------------
 import abc
 #External Modules End--------------------------------------------------------------------------------
@@ -24,20 +27,24 @@ from utils import utils
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-
-class Assembler(MessageHandler.MessageUser):
+class Realization(MessageHandler.MessageUser):
   """
-    Assembler class is used as base class for all the objects that need, for initialization purposes,
+    The Realization class is used as container for the realization that are
+    
+    as base class for all the objects that need, for initialization purposes,
     to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
   """
-  def __init__(self):
+  def __init__(self, rlz):
     """
       Constructor
-      @ In, None
+      @ In, rlz, dict or xarray.DataArray, the realization
       @ Out, None
     """
     self.type = self.__class__.__name__  # type
     self.name = self.__class__.__name__  # name
+    
+    
+    
     if not hasattr(self, 'assemblerObjects'): # protect against polyinheritance woes
       self.assemblerObjects = {}           # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
       self.requiredAssObject = [False, ([], [])]
