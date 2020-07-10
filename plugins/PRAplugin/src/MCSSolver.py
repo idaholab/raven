@@ -130,7 +130,7 @@ class MCSSolver(ExternalModelPluginBase):
 
     TEprobability = 0.0
     multiplier = 1.0
-    
+
     # perform probability calculation for each order level
     for order in range(1,self.solverOrder+1):
       orderProbability=0
