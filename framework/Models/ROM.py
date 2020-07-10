@@ -58,8 +58,8 @@ class ROM(Dummy):
     CriterionInputType = InputTypes.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
 
     # general
-    inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
     # segmenting and clustering
     segment = InputData.parameterInputFactory("Segment", strictMode=True)
     segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
@@ -1552,7 +1552,7 @@ class ROM(Dummy):
     pivotParameterId = self.supervisedEngine.pivotParameterId
     # find some general settings needed for either dynamic or static handling
     ## get all the targets the ROMs have
-    ROMtargets = self.supervisedEngine.initializationOptions['Target'].split(",")
+    ROMtargets = self.supervisedEngine.initializationOptions['Target']
     ## establish requested targets
     targets = ROMtargets if what=='all' else what.split(',')
     ## establish sets of engines to work from

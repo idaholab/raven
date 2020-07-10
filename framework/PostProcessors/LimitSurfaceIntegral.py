@@ -194,8 +194,8 @@ class LimitSurfaceIntegral(PostProcessor):
       self.stat.initialize(runInfo, inputs, initDict)
     self.functionS = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self,
                                                           **{'SKLtype':'neighbors|KNeighborsClassifier',
-                                                             'Features':','.join(list(self.variableDist.keys())),
-                                                             'Target':self.target, 'n_jobs': -1})
+                                                             'Features':list(self.variableDist.keys()),
+                                                             'Target':[self.target], 'n_jobs': -1})
     self.functionS.train(self.matrixDict)
     self.raiseADebug('DATA SET MATRIX:')
     self.raiseADebug(self.matrixDict)
@@ -203,8 +203,8 @@ class LimitSurfaceIntegral(PostProcessor):
       #  create a model for computing the "error"
       self.errorModel = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self,
                                                           **{'SKLtype':'neighbors|KNeighborsClassifier',
-                                                             'Features':','.join(list(self.variableDist.keys())),
-                                                             'Target':self.target, 'weights': 'distance', 'n_jobs': -1})
+                                                             'Features':list(self.variableDist.keys()),
+                                                             'Target':[self.target], 'weights': 'distance', 'n_jobs': -1})
       #modify the self.matrixDict to compute half of the "error"
       indecesToModifyOnes = np.argwhere(self.matrixDict[self.target] > 0.).flatten()
       res = np.concatenate((np.ones(len(indecesToModifyOnes)), np.zeros(len(indecesToModifyOnes))))

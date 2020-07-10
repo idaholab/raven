@@ -25,9 +25,52 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils.cached_ndarray import c1darray
-from utils import utils
+from utils import utils, InputData
 import MessageHandler
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
+
+class CheckInterfacePP(InputData.CheckClass):
+  """
+  Checks that this is an Interface Post Processor of a given type
+  """
+  def __init__(self, name):
+    """
+      Creates a CheckInterfacePP class
+      @ In, name, string, the method name
+      @ Out, None
+    """
+    self.name = name
+    self.__reason = ""
+
+  def check(self, node):
+    """
+      Checks the node to see if it matches the checkDict
+      @ In, node, xml node to check
+      @ Out, bool, true if matches
+    """
+    self.__reason = ""
+    passed = "subType" in node.attrib and node.attrib["subType"] == "InterfacedPostProcessor"
+    if not passed:
+      self.__reason = "subType=InterfacedPostProcessor not in attribs"
+    methods = node.findall("method")
+    if len(methods) == 1:
+      match = methods[0].text == self.name
+      if not match:
+        self.__reason += ""+repr(methods[0].text)+ "!=" + self.name + " "
+      passed = passed and match
+    else:
+      self.__reason += "wrong number of method blocks "+str(len(methods))+" "
+      passed = False
+    return passed
+
+  def failCheckReason(self, node):
+    """
+      returns a string about why the check failed
+      @ In, node, xml node to check
+      @ Out, string, message for user about why check failed.
+    """
+    return self.__reason
 
 class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),MessageHandler.MessageUser):
   """
@@ -37,6 +80,22 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),Mess
       - run
       - readMoreXML
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False)
+    inputSpecification.setCheckClass(CheckInterfacePP("PostProcessorInterfaceBaseClass"))
+    inputSpecification.addParam("subType", InputTypes.StringType)
+    inputSpecification.addParam("name", InputTypes.StringType)
+
+    return inputSpecification
 
   def __init__(self, messageHandler):
     """

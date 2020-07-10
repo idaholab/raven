@@ -107,7 +107,7 @@
 
 \newcommand{\nIterNoChangeDescriptionA}[1]
 {
-  \xmlNode{n\_iter\_no\_change}, \xmlDesc{integer, optional field}, number of iterations with no improvement to wait before early stopping. 
+  \xmlNode{n\_iter\_no\_change}, \xmlDesc{integer, optional field}, number of iterations with no improvement to wait before early stopping.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
 }
@@ -800,7 +800,7 @@
 }
 \newcommand{\warmStartMLPDescription}[1]
 {
-  \xmlNode{warm\_start}, \xmlDesc{bool, optional field}, when set to True, reuse the solution of 
+  \xmlNode{warm\_start}, \xmlDesc{bool, optional field}, when set to True, reuse the solution of
   previous call to fit as initialization, otherise, just erase the previous solution.
   %
   \ifthenelse{\equal{#1}{}}{}{\default{#1}}
@@ -979,8 +979,8 @@ to couple a new code.
   \item \xmlNode{executable} \xmlDesc{string, required field} specifies the path
   of the executable to be used.
 
-  \item \xmlNode{walltime}  \xmlDesc{string, optional field} specifies the maximum 
-  allowed run time of the code; if the code running time is greater than the specified 
+  \item \xmlNode{walltime}  \xmlDesc{string, optional field} specifies the maximum
+  allowed run time of the code; if the code running time is greater than the specified
   walltime then the code run is stopped. The stopped run is then considered as if it crashed.
   %
   \nb Both absolute and relative path can be used. In addition, the relative path
@@ -1001,7 +1001,7 @@ to couple a new code.
   \begin{itemize}
     \item \xmlAttr{type} \xmlDesc{string, required field} specifies the type of
     command-line argument to add.  Options include \xmlString{input},
-    \xmlString{output}, \xmlString{prepend}, \xmlString{postpend}, 
+    \xmlString{output}, \xmlString{prepend}, \xmlString{postpend},
     \xmlString{text}, and \xmlString{python}.
     %
     \item \xmlAttr{arg} \xmlDesc{string, optional field} specifies the flag to
@@ -1546,19 +1546,19 @@ here specified need to be inputted in the\xmlNode{Models} main XML block) :
         \nb All the inputs here specified need to be listed in the Steps where the EnsembleModel
         is used.
      \item \xmlNode{Output}, \xmlDesc{string, optional field},
-        represents the output entities that need to be linked to this sub-model.  \nb The \xmlNode{Output}s here 
-        specified are not part 
+        represents the output entities that need to be linked to this sub-model.  \nb The \xmlNode{Output}s here
+        specified are not part
         of the determination of the EnsembleModel execution but represent an additional storage of results from the
-        sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to 
-        be transferred to other 
+        sub-models. For example, if the \xmlNode{TargetEvaluation} is of type PointSet (since just scalar data needs to
+        be transferred to other
         models) and the sub-model is able to also output history-type data, this Output can be of type HistorySet.
-        Note that the structure of each Output dataObject must include only variables (either input or output) that are 
+        Note that the structure of each Output dataObject must include only variables (either input or output) that are
         defined among the model.
-        As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model 
+        As an example, the Output dataObjects cannot contained variables that are defined at the Ensemble model
         level.
         %
-        The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of 
-        both classes ``DataObjects'' and ``Databases'' 
+        The user can specify as many \xmlNode{Output} (s) as needed. The optional \xmlNode{Output}s  can be of
+        both classes ``DataObjects'' and ``Databases''
         (e.g. \textit{PointSet}, \textit{HistorySet}, \textit{DataSet}, \textit{HDF5})
         \nb \textbf{The \xmlNode{Output} (s) here specified MUST be listed in the Step in which the EnsembleModel is used.}
     \end{itemize}
@@ -1585,7 +1585,7 @@ It is important to notice that when the EnsembleModel detects a chain of models 
         \xmlNode{varName} contains the value of the initial conditions (scalar or arrays, depending of the
         type of variable). If an array needs to be inputted, the user can specify the attribute  \xmlAttr{repeat}
         and the code is going to repeat for  \xmlAttr{repeat}-times the value inputted in the body.
-     \item \xmlNode{initialStartModels}, \xmlDesc{XML node, only required parameter when Picard's iteration is 
+     \item \xmlNode{initialStartModels}, \xmlDesc{XML node, only required parameter when Picard's iteration is
      activated},
         specifies the list of models that will be initially executed. \nb Do not input this node for non-Picard calculations,
         otherwise an error will be raised.
@@ -1596,13 +1596,13 @@ It is important to notice that when the EnsembleModel detects a chain of models 
  \newline \xmlNode{TargetEvaluation} determines how the data are going to be transferred from a model to
   the other. If for example the chain of models is $A \rightarrow B$:}}
 \begin{itemize}
-  \item \textcolor{red} { \textbf{ If model $B$ expects as input scalars and outputs time-series, the \xmlNode{TargetEvaluation}  
-  of the  model $B$ will be a \textit{HistorySet} and the  \xmlNode{TargetEvaluation} of the model $A$ will be either 
+  \item \textcolor{red} { \textbf{ If model $B$ expects as input scalars and outputs time-series, the \xmlNode{TargetEvaluation}
+  of the  model $B$ will be a \textit{HistorySet} and the  \xmlNode{TargetEvaluation} of the model $A$ will be either
   a \textit{PointSet} or a \textit{DataSet} (where the output variables that need to be transferred to the model $A$ are scalars) }    }
-   \item \textcolor{red} { \textbf{ If model $B$ expects as input scalars and time-series and outputs time-series or scalars or both, the \xmlNode{TargetEvaluation}  
-  of the  model $B$ will be a \textit{DataSet} and the \newline  \xmlNode{TargetEvaluation} of the model $A$ will be either 
+   \item \textcolor{red} { \textbf{ If model $B$ expects as input scalars and time-series and outputs time-series or scalars or both, the \xmlNode{TargetEvaluation}
+  of the  model $B$ will be a \textit{DataSet} and the \newline  \xmlNode{TargetEvaluation} of the model $A$ will be either
   a \textit{HistorySet} or a \textit{DataSet}  }    }
-  \item \textcolor{red} { \textbf{ If both model $A$ and $B$ expect as input scalars and output scalars, the \xmlNode{TargetEvaluation}  
+  \item \textcolor{red} { \textbf{ If both model $A$ and $B$ expect as input scalars and output scalars, the \xmlNode{TargetEvaluation}
   of the  both models  $A$  and $B$ will be  \textit{PointSet}s  }  }
 \end{itemize}
 
@@ -1727,7 +1727,7 @@ This XML node needs to contain the attributes:
 \vspace{-5mm}
 
 Within the \xmlNode{HybridModel} XML node, the multiple entities that constitute
-this HybridModel needs to be inputted. 
+this HybridModel needs to be inputted.
 
 \begin{itemize}
   \item \xmlNode{Model}, \xmlDesc{XML node, required parameter}.
@@ -1751,7 +1751,7 @@ this HybridModel needs to be inputted.
     ``CrossValidation``.
   %
     \assemblerAttrDescription{Model}
-  % 
+  %
   \item \xmlNode{TargetEvaluation}, \xmlDesc{XML node, required parameter}.
   %
     The text portion of this node needs to contain the name of a data object defined in the \xmlNode{DataObjects} block.
@@ -1928,3 +1928,8 @@ An additional XML sub-node within the main \xmlNode{HybridModel} XML node needs 
 %
 \nb For this example, the user needs to provide all the inputs for the \textbf{HybridModel}, i.e. Files for the
 \textbf{Code} and DataObject for the \textbf{ROM} defined in the \textbf{HybridModel}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%            Logical Model                %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{logical_model.tex}
