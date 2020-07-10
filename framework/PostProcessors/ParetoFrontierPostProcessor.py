@@ -44,8 +44,10 @@ class ParetoFrontier(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(ParetoFrontier, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory('costID' , contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory('valueID', contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('costID' ,    contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('valueID',    contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('costLimit' , contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('valueLimit', contentType=InputTypes.StringType))
     return inputSpecification
 
   def _localReadMoreXML(self, xmlNode):
@@ -65,10 +67,20 @@ class ParetoFrontier(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
+    self.valueLimit = None
+    self.costLimit  = None
+    
     costID  = paramInput.findFirst('costID')
     self.costID  = costID.value
     valueID = paramInput.findFirst('valueID')
     self.valueID = valueID.value
+    
+    costLimit  = paramInput.findFirst('costLimit')
+    if costLimit is not None:
+      self.costLimit  = float(costLimit.value)
+    valueLimit = paramInput.findFirst('valueLimit')
+    if valueLimit is not None:
+      self.valueLimit = float(valueLimit.value)
 
   def inputToInternal(self, currentInp):
     """
@@ -84,14 +96,14 @@ class ParetoFrontier(PostProcessor):
     currentInp = currentInp[0]
     if currentInp.type not in ['PointSet']:
       self.raiseAnError(IOError, 'ParetoFrontier postprocessor "{}" requires a DataObject input! Got "{}".'
-                                 .format(self.name, currentInput.type))
+                                 .format(self.name, currentInp.type))
     return currentInp
 
   def run(self, inputIn):
     """
       This method executes the postprocessor action.
       @ In, inputIn, DataObject, point set that contains the data to be processed
-      @ Out, paretoFrontierDict, dict, dictionary containning the Pareto Frontier information
+      @ Out, paretoFrontierDict, dict, dictionary containing the Pareto Frontier information
     """
     inData = self.inputToInternal(inputIn)
     data = inData.asDataset()
@@ -100,11 +112,18 @@ class ParetoFrontier(PostProcessor):
     coordinates = np.zeros(1,dtype=int)
     for index,elem in enumerate(sortedData[self.costID].values):
       if (index>1) and (sortedData[self.valueID].values[index]>sortedData[self.valueID].values[coordinates[-1]]):
+        # the point at index is part of the pareto frontier
+        # it is now needed to check if it satisfies the cost and/or value limits
         coordinates = np.append(coordinates,index)
-
-    selection = sortedData.isel(RAVEN_sample_ID=coordinates).to_array().values
-    paretoFrontierData = np.transpose(selection)
-
+        
+    selection = sortedData.isel(RAVEN_sample_ID=coordinates)
+    if self.valueLimit is not None:  
+      selection = selection.where(selection[self.valueID]>self.valueLimit)
+    if self.costLimit is not None:  
+      selection = selection.where(selection[self.costID]<self.costLimit) 
+    
+    filteredParetoFrontier = selection.to_array().values
+    paretoFrontierData = np.transpose(filteredParetoFrontier)
     paretoFrontierDict = {}
     for index,varID in enumerate(sortedData.data_vars):
       paretoFrontierDict[varID] = paretoFrontierData[:,index]

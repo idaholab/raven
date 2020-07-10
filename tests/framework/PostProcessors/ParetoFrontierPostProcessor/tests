@@ -4,6 +4,21 @@
   input = 'test_paretoFrontier.xml'
   csv = 'ParetoFrontier/PrintPareto.csv'
  [../]
+ [./ParetoFrontierWithCostLimits]
+  type = 'RavenFramework'
+  input = 'test_paretoFrontierWithCostLimits.xml'
+  csv = 'ParetoFrontier/PrintParetoCostLimits.csv'
+ [../]
+ [./ParetoFrontierWithValueLimits]
+  type = 'RavenFramework'
+  input = 'test_paretoFrontierWithValueLimits.xml'
+  csv = 'ParetoFrontier/PrintParetoValueLimits.csv'
+ [../]
+ [./ParetoFrontierWithBothLimits]
+  type = 'RavenFramework'
+  input = 'test_paretoFrontierWithBothLimits.xml'
+  csv = 'ParetoFrontier/PrintParetoBothLimits.csv'
+ [../]
 []
 
 
