@@ -5,7 +5,8 @@
     <created>2020-03-25</created>
     <classesTested>Models.PostProcessors.ParetoFrontier</classesTested>
     <description>
-      This post-processor identifies the points lying on the Pareto Frontier in a cost-value space
+      This post-processor identifies the points lying on the Pareto Frontier in a cost-value space 
+      when value limit is specified.
     </description>
   </TestInfo>
   

@@ -69,12 +69,12 @@ class ParetoFrontier(PostProcessor):
     """
     self.valueLimit = None
     self.costLimit  = None
-    
+
     costID  = paramInput.findFirst('costID')
     self.costID  = costID.value
     valueID = paramInput.findFirst('valueID')
     self.valueID = valueID.value
-    
+
     costLimit  = paramInput.findFirst('costLimit')
     if costLimit is not None:
       self.costLimit  = float(costLimit.value)
@@ -115,13 +115,13 @@ class ParetoFrontier(PostProcessor):
         # the point at index is part of the pareto frontier
         # it is now needed to check if it satisfies the cost and/or value limits
         coordinates = np.append(coordinates,index)
-        
+
     selection = sortedData.isel(RAVEN_sample_ID=coordinates)
-    if self.valueLimit is not None:  
+    if self.valueLimit is not None:
       selection = selection.where(selection[self.valueID]>self.valueLimit)
-    if self.costLimit is not None:  
-      selection = selection.where(selection[self.costID]<self.costLimit) 
-    
+    if self.costLimit is not None:
+      selection = selection.where(selection[self.costID]<self.costLimit)
+
     filteredParetoFrontier = selection.to_array().values
     paretoFrontierData = np.transpose(filteredParetoFrontier)
     paretoFrontierDict = {}
