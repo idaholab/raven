@@ -6,6 +6,19 @@
                      - P(BE1)*P(BE3) - P(BE1)*P(BE2)*P(BE4) - P(BE2)*P(BE3)*P(BE4)
                      + P(BE1)*P(BE2)*P(BE3)*P(BE4)
   -->
+  <TestInfo>
+    <name>PRAplugin/MCSSolver</name>
+    <author>mandd</author>
+    <created>2020-06-25</created>
+    <classesTested>PRAplugin/MCSSolver</classesTested>
+    <description>
+      This model is designed to read from file a list of Minimal Cut Sets (MCSs) and 
+      to import such Boolean logic structure as a RAVEN model. Provided the sampled 
+      values of Basic Events (BEs) probabilities, the MCSSolver determines the 
+      probability of Top Event (TE), i.e., the union of the MCSs.
+    </description>
+  </TestInfo>
+  
   <RunInfo>
     <WorkingDir>MCSSolver</WorkingDir>
     <Sequence>simRun</Sequence>

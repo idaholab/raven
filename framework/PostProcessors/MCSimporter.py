@@ -129,34 +129,7 @@ class MCSImporter(PostProcessor):
     if beFileFound==False and self.expand==True:
       self.raiseAnError(IOError, 'MCSImporterPostProcessor Post-Processor ' + self.name + ', Expand is set to False but no file with type=BElist has been found')
 
-    '''
-    self.mcsList=[]
-    self.beList=set()
-    self.probability = np.zeros((0))
-    self.mcsIDs = np.zeros((0))
-
-    # construct the list of MCSs and the list of BE
-    counter=0
-    with open(MCSlistFile.getFilename(), 'r') as file:
-      next(file) # skip header
-      lines = file.read().splitlines()
-      for l in lines:
-        elementsList = l.split(',')
-
-        self.mcsIDs=np.append(self.mcsIDs,elementsList[0])
-        elementsList.pop(0)
-
-        self.probability=np.append(self.probability,elementsList[0])
-        elementsList.pop(0)
-
-        for element in elementsList:
-          element.rstrip('\n')
-        self.mcsList.append(elementsList)
-        counter = counter+1
-        if self.expand==False:
-          self.beList.update(elementsList)
-    '''
-    self.mcsIDs, self.probability, self.mcsList, self.beList = MCSreader(MCSlistFile)
+    self.mcsIDs, self.probability, self.mcsList, self.beList = mcsReader(MCSlistFile)
 
     if self.expand:
       beData = pd.read_csv(BElistFile.getFilename())
@@ -167,12 +140,10 @@ class MCSImporter(PostProcessor):
     # MCS Input variables
     mcsPointSet['probability'] = self.probability
     mcsPointSet['MCS_ID']      = self.mcsIDs
-    #mcsPointSet['out']         = np.ones((counter))
     mcsPointSet['out']         = np.ones((self.probability.size))
 
     # MCS Output variables
     for be in self.beList:
-      #mcsPointSet[be]= np.zeros(counter)
       mcsPointSet[be]= np.zeros(self.probability.size)
     counter=0
     for mcs in self.mcsList:
@@ -201,10 +172,10 @@ class MCSImporter(PostProcessor):
     else:
         self.raiseAnError(RuntimeError, 'MCSImporter failed: Output type ' + str(output.type) + ' is not supported.')
 
-def MCSreader(MCSlistFile):
+def mcsReader(mcsListFile):
   """
     Function designed to read a file containing the set of MCSs and to save it as list of list
-    @ In, MCSlistFile, string, name of the file containing the set of MCSs
+    @ In, mcsListFile, string, name of the file containing the set of MCSs
     @ Out, mcsIDs, np array, array containing the ID associated to each MCS
     @ Out, probability, np array, array containing the probability associated to each MCS
     @ Out, mcsList, list, list of MCS, each element is also a list containing the basic events of each MCS
@@ -216,8 +187,7 @@ def MCSreader(MCSlistFile):
   mcsIDs = np.zeros((0))
 
   # construct the list of MCSs and the list of BE
-  counter=0
-  with open(MCSlistFile.getFilename(), 'r') as file:
+  with open(mcsListFile.getFilename(), 'r') as file:
     next(file) # skip header
     lines = file.read().splitlines()
     for l in lines:
@@ -229,10 +199,10 @@ def MCSreader(MCSlistFile):
       probability=np.append(probability,elementsList[0])
       elementsList.pop(0)
 
-      for element in elementsList:
-        element.rstrip('\n')
-      mcsList.append(elementsList)
-      counter = counter+1
+      #for element in elementsList:
+      #  element.rstrip('\n')
+      #mcsList.append(elementsList)
+      mcsList.append(list(element.rstrip('\n') for element in elementsList))
 
       beList.update(elementsList)
 

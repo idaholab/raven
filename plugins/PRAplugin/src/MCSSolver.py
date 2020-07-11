@@ -17,10 +17,6 @@ Created on June 24, 2020
 @author: mandd
 """
 
-from __future__ import division, print_function , unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default', DeprecationWarning)
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 import itertools
@@ -29,7 +25,7 @@ import math
 
 #Internal Modules---------------------------------------------------------------
 from PluginsBaseClasses.ExternalModelPluginBase import ExternalModelPluginBase
-from PostProcessors.MCSimporter import MCSreader
+from PostProcessors.MCSimporter import mcsReader
 #Internal Modules End-----------------------------------------------------------
 
 class MCSSolver(ExternalModelPluginBase):
@@ -53,18 +49,19 @@ class MCSSolver(ExternalModelPluginBase):
     """
     container.filename = None
     container.mapping    = {}
-    container.InvMapping = {}
+    container.invMapping = {}
 
     for child in xmlNode:
       if child.tag == 'topEventID':
         container.topEventID = child.text.strip()
       elif child.tag == 'solverOrder':
-        self.solverOrder = int(child.text.strip())
+        try:
+          self.solverOrder = int(child.text.strip())
+        except:
+          raise IOError("MCSSolver: xml node solverOrder must contain an integer value")  
       elif child.tag == 'map':
         container.mapping[child.get('var')]      = child.text.strip()
-        container.InvMapping[child.text.strip()] = child.get('var')
-      elif child.tag == 'variables':
-        variables = [str(var.strip()) for var in child.text.split(",")]
+        container.invMapping[child.text.strip()] = child.get('var')
       else:
         raise IOError("MCSSolver: xml node " + str(child.tag) + " is not allowed")
 
@@ -81,7 +78,8 @@ class MCSSolver(ExternalModelPluginBase):
   def createNewInput(self, container, inputs, samplerType, **Kwargs):
     """
       This function has been added for this model in order to be able to create a FTstructure from multiple files
-      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, container, object, self-like object where all the variables can be stored
+      @ In, inputs, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
@@ -90,7 +88,7 @@ class MCSSolver(ExternalModelPluginBase):
     if len(inputs) > 1:
       raise IOError("MCSSolver: More than one file has been passed to the MCS solver")
 
-    mcsIDs, probability, mcsList, beList = MCSreader(inputs[0])
+    mcsIDs, probability, mcsList, beList = mcsReader(inputs[0])
 
     self.topEventTerms = {}
 
@@ -118,17 +116,17 @@ class MCSSolver(ExternalModelPluginBase):
           self.topEventTerms[order].append(list(basicEventCombined))
     return Kwargs
 
-  def run(self, container, Inputs):
+  def run(self, container, inputs):
     """
       This method determines the status of the TopEvent of the FT provided the status of its Basic Events
       @ In, container, object, self-like object where all the variables can be stored
-      @ In, Inputs, dict, dictionary of inputs from RAVEN
+      @ In, inputs, dict, dictionary of inputs from RAVEN
     """
     inputForSolver = {}
-    for key in container.InvMapping.keys():
-      inputForSolver[key] = Inputs[container.InvMapping[key]]
+    for key in container.invMapping.keys():
+      inputForSolver[key] = inputs[container.invMapping[key]]
 
-    TEprobability = 0.0
+    teProbability = 0.0
     multiplier = 1.0
 
     # perform probability calculation for each order level
@@ -138,9 +136,9 @@ class MCSSolver(ExternalModelPluginBase):
         # map the sampled values of the basic event probabilities to the MCS basic events ID
         termValues = list(map(inputForSolver.get,term))
         orderProbability = orderProbability + np.prod(termValues)
-      TEprobability = TEprobability + multiplier * orderProbability
+      teProbability = teProbability + multiplier * orderProbability
       multiplier = -1.0 * multiplier
 
-    container.__dict__[container.topEventID] = np.asarray(float(TEprobability))
+    container.__dict__[container.topEventID] = np.asarray(float(teProbability))
 
 

@@ -32,7 +32,9 @@ All the specifications of the MCSSolver model are given in the \xmlNode{External
 Inside the \xmlNode{ExternalModel} block, the XML nodes that belong to this models are:
 \begin{itemize}
   \item  \xmlNode{variables}, \xmlDesc{string, required parameter}, a list containing the names of both the input and output variables of the model
-  \item  \xmlNode{solverOrder},\xmlDesc{integer, required parameter}, solver order for $P(TE)$ 
+  \item  \xmlNode{solverOrder},\xmlDesc{integer, required parameter}, solver order for $P(TE)$: it specifies the maximum calculation envelope 
+                                                                      for $P(TE)$, i.e., the maximum number of MCSs to be considered when evaluating the 
+                                                                      probability of their union
   \item  \xmlNode{topEventID},\xmlDesc{string, required parameter}, the name of the alias variable for the Top Event
   \item  \xmlNode{map},\xmlDesc{string, required parameter}, the name ID of the ET branching variable
 	  \begin{itemize}
@@ -60,9 +62,9 @@ An example of RAVEN input file is the following:
   </Models>
 \end{lstlisting}
 
-If $solverOrder=1$ then: $P(TE) = P(MCS1)*P(MCS2)*P(MCS3)$.  
-If $solverOrder=2$ then: $P(TE) = P(MCS1)*P(MCS2)*P(MCS3) - P(MCS1 MCS2) - P(MCS1 MCS3) - P(MCS2 MCS3)$.  
-If $solverOrder=3$ then: $P(TE) = P(MCS1)*P(MCS2)*P(MCS3) - P(MCS1 MCS2) - P(MCS1 MCS3) - P(MCS2 MCS3) + P(MCS1 MCS2 MCS3)$
+If $solverOrder=1$ then: $P(TE) = P(MCS1)+P(MCS2)+P(MCS3)$.  
+If $solverOrder=2$ then: $P(TE) = P(MCS1)+P(MCS2)+P(MCS3) - P(MCS1 MCS2) - P(MCS1 MCS3) - P(MCS2 MCS3)$.  
+If $solverOrder=3$ then: $P(TE) = P(MCS1)+P(MCS2)+P(MCS3) - P(MCS1 MCS2) - P(MCS1 MCS3) - P(MCS2 MCS3) + P(MCS1 MCS2 MCS3)$
 
 \subsection{MCSSolver model reference tests}
 The following is the provided analytic test:
