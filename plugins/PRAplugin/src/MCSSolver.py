@@ -58,7 +58,7 @@ class MCSSolver(ExternalModelPluginBase):
         try:
           self.solverOrder = int(child.text.strip())
         except:
-          raise IOError("MCSSolver: xml node solverOrder must contain an integer value")  
+          raise IOError("MCSSolver: xml node solverOrder must contain an integer value")
       elif child.tag == 'map':
         container.mapping[child.get('var')]      = child.text.strip()
         container.invMapping[child.text.strip()] = child.get('var')
