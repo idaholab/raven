@@ -52,7 +52,9 @@ def replacementRepair(offSprings,**kwargs):
           children[chrom,ind] = x
         else:
           pool = set(range(int(distInfo[kwargs['variables'][ind]].lowerBound),int(distInfo[kwargs['variables'][ind]].upperBound)+1)) - unique
-          children[chrom,ind] = np.random.choice(list(pool))
+          y = np.random.choice(list(pool))
+          children[chrom,ind] = y
+          duplicated.add(y)
   return children
 
 __repairs = {}
