@@ -294,7 +294,6 @@ class BaseType(MessageHandler.MessageUser):
     # get acceptable names
     fromSolnExport = set(self.getSolutionExportVariableNames())
     acceptable = set(self._formatSolutionExportVariableNames(fromSolnExport))
-
     # remove registered solution export names first
     remaining = requested - acceptable
     # anything remaining is unknown!

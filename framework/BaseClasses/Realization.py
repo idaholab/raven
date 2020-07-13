@@ -21,6 +21,7 @@ based on alfoa design
 from __future__ import division, print_function, unicode_literals, absolute_import
 #External Modules------------------------------------------------------------------------------------
 import abc
+import xarray as xa
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
@@ -30,171 +31,136 @@ import MessageHandler
 class Realization(MessageHandler.MessageUser):
   """
     The Realization class is used as container for the realization that are
-    
-    as base class for all the objects that need, for initialization purposes,
-    to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
+    generated via RAVEN optimizers and samplers.
+    The realization concept is abstracted here since Populations can be
+    considered realizations too
   """
-  def __init__(self, rlz):
+  def __init__(self, rlz = None):
     """
       Constructor
-      @ In, rlz, dict or xarray.DataArray, the realization
+      @ In, rlz, dict or xarray.DataArray, optional, the realization to encapsulate
+      @ In, rlz, None
       @ Out, None
     """
-    self.type = self.__class__.__name__  # type
-    self.name = self.__class__.__name__  # name
-    
-    
-    
-    if not hasattr(self, 'assemblerObjects'): # protect against polyinheritance woes
-      self.assemblerObjects = {}           # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-      self.requiredAssObject = [False, ([], [])]
-      self.assemblerDict = {}               # {'class':[['class','type','name',instance]]}}
-    # list. first entry boolean flag. True if the XML parser must look for objects;
-    # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
-
-  def whatDoINeed(self):
+    # xa.DataArray.from_dict(d)
+    self.name = self.__class__.__name__ # name
+    self.type = type(rlz).__name__ # type
+    self._rlz = None # the rlz container   
+    self._shape = None # shape of the realization (e.g. single realization _shape = 1, popuplation _shape = n)
+    self._converted = False # convert to xarray DataSet?   
+    self._id =  None #  realization id (e.g. job id or prefix or such)
+    self._nVars =  0 #  number of variables currently stored
+  
+  ### EXTERNAL API ###
+  def addRealization(self, rlz, **kwargs):
     """
-      This method is used mainly by the Simulation class at the Step construction stage.
-      It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
-      be initialize.
-      @ In, None
-      @ Out, needDict, dict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
+      Method to add a complete realization.
+      @ In, rlz, dict or list(dict), the dictionary containing the realization {'var1':ndarray,..,'varN':ndarray} or a list of such dictionaries
+      @ In, **kwargs, kwarded dict, options to link to this realization. The following options are available:
+                                                                         - id, string, the realization id (this can be either be the job id or the population id). Default "None"
+                                                                         - toXArray, bool, convert to xarray DataSet?, Default False
+      the dictionary containing the realization {'var1':ndarray,..,'varN':ndarray} or a list of such dictionaries
     """
-    if '_localWhatDoINeed' in dir(self):
-      needDict = self._localWhatDoINeed()
+    assert ()
+    self._id = kwargs.get("id", "None")
+    self._converted = kwargs.get("toXArray", False)
+    if isinstance(rlz, list):
+      self._shape = len(rlz)
+      
     else:
-      needDict = {}
-    for val in self.assemblerObjects.values():
-      for value  in val:
-        if value[0] not in needDict.keys():
-          needDict[value[0]] = []
-        needDict[value[0]].append((value[1],value[2]))
-    return needDict
-
-  def generateAssembler(self, initDict):
-    """
-      This method is used mainly by the Simulation class at the Step construction stage.
-      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-      It is an abstract method -> It must be implemented in the derived class!
-      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
-      @ Out, None
-    """
-    if '_localGenerateAssembler' in dir(self):
-      self._localGenerateAssembler(initDict)
-    for key, value in self.assemblerObjects.items():
-      self.assemblerDict[key] = []
-      for entity, etype, name in value:
-        self.assemblerDict[key].append([entity, etype, name, initDict[entity][name]])
-
-  def _readAssemblerObjects(self, subXmlNode, found, testObjects):
-    """
-      This method is used to look for the assemble objects in an subNodes of an xmlNode
-      @ In, subXmlNode, ET, the XML node that needs to be inquired
-      @ In, found, dict, a dictionary that check if all the tokens (requested) are found
-      @ In, testObjects, dict, a dictionary that contains the number of time a token (requested) has been found
-      @ Out, returnObject, tuple, tuple(found, testObjects) containig in [0], found       ->  a dictionary that check if all the tokens (requested) are found ;
-                                                                         [1], testObjects ->  a dictionary that contains the number of time a token (requested) has been found
-    """
-    for subNode in subXmlNode:
-      for token in self.requiredAssObject[1][0]:
-        if subNode.tag == token:
-          found[token] = True
-          if 'class' not in subNode.attrib.keys():
-            self.raiseAnError(IOError, 'In '+self.type+' Object ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
-          if  subNode.tag not in self.assemblerObjects.keys():
-            self.assemblerObjects[subNode.tag.strip()] = []
-          # check if already present
-          tag = subNode.tag.strip()
-          entry = [subNode.attrib['class'],subNode.attrib['type'],subNode.text.strip()]
-          if entry not in self.assemblerObjects.get(tag, []):
-            self.assemblerObjects[tag].append(entry)
-            testObjects[token] += 1
-    returnObject = found, testObjects
-    return returnObject
-
-  def _readMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some variables based on the inputs got. This method is used to automatically generate the Assembler 'request'
-      based on the input of the daughter class.
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
-      @ Out, None
-    """
-    self.type = xmlNode.tag
-    if 'name' in xmlNode.attrib:
-      self.name = xmlNode.attrib['name']
-    self.printTag = self.type
-    if 'verbosity' in xmlNode.attrib.keys():
-      self.verbosity = xmlNode.attrib['verbosity'].lower()
-    if self.requiredAssObject[0]:
-      testObjects = {}
-      for token in self.requiredAssObject[1][0]:
-        testObjects[token] = 0
-      found = dict.fromkeys(testObjects.keys(),False)
-      found, testObjects = self._readAssemblerObjects(xmlNode, found, testObjects)
-      for subNode in xmlNode:
-        found, testObjects = self._readAssemblerObjects(subNode, found, testObjects)
-      for token in self.requiredAssObject[1][0]:
-        if not found[token] and not str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]).strip().startswith('-'):
-          self.raiseAnError(IOError,'the required object ' +token+ ' is missed in the definition of the '+self.type+' Object! Required objects number are :'+str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]))
-      # test the objects found
+      self._shape = 1
+      self._nVars = len(rlz)
+      if self._converted:
+        
       else:
-        for cnt,toObjectName in enumerate(self.requiredAssObject[1][0]):
-          numerosity = str(self.requiredAssObject[1][1][cnt])
-          if numerosity.strip().startswith('-'):
-          # optional
-            if toObjectName in testObjects.keys():
-              if testObjects[toObjectName] is not 0:
-                numerosity = numerosity.replace('-', '').replace('n',str(testObjects[toObjectName]))
-                if testObjects[toObjectName] != int(numerosity):
-                  self.raiseAnError(IOError,'Only '+numerosity+' '+toObjectName+' object/s is/are optionally required. Block '+self.name + ' got '+str(testObjects[toObjectName]) + '!')
-          else:
-            # required
-            if toObjectName not in testObjects.keys():
-              self.raiseAnError(IOError,'Required object/s "'+toObjectName+'" not found. Block '+self.name + '!')
-            else:
-              numerosity = numerosity.replace('n',str(testObjects[toObjectName]))
-              if testObjects[toObjectName] != int(numerosity):
-                self.raiseAnError(IOError,'Exactly {n} <{t}> nodes are required for <{c}> "{m}". Got {g}!'
-                                 .format(n=numerosity,
-                                         t=toObjectName,
-                                         c=self.type,
-                                         m=self.name,
-                                         g=testObjects[toObjectName]))
-    if '_localReadMoreXML' in dir(self):
-      self._localReadMoreXML(xmlNode)
+        self.rlz = rlz
+      
+    
+    
+    
+    
+    
+      
+    
+    
+    
+    
+    
+    
+   
+  def realization(self, ):
+    """
+     
+    
+    """
+    pass 
 
-  def addAssemblerObject(self, name, flag, newXmlFlg=None):
+  def getVariable(self, ):
     """
-      Method to add required assembler objects to the requiredAssObject dictionary.
-      @ In, name, string, the node name to search for (e.g. Function, Model)
-      @ In, flag, string, the number of nodes to look for (- means optional, n means any number).
-                                          For example, "2" means 2 nodes of type "name" are required!
-      @ In, newXmlFlg, boolean, optional, if passed in, the first entry of the tuple self.requiredAssObject is going to updated with the new value
-                                          For example, if newXmlFlg == True, the self.requiredAssObject[0] is set to True
-      @ Out, None
+     
+    
     """
-    if newXmlFlg is not None:
-      self.requiredAssObject[0] = newXmlFlg
-    self.requiredAssObject[1][0].append(name)
-    self.requiredAssObject[1][1].append(flag)
+    pass
+  
+  def getVariable(self, ):
+    """
+     
+    
+    """
+    pass   
+   
+ 
+  ### BUIlTINS AND PROPERTIES ###
+  # These are special commands that RAVEN entities can use to interact with the data object
+  def __len__(self):
+    """
+      Overloads the len() operator.
+      @ In, None
+      @ Out, int, number of samples in this dataset
+    """
+    return self.size
 
-  def retrieveObjectFromAssemblerDict(self, objectMainClass, objectName, pop=False):
+  @property
+  def isEmpty(self):
     """
-      Method to retrieve an object from the assembler
-      @ In, objectName, str, the object name that needs to be retrieved
-      @ In, objectMainClass, str, the object main Class name (e.g. Input, Model, etc.) of the object that needs to be retrieved
-      @ In, pop, bool, optional, if found, pop it out (i.e. remove it from the self.assemblerDict?). Default = False
-      @ Out, assemblerObject, instance, the instance requested (None if not found)
+      @ In, None
+      @ Out, boolean, True if the dataset is empty otherwise False
     """
-    assemblerObject = None
-    if objectMainClass in self.assemblerDict.keys():
-      for assemblerObj in self.assemblerDict[objectMainClass]:
-        if objectName == assemblerObj[2]:
-          assemblerObject = assemblerObj[3]
-          break
-      if pop and assemblerObject is not None:
-        self.assemblerDict[objectMainClass].remove(assemblerObj)
-    if assemblerObject is None:
-      self.raiseAnError(IOError, 'Required Object: ', objectName, 'is not found among', objectMainClass)
-    return assemblerObject
+    empty = True if self.size == 0 else False
+    return empty
+
+  @property
+  def vars(self):
+    """
+      Property to access all the pointwise variables being controlled by this data object.
+      As opposed to "self._orderedVars", returns the variables clustered by subset (inp, out, meta) instead of order added
+      @ In, None
+      @ Out, vars, list(str), variable names list
+    """
+    return self._inputs + self._outputs + self._metavars
+
+  @property
+  def size(self):
+    """
+      Property to access the amount of data in this data object.
+      @ In, None
+      @ Out, size, int, number of samples
+    """
+    s = 0 # counter for size
+    # from collector
+    s += self._collector.size if self._collector is not None else 0
+    # from data
+    try:
+      s += len(self._data[self.sampleTag]) if self._data is not None else 0
+    except KeyError: #sampleTag not found, so it _should_ be empty ...
+      s += 0
+    return s
+
+  @property
+  def indexes(self):
+    """
+      Property to access the independent axes in this problem
+      @ In, None
+      @ Out, indexes, list(str), independent index names (e.g. ['time'])
+    """
+    return list(self._pivotParams.keys())
