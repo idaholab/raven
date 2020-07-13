@@ -37,6 +37,7 @@ from .crossOverOperators.crossovers import returnInstance as crossoversReturnIns
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
 from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 from .fitness.fitness import returnInstance as fitnessReturnInstance
+from .repairOperators.repair import returnInstance as repairReturnInstance
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GeneticAlgorithm(RavenSampled):
@@ -65,7 +66,7 @@ class GeneticAlgorithm(RavenSampled):
 
     ### TBD ####
     self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
-    self.Age = None
+    self.popAge = None
     self.fitness = None
 
   ##########################
@@ -279,6 +280,9 @@ class GeneticAlgorithm(RavenSampled):
     self._objCoeff = fitnessNode.findFirst('a').value
     self._penaltyCoeff = fitnessNode.findFirst('b').value
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
+    self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented,
+                                                                                # if other repair methods are implemented then
+                                                                                # ##TODO: make the repair type a user input
     # Convergence Criterion
     convNode = paramInput.findFirst('convergence')
     if convNode is not None:
@@ -290,8 +294,8 @@ class GeneticAlgorithm(RavenSampled):
     if not self._convergenceCriteria:
       self.raiseAWarning('No convergence criteria given; using defaults.')
       self._convergenceCriteria['objective'] = 1e-6
-    # same point is ALWAYS a criterion
-    self._convergenceCriteria['samePoint'] = -1 # For simulated Annealing samePoint convergence
+    # # same point is ALWAYS a criterion
+    # self._convergenceCriteria['samePoint'] = -1 # For simulated Annealing samePoint convergence
                                                 # should not be one of the stopping criteria
     # set persistence to 1 if not set
     if self._requiredPersistence is None:
@@ -315,6 +319,20 @@ class GeneticAlgorithm(RavenSampled):
 
     for traj, init in enumerate(self._initialValues):
       self._submitRun(init,traj,self.getIteration(traj))
+
+  def initializeTrajectory(self, traj=None):
+    """
+      Handles the generation of a trajectory.
+      @ In, traj, int, optional, label to use
+      @ Out, traj, int, new trajectory number
+    """
+    traj = RavenSampled.initializeTrajectory(self)
+    self._acceptHistory[traj] = deque(maxlen=self._maxHistLen)
+    self._acceptRerun[traj] = False
+    self._convergenceInfo[traj] = {'persistence': 0}
+    for criteria in self._convergenceCriteria:
+      self._convergenceInfo[traj][criteria] = False
+    return traj
 
   def needDenormalized(self):
     """
@@ -355,6 +373,7 @@ class GeneticAlgorithm(RavenSampled):
     self.incrementIteration(traj)
     info['step'] = self.counter
 
+
     if self.counter == 1:
       self.population = population
     # self.population = population
@@ -376,10 +395,12 @@ class GeneticAlgorithm(RavenSampled):
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
     if self.counter > 1:
       # right now these are lists, but this should be changed to xarrays when the realization is ready as an xarray dataset
-      population,fitness,Age = self._survivorSelectionInstance(age=self.Age,popSize=self._populationSize,variables=list(self.toBeSampled),population = self.population,fitness = self.fitness,newRlz=populationRlz,offSpringsFitness=fitness)
+      population,fitness,Age = self._survivorSelectionInstance(age=self.popAge,popSize=self._populationSize,variables=list(self.toBeSampled),population = self.population,fitness = self.fitness,newRlz=populationRlz,offSpringsFitness=fitness)
+      self._resolveNewGeneration(traj,populationRlz,info)
       self.population = population
-      self.Age = Age
+      self.popAge = Age
       self.fitness = fitness
+
       # This will be added once the rlz is treated as a xarray DataSet
       # for var in self.toBeSampled:
         # self.info[var+'_Age'] = Age[var]
@@ -396,9 +417,11 @@ class GeneticAlgorithm(RavenSampled):
     # 3 @ n: Mutation
     # perform random directly on childrenCoordinates
     children = self._mutationInstance(offSprings=children,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
-    ## TODO WHAT IF AFTER CROSSOVER AND/OR MUTATION OUR CHROMOSOME NO LONGER SATISFIES THE WITHOUT REPLACEMENT CONSTRAINT
 
-    # 4 @ n: Submit children batch
+    # 4 @ n: repair/replacement
+    children = self._repairInstance(children,variables=list(self.toBeSampled),distInfo=self.distDict)
+
+    # 5 @ n: Submit children batch
     # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
     # self._submitRun(children,traj,self.counter)
     for i in range(np.shape(children)[0]):
@@ -424,6 +447,7 @@ class GeneticAlgorithm(RavenSampled):
                   'step': step
                 })
     # NOTE: explicit constraints have been checked before this!
+    #
     self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
     self._submissionQueue.append((point, info))
   # END queuing Runs
@@ -435,12 +459,15 @@ class GeneticAlgorithm(RavenSampled):
       @ In, info, dict, identifying information about the realization
       @ In, rlz, dict, realized realization
     """
+    optVal = info['optVal'].copy()
     self.raiseADebug('*'*80)
     self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
-    acceptable, old = self._checkAcceptability(traj, rlz, info)
+    # acceptable, old = self._checkAcceptability(traj, rlz, info)
+    acceptable = 'accepted' if self.counter >1 else 'first'
+    old = self.population
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     # we only want to update persistance if we've accepted a new point.
     # We don't want rejected points to count against our convergence.
@@ -454,7 +481,7 @@ class GeneticAlgorithm(RavenSampled):
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
-      self._optPointHistory[traj].append((rlz, info))
+      self._optPointHistory[traj].append((rlz, info)) #.to_array().data
       # self.incrementIteration(traj)
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
@@ -462,33 +489,123 @@ class GeneticAlgorithm(RavenSampled):
     else: # e.g. rerun
       pass # nothing to do, just keep moving
 
-  def checkConvergence(self, traj):
+  def checkConvergence(self, traj, new, old):
     """
       Check for trajectory convergence
       @ In, traj, int, trajectory to consider
-      @ Out, None
+      @ In, new, dict, new point
+      @ In, old, dict, old point
+      @ Out, any(convs.values()), bool, True of any of the convergence criteria was reached
+      @ Out, convs, dict, on the form convs[conv] = bool, where conv is in self._convergenceCriteria
     """
-    pass
+    convs = {}
+    for conv in self._convergenceCriteria:
+      # special treatment for same point check
+      if conv == 'samePoint':
+        convs[conv] = self._checkConvSamePoint(new, old)
+        continue
+      # fix capitalization for RAVEN standards
+      fName = conv[:1].upper() + conv[1:]
+      # get function from lookup
+      f = getattr(self, '_checkConv{}'.format(fName))
+      # check convergence function
+      okay = f(traj)
+      # store and update
+      convs[conv] = okay
+    return any(convs.values()), convs
 
-  def _checkAcceptability(self, traj, opt, optVal):
+  # def _checkConvSamePoint(self, new, old):
+  #   """
+  #     Checks for a repeated same point
+  #     @ In, new, dict, new opt point
+  #     @ In, old, dict, old opt point
+  #     @ Out, converged, bool, convergence state
+  #   """
+  #   # TODO diff within tolerance? Exactly equivalent seems good for now
+  #   same = list(abs(new[var].data - old.loc[:,var].data)==self._convergenceCriteria['samePoint'] for var in self.toBeSampled)
+  #   converged = all(same)
+  #   self.raiseADebug(self.convFormat.format(name='same point',
+  #                                           conv=str(converged),
+  #                                           got=sum(same),
+  #                                           req=len(same)))
+  #   return converged
+
+  def _checkConvObjective(self, traj):
+    """
+      Checks the change in objective for convergence
+      @ In, traj, int, trajectory identifier
+      @ Out, converged, bool, convergence state
+    """
+    if len(self._optPointHistory[traj]) < 2:
+      return False
+    o1, _ = self._optPointHistory[traj][-1]
+    o2, _ = self._optPointHistory[traj][-2]
+    delta = o2[self._objectiveVar]-o1[self._objectiveVar]
+    # for chromosome in
+    converged = abs(delta.data.min()) < self._convergenceCriteria['objective']
+    self.raiseADebug(self.convFormat.format(name='objective',
+                                            conv=str(converged),
+                                            got=delta.data.min(),
+                                            req=self._convergenceCriteria['objective']))
+    return converged
+
+  def _checkAcceptability(self, traj, opt, optVal, info):
     """
       Check if new opt point is acceptably better than the old one
       @ In, traj, int, identifier
       @ In, opt, dict, new opt point
       @ In, optVal, float, new optimization value
+      @ In, info, dict, meta information about the opt point
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
     """
-    pass
+    # Check acceptability
+    # NOTE: if self._optPointHistory[traj]: -> faster to use "try" for all but the first time
+    try:
+      old, _ = self._optPointHistory[traj][-1]
+      oldVal = old[self._objectiveVar]
+      # check if same point
+      self.raiseADebug(' ... change: {d: 1.3e} new objective: {n: 1.6e} old objective: {o: 1.6e}'
+                      .format(d=opt[self._objectiveVar]-oldVal, o=oldVal, n=opt[self._objectiveVar]))
+      # if this is an opt point rerun, accept it without checking.
+      if self._acceptRerun[traj]:
+        acceptable = 'rerun'
+        self._acceptRerun[traj] = False
+      elif all(opt[var] == old[var] for var in self.toBeSampled):
+        # this is the classic "same point" trap; we accept the same point, and check convergence later
+        acceptable = 'accepted'
+      else:
+        if self._acceptabilityCriterion(oldVal,opt[self._objectiveVar])>randomUtils.random(dim=1, samples=1): # TODO replace it back
+          acceptable = 'accepted'
+        else:
+          acceptable = 'rejected'
+    except IndexError:
+      # if first sample, simply assume it's better!
+      acceptable = 'first'
+      old = None
+    self._acceptHistory[traj].append(acceptable)
+    self.raiseADebug(' ... {a}!'.format(a=acceptable))
+    return acceptable, old
 
-  def _updateConvergence(self, traj, rlz, old, acceptable):
+  def _updateConvergence(self, traj, new, old, acceptable):
     """
       Updates convergence information for trajectory
       @ In, traj, int, identifier
-      @ In, acceptable, str, condition of point
+      @ In, new, dict, new point
+      @ In, old, dict, old point
+      @ In, acceptable, str, condition of new point
       @ Out, converged, bool, True if converged on ANY criteria
     """
-    pass
+    ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
+    if acceptable == 'accepted':
+      self.raiseADebug('Convergence Check for Trajectory {}:'.format(traj))
+      # check convergence
+      converged, convDict = self.checkConvergence(traj, new, old)
+    else:
+      converged = False
+      convDict = dict((var, False) for var in self._convergenceInfo[traj])
+    self._convergenceInfo[traj].update(convDict)
+    return converged
 
   def _updatePersistence(self, traj, converged, optVal):
     """
@@ -498,7 +615,15 @@ class GeneticAlgorithm(RavenSampled):
       @ In, optVal, float, new optimal value
       @ Out, None
     """
-  pass
+    # update persistence
+    if converged:
+      self._convergenceInfo[traj]['persistence'] += 1
+      self.raiseADebug('Trajectory {} has converged successfully {} time(s)!'.format(traj, self._convergenceInfo[traj]['persistence']))
+      if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
+        self._closeTrajectory(traj, 'converge', 'converged', optVal)
+    else:
+      self._convergenceInfo[traj]['persistence'] = 0
+      self.raiseADebug('Resetting convergence for trajectory {}.'.format(traj))
 
   def _checkForImprovement(self, new, old):
     """
@@ -507,7 +632,9 @@ class GeneticAlgorithm(RavenSampled):
       @ In, old, float, previous optimization value
       @ Out, improved, bool, True if "sufficiently" improved or False if not.
     """
-    pass
+    # This is not required for simulated annealing as it's handled in the probabilistic acceptance criteria
+    # But since it is an abstract method it has to exist
+    return True
 
   def _rejectOptPoint(self, traj, info, old):
     """

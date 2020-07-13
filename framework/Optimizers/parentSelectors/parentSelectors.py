@@ -15,6 +15,8 @@
   Implementation of parentSelctors for selection process of Genetic Algorithm
   currently the implemented parent selection algorithms are:
   1.  rouletteWheel
+  2.  tournamentSelection
+  3.  rankSelection
 
   Created June,16,2020
   @authors: Mohammad Abdo, Diego Mandelli, Andrea Alfonsi
@@ -52,7 +54,7 @@ def rouletteWheel(population,**kwargs):
         np.zeros((nParents,np.shape(pop)[1])),
         dims=['chromosome','Gene'],
         coords={'chromosome':np.arange(nParents),
-                'Gene': kwargs['variables']})#np.arange(np.shape(pop)[1]
+                'Gene': kwargs['variables']})
   # imagine a wheel that is partitioned according to the selection
   # probabilities
 
@@ -141,7 +143,6 @@ def rankSelection(population,**kwargs):
   selectedParent = rouletteWheel(population, fitness=orderedRank , nParents=kwargs['nParents'])
 
   return selectedParent
-
 
 __parentSelectors = {}
 __parentSelectors['rouletteWheel'] = rouletteWheel

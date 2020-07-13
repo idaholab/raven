@@ -57,6 +57,7 @@ def scrambleMutator(offSprings,**kwargs):
           chromosome, numpy.array, the chromosome that will mutate to the new child
           locs, list, the locations of the genes to be randomly scrambled
           mutationProb, float, probability that governs the mutation process, i.e., if prob < random number, then the mutation will occur
+          variables, list, variables names.
     @ Out, child, np.array, the mutated chromosome, i.e., the child.
   """
   locs = kwargs['locs']
@@ -65,7 +66,7 @@ def scrambleMutator(offSprings,**kwargs):
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
                           dims=['chromosome','Gene'],
                           coords={'chromosome': np.arange(np.shape(offSprings)[0]),
-                                  'Gene':['x1','x2','x3','x4','x5','x6']})
+                                  'Gene':kwargs['variables']})
   for i in range(np.shape(offSprings)[0]):
     children[i] = offSprings[i].copy()
     new = list(itemgetter(*locs)(offSprings[i].values))
