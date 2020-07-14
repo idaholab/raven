@@ -83,9 +83,9 @@ class MCMC(AdaptiveSampler):
     initialSeedInput = InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType,
         descr='')
     samplerInitInput.addSub(initialSeedInput)
-    tuneInput = InputData.parameterInputFactory("tune", contentType=InputTypes.IntegerType,
+    burnInInput = InputData.parameterInputFactory("burnIn", contentType=InputTypes.IntegerType,
         descr='')
-    samplerInitInput.addSub(tuneInput)
+    samplerInitInput.addSub(burnInInput)
     inputSpecification.addSub(samplerInitInput)
 
     inputSpecification.addSub(InputData.parameterInputFactory("likelihood",contentType=InputTypes.StringType,
@@ -128,7 +128,7 @@ class MCMC(AdaptiveSampler):
     self._initialValues = {} # dict stores the user provided initial values, i.e. {var: val}
     self._updateValues = {} # dict stores input variables values for the current MCMC iteration, i.e. {var:val}
     self._proposal = {} # dict stores the proposal distributions for input variables, i.e. {var:dist}
-    self._tune = 0      # integers indicate how many samples will be discarded
+    self._burnIn = 0      # integers indicate how many samples will be discarded
     self._likelihood = None # stores the output from the likelihood
     self._availProposal = {'normal': Distributions.Normal(0.0, 1.0),
                            'uniform': Distributions.Uniform(-1.0, 1.0)} # available proposal distributions
@@ -172,9 +172,9 @@ class MCMC(AdaptiveSampler):
         self.initSeed = seed.value
       else:
         self.initSeed = randomUtils.randomIntegers(0,2**31,self)
-      tune = init.findFirst('tune')
-      if tune is not None:
-        self._tune = tune.value
+      burnIn = init.findFirst('burnIn')
+      if burnIn is not None:
+        self._burnIn = burnIn.value
     else:
       self.raiseAnError(IOError, 'MCMC', self.name, 'needs the samplerInit block')
     # variables additional reading

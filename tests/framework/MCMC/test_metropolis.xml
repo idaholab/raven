@@ -41,7 +41,7 @@
       <samplerInit>
         <limit>1000</limit>
         <initialSeed>070419</initialSeed>
-        <tune>10</tune>
+        <burnIn>10</burnIn>
       </samplerInit>
       <likelihood>zout</likelihood>
       <variable name="xin">

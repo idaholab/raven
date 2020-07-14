@@ -534,7 +534,7 @@
       <xsd:all>
         <xsd:element name="limit"                    type="xsd:string"  minOccurs="0"/>
         <xsd:element name="initialSeed"              type="xsd:integer" minOccurs="0"/>
-        <xsd:element name="tune"                     type="xsd:string"  minOccurs="0"/>
+        <xsd:element name="burnIn"                     type="xsd:string"  minOccurs="0"/>
       </xsd:all>
     </xsd:complexType>
 
