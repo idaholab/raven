@@ -33,6 +33,15 @@ class ParetoFrontier(PostProcessor):
     This postprocessor selects the points that lie on the Pareto frontier
     The postprocessor acts only on PointSet and return a subset of such PointSet
   """
+  def __init__(self, messageHandler):
+    """
+      Constructor
+      @ In, messageHandler, MessageHandler, message handler object
+      @ Out, None
+    """
+    PostProcessor.__init__(self, messageHandler)
+    self.valueLimit = None   # variable associated with the lower limit of the value dimension
+    self.costLimit  = None   # variable associated with the upper limit of the cost dimension
 
   @classmethod
   def getInputSpecification(cls):
@@ -46,8 +55,8 @@ class ParetoFrontier(PostProcessor):
     inputSpecification = super(ParetoFrontier, cls).getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory('costID' ,    contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory('valueID',    contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory('costLimit' , contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory('valueLimit', contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('costLimit' , contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory('valueLimit', contentType=InputTypes.FloatType))
     return inputSpecification
 
   def _localReadMoreXML(self, xmlNode):
@@ -67,9 +76,6 @@ class ParetoFrontier(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
-    self.valueLimit = None
-    self.costLimit  = None
-
     costID  = paramInput.findFirst('costID')
     self.costID  = costID.value
     valueID = paramInput.findFirst('valueID')
@@ -77,10 +83,10 @@ class ParetoFrontier(PostProcessor):
 
     costLimit  = paramInput.findFirst('costLimit')
     if costLimit is not None:
-      self.costLimit  = float(costLimit.value)
+      self.costLimit  = costLimit.value
     valueLimit = paramInput.findFirst('valueLimit')
     if valueLimit is not None:
-      self.valueLimit = float(valueLimit.value)
+      self.valueLimit = valueLimit.value
 
   def inputToInternal(self, currentInp):
     """
@@ -118,7 +124,7 @@ class ParetoFrontier(PostProcessor):
 
     selection = sortedData.isel(RAVEN_sample_ID=coordinates)
     if self.valueLimit is not None:
-      selection = selection.where(selection[self.valueID]>self.valueLimit)
+      selection = selection.where(selection[self.valueID]>=self.valueLimit)
     if self.costLimit is not None:
       selection = selection.where(selection[self.costID]<self.costLimit)
 

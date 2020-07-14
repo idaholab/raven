@@ -1,8 +1,8 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors/ParetoFrontierPostProcessor.ParetoFrontier</name>
+    <name>framework/PostProcessors/ParetoFrontierPostProcessor.ParetoFrontierWithCostLimits</name>
     <author>mandd</author>
-    <created>2020-03-25</created>
+    <created>2020-07-05</created>
     <classesTested>Models.PostProcessors.ParetoFrontier</classesTested>
     <description>
       This post-processor identifies the points lying on the Pareto Frontier in a cost-value space
