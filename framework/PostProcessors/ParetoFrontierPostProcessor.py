@@ -126,7 +126,7 @@ class ParetoFrontier(PostProcessor):
     if self.valueLimit is not None:
       selection = selection.where(selection[self.valueID]>=self.valueLimit)
     if self.costLimit is not None:
-      selection = selection.where(selection[self.costID]<self.costLimit)
+      selection = selection.where(selection[self.costID]<=self.costLimit)
 
     filteredParetoFrontier = selection.to_array().values
     paretoFrontierData = np.transpose(filteredParetoFrontier)
