@@ -115,7 +115,7 @@ class MCSImporter(PostProcessor):
         if mcsFileFound:
           self.raiseAnError(IOError, 'MCSImporterPostProcessor Post-Processor ' + self.name + ', Multiple files with type=MCSlist have been found')
         else:
-          MCSlistFile = file
+          mcsListFile = file
           mcsFileFound = True
       if file.getType()=="BElist":
         if self.expand==False:
@@ -129,7 +129,7 @@ class MCSImporter(PostProcessor):
     if beFileFound==False and self.expand==True:
       self.raiseAnError(IOError, 'MCSImporterPostProcessor Post-Processor ' + self.name + ', Expand is set to False but no file with type=BElist has been found')
 
-    self.mcsIDs, self.probability, self.mcsList, self.beList = mcsReader(MCSlistFile)
+    self.mcsIDs, self.probability, self.mcsList, self.beList = mcsReader(mcsListFile)
 
     if self.expand:
       beData = pd.read_csv(BElistFile.getFilename())
@@ -199,9 +199,6 @@ def mcsReader(mcsListFile):
       probability=np.append(probability,elementsList[0])
       elementsList.pop(0)
 
-      #for element in elementsList:
-      #  element.rstrip('\n')
-      #mcsList.append(elementsList)
       mcsList.append(list(element.rstrip('\n') for element in elementsList))
 
       beList.update(elementsList)

@@ -77,7 +77,7 @@ class MCSSolver(ExternalModelPluginBase):
     """
     pass
 
-  def createNewInput(self, container, inputs, samplerType, **Kwargs):
+  def createNewInput(self, container, inputs, samplerType, **kwargs):
     """
       This function has been added for this model in order to be able to create a FTstructure from multiple files
       @ In, container, object, self-like object where all the variables can be stored
@@ -85,7 +85,7 @@ class MCSSolver(ExternalModelPluginBase):
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
+      @ Out, kwargs, dict, dictionary which contains the information coming from the sampler
     """
     if len(inputs) > 1:
       raise IOError("MCSSolver: More than one file has been passed to the MCS solver")
@@ -109,14 +109,13 @@ class MCSSolver(ExternalModelPluginBase):
       # E.g., for order=2: [ (['A', 'B', 'C'], ['D', 'C']),
       #                      (['A', 'B', 'C'], ['A', 'E']),
       #                      (['D', 'C'], ['A', 'E']) ]
-      self.topEventTerms[order] = []
-      for term in terms:
-        basicEventCombined = set(itertools.chain(*term))
-        # E.g. if                 term=(['A', 'B', 'C'], ['D', 'C'])
-        #      then basicEventCombined={'A', 'B', 'D', 'C'}
-        if basicEventCombined not in self.topEventTerms[order]:
-          self.topEventTerms[order].append(list(basicEventCombined))
-    return Kwargs
+
+      basicEventCombined = list(set(itertools.chain.from_iterable(term)) for term in terms)
+      self.topEventTerms[order]=basicEventCombined
+
+    for term in self.topEventTerms:
+      print(term,self.topEventTerms[term])
+    return kwargs
 
   def run(self, container, inputs):
     """

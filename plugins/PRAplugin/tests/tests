@@ -83,4 +83,10 @@
   input = 'test_MCSSolver.xml'
   UnorderedCsv   = 'MCSSolver/Print_sim_PS.csv'
  [../]
+ 
+ [./TestMCSSolverMcCormick]
+  type  = 'RavenFramework'
+  input = 'test_MCSSolverMcCormick.xml'
+  UnorderedCsv   = 'MCSSolverMcCormick/Print_sim_PS1.csv MCSSolverMcCormick/Print_sim_PS2.csv MCSSolverMcCormick/Print_sim_PS3.csv MCSSolverMcCormick/Print_sim_PS4.csv MCSSolverMcCormick/Print_sim_PS5.csv'
+ [../]
 []

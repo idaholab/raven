@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <!--
-  This is an analytical test for the system: TopEvent = BE1 or BE3 or (BE2 or BE4)
+  This is a test for the system: TopEvent = BE1 or BE3 or (BE2 or BE4)
   MCS = BE1, BE3, BE2 BE4
   Hence: P(TopEvent) = P(BE1) + P(BE3) + P(BE2)*P(BE4) 
                      - P(BE1)*P(BE3) - P(BE1)*P(BE2)*P(BE4) - P(BE2)*P(BE3)*P(BE4)
