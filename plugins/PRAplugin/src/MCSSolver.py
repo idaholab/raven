@@ -113,8 +113,6 @@ class MCSSolver(ExternalModelPluginBase):
       basicEventCombined = list(set(itertools.chain.from_iterable(term)) for term in terms)
       self.topEventTerms[order]=basicEventCombined
 
-    for term in self.topEventTerms:
-      print(term,self.topEventTerms[term])
     return kwargs
 
   def run(self, container, inputs):
