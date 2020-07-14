@@ -14,6 +14,11 @@
       values of Basic Events (BEs) probabilities, the MCSSolver determines the 
       probability of Top Event (TE), i.e., the union of the MCSs.
     </description>
+    <analytic>
+    This test evaluates the MCSSolver model for a specific case found in literature (see pages 108-110 
+    of N. J. McCormick, ``Reliability and Risk Analysis'', Academic Press inc. [1981]).
+    Provided this set of minimal cuts sets (MCSs) for the top event TopEvent: TopEvent = A + BD + BE + CD + CE
+    </analytic>
   </TestInfo>
   
   <RunInfo>
