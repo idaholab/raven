@@ -34,20 +34,34 @@ from utils import utils,randomUtils,InputData, InputTypes
 class MCMC(AdaptiveSampler):
   """
     Markov Chain Monte Carlo Sampler.
-    It provides enormous scope for realistic statistical modeling. MCMC is essentially
-    Monte Carlo integration using Markov chain. Bayesians, and sometimes also frequentists,
-    need to integrate over possibly high-dimensional probability distributions to make inference
-    about model parameters or to make predictions. Bayesians need to integrate over the posterior
-    distributions of model parameters given the data, and frequentists may need to integrate
-    over the distribution of observables given parameter values. Monte Carlo integration draws
-    samples from the required distribution, and then forms samples averages to approximate expectations.
-    MCMC draws these samples by running a cleverly constructed Markov chain for a long time.
-    There are a large number of MCMC algorithms, and popular families include Gibbs sampling,
-    Metropolis-Hastings, slice sampling, Hamiltonian Monte Carlo, and many others. Regardless
-    of the algorithm, the goal in Bayesian inference is to maximize the unnormalized joint
-    posterior distribution and collect samples of the target distributions, which are marginal
-    posterior distributions, later to be used for inference.
   """
+
+  @classmethod
+  def userManualDescription(cls):
+    """
+      Provides a user manual description for this actor. Should only be needed for base classes.
+      @ In, None
+      @ Out, descr, string, description
+    """
+    descr = r"""
+      \subsection{Markov Chain Monte Carlo}
+      \label{subsec:MCMC}
+      The Markov chain Monte Carlo (MCMC) is a Sampler entity in the RAVEN framework.
+      It provides enormous scope for realistic statistical modeling. MCMC is essentially
+      Monte Carlo integration using Markov chain. Bayesians, and sometimes also frequentists,
+      need to integrate over possibly high-dimensional probability distributions to make inference
+      about model parameters or to make predictions. Bayesians need to integrate over the posterior
+      distributions of model parameters given the data, and frequentists may need to integrate
+      over the distribution of observables given parameter values. Monte Carlo integration draws
+      samples from the required distribution, and then forms samples averages to approximate expectations.
+      MCMC draws these samples by running a cleverly constructed Markov chain for a long time.
+      There are a large number of MCMC algorithms, and popular families include Gibbs sampling,
+      Metropolis-Hastings, slice sampling, Hamiltonian Monte Carlo, and many others. Regardless
+      of the algorithm, the goal in Bayesian inference is to maximize the unnormalized joint
+      posterior distribution and collect samples of the target distributions, which are marginal
+      posterior distributions, later to be used for inference.
+      """
+    return descr
 
   @classmethod
   def getInputSpecification(cls):
