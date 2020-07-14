@@ -177,6 +177,8 @@ class MCMC(AdaptiveSampler):
         self._burnIn = burnIn.value
     else:
       self.raiseAnError(IOError, 'MCMC', self.name, 'needs the samplerInit block')
+    if self._burnIn >= self.limit:
+      self.raiseAnError(IOError, 'Provided "burnIn" value must be less than "limit" value!')
     # variables additional reading
     for varNode in paramInput.findAll('variable'):
       var = varNode.parameterValues['name']
@@ -291,5 +293,6 @@ class MCMC(AdaptiveSampler):
       @ In, rlz, dict, sampled realization
       @ Out, None
     """
-    rlz = dict((var, np.atleast_1d(val)) for var, val in rlz.items())
-    self._solutionExport.addRealization(rlz)
+    if self._burnIn < self.counter:
+      rlz = dict((var, np.atleast_1d(val)) for var, val in rlz.items())
+      self._solutionExport.addRealization(rlz)
