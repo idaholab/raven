@@ -3159,8 +3159,11 @@ posterior distributions, later to be used for inference.
 
 \subsubsection{Metropolis (Metropolis-Hastings Sampler)}
 \label{subsubsubsec:metropolis}
-
-
+The Metropolis-Hastings (MH) algorithm is a MCMC method for obtaining a sequence of random samples from a probability
+distribution from which direct sampling is difficult. This sequence can be used to approximate the distribution or
+to compute an integral. It simulates from a probability distribution by making
+use of the full joint density function and (independent) proposal distributions for each of
+the variables of interest.
 
 \specBlock{an}{Metropolis}
 %
@@ -3178,7 +3181,16 @@ posterior distributions, later to be used for inference.
     \variableChildrenIntro
     \begin{itemize}
       \item \distributionDescription
-    \item \functionDescription
+      \item \functionDescription
+      \item \xmlNode{initial}, \xmlDesc{float, optional field}, specified the initial value for given variable.
+      \item \xmlNode{proposal}, \xmlDesc{Assembler Object}, specifies the proposal distribution for this variable.
+      This node must contain the following two attributes:
+      \begin{itemize}
+        \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
+          ``class'' of the listed object. Only ``Distributions'' is allowed.
+        \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
+          identifier or sub-type.
+      \end{itemize}
     \end{itemize}
     \item \constantVariablesDescription
 \end{itemize}
@@ -3191,7 +3203,7 @@ In addition, the settings for this sampler need to be specified in the \xmlNode{
   \begin{itemize}
     \item \xmlNode{limit},  \xmlDesc{integer, required field}, number of Metropolis samples needs to be generated;
     \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator;
-    \item \xmlNode{tune}, \xmlDesc{integer, optional field}, specifies the number of initial samples that would be discarded.
+    \item \xmlNode{burnIn}, \xmlDesc{integer, optional field}, specifies the number of initial samples that would be discarded.
   \end{itemize}
 \end{itemize}
 
@@ -3199,7 +3211,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
 \xmlNode{Metropolis} needs to contain the following supplementary sub-nodes:
 
 \begin{itemize}
-  \item \xmlNode{likelihood}, \xmlDesc{required node},
+  \item \xmlNode{likelihood}, \xmlDesc{string, required node}, the output from the user provided likelihood function
   \item \assemblerDescription{Metropolis}
   \begin{itemize}
     \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
@@ -3213,9 +3225,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
       The Metropolis sampling accepts ``DataObjects'' of type
       ``PointSet'' only.
   \end{itemize}
-
 \end{itemize}
-
 
 Example:
 \begin{lstlisting}[style=XML]
