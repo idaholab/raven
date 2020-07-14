@@ -33,18 +33,7 @@ from utils import utils,randomUtils,InputData, InputTypes
 
 class MCMC(AdaptiveSampler):
   """
-    Markov Chain Monte Carlo Sampler
-  """
-  @classmethod
-  def userManualDescription(cls):
-    """
-      Provides a user manual description for this actor. Should only be needed for base classes.
-      @ In, None
-      @ Out, descr, string, description
-    """
-    descr = r"""
-    \section{Markov Chain Monte Carlo} \label{sec:MCMC}
-    The Markov chain Monte Carlo (MCMC) is another important entity in the RAVEN framework.
+    Markov Chain Monte Carlo Sampler.
     It provides enormous scope for realistic statistical modeling. MCMC is essentially
     Monte Carlo integration using Markov chain. Bayesians, and sometimes also frequentists,
     need to integrate over possibly high-dimensional probability distributions to make inference
@@ -58,8 +47,7 @@ class MCMC(AdaptiveSampler):
     of the algorithm, the goal in Bayesian inference is to maximize the unnormalized joint
     posterior distribution and collect samples of the target distributions, which are marginal
     posterior distributions, later to be used for inference.
-    """
-    return descr
+  """
 
   @classmethod
   def getInputSpecification(cls):
@@ -136,7 +124,7 @@ class MCMC(AdaptiveSampler):
 
   def localInputAndChecks(self, xmlNode, paramInput):
     """
-      unfortunately-named method that serves as a pass-through for input reading.
+      Method that serves as a pass-through for input reading.
       comes from inheriting from Sampler and _readMoreXML chain.
       @ In, xmlNode, xml.etree.ElementTree.Element, xml element node (don't use!)
       @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
@@ -244,7 +232,7 @@ class MCMC(AdaptiveSampler):
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
-      General function (available to all samplers) that finalize the sampling
+      General function (available to all samplers) that finalizes the sampling
       calculation just ended. In this case, The function is aimed to check if
       all the batch calculations have been performed
       @ In, jobObject, instance, an instance of a JobHandler

@@ -140,7 +140,7 @@ class Metropolis(MCMC):
       newVal = newRlz[var]
       currVal = currentRlz[var]
       dist = self.distDict[var]
-      netLogPrior = dist.logpdf(newVal) - dist.logpdf(currVal)
+      netLogPrior = dist.logPdf(newVal) - dist.logPdf(currVal)
       netLogPosterior += netLogPrior
     netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
     netLogPosterior += netLogLikelihood
