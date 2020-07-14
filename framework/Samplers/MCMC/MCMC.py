@@ -212,6 +212,9 @@ class MCMC(AdaptiveSampler):
     for var, dist in self._proposal.items():
       if dist:
         self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', dist)
+        distType = self._proposal[var].getDistType()
+        if distType != 'Continuous':
+          self.raiseAnError(IOError, 'variable "{}" requires continuous proposal distribution, but "{}" is provided!'.format(var, distType))
       else:
         self._proposal[var] = self._availProposal['normal']
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
@@ -224,6 +227,9 @@ class MCMC(AdaptiveSampler):
     for key, value in self._updateValues.items():
       totDim = self.variables2distributionsMapping[key]['totDim']
       dist = self.distDict[key]
+      distType = dist.getDistType()
+      if distType != 'Continuous':
+        self.raiseAnError(IOError, 'variable "{}" requires continuous distribution, but "{}" is provided!'.format(key, distType))
       if totDim != 1:
         self.raiseAnError(IOError,"Total dimension for given distribution {} should be 1".format(dist.type))
       if value is None:

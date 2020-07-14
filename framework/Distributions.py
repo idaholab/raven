@@ -125,7 +125,7 @@ class Distribution(BaseType):
     self.lowerBound           = None   # Left bound
     self.__adjustmentType     = '' # this describe how the re-normalization to preserve the probability should be done for truncated distributions
     self.dimensionality       = None   # Dimensionality of the distribution (1D or ND)
-    self.disttype             = None   # Distribution type (continuous or discrete)
+    self.distType             = None   # Distribution type (continuous or discrete)
     self.memory               = False  # This variable flags if the distribution has history dependence in the sampling process (True) or not (False)
     self.printTag             = 'DISTRIBUTIONS'
     self.preferredPolynomials = None  # best polynomial for probability-weighted norm of error
@@ -358,13 +358,13 @@ class Distribution(BaseType):
     """
     return self.dimensionality
 
-  def getDisttype(self):
+  def getDistType(self):
     """
       Function return distribution type
       @ In, None
-      @ Out, disttype, string,  ('Continuous' or 'Discrete')
+      @ Out, distType, string,  ('Continuous' or 'Discrete')
     """
-    return self.disttype
+    return self.distType
 
   def getMemory(self):
     """
@@ -403,7 +403,7 @@ class BoostDistribution(Distribution):
     """
     Distribution.__init__(self)
     self.dimensionality  = 1
-    self.disttype        = 'Continuous'
+    self.distType        = 'Continuous'
 
   def cdf(self,x):
     """
@@ -525,7 +525,7 @@ class Uniform(BoostDistribution):
     BoostDistribution.__init__(self)
     self.range = 0.0
     self.type = 'Uniform'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.compatibleQuadrature.append('Legendre')
     self.compatibleQuadrature.append('ClenshawCurtis')
     self.compatibleQuadrature.append('CDF')
@@ -534,14 +534,11 @@ class Uniform(BoostDistribution):
     if upperBound is not None:
       self.upperBound = upperBound
       self.upperBoundUsed = True
-      print("upperBound", self.upperBound)
     if lowerBound is not None:
       self.lowerBound = lowerBound
       self.lowerBoundUsed = True
-      print("lowerBound", self.lowerBound)
     if self.lowerBoundUsed and self.upperBoundUsed:
       self.range = self.upperBound - self.lowerBound
-
 
   def _localSetState(self,pdict):
     """
@@ -657,7 +654,7 @@ class Normal(BoostDistribution):
     self.sigma = sigma
     self.hasInfiniteBound = True
     self.type = 'Normal'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.compatibleQuadrature.append('Hermite')
     self.compatibleQuadrature.append('CDF')
     #THESE get set in initializeDistribution, since it depends on truncation
@@ -813,7 +810,7 @@ class Gamma(BoostDistribution):
     self.alpha = alpha
     self.beta = beta
     self.type = 'Gamma'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('Laguerre')
     self.compatibleQuadrature.append('CDF')
@@ -970,7 +967,7 @@ class Beta(BoostDistribution):
     self.alpha = 0.0
     self.beta = 0.0
     self.type = 'Beta'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('Jacobi')
     self.compatibleQuadrature.append('CDF')
@@ -1144,7 +1141,7 @@ class Triangular(BoostDistribution):
     self.min  = None  # domain lower boundary
     self.max  = None  # domain upper boundary
     self.type = 'Triangular'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1259,7 +1256,7 @@ class Poisson(BoostDistribution):
     self.mu  = 0.0
     self.type = 'Poisson'
     self.hasInfiniteBound = True
-    self.disttype = 'Discrete'
+    self.distType = 'Discrete'
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1355,7 +1352,7 @@ class Binomial(BoostDistribution):
     self.p       = 0.0
     self.type     = 'Binomial'
     self.hasInfiniteBound = True
-    self.disttype = 'Discrete'
+    self.distType = 'Discrete'
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
     self.preferredPolynomials = 'CDF'
@@ -1454,7 +1451,7 @@ class Bernoulli(BoostDistribution):
     BoostDistribution.__init__(self)
     self.p        = 0.0
     self.type     = 'Bernoulli'
-    self.disttype = 'Discrete'
+    self.distType = 'Discrete'
     self.lowerBound = 0.0
     self.upperBound = 1.0
     self.compatibleQuadrature.append('CDF')
@@ -1547,7 +1544,7 @@ class Geometric(BoostDistribution):
     BoostDistribution.__init__(self)
     self.p        = 0.0
     self.type     = 'Geometric'
-    self.disttype = 'Discrete'
+    self.distType = 'Discrete'
     self.lowerBound = 0.0
     self.upperBound = 1.0
     self.compatibleQuadrature.append('CDF')
@@ -1649,7 +1646,7 @@ class Categorical(Distribution):
     self.values         = set()
     self.type           = 'Categorical'
     self.dimensionality = 1
-    self.disttype       = 'Discrete'
+    self.distType       = 'Discrete'
 
   def _handleInput(self, paramInput):
     """
@@ -1823,7 +1820,7 @@ class UniformDiscrete(Distribution):
     Distribution.__init__(self)
     self.type           = 'UniformDiscrete'
     self.dimensionality = 1
-    self.disttype       = 'Discrete'
+    self.distType       = 'Discrete'
     self.memory         = True
 
   def _handleInput(self, paramInput):
@@ -1977,7 +1974,7 @@ class MarkovCategorical(Categorical):
     """
     Categorical.__init__(self)
     self.dimensionality = 1
-    self.disttype       = 'Discrete'
+    self.distType       = 'Discrete'
     self.type           = 'MarkovCategorical'
     self.steadyStatePb  = None # variable containing the steady state probabilities of the Markov Model
     self.transition     = None # transition matrix of a continuous time Markov Model
@@ -2096,7 +2093,7 @@ class Logistic(BoostDistribution):
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Logistic'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2206,7 +2203,7 @@ class Laplace(BoostDistribution):
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Laplace'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2309,7 +2306,7 @@ class Exponential(BoostDistribution):
     self.lambdaVar = 1.0
     self.low        = 0.0
     self.type = 'Exponential'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2449,7 +2446,7 @@ class LogNormal(BoostDistribution):
     self.sigma = 1.0
     self.low = 0.0
     self.type = 'LogNormal'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
     self.preferredQuadrature  = 'CDF'
@@ -2565,7 +2562,7 @@ class Weibull(BoostDistribution):
     self.lambdaVar = 1.0
     self.k = 1.0
     self.type = 'Weibull'
-    self.disttype = 'Continuous'
+    self.distType = 'Continuous'
     self.low = 0.0
     self.hasInfiniteBound = True
     self.compatibleQuadrature.append('CDF')
@@ -2687,7 +2684,7 @@ class Custom1D(Distribution):
     self.functionID      = None
     self.variableID      = None
     self.dimensionality  = 1
-    self.disttype        = 'Continuous'
+    self.distType        = 'Continuous'
     # Scipy.interpolate.UnivariateSpline is used
     self.k               = 4 # Degree of the smoothing spline, Must be <=5
     self.s               = 0 # Positive smoothing factor used to choose the number of knots
