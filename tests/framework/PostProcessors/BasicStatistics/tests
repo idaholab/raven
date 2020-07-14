@@ -117,8 +117,8 @@
   [./variationCoefficient]
     type = 'RavenFramework'
     input = 'variationCoefficient.xml'
-    output = 'basicStatisticsGeneral/variationCoefficient_basicStatPP_dump.xml'
-    UnorderedCsv = 'basicStatisticsGeneral/variationCoefficient_basicStatPP_dump.csv'
+    output = 'basicStatisticsVariationCoefficient/variationCoefficient_basicStatPP_dump.xml'
+    UnorderedCsv = 'basicStatisticsVariationCoefficient/variationCoefficient_basicStatPP_dump.csv'
     max_time = 500
     rel_err = 0.00001
   [../]
