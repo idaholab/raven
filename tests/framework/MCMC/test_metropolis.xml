@@ -11,8 +11,8 @@
       mean: [5, 5], cov=[[1, 0.9], [0.9, 1]]
       Both input parameters have the standard normal distribution as their prior distribution.
       The proposal distributions for the input variables are also standard normal distribution.
-      "TargetEvaluation" is used to collect the inputs and outputs from the likelihood model.
-      "SolutionExport" is used to store the posterior values for the input variables, i.e. "xin" and "yin"
+      ``TargetEvaluation'' is used to collect the inputs and outputs from the likelihood model.
+      ``SolutionExport'' is used to store the posterior values for the input variables, i.e. ``xin'' and ``yin''
     </description>
   </TestInfo>
 
