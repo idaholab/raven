@@ -35,10 +35,7 @@ def replacementRepair(offSprings,**kwargs):
     @ Out, children, np.array, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
   """
   nChildren,nGenes = np.shape(offSprings)
-  children = xr.DataArray(np.zeros((nChildren,nGenes)),
-                              dims=['chromosome','Gene'],
-                              coords={'chromosome': np.arange(nChildren),
-                                      'Gene':kwargs['variables']})
+  children = offSprings
   # read distribution info
   distInfo = kwargs['distInfo']
   # create children
@@ -48,11 +45,12 @@ def replacementRepair(offSprings,**kwargs):
     unique = set(offSprings.data[chrom,:])
     if len(offSprings.data[chrom,:]) != len(unique):
       for ind,x in enumerate(offSprings.data[chrom,:]):
-        if x not in duplicated and not duplicated.add(x):
+        if x not in duplicated:
           children[chrom,ind] = x
+          duplicated.add(x)
         else:
           pool = set(range(int(distInfo[kwargs['variables'][ind]].lowerBound),int(distInfo[kwargs['variables'][ind]].upperBound)+1)) - unique
-          y = np.random.choice(list(pool))
+          y = int(np.random.choice(list(pool)))
           children[chrom,ind] = y
           duplicated.add(y)
   return children
