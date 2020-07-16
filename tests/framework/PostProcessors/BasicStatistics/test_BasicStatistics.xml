@@ -23,6 +23,10 @@
           In this case, only the user requested variables as specified in the DataObjects are printed out.
       </revision>
       <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="wangc" date="2020-07-16">
+          Disable multipleFeatures option for input output sensitivity calcuation, since the condition number
+          is ver big for this case which will cause unstable test results in Windows system.
+      </revision>
     </revisions>
     <requirements>R-RA-5</requirements>
   </TestInfo>
