@@ -21,6 +21,8 @@ import platform
 import argparse
 import subprocess
 from collections import OrderedDict
+import xml.etree.ElementTree as ET
+# NOTE: DO NOT use xmlUtils here! we need to avoid importing any non-standard Python library!
 
 from update_install_data import loadRC
 import plugin_handler as pluginHandler
@@ -30,12 +32,6 @@ if sys.version_info[0] == 3 and sys.version_info[1] >= 6:
   impErr = ModuleNotFoundError
 else:
   impErr = ImportError
-
-# python 2.X uses a different capitalization for configparser
-try:
-  import configparser
-except impErr:
-  import ConfigParser as configparser
 
 try:
   # python 3.8+ includes this in std lib
@@ -225,15 +221,24 @@ def getRequiredLibs(useOS=None, installMethod=None, addOptional=False, limit=Non
                    the required libs
     @ Out, libs, dict, dictionary of libraries {name: version}
   """
-  mainConfigFile = os.path.abspath(os.path.expanduser(os.path.join(os.path.dirname(__file__),
-                                                                   '..', 'dependencies.ini')))
-  config = _readDependencies(mainConfigFile)
+  # OLD config = _readDependencies(mainConfigFile)
   opSys = _getOperatingSystem(override=useOS)
   install = _getInstallMethod(override=installMethod)
+  mainConfigFile = os.path.abspath(os.path.expanduser(os.path.join(os.path.dirname(__file__),
+                                                                   '..', 'dependencies.xml')))
+  sourceFiles = [mainConfigFile]
+  for pluginName, pluginLoc in plugins:
+    pluginConfigFile = os.path.join(pluginLoc, 'dependencies.xml')
+    if os.path.isfile(pluginConfigFile):
+      sourceFiles.append(pluginConfigFile)
+  config = _combineSources(sourceFiles, opSys, install, addOptional=addOptional, limit=limit)
+  libs = _parseLibs(config) #, opSys, install, addOptional=addOptional, limit=limit)
+
+  #### OLD ####
   libs = _parseLibs(config, opSys, install, addOptional=addOptional, limit=limit)
   # extend config with plugin libs
   for pluginName, pluginLoc in plugins:
-    pluginConfigFile = os.path.join(pluginLoc, 'dependencies.ini')
+    pluginConfigFile = os.path.join(pluginLoc, 'dependencies.xml')
     if os.path.isfile(pluginConfigFile):
       pluginConfig = _readDependencies(pluginConfigFile)
       pluginLibs = _parseLibs(pluginConfig, opSys, install, addOptional=addOptional, limit=limit)
@@ -250,7 +255,7 @@ def getSkipCheckLibs(plugins=None):
   """
   skipCheckLibs = OrderedDict()
   mainConfigFile = os.path.abspath(os.path.expanduser(os.path.join(os.path.dirname(__file__),
-                                                                   '..', 'dependencies.ini')))
+                                                                   '..', 'dependencies.xml')))
   config = _readDependencies(mainConfigFile)
   if config.has_section('skip-check'):
     _addLibsFromSection(config.items('skip-check'), skipCheckLibs)
@@ -349,7 +354,112 @@ def _getInstallMethod(override=None):
   # no suggestion given, so we assume conda
   return 'conda'
 
-def _parseLibs(config, opSys, install, addOptional=False, limit=None, plugins=None):
+def _combineSources(sources, opSys, install, addOptional=False, limit=None):
+  """
+    Parses config file to get libraries to install, using given options.
+    @ In, sources, list(str), full-path dependency file locations
+    @ In, opSys, str, operating system (not checked)
+    @ In, install, str, installation method (not checked)
+    @ In, addOptional, bool, optional, if True then include optional libraries
+    @ In, limit, list(str), optional, if provided then only read the given sections
+    @ In, plugins, list(tuple(str,configParser.configParser)), optional, plugins (name, config)
+                   that should be added to the parsing
+    @ Out, config, dict, dictionary of libraries {name: version}
+  """
+  config = dict()
+  toRemove = []
+  for source in sources:
+    src = _readDependencies(source)
+    # always load main, if present
+    root = src.find('main')
+    if root is not None:
+      for libNode in root:
+        tag = libNode.tag
+        # check OS
+        ## note that None means "mac,os,linux" in this case
+        libOS = libNode.attrib.get('os', None)
+        # does library have a specified OS?
+        if libOS is not None:
+          # if this library's OS's don't match the requested OS, then we move on
+          if opSys not in [x.lower().strip() for x in libOS.split(',')]:
+            continue
+        # check optional
+        ## note that None means "not optional" in this case
+        ## further note anything besides "True" is taken to mean "not optional"
+        libOptional = libNode.attrib.get('optional', None)
+        if libOptional.strip().lower() == 'true' and not addOptional:
+          continue
+        # otherwise, we have a valid request to handle
+        text = root.text
+        if text is not None:
+          text = text.strip().lower()
+        # check for removal
+        ## this says the library should be removed from the existing list, which we do at the end!
+        if text == 'remove':
+          toRemove.append(tag)
+          continue
+        else:
+          version = text
+        libSource = libNode.attrib.get('source', None)
+        libSkipCheck = libNode.attrib.get('skip_check', None)
+        request = {'source': libSource, 'skip_check': libSkipCheck, 'version': version}
+        # does this entry already exist?
+        if tag in config:
+          existing = config[tag]
+          # check if either existing or requested is default (None) for each of the dictionary entries
+          for requestEntry, requestValue in request.items():
+          existingFlexible = existing['version'] in [None, '']
+          requestFlexible = libVersion['version'] in [None, '']
+          # if niether is flexible AND they conflict, we need to error!
+          if not existingFlexible and not requestFlexible and existing != libVersion:
+            raise IOError(f'Dependency "{tag}" has conflicting requirements ({existing} vs {text})! Note the conflict may come from a plugin.')
+          # if new request is flexible, take the pinned one
+          if requestFlexible:
+            config[tag] = existing
+          # otherwise, take the new request.
+          else:
+            config[tag] = text
+        # if doesn't already exist, just add it to the queue
+        else:
+          config[tag] = existing
+
+    TODO
+    else:
+      # if using an alternate install (not main), search through alternates
+      for candidate in srs.findall(alternate):
+        if alternate.attrib['name'] == install:
+          root = candidate
+          break
+      else:
+        root = None
+
+
+def _parseLibs(node, existing, opSys, install, addOptional=False, limit=None, plugins=None):
+  """
+    Parses lib file to get libraries to install, using given options.
+    @ In, config, xml.etree.ElementTree.Element, read-in dependencies
+    @ In, opSys, str, operating system (not checked)
+    @ In, install, str, installation method (not checked)
+    @ In, addOptional, bool, optional, if True then include optional libraries
+    @ In, limit, list(str), optional, if provided then only read the given sections
+    @ In, plugins, list(tuple(str,configParser.configParser)), optional, plugins (name, config)
+                   that should be added to the parsing
+    @ Out, libs, dict, dictionary of libraries {name: version}
+  """
+  libs = OrderedDict()
+  # find all the applicable libs for this opSys, install method, optionals
+  if install == 'main':
+    root = config.find('main')
+  else:
+    for candidate in config.findall('alternate'):
+      if candidate.attrib['name'] == install:
+        root = candidate
+        break
+    else:
+      return None
+
+
+def OLD_____parseLibs(config, opSys, install, addOptional=False, limit=None, plugins=None):
   """
     Parses config file to get libraries to install, using given options.
     @ In, config, configparser.ConfigParser, read-in dependencies
@@ -407,11 +517,10 @@ def _readDependencies(initFile):
   """
     Reads in the library list using config parsing.
     @ In, None
-    @ Out, configparser.ConfigParser, configurations read in
+    @ Out, xml.etree.ElementTree.Element, configurations read in the most basic form
   """
-  config = configparser.ConfigParser(allow_no_value=True)
-  config.read(initFile)
-  return config
+  root = ET.parse(initFile).getroot()
+  return root
 
 if __name__ == '__main__':
   mainParser = argparse.ArgumentParser(description='RAVEN Library Handler')
