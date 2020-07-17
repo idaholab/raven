@@ -9,7 +9,7 @@
 
  [./AMC]
   type = 'RavenFramework'
-  input = 'adaptive_mC.xml'
+  input = 'adaptive_mc.xml'
   UnorderedCsv = 'AMC/coarse.csv AMC/restart.csv AMC/fine.csv AMC/exp_coarse.csv AMC/exp_restart.csv AMC/exp_fine.csv'
  [../]
 
