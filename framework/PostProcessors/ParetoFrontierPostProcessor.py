@@ -42,6 +42,8 @@ class ParetoFrontier(PostProcessor):
     PostProcessor.__init__(self, messageHandler)
     self.valueLimit = None   # variable associated with the lower limit of the value dimension
     self.costLimit  = None   # variable associated with the upper limit of the cost dimension
+    self.invCost    = False
+    self.invValue   = False
 
   @classmethod
   def getInputSpecification(cls):
@@ -57,6 +59,7 @@ class ParetoFrontier(PostProcessor):
     inputSpecification.addSub(InputData.parameterInputFactory('valueID',    contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory('costLimit' , contentType=InputTypes.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory('valueLimit', contentType=InputTypes.FloatType))
+    inputSpecification.addSub(InputData.parameterInputFactory('quadrant',   contentType=InputTypes.IntegerType))
     return inputSpecification
 
   def _localReadMoreXML(self, xmlNode):
@@ -78,9 +81,18 @@ class ParetoFrontier(PostProcessor):
     """
     costID  = paramInput.findFirst('costID')
     self.costID  = costID.value
+    try:
+      self.invCost = costID.parameterValues['inv']
+    except:
+      self.invCost = False
+    
     valueID = paramInput.findFirst('valueID')
     self.valueID = valueID.value
-
+    try:
+      self.invValue = valueID.parameterValues['inv']
+    except:
+      self.invValue = False
+      
     costLimit  = paramInput.findFirst('costLimit')
     if costLimit is not None:
       self.costLimit  = costLimit.value
@@ -113,6 +125,12 @@ class ParetoFrontier(PostProcessor):
     """
     inData = self.inputToInternal(inputIn)
     data = inData.asDataset()
+    
+    if self.invCost:
+      data[self.costID] = (-1.) * data[self.costID]
+    if self.invValue:
+      data[self.valueID] = (-1.) * data[self.valueID]
+          
     sortedData = data.sortby(self.costID)
 
     coordinates = np.zeros(1,dtype=int)
@@ -133,6 +151,12 @@ class ParetoFrontier(PostProcessor):
     paretoFrontierDict = {}
     for index,varID in enumerate(sortedData.data_vars):
       paretoFrontierDict[varID] = paretoFrontierData[:,index]
+
+    if self.invCost:
+      paretoFrontierDict[self.costID] = (-1.) * paretoFrontierDict[self.costID]
+    if self.invValue:
+      paretoFrontierDict[self.valueID] = (-1.) * paretoFrontierDict[self.valueID]
+          
     return paretoFrontierDict
 
   def collectOutput(self, finishedJob, output):
