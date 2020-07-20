@@ -357,12 +357,13 @@ def _combineSources(sources, opSys, install, addOptional=False, limitSources=Non
   config = {}
   toRemove = []
   for source in sources:
+    requestor = os.path.basename(os.path.dirname(source))
     src = _readDependencies(source)
     # always load main, if present
     root = src.find('main')
     if root is not None:
       for libNode in root:
-        _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources)
+        _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, requestor)
     # if using alternate install, load modifications
     ## find matching install node, if any
     for candidate in src.findall('alternate'):
@@ -373,13 +374,13 @@ def _combineSources(sources, opSys, install, addOptional=False, limitSources=Non
       altRoot = None
     if altRoot is not None:
       for libNode in altRoot:
-        _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources)
+        _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, requestor)
   # remove stuff in toRemove
   for entry in toRemove:
     config.pop(entry, None)
   return config
 
-def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources):
+def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources, requestor):
   """
     Reads a single library request node into existing config
     @ In, libNode, xml.etree.ElementTree.Element, node with library request
@@ -389,6 +390,7 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources):
     @ In, install, str, installation method (not checked)
     @ In, addOptional, bool, optional, if True then include optional libraries
     @ In, limitSources, list(str), limit sources to those in this list (or defaults if None)
+    @ In, requestor, str, name of requesting plugin (for error verbosity)
     @ Out, None
   """
   tag = libNode.tag
@@ -424,13 +426,15 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources):
     return
   libVersion = text
   libSkipCheck = libNode.attrib.get('skip_check', None)
-  request = {'skip_check': libSkipCheck, 'version': libVersion}
+  request = {'skip_check': libSkipCheck, 'version': libVersion, 'requestor': requestor}
   # does this entry already exist?
   if tag in config:
     existing = config[tag]
     okay = True # tracks if duplicate entry is okay or error needs raising
     # check if either existing or requested is default (None) for each of the dictionary entries
     for entry, requestValue in request.items():
+      if entry in ['requestor']:
+        continue
       existValue = existing[entry]
       # duplicates might be okay; for example, if the request/existing are identical
       if requestValue != existValue:
@@ -442,30 +446,13 @@ def _readLibNode(libNode, config, toRemove, opSys, addOptional, limitSources):
           # if existValue is None, then keep the requestValue
         else:
           # there is a request conflict
-          print(f'ERROR: Dependency "{tag}" has conflicting requirements for "{entry}" ({existValue} vs {requestValue})! Note the conflict may come from a plugin.')
+          print('ERROR: Dependency "{t}" has conflicting requirements for "{e}"'.format(t=tag, e=entry),
+                '({ev} in "{es}" vs {rv} in "{rs}")!'.format(ev=existValue, es=existing['requestor'], rv=requestValue, rs=requestor))
           okay = False
     if not okay:
       raise KeyError('There were errors resolving library handling requests; see above.')
   # END if tag in config
   config[tag] = request
-
-def _addLibsFromSection(configSection, libs):
-  """
-    Reads in libraries for a section of the config.
-    @ In, configSection, dict, libs: versions
-    @ In, libs, dict, libraries tracking dict
-    @ Out, None (changes libs in place)
-  """
-  for lib, version in configSection:
-    #if lib not in configSection:
-    #  return
-    if version == 'remove':
-      libs.pop(lib, None)
-    else:
-      # python 3 fix to work with python 2 syntax
-      if version is not None and version.strip() == '':
-        version = None
-      libs[lib] = version
 
 def _readDependencies(initFile):
   """
