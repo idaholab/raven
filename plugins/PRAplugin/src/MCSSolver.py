@@ -66,7 +66,7 @@ class MCSSolver(ExternalModelPluginBase):
         container.invMapping[child.text.strip()] = child.get('var')
       else:
         raise IOError("MCSSolver: xml node " + str(child.tag) + " is not allowed")
-      
+
 
   def createNewInput(self, container, inputs, samplerType, **kwargs):
     """
