@@ -594,7 +594,7 @@ if __name__ == '__main__':
     preamble = preamble.format(installer=installer, action=action, args=actionArgs)
     libTexts = ' '.join(['{lib}{ver}'
                          .format(lib=lib,
-                                 ver=(f'{equals}{request["version"]}' if request['version'] is not None else ''))
+                                 ver=('{e}{r}'.format(e=equals, r=request['version']) if request['version'] is not None else ''))
                          for lib, request in libs.items()])
     if len(libTexts) > 0:
       print(preamble + libTexts)
