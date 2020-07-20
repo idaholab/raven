@@ -30,9 +30,7 @@ class PassthroughRunner(Runner):
       Init method
       @ In, messageHandler, MessageHandler object, the global RAVEN message
         handler object
-      @ In, args, dict, this is a list of arguments that will be passed as
-        function parameters into whatever method is stored in functionToRun.
-        e.g., functionToRun(*args)
+      @ In, data, dict, fully-evaluated realization
       @ In, metadata, dict, optional, dictionary of metadata associated with
         this run
       @ In, uniqueHandler, string, optional, it is a special keyword attached to

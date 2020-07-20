@@ -1,15 +1,16 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Samplers/Restart.AdaptiveMC</name>
+    <name>framework/Samplers/Restart.AMC</name>
     <author>talbpaul</author>
     <created>2020-07-16</created>
     <classesTested>Samplers.AdaptiveMonteCarlo</classesTested>
     <description>
       Tests restarting an Adaptive Monte Carlo sampling from restart.  \texttt{makeCoarse} samples initial data, then \texttt{makeRestart}
       makes additional samples, restarting from the first set of samples.  \texttt{makeFine} does all the samples without restart
-      for comparison.  The model for "coarse" always returns a value of 1, while the model for "restart" returns a value of 2, so
-      you can tell which samples came from which sampling strategy.
+      for comparison.  The model for \texttt{coarse} always returns a value of 1, while the model for \texttt{restart} returns a value of 2, so
+      you can tell which samples came from which sampling strategy. Further, the solution export for
+      the restart should contain all the sample points, not merely the newly-sampled points.
     </description>
   </TestInfo>
 
