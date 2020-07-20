@@ -54,13 +54,13 @@ def invLinear(rlz,**kwargs):
     penalty = kwargs['penalty']
 
   objVar = kwargs['objVar']
-  # Intializing fitness
+  # Initializing fitness
   fitness = xr.DataArray(np.zeros((eval('rlz[\'' + objVar + '\'].size'))),
                               dims=['chromosome'],
                               coords={'chromosome': np.arange(eval('rlz[\'' + objVar + '\'].size'))})
   for i in range(eval('rlz[\'' + objVar + '\'].size')):
     obj = eval('rlz[\'' + objVar + '\'].data[i]')*randomUtils.random(dim=1,samples=1)
-    fitness[i] = 1/(a * obj + b * penalty)
+    fitness[i] = 1.0/(a * obj + b * penalty)
   return fitness
 
 __fitness = {}

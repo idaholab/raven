@@ -25,7 +25,7 @@ import numpy as np
 
 def replacementRepair(offSprings,**kwargs):
   """
-    @ In, offSprings, xr.DataArray, destorted offSprings resulting from the mating process.
+    @ In, offSprings, xr.DataArray, distorted offSprings resulting from the mating process.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           variables, list, variables names.
     @ Out, children, np.array, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
