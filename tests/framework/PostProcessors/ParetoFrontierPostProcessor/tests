@@ -19,6 +19,11 @@
   input = 'test_paretoFrontierWithBothLimits.xml'
   csv = 'ParetoFrontier/PrintParetoBothLimits.csv'
  [../]
+ [./ParetoFrontierInverted]
+  type = 'RavenFramework'
+  input = 'test_paretoFrontierInverted.xml'
+  csv = 'ParetoFrontier/PrintParetoInverted.csv'
+ [../]
 []
 
 

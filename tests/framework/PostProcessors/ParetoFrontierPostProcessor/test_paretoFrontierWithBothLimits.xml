@@ -22,11 +22,10 @@
   
   <Models>
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
-      <costID  inv="False" >cost</costID>
+      <costID inv="False" >cost</costID>
       <valueID inv="False" >value</valueID>
-      <costLimit>0.5</costLimit>
-      <valueLimit>0.5</valueLimit>
-      <quadrant>1</quadrant>
+      <valueLimit type="lower">0.5</valueLimit>
+      <costLimit type="upper">0.5</costLimit>
     </PostProcessor>   
   </Models>
 
