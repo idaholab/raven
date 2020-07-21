@@ -40,6 +40,16 @@ class MCSSolver(ExternalModelPluginBase):
     """
     ExternalModelPluginBase.__init__(self)
 
+  def initialize(self, container, runInfoDict, inputFiles):
+    """
+      Method to initialize the Event-Tree model
+      @ In, container, object, self-like object where all the variables can be stored
+      @ In, runInfoDict, dict, dictionary containing all the RunInfo parameters (XML node <RunInfo>)
+      @ In, inputFiles, list, list of input files (if any)
+      @ Out, None
+    """
+
+
   def _readMoreXML(self, container, xmlNode):
     """
       Method to read the portion of the XML that belongs to the MCS solver model
