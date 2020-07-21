@@ -70,7 +70,7 @@ class MCSSolver(ExternalModelPluginBase):
 
   def createNewInput(self, container, inputs, samplerType, **kwargs):
     """
-      This function has been added for this model in order to be able to create a FTstructure from multiple files
+      This function has been added for this model in order to generate the terms in each order
       @ In, container, object, self-like object where all the variables can be stored
       @ In, inputs, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
