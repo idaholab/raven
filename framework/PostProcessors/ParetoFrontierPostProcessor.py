@@ -55,23 +55,23 @@ class ParetoFrontier(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(ParetoFrontier, cls).getInputSpecification()
- 
+
     costIDInput = InputData.parameterInputFactory("costID", contentType=InputTypes.StringType)
-    costIDInput.addParam("inv", InputTypes.BoolType, True)   
+    costIDInput.addParam("inv", InputTypes.BoolType, True)
     inputSpecification.addSub(costIDInput)
 
     valueIDInput = InputData.parameterInputFactory("valueID", contentType=InputTypes.StringType)
-    valueIDInput.addParam("inv", InputTypes.BoolType, True)   
+    valueIDInput.addParam("inv", InputTypes.BoolType, True)
     inputSpecification.addSub(valueIDInput)
 
     costLimitInput = InputData.parameterInputFactory("costLimit", contentType=InputTypes.FloatType)
-    costLimitInput.addParam("type", InputTypes.StringType, True)   
+    costLimitInput.addParam("type", InputTypes.StringType, True)
     inputSpecification.addSub(costLimitInput)
-    
+
     valueLimitInput = InputData.parameterInputFactory("valueLimit", contentType=InputTypes.FloatType)
-    valueLimitInput.addParam("type", InputTypes.StringType, True)   
+    valueLimitInput.addParam("type", InputTypes.StringType, True)
     inputSpecification.addSub(valueLimitInput)
-    
+
     return inputSpecification
 
   def _localReadMoreXML(self, xmlNode):
@@ -94,21 +94,21 @@ class ParetoFrontier(PostProcessor):
     costID  = paramInput.findFirst('costID')
     self.costID  = costID.value
     self.invCost = costID.parameterValues['inv']
-    
+
     valueID = paramInput.findFirst('valueID')
     self.valueID = valueID.value
     self.invValue = valueID.parameterValues['inv']
-      
+
     costLimit  = paramInput.findFirst('costLimit')
     if costLimit is not None:
       self.costLimit  = costLimit.value
       self.costLimitType = costLimit.parameterValues['type']
-      
+
     valueLimit = paramInput.findFirst('valueLimit')
     if valueLimit is not None:
       self.valueLimit = valueLimit.value
       self.valueLimitType = valueLimit.parameterValues['type']
-      
+
     quadrant  = paramInput.findFirst('quadrant')
     if quadrant is not None:
       self.quadrant  = quadrant.value
@@ -138,12 +138,12 @@ class ParetoFrontier(PostProcessor):
     """
     inData = self.inputToInternal(inputIn)
     data = inData.asDataset()
-    
+
     if self.invCost:
       data[self.costID] = (-1.) * data[self.costID]
     if self.invValue:
       data[self.valueID] = (-1.) * data[self.valueID]
-          
+
     sortedData = data.sortby(self.costID)
     coordinates = np.zeros(1,dtype=int)
     for index,elem in enumerate(sortedData[self.costID].values):
@@ -156,7 +156,7 @@ class ParetoFrontier(PostProcessor):
     if self.invCost:
       selection[self.costID] = (-1.) * selection[self.costID]
     if self.invValue:
-      selection[self.valueID] = (-1.) * selection[self.valueID]    
+      selection[self.valueID] = (-1.) * selection[self.valueID]
 
     if self.valueLimit is not None:
       if self.valueLimitType=="upper":
@@ -174,7 +174,7 @@ class ParetoFrontier(PostProcessor):
     paretoFrontierDict = {}
     for index,varID in enumerate(sortedData.data_vars):
       paretoFrontierDict[varID] = paretoFrontierData[:,index]
-          
+
     return paretoFrontierDict
 
   def collectOutput(self, finishedJob, output):
