@@ -12,12 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on July 17, 2020
+  Module for Passthrough Runner class, which skips evaluation. Used particularly
+  for restarting Samplers from existing data currently.
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 import numpy as np
 from .Runner import Runner
 
