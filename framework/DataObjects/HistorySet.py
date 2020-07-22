@@ -206,7 +206,7 @@ class HistorySet(DataSet):
     # TODO someday needs to be implemented for when ND data is collected!  For now, use base class.
     # TODO externalize it in the DataObject base class
     toRemove = []
-    for var,val in rlz.items():
+    for var, val in rlz.items():
       if var in self.protectedTags:
         continue
       # only modify it if it is not already scalar
@@ -227,9 +227,9 @@ class HistorySet(DataSet):
             val = val.values
           # FIXME this is largely a biproduct of old length-one-vector approaches in the deprecataed data objects
           if val.size == 1:
-            rlz[var] = float(val)
+            rlz[var] = val[0]
           else:
-            rlz[var] = float(val[indic])
+            rlz[var] = val[indic]
         elif method in ['inputPivotValue']:
           pivotParam = self.getDimensions(var)
           assert(len(pivotParam) == 1) # TODO only handle History for now
