@@ -17,15 +17,25 @@ July 2018
 """
 
 from __future__ import division, print_function, unicode_literals, absolute_import
+import os
 from ctfdata import ctfdata
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from GenericCodeInterface import GenericParser
 
-import os
 class CTF(CodeInterfaceBase):
   """
     this class is used a part of a code dictionary to specialize Model.Code for CTF (Cobra-TF)
   """
+  def __init__(self):
+    """
+      Constructor.
+      @ In, None
+      @ Out, None
+    """
+    CodeInterfaceBase.__init__(self)
+    # CTF creates enormous CSVs that are all floats, so we use numpy to speed up the loading
+    self.setCsvLoadUtil('numpy')
+
   def finalizeCodeOutput(self,command,output,workingDir):
     """
       This method is called by the RAVEN code at the end of each code run to create CSV files containing the code output results.
