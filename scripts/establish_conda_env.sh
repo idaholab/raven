@@ -316,10 +316,7 @@ if [ -z $PYTHON_COMMAND ];
 then
     # check the RC file first
     PYTHON_COMMAND=$(read_ravenrc "PYTHON_COMMAND")
-    local_py_command=python3
-    if ! python_com="$(type -p python3)" || [[ -z $python_com ]]; then
-      local_py_command=python
-    fi
+    local_py_command=python
     #If not found through the RC file, will be empty string, so default python
     PYTHON_COMMAND=${PYTHON_COMMAND:=$local_py_command}
 fi

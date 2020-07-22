@@ -35,6 +35,8 @@ try:
   from .DataObject import DataObject
 except ValueError:
   from DataObject import DataObject
+
+import CsvLoader
 from utils import utils, cached_ndarray, xmlUtils, mathUtils
 
 # for profiling with kernprof
@@ -1802,19 +1804,8 @@ class DataSet(DataObject):
     # datasets can have them because we don't have a 2d+ CSV storage strategy yet
     else:
       nullOK = True
-    # first try reading the file
-    try:
-      df = pd.read_csv(fname)
-    except pd.errors.EmptyDataError:
-      # no data in file
-      self.raiseAWarning('Tried to read data from "{}", but the file is empty!'.format(fname+'.csv'))
-      return
-    else:
-      self.raiseADebug('Reading data from "{}.csv"'.format(fname))
-    # check for NaN contents -> this isn't allowed in RAVEN currently, although we might need to change this for ND
-    if (not nullOK) and (pd.isnull(df).values.sum() != 0):
-      bad = pd.isnull(df).any(1).nonzero()[0][0]
-      self.raiseAnError(IOError,'Invalid data in input file: row "{}" in "{}"'.format(bad+1,fname))
+    loader = CsvLoader.CsvLoader(self.messageHandler)
+    df = loader.loadCsvFile(fname, nullOK=nullOK)
     return df
 
   def _resetScaling(self):
