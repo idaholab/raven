@@ -42,8 +42,8 @@ class ParetoFrontier(PostProcessor):
     PostProcessor.__init__(self, messageHandler)
     self.valueLimit = None   # variable associated with the lower limit of the value dimension
     self.costLimit  = None   # variable associated with the upper limit of the cost dimension
-    self.invCost    = False  #
-    self.invValue   = False  #
+    self.invCost    = False  # variable which indicates if the cost dimension is inverted (e.g., it represents savings rather than costs)
+    self.invValue   = False  # variable which indicates if the value dimension is inverted (e.g., it represents a lost value rather than value)
 
   @classmethod
   def getInputSpecification(cls):
