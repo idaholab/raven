@@ -1,6 +1,6 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors/ParetoFrontierPostProcessor.ParetoFrontier</name>
+    <name>framework/PostProcessors/ParetoFrontierPostProcessor.ParetoFrontierInverted</name>
     <author>mandd</author>
     <created>2020-03-25</created>
     <classesTested>Models.PostProcessors.ParetoFrontier</classesTested>

@@ -42,8 +42,8 @@ class ParetoFrontier(PostProcessor):
     PostProcessor.__init__(self, messageHandler)
     self.valueLimit = None   # variable associated with the lower limit of the value dimension
     self.costLimit  = None   # variable associated with the upper limit of the cost dimension
-    self.invCost    = False
-    self.invValue   = False
+    self.invCost    = False  #
+    self.invValue   = False  #
 
   @classmethod
   def getInputSpecification(cls):
@@ -109,9 +109,6 @@ class ParetoFrontier(PostProcessor):
       self.valueLimit = valueLimit.value
       self.valueLimitType = valueLimit.parameterValues['type']
 
-    quadrant  = paramInput.findFirst('quadrant')
-    if quadrant is not None:
-      self.quadrant  = quadrant.value
 
   def inputToInternal(self, currentInp):
     """
