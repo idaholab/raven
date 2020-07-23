@@ -398,6 +398,7 @@
         <xsd:element name="initialSeed"      type="xsd:integer"                minOccurs="0" maxOccurs="1"/>
         <xsd:element name="variable"         type="variableType"             minOccurs="1" maxOccurs="unbounded"/>
         <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
+        <xsd:element name="Restart"      type="AssemblerObjectType"   minOccurs="0"  maxOccurs="1"/>
       </xsd:sequence>
     <xsd:attribute name="name"      type="xsd:string" use="required"/>
     <xsd:attribute name="verbosity" type="verbosityAttr"/>

@@ -626,9 +626,10 @@ class MultiRun(SingleRun):
     for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
       if inDictionary[self.samplerType].amIreadyToProvideAnInput():
         try:
-          newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'])
-          inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
-          self.raiseADebug('Submitted input '+str(inputIndex+1))
+          newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'], inDictionary['jobHandler'])
+          if newInput is not None:
+            inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
+            self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
 
@@ -710,8 +711,9 @@ class MultiRun(SingleRun):
 
           if sampler.amIreadyToProvideAnInput():
             try:
-              newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
-              model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+              newInput = self._findANewInputToRun(sampler, model, inputs, outputs, jobHandler)
+              if newInput is not None:
+                model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break
@@ -728,7 +730,7 @@ class MultiRun(SingleRun):
     # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
     sampler.finalizeSampler(self.failedRuns)
 
-  def _findANewInputToRun(self, sampler, model, inputs, outputs):
+  def _findANewInputToRun(self, sampler, model, inputs, outputs, jobHandler):
     """
       Repeatedly calls Sampler until a new run is found or "NoMoreSamplesNeeded" is raised.
       @ In, sampler, Sampler, the sampler in charge of generating the sample
@@ -741,18 +743,20 @@ class MultiRun(SingleRun):
         (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
         inherit from some base "Data" so that we can ensure a consistent
         interface for these?)
-      @ Out, newInp, list, list containing the new inputs
+      @ In, jobHandler, object, the raven object used to handle jobs
+      @ Out, newInp, list, list containing the new inputs (or None if a restart)
     """
     #The value of "found" determines what the Sampler is ready to provide.
     #  case 0: a new sample has been discovered and can be run, and newInp is a new input list.
     #  case 1: found the input in restart, and newInp is a realization dicitonary of data to use
-    found = None
-    while found != 0:
-      found, newInp = sampler.generateInput(model,inputs)
-      if found == 1:
-        # loop over the outputs for this step and collect the data for each
-        for collector, outIndex in self._outputDictCollectionLambda:
-          collector([newInp,outputs[outIndex]])
+    found, newInp = sampler.generateInput(model,inputs)
+    if found == 1:
+      # "submit" the finished run
+      jobHandler.addFinishedJob(newInp)
+      return None
+      # NOTE: we return None here only because the Sampler's "counter" is not correctly passed
+      # through if we add several samples at once through the restart. If we actually returned
+      # a Realization object from the Sampler, this would not be a problem. - talbpaul
     return newInp
 #
 #

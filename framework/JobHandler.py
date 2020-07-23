@@ -377,6 +377,18 @@ class JobHandler(MessageHandler.MessageUser):
                 forceUseThreads = True, uniqueHandler = uniqueHandler,
                 clientQueue = True)
 
+  def addFinishedJob(self, data):
+    """
+      Takes an already-finished job (for example, a restart realization) and adds it to the finished queue.
+      @ In, data, dict, completed realization
+      @ Out, None
+    """
+    # create a placeholder runner
+    run = Runners.PassthroughRunner(self.messageHandler, data)
+    # place it on the finished queue
+    with self.__queueLock:
+      self.__finished.append(run)
+
   def isFinished(self):
     """
       Method to check if all the runs in the queue are finished
