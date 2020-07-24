@@ -118,7 +118,7 @@ class PointSet(DataSet):
     # data was previously formatted by _formatRealization
     # then select the point we want
     toRemove = []
-    for var,val in rlz.items():
+    for var, val in rlz.items():
       if var in self.protectedTags:
         continue
       # only modify it if it is not already scalar
@@ -134,7 +134,7 @@ class PointSet(DataSet):
         else:
           toRemove.append(var)
           continue
-        if method in ['inputRow','outputRow']:
+        if method in ['inputRow', 'outputRow']:
           # zero-d xarrays give false behavior sometimes
           # TODO formatting should not be necessary once standardized history,float realizations are established
           if type(val) == list:
@@ -143,9 +143,9 @@ class PointSet(DataSet):
             val = val.values
           # FIXME this is largely a biproduct of old length-one-vector approaches in the deprecataed data objects
           if val.size == 1:
-            rlz[var] = float(val)
+            rlz[var] = val[0]
           else:
-            rlz[var] = float(val[indic])
+            rlz[var] = val[indic]
         elif method in ['inputPivotValue', 'outputPivotValue']:
           pivotParam = self.getDimensions(var)
           assert(len(pivotParam) == 1) # TODO only handle History for now

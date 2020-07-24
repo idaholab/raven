@@ -447,6 +447,8 @@ then
       then
         conda deactivate
         conda remove -n ${RAVEN_LIBS_NAME} --all -y
+        #Activate base to get python back
+        conda activate
       else
         rm -rf ${PIP_ENV_LOCATION}
       fi
