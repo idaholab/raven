@@ -43,7 +43,7 @@
         <initialSeed>070419</initialSeed>
         <burnIn>10</burnIn>
       </samplerInit>
-      <likelihood>zout</likelihood>
+      <likelihood log="False">zout</likelihood>
       <variable name="xin">
         <distribution>normal</distribution>
         <initial>0</initial>

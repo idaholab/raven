@@ -87,10 +87,13 @@ class MCMC(AdaptiveSampler):
         descr='')
     samplerInitInput.addSub(burnInInput)
     inputSpecification.addSub(samplerInitInput)
-
-    inputSpecification.addSub(InputData.parameterInputFactory("likelihood",contentType=InputTypes.StringType,
+    likelihoodInp = InputData.parameterInputFactory("likelihood",contentType=InputTypes.StringType,
         printPriority=5,
-        descr=r"""Output of likelihood function"""))
+        descr=r"""Output of likelihood function""")
+    likelihoodInp.addParam('log', InputTypes.BoolType, required=False,
+        descr=r"""True if the user provided is the log likelihood, otherwise, treat it as
+        the standard likelihood""")
+    inputSpecification.addSub(likelihoodInp)
     # modify Sampler variable nodes
     variable = inputSpecification.getSub('variable')
     variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatType,
@@ -130,6 +133,7 @@ class MCMC(AdaptiveSampler):
     self._proposal = {} # dict stores the proposal distributions for input variables, i.e. {var:dist}
     self._burnIn = 0      # integers indicate how many samples will be discarded
     self._likelihood = None # stores the output from the likelihood
+    self._logLikelihood = False # True if the user provided likelihood is in log format
     self._availProposal = {'normal': Distributions.Normal(0.0, 1.0),
                            'uniform': Distributions.Uniform(-1.0, 1.0)} # available proposal distributions
     self._acceptDist = Distributions.Uniform(0.0, 1.0) # uniform distribution for accept/rejection purpose
@@ -156,6 +160,7 @@ class MCMC(AdaptiveSampler):
     likelihood = paramInput.findFirst('likelihood')
     if likelihood is not None:
       self._likelihood = likelihood.value
+      self._logLikelihood = likelihood.parameterValues.get('log', False)
     else:
       self.raiseAnError(IOError, "likelihood is required, but not provided!")
     init = paramInput.findFirst('samplerInit')

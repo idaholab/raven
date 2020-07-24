@@ -3214,7 +3214,14 @@ In addition to the \xmlNode{variable} nodes, the main XML node
 
 \begin{itemize}
   \item \xmlNode{likelihood}, \xmlDesc{string, required node}, the output from the user provided likelihood function
+  This node accept one attribute:
+  \begin{itemize}
+    \item \xmlAttr{log}, \xmlDesc{bool, optional field}, indicates whether the the log likelihood value is
+    provided or not. When True, the code expects to receive the log likehood value.
+    \default{`False'}
+  \end{itemize}
   \item \assemblerDescription{Metropolis}
+  \constantSourceDescription{Metropolis}
   \begin{itemize}
     \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
       represents the container where the system evaluations are stored.
@@ -3227,6 +3234,7 @@ In addition to the \xmlNode{variable} nodes, the main XML node
       The Metropolis sampling accepts ``DataObjects'' of type
       ``PointSet'' only.
   \end{itemize}
+  \restartDescription{Metropolis}
 \end{itemize}
 
 Example:
@@ -3239,7 +3247,7 @@ Example:
       <initialSeed>070419</initialSeed>
       <tune>10</tune>
     </samplerInit>
-    <likelihood>zout</likelihood>
+    <likelihood log="False">zout</likelihood>
     <variable name="xin">
       <distribution>normal</distribution>
       <initial>0</initial>

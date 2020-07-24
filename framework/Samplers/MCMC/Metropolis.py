@@ -142,7 +142,10 @@ class Metropolis(MCMC):
       dist = self.distDict[var]
       netLogPrior = dist.logPdf(newVal) - dist.logPdf(currVal)
       netLogPosterior += netLogPrior
-    netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
+    if not self._logLikelihood:
+      netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
+    else:
+      netLogLikelihood = newRlz[self._likelihood] - currentRlz[self._likelihood]
     netLogPosterior += netLogLikelihood
     acceptValue = np.log(self._acceptDist.rvs())
     acceptable = netLogPosterior > acceptValue
