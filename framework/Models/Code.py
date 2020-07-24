@@ -550,6 +550,7 @@ class Code(Model):
         localenv[key]=str(value)
     elif not self.code.getRunOnShell():
       command = self._expandCommand(command)
+    print(f'DEBUGG command: |{command}|')
     ## reset python path
     localenv.pop('PYTHONPATH',None)
     ## This code should be evaluated by the job handler, so it is fine to wait
@@ -604,7 +605,6 @@ class Code(Model):
 
     ## If the run was successful
     if returnCode == 0:
-      returnDict = {}
       ## This may be a tautology at this point --DPM 4/12/17
       ## Special case for RAVEN interface. Added ravenCase flag --ALFOA 09/17/17
       if outputFile is not None and not ravenCase:
@@ -613,16 +613,12 @@ class Code(Model):
         outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
 
         csvLoader = CsvLoader.CsvLoader(self.messageHandler)
-        csvData = csvLoader.loadCsvFile(outFile)
-        if np.isnan(csvData).all():
-          self.raiseAnError(IOError, 'The data collected from', outputFile+'.csv', 'only contain "NAN"')
-        headers = csvLoader.getAllFieldNames()
+        # does this CodeInterface have sufficiently intense (or limited) CSV files that
+        #   it needs to assume floats and use numpy, or can we use pandas?
+        loadUtility = self.code.getCsvLoadUtil()
+        csvData = csvLoader.loadCsvFile(outFile.getAbsFile(), nullOK=False, utility=loadUtility)
+        returnDict = csvLoader.toRealization(csvData)
 
-        ## Numpy by default iterates over rows, thus we transpose the data and
-        ## zip it with the headers in order to do store it very cleanly into a
-        ## dictionary.
-        for header,data in zip(headers, csvData.T):
-          returnDict[header] = data
       if not ravenCase:
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
         returnDict.update(kwargs)
