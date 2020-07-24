@@ -550,10 +550,22 @@
       </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:simpleType name="stringBaseType">
+        <xsd:restriction base="xsd:string"/>
+    </xsd:simpleType>
+
+    <xsd:complexType name="likelihoodType">
+        <xsd:simpleContent>
+            <xsd:extension base="stringBaseType">
+                <xsd:attribute name="log"  type="RavenBool"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
     <xsd:complexType name="MetropolisSampler">
         <xsd:sequence>
             <xsd:element name="samplerInit" type="metropolisInitType" minOccurs="1"/>
-            <xsd:element name="likelihood" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="likelihood" type="likelihoodType" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="variable"     type="metropolisVariableType"    minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="TargetEvaluation" type="AssemblerObjectType"    minOccurs="1" maxOccurs="1"/>
             <xsd:element name="constant" type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
