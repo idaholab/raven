@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/MCMC.Metropolis</name>
     <author>wangc</author>
@@ -18,7 +18,7 @@
 
   <RunInfo>
     <WorkingDir>metropolis</WorkingDir>
-    <Sequence>mh, print</Sequence>
+    <Sequence>mh, makeRestart, print</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
   </RunInfo>
@@ -57,6 +57,27 @@
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
     </Metropolis>
+    <Metropolis name="RestartMetropolis">
+      <samplerInit>
+        <limit>1010</limit>
+        <initialSeed>070419</initialSeed>
+        <burnIn>10</burnIn>
+      </samplerInit>
+      <likelihood>zout</likelihood>
+      <variable name="xin">
+        <distribution>normal</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">normal</proposal>
+      </variable>
+      <variable name="yin">
+        <distribution>normal</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">normal</proposal>
+        <!-- <proposal>normal</proposal> -->
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">solnsRestart</TargetEvaluation>
+      <Restart class="DataObjects" type="PointSet">outSet</Restart>
+    </Metropolis>
   </Samplers>
 
   <Steps>
@@ -67,11 +88,22 @@
       <SolutionExport class="DataObjects" type="PointSet">out_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">outSet</Output>
     </MultiRun>
+    <MultiRun name="makeRestart">
+      <Input class="DataObjects" type="PointSet">outSet</Input>
+      <Model class="Models" type="ExternalModel">likelihood</Model>
+      <Sampler class="Samplers" type="Metropolis">RestartMetropolis</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">exportRestart</SolutionExport>
+      <Output class="DataObjects" type="PointSet">solnsRestart</Output>
+    </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">out_export</Input>
       <Input class="DataObjects" type="PointSet">outSet</Input>
+      <Input class="DataObjects" type="PointSet">exportRestart</Input>
+      <Input class="DataObjects" type="PointSet">solnsRestart</Input>
       <Output class="OutStreams" type="Print">dumpExport</Output>
       <Output class="OutStreams" type="Print">dumpOut</Output>
+      <Output class="OutStreams" type="Print">dumpRestartExport</Output>
+      <Output class="OutStreams" type="Print">dumpRestartOut</Output>
     </IOStep>
   </Steps>
 
@@ -84,6 +116,16 @@
     <Print name="dumpExport">
       <type>csv</type>
       <source>out_export</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="dumpRestartOut">
+      <type>csv</type>
+      <source>solnsRestart</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="dumpRestartExport">
+      <type>csv</type>
+      <source>exportRestart</source>
       <what>input, output</what>
     </Print>
   </OutStreams>
@@ -100,6 +142,16 @@
     </PointSet>
 
     <PointSet name="out_export">
+      <Input>traceID</Input>
+      <Output>xin, yin</Output>
+    </PointSet>
+
+    <PointSet name="solnsRestart">
+      <Input>xin, yin</Input>
+      <Output>zout</Output>
+    </PointSet>
+
+    <PointSet name="exportRestart">
       <Input>traceID</Input>
       <Output>xin, yin</Output>
     </PointSet>
