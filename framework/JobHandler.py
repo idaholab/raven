@@ -377,14 +377,22 @@ class JobHandler(MessageHandler.MessageUser):
                 forceUseThreads = True, uniqueHandler = uniqueHandler,
                 clientQueue = True)
 
-  def addFinishedJob(self, data):
+  def addFinishedJob(self, data, metadata=None, uniqueHandler="any", profile=False):
     """
       Takes an already-finished job (for example, a restart realization) and adds it to the finished queue.
       @ In, data, dict, completed realization
+      @ In, data, dict, fully-evaluated realization
+      @ In, metadata, dict, optional, dictionary of metadata associated with
+        this run
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to
+        this runner. For example, if present, to retrieve this runner using the
+        method jobHandler.getFinished, the uniqueHandler needs to be provided.
+        If uniqueHandler == 'any', every "client" can get this runner
+      @ In, profile, bool, optional, if True then at deconstruction timing statements will be printed
       @ Out, None
     """
     # create a placeholder runner
-    run = Runners.PassthroughRunner(self.messageHandler, data)
+    run = Runners.PassthroughRunner(self.messageHandler, data, metadata=metadata, uniqueHandler=uniqueHandler, profile=profile)
     # place it on the finished queue
     with self.__queueLock:
       self.__finished.append(run)
@@ -762,4 +770,3 @@ class JobHandler(MessageHandler.MessageUser):
           self.raiseADebug('Terminated job "{}" by request.'.format(job.identifier))
     if len(ids):
       self.raiseADebug('Tried to remove some jobs but not found in any queues:',', '.join(ids))
-

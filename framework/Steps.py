@@ -751,8 +751,9 @@ class MultiRun(SingleRun):
     #  case 1: found the input in restart, and newInp is a realization dicitonary of data to use
     found, newInp = sampler.generateInput(model,inputs)
     if found == 1:
+      kwargs = copy.deepcopy(sampler.inputInfo)
       # "submit" the finished run
-      jobHandler.addFinishedJob(newInp)
+      jobHandler.addFinishedJob(newInp, metadata=kwargs)
       return None
       # NOTE: we return None here only because the Sampler's "counter" is not correctly passed
       # through if we add several samples at once through the restart. If we actually returned
