@@ -22,6 +22,7 @@ def initialize(self, runInfoDict, inputFiles):
     @ In, inputFiles, list, the list of input files
     @ Out, None
   """
+  np.random.seed(1086)
   self.mu = np.array([0, 0])
   self.cov = np.array([[1., 0.42], [0.42, 1.]])
   # 1000 observed data, ie. data with shape (1000, 2)
