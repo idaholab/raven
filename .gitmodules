@@ -12,4 +12,4 @@
 	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SRAW.git
 [submodule "plugins/heron"]
 	path = plugins/heron
-	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/heron.git
+	url = git@github.com:idaholab/HERON.git
