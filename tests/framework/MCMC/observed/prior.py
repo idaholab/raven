@@ -17,6 +17,12 @@ A non-informative prior for covariance matrices is the Jeffreys prior
 (see Gelman et al., 1995), which is of the form 1/det(Cov)^(3/2).
 For example, given covariance Cov = [[1, rho], [rho,1]]
 """
-def evaluate(self):
+def pdf(self):
+  """
+    Method required for "probabilityFunction" used by MCMC sampler
+    that is used to define the prior probability function
+    @ In, None
+    @ Out, priorPDF, float, the prior pdf value
+  """
   priorPDF = 1/(1-self.rho**2)**(3/2)
   return priorPDF

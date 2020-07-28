@@ -42,8 +42,8 @@ def run(self, inputDict):
   sum1 = - self.samples/2.0 * np.log(det)
 
   for i in range(self.samples):
-    xi = data[i, 0]
-    yi = data[i, 1]
+    xi = self.data[i, 0]
+    yi = self.data[i, 1]
     sum1 -= 0.5/det * (xi**2 - 2.0*self.rho*xi*yi + yi**2)
 
   self.pout = sum1

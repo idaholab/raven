@@ -106,5 +106,5 @@
       <Input>traceID</Input>
       <Output>rho</Output>
     </PointSet>
-
+  </DataObjects>
 </Simulation>
