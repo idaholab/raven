@@ -540,14 +540,17 @@
     </xsd:complexType>
 
     <xsd:complexType name="metropolisVariableType">
-      <xsd:complexContent>
-        <xsd:extension base="variableType">
-          <xsd:sequence>
-            <xsd:element name="initial" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="proposal" type="AssemblerObjectType"    minOccurs="1" maxOccurs="1"/>
-          </xsd:sequence>
-        </xsd:extension>
-      </xsd:complexContent>
+      <xsd:sequence>
+        <xsd:choice>
+          <xsd:element name="distribution" type="extendedVariableDistributionType" minOccurs="1"/>
+          <xsd:element name="function"     type="xsd:string"                       minOccurs="1"/>
+          <xsd:element name="probabilityFunction" type="AssemblerObjectType"    minOccurs="1"/>
+        </xsd:choice>
+        <xsd:element name="initial" type="xsd:string" minOccurs="0"/>
+        <xsd:element name="proposal" type="AssemblerObjectType"    minOccurs="0" maxOccurs="1"/>
+      </xsd:sequence>
+      <xsd:attribute name="name" type="xsd:string" use="required"/>
+      <xsd:attribute name="shape" type="xsd:string"/>
     </xsd:complexType>
 
     <xsd:simpleType name="stringBaseType">
