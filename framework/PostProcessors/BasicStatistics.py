@@ -25,8 +25,7 @@ import copy
 from collections import OrderedDict, defaultdict
 import six
 import xarray as xr
-import pprint
-pp = pprint.PrettyPrinter(indent=2)
+
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -53,15 +52,15 @@ class BasicStatistics(PostProcessor):
                 'skewness',
                 'kurtosis',
                 'samples',
-                'sharpeRatio',
-                'sortinoRatio',
-                'gainLossRatio',
-                'higherPartialVariance',
-                'higherPartialSigma',
-                'lowerPartialSigma',
-                'lowerPartialVariance',
-                'ValueAtRisk',
-                'ExpectedShortfall'
+                'sharpeRatio',             #financial metric       
+                'sortinoRatio',            #financial metric    
+                'gainLossRatio',           #financial metric
+                'higherPartialVariance',   # Statistic metric not available yet
+                'higherPartialSigma',      # Statistic metric not available yet 
+                'lowerPartialSigma',       # Statistic metric not available yet    
+                'lowerPartialVariance',    # Statistic metric not available yet     
+                'ValueAtRisk',             # Value at risk (alpha) 
+                'ExpectedShortfall'        # conditional value at risk (gammma)
                 ]
   vectorVals = ['sensitivity',
                 'covariance',

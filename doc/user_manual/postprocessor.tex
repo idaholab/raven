@@ -98,7 +98,10 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{expectedValue}: expected value or mean
     \item \textbf{minimum}: The minimum value of the samples.
     \item \textbf{maximum}: The maximum value of the samples.
-    \item \textbf{median}: median
+    \item \textbf{median}:  The weighted median of the samples ( $50\%$ weighted percentile). If probablitity weights are not assigned, uniform distribution will be assigned. The median $x_k$ satisfying:
+    \begin{equation}
+      \sum_{i = 1}^{k - 1} w_i \le 1/2  and \sum_{i = k + 1}^{n} w_i \le 1/2
+    \end{equation}
     \item \textbf{variance}: variance
     \item \textbf{sigma}: standard deviation
     \item \textbf{percentile}: the percentile. If this quantity is inputted as \textit{percentile} the $5\%$ and $95\%$ percentile(s) are going to be computed.
@@ -109,6 +112,22 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{skewness}: skewness
     \item \textbf{kurtosis}: excess kurtosis (also known as Fisher's kurtosis)
     \item \textbf{samples}: the number of samples in the data set used to determine the statistics.
+    \item \textbf{sharpeRatio}: the Sharpe Ratio, measures the performance of an investment. It is defined as the returns of the investment, divided by the standard deviation of the investment. 
+    \item \textbf{sortinoRatio}: the Sortino ratio, measures the risk-adjusted return of an investment asset. Discounts the excess return of a portfolio above a target threshold by the volatility of downside returns. If this quantity is inputted as \textit{sortinoRatio} the threshold for separate upside and downside value will assign as $0$. Otherwise the user can specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents the requested threshold \xmlAttr{median} or \xmlAttr{zero}.
+
+    \item \textbf{gainLossRatio}: the gain-loss ratio, discounts the first-order higher partial moment of a portfolio's returns, by the first-order lower partial moment of a portfolio's returns. If this quantity is inputted as \textit{gainLossRatio} the threshold for separate upside and downside value will assign as $0$. Otherwise the user can specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents the requested threshold \xmlAttr{median} or \xmlAttr{zero}.
+
+
+    \item \textbf{ExpectedShortfall}: the expected shortfall (Es) or conditional value at risk (CVaR), the expected return on the portfolio in the worst q of cases. If this quantity is inputted as \textit{ExpectedShortfall} the q value will assign as $5\%$. Otherwise the user can specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents the requested q value (a floating point value between 0.0 and 1.0)
+    \begin{equation}
+      ES_\alpha = -\frac{1}{\alpha} \int_0^\alpha \operatorname{VaR}_\gamma(X) \, d\gamma
+    \end{equation}
+    \item \textbf{ValueAtRisk}: the value at risk for investments. Estimates the maximum possible loss after exclude worse outcomes whose combined probability is at most $\alpha$. If this quantity is inputted as \textit{ValueAtRisk} the $\alpha$ value will assign as $5\%$. Otherwise the user can specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents the requested $\alpha$ value (a floating point value between 0.0 and 1.0)
+
+    \begin{equation}
+      \operatorname{VaR}_\alpha(X)=-\inf\big\{x\in\mathbb{R}:F_X(x)>\alpha\big\} = F^{-1}_Y(1-\alpha).
+    \end{equation}
+
   \end{itemize}
   The matrix quantities available for request are:
   \begin{itemize}
