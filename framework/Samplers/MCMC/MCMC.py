@@ -142,8 +142,8 @@ class MCMC(AdaptiveSampler):
     self._acceptDist = Distributions.Uniform(0.0, 1.0) # uniform distribution for accept/rejection purpose
     self.toBeCalibrated = {} # parameters that will be calibrated
     # assembler objects
-    self.addAssemblerObject('proposal', '-n')
-    self.addAssemblerObject('probabilityFunction', '-n')
+    self.addAssemblerObject('proposal', '-n', True)
+    self.addAssemblerObject('probabilityFunction', '-n', True)
 
   def localInputAndChecks(self, xmlNode, paramInput):
     """
@@ -198,7 +198,8 @@ class MCMC(AdaptiveSampler):
     """
       Reads in a "variable" input parameter node.
       @ In, child, utils.InputData.ParameterInput, input parameter node to read from
-      @ In, prefix, str, variable prefix, if any
+      @ In, prefix, str, pass through parameter (not used), i.e. empty string. It is used
+        by Sampler base class to indicate "Distribution"
       @ Out, None
     """
     varName = child.parameterValues['name']
