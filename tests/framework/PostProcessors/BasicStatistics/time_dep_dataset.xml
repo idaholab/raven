@@ -13,7 +13,7 @@
       <revision author="wangc" date="2018-12-13">
           In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
           the pointwise metadata, and will be printed out in the output csv files by default.
-          In this case, the time dependent standard errors will be printed out.
+          In this case, the time dependent standard errors will be printed out. 
       </revision>
     </revisions>
   </TestInfo>
@@ -48,11 +48,8 @@
       <skewness prefix="skew">x0,y0,z0,x,y,z</skewness>
       <kurtosis prefix="kurt">x0,y0,z0,x,y,z</kurtosis>
       <median prefix="median">x0,y0,z0,x,y,z</median>
-      <percentile prefix="percentile" percent = '44'>x0,y0,z0,x,y,z</percentile>
+      <percentile prefix="percentile">x0,y0,z0,x,y,z</percentile>
       <samples prefix="samp">x0,y0,z0,x,y,z</samples>
-      <sharpeRatio prefix="SR">x0,y0,z0,x,y,z</sharpeRatio>
-      <sortinoRatio prefix="stR">x0,y0,z0,x,y,z</sortinoRatio>
-      <gainLossRatio prefix="glR">x0,y0,z0,x,y,z</gainLossRatio>
     </PostProcessor>
   </Models>
 
@@ -73,7 +70,7 @@
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTest</Output>
     </MultiRun>
     <PostProcess name="timeDepBasicStatPP">
-      <Input class="DataObjects" type="HistorySet">HistorySetPostProcTest</Input>
+      <Input class="DataObjects" type="PointSet">HistorySetPostProcTest</Input>
       <Model class="Models" type="PostProcessor">timeDepBasicStat</Model>
       <Output class="DataObjects" type="DataSet">basicStatSet</Output>
       <Output class="OutStreams" type="Print">datasetPrint</Output>
@@ -94,7 +91,7 @@
     </HistorySet>
     <DataSet name='basicStatSet'>
         <Output>
-            variance,
+            variance, 
             covariance,
             percentile,
             pearson,
@@ -104,13 +101,10 @@
             skewness,
             variationCoefficient,
             samples,
-            median,
-            sharpeRatio,
-            sortinoRatio,
-            gainLossRatio
+            median
         </Output>
         <Index var='time'>
-            variance,
+            variance, 
             covariance,
             percentile,
             pearson,
@@ -120,13 +114,10 @@
             skewness,
             variationCoefficient,
             median,
-            samples,
-            sharpeRatio,
-            sortinoRatio,
-            gainLossRatio
+            samples
         </Index>
         <Index var='targets'>
-            variance,
+            variance, 
             covariance,
             percentile,
             pearson,
@@ -136,10 +127,7 @@
             skewness,
             variationCoefficient,
             samples,
-            median,
-            sharpeRatio,
-            sortinoRatio,
-            gainLossRatio
+            median
         </Index>
         <Index var='features'>
             covariance,
