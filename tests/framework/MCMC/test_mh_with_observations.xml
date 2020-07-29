@@ -10,7 +10,7 @@
       assume xi, yi|rho ~ Normal(mu,cov), where mu=[0,0], and cov = [[1.0, rho], [rho, 1.0]]
       1000 samples is generated using np.random.multivariate_normal as the observed data.
       A non-informative prior for covariance matrices is the Jeffreys prior
-      (see Gelman et al., 1995), which is of the form 1/det(Cov)^(3/2).
+      (see Gelman et al., 1995), which is of the form 1/det(Cov)**(3/2).
       A uniform distribution [-0.07, 0.07] is used as the proposal distribution.
     </description>
   </TestInfo>
