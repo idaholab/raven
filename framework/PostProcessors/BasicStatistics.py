@@ -631,7 +631,6 @@ class BasicStatistics(PostProcessor):
       @ In, pbWeight, list/numpy.array, the reliability weights that correspond to the values in 'array'
       @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
       @ Out, result, float, the percentile
-      @ Out, indexL, index of the lower quantile 
     """
 
     idxs                   = np.argsort(np.asarray(list(zip(pbWeight,arrayIn)))[:,1])
@@ -651,7 +650,7 @@ class BasicStatistics(PostProcessor):
       result = 0.5*(sortedWeightsAndPoints[indexL,1]+sortedWeightsAndPoints[indexH[0],1])
     except IndexError:
       result = sortedWeightsAndPoints[indexL,1]
-    return result, indexL
+    return result
 
   def _computeSortedWeightsAndPoints(self,arrayIn,pbWeight):
     """
@@ -659,11 +658,13 @@ class BasicStatistics(PostProcessor):
       @ In, arrayIn, list/numpy.array, the array of values from which the percentile needs to be estimated
       @ In, pbWeight, list/numpy.array, the reliability weights that correspond to the values in 'array'
       @ Out, sortedWeightsAndPoints, list/numpy.array, with [:,0] as the value of the probability density function at the bin, normalized, and [:,1] is the coresonding edge of the probability density function.
+      @ Out, indexL, index of the lower quantile 
     """
 
     idxs                   = np.argsort(np.asarray(list(zip(pbWeight,arrayIn)))[:,1])
     sortedWeightsAndPoints = np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs])))
-    return sortedWeightsAndPoints
+    indexL = utils.first(np.asarray(weightsCDF >= percent).nonzero())[0]
+    return sortedWeightsAndPoints, indexL
 
 
   def __runLocal(self, inputData):
@@ -902,9 +903,9 @@ class BasicStatistics(PostProcessor):
           targWeight = relWeight[target].values
           targDa = dataSet[target]
           if self.pivotParameter in targDa.sizes.keys():
-            quantile, indexL = [self._computeWeightedPercentile(group.values,targWeight,percent=0.5) for label,group in targDa.groupby(self.pivotParameter)]
+            quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=0.5) for label,group in targDa.groupby(self.pivotParameter)]
           else:
-            quantile, indexL = self._computeWeightedPercentile(targDa.values,targWeight,percent=0.5)
+            quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=0.5)
           if self.pivotParameter in targDa.sizes.keys():
             da = xr.DataArray(quantile,dims=(self.pivotParameter),coords={self.pivotParameter:self.pivotValue})
           else:
@@ -929,9 +930,9 @@ class BasicStatistics(PostProcessor):
         VaRList = []
         for thd in threshold:
           if self.pivotParameter in targDa.sizes.keys():
-            VaR, indexL = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
+            VaR = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
           else:
-            VaR, indexL = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)   
+            VaR = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)   
           VaRList.append(abs(VaR))
         if self.pivotParameter in targDa.sizes.keys():
           da = xr.DataArray(VaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
@@ -956,13 +957,13 @@ class BasicStatistics(PostProcessor):
         CVaRList = []
         for thd in threshold:
           if self.pivotParameter in targDa.sizes.keys():
-            sortedWeightsAndPoints = [self._computeSortedWeightsAndPoints(group.values,targWeight) for label,group in targDa.groupby(self.pivotParameter)]
-            quantile, indexL = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
+            sortedWeightsAndPoints, indexL = [self._computeSortedWeightsAndPoints(group.values,targWeight) for label,group in targDa.groupby(self.pivotParameter)]
+            quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
           else:
-            sortedWeightsAndPoints = self._computeSortedWeightsAndPoints(targDa.values,targWeight)  
-          quantile, indexL = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)  
-          lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL-1,0]*sortedWeightsAndPoints[:indexL-1,1])
-          lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL-1,0])
+            sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(targDa.values,targWeight)  
+          quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)  
+          lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL,0]*sortedWeightsAndPoints[:indexL,1])
+          lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
           Es = lowerPartialE + quantile*(thd -lowerPartialP) 
           CVaRList.append(-Es/(thd))
 
@@ -1227,9 +1228,9 @@ class BasicStatistics(PostProcessor):
           quantile = []
           for pct in percent:
             if self.pivotParameter in targDa.sizes.keys():
-              qtl, indexL = [self._computeWeightedPercentile(group.values,targWeight,percent=pct) for label,group in targDa.groupby(self.pivotParameter)]
+              qtl = [self._computeWeightedPercentile(group.values,targWeight,percent=pct) for label,group in targDa.groupby(self.pivotParameter)]
             else:
-              qtl, indexL = self._computeWeightedPercentile(targDa.values,targWeight,percent=pct)
+              qtl = self._computeWeightedPercentile(targDa.values,targWeight,percent=pct)
             quantile.append(qtl)
           if self.pivotParameter in targDa.sizes.keys():
             da = xr.DataArray(quantile,dims=('percent',self.pivotParameter),coords={'percent':percent,self.pivotParameter:self.pivotValue})
