@@ -94,10 +94,12 @@ class BasicStatistics(PostProcessor):
         #percent is a string type because otherwise we can't tell 95.0 from 95
         # which matters because the number is used in output.
         scalarSpecification.addParam("percent", InputTypes.StringListType)
-      if scalar == 'sortinoRatio':
+      elif scalar in['sortinoRatio','gainLossRatio']:
         scalarSpecification.addParam("threshold", InputTypes.StringType)
-      if scalar == 'gainLossRatio':
-        scalarSpecification.addParam("threshold", InputTypes.StringType)
+      elif scalar in['ExpectedShortfall','ValueAtRisk']:
+        scalarSpecification.addParam("threshold", InputTypes.FloatType)
+
+      
       scalarSpecification.addParam("prefix", InputTypes.StringType)
       inputSpecification.addSub(scalarSpecification)
 
@@ -354,11 +356,27 @@ class BasicStatistics(PostProcessor):
         else:
           threshold = child.parameterValues['threshold'].lower()
           if threshold not in ['zero','median']:
-            self.raiseAWarning('Unrecognized threshold in {}, use zero instead!'.format(tag))
+            self.raiseAWarning('Unrecognized threshold in {}, prefix \'{}\' use zero instead!'.format(tag, prefix))
             threshold = 'zero'
         self.toDo[tag].append({'targets':set(targets),
                                'prefix':prefix,
                                'threshold':threshold})
+      elif tag in ['ExpectedShortfall', 'ValueAtRisk']:
+        #get targets
+        targets = set(child.value)
+        if tag not in self.toDo.keys():
+          self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'threshold':str}
+        if 'threshold' not in child.parameterValues:
+          threshold = 0.05
+        else:
+          threshold = child.parameterValues['threshold']
+          if threshold >1 or threshold <0:
+            self.raiseAnError('Threshold in {}, prefix \'{}\' out of range, please use a float in range (0, 1)!'.format(tag, prefix))
+  
+        self.toDo[tag].append({'targets':set(targets),
+                               'prefix':prefix,
+                               'threshold':threshold})
+
       elif tag in self.scalarVals:
         if tag not in self.toDo.keys():
           self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
@@ -570,7 +588,6 @@ class BasicStatistics(PostProcessor):
     if dim is None:
       dim = self.sampleTag
     diff = (medValue-arrayIn).clip(min=0)
-    print('lp',diff)
     if pbWeight is not None:
       vp = 1.0/self.__computeVp(1,pbWeight)
       result = ((diff)**2 * pbWeight).sum(dim=dim) * vp
@@ -590,7 +607,6 @@ class BasicStatistics(PostProcessor):
     if dim is None:
       dim = self.sampleTag
     diff = (arrayIn-medValue).clip(min=0)
-    print('hp',diff)
     if pbWeight is not None:
       vp = 1.0/self.__computeVp(1,pbWeight)
       result = ((diff)**2 * pbWeight).sum(dim=dim) * vp
@@ -616,7 +632,9 @@ class BasicStatistics(PostProcessor):
       @ In, pbWeight, list/numpy.array, the reliability weights that correspond to the values in 'array'
       @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
       @ Out, result, float, the percentile
+      @ Out, indexL, index of the lower quantile 
     """
+
     idxs                   = np.argsort(np.asarray(list(zip(pbWeight,arrayIn)))[:,1])
     # Inserting [0.0,arrayIn[idxs[0]]] is needed when few samples are generated and
     # a percentile that is < that the first pb weight is requested. Otherwise the median
@@ -628,14 +646,26 @@ class BasicStatistics(PostProcessor):
     indexL = utils.first(np.asarray(weightsCDF >= percent).nonzero())[0]
     # This step returns the indices (list of index) of the array which is > than the percentile
     indexH = utils.first(np.asarray(weightsCDF > percent).nonzero())
-
     try:
       # if the indices exists that means the desired percentile lies between two data points
       # with index as indexL and indexH[0]. Calculate the midpoint of these two points
       result = 0.5*(sortedWeightsAndPoints[indexL,1]+sortedWeightsAndPoints[indexH[0],1])
     except IndexError:
       result = sortedWeightsAndPoints[indexL,1]
-    return result
+    return result, indexL
+
+  def _computeSortedWeightsAndPoints(self,arrayIn,pbWeight):
+    """
+      Method to compute the sorted weights and points
+      @ In, arrayIn, list/numpy.array, the array of values from which the percentile needs to be estimated
+      @ In, pbWeight, list/numpy.array, the reliability weights that correspond to the values in 'array'
+      @ Out, sortedWeightsAndPoints, list/numpy.array, with [:,0] as the value of the probability density function at the bin, normalized, and [:,1] is the coresonding edge of the probability density function.
+    """
+
+    idxs                   = np.argsort(np.asarray(list(zip(pbWeight,arrayIn)))[:,1])
+    sortedWeightsAndPoints = np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs])))
+    return sortedWeightsAndPoints
+
 
   def __runLocal(self, inputData):
     """
@@ -648,14 +678,19 @@ class BasicStatistics(PostProcessor):
     #storage dictionary for skipped metrics
     self.skipped = {}
     #construct a dict of required computations
-    needed = dict((metric,{'targets':set(),'percent':set(),'threshold':set()}) for metric in self.scalarVals)
+    
+
+    needed = dict((metric,{'targets':set(),'percent':set()}) for metric in self.scalarVals)
+
     needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
-    print('OTOTOTOTOTOTODODODOD')
-    pp.pprint(self.toDo)
+
+    needed.update(dict((metric,{'targets':set(),'percent':set(),'threshold':{}}) for metric in ['sortinoRatio','gainLossRatio']))
+    
+    needed.update(dict((metric,{'targets':set(),'percent':set(),'threshold':[]}) for metric in ['ValueAtRisk', 'ExpectedShortfall']))
+
     for metric, params in self.toDo.items():
-      print('metric, params',metric, params)
       for entry in params:
-        print('entry',entry)
+
         needed[metric]['targets'].update(entry['targets'])
         try:
           needed[metric]['features'].update(entry['features'])
@@ -665,12 +700,21 @@ class BasicStatistics(PostProcessor):
           needed[metric]['percent'].update(entry['percent'])
         except KeyError:
           pass
-        try:
-          needed[metric]['threshold'].update(entry['threshold'])
-        except KeyError:
+        if 'threshold' in entry.keys() :
+          if metric in ['sortinoRatio','gainLossRatio']:
+            threshold = entry['threshold']
+            for k in entry['targets']:
+              if k in needed[metric]['threshold'].keys():
+                needed[metric]['threshold'][k].append(entry['threshold'])
+              else:
+                needed[metric]['threshold'][k] = []
+                needed[metric]['threshold'][k].append(entry['threshold'])
+          else:
+            thd = entry['threshold']
+            if thd not in needed[metric]['threshold']:
+              needed[metric]['threshold'].append(thd) 
           pass
-    print('OKOKOKKOKOKOKOKOKOKOPK')
-    pp.pprint(needed)
+
     # variable                     | needs                  | needed for
     # --------------------------------------------------------------------
     # skewness needs               | expectedValue,variance |
@@ -712,14 +756,11 @@ class BasicStatistics(PostProcessor):
     needed['expectedValue']['targets'].update(needed['kurtosis']['targets'])
     needed['expectedValue']['targets'].update(needed['sharpeRatio']['targets'])
     needed['expectedValue']['targets'].update(needed['sortinoRatio']['targets'])
-    # needed['expectedValue']['targets'].update(needed['gainLossRatio']['targets'])
 
 
     needed['sigma']['targets'].update(needed['expectedValue']['targets'])
     needed['sigma']['targets'].update(needed['sharpeRatio']['targets'])
-    needed['lowerPartialSigma']['targets'].update(needed['sortinoRatio']['targets'])
-    # needed['lowerPartialSigma']['targets'].update(needed['gainLossRatio']['targets'])
-    # needed['higherPartialSigma']['targets'].update(needed['gainLossRatio']['targets'])
+
 
 
     needed['variance']['targets'].update(needed['sigma']['targets'])
@@ -848,7 +889,6 @@ class BasicStatistics(PostProcessor):
       sigmaSet = calculations['sigma'][list(needed[metric]['targets'])]
       relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
       calculations[metric] = self._computeFinanceRatio(meanSet,sigmaSet)
-
     #
     # median
     #
@@ -863,44 +903,86 @@ class BasicStatistics(PostProcessor):
           targWeight = relWeight[target].values
           targDa = dataSet[target]
           if self.pivotParameter in targDa.sizes.keys():
-            quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=0.5) for label,group in targDa.groupby(self.pivotParameter)]
+            quantile, indexL = [self._computeWeightedPercentile(group.values,targWeight,percent=0.5) for label,group in targDa.groupby(self.pivotParameter)]
           else:
-            quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=0.5)
+            quantile, indexL = self._computeWeightedPercentile(targDa.values,targWeight,percent=0.5)
           if self.pivotParameter in targDa.sizes.keys():
             da = xr.DataArray(quantile,dims=(self.pivotParameter),coords={self.pivotParameter:self.pivotValue})
           else:
             da = xr.DataArray(quantile)
           medianSet[target] = da
-
-        #dataSetWeighted = dataSet * relWeight
-        #medianSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(0.5,dim=self.sampleTag,interpolation='midpoint')).sum(self.sampleTag)
       else:
         medianSet = dataSet.median(dim=self.sampleTag)
       calculations[metric] = medianSet
+    #
+    # ValueAtRisk
+    #
+    metric = 'ValueAtRisk'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      dataSet = inputDataset[list(needed[metric]['targets'])]
+      threshold = needed[metric]['threshold']
+      VaRSet = xr.Dataset()
+      relWeight = pbWeights[list(needed[metric]['targets'])]
+      for target in needed[metric]['targets']:
+        targWeight = relWeight[target].values
+        targDa = dataSet[target]
+        VaRList = []
+        for thd in threshold:
+          if self.pivotParameter in targDa.sizes.keys():
+            VaR, indexL = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
+          else:
+            VaR, indexL = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)   
+          VaRList.append(abs(VaR))
+        if self.pivotParameter in targDa.sizes.keys():
+          da = xr.DataArray(VaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
+        else:
+          da = xr.DataArray(VaRList,dims=('threshold'),coords={'threshold':threshold})
+        VaRSet[target] = da
+      calculations[metric] = VaRSet
 
+    #
+    # ExpectedShortfall
+    #
+    metric = 'ExpectedShortfall'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      dataSet = inputDataset[list(needed[metric]['targets'])]
+      threshold = needed[metric]['threshold']
+      CVaRSet = xr.Dataset()
+      relWeight = pbWeights[list(needed[metric]['targets'])]
+      for target in needed[metric]['targets']:
+        targWeight = relWeight[target].values
+        targDa = dataSet[target]
+        CVaRList = []
+        for thd in threshold:
+          if self.pivotParameter in targDa.sizes.keys():
+            sortedWeightsAndPoints = [self._computeSortedWeightsAndPoints(group.values,targWeight) for label,group in targDa.groupby(self.pivotParameter)]
+            quantile, indexL = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
+          else:
+            sortedWeightsAndPoints = self._computeSortedWeightsAndPoints(targDa.values,targWeight)  
+          quantile, indexL = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)  
+          lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL-1,0]*sortedWeightsAndPoints[:indexL-1,1])
+          lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL-1,0])
+          Es = lowerPartialE + quantile*(thd -lowerPartialP) 
+          CVaRList.append(-Es/(thd))
+
+        if self.pivotParameter in targDa.sizes.keys():
+          da = xr.DataArray(CVaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
+        else:
+          da = xr.DataArray(CVaRList,dims=('threshold'),coords={'threshold':threshold})
+        CVaRSet[target] = da
+      calculations[metric] = CVaRSet
     #
     # lowerPartialVariance
     #
     metric = 'lowerPartialVariance'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      print('pptptptptpptpt',list(needed[metric]['targets']))
-      print(list(needed[metric]['threshold']))
       dataSet = inputDataset[list(needed[metric]['targets'])]
-      # percent = list(needed[metric]['threshold'])
-
       medianSet = calculations['median'][list(needed[metric]['targets'])]
-      zeroSet = xr.full_like(medianSet, 0)
-
-      thresholdSet = medianSet
-
-
       relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
-      print('data',dataSet)
-      print('med',medianSet)
-      ts= xr.full_like(medianSet, 1)
-      print('ts',ts)
-      lowerPartialVarianceDS = self._computeLowerPartialVariance(dataSet,thresholdSet,pbWeight=relWeight,dim=self.sampleTag)
+      lowerPartialVarianceDS = self._computeLowerPartialVariance(dataSet,medianSet,pbWeight=relWeight,dim=self.sampleTag)
 
       calculations[metric] = lowerPartialVarianceDS
     #
@@ -919,10 +1001,6 @@ class BasicStatistics(PostProcessor):
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
       medianSet = calculations['median'][list(needed[metric]['targets'])]
-      zeroSet = xr.full_like(medianSet, 0)
-
-      thresholdSet = medianSet
-
       relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
       higherPartialVarianceDS = self._computeHigherPartialVariance(dataSet,medianSet,pbWeight=relWeight,dim=self.sampleTag)
 
@@ -941,30 +1019,108 @@ class BasicStatistics(PostProcessor):
     metric = 'sortinoRatio'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      dataSet = inputDataset[list(needed[metric]['targets'])]
       meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
-      sigmaSet = calculations['lowerPartialSigma'][list(needed[metric]['targets'])]
-      relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
-      calculations[metric] = self._computeFinanceRatio(meanSet,sigmaSet)
+      relWeight = pbWeights[list(needed[metric]['targets'])]
+      orgZeroSet = xr.full_like(meanSet, 0)
+      orgMedSet = calculations['median']
+  
+      zeroTarget = []
+      daZero = xr.Dataset()
+      medTarget = []
+      daMed = xr.Dataset
+      for entry in self.toDo[metric]:
+        if entry['threshold'] == 'zero':
+          zeroTarget = entry['targets']
+          zeroSet = orgZeroSet[list(zeroTarget)]
+          dataSet = inputDataset[list(zeroTarget)]
+          lowerPartialVarianceDS = self._computeLowerPartialVariance(dataSet,zeroSet,pbWeight=relWeight,dim=self.sampleTag)
+          lpsDS = self.__computePower(0.5,lowerPartialVarianceDS)
+          incapableZeroTarget = [x for x in zeroTarget if not lpsDS[x].values != 0]
+          for target in incapableZeroTarget:
+            needed[metric]['threshold'][target].remove('zero') 
+          zeroTarget = [x for x in zeroTarget if not lpsDS[x].values == 0]
+          if incapableZeroTarget:
+            self.raiseAWarning("For metric {} target {}, no lower part data can be found for threshold zero!  Skipping target".format(metric, incapableZeroTarget))
+          daZero = self._computeFinanceRatio(meanSet[zeroTarget],lpsDS[zeroTarget])
+          daZero = daZero.assign_coords(threshold ='zero')
+          daZero = daZero.expand_dims('threshold')        
+        elif entry['threshold'] == 'median':
+          medTarget = entry['targets']
+          medSet = orgMedSet[list(medTarget)]
+          dataSet = inputDataset[list(medTarget)]
+          lowerPartialVarianceDS = self._computeLowerPartialVariance(dataSet,medSet,pbWeight=relWeight,dim=self.sampleTag)
+          lpsDS = self.__computePower(0.5,lowerPartialVarianceDS)
+          incapableMedTarget = [x for x in medTarget if not lpsDS[x].values != 0]
+          medTarget = [x for x in medTarget if not lpsDS[x].values == 0]
+          if incapableMedTarget:
+            self.raiseAWarning("For metric {} target {}, no lower part data can be found for threshold median!  Skipping target".format(metric, incapableMedTarget))
 
+          daMed = self._computeFinanceRatio(meanSet[medTarget],lpsDS[medTarget])
+          daMed = daMed.assign_coords(threshold ='median')
+          daMed = daMed.expand_dims('threshold')
+      calculations[metric] = xr.merge([daMed, daZero])
     #
     # gainLossRatio
     #
     metric = 'gainLossRatio'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      dataSet = inputDataset[list(needed[metric]['targets'])]
-      medianSet = calculations['median'][list(needed[metric]['targets'])]
-      zeroSet = xr.full_like(medianSet, 0)
+      meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
+      relWeight = pbWeights[list(needed[metric]['targets'])]
+      orgZeroSet = xr.full_like(meanSet, 0)
+      orgMedSet = calculations['median']
 
-      thresholdSet = medianSet
+      zeroTarget = []
+      daZero = xr.Dataset()
+      medTarget = []
+      daMed = xr.Dataset()
 
-      higherSet = (dataSet-thresholdSet).clip(min=0)
-      lowerSet = (thresholdSet-dataSet).clip(min=0)
-      relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
-      higherMeanSet = (higherSet * relWeight).sum(dim = self.sampleTag)
-      lowerMeanSet = (lowerSet * relWeight).sum(dim = self.sampleTag)
-      calculations[metric] = self._computeFinanceRatio(higherMeanSet,lowerMeanSet)
+      for entry in self.toDo[metric]:
+        if entry['threshold'] == 'zero':
+          zeroTarget = entry['targets']
+          zeroSet = orgZeroSet[list(zeroTarget)]
+          dataSet = inputDataset[list(zeroTarget)]
+
+
+          higherSet = (dataSet-zeroSet).clip(min=0)
+          lowerSet = (zeroSet-dataSet).clip(min=0)
+          relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+          higherMeanSet = (higherSet * relWeight).sum(dim = self.sampleTag)
+          lowerMeanSet = (lowerSet * relWeight).sum(dim = self.sampleTag)
+
+          incapableZeroTarget = [x for x in zeroTarget if not lowerMeanSet[x].values != 0]
+          for target in incapableZeroTarget:
+            needed[metric]['threshold'][target].remove('zero') 
+          zeroTarget = [x for x in zeroTarget if not lowerMeanSet[x].values == 0]
+          if incapableZeroTarget:
+            self.raiseAWarning("For metric {} target {}, no lower part data can be found for threshold zero!  Skipping target".format(metric,incapableZeroTarget))
+          daZero = self._computeFinanceRatio(higherMeanSet[zeroTarget],lowerMeanSet[zeroTarget])
+          daZero = daZero.assign_coords(threshold ='zero')
+          daZero = daZero.expand_dims('threshold')  
+
+        elif entry['threshold'] == 'median':
+          medTarget = entry['targets']
+          medSet = orgMedSet[list(medTarget)]
+          dataSet = inputDataset[list(medTarget)]
+
+
+          higherSet = (dataSet-medSet).clip(min=0)
+          lowerSet = (medSet-dataSet).clip(min=0)
+          relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+          higherMeanSet = (higherSet * relWeight).sum(dim = self.sampleTag)
+          lowerMeanSet = (lowerSet * relWeight).sum(dim = self.sampleTag)
+
+
+          incapableMedTarget = [x for x in medTarget if not lowerMeanSet[x].values != 0]
+          medTarget = [x for x in medTarget if not lowerMeanSet[x].values == 0]
+          if incapableMedTarget:
+            self.raiseAWarning("For metric {} target {}, lower part mean is zero for threshold median!  Skipping target".format(matric, incapableMedTarget))
+
+          daMed = self._computeFinanceRatio(higherMeanSet[medTarget],lowerMeanSet[medTarget])
+          daMed = daMed.assign_coords(threshold ='median')
+          daMed = daMed.expand_dims('threshold')
+      calculations[metric] = xr.merge([daMed, daZero])
+
 
     ############################################################
     # compute standard error for expectedValue
@@ -1063,9 +1219,7 @@ class BasicStatistics(PostProcessor):
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
       percent = list(needed[metric]['percent'])
-      print('percnt???????????',needed[metric])
       if self.pbPresent:
-        print('lalalalalalalpbWeights',pbWeights)
         percentileSet = xr.Dataset()
         relWeight = pbWeights[list(needed[metric]['targets'])]
         for target in needed[metric]['targets']:
@@ -1074,9 +1228,9 @@ class BasicStatistics(PostProcessor):
           quantile = []
           for pct in percent:
             if self.pivotParameter in targDa.sizes.keys():
-              qtl = [self._computeWeightedPercentile(group.values,targWeight,percent=pct) for label,group in targDa.groupby(self.pivotParameter)]
+              qtl, indexL = [self._computeWeightedPercentile(group.values,targWeight,percent=pct) for label,group in targDa.groupby(self.pivotParameter)]
             else:
-              qtl = self._computeWeightedPercentile(targDa.values,targWeight,percent=pct)
+              qtl, indexL = self._computeWeightedPercentile(targDa.values,targWeight,percent=pct)
             quantile.append(qtl)
           if self.pivotParameter in targDa.sizes.keys():
             da = xr.DataArray(quantile,dims=('percent',self.pivotParameter),coords={'percent':percent,self.pivotParameter:self.pivotValue})
@@ -1270,7 +1424,7 @@ class BasicStatistics(PostProcessor):
       if metric in self.scalarVals + self.steVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations)
-    print('opsopsopsopsopsopsopspopospospopospso',outputSet,outputSet['percentile'])
+
     if self.outputDataset:
       # Add 'RAVEN_sample_ID' to output dataset for consistence
       if 'RAVEN_sample_ID' not in outputSet.sizes.keys():
@@ -1283,7 +1437,7 @@ class BasicStatistics(PostProcessor):
         for targetDict in requestList:
           prefix = targetDict['prefix'].strip()
           for target in targetDict['targets']:
-            if metric in self.scalarVals and metric != 'percentile':
+            if metric in self.scalarVals and metric not in ['percentile','sortinoRatio','gainLossRatio','ExpectedShortfall', 'ValueAtRisk']:
               varName = prefix + '_' + target
               outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
               steMetric = metric + '_ste'
@@ -1295,6 +1449,13 @@ class BasicStatistics(PostProcessor):
                 varName = '_'.join([prefix,percent,target])
                 percentVal = float(percent)/100.
                 outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'percent':percentVal}))
+            elif metric in ['sortinoRatio','gainLossRatio','ExpectedShortfall', 'ValueAtRisk']:
+              varName = prefix + '_' + target
+              thresholdVal = targetDict['threshold']
+              try:
+                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':thresholdVal}))
+              except KeyError:
+                outputDict[varName] = np.nan
             else:
               #check if it was skipped for some reason
               skip = self.skipped.get(metric, None)
