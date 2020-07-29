@@ -1,11 +1,12 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors/ParetoFrontierPostProcessor.ParetoFrontier</name>
+    <name>framework/PostProcessors/ParetoFrontierPostProcessor.ParetoFrontierWithValueLimits</name>
     <author>mandd</author>
-    <created>2020-03-25</created>
+    <created>2020-07-05</created>
     <classesTested>Models.PostProcessors.ParetoFrontier</classesTested>
     <description>
-      This post-processor identifies the points lying on the Pareto Frontier in a cost-value space
+      This post-processor identifies the points lying on the Pareto Frontier in a cost-value space 
+      when value limit is specified.
     </description>
   </TestInfo>
   
@@ -23,6 +24,7 @@
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
       <costID inv="False" >cost</costID>
       <valueID inv="False" >value</valueID>
+      <valueLimit type="lower">0.5</valueLimit>
     </PostProcessor>   
   </Models>
 
@@ -35,12 +37,12 @@
       <Input     class="DataObjects"  type="PointSet"        >candidates</Input>
       <Model     class="Models"       type="PostProcessor"   >paretoPP</Model>
       <Output    class="DataObjects"  type="PointSet"        >paretoPoints</Output>
-      <Output    class="OutStreams"   type="Print"           >PrintPareto</Output>
+      <Output    class="OutStreams"   type="Print"           >PrintParetoValueLimit</Output>
     </PostProcess>
   </Steps>
 
   <OutStreams>
-    <Print name="PrintPareto">
+    <Print name="PrintParetoValueLimit">
       <type>csv</type>
       <source>paretoPoints</source>
     </Print>

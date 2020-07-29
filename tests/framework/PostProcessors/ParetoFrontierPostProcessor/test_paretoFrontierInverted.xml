@@ -1,16 +1,16 @@
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors/ParetoFrontierPostProcessor.ParetoFrontier</name>
+    <name>framework/PostProcessors/ParetoFrontierPostProcessor.ParetoFrontierInverted</name>
     <author>mandd</author>
     <created>2020-03-25</created>
     <classesTested>Models.PostProcessors.ParetoFrontier</classesTested>
     <description>
-      This post-processor identifies the points lying on the Pareto Frontier in a cost-value space
+      This post-processor identifies the points lying on the Pareto Frontier in a cost-value space with data types inverted
     </description>
   </TestInfo>
   
   <Files>
-    <Input name="data" type="">data.csv</Input>
+    <Input name="data" type="">dataInverted.csv</Input>
   </Files>
   
   <RunInfo>
@@ -21,8 +21,8 @@
   
   <Models>
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
-      <costID inv="False" >cost</costID>
-      <valueID inv="False" >value</valueID>
+      <costID  inv="True" >out2</costID>
+      <valueID inv="True" >out1</valueID>
     </PostProcessor>   
   </Models>
 
@@ -35,12 +35,12 @@
       <Input     class="DataObjects"  type="PointSet"        >candidates</Input>
       <Model     class="Models"       type="PostProcessor"   >paretoPP</Model>
       <Output    class="DataObjects"  type="PointSet"        >paretoPoints</Output>
-      <Output    class="OutStreams"   type="Print"           >PrintPareto</Output>
+      <Output    class="OutStreams"   type="Print"           >PrintParetoInverted</Output>
     </PostProcess>
   </Steps>
 
   <OutStreams>
-    <Print name="PrintPareto">
+    <Print name="PrintParetoInverted">
       <type>csv</type>
       <source>paretoPoints</source>
     </Print>
@@ -49,11 +49,11 @@
   <DataObjects>
     <PointSet name="candidates">
       <Input>var1,var2</Input>
-      <Output>cost,value</Output>
+      <Output>out1,out2</Output>
     </PointSet>
     <PointSet name="paretoPoints">
       <Input>var1,var2</Input>
-      <Output>cost,value</Output>
+      <Output>out1,out2</Output>
     </PointSet>
   </DataObjects>
   
