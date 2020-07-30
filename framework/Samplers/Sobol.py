@@ -32,7 +32,7 @@ import itertools
 #Internal Modules------------------------------------------------------------------------------------
 from .SparseGridCollocation import SparseGridCollocation
 from .Grid import Grid
-from utils import utils
+from utils import utils, InputData
 import Distributions
 import SupervisedLearning
 import Quadratures
@@ -68,7 +68,7 @@ class Sobol(SparseGridCollocation):
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.distinctPoints = set() #tracks distinct points used in creating this ROM
     self.sparseGridType = 'smolyak'
-    self.addAssemblerObject('ROM','1',True)
+    self.addAssemblerObject('ROM', InputData.Quantity.one)
 
   def _localWhatDoINeed(self):
     """

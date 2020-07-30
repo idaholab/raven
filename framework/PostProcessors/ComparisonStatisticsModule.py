@@ -336,7 +336,7 @@ class ComparisonStatistics(PostProcessor):
     self.fZStats = False
     self.interpolation = "quadratic"
     # assembler objects to be requested
-    self.addAssemblerObject('Distribution', '-n', True)
+    self.addAssemblerObject('Distribution', InputData.Quantity.zero_to_infinity)
 
   def inputToInternal(self, currentInput):
     """

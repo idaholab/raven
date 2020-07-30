@@ -29,7 +29,7 @@ from Decorators.Parallelization import Parallel
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
-from utils import utils
+from utils import utils, InputData
 from utils import graphStructure
 from Runners import Error as rerror
 #Internal Modules End--------------------------------------------------------------------------------
@@ -81,10 +81,10 @@ class EnsembleModel(Dummy):
     self.ensembleModelGraph     = None                  # graph object (graphStructure.graphObject)
     self.printTag               = 'EnsembleModel MODEL' # print tag
     # assembler objects to be requested
-    self.addAssemblerObject('Model','n',True)
-    self.addAssemblerObject('TargetEvaluation','n')
-    self.addAssemblerObject('Input','n')
-    self.addAssemblerObject('Output','-n')
+    self.addAssemblerObject('Model', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('Input', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('Output', InputData.Quantity.zero_to_infinity)
 
   def localInputAndChecks(self,xmlNode):
     """

@@ -72,7 +72,7 @@ class LogicalModel(HybridModelBase):
     # Function object that is used to control the execution of models
     self.controlFunction       = None
     # assembler objects to be requested
-    self.addAssemblerObject('ControlFunction','1')
+    self.addAssemblerObject('ControlFunction', InputData.Quantity.one)
 
   def localInputAndChecks(self, xmlNode):
     """

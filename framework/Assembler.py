@@ -23,7 +23,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import abc
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
+from utils import utils, InputData
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -139,32 +139,9 @@ class Assembler(MessageHandler.MessageUser):
       for subNode in xmlNode:
         found, testObjects = self._readAssemblerObjects(subNode, found, testObjects)
       for token in self.requiredAssObject[1][0]:
-        if not found[token] and not str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]).strip().startswith('-'):
-          self.raiseAnError(IOError,'the required object ' +token+ ' is missed in the definition of the '+self.type+' Object! Required objects number are :'+str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]))
-      # test the objects found
-      else:
-        for cnt,toObjectName in enumerate(self.requiredAssObject[1][0]):
-          numerosity = str(self.requiredAssObject[1][1][cnt])
-          if numerosity.strip().startswith('-'):
-          # optional
-            if toObjectName in testObjects.keys():
-              if testObjects[toObjectName] is not 0:
-                numerosity = numerosity.replace('-', '').replace('n',str(testObjects[toObjectName]))
-                if testObjects[toObjectName] != int(numerosity):
-                  self.raiseAnError(IOError,'Only '+numerosity+' '+toObjectName+' object/s is/are optionally required. Block '+self.name + ' got '+str(testObjects[toObjectName]) + '!')
-          else:
-            # required
-            if toObjectName not in testObjects.keys():
-              self.raiseAnError(IOError,'Required object/s "'+toObjectName+'" not found. Block '+self.name + '!')
-            else:
-              numerosity = numerosity.replace('n',str(testObjects[toObjectName]))
-              if testObjects[toObjectName] != int(numerosity):
-                self.raiseAnError(IOError,'Exactly {n} <{t}> nodes are required for <{c}> "{m}". Got {g}!'
-                                 .format(n=numerosity,
-                                         t=toObjectName,
-                                         c=self.type,
-                                         m=self.name,
-                                         g=testObjects[toObjectName]))
+        quantity = self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]
+        if not InputData.checkQuantity(quantity, testObjects[token]):
+          self.raiseAnError(IOError, 'the object '+token+' has wrong quantity Expected: '+str(quantity)+' Found: '+str(testObjects[token])+ ' in block '+self.name)
 
     if '_handleInput' in dir(self) and self._handleInput.__func__.__qualname__.split(".")[0] == self.__class__.__name__:
       #_handleInput in class and not from superclass
@@ -175,18 +152,13 @@ class Assembler(MessageHandler.MessageUser):
     elif '_localReadMoreXML' in dir(self):
       self._localReadMoreXML(xmlNode)
 
-  def addAssemblerObject(self, name, flag, newXmlFlg=None):
+  def addAssemblerObject(self, name, flag):
     """
       Method to add required assembler objects to the requiredAssObject dictionary.
       @ In, name, string, the node name to search for (e.g. Function, Model)
-      @ In, flag, string, the number of nodes to look for (- means optional, n means any number).
-                                          For example, "2" means 2 nodes of type "name" are required!
-      @ In, newXmlFlg, boolean, optional, if passed in, the first entry of the tuple self.requiredAssObject is going to updated with the new value
-                                          For example, if newXmlFlg == True, the self.requiredAssObject[0] is set to True
+      @ In, flag, InputData.Quantity, the number of nodes to look for
       @ Out, None
     """
-    #if newXmlFlg is not None:
-    #  self.requiredAssObject[0] = newXmlFlg
     self.requiredAssObject[0] = True
     self.requiredAssObject[1][0].append(name)
     self.requiredAssObject[1][1].append(flag)

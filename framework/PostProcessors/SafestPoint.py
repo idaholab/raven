@@ -90,7 +90,7 @@ class SafestPoint(PostProcessor):
     self.surfPointsMatrix = None  # 2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
     self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
     self.outputName = "Probability"
-    self.addAssemblerObject('Distribution','n', True)
+    self.addAssemblerObject('Distribution', InputData.Quantity.one_to_infinity)
     self.addMetaKeys(["ProbabilityWeight"])
     self.printTag = 'POSTPROCESSOR SAFESTPOINT'
 

@@ -112,7 +112,7 @@ class ImportanceRank(PostProcessor):
     self.pivotParameter = None # time-dependent pivot parameter
     self.dynamic        = False # is it time-dependent?
     # assembler objects to be requested
-    self.addAssemblerObject('mvnDistribution', '1', True)
+    self.addAssemblerObject('mvnDistribution', InputData.Quantity.one)
 
   def _handleInput(self, paramInput):
     """

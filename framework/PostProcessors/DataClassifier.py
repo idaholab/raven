@@ -75,7 +75,7 @@ class DataClassifier(PostProcessor):
     self.funcDict   = {}  # Contains the function to be used {'variableName':externalFunctionInstance}
     self.label      = None # ID of the variable which containf the label values
     # assembler objects to be requested
-    self.addAssemblerObject('Function', 'n', True)
+    self.addAssemblerObject('Function', InputData.Quantity.one_to_infinity)
 
   def initialize(self, runInfo, inputs, initDict=None):
     """

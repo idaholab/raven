@@ -92,8 +92,8 @@ class LimitSurface(PostProcessor):
     self.jobHandler        = None             # job handler pointer
     self.transfMethods     = {}               # transformation methods container
     self.crossedLimitSurf  = False            # Limit surface has been crossed?
-    self.addAssemblerObject('ROM','-1', True)
-    self.addAssemblerObject('Function','1')
+    self.addAssemblerObject('ROM', InputData.Quantity.zero_to_one)
+    self.addAssemblerObject('Function', InputData.Quantity.one)
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
 
   def _localWhatDoINeed(self):

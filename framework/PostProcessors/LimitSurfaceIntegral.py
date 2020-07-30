@@ -104,7 +104,7 @@ class LimitSurfaceIntegral(PostProcessor):
     self.computationPrefix = None # output prefix for the storage of the probability and, if requested, bounding error
     self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue'] # expected value calculation
-    self.addAssemblerObject('distribution','-n', newXmlFlg = True) # distributions are optional
+    self.addAssemblerObject('distribution', InputData.Quantity.zero_to_infinity) # distributions are optional
     self.printTag = 'POSTPROCESSOR INTEGRAL' # print tag
 
   def _handleInput(self, paramInput):

@@ -92,7 +92,7 @@ class CrossValidation(PostProcessor):
     self.pivotParameter = None
     self.cvScore        = None
     # assembler objects to be requested
-    self.addAssemblerObject('Metric', 'n', True)
+    self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
     #self.validMetrics = ['mean_absolute_error', 'explained_variance_score', 'r2_score', 'mean_squared_error', 'median_absolute_error']
     # 'median_absolute_error' is removed, the reasons for that are:
     # 1. this metric can not accept multiple ouptuts

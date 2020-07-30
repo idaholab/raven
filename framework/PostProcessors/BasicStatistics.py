@@ -126,7 +126,7 @@ class BasicStatistics(PostProcessor):
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
     self.printTag = 'POSTPROCESSOR BASIC STATISTIC'
-    self.addAssemblerObject('Function','-1', True)
+    self.addAssemblerObject('Function', InputData.Quantity.zero_to_one)
     self.biased = False # biased statistics?
     self.pivotParameter = None # time-dependent statistics pivot parameter
     self.pivotValue = None # time-dependent statistics pivot parameter values
