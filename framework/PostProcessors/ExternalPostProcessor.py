@@ -52,7 +52,7 @@ class ExternalPostProcessor(PostProcessor):
                                         # of the methods the user wants
 
     self.printTag = 'POSTPROCESSOR EXTERNAL FUNCTION'
-    self.requiredAssObject = (True, (['Function'], ['n']))
+    self.addAssemblerObject('Function', 'n')
 
   @classmethod
   def getInputSpecification(cls):

@@ -175,7 +175,8 @@ class DataMining(PostProcessor):
     PostProcessor.__init__(self, messageHandler)
     self.printTag = 'POSTPROCESSOR DATAMINING'
 
-    self.requiredAssObject = (True, (['PreProcessor','Metric'], ['-1','-1']))
+    self.addAssemblerObject('PreProcessor', '-1')
+    self.addAssemblerObject('Metric', '-1')
 
     self.solutionExport = None  ## A data object to hold derived info about the algorithm being performed,
                                 ## e.g., cluster centers or a projection matrix for dimensionality reduction methods

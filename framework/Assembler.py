@@ -185,8 +185,9 @@ class Assembler(MessageHandler.MessageUser):
                                           For example, if newXmlFlg == True, the self.requiredAssObject[0] is set to True
       @ Out, None
     """
-    if newXmlFlg is not None:
-      self.requiredAssObject[0] = newXmlFlg
+    #if newXmlFlg is not None:
+    #  self.requiredAssObject[0] = newXmlFlg
+    self.requiredAssObject[0] = True
     self.requiredAssObject[1][0].append(name)
     self.requiredAssObject[1][1].append(flag)
 
