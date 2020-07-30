@@ -43,6 +43,11 @@ class Assembler(MessageHandler.MessageUser):
     self.name = self.__class__.__name__  # name
     if not hasattr(self, 'assemblerObjects'): # protect against polyinheritance woes
       self.assemblerObjects = {}           # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
+      # requiredAssObject = [check_number, ([name_list], [number_list])]
+      #  where name_list is the tokens required (if check_number is True)
+      #  and number_list is a string list of either the number required
+      #   - number required (if optional) or 'n' if one or more required
+      #   or '-n' if not required.
       self.requiredAssObject = [False, ([], [])]
       self.assemblerDict = {}               # {'class':[['class','type','name',instance]]}}
     # list. first entry boolean flag. True if the XML parser must look for objects;
