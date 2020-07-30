@@ -43,12 +43,12 @@ class Assembler(MessageHandler.MessageUser):
     self.name = self.__class__.__name__  # name
     if not hasattr(self, 'assemblerObjects'): # protect against polyinheritance woes
       self.assemblerObjects = {}           # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-      # requiredAssObject = [check_number, ([name_list], [number_list])]
+      # _requiredAsmbObject = [check_number, ([name_list], [number_list])]
       #  where name_list is the tokens required (if check_number is True)
       #  and number_list is a string list of either the number required
       #   - number required (if optional) or 'n' if one or more required
       #   or '-n' if not required.
-      self.requiredAssObject = [False, ([], [])]
+      self._requiredAsmbObject = [False, ([], [])]
       self.assemblerDict = {}               # {'class':[['class','type','name',instance]]}}
     # list. first entry boolean flag. True if the XML parser must look for objects;
     # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
@@ -97,7 +97,7 @@ class Assembler(MessageHandler.MessageUser):
                                                                          [1], testObjects ->  a dictionary that contains the number of time a token (requested) has been found
     """
     for subNode in subXmlNode:
-      for token in self.requiredAssObject[1][0]:
+      for token in self._requiredAsmbObject[1][0]:
         if subNode.tag == token:
           found[token] = True
           if 'class' not in subNode.attrib.keys():
@@ -130,16 +130,16 @@ class Assembler(MessageHandler.MessageUser):
       self.verbosity = xmlNode.attrib['verbosity'].lower()
     #XXX Once InputData checks numbers of subnodes, everything in this
     # if block can be removed
-    if self.requiredAssObject[0]:
+    if self._requiredAsmbObject[0]:
       testObjects = {}
-      for token in self.requiredAssObject[1][0]:
+      for token in self._requiredAsmbObject[1][0]:
         testObjects[token] = 0
       found = dict.fromkeys(testObjects.keys(),False)
       found, testObjects = self._readAssemblerObjects(xmlNode, found, testObjects)
       for subNode in xmlNode:
         found, testObjects = self._readAssemblerObjects(subNode, found, testObjects)
-      for token in self.requiredAssObject[1][0]:
-        quantity = self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]
+      for token in self._requiredAsmbObject[1][0]:
+        quantity = self._requiredAsmbObject[1][1][self._requiredAsmbObject[1][0].index(token)]
         if not InputData.checkQuantity(quantity, testObjects[token]):
           self.raiseAnError(IOError, 'the object '+token+' has wrong quantity Expected: '+str(quantity)+' Found: '+str(testObjects[token])+ ' in block '+self.name)
 
@@ -154,14 +154,14 @@ class Assembler(MessageHandler.MessageUser):
 
   def addAssemblerObject(self, name, flag):
     """
-      Method to add required assembler objects to the requiredAssObject dictionary.
+      Method to add required assembler objects to the _requiredAsmbObject dictionary.
       @ In, name, string, the node name to search for (e.g. Function, Model)
       @ In, flag, InputData.Quantity, the number of nodes to look for
       @ Out, None
     """
-    self.requiredAssObject[0] = True
-    self.requiredAssObject[1][0].append(name)
-    self.requiredAssObject[1][1].append(flag)
+    self._requiredAsmbObject[0] = True
+    self._requiredAsmbObject[1][0].append(name)
+    self._requiredAsmbObject[1][1].append(flag)
 
   def retrieveObjectFromAssemblerDict(self, objectMainClass, objectName, pop=False):
     """
