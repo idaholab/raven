@@ -754,6 +754,8 @@ class BasicStatistics(PostProcessor):
     needed['expectedValue']['targets'].update(needed['median']['targets'])
     needed['expectedValue']['targets'].update(needed['skewness']['targets'])
     needed['expectedValue']['targets'].update(needed['kurtosis']['targets'])
+    needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['targets'])
+    needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['features'])
     needed['expectedValue']['targets'].update(needed['sharpeRatio']['targets'])
     needed['expectedValue']['targets'].update(needed['sortinoRatio']['targets'])
 
