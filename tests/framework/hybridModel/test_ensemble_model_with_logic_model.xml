@@ -1,0 +1,137 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/hybridModel.logicalModel</name>
+    <author>wangc</author>
+    <created>2020-03-31</created>
+    <classesTested>Models.LogicalModel</classesTested>
+    <description>
+       Example of usage of the Logical Model capability in RAVEN
+       This test is intended to check the functionality of Logical Model
+       with three external models "sum", "minus" and "multiply".
+       A control function "control" is required to select the external
+       model to run based on the values of input variables x and y.
+       If x > 0 and y > 1, the model "sum" will be selected. if x > 0
+       and y is less than or equal 1, the model "multiply" will be selected. In other
+       conditions, the model "minus" will be selected.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>multiple</WorkingDir>
+    <Sequence>mc</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="uni_a">
+      <lowerBound>-1</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+    <Uniform name="uni_b">
+      <lowerBound>0</lowerBound>
+      <upperBound>2</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="sum" name="sum" subType="">
+      <variables>x, y, z</variables>
+    </ExternalModel>
+
+    <ExternalModel ModuleToLoad="minus" name="minus" subType="">
+      <variables>x, y, z</variables>
+    </ExternalModel>
+
+    <ExternalModel ModuleToLoad="multiply" name="multiply" subType="">
+      <variables>x, y, z</variables>
+    </ExternalModel>
+
+    <LogicalModel name="logical" subType="">
+      <Model class="Models" type="ExternalModel">sum</Model>
+      <Model class="Models" type="ExternalModel">minus</Model>
+      <Model class="Models" type="ExternalModel">multiply</Model>
+      <ControlFunction class="Functions" type="External">control</ControlFunction>
+    </LogicalModel>
+    
+    <ExternalModel ModuleToLoad="justSquare" name="justSquare" subType="">
+      <variables>z, sqrtZ</variables>
+    </ExternalModel>
+    
+    <EnsembleModel name="logical_model_ensemble" subType="">
+      <Model class="Models" type="LogicalModel">
+        logical
+        <Input class="DataObjects" type="PointSet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">tagetSet</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ExternalModel">
+          justSquare
+        <Input class="DataObjects" type="PointSet">inputHolder2</Input>
+        <TargetEvaluation class="DataObjects" type="PointSet">tagetSetSqrt</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Functions>
+    <External file="control" name="control">
+      <variables>x, y</variables>
+    </External>
+  </Functions>
+
+  <Samplers>
+    <MonteCarlo name="MonteCarlo">
+      <samplerInit>
+        <limit>5</limit>
+      </samplerInit>
+      <variable name="x">
+        <distribution>uni_a</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>uni_b</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mc">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="EnsembleModel">logical_model_ensemble</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MonteCarlo</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="OutStreams" type="Print">dumpOut</Output>
+    </MultiRun>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dumpOut">
+      <type>csv</type>
+      <source>outSet</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>x, y</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="inputHolder2">
+      <Input>z</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="tagetSet">
+      <Input>x, y</Input>
+      <Output>z</Output>
+    </PointSet>
+    <PointSet name="tagetSetSq">
+      <Input>z</Input>
+      <Output>sqrtZ</Output>
+    </PointSet>
+    <PointSet name="outSet">
+      <Input>x, y</Input>
+      <Output>z,sqrtZ</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
