@@ -138,7 +138,7 @@ class MCMC(AdaptiveSampler):
                            'uniform': Distributions.Uniform(-1.0, 1.0)} # available proposal distributions
     self._acceptDist = Distributions.Uniform(0.0, 1.0) # uniform distribution for accept/rejection purpose
     # assembler objects
-    self.addAssemblerObject('proposal', '-n', True)
+    self.addAssemblerObject('proposal', InputData.Quantity.zero_to_infinity)
 
   def localInputAndChecks(self, xmlNode, paramInput):
     """
