@@ -52,14 +52,14 @@ class BasicStatistics(PostProcessor):
                 'skewness',
                 'kurtosis',
                 'samples',
-                'sharpeRatio',             #financial metric       
-                'sortinoRatio',            #financial metric    
+                'sharpeRatio',             #financial metric
+                'sortinoRatio',            #financial metric
                 'gainLossRatio',           #financial metric
                 'higherPartialVariance',   # Statistic metric not available yet
-                'higherPartialSigma',      # Statistic metric not available yet 
-                'lowerPartialSigma',       # Statistic metric not available yet    
-                'lowerPartialVariance',    # Statistic metric not available yet     
-                'ValueAtRisk',             # Value at risk (alpha) 
+                'higherPartialSigma',      # Statistic metric not available yet
+                'lowerPartialSigma',       # Statistic metric not available yet
+                'lowerPartialVariance',    # Statistic metric not available yet
+                'ValueAtRisk',             # Value at risk (alpha)
                 'ExpectedShortfall'        # conditional value at risk (gammma)
                 ]
   vectorVals = ['sensitivity',
@@ -98,7 +98,7 @@ class BasicStatistics(PostProcessor):
       elif scalar in['ExpectedShortfall','ValueAtRisk']:
         scalarSpecification.addParam("threshold", InputTypes.FloatType)
 
-      
+
       scalarSpecification.addParam("prefix", InputTypes.StringType)
       inputSpecification.addSub(scalarSpecification)
 
@@ -371,7 +371,7 @@ class BasicStatistics(PostProcessor):
           threshold = child.parameterValues['threshold']
           if threshold >1 or threshold <0:
             self.raiseAnError('Threshold in {}, prefix \'{}\' out of range, please use a float in range (0, 1)!'.format(tag, prefix))
-  
+
         self.toDo[tag].append({'targets':set(targets),
                                'prefix':prefix,
                                'threshold':threshold})
@@ -658,7 +658,7 @@ class BasicStatistics(PostProcessor):
       @ In, arrayIn, list/numpy.array, the array of values from which the percentile needs to be estimated
       @ In, pbWeight, list/numpy.array, the reliability weights that correspond to the values in 'array'
       @ Out, sortedWeightsAndPoints, list/numpy.array, with [:,0] as the value of the probability density function at the bin, normalized, and [:,1] is the coresonding edge of the probability density function.
-      @ Out, indexL, index of the lower quantile 
+      @ Out, indexL, index of the lower quantile
     """
 
     idxs                   = np.argsort(np.asarray(list(zip(pbWeight,arrayIn)))[:,1])
@@ -678,14 +678,14 @@ class BasicStatistics(PostProcessor):
     #storage dictionary for skipped metrics
     self.skipped = {}
     #construct a dict of required computations
-    
+
 
     needed = dict((metric,{'targets':set(),'percent':set()}) for metric in self.scalarVals)
 
     needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
 
     needed.update(dict((metric,{'targets':set(),'percent':set(),'threshold':{}}) for metric in ['sortinoRatio','gainLossRatio']))
-    
+
     needed.update(dict((metric,{'targets':set(),'percent':set(),'threshold':[]}) for metric in ['ValueAtRisk', 'ExpectedShortfall']))
 
     for metric, params in self.toDo.items():
@@ -712,7 +712,7 @@ class BasicStatistics(PostProcessor):
           else:
             thd = entry['threshold']
             if thd not in needed[metric]['threshold']:
-              needed[metric]['threshold'].append(thd) 
+              needed[metric]['threshold'].append(thd)
           pass
 
     # variable                     | needs                  | needed for
@@ -932,7 +932,7 @@ class BasicStatistics(PostProcessor):
           if self.pivotParameter in targDa.sizes.keys():
             VaR = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
           else:
-            VaR = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)   
+            VaR = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
           VaRList.append(abs(VaR))
         if self.pivotParameter in targDa.sizes.keys():
           da = xr.DataArray(VaRList,dims=('threshold',self.pivotParameter),coords={'threshold':threshold,self.pivotParameter:self.pivotValue})
@@ -960,11 +960,11 @@ class BasicStatistics(PostProcessor):
             sortedWeightsAndPoints, indexL = [self._computeSortedWeightsAndPoints(group.values,targWeight) for label,group in targDa.groupby(self.pivotParameter)]
             quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
           else:
-            sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(targDa.values,targWeight)  
-          quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)  
+            sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(targDa.values,targWeight)
+          quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
           lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL,0]*sortedWeightsAndPoints[:indexL,1])
           lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
-          Es = lowerPartialE + quantile*(thd -lowerPartialP) 
+          Es = lowerPartialE + quantile*(thd -lowerPartialP)
           CVaRList.append(-Es/(thd))
 
         if self.pivotParameter in targDa.sizes.keys():
@@ -1023,7 +1023,7 @@ class BasicStatistics(PostProcessor):
       relWeight = pbWeights[list(needed[metric]['targets'])]
       orgZeroSet = xr.full_like(meanSet, 0)
       orgMedSet = calculations['median']
-  
+
       zeroTarget = []
       daZero = xr.Dataset()
       medTarget = []
@@ -1037,13 +1037,13 @@ class BasicStatistics(PostProcessor):
           lpsDS = self.__computePower(0.5,lowerPartialVarianceDS)
           incapableZeroTarget = [x for x in zeroTarget if not lpsDS[x].values != 0]
           for target in incapableZeroTarget:
-            needed[metric]['threshold'][target].remove('zero') 
+            needed[metric]['threshold'][target].remove('zero')
           zeroTarget = [x for x in zeroTarget if not lpsDS[x].values == 0]
           if incapableZeroTarget:
             self.raiseAWarning("For metric {} target {}, no lower part data can be found for threshold zero!  Skipping target".format(metric, incapableZeroTarget))
           daZero = self._computeFinanceRatio(meanSet[zeroTarget],lpsDS[zeroTarget])
           daZero = daZero.assign_coords(threshold ='zero')
-          daZero = daZero.expand_dims('threshold')        
+          daZero = daZero.expand_dims('threshold')
         elif entry['threshold'] == 'median':
           medTarget = entry['targets']
           medSet = orgMedSet[list(medTarget)]
@@ -1090,13 +1090,13 @@ class BasicStatistics(PostProcessor):
 
           incapableZeroTarget = [x for x in zeroTarget if not lowerMeanSet[x].values != 0]
           for target in incapableZeroTarget:
-            needed[metric]['threshold'][target].remove('zero') 
+            needed[metric]['threshold'][target].remove('zero')
           zeroTarget = [x for x in zeroTarget if not lowerMeanSet[x].values == 0]
           if incapableZeroTarget:
             self.raiseAWarning("For metric {} target {}, no lower part data can be found for threshold zero!  Skipping target".format(metric,incapableZeroTarget))
           daZero = self._computeFinanceRatio(higherMeanSet[zeroTarget],lowerMeanSet[zeroTarget])
           daZero = daZero.assign_coords(threshold ='zero')
-          daZero = daZero.expand_dims('threshold')  
+          daZero = daZero.expand_dims('threshold')
 
         elif entry['threshold'] == 'median':
           medTarget = entry['targets']
