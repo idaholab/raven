@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<Simulation verbosity="all">
+<Simulation verbosity="silent">
   <TestInfo>
     <name>framework/ROM/TimeSeries/DMD.DMDC</name>
     <author>haoyuwang</author>
-    <created>2020-06-17</created>
+    <created>2020-07-27</created>
     <classesTested>SupervisedLearning.DynamicModeDecomposition.DynamicModeDecompositionControl</classesTested>
     <description>
        This test is aimed to check the mechanics of the DMDC ROM using the standard SVD-based
@@ -16,51 +16,44 @@
       <revision author="alfoa" date="2018-10-01">This test is a requirement test now.</revision>
       <revision author="talbpaul" date="2019-01-09">moving from ROM-files to ROM-dataobjects</revision>
 	  <revision author="haoyuwang" date="2020-06-17">Changing the DMD to DMDC test</revision>
+	  <revision author="haoyuwang" date="2020-07-27">Adding C matrix Calculation and return final X vector</revision>
     </revisions>
     <requirements>unknown</requirements>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>DMDC</WorkingDir>
+    <WorkingDir>DMDC_RefGov</WorkingDir>
     <Sequence>
              readTrainData,
-             HW_WriteTrainData,
 			 DMDCTrain,
              pickleRom,
              stats,
-			 readEvalData,
-             runDMDC,
              writeOut
     </Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
-    <!--  we load a synthesized data with 1 time, 2 actuation(u), 19 state(x) and 2 output(y) -->
+    <!--  we load a synthesized data with 1 time, 1 actuation(u), 3 state(x) and 2 output(y) -->
 	<!-- Note: Adjacent rows should have constant time interval for DMDC -->
-    <Input name="TrainDataFile">../Data_Dual_Sine_2u_19x_400Train.csv</Input>
-    <Input name="EvalDataFile">../Data_Dual_Sine_2u_19x_100Test.csv</Input>
+    <Input name="TrainDataFile">../SES_22_TUYX_Selected.csv</Input>
     <Input name="ROMpk" type="">ROMpk</Input>
   </Files>
 
-  <Samplers>
-    <MonteCarlo name="mcSampler">
-      <samplerInit>
-        <limit>1</limit>
-        <initialSeed>20021986</initialSeed>
-      </samplerInit>
-    </MonteCarlo>
-  </Samplers>
-
   <Models>
     <ROM name="DMDrom" subType="DMDC">
-      <Target>Time</Target>
-      <Features>u1,u2,x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16,x17,x18,x19</Features>
-      <Actuators>u1,u2</Actuators>
+	  <Target>Time,y1,y2</Target>
+	  <!-- If Target only contains Time, Calculate A and B only -->
+	  <!-- If Target contains y(s) beside Time, Calculate A, B and C -->
+      <Features>u1,x1,x2,x3</Features>
+	  <!-- Features include all the u(s) and x(s) -->
+      <Actuators>u1</Actuators>
 	  <pivotParameter>Time</pivotParameter>
       
       <rankSVD>-1</rankSVD>
-	  <SubtractNormUXY>False</SubtractNormUXY>
+	  <!-- rankSVD: -1 = No truncation; 0 = optimized truncation; pos. int = truncation level -->
+	  <SubtractNormUXY>True</SubtractNormUXY>
+	  <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
     </ROM>
   </Models>
 
@@ -68,10 +61,6 @@
     <IOStep name="readTrainData">
       <Input class="Files" type="">TrainDataFile</Input>
       <Output class="DataObjects" type="PointSet">TrainData</Output>
-    </IOStep>
-	<IOStep name="HW_WriteTrainData">
-      <Input class="DataObjects" type="PointSet">TrainData</Input>
-	  <Output class="OutStreams" type="Print">HW_WriteTrainDataToFile</Output>
     </IOStep>
 	<RomTrainer name="DMDCTrain">
       <Input class="DataObjects" type="PointSet">TrainData</Input>
@@ -85,51 +74,23 @@
       <Input class="Models" type="ROM">DMDrom</Input>
       <Output class="DataObjects" type="DataSet">rom_stats</Output>
     </IOStep>
-    <IOStep name="readEvalData">
-      <Input class="Files" type="">EvalDataFile</Input>
-      <Output class="DataObjects" type="PointSet">EvalData</Output>
-    </IOStep>
-    <MultiRun name="runDMDC">
-      <Input class="DataObjects" type="PointSet">EvalData</Input>
-      <Model class="Models" type="ROM">DMDrom</Model>
-      <Sampler class="Samplers" type="MonteCarlo">mcSampler</Sampler>
-      <Output class="DataObjects" type="PointSet">synDataDMDC</Output>
-    </MultiRun>
     <IOStep name="writeOut" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">synDataDMDC</Input>
       <Input class="DataObjects" type="DataSet">rom_stats</Input>
-      <Output class="OutStreams" type="Print">outputDMDC</Output>
-      <Output class="OutStreams" type="Print">ROMCoefficientsXML</Output>
+      <Output class="OutStreams" type="Print">DMDcCxCoeff</Output>
     </IOStep>
   </Steps>
 
   <OutStreams>
-    <Print name="HW_WriteTrainDataToFile">
-      <type>csv</type>
-      <source>TrainData</source>
-    </Print>
-    <Print name="ROMCoefficientsXML">
+    <Print name="DMDcCxCoeff">
       <type>csv</type>
       <source>rom_stats</source>
     </Print>	
-	<Print name="outputDMDC" dir="outputDMD">
-      <type>csv</type>
-      <source>synDataDMDC</source>
-    </Print>
   </OutStreams>
 
   <DataObjects>
     <PointSet name="TrainData">
-      <Input>u1,u2</Input>
-      <Output>x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16,x17,x18,x19,Time</Output>
-    </PointSet>
-    <PointSet name="EvalData">
-      <Input>u1,u2</Input>
-      <Output>x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16,x17,x18,x19</Output>
-    </PointSet>	
-	<PointSet name="synDataDMDC">
-      <Input>u1,u2</Input>
-      <Output>x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16,x17,x18,x19</Output>
+      <Input>Time</Input>
+      <Output>u1,y1,y2,x1,x2,x3</Output>
     </PointSet>
     <DataSet name="rom_stats"/>
   </DataObjects>

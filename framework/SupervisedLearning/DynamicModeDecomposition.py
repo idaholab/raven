@@ -26,6 +26,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules------------------------------------------------------------------------------------
 import sys
 import numpy as np
+import scipy
 from scipy import spatial
 import matplotlib.pyplot as plt
 #External Modules End--------------------------------------------------------------------------------
@@ -106,7 +107,7 @@ class DynamicModeDecomposition(supervisedLearning):
     # print(self.muAndSigmaFeatures)
 
   #######
-  def __getTimeScale(self,dmd=True):
+  def _getTimeScale(self,dmd=True):
     # print("__getTimeScale")
     """
       Get the ts of the dmd (if dmd = True) or training (if dmd = False) reconstructed time scale.
@@ -114,7 +115,7 @@ class DynamicModeDecomposition(supervisedLearning):
       @ Out, timeScale, numpy.array, the dmd or training reconstructed time scale
     """
     timeScaleInfo = self.timeScales['dmd'] if dmd else self.timeScales['training']
-    timeScale = np.arange(timeScaleInfo['t0'], timeScaleInfo['intervals'] + timeScaleInfo['dt'], timeScaleInfo['dt'])
+    timeScale = np.arange(timeScaleInfo['t0'], timeScaleInfo['t0'] + timeScaleInfo['intervals'] * timeScaleInfo['dt'], timeScaleInfo['dt'])
     return timeScale
 
   def __getTimeEvolution(self, target):
@@ -127,7 +128,7 @@ class DynamicModeDecomposition(supervisedLearning):
     omega = np.log(self._eigs[target]) / self.timeScales['training']['dt']
     # print(omega)
 
-    van = np.exp(np.multiply(*np.meshgrid(omega, self.__getTimeScale())))
+    van = np.exp(np.multiply(*np.meshgrid(omega, self._getTimeScale())))
     # print(*np.meshgrid(omega, self.__getTimeScale()))
     # print(np.multiply(*np.meshgrid(omega, self.__getTimeScale())))
     # print(np.exp(np.multiply(*np.meshgrid(omega, self.__getTimeScale()))))
@@ -310,7 +311,7 @@ class DynamicModeDecomposition(supervisedLearning):
     if "timeScale" in what:
       writeTo.addScalar(target,"timeScale",' '.join(['%.6e' % elm for elm in self.pivotValues.ravel()]))
     if "dmdTimeScale" in what:
-      writeTo.addScalar(target,"dmdTimeScale",' '.join(['%.6e' % elm for elm in self.__getTimeScale()]))
+      writeTo.addScalar(target,"dmdTimeScale",' '.join(['%.6e' % elm for elm in self._getTimeScale()]))
     if "eigs" in what:
       eigsReal = " ".join(['%.6e' % self._eigs[target][indx].real for indx in
                        range(len(self._eigs[target]))])
@@ -376,7 +377,7 @@ class DynamicModeDecomposition(supervisedLearning):
     return self.dmdParams
 
 
-class DynamicModeDecompositionControl(supervisedLearning):
+class DynamicModeDecompositionControl(DynamicModeDecomposition):
   """
     This surrogate is aimed to construct a "time-dep" surrogate based on
     Dynamic Mode Decomposition with conmethod.
@@ -389,7 +390,7 @@ class DynamicModeDecompositionControl(supervisedLearning):
     @author: Haoyu Wang, Argonne National Laboratory
 
   """
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, messageHandler, **kwargs):
     # print("__init__")
     """
       DMD constructor
@@ -397,29 +398,40 @@ class DynamicModeDecompositionControl(supervisedLearning):
                            and printing messages
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
     """
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
-    self.availDmdAlgorithms          = ['dmd','hodmd']                      # available dmd types: basic dmd and high order dmd
+    # supervisedLearning.__init__(self,messageHandler,**kwargs)
+    DynamicModeDecomposition.__init__(self,messageHandler,**kwargs)
+    super().__init__(messageHandler, **kwargs)
+    self.availDmdAlgorithms = ['dmd', 'hodmd']  # available dmd types: basic dmd and high order dmd
     self.dmdParams                   = {}                                   # dmd settings container
     self.printTag                    = 'DMDC'                               # print tag
+    self.pivotParameterID = kwargs.get("pivotParameter", "time")  # pivot parameter
     self.pivotParameterID = kwargs.get("pivotParameter", "time")  # pivot parameter
     # self.pivotParameterID = self.pivotParameterID.split(',')  # pivot parameter
     self.actuatorsID = kwargs.get("Actuators", None)
     self.actuatorsID = self.actuatorsID.split(',')
 
     self._dynamicHandling            = True                                 # This ROM is able to manage the time-series on its own. No need for special treatment outside
-    self.dmdParams['rankSVD'       ] = kwargs.get('rankSVD',-1)           # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
-    self.dmdParams['dmdType'       ] = kwargs.get('dmdType','dmd')          # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
+    self.dmdParams['rankSVD'        ] = kwargs.get('rankSVD',-1)            # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
+    self.dmdParams['dmdType'        ] = kwargs.get('dmdType','dmd')         # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
+    self.dmdParams['SubtractNormUXY'] = kwargs.get('SubtractNormUXY',False) # whether to subtract the norminal(initial) value from U, X and Y signal for calculation
     # variables filled up in the training stages
     # self._amplitudes                 = {}                                   # {'target1': vector of amplitudes,'target2':vector of amplitudes, etc.}
     # self._eigs                       = {}                                   # {'target1': vector of eigenvalues,'target2':vector of eigenvalues, etc.}
     # self._modes                      = {}                                   # {'target1': matrix of dynamic modes,'target2':matrix of dynamic modes, etc.}
     self.__Atilde                    = {}                                   # {'target1': matrix of lowrank operator from the SVD,'target2':matrix of lowrank operator from the SVD, etc.}
     self.__Btilde                    = {}
+    self.__Ctilde                    = {}
     self.pivotVals                   = []                                   # pivot values (e.g. Time), the variable names are in self.pivotParameterID
     self.actuatorVals                = []                                   # Actuator values (e.g. U), the variable names are in self.ActuatorID
     self.stateID                     = []                                   # state variables names (e.g. X)
     self.stateVals                   = []                                   # state values (e.g. X)
+    self.outputID                    = []                                   # output variables names (e.g. Y)
+    self.outputVals                  = []                                   # output values (e.g. Y)
     self.timeScales                  = {}                                   # time-scales (training and dmd). {'training' and 'dmd':{t0:float,'dt':float,'intervals':int}}
+    self.UNorm                       = []
+    self.XNorm                       = []
+    self.YNorm                       = []
+    self.XLast                       = []
 
     # some checks
     if self.dmdParams['dmdType'] not in self.availDmdAlgorithms:
@@ -428,26 +440,26 @@ class DynamicModeDecompositionControl(supervisedLearning):
     # print(self.pivotParameterID)
     # print(self.actuatorsID)
 
-  def __returnInitialParametersLocal__(self):
-    # print("__returnInitialParametersLocal__")
-    """
-      This method returns the initial parameters of the SM
-      @ In, None
-      @ Out, self.dmdParams, dict, the dict of the SM settings
-    """
-    return self.dmdParams
+  # def __returnInitialParametersLocal__(self):
+  #   # print("__returnInitialParametersLocal__")
+  #   """
+  #     This method returns the initial parameters of the SM
+  #     @ In, None
+  #     @ Out, self.dmdParams, dict, the dict of the SM settings
+  #   """
+  #   return self.dmdParams
 
-  def _localNormalizeData(self,values,names,feat):
-    # print("_localNormalizeData")
-    """
-      Overwrites default normalization procedure.
-      @ In, values, unused
-      @ In, names, unused
-      @ In, feat, feature to normalize
-      @ Out, None
-    """
-    self.muAndSigmaFeatures[feat] = (0.0,1.0)
-    # print(self.muAndSigmaFeatures)
+  # def _localNormalizeData(self,values,names,feat):
+  #   # print("_localNormalizeData")
+  #   """
+  #     Overwrites default normalization procedure.
+  #     @ In, values, unused
+  #     @ In, names, unused
+  #     @ In, feat, feature to normalize
+  #     @ Out, None
+  #   """
+  #   self.muAndSigmaFeatures[feat] = (0.0,1.0)
+  #   # print(self.muAndSigmaFeatures)
 
   def __trainLocal__(self,featureVals,targetVals):
     # print("__trainLocal__")
@@ -461,38 +473,78 @@ class DynamicModeDecompositionControl(supervisedLearning):
       actuatorIndex   = self.features.index(actuator)
       self.actuatorVals.append(featureVals[:,actuatorIndex])
     self.actuatorVals = np.asarray(self.actuatorVals).T # self.ActuatorVals is Num_Entries*2 array, the snapshots of [u1, u2]
+    # print(self.UNorm)
 
     # print(self.actuatorsID)
     # print(np.shape(self.actuatorVals))
     # print(a)
 
-    ### Extract the time marks (discrete, in time step marks) ###
+    ### Extract the time marks "self.pivotVals" (discrete, in time step marks) ###
     pivotParamIndex = self.target.index(self.pivotParameterID)
-    # print(pivotParamIndex) #0
-    # print(np.shape(targetVals))
+    # print(self.pivotParameterID) # Time
+    # print(pivotParamIndex) # 0
+    # print(np.shape(targetVals)) # (8639,3)
     # print(targetVals)
     self.pivotVals = targetVals[:, pivotParamIndex]
     ts = len(self.pivotVals)
-    # print(self.pivotVals)
+    # print(ts)
     # print(a)
 
+    ### Extract the Output Values (Output, Y)
+    # print(type(self.target))
+    for VarID in self.target: # self.target = ['Time', 'y1, 'y2']
+      if VarID not in self.pivotParameterID:
+        self.outputID.append(VarID)
+    # print(self.outputID) # ['y1', 'y2']
+    for VarID in self.outputID:
+      VarIndex = self.target.index(VarID)
+      # print(VarID, VarIndex)
+      self.outputVals.append(targetVals[:, VarIndex])
+    self.outputVals = np.asarray(self.outputVals).T # self.outputVals is Num_Entries*2 array, the snapshots of [y1, y2]
+    # print(np.shape(self.outputVals))
+
     ### Extract the State Values (State, X) ###
-    for VarID in self.features: # features = ['u1', 'u2', 'x1', 'x2', ..., 'x19']
+    for VarID in self.features: # self.features = ['u1', 'u2', 'x1', 'x2', ..., 'x19']
       if VarID not in self.actuatorsID:
         self.stateID.append(VarID)
     # print(self.stateID) # ['x1', ..., 'x19']
-
     for VarID in self.stateID:
       VarIndex = self.features.index(VarID)
       # print(VarID, VarIndex)
       self.stateVals.append(featureVals[:, VarIndex])
     self.stateVals = np.asarray(self.stateVals).T  # self.stateVals is Num_Entries*19 array, the snapshots of [x1, x2, ..., x19]
+    self.XLast = self.stateVals[-1,:]
+    # print(self.XNorm)
+    # print(self.XLast)
 
-    X1 = self.stateVals[:-1,:].T      # 19*(Num_Entries-1) array, snapshot of X[0:Num_Entries-1]
-    X2 = self.stateVals[1: ,:].T      # 19*(Num_Entries-1) array, snapshot of X[1:Num_Entries]
-    U  = self.actuatorVals[:-1,:].T   # 2* (Num_Entries-1) array, snapshot of U[0:Num_Entries-1]
+    if self.dmdParams['SubtractNormUXY']: # if to subtract the norminal values
+      self.UNorm = self.actuatorVals[0, :]
+      self.XNorm = self.stateVals[0,:]
+      X1 = (self.stateVals[:-1, :] - self.XNorm).T  # 19*(Num_Entries-1) array, snapshot of X[0:Num_Entries-1]
+      X2 = (self.stateVals[1:, :] - self.XNorm).T  # 19*(Num_Entries-1) array, snapshot of X[1:Num_Entries]
+      U = (self.actuatorVals[:-1, :] - self.UNorm).T  # 2* (Num_Entries-1) array, snapshot of U[0:Num_Entries-1]
+
+      if len(self.outputID) > 0:
+        self.YNorm = self.outputVals[0, :]
+        # print(self.YNorm)
+        Y1 = (self.outputVals[:-1, :] - self.YNorm).T
+    else: # when not to subtract the norminal values
+      X1 = self.stateVals[:-1, :].T  # 19*(Num_Entries-1) array, snapshot of X[0:Num_Entries-1]
+      X2 = self.stateVals[1:, :].T  # 19*(Num_Entries-1) array, snapshot of X[1:Num_Entries]
+      U =  self.actuatorVals[:-1, :].T  # 2* (Num_Entries-1) array, snapshot of U[0:Num_Entries-1]
+      if len(self.outputID) > 0:
+        Y1 = self.outputVals[:-1, :].T
+
+
+    # print(X1[:,0:4])
+    # print(np.shape(X1))
+    # print(U[:,0:4])
 
     self.__Atilde, self.__Btilde = self.fun_DMDc(X1, X2, U, self.dmdParams['rankSVD'])
+    if len(self.outputID) > 0: # if Y is not empty
+      # print(Y1[:,0:4])
+      # print(np.shape(Y1)) # [2,8638]
+      self.__Ctilde = Y1.dot(scipy.linalg.pinv2(X1))
 
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
     self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotVals[0], 'intervals': ts, 'dt': self.pivotVals[1]-self.pivotVals[0]})
@@ -529,8 +581,8 @@ class DynamicModeDecompositionControl(supervisedLearning):
     if skip is None: # skip =  None
       skip = []
 
-    what = ['dmdType','rankSVD','acturators','acturatorsCount','states','statesCount',
-            'Atilde','Btilde','dmdTimeScale']
+    what = ['dmdType','rankSVD','acturators','acturatorsCount','states','statesCount','outputs','outputsCount',
+            'Atilde','Btilde','Ctilde','UNorm','XNorm','YNorm','XLast','dmdTimeScale']
     # print(what) # ['dmdType', 'rankSVD', 'features', 'acturators', 'Atilde', 'Btilde', 'Ctilde', 'dmdTimeScale']
 
     if targets is None: # targets = None
@@ -561,54 +613,90 @@ class DynamicModeDecompositionControl(supervisedLearning):
       writeTo.addScalar(target, "acturators", ' '.join(self.actuatorsID))
     if "acturatorsCount" in what:
       writeTo.addScalar(target, "acturatorsCount", len(self.actuatorsID))
+    if "UNorm" in what and self.dmdParams['SubtractNormUXY']:
+      writeTo.addScalar(target, "UNorm", "; ".join('%.16e' % self.UNorm[col] for col in range(len(self.UNorm))))
     if "states" in what:
       writeTo.addScalar(target, "states", ' '.join(self.stateID))
     if "statesCount" in what:
       writeTo.addScalar(target, "statesCount", len(self.stateID))
+    if "XNorm" in what and self.dmdParams['SubtractNormUXY']:
+      writeTo.addScalar(target, "XNorm", "; ".join('%.16e' % self.XNorm[col] for col in range(len(self.XNorm))))
+
+    if len(self.outputID) > 0:
+      if "XLast" in what:
+        writeTo.addScalar(target, "XLast", "; ".join('%.16e' % self.XLast[col] for col in range(len(self.XLast))))
+      if "outputs" in what:
+        writeTo.addScalar(target, "outputs", ' '.join(self.outputID))
+      if "outputsCount" in what:
+        writeTo.addScalar(target, "outputsCount", len(self.outputID))
+      if "YNorm" in what and self.dmdParams['SubtractNormUXY']:
+        writeTo.addScalar(target, "YNorm", "; ".join('%.16e' % self.YNorm[col] for col in range(len(self.YNorm))))
+
     if "dmdTimeScale" in what:
-      writeTo.addScalar(target,"dmdTimeScale",' '.join(['%.3d' % elm for elm in self.__getTimeScale()]))
+      writeTo.addScalar(target,"dmdTimeScale",' '.join(['%.3d' % elm for elm in self._getTimeScale()]))
 
     if "Atilde" in what:
       # print(self.__Atilde)
       # write the real part of Atilde
       AtildeReal = "; ".join(
-        " ".join('%.6e' % self.__Atilde[row,col].real for col in range(len(self.__Atilde[0])))
+        " ".join('%.16e' % self.__Atilde[row,col].real for col in range(len(self.__Atilde[0])))
         for row in range(len(self.__Atilde)))
       writeTo.addScalar("Atilde","real",AtildeReal,root=targNode)
       # write the imaginary part of Atilde
       AtildeImage = "; ".join(
-        " ".join('%.6e' % self.__Atilde[row,col].imag for col in range(len(self.__Atilde[0])))
+        " ".join('%.16e' % self.__Atilde[row,col].imag for col in range(len(self.__Atilde[0])))
         for row in range(len(self.__Atilde)))
       writeTo.addScalar("Atilde","imaginary",AtildeImage,root=targNode)
       writeTo.addScalar("Atilde","matrixShape",",".join(str(x) for x in np.shape(self.__Atilde)),root=targNode)
-      writeTo.addScalar("Atilde","formatNote","Matrix rows are separated by cartrige return ';'",root=targNode)
+      writeTo.addScalar("Atilde","formatNote","Matrix rows are separated by semicolon ';'",root=targNode)
 
 
     if "Btilde" in what:
       # print(self.__Btilde)
       # write the real part of Btilde
       BtildeReal = "; ".join(
-        " ".join('%.6e' % self.__Btilde[row,col].real for col in range(len(self.__Btilde[0])))
+        " ".join('%.16e' % self.__Btilde[row,col].real for col in range(len(self.__Btilde[0])))
         for row in range(len(self.__Btilde)))
       writeTo.addScalar("Btilde","real",BtildeReal,root=targNode)
       # write the imaginary part of Btilde
       BtildeImage = "; ".join(
-        " ".join('%.6e' % self.__Btilde[row,col].imag for col in range(len(self.__Btilde[0])))
+        " ".join('%.16e' % self.__Btilde[row,col].imag for col in range(len(self.__Btilde[0])))
         for row in range(len(self.__Btilde)))
       writeTo.addScalar("Btilde","imaginary",BtildeImage,root=targNode)
       writeTo.addScalar("Btilde","matrixShape",",".join(str(x) for x in np.shape(self.__Btilde)),root=targNode)
       writeTo.addScalar("Btilde","formatNote","Matrix rows are separated by semicolon ';'",root=targNode)
 
-  def __getTimeScale(self,dmd=True):
-    # print("__getTimeScale")
-    """
-      Get the ts of the dmd (if dmd = True) or training (if dmd = False) reconstructed time scale.
-      @ In, dmd, bool, optional, True if dmd time scale needs to be returned, othewise training one
-      @ Out, timeScale, numpy.array, the dmd or training reconstructed time scale
-    """
-    timeScaleInfo = self.timeScales['dmd'] if dmd else self.timeScales['training']
-    timeScale = np.arange(timeScaleInfo['t0'], timeScaleInfo['intervals'] + timeScaleInfo['dt'], timeScaleInfo['dt'])
-    return timeScale
+    if "Ctilde" in what and len(self.outputID) > 0:
+      # print(self.__Ctilde)
+      # write the real part of Ctilde
+      CtildeReal = "; ".join(
+        " ".join('%.16e' % self.__Ctilde[row,col].real for col in range(len(self.__Ctilde[0])))
+        for row in range(len(self.__Ctilde)))
+      writeTo.addScalar("Ctilde","real",CtildeReal,root=targNode)
+      # write the imaginary part of Btilde
+      CtildeImage = "; ".join(
+        " ".join('%.16e' % self.__Ctilde[row,col].imag for col in range(len(self.__Ctilde[0])))
+        for row in range(len(self.__Ctilde)))
+      writeTo.addScalar("Ctilde","imaginary",CtildeImage,root=targNode)
+      writeTo.addScalar("Ctilde","matrixShape",",".join(str(x) for x in np.shape(self.__Ctilde)),root=targNode)
+      writeTo.addScalar("Ctilde","formatNote","Matrix rows are separated by semicolon ';'",root=targNode)
+
+    # if "UNorm" in what:
+    #   print(np.shape(self.UNorm))
+    #   Unorm = "; ".join('%.16e' % self.UNorm[col] for col in range(len(self.UNorm)))
+    #   print(Unorm)
+    #   writeTo.addScalar(target, "Unorm", Unorm, root=targNode)
+
+  # def __getTimeScale(self,dmd=True):
+  #   # print("__getTimeScale")
+  #   """
+  #     Get the ts of the dmd (if dmd = True) or training (if dmd = False) reconstructed time scale.
+  #     @ In, dmd, bool, optional, True if dmd time scale needs to be returned, othewise training one
+  #     @ Out, timeScale, numpy.array, the dmd or training reconstructed time scale
+  #   """
+  #   timeScaleInfo = self.timeScales['dmd'] if dmd else self.timeScales['training']
+  #   timeScale = np.arange(timeScaleInfo['t0'], timeScaleInfo['intervals'] + timeScaleInfo['dt'], timeScaleInfo['dt'])
+  #   return timeScale
 
   #######
   def __evaluateLocal__(self,featureVals):
@@ -653,52 +741,6 @@ class DynamicModeDecompositionControl(supervisedLearning):
 
     return returnEvaluation
 
-
-  #######
-  def __setstate__(self,state):
-    # print("__setstate__")
-    """
-      Initializes the DMD with the data contained in state
-      @ In, state, dict, it contains all the information needed by the ROM to be initialized
-      @ Out, None
-    """
-    self.__dict__.update(state)
-    self.KDTreeFinder = spatial.KDTree(self.featureVals)
-
-  def __confidenceLocal__(self,featureVals):
-    # print("__confidenceLocal__")
-    """
-      The confidence associate with a set of requested evaluations
-      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
-      @ Out, None
-    """
-    pass
-
-  def __resetLocal__(self,featureVals):
-    # print("__resetLocal__")
-    """
-      After this method the ROM should be described only by the initial parameter settings
-      @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data (training data)
-      @ Out, None
-    """
-    self.amITrained   = False
-    self._amplitudes  = {}
-    self._eigs        = {}
-    self._modes       = {}
-    self.__Atilde     = {}
-    self.pivotValues  = None
-    self.KDTreeFinder = None
-    self.featureVals  = None
-
-  def __returnCurrentSettingLocal__(self):
-    # print("__returnCurrentSettingLocal__")
-    """
-      This method is used to pass the set of parameters of the ROM that can change during simulation
-      @ In, None
-      @ Out, self.dmdParams, dict, the dict of the SM settings
-    """
-    return self.dmdParams
-
   def fun_DMDc(self, X1, X2, U, rankSVD):
     # Input dimensions:
     # X1, X2: both [n*L] matrices, n-dimension state vectors by L entries
@@ -739,3 +781,54 @@ class DynamicModeDecompositionControl(supervisedLearning):
     # A_id: [n*n]. Estimated A matrix <class 'numpy.ndarray'>
     # B_id: [n*m]. Estimated B matrix <class 'numpy.ndarray'>
     return A_id, B_id
+
+  ##############################################################################
+  # Below are the part #########################################################
+  # not called by "class DynamicModeDecomposition(supervisedLearning)"  ########
+  # unchanged from "class DynamicModeDecomposition(supervisedLearning)" ########
+  ##############################################################################
+
+  # def __setstate__(self,state):
+  #   # print("__setstate__")
+  #   """
+  #     Initializes the DMD with the data contained in state
+  #     @ In, state, dict, it contains all the information needed by the ROM to be initialized
+  #     @ Out, None
+  #   """
+  #   self.__dict__.update(state)
+  #   self.KDTreeFinder = spatial.KDTree(self.featureVals)
+
+  # def __confidenceLocal__(self,featureVals):
+  #   # print("__confidenceLocal__")
+  #   """
+  #     The confidence associate with a set of requested evaluations
+  #     @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
+  #     @ Out, None
+  #   """
+  #   pass
+
+  # def __resetLocal__(self,featureVals):
+  #   # print("__resetLocal__")
+  #   """
+  #     After this method the ROM should be described only by the initial parameter settings
+  #     @ In, featureVals, numpy.ndarray, shape= (n_samples, n_dimensions), an array of input data (training data)
+  #     @ Out, None
+  #   """
+  #   self.amITrained   = False
+  #   self._amplitudes  = {}
+  #   self._eigs        = {}
+  #   self._modes       = {}
+  #   self.__Atilde     = {}
+  #   self.pivotValues  = None
+  #   self.KDTreeFinder = None
+  #   self.featureVals  = None
+
+  # def __returnCurrentSettingLocal__(self):
+  #   # print("__returnCurrentSettingLocal__")
+  #   """
+  #     This method is used to pass the set of parameters of the ROM that can change during simulation
+  #     @ In, None
+  #     @ Out, self.dmdParams, dict, the dict of the SM settings
+  #   """
+  #   return self.dmdParams
+
