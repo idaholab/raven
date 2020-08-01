@@ -94,9 +94,6 @@ echo Making ...
 PYTHON_COMMAND=${PYTHON_COMMAND:=python}
 
 CROW_DIR=${CROW_DIR:=$RAVEN_BUILD_DIR/crow}
-if test ! -e $CROW_DIR/setup.py; then
-    CROW_DIR=$RAVEN_BUILD_DIR/../crow
-fi
 
 unset CXX CC
 
