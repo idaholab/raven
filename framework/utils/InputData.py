@@ -397,13 +397,10 @@ class ParameterInput(object):
       subs = self.subs
     # read in subnodes
     subNames = set()
-    for child in node:
-      print('cchild',child)
-      
+    for child in node:      
       childName = child.tag
       subsSet = self._subDict.get(childName,set())
       foundSubs = 0
-      print(subsSet)
       for sub in subsSet:
         if sub._checkCanRead is None:
           subInstance = sub()

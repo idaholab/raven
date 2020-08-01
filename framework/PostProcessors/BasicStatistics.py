@@ -103,7 +103,9 @@ class BasicStatistics(PostProcessor):
         #percent is a string type because otherwise we can't tell 95.0 from 95
         # which matters because the number is used in output.
         scalarSpecification.addParam("percent", InputTypes.StringListType)
-    
+      scalarSpecification.addParam("prefix", InputTypes.StringType)
+      inputSpecification.addSub(scalarSpecification)
+
     for teal in cls.tealVals:
       tealSpecification = InputData.parameterInputFactory(teal, contentType=InputTypes.StringListType)
       if teal in['sortinoRatio','gainLossRatio']:
@@ -318,7 +320,6 @@ class BasicStatistics(PostProcessor):
       @ Out, None
     """
     paramInput = self.getInputSpecification()()
-    print('paramInput',paramInput,xmlNode)
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -388,7 +389,11 @@ class BasicStatistics(PostProcessor):
           self.toDo[tag].append({'targets':set(targets),
                                 'prefix':prefix,
                                 'threshold':threshold})
-
+        else:
+          if tag not in self.toDo.keys():
+            self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
+          self.toDo[tag].append({'targets':set(child.value),
+                               'prefix':prefix})
       elif tag in self.scalarVals:
         if tag not in self.toDo.keys():
           self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
@@ -655,17 +660,19 @@ class BasicStatistics(PostProcessor):
       result = sortedWeightsAndPoints[indexL,1]
     return result
 
-  def _computeSortedWeightsAndPoints(self,arrayIn,pbWeight):
+  def _computeSortedWeightsAndPoints(self,arrayIn,pbWeight,percent):
     """
       Method to compute the sorted weights and points
       @ In, arrayIn, list/numpy.array, the array of values from which the percentile needs to be estimated
       @ In, pbWeight, list/numpy.array, the reliability weights that correspond to the values in 'array'
+      @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
       @ Out, sortedWeightsAndPoints, list/numpy.array, with [:,0] as the value of the probability density function at the bin, normalized, and [:,1] is the coresonding edge of the probability density function.
       @ Out, indexL, index of the lower quantile
     """
 
     idxs                   = np.argsort(np.asarray(list(zip(pbWeight,arrayIn)))[:,1])
     sortedWeightsAndPoints = np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs])))
+    weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
     indexL = utils.first(np.asarray(weightsCDF >= percent).nonzero())[0]
     return sortedWeightsAndPoints, indexL
 
@@ -683,7 +690,7 @@ class BasicStatistics(PostProcessor):
     #construct a dict of required computations
 
 
-    needed = dict((metric,{'targets':set(),'percent':set()}) for metric in self.scalarVals)
+    needed = dict((metric,{'targets':set(),'percent':set()}) for metric in self.scalarVals + self.tealVals)
 
     needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
     
@@ -970,10 +977,10 @@ class BasicStatistics(PostProcessor):
         CVaRList = []
         for thd in threshold:
           if self.pivotParameter in targDa.sizes.keys():
-            sortedWeightsAndPoints, indexL = [self._computeSortedWeightsAndPoints(group.values,targWeight) for label,group in targDa.groupby(self.pivotParameter)]
+            sortedWeightsAndPoints, indexL = [self._computeSortedWeightsAndPoints(group.values,targWeight,thd) for label,group in targDa.groupby(self.pivotParameter)]
             quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=thd) for label,group in targDa.groupby(self.pivotParameter)]
           else:
-            sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(targDa.values,targWeight)
+            sortedWeightsAndPoints, indexL = self._computeSortedWeightsAndPoints(targDa.values,targWeight,thd)
           quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=thd)
           lowerPartialE = np.sum(sortedWeightsAndPoints[:indexL,0]*sortedWeightsAndPoints[:indexL,1])
           lowerPartialP = np.sum(sortedWeightsAndPoints[:indexL,0])
@@ -1464,11 +1471,14 @@ class BasicStatistics(PostProcessor):
                 outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'percent':percentVal}))
             elif metric in self.tealVals:
               varName = prefix + '_' + target
-              thresholdVal = targetDict['threshold']
-              try:
-                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':thresholdVal}))
-              except KeyError:
-                outputDict[varName] = np.nan
+              if 'threshold' in targetDict.keys():
+                try:
+                  outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'threshold':targetDict['threshold']}))
+                except KeyError:
+                  outputDict[varName] = np.nan
+              else:
+                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
+              steMetric = metric + '_ste'
             else:
               #check if it was skipped for some reason
               skip = self.skipped.get(metric, None)
