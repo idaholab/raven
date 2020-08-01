@@ -51,8 +51,18 @@ class BasicStatistics(PostProcessor):
                 'variationCoefficient',
                 'skewness',
                 'kurtosis',
-                'samples',
-                'sharpeRatio',             #financial metric
+                'samples'
+                # 'sharpeRatio',             #financial metric
+                # 'sortinoRatio',            #financial metric
+                # 'gainLossRatio',           #financial metric
+                # 'higherPartialVariance',   # Statistic metric not available yet
+                # 'higherPartialSigma',      # Statistic metric not available yet
+                # 'lowerPartialSigma',       # Statistic metric not available yet
+                # 'lowerPartialVariance',    # Statistic metric not available yet
+                # 'ValueAtRisk',             # Value at risk (alpha)
+                # 'ExpectedShortfall'        # conditional value at risk (gammma)
+                ]
+  tealVals   = ['sharpeRatio',             #financial metric
                 'sortinoRatio',            #financial metric
                 'gainLossRatio',           #financial metric
                 'higherPartialVariance',   # Statistic metric not available yet
@@ -93,14 +103,15 @@ class BasicStatistics(PostProcessor):
         #percent is a string type because otherwise we can't tell 95.0 from 95
         # which matters because the number is used in output.
         scalarSpecification.addParam("percent", InputTypes.StringListType)
-      elif scalar in['sortinoRatio','gainLossRatio']:
-        scalarSpecification.addParam("threshold", InputTypes.StringType)
-      elif scalar in['ExpectedShortfall','ValueAtRisk']:
-        scalarSpecification.addParam("threshold", InputTypes.FloatType)
-
-
-      scalarSpecification.addParam("prefix", InputTypes.StringType)
-      inputSpecification.addSub(scalarSpecification)
+    
+    for teal in cls.tealVals:
+      tealSpecification = InputData.parameterInputFactory(teal, contentType=InputTypes.StringListType)
+      if teal in['sortinoRatio','gainLossRatio']:
+        tealSpecification.addParam("threshold", InputTypes.StringType)
+      elif teal in['ExpectedShortfall','ValueAtRisk']:
+        tealSpecification.addParam("threshold", InputTypes.FloatType)
+      tealSpecification.addParam("prefix", InputTypes.StringType)
+      inputSpecification.addSub(tealSpecification)
 
     for vector in cls.vectorVals:
       vectorSpecification = InputData.parameterInputFactory(vector)
@@ -138,7 +149,7 @@ class BasicStatistics(PostProcessor):
     """
     PostProcessor.__init__(self, messageHandler)
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = self.scalarVals + self.vectorVals
+    self.acceptedCalcParam = self.scalarVals + self.tealVals + self.vectorVals 
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
@@ -256,7 +267,7 @@ class BasicStatistics(PostProcessor):
     """
     #construct a list of all the parameters that have requested values into self.allUsedParams
     self.allUsedParams = set()
-    for metricName in self.scalarVals + self.vectorVals:
+    for metricName in self.scalarVals + self.tealVals + self.vectorVals:
       if metricName in self.toDo.keys():
         for entry in self.toDo[metricName]:
           self.allUsedParams.update(entry['targets'])
@@ -307,6 +318,7 @@ class BasicStatistics(PostProcessor):
       @ Out, None
     """
     paramInput = self.getInputSpecification()()
+    print('paramInput',paramInput,xmlNode)
     paramInput.parseNode(xmlNode)
     self._handleInput(paramInput)
 
@@ -320,7 +332,7 @@ class BasicStatistics(PostProcessor):
     for child in paramInput.subparts:
       tag = child.getName()
       #because percentile is strange (has an attached parameter), we address it first
-      if tag in self.scalarVals + self.vectorVals:
+      if tag in self.scalarVals + self.tealVals + self.vectorVals:
         if 'prefix' not in child.parameterValues:
           self.raiseAnError(IOError, "No prefix is provided for node: ", tag)
         #get the prefix
@@ -345,36 +357,37 @@ class BasicStatistics(PostProcessor):
                                'prefix':prefix,
                                'percent':reqPercent,
                                'strPercent':strPercent})
-      elif tag in ['sortinoRatio', 'gainLossRatio']:
-        #get targets
-        targets = set(child.value)
-        if tag not in self.toDo.keys():
-          self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'threshold':str}
-        if 'threshold' not in child.parameterValues:
-          threshold = 'zero'
-        else:
-          threshold = child.parameterValues['threshold'].lower()
-          if threshold not in ['zero','median']:
-            self.raiseAWarning('Unrecognized threshold in {}, prefix \'{}\' use zero instead!'.format(tag, prefix))
+      elif tag in self.tealVals:                    
+        if tag in ['sortinoRatio', 'gainLossRatio']:
+          #get targets
+          targets = set(child.value)
+          if tag not in self.toDo.keys():
+            self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'threshold':str}
+          if 'threshold' not in child.parameterValues:
             threshold = 'zero'
-        self.toDo[tag].append({'targets':set(targets),
-                               'prefix':prefix,
-                               'threshold':threshold})
-      elif tag in ['ExpectedShortfall', 'ValueAtRisk']:
-        #get targets
-        targets = set(child.value)
-        if tag not in self.toDo.keys():
-          self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'threshold':str}
-        if 'threshold' not in child.parameterValues:
-          threshold = 0.05
-        else:
-          threshold = child.parameterValues['threshold']
-          if threshold >1 or threshold <0:
-            self.raiseAnError('Threshold in {}, prefix \'{}\' out of range, please use a float in range (0, 1)!'.format(tag, prefix))
+          else:
+            threshold = child.parameterValues['threshold'].lower()
+            if threshold not in ['zero','median']:
+              self.raiseAWarning('Unrecognized threshold in {}, prefix \'{}\' use zero instead!'.format(tag, prefix))
+              threshold = 'zero'
+          self.toDo[tag].append({'targets':set(targets),
+                                'prefix':prefix,
+                                'threshold':threshold})
+        elif tag in ['ExpectedShortfall', 'ValueAtRisk']:
+          #get targets
+          targets = set(child.value)
+          if tag not in self.toDo.keys():
+            self.toDo[tag] = [] # list of {'targets':(), 'prefix':str, 'threshold':str}
+          if 'threshold' not in child.parameterValues:
+            threshold = 0.05
+          else:
+            threshold = child.parameterValues['threshold']
+            if threshold >1 or threshold <0:
+              self.raiseAnError('Threshold in {}, prefix \'{}\' out of range, please use a float in range (0, 1)!'.format(tag, prefix))
 
-        self.toDo[tag].append({'targets':set(targets),
-                               'prefix':prefix,
-                               'threshold':threshold})
+          self.toDo[tag].append({'targets':set(targets),
+                                'prefix':prefix,
+                                'threshold':threshold})
 
       elif tag in self.scalarVals:
         if tag not in self.toDo.keys():
@@ -520,16 +533,6 @@ class BasicStatistics(PostProcessor):
         result = -3.0 + (p4*unbiasCorr[0]*vp-p2**2.0*unbiasCorr[1]) / vr
       else:
         result = -3.0 + (p4*unbiasCorr*vp) / vr
-    return result
-
-  def _computeFinanceRatio(self, numerator, denominator):
-    """
-      Method to compute the Sharpe Ratio of an array of observations
-      @ In, numerator, xarray.Dataset, numerator of arrayIn
-      @ In, denominator, xarray.Dataset, the denominator of the dataset of arrayIn
-      @ Out, result, xarray.Dataset, the Finance Ratio of the dataset arrayIn.
-    """
-    result = numerator/denominator
     return result
 
   def _computeSkewness(self, arrayIn, expValue, variance, pbWeight=None, dim=None):
@@ -683,11 +686,12 @@ class BasicStatistics(PostProcessor):
     needed = dict((metric,{'targets':set(),'percent':set()}) for metric in self.scalarVals)
 
     needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
-
+    
+    ####### ad hoc for TEAL
     needed.update(dict((metric,{'targets':set(),'percent':set(),'threshold':{}}) for metric in ['sortinoRatio','gainLossRatio']))
 
     needed.update(dict((metric,{'targets':set(),'percent':set(),'threshold':[]}) for metric in ['ValueAtRisk', 'ExpectedShortfall']))
-
+    ####### end ad hoc for TEAL
     for metric, params in self.toDo.items():
       for entry in params:
 
@@ -700,6 +704,7 @@ class BasicStatistics(PostProcessor):
           needed[metric]['percent'].update(entry['percent'])
         except KeyError:
           pass
+        ########### ad hoc for TEAL
         if 'threshold' in entry.keys() :
           if metric in ['sortinoRatio','gainLossRatio']:
             threshold = entry['threshold']
@@ -714,6 +719,7 @@ class BasicStatistics(PostProcessor):
             if thd not in needed[metric]['threshold']:
               needed[metric]['threshold'].append(thd)
           pass
+         ########### end ad hoc for TEAL 
 
     # variable                     | needs                  | needed for
     # --------------------------------------------------------------------
@@ -756,13 +762,16 @@ class BasicStatistics(PostProcessor):
     needed['expectedValue']['targets'].update(needed['kurtosis']['targets'])
     needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['targets'])
     needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['features'])
+
+    ####### ad hoc for TEAL
+
     needed['expectedValue']['targets'].update(needed['sharpeRatio']['targets'])
     needed['expectedValue']['targets'].update(needed['sortinoRatio']['targets'])
 
 
     needed['sigma']['targets'].update(needed['expectedValue']['targets'])
     needed['sigma']['targets'].update(needed['sharpeRatio']['targets'])
-
+    ####### end ad hoc for TEAL
 
 
     needed['variance']['targets'].update(needed['sigma']['targets'])
@@ -816,7 +825,6 @@ class BasicStatistics(PostProcessor):
         samplesDA = xr.DataArray(sampleMat,dims=('targets'), coords={'targets':self.parameters['targets']})
 
       calculations[metric] = samplesDA
-
     #
     # expected value
     #
@@ -882,16 +890,6 @@ class BasicStatistics(PostProcessor):
       relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
       calculations[metric] = self._computeKurtosis(dataSet,meanSet,varianceSet,pbWeight=relWeight,dim=self.sampleTag)
     #
-    # SharpRatio
-    #
-    metric = 'sharpeRatio'
-    if len(needed[metric]['targets'])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
-      sigmaSet = calculations['sigma'][list(needed[metric]['targets'])]
-      relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
-      calculations[metric] = self._computeFinanceRatio(meanSet,sigmaSet)
-    #
     # median
     #
     metric = 'median'
@@ -916,6 +914,20 @@ class BasicStatistics(PostProcessor):
       else:
         medianSet = dataSet.median(dim=self.sampleTag)
       calculations[metric] = medianSet
+
+    #################
+    # TEAL VALUES   #
+    #################
+    #
+    # SharpeRatio
+    #
+    metric = 'sharpeRatio'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
+      sigmaSet = calculations['sigma'][list(needed[metric]['targets'])]
+      relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+      calculations[metric] = meanSet/sigmaSet
     #
     # ValueAtRisk
     #
@@ -942,7 +954,6 @@ class BasicStatistics(PostProcessor):
           da = xr.DataArray(VaRList,dims=('threshold'),coords={'threshold':threshold})
         VaRSet[target] = da
       calculations[metric] = VaRSet
-
     #
     # ExpectedShortfall
     #
@@ -1043,7 +1054,7 @@ class BasicStatistics(PostProcessor):
           zeroTarget = [x for x in zeroTarget if not lpsDS[x].values == 0]
           if incapableZeroTarget:
             self.raiseAWarning("For metric {} target {}, no lower part data can be found for threshold zero!  Skipping target".format(metric, incapableZeroTarget))
-          daZero = self._computeFinanceRatio(meanSet[zeroTarget],lpsDS[zeroTarget])
+          daZero = meanSet[zeroTarget]/lpsDS[zeroTarget]
           daZero = daZero.assign_coords(threshold ='zero')
           daZero = daZero.expand_dims('threshold')
         elif entry['threshold'] == 'median':
@@ -1057,7 +1068,7 @@ class BasicStatistics(PostProcessor):
           if incapableMedTarget:
             self.raiseAWarning("For metric {} target {}, no lower part data can be found for threshold median!  Skipping target".format(metric, incapableMedTarget))
 
-          daMed = self._computeFinanceRatio(meanSet[medTarget],lpsDS[medTarget])
+          daMed = meanSet[medTarget]/lpsDS[medTarget]
           daMed = daMed.assign_coords(threshold ='median')
           daMed = daMed.expand_dims('threshold')
       calculations[metric] = xr.merge([daMed, daZero])
@@ -1096,7 +1107,7 @@ class BasicStatistics(PostProcessor):
           zeroTarget = [x for x in zeroTarget if not lowerMeanSet[x].values == 0]
           if incapableZeroTarget:
             self.raiseAWarning("For metric {} target {}, no lower part data can be found for threshold zero!  Skipping target".format(metric,incapableZeroTarget))
-          daZero = self._computeFinanceRatio(higherMeanSet[zeroTarget],lowerMeanSet[zeroTarget])
+          daZero = higherMeanSet[zeroTarget]/lowerMeanSet[zeroTarget]
           daZero = daZero.assign_coords(threshold ='zero')
           daZero = daZero.expand_dims('threshold')
 
@@ -1118,7 +1129,7 @@ class BasicStatistics(PostProcessor):
           if incapableMedTarget:
             self.raiseAWarning("For metric {} target {}, lower part mean is zero for threshold median!  Skipping target".format(matric, incapableMedTarget))
 
-          daMed = self._computeFinanceRatio(higherMeanSet[medTarget],lowerMeanSet[medTarget])
+          daMed = higherMeanSet[medTarget]/lowerMeanSet[medTarget]
           daMed = daMed.assign_coords(threshold ='median')
           daMed = daMed.expand_dims('threshold')
       calculations[metric] = xr.merge([daMed, daZero])
@@ -1423,7 +1434,7 @@ class BasicStatistics(PostProcessor):
 
 
     for metric, ds in calculations.items():
-      if metric in self.scalarVals + self.steVals +['equivalentSamples'] and metric !='samples':
+      if metric in self.scalarVals + self.tealVals + self.steVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations)
 
@@ -1439,7 +1450,7 @@ class BasicStatistics(PostProcessor):
         for targetDict in requestList:
           prefix = targetDict['prefix'].strip()
           for target in targetDict['targets']:
-            if metric in self.scalarVals and metric not in ['percentile','sortinoRatio','gainLossRatio','ExpectedShortfall', 'ValueAtRisk']:
+            if metric in self.scalarVals and metric != 'percentile':
               varName = prefix + '_' + target
               outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target}))
               steMetric = metric + '_ste'
@@ -1451,7 +1462,7 @@ class BasicStatistics(PostProcessor):
                 varName = '_'.join([prefix,percent,target])
                 percentVal = float(percent)/100.
                 outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'percent':percentVal}))
-            elif metric in ['sortinoRatio','gainLossRatio','ExpectedShortfall', 'ValueAtRisk']:
+            elif metric in self.tealVals:
               varName = prefix + '_' + target
               thresholdVal = targetDict['threshold']
               try:

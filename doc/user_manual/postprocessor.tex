@@ -118,7 +118,7 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{gainLossRatio}: the gain-loss ratio, discounts the first-order higher partial moment of a portfolio's returns, by the first-order lower partial moment of a portfolio's returns. If this quantity is inputted as \textit{gainLossRatio} the threshold for separate upside and downside value will assign as $0$. Otherwise the user can specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents the requested threshold \xmlAttr{median} or \xmlAttr{zero}.
 
 
-    \item \textbf{ExpectedShortfall}: the expected shortfall (Es) or conditional value at risk (CVaR), the expected return on the portfolio in the worst q of cases. If this quantity is inputted as \textit{ExpectedShortfall} the q value will assign as $5\%$. Otherwise the user can specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents the requested q value (a floating point value between 0.0 and 1.0)
+    \item \textbf{expectedShortfall}: the expected shortfall (Es) or conditional value at risk (CVaR), the expected return on the portfolio in the worst q of cases. If this quantity is inputted as \textit{ExpectedShortfall} the q value will assign as $5\%$. Otherwise the user can specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents the requested q value (a floating point value between 0.0 and 1.0)
     \begin{equation}
       ES_\alpha = -\frac{1}{\alpha} \int_0^\alpha \operatorname{VaR}_\gamma(X) \, d\gamma
     \end{equation}
