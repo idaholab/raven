@@ -7,9 +7,9 @@
 [submodule "plugins/SRAW"]
 	path = plugins/SRAW
 	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SRAW.git
-[submodule "plugins/heron"]
-	path = plugins/heron
-	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/heron.git
 [submodule "plugins/TEAL"]
 	path = plugins/TEAL
 	url = https://github.com/idaholab/TEAL.git
+[submodule "plugins/HERON"]
+	path = plugins/HERON
+	url = git@github.com:idaholab/HERON.git
