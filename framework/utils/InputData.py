@@ -397,7 +397,7 @@ class ParameterInput(object):
       subs = self.subs
     # read in subnodes
     subNames = set()
-    for child in node:      
+    for child in node:
       childName = child.tag
       subsSet = self._subDict.get(childName,set())
       foundSubs = 0

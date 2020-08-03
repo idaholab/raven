@@ -151,7 +151,7 @@ class BasicStatistics(PostProcessor):
     """
     PostProcessor.__init__(self, messageHandler)
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = self.scalarVals + self.tealVals + self.vectorVals 
+    self.acceptedCalcParam = self.scalarVals + self.tealVals + self.vectorVals
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
@@ -358,7 +358,7 @@ class BasicStatistics(PostProcessor):
                                'prefix':prefix,
                                'percent':reqPercent,
                                'strPercent':strPercent})
-      elif tag in self.tealVals:                    
+      elif tag in self.tealVals:
         if tag in ['sortinoRatio', 'gainLossRatio']:
           #get targets
           targets = set(child.value)
@@ -693,7 +693,7 @@ class BasicStatistics(PostProcessor):
     needed = dict((metric,{'targets':set(),'percent':set()}) for metric in self.scalarVals + self.tealVals)
 
     needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
-    
+
     ####### ad hoc for TEAL
     needed.update(dict((metric,{'targets':set(),'percent':set(),'threshold':{}}) for metric in ['sortinoRatio','gainLossRatio']))
 
@@ -726,7 +726,7 @@ class BasicStatistics(PostProcessor):
             if thd not in needed[metric]['threshold']:
               needed[metric]['threshold'].append(thd)
           pass
-         ########### end ad hoc for TEAL 
+         ########### end ad hoc for TEAL
 
     # variable                     | needs                  | needed for
     # --------------------------------------------------------------------
