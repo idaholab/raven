@@ -310,9 +310,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     Assembler._readMoreXML(self,xmlNode)
     paramInput = self._readMoreXMLbase(xmlNode)
     self.localInputAndChecks(xmlNode, paramInput)
-    if not self.toBeSampled and self.type != 'MonteCarlo':
-      self.raiseAnError(IOError, '<{t}> sampler named "{n}" requires at least one sampled <variable>!'
-                                 .format(n=self.name, t=self.type))
+    if self.type not in ['MonteCarlo', 'Metropolis']:
+      if not self.toBeSampled:
+        self.raiseAnError(IOError, '<{t}> sampler named "{n}" requires at least one sampled <variable>!'
+                                   .format(n=self.name, t=self.type))
 
   def _readMoreXMLbase(self,xmlNode):
     """

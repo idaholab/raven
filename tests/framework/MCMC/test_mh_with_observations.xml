@@ -1,0 +1,128 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/MCMC.MetropolisObserved</name>
+    <author>wangc</author>
+    <created>2020-07-27</created>
+    <classesTested>MCMC.Metropolis</classesTested>
+    <description>
+      Test the Markov Chain Monte Carlo algorithm: Metropolis Sampling
+      assume xi, yi|rho ~ Normal(mu,cov), where mu=[0,0], and cov = [[1.0, rho], [rho, 1.0]]
+      1000 samples is generated using np.random.multivariate_normal as the observed data.
+      A non-informative prior for covariance matrices is the Jeffreys prior
+      (see Gelman et al., 1995), which is of the form 1/det(Cov)**(3/2).
+      A uniform distribution [-0.07, 0.07] is used as the proposal distribution.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>observed</WorkingDir>
+    <Sequence>mh, print, pp</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="uniform">
+      <lowerBound>-0.07</lowerBound>
+      <upperBound>0.07</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="likelihood" name="likelihood" subType="">
+      <variables>rho, pout</variables>
+    </ExternalModel>
+    <PostProcessor name="posteriorMode" subType="BasicStatistics">
+      <expectedValue prefix="mean">rho</expectedValue>
+      <sigma prefix="sigma">rho</sigma>
+    </PostProcessor>
+  </Models>
+
+  <Functions>
+    <External file="observed/prior.py" name="prior">
+      <variables>rho</variables>
+    </External>
+  </Functions>
+
+  <Samplers>
+    <Metropolis name="Metropolis">
+      <samplerInit>
+        <limit>2000</limit>
+        <initialSeed>070419</initialSeed>
+        <burnIn>100</burnIn>
+      </samplerInit>
+      <likelihood log="True">pout</likelihood>
+      <variable name="rho">
+        <!-- instead to use <distribution>normal</distribution>, use a user defined function -->
+        <probabilityFunction class="Functions" type="External">prior</probabilityFunction>
+        <!-- in this case, initial are required parameter -->
+        <initial>0</initial>
+        <proposal class="Distributions" type="Uniform">uniform</proposal>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
+    </Metropolis>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mh">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">likelihood</Model>
+      <Sampler class="Samplers" type="Metropolis">Metropolis</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">out_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">out_export</Input>
+      <Input class="DataObjects" type="PointSet">outSet</Input>
+      <Output class="OutStreams" type="Print">dumpExport</Output>
+      <Output class="OutStreams" type="Print">dumpOut</Output>
+    </IOStep>
+    <PostProcess name="pp">
+      <Input class="DataObjects" type="PointSet">out_export</Input>
+      <Model class="Models" type="PostProcessor">posteriorMode</Model>
+      <Output class="DataObjects" type="PointSet">posterior_basicStat</Output>
+      <Output class="OutStreams" type="Print">posterior_basicStat_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dumpOut">
+      <type>csv</type>
+      <source>outSet</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="dumpExport">
+      <type>csv</type>
+      <source>out_export</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="posterior_basicStat_dump">
+      <type>csv</type>
+      <source>posterior_basicStat</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>rho</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+
+    <PointSet name="outSet">
+      <Input>rho</Input>
+      <Output>pout</Output>
+    </PointSet>
+
+    <PointSet name="out_export">
+      <Input>traceID</Input>
+      <Output>rho</Output>
+    </PointSet>
+
+    <PointSet name="posterior_basicStat">
+      <Output>mean_rho, sigma_rho</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
