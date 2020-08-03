@@ -7,6 +7,6 @@ x = 100, 50
 y = 100, 50
 
 [settings]
-case = sample_mirrow
+case = sample_mirror
 samples = 100
 workflow = new_uq.xml
