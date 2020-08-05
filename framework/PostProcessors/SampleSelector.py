@@ -65,17 +65,6 @@ class SampleSelector(PostProcessor):
     self.target = None # string, variable to apply postprocessor to
     self.value = None  # only used when the criterion needs a value, the value to use
 
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    paramInput = self.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parsed paramInput for this class.

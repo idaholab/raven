@@ -76,7 +76,7 @@ class HybridModelBase(Dummy):
     self.printTag              = 'HybridModelBase MODEL' # print tag
     self.createWorkingDir      = False               # If the type of model is 'Code', this will set to true
     # assembler objects to be requested
-    self.addAssemblerObject('Model','n',True)
+    self.addAssemblerObject('Model', InputData.Quantity.one_to_infinity)
 
   def localInputAndChecks(self,xmlNode):
     """
