@@ -3191,11 +3191,32 @@ the variables of interest.
         \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
           identifier or sub-type.
       \end{itemize}
+      \item \xmlNode{probabilityFunction}, \xmlDesc{Assembler Object}, specifies the prior distribution function..
+      This node must contain the following two attributes:
+      \begin{itemize}
+        \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
+          ``class'' of the listed object. Only ``Functions'' is allowed.
+        \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
+          identifier or sub-type. Only ``External'' is allowed.
+      \end{itemize}
     \end{itemize}
-    \nb For MCMC sampler, we only allow "continuous" distributions as input to \xmlNode{variable}.
+    \nb For MCMC sampler, we only allow ``continuous'' distributions as input to \xmlNode{variable}.
+    In addition, we allow the user to provide their defined prior distribution through the
+    \xmlNode{probabilityFunction}. In this case, the ``pdf'' method needs to be defined in the external function.
+    For example:
+    \begin{lstlisting}[language=python]
+    def pdf(self):
+      """
+        Method required for "probabilityFunction" used by MCMC sampler
+        that is used to define the prior probability function
+        @ In, None
+        @ Out, priorPDF, float, the prior pdf value
+      """
+      priorPDF = 1/(1-self.rho**2)**(3/2)
+      return priorPDF
+    \end{lstlisting}
     \item \constantVariablesDescription
 \end{itemize}
-
 
 In the \textbf{Metropolis} input block, the user needs to specify the variables need to be sampled.
 As already mentioned, these variables are inputted within consecutive xml blocks called \xmlNode{variable}.

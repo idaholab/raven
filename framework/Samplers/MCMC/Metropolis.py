@@ -92,7 +92,10 @@ class Metropolis(MCMC):
         # update value based on proposal distribution
         newVal = value + self._proposal[key].rvs()
         self.values[key] = newVal
-        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(newVal)
+        if key in self.distDict:
+          self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(newVal)
+        else:
+          self.inputInfo['SampledVarsPb'][key] = self._priorFuns[key].evaluate("pdf", self.values)
         self.inputInfo['ProbabilityWeight-' + key] = 1.
     self.inputInfo['PointProbability'] = 1.0
     self.inputInfo['ProbabilityWeight' ] = 1.0
@@ -112,7 +115,7 @@ class Metropolis(MCMC):
     MCMC.localFinalizeActualSampling(self, jobObject, model, myInput)
     prefix = jobObject.getMetadata()['prefix']
     _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
-    rlz = dict((var, full[var]) for var in (list(self.toBeSampled.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
+    rlz = dict((var, full[var]) for var in (list(self.toBeCalibrated.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
     rlz['traceID'] = self.counter
     if self.counter == 1:
       self._addToSolutionExport(rlz)
@@ -139,8 +142,12 @@ class Metropolis(MCMC):
     for var in self._updateValues:
       newVal = newRlz[var]
       currVal = currentRlz[var]
-      dist = self.distDict[var]
-      netLogPrior = dist.logPdf(newVal) - dist.logPdf(currVal)
+      if var in self.distDict:
+        dist = self.distDict[var]
+        netLogPrior = dist.logPdf(newVal) - dist.logPdf(currVal)
+      else:
+        fun = self._priorFuns[var]
+        netLogPrior = np.log(fun.evaluate("pdf", newRlz)) - np.log(fun.evaluate("pdf", currentRlz))
       netLogPosterior += netLogPrior
     if not self._logLikelihood:
       netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
