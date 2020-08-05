@@ -45,9 +45,7 @@ class Assembler(MessageHandler.MessageUser):
       self.assemblerObjects = {}           # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
       # _requiredAsmbObject = [check_number, [name_list], [number_list]]
       #  where name_list is the tokens required (if check_number is True)
-      #  and number_list is a string list of either the number required
-      #   - number required (if optional) or 'n' if one or more required
-      #   or '-n' if not required.
+      #  and number_list is a list of InputData.Quantity for the number required
       self._requiredAsmbObject = [False, [], []]
       self.assemblerDict = {}               # {'class':[['class','type','name',instance]]}}
     # list. first entry boolean flag. True if the XML parser must look for objects;
@@ -145,7 +143,7 @@ class Assembler(MessageHandler.MessageUser):
 
     if '_handleInput' in dir(self) and self._handleInput.__func__.__qualname__.split(".")[0] == self.__class__.__name__:
       #_handleInput in class and not from superclass
-      print(self, self.getInputSpecification, self.getInputSpecification.__func__.__qualname__, self._handleInput, self._handleInput.__func__.__qualname__)
+      #print(self, self.getInputSpecification, self.getInputSpecification.__func__.__qualname__, self._handleInput, self._handleInput.__func__.__qualname__)
       paramInput = self.getInputSpecification()()
       paramInput.parseNode(xmlNode)
       self._handleInput(paramInput)
