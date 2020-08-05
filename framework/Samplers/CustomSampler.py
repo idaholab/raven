@@ -52,11 +52,12 @@ class CustomSampler(ForwardSampler):
     inputSpecification.addSub(sourceInput)
 
     inputSpecification.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.IntegerListType))
-
+      
     # add "nameInSource" attribute to <variable>
     var = inputSpecification.popSub('variable')
     var.addParam("nameInSource", InputTypes.StringType, required=False)
     inputSpecification.addSub(var)
+    inputSpecification.addSub(InputData.parameterInputFactory('batch', contentType=InputTypes.IntegerType))
 
     return inputSpecification
 
@@ -75,6 +76,7 @@ class CustomSampler(ForwardSampler):
     self.printTag = 'SAMPLER CUSTOM'
     self.readingFrom = None # either File or DataObject, determines sample generation
     self.indexes = None
+    self.batch = 1
 
   def _readMoreXMLbase(self,xmlNode):
     """
@@ -116,7 +118,8 @@ class CustomSampler(ForwardSampler):
 
       elif child.getName() == 'index':
         self.indexes = child.value
-
+      elif child.getName() == 'batch':
+        self.batch = max(child.value,1)
     if len(self.toBeSampled.keys()) == 0:
       self.raiseAnError(IOError, 'CustomSampler "{}" has no variables to sample!'.format(self.name))
 
@@ -228,37 +231,40 @@ class CustomSampler(ForwardSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    if self.indexes is None:
-      index = self.counter - 1
-    else:
-      index = self.indexes[self.counter-1]
-
-    if self.readingFrom == 'DataObject':
-      # data is stored as slices of a data object, so take from that
-      rlz = self.pointsToSample[index]
-      for var in self.toBeSampled.keys():
-        for subVar in var.split(','):
-          subVar = subVar.strip()
-          sourceName = self.nameInSource[subVar]
-          # get the value(s) for the variable for this realization
-          self.values[subVar] = mathUtils.npZeroDToEntry(rlz[sourceName].values)
-          # set the probability weight due to this variable (default to 1)
-          pbWtName = 'ProbabilityWeight-'
-          self.inputInfo[pbWtName+subVar] = rlz.get(pbWtName+sourceName,1.0)
-      # get realization-level required meta information, or default to 1
-      for meta in ['PointProbability','ProbabilityWeight']:
-        self.inputInfo[meta] = rlz.get(meta,1.0)
-    elif self.readingFrom == 'File':
-      # data is stored in file, so we already parsed the values
-      # create values dictionary
-      for var in self.toBeSampled.keys():
-        for subVar in var.split(','):
-          subVar = subVar.strip()
-          # assign the custom sampled variables values to the sampled variables
-          self.values[subVar] = self.pointsToSample[subVar][index]
-          # This is the custom sampler, assign the ProbabilityWeights based on the provided values
-          self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][index]
-      # Construct probabilities based on the user provided information
-      self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][index]
-      self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
+    
+    for batchIndex in range(self.batch):
+      
+      if self.indexes is None:
+        index = self.counter - 1
+      else:
+        index = self.indexes[self.counter-1]
+      
+      if self.readingFrom == 'DataObject':
+        # data is stored as slices of a data object, so take from that
+        rlz = self.pointsToSample[index]
+        for var in self.toBeSampled.keys():
+          for subVar in var.split(','):
+            subVar = subVar.strip()
+            sourceName = self.nameInSource[subVar]
+            # get the value(s) for the variable for this realization
+            self.values[subVar] = mathUtils.npZeroDToEntry(rlz[sourceName].values)
+            # set the probability weight due to this variable (default to 1)
+            pbWtName = 'ProbabilityWeight-'
+            self.inputInfo[pbWtName+subVar] = rlz.get(pbWtName+sourceName,1.0)
+        # get realization-level required meta information, or default to 1
+        for meta in ['PointProbability','ProbabilityWeight']:
+          self.inputInfo[meta] = rlz.get(meta,1.0)
+      elif self.readingFrom == 'File':
+        # data is stored in file, so we already parsed the values
+        # create values dictionary
+        for var in self.toBeSampled.keys():
+          for subVar in var.split(','):
+            subVar = subVar.strip()
+            # assign the custom sampled variables values to the sampled variables
+            self.values[subVar] = self.pointsToSample[subVar][index]
+            # This is the custom sampler, assign the ProbabilityWeights based on the provided values
+            self.inputInfo['ProbabilityWeight-' + subVar] = self.infoFromCustom['ProbabilityWeight-' + subVar][index]
+        # Construct probabilities based on the user provided information
+        self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][index]
+        self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
     self.inputInfo['SamplerType'] = 'Custom'
