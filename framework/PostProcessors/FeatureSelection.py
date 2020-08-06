@@ -51,10 +51,12 @@ class FeatureSelection(PostProcessor):
     """
     ## This will replace the lines above
     inputSpecification = super(FeatureSelection, cls).getInputSpecification()
-    whatInput = InputTypes.makeEnumType("whatType","whatTypeType",["RFE","RFECV", "mutualInformation"])
+    whatInput = InputTypes.makeEnumType("whatType","whatTypeType",["RFE","RFECV", "mutualInformation", "PCARFE"])
     inputSpecification.addSub(InputData.parameterInputFactory("what", contentType=whatInput))
     TargetsInput = InputData.parameterInputFactory("targets", contentType=InputTypes.StringType)
     inputSpecification.addSub(TargetsInput)
+    FeaturesInput = InputData.parameterInputFactory("features", contentType=InputTypes.StringType)
+    inputSpecification.addSub(FeaturesInput)    
     PivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
     inputSpecification.addSub(PivotParameterInput)
     numberOfFeatures = InputData.parameterInputFactory("minimumNumberOfFeatures", contentType=InputTypes.IntegerType)
@@ -75,6 +77,7 @@ class FeatureSelection(PostProcessor):
     """
     PostProcessor.__init__(self, messageHandler)
     self.targets = [] # targets
+    self.features = None
     self.what = None  # how to perform the selection (list is in InputData specification)
     self.settings = {}
     self.dynamic  = False # is it time-dependent?
@@ -102,6 +105,8 @@ class FeatureSelection(PostProcessor):
         self.what = child.value.strip()
       elif child.getName() == 'targets':
         self.targets = list(inp.strip() for inp in child.value.strip().split(','))
+      elif child.getName() == 'features':
+        self.features = list(inp.strip() for inp in child.value.strip().split(','))      
       elif child.getName() == 'step':
         self.settings[child.getName()] = child.value
       elif child.getName() == 'minimumNumberOfFeatures':
@@ -149,7 +154,6 @@ class FeatureSelection(PostProcessor):
       if 'targets' not in currentInput.keys() and 'timeDepData' not in currentInput.keys():
         self.raiseAnError(IOError, 'Did not find targets or timeDepData in input dictionary')
       return currentInput
-
     if not hasattr(currentInput,'type'):
       self.raiseAnError(IOError, self, 'FeatureSelection postprocessor accepts DataObject(s) only! Got ' + str(type(currentInput)))
     if currentInput.type not in ['PointSet','HistorySet']:
@@ -158,7 +162,9 @@ class FeatureSelection(PostProcessor):
     if currentInput.type in ['PointSet']:
       dataSet = currentInput.asDataset()
       inputDict = {'targets':{}, 'metadata':{}, 'features':{}}
-      for feat in list(set(list(dataSet.keys())) - set(list(self.targets))):
+      if self.features is None:
+        self.features = list(set(list(dataSet.keys())) - set(list(self.targets)))
+      for feat in self.features:
         inputDict['features'][feat] = copy.copy(dataSet[feat].values)
       for targetP in self.targets:
         if targetP in currentInput.getVars('output'):
@@ -274,10 +280,12 @@ class FeatureSelection(PostProcessor):
   
     #np.savetxt("ica_5components.csv", np.concatenate((newFeatures, np.atleast_2d(list(inputDict['targets'].values())).T), axis=1), delimiter=',', header=','.join(headers))
     
-      
+    if self.what == 'PCARFE':
+      aggregateTargets = True
     if aggregateTargets:
       # perform a PCA and analyze the first principal component
-      kpca = KernelPCA(n_components=1, kernel = "rbf", random_state=0)
+      kpca = PCA(n_components=1)
+      # kpca = KernelPCA(n_components=1, kernel = "rbf", random_state=0)
       newTarget =  kpca.fit_transform(np.atleast_2d(list(inputDict['targets'].values())).T)
     # compute importance rank
     outputDict = {}
@@ -307,6 +315,17 @@ class FeatureSelection(PostProcessor):
         for i, targ in enumerate(self.targets):
           sortedFeatures = mutual_info_regression(np.atleast_2d(list(inputDict['features'].values())).T, inputDict['targets'][targ]).argsort()
           outputDict[self.name+"_"+targ] = np.atleast_1d(np.array(list(inputDict['features'].keys()))[sortedFeatures][-nFeatures:])
+    elif self.what == 'PCARFE':
+      kpca = PCA(n_components=min(nFeatures*3, len(inputDict['features'].values())))
+      newFeatures = kpca.fit_transform(np.atleast_2d(list(inputDict['features'].values())).T)      
+      selectors = RFE(LinearRegression(), n_features_to_select=nFeatures*3, step=step)
+      print(newFeatures.shape, newTarget.shape)
+      selectors = selectors.fit(np.atleast_2d(newFeatures), newTarget.flatten())
+      self.raiseAMessage("Features downselected to "+str(selectors.n_features_))
+      print(selectors.support_.shape)
+      outputDict[self.name] = newFeatures[:, selectors.support_]
+      print(newFeatures[:, selectors.support_].shape)
+    
     elif self.what == 'kbest':
       X_new = SelectKBest(f_regression, k=nFeatures).fit_transform(X, y)
       transformer = PCA(n_components=nFeatures, random_state=0).fit(np.atleast_2d(list(inputDict['features'].values()) + list(inputDict['targets'].values())).T)
