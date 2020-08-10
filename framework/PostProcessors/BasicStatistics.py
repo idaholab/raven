@@ -51,24 +51,15 @@ class BasicStatistics(PostProcessor):
                 'variationCoefficient',
                 'skewness',
                 'kurtosis',
-                'samples'
-                # 'sharpeRatio',             #financial metric
-                # 'sortinoRatio',            #financial metric
-                # 'gainLossRatio',           #financial metric
-                # 'higherPartialVariance',   # Statistic metric not available yet
-                # 'higherPartialSigma',      # Statistic metric not available yet
-                # 'lowerPartialSigma',       # Statistic metric not available yet
-                # 'lowerPartialVariance',    # Statistic metric not available yet
-                # 'ValueAtRisk',             # Value at risk (alpha)
-                # 'ExpectedShortfall'        # conditional value at risk (gammma)
+                'samples',
+                'higherPartialVariance',   # Statistic metric not available yet
+                'higherPartialSigma',      # Statistic metric not available yet
+                'lowerPartialSigma',       # Statistic metric not available yet
+                'lowerPartialVariance'    # Statistic metric not available yet
                 ]
   tealVals   = ['sharpeRatio',             #financial metric
                 'sortinoRatio',            #financial metric
                 'gainLossRatio',           #financial metric
-                'higherPartialVariance',   # Statistic metric not available yet
-                'higherPartialSigma',      # Statistic metric not available yet
-                'lowerPartialSigma',       # Statistic metric not available yet
-                'lowerPartialVariance',    # Statistic metric not available yet
                 'ValueAtRisk',             # Value at risk (alpha)
                 'ExpectedShortfall'        # conditional value at risk (gammma)
                 ]
@@ -788,6 +779,7 @@ class BasicStatistics(PostProcessor):
 
     needed['median']['targets'].update(needed['lowerPartialVariance']['targets'])
     needed['median']['targets'].update(needed['higherPartialVariance']['targets'])
+    needed['median']['targets'].update(needed['sortinoRatio']['targets'])
 
     needed['covariance']['targets'].update(needed['NormalizedSensitivity']['targets'])
     needed['covariance']['features'].update(needed['NormalizedSensitivity']['features'])
