@@ -138,19 +138,6 @@ class TopologicalDecomposition(PostProcessor):
     #  raise NotImplementedError # TODO
     return inputDict
 
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    paramInput = TopologicalDecomposition.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-    # register metadata
-    self.addMetaKeys(['maxLabel','minLabel'])
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parsed paramInput for this class.
@@ -199,6 +186,8 @@ class TopologicalDecomposition(PostProcessor):
           self.raiseAnError(IOError, 'Requested unknown normalization type: ',
                             self.normalization, '. Available options: ',
                             self.acceptedNormalizationParam)
+    # register metadata
+    self.addMetaKeys(['maxLabel','minLabel'])
 
   def collectOutput(self, finishedJob, output):
     """
@@ -371,6 +360,19 @@ if __QtAvailable:
       arbitrary number of input parameters and a response value per input point
     """
     requestUI = qtc.Signal(str,str,dict)
+    @classmethod
+    def getInputSpecification(cls):
+      """
+        Method to get a reference to a class that specifies the input data for
+        class cls.
+        @ In, cls, the class for which we are retrieving the specification
+        @ Out, inputSpecification, InputData.ParameterInput, class to use for
+          specifying input of cls.
+      """
+      inputSpecification = super(QTopologicalDecomposition, cls).getInputSpecification()
+      inputSpecification.addSub(InputData.parameterInputFactory("interactive"))
+      return inputSpecification
+
     def __init__(self, messageHandler):
       """
        Constructor
@@ -410,9 +412,19 @@ if __QtAvailable:
         @ In, xmlNode    : Xml element node
         @ Out, None
       """
-      TopologicalDecomposition._localReadMoreXML(self, xmlNode)
-      for child in xmlNode:
-        if child.tag == 'interactive':
+      paramInput = QTopologicalDecomposition.getInputSpecification()()
+      paramInput.parseNode(xmlNode)
+      self._handleInput(paramInput)
+
+    def _handleInput(self, paramInput):
+      """
+        Function to handle the parsed paramInput for this class.
+        @ In, paramInput, ParameterInput, the already parsed input.
+        @ Out, None
+      """
+      TopologicalDecomposition._handleInput(self, paramInput)
+      for child in paramInput.subparts:
+        if child.getName() == 'interactive':
           self.interactive = True
 
     def userInteraction(self):
