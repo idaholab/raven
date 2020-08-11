@@ -77,6 +77,7 @@ class CustomSampler(ForwardSampler):
     self.readingFrom = None # either File or DataObject, determines sample generation
     self.indexes = None
     self.batch = 1
+    self.batchId = 0
 
   def _readMoreXMLbase(self,xmlNode):
     """
@@ -115,7 +116,6 @@ class CustomSampler(ForwardSampler):
           self.raiseAnError(IOError, ('For CustomSampler "{name}" node "<Source>" with attribute ' +
                                       '"class", received "{got}" but must be one of {okay}!')
                                       .format(name=self.name, got=sourceClass, okay=okaySourceClasses))
-
       elif child.getName() == 'index':
         self.indexes = child.value
       elif child.getName() == 'batch':
@@ -231,14 +231,19 @@ class CustomSampler(ForwardSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    
-    for batchIndex in range(self.batch):
-      
+    if self.batch > 1:
+      self.inputInfo['batchMode'] = True
+      batchData = []
+      self.batchId += 1
+    else:
+      self.inputInfo['batchMode'] = False
+    for _ in range(self.batch):
       if self.indexes is None:
         index = self.counter - 1
       else:
         index = self.indexes[self.counter-1]
-      
+      if self.counter == self.limit + 1:
+        break  
       if self.readingFrom == 'DataObject':
         # data is stored as slices of a data object, so take from that
         rlz = self.pointsToSample[index]
@@ -267,4 +272,10 @@ class CustomSampler(ForwardSampler):
         # Construct probabilities based on the user provided information
         self.inputInfo['PointProbability'] = self.infoFromCustom['PointProbability'][index]
         self.inputInfo['ProbabilityWeight'] = self.infoFromCustom['ProbabilityWeight'][index]
-    self.inputInfo['SamplerType'] = 'Custom'
+      self.inputInfo['SamplerType'] = 'Custom'
+      if self.inputInfo['batchMode']:
+        self.inputInfo['SampledVars'] = self.values
+        batchData.append(copy.deepcopy(self.inputInfo))
+        self._incrementCounter()
+    if self.inputInfo['batchMode']:
+      self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': self.name + str(self.batchId)}
