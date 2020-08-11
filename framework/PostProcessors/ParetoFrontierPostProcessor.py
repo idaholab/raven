@@ -33,6 +33,17 @@ class ParetoFrontier(PostProcessor):
     This postprocessor selects the points that lie on the Pareto frontier
     The postprocessor acts only on PointSet and return a subset of such PointSet
   """
+  def __init__(self, messageHandler):
+    """
+      Constructor
+      @ In, messageHandler, MessageHandler, message handler object
+      @ Out, None
+    """
+    PostProcessor.__init__(self, messageHandler)
+    self.valueLimit = None   # variable associated with the lower limit of the value dimension
+    self.costLimit  = None   # variable associated with the upper limit of the cost dimension
+    self.invCost    = False  # variable which indicates if the cost dimension is inverted (e.g., it represents savings rather than costs)
+    self.invValue   = False  # variable which indicates if the value dimension is inverted (e.g., it represents a lost value rather than value)
 
   @classmethod
   def getInputSpecification(cls):
@@ -44,20 +55,24 @@ class ParetoFrontier(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(ParetoFrontier, cls).getInputSpecification()
-    inputSpecification.addSub(InputData.parameterInputFactory('costID' , contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory('valueID', contentType=InputTypes.StringType))
-    return inputSpecification
 
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    paramInput = ParetoFrontier.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
+    costIDInput = InputData.parameterInputFactory("costID", contentType=InputTypes.StringType)
+    costIDInput.addParam("inv", InputTypes.BoolType, True)
+    inputSpecification.addSub(costIDInput)
+
+    valueIDInput = InputData.parameterInputFactory("valueID", contentType=InputTypes.StringType)
+    valueIDInput.addParam("inv", InputTypes.BoolType, True)
+    inputSpecification.addSub(valueIDInput)
+
+    costLimitInput = InputData.parameterInputFactory("costLimit", contentType=InputTypes.FloatType)
+    costLimitInput.addParam("type", InputTypes.StringType, True)
+    inputSpecification.addSub(costLimitInput)
+
+    valueLimitInput = InputData.parameterInputFactory("valueLimit", contentType=InputTypes.FloatType)
+    valueLimitInput.addParam("type", InputTypes.StringType, True)
+    inputSpecification.addSub(valueLimitInput)
+
+    return inputSpecification
 
   def _handleInput(self, paramInput):
     """
@@ -67,8 +82,22 @@ class ParetoFrontier(PostProcessor):
     """
     costID  = paramInput.findFirst('costID')
     self.costID  = costID.value
+    self.invCost = costID.parameterValues['inv']
+
     valueID = paramInput.findFirst('valueID')
     self.valueID = valueID.value
+    self.invValue = valueID.parameterValues['inv']
+
+    costLimit  = paramInput.findFirst('costLimit')
+    if costLimit is not None:
+      self.costLimit  = costLimit.value
+      self.costLimitType = costLimit.parameterValues['type']
+
+    valueLimit = paramInput.findFirst('valueLimit')
+    if valueLimit is not None:
+      self.valueLimit = valueLimit.value
+      self.valueLimitType = valueLimit.parameterValues['type']
+
 
   def inputToInternal(self, currentInp):
     """
@@ -84,30 +113,54 @@ class ParetoFrontier(PostProcessor):
     currentInp = currentInp[0]
     if currentInp.type not in ['PointSet']:
       self.raiseAnError(IOError, 'ParetoFrontier postprocessor "{}" requires a DataObject input! Got "{}".'
-                                 .format(self.name, currentInput.type))
+                                 .format(self.name, currentInp.type))
     return currentInp
 
   def run(self, inputIn):
     """
       This method executes the postprocessor action.
       @ In, inputIn, DataObject, point set that contains the data to be processed
-      @ Out, paretoFrontierDict, dict, dictionary containning the Pareto Frontier information
+      @ Out, paretoFrontierDict, dict, dictionary containing the Pareto Frontier information
     """
     inData = self.inputToInternal(inputIn)
     data = inData.asDataset()
-    sortedData = data.sortby(self.costID)
 
+    if self.invCost:
+      data[self.costID] = (-1.) * data[self.costID]
+    if self.invValue:
+      data[self.valueID] = (-1.) * data[self.valueID]
+
+    sortedData = data.sortby(self.costID)
     coordinates = np.zeros(1,dtype=int)
     for index,elem in enumerate(sortedData[self.costID].values):
       if (index>1) and (sortedData[self.valueID].values[index]>sortedData[self.valueID].values[coordinates[-1]]):
+        # the point at index is part of the pareto frontier
         coordinates = np.append(coordinates,index)
 
-    selection = sortedData.isel(RAVEN_sample_ID=coordinates).to_array().values
-    paretoFrontierData = np.transpose(selection)
+    selection = sortedData.isel(RAVEN_sample_ID=coordinates)
 
+    if self.invCost:
+      selection[self.costID] = (-1.) * selection[self.costID]
+    if self.invValue:
+      selection[self.valueID] = (-1.) * selection[self.valueID]
+
+    if self.valueLimit is not None:
+      if self.valueLimitType=="upper":
+        selection = selection.where(selection[self.valueID]<=self.valueLimit)
+      else:
+        selection = selection.where(selection[self.valueID]>=self.valueLimit)
+    if self.costLimit is not None:
+      if self.costLimitType=="upper":
+        selection = selection.where(selection[self.costID]<=self.costLimit)
+      else:
+        selection = selection.where(selection[self.costID]>=self.costLimit)
+
+    filteredParetoFrontier = selection.to_array().values
+    paretoFrontierData = np.transpose(filteredParetoFrontier)
     paretoFrontierDict = {}
     for index,varID in enumerate(sortedData.data_vars):
       paretoFrontierDict[varID] = paretoFrontierData[:,index]
+
     return paretoFrontierDict
 
   def collectOutput(self, finishedJob, output):

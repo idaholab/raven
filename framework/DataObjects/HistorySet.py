@@ -108,6 +108,29 @@ class HistorySet(DataSet):
     # don't use setter, set directly, since there's only one var
     self._pivotParams = {self._tempPivotParam:self._outputs[:]}
 
+  ### EXTERNAL API ###
+  def addRealization(self, rlz):
+    """
+      Adds a "row" (or "sample") to this data object.
+      This is the method to add data to this data object.
+      Note that rlz can include many more variables than this data object actually wants.
+      Before actually adding the realization, data is formatted for this data object.
+      @ In, rlz, dict, {var:val} format where
+                         "var" is the variable name as a string,
+                         "val" is a np.ndarray of values.
+      @ Out, None
+    """
+    # add the indexMap, then continue to base class method
+    pivot, deps = next(iter(self._pivotParams.items()))
+    indexMap = rlz.pop('_indexMap', [None])[0]
+    if indexMap is None:
+      indexMap = {}
+    for var in deps:
+      indexMap[var] = [pivot]
+    rlz['_indexMap'] = np.atleast_1d(indexMap)
+    DataSet.addRealization(self, rlz)
+
+
   ### INTERNAL USE FUNCTIONS ###
   def _fromCSV(self,fileName,**kwargs):
     """
@@ -183,7 +206,7 @@ class HistorySet(DataSet):
     # TODO someday needs to be implemented for when ND data is collected!  For now, use base class.
     # TODO externalize it in the DataObject base class
     toRemove = []
-    for var,val in rlz.items():
+    for var, val in rlz.items():
       if var in self.protectedTags:
         continue
       # only modify it if it is not already scalar
@@ -204,9 +227,9 @@ class HistorySet(DataSet):
             val = val.values
           # FIXME this is largely a biproduct of old length-one-vector approaches in the deprecataed data objects
           if val.size == 1:
-            rlz[var] = float(val)
+            rlz[var] = val[0]
           else:
-            rlz[var] = float(val[indic])
+            rlz[var] = val[indic]
         elif method in ['inputPivotValue']:
           pivotParam = self.getDimensions(var)
           assert(len(pivotParam) == 1) # TODO only handle History for now

@@ -174,9 +174,9 @@ class Optimizer(AdaptiveSampler):
     self._impConstraintFunctions = [] # list of implicit constraint functions
     # __private
     # additional methods
-    self.addAssemblerObject('Constraint', '-1')      # Explicit (input-based) constraints
-    self.addAssemblerObject('ImplicitConstraint', '-1')      # Implicit constraints
-    self.addAssemblerObject('Sampler', '-1')          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+    self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_one)      # Explicit (input-based) constraints
+    self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_one)      # Implicit constraints
+    self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
     # register adaptive sample identification criteria
     self.registerIdentifier('traj') # the trajectory of interest
@@ -336,12 +336,13 @@ class Optimizer(AdaptiveSampler):
     """
 
   @abc.abstractmethod
-  def _updateSolutionExport(self, traj, rlz, acceptable):
+  def _updateSolutionExport(self, traj, rlz, acceptable, rejectReason):
     """
       Stores information to the solution export.
       @ In, traj, int, trajectory which should be written
       @ In, rlz, dict, collected point
       @ In, acceptable, bool, acceptability of opt point
+      @ In, rejectReason, str, reject reason of opt point, or return None if accepted
       @ Out, None
     """
 

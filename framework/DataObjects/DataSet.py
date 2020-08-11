@@ -35,6 +35,8 @@ try:
   from .DataObject import DataObject
 except ValueError:
   from DataObject import DataObject
+
+import CsvLoader
 from utils import utils, cached_ndarray, xmlUtils, mathUtils
 
 # for profiling with kernprof
@@ -789,7 +791,8 @@ class DataSet(DataObject):
     """
     if rlz is None:
       return rlz
-    need = any(len(val.shape) > 1 for val in rlz.values() if hasattr(val, 'shape'))
+    # an index map is needed if you're not a scalar; i.e. you depend on at least 1 non-null index
+    need = any(val.size > 1 for val in rlz.values() if hasattr(val, 'size'))
     if need:
       rlz['_indexMap'] = self.getDimensions()
     return rlz
@@ -872,14 +875,47 @@ class DataSet(DataObject):
     """
     # check that indexMap and expected indexes line up
     ## This check can be changed when we can automatically collapse dimensions intelligently
-    if indexMap is not None:
-      mapIndices = set()
+    ## NOTE that if this dataset is non-indexed, don't check index alignment
+    if indexMap is not None and self.indexes:
+      okay = True         # track if the indexes provided are okay
+      mapIndices = set()  # these are the indices provided by the realization
       mapIndices.update(*list(indexMap.values()))
+      # see if the provided indices match the required indices for this data object
       if mapIndices != set(self.indexes):
-        self.raiseAWarning('Realization indexes do not match expected indexes!\n',
-                           'Extra from realization: {}\n'.format(mapIndices-set(self.indexes)),
-                           'Missing from realization: {}'.format(set(self.indexes) - mapIndices))
-        return False
+        extra = mapIndices-set(self.indexes)      # extra indices not expected
+        missing = set(self.indexes) - mapIndices  # indices expected but not provided
+        if extra:
+          # perhaps someday we can collapse dimensions intelligently, but for not, this is an error state
+          okay = False # if there's extra indices listed that aren't part of the DataObject, we don't handle this yet
+        elif missing:
+          # if the variables depending on an index ONLY depend on that one index, we can infer the
+          #   structure and allow the contributing source to not explicitly provide the index map.
+          #   Should we be, though? Should this be an action of the CSV loader? a Realization class?
+          for missed in missing:
+            # the missing index has to be in the provided realization for us to infer the structure and values
+            if missed in rlz:
+              # update the mapping for each variable that is meant to depend on this index
+              for var in self._pivotParams[missed]:
+                if var in indexMap:
+                  # this variable already has dependencies, but not the missed dependency, so we
+                  # cannot infer the structure without help from the data source
+                  okay = False
+                  break
+                else:
+                  indexMap[var] = [missed]
+              if not okay:
+                break
+            else:
+              okay = False
+              break
+        if not okay:
+          # update extra/missing in case there have been changes
+          extra = mapIndices-set(self.indexes)
+          missing = set(self.indexes) - mapIndices
+          self.raiseAWarning('Realization indexes do not match expected indexes!\n',
+                            f'Extra from realization: {extra}\n',
+                            f'Missing from realization: {missing}')
+          return False
     if not isinstance(rlz, dict):
       self.raiseAWarning('Realization is not a "dict" instance!')
       return False
@@ -1774,19 +1810,8 @@ class DataSet(DataObject):
     # datasets can have them because we don't have a 2d+ CSV storage strategy yet
     else:
       nullOK = True
-    # first try reading the file
-    try:
-      df = pd.read_csv(fname)
-    except pd.errors.EmptyDataError:
-      # no data in file
-      self.raiseAWarning('Tried to read data from "{}", but the file is empty!'.format(fname+'.csv'))
-      return
-    else:
-      self.raiseADebug('Reading data from "{}.csv"'.format(fname))
-    # check for NaN contents -> this isn't allowed in RAVEN currently, although we might need to change this for ND
-    if (not nullOK) and (pd.isnull(df).values.sum() != 0):
-      bad = pd.isnull(df).any(1).nonzero()[0][0]
-      self.raiseAnError(IOError,'Invalid data in input file: row "{}" in "{}"'.format(bad+1,fname))
+    loader = CsvLoader.CsvLoader(self.messageHandler)
+    df = loader.loadCsvFile(fname, nullOK=nullOK)
     return df
 
   def _resetScaling(self):

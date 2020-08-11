@@ -7,6 +7,12 @@
   UnorderedCsv = 'mc/coarse.csv mc/restart.csv mc/fine.csv'
  [../]
 
+ [./AMC]
+  type = 'RavenFramework'
+  input = 'adaptive_mc.xml'
+  UnorderedCsv = 'AMC/coarse.csv AMC/restart.csv AMC/fine.csv AMC/exp_coarse.csv AMC/exp_restart.csv AMC/exp_fine.csv'
+ [../]
+
  [./StochPoly]
   type = 'RavenFramework'
   input = 'test_restart_stochpoly.xml'
@@ -40,7 +46,7 @@
   output = 'large/large_restart.xml'
   UnorderedCsv = 'large/large_restart.csv'
  [../]
- 
+
  [./Constant]
   type = 'RavenFramework'
   input = 'test_restart_constant.xml'
