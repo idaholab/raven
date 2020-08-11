@@ -576,6 +576,7 @@ class JobHandler(MessageHandler.MessageUser):
         if removeFinished:
           runsToBeRemoved.append(i)
           self.__checkAndRemoveFinished(run)
+          ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
 
       ##Since these indices are sorted, reverse them to ensure that when we
       ## delete something it will not shift anything to the left (lower index)
@@ -584,7 +585,11 @@ class JobHandler(MessageHandler.MessageUser):
         self.__finished[i].trackTime('collected')
         del self.__finished[i]
     ## end with self.__queueLock
-
+    
+    ## check if batches are ready to be returned
+    
+    
+    
     return finished
 
   def getFinishedNoPop(self):
