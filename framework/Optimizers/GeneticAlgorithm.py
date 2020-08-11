@@ -24,7 +24,9 @@
 """
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
+from scipy.special import comb
 from collections import deque, defaultdict
+import xarray as xr
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -33,8 +35,9 @@ from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
 from .mutators.mutators import returnInstance as mutatorsReturnInstance
-#from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
+from .survivorSelectors.survivorSelectors import returnInstance as survivorSelectionReturnInstance
 from .fitness.fitness import returnInstance as fitnessReturnInstance
+from .repairOperators.repair import returnInstance as repairReturnInstance
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GeneticAlgorithm(RavenSampled):
@@ -57,10 +60,14 @@ class GeneticAlgorithm(RavenSampled):
     self._acceptRerun = {}                                       # by traj, if True then override accept for point rerun
     self._convergenceInfo = {}                                   # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = 0                                # consecutive persistence required to mark convergence
+    self.population = None
+    # self.Age = np.ones(self._populationSize)
     self.needDenormalized() # the default in all optimizers is to normalize the data which is not the case here
 
     ### TBD ####
     self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
+    self.popAge = None
+    self.fitness = None
 
   ##########################
   # Initialization Methods #
@@ -82,7 +89,22 @@ class GeneticAlgorithm(RavenSampled):
     # GA Params
     GAparams = InputData.parameterInputFactory('GAparams', strictMode=True,
         printPriority=108,
-        descr=r""" Genetic Algorithm Parameters.""")
+        descr=r""" Genetic Algorithm Parameters: 1. populationSize.
+                                                 2. parentSelectors:
+                                                                    a.  rouletteWheel.
+                                                 3. Reproduction:
+                                                                  a.  crossover:
+                                                                                  i.    onePointCrossover.
+                                                                                  ii.   TwoPointsCrossover.
+                                                                                  iii.  uniformCrossover
+                                                                  b.  mutators:
+                                                                                i.    swapMutator.
+                                                                                ii.   scrambleMutator.
+                                                                                iii.  inversionMutator.
+                                                                                iv.   bitFlipMutator.
+                                                 4. survivorSelectors:
+                                                                      a.  ageBased.
+                                                                      b.  fitnessBased.""")
     # Population Size
     populationSize = InputData.parameterInputFactory('populationSize', strictMode=True,
         contentType=InputTypes.IntegerType,
@@ -94,10 +116,12 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""A node containing the criterion based on which the parents are selected. This can be
-                  a. a fitness proportionate selection such as Roulette Wheer, Stochastic Universal Sampling,
-                  b. Tournament,
-                  c. Rank, or
-                  d. Random selection""")
+                  a fitness proportionate selection such as:
+                  a. rouletteWheel,
+                  b. Stochastic Universal Sampling,
+                  c. Tournament,
+                  d. Rank, or
+                  e. Random selection""")
     GAparams.addSub(parentSelection)
 
     # Reproduction
@@ -233,6 +257,7 @@ class GeneticAlgorithm(RavenSampled):
     # reproduction node
     reproductionNode = GAparamsNode.findFirst('reproduction')
     self._nParents = reproductionNode.parameterValues['nParents']
+    self._nChildren = int(2*comb(self._nParents,2))
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
@@ -242,19 +267,22 @@ class GeneticAlgorithm(RavenSampled):
     # mutation node
     mutationNode = reproductionNode.findFirst('mutation')
     self._mutationType = mutationNode.parameterValues['type']
-    self._mutationlocs = mutationNode.findFirst('locs').value
+    self._mutationLocs = mutationNode.findFirst('locs').value
     self._mutationProb = mutationNode.findFirst('mutationProb').value
     self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
     # Survivor selection
     survivorSelectionNode = GAparamsNode.findFirst('survivorSelection')
     self._survivorSelectionType = survivorSelectionNode.value
-    # self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
+    self._survivorSelectionInstance = survivorSelectionReturnInstance(self,name = self._survivorSelectionType)
     # Fitness
     fitnessNode = GAparamsNode.findFirst('fitness')
     self._fitnessType = fitnessNode.parameterValues['type']
     self._objCoeff = fitnessNode.findFirst('a').value
     self._penaltyCoeff = fitnessNode.findFirst('b').value
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
+    self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented,
+                                                                                # if other repair methods are implemented then
+                                                                                # ##TODO: make the repair type a user input
     # Convergence Criterion
     convNode = paramInput.findFirst('convergence')
     if convNode is not None:
@@ -266,8 +294,8 @@ class GeneticAlgorithm(RavenSampled):
     if not self._convergenceCriteria:
       self.raiseAWarning('No convergence criteria given; using defaults.')
       self._convergenceCriteria['objective'] = 1e-6
-    # same point is ALWAYS a criterion
-    self._convergenceCriteria['samePoint'] = -1 # For simulated Annealing samePoint convergence
+    # # same point is ALWAYS a criterion
+    # self._convergenceCriteria['samePoint'] = -1 # For simulated Annealing samePoint convergence
                                                 # should not be one of the stopping criteria
     # set persistence to 1 if not set
     if self._requiredPersistence is None:
@@ -292,6 +320,20 @@ class GeneticAlgorithm(RavenSampled):
     for traj, init in enumerate(self._initialValues):
       self._submitRun(init,traj,self.getIteration(traj))
 
+  def initializeTrajectory(self, traj=None):
+    """
+      Handles the generation of a trajectory.
+      @ In, traj, int, optional, label to use
+      @ Out, traj, int, new trajectory number
+    """
+    traj = RavenSampled.initializeTrajectory(self)
+    self._acceptHistory[traj] = deque(maxlen=self._maxHistLen)
+    self._acceptRerun[traj] = False
+    self._convergenceInfo[traj] = {'persistence': 0}
+    for criteria in self._convergenceCriteria:
+      self._convergenceInfo[traj][criteria] = False
+    return traj
+
   def needDenormalized(self):
     """
       Determines if the currently used algorithms should be normalizing the input space or not
@@ -311,34 +353,31 @@ class GeneticAlgorithm(RavenSampled):
       This is called by localFinalizeActualSampling, and hence should contain the main skeleton.
       @ In, info, dict, identifying information about the realization
       @ In, rlz, dict, realized realization
-      @ In, optVal, float, value of objective variable (corrected for min/max)
       @ Out, None
     """
     ## THIS IS HOW THE POPULATION RLZ (BATCH) WOULD LOOK LIKE
-    ## IN THIS CASE we will have 3 children 
-    populationRlz =  xr.concat((rlz, rlz, rlz))
-    
+    ## IN THIS CASE we will have 3 children
+    ## TODO: This is to be removed
+    size = self._nChildren if self.counter > 1 else self._populationSize
+    populationRlz =  xr.concat((rlz for _ in range(size)))#((rlz, rlz, rlz))
+    population = xr.DataArray(populationRlz[list(self.toBeSampled)].to_array().transpose(),
+                              dims=['chromosome','Gene'],
+                              coords={'chromosome': np.arange(size),
+                                      'Gene':list(self.toBeSampled)})#np.arange(len(self.toBeSampled))
+    # TODO: This is to be removed once the rlz is consistent with the expected batch
+    for i in range(1,size):
+      population[i,:] = randomUtils.randomPermutation(list(population[0,:].data), self)#np.random.choice(population[0,:],len(self.toBeSampled), replace=False)
     ## TODO the whole skeleton should be here, this should be calling all classes and _private methods.
     traj = info['traj']
     info['optVal'] = rlz[self._objectiveVar]
     self.incrementIteration(traj)
     info['step'] = self.counter
 
-    # separate population from model evaluations
-    # This part is just a dumb emulation of what should be passed by the job handeler batch
-    # This part will totally be removed later.
-    # population = np.zeros((self._populationSize,len(self.toBeSampled)))
-    # obj = np.zeros((self._populationSize))
-    fitness = np.zeros((self._populationSize))
-    # For now I will assume
-    # fitnesses = rlz[self._objectiveVar]*np.random.random(self._populationSize) # All np.random should be replaced with randomUtils.random etc.
-    # for var in self.toBeSampled:
-    #   chromosome = rlz.copy()
-    # chromosome.pop(self._objectiveVar)
-    # chromosome = list(chromosome.values())
-    # for i in range(self._populationSize):
-    #   population[i] = np.random.choice(chromosome,size=len(self.toBeSampled),replace=False)
-    # obj = rlz[self._objectiveVar] * randomUtils.random(dim=10,samples=1)
+
+    if self.counter == 1:
+      self.population = population
+    # self.population = population
+    # self.Age = np.ones(self._populationSize)
 
     # model is generating [y1,..,yL] = F(x1,...,xM)
     # population format [y1,..,yL,x1,...,xM,fitness]
@@ -347,43 +386,49 @@ class GeneticAlgorithm(RavenSampled):
 
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    # childrenCont = self.__fitnessCalculationHandler(rlz,params=paramsDict)
-    for i in range(self._populationSize):
-      fitness[i] = self._fitnessInstance(rlz,objVar = self._objectiveVar,a=self._objCoeff,b=self._penaltyCoeff,penalty = None)
-
+    # for i in range(self._populationSize):
+    fitness = self._fitnessInstance(populationRlz,objVar = self._objectiveVar,a=self._objCoeff,b=self._penaltyCoeff,penalty = None)
+    if self.counter == 1:
+      self.fitness = fitness
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
     if self.counter > 1:
       # right now these are lists, but this should be changed to xarrays when the realization is ready as an xarray dataset
-      population,Fitness,Age = self._survivorSelectionInstance(rlz)
+      population,fitness,Age = self._survivorSelectionInstance(age=self.popAge,popSize=self._populationSize,variables=list(self.toBeSampled),population = self.population,fitness = self.fitness,newRlz=populationRlz,offSpringsFitness=fitness)
+      self._resolveNewGeneration(traj,populationRlz,info)
+      self.population = population
+      self.popAge = Age
+      self.fitness = fitness
+
       # This will be added once the rlz is treated as a xarray DataSet
       # for var in self.toBeSampled:
         # self.info[var+'_Age'] = Age[var]
 
     # 1 @ n: Parent selection from population
     # pair parents together by indexes
-    # parentSet = self.__selectionCalculationHandler(parents=self.population,params=paramsDict)
-    parents = np.zeros((self._nParents,len(self.toBeSampled)))
-    for i in range(self._nParents):
-      ind, parents[i] = self._parentSelectionInstance(population=population,fitness=fitness)
-      population = np.delete(population, ind, axis=0)
+    parents = self._parentSelectionInstance(population,variables=list(self.toBeSampled),fitness=fitness,nParents=self._nParents)
 
     # 2 @ n: Crossover from set of parents
     # create childrenCoordinates (x1,...,xM)
     # self.childrenCoordinates = self.__crossoverCalculationHandler(parentSet=parentSet,population=self.population,params=paramsDict)
-    children = self._crossoverInstance(parents=parents,crossoverProb=self._crossoverProb,points=self._crossoverPoints)
+    children = self._crossoverInstance(parents=parents,variables=list(self.toBeSampled),crossoverProb=self._crossoverProb,points=self._crossoverPoints)
 
     # 3 @ n: Mutation
     # perform random directly on childrenCoordinates
-    # self.__mutationCalculationHandler(children=self.childrenCoordinates,params=paramsDict)
-    for i in range(np.shape(children)[0]):
-      children[i] = self._mutationInstance(chromosome=children[i],locs = self._mutationlocs, mutationProb=self._mutationProb)
-    ## TODO WHAT IF AFTER CROSSOVER AND/OR MUTATION OUR CHROMOSOME NO LONGER SATISFIES THE WITHOUT REPLACEMENT CONSTRAINT
+    children = self._mutationInstance(offSprings=children,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
 
-    # 4 @ n: Submit children batch
+    # 4 @ n: repair/replacement
+    children = self._repairInstance(children,variables=list(self.toBeSampled),distInfo=self.distDict)
+
+    # 5 @ n: Submit children batch
     # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
-    # --> how should this be handled? By initialize?
+    # self._submitRun(children,traj,self.counter)
+    for i in range(np.shape(children)[0]):
+      newRlz={}
+      for _,var in enumerate(self.toBeSampled.keys()):
+        newRlz[var] = float(children.loc[i,var].values)
+      self._submitRun(newRlz, traj, self.getIteration(traj))
 
 
   def _submitRun(self, point, traj, step, moreInfo=None):
@@ -402,38 +447,165 @@ class GeneticAlgorithm(RavenSampled):
                   'step': step
                 })
     # NOTE: explicit constraints have been checked before this!
+    #
     self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
     self._submissionQueue.append((point, info))
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
+  def _resolveNewGeneration(self, traj, rlz, info):
+    """
+      Consider and store a new optimal point
+      @ In, traj, int, trajectory for this new point
+      @ In, info, dict, identifying information about the realization
+      @ In, rlz, dict, realized realization
+    """
+    optVal = info['optVal'].copy()
+    self.raiseADebug('*'*80)
+    self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))
+    # note the collection of the opt point
+    self._stepTracker[traj]['opt'] = (rlz, info)
+    # FIXME check implicit constraints? Function call, - Jia
+    # acceptable, old = self._checkAcceptability(traj, rlz, info)
+    acceptable = 'accepted' if self.counter >1 else 'first'
+    old = self.population
+    converged = self._updateConvergence(traj, rlz, old, acceptable)
+    # we only want to update persistance if we've accepted a new point.
+    # We don't want rejected points to count against our convergence.
+    if acceptable in ['accepted']:
+      self._updatePersistence(traj, converged, optVal)
+    # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
+    #       point history.
+    if self._writeSteps == 'every':
+      self._updateSolutionExport(traj, rlz, acceptable)
+    self.raiseADebug('*'*80)
+    # decide what to do next
+    if acceptable in ['accepted', 'first']:
+      # record history
+      self._optPointHistory[traj].append((rlz, info)) #.to_array().data
+      # self.incrementIteration(traj)
+      # nothing else to do but wait for the grad points to be collected
+    elif acceptable == 'rejected':
+      self._rejectOptPoint(traj, info, old)
+    else: # e.g. rerun
+      pass # nothing to do, just keep moving
 
-  def checkConvergence(self, traj):
+  def checkConvergence(self, traj, new, old):
     """
       Check for trajectory convergence
       @ In, traj, int, trajectory to consider
-      @ Out, None
+      @ In, new, dict, new point
+      @ In, old, dict, old point
+      @ Out, any(convs.values()), bool, True of any of the convergence criteria was reached
+      @ Out, convs, dict, on the form convs[conv] = bool, where conv is in self._convergenceCriteria
     """
-    pass
+    convs = {}
+    for conv in self._convergenceCriteria:
+      # special treatment for same point check
+      if conv == 'samePoint':
+        convs[conv] = self._checkConvSamePoint(new, old)
+        continue
+      # fix capitalization for RAVEN standards
+      fName = conv[:1].upper() + conv[1:]
+      # get function from lookup
+      f = getattr(self, '_checkConv{}'.format(fName))
+      # check convergence function
+      okay = f(traj)
+      # store and update
+      convs[conv] = okay
+    return any(convs.values()), convs
 
-  def _checkAcceptability(self, traj, opt, optVal):
+  # def _checkConvSamePoint(self, new, old):
+  #   """
+  #     Checks for a repeated same point
+  #     @ In, new, dict, new opt point
+  #     @ In, old, dict, old opt point
+  #     @ Out, converged, bool, convergence state
+  #   """
+  #   # TODO diff within tolerance? Exactly equivalent seems good for now
+  #   same = list(abs(new[var].data - old.loc[:,var].data)==self._convergenceCriteria['samePoint'] for var in self.toBeSampled)
+  #   converged = all(same)
+  #   self.raiseADebug(self.convFormat.format(name='same point',
+  #                                           conv=str(converged),
+  #                                           got=sum(same),
+  #                                           req=len(same)))
+  #   return converged
+
+  def _checkConvObjective(self, traj):
+    """
+      Checks the change in objective for convergence
+      @ In, traj, int, trajectory identifier
+      @ Out, converged, bool, convergence state
+    """
+    if len(self._optPointHistory[traj]) < 2:
+      return False
+    o1, _ = self._optPointHistory[traj][-1]
+    o2, _ = self._optPointHistory[traj][-2]
+    delta = o2[self._objectiveVar]-o1[self._objectiveVar]
+    # for chromosome in
+    converged = abs(delta.data.min()) < self._convergenceCriteria['objective']
+    self.raiseADebug(self.convFormat.format(name='objective',
+                                            conv=str(converged),
+                                            got=delta.data.min(),
+                                            req=self._convergenceCriteria['objective']))
+    return converged
+
+  def _checkAcceptability(self, traj, opt, optVal, info):
     """
       Check if new opt point is acceptably better than the old one
       @ In, traj, int, identifier
       @ In, opt, dict, new opt point
       @ In, optVal, float, new optimization value
+      @ In, info, dict, meta information about the opt point
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
     """
-    pass
+    # Check acceptability
+    # NOTE: if self._optPointHistory[traj]: -> faster to use "try" for all but the first time
+    try:
+      old, _ = self._optPointHistory[traj][-1]
+      oldVal = old[self._objectiveVar]
+      # check if same point
+      self.raiseADebug(' ... change: {d: 1.3e} new objective: {n: 1.6e} old objective: {o: 1.6e}'
+                      .format(d=opt[self._objectiveVar]-oldVal, o=oldVal, n=opt[self._objectiveVar]))
+      # if this is an opt point rerun, accept it without checking.
+      if self._acceptRerun[traj]:
+        acceptable = 'rerun'
+        self._acceptRerun[traj] = False
+      elif all(opt[var] == old[var] for var in self.toBeSampled):
+        # this is the classic "same point" trap; we accept the same point, and check convergence later
+        acceptable = 'accepted'
+      else:
+        if self._acceptabilityCriterion(oldVal,opt[self._objectiveVar])>randomUtils.random(dim=1, samples=1): # TODO replace it back
+          acceptable = 'accepted'
+        else:
+          acceptable = 'rejected'
+    except IndexError:
+      # if first sample, simply assume it's better!
+      acceptable = 'first'
+      old = None
+    self._acceptHistory[traj].append(acceptable)
+    self.raiseADebug(' ... {a}!'.format(a=acceptable))
+    return acceptable, old
 
-  def _updateConvergence(self, traj, rlz, old, acceptable):
+  def _updateConvergence(self, traj, new, old, acceptable):
     """
       Updates convergence information for trajectory
       @ In, traj, int, identifier
-      @ In, acceptable, str, condition of point
+      @ In, new, dict, new point
+      @ In, old, dict, old point
+      @ In, acceptable, str, condition of new point
       @ Out, converged, bool, True if converged on ANY criteria
     """
-    pass
+    ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
+    if acceptable == 'accepted':
+      self.raiseADebug('Convergence Check for Trajectory {}:'.format(traj))
+      # check convergence
+      converged, convDict = self.checkConvergence(traj, new, old)
+    else:
+      converged = False
+      convDict = dict((var, False) for var in self._convergenceInfo[traj])
+    self._convergenceInfo[traj].update(convDict)
+    return converged
 
   def _updatePersistence(self, traj, converged, optVal):
     """
@@ -443,7 +615,15 @@ class GeneticAlgorithm(RavenSampled):
       @ In, optVal, float, new optimal value
       @ Out, None
     """
-  pass
+    # update persistence
+    if converged:
+      self._convergenceInfo[traj]['persistence'] += 1
+      self.raiseADebug('Trajectory {} has converged successfully {} time(s)!'.format(traj, self._convergenceInfo[traj]['persistence']))
+      if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
+        self._closeTrajectory(traj, 'converge', 'converged', optVal)
+    else:
+      self._convergenceInfo[traj]['persistence'] = 0
+      self.raiseADebug('Resetting convergence for trajectory {}.'.format(traj))
 
   def _checkForImprovement(self, new, old):
     """
@@ -452,7 +632,9 @@ class GeneticAlgorithm(RavenSampled):
       @ In, old, float, previous optimization value
       @ Out, improved, bool, True if "sufficiently" improved or False if not.
     """
-    pass
+    # This is not required for simulated annealing as it's handled in the probabilistic acceptance criteria
+    # But since it is an abstract method it has to exist
+    return True
 
   def _rejectOptPoint(self, traj, info, old):
     """
@@ -484,6 +666,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     # meta variables
     toAdd = {'PopulationAge': self.popAge,
+             'population': self.population
                 }
 
     for var in self.toBeSampled:
@@ -506,67 +689,3 @@ class GeneticAlgorithm(RavenSampled):
   #     @ Out, None
   #   """
   #   pass
-
-  def __fitnessCalculationHandler(self,children,params):
-    # children is a Pandas dataFrame containing N realization of [y1,..,yL,x1,...,xM]
-    if params['fitnessType'] == 'fitnessType1':
-      pass
-      # perform fitness calculation
-      # add fitness variable to children dataFrame: [y1,..,yL,x1,...,xM,fitness]
-      # children = fitnessType1Calculation(rlz)
-    else:
-      pass
-      # other methods ...
-    return children
-
-  def __replacementCalculationHandler(self,parents,children,params):
-    # parents and children are two Pandas dataFrame containing realization of [y1,..,yL,x1,...,xM,fitness]
-    if params['replacementType'] == 'generational':
-      pass
-      # the following method remove the parents and leave the children
-      # i.e., newPopulation <-- children
-      # newPopulation = generationalReplacement(children = self.children)
-    else:
-      pass
-      # other methods ...
-      # e.g., newPopulation = mix of parents and children
-      #newPopulation = otherReplacement(parents,children,paramsDict)
-    return
-
-  def __selectionCalculationHandler(self,parents,params):
-    # create a list of pairs of parents: a list of list containing two (or more) parents indexes (e.g., [[2,5],[6,3],...])
-    if params['selectionType'] == 'rouletteWheel':
-      pass
-      # parentSet = stdRouletteSelection(population=parents,params={})
-    else:
-      pass
-      # other methods ...
-      # parentSet = otherSelection(population=parents,params={})
-    return #parentSet
-
-  def __crossoverCalculationHandler(self,parentSet,population,params):
-    if params['crossoverType'] == 'onePointCrossover':
-      pass
-      # create childrenCoordinates: a panda dataframe
-      # childrenCoordinates = onePointCrossover(parents=parentSet,params={})
-    elif params['twoPointsCrossover'] == 'twoPointsCrossover':
-      pass
-      # create childrenCoordinates: a panda dataframe
-      # childrenCoordinates = twoPointsCrossover(parents=parentSet,params={})
-    else:
-      pass
-      # other methods ...
-      # childrenCoordinates = otherCrossover(parentSet,params={})
-    return #childrenCoordinates
-
-  def mutationCalculationHandler(self,children,params):
-    # this method does not return anything
-    # It simply acts on childrenCoordinates directly
-    if params['mutationType'] =='swapMutator':
-      pass
-      #  mutation(childrenCoordinates, params={})
-    elif params['mutationType'] =='scrambleMutator':
-      pass
-    else:
-      pass
-      # other methods ...
