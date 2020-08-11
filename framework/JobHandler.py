@@ -45,9 +45,9 @@ import Models
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWS
 _rayAvail = im.isLibAvail("ray")
 if _rayAvail:
- import ray
+  import ray
 else:
- import pp
+  import pp
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
 
@@ -120,6 +120,8 @@ class JobHandler(MessageHandler.MessageUser):
     self.__submittedJobs = []
     ## Dict of failed jobs of the form { identifer: metadata }
     self.__failedJobs = {}
+    ## Dict containing info about batching
+    self.__batching = collections.defaultdict()
 
   def initialize(self, runInfoDict, messageHandler):
     """
@@ -198,7 +200,7 @@ class JobHandler(MessageHandler.MessageUser):
         servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
-                         pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+          pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
         self.raiseADebug("Head node IP address: ", self.rayServer['node_ip_address'])
         self.raiseADebug("Redis address       : ", self.rayServer['redis_address'])
@@ -226,7 +228,6 @@ class JobHandler(MessageHandler.MessageUser):
     for nodeId in list(set(self.runInfoDict['Nodes'])):
       hostNameMapping[nodeId.strip()] = socket.gethostbyname(nodeId.strip())
       self.raiseADebug("Remote Host identified ", hostNameMapping[nodeId.strip()])
-
     return hostNameMapping
 
   def __getLocalHost(self):
@@ -297,7 +298,7 @@ class JobHandler(MessageHandler.MessageUser):
       ## probably when we move to Python 3.
       time.sleep(self.sleepTime)
 
-  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads = False, uniqueHandler="any", clientQueue = False):
+  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads = False, uniqueHandler="any", clientQueue = False, groupInfo = None):
     """
       Method to add an internal run (function execution)
       @ In, args, dict, this is a list of arguments that will be passed as
@@ -314,12 +315,17 @@ class JobHandler(MessageHandler.MessageUser):
         this runner. For example, if present, to retrieve this runner using the
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
         If uniqueHandler == 'any', every "client" can get this runner
+      @ In, groupInfo, dict, optional, {id:string, size:int}.
+        - "id": it is a special keyword attached to
+          this runner to identify that this runner belongs to a special set of runs that need to be
+          grouped together (all will be retriavable only when all the runs ended).
+        - "size", number of runs in this group
       @ In, clientQueue, boolean, optional, if this run needs to be added in the
         clientQueue
       @ Out, None
     """
     assert "original_function" in dir(functionToRun), "to parallelize a function, it must be" \
-                                                          " decorated with RAVEN Parallel decorator"
+           " decorated with RAVEN Parallel decorator"
     if self.rayServer is None or forceUseThreads:
       internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
                                                functionToRun.original_function,
@@ -336,6 +342,17 @@ class JobHandler(MessageHandler.MessageUser):
 
     # set the client info
     internalJob.clientRunner = clientQueue
+    #  set the groupping id if present
+    internalJob.groupId = None
+    if groupInfo is not None:
+      groupId =  groupInfo['id']
+      internalJob.groupId = groupId
+      if groupId not in self.__batching:
+        self.__batching[groupId] = {"counter": 0, "ids": [], "size": groupInfo['size'], 'finished': []}
+      self.__batching[groupId]["counter"] += 1
+      if self.__batching[groupId]["counter"] > self.__batching[groupId]["size"]:
+        self.raiseAnError(RuntimeError, "gruoup id {} is full. Size reached:".format(groupId))
+      self.__batching[groupId]["ids"].append(identifier)
     # add the runner in the Queue
     self.reAddJob(internalJob)
 
@@ -549,10 +566,13 @@ class JobHandler(MessageHandler.MessageUser):
         ## If the jobIdentifier does not match or the uniqueHandler does not
         ## match, then don't bother trying to do anything with it
         if not run.identifier.startswith(jobIdentifier) \
-        or uniqueHandler != run.uniqueHandler:
+           or uniqueHandler != run.uniqueHandler:
           continue
-
-        finished.append(run)
+        ## check if the run belongs to a subgroup and in case 
+        if run.groupId in self.__batching:
+          self.__batching[run.groupId]['finished'].append(run)
+        else:
+          finished.append(run)
         if removeFinished:
           runsToBeRemoved.append(i)
           self.__checkAndRemoveFinished(run)
@@ -726,7 +746,7 @@ class JobHandler(MessageHandler.MessageUser):
     """
     self.completed = True
     if _rayAvail:
-     ray.shutdown()
+      ray.shutdown()
 
 
   def terminateAll(self):
