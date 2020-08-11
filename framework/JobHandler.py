@@ -579,7 +579,7 @@ class JobHandler(MessageHandler.MessageUser):
           ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
 
       ## check if batches are ready to be returned
-      for groupId in self.__batching:
+      for groupId in list(self.__batching.keys()):
         if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
           doneBatch = self.__batching.pop(groupId)
           finished.extend(doneBatch['finished'])

@@ -654,6 +654,7 @@ class MultiRun(SingleRun):
     while True:
       # collect finished jobs
       finishedJobs = jobHandler.getFinished()
+      ##BATCH... TO MODIFY. FIXME
       for finishedJob in finishedJobs:
         finishedJob.trackTime('step_collected')
         # update number of collected runs
