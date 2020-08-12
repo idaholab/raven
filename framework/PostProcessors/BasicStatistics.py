@@ -127,7 +127,7 @@ class BasicStatistics(PostProcessor):
     """
     PostProcessor.__init__(self, messageHandler)
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.acceptedCalcParam = self.scalarVals  + self.vectorVals
+    self.acceptedCalcParam = self.scalarVals + self.vectorVals
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
@@ -611,15 +611,10 @@ class BasicStatistics(PostProcessor):
     #storage dictionary for skipped metrics
     self.skipped = {}
     #construct a dict of required computations
-
-
     needed = dict((metric,{'targets':set(),'percent':set()}) for metric in self.scalarVals)
-
     needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
-
     for metric, params in self.toDo.items():
       for entry in params:
-
         needed[metric]['targets'].update(entry['targets'])
         try:
           needed[metric]['features'].update(entry['features'])
@@ -629,7 +624,6 @@ class BasicStatistics(PostProcessor):
           needed[metric]['percent'].update(entry['percent'])
         except KeyError:
           pass
-
 
     # variable                     | needs                  | needed for
     # --------------------------------------------------------------------
@@ -653,10 +647,6 @@ class BasicStatistics(PostProcessor):
     # higherPartialVariance needs  | expectedValue,median   | higherPartialSigma
     # higherPartialSigma needs     | higherPartialVariance  | 
 
-
-
-
-
     # update needed dictionary when standard errors are requested
     needed['expectedValue']['targets'].update(needed['sigma']['targets'])
     needed['expectedValue']['targets'].update(needed['variationCoefficient']['targets'])
@@ -667,14 +657,11 @@ class BasicStatistics(PostProcessor):
     needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['targets'])
     needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['features'])
     needed['sigma']['targets'].update(needed['expectedValue']['targets'])
-
     needed['variance']['targets'].update(needed['sigma']['targets'])
-
     needed['lowerPartialVariance']['targets'].update(needed['lowerPartialSigma']['targets'])
     needed['higherPartialVariance']['targets'].update(needed['higherPartialSigma']['targets'])
     needed['median']['targets'].update(needed['lowerPartialVariance']['targets'])
     needed['median']['targets'].update(needed['higherPartialVariance']['targets'])
-
     needed['covariance']['targets'].update(needed['NormalizedSensitivity']['targets'])
     needed['covariance']['features'].update(needed['NormalizedSensitivity']['features'])
     needed['VarianceDependentSensitivity']['targets'].update(needed['NormalizedSensitivity']['targets'])
