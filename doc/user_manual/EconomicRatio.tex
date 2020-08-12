@@ -23,7 +23,7 @@ period return of the asset or strategy that is given as an input. These metrics 
   \begin{equation}
     ES_\alpha = -\frac{1}{\alpha} \int_0^\alpha \operatorname{VaR}_\gamma(X) \, d\gamma
   \end{equation}
-  \item \textbf{ValueAtRisk}: the value at risk for investments. Estimates the maximum possible loss after exclude worse outcomes whose combined probability is at most $\alpha$. If this quantity is inputted as \textit{ValueAtRisk} the $\alpha$ value will assign as $5\%$. Otherwise the user can specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents the requested $\alpha$ value (a floating point value between 0.0 and 1.0)
+  \item \textbf{valueAtRisk}: the value at risk for investments. Estimates the maximum possible loss after exclude worse outcomes whose combined probability is at most $\alpha$. If this quantity is inputted as \textit{ValueAtRisk} the $\alpha$ value will assign as $5\%$. Otherwise the user can specify this quantity with a parameter \xmlAttr{threshold='X'}, where the \xmlAttr{X} represents the requested $\alpha$ value (a floating point value between 0.0 and 1.0)
   
   \begin{equation}
     \operatorname{VaR}_\alpha(X)=-\inf\big\{x\in\mathbb{R}:F_X(x)>\alpha\big\} = F^{-1}_Y(1-\alpha).
@@ -56,8 +56,8 @@ period return of the asset or strategy that is given as an input. These metrics 
       <sharpeRatio prefix="SR">x0,y0,z0,x,y,z</sharpeRatio>
       <sortinoRatio threshold='zero' prefix="stR">x01,y01,x,z</sortinoRatio>
       <sortinoRatio threshold='median' prefix="stR2">z01,x0,x01</sortinoRatio>
-      <ValueAtRisk threshold='0.07' prefix="VaR">z01,x0,x01</ValueAtRisk>
-      <ExpectedShortfall threshold='0.99' prefix="CVaR">z01,x0,x01</ExpectedShortfall>
+      <valueAtRisk threshold='0.07' prefix="VaR">z01,x0,x01</valueAtRisk>
+      <expectedShortfall threshold='0.99' prefix="CVaR">z01,x0,x01</expectedShortfall>
       <gainLossRatio prefix="glR">x01,y01,z0,x,y,z</gainLossRatio>
     </PostProcessor>  
     ...

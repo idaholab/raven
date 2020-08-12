@@ -42,8 +42,8 @@ class EconomicRatio(PostProcessor):
   tealVals   = ['sharpeRatio',             #financial metric
                 'sortinoRatio',            #financial metric
                 'gainLossRatio',           #financial metric
-                'ValueAtRisk',             # Value at risk (alpha)
-                'ExpectedShortfall'        # conditional value at risk (gammma)
+                'valueAtRisk',             # Value at risk (alpha)
+                'expectedShortfall'        # conditional value at risk (gammma)
                 ]
 
   @classmethod
@@ -66,7 +66,7 @@ class EconomicRatio(PostProcessor):
       tealSpecification = InputData.parameterInputFactory(teal, contentType=InputTypes.StringListType)
       if teal in['sortinoRatio','gainLossRatio']:
         tealSpecification.addParam("threshold", InputTypes.StringType)
-      elif teal in['ExpectedShortfall','ValueAtRisk']:
+      elif teal in['expectedShortfall','valueAtRisk']:
         tealSpecification.addParam("threshold", InputTypes.FloatType)
       tealSpecification.addParam("prefix", InputTypes.StringType)
       inputSpecification.addSub(tealSpecification)
@@ -228,7 +228,7 @@ class EconomicRatio(PostProcessor):
           self.toDo[tag].append({'targets':set(targets),
                                 'prefix':prefix,
                                 'threshold':threshold})
-        elif tag in ['ExpectedShortfall', 'ValueAtRisk']:
+        elif tag in ['expectedShortfall', 'valueAtRisk']:
           #get targets
           targets = set(child.value)
           if tag not in self.toDo.keys():
@@ -450,7 +450,7 @@ class EconomicRatio(PostProcessor):
 
     needed.update(dict((metric,{'targets':set(),'threshold':{}}) for metric in ['sortinoRatio','gainLossRatio']))
 
-    needed.update(dict((metric,{'targets':set(),'threshold':[]}) for metric in ['ValueAtRisk', 'ExpectedShortfall']))
+    needed.update(dict((metric,{'targets':set(),'threshold':[]}) for metric in ['valueAtRisk', 'expectedShortfall']))
     for metric, params in self.toDo.items():
       for entry in params:
         needed[metric]['targets'].update(entry['targets'])
@@ -597,7 +597,7 @@ class EconomicRatio(PostProcessor):
     #
     # ValueAtRisk
     #
-    metric = 'ValueAtRisk'
+    metric = 'valueAtRisk'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
@@ -623,7 +623,7 @@ class EconomicRatio(PostProcessor):
     #
     # ExpectedShortfall
     #
-    metric = 'ExpectedShortfall'
+    metric = 'expectedShortfall'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
       dataSet = inputDataset[list(needed[metric]['targets'])]
