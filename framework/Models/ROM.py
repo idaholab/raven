@@ -1259,9 +1259,9 @@ class ROM(Dummy):
 
     self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier']
     # for Clustered ROM
-    self.addAssemblerObject('Classifier','-1',True)
-    self.addAssemblerObject('Metric','-n',True)
-    self.addAssemblerObject('CV','-1',True)
+    self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
+    self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
+    self.addAssemblerObject('CV', InputData.Quantity.zero_to_one)
 
   def __getstate__(self):
     """

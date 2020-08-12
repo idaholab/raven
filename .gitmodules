@@ -1,6 +1,3 @@
-[submodule "plugins/CashFlow"]
-	path = plugins/CashFlow
-	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/CashFlow.git
 [submodule "plugins/SR2ML"]
 	path = plugins/SR2ML
 	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SR2ML.git
@@ -10,6 +7,9 @@
 [submodule "plugins/SRAW"]
 	path = plugins/SRAW
 	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SRAW.git
-[submodule "plugins/heron"]
-	path = plugins/heron
-	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/heron.git
+[submodule "plugins/TEAL"]
+	path = plugins/TEAL
+	url = https://github.com/idaholab/TEAL.git
+[submodule "plugins/HERON"]
+	path = plugins/HERON
+	url = git@github.com:idaholab/HERON.git

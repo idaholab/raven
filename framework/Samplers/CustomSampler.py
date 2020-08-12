@@ -71,7 +71,7 @@ class CustomSampler(ForwardSampler):
     self.pointsToSample = {}
     self.infoFromCustom = {}
     self.nameInSource = {} # dictionary to map the variable's sampled name to the name it has in Source
-    self.addAssemblerObject('Source','1',True)
+    self.addAssemblerObject('Source', InputData.Quantity.one)
     self.printTag = 'SAMPLER CUSTOM'
     self.readingFrom = None # either File or DataObject, determines sample generation
     self.indexes = None

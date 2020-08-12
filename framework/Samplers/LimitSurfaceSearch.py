@@ -180,8 +180,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
     self.acceptedScoringParam = ['distance','distancePersistence']
     self.acceptedBatchParam = ['none','naive','maxV','maxP']
 
-    self.addAssemblerObject('ROM','n')
-    self.addAssemblerObject('Function','-n')
+    self.addAssemblerObject('ROM', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('Function', InputData.Quantity.zero_to_infinity)
 
   def _localWhatDoINeed(self):
     """

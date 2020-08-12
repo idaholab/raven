@@ -92,7 +92,7 @@ class CrossValidation(PostProcessor):
     self.pivotParameter = None
     self.cvScore        = None
     # assembler objects to be requested
-    self.addAssemblerObject('Metric', 'n', True)
+    self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
     #self.validMetrics = ['mean_absolute_error', 'explained_variance_score', 'r2_score', 'mean_squared_error', 'median_absolute_error']
     # 'median_absolute_error' is removed, the reasons for that are:
     # 1. this metric can not accept multiple ouptuts
@@ -117,18 +117,6 @@ class CrossValidation(PostProcessor):
     if list(self.metricsDict.values()).count(None) != 0:
       metricName = self.metricsDict.keys()[list(self.metricsDict.values()).index(None)]
       self.raiseAnError(IOError, "Missing definition for Metric: ", metricName)
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs
-      @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against
-        the available options specific to this Sampler
-      @ Out, None
-    """
-    paramInput = self.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
