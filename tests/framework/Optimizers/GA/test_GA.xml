@@ -81,7 +81,7 @@
       </GAparams>
 
       <convergence>
-        <objective>-1</objective>
+        <objective>20.0</objective>
       </convergence>
 
       <variable name="x1">

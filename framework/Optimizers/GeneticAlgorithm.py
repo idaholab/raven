@@ -369,7 +369,7 @@ class GeneticAlgorithm(RavenSampled):
       population[i,:] = randomUtils.randomPermutation(list(population[0,:].data), self)#np.random.choice(population[0,:],len(self.toBeSampled), replace=False)
     ## TODO the whole skeleton should be here, this should be calling all classes and _private methods.
     traj = info['traj']
-    info['optVal'] = rlz[self._objectiveVar]
+    # info['optVal'] = rlz[self._objectiveVar]
     self.incrementIteration(traj)
     info['step'] = self.counter
 
@@ -388,6 +388,7 @@ class GeneticAlgorithm(RavenSampled):
     # perform fitness calculation for newly obtained children (rlz)
     # for i in range(self._populationSize):
     fitness = self._fitnessInstance(populationRlz,objVar = self._objectiveVar,a=self._objCoeff,b=self._penaltyCoeff,penalty = None)
+    info['optVal'] = fitness
     if self.counter == 1:
       self.fitness = fitness
     # 5.2@ n-1: Survivor selection(rlz)
@@ -459,9 +460,9 @@ class GeneticAlgorithm(RavenSampled):
       @ In, info, dict, identifying information about the realization
       @ In, rlz, dict, realized realization
     """
-    optVal = info['optVal'].copy()
+    optVal = info['optVal'].copy().data
     self.raiseADebug('*'*80)
-    self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))
+    self.raiseADebug('Trajectory {} iteration {} resolving new generation ...'.format(traj, info['step']))
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
@@ -493,8 +494,8 @@ class GeneticAlgorithm(RavenSampled):
     """
       Check for trajectory convergence
       @ In, traj, int, trajectory to consider
-      @ In, new, dict, new point
-      @ In, old, dict, old point
+      @ In, new, xr.DataSet, new children realization
+      @ In, old, xr.DataArray, old population
       @ Out, any(convs.values()), bool, True of any of the convergence criteria was reached
       @ Out, convs, dict, on the form convs[conv] = bool, where conv is in self._convergenceCriteria
     """
@@ -541,7 +542,6 @@ class GeneticAlgorithm(RavenSampled):
     o1, _ = self._optPointHistory[traj][-1]
     o2, _ = self._optPointHistory[traj][-2]
     delta = o2[self._objectiveVar]-o1[self._objectiveVar]
-    # for chromosome in
     converged = abs(delta.data.min()) < self._convergenceCriteria['objective']
     self.raiseADebug(self.convFormat.format(name='objective',
                                             conv=str(converged),
@@ -591,8 +591,8 @@ class GeneticAlgorithm(RavenSampled):
     """
       Updates convergence information for trajectory
       @ In, traj, int, identifier
-      @ In, new, dict, new point
-      @ In, old, dict, old point
+      @ In, new, xr.DataSet, new children
+      @ In, old, xr.DataArray, old population
       @ In, acceptable, str, condition of new point
       @ Out, converged, bool, True if converged on ANY criteria
     """
