@@ -121,6 +121,7 @@ class MCSSolver(ExternalModelPluginBase):
       This method determines the status of the TopEvent of the FT provided the status of its Basic Events
       @ In, container, object, self-like object where all the variables can be stored
       @ In, inputs, dict, dictionary of inputs from RAVEN
+      @ Out, None
     """
     inputForSolver = {}
     for key in container.invMapping.keys():
