@@ -20,7 +20,7 @@
   <RunInfo>
     <WorkingDir>multiple</WorkingDir>
     <Sequence>mc</Sequence>
-    <batchSize>1</batchSize>
+    <batchSize>6</batchSize>
     <internalParallel>False</internalParallel>
   </RunInfo>
 
@@ -54,11 +54,11 @@
       <Model class="Models" type="ExternalModel">multiply</Model>
       <ControlFunction class="Functions" type="External">control</ControlFunction>
     </LogicalModel>
-    
+
     <ExternalModel ModuleToLoad="justSquare" name="justSquare" subType="">
       <variables>z, sqrtZ</variables>
     </ExternalModel>
-    
+
     <EnsembleModel name="logical_model_ensemble" subType="">
       <Model class="Models" type="LogicalModel">
         logical
@@ -68,7 +68,7 @@
       <Model class="Models" type="ExternalModel">
           justSquare
         <Input class="DataObjects" type="PointSet">inputHolder2</Input>
-        <TargetEvaluation class="DataObjects" type="PointSet">tagetSetSqrt</TargetEvaluation>
+        <TargetEvaluation class="DataObjects" type="PointSet">tagetSetSq</TargetEvaluation>
       </Model>
     </EnsembleModel>
   </Models>

@@ -163,7 +163,8 @@ class HybridModelBase(Dummy):
     ## will suffice until we can better redesign this whole process.
     prefix = kwargs['prefix']
     kwargs['jobHandler'] = jobHandler
-    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+    uniqueHandler = kwargs.get('uniqueHandler', 'any')
+    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs, uniqueHandler=uniqueHandler)
 
   @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
