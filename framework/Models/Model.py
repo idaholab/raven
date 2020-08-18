@@ -376,25 +376,25 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     nRuns = 1
     batchMode =  kwargs.get("batchMode", False)
-    if batchMode: 
+    if batchMode:
       nRuns = kwargs["batchInfo"]['nRuns']
-  
+
     for index in range(nRuns):
       if batchMode:
         kw =  kwargs['batchInfo']['batchRealizations'][index]
       else:
         kw = kwargs
-      
+
       prefix = kw.get("prefix")
       uniqueHandler = kw.get("uniqueHandler",'any')
       forceThreads = kw.get("forceThreads",False)
-   
+
       ## These kw are updated by createNewInput, so the job either should not
       ## have access to the metadata, or it needs to be updated from within the
       ## evaluateSample function, which currently is not possible since that
       ## function does not know about the job instance.
       metadata = kw
-   
+
       ## This may look a little weird, but due to how the parallel python library
       ## works, we are unable to pass a member function as a job because the
       ## pp library loses track of what self is, so instead we call it from the

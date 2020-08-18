@@ -655,44 +655,53 @@ class MultiRun(SingleRun):
       # collect finished jobs
       finishedJobs = jobHandler.getFinished()
       ##BATCH... TO MODIFY. FIXME
-      for finishedJob in finishedJobs:
-        finishedJob.trackTime('step_collected')
-        # update number of collected runs
-        self.counter +=1
-        # collect run if it succeeded
-        if finishedJob.getReturnCode() == 0:
-          for myLambda, outIndex in self._outputCollectionLambda:
-            myLambda([finishedJob,outputs[outIndex]])
-            self.raiseADebug('Just collected job {j:^8} and sent to output "{o}"'
+      for finishedJobObjs in finishedJobs:
+        if type(finishedJobObjs).__name__ in 'list':
+          finishedJobList = finishedJobObjs
+          self.raiseADebug('BATCHING: Collecting JOB batch named "{}".'.format(finishedJobList[0].groupId))
+        else:
+          finishedJobList = [finishedJobObjs]
+        for finishedJob in finishedJobList:
+          finishedJob.trackTime('step_collected')
+          # update number of collected runs
+          self.counter +=1
+          # collect run if it succeeded
+          if finishedJob.getReturnCode() == 0:
+            for myLambda, outIndex in self._outputCollectionLambda:
+              myLambda([finishedJob,outputs[outIndex]])
+              self.raiseADebug('Just collected job {j:^8} and sent to output "{o}"'
                               .format(j=finishedJob.identifier,
                                       o=inDictionary['Output'][outIndex].name))
-        # pool it if it failed, before we loop back to "while True" we'll check for these again
-        else:
-          self.raiseADebug('the job "{}" has failed.'.format(finishedJob.identifier))
-          if self.failureHandling['fail']:
-            # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
-            if not sampler.ableToHandelFailedRuns:
-              #add run to a pool that can be sent to the sampler later
-              self.failedRuns.append(copy.copy(finishedJob))
+          # pool it if it failed, before we loop back to "while True" we'll check for these again
           else:
-            if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
-              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
-            if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
-              # we re-add the failed job
-              jobHandler.reAddJob(finishedJob)
-              self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
-                               str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
-              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
-            else:
+            self.raiseADebug('the job "{}" has failed.'.format(finishedJob.identifier))
+            if self.failureHandling['fail']:
               # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
               if not sampler.ableToHandelFailedRuns:
+                #add run to a pool that can be sent to the sampler later
                 self.failedRuns.append(copy.copy(finishedJob))
-              self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
-          if sampler.ableToHandelFailedRuns:
-            self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
-        # finalize actual sampler
-        sampler.finalizeActualSampling(finishedJob,model,inputs)
-        finishedJob.trackTime('step_finished')
+            else:
+              if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
+                self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
+              if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
+                # we re-add the failed job
+                jobHandler.reAddJob(finishedJob)
+                self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
+                                 str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
+                self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
+              else:
+                # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
+                if not sampler.ableToHandelFailedRuns:
+                  self.failedRuns.append(copy.copy(finishedJob))
+                self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
+            if sampler.ableToHandelFailedRuns:
+              self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
+            #pop the failed job from the list
+            finishedJobList.pop(finishedJobList.index(finishedJob))
+        for finishedJob in finishedJobList:
+          # finalize actual sampler
+          sampler.finalizeActualSampling(finishedJob,model,inputs)
+          finishedJob.trackTime('step_finished')
 
         # terminate jobs as requested by the sampler, in case they're not needed anymore
         ## TODO is this a safe place to put this?

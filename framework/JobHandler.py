@@ -568,7 +568,7 @@ class JobHandler(MessageHandler.MessageUser):
         if not run.identifier.startswith(jobIdentifier) \
            or uniqueHandler != run.uniqueHandler:
           continue
-        ## check if the run belongs to a subgroup and in case 
+        ## check if the run belongs to a subgroup and in case
         if run.groupId in self.__batching:
           self.__batching[run.groupId]['finished'].append(run)
         else:
@@ -582,7 +582,7 @@ class JobHandler(MessageHandler.MessageUser):
       for groupId in list(self.__batching.keys()):
         if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
           doneBatch = self.__batching.pop(groupId)
-          finished.extend(doneBatch['finished'])
+          finished.append(doneBatch['finished'])
 
       ##Since these indices are sorted, reverse them to ensure that when we
       ## delete something it will not shift anything to the left (lower index)
@@ -591,7 +591,7 @@ class JobHandler(MessageHandler.MessageUser):
         self.__finished[i].trackTime('collected')
         del self.__finished[i]
     ## end with self.__queueLock
-    
+
     return finished
 
   def getFinishedNoPop(self):

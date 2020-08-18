@@ -52,7 +52,7 @@ class CustomSampler(ForwardSampler):
     inputSpecification.addSub(sourceInput)
 
     inputSpecification.addSub(InputData.parameterInputFactory('index', contentType=InputTypes.IntegerListType))
-      
+
     # add "nameInSource" attribute to <variable>
     var = inputSpecification.popSub('variable')
     var.addParam("nameInSource", InputTypes.StringType, required=False)
@@ -243,7 +243,7 @@ class CustomSampler(ForwardSampler):
       else:
         index = self.indexes[self.counter-1]
       if self.counter == self.limit + 1:
-        break  
+        break
       if self.readingFrom == 'DataObject':
         # data is stored as slices of a data object, so take from that
         rlz = self.pointsToSample[index]
