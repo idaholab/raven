@@ -506,7 +506,7 @@ class DataSet(DataObject):
     self._setScalingFactors()
 
   # @profile
-  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False):
+  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False, options = None):
     """
       Method to obtain a realization from the data, either by index or matching value.
       Either "index" or one of ("matchDict", "noMatchDict") must be supplied.
@@ -516,6 +516,7 @@ class DataSet(DataObject):
       @ In, noMatchDict, dict, optional, {key:val} to search for antimatches (vars should NOT match vals within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
       @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}) (valid only for dataset)
+      @ In, options, dict, optional, options to be applied to the search
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
@@ -567,14 +568,14 @@ class DataSet(DataObject):
           return 0, None
         # otherwise, get it from the collector
         else:
-          index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol)
+          index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, options=options)
       # otherwise, first try to find it in the data
       else:
-        index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, unpackXArray=unpackXArray)
+        index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, unpackXArray=unpackXArray, options=options)
         # if no match found in data, try in the collector (if there's anything in it)
         if rlz is None:
           if numInCollector > 0:
-            index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol)
+            index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, options=options)
       # add index map where necessary
       rlz = self._addIndexMapToRlz(rlz)
       return index, rlz
@@ -1551,7 +1552,7 @@ class DataSet(DataObject):
       rlz[var] = vals
     return rlz
 
-  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15):
+  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15, options = None):
     """
       Obtains a realization from the collector storage matching the provided index
       @ In, toMatch, dict, elements to match
