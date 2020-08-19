@@ -577,7 +577,8 @@ class DataSet(DataObject):
           if numInCollector > 0:
             index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, options=options)
       # add index map where necessary
-      rlz = self._addIndexMapToRlz(rlz)
+      for rl in (rlz if type(rlz).__name__ in "list" else [rlz]):
+        rl = self._addIndexMapToRlz(rl)
       return index, rlz
 
   def remove(self,variable):
@@ -1573,7 +1574,7 @@ class DataSet(DataObject):
     matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
     avoidVars, avoidVals = zip(*noMatch.items()) if noMatch else ([], [])
     matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)
-    matchIndices, matchRlz = [], [] # used if allMatch == True
+    if allMatch: matchIndices, matchRlz = [], [] # used if allMatch == True
     for r, row in enumerate(self._collector[:]):
       match = True
       # find matches first
