@@ -75,7 +75,7 @@ class DataClassifier(PostProcessor):
     self.funcDict   = {}  # Contains the function to be used {'variableName':externalFunctionInstance}
     self.label      = None # ID of the variable which containf the label values
     # assembler objects to be requested
-    self.addAssemblerObject('Function', 'n', True)
+    self.addAssemblerObject('Function', InputData.Quantity.one_to_infinity)
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -88,16 +88,6 @@ class DataClassifier(PostProcessor):
     PostProcessor.initialize(self, runInfo, inputs, initDict)
     for key, val in self.mapping.items():
      self.funcDict[key] = self.retrieveObjectFromAssemblerDict('Function',val[1])
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Method to read the portion of the XML input that belongs to this specialized class
-      @ In, xmlNode, xml.etree.ElementTree.Element, XML element node
-      @ Out, None
-    """
-    paramInput = DataClassifier.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
