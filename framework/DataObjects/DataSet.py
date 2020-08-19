@@ -1566,11 +1566,14 @@ class DataSet(DataObject):
     if noMatch is None:
       noMatch = {}
     assert(self._collector is not None)
+    if options:
+      allMatch = options.get("returnAllMatch",False)
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
     matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
     avoidVars, avoidVals = zip(*noMatch.items()) if noMatch else ([], [])
     matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)
+    matchIndices, matchRlz = [], [] # used if allMatch == True
     for r, row in enumerate(self._collector[:]):
       match = True
       # find matches first
@@ -1599,9 +1602,16 @@ class DataSet(DataObject):
           if not match:
             break
       if match:
-        break
+        if not allMatch:
+          break
+        else:
+          matchIndices.append(r)
+          matchRlz.append(self._getRealizationFromCollectorByIndex(r))
     if match:
-      return r, self._getRealizationFromCollectorByIndex(r)
+      if not allMatch:
+        return r, self._getRealizationFromCollectorByIndex(r)
+      else:
+        return matchIndices, matchRlz
     else:
       return len(self), None
 
