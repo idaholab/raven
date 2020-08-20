@@ -578,11 +578,20 @@ class DataSet(DataObject):
       # add index map where necessary
       rlz = self._addIndexMapToRlz(rlz)
       if asDataSet:
-        d = {}
-        dims =  self.getDimensions()
-        for k, v in rlz.items():
-          d[k] = {'dims':tuple(dims[k]) ,'data': v}
-        rlz =  xr.Dataset.from_dict(d)
+        if type(rlz).__name__ in "list":
+          d = {}
+          dims =  self.getDimensions()
+          for index, rl in enumerate(rlz):
+            for k, v in rl.items():
+              d[k] = {'dims':tuple(dims[k]) ,'data': v}
+            rlz[index] =  xr.Dataset.from_dict(d)
+          rlz = xr.merge(rlz)
+        else:
+          d = {}
+          dims =  self.getDimensions()
+          for k, v in rlz.items():
+            d[k] = {'dims':tuple(dims[k]) ,'data': v}
+          rlz =  xr.Dataset.from_dict(d)
       return index, rlz
 
   def remove(self,variable):
