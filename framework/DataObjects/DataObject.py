@@ -405,10 +405,10 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     pass
 
   @abc.abstractmethod
-  def realization(self,index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False, options = None):
+  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False, asDataSet = False, options = None):
     """
       Method to obtain a realization from the data, either by index or matching value.
-      Either "index" or "matchDict" must be supplied.
+      Either "index" or one of ("matchDict", "noMatchDict") must be supplied.
       If matchDict and no match is found, will return (len(self),None) after the pattern of numpy, scipy
       @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
