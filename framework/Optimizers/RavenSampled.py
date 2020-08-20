@@ -214,24 +214,41 @@ class RavenSampled(Optimizer):
       @ In, inp, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    # get point from stack
-    point, info = self._submissionQueue.popleft()
-    point = self.denormalizeData(point)
-    # assign a tracking prefix
-    prefix = self.inputInfo['prefix']
-    # register the point tracking information
-    self._registerSample(prefix, info)
-    # build the point in the way the Sampler expects
-    for var in self.toBeSampled: #, val in point.items():
-      val = point[var]
-      self.values[var] = val # TODO should be np.atleast_1d?
-      ptProb = self.distDict[var].pdf(val)
-      # sampler-required meta information # TODO should we not require this?
-      self.inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
-      self.inputInfo['SampledVarsPb'][var] = ptProb
-    self.inputInfo['ProbabilityWeight'] = 1 # TODO assume all weight 1? Not well-distributed samples
-    self.inputInfo['PointProbability'] = np.prod([x for x in self.inputInfo['SampledVarsPb'].values()])
-    self.inputInfo['SamplerType'] = self.type
+    if self.batch > 1:
+      self.inputInfo['batchMode'] = True
+      batchData = []
+      self.batchId += 1
+    else:
+      self.inputInfo['batchMode'] = False
+    for _ in range(self.batch):
+      if self.counter == self.limit + 1:
+        break
+      # get point from stack
+      point, info = self._submissionQueue.popleft()
+      point = self.denormalizeData(point)
+      # assign a tracking prefix
+      prefix = self.inputInfo['prefix']
+      # register the point tracking information
+      self._registerSample(prefix, info)
+      # build the point in the way the Sampler expects
+      for var in self.toBeSampled: #, val in point.items():
+        val = point[var]
+        self.values[var] = val # TODO should be np.atleast_1d?
+        ptProb = self.distDict[var].pdf(val)
+        # sampler-required meta information # TODO should we not require this?
+        self.inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
+        self.inputInfo['SampledVarsPb'][var] = ptProb
+      self.inputInfo['ProbabilityWeight'] = 1 # TODO assume all weight 1? Not well-distributed samples
+      self.inputInfo['PointProbability'] = np.prod([x for x in self.inputInfo['SampledVarsPb'].values()])
+      self.inputInfo['SamplerType'] = self.type
+      # self.inputInfo['batchId'] = self.batchId
+      if self.inputInfo['batchMode']:
+        self.inputInfo['SampledVars'] = self.values
+        batchData.append(copy.deepcopy(self.inputInfo))
+        # self._incrementCounter()
+    if self.inputInfo['batchMode']:
+      self.inputInfo['batchId'] = self.batchId
+      self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': str('gen_' + str(self.batchId))}
 
   def localFinalizeActualSampling(self, job, model, inp):
     """
@@ -252,7 +269,10 @@ class RavenSampled(Optimizer):
     # FIXME implicit constraints probable should be handled here too
     # get information and realization, and update trajectories
     info = self.getIdentifierFromPrefix(prefix, pop=True)
-    _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=True)
+    if self.batch == 1:
+      _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=True)
+    else:
+      _, rlz = self._targetEvaluation.realization(matchDict={'batchId': self.batchId}, asDataSet=True,options={'returnAllMatch':True})
     # _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
     # trim down opt point to the useful parts
     # TODO making a new dict might be costly, maybe worth just passing whole point?

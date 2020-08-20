@@ -63,7 +63,7 @@ class GeneticAlgorithm(RavenSampled):
     self.population = None
     # self.Age = np.ones(self._populationSize)
     self.needDenormalized() # the default in all optimizers is to normalize the data which is not the case here
-
+    self.batchId = 0
     ### TBD ####
     self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
     self.popAge = None
@@ -258,6 +258,7 @@ class GeneticAlgorithm(RavenSampled):
     reproductionNode = GAparamsNode.findFirst('reproduction')
     self._nParents = reproductionNode.parameterValues['nParents']
     self._nChildren = int(2*comb(self._nParents,2))
+    self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
@@ -316,7 +317,8 @@ class GeneticAlgorithm(RavenSampled):
     self.info = {}
     for var in self.toBeSampled:
       self.info[var+'_Age'] = None
-
+    if self.batch > 1:
+      self.addMetaKeys(["batchId"])
     for traj, init in enumerate(self._initialValues):
       self._submitRun(init,traj,self.getIteration(traj))
 
@@ -666,8 +668,8 @@ class GeneticAlgorithm(RavenSampled):
     """
     # meta variables
     toAdd = {'PopulationAge': self.popAge,
-             'population': self.population
-                }
+             'population': self.population,
+             'batchId':self.batchId}
 
     for var in self.toBeSampled:
       toAdd[var+'_Age'] = self.info[var+'_Age']

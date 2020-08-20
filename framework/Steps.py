@@ -668,7 +668,7 @@ class MultiRun(SingleRun):
           # collect run if it succeeded
           if finishedJob.getReturnCode() == 0:
             for myLambda, outIndex in self._outputCollectionLambda:
-              myLambda([finishedJob,outputs[outIndex]])              
+              myLambda([finishedJob,outputs[outIndex]])
               self.raiseADebug('Just collected job {j:^8} and sent to output "{o}"'
                               .format(j=finishedJob.identifier,
                                       o=inDictionary['Output'][outIndex].name))
