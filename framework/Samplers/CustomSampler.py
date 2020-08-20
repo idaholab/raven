@@ -220,6 +220,8 @@ class CustomSampler(ForwardSampler):
     #TODO: add restart capability here!
     if self.restartData:
       self.raiseAnError(IOError,"restart capability not implemented for CustomSampler yet!")
+    if self.batch > 1:
+      self.addMetaKeys(["batchId"])
 
   def localGenerateInput(self,model,myInput):
     """
@@ -275,6 +277,7 @@ class CustomSampler(ForwardSampler):
       self.inputInfo['SamplerType'] = 'Custom'
       if self.inputInfo['batchMode']:
         self.inputInfo['SampledVars'] = self.values
+        self.inputInfo['batchId'] = self.name + str(self.batchId)
         batchData.append(copy.deepcopy(self.inputInfo))
         self._incrementCounter()
     if self.inputInfo['batchMode']:
