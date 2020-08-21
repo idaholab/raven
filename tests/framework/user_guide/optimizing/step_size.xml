@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/user_guide/StepSize</name>
     <author>talbpaul</author>
@@ -8,6 +8,9 @@
     <description>
       Provides a user case of providing growth and shrink multiplication factors for gradient search.
     </description>
+    <revisions>
+      <revision author="talbpaul" date="2020-08-21">Optimizer rework compatability</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
@@ -17,7 +20,7 @@
 
   <Steps>
     <MultiRun name="optimize">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
       <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
       <SolutionExport class="DataObjects" type="HistorySet">opt_export</SolutionExport>
@@ -30,28 +33,45 @@
   </Steps>
 
   <Optimizers>
-    <SPSA name="opter">
-      <initialization>
-        <initialSeed>1234</initialSeed>
-      </initialization>
-      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <convergence>
-        <gainGrowthFactor>1.5</gainGrowthFactor>
-        <gainShrinkFactor>1.25</gainShrinkFactor>
-      </convergence>
+    <GradientDescent name="opter">
+      <objective>ans</objective>
       <variable name='x'>
-        <upperBound>4.5</upperBound>
-        <lowerBound>-4.5</lowerBound>
+        <distribution>beale_domain</distribution>
         <initial>0</initial>
       </variable>
       <variable name='y'>
-        <upperBound>4.5</upperBound>
-        <lowerBound>-4.5</lowerBound>
+        <distribution>beale_domain</distribution>
         <initial>0</initial>
       </variable>
-      <objectVar>ans</objectVar>
-    </SPSA>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+      <samplerInit>
+        <limit>5000</limit>
+        <initialSeed>1234</initialSeed>
+      </samplerInit>
+      <gradient>
+        <SPSA/>
+      </gradient>
+      <stepSize>
+        <GradientHistory>
+          <growthFactor>1.25</growthFactor>
+          <shrinkFactor>1.1</shrinkFactor>
+        </GradientHistory>
+      </stepSize>
+      <acceptance>
+        <Strict/>
+      </acceptance>
+      <convergence>
+        <gradient>1e-1</gradient>
+      </convergence>
+    </GradientDescent>
   </Optimizers>
+
+  <Distributions>
+    <Uniform name='beale_domain'>
+      <lowerBound>-4.5</lowerBound>
+      <upperBound>4.5</upperBound>
+    </Uniform>
+  </Distributions>
 
   <Models>
     <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
@@ -60,18 +80,15 @@
   </Models>
 
   <DataObjects>
-    <PointSet name="dummyIN">
-      <Input>x,y</Input>
-      <Output>OutputPlaceHolder</Output>
-    </PointSet>
+    <PointSet name="placeholder"/>
     <PointSet name="optOut">
       <Input>x,y</Input>
       <Output>ans</Output>
     </PointSet>
-    <HistorySet name="opt_export">
+    <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,ans,varsUpdate</Output>
-    </HistorySet>
+      <Output>iteration,x,y,ans</Output>
+    </PointSet>
   </DataObjects>
 
   <OutStreams>
