@@ -1,0 +1,22 @@
+[Tests]
+  [./simple]
+    type = RavenFramework
+    input = simple.xml
+    csv = Simple/opt_export.csv
+  [../]
+  [./MultipleTraj]
+    type = 'RavenFramework'
+    input = 'multiple_trajectories.xml'
+    csv = 'MultipleTraj/opt_export_0.csv MultipleTraj/opt_export_1.csv MultipleTraj/opt_export_2.csv MultipleTraj/opt_export_3.csv'
+  [../]
+  [./StepSize]
+    type = RavenFramework
+    input = step_size.xml
+    csv = StepSize/opt_export.csv
+  [../]
+  [./Constrain]
+    type = RavenFramework
+    input = constrain.xml
+    csv = Constrain/opt_export.csv
+  [../]
+[]
