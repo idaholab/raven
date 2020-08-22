@@ -577,6 +577,7 @@ class DataSet(DataObject):
           if numInCollector > 0:
             index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, options=options)
       # add index map where necessary
+      print(rlz)
       for rl in (rlz if type(rlz).__name__ in "list" else [rlz]):
         rl = self._addIndexMapToRlz(rl)
       if asDataSet:
@@ -587,7 +588,7 @@ class DataSet(DataObject):
             for k, v in rl.items():
               d[k] = {'dims':tuple(dims[k]) ,'data': v}
             rlz[index] =  xr.Dataset.from_dict(d)
-          rlz = xr.merge(rlz)
+          rlz = xr.concat(rlz)
         else:
           d = {}
           dims =  self.getDimensions()
@@ -1588,8 +1589,8 @@ class DataSet(DataObject):
     # TODO slow double loop
     matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
     avoidVars, avoidVals = zip(*noMatch.items()) if noMatch else ([], [])
-    matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)
-    if allMatch: matchIndices, matchRlz = [], [] # used if allMatch == True
+    matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)# What did we use this in?
+    if allMatch: matchIndexes, matchRlz = [], [] # used if allMatch == True, should it be range(np.shape(self._collector)[1]),[]?
     for r, row in enumerate(self._collector[:]):
       match = True
       # find matches first
@@ -1621,13 +1622,13 @@ class DataSet(DataObject):
         if not allMatch:
           break
         else:
-          matchIndices.append(r)
+          matchIndexes.append(r)
           matchRlz.append(self._getRealizationFromCollectorByIndex(r))
     if match:
       if not allMatch:
         return r, self._getRealizationFromCollectorByIndex(r)
       else:
-        return matchIndices, matchRlz
+        return matchIndexes, matchRlz
     else:
       return len(self), None
 
