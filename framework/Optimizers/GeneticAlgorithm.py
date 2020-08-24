@@ -320,8 +320,6 @@ class GeneticAlgorithm(RavenSampled):
     meta = ['batchId']
     self.addMetaKeys(meta)
     self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
-    # if self.batch > 1:
-    #   self.addMetaKeys(["batchId"])
     for traj, init in enumerate(self._initialValues):
       self._submitRun(init,traj,self.getIteration(traj))
 
