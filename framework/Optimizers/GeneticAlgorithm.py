@@ -481,7 +481,7 @@ class GeneticAlgorithm(RavenSampled):
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':
-      self._updateSolutionExport(traj, rlz, acceptable)
+      self._updateSolutionExport(traj, rlz, acceptable,None)
     self.raiseADebug('*'*80)
     # decide what to do next
     if acceptable in ['accepted', 'first']:
