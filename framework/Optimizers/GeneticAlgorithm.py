@@ -258,7 +258,7 @@ class GeneticAlgorithm(RavenSampled):
     reproductionNode = GAparamsNode.findFirst('reproduction')
     self._nParents = reproductionNode.parameterValues['nParents']
     self._nChildren = int(2*comb(self._nParents,2))
-    self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
+    # self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
@@ -319,6 +319,7 @@ class GeneticAlgorithm(RavenSampled):
       self.info[var+'_Age'] = None
     meta = ['batchId']
     self.addMetaKeys(meta)
+    self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
     # if self.batch > 1:
     #   self.addMetaKeys(["batchId"])
     for traj, init in enumerate(self._initialValues):
@@ -363,6 +364,7 @@ class GeneticAlgorithm(RavenSampled):
     ## IN THIS CASE we will have 3 children
     ## TODO: This is to be removed
     size = self._nChildren if self.counter > 1 else self._populationSize
+    self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
     populationRlz = rlz
     # populationRlz =  xr.concat((rlz for _ in range(size)))#((rlz, rlz, rlz))
     population = xr.DataArray(populationRlz[list(self.toBeSampled)].to_array().transpose(),
@@ -430,26 +432,11 @@ class GeneticAlgorithm(RavenSampled):
     # 5 @ n: Submit children batch
     # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
     # self._submitRun(children,traj,self.counter)
-    # for i in range(np.shape(children)[0]):
-    #   newRlz={}
-    #   for _,var in enumerate(self.toBeSampled.keys()):
-    #     newRlz[var] = float(children.loc[i,var].values)
-    #   self._submitRun(newRlz, traj, self.getIteration(traj))
-    # childrenDict = children.to_dict()
-    # newRlz = children.to_dataset(name="data")
-    d = {'dims':['chromosome','Gene'],
-         'coords':{'chromosome': np.arange(size),
-                   'Gene':np.arange(len(self.toBeSampled))},
-         'data':children.data}
-    # newRlz = xr.Dataset.from_dict(d)
-    # children.to_dataset(name = 'children')
-    newRlz = xr.Dataset({('chromosome','Gene'):children.data})
-    # newRlz = xr.Dataset(({'chromosome':[1,2,3,4,5,6,7,8,9,10],'Gene':[0,1,2,3,4,5]},children.data))
-    # # Add second DataArray to existing dataset (ds)
-    # ds['var2'] = var2
-    # newRlz = xr.Dataset.from_dict(childrenDict)
-    self._submitRun(newRlz, traj, self.getIteration(traj))
-
+    for i in range(np.shape(children)[0]):
+      newRlz={}
+      for _,var in enumerate(self.toBeSampled.keys()):
+        newRlz[var] = float(children.loc[i,var].values)
+      self._submitRun(newRlz, traj, self.getIteration(traj))
 
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
