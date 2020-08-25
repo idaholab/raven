@@ -70,7 +70,7 @@
           </crossover>
           <mutation type="scrambleMutator">
             <locs>2,5</locs>
-            <mutationProb>0.3</mutationProb>
+            <mutationProb>0.9</mutationProb>
           </mutation>
         </reproduction>
         <fitness type="invLinear">

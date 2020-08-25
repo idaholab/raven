@@ -61,7 +61,7 @@ def onePointCrossover(parents,**kwargs):
   parentsPairs = list(combinations(parents,2))
   for ind,parent in enumerate(parentsPairs):
     parent = np.array(parent).reshape(2,-1) # two parents at a time
-    if randomUtils.random(dim=1,samples=1) < crossoverProb:
+    if randomUtils.random(dim=1,samples=1) <= crossoverProb:
       for i in range(nGenes):
         children[2*ind:2*ind+2,i] = parent[np.arange(0,2)*(i<point[0])+np.arange(-1,-3,-1)*(i>=point[0]),i]
     else:

@@ -358,31 +358,21 @@ class GeneticAlgorithm(RavenSampled):
       @ In, rlz, dict, realized realization
       @ Out, None
     """
-    ## THIS IS HOW THE POPULATION RLZ (BATCH) WOULD LOOK LIKE
-    ## IN THIS CASE we will have 3 children
-    ## TODO: This is to be removed
-    size = self._nChildren if self.counter > 1 else self._populationSize
+    # size = self._nChildren if self.counter > 1 else self._populationSize
     self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
     populationRlz = rlz
-    # populationRlz =  xr.concat((rlz for _ in range(size)))#((rlz, rlz, rlz))
     population = xr.DataArray(populationRlz[list(self.toBeSampled)].to_array().transpose(),
                               dims=['chromosome','Gene'],
-                              coords={'chromosome': np.arange(size),
+                              coords={'chromosome': np.arange(len(rlz[self._objectiveVar].data)),
                                       'Gene':list(self.toBeSampled)})#np.arange(len(self.toBeSampled))
-    # # TODO: This is to be removed once the rlz is consistent with the expected batch
-    # for i in range(1,size):
-    #   population[i,:] = randomUtils.randomPermutation(list(population[0,:].data), self)#np.random.choice(population[0,:],len(self.toBeSampled), replace=False)
-    ## TODO the whole skeleton should be here, this should be calling all classes and _private methods.
+    # The whole skeleton should be here, this should be calling all classes and _private methods.
     traj = info['traj']
-    # info['optVal'] = rlz[self._objectiveVar]
     self.incrementIteration(traj)
     info['step'] = self.counter
-
+    info['optVal'] = rlz[self._objectiveVar].data
 
     if self.counter == 1:
       self.population = population
-    # self.population = population
-    # self.Age = np.ones(self._populationSize)
 
     # model is generating [y1,..,yL] = F(x1,...,xM)
     # population format [y1,..,yL,x1,...,xM,fitness]
@@ -393,7 +383,7 @@ class GeneticAlgorithm(RavenSampled):
     # perform fitness calculation for newly obtained children (rlz)
     # for i in range(self._populationSize):
     fitness = self._fitnessInstance(populationRlz,objVar = self._objectiveVar,a=self._objCoeff,b=self._penaltyCoeff,penalty = None)
-    info['optVal'] = fitness
+    info['fitness'] = fitness
     if self.counter == 1:
       self.fitness = fitness
     # 5.2@ n-1: Survivor selection(rlz)
@@ -426,7 +416,18 @@ class GeneticAlgorithm(RavenSampled):
 
     # 4 @ n: repair/replacement
     children = self._repairInstance(children,variables=list(self.toBeSampled),distInfo=self.distDict)
-
+    # Make sure no children are exactly similar to parents
+    repeated =[]
+    for i in range(np.shape(population.data)[0]):
+      for j in range (np.shape(children.data)[0]):
+        if all(population.data[i,:]==children.data[j,:]):
+          repeated.append(j)
+    children2 = np.delete(children.data, (repeated), axis=0)
+    children = xr.DataArray(children2,
+                              dims=['chromosome','Gene'],
+                              coords={'chromosome': np.arange(np.shape(children2)[0]),
+                                      'Gene':list(self.toBeSampled)})
+    self.batch =np.shape(children)[0]
     # 5 @ n: Submit children batch
     # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
     # self._submitRun(children,traj,self.counter)
@@ -476,8 +477,8 @@ class GeneticAlgorithm(RavenSampled):
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     # we only want to update persistance if we've accepted a new point.
     # We don't want rejected points to count against our convergence.
-    if acceptable in ['accepted']:
-      self._updatePersistence(traj, converged, optVal)
+    # if acceptable in ['accepted']:
+      # self._updatePersistence(traj, converged, optVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':

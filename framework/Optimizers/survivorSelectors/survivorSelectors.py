@@ -94,6 +94,13 @@ def fitnessBased(newRlz,**kwargs):
   population = kwargs['population'].data
   popFitness = kwargs['fitness'].data
   offSpringsAge = [0]*(len(offSpringsFitness))
+  # ## TODO: remove duplicates
+  # repeated =[]
+  # for i in range(np.shape(population)[0]):
+  #   for j in range (np.shape(offSprings)[0]):
+  #     if all(population[i,:]==offSprings[j,:]):
+  #       repeated.append(j)
+  # offSprings = np.delete(offSprings, (repeated), axis=0)
   newPopulation = population.copy()
   newFitness = popFitness.copy()
   newAge = list(map(lambda x:x+1, popAge.copy()))
