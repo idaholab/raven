@@ -712,18 +712,20 @@ class MultiRun(SingleRun):
         # add new jobs, for DET-type samplers
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
         # NOTE for non-DET samplers, this check also happens outside this collection loop
-        self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary)
+        if sampler.onlySampleAfterCollecting:
+          self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary)
+      # END for each collected finished run ...
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
         self.raiseADebug('Sampling finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
+      if not sampler.onlySampleAfterCollecting:
+        # NOTE for some reason submission outside collection breaks the DET
+        # however, it is necessary i.e. batch sampling
+        self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary)
       time.sleep(self.sleepTime)
     # END while loop that runs the step iterations (collection and submission-for-DET)
-    if not sampler.onlySampleAfterCollecting:
-      # NOTE for some reason submission outside collection breaks the DET
-      # however, it is necessary i.e. batch sampling
-      self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary)
     # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
     sampler.finalizeSampler(self.failedRuns)
 
