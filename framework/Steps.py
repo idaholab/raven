@@ -709,36 +709,59 @@ class MultiRun(SingleRun):
         ## -> then the new jobs will be killed if this is placed after new job submission!
         jobHandler.terminateJobs(sampler.getJobsToEnd(clear=True))
 
-        # add new jobs
-        isEnsemble = isinstance(model, Models.EnsembleModel)
+        # add new jobs, for DET-type samplers
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
-        ## In order to ensure that the queue does not grow too large, we will
-        ## employ a threshold on the number of jobs the jobHandler can take,
-        ## in addition, we cannot provide more jobs than the sampler can provide.
-        ## So, we take the minimum of these two values.
-        self.raiseADebug('Testing if the sampler is ready to generate a new input')
-        for _ in range(min(jobHandler.availability(isEnsemble), sampler.endJobRunnable())):
-
-          if sampler.amIreadyToProvideAnInput():
-            try:
-              newInput = self._findANewInputToRun(sampler, model, inputs, outputs, jobHandler)
-              if newInput is not None:
-                model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
-            except utils.NoMoreSamplesNeeded:
-              self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
-              break
-          else:
-            self.raiseADebug(' ... sampler has no new inputs currently.')
-            break
+        # NOTE for non-DET samplers, this check also happens outside this collection loop
+        self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary)
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
         self.raiseADebug('Sampling finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       time.sleep(self.sleepTime)
-    # END while loop that runs the step iterations
+    # END while loop that runs the step iterations (collection and submission-for-DET)
+    if not sampler.onlySampleAfterCollecting:
+      # NOTE for some reason submission outside collection breaks the DET
+      # however, it is necessary i.e. batch sampling
+      self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary)
     # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
     sampler.finalizeSampler(self.failedRuns)
+
+  def _addNewRuns(self, sampler, model, inputs, outputs, jobHandler, inDictionary):
+    """
+      Checks for open spaces and adds new runs to jobHandler queue (via model.submit currently)
+      @ In, sampler, Sampler, the sampler in charge of generating the sample
+      @ In, model, Model, the model in charge of evaluating the sample
+      @ In, inputs, object, the raven object used as the input in this step
+        (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
+        inherit from some base "Data" so that we can ensure a consistent
+        interface for these?)
+      @ In, outputs, object, the raven object used as the output in this step
+        (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
+        inherit from some base "Data" so that we can ensure a consistent
+        interface for these?)
+      @ In, jobHandler, object, the raven object used to handle jobs
+      @ In, inDictionary, dict, additional step objects map
+      @ Out, None
+    """
+    isEnsemble = isinstance(model, Models.EnsembleModel)
+    ## In order to ensure that the queue does not grow too large, we will
+    ## employ a threshold on the number of jobs the jobHandler can take,
+    ## in addition, we cannot provide more jobs than the sampler can provide.
+    ## So, we take the minimum of these two values.
+    self.raiseADebug('Testing if the sampler is ready to generate a new input')
+    for _ in range(min(jobHandler.availability(isEnsemble), sampler.endJobRunnable())):
+      if sampler.amIreadyToProvideAnInput():
+        try:
+          newInput = self._findANewInputToRun(sampler, model, inputs, outputs, jobHandler)
+          if newInput is not None:
+            model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+        except utils.NoMoreSamplesNeeded:
+          self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
+          break
+      else:
+        self.raiseADebug(' ... sampler has no new inputs currently.')
+        break
 
   def _findANewInputToRun(self, sampler, model, inputs, outputs, jobHandler):
     """
@@ -769,6 +792,7 @@ class MultiRun(SingleRun):
       # through if we add several samples at once through the restart. If we actually returned
       # a Realization object from the Sampler, this would not be a problem. - talbpaul
     return newInp
+
 #
 #
 #
