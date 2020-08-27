@@ -274,6 +274,7 @@ class RavenSampled(Optimizer):
     if self.batch == 1:
       _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=True)
     else:
+      # NOTE if here, then rlz is actually a xr.Dataset, NOT a dictionary!!
       _, rlz = self._targetEvaluation.realization(matchDict={'batchId': self.batchId}, asDataSet=True,options={'returnAllMatch':True})
     # _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
     # trim down opt point to the useful parts
@@ -284,6 +285,7 @@ class RavenSampled(Optimizer):
     # so get the correct-signed value into the realization
     if self._minMax == 'max':
       rlz[self._objectiveVar] *= -1
+    # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
 

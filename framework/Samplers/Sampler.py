@@ -204,6 +204,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     BaseType.__init__(self)
     Assembler.__init__(self)
+    self.batch                         = 1                         # determines the size of each sampling batch to run
     self.onlySampleAfterCollecting     = False                     # if True, then no new samples unless collection has occurred
     self.ableToHandelFailedRuns        = False                     # is this sampler able to handle failed runs?
     self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
