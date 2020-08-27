@@ -363,7 +363,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     # size = self._nChildren if self.counter > 1 else self._populationSize
-    self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
+    self.batch = self._populationSize*(self.counter==1)+self._nChildren*(self.counter>1)
     populationRlz = rlz
     population = xr.DataArray(populationRlz[list(self.toBeSampled)].to_array().transpose(),
                               dims=['chromosome','Gene'],
@@ -390,7 +390,13 @@ class GeneticAlgorithm(RavenSampled):
     info['fitness'] = fitness
     if self.counter == 1:
       self.fitness = fitness
-      self.bestFitness = max(fitness.data)
+      for i in range(self.batch):
+        rlzDict=dict((var,rlz[var].data[i]) for var in self.toBeSampled.keys())
+        rlzDict[self._objectiveVar]=rlz[self._objectiveVar].data[i]
+        rlzDict['fitness'] = self.fitness.data[i]
+        acceptable = 'first'
+        self._updateSolutionExport(traj, rlzDict, acceptable,None)
+
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
@@ -398,10 +404,11 @@ class GeneticAlgorithm(RavenSampled):
       currentPoint = self._collectOptPoint(rlz)
       # right now these are lists, but this should be changed to xarrays when the realization is ready as an xarray dataset
       population,fitness,Age = self._survivorSelectionInstance(age=self.popAge,popSize=self._populationSize,variables=list(self.toBeSampled),population = self.population,fitness = self.fitness,newRlz=populationRlz,offSpringsFitness=fitness)
-      self._resolveNewGeneration(traj,populationRlz,info)
       self.population = population
       self.popAge = Age
       self.fitness = fitness
+      self._resolveNewGeneration(traj,populationRlz,info)
+      # self.bestFitness = max(fitness.data)
 
       # This will be added once the rlz is treated as a xarray DataSet
       # for var in self.toBeSampled:
@@ -492,7 +499,13 @@ class GeneticAlgorithm(RavenSampled):
       # FIXME TODO XXX talbpaul says:
       # for each parent that will survive:
       #   self._updateSolutionExport(traj, parent, acceptable, None)
-      self._updateSolutionExport(traj, rlz, acceptable,None)
+      for i in range(len(rlz[self._objectiveVar].data)):#self._populationSize
+        # rlzDict=dict((var,self.population.sel(Gene =var)[i].data) for var in self.toBeSampled.keys())
+        rlzDict=dict((var,rlz[var].data[i]) for var in self.toBeSampled.keys())
+        # rlzDict[self._objectiveVar]=rlz[self._objectiveVar].data[i]
+        rlzDict[self._objectiveVar]=rlz[self._objectiveVar].data[i]
+        rlzDict['fitness'] = self.fitness[i]
+        self._updateSolutionExport(traj, rlzDict, acceptable,None)
     self.raiseADebug('*'*80)
     # decide what to do next
     if acceptable in ['accepted', 'first']:
@@ -523,7 +536,7 @@ class GeneticAlgorithm(RavenSampled):
     optPoints,Fit = zip(*[[x,y] for x,y in sorted(zip(self.population.data,self.fitness.data),reverse=True,key=lambda x: (x[1]))])
     point = dict((var,float(optPoints[0][i])) for i,var in enumerate(self.toBeSampled.keys()))
     self.bestPoint = point
-    self.bestFitness = Fit[0]
+    # self.bestFitness = Fit[0]
     # index, value = max(enumerate(maxFit), key=operator.itemgetter(1))
     # point = dict((var, float(rlz[var])) for var in self.toBeSampled.keys())
     return point
@@ -637,7 +650,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, converged, bool, True if converged on ANY criteria
     """
     # FIXME XXX TODO
-    return False
+    # return False
     ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
     if acceptable == 'accepted':
       self.raiseADebug('Convergence Check for Trajectory {}:'.format(traj))
@@ -707,9 +720,9 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, toAdd, dict, additional entries
     """
     # meta variables
-    toAdd = {'age': self.popAge,
+    toAdd = {'age': 0 if self.popAge==None else self.popAge,
              'batchId':self.batchId,
-             'fitness':self.bestFitness}
+             'fitness':rlz['fitness']}
 
     # for var in self.toBeSampled:
     #   toAdd[var+'_Age'] = self.info[var+'_Age']

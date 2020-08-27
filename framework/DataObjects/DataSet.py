@@ -1584,13 +1584,15 @@ class DataSet(DataObject):
     assert(self._collector is not None)
     if options:
       allMatch = options.get("returnAllMatch",False)
+    else:
+      allMatch = False
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
     matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
     avoidVars, avoidVals = zip(*noMatch.items()) if noMatch else ([], [])
     matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)# What did we use this in?
     if allMatch: matchIndexes, matchRlz = [], [] # used if allMatch == True, should it be range(np.shape(self._collector)[1]),[]?
-    for r, row in enumerate(self._collector[:]):
+    for r, row in enumerate(self._collector[:]): #TODO: CAN WE MAKE R START FROM LAST MATCHINDEXES ?
       match = True
       # find matches first
       if toMatch:
