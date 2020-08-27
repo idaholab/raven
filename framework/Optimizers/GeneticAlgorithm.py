@@ -27,6 +27,7 @@ import numpy as np
 from scipy.special import comb
 from collections import deque, defaultdict
 import xarray as xr
+import operator
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -235,6 +236,9 @@ class GeneticAlgorithm(RavenSampled):
     new = {}
     # new = {'': 'the size of step taken in the normalized input space to arrive at each optimal point'}
     new['conv_{CONV}'] = 'status of each given convergence criteria'
+    new['fitness'] = 'fitness of the current chromosome'
+    new['age'] = 'age of current chromosome'
+    new['batchId'] = 'Id of the batch to whom the chromosome belongs'
     ok.update(new)
     return ok
 
@@ -386,10 +390,12 @@ class GeneticAlgorithm(RavenSampled):
     info['fitness'] = fitness
     if self.counter == 1:
       self.fitness = fitness
+      self.bestFitness = max(fitness.data)
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
     if self.counter > 1:
+      currentPoint = self._collectOptPoint(rlz)
       # right now these are lists, but this should be changed to xarrays when the realization is ready as an xarray dataset
       population,fitness,Age = self._survivorSelectionInstance(age=self.popAge,popSize=self._populationSize,variables=list(self.toBeSampled),population = self.population,fitness = self.fitness,newRlz=populationRlz,offSpringsFitness=fitness)
       self._resolveNewGeneration(traj,populationRlz,info)
@@ -474,7 +480,8 @@ class GeneticAlgorithm(RavenSampled):
     # acceptable, old = self._checkAcceptability(traj, rlz, info)
     acceptable = 'accepted' if self.counter >1 else 'first'
     old = self.population
-    converged = self._updateConvergence(traj, rlz, old, acceptable)
+    converged = False
+    # converged = self._updateConvergence(traj, rlz, old, acceptable)
     # we only want to update persistance if we've accepted a new point.
     # We don't want rejected points to count against our convergence.
     # if acceptable in ['accepted']:
@@ -488,12 +495,35 @@ class GeneticAlgorithm(RavenSampled):
     if acceptable in ['accepted', 'first']:
       # record history
       self._optPointHistory[traj].append((rlz, info)) #.to_array().data
-      # self.incrementIteration(traj)
+      self.incrementIteration(traj)
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)
     else: # e.g. rerun
       pass # nothing to do, just keep moving
+
+    # if converged or (self.counter==self.limit):
+    #   # self._convergenceInfo[traj]['persistence'] += 1
+    #   self.raiseADebug('Trajectory {} has converged successfully {} time(s)!'.format(traj, self._convergenceInfo[traj]['persistence']))
+    #   # if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
+    #   self._closeTrajectory(traj, 'converge', 'converged', optVal)
+    # # else:
+    # #   self._convergenceInfo[traj]['persistence'] = 0
+    # #   self.raiseADebug('Resetting convergence for trajectory {}.'.format(traj))
+
+  def _collectOptPoint(self, rlz):
+    """
+      collects the point (dict) from a realization
+      @ In, rlz, dict, realization particularly including objective variable
+      @ Out, point, dict, point used in this realization
+    """
+    optPoints,Fit = zip(*[[x,y] for x,y in sorted(zip(self.population.data,self.fitness.data),reverse=True,key=lambda x: (x[1]))])
+    point = dict((var,float(optPoints[0][i])) for i,var in enumerate(self.toBeSampled.keys()))
+    self.bestPoint = point
+    self.bestFitness = Fit[0]
+    # index, value = max(enumerate(maxFit), key=operator.itemgetter(1))
+    # point = dict((var, float(rlz[var])) for var in self.toBeSampled.keys())
+    return point
 
   def checkConvergence(self, traj, new, old):
     """
@@ -670,12 +700,12 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, toAdd, dict, additional entries
     """
     # meta variables
-    toAdd = {'PopulationAge': self.popAge,
-             'population': self.population,
-             'batchId':self.batchId}
+    toAdd = {'age': self.popAge,
+             'batchId':self.batchId,
+             'fitness':self.bestFitness}
 
-    for var in self.toBeSampled:
-      toAdd[var+'_Age'] = self.info[var+'_Age']
+    # for var in self.toBeSampled:
+    #   toAdd[var+'_Age'] = self.info[var+'_Age']
 
     for var, val in self.constants.items():
       toAdd[var] = val
@@ -684,6 +714,26 @@ class GeneticAlgorithm(RavenSampled):
     for key, val in self._convergenceInfo[traj].items():
       toAdd['conv_{}'.format(key)] = bool(val)
     return toAdd
+
+  def _formatSolutionExportVariableNames(self, acceptable):
+    """
+      Does magic formatting for variables, based on this class's needs.
+      Extend in inheritors as needed.
+      @ In, acceptable, set, set of acceptable entries for solution export for this entity
+      @ Out, new, set, modified set of acceptable variables with all formatting complete
+    """
+    # remaking the list is easier than using the existing one
+    acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
+    new = []
+    while acceptable:
+      template = acceptable.pop()
+      if '{CONV}' in template:
+        new.extend([template.format(CONV=conv) for conv in self._convergenceCriteria])
+      elif '{VAR}' in template:
+        new.extend([template.format(VAR=var) for var in self.toBeSampled.keys()])
+      else:
+        new.append(template)
+    return set(new)
 
   # def _updateSolutionExport(self, traj, rlz, acceptable):
   #   """
