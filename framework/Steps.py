@@ -771,6 +771,8 @@ class MultiRun(SingleRun):
       else:
         self.raiseADebug(' ... sampler has no new inputs currently.')
         break
+    else:
+      self.raiseADebug(' ... no available JobHandler spots currently (or the Sampler is done.)')
 
   def _findANewInputToRun(self, sampler, model, inputs, outputs, jobHandler):
     """

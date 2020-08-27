@@ -119,7 +119,6 @@ class RavenSampled(Optimizer):
     self._maxHistLen = 2            # FIXME who should set this?
     # __private
     self.__stepCounter = {}         # tracks the "generation" or "iteration" of each trajectory -> iteration is defined by inheritor
-    self.__collectedBatches = []    # keeps track of which batchIDs have already been resolved
     # additional methods
     ## register adaptive sample identification criteria
     self.registerIdentifier('step') # the step within the action

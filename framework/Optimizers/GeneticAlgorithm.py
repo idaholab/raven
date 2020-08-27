@@ -549,6 +549,8 @@ class GeneticAlgorithm(RavenSampled):
       return False
     o1, _ = self._optPointHistory[traj][-1]
     o2, _ = self._optPointHistory[traj][-2]
+    print('DEBUGG o1:', o1[self._objectiveVar])
+    print('DEBUGG o2:', o2[self._objectiveVar])
     delta = o2[self._objectiveVar]-o1[self._objectiveVar]
     converged = abs(delta.data.min()) < self._convergenceCriteria['objective']
     self.raiseADebug(self.convFormat.format(name='objective',
@@ -604,6 +606,8 @@ class GeneticAlgorithm(RavenSampled):
       @ In, acceptable, str, condition of new point
       @ Out, converged, bool, True if converged on ANY criteria
     """
+    # FIXME XXX TODO
+    return False
     ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
     if acceptable == 'accepted':
       self.raiseADebug('Convergence Check for Trajectory {}:'.format(traj))
