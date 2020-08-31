@@ -68,7 +68,7 @@ def ageBased(self,newRlz,**kwargs):
                                dims=['chromosome'],
                                coords={'chromosome':np.arange(np.shape(newFitness)[0])})
   return newPopulation,newFitness,newAge
-
+# @profile
 def fitnessBased(newRlz,**kwargs):
   """
     fitnessBased survivorSelection mechanism for new generation selection

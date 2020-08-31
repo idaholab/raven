@@ -28,6 +28,7 @@ from copy import deepcopy
 from scipy.special import comb
 from itertools import combinations
 
+# @profile
 def onePointCrossover(parents,**kwargs):
   """
     @ In, parents, xr.DataArray, parents involved in the mating process.

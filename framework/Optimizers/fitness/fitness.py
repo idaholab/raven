@@ -24,6 +24,7 @@ import xarray as xr
 # Internal Imports
 from utils import randomUtils
 
+# @profile
 def invLinear(rlz,**kwargs):
   """
     .. math::

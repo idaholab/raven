@@ -51,6 +51,7 @@ def swapMutator(offSprings,**kwargs):
       children[i,loc2] = offSprings[i,loc1]
   return children
 
+# @profile
 def scrambleMutator(offSprings,**kwargs):
   """
     @ In, kwargs, dict, dictionary of parameters for this mutation method:

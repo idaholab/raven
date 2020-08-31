@@ -252,6 +252,7 @@ class RavenSampled(Optimizer):
     if self.inputInfo['batchMode']:
       self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': str('gen_' + str(self.batchId))}
 
+  # @profile
   def localFinalizeActualSampling(self, job, model, inp):
     """
       Runs after each sample is collected from the JobHandler.

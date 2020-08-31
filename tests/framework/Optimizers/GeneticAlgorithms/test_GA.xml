@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="debug" profile="jobs">
   <TestInfo>
     <name>framework/Optimizers/GA</name>
     <author>MohammadAbdo</author>
@@ -57,7 +57,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>10</limit>
+        <limit>100</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
@@ -65,7 +65,7 @@
       <GAparams>
         <populationSize>10</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="3">
+        <reproduction nParents="2">
           <crossover type="onePointCrossover">
             <points>3</points>
             <crossoverProb>0.8</crossoverProb>
@@ -190,7 +190,7 @@
       </PointSet>
       <PointSet name="opt_export">
         <Input>trajID</Input>
-        <Output>x1,x2,x3,x4,x5,x6,ans,age,batchId,fitness</Output> <!--fitness-->
+        <Output>x1,x2,x3,x4,x5,x6,ans,age,batchId,fitness,iteration</Output> <!--fitness-->
         <!-- <Output>x1,x2,x3,x4,x5,x6,ans,iteration,accepted,conv_objective</Output> fitness,conv_fitness -->
       </PointSet>
     </DataObjects>

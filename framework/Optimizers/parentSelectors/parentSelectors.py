@@ -30,6 +30,7 @@ from utils import randomUtils
 # For mandd: to be updated with RAVEN official tools
 from itertools import combinations
 
+# @profile
 def rouletteWheel(population,**kwargs):
   """
     Roulette Selection mechanism for parent selection

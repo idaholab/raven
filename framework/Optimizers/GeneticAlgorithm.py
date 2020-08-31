@@ -69,6 +69,7 @@ class GeneticAlgorithm(RavenSampled):
     self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
     self.popAge = None
     self.fitness = None
+    # self.bestObjective = None
 
   ##########################
   # Initialization Methods #
@@ -319,12 +320,13 @@ class GeneticAlgorithm(RavenSampled):
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
 
     self.info = {}
-    for var in self.toBeSampled:
-      self.info[var+'_Age'] = None
+    # for var in self.toBeSampled:
+    #   self.info[var+'_Age'] = None
     meta = ['batchId']
     self.addMetaKeys(meta)
     self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
-    for traj, init in enumerate(self._initialValues):
+    self._incrementIteration(traj)
+    for traj, init in enumerate(self._initialValues): # TODO: this should be single traj
       self._submitRun(init,traj,self.getIteration(traj))
 
   def initializeTrajectory(self, traj=None):
@@ -354,6 +356,7 @@ class GeneticAlgorithm(RavenSampled):
   # Run Methods #
   ###############
   # abstract methods:
+  # @profile
   def _useRealization(self, info, rlz):
     """
       Used to feedback the collected runs into actionable items within the sampler.
@@ -377,7 +380,7 @@ class GeneticAlgorithm(RavenSampled):
 
     if self.counter == 1:
       self.population = population
-
+      self.objectiveVal = rlz[self._objectiveVar].data
     # model is generating [y1,..,yL] = F(x1,...,xM)
     # population format [y1,..,yL,x1,...,xM,fitness]
 
@@ -390,18 +393,20 @@ class GeneticAlgorithm(RavenSampled):
     info['fitness'] = fitness
     if self.counter == 1:
       self.fitness = fitness
+      objectiveVal = []
       for i in range(self.batch):
         rlzDict=dict((var,rlz[var].data[i]) for var in self.toBeSampled.keys())
         rlzDict[self._objectiveVar]=rlz[self._objectiveVar].data[i]
         rlzDict['fitness'] = self.fitness.data[i]
-        acceptable = 'first'
-        self._updateSolutionExport(traj, rlzDict, acceptable,None)
-
+        objectiveVal.append(self._collectOptValue(rlzDict))
+        self._updateSolutionExport(traj, rlzDict,'first',None)
+      self.bestObjective = min(objectiveVal)
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
     if self.counter > 1:
       currentPoint = self._collectOptPoint(rlz)
+
       # right now these are lists, but this should be changed to xarrays when the realization is ready as an xarray dataset
       population,fitness,Age = self._survivorSelectionInstance(age=self.popAge,popSize=self._populationSize,variables=list(self.toBeSampled),population = self.population,fitness = self.fitness,newRlz=populationRlz,offSpringsFitness=fitness)
       self.population = population
@@ -510,6 +515,7 @@ class GeneticAlgorithm(RavenSampled):
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
+
       self._optPointHistory[traj].append((rlz, info)) #.to_array().data
       self.incrementIteration(traj)
       # nothing else to do but wait for the grad points to be collected
