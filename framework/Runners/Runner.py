@@ -38,7 +38,7 @@ class Runner(MessageHandler.MessageUser):
     Generic base class for running codes and models in parallel environments
     both internally (shared data) and externally.
   """
-  def __init__(self, messageHandler, identifier = None, metadata = None, uniqueHandler = "any", profile = False):
+  def __init__(self, messageHandler, identifier=None, metadata=None, uniqueHandler="any", profile=False):
     """
       Initialize command variable
       @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance

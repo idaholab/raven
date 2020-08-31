@@ -302,6 +302,9 @@ class Dymola(CodeInterfaceBase):
 
     # Set the parameters.
     for name, value in varDict.items():
+      # skip in the special key for the index mapper
+      if name == '_indexMap':
+        continue
       namere = re.escape(name) # Escape the dots, square brackets, etc.
       for pattern in patterns:
         text, n = re.subn(pattern % namere, r'\g<1>%s\2' % value, text, 1,

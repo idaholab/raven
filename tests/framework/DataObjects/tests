@@ -83,6 +83,12 @@
    heavy = true
    max_time = 400
  [../]
+
+ [./StringIO]
+   type = 'RavenFramework'
+   input = 'string_io.xml'
+   csv = 'StringIO/points.csv StringIO/histories_0.csv StringIO/histories_1.csv StringIO/data.csv'
+ [../]
 []
 
 

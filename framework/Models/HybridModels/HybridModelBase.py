@@ -76,7 +76,7 @@ class HybridModelBase(Dummy):
     self.printTag              = 'HybridModelBase MODEL' # print tag
     self.createWorkingDir      = False               # If the type of model is 'Code', this will set to true
     # assembler objects to be requested
-    self.addAssemblerObject('Model','n',True)
+    self.addAssemblerObject('Model', InputData.Quantity.one_to_infinity)
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -142,6 +142,28 @@ class HybridModelBase(Dummy):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, newInputs, dict, dict that returns the new inputs for each sub-model
     """
+
+  def submit(self,myInput,samplerType,jobHandler,**kwargs):
+    """
+     This will submit an individual sample to be evaluated by this model to a
+     specified jobHandler as a client job. Note, some parameters are needed
+     by createNewInput and thus descriptions are copied from there.
+     @ In, myInput, list, the inputs (list) to start from to generate the new
+       one
+     @ In, samplerType, string, is the type of sampler that is calling to
+       generate a new input
+     @ In,  jobHandler, JobHandler instance, the global job handler instance
+     @ In, **kwargs, dict,  is a dictionary that contains the information
+       coming from the sampler, a mandatory key is the sampledVars' that
+       contains a dictionary {'name variable':value}
+     @ Out, None
+    """
+    ## Hybrid models need access to the job handler, so let's stuff it in our
+    ## catch all kwargs where evaluateSample can pick it up, not great, but
+    ## will suffice until we can better redesign this whole process.
+    prefix = kwargs['prefix']
+    kwargs['jobHandler'] = jobHandler
+    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
   @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):

@@ -1,0 +1,97 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+
+  <TestInfo>
+    <name>framework/DataObjects.StringIO</name>
+    <author>talbpaul</author>
+    <created>2020-07-07</created>
+    <classesTested>DataObjects.DataSet</classesTested>
+    <description>
+        Tests that strings can be part of the output space.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>StringIO</WorkingDir>
+    <Sequence>sample, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="Files" type="">template</Input>
+      <Model class='Models' type='Code'>code</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">ps</Output>
+      <Output class="DataObjects" type="HistorySet">hs</Output>
+      <Output class="DataObjects" type="DataSet">ds</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">ps</Input>
+      <Input class="DataObjects" type="HistorySet">hs</Input>
+      <Input class="DataObjects" type="DataSet">ds</Input>
+      <Output class="OutStreams" type="Print">points</Output>
+      <Output class="OutStreams" type="Print">histories</Output>
+      <Output class="OutStreams" type="Print">data</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="ps">
+      <Input>x0</Input>
+      <Output>ss,fs,st,ft</Output>
+    </PointSet>
+    <HistorySet name="hs">
+      <Input>x0,ss,fs</Input>
+      <Output>st,ft</Output>
+    </HistorySet>
+    <DataSet name="ds">
+      <Input>x0</Input>
+      <Output>ss,fs,st,ft</Output>
+      <Index var='time'>ss,fs,st,ft</Index>
+    </DataSet>
+  </DataObjects>
+
+  <Files>
+    <Input name="template" type="">input.i</Input>
+  </Files>
+
+  <Samplers>
+    <Grid name='grid'>
+      <variable name='x0'>
+        <distribution>dist</distribution>
+        <grid construction='equal' steps='1' type='CDF'>0.1 0.9</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name='dist'>
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Models>
+    <Code name="code" subType='GenericCode'>
+      <executable>StringIO/makes_strings.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="-i" extension=".i" type="input"/>
+      <clargs arg="-o" type="output"/>
+    </Code>
+  </Models>
+
+  <OutStreams>
+    <Print name="points">
+      <type>csv</type>
+      <source>ps</source>
+    </Print>
+    <Print name="histories">
+      <type>csv</type>
+      <source>hs</source>
+    </Print>
+    <Print name="data">
+      <type>csv</type>
+      <source>ds</source>
+    </Print>
+  </OutStreams>
+</Simulation>

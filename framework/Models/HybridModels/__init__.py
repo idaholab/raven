@@ -22,7 +22,10 @@
 ## These lines ensure that we do not have to do something like:
 ## 'from HybridModels.HybridModel import HybridModel' outside
 ## of this submodule
+
 from .HybridModelBase import HybridModelBase
 from .HybridModel import HybridModel
+from .LogicalModel import LogicalModel
 
-__all__ = ['HybridModel']
+__all__ = ['HybridModel',
+           'LogicalModel']

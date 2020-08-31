@@ -55,6 +55,14 @@ for moduleIndex in range(len(__moduleInterfaceList)):
         __interFaceDict[key] = modClass
 __knownTypes = list(__interFaceDict.keys())
 
+def interfaceClasses():
+  """
+    This returns the classes available
+    @ In, None
+    @ Out, interfaceClasses, list of classes available
+  """
+  return list(__interFaceDict.values())
+
 def knownTypes():
   """
     This function returns the types of interfaced post-processors available

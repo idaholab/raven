@@ -21,8 +21,8 @@
   
   <Models>
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
-      <costID>cost</costID>
-      <valueID>value</valueID>
+      <costID inv="False" >cost</costID>
+      <valueID inv="False" >value</valueID>
     </PostProcessor>   
   </Models>
 

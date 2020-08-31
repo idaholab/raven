@@ -297,15 +297,7 @@ class Hermite(OrthogonalPolynomial):
       @ In, None
       @ Out, normal, Distribution, the normal distribution
     """
-    normalElement = ET.Element("Normal")
-    element = ET.Element("mean",{})
-    element.text = "0"
-    normalElement.append(element)
-    element = ET.Element("sigma",{})
-    element.text = "1"
-    normalElement.append(element)
-    normal = Distributions.Normal()
-    normal._readMoreXML(normalElement)
+    normal = Distributions.Normal(0.0, 1.0)
     normal.initializeDistribution()
     return normal
 
@@ -356,15 +348,7 @@ class Laguerre(OrthogonalPolynomial):
       @ In, None
       @ Out, gamma, Distribution, the gamma distribution
     """
-    gammaElement = ET.Element("Gamma")
-    element = ET.Element("low",{})
-    element.text = "0"
-    gammaElement.append(element)
-    element = ET.Element("alpha",{})
-    element.text = "%s" %(self.params[0]+1)
-    gammaElement.append(element)
-    gamma = Distributions.Gamma()
-    gamma._readMoreXML(gammaElement)
+    gamma = Distributions.Gamma(0.0,self.params[0]+1)
     gamma.initializeDistribution()
     return gamma
 
