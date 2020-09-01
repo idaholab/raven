@@ -325,9 +325,8 @@ class GeneticAlgorithm(RavenSampled):
     meta = ['batchId']
     self.addMetaKeys(meta)
     self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
-    self._incrementIteration(traj)
-    for traj, init in enumerate(self._initialValues): # TODO: this should be single traj
-      self._submitRun(init,traj,self.getIteration(traj))
+    for _, init in enumerate(self._initialValues): # TODO: this should be single traj
+      self._submitRun(init,0,self.getIteration(0)+1)
 
   def initializeTrajectory(self, traj=None):
     """
@@ -400,7 +399,7 @@ class GeneticAlgorithm(RavenSampled):
         rlzDict['fitness'] = self.fitness.data[i]
         objectiveVal.append(self._collectOptValue(rlzDict))
         self._updateSolutionExport(traj, rlzDict,'first',None)
-      self.bestObjective = min(objectiveVal)
+      self.bestObjective = min(objectiveVal) # TODO: check if this line is hit
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
@@ -509,7 +508,7 @@ class GeneticAlgorithm(RavenSampled):
         rlzDict=dict((var,rlz[var].data[i]) for var in self.toBeSampled.keys())
         # rlzDict[self._objectiveVar]=rlz[self._objectiveVar].data[i]
         rlzDict[self._objectiveVar]=rlz[self._objectiveVar].data[i]
-        rlzDict['fitness'] = self.fitness[i]
+        rlzDict['fitness'] = self.fitness.data[i]
         self._updateSolutionExport(traj, rlzDict, acceptable,None)
     self.raiseADebug('*'*80)
     # decide what to do next

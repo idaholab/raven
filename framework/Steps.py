@@ -730,13 +730,13 @@ class MultiRun(SingleRun):
       if not sampler.onlySampleAfterCollecting:
         # NOTE for some reason submission outside collection breaks the DET
         # however, it is necessary i.e. batch sampling
-        self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary)
+        self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary, verbose=False)
       time.sleep(self.sleepTime)
     # END while loop that runs the step iterations (collection and submission-for-DET)
     # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
     sampler.finalizeSampler(self.failedRuns)
 
-  def _addNewRuns(self, sampler, model, inputs, outputs, jobHandler, inDictionary):
+  def _addNewRuns(self, sampler, model, inputs, outputs, jobHandler, inDictionary, verbose=True):
     """
       Checks for open spaces and adds new runs to jobHandler queue (via model.submit currently)
       @ In, sampler, Sampler, the sampler in charge of generating the sample
@@ -751,6 +751,7 @@ class MultiRun(SingleRun):
         interface for these?)
       @ In, jobHandler, object, the raven object used to handle jobs
       @ In, inDictionary, dict, additional step objects map
+      @ In, verbose, bool, optional, if True print DEBUD statements
       @ Out, None
     """
     isEnsemble = isinstance(model, Models.EnsembleModel)
@@ -758,7 +759,8 @@ class MultiRun(SingleRun):
     ## employ a threshold on the number of jobs the jobHandler can take,
     ## in addition, we cannot provide more jobs than the sampler can provide.
     ## So, we take the minimum of these two values.
-    self.raiseADebug('Testing if the sampler is ready to generate a new input')
+    if verbose:
+      self.raiseADebug('Testing if the sampler is ready to generate a new input')
     for _ in range(min(jobHandler.availability(isEnsemble), sampler.endJobRunnable())):
       if sampler.amIreadyToProvideAnInput():
         try:
@@ -769,10 +771,12 @@ class MultiRun(SingleRun):
           self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
           break
       else:
-        self.raiseADebug(' ... sampler has no new inputs currently.')
+        if verbose:
+          self.raiseADebug(' ... sampler has no new inputs currently.')
         break
     else:
-      self.raiseADebug(' ... no available JobHandler spots currently (or the Sampler is done.)')
+      if verbose:
+        self.raiseADebug(' ... no available JobHandler spots currently (or the Sampler is done.)')
 
   def _findANewInputToRun(self, sampler, model, inputs, outputs, jobHandler):
     """
