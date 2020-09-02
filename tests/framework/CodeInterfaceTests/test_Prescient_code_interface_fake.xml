@@ -1,0 +1,91 @@
+<?xml version="1.0" ?>
+<Simulation>
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/PrescientInterface</name>
+    <author>@cogljj</author>
+    <created>2020-09-02</created>
+    <revisions>
+    </revisions>
+    <classesTested>CodeInterfaces.PrescientCodeInterface</classesTested>
+    <description>
+      Test the Prescient Code Interface.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>PrescientInterfaceTest</WorkingDir>
+    <Sequence>runPrescientFake</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="simulate" type="PrescientRunnerInput">simulate_with_network_deterministic_day.txt</Input>
+    <Input name="structure" type="PrescientInput" subDirectory="deterministic_with_network_scenarios_day/pyspdir_twostage/2020-07-10/">ScenarioStructure.dat</Input>
+    <Input name="scenario_1" type="PrescientInput" subDirectory="deterministic_with_network_scenarios_day/pyspdir_twostage/2020-07-10/">Scenario_1.dat</Input>
+    <Input name="actuals" type="PrescientInput" subDirectory="deterministic_with_network_scenarios_day/pyspdir_twostage/2020-07-10/">Scenario_actuals.dat</Input>
+    <Input name="forcasts" type="PrescientInput" subDirectory="deterministic_with_network_scenarios_day/pyspdir_twostage/2020-07-10/">Scenario_forecasts.dat</Input>
+    <Input name="scenarios" type="PrescientInput" subDirectory="deterministic_with_network_scenarios_day/pyspdir_twostage/2020-07-10/">scenarios.csv</Input>
+  </Files>
+
+  <Models>
+    <Code name="TestPrescient" subType="Prescient">
+      <executable>
+      </executable>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dist">
+      <lowerBound>1.0</lowerBound>
+      <upperBound>1000.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="var">
+        <distribution>dist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="runPrescientFake" clearRunDir="False">
+      <Input class="Files" type="PrescientRunnerInput">simulate</Input>
+      <Input class="Files" type="PrescientInput">structure</Input>
+      <Input class="Files" type="PrescientInput">scenario_1</Input>
+      <Input class="Files" type="PrescientInput">actuals</Input>
+      <Input class="Files" type="PrescientInput">forcasts</Input>
+      <Input class="Files" type="PrescientInput">scenarios</Input>
+      <Model class="Models" type="Code">TestPrescient</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="Databases" type="HDF5">DB_prescient</Output>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+      <Output class="OutStreams" type="Print">out_prescient_fake</Output>
+    </MultiRun>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="DB_prescient" readMode="overwrite"/>
+  </Databases>
+
+  <DataObjects>
+    <HistorySet name="samples">
+      <Input>var</Input>
+      <!-- <Output>Demand, Renewables available,Renewables used,Renewables penetration rate,Average price,Fixed costs,Generation costs,Load shedding,Over generation,Reserve shortfall,Renewables curtailment,Number on/offs,Sum on/off ramps,Sum nominal ramps</Output> -->
+      <Output>Date_Hour, TotalCosts, FixedCosts, VariableCosts, LoadShedding, OverGeneration, ReserveShortfall, RenewablesUsed, RenewablesCurtailment, Demand, Price, NetDemand </Output>
+      <options>
+        <pivotParameter>Date_Hour</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="out_prescient_fake">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

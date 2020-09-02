@@ -309,7 +309,7 @@ class Code(Model):
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
       if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
-        os.mkdir(subSubDirectory)
+        os.makedirs(subSubDirectory)
       ##########################################################################
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
@@ -370,7 +370,7 @@ class Code(Model):
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
       if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
-        os.mkdir(subSubDirectory)
+        os.makedirs(subSubDirectory)
       ##########################################################################
       newInputSet[index].setPath(subSubDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
