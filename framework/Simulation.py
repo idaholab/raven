@@ -31,7 +31,8 @@ import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-# NOTE: always import plugin factory first!
+import MessageHandler
+# NOTE: always import plugin factory first, before other Entities!
 import PluginFactory
 import Steps
 import DataObjects
@@ -45,7 +46,6 @@ import Databases
 import Functions
 import OutStreams
 from JobHandler import JobHandler
-import MessageHandler
 import VariableGroups
 from utils import utils, TreeStructure, xmlUtils, mathUtils
 from Application import __QtAvailable
@@ -344,6 +344,7 @@ class Simulation(MessageHandler.MessageUser):
     self.pollingThread.daemon = True
     self.pollingThread.start()
 
+  @profile
   def setInputFiles(self,inputFiles):
     """
       Method that can be used to set the input files that the program received.
