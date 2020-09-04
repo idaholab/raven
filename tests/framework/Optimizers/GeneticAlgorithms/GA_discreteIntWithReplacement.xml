@@ -1,99 +1,30 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <RunInfo>
-    <WorkingDir>discreteIntWithRepalcement</WorkingDir>
-    <Sequence>optimize, print</Sequence>
+    <WorkingDir>discreteIntWithReplacement</WorkingDir>
+    <Sequence>sample, print</Sequence>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize">
-      <Input          class="DataObjects" type="PointSet"      >placeholder</Input>
-      <Model          class="Models"      type="ExternalModel" >slant</Model>
-      <Optimizer      class="Optimizers"  type="SPSA"          >opter</Optimizer>
-      <SolutionExport class="DataObjects" type="PointSet"      >opt_export</SolutionExport>
-      <Output         class="DataObjects" type="PointSet"      >optOut</Output>
+    <MultiRun name="sample">
+      <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
+      <Model          class="Models"      type="ExternalModel"    >MKbase</Model>
+      <Sampler        class="Samplers"    type="MonteCarlo"       >MC</Sampler>
+      <Output         class="DataObjects" type="PointSet"         >optOut</Output>
     </MultiRun>
     <IOStep name="print">
-      <Input class="DataObjects" type="PointSet">opt_export</Input>
-      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Input  class="DataObjects"  type="PointSet"  >optOut</Input>
+      <Output class="OutStreams"   type="Print"     >PrintOptOut</Output>
     </IOStep>
   </Steps>
 
   <Distributions>
-    <UniformDiscrete name="x_dist">
+    <UniformDiscrete name="unif_dist_wRepl">
       <lowerBound>0</lowerBound>   <!-- 0 implies not chosen -->
-      <upperBound>5</upperBound>
+      <upperBound>4</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
   </Distributions>
-
-	<Optimizers>
-	  <GeneticAlgorithm name="GAopt">
-		  <samplerInit>
-		    <limit>100</limit>
-		    <initialSeed>42</initialSeed>
-		    <writeSteps>every</writeSteps>
-		    <type>min</type>
-		  </samplerInit>
-		
-			<GAparams>
-			  <populationSize>[int]</populationSize>
-			  <parentSelection type='selectionType'>
-			    <node1></node1>
-			  </parentSelection>
-			  <crossover type='crossoverType'>
-			    <node2></node2>
-			  </crossover>
-			  <mutation type='mutationType'>
-			    <node3></node3>
-			  </mutation>
-			  <replacement type='replacementType'>
-			    <node4></node4>
-			  </replacement>
-			  <fitness type='fitnessType'>
-			    <node5></node5>
-			  </fitness>
-			</GAparams>
-			
-		  <convergence>
-		    <objective>-1</objective>
-		  </convergence>
-		  
-		  <variable name="proj1">
-		    <distribution>unif_dist_wRepl</distribution>
-		  </variable>
-      <variable name="proj2">
-        <distribution>unif_dist_wRepl</distribution>
-      </variable>
-      <variable name="proj3">
-        <distribution>unif_dist_wRepl</distribution>
-      </variable>
-      <variable name="proj4">
-        <distribution>unif_dist_wRepl</distribution>
-      </variable>
-      <variable name="proj5">
-        <distribution>unif_dist_wRepl</distribution>
-      </variable>
-		  <variable name="proj6">
-		    <distribution>unif_dist_wRepl</distribution>
-		  </variable>
-      <variable name="proj7">
-        <distribution>unif_dist_wRepl</distribution>
-      </variable>
-      <variable name="proj8">
-        <distribution>unif_dist_wRepl</distribution>
-      </variable>
-      <variable name="proj9">
-        <distribution>unif_dist_wRepl</distribution>
-      </variable>
-      <variable name="proj10">
-        <distribution>unif_dist_wRepl</distribution>
-      </variable>
-      		  
-		  <objective>ans</objective>
-		  <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-	  </GeneticAlgorithm >
-	</Optimizers>
 	
   <Samplers>
     <MonteCarlo name="MC">
@@ -135,8 +66,8 @@
   </Samplers>
 
   <Models>
-    <ExternalModel ModuleToLoad="" name="model1" subType="">
-      <variables>x,y,ans</variables>
+    <ExternalModel ModuleToLoad="MKmodel" name="MKbase" subType="">
+      <variables>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue,validPlan</variables>
     </ExternalModel>
   </Models>
 
@@ -144,16 +75,12 @@
     <PointSet name="placeholder"/>
     <PointSet name="optOut">
       <Input>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10</Input>
-      <Output>out</Output>
-    </PointSet>
-    <PointSet name="opt_export">
-      <Input>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10</Input>
-      <Output>out</Output>
+      <Output>planValue,validPlan</Output>
     </PointSet>
   </DataObjects>
 
   <OutStreams>
-    <Print name="optOut">
+    <Print name="PrintOptOut">
       <type>csv</type>
       <source>optOut</source>
     </Print>
