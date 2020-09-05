@@ -698,7 +698,7 @@ class MultiRun(SingleRun):
               self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
             #pop the failed job from the list
             finishedJobList.pop(finishedJobList.index(finishedJob))
-        if sampler.batch > 0:
+        if sampler.batch > 0: # TODO: should be consitant if no batching should batch size be 1 or 0 ?
           # if sampler claims it's batching, then only collect once, since it will collect the batch
           # together, not one-at-a-time
           sampler.finalizeActualSampling(finishedJob,model,inputs)

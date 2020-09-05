@@ -45,10 +45,11 @@ def replacementRepair(offSprings,**kwargs):
           children[chrom,ind] = x
           duplicated.add(x)
         else:
-          pool = set(range(int(distInfo[kwargs['variables'][ind]].lowerBound),int(distInfo[kwargs['variables'][ind]].upperBound)+1)) - unique
-          y = int(np.random.choice(list(pool)))
-          children[chrom,ind] = y
-          duplicated.add(y)
+          if (distInfo[offSprings['Gene'].data[ind]].strategy == 'withOutReplacement'):
+            pool = set(range(int(distInfo[kwargs['variables'][ind]].lowerBound),int(distInfo[kwargs['variables'][ind]].upperBound)+1)) - unique
+            y = int(np.random.choice(list(pool)))
+            children[chrom,ind] = y
+            duplicated.add(y)
   return children
 
 __repairs = {}

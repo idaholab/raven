@@ -375,7 +375,7 @@ class GeneticAlgorithm(RavenSampled):
     traj = info['traj']
     self.incrementIteration(traj)
     info['step'] = self.counter
-    info['optVal'] = rlz[self._objectiveVar].data
+    # info['optVal'] = rlz[self._objectiveVar].data ## TODO: maybe uncomment back
 
     if self.counter == 1:
       self.population = population
@@ -389,7 +389,7 @@ class GeneticAlgorithm(RavenSampled):
     # perform fitness calculation for newly obtained children (rlz)
     # for i in range(self._populationSize):
     fitness = self._fitnessInstance(populationRlz,objVar = self._objectiveVar,a=self._objCoeff,b=self._penaltyCoeff,penalty = None)
-    info['fitness'] = fitness
+    # info['fitness'] = fitness
     if self.counter == 1:
       self.fitness = fitness
       objectiveVal = []
@@ -432,7 +432,17 @@ class GeneticAlgorithm(RavenSampled):
     children = self._mutationInstance(offSprings=children,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
 
     # 4 @ n: repair/replacement
-    children = self._repairInstance(children,variables=list(self.toBeSampled),distInfo=self.distDict)
+    # repair should only happen if multiple genes in a single chromosome have the same values (), and at the same time the sampling of these genes should be with Out replacement.
+    needsRepair = False
+    for chrom in range(self._nChildren):
+      unique = set(children.data[chrom,:])
+      if len(children.data[chrom,:]) != len(unique):
+        for var in self.toBeSampled.keys(): ## TODO: there must be a smarter way to da id any variables strategy is without replacement
+          if (self.distDict[var].strategy == 'withOutReplacement'):
+            needsRepair = True
+            break
+    if needsRepair:
+      children = self._repairInstance(children,variables=list(self.toBeSampled),distInfo=self.distDict)
     # Make sure no children are exactly similar to parents
     repeated =[]
     for i in range(np.shape(population.data)[0]):
@@ -482,7 +492,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, info, dict, identifying information about the realization
       @ In, rlz, dict, realized realization
     """
-    optVal = info['optVal'].copy().data
+    optVal = self.objectiveVal.copy() #info['optVal'].copy().data
     self.raiseADebug('*'*80)
     self.raiseADebug('Trajectory {} iteration {} resolving new generation ...'.format(traj, info['step']))
     # note the collection of the opt point
@@ -491,8 +501,8 @@ class GeneticAlgorithm(RavenSampled):
     # acceptable, old = self._checkAcceptability(traj, rlz, info)
     acceptable = 'accepted' if self.counter >1 else 'first'
     old = self.population
-    converged = False
-    # converged = self._updateConvergence(traj, rlz, old, acceptable)
+    # converged = False
+    converged = self._updateConvergence(traj, rlz, old, acceptable)
     # we only want to update persistance if we've accepted a new point.
     # We don't want rejected points to count against our convergence.
     # if acceptable in ['accepted']:
@@ -514,8 +524,10 @@ class GeneticAlgorithm(RavenSampled):
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
-
-      self._optPointHistory[traj].append((rlz, info)) #.to_array().data
+      bestRlz = {}
+      bestRlz[self._objectiveVar] = self.bestObjective
+      bestRlz.update(self.bestPoint)
+      self._optPointHistory[traj].append((bestRlz, info)) #.to_array().data
       self.incrementIteration(traj)
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
@@ -600,10 +612,14 @@ class GeneticAlgorithm(RavenSampled):
     print('DEBUGG o1:', o1[self._objectiveVar])
     print('DEBUGG o2:', o2[self._objectiveVar])
     delta = o2[self._objectiveVar]-o1[self._objectiveVar]
-    converged = abs(delta.data.min()) < self._convergenceCriteria['objective']
+    # converged = abs(delta.data.min()) < self._convergenceCriteria['objective']
+    if o1 != o2:
+      converged = abs(delta) < self._convergenceCriteria['objective']
+    else:
+      converged = False
     self.raiseADebug(self.convFormat.format(name='objective',
                                             conv=str(converged),
-                                            got=delta.data.min(),
+                                            got=delta,#delta.data.min()
                                             req=self._convergenceCriteria['objective']))
     return converged
 
