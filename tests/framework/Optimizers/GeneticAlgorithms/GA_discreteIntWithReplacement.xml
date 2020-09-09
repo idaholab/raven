@@ -4,6 +4,8 @@
     <WorkingDir>discreteIntWithReplacement</WorkingDir>
     <!--Sequence>sample, print</Sequence-->
     <Sequence>opt, printExport</Sequence>
+    <batchSize>10</batchSize>
+    <internalParallel>False</internalParallel>
   </RunInfo>
 
   <Steps>
@@ -41,7 +43,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAoptimizer">
       <samplerInit>
-        <limit>10</limit>
+        <limit>8</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
@@ -94,19 +96,19 @@
         <distribution>unif_dist_wRepl</distribution>
         <initial>5,0,1,2,3,4,5,0</initial>
       </variable>
-      <variable name=" proj7">
+      <variable name="proj7">
         <distribution>unif_dist_wRepl</distribution>
         <initial>0,1,2,3,4,5,0,1</initial>
       </variable>
-      <variable name=" proj8">
+      <variable name="proj8">
         <distribution>unif_dist_wRepl</distribution>
         <initial>1,2,3,4,5,0,1,2</initial>
       </variable>
-      <variable name=" proj9">
+      <variable name="proj9">
         <distribution>unif_dist_wRepl</distribution>
         <initial>2,3,4,5,0,1,2,3</initial>
       </variable>
-      <variable name=" proj10">
+      <variable name="proj10">
         <distribution>unif_dist_wRepl</distribution>
         <initial>3,4,5,0,1,2,3,4</initial>
       </variable>
@@ -168,8 +170,8 @@
       <Output>planValue,validPlan</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10</Input>
-      <Output>planValue,validPlan</Output>
+      <Input>trajID</Input>
+      <Output>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue</Output>
     </PointSet>
   </DataObjects>
 
