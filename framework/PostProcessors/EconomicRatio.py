@@ -25,11 +25,12 @@ import xarray as xr
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
+from .BasicStatistics import BasicStatistics
 from utils import utils
 from utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
-class EconomicRatio(PostProcessor):
+class EconomicRatio(BasicStatistics):
   """
     EconomicRatio filter class. It computes economic metrics
   """
@@ -87,11 +88,10 @@ class EconomicRatio(PostProcessor):
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.pivotParameter = None # time-dependent statistics pivot parameter
     self.pivotValue = None # time-dependent statistics pivot parameter values
-    self.dynamic        = False # is it time-dependent?
-    self.sampleTag      = None  # Tag used to track samples
-    self.pbPresent      = False # True if the ProbabilityWeight is available
+    self.sampleTag = None  # Tag used to track samples
+    self.pbPresent = False # True if the ProbabilityWeight is available
     self.realizationWeight = None # The joint probabilities
-    self.sampleSize     = None # number of sample size
+    self.sampleSize = None # number of sample size
 
   def inputToInternal(self, currentInp):
     """
@@ -101,11 +101,9 @@ class EconomicRatio(PostProcessor):
       @ Out, (inputDataset, pbWeights), tuple, the dataset of inputs and the corresponding variable probability weight
     """
     # The EconomicRatio postprocessor only accept DataObjects
-    self.dynamic = False
     currentInput = currentInp [-1] if type(currentInp) == list else currentInp
     if len(currentInput) == 0:
       self.raiseAnError(IOError, "In post-processor " +self.name+" the input "+currentInput.name+" is empty.")
-
     pbWeights = None
 
     if currentInput.type not in ['PointSet','HistorySet']:
@@ -126,7 +124,6 @@ class EconomicRatio(PostProcessor):
         self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter, 'is not the associated index for \
                 requested variables', ','.join(self.parameters['targets']))
       else:
-        self.dynamic = True
         if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
           self.raiseAnError(IOError, "The data provided by the data objects", currentInput.name, "is not synchronized!")
         self.pivotValue = inputDataset[self.pivotParameter].values
@@ -166,17 +163,11 @@ class EconomicRatio(PostProcessor):
       if metricName in self.toDo.keys():
         for entry in self.toDo[metricName]:
           self.allUsedParams.update(entry['targets'])
-          try:
-            self.allUsedParams.update(entry['features'])
-          except KeyError:
-            pass
 
     #for backward compatibility, compile the full list of parameters used in Economic Ratio calculations
     self.parameters['targets'] = list(self.allUsedParams)
     PostProcessor.initialize(self, runInfo, inputs, initDict)
     inputObj = inputs[-1] if type(inputs) == list else inputs
-    if inputObj.type == 'HistorySet':
-      self.dynamic = True
     inputMetaKeys = []
     outputMetaKeys = []
     metaParams = {}
@@ -444,20 +435,12 @@ class EconomicRatio(PostProcessor):
     #storage dictionary for skipped metrics
     self.skipped = {}
     #construct a dict of required computations
-
-
     needed = dict((metric,{'targets':set()}) for metric in self.scalarVals + self.tealVals)
-
     needed.update(dict((metric,{'targets':set(),'threshold':{}}) for metric in ['sortinoRatio','gainLossRatio']))
-
     needed.update(dict((metric,{'targets':set(),'threshold':[]}) for metric in ['valueAtRisk', 'expectedShortfall']))
     for metric, params in self.toDo.items():
       for entry in params:
         needed[metric]['targets'].update(entry['targets'])
-        try:
-          needed[metric]['features'].update(entry['features'])
-        except KeyError:
-          pass
         if 'threshold' in entry.keys() :
           if metric in ['sortinoRatio','gainLossRatio']:
             threshold = entry['threshold']
@@ -472,7 +455,6 @@ class EconomicRatio(PostProcessor):
             if thd not in needed[metric]['threshold']:
               needed[metric]['threshold'].append(thd)
           pass
-
     # variable                     | needs                  | needed for
     # --------------------------------------------------------------------
     # median needs                 |                        | sortinoRatio, gainLossRatio
@@ -493,23 +475,14 @@ class EconomicRatio(PostProcessor):
     needed['expectedValue']['targets'].update(needed['sharpeRatio']['targets'])
     needed['expectedValue']['targets'].update(needed['sortinoRatio']['targets'])
     needed['expectedValue']['targets'].update(needed['gainLossRatio']['targets'])
-
     needed['sigma']['targets'].update(needed['sharpeRatio']['targets'])
-
     needed['variance']['targets'].update(needed['sigma']['targets'])
-
-
-
     needed['median']['targets'].update(needed['sortinoRatio']['targets'])
     needed['median']['targets'].update(needed['gainLossRatio']['targets'])
 
 
     for metric, params in needed.items():
       needed[metric]['targets'] = list(params['targets'])
-      try:
-        needed[metric]['features'] = list(params['features'])
-      except KeyError:
-        pass
 
     #
     # BEGIN actual calculations
@@ -765,8 +738,6 @@ class EconomicRatio(PostProcessor):
       if metric in self.scalarVals + self.tealVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations)
-
-
     outputDict = {}
     for metric, requestList  in self.toDo.items():
       for targetDict in requestList:
@@ -792,12 +763,8 @@ class EconomicRatio(PostProcessor):
             if skip is not None:
               self.raiseADebug('Metric',metric,'was skipped for parameters',targetDict,'!  See warnings for details.  Ignoring...')
               continue
-            for feature in targetDict['features']:
-              varName = '_'.join([prefix,target,feature])
-              outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'features':feature}))
     if self.pivotParameter in outputSet.sizes.keys():
       outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
-
     return outputDict
 
   def run(self, inputIn):
