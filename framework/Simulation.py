@@ -49,7 +49,6 @@ from JobHandler import JobHandler
 import VariableGroups
 from utils import utils, TreeStructure, xmlUtils, mathUtils
 import Decorators
-#from Decorators import timingProfile
 from Application import __QtAvailable
 from Interaction import Interaction
 if __QtAvailable:
