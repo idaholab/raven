@@ -48,6 +48,8 @@ import OutStreams
 from JobHandler import JobHandler
 import VariableGroups
 from utils import utils, TreeStructure, xmlUtils, mathUtils
+import Decorators
+#from Decorators import timingProfile
 from Application import __QtAvailable
 from Interaction import Interaction
 if __QtAvailable:
@@ -344,7 +346,7 @@ class Simulation(MessageHandler.MessageUser):
     self.pollingThread.daemon = True
     self.pollingThread.start()
 
-  @profile
+  @Decorators.timingProfile
   def setInputFiles(self,inputFiles):
     """
       Method that can be used to set the input files that the program received.

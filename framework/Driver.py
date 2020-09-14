@@ -37,14 +37,6 @@ import threading
 import traceback
 import xml.etree.ElementTree as ET
 
-# for profiling method timing in python with kernprof
-import builtins
-try:
-  builtins.profile
-except (AttributeError,ImportError):
-  # profiler not preset, so pass through
-  builtins.profile = lambda f: f
-
 #warning: this needs to be before importing h5py
 os.environ["MV2_ENABLE_AFFINITY"]="0"
 
