@@ -355,7 +355,7 @@ class GeneticAlgorithm(RavenSampled):
   # Run Methods #
   ###############
   # abstract methods:
-  # @profile
+  @profile
   def _useRealization(self, info, rlz):
     """
       Used to feedback the collected runs into actionable items within the sampler.

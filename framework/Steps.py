@@ -573,7 +573,7 @@ class MultiRun(SingleRun):
     inDictionary[self.samplerType].initialize(**self._samplerInitDict)
     self.raiseADebug('for the role of sampler the item of class '+inDictionary[self.samplerType].type+' and name '+inDictionary[self.samplerType].name+' has been initialized')
     self.raiseADebug('Sampler initialization dictionary: '+str(self._samplerInitDict))
-
+  @profile
   def _localInitializeStep(self,inDictionary):
     """
       This is the API for the local initialization of the children classes of step
@@ -632,7 +632,7 @@ class MultiRun(SingleRun):
             self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
-
+  @profile 
   def _localTakeAstepRun(self,inDictionary):
     """
       This is the API for the local run of a step for the children classes
@@ -735,7 +735,7 @@ class MultiRun(SingleRun):
     # END while loop that runs the step iterations (collection and submission-for-DET)
     # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
     sampler.finalizeSampler(self.failedRuns)
-
+  @profile
   def _addNewRuns(self, sampler, model, inputs, outputs, jobHandler, inDictionary, verbose=True):
     """
       Checks for open spaces and adds new runs to jobHandler queue (via model.submit currently)
@@ -777,7 +777,7 @@ class MultiRun(SingleRun):
     else:
       if verbose:
         self.raiseADebug(' ... no available JobHandler spots currently (or the Sampler is done.)')
-
+  @profile
   def _findANewInputToRun(self, sampler, model, inputs, outputs, jobHandler):
     """
       Repeatedly calls Sampler until a new run is found or "NoMoreSamplesNeeded" is raised.
