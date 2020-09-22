@@ -7,19 +7,19 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="sample">
+    <!-- <MultiRun name="sample">
       <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
       <Model          class="Models"      type="ExternalModel"    >MKbase</Model>
       <Sampler        class="Samplers"    type="MonteCarlo"       >MC</Sampler>
       <Output         class="DataObjects" type="PointSet"         >optOut</Output>
-    </MultiRun>
+    </MultiRun> -->
     <MultiRun name="opt" >
       <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
       <Model          class="Models"      type="ExternalModel"    >MKbase</Model>
       <Optimizer      class="Optimizers"  type="GeneticAlgorithm" >GAoptimizer</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet"         >opt_export</SolutionExport>
       <Output         class="DataObjects" type="PointSet"         >optOut</Output>
-    </MultiRun> 
+    </MultiRun>
     <IOStep name="print">
       <Input  class="DataObjects"  type="PointSet"  >optOut</Input>
       <Output class="OutStreams"   type="Print"     >PrintOptOut</Output>
@@ -37,7 +37,7 @@
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
   </Distributions>
-  
+
   <Optimizers>
     <GeneticAlgorithm name="GAoptimizer">
       <samplerInit>
@@ -94,19 +94,19 @@
         <distribution>unif_dist_wRepl</distribution>
         <initial>5,0,1,2,3,4,5,0</initial>
       </variable>
-      <variable name=" proj7">
+      <variable name="proj7">
         <distribution>unif_dist_wRepl</distribution>
         <initial>0,1,2,3,4,5,0,1</initial>
       </variable>
-      <variable name=" proj8">
+      <variable name="proj8">
         <distribution>unif_dist_wRepl</distribution>
         <initial>1,2,3,4,5,0,1,2</initial>
       </variable>
-      <variable name=" proj9">
+      <variable name="proj9">
         <distribution>unif_dist_wRepl</distribution>
         <initial>2,3,4,5,0,1,2,3</initial>
       </variable>
-      <variable name=" proj10">
+      <variable name="proj10">
         <distribution>unif_dist_wRepl</distribution>
         <initial>3,4,5,0,1,2,3,4</initial>
       </variable>
@@ -115,8 +115,8 @@
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     </GeneticAlgorithm>
   </Optimizers>
-	
-  <Samplers>
+
+  <!-- <Samplers>
     <MonteCarlo name="MC">
       <samplerInit>
         <limit>10</limit>
@@ -153,7 +153,7 @@
         <distribution>unif_dist_wRepl</distribution>
       </variable>
     </MonteCarlo>
-  </Samplers>
+  </Samplers> -->
 
   <Models>
     <ExternalModel ModuleToLoad="MKmodel" name="MKbase" subType="">

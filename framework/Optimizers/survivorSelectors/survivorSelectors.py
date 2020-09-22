@@ -24,7 +24,7 @@
 
 import numpy as np
 import xarray as xr
-
+# @profile
 def ageBased(self,newRlz,**kwargs):
   """
     ageBased survivorSelection mechanism for new generation selection.

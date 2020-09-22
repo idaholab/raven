@@ -367,9 +367,12 @@ class GeneticAlgorithm(RavenSampled):
     # size = self._nChildren if self.counter > 1 else self._populationSize
     self.batch = self._populationSize*(self.counter==1)+self._nChildren*(self.counter>1)
     populationRlz = rlz
+    print('Dubugg: ',rlz[self._objectiveVar].data.size,self.counter)
+    print('Dubugg: ',populationRlz.sizes)
+    print('Dubugg: ',populationRlz[list(self.toBeSampled)].to_array().shape)
     population = xr.DataArray(populationRlz[list(self.toBeSampled)].to_array().transpose(),
                               dims=['chromosome','Gene'],
-                              coords={'chromosome': np.arange(len(rlz[self._objectiveVar].data)),
+                              coords={'chromosome': np.arange(rlz[self._objectiveVar].data.size),
                                       'Gene':list(self.toBeSampled)})#np.arange(len(self.toBeSampled))
     # The whole skeleton should be here, this should be calling all classes and _private methods.
     traj = info['traj']
@@ -400,6 +403,7 @@ class GeneticAlgorithm(RavenSampled):
         objectiveVal.append(self._collectOptValue(rlzDict))
         self._updateSolutionExport(traj, rlzDict,'first',None)
       self.bestObjective = min(objectiveVal) # TODO: check if this line is hit
+      self.bestFitness = max(fitness.data)
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
@@ -412,7 +416,7 @@ class GeneticAlgorithm(RavenSampled):
       self.popAge = Age
       self.fitness = fitness
       self._resolveNewGeneration(traj,populationRlz,info)
-      # self.bestFitness = max(fitness.data)
+      self.bestFitness = max(fitness.data)
 
       # This will be added once the rlz is treated as a xarray DataSet
       # for var in self.toBeSampled:
@@ -526,6 +530,7 @@ class GeneticAlgorithm(RavenSampled):
       # record history
       bestRlz = {}
       bestRlz[self._objectiveVar] = self.bestObjective
+      bestRlz['fitness'] = self.bestFitness
       bestRlz.update(self.bestPoint)
       self._optPointHistory[traj].append((bestRlz, info)) #.to_array().data
       self.incrementIteration(traj)
