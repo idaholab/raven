@@ -367,9 +367,13 @@ class GeneticAlgorithm(RavenSampled):
     # size = self._nChildren if self.counter > 1 else self._populationSize
     self.batch = self._populationSize*(self.counter==1)+self._nChildren*(self.counter>1)
     populationRlz = rlz
-    print('Dubugg: ',rlz[self._objectiveVar].data.size,self.counter)
-    print('Dubugg: ',populationRlz.sizes)
-    print('Dubugg: ',populationRlz[list(self.toBeSampled)].to_array().shape)
+    print('DubuJ: rlz[self._objectiveVar].data.size is {}, in iteration number {}'.format(rlz[self._objectiveVar].data.size,self.counter))
+    print('DubuJ: populationRlz.sizes are {}'.format(populationRlz.sizes))
+    print('DubuJ: populationRlz.dims are {}'.format(populationRlz.dims))
+    print('DubuJ: populationRlz.indexes are {}'.format(populationRlz.indexes))
+    print('DubuJ: populationRlz.data_vars are {}'.format(populationRlz.data_vars))
+    print('DubuJ: populationRlz.attrs are {}'.format(populationRlz.attrs))
+    print('DubuJ: populationRlz[list(self.toBeSampled)].to_array().transpose().shape is {}'.format(populationRlz[list(self.toBeSampled)].to_array().transpose().shape))
     population = xr.DataArray(populationRlz[list(self.toBeSampled)].to_array().transpose(),
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(rlz[self._objectiveVar].data.size),
