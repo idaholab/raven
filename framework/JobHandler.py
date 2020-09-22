@@ -118,7 +118,7 @@ class JobHandler(MessageHandler.MessageUser):
     ## List of submitted job identifiers, includes jobs that have completed as
     ## this list is not cleared until a new step is entered
     self.__submittedJobs = []
-    ## Dict of failed jobs of the form { identifer: metadata }
+    ## Dict of failed jobs of the form { identifier: metadata }
     self.__failedJobs = {}
     ## Dict containing info about batching
     self.__batching = collections.defaultdict()
@@ -138,7 +138,7 @@ class JobHandler(MessageHandler.MessageUser):
     # defaults to None; if None, then use batchSize instead
     if self.maxQueueSize is None:
       self.maxQueueSize = runInfoDict['batchSize']
-    # if requsted max size less than 1, we can't do that, so take 1 instead
+    # if requested max size less than 1, we can't do that, so take 1 instead
     if self.maxQueueSize < 1:
       self.raiseAWarning('maxQueueSize was set to be less than 1!  Setting to 1...')
       self.maxQueueSize = 1
@@ -182,7 +182,7 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    ## set up enviroment
+    ## set up environment
     os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
     ## Check if the list of unique nodes is present and, in case, initialize the
     servers = None
@@ -318,7 +318,7 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, groupInfo, dict, optional, {id:string, size:int}.
         - "id": it is a special keyword attached to
           this runner to identify that this runner belongs to a special set of runs that need to be
-          grouped together (all will be retriavable only when all the runs ended).
+          grouped together (all will be retrievable only when all the runs ended).
         - "size", number of runs in this group
       @ In, clientQueue, boolean, optional, if this run needs to be added in the
         clientQueue
@@ -405,7 +405,7 @@ class JobHandler(MessageHandler.MessageUser):
         this runner. For example, if present, to retrieve this runner using the
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
         If uniqueHandler == 'any', every "client" can get this runner
-      @ In, profile, bool, optional, if True then at deconstruction timing statements will be printed
+      @ In, profile, bool, optional, if True then at de-construction timing statements will be printed
       @ Out, None
     """
     # create a placeholder runner

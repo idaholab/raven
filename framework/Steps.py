@@ -698,7 +698,7 @@ class MultiRun(SingleRun):
               self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
             #pop the failed job from the list
             finishedJobList.pop(finishedJobList.index(finishedJob))
-        if sampler.batch > 0: # TODO: should be consitant if no batching should batch size be 1 or 0 ?
+        if sampler.batch > 0: # TODO: should be constant if no batching should batch size be 1 or 0 ?
           # if sampler claims it's batching, then only collect once, since it will collect the batch
           # together, not one-at-a-time
           sampler.finalizeActualSampling(finishedJob,model,inputs)
@@ -796,7 +796,7 @@ class MultiRun(SingleRun):
     """
     #The value of "found" determines what the Sampler is ready to provide.
     #  case 0: a new sample has been discovered and can be run, and newInp is a new input list.
-    #  case 1: found the input in restart, and newInp is a realization dicitonary of data to use
+    #  case 1: found the input in restart, and newInp is a realization dictionary of data to use
     found, newInp = sampler.generateInput(model,inputs)
     if found == 1:
       kwargs = copy.deepcopy(sampler.inputInfo)

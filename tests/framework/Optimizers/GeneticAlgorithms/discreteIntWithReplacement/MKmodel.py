@@ -39,5 +39,8 @@ def run(self,Input):
   counterNeg = np.sum(knapsackCapacities<0, axis=0)
   self.planValue = self.planValue - counterNeg * (15.)
 
+
   print(knapsackCapacities)
   print(counterNeg)
+  
+
