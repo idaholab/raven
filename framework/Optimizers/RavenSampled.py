@@ -223,6 +223,7 @@ class RavenSampled(Optimizer):
     else:
       self.inputInfo['batchMode'] = False
     for _ in range(self.batch):
+      inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}
       if self.counter == self.limit + 1:
         break
       # get point from stack
@@ -230,6 +231,7 @@ class RavenSampled(Optimizer):
       point = self.denormalizeData(point)
       # assign a tracking prefix
       prefix = self.inputInfo['prefix']
+      inputInfo['prefix'] = prefix
       # register the point tracking information
       self._registerSample(prefix, info)
       # build the point in the way the Sampler expects
@@ -238,17 +240,21 @@ class RavenSampled(Optimizer):
         self.values[var] = val # TODO should be np.atleast_1d?
         ptProb = self.distDict[var].pdf(val)
         # sampler-required meta information # TODO should we not require this?
-        self.inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
-        self.inputInfo['SampledVarsPb'][var] = ptProb
-      self.inputInfo['ProbabilityWeight'] = 1 # TODO assume all weight 1? Not well-distributed samples
-      self.inputInfo['PointProbability'] = np.prod([x for x in self.inputInfo['SampledVarsPb'].values()])
-      self.inputInfo['SamplerType'] = self.type
+        inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
+        inputInfo['SampledVarsPb'][var] = ptProb
+      inputInfo['ProbabilityWeight'] = 1 # TODO assume all weight 1? Not well-distributed samples
+      inputInfo['PointProbability'] = np.prod([x for x in inputInfo['SampledVarsPb'].values()])
+      inputInfo['SamplerType'] = self.type
       # self.inputInfo['batchId'] = self.batchId
       if self.inputInfo['batchMode']:
-        self.inputInfo['SampledVars'] = self.values
-        self.inputInfo['batchId'] = self.batchId
-        batchData.append(copy.deepcopy(self.inputInfo))
+        inputInfo['SampledVars'] = self.values
+        inputInfo['batchId'] = self.batchId
+        batchData.append(copy.deepcopy(inputInfo))
         # self._incrementCounter()
+      else:
+        inputInfo['SampledVars'] = self.values
+        inputInfo['batchId'] = self.batchId
+        self.inputInfo.update(inputInfo)
     if self.inputInfo['batchMode']:
       self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': str('gen_' + str(self.batchId))}
 
