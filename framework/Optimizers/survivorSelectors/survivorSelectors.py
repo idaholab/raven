@@ -89,11 +89,12 @@ def fitnessBased(newRlz,**kwargs):
   popAge = kwargs['age']
   if popAge == None:
     popAge = [0]*kwargs['popSize']
-  offSpringsFitness = kwargs['offSpringsFitness'].data
-  offSprings = newRlz[kwargs['variables']].to_array().transpose().data
-  population = kwargs['population'].data
-  popFitness = kwargs['fitness'].data
-  offSpringsAge = [0]*(len(offSpringsFitness))
+  offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'].data)
+  offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
+  print('DebuJ:*** ', np.shape(offSprings),np.shape(offSpringsFitness))
+  population = np.atleast_2d(kwargs['population'].data)
+  popFitness = np.atleast_1d(kwargs['fitness'].data)
+  offSpringsAge = [0]*(np.shape(offSpringsFitness)[0])
   # ## TODO: remove duplicates
   # repeated =[]
   # for i in range(np.shape(population)[0]):
@@ -106,7 +107,7 @@ def fitnessBased(newRlz,**kwargs):
   newAge = list(map(lambda x:x+1, popAge.copy()))
   newPopulation = np.concatenate([newPopulation,offSprings])
   newFitness = np.concatenate([newFitness,offSpringsFitness])
-  newAge.extend([0]*len(offSprings))
+  newAge.extend([0]*len(offSpringsFitness))
   # sort population, popFitness according to age
   sortedFitness,sortedAge,sortedPopulation = zip(*[(x,y,z) for x,y,z in sorted(zip(newFitness,newAge,newPopulation),reverse=True,key=lambda x: (x[0], -x[1]))])
   sortedFitness,sortedAge,sortedPopulation = np.atleast_1d(list(sortedFitness)),list(sortedAge),np.atleast_1d(list(sortedPopulation))

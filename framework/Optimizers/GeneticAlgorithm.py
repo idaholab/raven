@@ -374,7 +374,7 @@ class GeneticAlgorithm(RavenSampled):
     print('DubuJ: populationRlz.data_vars are {}'.format(populationRlz.data_vars))
     print('DubuJ: populationRlz.attrs are {}'.format(populationRlz.attrs))
     print('DubuJ: populationRlz[list(self.toBeSampled)].to_array().transpose().shape is {}'.format(populationRlz[list(self.toBeSampled)].to_array().transpose().shape))
-    population = xr.DataArray(populationRlz[list(self.toBeSampled)].to_array().transpose(),
+    population = xr.DataArray(np.atleast_2d(populationRlz[list(self.toBeSampled)].to_array().transpose()),
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(rlz[self._objectiveVar].data.size),
                                       'Gene':list(self.toBeSampled)})#np.arange(len(self.toBeSampled))
@@ -521,12 +521,12 @@ class GeneticAlgorithm(RavenSampled):
       # FIXME TODO XXX talbpaul says:
       # for each parent that will survive:
       #   self._updateSolutionExport(traj, parent, acceptable, None)
-      for i in range(len(rlz[self._objectiveVar].data)):#self._populationSize
+      for i in range(len(np.atleast_1d(rlz[self._objectiveVar].data))):#self._populationSize
         # rlzDict=dict((var,self.population.sel(Gene =var)[i].data) for var in self.toBeSampled.keys())
-        rlzDict=dict((var,rlz[var].data[i]) for var in self.toBeSampled.keys())
+        rlzDict=dict((var,np.atleast_1d(rlz[var].data)[i]) for var in self.toBeSampled.keys())
         # rlzDict[self._objectiveVar]=rlz[self._objectiveVar].data[i]
-        rlzDict[self._objectiveVar]=rlz[self._objectiveVar].data[i]
-        rlzDict['fitness'] = self.fitness.data[i]
+        rlzDict[self._objectiveVar]=np.atleast_1d(rlz[self._objectiveVar].data)[i]
+        rlzDict['fitness'] = np.atleast_1d(self.fitness.data)[i]
         self._updateSolutionExport(traj, rlzDict, acceptable,None)
     self.raiseADebug('*'*80)
     # decide what to do next
