@@ -9,12 +9,12 @@
   </RunInfo>
 
   <Steps>
-    <!-- <MultiRun name="sample">
+    <MultiRun name="sample">
       <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
       <Model          class="Models"      type="ExternalModel"    >MKbase</Model>
       <Sampler        class="Samplers"    type="MonteCarlo"       >MC</Sampler>
       <Output         class="DataObjects" type="PointSet"         >optOut</Output>
-    </MultiRun> -->
+    </MultiRun> 
     <MultiRun name="opt" >
       <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
       <Model          class="Models"      type="ExternalModel"    >MKbase</Model>
@@ -43,7 +43,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAoptimizer">
       <samplerInit>
-        <limit>8</limit>
+        <limit>20</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
@@ -118,7 +118,7 @@
     </GeneticAlgorithm>
   </Optimizers>
 
-  <!-- <Samplers>
+  <Samplers>
     <MonteCarlo name="MC">
       <samplerInit>
         <limit>10</limit>
@@ -155,7 +155,7 @@
         <distribution>unif_dist_wRepl</distribution>
       </variable>
     </MonteCarlo>
-  </Samplers> -->
+  </Samplers> 
 
   <Models>
     <ExternalModel ModuleToLoad="MKmodel" name="MKbase" subType="">
@@ -170,8 +170,8 @@
       <Output>planValue,validPlan</Output>
     </PointSet>
     <PointSet name="opt_export">
-      <Input>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10</Input>
-      <Output>planValue,validPlan</Output>
+      <Input>trajID</Input>
+      <Output>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue</Output>
     </PointSet>
   </DataObjects>
 
@@ -182,7 +182,7 @@
     </Print>
     <Print name="PrintOptOut_export">
       <type>csv</type>
-      <source>optOut</source>
+      <source>opt_export</source>
     </Print>
   </OutStreams>
 
