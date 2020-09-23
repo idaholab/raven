@@ -361,6 +361,7 @@ class EconomicRatio(BasicStatistics):
     """
     if dim is None:
       dim = self.sampleTag
+      
     diff = (medValue-arrayIn).clip(min=0)
     if pbWeight is not None:
       vp = 1.0/self.__computeVp(1,pbWeight)
