@@ -325,6 +325,7 @@ class GeneticAlgorithm(RavenSampled):
     meta = ['batchId']
     self.addMetaKeys(meta)
     self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
+    print('initial batch:', self.batch)
     for _, init in enumerate(self._initialValues): # TODO: this should be single traj
       self._submitRun(init,0,self.getIteration(0)+1)
 
@@ -366,6 +367,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     # size = self._nChildren if self.counter > 1 else self._populationSize
     self.batch = self._populationSize*(self.counter==1)+self._nChildren*(self.counter>1)
+    print('calculate batch:', self.batch)
     populationRlz = rlz
     print('DubuJ: rlz[self._objectiveVar].data.size is {}, in iteration number {}'.format(rlz[self._objectiveVar].data.size,self.counter))
     print('DubuJ: populationRlz.sizes are {}'.format(populationRlz.sizes))
@@ -463,6 +465,7 @@ class GeneticAlgorithm(RavenSampled):
                               coords={'chromosome': np.arange(np.shape(children2)[0]),
                                       'Gene':list(self.toBeSampled)})
     self.batch =np.shape(children)[0]
+    print('batch size reset:', self.batch)
     # 5 @ n: Submit children batch
     # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
     # self._submitRun(children,traj,self.counter)
@@ -618,8 +621,8 @@ class GeneticAlgorithm(RavenSampled):
       return False
     o1, _ = self._optPointHistory[traj][-1]
     o2, _ = self._optPointHistory[traj][-2]
-    print('DEBUGG o1:', o1[self._objectiveVar])
-    print('DEBUGG o2:', o2[self._objectiveVar])
+    # print('DEBUGG o1:', o1[self._objectiveVar])
+    # print('DEBUGG o2:', o2[self._objectiveVar])
     delta = o2[self._objectiveVar]-o1[self._objectiveVar]
     # converged = abs(delta.data.min()) < self._convergenceCriteria['objective']
     if o1 != o2:
