@@ -216,6 +216,7 @@ class RavenSampled(Optimizer):
       @ In, inp, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
+    print('batch: ====================', self.batch)
     if self.batch > 1:
       self.inputInfo['batchMode'] = True
       batchData = []
@@ -264,10 +265,10 @@ class RavenSampled(Optimizer):
         inputInfo['SampledVars'] = self.values
         inputInfo['batchId'] = self.batchId
         self.inputInfo.update(inputInfo)
-    if self.inputInfo['batchMode']:
-      for subBatch in batchData:
-        if 'batchInfo' in subBatch:
-          del subBatch['batchInfo']
+    if self.batch > 1:
+    #  for subBatch in batchData:
+    #    if 'batchInfo' in subBatch:
+    #      del subBatch['batchInfo']
       self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': str('gen_' + str(self.batchId))}
 
   # @profile
