@@ -81,7 +81,17 @@ class ExternalModel(Dummy):
     self.printTag                 = 'EXTERNAL MODEL'
     self.initExtSelf              = utils.Object()
     self.workingDir = runInfoDict['WorkingDir']
-
+    self.pickled = False #  is this model pickled?
+  
+  def copyModel(self, source):
+    """
+      This method is used to copy the external model from another model
+      @ In, source, externalModel instance, the source to copy from
+      @ Out, None
+    """
+    self.pickled = True
+    self.__dict__.update(source.__dict__)
+  
   def initialize(self,runInfo,inputs,initDict=None):
     """
       this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
@@ -144,6 +154,9 @@ class ExternalModel(Dummy):
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
       # load the external module and point it to self.sim
       self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
+    elif paramInput.parameterValues['subType'].strip() == 'pickledModel':
+      self.pickled = True
+      
     ## NOTE we implicitly assume not having ModuleToLoad means you're a plugin or a known type.
     elif paramInput.parameterValues['subType'].strip() is not None:
       ExternalModel.plugins.loadPlugin("ExternalModel",paramInput.parameterValues['subType'])
@@ -156,30 +169,38 @@ class ExternalModel(Dummy):
       self.sim = ExternalModel.plugins.returnPlugin("ExternalModel",paramInput.parameterValues['subType'],self)
     else:
       self.raiseAnError(IOError,'"ModuleToLoad" attribute or "subType" not provided for Model "ExternalModel" named "'+self.name+'"!')
+    if not self.pickled:
+      # check if there are variables and, in case, load them
+      for child in paramInput.subparts:
+        if child.getName() =='variable':
+          self.raiseAnError(IOError,'"variable" node included but has been depreciated!  Please list variables in a "variables" node instead.  Remove this message by Dec 2016.')
+        elif child.getName() == 'variables':
+          if len(child.parameterValues) > 0:
+            self.raiseAnError(IOError,'the block '+child.getName()+' named '+child.value+' should not have attributes!!!!!')
+          for var in child.value.split(','):
+            var = var.strip()
+            self.modelVariableType[var] = None
+      # adjust model-aware variables based on aliases
+      self._replaceVariablesNamesWithAliasSystem(self.modelVariableType,'inout')
+      self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
+      # check if there are other information that the external module wants to load
+      #TODO this needs to be converted to work with paramInput
+      if '_readMoreXML' in dir(self.sim):
+        self.sim._readMoreXML(self.initExtSelf,xmlNode)
 
-    # check if there are variables and, in case, load them
-    for child in paramInput.subparts:
-      if child.getName() =='variable':
-        self.raiseAnError(IOError,'"variable" node included but has been depreciated!  Please list variables in a "variables" node instead.  Remove this message by Dec 2016.')
-      elif child.getName() == 'variables':
-        if len(child.parameterValues) > 0:
-          self.raiseAnError(IOError,'the block '+child.getName()+' named '+child.value+' should not have attributes!!!!!')
-        for var in child.value.split(','):
-          var = var.strip()
-          self.modelVariableType[var] = None
-    # adjust model-aware variables based on aliases
-    self._replaceVariablesNamesWithAliasSystem(self.modelVariableType,'inout')
-    self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
-    # check if there are other information that the external module wants to load
-    #TODO this needs to be converted to work with paramInput
-    if '_readMoreXML' in dir(self.sim):
-      self.sim._readMoreXML(self.initExtSelf,xmlNode)
+  def evaluate(self, request: dict):
+    """
+      When the ExternalModel is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
+      @ In, request, dict, feature coordinates (request)
+      @ Out, outputEvaluation, dict, the dict containing the outputs for each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
+    """
+    outputEvaluation, _ = self._externalRun(request)
+    return outputEvaluation
 
-  def _externalRun(self, Input, modelVariables):
+  def _externalRun(self, Input):
     """
       Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
-      @ In, Input, list, list of the inputs needed for running the model
-      @ In, modelVariables, dict, the dictionary containing all the External Model variables
+      @ In, Input, dict, list of the inputs needed for running the model
       @ Out, (outcomes,self), tuple, tuple containing the dictionary of the results (pos 0) and the self (pos 1)
     """
     externalSelf        = utils.Object()
@@ -202,7 +223,7 @@ class ExternalModel(Dummy):
     if '_indexMap' in Input.keys():
       additionalKeys.append('_indexMap')
     for key in Input.keys():
-      if key in modelVariables.keys() or key in additionalKeys:
+      if key in additionalKeys:
         modelVariableValues[key] = copy.copy(Input[key])
     for key in list(self.modelVariableType.keys()) + additionalKeys:
       # add the variable as a member of "self"
@@ -271,7 +292,7 @@ class ExternalModel(Dummy):
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     # collect results from model run
-    result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
+    result = self.evaluate(inRun)
     # build realization
     ## do it in this order to make sure only the right variables are overwritten
     ## first inRun, which has everything from self.* and Input[*]
