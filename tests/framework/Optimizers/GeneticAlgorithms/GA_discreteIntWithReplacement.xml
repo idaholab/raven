@@ -3,7 +3,7 @@
   <RunInfo>
     <WorkingDir>discreteIntWithReplacement</WorkingDir>
     <!--Sequence>sample, print</Sequence-->
-    <Sequence>opt, printExport</Sequence>
+    <Sequence>opt, print, printExport</Sequence>
     <batchSize>10</batchSize>
     <internalParallel>False</internalParallel>
   </RunInfo>
@@ -43,22 +43,22 @@
   <Optimizers>
     <GeneticAlgorithm name="GAoptimizer">
       <samplerInit>
-        <limit>20</limit>
+        <limit>100</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
 
       <GAparams>
-        <populationSize>8</populationSize>
+        <populationSize>10</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="3">
+        <reproduction nParents="4">
           <crossover type="onePointCrossover">
             <points>3</points>
             <crossoverProb>0.8</crossoverProb>
           </crossover>
           <mutation type="scrambleMutator">
             <locs>2,5</locs>
-            <mutationProb>0.9</mutationProb>
+            <mutationProb>0.2</mutationProb>
           </mutation>
         </reproduction>
         <fitness type="invLinear">
@@ -74,43 +74,43 @@
 
       <variable name="proj1">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,1,2,3,4,5,0,1</initial>
+        <initial>0,1,0,2,3,0,4,5,0,1</initial>
       </variable>
       <variable name="proj2">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>1,2,3,4,5,0,1,2</initial>
+        <initial>1,0,2,3,0,4,5,0,1,2</initial>
       </variable>
       <variable name="proj3">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>2,3,4,5,0,1,2,3</initial>
+        <initial>2,0,3,4,0,5,0,1,2,3</initial>
       </variable>
       <variable name="proj4">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>3,4,5,0,1,2,3,4</initial>
+        <initial>3,4,0,5,0,1,2,0,3,4</initial>
       </variable>
       <variable name="proj5">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>4,5,0,1,2,3,4,5</initial>
+        <initial>4,0,5,0,1,2,0,3,4,5</initial>
       </variable>
       <variable name="proj6">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>5,0,1,2,3,4,5,0</initial>
+        <initial>5,0,1,2,0,3,0,4,5,0</initial>
       </variable>
       <variable name="proj7">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,1,2,3,4,5,0,1</initial>
+        <initial>0,1,0,2,3,0,4,5,0,1</initial>
       </variable>
       <variable name="proj8">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>1,2,3,4,5,0,1,2</initial>
+        <initial>1,2,0,3,4,5,0,1,2,0</initial>
       </variable>
       <variable name="proj9">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>2,3,4,5,0,1,2,3</initial>
+        <initial>2,0,3,0,4,5,0,1,2,3</initial>
       </variable>
       <variable name="proj10">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>3,4,5,0,1,2,3,4</initial>
+        <initial>3,0,4,5,0,1,0,2,3,4</initial>
       </variable>
 
       <objective>planValue</objective>
@@ -118,10 +118,39 @@
     </GeneticAlgorithm>
   </Optimizers>
 
+  <Models>
+    <ExternalModel ModuleToLoad="MKmodel" name="MKbase" subType="">
+      <variables>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue,validPlan</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="optOut">
+      <Input>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10</Input>
+      <Output>planValue,validPlan</Output>
+    </PointSet>
+    <PointSet name="opt_export">
+      <Input>trajID</Input>
+      <Output>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="PrintOptOut">
+      <type>csv</type>
+      <source>optOut</source>
+    </Print>
+    <Print name="PrintOptOut_export">
+      <type>csv</type>
+      <source>opt_export</source>
+    </Print>
+  </OutStreams>
+  
   <Samplers>
     <MonteCarlo name="MC">
       <samplerInit>
-        <limit>10</limit>
+        <limit>10000</limit>
         <initialSeed>1234</initialSeed>
       </samplerInit>
       <variable name="proj1">
@@ -156,34 +185,5 @@
       </variable>
     </MonteCarlo>
   </Samplers> 
-
-  <Models>
-    <ExternalModel ModuleToLoad="MKmodel" name="MKbase" subType="">
-      <variables>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue,validPlan</variables>
-    </ExternalModel>
-  </Models>
-
-  <DataObjects>
-    <PointSet name="placeholder"/>
-    <PointSet name="optOut">
-      <Input>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10</Input>
-      <Output>planValue,validPlan</Output>
-    </PointSet>
-    <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue</Output>
-    </PointSet>
-  </DataObjects>
-
-  <OutStreams>
-    <Print name="PrintOptOut">
-      <type>csv</type>
-      <source>optOut</source>
-    </Print>
-    <Print name="PrintOptOut_export">
-      <type>csv</type>
-      <source>opt_export</source>
-    </Print>
-  </OutStreams>
 
 </Simulation>
