@@ -43,10 +43,10 @@ def ageBased(self,newRlz,**kwargs):
   popAge = kwargs['age']
   if popAge == None:
     popAge = np.zeros(kwargs['popSize'],dtype='int')
-  offSpringsFitness = kwargs['offSpringsFitness']
-  offSprings = xr.DataArray(newRlz[kwargs['variables']].to_array().transpose(),
+  offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'])
+  offSprings = xr.DataArray(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()),
         dims=['chromosome','Gene'],
-        coords={'chromosome':np.arange(np.shape(newRlz[list(self.toBeSampled)].to_array().transpose())[0]),
+        coords={'chromosome':np.arange(np.shape(np.atleast_2d(newRlz[list(self.toBeSampled)].to_array().transpose()))[0]),
                 'Gene': kwargs['variables']})
   population = kwargs['population']
   popFitness = kwargs['fitness']
