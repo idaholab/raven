@@ -43,7 +43,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAoptimizer">
       <samplerInit>
-        <limit>100</limit>
+        <limit>20</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
@@ -61,9 +61,9 @@
             <mutationProb>0.2</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="invLinear">
-          <a>2.0</a>
-          <b>1.0</b>
+        <fitness type="logistic">
+          <a>0.2</a>
+          <b>13.0</b>
         </fitness>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
