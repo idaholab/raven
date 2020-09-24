@@ -214,7 +214,7 @@ class Relap5(CodeInterfaceBase):
       constVars = Kwargs.get('ConstantVariables')
       graph = Kwargs.get('dependencyGraph')
       for detVar in detVars:
-        
+        print(detVar)  
       
       
       
