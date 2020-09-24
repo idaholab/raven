@@ -101,7 +101,9 @@ class MCMC(AdaptiveSampler):
     variable.addSub(InputData.assemblyInputFactory('proposal', contentType=InputTypes.StringType, strictMode=True,
         printPriority=30,
         descr=r"""name of the Distribution that is used as proposal distribution"""))
-
+    variable.addSub(InputData.assemblyInputFactory('probabilityFunction', contentType=InputTypes.StringType, strictMode=True,
+        printPriority=30,
+        descr=r"""name of the function that is used as prior distribution (doesn't need to be normalized)"""))
     inputSpecification.addSub(variable)
     return inputSpecification
 
@@ -131,14 +133,17 @@ class MCMC(AdaptiveSampler):
     self._initialValues = {} # dict stores the user provided initial values, i.e. {var: val}
     self._updateValues = {} # dict stores input variables values for the current MCMC iteration, i.e. {var:val}
     self._proposal = {} # dict stores the proposal distributions for input variables, i.e. {var:dist}
+    self._priorFuns = {} # dict stores the prior functions for input variables, i.e. {var:fun}
     self._burnIn = 0      # integers indicate how many samples will be discarded
     self._likelihood = None # stores the output from the likelihood
     self._logLikelihood = False # True if the user provided likelihood is in log format
     self._availProposal = {'normal': Distributions.Normal(0.0, 1.0),
                            'uniform': Distributions.Uniform(-1.0, 1.0)} # available proposal distributions
     self._acceptDist = Distributions.Uniform(0.0, 1.0) # uniform distribution for accept/rejection purpose
+    self.toBeCalibrated = {} # parameters that will be calibrated
     # assembler objects
-    self.addAssemblerObject('proposal', '-n', True)
+    self.addAssemblerObject('proposal', InputData.Quantity.zero_to_infinity)
+    self.addAssemblerObject('probabilityFunction', InputData.Quantity.zero_to_infinity)
 
   def localInputAndChecks(self, xmlNode, paramInput):
     """
@@ -184,23 +189,67 @@ class MCMC(AdaptiveSampler):
       self.raiseAnError(IOError, 'MCMC', self.name, 'needs the samplerInit block')
     if self._burnIn >= self.limit:
       self.raiseAnError(IOError, 'Provided "burnIn" value must be less than "limit" value!')
-    # variables additional reading
-    for varNode in paramInput.findAll('variable'):
-      var = varNode.parameterValues['name']
-      initNode = varNode.findFirst('initial')
-      if initNode:
-        self._initialValues[var] = initNode.value
-      else:
-        self._initialValues[var] = None
-      proposal = varNode.findFirst('proposal')
-      if proposal:
-        self._proposal[var] = proposal.value
-      else:
-        self._proposal[var] = None
     # TargetEvaluation Node (Required)
     targetEval = paramInput.findFirst('TargetEvaluation')
     self._targetEvaluation = targetEval.value
     self._updateValues = copy.copy(self._initialValues)
+
+  def _readInVariable(self, child, prefix):
+    """
+      Reads in a "variable" input parameter node.
+      @ In, child, utils.InputData.ParameterInput, input parameter node to read from
+      @ In, prefix, str, pass through parameter (not used), i.e. empty string. It is used
+        by Sampler base class to indicate "Distribution"
+      @ Out, None
+    """
+    varName = child.parameterValues['name']
+    foundDist = child.findFirst('distribution')
+    foundFunc = child.findFirst('function')
+    foundPrior = child.findFirst('probabilityFunction')
+    if (foundDist and foundFunc) or (foundDist and foundPrior) or (foundFunc and foundPrior):
+      self.raiseAnError(IOError, 'Sampled variable "{}" can only have one node among "distribution, function, \
+        probabilityFunction", more than one of them are provided. Please check your input!'.format(varName))
+    elif not (foundDist or foundFunc or foundPrior):
+      self.raiseAnError(IOError, 'Sampled variable "{}" requires only one node among "distribution, function, \
+        probabilityFunction", but none of them is provided. Please check your input!'.format(varName))
+    # set shape if present
+    if 'shape' in child.parameterValues:
+      self.variableShapes[varName] = child.parameterValues['shape']
+    # read subnodes
+    for childChild in child.subparts:
+      if childChild.getName() == 'distribution':
+        # name of the distribution to sample
+        toBeSampled = childChild.value
+        varData = {}
+        varData['name'] = childChild.value
+        # variable dimensionality
+        if 'dim' not in childChild.parameterValues:
+          dim = 1
+        else:
+          dim = childChild.parameterValues['dim']
+        varData['dim'] = dim
+        # set up mapping for variable to distribution
+        self.variables2distributionsMapping[varName] = varData
+        # flag distribution as needing to be sampled
+        self.toBeSampled[prefix + varName] = toBeSampled
+        self.toBeCalibrated[prefix + varName] = toBeSampled
+        if varName not in self._initialValues:
+          self._initialValues[varName] = None
+      elif childChild.getName() == 'function':
+        # function name
+        toBeSampled = childChild.value
+        # track variable as a functional sample
+        self.dependentSample[prefix + varName] = toBeSampled
+      elif childChild.getName() == 'initial':
+        self._initialValues[varName] = childChild.value
+      elif childChild.getName() == 'proposal':
+        self._proposal[varName] = childChild.value
+      elif childChild.getName() == 'probabilityFunction':
+        toBeSampled = childChild.value
+        self.toBeCalibrated[prefix + varName] = toBeSampled
+        self._priorFuns[varName] = toBeSampled
+        if varName not in self._initialValues:
+          self._initialValues[varName] = None
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -214,32 +263,40 @@ class MCMC(AdaptiveSampler):
     for _, dist in self._availProposal.items():
       dist.initializeDistribution()
     self._acceptDist.initializeDistribution()
-    for var, dist in self._proposal.items():
-      if dist:
-        self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', dist)
+    for var in self._updateValues:
+      if var in self._proposal:
+        self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', self._proposal[var])
         distType = self._proposal[var].getDistType()
         if distType != 'Continuous':
           self.raiseAnError(IOError, 'variable "{}" requires continuous proposal distribution, but "{}" is provided!'.format(var, distType))
       else:
         self._proposal[var] = self._availProposal['normal']
+
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     ## TODO: currently AdaptiveSampler is still using self.assemblerDict to retrieve the target evaluation.
     # We should change it to using the following method.
     # retrieve target evaluation
     # self._targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self._targetEvaluation)
 
-    # initialize the input variable values
-    for key, value in self._updateValues.items():
-      totDim = self.variables2distributionsMapping[key]['totDim']
-      dist = self.distDict[key]
+    for var, priorFun in self._priorFuns.items():
+      self._priorFuns[var] = self.retrieveObjectFromAssemblerDict('probabilityFunction', priorFun)
+      if "pdf" not in self._priorFuns[var].availableMethods():
+        self.raiseAnError(IOError,'Function', self._priorFuns[var], 'does not contain a method named "pdf". \
+          It must be present if this needs to be used in a MCMC Sampler!')
+        if not self._initialValues[var]:
+          self.raiseAnError(IOError, '"initial" is required when using "probabilityFunction", but not found \
+            for variable "{}"'.format(var))
+      # initialize the input variable values
+    for var, dist in self.distDict.items():
+      totDim = self.variables2distributionsMapping[var]['totDim']
       distType = dist.getDistType()
       if distType != 'Continuous':
-        self.raiseAnError(IOError, 'variable "{}" requires continuous distribution, but "{}" is provided!'.format(key, distType))
+        self.raiseAnError(IOError, 'variable "{}" requires continuous distribution, but "{}" is provided!'.format(var, distType))
       if totDim != 1:
         self.raiseAnError(IOError,"Total dimension for given distribution {} should be 1".format(dist.type))
-      if value is None:
+      if self._updateValues[var] is None:
         value = dist.rvs()
-        self._updateValues[key] = value
+        self._updateValues[var] = value
 
   def localGenerateInput(self, model, myInput):
     """
@@ -252,7 +309,10 @@ class MCMC(AdaptiveSampler):
     """
     for key, value in self._updateValues.items():
       self.values[key] = value
-      self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(value)
+      if key in self.distDict:
+        self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(value)
+      else:
+        self.inputInfo['SampledVarsPb'][key] = self._priorFuns[key].evaluate("pdf", self._updateValues)
       self.inputInfo['ProbabilityWeight-' + key] = 1.
     self.inputInfo['PointProbability'] = 1.0
     self.inputInfo['ProbabilityWeight' ] = 1.0
