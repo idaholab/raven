@@ -2,8 +2,8 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>discreteIntWithReplacement</WorkingDir>
-    <!--Sequence>sample, MCprint</Sequence-->
-    <Sequence>opt, print, printExport</Sequence>
+    <Sequence>sample, MCprint</Sequence>
+    <!--Sequence>opt, print, printExport</Sequence-->
     <batchSize>10</batchSize>
     <internalParallel>False</internalParallel>
   </RunInfo>
