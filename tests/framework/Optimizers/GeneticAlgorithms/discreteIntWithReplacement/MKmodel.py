@@ -22,7 +22,7 @@ def run(self,Input):
   """
   projValue = np.array([1,3,4,2,1,2,3,4,2,4])
   projCost  = np.array([3,2,5,3,2,4,6,3,5,3])
-  knapsackCapacities = np.array([12,10,6,8,9])
+  knapsackCapacities = np.array([4,5,4,5,5])
 
   projPlan = np.array([Input['proj1'],Input['proj2'],Input['proj3'],Input['proj4'],Input['proj5'],Input['proj6'],Input['proj7'],Input['proj8'],Input['proj9'],Input['proj10']])
   self.planValue = 0
@@ -37,5 +37,7 @@ def run(self,Input):
     self.validPlan = 1.
 
   counterNeg = np.sum(knapsackCapacities<0, axis=0)
-  self.planValue = self.planValue - counterNeg * (15.)
+  #if counterNeg>0:
+  #  self.planValue = 0
+  self.planValue = self.planValue - counterNeg * (5.)
 

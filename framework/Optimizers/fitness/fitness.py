@@ -21,8 +21,12 @@
 # External Imports
 import numpy as np
 import xarray as xr
+import math
 # Internal Imports
 from utils import randomUtils
+
+# [MANDD] Note: the fitness function are bounded by 2 parameters: a and b
+#               We should make this method flexible to accept different set of params
 
 # @profile
 def invLinear(rlz,**kwargs):
@@ -58,8 +62,28 @@ def invLinear(rlz,**kwargs):
   fitness = 1.0/(a * eval('rlz[\'' + objVar + '\']') + b * penalty)
   return fitness
 
+
+def logistic(rlz,**kwargs):
+  if kwargs['a'] == None:
+    a = 1.0
+  else:
+    a = kwargs['a']
+
+  if kwargs['b'] == None:
+    b = 0.0
+  else:
+    b = kwargs['b']
+    
+  val = eval('rlz[\'' + kwargs['objVar'] + '\']')
+  denom = 1.0 + np.exp(-a * (val - b))    
+  fitness = 1.0 - 1.0 / denom
+    
+  return fitness
+  
+
 __fitness = {}
 __fitness['invLinear'] = invLinear
+__fitness['logistic']  = logistic
 
 
 def returnInstance(cls, name):
