@@ -2,7 +2,7 @@
 <Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>discreteIntWithReplacement</WorkingDir>
-    <!--Sequence>sample, print</Sequence-->
+    <!--Sequence>sample, MCprint</Sequence-->
     <Sequence>opt, print, printExport</Sequence>
     <batchSize>10</batchSize>
     <internalParallel>False</internalParallel>
@@ -13,9 +13,13 @@
       <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
       <Model          class="Models"      type="ExternalModel"    >MKbase</Model>
       <Sampler        class="Samplers"    type="MonteCarlo"       >MC</Sampler>
-      <Output         class="DataObjects" type="PointSet"         >optOut</Output>
+      <Output         class="DataObjects" type="PointSet"         >MCOut</Output>
     </MultiRun> 
-    <MultiRun name="opt" >
+    <IOStep name="MCprint">
+      <Input  class="DataObjects"  type="PointSet"  >MCOut</Input>
+      <Output class="OutStreams"   type="Print"     >PrintMCOut</Output>
+    </IOStep>
+    <MultiRun name="opt">
       <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
       <Model          class="Models"      type="ExternalModel"    >MKbase</Model>
       <Optimizer      class="Optimizers"  type="GeneticAlgorithm" >GAoptimizer</Optimizer>
@@ -43,9 +47,9 @@
   <Optimizers>
     <GeneticAlgorithm name="GAoptimizer">
       <samplerInit>
-        <limit>20</limit>
+        <limit>200</limit>
         <initialSeed>42</initialSeed>
-        <writeSteps>every</writeSteps>
+        <!--writeSteps>every</writeSteps-->
       </samplerInit>
 
       <GAparams>
@@ -130,6 +134,10 @@
       <Input>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10</Input>
       <Output>planValue,validPlan</Output>
     </PointSet>
+    <PointSet name="MCOut">
+      <Input>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10</Input>
+      <Output>planValue,validPlan</Output>
+    </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
       <Output>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue</Output>
@@ -140,6 +148,10 @@
     <Print name="PrintOptOut">
       <type>csv</type>
       <source>optOut</source>
+    </Print>
+    <Print name="PrintMCOut">
+      <type>csv</type>
+      <source>MCOut</source>
     </Print>
     <Print name="PrintOptOut_export">
       <type>csv</type>
