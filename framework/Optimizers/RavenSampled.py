@@ -216,7 +216,6 @@ class RavenSampled(Optimizer):
       @ In, inp, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    print('batch: ====================', self.batch)
     if self.batch > 1:
       self.inputInfo['batchMode'] = True
       batchData = []
