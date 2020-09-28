@@ -362,20 +362,12 @@ class GeneticAlgorithm(RavenSampled):
       Used to feedback the collected runs into actionable items within the sampler.
       This is called by localFinalizeActualSampling, and hence should contain the main skeleton.
       @ In, info, dict, identifying information about the realization
-      @ In, rlz, dict, realized realization
+      @ In, rlz, xr.Dataset, new batched realizations
       @ Out, None
     """
     # size = self._nChildren if self.counter > 1 else self._populationSize
-    self.batch = self._populationSize*(self.counter==1)+self._nChildren*(self.counter>1)
-    print('calculate batch:', self.batch)
+    # self.batch = self._populationSize*(self.counter==1)+self._nChildren*(self.counter>1)
     populationRlz = rlz
-    print('DubuJ: rlz[self._objectiveVar].data.size is {}, in iteration number {}'.format(rlz[self._objectiveVar].data.size,self.counter))
-    print('DubuJ: populationRlz.sizes are {}'.format(populationRlz.sizes))
-    print('DubuJ: populationRlz.dims are {}'.format(populationRlz.dims))
-    print('DubuJ: populationRlz.indexes are {}'.format(populationRlz.indexes))
-    print('DubuJ: populationRlz.data_vars are {}'.format(populationRlz.data_vars))
-    print('DubuJ: populationRlz.attrs are {}'.format(populationRlz.attrs))
-    print('DubuJ: populationRlz[list(self.toBeSampled)].to_array().transpose().shape is {}'.format(populationRlz[list(self.toBeSampled)].to_array().transpose().shape))
     population = xr.DataArray(np.atleast_2d(populationRlz[list(self.toBeSampled)].to_array().transpose()),
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(rlz[self._objectiveVar].data.size),
@@ -400,16 +392,29 @@ class GeneticAlgorithm(RavenSampled):
     fitness = self._fitnessInstance(populationRlz,objVar = self._objectiveVar,a=self._objCoeff,b=self._penaltyCoeff,penalty = None)
     # info['fitness'] = fitness
     if self.counter == 1:
-      self.fitness = fitness
+      self.fitness = fitness.data
       objectiveVal = []
-      for i in range(self.batch):
-        rlzDict=dict((var,rlz[var].data[i]) for var in self.toBeSampled.keys())
+      for i in range(self._populationSize):
+        rlzDict=dict((var,np.atleast_1d(rlz[var].data)[i]) for var in self.toBeSampled.keys())
         rlzDict[self._objectiveVar]=rlz[self._objectiveVar].data[i]
-        rlzDict['fitness'] = self.fitness.data[i]
+        rlzDict['fitness'] = self.fitness[i]
         objectiveVal.append(self._collectOptValue(rlzDict))
         self._updateSolutionExport(traj, rlzDict,'first',None)
-      self.bestObjective = min(objectiveVal) # TODO: check if this line is hit
-      self.bestFitness = max(fitness.data)
+      self.bestObjective = min(np.atleast_1d(objectiveVal)) # TODO: check if this line is hit
+      self.bestFitness = max(np.atleast_1d(fitness.data))
+    else:
+      self.currentFitness = fitness.data
+      objectiveVal = []
+      for i in range(len(np.atleast_1d(rlz[self._objectiveVar]).data)):#self.batch
+        rlzDict=dict((var,np.atleast_1d(rlz[var].data)[i]) for var in self.toBeSampled.keys())
+        rlzDict[self._objectiveVar]=np.atleast_1d(rlz[self._objectiveVar].data)[i]
+        rlzDict['fitness'] = self.fitness.data[i]
+        objectiveVal.append(self._collectOptValue(rlzDict))
+        self._updateSolutionExport(traj, rlzDict,'accepted',None)
+      self.objectiveVal = objectiveVal
+    # self._resolveNewGeneration(traj,populationRlz,info)
+    self.bestObjective = min(objectiveVal) # TODO: check if this line is hit
+    self.bestFitness = max(np.atleast_1d(fitness.data))
     # 5.2@ n-1: Survivor selection(rlz)
     # update population container given obtained children
     # self.population = self.__replacementCalculationHandler(parents=self.population,children=childrenCont,params=paramsDict)
@@ -422,7 +427,8 @@ class GeneticAlgorithm(RavenSampled):
       self.popAge = Age
       self.fitness = fitness
       self._resolveNewGeneration(traj,populationRlz,info)
-      self.bestFitness = max(fitness.data)
+
+      # self.bestFitness = max(fitness.data)
 
       # This will be added once the rlz is treated as a xarray DataSet
       # for var in self.toBeSampled:
@@ -454,18 +460,31 @@ class GeneticAlgorithm(RavenSampled):
     if needsRepair:
       children = self._repairInstance(children,variables=list(self.toBeSampled),distInfo=self.distDict)
     # Make sure no children are exactly similar to parents
-    repeated =[]
-    for i in range(np.shape(population.data)[0]):
-      for j in range (np.shape(children.data)[0]):
-        if all(population.data[i,:]==children.data[j,:]):
-          repeated.append(j)
-    children2 = np.delete(children.data, (repeated), axis=0)
+    flag = True
+    while flag:
+      repeated =[]
+      for i in range(np.shape(population.data)[0]):
+        for j in range (np.shape(children.data)[0]):
+          if all(population.data[i,:]==children.data[j,:]):
+            repeated.append(j)
+      children2 = np.delete(children.data, (repeated), axis=0)
+      self.batch =np.shape(children2)[0]
+      if self.batch == 0:
+        children2 = self._crossoverInstance(parents=parents,variables=list(self.toBeSampled),crossoverProb=self._crossoverProb,points=self._crossoverPoints)
+        children2 = self._mutationInstance(offSprings=children2,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+        children = children2
+      else:
+        flag = False
+    # # Size of new batch
+    # print('batch size reset:', self.batch)
+    # if self.batch == 0:
+    #   children2 = self._crossoverInstance(parents=parents,variables=list(self.toBeSampled),crossoverProb=self._crossoverProb,points=self._crossoverPoints)
+    #   children2 = self._mutationInstance(offSprings=children,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+
     children = xr.DataArray(children2,
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(np.shape(children2)[0]),
                                       'Gene':list(self.toBeSampled)})
-    self.batch =np.shape(children)[0]
-    print('batch size reset:', self.batch)
     # 5 @ n: Submit children batch
     # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
     # self._submitRun(children,traj,self.counter)
@@ -562,9 +581,11 @@ class GeneticAlgorithm(RavenSampled):
       @ In, rlz, dict, realization particularly including objective variable
       @ Out, point, dict, point used in this realization
     """
-    optPoints,Fit = zip(*[[x,y] for x,y in sorted(zip(self.population.data,self.fitness.data),reverse=True,key=lambda x: (x[1]))])
+    optPoints,Fit,obj = zip(*[[x,y,z] for x,y,z in sorted(zip(self.population.data,self.fitness.data,self.objectiveVal),reverse=True,key=lambda x: (x[1]))])
     point = dict((var,float(optPoints[0][i])) for i,var in enumerate(self.toBeSampled.keys()))
     self.bestPoint = point
+    self.bestFitness = Fit[0]
+    self.bestObjective = obj[0]
     # self.bestFitness = Fit[0]
     # index, value = max(enumerate(maxFit), key=operator.itemgetter(1))
     # point = dict((var, float(rlz[var])) for var in self.toBeSampled.keys())
