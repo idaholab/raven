@@ -40,7 +40,7 @@ from collections import defaultdict
 from utils import utils
 from utils import mathUtils
 from utils.cached_ndarray import c1darray
-from .OutStreamManager import OutStreamManager
+from .OutStreamBase import OutStreamBase
 from ClassProperty import ClassProperty
 ## Internal Modules End---------------------------------------------------------
 
@@ -51,7 +51,7 @@ if not display:
 
 import matplotlib.pyplot as plt
 
-class OutStreamPlot(OutStreamManager):
+class OutStreamPlot(OutStreamBase):
   """
     OutStream of type Plot
   """
@@ -100,7 +100,7 @@ class OutStreamPlot(OutStreamManager):
       @ In, None
       @ Out, None
     """
-    OutStreamManager.__init__(self)
+    OutStreamBase.__init__(self)
     self.printTag = 'OUTSTREAM PLOT'
 
     ## default plot is 2D
@@ -800,7 +800,7 @@ class OutStreamPlot(OutStreamManager):
           self.mixtureCovars.append(self.options['plotSettings']['plot'][pltIndex]['attributes']['mixtureCovars'].split(','))
     self.numberAggregatedOS = len(self.options['plotSettings']['plot'])
     # initialize here the base class
-    OutStreamManager.initialize(self, inDict)
+    OutStreamBase.initialize(self, inDict)
     # execute actions (we execute the actions here also because we can perform a check at runtime!!
     self.__executeActions()
 

@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/OutStreams/Plotting/ARMA_VDC</name>
+    <author>talbpaul</author>
+    <created>2020-09-30</created>
+    <classesTested>OutStreams.Plot</classesTested>
+    <description>
+      Tests a custom plotting setup specifically for synthetic history samples and value duration curves.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ARMA_VDC</WorkingDir>
+    <Sequence>load, train, sample, vdc, plot</Sequence>
+  </RunInfo>
+
+
+  <OutStreams>
+    <VDC name="vdc">
+      <variable>Signal</variable>
+      <standard class="DataObjects" type="DataSet">train</standard>
+      <sampled class="DataObjects" type="DataSet">synthetic</sampled>
+      <Year>10</Year>
+      <bins>100</bins>
+    </VDC>
+  </OutStreams>
+
+</Simulation>

@@ -1688,7 +1688,7 @@ class DataSet(DataObject):
       @ Out, keep, list(str), list of variables that will be written to file
     """
     if 'what' in options.keys():
-      elements = options['what'].split(',')
+      elements = options['what']
       keep = []
       for entry in elements:
         small = entry.strip().lower()

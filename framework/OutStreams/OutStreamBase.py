@@ -28,15 +28,25 @@ import os
 from BaseClasses import BaseType
 import DataObjects
 import Models
-from utils import utils
+from utils import utils, InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
-class OutStreamManager(BaseType):
+class OutStreamBase(BaseType):
   """
     OUTSTREAM CLASS
     This class is a general base class for outstream action classes
     For example, a matplotlib interface class or Print class, etc.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class "cls".
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = BaseType.getInputSpecification()
+    return spec
+
   def __init__(self):
     """
       Init of Base class
@@ -68,6 +78,25 @@ class OutStreamManager(BaseType):
     self.filename = ''
 
   def _readMoreXML(self, xmlNode):
+    """
+      Function to read the portion of the input that belongs to this
+      specialized class and initialize based on the inputs received
+      @ In, xmlNode, xml.etree.ElementTree.Element, xml element node
+      @ Out, None
+    """
+    spec = self.getInputSpecification()()
+    spec.parseNode(xmlNode)
+    self._handleInput(spec)
+
+  def _handleInput(self, spec):
+    """
+      Loads the input specs for this object.
+      @ In, spec, InputData.ParameterInput, input specifications
+      @ Out, None
+    """
+    pass
+
+  def _OLD_readMoreXML(self, xmlNode):
     """
       Function to read the portion of the xml input that belongs to this
       specialized class and initialize some stuff based on the inputs received
