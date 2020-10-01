@@ -52,7 +52,6 @@ class FilePrint(OutStreamBase):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
     spec = OutStreamBase.getInputSpecification()
-    spec.addParam('dir', param_type=InputTypes.StringType, required=False)
 
     types = InputTypes.makeEnumType('FilePrintTypes', 'FilePrintTypes', cls._availableOutStreamTypes)
     spec.addSub(InputData.parameterInputFactory('type', contentType=types))
@@ -102,7 +101,7 @@ class FilePrint(OutStreamBase):
     # FIXME this is a terrible name
     what = spec.findFirst('what')
     if what is not None:
-      self.what = what.value
+      self.what = [x.lower() for x in what.value]
 
     fname = spec.findFirst('filename')
     if fname is not None:

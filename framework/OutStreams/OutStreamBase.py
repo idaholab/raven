@@ -45,6 +45,7 @@ class OutStreamBase(BaseType):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
     spec = BaseType.getInputSpecification()
+    spec.addParam('dir', param_type=InputTypes.StringType, required=False)
     return spec
 
   def __init__(self):
@@ -84,9 +85,14 @@ class OutStreamBase(BaseType):
       @ In, xmlNode, xml.etree.ElementTree.Element, xml element node
       @ Out, None
     """
-    spec = self.getInputSpecification()()
-    spec.parseNode(xmlNode)
-    self._handleInput(spec)
+    # if unconverted, use the old xml reading
+    if 'localReadXML' in dir(self):
+      self.localReadXML(xmlNode)
+    # otherwise it has _handleInput (and it should) and use input specs
+    else:
+      spec = self.getInputSpecification()()
+      spec.parseNode(xmlNode)
+      self._handleInput(spec)
 
   def _handleInput(self, spec):
     """
@@ -95,28 +101,6 @@ class OutStreamBase(BaseType):
       @ Out, None
     """
     pass
-
-  def _OLD_readMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this
-      specialized class and initialize some stuff based on the inputs received
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ Out, None
-      The text is supposed to contain the info where and which variable to change.
-      In case of a code the syntax is specified by the code interface itself
-    """
-    if 'overwrite' in xmlNode.attrib.keys():
-      if utils.stringIsTrue(xmlNode.attrib['overwrite']):
-        self.overwrite = True
-      else:
-        self.overwrite = False
-    if 'dir' in xmlNode.attrib:
-      self.subDirectory =  xmlNode.attrib['dir']
-      if '~' in self.subDirectory:
-        self.subDirectory= os.path.expanduser(self.subDirectory)
-
-    self.localReadXML(xmlNode)
-
 
   def getInitParams(self):
     """

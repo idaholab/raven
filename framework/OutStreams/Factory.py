@@ -26,7 +26,7 @@ from utils import utils
 from .OutStreamBase import OutStreamBase
 
 from .FilePrint import FilePrint
-# from .GeneralPlotter import GeneralPlotter
+from .GeneralPlot import GeneralPlot
 # from .DataMining import DataMining
 # from .VDCComparison import VDCComparison
 
@@ -34,7 +34,7 @@ from .FilePrint import FilePrint
 __base = 'OutStreamBase'
 __interFaceDict = {
   'Print': FilePrint,
-  # 'Plot': GeneralPlotter,
+  'Plot': GeneralPlot,
   # 'DataMining': DataMining,
   # 'VDCComparison': VDCComparison,
 }
