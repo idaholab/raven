@@ -105,7 +105,7 @@ class FilePrint(OutStreamBase):
 
     fname = spec.findFirst('filename')
     if fname is not None:
-      self.filename = what.value
+      self.filename = fname.value
 
     cluster = spec.findFirst('clusterLabel')
     if cluster is not None:
