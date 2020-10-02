@@ -275,9 +275,10 @@ class ParameterInput(object):
     """
     cls.subs[sub] = None
     subsSet = cls._subDict.get(sub.getName(), set())
-    if (len(subsSet) == 1 and next(iter(subsSet))._checkCanRead is None) or \
-       (len(subsSet) > 0 and sub._checkCanRead is not None):
-       print("INPUT SPECWARNING adding checked and unchecked to", sub.getName()," in ",
+    if __debug__:
+      if (len(subsSet) == 1 and next(iter(subsSet))._checkCanRead is None) or \
+        (len(subsSet) > 0 and sub._checkCanRead is not None):
+        print("INPUT SPEC ERROR adding checked and unchecked to", sub.getName()," in ",
                  cls.getName()+" len "+str(len(subsSet)))
     subsSet.add(sub)
     cls._subDict[sub.getName()] = subsSet

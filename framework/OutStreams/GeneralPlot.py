@@ -189,104 +189,106 @@ class GeneralPlot(OutStreamBase):
     self.mixtureMeans = None
     self.mixtureCovars = None
 
-  def _future_handleInput(self, spec):
-    """
-      Loads the input specs for this object.
-      @ In, spec, InputData.ParameterInput, input specifications
-      @ Out, None
-    """
-    if 'dim' in spec.parameterValues:
-      self.raiseAnError(IOError,"the 'dim' attribute has been deprecated. This warning became an error in January 2017")
-    foundPlot = False
-    for subnode in spec.subparts:
-      # if actions, read actions block
-      if subnode.getName() == 'filename':
-        self.filename = subnode.value
-      if subnode.getName() == 'actions':
-        self.__readPlotActions(subnode)
-      if subnode.getName() == 'plotSettings':
-        self.options[subnode.getName()] = {}
-        self.options[subnode.getName()]['plot'] = []
-        for subsub in subnode.subparts:
-          if subsub.getName() == 'gridSpace':
-            # if self.dim == 3: self.raiseAnError(IOError, 'SubPlot option can not be used with 3-dimensional plots!')
-            self.options[subnode.getName()][subsub.getName()] = subsub.value
-          elif subsub.getName() == 'plot':
-            tempDict = {}
-            foundPlot = True
-            for subsubsub in subsub.subparts:
-              if subsubsub.getName() == 'gridLocation':
-                tempDict[subsubsub.getName()] = {}
-                for subsubsubsub in subsubsub.subparts:
-                  tempDict[subsubsub.getName()][subsubsubsub.getName()] = subsubsubsub.value
-              elif subsubsub.getName() == 'range':
-                tempDict[subsubsub.getName()] = {}
-                for subsubsubsub in subsubsub.subparts:
-                  tempDict[subsubsub.getName()][subsubsubsub.getName()] = subsubsubsub.value
-              elif subsubsub.getName() != 'kwargs':
-                tempDict[subsubsub.getName()] = subsubsub.value
-              else:
-                tempDict['attributes'] = {}
-                for sss in subsubsub.subparts:
-                  tempDict['attributes'][sss.getName()] = sss.value
-            self.options[subnode.getName()][subsub.getName()].append(tempDict)
-          elif subsub.getName() == 'legend':
-            self.options[subnode.getName()][subsub.getName()] = {}
-            for legendChild in subsub.subparts:
-              self.options[subnode.getName()][subsub.getName()][legendChild.getName()] = utils.tryParse(legendChild.value)
-          else:
-            self.options[subnode.getName()][subsub.getName()] = subsub.value
-      # TODO WORKING XXX
-      if subnode.getName() == 'title':
-        self.options[subnode.getName()] = {}
-        for subsub in subnode:
-          self.options[subnode.getName()][subsub.getName()] = subsub.text.strip()
-        if 'text'     not in self.options[subnode.getName()].keys():
-          self.options[subnode.getName()]['text'    ] = xmlNode.attrib['name']
-        if 'location' not in self.options[subnode.getName()].keys():
-          self.options[subnode.getName()]['location'] = 'center'
-      ## is this 'figureProperties' valid?
-      if subnode.getName() == 'figureProperties':
-        self.options[subnode.getName()] = {}
-        for subsub in subnode:
-          self.options[subnode.getName()][subsub.getName()] = subsub.text.strip()
-    self.type = 'OutStreamPlot'
+  # TODO started, but didn't finish due to time constraints
+  # this should be a good start for _handleInput in the future.
+  # def _handleInput(self, spec):
+  #   """
+  #     Loads the input specs for this object.
+  #     @ In, spec, InputData.ParameterInput, input specifications
+  #     @ Out, None
+  #   """
+  #   if 'dim' in spec.parameterValues:
+  #     self.raiseAnError(IOError,"the 'dim' attribute has been deprecated. This warning became an error in January 2017")
+  #   foundPlot = False
+  #   for subnode in spec.subparts:
+  #     # if actions, read actions block
+  #     if subnode.getName() == 'filename':
+  #       self.filename = subnode.value
+  #     if subnode.getName() == 'actions':
+  #       self.__readPlotActions(subnode)
+  #     if subnode.getName() == 'plotSettings':
+  #       self.options[subnode.getName()] = {}
+  #       self.options[subnode.getName()]['plot'] = []
+  #       for subsub in subnode.subparts:
+  #         if subsub.getName() == 'gridSpace':
+  #           # if self.dim == 3: self.raiseAnError(IOError, 'SubPlot option can not be used with 3-dimensional plots!')
+  #           self.options[subnode.getName()][subsub.getName()] = subsub.value
+  #         elif subsub.getName() == 'plot':
+  #           tempDict = {}
+  #           foundPlot = True
+  #           for subsubsub in subsub.subparts:
+  #             if subsubsub.getName() == 'gridLocation':
+  #               tempDict[subsubsub.getName()] = {}
+  #               for subsubsubsub in subsubsub.subparts:
+  #                 tempDict[subsubsub.getName()][subsubsubsub.getName()] = subsubsubsub.value
+  #             elif subsubsub.getName() == 'range':
+  #               tempDict[subsubsub.getName()] = {}
+  #               for subsubsubsub in subsubsub.subparts:
+  #                 tempDict[subsubsub.getName()][subsubsubsub.getName()] = subsubsubsub.value
+  #             elif subsubsub.getName() != 'kwargs':
+  #               tempDict[subsubsub.getName()] = subsubsub.value
+  #             else:
+  #               tempDict['attributes'] = {}
+  #               for sss in subsubsub.subparts:
+  #                 tempDict['attributes'][sss.getName()] = sss.value
+  #           self.options[subnode.getName()][subsub.getName()].append(tempDict)
+  #         elif subsub.getName() == 'legend':
+  #           self.options[subnode.getName()][subsub.getName()] = {}
+  #           for legendChild in subsub.subparts:
+  #             self.options[subnode.getName()][subsub.getName()][legendChild.getName()] = utils.tryParse(legendChild.value)
+  #         else:
+  #           self.options[subnode.getName()][subsub.getName()] = subsub.value
+  #     # TODO WORKING XXX
+  #     if subnode.getName() == 'title':
+  #       self.options[subnode.getName()] = {}
+  #       for subsub in subnode:
+  #         self.options[subnode.getName()][subsub.getName()] = subsub.text.strip()
+  #       if 'text'     not in self.options[subnode.getName()].keys():
+  #         self.options[subnode.getName()]['text'    ] = xmlNode.attrib['name']
+  #       if 'location' not in self.options[subnode.getName()].keys():
+  #         self.options[subnode.getName()]['location'] = 'center'
+  #     ## is this 'figureProperties' valid?
+  #     if subnode.getName() == 'figureProperties':
+  #       self.options[subnode.getName()] = {}
+  #       for subsub in subnode:
+  #         self.options[subnode.getName()][subsub.getName()] = subsub.text.strip()
+  #   self.type = 'OutStreamPlot'
 
-    if not 'plotSettings' in self.options.keys():
-      self.raiseAnError(IOError, 'For plot named ' + self.name + ' the plotSettings block is required.')
+  #   if not 'plotSettings' in self.options.keys():
+  #     self.raiseAnError(IOError, 'For plot named ' + self.name + ' the plotSettings block is required.')
 
-    if not foundPlot:
-      self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot section has been found in the plotSettings block!')
+  #   if not foundPlot:
+  #     self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot section has been found in the plotSettings block!')
 
-    self.outStreamTypes = []
-    xyz, xy             = sorted(['x','y','z']), sorted(['x','y'])
-    for pltIndex in range(len(self.options['plotSettings']['plot'])):
-      if not 'type' in self.options['plotSettings']['plot'][pltIndex].keys():
-        self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
-      else:
-        # check the dimension and check the consistency
-        if set(xyz) < set(self.options['plotSettings']['plot'][pltIndex].keys()):
-          dim = 3
-        elif set(xy) < set(self.options['plotSettings']['plot'][pltIndex].keys()):
-          dim = 2 if self.options['plotSettings']['plot'][pltIndex]['type'] != 'histogram' else 3
-        elif set(['x']) < set(self.options['plotSettings']['plot'][pltIndex].keys()) and self.options['plotSettings']['plot'][pltIndex]['type'] == 'histogram':
-          dim = 2
-        else:
-          self.raiseAnError(IOError, 'Wrong dimensionality or axis specification for plot '+self.name+'.')
-        if self.dim is not None and self.dim != dim:
-          self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
-        self.dim = dim
-        if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltIndex]['type']) == 0:
-          self.raiseAMessage('For plot named' + self.name + ', type ' + self.options['plotSettings']['plot'][pltIndex]['type'] + ' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!', 'ExceptedError')
-        self.outStreamTypes.append(self.options['plotSettings']['plot'][pltIndex]['type'])
-    self.raiseADebug('matplotlib version is ' + str(matplotlib.__version__))
+  #   self.outStreamTypes = []
+  #   xyz, xy             = sorted(['x','y','z']), sorted(['x','y'])
+  #   for pltIndex in range(len(self.options['plotSettings']['plot'])):
+  #     if not 'type' in self.options['plotSettings']['plot'][pltIndex].keys():
+  #       self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
+  #     else:
+  #       # check the dimension and check the consistency
+  #       if set(xyz) < set(self.options['plotSettings']['plot'][pltIndex].keys()):
+  #         dim = 3
+  #       elif set(xy) < set(self.options['plotSettings']['plot'][pltIndex].keys()):
+  #         dim = 2 if self.options['plotSettings']['plot'][pltIndex]['type'] != 'histogram' else 3
+  #       elif set(['x']) < set(self.options['plotSettings']['plot'][pltIndex].keys()) and self.options['plotSettings']['plot'][pltIndex]['type'] == 'histogram':
+  #         dim = 2
+  #       else:
+  #         self.raiseAnError(IOError, 'Wrong dimensionality or axis specification for plot '+self.name+'.')
+  #       if self.dim is not None and self.dim != dim:
+  #         self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
+  #       self.dim = dim
+  #       if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltIndex]['type']) == 0:
+  #         self.raiseAMessage('For plot named' + self.name + ', type ' + self.options['plotSettings']['plot'][pltIndex]['type'] + ' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!', 'ExceptedError')
+  #       self.outStreamTypes.append(self.options['plotSettings']['plot'][pltIndex]['type'])
+  #   self.raiseADebug('matplotlib version is ' + str(matplotlib.__version__))
 
-    if self.dim not in [2, 3]:
-      self.raiseAnError(TypeError, 'This Plot interface is able to handle 2D-3D plot only')
+  #   if self.dim not in [2, 3]:
+  #     self.raiseAnError(TypeError, 'This Plot interface is able to handle 2D-3D plot only')
 
-    if 'gridSpace' in self.options['plotSettings'].keys():
-      grid = list(map(int, self.options['plotSettings']['gridSpace'].split(' ')))
-      self.gridSpace = matplotlib.gridspec.GridSpec(grid[0], grid[1])
+  #   if 'gridSpace' in self.options['plotSettings'].keys():
+  #     grid = list(map(int, self.options['plotSettings']['gridSpace'].split(' ')))
+  #     self.gridSpace = matplotlib.gridspec.GridSpec(grid[0], grid[1])
 
 
   #####################
