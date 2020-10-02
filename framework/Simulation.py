@@ -519,9 +519,7 @@ class Simulation(MessageHandler.MessageUser):
       @ In, stepName, string, the name of the step to check
       @ Out, None
     """
-    print('Checking step', stepName)
     for [role, myClass, objectType, name] in stepInstance.parList:
-      print('... checking', role, myClass, objectType, name)
       if myClass != 'Step' and myClass not in list(self.whichDict.keys()):
         self.raiseAnError(IOError, f'For step named "{stepName}" the role "{role}" has been ' +
                                    f'assigned to an unknown class type "{myClass}"!')

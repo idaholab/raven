@@ -179,12 +179,12 @@ class FilePrint(OutStreamBase):
             self.raiseAWarning('Label clustering currently only works for PointSet data objects!  Skipping for',self.sourceData[index].name)
           else:
             dictOptions['clusterLabel'] = self.options['clusterLabel']
-        #try:
-        rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
-        #except AttributeError:
-        #  self.raiseAnError(NotImplementedError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
-        # finally:
-        #   self.indexPrinted[filename] = rlzIndex
+        try:
+          rlzIndex = self.sourceData[index].write(filename,style='CSV',**dictOptions)
+        except AttributeError:
+          self.raiseAnError(NotImplementedError, 'No implementation for source type', self.sourceData[index].type, 'and output type "'+str(self.options['type'].strip())+'"!')
+        finally:
+          self.indexPrinted[filename] = rlzIndex
       elif self.options['type'] == 'xml':
         try:
           self.sourceData[index].printXML(dictOptions)
