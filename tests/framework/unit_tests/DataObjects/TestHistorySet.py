@@ -522,7 +522,7 @@ checkFails('Metadata get missing general','Some requested keys could not be foun
 # to CSV
 ## test writing to file
 csvname = 'HistorySetUnitTest'
-data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
+data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'.split(',')})
 ## test metadata written
 correct = ['<DataObjectMetadata name="HistorySet">',
            '  <DataSet type="Static">',
@@ -733,7 +733,7 @@ formatRealization(rlz2)
 data.addRealization(rlz1)
 data.addRealization(rlz2)
 csvname = 'HSVectorMetaUnitTest'
-data.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'})
+data.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'.split(',')})
 ## test metadata written
 correct = ['<DataObjectMetadata name="HistorySet">',
            '  <DataSet type="Static">',
@@ -780,7 +780,7 @@ os.remove(csvname+'_0.csv')
 os.remove(csvname+'_1.csv')
 
 csvname = 'HSVectorMetaUnitTest'
-dataCSV.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'})
+dataCSV.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'.split(',')})
 # read in XML
 lines = open(csvname+'.xml','r').readlines()
 # remove line endings
@@ -803,7 +803,7 @@ os.remove(csvname+'.csv')
 os.remove(csvname+'_0.csv')
 os.remove(csvname+'_1.csv')
 csvname = 'HSVectorMetaUnitTest'
-dataCSV.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'})
+dataCSV.write(csvname,style='CSV',**{'what':'a,b,c,y,RAVEN_sample_ID,prefix,vectorMeta'.split(',')})
 # read in XML
 lines = open(csvname+'.xml','r').readlines()
 # remove line endings
