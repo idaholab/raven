@@ -51,10 +51,11 @@ Note all install methods after "main" take
     <pip/>
     <importlib_metadata/>
     <pyside2 source='forge'/>
-    <pillow optional='True'>6.0.0</pillow>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
     <ray os="mac,linux" source="pip"/>
+    <pillow optional='True'>6.0.0</pillow>
+    <line_profiler optional='True'/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
