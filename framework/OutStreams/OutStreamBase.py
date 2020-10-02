@@ -85,13 +85,19 @@ class OutStreamBase(BaseType):
       @ In, xmlNode, xml.etree.ElementTree.Element, xml element node
       @ Out, None
     """
+    ## general options for all OutStreams
+    spec = self.getInputSpecification()()
+    spec.parseNode(xmlNode)
+    subDir = spec.parameterValues.get('dir', None)
+    if subDir:
+      subDir = os.path.expanduser(subDir)
+    self.subDirectory = subDir
+    ## pass remaining to inheritors
     # if unconverted, use the old xml reading
     if 'localReadXML' in dir(self):
       self.localReadXML(xmlNode)
     # otherwise it has _handleInput (and it should) and use input specs
     else:
-      spec = self.getInputSpecification()()
-      spec.parseNode(xmlNode)
       self._handleInput(spec)
 
   def _handleInput(self, spec):
