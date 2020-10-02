@@ -101,7 +101,7 @@ class FilePrint(OutStreamBase):
     # FIXME this is a terrible name
     what = spec.findFirst('what')
     if what is not None:
-      self.what = [x.lower() for x in what.value]
+      self.what = what.value # [x.lower() for x in what.value]
 
     fname = spec.findFirst('filename')
     if fname is not None:
@@ -113,7 +113,7 @@ class FilePrint(OutStreamBase):
 
     # checks
     if self.options['type'] == 'csv' and self.what is not None:
-      for target in self.what:
+      for target in [x.lower() for x in self.what]:
         if not target.startswith(('input', 'output', 'metadata')):
           self.raiseAnError(IOError, f'<what> requests must start with "input", "output", or "metadata"! See OutStream.Print "{self.name}"')
 
