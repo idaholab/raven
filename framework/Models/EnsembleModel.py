@@ -486,13 +486,13 @@ class EnsembleModel(Dummy):
       @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
     kwargsKeys = list(kwargs.keys())
-    kwargsKeys.pop(kwargsKeys.index("jobHandler"))
+    # kwargsKeys.pop(kwargsKeys.index("jobHandler"))
     kwargsToKeep = { keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
-    jobHandler = kwargs['jobHandler']
+    # jobHandler = kwargs['jobHandler']
     Input = self.createNewInput(myInput[0], samplerType, **kwargsToKeep)
 
     ## Unpack the specifics for this class, namely just the jobHandler
-    returnValue = (Input,self._externalRun(Input,jobHandler))
+    returnValue = (Input,self._externalRun(Input))# ,jobHandler))
     return returnValue
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
@@ -515,13 +515,14 @@ class EnsembleModel(Dummy):
     ## Ensemble models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but
     ## will suffice until we can better redesign this whole process.
-    kwargs['jobHandler'] = jobHandler
+    # kwargs['jobHandler'] = jobHandler
 
     ## This may look a little weird, but due to how the parallel python library
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+    # jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
     """
@@ -544,7 +545,7 @@ class EnsembleModel(Dummy):
               dependentOutputs['_indexMap'][inKey] = indices
     return dependentOutputs
 
-  def _externalRun(self,inRun, jobHandler):
+  def _externalRun(self,inRun):#, jobHandler):
     """
       Method that performs the actual run of the essembled model (separated from run method for parallelization purposes)
       @ In, inRun, tuple, tuple of Inputs, e.g. inRun[0]: actual dictionary of input, inRun[1]: string,
@@ -635,41 +636,45 @@ class EnsembleModel(Dummy):
         while not nextModel:
           moveOn = False
           while not moveOn:
-            if jobHandler.availability() > 0:
+            # if jobHandler.availability() > 0:
+            if True:
               # run the model
               #if modelIn not in modelsOnHold:
               self.raiseADebug('Submitting model',modelIn)
-              self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
-              # wait until the model finishes, in order to get ready to run the subsequential one
-              while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
-                time.sleep(1.e-3)
-              nextModel = moveOn = True
+              evaluation = self.modelsDictionary[modelIn]['Instance'].evaluateSample.original_function(self.modelsDictionary[modelIn]['Instance'], originalInput[modelIn], samplerType, inputKwargs[modelIn])
+              # self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
+              ## wait until the model finishes, in order to get ready to run the subsequential one
+              # while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
+              #  time.sleep(1.e-3)
+              # nextModel = moveOn = True
             else:
               time.sleep(1.e-3)
           # store the results in the working dictionaries
             returnDict[modelIn] = {}
           #if modelIn not in modelsOnHold:
           # get job that just finished to gather the results
-          finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
-          evaluation = finishedRun[0].getEvaluation()
-          if isinstance(evaluation, rerror):
-            # the model failed
-            for modelToRemove in self.orderList:
-              if modelToRemove != modelIn:
-                jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
-            self.raiseAnError(RuntimeError,"The Model  " + modelIn + " identified by " + finishedRun[0].identifier +" failed!")
+          # finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
+          # evaluation = finishedRun[0].getEvaluation()
+          # if isinstance(evaluation, rerror):
+          #  # the model failed
+          #  for modelToRemove in self.orderList:
+          #    if modelToRemove != modelIn:
+          #      jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
+          #  self.raiseAnError(RuntimeError,"The Model  " + modelIn + " identified by " + finishedRun[0].identifier +" failed!")
           # store the output dictionary
           tempOutputs[modelIn] = copy.deepcopy(evaluation)
           # collect the target evaluation
           #if modelIn not in modelsOnHold:
-          self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations[modelIn])
-          ## FIXME: The call asDataset() is unuseful here. It must be done because otherwise the realization(...) method from collector
-          ## does not return the indexes values (TO FIX)
-          inRunTargetEvaluations[modelIn].asDataset()
-          # get realization
-          dataSet = inRunTargetEvaluations[modelIn].realization(index=iterationCount-1,unpackXArray=True)
-          ##FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
-          dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
+          # self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations[modelIn])
+          ### FIXME: The call asDataset() is unuseful here. It must be done because otherwise the realization(...) method from collector
+          ### does not return the indexes values (TO FIX)
+          # inRunTargetEvaluations[modelIn].asDataset()
+          ## get realization
+          # dataSet = inRunTargetEvaluations[modelIn].realization(index=iterationCount-1,unpackXArray=True)
+          ###FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
+
+          dataSet = {key:np.atleast_1d(evaluation[key]) for key in evaluation}
+          # dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
           responseSpace         = dataSet
           typeOutputs[modelCnt] = inRunTargetEvaluations[modelIn].type
           gotOutputs[modelCnt]  = {key: dataSet[key] for key in inRunTargetEvaluations[modelIn].getVars("output") + inRunTargetEvaluations[modelIn].getVars("indexes")}

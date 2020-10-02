@@ -197,8 +197,10 @@ class JobHandler(MessageHandler.MessageUser):
         ## Get localHost and servers
         servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
+        if True:
+         ray.services.get_node_ip_address = lambda: '127.0.0.1'
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
-                         pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+                           pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
         self.raiseADebug("Head node IP address: ", self.rayServer['node_ip_address'])
         self.raiseADebug("Redis address       : ", self.rayServer['redis_address'])
@@ -328,6 +330,8 @@ class JobHandler(MessageHandler.MessageUser):
                                                profile=self.__profileJobs)
     else:
       arguments = args  if _rayAvail else  tuple([self.rayServer] + list(args))
+      print(args)
+
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
                                                     arguments, functionToRun.remote if _rayAvail else functionToRun.original_function,
                                                     identifier, metadata,
@@ -725,7 +729,8 @@ class JobHandler(MessageHandler.MessageUser):
     @ Out, None
     """
     self.completed = True
-    if _rayAvail:
+    if _rayAvail and self.rayServer:
+     # ray.timeline(filename="/Users/alfoa/projects/raven_github/raven/tests/framework/InternalParallelTests/timeline.json")
      ray.shutdown()
 
 
