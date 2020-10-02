@@ -92,8 +92,8 @@ class LimitSurface(PostProcessor):
     self.jobHandler        = None             # job handler pointer
     self.transfMethods     = {}               # transformation methods container
     self.crossedLimitSurf  = False            # Limit surface has been crossed?
-    self.addAssemblerObject('ROM','-1', True)
-    self.addAssemblerObject('Function','1')
+    self.addAssemblerObject('ROM', InputData.Quantity.zero_to_one)
+    self.addAssemblerObject('Function', InputData.Quantity.one)
     self.printTag = 'POSTPROCESSOR LIMITSURFACE'
 
   def _localWhatDoINeed(self):
@@ -296,17 +296,6 @@ class LimitSurface(PostProcessor):
     else:
       testMatrix = self.testMatrix[nodeName]
     return testMatrix
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    paramInput = LimitSurface.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """

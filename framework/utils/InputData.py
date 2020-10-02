@@ -21,20 +21,32 @@ This a library for defining the data used and for reading it in.
 from __future__ import division, print_function, unicode_literals, absolute_import
 import re
 from collections import OrderedDict
+from enum import Enum
 import xml.etree.ElementTree as ET
 from utils import InputTypes
 import textwrap
 
-class Quantity:
+class Quantity(Enum):
   """
     A class that allows the quantity of a node to be specified.
-    If python3.4+ is required, this should be switched to a Python 3.4 Enum.
   """
   zero_to_one = (0,1)
   zero_to_infinity = (0,2)
   one = (1,1)
   one_to_infinity = (1,2)
 
+def checkQuantity(quantity, n):
+  """
+    Checks if n is matches the quantity parameter.
+    @ In, quantity, Quantity, the quantity value to check against
+    @ In, n, int, the value to check against
+    @ Out, match, bool, True if the n is an allowed quantity.
+  """
+  start, end = quantity.value
+  match = n >= start
+  if end == 1:
+    match = match and n <= 1
+  return match
 
 class CheckClass(object):
   """

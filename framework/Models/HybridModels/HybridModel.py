@@ -109,8 +109,8 @@ class HybridModel(HybridModelBase):
     self.crowdingDistance      = None
     self.metricCategories      = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
     # assembler objects to be requested
-    self.addAssemblerObject('ROM','n')
-    self.addAssemblerObject('TargetEvaluation','1')
+    self.addAssemblerObject('ROM', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one)
 
   def localInputAndChecks(self,xmlNode):
     """
