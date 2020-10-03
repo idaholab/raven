@@ -646,7 +646,7 @@ class EnsembleModel(Dummy):
               ## wait until the model finishes, in order to get ready to run the subsequential one
               # while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
               #  time.sleep(1.e-3)
-              # nextModel = moveOn = True
+              nextModel = moveOn = True
             else:
               time.sleep(1.e-3)
           # store the results in the working dictionaries
