@@ -84,7 +84,7 @@ class BaseType(MessageHandler.MessageUser):
       self.name = xmlNode.attrib['name']
     else:
       self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
-    self.type     = xmlNode.tag
+    self.type = xmlNode.tag
     if globalAttributes is not None:
       self.globalAttributes = globalAttributes
     if 'verbosity' in xmlNode.attrib.keys() or 'verbosity' in self.globalAttributes:
@@ -114,7 +114,7 @@ class BaseType(MessageHandler.MessageUser):
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
 
-  def handleInput(self,paramInput,messageHandler,variableGroups={},globalAttributes=None):
+  def handleInput(self, paramInput, messageHandler, variableGroups={}, globalAttributes=None):
     """
       provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _handleInput
       that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),

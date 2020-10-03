@@ -275,9 +275,10 @@ class ParameterInput(object):
     """
     cls.subs[sub] = None
     subsSet = cls._subDict.get(sub.getName(), set())
-    if (len(subsSet) == 1 and next(iter(subsSet))._checkCanRead is None) or \
-       (len(subsSet) > 0 and sub._checkCanRead is not None):
-       print("ERROR adding checked and unchecked to", sub.getName()," in ",
+    if __debug__:
+      if (len(subsSet) == 1 and next(iter(subsSet))._checkCanRead is None) or \
+        (len(subsSet) > 0 and sub._checkCanRead is not None):
+        print("INPUT SPEC ERROR adding checked and unchecked to", sub.getName()," in ",
                  cls.getName()+" len "+str(len(subsSet)))
     subsSet.add(sub)
     cls._subDict[sub.getName()] = subsSet
@@ -353,7 +354,7 @@ class ParameterInput(object):
     """
     cls.contentType = contentType
 
-  def parseNode(self,node, errorList = None):
+  def parseNode(self, node, errorList=None):
     """
       Parses the xml node and puts the results in self.parameterValues and
       self.subparts and self.value
@@ -426,7 +427,7 @@ class ParameterInput(object):
         self.subparts.append(subInstance)
       elif self.strictMode:
         allowed = [s.getName() for s in subs]
-        handleError('no class to handle '+childName+' tried '+str(subsSet)+" allowed:"+str(allowed)) #Extra if debugging: + ' keys: '+str(set(self._subDict.keys()))+ str({k: [j.getName() for j in self._subDict[k]] for k in self._subDict.keys()}))
+        handleError(f'Unrecognized input: "{childName}"! Allowed: "{allowed}", tried "{subsSet}"')
     if self.strictMode:
       nodeNames = set([child.tag for child in node])
       if nodeNames != subNames:
