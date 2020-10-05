@@ -76,7 +76,7 @@ def logistic(rlz,**kwargs):
     
   val = eval('rlz[\'' + kwargs['objVar'] + '\']')
   denom = 1.0 + np.exp(-a * (val - b))    
-  fitness = 1.0 - 1.0 / denom
+  fitness = 1.0 / denom
     
   return fitness
   

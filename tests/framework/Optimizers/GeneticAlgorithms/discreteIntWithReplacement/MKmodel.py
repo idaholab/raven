@@ -37,7 +37,6 @@ def run(self,Input):
     self.validPlan = 1.
 
   counterNeg = np.sum(knapsackCapacities<0, axis=0)
-  #if counterNeg>0:
-  #  self.planValue = 0
-  self.planValue = self.planValue - counterNeg * (5.)
+
+  self.planValue = self.planValue - counterNeg * (10.)
 
