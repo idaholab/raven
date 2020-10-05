@@ -91,7 +91,6 @@ def fitnessBased(newRlz,**kwargs):
     popAge = [0]*kwargs['popSize']
   offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'].data)
   offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
-  print('DebuJ:*** ', np.shape(offSprings),np.shape(offSpringsFitness))
   population = np.atleast_2d(kwargs['population'].data)
   popFitness = np.atleast_1d(kwargs['fitness'].data)
   offSpringsAge = [0]*(np.shape(offSpringsFitness)[0])

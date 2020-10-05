@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent" profile="jobs">
+<Simulation verbosity="debug" profile="jobs">
   <TestInfo>
     <name>framework/Optimizers/GA</name>
     <author>MohammadAbdo</author>
@@ -73,7 +73,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>1000</limit>
+        <limit>100</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
@@ -99,7 +99,7 @@
       </GAparams>
 
       <convergence>
-        <objective>-1</objective>
+        <objective>56</objective>
       </convergence>
 
       <variable name="x1">
@@ -206,7 +206,7 @@
       </PointSet>
       <PointSet name="opt_export">
         <Input>trajID</Input>
-        <Output>x1,x2,x3,x4,x5,x6,ans,age,batchId,fitness,iteration</Output> <!--fitness-->
+        <Output>x1,x2,x3,x4,x5,x6,ans,age,batchId,fitness,iteration,accepted,conv_objective</Output> <!--fitness-->
         <!-- <Output>x1,x2,x3,x4,x5,x6,ans,iteration,accepted,conv_objective</Output> fitness,conv_fitness -->
       </PointSet>
     </DataObjects>
