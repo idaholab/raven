@@ -673,7 +673,6 @@ class GradientDescent(RavenSampled):
       if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
         self._closeTrajectory(traj, 'converge', 'converged', optVal)
     else:
-      # FIXME XXX WORKING do I really want to reset any time it isn't converged?
       self._convergenceInfo[traj]['persistence'] = 0
       self.raiseADebug('Resetting convergence for trajectory {}.'.format(traj))
 
