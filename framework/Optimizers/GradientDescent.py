@@ -652,7 +652,9 @@ class GradientDescent(RavenSampled):
       converged, convDict = self.checkConvergence(traj, new, old)
     else:
       converged = False
-      convDict = dict((var, False) for var in self._convergenceInfo[traj])
+      # since not accepted, none of the convergence criteria are acceptable
+      ## HOWEVER, since not accepted, do NOT reset persistence!
+      convDict = dict((var, False) for var in self._convergenceInfo[traj] if var not in ['persistence'])
     self._convergenceInfo[traj].update(convDict)
     return converged
 
@@ -671,6 +673,7 @@ class GradientDescent(RavenSampled):
       if self._convergenceInfo[traj]['persistence'] >= self._requiredPersistence:
         self._closeTrajectory(traj, 'converge', 'converged', optVal)
     else:
+      # FIXME XXX WORKING do I really want to reset any time it isn't converged?
       self._convergenceInfo[traj]['persistence'] = 0
       self.raiseADebug('Resetting convergence for trajectory {}.'.format(traj))
 
