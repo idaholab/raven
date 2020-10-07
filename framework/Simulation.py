@@ -31,7 +31,8 @@ import threading
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-# NOTE: always import plugin factory first!
+import MessageHandler
+# NOTE: always import plugin factory first, before other Entities!
 import PluginFactory
 import Steps
 import DataObjects
@@ -45,9 +46,9 @@ import Databases
 import Functions
 import OutStreams
 from JobHandler import JobHandler
-import MessageHandler
 import VariableGroups
 from utils import utils, TreeStructure, xmlUtils, mathUtils
+import Decorators
 from Application import __QtAvailable
 from Interaction import Interaction
 if __QtAvailable:
@@ -268,8 +269,7 @@ class Simulation(MessageHandler.MessageUser):
     self.functionsDict        = {}
     self.filesDict            = {} #  for each file returns an instance of a Files class
     self.metricsDict          = {}
-    self.OutStreamManagerPlotDict  = {}
-    self.OutStreamManagerPrintDict = {}
+    self.outStreamsDict       = {}
     self.stepSequenceList     = [] #the list of step of the simulation
 
     #list of supported queue-ing software:
@@ -295,9 +295,7 @@ class Simulation(MessageHandler.MessageUser):
     self.addWhatDict['Functions'        ] = Functions
     self.addWhatDict['Files'            ] = Files
     self.addWhatDict['Metrics'          ] = Metrics
-    self.addWhatDict['OutStreams' ] = {}
-    self.addWhatDict['OutStreams' ]['Plot' ] = OutStreams
-    self.addWhatDict['OutStreams' ]['Print'] = OutStreams
+    self.addWhatDict['OutStreams'       ] = OutStreams
 
 
     #Mapping between an entity type and the dictionary containing the instances for the simulation
@@ -313,9 +311,7 @@ class Simulation(MessageHandler.MessageUser):
     self.whichDict['Databases'       ] = self.dataBasesDict
     self.whichDict['Functions'       ] = self.functionsDict
     self.whichDict['Metrics'         ] = self.metricsDict
-    self.whichDict['OutStreams'] = {}
-    self.whichDict['OutStreams']['Plot' ] = self.OutStreamManagerPlotDict
-    self.whichDict['OutStreams']['Print'] = self.OutStreamManagerPrintDict
+    self.whichDict['OutStreams'      ] = self.outStreamsDict
 
     # The QApplication
     ## The benefit of this enumerated type is that anything other than
@@ -344,6 +340,7 @@ class Simulation(MessageHandler.MessageUser):
     self.pollingThread.daemon = True
     self.pollingThread.start()
 
+  @Decorators.timingProfile
   def setInputFiles(self,inputFiles):
     """
       Method that can be used to set the input files that the program received.
@@ -423,17 +420,16 @@ class Simulation(MessageHandler.MessageUser):
       varGroups={}
     # read other nodes
     for child in xmlNode:
-      if child.tag=='VariableGroups':
+      if child.tag == 'VariableGroups':
         continue #we did these before the for loop
       if child.tag in self.whichDict:
         self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
-        if len(child.attrib.keys()) == 0:
+        if len(child.attrib) == 0:
           globalAttributes = {}
         else:
           globalAttributes = child.attrib
-          #if 'verbosity' in globalAttributes.keys(): self.verbosity = globalAttributes['verbosity']
-        if Class not in ['RunInfo','OutStreams'] and "returnInputParameter" in self.addWhatDict[Class].__dict__:
+        if Class not in ['RunInfo'] and "returnInputParameter" in self.addWhatDict[Class].__dict__:
           paramInput = self.addWhatDict[Class].returnInputParameter()
           paramInput.parseNode(child)
           for childChild in paramInput.subparts:
@@ -455,26 +451,14 @@ class Simulation(MessageHandler.MessageUser):
               #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               #if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
-              if Class != 'OutStreams':
-                if name not in self.whichDict[Class].keys():
-                  if "needsRunInfo" in self.addWhatDict[Class].__dict__:
-                    self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
-                  else:
-                    self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
+              if name not in self.whichDict[Class]:
+                if "needsRunInfo" in self.addWhatDict[Class].__dict__:
+                  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
                 else:
-                  self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
+                  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
               else:
-                if name not in self.whichDict[Class][subType].keys():
-                  self.whichDict[Class][subType][name] = self.addWhatDict[Class][subType].returnInstance(childChild.tag,self)
-                else:
-                  self.raiseAnError(IOError,'Redundant  naming in the input for class '+Class+' and sub Type'+subType+' and name '+name)
-              #now we can read the info for this object
-              #if globalAttributes and 'verbosity' in globalAttributes.keys(): localVerbosity = globalAttributes['verbosity']
-              #else                                                      : localVerbosity = self.verbosity
-              if Class != 'OutStreams':
-                self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
-              else:
-                self.whichDict[Class][subType][name].readXML(childChild, self.messageHandler, globalAttributes=globalAttributes)
+                self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
+              self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
             else:
               self.raiseAnError(IOError,'not found name attribute for one "{}": {}'.format(Class,subType))
       else:
@@ -535,34 +519,20 @@ class Simulation(MessageHandler.MessageUser):
       @ In, stepName, string, the name of the step to check
       @ Out, None
     """
-    for [role,myClass,objectType,name] in stepInstance.parList:
-      if myClass!= 'Step' and myClass not in list(self.whichDict.keys()):
-        self.raiseAnError(IOError,'For step named '+stepName+' the role '+role+' has been assigned to an unknown class type '+myClass)
-      if myClass != 'OutStreams':
-        if name not in list(self.whichDict[myClass].keys()):
-          self.raiseADebug('name:',name)
-          self.raiseADebug('myClass:',myClass)
-          self.raiseADebug('list:',list(self.whichDict[myClass].keys()))
-          self.raiseADebug('whichDict[myClass]',self.whichDict[myClass])
-          self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
-      else:
-        if objectType not in self.whichDict[myClass].keys():
-          self.raiseAnError(IOError,'In step "{}" class "{}" the type "{}" is not recognized!'.format(stepName,myClass,objectType))
-        if name not in self.whichDict[myClass][objectType].keys():
-          self.raiseADebug('name: '+name)
-          self.raiseADebug('list: '+str(list(self.whichDict[myClass][objectType].keys())))
-          self.raiseADebug(str(self.whichDict[myClass][objectType]))
-          self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' supposed to be used for the role '+role+' has not been found')
-
+    for [role, myClass, objectType, name] in stepInstance.parList:
+      if myClass != 'Step' and myClass not in list(self.whichDict.keys()):
+        self.raiseAnError(IOError, f'For step named "{stepName}" the role "{role}" has been ' +
+                                   f'assigned to an unknown class type "{myClass}"!')
+      if name not in self.whichDict[myClass]:
+        self.raiseADebug('name:',name)
+        self.raiseADebug('myClass:',myClass)
+        self.raiseADebug('list:',list(self.whichDict[myClass].keys()))
+        self.raiseADebug('whichDict[myClass]',self.whichDict[myClass])
+        self.raiseAnError(IOError, f'In step "{stepName}" the class "{myClass}" named "{name}" ' +
+                          f'supposed to be used for the role "{role}" has not been found!')
       if myClass != 'Files':
         # check if object type is consistent
-        if myClass != 'OutStreams':
-          objtype = self.whichDict[myClass][name].type
-        else:
-          objtype = self.whichDict[myClass][objectType][name].type
-        if objectType != objtype.replace("OutStream",""):
-          objtype = self.whichDict[myClass][name].type
-          #self.raiseAnError(IOError,'In step '+stepName+' the class '+myClass+' named '+name+' used for role '+role+' has mismatching type. Type is "'+objtype.replace("OutStream","")+'" != inputted one "'+objectType+'"!')
+        objtype = self.whichDict[myClass][name].type
 
   def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
     """
@@ -727,8 +697,7 @@ class Simulation(MessageHandler.MessageUser):
     #msg=__prntDict(self.testsDict,msg)
     msg=__prntDict(self.filesDict,msg)
     msg=__prntDict(self.dataBasesDict,msg)
-    msg=__prntDict(self.OutStreamManagerPlotDict,msg)
-    msg=__prntDict(self.OutStreamManagerPrintDict,msg)
+    msg=__prntDict(self.outStreamsDict,msg)
     msg=__prntDict(self.addWhatDict,msg)
     msg=__prntDict(self.whichDict,msg)
     self.raiseADebug(msg)
@@ -761,10 +730,7 @@ class Simulation(MessageHandler.MessageUser):
       for [key,b,c,d] in stepInstance.parList:
         #Only for input and output we allow more than one object passed to the step, so for those we build a list
         if key == 'Input' or key == 'Output':
-          if b == 'OutStreams':
-            stepInputDict[key].append(self.whichDict[b][c][d])
-          else:
-            stepInputDict[key].append(self.whichDict[b][d])
+          stepInputDict[key].append(self.whichDict[b][d])
         else:
           stepInputDict[key] = self.whichDict[b][d]
       #add the global objects

@@ -16,15 +16,11 @@ Created on Nov 14, 2013
 
 @author: alfoa
 """
-## for future compatibility with Python 3---------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-## End compatibility block for Python 3-----------------------------------------
 
 ## External Modules-------------------------------------------------------------
 import numpy as np
 import ast
 import copy
-#from scipy.interpolate import Rbf, griddata
 import numpy.ma as ma
 import platform
 import os
@@ -32,15 +28,14 @@ import re
 import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
 from collections import defaultdict
-## Maybe necessary
-# import _tkinter
 ## External Modules End---------------------------------------------------------
 
 ## Internal Modules-------------------------------------------------------------
-from utils import utils
+from utils.InputData import parameterInputFactory as PIF
+from utils import utils, mathUtils, InputTypes
 from utils import mathUtils
 from utils.cached_ndarray import c1darray
-from .OutStreamManager import OutStreamManager
+from .OutStreamBase import OutStreamBase
 from ClassProperty import ClassProperty
 ## Internal Modules End---------------------------------------------------------
 
@@ -51,7 +46,7 @@ if not display:
 
 import matplotlib.pyplot as plt
 
-class OutStreamPlot(OutStreamManager):
+class GeneralPlot(OutStreamBase):
   """
     OutStream of type Plot
   """
@@ -92,6 +87,54 @@ class OutStreamPlot(OutStreamManager):
     """
     return cls._availableInterpolators
 
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class "cls".
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = OutStreamBase.getInputSpecification()
+    # TODO this is waaaaay to much to convert right now
+    # For now, accept a blank plotting check and sort it out later.
+    spec.strictMode = False
+    return spec
+    ###################################################################
+    # TODO here's a good start, but skipping for now:
+    # spec.addParam('interactive', param_type=InputTypes.BoolType)
+    # spec.addParam('overwrite', param_type=InputTypes.BoolType)
+    # spec.addSub(PIF('filename', contentType=InputTypes.StringType))
+
+    # xyz = InputTypes.makeEnumType('PlotXYZ', 'PlotXYZ', ['x', 'y', 'z'])
+
+    # action = PIF('actions')
+    # hows = InputTypes.makeEnumType('GeneralPlotHow', 'GeneralPlotHow',
+    #        ['screen', 'pdf', 'png', 'eps', 'pgf', 'ps', 'gif', 'svg', 'jpeg', 'raw', 'bmp', 'tiff', 'svgz'])
+    # action.addSub(PIF('how', contentType=hows))
+
+    # title = PIF('title')
+    # title.addSub(PIF('text', contentType=InputTypes.StringType))
+    # # kwargs can be anything, so just turn strict mode off for it
+    # title.addSub(PIF('kwargs', strictMode=False))
+    # action.addSub(title)
+
+    # labelFormat = PIF('labelFormat')
+    # labelFormat.addSub(PIF('axis', contentType=xyz))
+    # sciPlain = InputTypes.makeEnumType('SciNot', 'SciNot', ['sci', 'scientific', 'plain'])
+    # labelFormat.addSub(PIF('style', contentType=sciPlain))
+    # labelFormat.addSub(PIF('scilimits', contentType=InputTypes.StringType))
+    # labelFormat.addSub(PIF('useOffset', contentType=InputTypes.FloatType))
+    # action.addSub(labelFormat)
+
+    # figProp TODO WORKING XXX
+    # TODO
+    # spec.addSub(action)
+
+    # settings = parameterInputFactory('plotSettings')
+    # TODO
+    # spec.addSub(settings)
+    # return spec
+    #################################### END draft
 
   def __init__(self):
     """
@@ -100,7 +143,7 @@ class OutStreamPlot(OutStreamManager):
       @ In, None
       @ Out, None
     """
-    OutStreamManager.__init__(self)
+    OutStreamBase.__init__(self)
     self.printTag = 'OUTSTREAM PLOT'
 
     ## default plot is 2D
@@ -145,6 +188,108 @@ class OutStreamPlot(OutStreamManager):
     self.mixtureValues = None
     self.mixtureMeans = None
     self.mixtureCovars = None
+
+  # TODO started, but didn't finish due to time constraints
+  # this should be a good start for _handleInput in the future.
+  # def _handleInput(self, spec):
+  #   """
+  #     Loads the input specs for this object.
+  #     @ In, spec, InputData.ParameterInput, input specifications
+  #     @ Out, None
+  #   """
+  #   if 'dim' in spec.parameterValues:
+  #     self.raiseAnError(IOError,"the 'dim' attribute has been deprecated. This warning became an error in January 2017")
+  #   foundPlot = False
+  #   for subnode in spec.subparts:
+  #     # if actions, read actions block
+  #     if subnode.getName() == 'filename':
+  #       self.filename = subnode.value
+  #     if subnode.getName() == 'actions':
+  #       self.__readPlotActions(subnode)
+  #     if subnode.getName() == 'plotSettings':
+  #       self.options[subnode.getName()] = {}
+  #       self.options[subnode.getName()]['plot'] = []
+  #       for subsub in subnode.subparts:
+  #         if subsub.getName() == 'gridSpace':
+  #           # if self.dim == 3: self.raiseAnError(IOError, 'SubPlot option can not be used with 3-dimensional plots!')
+  #           self.options[subnode.getName()][subsub.getName()] = subsub.value
+  #         elif subsub.getName() == 'plot':
+  #           tempDict = {}
+  #           foundPlot = True
+  #           for subsubsub in subsub.subparts:
+  #             if subsubsub.getName() == 'gridLocation':
+  #               tempDict[subsubsub.getName()] = {}
+  #               for subsubsubsub in subsubsub.subparts:
+  #                 tempDict[subsubsub.getName()][subsubsubsub.getName()] = subsubsubsub.value
+  #             elif subsubsub.getName() == 'range':
+  #               tempDict[subsubsub.getName()] = {}
+  #               for subsubsubsub in subsubsub.subparts:
+  #                 tempDict[subsubsub.getName()][subsubsubsub.getName()] = subsubsubsub.value
+  #             elif subsubsub.getName() != 'kwargs':
+  #               tempDict[subsubsub.getName()] = subsubsub.value
+  #             else:
+  #               tempDict['attributes'] = {}
+  #               for sss in subsubsub.subparts:
+  #                 tempDict['attributes'][sss.getName()] = sss.value
+  #           self.options[subnode.getName()][subsub.getName()].append(tempDict)
+  #         elif subsub.getName() == 'legend':
+  #           self.options[subnode.getName()][subsub.getName()] = {}
+  #           for legendChild in subsub.subparts:
+  #             self.options[subnode.getName()][subsub.getName()][legendChild.getName()] = utils.tryParse(legendChild.value)
+  #         else:
+  #           self.options[subnode.getName()][subsub.getName()] = subsub.value
+  #     # TODO WORKING XXX
+  #     if subnode.getName() == 'title':
+  #       self.options[subnode.getName()] = {}
+  #       for subsub in subnode:
+  #         self.options[subnode.getName()][subsub.getName()] = subsub.text.strip()
+  #       if 'text'     not in self.options[subnode.getName()].keys():
+  #         self.options[subnode.getName()]['text'    ] = xmlNode.attrib['name']
+  #       if 'location' not in self.options[subnode.getName()].keys():
+  #         self.options[subnode.getName()]['location'] = 'center'
+  #     ## is this 'figureProperties' valid?
+  #     if subnode.getName() == 'figureProperties':
+  #       self.options[subnode.getName()] = {}
+  #       for subsub in subnode:
+  #         self.options[subnode.getName()][subsub.getName()] = subsub.text.strip()
+  #   self.type = 'OutStreamPlot'
+
+  #   if not 'plotSettings' in self.options.keys():
+  #     self.raiseAnError(IOError, 'For plot named ' + self.name + ' the plotSettings block is required.')
+
+  #   if not foundPlot:
+  #     self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot section has been found in the plotSettings block!')
+
+  #   self.outStreamTypes = []
+  #   xyz, xy             = sorted(['x','y','z']), sorted(['x','y'])
+  #   for pltIndex in range(len(self.options['plotSettings']['plot'])):
+  #     if not 'type' in self.options['plotSettings']['plot'][pltIndex].keys():
+  #       self.raiseAnError(IOError, 'For plot named' + self.name + ', No plot type keyword has been found in the plotSettings/plot block!')
+  #     else:
+  #       # check the dimension and check the consistency
+  #       if set(xyz) < set(self.options['plotSettings']['plot'][pltIndex].keys()):
+  #         dim = 3
+  #       elif set(xy) < set(self.options['plotSettings']['plot'][pltIndex].keys()):
+  #         dim = 2 if self.options['plotSettings']['plot'][pltIndex]['type'] != 'histogram' else 3
+  #       elif set(['x']) < set(self.options['plotSettings']['plot'][pltIndex].keys()) and self.options['plotSettings']['plot'][pltIndex]['type'] == 'histogram':
+  #         dim = 2
+  #       else:
+  #         self.raiseAnError(IOError, 'Wrong dimensionality or axis specification for plot '+self.name+'.')
+  #       if self.dim is not None and self.dim != dim:
+  #         self.raiseAnError(IOError, 'The OutStream Plot '+self.name+' combines 2D and 3D plots. This is not supported!')
+  #       self.dim = dim
+  #       if self.availableOutStreamTypes[self.dim].count(self.options['plotSettings']['plot'][pltIndex]['type']) == 0:
+  #         self.raiseAMessage('For plot named' + self.name + ', type ' + self.options['plotSettings']['plot'][pltIndex]['type'] + ' is not among pre-defined plots! \n The OutstreamSystem will try to construct a call on the fly!', 'ExceptedError')
+  #       self.outStreamTypes.append(self.options['plotSettings']['plot'][pltIndex]['type'])
+  #   self.raiseADebug('matplotlib version is ' + str(matplotlib.__version__))
+
+  #   if self.dim not in [2, 3]:
+  #     self.raiseAnError(TypeError, 'This Plot interface is able to handle 2D-3D plot only')
+
+  #   if 'gridSpace' in self.options['plotSettings'].keys():
+  #     grid = list(map(int, self.options['plotSettings']['gridSpace'].split(' ')))
+  #     self.gridSpace = matplotlib.gridspec.GridSpec(grid[0], grid[1])
+
 
   #####################
   #  PRIVATE METHODS  #
@@ -447,7 +592,7 @@ class OutStreamPlot(OutStreamManager):
         #plt.figure().gca(projection = '3d').xaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
         #plt.figure().gca(projection = '3d').zaxis.set_major_formatter(matplotlib.ticker.ScalarFormatter())
         self.plt3D.ticklabel_format(**{'style':'sci', 'scilimits':(0,1), 'useOffset':False, 'axis':'both'})
-    if 'title'        not in self.options.keys():
+    if 'title' not in self.options.keys():
       if self.dim == 2:
         plt.title(self.name, fontdict = {'verticalalignment':'baseline', 'horizontalalignment':'center'})
       if self.dim == 3:
@@ -800,7 +945,7 @@ class OutStreamPlot(OutStreamManager):
           self.mixtureCovars.append(self.options['plotSettings']['plot'][pltIndex]['attributes']['mixtureCovars'].split(','))
     self.numberAggregatedOS = len(self.options['plotSettings']['plot'])
     # initialize here the base class
-    OutStreamManager.initialize(self, inDict)
+    OutStreamBase.initialize(self, inDict)
     # execute actions (we execute the actions here also because we can perform a check at runtime!!
     self.__executeActions()
 
@@ -811,8 +956,10 @@ class OutStreamPlot(OutStreamManager):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    if 'dim' in xmlNode.attrib.keys():
+    if 'dim' in xmlNode.attrib:
       self.raiseAnError(IOError,"the 'dim' attribute has been deprecated. This warning became an error in January 2017")
+    if 'overwrite' in xmlNode.attrib:
+      self.overwrite = utils.stringIsTrue(xmlNode.attrib['overwrite'])
     foundPlot = False
     for subnode in xmlNode:
       # if actions, read actions block

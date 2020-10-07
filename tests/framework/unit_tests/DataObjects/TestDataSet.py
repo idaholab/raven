@@ -572,7 +572,7 @@ checkTrue('Check aligned data is aligned', dataAlign.checkIndexAlignment('t'))
 # to CSV
 ## test writing to file
 csvname = 'DataSetUnitTest'
-data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
+data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'.split(',')})
 ## test metadata written
 correct = ['<DataObjectMetadata name="DataSet">',
            '  <DataSet type="Static">',

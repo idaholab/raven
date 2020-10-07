@@ -28,15 +28,26 @@ import os
 from BaseClasses import BaseType
 import DataObjects
 import Models
-from utils import utils
+from utils import utils, InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
-class OutStreamManager(BaseType):
+class OutStreamBase(BaseType):
   """
     OUTSTREAM CLASS
     This class is a general base class for outstream action classes
     For example, a matplotlib interface class or Print class, etc.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class "cls".
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = BaseType.getInputSpecification()
+    spec.addParam('dir', param_type=InputTypes.StringType, required=False)
+    return spec
+
   def __init__(self):
     """
       Init of Base class
@@ -69,25 +80,33 @@ class OutStreamManager(BaseType):
 
   def _readMoreXML(self, xmlNode):
     """
-      Function to read the portion of the xml input that belongs to this
-      specialized class and initialize some stuff based on the inputs received
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      Function to read the portion of the input that belongs to this
+      specialized class and initialize based on the inputs received
+      @ In, xmlNode, xml.etree.ElementTree.Element, xml element node
       @ Out, None
-      The text is supposed to contain the info where and which variable to change.
-      In case of a code the syntax is specified by the code interface itself
     """
-    if 'overwrite' in xmlNode.attrib.keys():
-      if utils.stringIsTrue(xmlNode.attrib['overwrite']):
-        self.overwrite = True
-      else:
-        self.overwrite = False
-    if 'dir' in xmlNode.attrib:
-      self.subDirectory =  xmlNode.attrib['dir']
-      if '~' in self.subDirectory:
-        self.subDirectory= os.path.expanduser(self.subDirectory)
+    ## general options for all OutStreams
+    spec = self.getInputSpecification()()
+    spec.parseNode(xmlNode)
+    subDir = spec.parameterValues.get('dir', None)
+    if subDir:
+      subDir = os.path.expanduser(subDir)
+    self.subDirectory = subDir
+    ## pass remaining to inheritors
+    # if unconverted, use the old xml reading
+    if 'localReadXML' in dir(self):
+      self.localReadXML(xmlNode)
+    # otherwise it has _handleInput (and it should) and use input specs
+    else:
+      self._handleInput(spec)
 
-    self.localReadXML(xmlNode)
-
+  def _handleInput(self, spec):
+    """
+      Loads the input specs for this object.
+      @ In, spec, InputData.ParameterInput, input specifications
+      @ Out, None
+    """
+    pass
 
   def getInitParams(self):
     """
