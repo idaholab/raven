@@ -35,7 +35,7 @@ class EconomicRatio(BasicStatistics):
     EconomicRatio filter class. It computes economic metrics
   """
   scalarVals =   BasicStatistics.scalarVals
-  vectorVals =   BasicStatistics.vectorVals          
+  vectorVals =   BasicStatistics.vectorVals
 
   tealVals   = ['sharpeRatio',             #financial metric
                 'sortinoRatio',            #financial metric
@@ -205,18 +205,18 @@ class EconomicRatio(BasicStatistics):
             if threshold not in ['zero','median']:
               self.raiseAWarning('Unrecognized threshold in {}, prefix \'{}\' use zero instead!'.format(tag, prefix))
               threshold = 'zero'
-            
+
           if 'expectedValue' not in self.toDo.keys():
-            self.toDo['expectedValue'] = [] 
+            self.toDo['expectedValue'] = []
           if 'median' not in self.toDo.keys():
-            self.toDo['median'] = [] 
+            self.toDo['median'] = []
           self.toDo['expectedValue'].append({'targets':set(child.value),
-                            'prefix':'BSMean'}) 
+                            'prefix':'BSMean'})
           self.toDo['median'].append({'targets':set(child.value),
-                            'prefix':'BSMED'}) 
+                            'prefix':'BSMED'})
           self.toDo[tag].append({'targets':set(targets),
                                 'prefix':prefix,
-                                'threshold':threshold}) 
+                                'threshold':threshold})
 
         elif tag in ['expectedShortfall', 'valueAtRisk']:
           #get targets
@@ -237,13 +237,13 @@ class EconomicRatio(BasicStatistics):
           if tag not in self.toDo.keys():
             self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
           if 'expectedValue' not in self.toDo.keys():
-            self.toDo['expectedValue'] = [] 
+            self.toDo['expectedValue'] = []
           if 'sigma' not in self.toDo.keys():
             self.toDo['sigma'] = []
           self.toDo['expectedValue'].append({'targets':set(child.value),
-                               'prefix':'BSMean'}) 
+                               'prefix':'BSMean'})
           self.toDo['sigma'].append({'targets':set(child.value),
-                               'prefix':'BSSigma'})                      
+                               'prefix':'BSSigma'})
           self.toDo[tag].append({'targets':set(child.value),
                                'prefix':prefix})
       elif tag in self.scalarVals:

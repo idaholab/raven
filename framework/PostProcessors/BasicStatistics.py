@@ -588,7 +588,7 @@ class BasicStatistics(PostProcessor):
       result = sortedWeightsAndPoints[indexL,1]
     return result
 
-  
+
   def __runLocal(self, inputData):
     """
       This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
@@ -632,9 +632,9 @@ class BasicStatistics(PostProcessor):
     # expectedValue                |                        | variance, variationCoefficient, skewness, kurtosis,
     #                              |                        | lowerPartialVariance, higherPartialVariance
     # lowerPartialVariance needs   | expectedValue,median   | lowerPartialSigma
-    # lowerPartialSigma needs      | lowerPartialVariance   | 
+    # lowerPartialSigma needs      | lowerPartialVariance   |
     # higherPartialVariance needs  | expectedValue,median   | higherPartialSigma
-    # higherPartialSigma needs     | higherPartialVariance  | 
+    # higherPartialSigma needs     | higherPartialVariance  |
 
     # update needed dictionary when standard errors are requested
     needed['expectedValue']['targets'].update(needed['sigma']['targets'])
