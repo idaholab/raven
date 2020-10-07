@@ -80,6 +80,7 @@ class EnsembleModel(Dummy):
     self.initialStartModels     = []                    # list of models that will execute first.
     self.ensembleModelGraph     = None                  # graph object (graphStructure.graphObject)
     self.printTag               = 'EnsembleModel MODEL' # print tag
+    self.parallelStrategy = 1                           # parallel strategy [1=MPI like (internalParallel), 2=threads] 
     # assembler objects to be requested
     self.addAssemblerObject('Model', InputData.Quantity.one_to_infinity)
     self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one_to_infinity)
@@ -228,13 +229,17 @@ class EnsembleModel(Dummy):
     outputsNames = []
     if initDict is not None:
       outputsNames = [output.name for output in initDict['Output']]
-
+    
     # here we check if all the inputs inputted in the Step containing the EnsembleModel are actually used
     checkDictInputsUsage = dict((inp,False) for inp in inputs)
-
+    # flag to check if a Code is in the Ensemble
+    isThereACode = False
     # collect the models
     self.allOutputs = set()
     for modelClass, modelType, modelName, modelInstance in self.assemblerDict['Model']:
+      if not isThereACode:
+        isThereACode = modelType == 'Code' 
+        
       self.modelsDictionary[modelName]['Instance'] = modelInstance
       inputInstancesForModel = []
       for inputName in self.modelsInputDictionary[modelName]['Input']:
@@ -280,8 +285,12 @@ class EnsembleModel(Dummy):
       self.allOutputs = self.allOutputs.union(newOuts)
     # END loop to collect models
     self.allOutputs = list(self.allOutputs)
+    
+    # check if MPI is activated
+    if runInfo.get('NumMPI', 1) > 1 and isThereACode:
+      self.parallelStrategy = 2 #  threads (OLD method)
 
-    # check if all the inputs passed in the step are linked with at least a model
+    # check if all the inputs passed in the step ar'9yue linked with at least a model
     if not all(checkDictInputsUsage.values()):
       unusedFiles = ""
       for inFile, used in checkDictInputsUsage.items():
@@ -515,14 +524,15 @@ class EnsembleModel(Dummy):
     ## Ensemble models need access to the job handler, so let's stuff it in our
     ## catch all kwargs where evaluateSample can pick it up, not great, but
     ## will suffice until we can better redesign this whole process.
-    # kwargs['jobHandler'] = jobHandler
-
+    kwargs['jobHandler'] = jobHandler if self.parallelStrategy == 2 else None
     ## This may look a little weird, but due to how the parallel python library
     ## works, we are unable to pass a member function as a job because the
     ## pp library loses track of what self is, so instead we call it from the
     ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
-    # jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+    if self.parallelStrategy == 1:
+      jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
+    else:  
+      jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
     """
