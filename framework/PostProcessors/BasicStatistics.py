@@ -144,7 +144,7 @@ class BasicStatistics(PostProcessor):
     self.steMetaIndex   = 'targets' # when Dataset is requested as output, the default index of ste metadata is ['targets', self.pivotParameter]
     self.multipleFeatures = True # True if multiple features are employed in linear regression as feature inputs
     self.sampleSize     = None # number of sample size
-
+    self.calculations   = {}
   def inputToInternal(self, currentInp):
     """
       Method to convert an input object into the internal format that is
@@ -603,17 +603,17 @@ class BasicStatistics(PostProcessor):
     needed = dict((metric,{'targets':set(),'percent':set()}) for metric in self.scalarVals)
     needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
     for metric, params in self.toDo.items():
-      for entry in params:
-        needed[metric]['targets'].update(entry['targets'])
-        try:
-          needed[metric]['features'].update(entry['features'])
-        except KeyError:
-          pass
-        try:
-          needed[metric]['percent'].update(entry['percent'])
-        except KeyError:
-          pass
-
+      if metric in self.scalarVals + self.vectorVals:
+        for entry in params:
+          needed[metric]['targets'].update(entry['targets'])
+          try:
+            needed[metric]['features'].update(entry['features'])
+          except KeyError:
+            pass
+          try:
+            needed[metric]['percent'].update(entry['percent'])
+          except KeyError:
+            pass
     # variable                     | needs                  | needed for
     # --------------------------------------------------------------------
     # skewness needs               | expectedValue,variance |
@@ -692,7 +692,7 @@ class BasicStatistics(PostProcessor):
         sampleMat = np.zeros(len(self.parameters['targets']))
         sampleMat.fill(self.sampleSize)
         samplesDA = xr.DataArray(sampleMat,dims=('targets'), coords={'targets':self.parameters['targets']})
-
+      self.calculations[metric] = samplesDA
       calculations[metric] = samplesDA
     #
     # expected value
@@ -709,6 +709,7 @@ class BasicStatistics(PostProcessor):
         calculations['equivalentSamples'] = equivalentSize
       else:
         expectedValueDS = dataSet.mean(dim = self.sampleTag)
+      self.calculations[metric] = expectedValueDS
       calculations[metric] = expectedValueDS
     #
     # variance
@@ -728,6 +729,7 @@ class BasicStatistics(PostProcessor):
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
       sigmaDS = self.__computePower(0.5,calculations['variance'][list(needed[metric]['targets'])])
+      self.calculations[metric] = sigmaDS
       calculations[metric] = sigmaDS
     #
     # coeff of variation (sigma/mu)
@@ -782,6 +784,7 @@ class BasicStatistics(PostProcessor):
           medianSet[target] = da
       else:
         medianSet = dataSet.median(dim=self.sampleTag)
+      self.calculations[metric] = medianSet
       calculations[metric] = medianSet
     #
     # lowerPartialVariance
@@ -1121,7 +1124,6 @@ class BasicStatistics(PostProcessor):
       reducedSen *= meanDA
       calculations[metric] = reducedSen
 
-
     for metric, ds in calculations.items():
       if metric in self.scalarVals + self.steVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
@@ -1157,9 +1159,10 @@ class BasicStatistics(PostProcessor):
               if skip is not None:
                 self.raiseADebug('Metric',metric,'was skipped for parameters',targetDict,'!  See warnings for details.  Ignoring...')
                 continue
-              for feature in targetDict['features']:
-                varName = '_'.join([prefix,target,feature])
-                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'features':feature}))
+              if metric in self.vectorVals:
+                for feature in targetDict['features']:
+                  varName = '_'.join([prefix,target,feature])
+                  outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'features':feature}))
       if self.pivotParameter in outputSet.sizes.keys():
         outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
 
@@ -1290,7 +1293,6 @@ class BasicStatistics(PostProcessor):
     """
     inputData = self.inputToInternal(inputIn)
     outputSet = self.__runLocal(inputData)
-
     return outputSet
 
   def collectOutput(self, finishedJob, output):

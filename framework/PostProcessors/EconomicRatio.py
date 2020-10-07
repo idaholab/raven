@@ -34,12 +34,9 @@ class EconomicRatio(BasicStatistics):
   """
     EconomicRatio filter class. It computes economic metrics
   """
+  scalarVals =   BasicStatistics.scalarVals
+  vectorVals =   BasicStatistics.vectorVals          
 
-  scalarVals = ['expectedValue',
-                'median',
-                'variance',
-                'sigma'
-                ]
   tealVals   = ['sharpeRatio',             #financial metric
                 'sortinoRatio',            #financial metric
                 'gainLossRatio',           #financial metric
@@ -84,14 +81,7 @@ class EconomicRatio(BasicStatistics):
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
-    self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
-    self.pivotParameter = None # time-dependent statistics pivot parameter
-    self.pivotValue = None # time-dependent statistics pivot parameter values
-    self.sampleTag = None  # Tag used to track samples
-    self.pbPresent = False # True if the ProbabilityWeight is available
-    self.realizationWeight = None # The joint probabilities
-    self.sampleSize = None # number of sample size
+    BasicStatistics.__init__(self, messageHandler)
 
   def inputToInternal(self, currentInp):
     """
@@ -108,7 +98,6 @@ class EconomicRatio(BasicStatistics):
 
     if currentInput.type not in ['PointSet','HistorySet']:
       self.raiseAnError(IOError, self, 'EconomicRatio postprocessor accepts PointSet and HistorySet only! Got ' + currentInput.type)
-
     # extract all required data from input DataObjects, an input dataset is constructed
     dataSet = currentInput.asDataset()
     inputDataset = dataSet[self.parameters['targets']]
@@ -216,9 +205,19 @@ class EconomicRatio(BasicStatistics):
             if threshold not in ['zero','median']:
               self.raiseAWarning('Unrecognized threshold in {}, prefix \'{}\' use zero instead!'.format(tag, prefix))
               threshold = 'zero'
+            
+          if 'expectedValue' not in self.toDo.keys():
+            self.toDo['expectedValue'] = [] 
+          if 'median' not in self.toDo.keys():
+            self.toDo['median'] = [] 
+          self.toDo['expectedValue'].append({'targets':set(child.value),
+                            'prefix':'BSMean'}) 
+          self.toDo['median'].append({'targets':set(child.value),
+                            'prefix':'BSMED'}) 
           self.toDo[tag].append({'targets':set(targets),
                                 'prefix':prefix,
-                                'threshold':threshold})
+                                'threshold':threshold}) 
+
         elif tag in ['expectedShortfall', 'valueAtRisk']:
           #get targets
           targets = set(child.value)
@@ -237,6 +236,14 @@ class EconomicRatio(BasicStatistics):
         else:
           if tag not in self.toDo.keys():
             self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
+          if 'expectedValue' not in self.toDo.keys():
+            self.toDo['expectedValue'] = [] 
+          if 'sigma' not in self.toDo.keys():
+            self.toDo['sigma'] = []
+          self.toDo['expectedValue'].append({'targets':set(child.value),
+                               'prefix':'BSMean'}) 
+          self.toDo['sigma'].append({'targets':set(child.value),
+                               'prefix':'BSSigma'})                      
           self.toDo[tag].append({'targets':set(child.value),
                                'prefix':prefix})
       elif tag in self.scalarVals:
@@ -268,118 +275,6 @@ class EconomicRatio(BasicStatistics):
       pw[target] = np.power(targValue,p)
     pw = xr.Dataset(data_vars=pw,coords=coords)
     return pw
-
-  def __computeVp(self,p,weights):
-    """
-      Compute the sum of p-th power of weights
-      @ In, p, int, the power
-      @ In, weights, xarray.Dataset, probability weights of all input variables
-      @ Out, vp, xarray.Dataset, the sum of p-th power of weights
-    """
-    vp = self.__computePower(p,weights)
-    vp = vp.sum()
-    return vp
-
-  def __computeEquivalentSampleSize(self,weights):
-    """
-      Compute the equivalent sample size for given probability weights
-      @ In, weights, xarray.Dataset, probability weights of all input variables
-      @ Out, equivalentSize, xarray.Dataset, the equivalent sample size
-    """
-    # The equivalent sample size for given samples, i.e. (sum of weights) squared / sum of the squared weights
-    # The definition of this quantity can be found:
-    # R. F. Potthoff, M. A. Woodbury and K. G. Manton, "'Equivalent SampleSize' and 'Equivalent Degrees of Freedom'
-    # Refinements for Inference Using Survey Weights Under Superpopulation Models", Journal of the American Statistical
-    # Association, Vol. 87, No. 418 (1992)
-    v1Square = self.__computeVp(1,weights)**2
-    v2 = self.__computeVp(2,weights)
-    equivalentSize = v1Square/v2
-    return equivalentSize
-
-  def __computeUnbiasedCorrection(self,order,weightsOrN):
-    """
-      Compute unbiased correction given weights and momement order
-      Reference paper:
-      Lorenzo Rimoldini, "Weighted skewness and kurtosis unbiased by sample size", http://arxiv.org/pdf/1304.6564.pdf
-      @ In, order, int, moment order
-      @ In, weightsOrN, xarray.Dataset or int, if xarray.Dataset -> weights else -> number of samples
-      @ Out, corrFactor, xarray.Dataset or int, xarray.Dataset (order <=3) or tuple of xarray.Dataset (order ==4),
-        the unbiased correction factor if weightsOrN is xarray.Dataset else integer
-    """
-    if order > 4:
-      self.raiseAnError(RuntimeError,"computeUnbiasedCorrection is implemented for order <=4 only!")
-    if type(weightsOrN).__name__ not in ['int','int8','int16','int64','int32']:
-      if order == 2:
-        V1, v1Square, V2 = self.__computeVp(1, weightsOrN), self.__computeVp(1, weightsOrN)**2.0, self.__computeVp(2, weightsOrN)
-        corrFactor   = v1Square/(v1Square-V2)
-      elif order == 3:
-        V1, v1Cubic, V2, V3 = self.__computeVp(1, weightsOrN), self.__computeVp(1, weightsOrN)**3.0, self.__computeVp(2, weightsOrN), self.__computeVp(3, weightsOrN)
-        corrFactor   =  v1Cubic/(v1Cubic-3.0*V2*V1+2.0*V3)
-      elif order == 4:
-        V1, v1Square, V2, V3, V4 = self.__computeVp(1, weightsOrN), self.__computeVp(1, weightsOrN)**2.0, self.__computeVp(2, weightsOrN), self.__computeVp(3, weightsOrN), self.__computeVp(4, weightsOrN)
-        numer1 = v1Square*(v1Square**2.0-3.0*v1Square*V2+2.0*V1*V3+3.0*V2**2.0-3.0*V4)
-        numer2 = 3.0*v1Square*(2.0*v1Square*V2-2.0*V1*V3-3.0*V2**2.0+3.0*V4)
-        denom = (v1Square-V2)*(v1Square**2.0-6.0*v1Square*V2+8.0*V1*V3+3.0*V2**2.0-6.0*V4)
-        corrFactor = numer1/denom ,numer2/denom
-    else:
-      if   order == 2:
-        corrFactor   = float(weightsOrN)/(float(weightsOrN)-1.0)
-      elif order == 3:
-        corrFactor   = (float(weightsOrN)**2.0)/((float(weightsOrN)-1)*(float(weightsOrN)-2))
-      elif order == 4:
-        corrFactor = (float(weightsOrN)*(float(weightsOrN)**2.0-2.0*float(weightsOrN)+3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3)),(3.0*float(weightsOrN)*(2.0*float(weightsOrN)-3.0))/((float(weightsOrN)-1)*(float(weightsOrN)-2)*(float(weightsOrN)-3))
-    return corrFactor
-
-  def _computeVariance(self, arrayIn, expValue, pbWeight=None, dim = None):
-    """
-      Method to compute the Variance (fisher) of an array of observations
-      @ In, arrayIn, xarray.Dataset, the dataset from which the Variance needs to be estimated
-      @ In, expValue, xarray.Dataset, expected value of arrayIn
-      @ In, pbWeight, xarray.Dataset, optional, the reliability weights that correspond to dataset arrayIn.
-        If not present, an unweighted approach is used
-      @ Out, result, xarray.Dataset, the Variance of the dataset arrayIn
-    """
-    if dim is None:
-      dim = self.sampleTag
-    if pbWeight is not None:
-      unbiasCorr = self.__computeUnbiasedCorrection(2,pbWeight) 
-      vp = 1.0/self.__computeVp(1,pbWeight)
-      result = ((arrayIn-expValue)**2 * pbWeight).sum(dim=dim) * vp * unbiasCorr
-    else:
-      unbiasCorr = self.__computeUnbiasedCorrection(2,int(arrayIn.sizes[dim])) 
-      result =  (arrayIn-expValue).var(dim=dim) * unbiasCorr
-    return result
-
-  def _computeLowerPartialVariance(self, arrayIn, medValue, pbWeight=None, dim = None):
-    """
-      Method to compute the lower partial variance of an array of observations
-      @ In, arrayIn, xarray.Dataset, the dataset from which the Variance needs to be estimated
-      @ In, medValue, xarray.Dataset, median value of arrayIn
-      @ In, pbWeight, xarray.Dataset, optional, the reliability weights that correspond to dataset arrayIn.
-        If not present, an unweighted approach is used
-      @ Out, result, xarray.Dataset, the lower partial variance of the dataset arrayIn
-    """
-    if dim is None:
-      dim = self.sampleTag
-      
-    diff = (medValue-arrayIn).clip(min=0)
-    if pbWeight is not None:
-      vp = 1.0/self.__computeVp(1,pbWeight)
-      result = ((diff)**2 * pbWeight).sum(dim=dim) * vp
-    else:
-      result = diff.var(dim=dim)
-    return result
-
-  def _computeSigma(self,arrayIn,variance,pbWeight=None):
-    """
-      Method to compute the sigma of an array of observations
-      @ In, arrayIn, xarray.Dataset, the dataset from which the standard deviation needs to be estimated
-      @ In, variance, xarray.Dataset, variance of arrayIn
-      @ In, pbWeight, xarray.Dataset, optional, the reliability weights that correspond to dataset arrayIn.
-        If not present, an unweighted approach is used
-      @ Out, sigma, xarray.Dataset, the sigma of the dataset of arrayIn
-    """
-    return np.sqrt(variance)
 
   def _computeWeightedPercentile(self,arrayIn,pbWeight,percent=0.5):
     """
@@ -489,71 +384,7 @@ class EconomicRatio(BasicStatistics):
     # BEGIN actual calculations
     #
 
-    calculations = {}
-
-    #################
-    # SCALAR VALUES #
-    #################
-    #
-    # expected value
-    #
-    metric = 'expectedValue'
-    if len(needed[metric]['targets']) > 0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      dataSet = inputDataset[list(needed[metric]['targets'])]
-      if self.pbPresent:
-        relWeight = pbWeights[list(needed[metric]['targets'])]
-        equivalentSize = self.__computeEquivalentSampleSize(relWeight)
-        dataSet = dataSet * relWeight
-        expectedValueDS = dataSet.sum(dim = self.sampleTag)
-        calculations['equivalentSamples'] = equivalentSize
-      else:
-        expectedValueDS = dataSet.mean(dim = self.sampleTag)
-      calculations[metric] = expectedValueDS
-    #
-    # variance
-    #
-    metric = 'variance'
-    if len(needed[metric]['targets'])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      dataSet = inputDataset[list(needed[metric]['targets'])]
-      meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
-      relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
-      varianceDS = self._computeVariance(dataSet,meanSet,pbWeight=relWeight,dim=self.sampleTag)
-      calculations[metric] = varianceDS
-    #
-    # sigma
-    #
-    metric = 'sigma'
-    if len(needed[metric]['targets'])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      sigmaDS = self.__computePower(0.5,calculations['variance'][list(needed[metric]['targets'])])
-      calculations[metric] = sigmaDS
-    #
-    # median
-    #
-    metric = 'median'
-    if len(needed[metric]['targets'])>0:
-      self.raiseADebug('Starting "'+metric+'"...')
-      dataSet = inputDataset[list(needed[metric]['targets'])]
-      if self.pbPresent:
-        medianSet = xr.Dataset()
-        relWeight = pbWeights[list(needed[metric]['targets'])]
-        for target in needed[metric]['targets']:
-          targWeight = relWeight[target].values
-          targDa = dataSet[target]
-          if self.pivotParameter in targDa.sizes.keys():
-            quantile = [self._computeWeightedPercentile(group.values,targWeight,percent=0.5) for label,group in targDa.groupby(self.pivotParameter)]
-          else:
-            quantile = self._computeWeightedPercentile(targDa.values,targWeight,percent=0.5)
-          if self.pivotParameter in targDa.sizes.keys():
-            da = xr.DataArray(quantile,dims=(self.pivotParameter),coords={self.pivotParameter:self.pivotValue})
-          else:
-            da = xr.DataArray(quantile)
-          medianSet[target] = da
-      else:
-        medianSet = dataSet.median(dim=self.sampleTag)
-      calculations[metric] = medianSet
+    calculations = self.calculations
 
     #################
     # TEAL VALUES   #
@@ -636,7 +467,6 @@ class EconomicRatio(BasicStatistics):
       relWeight = pbWeights[list(needed[metric]['targets'])]
       orgZeroSet = xr.full_like(meanSet, 0)
       orgMedSet = calculations['median']
-
       zeroTarget = []
       daZero = xr.Dataset()
       medTarget = []
@@ -678,11 +508,9 @@ class EconomicRatio(BasicStatistics):
     metric = 'gainLossRatio'
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
-      meanSet = calculations['expectedValue'][list(needed[metric]['targets'])]
       relWeight = pbWeights[list(needed[metric]['targets'])]
-      orgZeroSet = xr.full_like(meanSet, 0)
       orgMedSet = calculations['median']
-
+      orgZeroSet = xr.full_like(orgMedSet, 0)
       zeroTarget = []
       daZero = xr.Dataset()
       medTarget = []
@@ -774,9 +602,9 @@ class EconomicRatio(BasicStatistics):
       @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
       @ Out, outputSet, xarray.Dataset or dictionary, dataset or dictionary containing the results
     """
+    BasicStatistics.run(self,inputIn)
     inputData = self.inputToInternal(inputIn)
     outputSet = self.__runLocal(inputData)
-
     return outputSet
 
   def collectOutput(self, finishedJob, output):
