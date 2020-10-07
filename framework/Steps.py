@@ -42,7 +42,7 @@ import Files
 from utils import utils
 from utils import InputData, InputTypes
 import Models
-from OutStreams import OutStreamManager
+from OutStreams import OutStreamBase
 from DataObjects import DataObject
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -448,7 +448,7 @@ class SingleRun(Step):
       #if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
       if 'HDF5' in inDictionary['Output'][i].type:
         inDictionary['Output'][i].initialize(self.name)
-      elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:
+      elif isinstance(inDictionary['Output'][i], OutStreamBase):
         inDictionary['Output'][i].initialize(inDictionary)
       self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
     self._registerMetadata(inDictionary)
@@ -488,8 +488,8 @@ class SingleRun(Step):
         if finishedJob.getReturnCode() == 0:
           # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
           for output in outputs:
-            if output.type not in ['OutStreamPlot','OutStreamPrint']:
-              model.collectOutput(finishedJob,output)
+            if not isinstance(output, OutStreamBase):
+              model.collectOutput(finishedJob, output)
             else:
               output.addOutput()
         else:
@@ -603,7 +603,7 @@ class MultiRun(SingleRun):
     self._outputDictCollectionLambda = []
     # set up output collection lambdas
     for outIndex, output in enumerate(inDictionary['Output']):
-      if output.type not in ['OutStreamPlot','OutStreamPrint']:
+      if not isinstance(output, OutStreamBase):
         if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name:
           self._outputCollectionLambda.append((lambda x:None, outIndex))
           self._outputDictCollectionLambda.append((lambda x:None, outIndex))
@@ -856,7 +856,7 @@ class IOStep(Step):
     """
     outputs         = []
     for out in inDictionary['Output']:
-      if not isinstance(out,OutStreamManager):
+      if not isinstance(out, OutStreamBase):
         outputs.append(out)
     return outputs
 
@@ -961,9 +961,9 @@ class IOStep(Step):
           filename = os.path.join(self.fromDirectory, inInput.name)
           inInput.load(filename, style='csv')
 
-    #Initialize all the OutStreamPrint and OutStreamPlot outputs
+    #Initialize all the OutStreams
     for output in inDictionary['Output']:
-      if type(output).__name__ in ['OutStreamPrint','OutStreamPlot']:
+      if isinstance(output, OutStreamBase):
         output.initialize(inDictionary)
         self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
     # register metadata
@@ -1045,7 +1045,7 @@ class IOStep(Step):
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
 
     for output in inDictionary['Output']:
-      if output.type in ['OutStreamPrint','OutStreamPlot']:
+      if isinstance(output, OutStreamBase):
         output.addOutput()
 
   def _localGetInitParams(self):

@@ -690,7 +690,7 @@ class DataSet(DataObject):
     # NOTE: The slice may include NaN if a variable does not have a value along a different index for this snapshot along "index"
     return slices
 
-  def write(self,fileName,style='netCDF',**kwargs):
+  def write(self, fileName, style='netCDF', **kwargs):
     """
       Writes this dataset to disk based on the format.
       @ In, fileName, str, path and name of file to write
@@ -703,12 +703,12 @@ class DataSet(DataObject):
     if style.lower() == 'netcdf':
       self._toNetCDF(fileName,**kwargs)
     elif style.lower() == 'csv':
-      if len(self)==0: #TODO what if it's just metadata?
+      if len(self) == 0:
         self.raiseAWarning('Nothing to write to CSV! Checking metadata ...')
       else:
         #first write the CSV
         firstIndex = kwargs.get('firstIndex',0)
-        self._toCSV(fileName,start=firstIndex,**kwargs)
+        self._toCSV(fileName, start=firstIndex, **kwargs)
       # then the metaxml
       if len(self._meta):
         self._toCSVXML(fileName,**kwargs)
@@ -1681,14 +1681,14 @@ class DataSet(DataObject):
       return len(self),None
     return idx,self._getRealizationFromDataByIndex(idx,unpackXArray)
 
-  def _getRequestedElements(self,options):
+  def _getRequestedElements(self, options):
     """
       Obtains a list of the elements to be written, based on defaults and options[what]
       @ In, options, dict, general list of options for writing output files
       @ Out, keep, list(str), list of variables that will be written to file
     """
     if 'what' in options.keys():
-      elements = options['what'].split(',')
+      elements = options['what']
       keep = []
       for entry in elements:
         small = entry.strip().lower()
@@ -1867,7 +1867,7 @@ class DataSet(DataObject):
       except Exception:
         self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(name))
 
-  def _toCSV(self,fileName,start=0,**kwargs):
+  def _toCSV(self, fileName, start=0, **kwargs):
     """
       Writes this data object to CSV file (except the general metadata, see _toCSVXML)
       @ In, fileName, str, path/name to write file
