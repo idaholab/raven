@@ -442,8 +442,9 @@ class Optimizer(AdaptiveSampler):
       @ In, value, float, opt value obtained
       @ Out, None
     """
-    if traj in self._activeTraj:
-      self._activeTraj.remove(traj)
+    self._activeTraj.remove(traj)
+    # if traj in self._activeTraj:
+    #  self._activeTraj.remove(traj)
     info = {'reason': reason, 'value': value}
     assert action in ['converge', 'cancel']
     if action == 'converge':
