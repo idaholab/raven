@@ -25,8 +25,6 @@ import time
 import abc
 import os
 import sys
-import shutil
-import itertools
 if sys.version_info.major > 2:
   import pickle
 else:

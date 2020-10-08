@@ -52,8 +52,7 @@ else:
 
 # cleanup
 try:
-#  os.remove(fName)
-  pass
+  os.remove(fName)
 except:
   print('Test multirun spec file was not able to be removed; continuing ...')
 
