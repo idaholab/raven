@@ -122,6 +122,7 @@ class ParameterInput(object):
   name = "unknown"
   subs = OrderedDict() #set()
   subOrder = None
+  unknownSubs = False  # Allow unknown subs at run-time
   parameters = OrderedDict()
   contentType = None
   strictMode = True #If true, only allow parameters and subnodes that are listed
@@ -143,7 +144,7 @@ class ParameterInput(object):
 
   @classmethod
   def createClass(cls, name, ordered=False, contentType=None, baseNode=None,
-                  strictMode=True, descr=None, printPriority=None):
+                  strictMode=True, descr=None, printPriority=None, unknownSubs=False):
     """
       Initializes a new class.
       @ In, name, string, The name of the node.
@@ -184,6 +185,7 @@ class ParameterInput(object):
       cls.parameters = {}
       cls.subs = OrderedDict() #set()
       cls._subDict = dict()
+      cls.unknownSubs = unknownSubs
       if ordered:
         cls.subOrder = []
       else:
@@ -412,7 +414,15 @@ class ParameterInput(object):
     subNames = set()
     for child in node:
       childName = child.tag
-      subsSet = self._subDict.get(childName,set())
+      if self.unknownSubs:
+          subsSet = self._subDict.get(
+              childName,
+              ## If it hasn't been declared and class allows
+              ## unknown subs at runtime, then add subpart to class.
+              self.addSubSimple(childName, InputTypes.StringType)
+          )
+      else:
+          subsSet = self._subDict.get(childName, set())
       foundSubs = 0
       for sub in subsSet:
         if sub._checkCanRead is None:
@@ -420,7 +430,7 @@ class ParameterInput(object):
           foundSubs += 1
         elif sub._checkCanRead.check(child):
           subInstance = sub()
-          foundSub += 1
+          foundSubs += 1
       if foundSubs > 0:
         subNames.add(childName)
         subInstance.parseNode(child, errorList)
