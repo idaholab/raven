@@ -24,7 +24,11 @@ from __future__ import division, print_function, absolute_import
 # are used by --library-report, this can cause diagnostic messages to fail. *
 # ***************************************************************************
 import bisect
-import sys, os, errno
+import sys
+import os
+import errno
+import shutil
+import pathlib
 import inspect
 import subprocess
 import platform
@@ -172,6 +176,27 @@ def removeFile(pathAndFileName):
   """
   if os.path.isfile(pathAndFileName):
     os.remove(pathAndFileName)
+
+def removeDir(strPath):
+  """
+    Method to remove a directory.
+    @ In, strPath, string, path to directory to remove
+    @ Out, None
+  """
+  path = pathlib.Path(strPath).expanduser().resolve()
+  shutil.rmtree(path, onerror=_removeDirErrorHandler)
+
+def _removeDirErrorHandler(func, path, excinfo):
+  """
+    Handles errors arising from using shutil.rmtree
+    Argument descriptions from shutil documentation
+    @ In, func, is the function which raised the exception; it depends on the platform and
+                implementation
+    @ In, path, will be the path name passed to function
+    @ In, excinfo, will be the exception information returned by sys.exc_info()
+    @ Out, None
+  """
+  print(f'utils.removeDir WARNING: unable to remove {path} using {func}, raising the following exception: {excinfo}. Continuing ...')
 
 def returnImportModuleString(obj,moduleOnly=False):
   """
@@ -696,7 +721,6 @@ def getPythonCommand():
   #  pythonCommand = "python"
   #pythonCommand = os.environ.get("PYTHON_COMMAND", pythonCommand)
   return pythonCommand
-
 
 def printCsv(csv,*args):
   """

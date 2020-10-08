@@ -61,7 +61,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="sample">
+    <MultiRun name="sample" clearRunDir="False">
       <Input class="Files" type="">gen.one</Input>
       <Input class="Files" type="">gen.two</Input>
       <Model class="Models" type="Code">poly</Model>

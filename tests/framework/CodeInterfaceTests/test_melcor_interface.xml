@@ -77,7 +77,7 @@
   </OutStreams>
 
   <Steps>
-	<MultiRun name="testMelcor">
+	<MultiRun name="testMelcor" clearRunDir="False">
         <Input   class="Files"       type="input">melcorinput</Input>
         <Model   class="Models"      type="Code">MELGEN</Model>
         <Sampler class="Samplers"    type="MonteCarlo">MC_samp</Sampler>

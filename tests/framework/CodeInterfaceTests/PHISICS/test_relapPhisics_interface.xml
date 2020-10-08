@@ -59,7 +59,7 @@
        <executable>xxx</executable>
        <printSpatialRR>F</printSpatialRR>
        <printSpatialFlux>F</printSpatialFlux>
-    </Code>    
+    </Code>
   </Models>
 
   <Distributions>
@@ -93,7 +93,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="phisicsRelap5Test">
+    <MultiRun name="phisicsRelap5Test" clearRunDir="False">
       <Input class="Files" type="decay"              >decay.dat</Input>
       <Input class="Files" type="inp"                >inst_cont.xml</Input>
       <Input class="Files" type="path"               >lib_inp_path.xml</Input>
@@ -107,16 +107,16 @@
       <Input class="Files" type="Beta+xDecay"        >Beta+xDecay.path</Input>
       <Input class="Files" type="BetaDecay"          >BetaDecay.path</Input>
       <Input class="Files" type="BetaxDecay"         >BetaxDecay.path</Input>
-      <Input class="Files" type="IntTraDecay"        >IntTraDecay.path</Input>  
-      <Input class="Files" type="N,2N.path"          >N,2N.path</Input>  
+      <Input class="Files" type="IntTraDecay"        >IntTraDecay.path</Input>
+      <Input class="Files" type="N,2N.path"          >N,2N.path</Input>
       <Input class="Files" type="N,ALPHA.path"       >N,ALPHA.path</Input>
       <Input class="Files" type="N,G.path"           >N,G.path</Input>
       <Input class="Files" type="N,Gx.path"          >N,Gx.path</Input>
-      <Input class="Files" type="N,P.path"           >N,P.path</Input> 
-      <Input class="Files" type="budep.inp"          >budep.inp</Input>   
-      <Input class="Files" type="CRAM_coeff_PF.dat"  >CRAM_coeff_PF.dat</Input> 
-      <Input class="Files" type="IsotopeList.dat"    >IsotopeList.dat</Input> 
-      <Input class="Files" type="mass.inp"           >mass.inp</Input> 
+      <Input class="Files" type="N,P.path"           >N,P.path</Input>
+      <Input class="Files" type="budep.inp"          >budep.inp</Input>
+      <Input class="Files" type="CRAM_coeff_PF.dat"  >CRAM_coeff_PF.dat</Input>
+      <Input class="Files" type="IsotopeList.dat"    >IsotopeList.dat</Input>
+      <Input class="Files" type="mass.inp"           >mass.inp</Input>
       <Input class="Files" type="relapInp"           >ex_3a_R_CR_nom.i</Input>
       <Input class="Files" type="relapH2o"           >tpfh2o</Input>
       <Input class="Files" type="relapRellic"        >rellic.bin</Input>
@@ -126,7 +126,7 @@
       <Output class="OutStreams" type="Print">out_streams_RAVEN</Output>
     </MultiRun>
   </Steps>
-  
+
   <OutStreams>
       <Print name="out_streams_RAVEN">
         <type>csv</type>

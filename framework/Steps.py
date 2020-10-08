@@ -25,6 +25,7 @@ import time
 import abc
 import os
 import sys
+import shutil
 import itertools
 if sys.version_info.major > 2:
   import pickle
@@ -92,12 +93,13 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #  re-seeding = 'continue' the use the already present random environment
     #If there is no instruction (self.initSeed = None) the sampler will reinitialize
     self.initSeed        = None
-    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns']
+    self._knownAttribute += ['clearRunDir', 'sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns']
     self._excludeFromModelValidation = ['SolutionExport']
     # how to handle failed runs. By default, the step fails.
     # If the attribute "repeatFailureRuns" is inputted, a certain number of repetitions are going to be performed
     self.failureHandling = {"fail":True, "repetitions":0, "perturbationFactor":0.0, "jobRepetitionPerformed":{}}
     self.printTag = 'STEPS'
+    self._clearRunDir = None
 
   @classmethod
   def getInputSpecification(cls):
@@ -128,6 +130,12 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     inputSpecification.addParam("pauseAtEnd", InputTypes.StringType)
     inputSpecification.addParam("fromDirectory", InputTypes.StringType)
     inputSpecification.addParam("repeatFailureRuns", InputTypes.StringType)
+    inputSpecification.addParam("clearRunDir", InputTypes.BoolType,
+        descr=r"""indicates whether the run directory should be cleared (removed) before beginning
+              the Step calculation. The run directory has the same name as the Step and is located
+              within the WorkingDir. Note this directory is only used for Steps with certain Models,
+              such as Code.
+              \default{True}""")
 
     # for convenience, map subnodes to descriptions and loop through them
     subOptions = {'Input': 'Inputs to the step operation',
@@ -180,6 +188,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           self.raiseAnError(IOError,printString.format(self.type,self.name,self.initSeed,'re-seeding'))
     if 'sleepTime' in paramInput.parameterValues:
       self.sleepTime = paramInput.parameterValues['sleepTime']
+    self._clearRunDir = paramInput.parameterValues.get('clearRunDir', True)
     for child in paramInput.subparts:
       classType = child.parameterValues['class']
       classSubType = child.parameterValues['type']
@@ -354,10 +363,10 @@ class SingleRun(Step):
       @ Out, None
     """
     Step.__init__(self)
-    self.samplerType    = 'Sampler'
-    self.failedRuns     = []
+    self.samplerType = 'Sampler'
+    self.failedRuns = []
     self.lockedFileName = "ravenLocked.raven"
-    self.printTag       = 'STEP SINGLERUN'
+    self.printTag = 'STEP SINGLERUN'
 
   def _localInputAndCheckParam(self,paramInput):
     """
@@ -427,16 +436,34 @@ class SingleRun(Step):
     if inDictionary['Model'].createWorkingDir:
       currentWorkingDirectory = os.path.join(inDictionary['jobHandler'].runInfoDict['WorkingDir'],
                                              inDictionary['jobHandler'].runInfoDict['stepName'])
-      try:
-        os.mkdir(currentWorkingDirectory)
-      except FileExistsError:
-        self.raiseAWarning('current working dir '+currentWorkingDirectory+' already exists, ' +
-                           'this might imply deletion of present files')
-        if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
-          self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
-        if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
-          self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ currentWorkingDirectory+". Please check your input!")
-        # register function to remove the locked file at the end of execution
+      workingDirReady = False
+      alreadyTried = False
+      while not workingDirReady:
+        try:
+          os.mkdir(currentWorkingDirectory)
+          workingDirReady = True
+        except FileExistsError:
+          if self._clearRunDir and not alreadyTried:
+            self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists, ' +
+                              'clearing existing files. This action can be disabled through the RAVEN Step input.')
+
+            utils.removeDir(currentWorkingDirectory)
+            alreadyTried = True
+            continue
+          else:
+            if alreadyTried:
+              self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists, ' +
+                                'and was not able to be removed. ' +
+                                'This might imply replacing files present, or unintended error handling.')
+            else:
+              self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists, ' +
+                                'this might imply replacing files present, or unintended error handling.')
+            if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
+              self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
+            if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
+              self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ currentWorkingDirectory+". Please check your input!")
+            workingDirReady = True
+          # register function to remove the locked file at the end of execution
         atexit.register(utils.removeFile,os.path.join(currentWorkingDirectory,self.lockedFileName))
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],modelInitDict)
 
