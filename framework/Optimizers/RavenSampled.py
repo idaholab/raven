@@ -290,7 +290,7 @@ class RavenSampled(Optimizer):
     # get information and realization, and update trajectories
     info = self.getIdentifierFromPrefix(prefix, pop=True)
     if self.batch == 1:
-      _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=True)
+      _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
     else:
       # NOTE if here, then rlz is actually a xr.Dataset, NOT a dictionary!!
       _, rlz = self._targetEvaluation.realization(matchDict={'batchId': self.batchId}, asDataSet=True,options={'returnAllMatch':True})
