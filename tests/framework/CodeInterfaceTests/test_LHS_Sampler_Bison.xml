@@ -7,7 +7,7 @@
     <classesTested>Models.Code.MooseBasedApp</classesTested>
     <description>
        An example of using the the Model Code of type MooseBasedApp.
-       This test is aimed to show the usage of the code interface MooseBasedApp in order to test its mechanics 
+       This test is aimed to show the usage of the code interface MooseBasedApp in order to test its mechanics
     </description>
     <revisions>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
@@ -70,7 +70,7 @@
   </DataObjects>
 
   <Steps>
-    <MultiRun name="myLHS">
+    <MultiRun name="myLHS" clearRunDir="False">
       <Input class="Files" type="">gap_perfect_transfer_test.i</Input>
       <Input class="Files" type="">gap_perfect_transfer_test.e</Input>
       <Model class="Models" type="Code">Bison</Model>
