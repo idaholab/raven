@@ -550,7 +550,7 @@ class Code(Model):
         localenv[key]=str(value)
     elif not self.code.getRunOnShell():
       command = self._expandCommand(command)
-    print(f'DEBUGG command: |{command}|')
+    self.raiseADebug(f'shell execution command: "{command}"')
     ## reset python path
     localenv.pop('PYTHONPATH',None)
     ## This code should be evaluated by the job handler, so it is fine to wait

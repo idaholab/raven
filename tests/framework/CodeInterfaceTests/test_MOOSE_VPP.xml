@@ -7,7 +7,7 @@
     <classesTested>Models.Code.MooseBasedApp</classesTested>
     <description>
        An example of using the MooseBasedApp code interface.
-       This test is designed to ensure the MooseBasedApp interface is able to process vectorial data (sample vectors)    
+       This test is designed to ensure the MooseBasedApp interface is able to process vectorial data (sample vectors)
     </description>
     <revisions>
       <revision author="alfoa" date="2015-10-09">Changing batch size in RAVEN test</revision>
@@ -74,7 +74,7 @@
   </Models>
 
   <Steps>
-    <MultiRun name="grid_run">
+    <MultiRun name="grid_run" clearRunDir="False">
       <Input class="Files" type="">mooseInput</Input>
       <Input class="Files" type="">mooseMesh</Input>
       <Model class="Models" type="Code">MOOSETestApp</Model>

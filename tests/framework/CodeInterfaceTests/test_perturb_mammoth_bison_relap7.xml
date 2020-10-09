@@ -6,7 +6,7 @@
     <created>2016-08-29</created>
     <classesTested>Models.Code.MAMMOTH, Models.AliasSystem</classesTested>
     <description>
-       An example of using the MAMMOTH code interface (no executable). It checks Bison and RELAP7. 
+       An example of using the MAMMOTH code interface (no executable). It checks Bison and RELAP7.
        This test is designed to ensure the MAMMOTH interface mechanics is correctly functional.
        In addition it used the RAVEN alias system.
     </description>
@@ -68,7 +68,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="MCTestMammoth">
+    <MultiRun name="MCTestMammoth" clearRunDir="False">
       <Input class="Files" type="">mammothInput</Input>
       <Input class="Files" type="">relap7Input</Input>
       <Model class="Models" type="Code">Mammoth</Model>
