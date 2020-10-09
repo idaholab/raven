@@ -25,6 +25,7 @@ import copy
 from collections import OrderedDict, defaultdict
 import six
 import xarray as xr
+
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
@@ -50,7 +51,12 @@ class BasicStatistics(PostProcessor):
                 'variationCoefficient',
                 'skewness',
                 'kurtosis',
-                'samples']
+                'samples',
+                'higherPartialVariance',   # Statistic metric not available yet
+                'higherPartialSigma',      # Statistic metric not available yet
+                'lowerPartialSigma',       # Statistic metric not available yet
+                'lowerPartialVariance'    # Statistic metric not available yet
+                ]
   vectorVals = ['sensitivity',
                 'covariance',
                 'pearson',
@@ -138,7 +144,7 @@ class BasicStatistics(PostProcessor):
     self.steMetaIndex   = 'targets' # when Dataset is requested as output, the default index of ste metadata is ['targets', self.pivotParameter]
     self.multipleFeatures = True # True if multiple features are employed in linear regression as feature inputs
     self.sampleSize     = None # number of sample size
-
+    self.calculations   = {}
   def inputToInternal(self, currentInp):
     """
       Method to convert an input object into the internal format that is
@@ -322,7 +328,6 @@ class BasicStatistics(PostProcessor):
           self.toDo[tag] = [] # list of {'targets':(), 'prefix':str}
         self.toDo[tag].append({'targets':set(child.value),
                                'prefix':prefix})
-
       elif tag in self.vectorVals:
         if tag not in self.toDo.keys():
           self.toDo[tag] = [] # list of {'targets':(),'features':(), 'prefix':str}
@@ -506,6 +511,44 @@ class BasicStatistics(PostProcessor):
       result =  (arrayIn-expValue).var(dim=dim) * unbiasCorr
     return result
 
+  def _computeLowerPartialVariance(self, arrayIn, medValue, pbWeight=None, dim = None):
+    """
+      Method to compute the lower partial variance of an array of observations
+      @ In, arrayIn, xarray.Dataset, the dataset from which the Variance needs to be estimated
+      @ In, medValue, xarray.Dataset, median value of arrayIn
+      @ In, pbWeight, xarray.Dataset, optional, the reliability weights that correspond to dataset arrayIn.
+        If not present, an unweighted approach is used
+      @ Out, result, xarray.Dataset, the lower partial variance of the dataset arrayIn
+    """
+    if dim is None:
+      dim = self.sampleTag
+    diff = (medValue-arrayIn).clip(min=0)
+    if pbWeight is not None:
+      vp = 1.0/self.__computeVp(1,pbWeight)
+      result = ((diff)**2 * pbWeight).sum(dim=dim) * vp
+    else:
+      result = diff.var(dim=dim)
+    return result
+
+  def _computeHigherPartialVariance(self, arrayIn, medValue, pbWeight=None, dim = None):
+    """
+      Method to compute the higher partial variance of an array of observations
+      @ In, arrayIn, xarray.Dataset, the dataset from which the Variance needs to be estimated
+      @ In, medValue, xarray.Dataset, median value of arrayIn
+      @ In, pbWeight, xarray.Dataset, optional, the reliability weights that correspond to dataset arrayIn.
+        If not present, an unweighted approach is used
+      @ Out, result, xarray.Dataset, the higher partial variance of the dataset arrayIn
+    """
+    if dim is None:
+      dim = self.sampleTag
+    diff = (arrayIn-medValue).clip(min=0)
+    if pbWeight is not None:
+      vp = 1.0/self.__computeVp(1,pbWeight)
+      result = ((diff)**2 * pbWeight).sum(dim=dim) * vp
+    else:
+      result = diff.var(dim=dim)
+    return result
+
   def _computeSigma(self,arrayIn,variance,pbWeight=None):
     """
       Method to compute the sigma of an array of observations
@@ -525,18 +568,26 @@ class BasicStatistics(PostProcessor):
       @ In, percent, float, the percentile that needs to be computed (between 0.01 and 1.0)
       @ Out, result, float, the percentile
     """
+
     idxs                   = np.argsort(np.asarray(list(zip(pbWeight,arrayIn)))[:,1])
     # Inserting [0.0,arrayIn[idxs[0]]] is needed when few samples are generated and
     # a percentile that is < that the first pb weight is requested. Otherwise the median
-    # is returned (that is wrong).
+    # is returned.
     sortedWeightsAndPoints = np.insert(np.asarray(list(zip(pbWeight[idxs],arrayIn[idxs]))),0,[0.0,arrayIn[idxs[0]]],axis=0)
     weightsCDF             = np.cumsum(sortedWeightsAndPoints[:,0])
+    # This step returns the index of the array which is < than the percentile, because
+    # the insertion create another entry, this index should shift to the bigger side
+    indexL = utils.first(np.asarray(weightsCDF >= percent).nonzero())[0]
+    # This step returns the indices (list of index) of the array which is > than the percentile
+    indexH = utils.first(np.asarray(weightsCDF > percent).nonzero())
     try:
-      index = utils.first(np.asarray(weightsCDF <= percent).nonzero())[-1]
-      result = sortedWeightsAndPoints[index,1]
-    except ValueError:
-      result = np.percentile(arrayIn,percent,interpolation='lower')
+      # if the indices exists that means the desired percentile lies between two data points
+      # with index as indexL and indexH[0]. Calculate the midpoint of these two points
+      result = 0.5*(sortedWeightsAndPoints[indexL,1]+sortedWeightsAndPoints[indexH[0],1])
+    except IndexError:
+      result = sortedWeightsAndPoints[indexL,1]
     return result
+
 
   def __runLocal(self, inputData):
     """
@@ -552,22 +603,22 @@ class BasicStatistics(PostProcessor):
     needed = dict((metric,{'targets':set(),'percent':set()}) for metric in self.scalarVals)
     needed.update(dict((metric,{'targets':set(),'features':set()}) for metric in self.vectorVals))
     for metric, params in self.toDo.items():
-      for entry in params:
-        needed[metric]['targets'].update(entry['targets'])
-        try:
-          needed[metric]['features'].update(entry['features'])
-        except KeyError:
-          pass
-        try:
-          needed[metric]['percent'].update(entry['percent'])
-        except KeyError:
-          pass
-
+      if metric in self.scalarVals + self.vectorVals:
+        for entry in params:
+          needed[metric]['targets'].update(entry['targets'])
+          try:
+            needed[metric]['features'].update(entry['features'])
+          except KeyError:
+            pass
+          try:
+            needed[metric]['percent'].update(entry['percent'])
+          except KeyError:
+            pass
     # variable                     | needs                  | needed for
     # --------------------------------------------------------------------
     # skewness needs               | expectedValue,variance |
     # kurtosis needs               | expectedValue,variance |
-    # median needs                 |                        |
+    # median needs                 |                        | lowerPartialVariance, higherPartialVariance
     # percentile needs             |                        |
     # maximum needs                |                        |
     # minimum needs                |                        |
@@ -578,7 +629,12 @@ class BasicStatistics(PostProcessor):
     # pearson needs                | covariance             |
     # sigma needs                  | variance               | variationCoefficient
     # variance                     | expectedValue          | sigma, skewness, kurtosis
-    # expectedValue                |                        | variance, variationCoefficient, skewness, kurtosis
+    # expectedValue                |                        | variance, variationCoefficient, skewness, kurtosis,
+    #                              |                        | lowerPartialVariance, higherPartialVariance
+    # lowerPartialVariance needs   | expectedValue,median   | lowerPartialSigma
+    # lowerPartialSigma needs      | lowerPartialVariance   |
+    # higherPartialVariance needs  | expectedValue,median   | higherPartialSigma
+    # higherPartialSigma needs     | higherPartialVariance  |
 
     # update needed dictionary when standard errors are requested
     needed['expectedValue']['targets'].update(needed['sigma']['targets'])
@@ -591,6 +647,10 @@ class BasicStatistics(PostProcessor):
     needed['expectedValue']['targets'].update(needed['NormalizedSensitivity']['features'])
     needed['sigma']['targets'].update(needed['expectedValue']['targets'])
     needed['variance']['targets'].update(needed['sigma']['targets'])
+    needed['lowerPartialVariance']['targets'].update(needed['lowerPartialSigma']['targets'])
+    needed['higherPartialVariance']['targets'].update(needed['higherPartialSigma']['targets'])
+    needed['median']['targets'].update(needed['lowerPartialVariance']['targets'])
+    needed['median']['targets'].update(needed['higherPartialVariance']['targets'])
     needed['covariance']['targets'].update(needed['NormalizedSensitivity']['targets'])
     needed['covariance']['features'].update(needed['NormalizedSensitivity']['features'])
     needed['VarianceDependentSensitivity']['targets'].update(needed['NormalizedSensitivity']['targets'])
@@ -632,9 +692,8 @@ class BasicStatistics(PostProcessor):
         sampleMat = np.zeros(len(self.parameters['targets']))
         sampleMat.fill(self.sampleSize)
         samplesDA = xr.DataArray(sampleMat,dims=('targets'), coords={'targets':self.parameters['targets']})
-
+      self.calculations[metric] = samplesDA
       calculations[metric] = samplesDA
-
     #
     # expected value
     #
@@ -650,6 +709,7 @@ class BasicStatistics(PostProcessor):
         calculations['equivalentSamples'] = equivalentSize
       else:
         expectedValueDS = dataSet.mean(dim = self.sampleTag)
+      self.calculations[metric] = expectedValueDS
       calculations[metric] = expectedValueDS
     #
     # variance
@@ -669,6 +729,7 @@ class BasicStatistics(PostProcessor):
     if len(needed[metric]['targets'])>0:
       self.raiseADebug('Starting "'+metric+'"...')
       sigmaDS = self.__computePower(0.5,calculations['variance'][list(needed[metric]['targets'])])
+      self.calculations[metric] = sigmaDS
       calculations[metric] = sigmaDS
     #
     # coeff of variation (sigma/mu)
@@ -721,16 +782,51 @@ class BasicStatistics(PostProcessor):
           else:
             da = xr.DataArray(quantile)
           medianSet[target] = da
-
-        #TODO: remove when complete
-        # interpolation: {'linear', 'lower', 'higher','midpoint','nearest'}, do not try to use 'linear' or 'midpoint'
-        # The xarray.Dataset.where() will not return the corrrect solution
-        # 'lower' is used for consistent
-        #dataSetWeighted = dataSet * relWeight
-        #medianSet = dataSet.where(dataSetWeighted==dataSetWeighted.quantile(0.5,dim=self.sampleTag,interpolation='lower')).sum(self.sampleTag)
       else:
         medianSet = dataSet.median(dim=self.sampleTag)
+      self.calculations[metric] = medianSet
       calculations[metric] = medianSet
+    #
+    # lowerPartialVariance
+    #
+    metric = 'lowerPartialVariance'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      dataSet = inputDataset[list(needed[metric]['targets'])]
+      medianSet = calculations['median'][list(needed[metric]['targets'])]
+      relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+      lowerPartialVarianceDS = self._computeLowerPartialVariance(dataSet,medianSet,pbWeight=relWeight,dim=self.sampleTag)
+
+      calculations[metric] = lowerPartialVarianceDS
+    #
+    # lowerPartialSigma
+    #
+    metric = 'lowerPartialSigma'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      lpsDS = self.__computePower(0.5,calculations['lowerPartialVariance'][list(needed[metric]['targets'])])
+      calculations[metric] = lpsDS
+    #
+    # higherPartialVariance
+    #
+    metric = 'higherPartialVariance'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      dataSet = inputDataset[list(needed[metric]['targets'])]
+      medianSet = calculations['median'][list(needed[metric]['targets'])]
+      relWeight = pbWeights[list(needed[metric]['targets'])] if self.pbPresent else None
+      higherPartialVarianceDS = self._computeHigherPartialVariance(dataSet,medianSet,pbWeight=relWeight,dim=self.sampleTag)
+
+      calculations[metric] = lowerPartialVarianceDS
+    #
+    # higherPartialSigma
+    #
+    metric = 'higherPartialSigma'
+    if len(needed[metric]['targets'])>0:
+      self.raiseADebug('Starting "'+metric+'"...')
+      hpsDS = self.__computePower(0.5,calculations['higherPartialVariance'][list(needed[metric]['targets'])])
+      calculations[metric] = hpsDS
+
     ############################################################
     # compute standard error for expectedValue
     ############################################################
@@ -1028,11 +1124,11 @@ class BasicStatistics(PostProcessor):
       reducedSen *= meanDA
       calculations[metric] = reducedSen
 
-
     for metric, ds in calculations.items():
       if metric in self.scalarVals + self.steVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations)
+
     if self.outputDataset:
       # Add 'RAVEN_sample_ID' to output dataset for consistence
       if 'RAVEN_sample_ID' not in outputSet.sizes.keys():
@@ -1063,9 +1159,10 @@ class BasicStatistics(PostProcessor):
               if skip is not None:
                 self.raiseADebug('Metric',metric,'was skipped for parameters',targetDict,'!  See warnings for details.  Ignoring...')
                 continue
-              for feature in targetDict['features']:
-                varName = '_'.join([prefix,target,feature])
-                outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'features':feature}))
+              if metric in self.vectorVals:
+                for feature in targetDict['features']:
+                  varName = '_'.join([prefix,target,feature])
+                  outputDict[varName] = np.atleast_1d(outputSet[metric].sel(**{'targets':target,'features':feature}))
       if self.pivotParameter in outputSet.sizes.keys():
         outputDict[self.pivotParameter] = np.atleast_1d(self.pivotValue)
 
@@ -1196,7 +1293,6 @@ class BasicStatistics(PostProcessor):
     """
     inputData = self.inputToInternal(inputIn)
     outputSet = self.__runLocal(inputData)
-
     return outputSet
 
   def collectOutput(self, finishedJob, output):
