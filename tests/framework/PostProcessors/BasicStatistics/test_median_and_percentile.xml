@@ -13,7 +13,10 @@
     <created>2020-10-08</created>
     <classesTested>PostProcessors.BasicStatistics</classesTested>
     <description>
-      This requirements test checks median calcuation and the percentile calcuation.
+      This requirements test checks median calcuation and the percentile calcuation. This test use CustomSampler 
+      to read a pre-genrated data and use BasicStatistic PostProcessor to output the median and the percentile 
+      for some variables. In median calculations, RAVEN will gives a 50 percentile. The interpolation method to use 
+      when the desired percentile lies between two data points i < j: RAVEN will return the midpoint: (i + j) / 2.
     </description>
   </TestInfo>
 
