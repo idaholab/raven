@@ -28,7 +28,6 @@ import sys
 import os
 import errno
 import shutil
-import pathlib
 import inspect
 import subprocess
 import platform
@@ -183,7 +182,7 @@ def removeDir(strPath):
     @ In, strPath, string, path to directory to remove
     @ Out, None
   """
-  path = pathlib.Path(strPath).expanduser().resolve()
+  path = os.path.abspath(os.path.expanduser(strPath))
   shutil.rmtree(path, onerror=_removeDirErrorHandler)
 
 def _removeDirErrorHandler(func, path, excinfo):
