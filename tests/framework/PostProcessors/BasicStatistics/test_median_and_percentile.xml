@@ -1,12 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-  <RunInfo>
-    <WorkingDir>median</WorkingDir>
-    <Sequence>sample,PP</Sequence>
-    <batchSize>1</batchSize>
-  </RunInfo>
-
-
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/medianAndPercentile</name>
     <author>ZHOUJ2</author>
@@ -20,6 +13,11 @@
     </description>
   </TestInfo>
 
+  <RunInfo>
+    <WorkingDir>median</WorkingDir>
+    <Sequence>sample,PP</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
 
   <Files>
     <Input name="PointSet.csv">PointSet.csv</Input>
