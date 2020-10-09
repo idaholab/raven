@@ -196,7 +196,9 @@ def _removeDirErrorHandler(func, path, excinfo):
     @ In, excinfo, will be the exception information returned by sys.exc_info()
     @ Out, None
   """
-  print(f'utils.removeDir WARNING: unable to remove {path} using {func}, raising the following exception: {excinfo}. Continuing ...')
+  print('utils.removeDir WARNING: unable to remove {path} using {func}, ' +
+        'raising the following exception: {excinfo}. Continuing ...'
+        .format(path=path, func=func, excinfo=excinfo))
 
 def returnImportModuleString(obj,moduleOnly=False):
   """

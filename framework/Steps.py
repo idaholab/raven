@@ -441,6 +441,10 @@ class SingleRun(Step):
           os.mkdir(currentWorkingDirectory)
           workingDirReady = True
         except FileExistsError:
+          if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
+            self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
+          if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
+              self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ currentWorkingDirectory+". Please check your input!")
           if self._clearRunDir and not alreadyTried:
             self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists, ' +
                               'clearing existing files. This action can be disabled through the RAVEN Step input.')
@@ -452,14 +456,10 @@ class SingleRun(Step):
             if alreadyTried:
               self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists, ' +
                                 'and was not able to be removed. ' +
-                                'This might imply replacing files present, or unintended error handling.')
+                                'Files present in this directory may be replaced, and error handling may not occur as expected.')
             else:
-              self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists, ' +
-                                'this might imply replacing files present, or unintended error handling.')
-            if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
-              self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
-            if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
-              self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ currentWorkingDirectory+". Please check your input!")
+              self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists. ' +
+                                'Files present in this directory may be replaced, and error handling may not occur as expected.')
             workingDirReady = True
           # register function to remove the locked file at the end of execution
         atexit.register(utils.removeFile,os.path.join(currentWorkingDirectory,self.lockedFileName))
