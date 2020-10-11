@@ -319,6 +319,8 @@ class GeneticAlgorithm(RavenSampled):
     meta = ['batchId']
     self.addMetaKeys(meta)
     self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
+    if self._populationSize != len(self._initialValues):
+      self.raiseAnError(IOError, 'Number of initial values provided for each variable is {}, while the population size is {},\n Please provide {} initial values for each variable!'.format(len(self._initialValues),self._populationSize,self._populationSize))
     for _, init in enumerate(self._initialValues): # TODO: this should be single traj
       self._submitRun(init,0,self.getIteration(0)+1)
 
@@ -393,7 +395,6 @@ class GeneticAlgorithm(RavenSampled):
 
       # 2 @ n: Crossover from set of parents
       # create childrenCoordinates (x1,...,xM)
-      # self.childrenCoordinates = self.__crossoverCalculationHandler(parentSet=parentSet,population=self.population,params=paramsDict)
       children = self._crossoverInstance(parents=parents,variables=list(self.toBeSampled),crossoverProb=self._crossoverProb,points=self._crossoverPoints)
 
       # 3 @ n: Mutation
@@ -421,9 +422,13 @@ class GeneticAlgorithm(RavenSampled):
           for j in range (np.shape(children.data)[0]):
             if all(population.data[i,:]==children.data[j,:]):
               repeated.append(j)
-        children2 = np.delete(children.data, (repeated), axis=0)
+        if repeated:
+          newChildren = self._mutationInstance(offSprings=children[repeated,:],locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+          children.data[repeated,:] = newChildren.data
+        children2 = children
+        # children2 = np.delete(children.data, (repeated), axis=0)
         self.batch =np.shape(children2)[0]
-        if self.batch == 0:
+        if self.batch < self._nChildren :
           children2 = self._crossoverInstance(parents=parents,variables=list(self.toBeSampled),crossoverProb=self._crossoverProb,points=self._crossoverPoints)
           children2 = self._mutationInstance(offSprings=children2,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
           children = children2
