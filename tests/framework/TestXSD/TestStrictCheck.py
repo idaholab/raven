@@ -60,7 +60,7 @@ print(errors)
 
 checkAnswer('Required parameter required_string not in inner', errors[0])
 checkAnswer('no_such_element not in attributes and strict mode on in inner', errors[1])
-checkAnswer("no class to handle no_such_sub tried set() allowed:['sub_1', 'sub_2', 'sub_3', 'sub_bool']", errors[2])
+checkAnswer('Unrecognized input: "no_such_sub"! Allowed: "[\'sub_1\', \'sub_2\', \'sub_3\', \'sub_bool\']", tried "set()"', errors[2])
 
 print("passes",passFails[0],"fails",passFails[1])
 sys.exit(passFails[1])
