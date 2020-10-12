@@ -52,7 +52,7 @@
   </Distributions>
 
   <Samplers>
-    <Grid name="myGrid">
+    <Grid name="myGrid" clearRunDir="False">
       <variable name="Materials|seed11|densities">
         <distribution>Gauss1</distribution>
         <grid construction="custom" type="value">0.6 0.7 0.8</grid>
