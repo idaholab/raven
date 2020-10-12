@@ -732,3 +732,90 @@ class EnsembleModel(Dummy):
 
 
 
+
+
+
+  def __advanceModel(self, identifier, modelToExecute, origInputList, inputKwargs, inRunTargetEvaluations, samplerType, jobHandler):
+    """
+      This method is aimed to advance the execution of a sub-model and to collect the data using
+      the realization 
+      @ In,
+      @ Out, None
+    """
+    self.raiseADebug('Submitting model',modelToExecute['Instance'].name)
+    if self.parallelStrategy == 1:
+      nextModel = False
+      while not nextModel:
+        moveOn = False
+        while not moveOn:
+          if jobHandler.availability() > 0:
+            # run the model
+            modelToExecute['Instance'].submit(origInputList, samplerType, jobHandler, **inputKwargs)
+            ## wait until the model finishes, in order to get ready to run the subsequential one
+            while not jobHandler.isThisJobFinished(modelToExecute['Instance'].name+utils.returnIdSeparator()+identifier):
+              time.sleep(1.e-3)
+            nextModel = moveOn = True
+          else:
+            time.sleep(1.e-3)
+      # get job that just finished to gather the results
+      finishedRun = jobHandler.getFinished(jobIdentifier = modelToExecute['Instance'].name+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
+      evaluation = finishedRun[0].getEvaluation()
+      if isinstance(evaluation, rerror):
+        # the model failed
+        for modelToRemove in self.orderList:
+          if modelToRemove != modelToExecute['Instance'].name:
+            jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
+        self.raiseAnError(RuntimeError,"The Model  " + modelToExecute['Instance'].name + " identified by " + finishedRun[0].identifier +" failed!")            
+
+      # collect the target evaluation
+      modelToExecute['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
+
+    else:
+      # we evaluate the model directly
+      try:
+        rlz = modelToExecute['Instance'].evaluateSample.original_function(modelToExecute['Instance'], origInputList, samplerType, inputKwargs)
+      except Exception as evl:
+        pass
+      inRunTargetEvaluations.addRealization(rlz)
+    
+    returnDict[modelIn] = {}
+  
+
+      # store the output dictionary
+      tempOutputs[modelIn] = copy.deepcopy(evaluation)
+      
+      ### FIXME: The call asDataset() is unuseful here. It must be done because otherwise the realization(...) method from collector
+      ### does not return the indexes values (TO FIX)
+      # inRunTargetEvaluations[modelIn].asDataset()
+      ## get realization
+      # dataSet = inRunTargetEvaluations[modelIn].realization(index=iterationCount-1,unpackXArray=True)
+      ###FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
+
+      dataSet = {key:np.atleast_1d(evaluation[key]) for key in evaluation}
+      # dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
+      responseSpace         = dataSet
+      typeOutputs[modelCnt] = inRunTargetEvaluations[modelIn].type
+      gotOutputs[modelCnt]  = {key: dataSet[key] for key in inRunTargetEvaluations[modelIn].getVars("output") + inRunTargetEvaluations[modelIn].getVars("indexes")}
+      if '_indexMap' in dataSet.keys():
+        gotOutputs[modelCnt]['_indexMap'] = dataSet['_indexMap']
+
+      #store the results in return dictionary
+      # store the metadata
+      returnDict[modelIn]['response'        ] = evaluation
+      # overwrite with target evaluation filtering
+      returnDict[modelIn]['response'        ].update(responseSpace)
+      returnDict[modelIn]['prefix'          ] = np.atleast_1d(identifier)
+      returnDict[modelIn]['general_metadata'] = inRunTargetEvaluations[modelIn].getMeta(general=True)
+      # if nonlinear system, compute the residue
+      ## it looks like this is handling _indexMap, but it's not clear since there's not a way to test it (yet).
+      if self.activatePicard:
+        residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
+        for out in  inRunTargetEvaluations[modelIn].getVars("output"):
+          residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
+          if iterationCount == 1:
+            residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
+        for out in gotOutputs[modelCnt].keys():
+          residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
+        residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(list(residueContainer[modelIn]['iterValues'][1].values()))-np.asarray(list(residueContainer[modelIn]['iterValues'][0].values())))
+    
+    
