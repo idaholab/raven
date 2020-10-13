@@ -53,7 +53,7 @@ Note all install methods after "main" take
     <pyside2 source='forge'/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
-    <ray os="mac,linux" source="pip"/>
+    <ray os="mac,linux" source="pip">0.8.1</ray>
     <pillow optional='True'>6.0.0</pillow>
     <line_profiler optional='True'/>
   </main>
