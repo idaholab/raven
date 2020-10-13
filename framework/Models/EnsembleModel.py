@@ -80,7 +80,8 @@ class EnsembleModel(Dummy):
     self.initialStartModels     = []                    # list of models that will execute first.
     self.ensembleModelGraph     = None                  # graph object (graphStructure.graphObject)
     self.printTag               = 'EnsembleModel MODEL' # print tag
-    self.parallelStrategy = 1                           # parallel strategy [1=MPI like (internalParallel), 2=threads] 
+    self.parallelStrategy = 1                           # parallel strategy [1=MPI like (internalParallel), 2=threads]
+    self.runInfoDict = None                             # dictionary containing run info in case of parallelStrategy=2
     # assembler objects to be requested
     self.addAssemblerObject('Model', InputData.Quantity.one_to_infinity)
     self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one_to_infinity)
@@ -229,7 +230,7 @@ class EnsembleModel(Dummy):
     outputsNames = []
     if initDict is not None:
       outputsNames = [output.name for output in initDict['Output']]
-    
+
     # here we check if all the inputs inputted in the Step containing the EnsembleModel are actually used
     checkDictInputsUsage = dict((inp,False) for inp in inputs)
     # flag to check if a Code is in the Ensemble
@@ -238,8 +239,7 @@ class EnsembleModel(Dummy):
     self.allOutputs = set()
     for modelClass, modelType, modelName, modelInstance in self.assemblerDict['Model']:
       if not isThereACode:
-        isThereACode = modelType == 'Code' 
-        
+        isThereACode = modelType == 'Code'
       self.modelsDictionary[modelName]['Instance'] = modelInstance
       inputInstancesForModel = []
       for inputName in self.modelsInputDictionary[modelName]['Input']:
@@ -285,9 +285,14 @@ class EnsembleModel(Dummy):
       self.allOutputs = self.allOutputs.union(newOuts)
     # END loop to collect models
     self.allOutputs = list(self.allOutputs)
-    
-    # check if MPI is activated
-    if runInfo.get('NumMPI', 1) > 1 and isThereACode:
+    if isThereACode:
+      # FIXME: LEAVE IT HERE...WE NEED TO MODIFY HOW THE CODE GET RUN INFO...IT NEEDS TO BE ENCAPSULATED
+      ## collect some run info
+      ## self.runInfoDict = runInfo
+      ## self.runInfoDict['numberNodes'] = runInfo.get('Nodes',[])
+      ## check if MPI is activated
+      ##if runInfo.get('NumMPI', 1) > 1:
+      ##  self.parallelStrategy = 2 #  threads (OLD method)
       self.parallelStrategy = 2 #  threads (OLD method)
 
     # check if all the inputs passed in the step ar'9yue linked with at least a model
@@ -497,11 +502,12 @@ class EnsembleModel(Dummy):
     kwargsKeys = list(kwargs.keys())
     # kwargsKeys.pop(kwargsKeys.index("jobHandler"))
     kwargsToKeep = { keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
-    # jobHandler = kwargs['jobHandler']
+
+    jobHandler = kwargs['jobHandler'] if self.parallelStrategy == 2 else None
     Input = self.createNewInput(myInput[0], samplerType, **kwargsToKeep)
 
     ## Unpack the specifics for this class, namely just the jobHandler
-    returnValue = (Input,self._externalRun(Input))# ,jobHandler))
+    returnValue = (Input,self._externalRun(Input, jobHandler))
     return returnValue
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
@@ -531,7 +537,7 @@ class EnsembleModel(Dummy):
     ## class and pass self in as the first parameter
     if self.parallelStrategy == 1:
       jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
-    else:  
+    else:
       jobHandler.addClientJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, kwargs)
 
   def __retrieveDependentOutput(self,modelIn,listOfOutputs, typeOutputs):
@@ -555,12 +561,12 @@ class EnsembleModel(Dummy):
               dependentOutputs['_indexMap'][inKey] = indices
     return dependentOutputs
 
-  def _externalRun(self,inRun):#, jobHandler):
+  def _externalRun(self,inRun, jobHandler = None):#, jobHandler):
     """
       Method that performs the actual run of the essembled model (separated from run method for parallelization purposes)
       @ In, inRun, tuple, tuple of Inputs, e.g. inRun[0]: actual dictionary of input, inRun[1]: string,
         the type of Sampler or Optimizer, inRun[2], dict, contains the information from the Sampler
-      @ In, jobHandler, object, instance of jobHandler
+      @ In, jobHandler, object, optional, instance of jobHandler (available if parallelStrategy==2)
       @ Out, returnEvaluation, tuple, the results of the essembled model:
                                - returnEvaluation[0] dict of results from each sub-model,
                                - returnEvaluation[1] the dataObjects where the projection of each model is stored
@@ -641,74 +647,32 @@ class EnsembleModel(Dummy):
           inputKwargs[modelIn]["SampledVarsPb"][key] =  1.0
         self._replaceVariablesNamesWithAliasSystem(inputKwargs[modelIn]["SampledVars"  ],'input',False)
         self._replaceVariablesNamesWithAliasSystem(inputKwargs[modelIn]["SampledVarsPb"],'input',False)
+        ## FIXME: this will come after we rework the "runInfo" collection in the code
+        ## if run info is present, we need to pass to to kwargs
+        ##if self.runInfoDict and 'Code' == self.modelsDictionary[modelIn]['Instance'].type:
+        ##  inputKwargs[modelIn].update(self.runInfoDict)
 
-        nextModel = False
-        while not nextModel:
-          moveOn = False
-          while not moveOn:
-            # if jobHandler.availability() > 0:
-            if True:
-              # run the model
-              #if modelIn not in modelsOnHold:
-              self.raiseADebug('Submitting model',modelIn)
-              evaluation = self.modelsDictionary[modelIn]['Instance'].evaluateSample.original_function(self.modelsDictionary[modelIn]['Instance'], originalInput[modelIn], samplerType, inputKwargs[modelIn])
-              # self.modelsDictionary[modelIn]['Instance'].submit(originalInput[modelIn], samplerType, jobHandler, **inputKwargs[modelIn])
-              ## wait until the model finishes, in order to get ready to run the subsequential one
-              # while not jobHandler.isThisJobFinished(modelIn+utils.returnIdSeparator()+identifier):
-              #  time.sleep(1.e-3)
-              nextModel = moveOn = True
-            else:
-              time.sleep(1.e-3)
-          # store the results in the working dictionaries
-            returnDict[modelIn] = {}
-          #if modelIn not in modelsOnHold:
-          # get job that just finished to gather the results
-          # finishedRun = jobHandler.getFinished(jobIdentifier = modelIn+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
-          # evaluation = finishedRun[0].getEvaluation()
-          # if isinstance(evaluation, rerror):
-          #  # the model failed
-          #  for modelToRemove in self.orderList:
-          #    if modelToRemove != modelIn:
-          #      jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
-          #  self.raiseAnError(RuntimeError,"The Model  " + modelIn + " identified by " + finishedRun[0].identifier +" failed!")
-          # store the output dictionary
-          tempOutputs[modelIn] = copy.deepcopy(evaluation)
-          # collect the target evaluation
-          #if modelIn not in modelsOnHold:
-          # self.modelsDictionary[modelIn]['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations[modelIn])
-          ### FIXME: The call asDataset() is unuseful here. It must be done because otherwise the realization(...) method from collector
-          ### does not return the indexes values (TO FIX)
-          # inRunTargetEvaluations[modelIn].asDataset()
-          ## get realization
-          # dataSet = inRunTargetEvaluations[modelIn].realization(index=iterationCount-1,unpackXArray=True)
-          ###FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
+        retDict, gotOuts, evaluation = self.__advanceModel(identifier, self.modelsDictionary[modelIn],
+                                                        originalInput[modelIn], inputKwargs[modelIn],
+                                                        inRunTargetEvaluations[modelIn], samplerType,
+                                                        iterationCount, jobHandler)
 
-          dataSet = {key:np.atleast_1d(evaluation[key]) for key in evaluation}
-          # dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
-          responseSpace         = dataSet
-          typeOutputs[modelCnt] = inRunTargetEvaluations[modelIn].type
-          gotOutputs[modelCnt]  = {key: dataSet[key] for key in inRunTargetEvaluations[modelIn].getVars("output") + inRunTargetEvaluations[modelIn].getVars("indexes")}
-          if '_indexMap' in dataSet.keys():
-            gotOutputs[modelCnt]['_indexMap'] = dataSet['_indexMap']
+        returnDict[modelIn] = retDict
+        typeOutputs[modelCnt] = inRunTargetEvaluations[modelIn].type
+        gotOutputs[modelCnt] =  gotOuts
+        tempOutputs[modelIn] = copy.deepcopy(evaluation)
 
-          #store the results in return dictionary
-          # store the metadata
-          returnDict[modelIn]['response'        ] = evaluation
-          # overwrite with target evaluation filtering
-          returnDict[modelIn]['response'        ].update(responseSpace)
-          returnDict[modelIn]['prefix'          ] = np.atleast_1d(identifier)
-          returnDict[modelIn]['general_metadata'] = inRunTargetEvaluations[modelIn].getMeta(general=True)
-          # if nonlinear system, compute the residue
-          ## it looks like this is handling _indexMap, but it's not clear since there's not a way to test it (yet).
-          if self.activatePicard:
-            residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
-            for out in  inRunTargetEvaluations[modelIn].getVars("output"):
-              residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
-              if iterationCount == 1:
-                residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
-            for out in gotOutputs[modelCnt].keys():
-              residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
-            residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(list(residueContainer[modelIn]['iterValues'][1].values()))-np.asarray(list(residueContainer[modelIn]['iterValues'][0].values())))
+        # if nonlinear system, compute the residue
+        ## it looks like this is handling _indexMap, but it's not clear since there's not a way to test it (yet).
+        if self.activatePicard:
+          residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
+          for out in  inRunTargetEvaluations[modelIn].getVars("output"):
+            residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
+            if iterationCount == 1:
+              residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
+          for out in gotOutputs[modelCnt].keys():
+            residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
+          residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(list(residueContainer[modelIn]['iterValues'][1].values()))-np.asarray(list(residueContainer[modelIn]['iterValues'][0].values())))
 
       # if nonlinear system, check the total residue and convergence
       if self.activatePicard:
@@ -722,100 +686,99 @@ class EnsembleModel(Dummy):
         residualPass = residueContainer['TotalResidue'] <= self.convergenceTol
         # sometimes there can be multiple residual values
         if hasattr(residualPass,'__len__'):
-          residual = all(residualPass)
+          residualPass = all(residualPass)
         if residualPass:
           self.raiseAMessage("Picard's Iteration converged. Norm: "+ str(residueContainer['TotalResidue']))
           break
     returnEvaluation = returnDict, inRunTargetEvaluations, tempOutputs
     return returnEvaluation
 
-
-
-
-
-
-
-  def __advanceModel(self, identifier, modelToExecute, origInputList, inputKwargs, inRunTargetEvaluations, samplerType, jobHandler):
+  def __advanceModel(self, identifier, modelToExecute, origInputList, inputKwargs, inRunTargetEvaluations, samplerType, iterationCount, jobHandler = None):
     """
       This method is aimed to advance the execution of a sub-model and to collect the data using
-      the realization 
-      @ In,
-      @ Out, None
+      the realization
+      @ In, identifier, str, current job identifier
+      @ In, modelToExecute, super(Model), Model instance than needs to be avanced
+      @ In, origInputList, list, list of model input
+      @ In, inputKwargs, dict, dictionary of kwargs for this model
+      @ In, inRunTargetEvaluations, DataObject, target evaluation for the model to advance
+      @ In, samplerType, str, sampler Type
+      @ In, iterationCount, int, iteration counter (1 if not picard)
+      @ In, jobHandler, jobHandler instance, optional, jobHandler instance (available only if parallelStrategy == 2)
+      @ Out, returnDict, dict, dictionary containing the data extracted from the target evaluation
+      @ Out, gotOutputs, dict, dictionary containing all the data coming out the model
+      @ Out, evaluation, dict, the evaluation dictinary with the "unprojected" data
     """
+    returnDict = {}
+
     self.raiseADebug('Submitting model',modelToExecute['Instance'].name)
+    localIdentifier =  modelToExecute['Instance'].name+utils.returnIdSeparator()+identifier
     if self.parallelStrategy == 1:
+      # we evaluate the model directly
+      try:
+        evaluation = modelToExecute['Instance'].evaluateSample.original_function(modelToExecute['Instance'], origInputList, samplerType, inputKwargs)
+      except Exception:
+        evaluation = None
+    else:
       nextModel = False
       while not nextModel:
         moveOn = False
         while not moveOn:
           if jobHandler.availability() > 0:
             # run the model
+            inputKwargs.pop("jobHandler", None)
             modelToExecute['Instance'].submit(origInputList, samplerType, jobHandler, **inputKwargs)
             ## wait until the model finishes, in order to get ready to run the subsequential one
-            while not jobHandler.isThisJobFinished(modelToExecute['Instance'].name+utils.returnIdSeparator()+identifier):
+            while not jobHandler.isThisJobFinished(localIdentifier):
               time.sleep(1.e-3)
             nextModel = moveOn = True
           else:
             time.sleep(1.e-3)
       # get job that just finished to gather the results
-      finishedRun = jobHandler.getFinished(jobIdentifier = modelToExecute['Instance'].name+utils.returnIdSeparator()+identifier, uniqueHandler=self.name+identifier)
+      finishedRun = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=self.name+identifier)
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, rerror):
+        evaluation = None
         # the model failed
-        for modelToRemove in self.orderList:
-          if modelToRemove != modelToExecute['Instance'].name:
-            jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
-        self.raiseAnError(RuntimeError,"The Model  " + modelToExecute['Instance'].name + " identified by " + finishedRun[0].identifier +" failed!")            
-
+        for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
+          jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
       # collect the target evaluation
       modelToExecute['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
 
+    if not evaluation:
+      # the model failed
+      self.raiseAnError(RuntimeError,"The Model  " + modelToExecute['Instance'].name + " identified by " + localIdentifier +" failed!")
     else:
-      # we evaluate the model directly
-      try:
-        rlz = modelToExecute['Instance'].evaluateSample.original_function(modelToExecute['Instance'], origInputList, samplerType, inputKwargs)
-      except Exception as evl:
-        pass
-      inRunTargetEvaluations.addRealization(rlz)
-    
-    returnDict[modelIn] = {}
-  
+      if self.parallelStrategy == 1:
+        inRunTargetEvaluations.addRealization(evaluation)
+      else:
+        modelToExecute['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
 
-      # store the output dictionary
-      tempOutputs[modelIn] = copy.deepcopy(evaluation)
-      
-      ### FIXME: The call asDataset() is unuseful here. It must be done because otherwise the realization(...) method from collector
-      ### does not return the indexes values (TO FIX)
-      # inRunTargetEvaluations[modelIn].asDataset()
-      ## get realization
-      # dataSet = inRunTargetEvaluations[modelIn].realization(index=iterationCount-1,unpackXArray=True)
-      ###FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
+    ## FIXME: The call asDataset() is unuseful here. It must be done because otherwise the realization(...) method from collector
+    ## does not return the indexes values (TO FIX)
+    inRunTargetEvaluations.asDataset()
+    # get realization
+    dataSet = inRunTargetEvaluations.realization(index=iterationCount-1,unpackXArray=True)
+    ##FIXME: the following dict construction is a temporary solution since the realization method returns scalars if we have a PointSet
+    dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
+    responseSpace         = dataSet
+    gotOutputs  = {key: dataSet[key] for key in inRunTargetEvaluations.getVars("output") + inRunTargetEvaluations.getVars("indexes")}
+    if '_indexMap' in dataSet.keys():
+      gotOutputs['_indexMap'] = dataSet['_indexMap']
 
-      dataSet = {key:np.atleast_1d(evaluation[key]) for key in evaluation}
-      # dataSet = {key:np.atleast_1d(dataSet[key]) for key in dataSet}
-      responseSpace         = dataSet
-      typeOutputs[modelCnt] = inRunTargetEvaluations[modelIn].type
-      gotOutputs[modelCnt]  = {key: dataSet[key] for key in inRunTargetEvaluations[modelIn].getVars("output") + inRunTargetEvaluations[modelIn].getVars("indexes")}
-      if '_indexMap' in dataSet.keys():
-        gotOutputs[modelCnt]['_indexMap'] = dataSet['_indexMap']
+    #store the results in return dictionary
+    # store the metadata
+    returnDict['response'        ] = evaluation
+    # overwrite with target evaluation filtering
+    returnDict['response'        ].update(responseSpace)
+    returnDict['prefix'          ] = np.atleast_1d(identifier)
+    returnDict['general_metadata'] = inRunTargetEvaluations.getMeta(general=True)
 
-      #store the results in return dictionary
-      # store the metadata
-      returnDict[modelIn]['response'        ] = evaluation
-      # overwrite with target evaluation filtering
-      returnDict[modelIn]['response'        ].update(responseSpace)
-      returnDict[modelIn]['prefix'          ] = np.atleast_1d(identifier)
-      returnDict[modelIn]['general_metadata'] = inRunTargetEvaluations[modelIn].getMeta(general=True)
-      # if nonlinear system, compute the residue
-      ## it looks like this is handling _indexMap, but it's not clear since there's not a way to test it (yet).
-      if self.activatePicard:
-        residueContainer[modelIn]['iterValues'][1] = copy.copy(residueContainer[modelIn]['iterValues'][0])
-        for out in  inRunTargetEvaluations[modelIn].getVars("output"):
-          residueContainer[modelIn]['iterValues'][0][out] = copy.copy(gotOutputs[modelCnt][out])
-          if iterationCount == 1:
-            residueContainer[modelIn]['iterValues'][1][out] = np.zeros(len(residueContainer[modelIn]['iterValues'][0][out]))
-        for out in gotOutputs[modelCnt].keys():
-          residueContainer[modelIn]['residue'][out] = abs(np.asarray(residueContainer[modelIn]['iterValues'][0][out]) - np.asarray(residueContainer[modelIn]['iterValues'][1][out]))
-        residueContainer[modelIn]['Norm'] =  np.linalg.norm(np.asarray(list(residueContainer[modelIn]['iterValues'][1].values()))-np.asarray(list(residueContainer[modelIn]['iterValues'][0].values())))
-    
-    
+    return returnDict, gotOutputs, evaluation
+
+
+
+
+
+
+

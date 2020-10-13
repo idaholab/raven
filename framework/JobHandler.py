@@ -330,8 +330,6 @@ class JobHandler(MessageHandler.MessageUser):
                                                profile=self.__profileJobs)
     else:
       arguments = args  if _rayAvail else  tuple([self.rayServer] + list(args))
-      print(args)
-
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
                                                     arguments, functionToRun.remote if _rayAvail else functionToRun.original_function,
                                                     identifier, metadata,
