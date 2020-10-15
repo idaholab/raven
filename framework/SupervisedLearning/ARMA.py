@@ -33,12 +33,14 @@ from scipy.linalg import solve_discrete_lyapunov
 from scipy import stats
 from scipy.signal import find_peaks
 from scipy.stats import rv_histogram
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import randomUtils, xmlUtils, mathUtils, utils
 import Distributions
 from .SupervisedLearning import supervisedLearning
+import Decorators
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ARMA(supervisedLearning):
@@ -478,6 +480,7 @@ class ARMA(supervisedLearning):
         self.varmaNoise = (noiseDist,)
         self.varmaInit = (initDist,)
 
+  @Decorators.timingProfile
   def __evaluateLocal__(self, featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
@@ -509,7 +512,7 @@ class ARMA(supervisedLearning):
       return finalResult
     else:
       return self._evaluateCycle(featureVals)
-
+  @Decorators.timingProfile
   def _evaluateScales(self, growthInfos, cycles):
     """
       @ In, growthInfo, dictionary of growth value for each target
@@ -528,7 +531,7 @@ class ARMA(supervisedLearning):
       else:
         scales[y] = old
     return scales
-
+  @Decorators.timingProfile
   def _evaluateCycle(self, featureVals):
     """
       @ In, featureVals, float, a scalar feature value is passed as scaling factor
@@ -703,7 +706,7 @@ class ARMA(supervisedLearning):
     denormed = self.normEngine.cdf(data)
     denormed = self._sampleICDF(denormed, params)
     return denormed
-
+  @Decorators.timingProfile
   def _generateARMASignal(self, model, numSamples=None,randEngine=None):
     """
       Generates a synthetic history from fitted parameters.
@@ -716,17 +719,26 @@ class ARMA(supervisedLearning):
       numSamples =  len(self.pivotParameterValues)
     if randEngine is None:
       randEngine=self.randomEng
-    import statsmodels.api
-    hist = statsmodels.api.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
+    import statsmodels.tsa
+    hist = statsmodels.tsa.arima_process.arma_generate_sample(ar = np.append(1., -model.arparams),
                                                     ma = np.append(1., model.maparams),
                                                     nsample = numSamples,
                                                     distrvs = functools.partial(randomUtils.randomNormal,engine=randEngine),
                                        # functool.partial provide the random number generator as a function
                                        # with normal distribution and take engine as the positional arguments keywords.
-                                                    sigma = np.sqrt(model.sigma2),
+                                                    scale = np.sqrt(model.sigma2),
                                                     burnin = 2*max(self.P,self.Q)) # @epinas, 2018
+    #hist = statsmodels.tsa.arima_process.arma_generate_sample(ar = np.append(1., -model.arparams),
+                                                    #ma = np.append(1., model.maparams),
+                                                    #nsample = numSamples,
+
+                                       ## functool.partial provide the random number generator as a function
+                                       ## with normal distribution and take engine as the positional arguments keywords.
+                                                    #scale = np.sqrt(model.sigma2),
+                                                    #burnin = 2*max(self.P,self.Q)) # @epinas, 2018
     return hist
 
+  @Decorators.timingProfile
   def _generateFourierSignal(self, pivots, periods):
     """
       Generate fourier signal as specified by the input file
@@ -740,7 +752,7 @@ class ARMA(supervisedLearning):
       fourier[:, 2 * p] = np.sin(hist)
       fourier[:, 2 * p + 1] = np.cos(hist)
     return fourier
-
+  @Decorators.timingProfile
   def _generateVARMASignal(self, model, numSamples=None, randEngine=None, rvsIndex=None):
     """
       Generates a set of correlated synthetic histories from fitted parameters.

@@ -24,6 +24,7 @@ import inspect
 import itertools
 import numpy as np
 import functools
+import Decorators
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -1419,6 +1420,7 @@ class ROM(Dummy):
     confidenceDict = self.supervisedEngine.confidence(inputToROM)
     return confidenceDict
 
+  @Decorators.timingProfile
   def evaluate(self, request):
     """
       When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
