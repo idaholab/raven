@@ -267,13 +267,19 @@ class GeneticAlgorithm(RavenSampled):
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
-    self._crossoverPoints = crossoverNode.findFirst('points').value
+    try:
+      self._crossoverPoints = crossoverNode.findFirst('points').value
+    except:
+      self._crossoverPoints = None
     self._crossoverProb = crossoverNode.findFirst('crossoverProb').value
     self._crossoverInstance = crossoversReturnInstance(self,name = self._crossoverType)
     # mutation node
     mutationNode = reproductionNode.findFirst('mutation')
     self._mutationType = mutationNode.parameterValues['type']
-    self._mutationLocs = mutationNode.findFirst('locs').value
+    try:
+      self._mutationLocs = mutationNode.findFirst('locs').value
+    except:
+      self._mutationLocs = None
     self._mutationProb = mutationNode.findFirst('mutationProb').value
     self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
     # Survivor selection
@@ -371,7 +377,7 @@ class GeneticAlgorithm(RavenSampled):
     fitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff, penalty=None)
     objectiveVal=list(np.atleast_1d(rlz[self._objectiveVar].data))
     acceptable = 'first' if self.counter==1 else 'accepted'
-    population = self._datasetToDataarray(rlz)
+    population = self._datasetToDataarray(rlz) # TODO: rename
     self._collectOptPoint(population,fitness,objectiveVal)
     self._resolveNewGeneration(traj, rlz, objectiveVal, fitness, info)
 
@@ -382,12 +388,13 @@ class GeneticAlgorithm(RavenSampled):
 
       if self.counter > 1:
 
-        population,fitness,Age = self._survivorSelectionInstance(age=self.popAge,popSize=self._populationSize,variables=list(self.toBeSampled),population = self.population,fitness = self.fitness,newRlz=rlz,offSpringsFitness=fitness)
-
+        population,fitness,Age = self._survivorSelectionInstance(age=self.popAge, variables=list(self.toBeSampled), population=self.population, fitness=self.fitness, newRlz=rlz,offSpringsFitness=fitness)
+        self.popAge = Age
       else:
         self.population = population
         self.objectiveVal = rlz[self._objectiveVar].data
         self.fitness = fitness
+
 
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
@@ -506,9 +513,9 @@ class GeneticAlgorithm(RavenSampled):
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':
-      for i in range(self.batch):
-        rlzDict=dict((var,np.atleast_1d(rlz[var].data)[i]) for var in self.toBeSampled.keys())
-        rlzDict[self._objectiveVar]=np.atleast_1d(rlz[self._objectiveVar].data)[i]
+      for i in range(rlz.sizes['concat_dims']):#self.batch
+        rlzDict = dict((var,np.atleast_1d(rlz[var].data)[i]) for var in self.toBeSampled.keys())
+        rlzDict[self._objectiveVar] = np.atleast_1d(rlz[self._objectiveVar].data)[i]
         rlzDict['fitness'] = np.atleast_1d(fitness.data)[i]
         self._updateSolutionExport(traj, rlzDict, acceptable,None)
     self.raiseADebug('*'*80)

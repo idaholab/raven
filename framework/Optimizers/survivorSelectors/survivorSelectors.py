@@ -25,31 +25,33 @@
 import numpy as np
 import xarray as xr
 # @profile
-def ageBased(self,newRlz,**kwargs):
+def ageBased(newRlz,**kwargs):
   """
     ageBased survivorSelection mechanism for new generation selection.
     It replaces the oldest parents with the new children regardless of the fitness.
     @ In, newRlz, xr.DataSet, containing either a single realization, or a batch of realizations.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
-          age
-          popSize
-          variables
+          age, list, age list for each chromosome of the previous population
+          variables, list of variable names to be sampled
+          fitness, xr.DataArrays, fitness of the previous generation
           offSpringsFitness, xr.DataArray, fitness of each new child, i.e., np.shape(offSpringsFitness) = nChildren x nGenes
-          population
+          population, xr.DataArray, population from previous generation
     @ Out, newPopulation, xr.DataArray, newPopulation for the new generation, i.e. np.shape(newPopulation) = populationSize x nGenes.
     @ Out, newFitness, xr.DataArray, fitness of the new population
     @ Out, newAge, list, Ages of each chromosome in the new population.
   """
-  popAge = kwargs['age']
-  if popAge == None:
-    popAge = np.zeros(kwargs['popSize'],dtype='int')
+  popSize = np.shape(kwargs['population'])[0]
+  if ('age' not in kwargs.keys() or kwargs['age']== None):
+    popAge = [0]*popSize
+  else:
+    popAge = kwargs['age']
   offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'])
   offSprings = xr.DataArray(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()),
-        dims=['chromosome','Gene'],
-        coords={'chromosome':np.arange(np.shape(np.atleast_2d(newRlz[list(self.toBeSampled)].to_array().transpose()))[0]),
-                'Gene': kwargs['variables']})
-  population = kwargs['population']
-  popFitness = kwargs['fitness']
+                            dims=['chromosome','Gene'],
+                            coords={'chromosome':np.arange(np.shape(np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose()))[0]),
+                                    'Gene': kwargs['variables']})
+  population = np.atleast_2d(kwargs['population'].data)
+  popFitness = np.atleast_1d(kwargs['fitness'].data)
   # sort population, popFitness according to age
   sortedAge,sortedPopulation,sortedFitness = zip(*[[x,y,z] for x,y,z in sorted(zip(popAge,population,popFitness),key=lambda x: (x[0], -x[2]))])# if equal age then use descending fitness
   sortedAge,sortedPopulation,sortedFitness = list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedFitness))
@@ -58,7 +60,7 @@ def ageBased(self,newRlz,**kwargs):
   newAge = list(map(lambda x:x+1, sortedAge.copy()))
   newPopulation[-1:-np.shape(offSprings)[0]-1:-1] = offSprings
   newFitness[-1:-np.shape(offSprings)[0]-1:-1] = offSpringsFitness
-  newAge[-1:-np.shape(offSprings)[0]-1:-1] = np.zeros(np.shape(offSprings)[0],dtype='int')
+  newAge[-1:-np.shape(offSprings)[0]-1:-1] = [0]*np.shape(offSprings)[0] #np.zeros(np.shape(offSprings)[0])
   # converting back to DataArrays
   newPopulation = xr.DataArray(newPopulation,
                                dims=['chromosome','Gene'],
@@ -77,7 +79,6 @@ def fitnessBased(newRlz,**kwargs):
     @ In, newRlz, xr.DataSet, containing either a single realization, or a batch of realizations.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           age, list, ages of each chromosome in the population of the previous generation
-          popSize, int, number of chromosomes (individuals) in each population.
           offSpringsFitness, xr.DataArray, fitness of each new child, i.e., np.shape(offSpringsFitness) = nChildren x nGenes
           variables
           population
@@ -86,21 +87,16 @@ def fitnessBased(newRlz,**kwargs):
     @ Out, newFitness, xr.DataArray, fitness of the new population
     @ Out, newAge, list, Ages of each chromosome in the new population.
   """
-  popAge = kwargs['age']
-  if popAge == None:
-    popAge = [0]*kwargs['popSize']
-  offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'].data)
+  popSize = np.shape(kwargs['population'])[0]
+  if ('age' not in kwargs.keys() or kwargs['age'] == None):
+    popAge = [0]*popSize
+  else:
+    popAge = kwargs['age']
+  offSpringsFitness = np.atleast_1d(kwargs['offSpringsFitness'])
   offSprings = np.atleast_2d(newRlz[kwargs['variables']].to_array().transpose().data)
   population = np.atleast_2d(kwargs['population'].data)
   popFitness = np.atleast_1d(kwargs['fitness'].data)
   offSpringsAge = [0]*(np.shape(offSpringsFitness)[0])
-  # ## TODO: remove duplicates
-  # repeated =[]
-  # for i in range(np.shape(population)[0]):
-  #   for j in range (np.shape(offSprings)[0]):
-  #     if all(population[i,:]==offSprings[j,:]):
-  #       repeated.append(j)
-  # offSprings = np.delete(offSprings, (repeated), axis=0)
   newPopulation = population.copy()
   newFitness = popFitness.copy()
   newAge = list(map(lambda x:x+1, popAge.copy()))

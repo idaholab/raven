@@ -49,7 +49,7 @@ def onePointCrossover(parents,**kwargs):
 
   # defaults
   if kwargs['points'] is None:
-    point = randomUtils.randomIntegers(1,nGenes-1)
+    point = list([randomUtils.randomIntegers(1,nGenes-1,None)])
   else:
     point = kwargs['points']
 
