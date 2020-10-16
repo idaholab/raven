@@ -673,7 +673,7 @@ def add_path(absolutepath):
     raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
   sys.path.append(absolutepath)
   # we add it in pythonpath too
-  os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep.join(pmoduleDir)
+  os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep.join(absolutepath)
 
 def add_path_recursively(absoluteInitialPath):
   """
