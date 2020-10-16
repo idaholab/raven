@@ -181,10 +181,10 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     if self.runInfoDict['internalParallel']:
-       ## Check if the list of unique nodes is present and, in case, initialize the
-       servers = None
-       ## set up enviroment
-       # os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
+      ## Check if the list of unique nodes is present and, in case, initialize the
+      servers = None
+      ## set up enviroment
+      # os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         ## identify the local host name and get the number of local processors
