@@ -203,11 +203,12 @@ def randomIntegers(low, high, caller=None, engine=None):
 def randomChoice(array, engine=None):
   """
     Generates a random sample from a given array-like (list or such) or N-D array
+    This equivalent to np.random.choice but extending the functionality to N-D arrays
     @ In, array, list or np.ndarray, the array from which to pick
     @ In, engine, instance, optional, optional, random number generator
-    @ Out, randomChoice, object, the random choice
+    @ Out, randomChoice, object, the random choice (1 element)
   """
-  assert(hasattr(array,"shape") or hasattr(array,"len"))
+  assert(hasattr(array,"shape") or isinstance(array,list))
   if hasattr(array,"shape"):
     coord = tuple([randomIntegers(0, dim-1, engine=engine) for dim in array.shape])
     return array[coord]

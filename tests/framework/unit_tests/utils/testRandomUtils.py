@@ -222,6 +222,18 @@ for i in range(5):
 for i in range(5):
   n = randomUtils.randomIntegers(10,20,None,engine=eng) #no message handler, error handling will error out
   checkAnswer('random integer, {} sample for local engine provided'.format(i),n,right[i])
+### randomChoice(), sampling an element from a array-like object (1D or ND)
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
+arrayLike = [1,2,3,4]
+n = randomUtils.randomChoice(arrayLike,engine=None) #no message handler, error handling will error out
+checkAnswer('random choice from list [1D] of reals for engine not provided',n,2)
+arrayLike = np.asarray(([1,2,3],[5,6,7],[9,10,11]))
+n = randomUtils.randomChoice(arrayLike,engine=None) #no message handler, error handling will error out
+checkAnswer('random choice from ND-array of reals for engine not provided',n,11)
+arrayLike = [["andrea","paul","diego"],["joshua","congjian","mohammad"]]
+n = randomUtils.randomChoice(arrayLike,engine=None) #no message handler, error handling will error out
+checkTrue('random choice from ND-array of objects (strings) for engine not provided',n, ["andrea","paul","diego"])
 ### randomPermutation(), rearranging lists
 randomUtils.randomSeed(42,engine=None)
 randomUtils.randomSeed(42,engine=eng)
