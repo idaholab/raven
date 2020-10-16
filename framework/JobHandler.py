@@ -181,7 +181,7 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     ## set up enviroment
-    os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
+    # os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
     ## Check if the list of unique nodes is present and, in case, initialize the
     servers = None
     if self.runInfoDict['internalParallel']:
@@ -197,6 +197,8 @@ class JobHandler(MessageHandler.MessageUser):
         ## Get localHost and servers
         servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
+        if True:
+         ray.services.get_node_ip_address = lambda: '127.0.0.1'
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
