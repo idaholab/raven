@@ -203,11 +203,11 @@ vals = randomUtils.randomNormal(3,engine=eng)
 checkArray('random normal single point for local engine provided',vals,right)
 ## test many points
 
-vals = randomUtils.randomNormal(3,5,engine=None)
+vals = randomUtils.randomNormal((5,3),engine=None)
 checkAnswer('randomNormal number of samples for engine not provided',len(vals),5)
 checkAnswer('randomNormal size of sample for engine not provided',len(vals[0]),3)
 
-vals = randomUtils.randomNormal(3,5,engine=eng)
+vals = randomUtils.randomNormal((5,3),engine=eng)
 checkAnswer('randomNormal number of samples for local engine provided',len(vals),5)
 checkAnswer('randomNormal size of sample for local engine provided',len(vals[0]),3)
 

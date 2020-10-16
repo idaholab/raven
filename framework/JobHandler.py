@@ -197,8 +197,6 @@ class JobHandler(MessageHandler.MessageUser):
         ## Get localHost and servers
         servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
-        if True:
-         ray.services.get_node_ip_address = lambda: '127.0.0.1'
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
