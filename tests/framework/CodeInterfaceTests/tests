@@ -1,14 +1,5 @@
 [Tests]
 
- [./testMCMammoth_BisonRelap7]
-   type = 'RavenFramework'
-   input = test_perturb_mammoth_exe_bison_relap7.xml
-   output = 'MammothInterface/Bison_Relap7/MCTestMammothExe/1/out~bison.csv MammothInterface/Bison_Relap7/MCTestMammothExe/2/out~bison.csv MammothInterface/Bison_Relap7/MCTestMammothExe/3/out~bison.csv'
-   csv = 'MammothInterface/Bison_Relap7/perturb_exe_0.csv MammothInterface/Bison_Relap7/perturb_exe_1.csv MammothInterface/Bison_Relap7/perturb_exe_2.csv'
-   rel_err = 0.001
-   required_executable = '../../../../mammoth/mammoth-%METHOD%'
- [../]
-
  [./testMCMammothNoExecutable_BisonRelap7]
    type = 'RavenFramework'
    input = test_perturb_mammoth_bison_relap7.xml
