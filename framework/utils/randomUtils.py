@@ -176,13 +176,13 @@ def randomNormal(size=(1,), keepMatrix=False, engine=None):
   else:
     return _reduceRedundantListing(vals,size)
 
-def randomIntegers(low, high, caller, engine=None):
+def randomIntegers(low, high, caller=None, engine=None):
   """
     Function to get a random integer
     @ In, low, int, low boundary
     @ In, high, int, upper boundary
-    @ In, caller, instance, object requesting the random integers
-    @ In, engine, instance, optional, random number generator
+    @ In, caller, instance, optional, object requesting the random integers
+    @ In, engine, instance, optional, optional, random number generator
     @ Out, rawInt, int, random int
   """
   engine = getEngine(engine)
@@ -193,11 +193,26 @@ def randomIntegers(low, high, caller, engine=None):
     rawNum = low + random(engine=engine)*intRange
     rawInt = int(round(rawNum))
     if rawInt < low or rawInt > high:
-      caller.raiseAMessage("Random int out of range")
+      if caller:
+        caller.raiseAMessage("Random int out of range")
       rawInt = max(low, min(rawInt, high))
     return rawInt
   else:
     raise TypeError('Engine type not recognized! {}'.format(type(engine)))
+
+def randomChoice(array, engine=None):
+  """
+    Generates a random sample from a given array-like (list or such) or N-D array
+    @ In, array, list or np.ndarray, the array from which to pick
+    @ In, engine, instance, optional, optional, random number generator
+    @ Out, randomChoice, object, the random choice
+  """
+  assert(hasattr(array,"shape") or hasattr(array,"len"))
+  if hasattr(array,"shape"):
+    coord = tuple([randomIntegers(0, dim-1, engine=engine) for dim in array.shape])
+    return array[coord]
+  else:
+    return array[randomIntegers(0, len(array)-1, engine=engine)]
 
 def randomPermutation(l,caller,engine=None):
   """

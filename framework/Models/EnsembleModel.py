@@ -742,8 +742,9 @@ class EnsembleModel(Dummy):
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
           jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
-      # collect the target evaluation
-      modelToExecute['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
+      else:
+        # collect the target evaluation
+        modelToExecute['Instance'].collectOutput(finishedRun[0],inRunTargetEvaluations)
 
     if not evaluation:
       # the model failed
