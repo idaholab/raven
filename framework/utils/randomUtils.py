@@ -231,7 +231,7 @@ def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
   """
   engine=getEngine(engine)
   ## first fill random samples
-  pts = randomNormal(dim,size=samples,keepMatrix=True,engine=engine)
+  pts = randomNormal(size=(samples, dim),keepMatrix=True,engine=engine)
   ## extend radius, place inside sphere through normalization
   rnorm = float(r)/np.linalg.norm(pts,axis=1)
   pts *= rnorm[:,np.newaxis]
