@@ -660,7 +660,7 @@ class EnsembleModel(Dummy):
         returnDict[modelIn] = retDict
         typeOutputs[modelCnt] = inRunTargetEvaluations[modelIn].type
         gotOutputs[modelCnt] =  gotOuts
-        tempOutputs[modelIn] = copy.deepcopy(evaluation)
+        tempOutputs[modelIn] = evaluation
 
         # if nonlinear system, compute the residue
         ## it looks like this is handling _indexMap, but it's not clear since there's not a way to test it (yet).
@@ -769,7 +769,7 @@ class EnsembleModel(Dummy):
 
     #store the results in return dictionary
     # store the metadata
-    returnDict['response'        ] = evaluation
+    returnDict['response'        ] = copy.deepcopy(evaluation) #  this deepcopy must stay! alfoa
     # overwrite with target evaluation filtering
     returnDict['response'        ].update(responseSpace)
     returnDict['prefix'          ] = np.atleast_1d(identifier)
