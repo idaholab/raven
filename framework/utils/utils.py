@@ -655,6 +655,8 @@ def find_crow(framework_dir):
       pmoduleDir = os.path.join(crowDir,"install")
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
+        # we add it in pythonpath too
+        os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep.join(pmoduleDir)
         return
     for crowDir in crowDirs:
       if os.path.exists(os.path.join(crowDir,"tests")):
@@ -670,6 +672,8 @@ def add_path(absolutepath):
   if not os.path.exists(absolutepath):
     raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
   sys.path.append(absolutepath)
+  # we add it in pythonpath too
+  os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep.join(pmoduleDir)
 
 def add_path_recursively(absoluteInitialPath):
   """
