@@ -24,11 +24,12 @@ import inspect
 import itertools
 import numpy as np
 import functools
-import Decorators
+import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
+import Decorators
 import SupervisedLearning
 from utils import utils
 from utils import xmlUtils
@@ -38,6 +39,8 @@ import Files
 import LearningGate
 #Internal Modules End--------------------------------------------------------------------------------
 
+# set enviroment variable to avoid parallelim degradation in some surrogate models
+os.environ["MKL_NUM_THREADS"]="1"
 
 class ROM(Dummy):
   """
