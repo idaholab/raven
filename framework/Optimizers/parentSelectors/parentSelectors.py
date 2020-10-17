@@ -101,13 +101,13 @@ def tournamentSelection(population,**kwargs):
 
   if nParents >= popSize/2.0:
     # generate combination of 2 with replacement
-    selectionList = randomUtils.randomChoice(list(range(0,popSize)), 2*nParents, replace=False)
+    selectionList = np.atleast_2d(randomUtils.randomChoice(list(range(0,popSize)), 2*nParents, replace=False))
     # randomUtils.randomChoice(np.array(np.arange(0,popSize)))
                       # (np.arange(0,popSize), 2*nParents, replace=False)
   else: # nParents < popSize/2.0
     # generate combination of 2 without replacement
     # mandd: raise a debug
-    selectionList = randomUtils.randomChoice(list(range(0,popSize)), 2*nParents, replace=True)
+    selectionList = np.atleast_2d(randomUtils.randomChoice(list(range(0,popSize)), 2*nParents, replace=True))
 
   selectionList = selectionList.reshape(nParents,2)
 
