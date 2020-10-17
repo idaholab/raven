@@ -101,11 +101,13 @@ def tournamentSelection(population,**kwargs):
 
   if nParents >= popSize/2.0:
     # generate combination of 2 with replacement
-    selectionList = np.random.choice(np.arange(0,popSize), 2*nParents, replace=False)
+    selectionList = randomUtils.randomChoice(list(range(0,popSize)), 2*nParents, replace=False)
+    # randomUtils.randomChoice(np.array(np.arange(0,popSize)))
+                      # (np.arange(0,popSize), 2*nParents, replace=False)
   else: # nParents < popSize/2.0
     # generate combination of 2 without replacement
     # mandd: raise a debug
-    selectionList = np.random.choice(np.arange(0,popSize), 2*nParents, replace=True)
+    selectionList = randomUtils.randomChoice(list(range(0,popSize)), 2*nParents, replace=True)
 
   selectionList = selectionList.reshape(nParents,2)
 
@@ -141,14 +143,14 @@ def rankSelection(population,**kwargs):
   dataOrderedByIncreasingPos = dataOrderedByDecreasingFitness[:,dataOrderedByDecreasingFitness[1].argsort()]
   orderedRank = dataOrderedByIncreasingPos[0,:]
 
-  selectedParent = rouletteWheel(population, fitness=orderedRank , nParents=kwargs['nParents'])
+  selectedParent = rouletteWheel(population, fitness=orderedRank , nParents=kwargs['nParents'],variables=kwargs['variables'])
 
   return selectedParent
 
 __parentSelectors = {}
 __parentSelectors['rouletteWheel'] = rouletteWheel
 __parentSelectors['rankSelection'] = rankSelection
-__parentSelectors['tournamentSelection'] = rankSelection
+__parentSelectors['tournamentSelection'] = tournamentSelection
 
 def returnInstance(cls, name):
   if name not in __parentSelectors:

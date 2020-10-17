@@ -175,13 +175,13 @@ def randomNormal(dim=1, samples=1, keepMatrix=False, engine=None):
   else:
     return _reduceRedundantListing(vals,dim,samples)
 
-def randomIntegers(low, high, caller, engine=None):
+def randomIntegers(low, high, caller=None, engine=None):
   """
     Function to get a random integer
     @ In, low, int, low boundary
     @ In, high, int, upper boundary
-    @ In, caller, instance, object requesting the random integers
-    @ In, engine, instance, optional, random number generator
+    @ In, caller, instance, optional, object requesting the random integers
+    @ In, engine, instance, optional, optional, random number generator
     @ Out, rawInt, int, random int
   """
   engine = getEngine(engine)
@@ -192,11 +192,33 @@ def randomIntegers(low, high, caller, engine=None):
     rawNum = low + random(engine=engine)*intRange
     rawInt = int(round(rawNum))
     if rawInt < low or rawInt > high:
-      caller.raiseAMessage("Random int out of range")
+      if caller:
+        caller.raiseAMessage("Random int out of range")
       rawInt = max(low, min(rawInt, high))
     return rawInt
   else:
     raise TypeError('Engine type not recognized! {}'.format(type(engine)))
+
+def randomChoice(pool, size, replace=False, engine=None):
+  """
+    Generates a random sample from a given array-like (list or such) or N-D array
+    @ In, array, list or np.ndarray, the array from which to pick
+    @ n, size, int, the number of elements to sample.
+    @ In, engine, instance, optional, optional, random number generator
+    @ Out, randomChoice, object, the random choice
+  """
+  assert(isinstance(pool,list))
+  selected = []
+  coords =list(range(0,len(pool)))
+  for _ in range(size):
+    if replace:
+      coord = randomIntegers(0, len(pool)-1, engine=engine)
+      selected.append(pool[coord])
+    else:
+      coord = randomChoice(coords, 1, engine=engine, replace=True)
+      selected.append(pool[coord[0]])
+      coords.remove(coord[0])
+  return selected
 
 def randomPermutation(l,caller,engine=None):
   """
