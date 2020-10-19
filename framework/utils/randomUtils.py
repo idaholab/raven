@@ -202,8 +202,9 @@ def randomIntegers(low, high, caller=None, engine=None):
 def randomChoice(pool, size, replace=False, engine=None):
   """
     Generates a random sample from a given array-like (list or such) or N-D array
-    @ In, array, list or np.ndarray, the array from which to pick
-    @ n, size, int, the number of elements to sample.
+    @ In, pool, list, the pool from which to pick
+    @ In, size, int, the number of elements to sample.
+    @ In, replace, bool, allows replacement if True, default is False
     @ In, engine, instance, optional, optional, random number generator
     @ Out, randomChoice, object, the random choice
   """
