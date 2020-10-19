@@ -47,22 +47,22 @@
   <Optimizers>
     <GeneticAlgorithm name="GAoptimizer">
       <samplerInit>
-        <limit>200</limit>
+        <limit>4500</limit>
         <initialSeed>42</initialSeed>
         <!--writeSteps>every</writeSteps-->
       </samplerInit>
 
       <GAparams>
-        <populationSize>10</populationSize>
+        <populationSize>58</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
         <reproduction nParents="4">
           <crossover type="onePointCrossover">
             <points>3</points>
-            <crossoverProb>0.8</crossoverProb>
+            <crossoverProb>0.9</crossoverProb>
           </crossover>
-          <mutation type="scrambleMutator">
+          <mutation type="swapMutator">
             <locs>2,5</locs>
-            <mutationProb>0.2</mutationProb>
+            <mutationProb>0.1</mutationProb>
           </mutation>
         </reproduction>
         <fitness type="logistic">
@@ -73,48 +73,48 @@
       </GAparams>
 
       <convergence>
-        <objective>20.0</objective>
+        <objective>0.0</objective>
       </convergence>
 
       <variable name="proj1">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,1,0,2,3,0,4,5,0,1</initial>
+        <initial>0,1,0,0,0,2,0,0,3,0,0,4,0,0,5,0,0,1,0,0,4,0,0,5,0,0,1,0,0,0,0,2,0,0,3,0,0,4,0,0,5,0,0,1,0,0,2,0,3,2,0,0,3,0,0,4,0,5</initial>
       </variable>
       <variable name="proj2">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>1,0,2,3,0,4,5,0,1,2</initial>
+        <initial>0,1,0,2,0,0,3,0,0,4,0,0,5,0,0,1,0,0,2,0,0,3,0,0,4,0,0,5,2,0,1,0,0,0,2,0,0,3,0,0,4,0,0,5,0,0,1,0,0,4,0,0,5,0,0,1,0,0</initial>
       </variable>
       <variable name="proj3">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>2,0,3,4,0,5,0,1,2,3</initial>
+        <initial>0,0,2,0,0,3,0,0,4,0,0,5,0,0,1,0,0,2,0,3,2,0,0,3,0,0,4,0,5,0,0,4,0,5,0,0,1,0,0,2,0,0,3,0,4,0,5,0,0,0,0,4,0,5,0,0,0,2</initial>
       </variable>
       <variable name="proj4">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>3,4,0,5,0,1,2,0,3,4</initial>
+        <initial>0,3,0,0,4,0,0,5,0,1,0,0,2,0,0,3,0,4,0,0,5,0,1,0,0,2,0,0,0,0,0,5,0,0,1,0,0,0,2,0,0,0,3,0,4,0,0,5,0,0,5,0,0,1,0,0,0,2</initial>
       </variable>
       <variable name="proj5">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>4,0,5,0,1,2,0,3,4,5</initial>
+        <initial>0,0,4,0,5,0,0,1,0,0,2,0,0,3,0,4,0,5,0,0,0,0,4,0,5,0,0,0,2,0,3,0,0,4,0,0,5,0,1,0,0,2,0,0,3,0,4,0,0,5,0,1,0,0,2,0,0,0</initial>
       </variable>
       <variable name="proj6">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>5,0,1,2,0,3,0,4,5,0</initial>
+        <initial>0,0,5,0,0,1,0,0,0,2,0,0,0,3,0,4,0,0,5,0,0,5,0,0,1,0,0,0,2,1,0,0,2,0,0,3,0,0,4,0,0,5,0,1,0,0,2,0,0,4,0,0,5,0,1,0,0,2</initial>
       </variable>
       <variable name="proj7">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,1,0,2,3,0,4,5,0,1</initial>
+        <initial>0,0,1,0,0,2,0,0,3,0,0,4,0,0,5,0,0,1,0,0,1,0,0,0,3,0,4,0,0,3,0,4,0,0,0,5,0,0,0,1,0,0,2,0,0,3,0,4,0,0,1,0,0,0,2,0,0,3</initial>
       </variable>
       <variable name="proj8">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>1,2,0,3,4,5,0,1,2,0</initial>
+        <initial>1,0,0,2,0,0,3,0,0,4,0,0,5,0,1,0,0,2,0,0,4,0,0,5,0,1,0,0,2,2,0,0,3,0,0,4,0,0,5,0,0,1,0,0,0,2,0,3,0,0,0,3,0,0,4,2,0,0</initial>
       </variable>
       <variable name="proj9">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>2,0,3,0,4,5,0,1,2,3</initial>
+        <initial>2,0,0,3,0,0,4,0,0,5,0,0,1,0,0,0,2,0,3,0,0,0,3,0,0,4,2,0,0,0,0,5,0,0,1,0,0,0,2,0,0,0,3,0,4,0,0,5,0,0,5,0,0,1,0,0,0,2</initial>
       </variable>
       <variable name="proj10">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>3,0,4,5,0,1,0,2,3,4</initial>
+        <initial>3,0,4,0,0,0,5,0,0,0,1,0,0,2,0,0,3,0,4,0,0,1,0,0,0,2,0,0,3,0,0,2,0,3,0,0,4,0,0,5,0,1,0,0,2,0,0,3,0,4,0,0,5,0,1,0,0,2</initial>
       </variable>
 
       <objective>planValue</objective>
