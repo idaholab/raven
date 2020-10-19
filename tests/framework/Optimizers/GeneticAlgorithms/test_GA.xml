@@ -73,21 +73,21 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>100</limit>
+        <limit>50</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
 
       <GAparams>
-        <populationSize>10</populationSize>
+        <populationSize>20</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="2">
+        <reproduction nParents="4">
           <crossover type="onePointCrossover">
-            <points>3</points>
+            <!-- <points>3</points> -->
             <crossoverProb>0.8</crossoverProb>
           </crossover>
-          <mutation type="scrambleMutator">
-            <locs>2,5</locs>
+          <mutation type="swapMutator">
+            <!-- <locs>2,5</locs> -->
             <mutationProb>0.9</mutationProb>
           </mutation>
         </reproduction>
@@ -104,32 +104,32 @@
 
       <variable name="x1">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>1,2,3,4,5,6,7,8,9,10</initial>
+        <initial>1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20</initial>
       </variable>
 
       <variable name="x2">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>2,3,4,5,6,7,8,9,10,11</initial>
+        <initial>2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1</initial>
       </variable>
 
       <variable name="x3">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>3,4,5,6,7,8,9,10,11,12</initial>
+        <initial>3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2</initial>
       </variable>
 
       <variable name="x4">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>4,5,6,7,8,9,10,11,12,13</initial>
+        <initial>4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3</initial>
       </variable>
 
       <variable name="x5">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>5,6,7,8,9,10,11,12,13,14</initial>
+        <initial>5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4</initial>
       </variable>
 
       <variable name="x6">
         <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>6,7,8,9,10,11,12,13,14,15</initial>
+        <initial>6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4,5</initial>
       </variable>
 <!--
       <variable name=" fuelLocation_3">
