@@ -25,7 +25,7 @@
 import numpy as np
 import xarray as xr
 from operator import itemgetter
-from utils import randomUtils
+from utils import utils,randomUtils
 
 def swapMutator(offSprings,**kwargs):
   """
@@ -36,8 +36,18 @@ def swapMutator(offSprings,**kwargs):
           variables, list, variables names.
     @ Out, children, xr.DataArray, the mutated chromosome, i.e., the child.
   """
-  loc1 = kwargs['locs'][0]
-  loc2 = kwargs['locs'][1]
+  if kwargs['locs'] == None:
+    eng = randomUtils.newRNG()
+    locs=[]
+    for i in range(2):
+      l = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None,eng)
+      locs.append(l)
+    locs = list(set(locs))
+    loc1 = locs[0]
+    loc2 = locs[1]
+  else:
+    loc1 = kwargs['locs'][0]
+    loc2 = kwargs['locs'][1]
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
                           dims=['chromosome','Gene'],
@@ -54,6 +64,7 @@ def swapMutator(offSprings,**kwargs):
 # @profile
 def scrambleMutator(offSprings,**kwargs):
   """
+    @ In, offSprings, xr.DataArray, offsprings after crossover
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           chromosome, numpy.array, the chromosome that will mutate to the new child
           locs, list, the locations of the genes to be randomly scrambled
@@ -62,6 +73,14 @@ def scrambleMutator(offSprings,**kwargs):
     @ Out, child, np.array, the mutated chromosome, i.e., the child.
   """
   locs = kwargs['locs']
+  if locs == None:
+    eng = randomUtils.newRNG()
+    nLocs = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None,eng)
+    locs=[]
+    for i in range(nLocs):
+      l = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None,eng)
+      locs.append(l)
+    locs = list(set(locs))
   nMutable = len(locs)
     # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),

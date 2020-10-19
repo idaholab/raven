@@ -571,7 +571,7 @@ class DataSet(DataObject):
           index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, options=options)
       # otherwise, first try to find it in the data
       else:
-        index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, unpackXArray=unpackXArray, options=options)
+        index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, unpackXArray=unpackXArray)# should we add options=options to this one as well?
         # if no match found in data, try in the collector (if there's anything in it)
         if rlz is None:
           if numInCollector > 0:

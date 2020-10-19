@@ -237,7 +237,6 @@ class RavenSampled(Optimizer):
       # build the point in the way the Sampler expects
       for var in self.toBeSampled: #, val in point.items():
         val = point[var] if isinstance(point[var],float) else np.atleast_1d(point[var].data)[0]
-        print(val)
         self.values[var] = val # TODO should be np.atleast_1d?
         ptProb = self.distDict[var].pdf(val)
         # sampler-required meta information # TODO should we not require this?
@@ -291,7 +290,7 @@ class RavenSampled(Optimizer):
     # get information and realization, and update trajectories
     info = self.getIdentifierFromPrefix(prefix, pop=True)
     if self.batch == 1:
-      _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=True)
+      _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
     else:
       # NOTE if here, then rlz is actually a xr.Dataset, NOT a dictionary!!
       _, rlz = self._targetEvaluation.realization(matchDict={'batchId': self.batchId}, asDataSet=True,options={'returnAllMatch':True})
@@ -498,8 +497,8 @@ class RavenSampled(Optimizer):
       Consider and store a new optimal point
       @ In, traj, int, trajectory for this new point
       @ In, info, dict, identifying information about the realization
-      @ In, rlz, dict, realized realization
-      @ In, optVal, float, value of objective variable (corrected for min/max)
+      @ In, rlz, xr.DataSet, batched realizations
+      @ In, optVal, list of floats, values of objective variable
     """
     self.raiseADebug('*'*80)
     self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))
