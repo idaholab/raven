@@ -529,6 +529,10 @@ def importFromPath(filename, printImporting = True):
     (name, ext) = os.path.splitext(name)
     (file, filename, data) = imp.find_module(name, [path])
     importedModule = imp.load_module(name, file, filename, data)
+    pythonPath = os.environ.get("PYTHONPATH","")
+    absPath = os.path.abspath(path)
+    if absPath not in pythonPath:
+      os.environ['PYTHONPATH'] = pythonPath+ os.pathsep + absPath
   except Exception as ae:
     raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
   return importedModule
