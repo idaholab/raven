@@ -57,6 +57,7 @@ from collections import deque, defaultdict
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils, randomUtils, InputData, InputTypes
 from .RavenSampled import RavenSampled
+from .stepManipulators import NoConstraintResolutionFound
 #Internal Modules End--------------------------------------------------------------------------------
 
 class SimulatedAnnealing(RavenSampled):
@@ -374,7 +375,7 @@ class SimulatedAnnealing(RavenSampled):
       @ In, traj, int, trajectory identifier
       @ Out, converged, bool, convergence state
     """
-    if len(self._optPointHistory[traj]) < 2:
+    if len(self._optPointHistory[traj]) < 2 or (self._convergenceCriteria['objective'] < 0):
       return False
     o1, _ = self._optPointHistory[traj][-1]
     o2, _ = self._optPointHistory[traj][-2]
