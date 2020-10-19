@@ -28,15 +28,22 @@ def run(self,Input):
   self.planValue = 0
   for n in range(0,10):
     if projPlan[n]>0:
-      knapsackCapacities[int(projPlan[n])-1] = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
-      self.planValue = self.planValue + projValue[n]
+      test = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
+      if test>=0:
+        knapsackCapacities[int(projPlan[n])-1] = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
+        self.planValue = self.planValue + projValue[n]
+      else:
+        knapsackCapacities[int(projPlan[n])-1] = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
+        self.planValue = self.planValue - projValue[n]
+
+      #knapsackCapacities[int(projPlan[n])-1] = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
+      #self.planValue = self.planValue + projValue[n]
 
   if (knapsackCapacities>=0).all():
     self.validPlan =  0.
   else:
     self.validPlan = 1.
 
-  counterNeg = np.sum(knapsackCapacities<0, axis=0)
-
-  self.planValue = self.planValue - counterNeg * (10.)
+  #counterNeg = np.sum(knapsackCapacities<0, axis=0)
+  #self.planValue = self.planValue - counterNeg * (10.)
 
