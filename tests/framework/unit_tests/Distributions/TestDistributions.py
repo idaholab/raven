@@ -1120,7 +1120,7 @@ UniformDiscrete = getDistribution(UniformDiscreteElement)
 initParams = UniformDiscrete.getInitParams()
 
 discardedElems = np.array([5,6])
-      
+
 checkAnswer("UniformDiscrete rvs1",UniformDiscrete.selectedRvs(discardedElems),3)
 checkAnswer("UniformDiscrete rvs2",UniformDiscrete.selectedRvs(discardedElems),3)
 checkAnswer("UniformDiscrete rvs3",UniformDiscrete.selectedRvs(discardedElems),3)
