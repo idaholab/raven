@@ -254,4 +254,20 @@
     UnorderedXml = 'Peaks/romMeta.xml'
     rel_err = 1e-6
   [../]
+
+  [./Interpolated]
+    type = 'RavenFramework'
+    input = 'interpolated.xml'
+    [./meta]
+      type = XML
+      unordered = true
+      output = 'Interpolated/romMeta.xml'
+      rel_err = 1e-3
+    [../]
+    [./samples]
+      type = OrderedCSV
+      output = 'Interpolated/synthetic.csv Interpolated/resynthetic.csv'
+      rel_err = 1e-3
+    [../]
+  [../]
 []

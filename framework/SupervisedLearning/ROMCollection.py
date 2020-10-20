@@ -1192,7 +1192,10 @@ class Interpolated(supervisedLearning):
     if mh:
       for step, collection in self._macroSteps.items():
         collection.messageHandler = mh
+        # deepcopy is necessary because clusterEvalMode has to be popped out in collection
+        collection.setAdditionalParams(copy.deepcopy(params))
       self._macroTemplate.messageHandler = mh
+      self._macroTemplate.setAdditionalParams(params)
     return super().setAdditionalParams(params)
 
   def setAssembledObjects(self, *args, **kwargs):
@@ -1482,7 +1485,7 @@ class Interpolated(supervisedLearning):
       # END setting up results structure, if needed
       # FIXME reshape in case indexMap is not the same as finalIndexMap?
       for target, values in subResult.items():
-        if target in [pivotID, '_indexMap'] or target in indexMap:
+        if target in [pivotID, '_indexMap'] or target in indices:# indexMap:
           continue
         indexer = tuple([m] + [None]*len(values.shape))
         try:
@@ -1493,7 +1496,7 @@ class Interpolated(supervisedLearning):
     for target, vals in results.items():
       if target not in indices and target not in ['_indexMap']:
         default = [] if vals.size == 1 else [pivotID]
-        results['_indexMap'][target] = [self._macroParameter] + finalIndexMap.get(target, default)
+        results['_indexMap'][target] = [self._macroParameter] + list(finalIndexMap.get(target, default))
     results[self._macroParameter] = macroIndexValues
     return results
 
