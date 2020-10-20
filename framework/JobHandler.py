@@ -181,7 +181,7 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     ## set up enviroment
-    # os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
+    os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
     ## Check if the list of unique nodes is present and, in case, initialize the
     servers = None
     if self.runInfoDict['internalParallel']:
