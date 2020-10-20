@@ -25,7 +25,6 @@ import time
 import abc
 import os
 import sys
-import itertools
 if sys.version_info.major > 2:
   import pickle
 else:
@@ -42,7 +41,7 @@ import Files
 from utils import utils
 from utils import InputData, InputTypes
 import Models
-from OutStreams import OutStreamManager
+from OutStreams import OutStreamBase
 from DataObjects import DataObject
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -92,12 +91,13 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     #  re-seeding = 'continue' the use the already present random environment
     #If there is no instruction (self.initSeed = None) the sampler will reinitialize
     self.initSeed        = None
-    self._knownAttribute += ['sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns']
+    self._knownAttribute += ['clearRunDir', 'sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns']
     self._excludeFromModelValidation = ['SolutionExport']
     # how to handle failed runs. By default, the step fails.
     # If the attribute "repeatFailureRuns" is inputted, a certain number of repetitions are going to be performed
     self.failureHandling = {"fail":True, "repetitions":0, "perturbationFactor":0.0, "jobRepetitionPerformed":{}}
     self.printTag = 'STEPS'
+    self._clearRunDir = None
 
   @classmethod
   def getInputSpecification(cls):
@@ -128,6 +128,12 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     inputSpecification.addParam("pauseAtEnd", InputTypes.StringType)
     inputSpecification.addParam("fromDirectory", InputTypes.StringType)
     inputSpecification.addParam("repeatFailureRuns", InputTypes.StringType)
+    inputSpecification.addParam("clearRunDir", InputTypes.BoolType,
+        descr=r"""indicates whether the run directory should be cleared (removed) before beginning
+              the Step calculation. The run directory has the same name as the Step and is located
+              within the WorkingDir. Note this directory is only used for Steps with certain Models,
+              such as Code.
+              \default{True}""")
 
     # for convenience, map subnodes to descriptions and loop through them
     subOptions = {'Input': 'Inputs to the step operation',
@@ -180,6 +186,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
           self.raiseAnError(IOError,printString.format(self.type,self.name,self.initSeed,'re-seeding'))
     if 'sleepTime' in paramInput.parameterValues:
       self.sleepTime = paramInput.parameterValues['sleepTime']
+    self._clearRunDir = paramInput.parameterValues.get('clearRunDir', True)
     for child in paramInput.subparts:
       classType = child.parameterValues['class']
       classSubType = child.parameterValues['type']
@@ -354,10 +361,10 @@ class SingleRun(Step):
       @ Out, None
     """
     Step.__init__(self)
-    self.samplerType    = 'Sampler'
-    self.failedRuns     = []
+    self.samplerType = 'Sampler'
+    self.failedRuns = []
     self.lockedFileName = "ravenLocked.raven"
-    self.printTag       = 'STEP SINGLERUN'
+    self.printTag = 'STEP SINGLERUN'
 
   def _localInputAndCheckParam(self,paramInput):
     """
@@ -427,16 +434,34 @@ class SingleRun(Step):
     if inDictionary['Model'].createWorkingDir:
       currentWorkingDirectory = os.path.join(inDictionary['jobHandler'].runInfoDict['WorkingDir'],
                                              inDictionary['jobHandler'].runInfoDict['stepName'])
-      try:
-        os.mkdir(currentWorkingDirectory)
-      except FileExistsError:
-        self.raiseAWarning('current working dir '+currentWorkingDirectory+' already exists, ' +
-                           'this might imply deletion of present files')
-        if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
-          self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
-        if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
-          self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ currentWorkingDirectory+". Please check your input!")
-        # register function to remove the locked file at the end of execution
+      workingDirReady = False
+      alreadyTried = False
+      while not workingDirReady:
+        try:
+          os.mkdir(currentWorkingDirectory)
+          workingDirReady = True
+        except FileExistsError:
+          if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
+            self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
+          if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
+              self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ currentWorkingDirectory+". Please check your input!")
+          if self._clearRunDir and not alreadyTried:
+            self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists, ' +
+                              'clearing existing files. This action can be disabled through the RAVEN Step input.')
+
+            utils.removeDir(currentWorkingDirectory)
+            alreadyTried = True
+            continue
+          else:
+            if alreadyTried:
+              self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists, ' +
+                                'and was not able to be removed. ' +
+                                'Files present in this directory may be replaced, and error handling may not occur as expected.')
+            else:
+              self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists. ' +
+                                'Files present in this directory may be replaced, and error handling may not occur as expected.')
+            workingDirReady = True
+          # register function to remove the locked file at the end of execution
         atexit.register(utils.removeFile,os.path.join(currentWorkingDirectory,self.lockedFileName))
     inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],modelInitDict)
 
@@ -448,7 +473,7 @@ class SingleRun(Step):
       #if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
       if 'HDF5' in inDictionary['Output'][i].type:
         inDictionary['Output'][i].initialize(self.name)
-      elif inDictionary['Output'][i].type in ['OutStreamPlot','OutStreamPrint']:
+      elif isinstance(inDictionary['Output'][i], OutStreamBase):
         inDictionary['Output'][i].initialize(inDictionary)
       self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
     self._registerMetadata(inDictionary)
@@ -488,8 +513,8 @@ class SingleRun(Step):
         if finishedJob.getReturnCode() == 0:
           # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
           for output in outputs:
-            if output.type not in ['OutStreamPlot','OutStreamPrint']:
-              model.collectOutput(finishedJob,output)
+            if not isinstance(output, OutStreamBase):
+              model.collectOutput(finishedJob, output)
             else:
               output.addOutput()
         else:
@@ -603,7 +628,7 @@ class MultiRun(SingleRun):
     self._outputDictCollectionLambda = []
     # set up output collection lambdas
     for outIndex, output in enumerate(inDictionary['Output']):
-      if output.type not in ['OutStreamPlot','OutStreamPrint']:
+      if not isinstance(output, OutStreamBase):
         if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name:
           self._outputCollectionLambda.append((lambda x:None, outIndex))
           self._outputDictCollectionLambda.append((lambda x:None, outIndex))
@@ -626,9 +651,10 @@ class MultiRun(SingleRun):
     for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
       if inDictionary[self.samplerType].amIreadyToProvideAnInput():
         try:
-          newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'])
-          inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
-          self.raiseADebug('Submitted input '+str(inputIndex+1))
+          newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'], inDictionary['jobHandler'])
+          if newInput is not None:
+            inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
+            self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
 
@@ -710,8 +736,9 @@ class MultiRun(SingleRun):
 
           if sampler.amIreadyToProvideAnInput():
             try:
-              newInput = self._findANewInputToRun(sampler, model, inputs, outputs)
-              model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+              newInput = self._findANewInputToRun(sampler, model, inputs, outputs, jobHandler)
+              if newInput is not None:
+                model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
             except utils.NoMoreSamplesNeeded:
               self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
               break
@@ -728,7 +755,7 @@ class MultiRun(SingleRun):
     # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
     sampler.finalizeSampler(self.failedRuns)
 
-  def _findANewInputToRun(self, sampler, model, inputs, outputs):
+  def _findANewInputToRun(self, sampler, model, inputs, outputs, jobHandler):
     """
       Repeatedly calls Sampler until a new run is found or "NoMoreSamplesNeeded" is raised.
       @ In, sampler, Sampler, the sampler in charge of generating the sample
@@ -741,18 +768,21 @@ class MultiRun(SingleRun):
         (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
         inherit from some base "Data" so that we can ensure a consistent
         interface for these?)
-      @ Out, newInp, list, list containing the new inputs
+      @ In, jobHandler, object, the raven object used to handle jobs
+      @ Out, newInp, list, list containing the new inputs (or None if a restart)
     """
     #The value of "found" determines what the Sampler is ready to provide.
     #  case 0: a new sample has been discovered and can be run, and newInp is a new input list.
     #  case 1: found the input in restart, and newInp is a realization dicitonary of data to use
-    found = None
-    while found != 0:
-      found, newInp = sampler.generateInput(model,inputs)
-      if found == 1:
-        # loop over the outputs for this step and collect the data for each
-        for collector, outIndex in self._outputDictCollectionLambda:
-          collector([newInp,outputs[outIndex]])
+    found, newInp = sampler.generateInput(model,inputs)
+    if found == 1:
+      kwargs = copy.deepcopy(sampler.inputInfo)
+      # "submit" the finished run
+      jobHandler.addFinishedJob(newInp, metadata=kwargs)
+      return None
+      # NOTE: we return None here only because the Sampler's "counter" is not correctly passed
+      # through if we add several samples at once through the restart. If we actually returned
+      # a Realization object from the Sampler, this would not be a problem. - talbpaul
     return newInp
 #
 #
@@ -851,7 +881,7 @@ class IOStep(Step):
     """
     outputs         = []
     for out in inDictionary['Output']:
-      if not isinstance(out,OutStreamManager):
+      if not isinstance(out, OutStreamBase):
         outputs.append(out)
     return outputs
 
@@ -956,9 +986,9 @@ class IOStep(Step):
           filename = os.path.join(self.fromDirectory, inInput.name)
           inInput.load(filename, style='csv')
 
-    #Initialize all the OutStreamPrint and OutStreamPlot outputs
+    #Initialize all the OutStreams
     for output in inDictionary['Output']:
-      if type(output).__name__ in ['OutStreamPrint','OutStreamPlot']:
+      if isinstance(output, OutStreamBase):
         output.initialize(inDictionary)
         self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
     # register metadata
@@ -1040,7 +1070,7 @@ class IOStep(Step):
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
 
     for output in inDictionary['Output']:
-      if output.type in ['OutStreamPrint','OutStreamPlot']:
+      if isinstance(output, OutStreamBase):
         output.addOutput()
 
   def _localGetInitParams(self):

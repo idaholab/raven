@@ -17,7 +17,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="sample">
+    <MultiRun name="sample" clearRunDir="False">
       <Input class="Files" type="">mooseinp</Input>
       <Model class="Models" type="Code">exampleMooseApp</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>

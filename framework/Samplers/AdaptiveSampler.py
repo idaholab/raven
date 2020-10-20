@@ -66,7 +66,7 @@ class AdaptiveSampler(Sampler):
     # NOTE TargetEvaluations consider all the Step <Output> DataObjects as candidates, so requiring
     # exactly one TargetEvaluation forces only having one <Output> DataObject in AdaptiveSampling
     # MultiRun Steps. For now, we leave it as "n".
-    self.addAssemblerObject('TargetEvaluation', 'n') # Place where realization evaluations go
+    self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one_to_infinity) # Place where realization evaluations go
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """

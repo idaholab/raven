@@ -21,22 +21,98 @@ This a library for defining the data used and for reading it in.
 from __future__ import division, print_function, unicode_literals, absolute_import
 import re
 from collections import OrderedDict
+from enum import Enum
 import xml.etree.ElementTree as ET
 from utils import InputTypes
 import textwrap
 
-class Quantity:
+class Quantity(Enum):
   """
     A class that allows the quantity of a node to be specified.
-    If python3.4+ is required, this should be switched to a Python 3.4 Enum.
   """
   zero_to_one = (0,1)
   zero_to_infinity = (0,2)
   one = (1,1)
   one_to_infinity = (1,2)
 
-#
-#
+def checkQuantity(quantity, n):
+  """
+    Checks if n is matches the quantity parameter.
+    @ In, quantity, Quantity, the quantity value to check against
+    @ In, n, int, the value to check against
+    @ Out, match, bool, True if the n is an allowed quantity.
+  """
+  start, end = quantity.value
+  match = n >= start
+  if end == 1:
+    match = match and n <= 1
+  return match
+
+class CheckClass(object):
+  """
+    This checks to figure out if a node is a ParameterInput type
+    If the check passes, then it is.
+  """
+
+  def check(self, node):
+    """
+      Checks the node to see if it matches the checkDict
+      @ In, node, xml.etree.ElementTree.Element, xml node to check
+      @ Out, bool, true if matches
+    """
+    assert False, "check function not implemented"
+
+
+  def failCheckReason(self, node):
+    """
+      returns a string about why the check failed
+      @ In, node, xml.etree.ElementTree.Element, xml node to check
+      @ Out, string, message for user about why check failed.
+    """
+    return "Check failed"
+
+class CheckParams(CheckClass):
+  """
+    Checks that some parameters exist in the class
+  """
+
+  def __init__(self, checkDict):
+    """
+      create CheckParams class
+      @ In, checkDict, dict, the keys are used to look at the parameters and the values are checked against the parameter values.
+      @ Out, None
+    """
+    self.checkDict = checkDict
+
+  def check(self, node):
+    """
+      Checks the node to see if it matches the checkDict
+      @ In, node, xml node to check
+      @ Out, bool, true if matches
+    """
+    match = True
+    for key in self.checkDict:
+      if key in node.attrib:
+        match = match and (self.checkDict[key] == node.attrib[key])
+      else:
+        match = False
+    return match
+
+  def failCheckReason(self, node):
+    """
+      returns a string about why the check failed
+      @ In, node, xml node to check
+      @ Out, string, message for user about why check failed.
+    """
+    reason = ""
+    for key in self.checkDict:
+      if key in node.attrib:
+        if self.checkDict[key] != node.attrib[key]:
+          reason += "Mismatch of param: "+key+" "+self.checkDict[key]+"!="+node.attrib[key]+" "
+      else:
+        reason += "Missing param: "+key+" "
+    return reason
+
 #
 #
 class ParameterInput(object):
@@ -51,6 +127,10 @@ class ParameterInput(object):
   strictMode = True #If true, only allow parameters and subnodes that are listed
   description = '-- no description yet --'
   printPriority = None
+  _checkCanRead = None #If not none, call this function before trying to read
+  # an xml file.  The function should return true or false depending on if
+  # this can be read by this class.
+  _subDict = {}
 
   def __init__(self):
     """
@@ -93,6 +173,7 @@ class ParameterInput(object):
       #Make new copies of data from baseNode
       cls.parameters = dict(baseNode.parameters)
       cls.subs = OrderedDict.fromkeys(baseNode.subs)
+      cls._subDict = dict(baseNode._subDict)
       if ordered:
         cls.subOrder = list(baseNode.subOrder)
       else:
@@ -102,6 +183,7 @@ class ParameterInput(object):
     else:
       cls.parameters = {}
       cls.subs = OrderedDict() #set()
+      cls._subDict = dict()
       if ordered:
         cls.subOrder = []
       else:
@@ -152,13 +234,36 @@ class ParameterInput(object):
   @classmethod
   def removeParam(cls, name, param_type=InputTypes.StringType, required=False):
     """
-      Adds a direct parameter to this class.  In XML this is an attribute.
+      Removes a direct parameter to this class.  In XML this is an attribute.
       @ In, name, string, the name of the parameter
-      @ In, param_type, subclass of InputTypes.InputType, optional, that specifies the type of the attribute.
-      @ In, required, bool, optional, if True, this parameter is required.
+      @ In, param_type, subclass of InputTypes.InputType, optional, that specifies the type of the attribute. UNUSED
+      @ In, required, bool, optional, if True, this parameter is required. UNUSED
       @ Out, None
     """
     del cls.parameters[name]
+
+  @classmethod
+  def addCheckedParams(cls, checkDict):
+    """
+      Adds checking for all the parameters and values in the checkDict.
+      Otherwise this will not process the node.
+      This allows multiple subs with the same name
+      @ In, checkDict, dict, the keys are used to look at the parameters and the values are checked against the parameter values.
+      @ Out, None
+    """
+
+    cls._checkCanRead = CheckParams(checkDict)
+
+  @classmethod
+  def setCheckClass(cls, checkClass):
+    """
+      sets the CheckClass, which is used to check if this ParameterInput can
+      handle a specific node
+      @ In, checkClass, CheckClass, class to use for checking node
+      @ Out, None
+    """
+    assert isinstance(checkClass, CheckClass)
+    cls._checkCanRead = checkClass
 
   @classmethod
   def addSub(cls, sub, quantity=Quantity.zero_to_infinity):
@@ -169,11 +274,31 @@ class ParameterInput(object):
       @ Out, None
     """
     cls.subs[sub] = None
+    subsSet = cls._subDict.get(sub.getName(), set())
+    if __debug__:
+      if (len(subsSet) == 1 and next(iter(subsSet))._checkCanRead is None) or \
+        (len(subsSet) > 0 and sub._checkCanRead is not None):
+        print("INPUT SPEC ERROR adding checked and unchecked to", sub.getName()," in ",
+                 cls.getName()+" len "+str(len(subsSet)))
+    subsSet.add(sub)
+    cls._subDict[sub.getName()] = subsSet
     if cls.subOrder is not None:
       cls.subOrder.append((sub, quantity))
     elif quantity != Quantity.zero_to_infinity:
       print("ERROR only zero to infinity is supported if Order==False ",
            sub.getName()," in ",cls.getName())
+
+  @classmethod
+  def addSubSimple(cls, name, contentType, quantity=Quantity.zero_to_infinity):
+    """
+      Adds a subnode to this class.
+      @ In, name, String, the name of the subnode
+      @ In, contentType, InputTypes.InputType
+      @ In, quantity, value in Quantity, the number of this subnode to allow.
+      @ Out, None
+    """
+    cls.addSub(parameterInputFactory(name, contentType=contentType),
+               quantity)
 
   @classmethod
   def removeSub(cls, sub):
@@ -182,6 +307,7 @@ class ParameterInput(object):
       @ In, sub, subclass of ParameterInput, the subnode to allow
       @ Out, None
     """
+    cls._subDict[sub.getName()].remove(sub)
     for have in cls.subs:
       if have.name == sub:
         toRemove = have
@@ -206,6 +332,7 @@ class ParameterInput(object):
       if sub.getName() == subname:
         poppedSub = sub
     if poppedSub is not None:
+      cls._subDict[poppedSub.getName()].remove(poppedSub)
       cls.subs.pop(poppedSub)
     else:
       return None
@@ -227,7 +354,7 @@ class ParameterInput(object):
     """
     cls.contentType = contentType
 
-  def parseNode(self,node, errorList = None):
+  def parseNode(self, node, errorList=None):
     """
       Parses the xml node and puts the results in self.parameterValues and
       self.subparts and self.value
@@ -251,6 +378,8 @@ class ParameterInput(object):
       #should this be an error or a warning? Or even that?
       #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
       print('InputData: Using param spec "{}" to read XML node "{}.'.format(self.name,node.tag))
+    if self._checkCanRead is not None and not self.__class__._checkCanRead.check(node):
+      handleError("CheckCanRead failed for "+node.tag+"Reason: "+self.__class__._checkCanRead.failCheckReason(node))
 
     # check content type
     if self.contentType:
@@ -281,13 +410,24 @@ class ParameterInput(object):
       subs = self.subs
     # read in subnodes
     subNames = set()
-    for sub in subs:
-      subName = sub.getName()
-      subNames.add(subName)
-      for subNode in node.findall(subName):
-        subInstance = sub()
-        subInstance.parseNode(subNode, errorList)
+    for child in node:
+      childName = child.tag
+      subsSet = self._subDict.get(childName,set())
+      foundSubs = 0
+      for sub in subsSet:
+        if sub._checkCanRead is None:
+          subInstance = sub()
+          foundSubs += 1
+        elif sub._checkCanRead.check(child):
+          subInstance = sub()
+          foundSub += 1
+      if foundSubs > 0:
+        subNames.add(childName)
+        subInstance.parseNode(child, errorList)
         self.subparts.append(subInstance)
+      elif self.strictMode:
+        allowed = [s.getName() for s in subs]
+        handleError(f'Unrecognized input: "{childName}"! Allowed: "{allowed}", tried "{subsSet}"')
     if self.strictMode:
       nodeNames = set([child.tag for child in node])
       if nodeNames != subNames:
@@ -494,6 +634,23 @@ def assemblyInputFactory(*paramList, **paramDict):
   newClass.addParam('type', param_type=InputTypes.StringType, required=True,
       descr=r"""RAVEN type for this entity; a subtype of the class (e.g. MonteCarlo, Code, PointSet)""")
   return newClass
+
+def parseFromList(node, inputList):
+  """
+    Try all the ParameterInput classes in the inputList and parse the node
+    with the first that passes.
+    @ In, node, xml.etree.Element to parse
+    @ In, inputList, list of ParameterInput to try and parse node with
+    @ Out, paramInput, a ParameterInput instance or None if none found in the
+     list
+  """
+  paramInput = None
+  for inputClass in inputList:
+    if inputClass._checkCanRead is None or inputClass._checkCanRead.check(node):
+      paramInput = inputClass()
+      paramInput.parseNode(node)
+      return paramInput
+  return paramInput
 
 def createXSD(outerElement):
   """

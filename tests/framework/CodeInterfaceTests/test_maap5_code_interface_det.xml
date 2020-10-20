@@ -7,7 +7,7 @@
     <classesTested>Models.Code.MAAP5, Samplers.DynamicEventTree</classesTested>
     <description>
        An example of using the the Model Code of type MAAP5.
-       This test is aimed to test the mechanics of the MAAP5 interface when used with the 
+       This test is aimed to test the mechanics of the MAAP5 interface when used with the
        Dynamic Event Tree methodology.
     </description>
     <revisions>
@@ -65,7 +65,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="testDummyStep" re-seeding="1">
+    <MultiRun name="testDummyStep" re-seeding="1" clearRunDir="False">
       <Input class="Files" type="">test.inp</Input>
       <Input class="Files" type="">include_900_502</Input>
       <Input class="Files" type="">plot_900_502a.txt</Input>

@@ -23,7 +23,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import abc
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
+from utils import utils, InputData
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -43,7 +43,10 @@ class Assembler(MessageHandler.MessageUser):
     self.name = self.__class__.__name__  # name
     if not hasattr(self, 'assemblerObjects'): # protect against polyinheritance woes
       self.assemblerObjects = {}           # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-      self.requiredAssObject = [False, ([], [])]
+      # _requiredAsmbObject = [check_number, [name_list], [number_list]]
+      #  where name_list is the tokens required (if check_number is True)
+      #  and number_list is a list of InputData.Quantity for the number required
+      self._requiredAsmbObject = [False, [], []]
       self.assemblerDict = {}               # {'class':[['class','type','name',instance]]}}
     # list. first entry boolean flag. True if the XML parser must look for objects;
     # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
@@ -92,15 +95,15 @@ class Assembler(MessageHandler.MessageUser):
                                                                          [1], testObjects ->  a dictionary that contains the number of time a token (requested) has been found
     """
     for subNode in subXmlNode:
-      for token in self.requiredAssObject[1][0]:
+      for token in self._requiredAsmbObject[1]:
         if subNode.tag == token:
           found[token] = True
           if 'class' not in subNode.attrib.keys():
             self.raiseAnError(IOError, 'In '+self.type+' Object ' + self.name+ ', block ' + subNode.tag + ' does not have the attribute class!!')
-          if  subNode.tag not in self.assemblerObjects.keys():
-            self.assemblerObjects[subNode.tag.strip()] = []
-          # check if already present
           tag = subNode.tag.strip()
+          if  tag not in self.assemblerObjects:
+            self.assemblerObjects[tag] = []
+          # check if already present
           entry = [subNode.attrib['class'],subNode.attrib['type'],subNode.text.strip()]
           if entry not in self.assemblerObjects.get(tag, []):
             self.assemblerObjects[tag].append(entry)
@@ -113,6 +116,7 @@ class Assembler(MessageHandler.MessageUser):
       Function to read the portion of the xml input that belongs to this specialized class
       and initialize some variables based on the inputs got. This method is used to automatically generate the Assembler 'request'
       based on the input of the daughter class.
+      @ In, self, Any, an instance of the class to read into this.
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
       @ Out, None
     """
@@ -122,58 +126,40 @@ class Assembler(MessageHandler.MessageUser):
     self.printTag = self.type
     if 'verbosity' in xmlNode.attrib.keys():
       self.verbosity = xmlNode.attrib['verbosity'].lower()
-    if self.requiredAssObject[0]:
+    #XXX Once InputData checks numbers of subnodes, everything in this
+    # if block can be removed
+    if self._requiredAsmbObject[0]:
       testObjects = {}
-      for token in self.requiredAssObject[1][0]:
+      for token in self._requiredAsmbObject[1]:
         testObjects[token] = 0
       found = dict.fromkeys(testObjects.keys(),False)
       found, testObjects = self._readAssemblerObjects(xmlNode, found, testObjects)
       for subNode in xmlNode:
         found, testObjects = self._readAssemblerObjects(subNode, found, testObjects)
-      for token in self.requiredAssObject[1][0]:
-        if not found[token] and not str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]).strip().startswith('-'):
-          self.raiseAnError(IOError,'the required object ' +token+ ' is missed in the definition of the '+self.type+' Object! Required objects number are :'+str(self.requiredAssObject[1][1][self.requiredAssObject[1][0].index(token)]))
-      # test the objects found
-      else:
-        for cnt,toObjectName in enumerate(self.requiredAssObject[1][0]):
-          numerosity = str(self.requiredAssObject[1][1][cnt])
-          if numerosity.strip().startswith('-'):
-          # optional
-            if toObjectName in testObjects.keys():
-              if testObjects[toObjectName] is not 0:
-                numerosity = numerosity.replace('-', '').replace('n',str(testObjects[toObjectName]))
-                if testObjects[toObjectName] != int(numerosity):
-                  self.raiseAnError(IOError,'Only '+numerosity+' '+toObjectName+' object/s is/are optionally required. Block '+self.name + ' got '+str(testObjects[toObjectName]) + '!')
-          else:
-            # required
-            if toObjectName not in testObjects.keys():
-              self.raiseAnError(IOError,'Required object/s "'+toObjectName+'" not found. Block '+self.name + '!')
-            else:
-              numerosity = numerosity.replace('n',str(testObjects[toObjectName]))
-              if testObjects[toObjectName] != int(numerosity):
-                self.raiseAnError(IOError,'Exactly {n} <{t}> nodes are required for <{c}> "{m}". Got {g}!'
-                                 .format(n=numerosity,
-                                         t=toObjectName,
-                                         c=self.type,
-                                         m=self.name,
-                                         g=testObjects[toObjectName]))
-    if '_localReadMoreXML' in dir(self):
+      for i,token in enumerate(self._requiredAsmbObject[1]):
+        quantity = self._requiredAsmbObject[2][i]
+        if not InputData.checkQuantity(quantity, testObjects[token]):
+          self.raiseAnError(IOError, 'the object '+token+' has wrong quantity Expected: '+str(quantity)+' Found: '+str(testObjects[token])+ ' in block '+self.name)
+
+    if '_handleInput' in dir(self) and self._handleInput.__func__.__qualname__.split(".")[0] == self.__class__.__name__:
+      #_handleInput in class and not from superclass
+      #print(self, self.getInputSpecification, self.getInputSpecification.__func__.__qualname__, self._handleInput, self._handleInput.__func__.__qualname__)
+      paramInput = self.getInputSpecification()()
+      paramInput.parseNode(xmlNode)
+      self._handleInput(paramInput)
+    elif '_localReadMoreXML' in dir(self):
       self._localReadMoreXML(xmlNode)
 
-  def addAssemblerObject(self, name, flag, newXmlFlg=None):
+  def addAssemblerObject(self, name, flag):
     """
-      Method to add required assembler objects to the requiredAssObject dictionary.
+      Method to add required assembler objects to the _requiredAsmbObject dictionary.
       @ In, name, string, the node name to search for (e.g. Function, Model)
-      @ In, flag, string, the number of nodes to look for (- means optional, n means any number).
-                                          For example, "2" means 2 nodes of type "name" are required!
-      @ In, newXmlFlg, boolean, optional, if passed in, the first entry of the tuple self.requiredAssObject is going to updated with the new value
-                                          For example, if newXmlFlg == True, the self.requiredAssObject[0] is set to True
+      @ In, flag, InputData.Quantity, the number of nodes to look for
       @ Out, None
     """
-    if newXmlFlg is not None:
-      self.requiredAssObject[0] = newXmlFlg
-    self.requiredAssObject[1][0].append(name)
-    self.requiredAssObject[1][1].append(flag)
+    self._requiredAsmbObject[0] = True
+    self._requiredAsmbObject[1].append(name)
+    self._requiredAsmbObject[2].append(flag)
 
   def retrieveObjectFromAssemblerDict(self, objectMainClass, objectName, pop=False):
     """

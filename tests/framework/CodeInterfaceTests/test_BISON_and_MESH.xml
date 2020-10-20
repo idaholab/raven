@@ -112,7 +112,7 @@
   </Models>
 
   <Steps>
-    <MultiRun name="grid_run">
+    <MultiRun name="grid_run" clearRunDir="False">
       <Input class="Files" type="">bison_test</Input>
       <Input class="Files" type="">mesh_in</Input>
       <Model class="Models" type="Code">Bison-opt</Model>

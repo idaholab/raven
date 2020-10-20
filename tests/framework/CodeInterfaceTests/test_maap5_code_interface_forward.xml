@@ -63,7 +63,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="testDummyStep" re-seeding="1">
+    <MultiRun name="testDummyStep" re-seeding="1" clearRunDir="False">
       <Input class="Files" type="">test.inp</Input>
       <Model class="Models" type="Code">MyMAAP</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>

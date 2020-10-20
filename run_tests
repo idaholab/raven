@@ -157,8 +157,16 @@ if [[ $DO_PLUGINS == 0 ]]; then
     echo Starting tests for plugin "$P" ...
     # add RAVEN testers to plugin testers
     ROOK_COMMAND="$PYTHON_COMMAND $SCRIPT_DIR/rook/main.py --test-dir $LOCATION --testers-dir $FRAMEWORK_DIR/../scripts/TestHarness/testers,$LOCATION/../src/Testers --add-non-default-run-types qsub ${ARGS[@]}"
-    $ROOK_COMMAND
-    rc=$?
+    echo Running ROOK command: "$ROOK_COMMAND" ...
+    {
+      # try
+      $ROOK_COMMAND
+      rc=$?
+    } || {
+      # catch
+      rc=1
+    }
+
     ALL_PASS=$(($ALL_PASS + $rc))
     if [[ $rc != 0 ]]; then
       echo  ... there were failed tests for plugin "$P"!
