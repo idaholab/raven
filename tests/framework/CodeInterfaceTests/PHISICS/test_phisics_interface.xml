@@ -156,7 +156,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="phisicsTest2D">
+    <MultiRun name="phisicsTest2D" clearRunDir="False">
       <Input class="Files" type="decay"             >decay.dat</Input>
       <Input class="Files" type="inp"               >inp.xml</Input>
       <Input class="Files" type="path"              >lib_inp_path.xml</Input>
@@ -172,24 +172,24 @@
       <Input class="Files" type="BetaxDecay"        >BetaxDecay.path</Input>
       <Input class="Files" type="IntTraDecay"       >IntTraDecay.path</Input>
       <Input class="Files" type="XS"                >scaled_xs.xml</Input>
-      <Input class="Files" type="N,2N"              >N,2N.path</Input>  
+      <Input class="Files" type="N,2N"              >N,2N.path</Input>
       <Input class="Files" type="N,ALPHA"           >N,ALPHA.path</Input>
       <Input class="Files" type="N,G"               >N,G.path</Input>
       <Input class="Files" type="N,Gx"              >N,Gx.path</Input>
-      <Input class="Files" type="N,P"               >N,P.path</Input> 
-      <Input class="Files" type="budep"             >budep.inp</Input>   
-      <Input class="Files" type="CRAM_coeff_PF"     >CRAM_coeff_PF.dat</Input> 
-      <Input class="Files" type="IsotopeList"       >IsotopeList.dat</Input> 
-      <Input class="Files" type="mass"              >mass.inp</Input> 
-      <Input class="Files" type="tabMap"            >tabMapping.xml</Input> 
-          
+      <Input class="Files" type="N,P"               >N,P.path</Input>
+      <Input class="Files" type="budep"             >budep.inp</Input>
+      <Input class="Files" type="CRAM_coeff_PF"     >CRAM_coeff_PF.dat</Input>
+      <Input class="Files" type="IsotopeList"       >IsotopeList.dat</Input>
+      <Input class="Files" type="mass"              >mass.inp</Input>
+      <Input class="Files" type="tabMap"            >tabMapping.xml</Input>
+
       <Model class="Models" type="Code">PHISICS</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
       <Output class="DataObjects" type="PointSet">outMC</Output>
       <Output class="OutStreams" type="Print">out_streams_RAVEN</Output>
     </MultiRun>
   </Steps>
-  
+
   <OutStreams>
     <Print name="out_streams_RAVEN">
       <type>csv</type>

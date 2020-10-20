@@ -22,29 +22,22 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 ################################################################################
 from utils import utils
-from .OutStreamManager import OutStreamManager
-from .OutStreamPlot import OutStreamPlot
-from .OutStreamPrint import OutStreamPrint
-## [ Add new class here ]
-################################################################################
-## Alternatively, to fully automate this file:
-# from OutStreamManagers import *
-################################################################################
 
-"""
-  Interface Dictionary (factory) (private)
-"""
-# This machinery will automatically populate the "knownTypes" given the
-# imports defined above.
-__base = 'OutStreamManager'
-__interFaceDict = {}
+from .OutStreamBase import OutStreamBase
 
-for classObj in utils.getAllSubclasses(eval(__base)):
-  ## As long as these subclasses follow the pattern of starting with OutStream
-  ## this will appropriately key them to a more user-friendly name without the
-  ## need for them to redudantly prepend "X" as "OutStreamX"
-  key = classObj.__name__.replace('OutStream','')
-  __interFaceDict[key] = classObj
+from .FilePrint import FilePrint
+from .GeneralPlot import GeneralPlot
+# from .DataMining import DataMining
+# from .VDCComparison import VDCComparison
+
+# Interface Dictionary (factory) (private)
+__base = 'OutStreamBase'
+__interFaceDict = {
+  'Print': FilePrint,
+  'Plot': GeneralPlot,
+  # 'DataMining': DataMining,
+  # 'VDCComparison': VDCComparison,
+}
 
 def knownTypes():
   """

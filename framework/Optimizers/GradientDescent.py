@@ -652,7 +652,9 @@ class GradientDescent(RavenSampled):
       converged, convDict = self.checkConvergence(traj, new, old)
     else:
       converged = False
-      convDict = dict((var, False) for var in self._convergenceInfo[traj])
+      # since not accepted, none of the convergence criteria are acceptable
+      ## HOWEVER, since not accepted, do NOT reset persistence!
+      convDict = dict((var, False) for var in self._convergenceInfo[traj] if var not in ['persistence'])
     self._convergenceInfo[traj].update(convDict)
     return converged
 
