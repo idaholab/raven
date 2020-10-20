@@ -36,7 +36,6 @@ def replacementRepair(offSprings,**kwargs):
   children = offSprings
   # read distribution info
   distInfo = kwargs['distInfo']
-  distDict = kwargs['distDict']
 
   # create children
   for chrom in range(nChildren):
@@ -50,7 +49,7 @@ def replacementRepair(offSprings,**kwargs):
         else:
           if (distInfo[offSprings['Gene'].data[ind]].strategy == 'withOutReplacement'):
             # pool = set(range(int(distInfo[kwargs['variables'][ind]].lowerBound),int(distInfo[kwargs['variables'][ind]].upperBound)+1)) - unique
-            y = distDict[kwargs['variables'][ind]].selectedRvs(list(duplicated))#int(np.random.choice(list(pool)))
+            y = distInfo[kwargs['variables'][ind]].selectedRvs(list(duplicated))#int(np.random.choice(list(pool)))
             children[chrom,ind] = y
             duplicated.add(y)
   return children
