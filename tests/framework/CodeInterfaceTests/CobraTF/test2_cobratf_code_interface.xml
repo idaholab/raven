@@ -43,7 +43,7 @@
       <mean>0.907</mean>
       <sigma>0.1</sigma>
       <upperBound>1.0</upperBound>
-      <lowerBound>0.8</lowerBound> 
+      <lowerBound>0.8</lowerBound>
     </Normal>
   </Distributions>
 
@@ -68,13 +68,13 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="testDummyStep_MC">
+    <MultiRun name="testDummyStep_MC" clearRunDir="False">
       <Input class="Files" type="">cobra_input</Input>
       <Model class="Models" type="Code">MyCobraTF</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
       <Output class="DataObjects" type="PointSet">mc_ps</Output>
     </MultiRun>
-    <MultiRun name="testDummyStep_Grid" re-seeding="210491">
+    <MultiRun name="testDummyStep_Grid" re-seeding="210491" clearRunDir="False">
       <Input class="Files" type="">cobra_input</Input>
       <Model class="Models" type="Code">MyCobraTF</Model>
       <Sampler class="Samplers" type="Grid">Grid_Sampler</Sampler>

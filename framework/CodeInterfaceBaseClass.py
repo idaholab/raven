@@ -24,6 +24,7 @@ import os
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
+import CsvLoader
 #Internal Modules End--------------------------------------------------------------------------------
 
 class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
@@ -44,6 +45,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     self.inputExtensions = []    # list of input extensions
     self._runOnShell = True      # True if the specified command by the code interfaces will be executed through shell.
     self._ravenWorkingDir = None # location of RAVEN's main working directory
+    self._csvLoadUtil = 'pandas' # utility to use to load CSVs
 
   def setRunOnShell(self, shell=True):
     """
@@ -60,6 +62,27 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ Out, None
     """
     return self._runOnShell
+
+  def getCsvLoadUtil(self):
+    """
+      Returns the string representation of the CSV loading utility to use
+      @ In, None
+      @ Out, getCsvLoadUtil, str, name of utility to use
+    """
+    # default to pandas, overwrite to 'numpy' if all of the following:
+    # - all entries are guaranteed to be floats
+    # - results CSV have a large number of headers (>1000)
+    return self._csvLoadUtil
+
+  def setCsvLoadUtil(self, util):
+    """
+      Returns the string representation of the CSV loading utility to use
+      @ In, getCsvLoadUtil, str, name of utility to use
+    """
+    ok = CsvLoader.CsvLoader.acceptableUtils
+    if util not in ok:
+      raise TypeError(f'Unrecognized CSV loading utility: "{util}"! Expected one of: {ok}')
+    self._csvLoadUtil = util
 
   def genCommand(self, inputFiles, executable, flags=None, fileArgs=None, preExec=None):
     """

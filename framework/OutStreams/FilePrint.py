@@ -16,20 +16,14 @@ Created on Nov 14, 2013
 
 @author: alfoa
 """
-#for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
-#External Modules---------------------------------------------------------------
 import os
-#External Modules End-----------------------------------------------------------
 
-#Internal Modules---------------------------------------------------------------
+from utils import InputData, InputTypes
 import DataObjects
-from .OutStreamManager import OutStreamManager
+from .OutStreamBase import OutStreamBase
 from ClassProperty import ClassProperty
-#Internal Modules End-----------------------------------------------------------
 
-class OutStreamPrint(OutStreamManager):
+class FilePrint(OutStreamBase):
   """
     Class for managing the printing of files as an output stream.
   """
@@ -46,9 +40,31 @@ class OutStreamPrint(OutStreamManager):
     """
         A class level constant that tells developers what outstreams are
         available from this class
-        @ In, cls, the OutStreamPrint class of which this object will be a type
+        @ In, cls, the OutStreams class of which this object will be a type
     """
     return cls._availableOutStreamTypes
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for class "cls".
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
+    """
+    spec = OutStreamBase.getInputSpecification()
+
+    types = InputTypes.makeEnumType('FilePrintTypes', 'FilePrintTypes', cls._availableOutStreamTypes)
+    spec.addSub(InputData.parameterInputFactory('type', contentType=types))
+    spec.addSub(InputData.parameterInputFactory('source', contentType=InputTypes.StringListType))
+    spec.addSub(InputData.parameterInputFactory('what', contentType=InputTypes.StringListType))
+    spec.addSub(InputData.parameterInputFactory('filename', contentType=InputTypes.StringType))
+    spec.addSub(InputData.parameterInputFactory('clusterLabel', contentType=InputTypes.StringType))
+
+    # these are in user manual or code, but don't appear to be used/documented ...
+    # spec.addSub(InputData.parameterInputFactory('target', contentType=InputTypes.StringListType))
+    # spec.addSub(InputData.parameterInputFactory('directory',
+    # contentType=InputTypes.StringListType))
+    return spec
 
   def __init__(self):
     """
@@ -56,15 +72,50 @@ class OutStreamPrint(OutStreamManager):
       @ In, None
       @ Out, None
     """
-    OutStreamManager.__init__(self)
+    OutStreamBase.__init__(self)
+    self.type = 'OutStreamFilePrint'
     self.printTag = 'OUTSTREAM PRINT'
-    OutStreamManager.__init__(self)
     self.sourceName = []
     self.sourceData = None
     self.what = None
     # dictionary of what indices have already been printed, so we don't duplicate writing efforts
     self.indexPrinted = {} # keys are filenames, which should be reset at the end of every step
     self.subDirectory = None # subdirectory where to store the outputs
+
+  def _handleInput(self, spec):
+    """
+      Loads the input specs for this object.
+      @ In, spec, InputData.ParameterInput, input specifications
+      @ Out, None
+    """
+    typ = spec.findFirst('type')
+    if typ is None:
+      self.raiseAnError(IOError, f'OutStream.Print "{self.name}" is missing the "type" node!')
+    self.options['type'] = typ.value
+
+    source = spec.findFirst('source')
+    if source is None:
+      self.raiseAnError(IOError, f'OutStream.Print "{self.name}" is missing the "source" node!')
+    self.sourceName = source.value
+
+    # FIXME this is a terrible name
+    what = spec.findFirst('what')
+    if what is not None:
+      self.what = what.value # [x.lower() for x in what.value]
+
+    fname = spec.findFirst('filename')
+    if fname is not None:
+      self.filename = fname.value
+
+    cluster = spec.findFirst('clusterLabel')
+    if cluster is not None:
+      self.options['clusterLabel'] = cluster.value
+
+    # checks
+    if self.options['type'] == 'csv' and self.what is not None:
+      for target in [x.lower() for x in self.what]:
+        if not target.startswith(('input', 'output', 'metadata')):
+          self.raiseAnError(IOError, f'<what> requests must start with "input", "output", or "metadata"! See OutStream.Print "{self.name}"')
 
   def localGetInitParams(self):
     """
@@ -78,7 +129,7 @@ class OutStreamPrint(OutStreamManager):
     for index in range(len(self.sourceName)):
       paramDict['Source Name ' + str(index) + ' :'] = self.sourceName[index]
     if self.what:
-      for index, var in enumerate(self.what.split(',')):
+      for index, var in enumerate(self.what):
         paramDict['Variable Name ' + str(index) + ' :'] = var
     return paramDict
 
@@ -91,35 +142,7 @@ class OutStreamPrint(OutStreamManager):
       @ Out, None
     """
     # the linking to the source is performed in the base class initialize method
-    OutStreamManager.initialize(self, inDict)
-
-  def localReadXML(self, xmlNode):
-    """
-      This Function is called from the base class, It reads the parameters that
-      belong to a plot block (outputs by filling data structure (self))
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ Out, None
-    """
-    self.type = 'OutStreamPrint'
-    for subnode in xmlNode:
-      if subnode.tag not in ['type','source','what','filename','target','clusterLabel','directory']:
-        self.raiseAnError(IOError, ' Print Outstream object ' + str(self.name) + ' contains the following unknown node: ' + str(subnode.tag))
-      if subnode.tag == 'source':
-        self.sourceName = subnode.text.split(',')
-      elif subnode.tag == 'filename':
-        self.filename = subnode.text
-      else:
-        self.options[subnode.tag] = subnode.text
-    if 'type' not in self.options.keys():
-      self.raiseAnError(IOError, 'type tag not present in Print block called ' + self.name)
-    if self.options['type'] not in self.availableOutStreamTypes:
-      self.raiseAnError(TypeError, 'Print type ' + self.options['type'] + ' not available yet. ')
-    if 'what' in self.options.keys():
-      self.what = self.options['what']
-      if self.options['type'] == 'csv':
-        for elm in self.what.lower().split(","):
-          if not elm.startswith("input") and not elm.startswith("output") and not elm.startswith("metadata"):
-            self.raiseAnError(IOError, 'Not recognized request in "what" node <'+elm.strip()+'>. The request must begin with one of "input", "output" or "metadata" or it could be "all" for ROMs!')
+    OutStreamBase.initialize(self, inDict)
 
   def addOutput(self):
     """

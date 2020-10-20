@@ -21,20 +21,32 @@ This a library for defining the data used and for reading it in.
 from __future__ import division, print_function, unicode_literals, absolute_import
 import re
 from collections import OrderedDict
+from enum import Enum
 import xml.etree.ElementTree as ET
 from utils import InputTypes
 import textwrap
 
-class Quantity:
+class Quantity(Enum):
   """
     A class that allows the quantity of a node to be specified.
-    If python3.4+ is required, this should be switched to a Python 3.4 Enum.
   """
   zero_to_one = (0,1)
   zero_to_infinity = (0,2)
   one = (1,1)
   one_to_infinity = (1,2)
 
+def checkQuantity(quantity, n):
+  """
+    Checks if n is matches the quantity parameter.
+    @ In, quantity, Quantity, the quantity value to check against
+    @ In, n, int, the value to check against
+    @ Out, match, bool, True if the n is an allowed quantity.
+  """
+  start, end = quantity.value
+  match = n >= start
+  if end == 1:
+    match = match and n <= 1
+  return match
 
 class CheckClass(object):
   """
@@ -263,9 +275,10 @@ class ParameterInput(object):
     """
     cls.subs[sub] = None
     subsSet = cls._subDict.get(sub.getName(), set())
-    if (len(subsSet) == 1 and next(iter(subsSet))._checkCanRead is None) or \
-       (len(subsSet) > 0 and sub._checkCanRead is not None):
-       print("ERROR adding checked and unchecked to", sub.getName()," in ",
+    if __debug__:
+      if (len(subsSet) == 1 and next(iter(subsSet))._checkCanRead is None) or \
+        (len(subsSet) > 0 and sub._checkCanRead is not None):
+        print("INPUT SPEC ERROR adding checked and unchecked to", sub.getName()," in ",
                  cls.getName()+" len "+str(len(subsSet)))
     subsSet.add(sub)
     cls._subDict[sub.getName()] = subsSet
@@ -341,7 +354,7 @@ class ParameterInput(object):
     """
     cls.contentType = contentType
 
-  def parseNode(self,node, errorList = None):
+  def parseNode(self, node, errorList=None):
     """
       Parses the xml node and puts the results in self.parameterValues and
       self.subparts and self.value
@@ -414,7 +427,7 @@ class ParameterInput(object):
         self.subparts.append(subInstance)
       elif self.strictMode:
         allowed = [s.getName() for s in subs]
-        handleError('no class to handle '+childName+' tried '+str(subsSet)+" allowed:"+str(allowed)) #Extra if debugging: + ' keys: '+str(set(self._subDict.keys()))+ str({k: [j.getName() for j in self._subDict[k]] for k in self._subDict.keys()}))
+        handleError(f'Unrecognized input: "{childName}"! Allowed: "{allowed}", tried "{subsSet}"')
     if self.strictMode:
       nodeNames = set([child.tag for child in node])
       if nodeNames != subNames:

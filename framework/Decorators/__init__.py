@@ -15,6 +15,16 @@
  Created on March 30, 2020
  @author: alfoa
 """
+import builtins
 
-__all__ = ['Parallelization']
+# line_profiler decorator, @Decorators.timingProfile
+## if using kernprof, use "profile" builtin; otherwise, passthrough.
+try:
+  builtins.profile
+  timingProfile = builtins.profile
+except (AttributeError, ImportError):
+  # builtins.profile = lambda f: f # alternative for using @profile
+  timingProfile = lambda f: f
+
+__all__ = ['Parallelization'] # note this is disallowed for use in RAVEN
 
