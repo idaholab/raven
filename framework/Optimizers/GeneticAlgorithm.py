@@ -419,7 +419,7 @@ class GeneticAlgorithm(RavenSampled):
               needsRepair = True
               break
       if needsRepair:
-        children = self._repairInstance(children,variables=list(self.toBeSampled),distInfo=self.distDict)
+        children = self._repairInstance(children,variables=list(self.toBeSampled),distInfo=self.distDict,distDict=self.distDict)
 
       # Make sure no children are exactly similar to parents
       flag = True

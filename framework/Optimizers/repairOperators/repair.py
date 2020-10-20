@@ -28,14 +28,17 @@ def replacementRepair(offSprings,**kwargs):
     @ In, offSprings, xr.DataArray, distorted offSprings resulting from the mating process.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           variables, list, variables names.
+          distInfo, dict, Distribution information.
+          distDict, dict, Distribution dictionary.
     @ Out, children, np.array, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
   """
   nChildren,nGenes = np.shape(offSprings)
   children = offSprings
   # read distribution info
   distInfo = kwargs['distInfo']
-  # create children
+  distDict = kwargs['distDict']
 
+  # create children
   for chrom in range(nChildren):
     duplicated = set()
     unique = set(offSprings.data[chrom,:])
@@ -46,8 +49,8 @@ def replacementRepair(offSprings,**kwargs):
           duplicated.add(x)
         else:
           if (distInfo[offSprings['Gene'].data[ind]].strategy == 'withOutReplacement'):
-            pool = set(range(int(distInfo[kwargs['variables'][ind]].lowerBound),int(distInfo[kwargs['variables'][ind]].upperBound)+1)) - unique
-            y = int(np.random.choice(list(pool)))
+            # pool = set(range(int(distInfo[kwargs['variables'][ind]].lowerBound),int(distInfo[kwargs['variables'][ind]].upperBound)+1)) - unique
+            y = distDict[kwargs['variables'][ind]].selectedRvs(list(duplicated))#int(np.random.choice(list(pool)))
             children[chrom,ind] = y
             duplicated.add(y)
   return children

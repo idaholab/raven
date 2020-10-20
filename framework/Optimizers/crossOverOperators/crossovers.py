@@ -48,12 +48,15 @@ def onePointCrossover(parents,**kwargs):
 
 
   # defaults
-  if kwargs['points'] is None:
+  if (kwargs['points'] == None) or ('points' not in kwargs.keys()):
     point = list([randomUtils.randomIntegers(1,nGenes-1,None)])
+  elif (any(i>=nGenes-1 for i in kwargs['points'])):
+    raise IOError('crossover point cannot be larger than number of Genes (variables)')
   else:
     point = kwargs['points']
-
-  if kwargs['crossoverProb'] is None:
+  if len(point)>1:
+    raise IOError('In one Point Crossover a single crossover location should be provided!')
+  if (kwargs['crossoverProb'] == None) or ('crossoverProb' not in kwargs.keys()):
     crossoverProb = randomUtils.random(dim=1, samples=1)
   else:
     crossoverProb = kwargs['crossoverProb']
