@@ -244,7 +244,16 @@ class Segments(Collection):
     if not skipAssembly:
       self.readAssembledObjects()
     # subdivide space
+    ## [0] is normal segments, [1] is potentially the odd-shaped last segment
     divisions = self._subdivideDomain(self._divisionInstructions, tdict)
+    if divisions[1]:
+      indices = divisions[1][0]
+      pivot = self._templateROM.pivotParameterID
+      pivots = [tdict[pivot][0][i] for i in indices]
+      delta = pivots[1] - pivots[0]
+      self.raiseAnError(RuntimeError, 'Domain was not subdivided into equal segments! ' +
+          f'Last segment is from "{pivot}" = {pivots[0]} to {pivots[1]}, with pivotLength = {delta} ' +
+          f'and covering {indices[1]-indices[0]} entries!')
     self.divisions = divisions
     self._divisionInfo['delimiters'] = divisions[0] + divisions[1]
     # allow ROM to handle some global training
@@ -441,15 +450,15 @@ class Segments(Collection):
         # TODO speedup; can we do this without looping?
         dt = pivot[1] - pivot[0]
         while floor < dataLen - 1:
-          cross = np.searchsorted(pivot, nextOne-0.5*dt) # half dt if for machine percision error
+          cross = np.searchsorted(pivot, nextOne-0.5*dt) # half dt if for machine precision error
           # if the next crossing point is past the end, put the remainder piece
           ## into the "unclustered" grouping, since it might be very oddly sized
           ## and throw off segmentation (specifically for clustering)
           if cross == len(pivot):
             remaining = pivot[-1] - pivot[floor-1]
             oneLess = pivot[-2] - pivot[floor-1]
-            test1 = abs(remaining-segmentValue)/segmentValue
-            test2 = abs(oneLess-segmentValue)/segmentValue
+            test1 = abs(remaining-segmentValue)/segmentValue < 1e-6
+            test2 = abs(oneLess-segmentValue)/segmentValue < 1e-6
             if not (test1 or test2):
               unclustered.append((floor, cross - 1))
               break
