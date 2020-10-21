@@ -2039,6 +2039,8 @@ class ARMA(supervisedLearning):
           # TODO can we do this all at once with a vector operation? -> you betcha
           evaluation[target][:, localPicker] += mySig
         else:
+          # if last segment is shorter than other clusters, just keep the part of the evaluation
+          #     that makes sense? I guess? What about the "truncated" case above? - talbpaul 2020-10
           evaluation[target][localPicker] += sig
     return evaluation
 

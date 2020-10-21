@@ -719,7 +719,7 @@ class Clusters(Segments):
         if self._evaluationMode == 'truncated':
           localPicker = slice(clusterStartIndex, clusterStartIndex + segmentLen)
         else:
-          localPicker = slice(None, None, None)
+          localPicker = r #slice(None, None, None)
         # make final local modifications to truncated evaluation
         result = rom.finalizeLocalRomSegmentEvaluation(self._romGlobalAdjustments, result, globalPicker, localPicker)
         # update the cluster start index
@@ -861,6 +861,8 @@ class Clusters(Segments):
       # populate results storage
       if result is None:
         result = dict((target, subResults[target] if target in allIndices else []) for target in subResults)
+        # FIXME the Indices might not be the same for all ROMs; for instance, if cluster by weeks
+        # for a year, there's one day left over for its own cluster!
       # populate weights
       sampleWeights.append(np.ones(len(subResults[pivotID])) * len(self._clusterInfo['map'][cluster]))
       for target, values in subResults.items():
@@ -928,6 +930,11 @@ class Clusters(Segments):
       ## first dimention is the cluster ID, then others after.
       indexMap[target] = np.asarray([self._clusterVariableID] + list(indexMap.get(target, [pivotID])))
       # convert the list of arrays to a pure array
+      # FIXME -> except, you don't get a pure array if the length of each entry isn't the same
+      # For example:
+      # if you have 3 clusters with length (100, 100, 10), then you get an array of numpy arrays,
+      #    shape = (3,),
+      # if you have 3 clusters with length (70, 70, 70), then you get a single numpy array
       result[target] = np.asarray(values)
     # store the index map results
     result['_indexMap'] = indexMap
@@ -1481,7 +1488,10 @@ class Interpolated(supervisedLearning):
           if target in [pivotID, '_indexMap'] or target in indices:
             results[target] = values
           else:
-            results[target] = np.zeros([numMacro] + list(values.shape))
+            # TODO there's a strange behavior here where we have nested numpy arrays instead of
+            # proper matrices sometimes; maybe it has to be this way for unequal clusters
+            # As a result, we use the object dtype, onto which we can place a whole numpy array.
+            results[target] = np.zeros([numMacro] + list(values.shape), dtype=object)
       # END setting up results structure, if needed
       # FIXME reshape in case indexMap is not the same as finalIndexMap?
       for target, values in subResult.items():
