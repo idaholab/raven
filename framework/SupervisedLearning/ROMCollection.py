@@ -247,6 +247,9 @@ class Segments(Collection):
     ## [0] is normal segments, [1] is potentially the odd-shaped last segment
     divisions = self._subdivideDomain(self._divisionInstructions, tdict)
     if divisions[1]:
+      # we can't currently handle unequal segments during sampling, it creates nightmarish
+      # realization structures (i.e. ragged value and index arrays)
+      # for the DataObject to make sense of. For now, error out instead of being inscrutable.
       indices = divisions[1][0]
       pivot = self._templateROM.pivotParameterID
       pivots = [tdict[pivot][0][i] for i in indices]
