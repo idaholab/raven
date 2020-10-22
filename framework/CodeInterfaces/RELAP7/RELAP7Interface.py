@@ -26,6 +26,13 @@ import json
 uppath = lambda _path, n: os.sep.join(_path.split(os.sep)[:-n])
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
+mooseParserPath = os.path.join(os.path.dirname(__file__), '..', 'MooseBasedApp')
+sys.path.append(mooseParserPath)
+import MOOSEparser
+import MooseInputParser
+sys.path.pop()
+# MOOSEparser = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MOOSEparser.py'),False)
+
 class RELAP7(CodeInterfaceBase):
   """
     This class is used as part of a code dictionary to specialize Model.Code for RELAP7
@@ -76,7 +83,6 @@ class RELAP7(CodeInterfaceBase):
              where RELAP7 stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    MOOSEparser = utils.importFromPath(os.path.join(os.path.join(uppath(os.path.dirname(__file__),1),'MooseBasedApp'),'MOOSEparser.py'),False)
     self._samplersDictionary                             = {}
     self._samplersDictionary[samplerType]                = self.gridForRELAP7
     self._samplersDictionary['MonteCarlo'              ] = self.monteCarloForRELAP7
@@ -98,16 +104,17 @@ class RELAP7(CodeInterfaceBase):
     if not found:
       raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = MOOSEparser.MOOSEparser(currentInputFiles[index].getAbsFile())
-    Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
+    Kwargs["distributionNode"] = MooseInputParser.findInGetpot(parser.roots, ["Distributions"])
+    # OLD Kwargs["distributionNode"] = parser.findNodeInXML("Distributions")
     if 'None' not in str(samplerType):
       modifDict = self._samplersDictionary[samplerType](**Kwargs)
-      parser.modifyOrAdd(modifDict,False)
+      modified = parser.modifyOrAdd(modifDict)
     #newInputFiles = copy.deepcopy(currentInputFiles)
     #if type(Kwargs['prefix']) in [str,type("")]:#Specifing string type for python 2 and 3
     #  newInputFiles[index].setBase(Kwargs['prefix']+"~"+newInputFiles[index].getBase())
     #else:
     #  newInputFiles[index].setBase(str(Kwargs['prefix'][1][0])+'~'+newInputFiles[index].getBase())
-    parser.printInput(currentInputFiles[index].getAbsFile())
+    parser.printInput(currentInputFiles[index].getAbsFile(), modified)
     return currentInputFiles
 
   def monteCarloForRELAP7(self,**Kwargs):
@@ -129,9 +136,9 @@ class RELAP7(CodeInterfaceBase):
     _,listDict = self.__genBasePointSampler(**Kwargs)
     #listDict = []
     modifDict = {}
-    modifDict['name'] = ['Distributions']
+    modifDict['name'] = ['Distributions', 'RNG_seed']
     RNGSeed = int(counter) + int(initSeed) - 1
-    modifDict[b'RNG_seed'] = str(RNGSeed)
+    modifDict['RNG_seed'] = str(RNGSeed)
     listDict.append(modifDict)
     return listDict
 
@@ -158,7 +165,8 @@ class RELAP7(CodeInterfaceBase):
     if 'initiatorDistribution' in Kwargs.keys():
       for i in range(len(Kwargs['initiatorDistribution'])):
         modifDict = {}
-        modifDict['name'] = ['Distributions',Kwargs['initiatorDistribution'][i]]
+        varName = Kwargs['initiatorDistribution'][i]
+        modifDict['name'] = ['Distributions', varName, 'ProbabilityThreshold']
         modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
         listDict.append(modifDict)
         del modifDict
@@ -167,7 +175,7 @@ class RELAP7(CodeInterfaceBase):
       if Kwargs['startTime'] != -sys.float_info.max:
         modifDict = {}
         startTime = Kwargs['startTime']
-        modifDict['name'] = ['Executioner']
+        modifDict['name'] = ['Executioner', 'start_time']
         modifDict['start_time'] = startTime
         listDict.append(modifDict)
         del modifDict

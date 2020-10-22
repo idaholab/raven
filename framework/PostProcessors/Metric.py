@@ -91,7 +91,7 @@ class Metric(PostProcessor):
     self.pivotParameter = None
     self.pivotValues    = []
     # assembler objects to be requested
-    self.addAssemblerObject('Metric', 'n', True)
+    self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
 
   def __getMetricSide(self, metricDataName, currentInputs):
     """
@@ -210,17 +210,6 @@ class Metric(PostProcessor):
     PostProcessor.initialize(self, runInfo, inputs, initDict)
     for metricIn in self.assemblerDict['Metric']:
       self.metricsDict[metricIn[2]] = metricIn[3]
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs
-      @ In, xmlNode, xml.etree.ElementTree Element Objects, the xml element node that will be checked against the available options specific to this Sampler
-      @ Out, None
-    """
-    paramInput = Metric.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """

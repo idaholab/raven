@@ -336,7 +336,7 @@ class ComparisonStatistics(PostProcessor):
     self.fZStats = False
     self.interpolation = "quadratic"
     # assembler objects to be requested
-    self.addAssemblerObject('Distribution', '-n', True)
+    self.addAssemblerObject('Distribution', InputData.Quantity.zero_to_infinity)
 
   def inputToInternal(self, currentInput):
     """
@@ -356,17 +356,6 @@ class ComparisonStatistics(PostProcessor):
       @ Out, None
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    paramInput = ComparisonStatistics.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """

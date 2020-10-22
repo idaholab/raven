@@ -24,6 +24,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules------------------------------------------------------------------------------------
 from collections import deque, defaultdict
 import numpy as np
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -40,16 +41,6 @@ from .acceptanceConditions import knownTypes as acceptKnownTypes
 from .acceptanceConditions import returnInstance as acceptReturnInstance
 from .acceptanceConditions import returnClass as acceptReturnClass
 #Internal Modules End--------------------------------------------------------------------------------
-
-# utility function for defaultdict
-def giveZero():
-  """
-    Utility function for defaultdict to 0
-    Needed only to avoid lambda pickling issues for defaultdicts
-    @ In, None
-    @ Out, giveZero, int, zero
-  """
-  return 0
 
 class GradientDescent(RavenSampled):
   """
@@ -193,7 +184,6 @@ class GradientDescent(RavenSampled):
       new.update(gradReturnClass(grad, cls).getSolutionExportVariableNames())
     for step in stepKnownTypes():
       new.update(stepReturnClass(step, cls).getSolutionExportVariableNames())
-
     ok.update(new)
     return ok
 
@@ -218,7 +208,7 @@ class GradientDescent(RavenSampled):
     self._acceptHistory = {}       # acceptability
     self._stepRecommendations = {} # by traj, if a 'cut' or 'grow' is recommended else None
     self._acceptRerun = {}         # by traj, if True then override accept for point rerun
-    self._convergenceCriteria = defaultdict(giveZero) # names and values for convergence checks
+    self._convergenceCriteria = defaultdict(mathUtils.giveZero) # names and values for convergence checks
     self._convergenceInfo = {}       # by traj, the persistence and convergence information for most recent opt
     self._requiredPersistence = None # consecutive persistence required to mark convergence
     self._terminateFollowers = True  # whether trajectories sharing a point should cause termination
@@ -476,38 +466,6 @@ class GradientDescent(RavenSampled):
 
   # * * * * * * * * * * * * * * * *
   # Resolving potential opt points
-  def _applyBoundaryConstraints(self, point):
-    """
-      Checks and fixes boundary constraints of variables in "point" -> DENORMED point expected!
-      @ In, point, dict, potential point against which to check
-      @ Out, point, dict, adjusted variables
-      @ Out, modded, bool, whether point was modified or not
-    """
-    # TODO should some of this go into the parent Optimizer class, such as the boundary acquiring?
-    modded = False
-    for var in self.toBeSampled:
-      dist = self.distDict[var]
-      val = point[var]
-      lower = dist.lowerBound
-      upper = dist.upperBound
-      if lower is None:
-        lower = -np.inf
-      if upper is None:
-        upper = np.inf
-      if val < lower:
-        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} lower bound: {:1.3e} under by {:1.3e}'
-                         .format(var, val, lower, lower - val))
-        self.raiseADebug(' ... -> for point {}'.format(point))
-        point[var] = lower
-        modded = True
-      elif val > upper:
-        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} upper bound: {:1.3e} over by {:1.3e}'
-                         .format(var, val, upper, val - upper))
-        self.raiseADebug(' ... -> for point {}'.format(point))
-        point[var] = upper
-        modded = True
-    return point, modded
-
   def _applyFunctionalConstraints(self, suggested, previous):
     """
       @ In, suggested, dict, NORMALIZED suggested point
@@ -606,12 +564,12 @@ class GradientDescent(RavenSampled):
       @ In, info, dict, identifying information about the opt point
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
+      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
     # Check acceptability
     if self._optPointHistory[traj]:
       old, _ = self._optPointHistory[traj][-1]
       oldVal = old[self._objectiveVar]
-
       # check if following another trajectory
       if self._terminateFollowers:
         following = self._stepInstance.trajIsFollowing(traj, self.denormalizeData(opt), info,
@@ -622,10 +580,11 @@ class GradientDescent(RavenSampled):
           self.raiseADebug('Cancelling Trajectory {} because it is following Trajectory {}'.format(traj, following))
           self._trajectoryFollowers[following].append(traj) # "traj" is killed by "following"
           self._closeTrajectory(traj, 'cancel', 'following {}'.format(following), optVal)
-          return 'accepted', old
+          return 'accepted', old, 'None'
 
       self.raiseADebug(' ... change: {d: 1.3e} new: {n: 1.6e} old: {o: 1.6e}'
                       .format(d=optVal-oldVal, o=oldVal, n=optVal))
+      rejectReason = 'None'
       ## some stepManipulators may need to override the acceptance criteria, e.g. conjugate gradient
       if self._stepInstance.needsAccessToAcceptance:
         acceptable = self._stepInstance.modifyAcceptance(old, oldVal, opt, optVal)
@@ -639,14 +598,28 @@ class GradientDescent(RavenSampled):
         # this is the classic "same point" trap; we accept the same point, and check convergence later
         acceptable = 'accepted'
       else:
-        acceptable = self._checkForImprovement(optVal, oldVal)
+        if self._impConstraintFunctions:
+          accept = self._handleImplicitConstraints(opt)
+          if accept:
+            acceptable, rejectReason = self._checkForImprovement(optVal, oldVal)
+          else:
+            acceptable = 'rejected'
+            rejectReason = 'implicitConstraintsViolation'
+        else:
+          acceptable, rejectReason = self._checkForImprovement(optVal, oldVal)
     else: # no history
       # if first sample, simply assume it's better!
+      rejectReason = 'None'
+      if self._impConstraintFunctions:
+        accept = self._handleImplicitConstraints(opt)
+        if not accept:
+          self.raiseAWarning('First point violate Implicit constraint, please change another point to start!')
+          rejectReason = 'implicitConstraintsViolation'
       acceptable = 'first'
       old = None
     self._acceptHistory[traj].append(acceptable)
     self.raiseADebug(' ... {a}!'.format(a=acceptable))
-    return acceptable, old
+    return acceptable, old, rejectReason
 
   def _checkForImprovement(self, new, old):
     """
@@ -654,16 +627,22 @@ class GradientDescent(RavenSampled):
       @ In, new, float, new optimization value
       @ In, old, float, previous optimization value
       @ Out, improved, bool, True if "sufficiently" improved or False if not.
+      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
     # TODO could this be a base RavenSampled class?
     improved = self._acceptInstance.checkImprovement(new, old)
-    return 'accepted' if improved else 'rejected'
+    if improved:
+      return 'accepted', 'None'
+    else:
+      return 'rejected', 'noImprovement'
 
   def _updateConvergence(self, traj, new, old, acceptable):
     """
       Updates convergence information for trajectory
       @ In, traj, int, identifier
-      @ In, acceptable, str, condition of point
+      @ In, new, dict, new point
+      @ In, old, dict, old point
+      @ In, acceptable, str, condition of new point
       @ Out, converged, bool, True if converged on ANY criteria
     """
     ## NOTE we have multiple "if acceptable" trees here, as we need to update soln export regardless
@@ -673,7 +652,9 @@ class GradientDescent(RavenSampled):
       converged, convDict = self.checkConvergence(traj, new, old)
     else:
       converged = False
-      convDict = dict((var, False) for var in self._convergenceInfo[traj])
+      # since not accepted, none of the convergence criteria are acceptable
+      ## HOWEVER, since not accepted, do NOT reset persistence!
+      convDict = dict((var, False) for var in self._convergenceInfo[traj] if var not in ['persistence'])
     self._convergenceInfo[traj].update(convDict)
     return converged
 
@@ -722,6 +703,7 @@ class GradientDescent(RavenSampled):
       @ In, traj, int, identifier
       @ In, info, dict, meta information about the opt point
       @ In, old, dict, previous optimal point (to resubmit)
+      @ Out, none
     """
     # cancel grad runs
     self._cancelAssociatedJobs(info['traj'], step=info['step'])
@@ -740,8 +722,7 @@ class GradientDescent(RavenSampled):
 
   # * * * * * * * * * * * * * * * *
   # Convergence Checks
-  # Note these names need to be formatted according to checkConvergence check!
-  convFormat = ' ... {name:^12s}: {conv:5s}, {got:1.2e} / {req:1.2e}'
+  convFormat = RavenSampled.convFormat
 
   # NOTE checkConvSamePoint has a different call than the others
   # should this become an informational dict that can be passed to any of them?
@@ -844,7 +825,6 @@ class GradientDescent(RavenSampled):
     # remaking the list is easier than using the existing one
     acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
     new = []
-    print('DEBUGG acceptable:', acceptable)
     while acceptable:
       template = acceptable.pop()
       if '{CONV}' in template:

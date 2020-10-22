@@ -84,7 +84,7 @@ class SparseGridCollocation(Grid):
     self.jobHandler     = None  #pointer to job handler for parallel runs
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.dists          = {}    #Contains the instance of the distribution to be used. keys are the variable names
-    self.addAssemblerObject('ROM','1',True)
+    self.addAssemblerObject('ROM', InputData.Quantity.one)
 
   def _localWhatDoINeed(self):
     """

@@ -29,7 +29,7 @@ from Decorators.Parallelization import Parallel
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
-from utils import utils
+from utils import utils, InputData
 from utils import graphStructure
 from Runners import Error as rerror
 #Internal Modules End--------------------------------------------------------------------------------
@@ -81,10 +81,10 @@ class EnsembleModel(Dummy):
     self.ensembleModelGraph     = None                  # graph object (graphStructure.graphObject)
     self.printTag               = 'EnsembleModel MODEL' # print tag
     # assembler objects to be requested
-    self.addAssemblerObject('Model','n',True)
-    self.addAssemblerObject('TargetEvaluation','n')
-    self.addAssemblerObject('Input','n')
-    self.addAssemblerObject('Output','-n')
+    self.addAssemblerObject('Model', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('Input', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('Output', InputData.Quantity.zero_to_infinity)
 
   def localInputAndChecks(self,xmlNode):
     """
@@ -331,9 +331,9 @@ class EnsembleModel(Dummy):
 
     for modelIn in self.modelsDictionary.keys():
       # in case there are metadataToTransfer, let's check if the source model is executed before the one that requests info
-      if self.modelsDictionary[modelIn]['metadataToTransfer']:
+      if self.modelsInputDictionary[modelIn]['metadataToTransfer']:
         indexModelIn = self.orderList.index(modelIn)
-        for metadataToGet, source, _ in self.modelsDictionary[modelIn]['metadataToTransfer']:
+        for metadataToGet, source, _ in self.modelsInputDictionary[modelIn]['metadataToTransfer']:
           if self.orderList.index(source) >= indexModelIn:
             self.raiseAnError(IOError, 'In model "'+modelIn+'" the "metadataToTransfer" named "'+metadataToGet+
                                        '" is linked to the source"'+source+'" that will be executed after this model.')
@@ -593,9 +593,9 @@ class EnsembleModel(Dummy):
         # clear the model's Target Evaluation data object
         # in case there are metadataToTransfer, let's collect them from the source
         metadataToTransfer = None
-        if self.modelsDictionary[modelIn]['metadataToTransfer']:
+        if self.modelsInputDictionary[modelIn]['metadataToTransfer']:
           metadataToTransfer = {}
-        for metadataToGet, source, alias in self.modelsDictionary[modelIn]['metadataToTransfer']:
+        for metadataToGet, source, alias in self.modelsInputDictionary[modelIn]['metadataToTransfer']:
           if metadataToGet in returnDict[source]['general_metadata']:
             metaDataValue = returnDict[source]['general_metadata'][metadataToGet]
             metaDataValue = metaDataValue[0] if len(metaDataValue) == 1 else metaDataValue

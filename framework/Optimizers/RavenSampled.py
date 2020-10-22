@@ -25,6 +25,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import abc
 from collections import deque
 import numpy as np
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal
@@ -49,6 +50,10 @@ class RavenSampled(Optimizer):
      - Establish API for iterative sample output to solution export
      - Implements specific sampling methods from Sampler (when not present in Optimizer)
   """
+  # * * * * * * * * * * * * * * * *
+  # Convergence Checks
+  # Note these names need to be formatted according to checkConvergence check!
+  convFormat = ' ... {name:^12s}: {conv:5s}, {got:1.2e} / {req:1.2e}'
 
   ##########################
   # Initialization Methods #
@@ -90,6 +95,7 @@ class RavenSampled(Optimizer):
     ok.update({'trajID': 'integer identifier for different optimization starting locations and paths',
                'iteration': 'integer identifying which iteration (or step, or generation) a trajectory is on',
                'accepted': 'string acceptance status of the potential optimal point (algorithm dependent)',
+               'rejectReason':'discription of reject reason, \'noImprovement\' means rejected the new optimization point for no improvement from last point, \'implicitConstraintsViolation\' means rejected by implicit constraints violation, return None if the point is accepted',
                '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.',
               })
     return ok
@@ -309,7 +315,7 @@ class RavenSampled(Optimizer):
       self.raiseAMessage(finalTemplate.format(name=var, value=val))
     self.raiseAMessage('*'*80)
     # write final best solution to soln export
-    self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final')
+    self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
 
   ###################
   # Utility Methods #
@@ -367,9 +373,8 @@ class RavenSampled(Optimizer):
         self.raiseADebug('Functional constraint "{n}" was violated!'.format(n=constraint.name))
         self.raiseADebug(' ... point:', point)
       allOkay *= okay
-    return allOkay
+    return bool(allOkay)
 
-  @abc.abstractmethod
   def _applyBoundaryConstraints(self, point):
     """
       Checks and fixes boundary constraints of variables in "point" -> DENORMED point expected!
@@ -377,6 +382,26 @@ class RavenSampled(Optimizer):
       @ Out, point, dict, adjusted variables
       @ Out, modded, bool, whether point was modified or not
     """
+    # TODO should some of this go into the parent Optimizer class, such as the boundary acquiring?
+    modded = False
+    for var in self.toBeSampled:
+      dist = self.distDict[var]
+      val = point[var]
+      lower = dist.lowerBound
+      upper = dist.upperBound
+      if val < lower:
+        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} lower bound: {:1.3e} under by {:1.3e}'
+                          .format(var, val, lower, lower - val))
+        self.raiseADebug(' ... -> for point {}'.format(point))
+        point[var] = lower
+        modded = True
+      elif val > upper:
+        self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} upper bound: {:1.3e} over by {:1.3e}'
+                          .format(var, val, upper, val - upper))
+        self.raiseADebug(' ... -> for point {}'.format(point))
+        point[var] = upper
+        modded = True
+    return point, modded
 
   @abc.abstractmethod
   def _applyFunctionalConstraints(self, suggested, previous):
@@ -387,6 +412,37 @@ class RavenSampled(Optimizer):
       @ Out, point, dict, adjusted variables
       @ Out, modded, bool, whether point was modified or not
     """
+
+  def _handleImplicitConstraints(self, previous):
+    """
+      Considers all implicit constraints
+      @ In, previous, dict, NORMALIZED previous opt point
+      @ Out, accept, bool, whether point was satisfied implicit constraints
+    """
+    normed = copy.deepcopy(previous)
+    oldVal = normed[self._objectiveVar]
+    normed.pop(self._objectiveVar,oldVal)
+    denormed = self.denormalizeData(normed)
+    denormed[self._objectiveVar] = oldVal
+    accept = self._checkImpFunctionalConstraints(denormed)
+    return accept
+
+  def _checkImpFunctionalConstraints(self, previous):
+    """
+      Checks that provided point does not violate implicit functional constraints
+      @ In, previous, dict, previous opt point (denormalized)
+      @ Out, allOkay, bool, False if violations found else True
+    """
+    allOkay = True
+    inputs = dict(previous)
+    for impConstrain in self._impConstraintFunctions:
+      okay = impConstrain.evaluate('implicitConstrain', inputs)
+      if not okay:
+        self.raiseADebug('Implicit constraint "{n}" was violated!'.format(n=impConstrain.name))
+        self.raiseADebug(' ... point:', previous)
+      allOkay *= okay
+    return bool(allOkay)
+
   # END constraint handling
   # * * * * * * * * * * * *
 
@@ -405,20 +461,22 @@ class RavenSampled(Optimizer):
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
     # FIXME check implicit constraints? Function call, - Jia
-    acceptable, old = self._checkAcceptability(traj, rlz, optVal, info)
+    acceptable, old, rejectReason = self._checkAcceptability(traj, rlz, optVal, info)
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     # we only want to update persistance if we've accepted a new point.
     # We don't want rejected points to count against our convergence.
-    self._updatePersistence(traj, converged, optVal)
+    if acceptable in ['accepted']:
+      self._updatePersistence(traj, converged, optVal)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
     if self._writeSteps == 'every':
-      self._updateSolutionExport(traj, rlz, acceptable)
+      self._updateSolutionExport(traj, rlz, acceptable, rejectReason)
     self.raiseADebug('*'*80)
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
       self._optPointHistory[traj].append((rlz, info))
+      # self.incrementIteration(traj)
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)
@@ -435,6 +493,7 @@ class RavenSampled(Optimizer):
       @ In, optVal, float, new optimization value
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
+      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
 
   @abc.abstractmethod
@@ -465,12 +524,13 @@ class RavenSampled(Optimizer):
       @ In, old, dict, previous optimal point (to resubmit)
     """
 
-  def _updateSolutionExport(self, traj, rlz, acceptable):
+  def _updateSolutionExport(self, traj, rlz, acceptable, rejectReason):
     """
       Stores information to the solution export.
       @ In, traj, int, trajectory which should be written
       @ In, rlz, dict, collected point
       @ In, acceptable, bool, acceptability of opt point
+      @ In, rejectReason, str, reject reason of opt point, or return None if accepted
       @ Out, None
     """
     # make a holder for the realization that will go to the solutionExport
@@ -479,6 +539,7 @@ class RavenSampled(Optimizer):
     toExport.update({'iteration': self.getIteration(traj),
                      'trajID': traj,
                      'accepted': acceptable,
+                     'rejectReason': rejectReason
                     })
     # optimal point input and output spaces
     objValue = rlz[self._objectiveVar]

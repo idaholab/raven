@@ -1,0 +1,112 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ROM/TimeSeries/ARMA.ClusteredRandChoice</name>
+    <author>alfoa</author>
+    <created>2020-04-15</created>
+    <classesTested>SupervisedLearning.ARMA</classesTested>
+    <description>
+      Tests the mechanics of clusterering the "time" subspace of the ARMA ROM, with
+      a random choice of the clustered ROMs in the evaluation stage
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ClusteredRand</WorkingDir>
+    <Sequence>load, train, sample, write</Sequence>
+  </RunInfo>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+  
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">input</Input>
+      <Output class="DataObjects" type="HistorySet">input</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">input</Input>
+      <Output class="Models" type="ROM">arma</Output>
+    </RomTrainer>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+    </MultiRun>
+    <IOStep name="write">
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </IOStep>
+  </Steps>
+
+  <Files>
+      <Input name="input">../Clustered/head.csv</Input>
+  </Files>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>scaling</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="input">
+      <Input>scaling</Input>
+      <Output>Signal, Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="samples">
+      <Input>scaling</Input>
+      <Output>Signal, Time</Output>
+      <options>
+        <pivotParameter>Time</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <Models>
+    <ROM name="arma" subType="ARMA">
+      <Target>Signal, Time</Target>
+      <Features>scaling</Features>
+      <pivotParameter>Time</pivotParameter>
+      <P>0</P>
+      <Q>0</Q>
+      <seed>20021986</seed>
+      <reseedCopies>False</reseedCopies>
+      <Fourier>100, 5, 3</Fourier>
+      <preserveInputCDF>True</preserveInputCDF>
+      <Segment grouping='cluster'>
+        <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
+        <subspace divisions='10' shift='first'>Time</subspace>
+        <evaluationClusterChoice>random</evaluationClusterChoice>
+      </Segment>
+    </ROM>
+    <PostProcessor name="classifier" subType="DataMining">
+      <KDD labelFeature="labels" lib="SciKitLearn">
+        <Features>Signal</Features>
+        <SKLtype>cluster|AffinityPropogation</SKLtype>
+      </KDD>
+    </PostProcessor>
+  </Models>
+
+  <Metrics>
+    <SKL name="metric">
+      <metricType>regression|mean_squared_error</metricType>
+    </SKL>
+  </Metrics>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+</Simulation>

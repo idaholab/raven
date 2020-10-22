@@ -62,6 +62,8 @@ class VariableGroup(BaseClasses.BaseType):
     self.name = node.attrib['name']
     # loop through variables and expand list
     for dep in [s.strip() for s in node.text.split(',')]:
+      if dep == '':
+        continue
       # get operator if provided
       operator = '+'
       if dep[0] in '+-^%':

@@ -6,6 +6,7 @@
     <xsd:complexType name="OptimizerData">
         <xsd:sequence>
           <xsd:element name="GradientDescent" type="GradientDescentOptimizer" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="SimulatedAnnealing" type="SimulatedAnnealingOptimizer" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
@@ -77,6 +78,57 @@
       </xsd:all>
     </xsd:complexType>
 
+    <xsd:complexType name="SAConvergenceType">
+      <xsd:all>
+        <xsd:element name="persistence"        type="xsd:integer" minOccurs="0"/>
+        <xsd:element name="objective"          type="xsd:float" minOccurs="0"/>
+        <xsd:element name="temperature"        type="xsd:float" minOccurs="0"/>
+      </xsd:all>
+    </xsd:complexType>
+
+    <!-- <xsd:complexType name="linearCoolingType">
+      <xsd:element name="beta" type="xsd:float"/>
+    </xsd:complexType> -->
+
+    <xsd:complexType name="exponentialCoolingType">
+      <xsd:all>
+      <xsd:element name="alpha" type="xsd:float"/>
+      </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="boltzmanCoolingType">
+      <xsd:all>
+      <xsd:element name="d" type="xsd:float"/>
+      </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="cauchyCoolingType">
+      <xsd:all>
+      <xsd:element name="d" type="xsd:float"/>
+      </xsd:all>
+    </xsd:complexType>
+
+    <!-- <xsd:complexType name="fastCoolingType">
+      <xsd:element name="c" type="xsd:float"/>
+    </xsd:complexType> -->
+
+    <xsd:complexType name="veryFastCoolingType">
+      <xsd:all>
+      <xsd:element name="c" type="xsd:float"/>
+      </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="OptCoolingScheduleType">
+      <xsd:choice>
+        <!-- <xsd:element name="linear" type="linearCoolingType"/> -->
+        <xsd:element name="exponential" type="exponentialCoolingType"/>
+        <xsd:element name="cauchy" type="cauchyCoolingType"/>
+        <xsd:element name="boltzmann" type="boltzmanCoolingType"/>
+        <!-- <xsd:element name="fast" type="fastCoolingType"/> -->
+        <xsd:element name="veryfast" type="veryFastCoolingType"/>
+      </xsd:choice>
+    </xsd:complexType>
+
     <xsd:complexType name="GradientDescentOptimizer">
         <xsd:sequence>
             <xsd:element name="objective"        type="xsd:string"            minOccurs="1" maxOccurs="1"/>
@@ -95,6 +147,32 @@
               </xsd:complexType>
             </xsd:element>
             <xsd:element name="Constraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="ImplicitConstraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Sampler"          type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Restart"          type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="restartTolerance" type="xsd:float"           minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="variableTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"      type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr"/>
+    </xsd:complexType>
+    <xsd:complexType name="SimulatedAnnealingOptimizer">
+        <xsd:sequence>
+            <xsd:element name="samplerInit"      type="optInitType"            minOccurs="0"/>
+            <xsd:element name="convergence"      type="SAConvergenceType"      minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="coolingSchedule"  type="OptCoolingScheduleType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="variable"         type="optVarType"             minOccurs="1" maxOccurs='unbounded'/>
+            <xsd:element name="objective"        type="xsd:string"             minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="TargetEvaluation" type="AssemblerObjectType"    minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="constant"         type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
+            <xsd:element name="ConstantSource"         minOccurs="0" maxOccurs='unbounded'>
+              <xsd:complexType mixed="true">
+                <xsd:attribute name="class" type="xsd:string" use="required"/>
+                <xsd:attribute name="type" type="xsd:string" />
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Constraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="ImplicitConstraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="Sampler"          type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="Restart"          type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="restartTolerance" type="xsd:float"           minOccurs="0" maxOccurs="1"/>

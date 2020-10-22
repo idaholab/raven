@@ -6,7 +6,7 @@
     <created>2016-08-29</created>
     <classesTested>Models.Code.MAMMOTH</classesTested>
     <description>
-       An example of using the MAMMOTH code interface. 
+       An example of using the MAMMOTH code interface.
        This test is designed to ensure the MAMMOTH interface runs correctly.
        It runs BISON and RattleSnake.
     </description>
@@ -90,7 +90,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="MCTestMammoth">
+    <MultiRun name="MCTestMammoth" clearRunDir="False">
       <Input class="Files" type="">bisonInput</Input>
       <Input class="Files" type="">bisonMesh</Input>
       <Input class="Files" type="">rattlesnakeMesh</Input>

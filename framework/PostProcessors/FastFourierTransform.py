@@ -60,17 +60,6 @@ class FastFourierTransform(PostProcessor):
     self.targets = None # list of strings, variables to apply postprocessor to
     self.indices = None # dict of {string:string}, key is target and value is index (independent monotonic var)
 
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    paramInput = self.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parsed paramInput for this class.

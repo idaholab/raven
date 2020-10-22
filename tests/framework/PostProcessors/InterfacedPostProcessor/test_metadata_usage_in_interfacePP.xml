@@ -12,7 +12,7 @@
         <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>metadataUsageInInterfacePP</WorkingDir>
     <Sequence>testDummyStep,io_test,syncronizeHistorySetStep,post_proc</Sequence>
@@ -42,7 +42,7 @@
     <PostProcessor name="DNBR" subType="BasicStatistics">
         <pivotParameter>time</pivotParameter>
         <expectedValue prefix="mean"> cntrlvar_106 </expectedValue>
-    </PostProcessor> 
+    </PostProcessor>
   </Models>
 
 
@@ -67,7 +67,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="testDummyStep" re-seeding="1">
+    <MultiRun name="testDummyStep" re-seeding="1" clearRunDir="False">
       <Input class="Files" type="">dummy.i</Input>
       <Model class="Models" type="Code">MyRELAP</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
@@ -78,20 +78,20 @@
       <Input class="DataObjects" type="PointSet">samples</Input>
       <Input class="DataObjects" type="HistorySet">histories</Input>
       <Output class="OutStreams" type="Plot" >historyPlot</Output>
-    </IOStep>    
+    </IOStep>
     <PostProcess name="syncronizeHistorySetStep" pauseAtEnd="True">
       <Input class="DataObjects" type="HistorySet">histories</Input>
       <Model class="Models" type="PostProcessor">syncronizeHistorySet</Model>
       <Output class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Output>
       <Output class="OutStreams" type="Print">historiesSetPostProc_dump</Output>
       <Output class="OutStreams" type="Print">historiesSetSyncronized_dump</Output>
-    </PostProcess>    
+    </PostProcess>
     <PostProcess name="post_proc" pauseAtEnd="True">
       <Input class="DataObjects" type="HistorySet">HistorySetPostProcTestSyncronized</Input>
       <Model class="Models" type="PostProcessor">DNBR</Model>
       <Output class="DataObjects" type="HistorySet">timeDepBasicStat_DNBR</Output>
       <Output class="OutStreams" type="Print">outputDataMChistory</Output>
-    </PostProcess>    
+    </PostProcess>
   </Steps>
 
   <DataObjects>
@@ -155,5 +155,5 @@
         <how>png</how>
       </actions>
    </Plot>
-  </OutStreams> 
+  </OutStreams>
 </Simulation>

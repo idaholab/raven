@@ -151,7 +151,9 @@ class IntegerType(InputType):
       @ Out, convert, int, the converted value
     """
     if mathUtils.isAString(value):
-      value = float(value)
+      value = float(value) #XXX Is this a bug?
+      #(tho' this does allow converting something like "1.0" to an integer,
+      #but that would fail the xsd check.)
     return int(value)
 
 IntegerType.createClass("integer", "xsd:integer")

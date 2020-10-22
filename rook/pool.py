@@ -18,6 +18,7 @@ from __future__ import division, print_function, absolute_import
 import warnings
 
 import threading
+import traceback
 try:
   import queue
 except ImportError:
@@ -56,7 +57,15 @@ class RunnerThread(threading.Thread):
       #Keep going as long as there are items in the queue
       while True:
         id_num, function, data = self.__input_queue.get(block=False)
-        output = function(data)
+        try:
+          output = function(data)
+        except Exception as fail:
+          #Note, if this occurs, there is a problem in the
+          # test system.  (Such as if a Tester or subclass throws an exception
+          # instead of calling set_fail)
+          print("Caught test system execption", fail, "running", data)
+          traceback.print_exc()
+          output = fail
         self.__output_queue.put((id_num, output))
         self.__input_queue.task_done()
     except queue.Empty:

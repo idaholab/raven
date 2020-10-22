@@ -99,7 +99,7 @@ def updatePluginXML(root, name, location):
     @ In, location, str, location of plugin on disk
     @ Out, match, xml.etree.ElementTree.Element, updated element
   """
-  match = root.findall('./plugin/name[.=\'{}\']/..'.format(name))[0]
+  match = root.findall('./plugin/[name=\'{}\']'.format(name))[0]
   oldPath = match.find('location').text
   # nothing to do if old path and new path are the same!
   if oldPath != location:

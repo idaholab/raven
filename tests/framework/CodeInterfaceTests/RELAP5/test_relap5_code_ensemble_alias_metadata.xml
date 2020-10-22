@@ -61,7 +61,7 @@
           MyRELAP_restart
         <Input class="Files" type="">snc01_restart.i</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">MyRELAP_restartPS</TargetEvaluation>
-        <!-- block the define the metadataToTransfer. source="model from which it needs to be collected", 
+        <!-- block the define the metadataToTransfer. source="model from which it needs to be collected",
              alias="how it should be called in the receiver model"=> it is an optional argument, XML body is the name of the metadata to transfer
          -->
         <metadataToTransfer source="MyRELAP" alias="sourceID"   >prefix</metadataToTransfer>
@@ -145,7 +145,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="testEnsemble2Relaps" re-seeding="1">
+    <MultiRun name="testEnsemble2Relaps" re-seeding="1" clearRunDir="False">
       <Input class="Files" type="">snc01.i</Input>
       <Input class="Files" type="">tpfh2o</Input>
       <Model class="Models" type="EnsembleModel">2relapsInSequence</Model>
