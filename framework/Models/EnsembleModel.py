@@ -295,7 +295,7 @@ class EnsembleModel(Dummy):
       ##  self.parallelStrategy = 2 #  threads (OLD method)
       self.parallelStrategy = 2 #  threads (OLD method)
 
-    # check if all the inputs passed in the step ar'9yue linked with at least a model
+    # check if all the inputs passed in the step are linked with at least a model
     if not all(checkDictInputsUsage.values()):
       unusedFiles = ""
       for inFile, used in checkDictInputsUsage.items():
@@ -499,10 +499,7 @@ class EnsembleModel(Dummy):
         a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, returnValue, dict, This holds the output information of the evaluated sample.
     """
-    kwargsKeys = list(kwargs.keys())
-    # kwargsKeys.pop(kwargsKeys.index("jobHandler"))
-    kwargsToKeep = { keepKey: kwargs[keepKey] for keepKey in kwargsKeys}
-
+    kwargsToKeep = { keepKey: kwargs[keepKey] for keepKey in list(kwargs.keys())}
     jobHandler = kwargs['jobHandler'] if self.parallelStrategy == 2 else None
     Input = self.createNewInput(myInput[0], samplerType, **kwargsToKeep)
 
@@ -720,20 +717,15 @@ class EnsembleModel(Dummy):
       except Exception:
         evaluation = None
     else:
-      nextModel = False
-      while not nextModel:
-        moveOn = False
-        while not moveOn:
-          if jobHandler.availability() > 0:
-            # run the model
-            inputKwargs.pop("jobHandler", None)
-            modelToExecute['Instance'].submit(origInputList, samplerType, jobHandler, **inputKwargs)
-            ## wait until the model finishes, in order to get ready to run the subsequential one
-            while not jobHandler.isThisJobFinished(localIdentifier):
-              time.sleep(1.e-3)
-            nextModel = moveOn = True
-          else:
-            time.sleep(1.e-3)
+      moveOn = False
+      while not moveOn:
+        # run the model
+        inputKwargs.pop("jobHandler", None)
+        modelToExecute['Instance'].submit(origInputList, samplerType, jobHandler, **inputKwargs)
+        ## wait until the model finishes, in order to get ready to run the subsequential one
+        while not jobHandler.isThisJobFinished(localIdentifier):
+          time.sleep(1.e-3)
+        moveOn = True
       # get job that just finished to gather the results
       finishedRun = jobHandler.getFinished(jobIdentifier = localIdentifier, uniqueHandler=self.name+identifier)
       evaluation = finishedRun[0].getEvaluation()

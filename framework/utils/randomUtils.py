@@ -154,7 +154,6 @@ def random(dim=1, samples=1, keepMatrix=False, engine=None):
 def randomNormal(size=(1,), keepMatrix=False, engine=None):
   """
     Function to get a single random value, an array of random values, or a matrix of random values, normally distributed
-    @ In, dim, int, optional, dimensionality of samples
     @ In, size, int or tuple, optional, shape of the samples to return
       (if int, an array of samples will be returned if size>1, otherwise a float if keepMatrix is false)
     @ In, keepMatrix, bool, optional, if True then will always return np.array(np.array(float))

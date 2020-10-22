@@ -726,7 +726,6 @@ class JobHandler(MessageHandler.MessageUser):
     """
     self.completed = True
     if _rayAvail and self.rayServer:
-     # ray.timeline(filename="/Users/alfoa/projects/raven_github/raven/tests/framework/InternalParallelTests/timeline.json")
      ray.shutdown()
 
 
