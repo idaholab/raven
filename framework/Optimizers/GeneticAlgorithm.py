@@ -46,7 +46,7 @@ class GeneticAlgorithm(RavenSampled):
     This class performs Genetic Algorithm optimization ...
   """
   convergenceOptions = {'objective': r""" provides the desired value for the convergence criterion of the objective function
-                        ($\epsilon^{obj}$), i.e., convergence is reached when: $$ |newObjevtive - oldObjective| \le \epsilon^{obj}$$.
+                        ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design variable at a given objective value, i.e., convergence is reached when: $$ Objevtive = \epsilon^{obj}$$.
                         \default{1e-6}, if no criteria specified"""}
   def __init__(self):
     """
@@ -91,22 +91,36 @@ class GeneticAlgorithm(RavenSampled):
     # GA Params
     GAparams = InputData.parameterInputFactory('GAparams', strictMode=True,
         printPriority=108,
-        descr=r""" Genetic Algorithm Parameters: 1. populationSize.
-                                                 2. parentSelectors:
-                                                                    a.  rouletteWheel.
-                                                 3. Reproduction:
-                                                                  a.  crossover:
-                                                                                  i.    onePointCrossover.
-                                                                                  ii.   TwoPointsCrossover.
-                                                                                  iii.  uniformCrossover
-                                                                  b.  mutators:
-                                                                                i.    swapMutator.
-                                                                                ii.   scrambleMutator.
-                                                                                iii.  inversionMutator.
-                                                                                iv.   bitFlipMutator.
-                                                 4. survivorSelectors:
-                                                                      a.  ageBased.
-                                                                      b.  fitnessBased.""")
+        descr=r""" Genetic Algorithm Parameters:\begin{itemize}
+                                                  \item populationSize.
+                                                  \item parentSelectors:
+                                                                    \begin{itemize}
+                                                                      \item rouletteWheel.
+                                                                      \item tournamentSelection.
+                                                                      \item rankSelection.
+                                                                    \end{itemize}
+                                                 \item Reproduction:
+                                                                  \begin{itemize}
+                                                                    \item crossover:
+                                                                      \begin{itemize}
+                                                                        \item onePointCrossover.
+                                                                        \item twoPointsCrossover.
+                                                                        \item uniformCrossover
+                                                                      \end{itemize}
+                                                                    \item mutators:
+                                                                      \begin{itemize}
+                                                                        \item swapMutator.
+                                                                        \item scrambleMutator.
+                                                                        \item inversionMutator.
+                                                                        \item bitFlipMutator.
+                                                                      \end{itemize}
+                                                                    \end{itemize}
+                                                \item survivorSelectors:
+                                                                      \begin{itemize}
+                                                                        \item ageBased.
+                                                                        \item fitnessBased.
+                                                                      \end{itemize}
+                                                \end{itemize}""")
     # Population Size
     populationSize = InputData.parameterInputFactory('populationSize', strictMode=True,
         contentType=InputTypes.IntegerType,
@@ -119,11 +133,11 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""A node containing the criterion based on which the parents are selected. This can be
                   a fitness proportionate selection such as:
-                  a. rouletteWheel,
-                  b. Stochastic Universal Sampling,
-                  c. Tournament,
-                  d. Rank, or
-                  e. Random selection""")
+                  a. \textbf{\textit{rouletteWheel}},
+                  b. \textbf{\textit{stochasticUniversalSampling}},
+                  c. \textbf{\textit{Tournament}},
+                  d. \textbf{\textit{Rank}}, or
+                  e. \textbf{\textit{randomSelection}}""")
     GAparams.addSub(parentSelection)
 
     # Reproduction
@@ -192,8 +206,10 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented fitness functions.
-                  This includes: a.    invLinear.""")
-    fitness.addParam("type", InputTypes.StringType, True)
+                  This includes: a.    invLinear: $fitness = \frac{1}{a \times obj + b \times penalty}$.
+                                 b.    logistic: $fitness = \frac{1}{1+e^{a \times (obj-b)}}$""")
+    fitness.addParam("type", InputTypes.StringType, True,
+                     descr=r"""[invLin, logistic]""")
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
         contentType=InputTypes.FloatType,
         printPriority=108,

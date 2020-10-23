@@ -74,13 +74,13 @@ def logistic(rlz,**kwargs):
   else:
     b = kwargs['b']
 
-  objVar = kwargs['objVar']  
+  objVar = kwargs['objVar']
   val = eval('rlz[\'' + objVar + '\']')
-  denom = 1.0 + np.exp(-a * (val - b))    
+  denom = 1.0 + np.exp(-a * (val - b))
   fitness = 1.0 / denom
-    
+
   return fitness
-  
+
 
 __fitness = {}
 __fitness['invLinear'] = invLinear
