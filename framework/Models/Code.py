@@ -488,7 +488,7 @@ class Code(Model):
 
     precommand = kwargs['precommand']
     postcommand = kwargs['postcommand']
-    bufferSize = kwargs['bufferSize']
+    bufferSize = kwargs['logfileBuffer']
     fileExtensionsToDelete = kwargs['deleteOutExtension']
     deleteSuccessfulLogFiles = kwargs['delSucLogFiles']
 
@@ -881,7 +881,7 @@ class Code(Model):
     ## we copy this dictionary (Caught this when running an ensemble model)
     ## -- DPM 4/11/17
     nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
-    kwargs['bufferSize'        ] = jobHandler.runInfoDict['logfileBuffer']
+    kwargs['logfileBuffer'     ] = jobHandler.runInfoDict['logfileBuffer']
     kwargs['precommand'        ] = jobHandler.runInfoDict['precommand']
     kwargs['postcommand'       ] = jobHandler.runInfoDict['postcommand']
     kwargs['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']
