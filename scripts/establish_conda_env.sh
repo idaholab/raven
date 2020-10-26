@@ -428,7 +428,7 @@ then
   # if it doesn't exist, make some noise.
   else
     echo ${INSTALL_MANAGER} environment ${RAVEN_LIBS_NAME} not found!
-    echo Please run "raven/establish_conda_env.sh" with argument "--install" "--installation-manager $INSTALL_MANAGER".
+    echo Please run "raven/scripts/establish_conda_env.sh" with argument "--install" "--installation-manager $INSTALL_MANAGER".
     exit 1
   fi
 fi
