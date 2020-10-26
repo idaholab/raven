@@ -24,10 +24,12 @@ import inspect
 import itertools
 import numpy as np
 import functools
+import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
+import Decorators
 import SupervisedLearning
 from utils import utils
 from utils import xmlUtils
@@ -37,6 +39,8 @@ import Files
 import LearningGate
 #Internal Modules End--------------------------------------------------------------------------------
 
+# set enviroment variable to avoid parallelim degradation in some surrogate models
+os.environ["MKL_NUM_THREADS"]="1"
 
 class ROM(Dummy):
   """
@@ -58,8 +62,8 @@ class ROM(Dummy):
     CriterionInputType = InputTypes.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
 
     # general
-    inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
     # segmenting and clustering
     segment = InputData.parameterInputFactory("Segment", strictMode=True)
     segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
@@ -1259,9 +1263,9 @@ class ROM(Dummy):
 
     self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier']
     # for Clustered ROM
-    self.addAssemblerObject('Classifier','-1',True)
-    self.addAssemblerObject('Metric','-n',True)
-    self.addAssemblerObject('CV','-1',True)
+    self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
+    self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
+    self.addAssemblerObject('CV', InputData.Quantity.zero_to_one)
 
   def __getstate__(self):
     """
@@ -1419,6 +1423,7 @@ class ROM(Dummy):
     confidenceDict = self.supervisedEngine.confidence(inputToROM)
     return confidenceDict
 
+  @Decorators.timingProfile
   def evaluate(self, request):
     """
       When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
@@ -1552,7 +1557,7 @@ class ROM(Dummy):
     pivotParameterId = self.supervisedEngine.pivotParameterId
     # find some general settings needed for either dynamic or static handling
     ## get all the targets the ROMs have
-    ROMtargets = self.supervisedEngine.initializationOptions['Target'].split(",")
+    ROMtargets = self.supervisedEngine.initializationOptions['Target']
     ## establish requested targets
     targets = ROMtargets if what=='all' else what.split(',')
     ## establish sets of engines to work from

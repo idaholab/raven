@@ -104,19 +104,8 @@ class LimitSurfaceIntegral(PostProcessor):
     self.computationPrefix = None # output prefix for the storage of the probability and, if requested, bounding error
     self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue'] # expected value calculation
-    self.addAssemblerObject('distribution','-n', newXmlFlg = True) # distributions are optional
+    self.addAssemblerObject('distribution', InputData.Quantity.zero_to_infinity) # distributions are optional
     self.printTag = 'POSTPROCESSOR INTEGRAL' # print tag
-
-  def _localReadMoreXML(self, xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.Element, Xml element node
-      @ Out, None
-    """
-    paramInput = LimitSurfaceIntegral.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
-    self._handleInput(paramInput)
 
   def _handleInput(self, paramInput):
     """
@@ -194,8 +183,8 @@ class LimitSurfaceIntegral(PostProcessor):
       self.stat.initialize(runInfo, inputs, initDict)
     self.functionS = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self,
                                                           **{'SKLtype':'neighbors|KNeighborsClassifier',
-                                                             'Features':','.join(list(self.variableDist.keys())),
-                                                             'Target':self.target, 'n_jobs': -1})
+                                                             'Features':list(self.variableDist.keys()),
+                                                             'Target':[self.target], 'n_jobs': -1})
     self.functionS.train(self.matrixDict)
     self.raiseADebug('DATA SET MATRIX:')
     self.raiseADebug(self.matrixDict)
@@ -203,8 +192,8 @@ class LimitSurfaceIntegral(PostProcessor):
       #  create a model for computing the "error"
       self.errorModel = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self,
                                                           **{'SKLtype':'neighbors|KNeighborsClassifier',
-                                                             'Features':','.join(list(self.variableDist.keys())),
-                                                             'Target':self.target, 'weights': 'distance', 'n_jobs': -1})
+                                                             'Features':list(self.variableDist.keys()),
+                                                             'Target':[self.target], 'weights': 'distance', 'n_jobs': -1})
       #modify the self.matrixDict to compute half of the "error"
       indecesToModifyOnes = np.argwhere(self.matrixDict[self.target] > 0.).flatten()
       res = np.concatenate((np.ones(len(indecesToModifyOnes)), np.zeros(len(indecesToModifyOnes))))

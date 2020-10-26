@@ -81,6 +81,11 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         descr=r"""for an NDDistribution, indicates the dimension within the NDDistribution that corresponds
               to this variable.""")
     variableInput.addSub(distributionInput)
+    gridInput = InputData.parameterInputFactory("grid", contentType=InputTypes.StringType)
+    gridInput.addParam("type", InputTypes.StringType)
+    gridInput.addParam("construction", InputTypes.StringType)
+    gridInput.addParam("steps", InputTypes.IntegerType)
+    variableInput.addSub(gridInput)
     functionInput = InputData.parameterInputFactory("function", contentType=InputTypes.StringType,
         descr=r"""name of the function that
               defines the calculation of this variable from other distributed variables.  Its name
@@ -235,8 +240,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
-    self.addAssemblerObject('Restart' ,'-n',True)
-    self.addAssemblerObject('ConstantSource' ,'-n',True)
+    self.addAssemblerObject('Restart', InputData.Quantity.zero_to_infinity)
+    self.addAssemblerObject('ConstantSource', InputData.Quantity.zero_to_infinity)
 
     #used for PCA analysis
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
@@ -305,9 +310,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     Assembler._readMoreXML(self,xmlNode)
     paramInput = self._readMoreXMLbase(xmlNode)
     self.localInputAndChecks(xmlNode, paramInput)
-    if not self.toBeSampled and self.type != 'MonteCarlo':
-      self.raiseAnError(IOError, '<{t}> sampler named "{n}" requires at least one sampled <variable>!'
-                                 .format(n=self.name, t=self.type))
+    if self.type not in ['MonteCarlo', 'Metropolis']:
+      if not self.toBeSampled:
+        self.raiseAnError(IOError, '<{t}> sampler named "{n}" requires at least one sampled <variable>!'
+                                   .format(n=self.name, t=self.type))
 
   def _readMoreXMLbase(self,xmlNode):
     """
@@ -824,7 +830,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
 
   def _incrementCounter(self):
     """
-      Incrementes counter and sets up prefix.
+      Increments counter and sets up prefix.
       @ In, None
       @ Out, None
     """
@@ -914,6 +920,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self._functionalVariables()
     ##### VECTOR VARS #####
     self._expandVectorVariables()
+    ##### RESET DISTRIBUTIONS WITH MEMORY #####
+    for key in self.distDict:
+      if self.distDict[key].getMemory():
+        self.distDict[key].reset()
     ##### RESTART #####
     index, inExisting = self._checkRestartForEvaluation()
     # reformat metadata into acceptable format for dataojbect

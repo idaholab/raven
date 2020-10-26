@@ -63,4 +63,12 @@
    skip = 'cluster only test'
    type = RavenFramework
  [../]
+ [./test_mpiqsub_1_proc]
+   input='test_mpiqsub_1_proc.xml pbspro_mpi.xml cluster_runinfo_legacy.xml'
+   run_types = 'qsub'
+   output = 'FirstMQ1ProcRun/1/out~simple_gp_test.csv FirstMQ1ProcRun/6/out~simple_gp_test.csv'
+   output_wait_time = 60
+   type = RavenFramework
+   max_time = 3600
+ [../]
 []

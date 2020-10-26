@@ -24,7 +24,10 @@ from __future__ import division, print_function, absolute_import
 # are used by --library-report, this can cause diagnostic messages to fail. *
 # ***************************************************************************
 import bisect
-import sys, os, errno
+import sys
+import os
+import errno
+import shutil
 import inspect
 import subprocess
 import platform
@@ -172,6 +175,29 @@ def removeFile(pathAndFileName):
   """
   if os.path.isfile(pathAndFileName):
     os.remove(pathAndFileName)
+
+def removeDir(strPath):
+  """
+    Method to remove a directory.
+    @ In, strPath, string, path to directory to remove
+    @ Out, None
+  """
+  path = os.path.abspath(os.path.expanduser(strPath))
+  shutil.rmtree(path, onerror=_removeDirErrorHandler)
+
+def _removeDirErrorHandler(func, path, excinfo):
+  """
+    Handles errors arising from using shutil.rmtree
+    Argument descriptions from shutil documentation
+    @ In, func, is the function which raised the exception; it depends on the platform and
+                implementation
+    @ In, path, will be the path name passed to function
+    @ In, excinfo, will be the exception information returned by sys.exc_info()
+    @ Out, None
+  """
+  print('utils.removeDir WARNING: unable to remove {path} using {func}, ' +
+        'raising the following exception: {excinfo}. Continuing ...'
+        .format(path=path, func=func, excinfo=excinfo))
 
 def returnImportModuleString(obj,moduleOnly=False):
   """
@@ -503,6 +529,10 @@ def importFromPath(filename, printImporting = True):
     (name, ext) = os.path.splitext(name)
     (file, filename, data) = imp.find_module(name, [path])
     importedModule = imp.load_module(name, file, filename, data)
+    pythonPath = os.environ.get("PYTHONPATH","")
+    absPath = os.path.abspath(path)
+    if absPath not in pythonPath:
+      os.environ['PYTHONPATH'] = pythonPath+ os.pathsep + absPath
   except Exception as ae:
     raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
   return importedModule
@@ -629,6 +659,8 @@ def find_crow(framework_dir):
       pmoduleDir = os.path.join(crowDir,"install")
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
+        # we add it in pythonpath too
+        os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep + pmoduleDir
         return
     for crowDir in crowDirs:
       if os.path.exists(os.path.join(crowDir,"tests")):
@@ -644,6 +676,8 @@ def add_path(absolutepath):
   if not os.path.exists(absolutepath):
     raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
   sys.path.append(absolutepath)
+  # we add it in pythonpath too
+  os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep + absolutepath
 
 def add_path_recursively(absoluteInitialPath):
   """
@@ -696,7 +730,6 @@ def getPythonCommand():
   #  pythonCommand = "python"
   #pythonCommand = os.environ.get("PYTHON_COMMAND", pythonCommand)
   return pythonCommand
-
 
 def printCsv(csv,*args):
   """

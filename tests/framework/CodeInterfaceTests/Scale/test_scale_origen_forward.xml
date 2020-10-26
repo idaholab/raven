@@ -46,9 +46,9 @@
       <constant name="endTime">1.0</constant>
     </Grid>
   </Samplers>
- 
+
   <Steps>
-    <MultiRun name="sampleScale" >
+    <MultiRun name="sampleScale"  clearRunDir="False">
       <Input class="Files" type="origen">origen_input</Input>
       <Model class="Models" type="Code">MyScale</Model>
       <Sampler class="Samplers" type="Grid">myGrid</Sampler>

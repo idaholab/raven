@@ -32,7 +32,7 @@ import itertools
 #Internal Modules------------------------------------------------------------------------------------
 from .SparseGridCollocation import SparseGridCollocation
 from .Grid import Grid
-from utils import utils
+from utils import utils, InputData
 import Distributions
 import SupervisedLearning
 import Quadratures
@@ -68,7 +68,7 @@ class Sobol(SparseGridCollocation):
     self.doInParallel   = True  #compute sparse grid in parallel flag, recommended True
     self.distinctPoints = set() #tracks distinct points used in creating this ROM
     self.sparseGridType = 'smolyak'
-    self.addAssemblerObject('ROM','1',True)
+    self.addAssemblerObject('ROM', InputData.Quantity.one)
 
   def _localWhatDoINeed(self):
     """
@@ -127,8 +127,8 @@ class Sobol(SparseGridCollocation):
       initDict={'IndexSet'       :iset.type,             # type of index set
                 'PolynomialOrder':SVL.maxPolyOrder,      # largest polynomial
                 'Interpolation'  :SVL.itpDict,           # polys, quads per input
-                'Features'       :','.join(combo),       # input variables
-                'Target'         :','.join(SVL.target)}# set below, per-case basis
+                'Features'       :combo,       # input variables
+                'Target'         :SVL.target}# set below, per-case basis
       #initializeDict is for SVL.initialize()
       initializeDict={'SG'   :self.SQs[combo],      # sparse grid
                       'dists':distDict,             # distributions
@@ -221,4 +221,3 @@ class Sobol(SparseGridCollocation):
     self.inputInfo['PointProbability'] = reduce(mul,self.inputInfo['SampledVarsPb'].values())
     self.inputInfo['ProbabilityWeight'] = np.atleast_1d(1.0) # weight has no meaning for sobol
     self.inputInfo['SamplerType'] = 'Sparse Grids for Sobol'
-

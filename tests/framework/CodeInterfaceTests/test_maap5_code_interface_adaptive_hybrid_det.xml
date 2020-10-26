@@ -7,7 +7,7 @@
     <classesTested>Models.Code.MAAP5, Samplers.AdaptiveDynamicEventTree</classesTested>
     <description>
        An example of using the the Model Code of type MAAP5.
-       This test is aimed to test the mechanics of the MAAP5 interface when used with 
+       This test is aimed to test the mechanics of the MAAP5 interface when used with
        the Adaptive Dynamic Event Tree methodology (Adaptive Hybrid Dynamic Event Tree).
     </description>
     <revisions>
@@ -32,7 +32,7 @@
 
   <Models>
     <Code name="MyMAAP" subType="MAAP5">
-      <executable></executable>         
+      <executable></executable>
       <clargs type='input' extension='.inp'/>
       <boolMaapOutputVariables>IEVNT(691)</boolMaapOutputVariables>
       <contMaapOutputVariables>PPS, PSGGEN(1), ZWDC2SG(1), WWBBN(1), WWTOTFW(1),FAIL</contMaapOutputVariables>
@@ -90,7 +90,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="AdaptiveDETrunTest" re-seeding="1">
+    <MultiRun name="AdaptiveDETrunTest" re-seeding="1" clearRunDir="False">
       <Input class="Files" type="">test.inp</Input>
       <Input class="Files" type="">include_900_502</Input>
       <Input class="Files" type="">plot_900_502a.txt</Input>
@@ -99,7 +99,8 @@
       <SolutionExport class="DataObjects" type="PointSet">LimitSurfSimple</SolutionExport>
       <Output class="DataObjects" type="PointSet">adaptiveOutsimple</Output>
       <Output class="OutStreams" type="Print">limitSurfDump</Output>
-      <Output class="OutStreams" type="Print">adaptiveOutsimpleDump</Output>   </MultiRun>
+      <Output class="OutStreams" type="Print">adaptiveOutsimpleDump</Output>
+    </MultiRun>
   </Steps>
 
   <OutStreams>

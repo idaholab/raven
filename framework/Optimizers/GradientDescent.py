@@ -24,6 +24,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules------------------------------------------------------------------------------------
 from collections import deque, defaultdict
 import numpy as np
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -183,7 +184,6 @@ class GradientDescent(RavenSampled):
       new.update(gradReturnClass(grad, cls).getSolutionExportVariableNames())
     for step in stepKnownTypes():
       new.update(stepReturnClass(step, cls).getSolutionExportVariableNames())
-
     ok.update(new)
     return ok
 
@@ -564,12 +564,12 @@ class GradientDescent(RavenSampled):
       @ In, info, dict, identifying information about the opt point
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
+      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
     # Check acceptability
     if self._optPointHistory[traj]:
       old, _ = self._optPointHistory[traj][-1]
       oldVal = old[self._objectiveVar]
-
       # check if following another trajectory
       if self._terminateFollowers:
         following = self._stepInstance.trajIsFollowing(traj, self.denormalizeData(opt), info,
@@ -580,10 +580,11 @@ class GradientDescent(RavenSampled):
           self.raiseADebug('Cancelling Trajectory {} because it is following Trajectory {}'.format(traj, following))
           self._trajectoryFollowers[following].append(traj) # "traj" is killed by "following"
           self._closeTrajectory(traj, 'cancel', 'following {}'.format(following), optVal)
-          return 'accepted', old
+          return 'accepted', old, 'None'
 
       self.raiseADebug(' ... change: {d: 1.3e} new: {n: 1.6e} old: {o: 1.6e}'
                       .format(d=optVal-oldVal, o=oldVal, n=optVal))
+      rejectReason = 'None'
       ## some stepManipulators may need to override the acceptance criteria, e.g. conjugate gradient
       if self._stepInstance.needsAccessToAcceptance:
         acceptable = self._stepInstance.modifyAcceptance(old, oldVal, opt, optVal)
@@ -597,14 +598,28 @@ class GradientDescent(RavenSampled):
         # this is the classic "same point" trap; we accept the same point, and check convergence later
         acceptable = 'accepted'
       else:
-        acceptable = self._checkForImprovement(optVal, oldVal)
+        if self._impConstraintFunctions:
+          accept = self._handleImplicitConstraints(opt)
+          if accept:
+            acceptable, rejectReason = self._checkForImprovement(optVal, oldVal)
+          else:
+            acceptable = 'rejected'
+            rejectReason = 'implicitConstraintsViolation'
+        else:
+          acceptable, rejectReason = self._checkForImprovement(optVal, oldVal)
     else: # no history
       # if first sample, simply assume it's better!
+      rejectReason = 'None'
+      if self._impConstraintFunctions:
+        accept = self._handleImplicitConstraints(opt)
+        if not accept:
+          self.raiseAWarning('First point violate Implicit constraint, please change another point to start!')
+          rejectReason = 'implicitConstraintsViolation'
       acceptable = 'first'
       old = None
     self._acceptHistory[traj].append(acceptable)
     self.raiseADebug(' ... {a}!'.format(a=acceptable))
-    return acceptable, old
+    return acceptable, old, rejectReason
 
   def _checkForImprovement(self, new, old):
     """
@@ -612,10 +627,14 @@ class GradientDescent(RavenSampled):
       @ In, new, float, new optimization value
       @ In, old, float, previous optimization value
       @ Out, improved, bool, True if "sufficiently" improved or False if not.
+      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
     # TODO could this be a base RavenSampled class?
     improved = self._acceptInstance.checkImprovement(new, old)
-    return 'accepted' if improved else 'rejected'
+    if improved:
+      return 'accepted', 'None'
+    else:
+      return 'rejected', 'noImprovement'
 
   def _updateConvergence(self, traj, new, old, acceptable):
     """
@@ -633,7 +652,9 @@ class GradientDescent(RavenSampled):
       converged, convDict = self.checkConvergence(traj, new, old)
     else:
       converged = False
-      convDict = dict((var, False) for var in self._convergenceInfo[traj])
+      # since not accepted, none of the convergence criteria are acceptable
+      ## HOWEVER, since not accepted, do NOT reset persistence!
+      convDict = dict((var, False) for var in self._convergenceInfo[traj] if var not in ['persistence'])
     self._convergenceInfo[traj].update(convDict)
     return converged
 
@@ -804,7 +825,6 @@ class GradientDescent(RavenSampled):
     # remaking the list is easier than using the existing one
     acceptable = RavenSampled._formatSolutionExportVariableNames(self, acceptable)
     new = []
-    print('DEBUGG acceptable:', acceptable)
     while acceptable:
       template = acceptable.pop()
       if '{CONV}' in template:

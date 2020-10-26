@@ -45,6 +45,10 @@ from .AdaptiveMonteCarlo   import AdaptiveMonteCarlo
 # Dynamic Event Tree-based Samplers
 from .DynamicEventTree         import DynamicEventTree
 from .AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
+
+# MCMC Samplers
+from .MCMC import Metropolis
+
 # Factory methods
 from .Factory import knownTypes
 from .Factory import returnInstance
@@ -53,4 +57,5 @@ from .Factory import returnClass
 # We should not really need this as we do not use wildcard imports
 __all__ = ['Sampler','AdaptiveSampler','ForwardSampler','MonteCarlo','Grid','CustomSampler','Stratified',
            'FactorialDesign','ResponseSurfaceDesign','Sobol','EnsembleForward','SparseGridCollocation',
-           'DynamicEventTree','LimitSurfaceSearch','AdaptiveDynamicEventTree','AdaptiveSparseGrid','AdaptiveSobol','AdaptiveMonteCarlo']
+           'DynamicEventTree','LimitSurfaceSearch','AdaptiveDynamicEventTree','AdaptiveSparseGrid','AdaptiveSobol',
+           'AdaptiveMonteCarlo','Metropolis']

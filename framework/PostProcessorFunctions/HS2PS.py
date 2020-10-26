@@ -23,7 +23,8 @@ import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
+from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
+from utils import InputData, InputTypes
 
 
 class HS2PS(PostProcessorInterfaceBase):
@@ -34,6 +35,22 @@ class HS2PS(PostProcessorInterfaceBase):
    Note!!!! Here it is assumed that all histories have been sync so that they have the same length, start point and end point.
             If you are not sure, do a pre-processing the the original history set
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super().getInputSpecification()
+    inputSpecification.setCheckClass(CheckInterfacePP("HS2PS"))
+    inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("features", contentType=InputTypes.StringListType))
+    #Should method be in super class?
+    inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
+    return inputSpecification
 
   def initialize(self):
     """
@@ -52,18 +69,18 @@ class HS2PS(PostProcessorInterfaceBase):
     self.features     = 'all'
 
 
-  def readMoreXML(self,xmlNode):
+  def _handleInput(self, paramInput):
     """
-      Function that reads elements this post-processor will use
-      @ In, xmlNode, ElementTree, Xml element node
+      Function to handle the parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    for child in xmlNode:
-      if child.tag == 'pivotParameter':
-        self.pivotParameter = child.text
-      elif child.tag == 'features':
-        self.features = child.text.split(',')
-      elif child.tag !='method':
+    for child in paramInput.subparts:
+      if child.getName() == 'pivotParameter':
+        self.pivotParameter = child.value
+      elif child.getName() == 'features':
+        self.features = child.value
+      elif child.getName() !='method':
         self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
     if self.pivotParameter == None:

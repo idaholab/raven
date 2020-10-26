@@ -750,8 +750,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     initDict = {'IndexSet'       : iSet.type,
                 'PolynomialOrder': SVL.maxPolyOrder,
                 'Interpolation'  : SVL.itpDict,
-                'Features'       : ','.join(subset),
-                'Target'         : ','.join(self.targets)}
+                'Features'       : list(subset),
+                'Target'         : self.targets}
     self.ROMs[subset] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
     initializeDict = {'SG'       : self.SQs[subset],
                       'dists'    : distDict,
@@ -767,8 +767,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     self.romShell[subset].subType = 'GaussPolynomialRom'
     self.romShell[subset].messageHandler = self.messageHandler
     self.romShell[subset].verbosity = verbosity
-    self.romShell[subset].initializationOptionDict['Target']=','.join(self.targets)
-    self.romShell[subset].initializationOptionDict['Features']=','.join(subset)
+    self.romShell[subset].initializationOptionDict['Target']= self.targets
+    self.romShell[subset].initializationOptionDict['Features']= list(subset)
     self.romShell[subset].initializationOptionDict['IndexSet']='TotalDegree'
     self.romShell[subset].initializationOptionDict['PolynomialOrder']='1'
     self.romShell[subset]._initializeSupervisedGate(**self.romShell[subset].initializationOptionDict)
