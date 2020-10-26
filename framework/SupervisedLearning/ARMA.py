@@ -80,6 +80,7 @@ class ARMA(supervisedLearning):
     self.fourierResults    = {} # dictionary of Fourier results, by target
     # training parameters
     self.fourierParams     = {} # dict of Fourier training params, by target (if requested, otherwise not present)
+    self.nyquistScalar     = kwargs.get('nyquistScalar', 1)
     self.P                 = kwargs.get('P', 3) # autoregressive lag
     self.Q                 = kwargs.get('Q', 3) # moving average lag
     self.segments          = kwargs.get('segments', 1)
@@ -897,7 +898,7 @@ class ARMA(supervisedLearning):
     if masks is not None:
       data = data[masks]
     import statsmodels.api
-    results =  statsmodels.tsa.arima_model.ARMA(data, order = (self.P, self.Q)).fit(disp = False)
+    results = statsmodels.tsa.arima_model.ARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
   def _trainCDF(self, data, binOps=None):
@@ -1826,8 +1827,8 @@ class ARMA(supervisedLearning):
           # NOTE: assuming training on only one history!
           targetVals = trainingDict[target][0]
           periods = np.asarray(self.fourierParams[target])
-          full = periods[periods > delta]
-          segment[target] = periods[np.logical_not(periods > delta)]
+          full = periods[periods > (delta*self.nyquistScalar)]
+          segment[target] = periods[np.logical_not(periods > (delta*self.nyquistScalar))]
           if len(full):
             # train Fourier on longer periods
             self.fourierResults[target] = self._trainFourier(pivotValues, full, targetVals, target=target)
