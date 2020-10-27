@@ -29,6 +29,7 @@ Currently, the following types are available in RAVEN:
   \item \textbf{SampleSelector}
   \item \textbf{ParetoFrontier}
   \item \textbf{MCSImporter}
+  \item \textbf{EconomicRatio}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
@@ -99,7 +100,10 @@ data objects, depending on the type of statistics the user wants to compute:
     \item \textbf{expectedValue}: expected value or mean
     \item \textbf{minimum}: The minimum value of the samples.
     \item \textbf{maximum}: The maximum value of the samples.
-    \item \textbf{median}: median
+    \item \textbf{median}:  The weighted median of the samples ( $50\%$ weighted percentile). If probablitity weights are not assigned, uniform distribution will be assigned. The median $x_k$ satisfying:
+    \begin{equation}
+      \sum_{i = 1}^{k - 1} w_i \le 1/2  and \sum_{i = k + 1}^{n} w_i \le 1/2
+    \end{equation}
     \item \textbf{variance}: variance
     \item \textbf{sigma}: standard deviation
     \item \textbf{percentile}: the percentile. If this quantity is inputted as \textit{percentile} the $5\%$ and $95\%$ percentile(s) are going to be computed.
@@ -2927,3 +2931,6 @@ The \xmlNode{SampleSelector} postprocessor can  act on any \xmlNode{DataObjects}
  ...
 </Simulation>
 \end{lstlisting}
+
+%%%%% PP EconomicRatio %%%%%%%
+\input{EconomicRatio.tex}

@@ -223,6 +223,7 @@ class RavenSampled(Optimizer):
     else:
       self.inputInfo['batchMode'] = False
     for _ in range(self.batch):
+      inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}
       if self.counter == self.limit + 1:
         break
       # get point from stack
@@ -230,26 +231,42 @@ class RavenSampled(Optimizer):
       point = self.denormalizeData(point)
       # assign a tracking prefix
       prefix = self.inputInfo['prefix']
+      inputInfo['prefix'] = prefix
       # register the point tracking information
       self._registerSample(prefix, info)
       # build the point in the way the Sampler expects
       for var in self.toBeSampled: #, val in point.items():
-        val = point[var]
+        val = point[var] if isinstance(point[var],float) else np.atleast_1d(point[var].data)[0]
         self.values[var] = val # TODO should be np.atleast_1d?
         ptProb = self.distDict[var].pdf(val)
         # sampler-required meta information # TODO should we not require this?
-        self.inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
-        self.inputInfo['SampledVarsPb'][var] = ptProb
-      self.inputInfo['ProbabilityWeight'] = 1 # TODO assume all weight 1? Not well-distributed samples
-      self.inputInfo['PointProbability'] = np.prod([x for x in self.inputInfo['SampledVarsPb'].values()])
-      self.inputInfo['SamplerType'] = self.type
+      #   self.inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
+      #   self.inputInfo['SampledVarsPb'][var] = ptProb
+      # self.inputInfo['ProbabilityWeight'] = 1 # TODO assume all weight 1? Not well-distributed samples
+      # self.inputInfo['PointProbability'] = np.prod([x for x in self.inputInfo['SampledVarsPb'].values()])
+      # self.inputInfo['SamplerType'] = self.type
+        inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
+        inputInfo['SampledVarsPb'][var] = ptProb
+      inputInfo['ProbabilityWeight'] = 1 # TODO assume all weight 1? Not well-distributed samples
+      inputInfo['PointProbability'] = np.prod([x for x in inputInfo['SampledVarsPb'].values()])
+      inputInfo['SamplerType'] = self.type
       # self.inputInfo['batchId'] = self.batchId
       if self.inputInfo['batchMode']:
-        self.inputInfo['SampledVars'] = self.values
-        self.inputInfo['batchId'] = self.batchId
-        batchData.append(copy.deepcopy(self.inputInfo))
+        # self.inputInfo['SampledVars'] = self.values
+        # self.inputInfo['batchId'] = self.batchId
+        # batchData.append(copy.deepcopy(self.inputInfo))
+        inputInfo['SampledVars'] = self.values
+        inputInfo['batchId'] = self.batchId
+        batchData.append(copy.deepcopy(inputInfo))
         # self._incrementCounter()
-    if self.inputInfo['batchMode']:
+      else:
+        inputInfo['SampledVars'] = self.values
+        inputInfo['batchId'] = self.batchId
+        self.inputInfo.update(inputInfo)
+    if self.batch > 1:
+    #  for subBatch in batchData:
+    #    if 'batchInfo' in subBatch:
+    #      del subBatch['batchInfo']
       self.inputInfo['batchInfo'] = {'nRuns': self.batch, 'batchRealizations': batchData, 'batchId': str('gen_' + str(self.batchId))}
 
   # @profile
@@ -273,7 +290,7 @@ class RavenSampled(Optimizer):
     # get information and realization, and update trajectories
     info = self.getIdentifierFromPrefix(prefix, pop=True)
     if self.batch == 1:
-      _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=True)
+      _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
     else:
       # NOTE if here, then rlz is actually a xr.Dataset, NOT a dictionary!!
       _, rlz = self._targetEvaluation.realization(matchDict={'batchId': self.batchId}, asDataSet=True,options={'returnAllMatch':True})
@@ -322,13 +339,14 @@ class RavenSampled(Optimizer):
         bestTraj = traj
         bestValue = val
     # further check active unfinished trajectories
-    for traj in self._activeTraj:
-      opt = self._optPointHistory[traj][-1][0]
-      val = opt[self._objectiveVar]
-      self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
-      if bestValue is None or val < bestValue:
-        bestValue = val
-        bestTraj = traj
+    # for traj in self._activeTraj:
+    traj = 0
+    opt = self._optPointHistory[traj][-1][0]
+    val = opt[self._objectiveVar]
+    self.raiseADebug(statusTemplate.format(status='active', traj=traj, val=s * val))
+    if bestValue is None or val < bestValue:
+      bestValue = val
+      bestTraj = traj
     bestOpt = self.denormalizeData(self._optPointHistory[bestTraj][-1][0])
     bestPoint = dict((var, bestOpt[var]) for var in self.toBeSampled)
     self.raiseADebug('')
@@ -479,8 +497,8 @@ class RavenSampled(Optimizer):
       Consider and store a new optimal point
       @ In, traj, int, trajectory for this new point
       @ In, info, dict, identifying information about the realization
-      @ In, rlz, dict, realized realization
-      @ In, optVal, float, value of objective variable (corrected for min/max)
+      @ In, rlz, xr.DataSet, batched realizations
+      @ In, optVal, list of floats, values of objective variable
     """
     self.raiseADebug('*'*80)
     self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))

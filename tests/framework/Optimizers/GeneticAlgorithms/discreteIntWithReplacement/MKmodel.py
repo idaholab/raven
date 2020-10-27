@@ -21,21 +21,29 @@ def run(self,Input):
     @ Out, None
   """
   projValue = np.array([1,3,4,2,1,2,3,4,2,4])
-  projCost  = np.array([3,2,5,3,2,4,6,3,5,3])  
-  knapsackCapacities = np.array([12,10,6,8,9])
-  
+  projCost  = np.array([3,2,5,3,2,4,6,3,5,3])
+  knapsackCapacities = np.array([4,5,4,5,5])
+
   projPlan = np.array([Input['proj1'],Input['proj2'],Input['proj3'],Input['proj4'],Input['proj5'],Input['proj6'],Input['proj7'],Input['proj8'],Input['proj9'],Input['proj10']])
   self.planValue = 0
   for n in range(0,10):
     if projPlan[n]>0:
-      knapsackCapacities[int(projPlan[n])-1] = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
-      self.planValue = self.planValue + projValue[n]
-  
+      test = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
+      if test>=0:
+        knapsackCapacities[int(projPlan[n])-1] = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
+        self.planValue = self.planValue + projValue[n]
+      else:
+        knapsackCapacities[int(projPlan[n])-1] = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
+        self.planValue = self.planValue - projValue[n]
+
+      #knapsackCapacities[int(projPlan[n])-1] = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
+      #self.planValue = self.planValue + projValue[n]
+
   if (knapsackCapacities>=0).all():
     self.validPlan =  0.
   else:
     self.validPlan = 1.
-    
-  counterNeg = np.sum(knapsackCapacities<0, axis=0)
-  self.planValue = self.planValue - counterNeg * (15.)
-  
+
+  #counterNeg = np.sum(knapsackCapacities<0, axis=0)
+  #self.planValue = self.planValue - counterNeg * (10.)
+

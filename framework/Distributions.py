@@ -511,6 +511,18 @@ class BoostDistribution(Distribution):
       rvsValue = np.array([self.rvs() for _ in range(size)])
     return rvsValue
 
+  def selectedRVS(self, discardedElems):
+    """
+      Function to get random numbers for discrete distribution which exclude discardedElems
+      @ In, discardedElems, list, list of values to be discarded
+      @ Out, rvsValue, float or list, requested random number or numbers
+    """
+    if not self.memory:
+      self.raiseAnError(IOError,' The distribution '+ str(self.name) + ' does not support the method selectedRVS.')
+    else:
+      rvsValue = self.selectedPpf(random(),discardedElems)
+    return rvsValue
+
 class Uniform(BoostDistribution):
   """
     Uniform univariate distribution
@@ -1883,6 +1895,18 @@ class UniformDiscrete(Distribution):
     self.categoricalDist.initializeFromDict(paramsDict)
     initialPerm = randomUtils.randomPermutation(self.xArray.tolist(),self)
     self.pot = np.asarray(initialPerm)
+    
+  def initializeFromDict(self, inputDict):
+    """
+      Function that initializes the distribution provided a dictionary
+      @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
+      @ Out, None
+    """
+    self.strategy = inputDict['strategy']
+    self.categoricalDist = Categorical()
+    self.categoricalDist.initializeFromDict(inputDict)
+    initialPerm = randomUtils.randomPermutation(inputDict['xAxis'].tolist(),self)
+    self.pot = np.asarray(initialPerm)
 
   def pdf(self,x):
     """
@@ -1923,6 +1947,32 @@ class UniformDiscrete(Distribution):
         self.raiseAWarning("The Uniform Discrete distribution " + str(self.name) + " has been internally reset outside the sampler.")
       rvsValue = self.pot[-1]
       self.pot = np.resize(self.pot, self.pot.size - 1)
+      print(self.pot)
+    return rvsValue
+  
+  def selectedRvs(self,discardedElems):
+    """
+      Return a random state of the distribution without discardedElems
+      @ In, discardedElems, np array, list of discarded elements
+      @ Out, rvsValue, float, the random state
+    """    
+    if self.nPoints is None:
+      self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
+    else:
+      self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
+    
+    self.xArray = np.setdiff1d(self.xArray,discardedElems)
+      
+    self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
+    paramsDict={}
+    paramsDict['xAxis'] = self.xArray
+    paramsDict['pAxis'] = self.pdfArray
+    paramsDict['strategy'] = self.strategy
+
+    self.tempUniformDiscrete = UniformDiscrete()
+    self.tempUniformDiscrete.initializeFromDict(paramsDict)    
+    
+    rvsValue = self.tempUniformDiscrete.rvs()
     return rvsValue
 
   def reset(self):
