@@ -1895,7 +1895,7 @@ class UniformDiscrete(Distribution):
     self.categoricalDist.initializeFromDict(paramsDict)
     initialPerm = randomUtils.randomPermutation(self.xArray.tolist(),self)
     self.pot = np.asarray(initialPerm)
-    
+
   def initializeFromDict(self, inputDict):
     """
       Function that initializes the distribution provided a dictionary
@@ -1949,20 +1949,20 @@ class UniformDiscrete(Distribution):
       self.pot = np.resize(self.pot, self.pot.size - 1)
       print(self.pot)
     return rvsValue
-  
+
   def selectedRvs(self,discardedElems):
     """
       Return a random state of the distribution without discardedElems
       @ In, discardedElems, np array, list of discarded elements
       @ Out, rvsValue, float, the random state
-    """    
+    """
     if self.nPoints is None:
       self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
     else:
       self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
-    
+
     self.xArray = np.setdiff1d(self.xArray,discardedElems)
-      
+
     self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
     paramsDict={}
     paramsDict['xAxis'] = self.xArray
@@ -1970,8 +1970,8 @@ class UniformDiscrete(Distribution):
     paramsDict['strategy'] = self.strategy
 
     self.tempUniformDiscrete = UniformDiscrete()
-    self.tempUniformDiscrete.initializeFromDict(paramsDict)    
-    
+    self.tempUniformDiscrete.initializeFromDict(paramsDict)
+
     rvsValue = self.tempUniformDiscrete.rvs()
     return rvsValue
 

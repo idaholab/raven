@@ -657,7 +657,7 @@ class MultiRun(SingleRun):
             self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
-  @profile 
+  @profile
   def _localTakeAstepRun(self,inDictionary):
     """
       This is the API for the local run of a step for the children classes
