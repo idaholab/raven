@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
 Created on March 25, 2020
 
@@ -19,11 +20,13 @@ Created on March 25, 2020
 
 #External Modules---------------------------------------------------------------
 import numpy as np
+import xml.etree.ElementTree as ET
+import math
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import utils
+from utils import utils, xmlUtils
 from utils import InputData, InputTypes
 from sympy.logic import SOPform, POSform
 from itertools import product
@@ -59,6 +62,7 @@ class FTgenerator(PostProcessor):
     inputSpecification.addSub(InputData.parameterInputFactory("topEventID", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("inputVars" , contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("fileName"  , contentType=InputTypes.StringType))
+    inputSpecification.addSub(InputData.parameterInputFactory("simOnly"   , contentType=InputTypes.BoolType))
     
     typeAllowedFormats = InputTypes.makeEnumType("calculationFormat", "calculationFormatType", ["sop","pos"])
     inputSpecification.addSub(InputData.parameterInputFactory("type" , contentType=typeAllowedFormats))
@@ -71,17 +75,22 @@ class FTgenerator(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
-    self.topEventID  = paramInput.findFirst('topEventID')
+    topEventID  = paramInput.findFirst('topEventID')
+    self.topEventID = topEventID.value.strip()
 
-    inputVars = paramInput.findFirst('valueID')
-    self.inputVars = inputVars.split(",")
+    inputVars = paramInput.findFirst('inputVars')
+    self.inputVars = inputVars.value.split(",")
     for var in self.inputVars:
       var = var.strip()
     
-    self.fileName  = paramInput.findFirst('fileName')
+    fileName  = paramInput.findFirst('fileName')
+    self.fileName = fileName.value
     
-    typeID = paramInput.findFirst('type')
-    self.type = typeID.lower()
+    simOnly = paramInput.findFirst('simOnly')
+    self.simOnly = simOnly.value
+    
+    typeConv = paramInput.findFirst('type')
+    self.type = typeConv.value
 
   def inputToInternal(self, currentInp):
     """
@@ -109,26 +118,41 @@ class FTgenerator(PostProcessor):
     inData = self.inputToInternal(inputIn)
     dataset = inData.asDataset()
     
+    self.dataObjectName = inputIn
+    
     for var in dataset.keys():
-      dataset[var] = np.where(dataset[var].values > 0.0, 1, 0)
+      dataset[var].values = np.where(dataset[var].values > 0.0, 1, 0)
+      
+    dsSel = dataset[self.inputVars]
+    data = dsSel.to_array().data.transpose()
+    keys = list(dsSel.keys())
     
     nVars = len(self.inputVars)
     combinations = np.array([i for i in product(range(2), repeat=nVars)])  
     self.reducedDataset = np.zeros([2**nVars,nVars+1])
     self.reducedDataset[:,:nVars] = combinations
-    
+ 
     counter = 0
     for combination in combinations:
-      indexes = np.where((dataset.values==combination).all(axis=1))
+      indexes = np.where(np.all(data==combination,axis=1))[0]
       if len(indexes)==0:
         self.raiseAnError(RuntimeError,'FTgenerator: combination ' + str(combination) + ' of variables ' + str(self.inputVars) +' has not been found in the dataset.')
-      avg = np.average(np.absolute(dataset[self.topEventID][indexes]))
-      self.reducedDataset[counter] = avg  
+      avg=0
+      for locIndex in indexes:
+        avg = avg + inData.realization(index=locIndex)[self.topEventID]
+      self.reducedDataset[counter,nVars] = avg  
       if avg not in [0,1]:
         self.raiseAWarning('FTgenerator: combination ' + str(combination) + ' of variables ' + str(self.inputVars) +' has generated an average value not in {0,1}.')
       counter = counter + 1
-
-    return self.reducedDataset
+    
+    self.reducedDatasetDict = {}
+    for index,key in enumerate(keys):
+      self.reducedDatasetDict[key] = self.reducedDataset[:,index]
+    self.reducedDatasetDict[self.topEventID] = self.reducedDataset[:,-1]
+    
+    self.generateFT()
+    
+    return self.reducedDatasetDict
 
   def collectOutput(self, finishedJob, output):
     """
@@ -148,31 +172,74 @@ class FTgenerator(PostProcessor):
         outputDict['dims'][key] = []
       output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
     else:
-        self.raiseAnError(RuntimeError, 'ParetoFrontier failed: Output type ' + str(output.type) + ' is not supported.')
+        self.raiseAnError(RuntimeError, 'FTgenerator failed: Output type ' + str(output.type) + ' is not supported.')
 
   def generateFT(self):
     indexes = np.where(self.reducedDataset[:,-1] > 0)
-    minterms = self.reducedDataset(indexes)
+    minterms = self.reducedDataset[indexes,:-1][0]
+    mintermsConverted = minterms.tolist()
     
-    if self.type=='sop':
-      formula = SOPform(self.inputVars,minterms)
-      FTgeneratorSOP(formula)
-    else:  # self.type=='pos'
-      formula = POSform(self.inputVars,minterms)
-      FTgeneratorPOS(formula)
-
-def FTgeneratorSOP(formula):
+    formula = SOPform(self.inputVars,mintermsConverted)
+    formulaText = structureFormula(formula,self.type)
+    
+    printFT(formulaText,self.fileName,'name', self.type)
+      
+def structureFormula(formula, type):
   # Example: c | (a & b)
   terms = str(formula).split("|")  # ['c ', ' (a & b)']
+  
+  formulaMod=[]
   for term in terms:
-    term = term.split("&")         # ['c ', [' (a', ' b)']]
-    for element in term:
-      element.replace('(', '')
-      element.replace(')', '')
-      element.strip()              # ['c', ['a',' b']]
+    if type=='sop':
+      term1 = term.split("&")         # ['c ', [' (a', ' b)']]
+    else:
+      term1 = term.split("|")
+    elemMod=[]
+    for element in term1:
+      elemMod.append(element.replace('(', '').replace(')', '').strip())  # ['c', ['a',' b']]
+    formulaMod.append(elemMod)  
+  
+  return formulaMod  
+
+def printFT(formula, filename, dataObjectName, type):
+  # 1) Create FT structure
+  root = ET.Element('opsa-mef')
+  
+  FT = ET.SubElement(root, 'FT_' + dataObjectName)
+  
+  mainOR = ET.SubElement(FT, "define-gate", name="TOP")
+  if type=='sop':
+    orGate = ET.SubElement(mainOR, 'or')
+  else:
+    orGate = ET.SubElement(mainOR, 'and')
+  
+  for index,elem in enumerate(formula):
+    gateID = "G"+str(index)
+    ET.SubElement(orGate, "gate", name=gateID)
+    
+    elementGate = ET.SubElement(FT, "define-gate", name=gateID)
+    if type=='sop':
+      elementAndGate = ET.SubElement(elementGate, 'and')
+    else:
+      elementAndGate = ET.SubElement(elementGate, 'or')
+    
+    for term in elem:
+      if "~" in term:
+        notGate = ET.SubElement(elementAndGate, 'not')
+        ET.SubElement(notGate, 'basic-event', name=str(term))     
+      else:
+        ET.SubElement(elementAndGate, 'basic-event', name=str(term))
+          
+      mainBE = ET.SubElement(FT, "define-basic-event", name=str(term))
+      ET.SubElement(mainBE, "float", value='1.0')
+  
+  # 2) Print FT on file
+  data = ET.tostring(root, encoding="unicode")
+  filename = filename + ".xml"
+  open(filename, "w").writelines(xmlUtils.prettify(root))
         
-def FTgeneratorPOS(formula):
-  # Example: (a | c) & (b | c)
+      
+    
       
   
   

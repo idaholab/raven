@@ -179,9 +179,9 @@ class PointSet(DataSet):
       @ Out, None
     """
     # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
-    # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
+    # If True, all the branches are going to be printed/plotted independently, otherwise the are going to be reconstructed
     # In this case, if self.hierarchical is False, the histories are going to be reconstructed
-    # (see _constructHierPaths for further explainations)
+    # (see _constructHierPaths for further explanations)
     if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
       keep = self._getRequestedElements(kwargs)
       toDrop = list(var for var in self.getVars() if var not in keep)

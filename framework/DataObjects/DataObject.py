@@ -126,7 +126,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._scaleFactors    = None   # scaling factors inputs as {var:(mean,scale)}
     self.hierarchical     = False  # this flag controls the printing/plotting of the dataobject
                                    #   in case it is an hierarchical one.
-                                   #   If True, all the branches are going to be printed/plotted independenttly,
+                                   #   If True, all the branches are going to be printed/plotted independently,
                                    #   otherwise the are going to be reconstructed
 
   @property
