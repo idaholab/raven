@@ -93,6 +93,8 @@ class phisicsdata():
       self.getMrtauIsotopeList(
           phisicsDataDict['mrtauFileNameDict']['atoms_csv'])
 
+
+
     for timeStepIndex in range(len(mrtauTimeSteps)):
       if not phisicsDataDict['mrtauStandAlone']:
         keff, errorKeff = self.getKeff()
@@ -151,6 +153,8 @@ class phisicsdata():
         else:
           phisicsDict['matFluxLabelList'] = matFluxLabelList
           phisicsDict['matFluxList'] = matFluxList
+        if timeStepIndex == 94:
+          print("fermo")
         self.writeCSV(phisicsDict, timeStepIndex, mrtauTimeSteps,
                       phisicsDataDict['jobTitle'])
 
@@ -317,6 +321,7 @@ class phisicsdata():
     """
     count = 0
     timeSteps = []
+    nts = 0
     with open(os.path.join(self.workingDir, self.mrtauOutputFileMPI[0]),
               'r') as outfile:
       for line in outfile:
@@ -325,12 +330,14 @@ class phisicsdata():
         if count == 1:
           stringIsFloatNumber = self.isFloatNumber(line.split(','))
           if stringIsFloatNumber:
+            ts = float(line.split(',')[0])
+            if timeSteps and ts <= float(timeSteps[-1]):
+              break
             timeSteps.append(line.split(',')[0])
         if count > 1:
           break
-    timeSteps.pop(
-        0
-    )  # Removes the first time step, t=0, to make the number of time steps match with the number of time steps in INSTANT.
+    # Removes the first time step, t=0, to make the number of time steps match with the number of time steps in INSTANT.
+    timeSteps.pop(0)
     return timeSteps
 
   def getMrtauTimeSteps(self, atomsInp):
