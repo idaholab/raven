@@ -207,7 +207,11 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+      @ Out, output, string or dict, optional, if present and string:
+                                                 in case the root of the output file gets changed in this method (and a CSV is produced);
+                                               if present and dict:
+                                                 in case the output of the code is directly stored in a dictionary and can be directly used
+                                                 without the need that RAVEN reads an additional CSV
     """
     return output
 
