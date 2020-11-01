@@ -15,7 +15,7 @@
  [./RELAP5interfaceTestSingleRunNoExecutable]
   type = 'RavenFramework'
   input = 'test_relap5_code_interface_single_run.xml'
-  output = 'RELAP5interfaceTestSingleRun/testDummyStep/1/snc01.i RELAP5interfaceTestSingleRun/testDummyStep/1/out~snc01.csv'
+  output = 'RELAP5interfaceTestSingleRun/testDummyStep/1/snc01.i'
   test_interface_only = True
  [../]
 
@@ -32,16 +32,14 @@
  [./RELAP5interfaceMultDeckTestNoExecutable]
   type = 'RavenFramework'
   input = 'test_relap5_code_interface_multideck.xml'
-  output = 'RELAP5interfaceTestMultiDeck/testDummyStep/1/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/2/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/3/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/4/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/5/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/3/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/4/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/5/out~snc01.csv'
-  csv = 'RELAP5interfaceTestMultiDeck/testDummyStep/1/out~snc01.csv RELAP5interfaceTestMultiDeck/testDummyStep/2/out~snc01.csv'
+  output = 'RELAP5interfaceTestMultiDeck/testDummyStep/1/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/2/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/3/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/4/snc01.i RELAP5interfaceTestMultiDeck/testDummyStep/5/snc01.i'
   test_interface_only = True
  [../]
 
  [./RELAP5interfaceMultDeckTestChoosingDeckNoExecutable]
   type = 'RavenFramework'
   input = 'test_relap5_code_interface_multideck_choosing_deck_output.xml'
-  output = 'RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/1/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/2/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/3/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/4/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/5/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/3/out~snc01.csv RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/4/out~snc01.csv RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/5/out~snc01.csv'
-  csv = 'RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/1/out~snc01.csv RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/2/out~snc01.csv'
+  output = 'RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/1/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/2/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/3/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/4/snc01.i RELAP5interfaceTestMultiDeckChoosingDeck/testDummyStep/5/snc01.i 
   test_interface_only = True
  [../]
 
