@@ -443,18 +443,19 @@ class Dymola(CodeInterfaceBase):
 
       # Create an array of trajectories, which are to be written to CSV file.
       varTrajectories = numpy.matrix.transpose(numpy.concatenate((timeStepsArray,Data1Array,timeSeriesData2), axis=0))
-
-      # Define the name of the CSV file.
-      sourceFileName = os.path.join(workingDir, output)         # The source file comes in without extension on it
-      print('sourcefilename:',sourceFileName)
-      destFileName = sourceFileName.replace('rawout~', 'out~')  # When write the CSV file, change rawout~ to out~
-      destFileName += '.csv' # Add the file extension .csv
-
-      # Write the CSV file.
-      with open(destFileName,"w") as csvFile:
-        resultsWriter = csv.writer(csvFile, lineterminator=str(u'\n'), delimiter=str(u','), quotechar=str(u'"'))
-        resultsWriter.writerows(varNames)
-        resultsWriter.writerows(varTrajectories)
+      # create output response dictionary
+      response = {var:varTrajectories[:,i] for (i, var) in enumerate(varNames[0])}
+      # write CSV if the user requests it
+      if self._writeCSV:
+        # Define the name of the CSV file.
+        sourceFileName = os.path.join(workingDir, output)         # The source file comes in without extension on it
+        destFileName = sourceFileName.replace('rawout~', 'out~')  # When write the CSV file, change rawout~ to out~
+        destFileName += '.csv' # Add the file extension .csv
+        # Write the CSV file.
+        with open(destFileName,"w") as csvFile:
+          resultsWriter = csv.writer(csvFile, lineterminator=str(u'\n'), delimiter=str(u','), quotechar=str(u'"'))
+          resultsWriter.writerows(varNames)
+          resultsWriter.writerows(varTrajectories)
     else:
       raise Exception('File structure not supported!')
     #release memory
@@ -468,4 +469,4 @@ class Dymola(CodeInterfaceBase):
     del Data1Array
     del timeSeriesData1
     del timeSeriesData2
-    return os.path.splitext(destFileName)[0]   # Return the name without the .csv on it as RAVEN will add it later.
+    return response

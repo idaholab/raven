@@ -3,7 +3,7 @@
  [./bateman]
    type = 'RavenFramework'
    input = example_using_interface_bateman.xml
-   output = 'Bateman/1-samplesPlot_A_scatter.png'
+   output = 'Bateman/samplesPlot_A_scatter.png'
  [../]
 
  

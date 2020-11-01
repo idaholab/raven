@@ -30,6 +30,14 @@
 	<Code name="MELGEN" subType="Melcor">
 	  <executable>MELCOR_2.2/bin/melcor</executable>
 	  <preexec>MELCOR_2.2/bin/melgen</preexec>
+      <!--
+        READ THIS CAREFULLY!
+        The following flag indicates that we will write a CSV with
+        the data (by default we return the data directly to RAVEN)
+        IF NOT NEEDED, SET THIS FLAG TO FALSE (OR REMOVE THE NODE)
+        SINCE THE PERFORMANCE WILL IMPROVE
+      -->
+      <csv>True</csv>
     </Code>
   </Models>
 

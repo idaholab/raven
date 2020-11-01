@@ -227,7 +227,6 @@ class relapdata:
       @ Out, data, dict, the dictionary containing the data {var1:array,var2:array,etc}
     """
     data = self.minordata
-    #data.update(self.ravenData)
     return data
 
   def writeCSV(self,filen):
