@@ -11,6 +11,7 @@
     <revisions>
       <revision author="jyoo" date="2018-04-03">New CobraTF test case</revision>
       <revision author="alptezbasaran" date="2018-08-15">Modification for new sampling method (generic)</revision>
+      <revision author="alfoa" date="2020-10-31">Added csv xml node in the Code block for showing how to use it.</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -29,6 +30,14 @@
         <!--/path/to/cobratf/executable -->
         <!-- here we should put the executable. But since we want to test the interface only, it is going to be empty -->
       </executable>
+      <!--
+        READ THIS CAREFULLY!
+        The following flag indicates that we will write a CSV with
+        the data (by default we return the data directly to RAVEN)
+        IF NOT NEEDED, SET THIS FLAG TO FALSE (OR REMOVE THE NODE)
+        SINCE THE PERFORMANCE WILL IMPROVE
+      -->
+      <csv>True</csv>
     </Code>
   </Models>
 

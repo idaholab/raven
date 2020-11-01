@@ -11,6 +11,7 @@
       </description>
       <revisions>
           <revision author="alfoa" date="2017-04-27">Adding this test description.</revision>
+          <revision author="alfoa" date="2020-10-31">Added csv xml node in the Code block for showing how to use it.</revision>
       </revisions>
   </TestInfo>
 
