@@ -64,7 +64,9 @@ class ROM(Dummy):
     # general
     inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
-    # segmenting and clustering
+    ###############################
+    # segmenting and clustering (ROMCollection)
+    ###############################
     segment = InputData.parameterInputFactory("Segment", strictMode=True)
     segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
     segment.addParam('grouping', segmentGroups)
@@ -78,6 +80,8 @@ class ROM(Dummy):
     segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
     ## clusterFeatures
     segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
+    ## max cycles (for Interpolated ROMCollection)
+    segment.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType))
     ## classifier
     clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType)
     clsfr.addParam('class', InputTypes.StringType, True)
@@ -90,8 +94,10 @@ class ROM(Dummy):
     segment.addSub(metric)
     segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType))
     inputSpecification.addSub(segment)
+    ##### END ROMCollection
     # pickledROM
     inputSpecification.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum))
+    inputSpecification.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType)) # for Interpolated ROMCollection
     # unsorted
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("gradient", contentType=InputTypes.StringType))

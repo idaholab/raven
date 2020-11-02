@@ -1198,6 +1198,9 @@ class Interpolated(supervisedLearning):
     except AttributeError:
       self.raiseAnError(IOError, '"interpolate" grouping requested but no <macroParameter> provided!')
     self._macroTemplate = Clusters(messageHandler, **kwargs)            # example "yearly" SVL engine collection
+    self._maxCycles = kwargs.get('maxCycles', None)
+    if self._maxCycles is not None:
+      self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive steps.')
     self._macroSteps = {}                                               # collection of macro steps (e.g. each year)
 
   # passthrough to template
@@ -1207,8 +1210,14 @@ class Interpolated(supervisedLearning):
       @ In, params, dict, params to set
       @ Out, setAdditionalParams, dict, additional params set
     """
+    # max cycles
+    maxCycles = params.pop('maxCycles', None)
+    if maxCycles is not None:
+      self._maxCycles = maxCycles
+      self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive step{"s" if self._maxCycles > 1 else ""}.')
     mh = params.get('messageHandler', None)
     if mh:
+      self.messageHandler = mh
       for step, collection in self._macroSteps.items():
         collection.messageHandler = mh
         # deepcopy is necessary because clusterEvalMode has to be popped out in collection
@@ -1473,9 +1482,12 @@ class Interpolated(supervisedLearning):
     self.raiseADebug('Evaluating interpolated ROM ...')
     results = None
     ## TODO set up right for ND??
-    numMacro = len(self._macroSteps)
+    forcedMax = self._maxCycles if self._maxCycles is not None else np.inf
+    numMacro = min(len(self._macroSteps), forcedMax)
     macroIndexValues = []
     for m, (macroStep, model) in enumerate(sorted(self._macroSteps.items(), key=lambda x: x[0])):
+      if m + 1 > numMacro:
+        break
       # m is an index of the macro step, in order of the macro values (e.g. in order of years)
       # macroStep is the actual macro step value (e.g. the year)
       # model is the ClusterROM instance for this macro step
