@@ -91,6 +91,18 @@
     [../]
   [../]
 
+  [./InitSampler]
+    type = 'RavenFramework'
+    input = 'init_sampler_allVars.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'InitSamplerAllVars/opt_export_0.csv InitSamplerAllVars/opt_export_1.csv'
+
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
   [./CentralDiff]
     type = 'RavenFramework'
     input = 'central_diff.xml'
