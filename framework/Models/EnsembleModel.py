@@ -18,7 +18,9 @@ Module where the base class and the specialization of different type of Model ar
 from __future__ import division, print_function, unicode_literals, absolute_import
 #End compatibility block for Python 3----------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
+#External Modules----------------------------------------------------------------------------------
+import io
+import sys
 import copy
 import numpy as np
 import time
@@ -714,7 +716,8 @@ class EnsembleModel(Dummy):
       # we evaluate the model directly
       try:
         evaluation = modelToExecute['Instance'].evaluateSample.original_function(modelToExecute['Instance'], origInputList, samplerType, inputKwargs)
-      except Exception as e:
+      except Exception:
+        excType, excValue, excTrace = sys.exc_info()
         evaluation = None
     else:
       moveOn = False
@@ -731,7 +734,7 @@ class EnsembleModel(Dummy):
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, rerror):
         evaluation = None
-        e = rerror
+        excType, excValue, excTrace = None, None, None # TODO how to get from job handler?
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
           jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
@@ -741,7 +744,12 @@ class EnsembleModel(Dummy):
 
     if not evaluation:
       # the model failed
-      self.raiseAnError(RuntimeError, f'The Model "{modelToExecute["Instance"].name}" id "{localIdentifier}" failed! Error:\n{str(e)}')
+      import traceback
+      msg = io.StringIO()
+      traceback.print_exception(excType, excValue, excTrace, limit=10, file=msg)
+      msg = msg.getvalue().replace('\n', '\n        ')
+      self.raiseAnError(RuntimeError, f'The Model "{modelToExecute["Instance"].name}" id "{localIdentifier}" '+
+                        f'failed! Trace:\n{"*"*72}\n{msg}\n{"*"*72}')
     else:
       if self.parallelStrategy == 1:
         inRunTargetEvaluations.addRealization(evaluation)
