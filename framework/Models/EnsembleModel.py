@@ -734,7 +734,7 @@ class EnsembleModel(Dummy):
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, rerror):
         evaluation = None
-        excType, excValue, excTrace = None, None, None # TODO how to get from job handler?
+        excType, excValue, excTrace = finishedRun.exceptionTrace
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
           jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)

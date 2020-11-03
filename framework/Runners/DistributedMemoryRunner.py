@@ -125,6 +125,7 @@ class DistributedMemoryRunner(InternalRunner):
       self.started = True
     except Exception as ae:
       #Uncomment if you need the traceback
+      self.exceptionTrace = sys.exc_info()
       #exc_type, exc_value, exc_traceback = sys.exc_info()
       #import traceback
       #traceback.print_exception(exc_type, exc_value, exc_traceback)
