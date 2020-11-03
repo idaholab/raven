@@ -1211,8 +1211,8 @@ class Interpolated(supervisedLearning):
       @ Out, setAdditionalParams, dict, additional params set
     """
     # max cycles
-    maxCycles = params.pop('maxCycles', None)
-    if maxCycles is not None:
+    self._maxCycles = params.pop('maxCycles', None)
+    if self._maxCycles is not None:
       self._maxCycles = maxCycles
       self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive step{"s" if self._maxCycles > 1 else ""}.')
     mh = params.get('messageHandler', None)
@@ -1492,7 +1492,7 @@ class Interpolated(supervisedLearning):
       # macroStep is the actual macro step value (e.g. the year)
       # model is the ClusterROM instance for this macro step
       macroIndexValues.append(macroStep)
-      self.raiseADebug(' ... evaluating macro step "{}" of "{}"'.format(macroStep+1, numMacro))
+      self.raiseADebug(f' ... evaluating macro step "{macroStep}" ({m+1} / {numMacro})')
       subResult = model.evaluate(edict) # TODO same input for all macro steps? True for ARMA at least...
       indexMap = subResult.get('_indexMap', {})
       # if not set up yet, then frame results structure
