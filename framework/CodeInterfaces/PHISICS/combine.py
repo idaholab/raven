@@ -17,13 +17,11 @@ Created on March 8th 2018
 """
 from __future__ import division, print_function, unicode_literals, absolute_import
 import os
-import re
-import csv
 import numpy as np
 
 class combine():
   """
-    Combines the PHISICS and RELAP csv output into one.
+    Combines the PHISICS and RELAP  output into one.
   """
   def __init__(self,workingDir,relapData, phisicsData,depTimeDict,inpTimeDict):
     """
