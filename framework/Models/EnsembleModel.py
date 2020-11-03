@@ -714,7 +714,7 @@ class EnsembleModel(Dummy):
       # we evaluate the model directly
       try:
         evaluation = modelToExecute['Instance'].evaluateSample.original_function(modelToExecute['Instance'], origInputList, samplerType, inputKwargs)
-      except Exception:
+      except Exception as e:
         evaluation = None
     else:
       moveOn = False
@@ -731,6 +731,7 @@ class EnsembleModel(Dummy):
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, rerror):
         evaluation = None
+        e = rerror
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
           jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
@@ -740,7 +741,8 @@ class EnsembleModel(Dummy):
 
     if not evaluation:
       # the model failed
-      self.raiseAnError(RuntimeError,"The Model  " + modelToExecute['Instance'].name + " identified by " + localIdentifier +" failed!")
+      self.raiseAnError(RuntimeError,"The Model  " + modelToExecute['Instance'].name
+                        + " identified by " + localIdentifier +" failed! The error is below:\n"+str(e))
     else:
       if self.parallelStrategy == 1:
         inRunTargetEvaluations.addRealization(evaluation)
@@ -768,3 +770,5 @@ class EnsembleModel(Dummy):
     returnDict['general_metadata'] = inRunTargetEvaluations.getMeta(general=True)
 
     return returnDict, gotOutputs, evaluation
+
+
