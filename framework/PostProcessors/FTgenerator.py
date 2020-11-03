@@ -113,7 +113,7 @@ class FTgenerator(PostProcessor):
     """
       This method executes the postprocessor action.
       @ In, inputIn, DataObject, point set that contains the data to be processed
-      @ Out, reducedDataset, dict, dictionary containing the Pareto Frontier information
+      @ Out, reducedDataset, dict, dictionary containing the Karnaugh map information
     """
     inData = self.inputToInternal(inputIn)
     dataset = inData.asDataset()
@@ -175,22 +175,36 @@ class FTgenerator(PostProcessor):
         self.raiseAnError(RuntimeError, 'FTgenerator failed: Output type ' + str(output.type) + ' is not supported.')
 
   def generateFT(self):
+    """
+      Class method designed to generate a fault tree from the obtained Karnaugh map
+      @ In,  None
+      @ Out, None
+    """
     indexes = np.where(self.reducedDataset[:,-1] > 0)
     minterms = self.reducedDataset[indexes,:-1][0]
     mintermsConverted = minterms.tolist()
     
-    formula = SOPform(self.inputVars,mintermsConverted)
+    if type=='sop':
+      formula = SOPform(self.inputVars,mintermsConverted)
+    else:
+      formula = POSform(self.inputVars,mintermsConverted)
     formulaText = structureFormula(formula,self.type)
     
     printFT(formulaText,self.fileName,'name', self.type)
       
-def structureFormula(formula, type):
+def structureFormula(formula, typeSolver):
+  """
+    Method designed to generate the Boolean expression in terms of list of lists
+    @ In,  formula, string, formula generated bu SymPy
+    @ In,  typeSolver, string, type of solver that has been used to generate the Boolean expression
+    @ Out, formulaMod, list, list containing the terms of the generated  Boolean expression
+    """
   # Example: c | (a & b)
   terms = str(formula).split("|")  # ['c ', ' (a & b)']
   
   formulaMod=[]
   for term in terms:
-    if type=='sop':
+    if typeSolver=='sop':
       term1 = term.split("&")         # ['c ', [' (a', ' b)']]
     else:
       term1 = term.split("|")
@@ -201,14 +215,22 @@ def structureFormula(formula, type):
   
   return formulaMod  
 
-def printFT(formula, filename, dataObjectName, type):
+def printFT(formula, filename, dataObjectName, typeSolver):
+  """
+    Method designed to print on file the generated fault tree in Open PSA format
+    @ In,  formula, list, list containing the terms of the generated  Boolean expression
+    @ In,  filename, string, name of the xml file that will contain the fault tree in Open PSA format
+    @ In,  dataObjectName, string, name of the original PointSet
+    @ In,  typeSolver, string, type of solver that has been used to generate the Boolean expression
+    @ Out, None, 
+    """
   # 1) Create FT structure
   root = ET.Element('opsa-mef')
   
   FT = ET.SubElement(root, 'FT_' + dataObjectName)
   
   mainOR = ET.SubElement(FT, "define-gate", name="TOP")
-  if type=='sop':
+  if typeSolver=='sop':
     orGate = ET.SubElement(mainOR, 'or')
   else:
     orGate = ET.SubElement(mainOR, 'and')
@@ -218,7 +240,7 @@ def printFT(formula, filename, dataObjectName, type):
     ET.SubElement(orGate, "gate", name=gateID)
     
     elementGate = ET.SubElement(FT, "define-gate", name=gateID)
-    if type=='sop':
+    if typeSolver=='sop':
       elementAndGate = ET.SubElement(elementGate, 'and')
     else:
       elementAndGate = ET.SubElement(elementGate, 'or')
@@ -234,7 +256,6 @@ def printFT(formula, filename, dataObjectName, type):
       ET.SubElement(mainBE, "float", value='1.0')
   
   # 2) Print FT on file
-  data = ET.tostring(root, encoding="unicode")
   filename = filename + ".xml"
   open(filename, "w").writelines(xmlUtils.prettify(root))
         
