@@ -101,6 +101,7 @@ import csv
 import re
 import copy
 import numpy
+import pandas as pd
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
 
@@ -444,6 +445,14 @@ class Dymola(CodeInterfaceBase):
       # Create an array of trajectories, which are to be written to CSV file.
       varTrajectories = numpy.matrix.transpose(numpy.concatenate((timeStepsArray,Data1Array,timeSeriesData2), axis=0))
       # create output response dictionary
+      t = pd.Series(varTrajectories[:,0])
+      m = t.duplicated()
+      if len(t[m]):
+        # duplicated values
+        for i in range(len(t[m])):
+          index = t[m].index[i]
+          t[index] = t[index] + numpy.finfo(float).eps
+        varTrajectories[:,0] = t.to_numpy()
       response = {var:varTrajectories[:,i] for (i, var) in enumerate(varNames[0])}
       # write CSV if the user requests it
       if self._writeCSV:
