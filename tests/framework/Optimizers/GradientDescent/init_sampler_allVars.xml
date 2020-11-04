@@ -3,7 +3,7 @@
   <TestInfo>
     <name>framework/Optimizers/ConvergeGradient.InitSamplerAllVars</name>
     <author>MohammadAbdo</author>
-    <created>2020-11-2</created>
+    <created>2020-11-02</created>
     <classesTested>Optimizer</classesTested>
     <description>
       Extending on the Basic test, this test initializes all variables using a Sampler.
