@@ -480,7 +480,7 @@ checkFails('Metadata get missing general','Some requested keys could not be foun
 # to CSV
 ## test writing to file
 csvname = 'PointSetUnitTest'
-data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'})
+data.write(csvname,style='CSV',**{'what':'a,b,c,x,y,z,RAVEN_sample_ID,prefix'.split(',')})
 ## test metadata written
 correct = ['<DataObjectMetadata name="PointSet">',
            '  <DataSet type="Static">',

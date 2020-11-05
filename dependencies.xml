@@ -38,7 +38,7 @@ Note all install methods after "main" take
     <xarray>0.12.1</xarray>
     <netcdf4>1.4.2</netcdf4>
     <matplotlib>3.1.1</matplotlib>
-    <statsmodels>0.9.0</statsmodels>
+    <statsmodels>0.12.0</statsmodels>
     <cloudpickle>1.1.1</cloudpickle>
     <tensorflow>1.13.1</tensorflow>
     <python skip_check='True'>3</python>
@@ -51,10 +51,11 @@ Note all install methods after "main" take
     <pip/>
     <importlib_metadata/>
     <pyside2 source='forge'/>
-    <pillow optional='True'>6.0.0</pillow>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
-    <ray os="mac,linux" source="pip"/>
+    <ray os="mac,linux" source="pip">1.0.0</ray>
+    <pillow optional='True'>6.0.0</pillow>
+    <line_profiler optional='True'/>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
