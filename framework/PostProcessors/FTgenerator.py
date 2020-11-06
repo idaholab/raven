@@ -36,7 +36,7 @@ import Runners
 class FTgenerator(PostProcessor):
   """
     This postprocessor is designed to create a fault tree in OpenPSA format from a set of simulation data
-    The postprocessor acts only on PointSet and return a reduced PointSet and print of file the FT in OpenPSA format 
+    The postprocessor acts only on PointSet and return a reduced PointSet and print of file the FT in OpenPSA format
   """
   def __init__(self, messageHandler):
     """
@@ -58,12 +58,12 @@ class FTgenerator(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(FTgenerator, cls).getInputSpecification()
-    
+
     inputSpecification.addSub(InputData.parameterInputFactory("topEventID", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("inputVars" , contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("fileName"  , contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("simOnly"   , contentType=InputTypes.BoolType))
-    
+
     typeAllowedFormats = InputTypes.makeEnumType("calculationFormat", "calculationFormatType", ["sop","pos"])
     inputSpecification.addSub(InputData.parameterInputFactory("type" , contentType=typeAllowedFormats))
 
@@ -82,13 +82,13 @@ class FTgenerator(PostProcessor):
     self.inputVars = inputVars.value.split(",")
     for var in self.inputVars:
       var = var.strip()
-    
+
     fileName  = paramInput.findFirst('fileName')
     self.fileName = fileName.value
-    
+
     simOnly  = paramInput.findFirst('simOnly')
     self.simOnly = simOnly.value
-    
+
     typeConv = paramInput.findFirst('type')
     self.type = typeConv.value.lower()
 
@@ -117,21 +117,21 @@ class FTgenerator(PostProcessor):
     """
     inData = self.inputToInternal(inputIn)
     dataset = inData.asDataset()
-    
+
     self.dataObjectName = inputIn
-    
+
     for var in dataset.keys():
       dataset[var].values = np.where(dataset[var].values > 0.0, 1, 0)
-      
+
     dsSel = dataset[self.inputVars]
     data = dsSel.to_array().data.transpose()
     keys = list(dsSel.keys())
-    
+
     nVars = len(self.inputVars)
-    combinations = np.array([i for i in product(range(2), repeat=nVars)])  
+    combinations = np.array([i for i in product(range(2), repeat=nVars)])
     self.reducedDataset = np.zeros([2**nVars,nVars+1])
     self.reducedDataset[:,:nVars] = combinations
- 
+
     for counter,combination in enumerate(combinations):
       indexes = np.where(np.all(data==combination,axis=1))[0]
       if len(indexes)==0 and not self.simOnly:
@@ -144,18 +144,18 @@ class FTgenerator(PostProcessor):
         self.reducedDataset[counter,nVars] = -1
       else:
         avg=avg/np.size(indexes)
-        self.reducedDataset[counter,nVars] = avg  
+        self.reducedDataset[counter,nVars] = avg
       if avg not in [0,1]:
         self.reducedDataset[counter,nVars] = 1
         self.raiseAWarning('FTgenerator: combination ' + str(combination) + ' of variables ' + str(self.inputVars) +' has generated an average value not in {0,1}.')
-    
+
     self.reducedDatasetDict = {}
     for index,key in enumerate(keys):
       self.reducedDatasetDict[key] = self.reducedDataset[:,index]
     self.reducedDatasetDict[self.topEventID] = self.reducedDataset[:,-1]
-    
+
     self.generateFT()
-    
+
     return self.reducedDatasetDict
 
   def collectOutput(self, finishedJob, output):
@@ -187,14 +187,14 @@ class FTgenerator(PostProcessor):
     indexes = np.where(self.reducedDataset[:,-1] > 0)
     minterms = self.reducedDataset[indexes,:-1][0]
     mintermsConverted = minterms.tolist()
-    
+
     indexDontCares = np.where(self.reducedDataset[:,-1] < 0)
-    if len(indexes)>0:  
+    if len(indexes)>0:
       dontCares = self.reducedDataset[indexDontCares,:-1][0]
       dontCaresConverted = dontCares.tolist()
     else:
       dontCaresConverted = None
-  
+
     if self.type=='sop':
       formula = SOPform(self.inputVars, minterms=mintermsConverted, dontcares=dontCaresConverted)
     else:
@@ -203,7 +203,7 @@ class FTgenerator(PostProcessor):
     formulaText = structureFormula(formula,self.type)
 
     printFT(formulaText,self.fileName,'name', self.type)
-      
+
 def structureFormula(formula, typeSolver):
   """
     Method designed to generate the Boolean expression in terms of list of lists
@@ -215,7 +215,7 @@ def structureFormula(formula, typeSolver):
   if typeSolver=='sop':
     terms = str(formula).split("|")  # ['c ', ' (a & b)']
   else:
-    terms = str(formula).split("&") 
+    terms = str(formula).split("&")
 
   formulaMod=[]
   for term in terms:
@@ -227,9 +227,9 @@ def structureFormula(formula, typeSolver):
     elemMod=[]
     for element in term1:
       elemMod.append(element.replace('(', '').replace(')', '').strip())  # ['c', ['a',' b']]
-    formulaMod.append(elemMod)  
+    formulaMod.append(elemMod)
 
-  return formulaMod  
+  return formulaMod
 
 def printFT(formula, filename, dataObjectName, typeSolver):
   """
@@ -238,19 +238,19 @@ def printFT(formula, filename, dataObjectName, typeSolver):
     @ In,  filename, string, name of the xml file that will contain the fault tree in Open PSA format
     @ In,  dataObjectName, string, name of the original PointSet
     @ In,  typeSolver, string, type of solver that has been used to generate the Boolean expression
-    @ Out, None, 
+    @ Out, None,
     """
   # 1) Create FT structure
   root = ET.Element('opsa-mef')
-  
+
   FT = ET.SubElement(root, 'FT_' + dataObjectName)
-  
+
   mainOR = ET.SubElement(FT, "define-gate", name="TOP")
   if typeSolver=='sop':
     orGate = ET.SubElement(mainOR, 'or')
   else:
     orGate = ET.SubElement(mainOR, 'and')
-  
+
   for index,elem in enumerate(formula):
     if len(elem)==1:
       ET.SubElement(orGate, 'basic-event', name=str(elem[0]))
@@ -260,29 +260,29 @@ def printFT(formula, filename, dataObjectName, typeSolver):
       gateID = "G"+str(index)
       ET.SubElement(orGate, "gate", name=gateID)
       elementGate = ET.SubElement(FT, "define-gate", name=gateID)
-      
+
       if typeSolver=='sop':
         elementAndGate = ET.SubElement(elementGate, 'and')
       else:
         elementAndGate = ET.SubElement(elementGate, 'or')
-      
+
       for term in elem:
         if "~" in term:
           notGate = ET.SubElement(elementAndGate, 'not')
-          ET.SubElement(notGate, 'basic-event', name=str(term))     
+          ET.SubElement(notGate, 'basic-event', name=str(term))
         else:
           ET.SubElement(elementAndGate, 'basic-event', name=str(term))
-          
+
         mainBE = ET.SubElement(FT, "define-basic-event", name=str(term))
         ET.SubElement(mainBE, "float", value='1.0')
-  
+
   # 2) Print FT on file
   filename = filename + ".xml"
   open(filename, "w").writelines(xmlUtils.prettify(root))
-        
-      
-    
-      
-  
-  
-  
+
+
+
+
+
+
+
