@@ -1,0 +1,36 @@
+<opsa-mef>
+  <FT_name>
+    <define-gate name="TOP">
+      <or>
+        <gate name="G0" />
+        <gate name="G1" />
+      </or>
+    </define-gate>
+    <define-gate name="G0">
+      <and>
+        <basic-event name="BE_Y" />
+        <basic-event name="BE_Z" />
+      </and>
+    </define-gate>
+    <define-basic-event name="BE_Y">
+      <float value="1.0" />
+    </define-basic-event>
+    <define-basic-event name="BE_Z">
+      <float value="1.0" />
+    </define-basic-event>
+    <define-gate name="G1">
+      <and>
+        <basic-event name="BE_Z" />
+        <not>
+          <basic-event name="BE_W" />
+        </not>
+      </and>
+    </define-gate>
+    <define-basic-event name="BE_Z">
+      <float value="1.0" />
+    </define-basic-event>
+    <define-basic-event name="BE_W">
+      <float value="1.0" />
+    </define-basic-event>
+  </FT_name>
+</opsa-mef>

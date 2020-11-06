@@ -269,11 +269,11 @@ def printFT(formula, filename, dataObjectName, typeSolver):
       for term in elem:
         if "~" in term:
           notGate = ET.SubElement(elementAndGate, 'not')
-          ET.SubElement(notGate, 'basic-event', name=str(term))
+          ET.SubElement(notGate, 'basic-event', name=str(term.replace('~', '')))
         else:
           ET.SubElement(elementAndGate, 'basic-event', name=str(term))
 
-        mainBE = ET.SubElement(FT, "define-basic-event", name=str(term))
+        mainBE = ET.SubElement(FT, "define-basic-event", name=str(term.replace('~', '')))
         ET.SubElement(mainBE, "float", value='1.0')
 
   # 2) Print FT on file

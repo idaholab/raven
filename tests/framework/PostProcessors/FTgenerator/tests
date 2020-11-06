@@ -29,10 +29,22 @@
     csv    = 'FTgenIncompleteData/PrintPS.csv'
     output = 'FTgenIncompleteData/faulTreeFullName.xml'
   [../]
-  [./FTgenRedundantData]
+  [./FTgenerator_fullDataRedundant]
     type   = 'RavenFramework'
     input  = 'test_FTgenerator_full_dataRedundant.xml'
     csv    = 'FTgenRedundantData/PrintPS.csv'
     output = 'FTgenRedundantData/faulTreeFullName.xml'
+  [../]
+  [./FTgenerator_full_dataNOTcase]
+    type   = 'RavenFramework'
+    input  = 'test_FTgenerator_full_dataNOTcase.xml'
+    csv    = 'FTgenNOTcase/PrintPS.csv'
+    output = 'FTgenNOTcase/faulTreeFullName.xml'
+  [../]
+   [./FTgenerator_full_dataNOTincomplete]
+    type   = 'RavenFramework'
+    input  = 'test_FTgenerator_full_dataNOTincomplete.xml'
+    csv    = 'FTgenNOTcaseIncomplete/PrintPS.csv'
+    output = 'FTgenNOTcaseIncomplete/faulTreeFullName.xml'
   [../]
 []
