@@ -1,0 +1,38 @@
+[Tests]
+  [./FTgenerator_fullDataNumericSOP]
+    type   = 'RavenFramework'
+    input  = 'test_FTgenerator_full_dataNumericSOP.xml'
+    csv    = 'FTgenFullDataNumeric/PrintPSsop.csv'
+    output = 'FTgenFullDataNumeric/faulTreeFullNameSOP.xml'
+  [../]
+  [./FTgenerator_fullDataNumericPOS]
+    type   = 'RavenFramework'
+    input  = 'test_FTgenerator_full_dataNumericPOS.xml'
+    csv    = 'FTgenFullDataNumeric/PrintPSpos.csv'
+    output = 'FTgenFullDataNumeric/faulTreeFullNamePOS.xml'
+  [../]
+  [./FTgenerator_fullDataBinary]
+    type   = 'RavenFramework'
+    input  = 'test_FTgenerator_full_dataBinary.xml'
+    csv    = 'FTgenFullDataBinary/PrintPSpos.csv'
+    output = 'FTgenFullDataBinary/faulTreeFullName.xml'
+  [../]
+  [./FTgenerator_fullDataContraddicting]
+    type   = 'RavenFramework'
+    input  = 'test_FTgenerator_full_dataContraddicting.xml'
+    csv    = 'FTgenContraddictingData/PrintPSpos.csv'
+    output = 'FTgenContraddictingData/faulTreeFullName.xml'
+  [../]
+  [./FTgenerator_fullDataIncomplete]
+    type   = 'RavenFramework'
+    input  = 'test_FTgenerator_full_dataIncomplete.xml'
+    csv    = 'FTgenIncompleteData/PrintPSpos.csv'
+    output = 'FTgenIncompleteData/faulTreeFullName.xml'
+  [../]
+  [./FTgenRedundantData]
+    type   = 'RavenFramework'
+    input  = 'test_FTgenerator_full_dataRedundant.xml'
+    csv    = 'FTgenRedundantData/PrintPSpos.csv'
+    output = 'FTgenRedundantData/faulTreeFullName.xml'
+  [../]
+[]
