@@ -14,25 +14,25 @@
   [./FTgenerator_fullDataBinary]
     type   = 'RavenFramework'
     input  = 'test_FTgenerator_full_dataBinary.xml'
-    csv    = 'FTgenFullDataBinary/PrintPSpos.csv'
+    csv    = 'FTgenFullDataBinary/PrintPS.csv'
     output = 'FTgenFullDataBinary/faulTreeFullName.xml'
   [../]
   [./FTgenerator_fullDataContraddicting]
     type   = 'RavenFramework'
     input  = 'test_FTgenerator_full_dataContraddicting.xml'
-    csv    = 'FTgenContraddictingData/PrintPSpos.csv'
+    csv    = 'FTgenContraddictingData/PrintPS.csv'
     output = 'FTgenContraddictingData/faulTreeFullName.xml'
   [../]
   [./FTgenerator_fullDataIncomplete]
     type   = 'RavenFramework'
     input  = 'test_FTgenerator_full_dataIncomplete.xml'
-    csv    = 'FTgenIncompleteData/PrintPSpos.csv'
+    csv    = 'FTgenIncompleteData/PrintPS.csv'
     output = 'FTgenIncompleteData/faulTreeFullName.xml'
   [../]
   [./FTgenRedundantData]
     type   = 'RavenFramework'
     input  = 'test_FTgenerator_full_dataRedundant.xml'
-    csv    = 'FTgenRedundantData/PrintPSpos.csv'
+    csv    = 'FTgenRedundantData/PrintPS.csv'
     output = 'FTgenRedundantData/faulTreeFullName.xml'
   [../]
 []

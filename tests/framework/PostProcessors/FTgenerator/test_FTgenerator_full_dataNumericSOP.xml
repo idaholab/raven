@@ -5,7 +5,7 @@
     <created>2020-10-28</created>
     <classesTested>FTgenerator</classesTested>
     <description>
-
+      This test checks the FTgenerator PP on the generation of a SOP formula using numeric data
     </description>
   </TestInfo>
   

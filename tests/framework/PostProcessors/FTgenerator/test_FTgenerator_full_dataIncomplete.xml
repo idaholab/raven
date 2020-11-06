@@ -5,7 +5,8 @@
     <created>2020-10-28</created>
     <classesTested>FTgenerator</classesTested>
     <description>
-
+      This test checks the FTgenerator PP on the generation of a SOP formula using data with incomplete combinations.
+      Note that simOnly has been set to True, if set to False it would error out.
     </description>
   </TestInfo>
   
