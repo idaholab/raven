@@ -45,7 +45,7 @@ class FTgenerator(PostProcessor):
       @ Out, None
     """
     PostProcessor.__init__(self, messageHandler)
-    self.inputVars = None   # variable associated with the lower limit of the value dimension
+    self.inputVars = None    # variable associated with the lower limit of the value dimension
     self.topEventID = None   # variable associated with the upper limit of the cost dimension
 
   @classmethod
@@ -86,11 +86,11 @@ class FTgenerator(PostProcessor):
     fileName  = paramInput.findFirst('fileName')
     self.fileName = fileName.value
     
-    simOnly = paramInput.findFirst('simOnly')
+    simOnly  = paramInput.findFirst('simOnly')
     self.simOnly = simOnly.value
     
     typeConv = paramInput.findFirst('type')
-    self.type = typeConv.value
+    self.type = typeConv.value.lower()
 
   def inputToInternal(self, currentInp):
     """
@@ -132,18 +132,22 @@ class FTgenerator(PostProcessor):
     self.reducedDataset = np.zeros([2**nVars,nVars+1])
     self.reducedDataset[:,:nVars] = combinations
  
-    counter = 0
-    for combination in combinations:
+    for counter,combination in enumerate(combinations):
       indexes = np.where(np.all(data==combination,axis=1))[0]
-      if len(indexes)==0:
+      if len(indexes)==0 and not self.simOnly:
         self.raiseAnError(RuntimeError,'FTgenerator: combination ' + str(combination) + ' of variables ' + str(self.inputVars) +' has not been found in the dataset.')
       avg=0
+
       for locIndex in indexes:
         avg = avg + inData.realization(index=locIndex)[self.topEventID]
-      self.reducedDataset[counter,nVars] = avg  
+      if len(indexes)==0 and self.simOnly:
+        self.reducedDataset[counter,nVars] = -1
+      else:
+        avg=avg/np.size(indexes)
+        self.reducedDataset[counter,nVars] = avg  
       if avg not in [0,1]:
+        self.reducedDataset[counter,nVars] = 1
         self.raiseAWarning('FTgenerator: combination ' + str(combination) + ' of variables ' + str(self.inputVars) +' has generated an average value not in {0,1}.')
-      counter = counter + 1
     
     self.reducedDatasetDict = {}
     for index,key in enumerate(keys):
@@ -184,12 +188,20 @@ class FTgenerator(PostProcessor):
     minterms = self.reducedDataset[indexes,:-1][0]
     mintermsConverted = minterms.tolist()
     
-    if type=='sop':
-      formula = SOPform(self.inputVars,mintermsConverted)
+    indexDontCares = np.where(self.reducedDataset[:,-1] < 0)
+    if len(indexes)>0:  
+      dontCares = self.reducedDataset[indexDontCares,:-1][0]
+      dontCaresConverted = dontCares.tolist()
     else:
-      formula = POSform(self.inputVars,mintermsConverted)
+      dontCaresConverted = None
+  
+    if self.type=='sop':
+      formula = SOPform(self.inputVars, minterms=mintermsConverted, dontcares=dontCaresConverted)
+    else:
+      formula = POSform(self.inputVars, minterms=mintermsConverted, dontcares=dontCaresConverted)
+
     formulaText = structureFormula(formula,self.type)
-    
+
     printFT(formulaText,self.fileName,'name', self.type)
       
 def structureFormula(formula, typeSolver):
@@ -200,19 +212,23 @@ def structureFormula(formula, typeSolver):
     @ Out, formulaMod, list, list containing the terms of the generated  Boolean expression
     """
   # Example: c | (a & b)
-  terms = str(formula).split("|")  # ['c ', ' (a & b)']
-  
+  if typeSolver=='sop':
+    terms = str(formula).split("|")  # ['c ', ' (a & b)']
+  else:
+    terms = str(formula).split("&") 
+
   formulaMod=[]
   for term in terms:
     if typeSolver=='sop':
       term1 = term.split("&")         # ['c ', [' (a', ' b)']]
     else:
       term1 = term.split("|")
+
     elemMod=[]
     for element in term1:
       elemMod.append(element.replace('(', '').replace(')', '').strip())  # ['c', ['a',' b']]
     formulaMod.append(elemMod)  
-  
+
   return formulaMod  
 
 def printFT(formula, filename, dataObjectName, typeSolver):
@@ -236,24 +252,29 @@ def printFT(formula, filename, dataObjectName, typeSolver):
     orGate = ET.SubElement(mainOR, 'and')
   
   for index,elem in enumerate(formula):
-    gateID = "G"+str(index)
-    ET.SubElement(orGate, "gate", name=gateID)
-    
-    elementGate = ET.SubElement(FT, "define-gate", name=gateID)
-    if typeSolver=='sop':
-      elementAndGate = ET.SubElement(elementGate, 'and')
-    else:
-      elementAndGate = ET.SubElement(elementGate, 'or')
-    
-    for term in elem:
-      if "~" in term:
-        notGate = ET.SubElement(elementAndGate, 'not')
-        ET.SubElement(notGate, 'basic-event', name=str(term))     
-      else:
-        ET.SubElement(elementAndGate, 'basic-event', name=str(term))
-          
-      mainBE = ET.SubElement(FT, "define-basic-event", name=str(term))
+    if len(elem)==1:
+      ET.SubElement(orGate, 'basic-event', name=str(elem[0]))
+      mainBE = ET.SubElement(FT, "define-basic-event", name=str(elem[0]))
       ET.SubElement(mainBE, "float", value='1.0')
+    else:
+      gateID = "G"+str(index)
+      ET.SubElement(orGate, "gate", name=gateID)
+      elementGate = ET.SubElement(FT, "define-gate", name=gateID)
+      
+      if typeSolver=='sop':
+        elementAndGate = ET.SubElement(elementGate, 'and')
+      else:
+        elementAndGate = ET.SubElement(elementGate, 'or')
+      
+      for term in elem:
+        if "~" in term:
+          notGate = ET.SubElement(elementAndGate, 'not')
+          ET.SubElement(notGate, 'basic-event', name=str(term))     
+        else:
+          ET.SubElement(elementAndGate, 'basic-event', name=str(term))
+          
+        mainBE = ET.SubElement(FT, "define-basic-event", name=str(term))
+        ET.SubElement(mainBE, "float", value='1.0')
   
   # 2) Print FT on file
   filename = filename + ".xml"
