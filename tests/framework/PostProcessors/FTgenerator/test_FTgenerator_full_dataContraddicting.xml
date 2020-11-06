@@ -1,0 +1,66 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/FTgeneratorPostProcessor.FTgenerator_fullDataContraddicting</name>
+    <author>mandd</author>
+    <created>2020-10-28</created>
+    <classesTested>FTgenerator</classesTested>
+    <description>
+
+    </description>
+  </TestInfo>
+  
+  <RunInfo>
+    <WorkingDir>FTgenContraddictingData</WorkingDir>
+    <Sequence>import,generateFT,printBoolDO</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="simDataFile">dataFull.csv</Input>
+  </Files>
+  
+  <Models>
+    <PostProcessor name="FTgeneratorTest" subType="FTgenerator">
+      <topEventID>TOP</topEventID>
+      <inputVars>BE_A,BE_B,BE_C</inputVars>
+      <fileName>faulTreeFullName</fileName>
+      <simOnly>True</simOnly>
+      <type>sop</type>
+    </PostProcessor>   
+  </Models>
+
+  <Steps>
+    <IOStep name="import">
+      <Input    class="Files"        type=""              >simDataFile</Input>
+      <Output   class="DataObjects"  type="PointSet"      >simData</Output>
+    </IOStep>
+    <PostProcess name="generateFT">
+      <Input    class="DataObjects"  type="PointSet"      >simData</Input>
+      <Model    class="Models"       type="PostProcessor" >FTgeneratorTest</Model>
+      <Output   class="DataObjects"  type="PointSet"      >BoolSimData</Output>
+    </PostProcess>
+    <IOStep name="printBoolDO"> 
+      <Input    class="DataObjects"  type="PointSet"      >BoolSimData</Input>
+      <Output   class="OutStreams"   type="Print"         >PrintPS</Output>
+    </IOStep>
+  </Steps>
+  
+  <DataObjects>
+    <PointSet name="simData">
+      <Input>BE_A,BE_B,BE_C</Input>
+      <Output>TOP</Output>
+    </PointSet>
+    <PointSet name="BoolSimData">
+      <Input>BE_A,BE_B,BE_C</Input>
+      <Output>TOP</Output>
+    </PointSet>
+  </DataObjects>
+  
+  <OutStreams>
+    <Print name="PrintPS">
+      <type>csv</type>
+      <source>BoolSimData</source>
+    </Print>
+  </OutStreams>
+  
+</Simulation>
