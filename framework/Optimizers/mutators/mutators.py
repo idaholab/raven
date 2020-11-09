@@ -37,12 +37,8 @@ def swapMutator(offSprings,**kwargs):
     @ Out, children, xr.DataArray, the mutated chromosome, i.e., the child.
   """
   if kwargs['locs'] == None:
-    eng = randomUtils.newRNG()
-    locs=[]
-    for i in range(2):
-      l = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None,eng)
-      locs.append(l)
-    locs = list(set(locs))
+    # eng = randomUtils.newRNG()
+    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))#,engine=eng
     loc1 = locs[0]
     loc2 = locs[1]
   else:
@@ -56,7 +52,7 @@ def swapMutator(offSprings,**kwargs):
   for i in range(np.shape(offSprings)[0]):
     children[i] = offSprings[i].copy()
     ## TODO What happens if loc1 or 2 is out of range?! should we raise an error?
-    if randomUtils.random(dim=1,samples=1)>kwargs['mutationProb']:
+    if randomUtils.random(dim=1,samples=1)<=kwargs['mutationProb']:
       children[i,loc1] = offSprings[i,loc2]
       children[i,loc2] = offSprings[i,loc1]
   return children

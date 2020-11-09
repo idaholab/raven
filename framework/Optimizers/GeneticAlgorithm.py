@@ -391,7 +391,7 @@ class GeneticAlgorithm(RavenSampled):
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
     fitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff, penalty=None)
-    objectiveVal=list(np.atleast_1d(rlz[self._objectiveVar].data))
+    objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
     acceptable = 'first' if self.counter==1 else 'accepted'
     population = self._datasetToDataarray(rlz) # TODO: rename
     self._collectOptPoint(population,fitness,objectiveVal)
@@ -406,6 +406,9 @@ class GeneticAlgorithm(RavenSampled):
 
         population,fitness,Age = self._survivorSelectionInstance(age=self.popAge, variables=list(self.toBeSampled), population=self.population, fitness=self.fitness, newRlz=rlz,offSpringsFitness=fitness)
         self.popAge = Age
+        self.population = population
+        self.objectiveVal = rlz[self._objectiveVar].data
+        self.fitness = fitness
       else:
         self.population = population
         self.objectiveVal = rlz[self._objectiveVar].data
@@ -439,24 +442,22 @@ class GeneticAlgorithm(RavenSampled):
 
       # Make sure no children are exactly similar to parents
       flag = True
-      while flag:
+      counter = 0
+      while flag and counter<=5:
+        counter += 1
         repeated =[]
         for i in range(np.shape(population.data)[0]):
           for j in range (np.shape(children.data)[0]):
             if all(population.data[i,:]==children.data[j,:]):
               repeated.append(j)
+        repeated = list(set(repeated))
         if repeated:
           newChildren = self._mutationInstance(offSprings=children[repeated,:],locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
           children.data[repeated,:] = newChildren.data
-        children2 = children
-        # children2 = np.delete(children.data, (repeated), axis=0)
-        self.batch =np.shape(children2)[0]
-        if self.batch < self._nChildren :
-          children2 = self._crossoverInstance(parents=parents,variables=list(self.toBeSampled),crossoverProb=self._crossoverProb,points=self._crossoverPoints)
-          children2 = self._mutationInstance(offSprings=children2,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
-          children = children2
         else:
           flag = False
+        children2 = children
+        self.batch =np.shape(children2)[0]
 
       children = xr.DataArray(children2,
                                 dims=['chromosome','Gene'],
