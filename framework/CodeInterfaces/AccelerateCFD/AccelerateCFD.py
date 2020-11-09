@@ -27,14 +27,32 @@ import csv
 import re
 import copy
 import numpy
-
+from OpenFoamPP import field_parser
+  
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from GenericCodeInterface import GenericParser
 
-class AccelerateCFD(CodeInterfaceBase):
+class AcceleratedCFD(CodeInterfaceBase):
   """
-    Provides code to interface RAVEN to AccelerateCFD
+    Provides code to interface RAVEN to AcceleratedCFD
   """
+  def initialize(self, runInfo, oriInputFiles):
+    """
+      Method to initialize the run of a new step
+      @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
+      @ In, oriInputFiles, list, list of the original input files
+      @ Out, None
+    """
+    self.coords = {}
+    for index, inputFile in enumerate(oriInputFiles):
+      if inputFile.getType().startswith("mesh"):
+        coord = inputFile.getType().split("-")[-1].strip()
+        if coord not in ['x', 'y', 'z']:
+          raise IOError('Mesh type not == to x, y or z. Got: ' + coord)
+        self.coords[coord] = self.readFoamFile(inputFile.getAbsFile()) 
+    if not len(self.coords):
+      raise IOError('Mesh type files must be inputed (mesh-x, mesh-y, mesh-z). Got None!')
+        
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
@@ -48,12 +66,14 @@ class AccelerateCFD(CodeInterfaceBase):
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     # find the input file (check that one input is provided)
-    if (len(inputFiles) > 1):
-      raise Exception('Projectile INTERFACE ERROR -> Only one input file is accepted!')
+    inputToPerturb = self.findInps(inputFiles)
+    
     # create output file root
-    outputfile = 'out~' + inputFiles[0].getBase()
-    # create command (python "executable" -i "input file" -o "output file root")
-    executeCommand = [('parallel', executable +' -i '+ inputFiles[0].getFilename() +' -o '+ outputfile + ' -text')]
+    outputfile = 'out~' + inputToPerturb[0].getBase()
+    
+    # create command
+    # the input file name is hardcoded in AccelerateCFD (podInputs.xml)
+    executeCommand = [('parallel', executable )]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
@@ -63,28 +83,20 @@ class AccelerateCFD(CodeInterfaceBase):
       @ In, None
       @ Out, validExtensions, tuple, tuple of valid extensions
     """
-    validExtensions = ('')
-    return validExtensions
+    return ('')
 
-def findInps(self,inputFiles):
+  def findInps(self,inputFiles):
     """
       Locates the input files required by AcellerateCDF Interface
       @ In, inputFiles, list, list of Files objects
-      @ Out, inputDict, list, list containing AcellerateCFD required input files
+      @ Out, podDictInput, list, list containing AcellerateCFD required input files
     """
-    inputDict = {}
     podDictInput = []
-
     for inputFile in inputFiles:
-      if inputFile.getType().strip().lower() == "podDict":
+      if inputFile.getType().strip().lower() == "input":
         podDictInput.append(inputFile)
     if len(podDictInput) == 0:
-      raise IOError('no podDict type input file has been found!')
-    # Check if the input requested by the sequence has been found
-    if self.sequence.count('triton') != len(triton):
-      raise IOError('triton input file has not been found. Files type must be set to "triton"!')
-    if self.sequence.count('origen') != len(origen):
-      raise IOError('origen input file has not been found. Files type must be set to "origen"!')
+      raise IOError('no "input" type file has been found!')
     return podDictInput
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
@@ -98,16 +110,38 @@ def findInps(self,inputFiles):
             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-
     if 'dynamiceventtree' in str(samplerType).lower():
-      raise IOError("Dynamic Event Tree-based samplers not supported by Scale interface yet!")
+      raise IOError("Dynamic Event Tree-based samplers not supported by AccelerateCFD interface yet!")
     currentInputsToPerturb = self.findInps(currentInputFiles)
-    originalInputs         = self.findInps(origInputFiles)
+    originalInputs         = self.findInps(oriInputFiles)
     parser = GenericParser.GenericParser(currentInputsToPerturb)
     parser.modifyInternalDictionary(**Kwargs)
     parser.writeNewInput(currentInputsToPerturb,originalInputs)
     return currentInputFiles
-
+  
+  def readFoamFile(self, filename):
+    """
+      This method is aimed to read a Open Faom file for accelerated CFD
+      @ In, filename, str, the file name
+      @ Out, content, dict, the open foam output content
+    """
+    with open(filename, "r") as foam:
+      lines = foam.readlines()
+      settings = {}
+      for row, line in enumerate(lines):
+        if line.strip().startswith("FoamFile"):
+          info = lines[row+2:row+7]
+          for var in info:
+            inf, val = [v.strip().replace(";","").replace('"','') for v in var.split()]
+            settings[inf] = val
+        if line.strip().startswith("dimensions"):
+          settings["dimensions"] = [int(v.replace("[","").replace("]","")) for v in line.split()[-1].replace(";","").split()]
+        if len(settings) > 1:
+          del lines
+          break
+    field = field_parser.parse_field_all(filename)   
+    return settings, field
+  
   def finalizeCodeOutput(self, command, output, workingDir):
     """
       Called by RAVEN to modify output files (if needed) so that they are in a proper form.
