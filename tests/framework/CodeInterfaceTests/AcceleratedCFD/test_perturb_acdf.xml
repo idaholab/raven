@@ -2,7 +2,7 @@
   <!-- test info block -->
 
   <TestInfo>
-      <name>framework/CodeInterfaceTests/AcceleratedCFD.perturbACFD</name>
+      <name>framework/CodeInterfaceTests/AcceleratedCFD.perturbACFD1</name>
       <author>alfoa</author>
       <created>2020-11-03</created>
       <classesTested>Models.Code.AcceleratedCFD</classesTested>
