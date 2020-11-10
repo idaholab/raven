@@ -28,7 +28,7 @@ import re
 import copy
 import numpy as np
 from OpenFoamPP import field_parser
-  
+
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from GenericCodeInterface import GenericParser
 
@@ -73,7 +73,7 @@ class AcceleratedCFD(CodeInterfaceBase):
     if not( len(self.locations['x']) == len(self.locations['y']) == len(self.locations['z']) ):
       raise IOError("outputLocations must have the same size! len(x) !=  len(y) != len(z)!")
 
-    
+
   def initialize(self, runInfo, oriInputFiles):
     """
       Method to initialize the run of a new step
@@ -133,10 +133,10 @@ class AcceleratedCFD(CodeInterfaceBase):
     """
     # find the input file (check that one input is provided)
     inputToPerturb = self.findInps(inputFiles,"input")
-    
+
     # create output file root
     outputfile = 'out~' + inputToPerturb[0].getBase()
-    
+
     # create command
     # the input file name is hardcoded in AccelerateCFD (podInputs.xml)
     executeCommand = [('parallel', executable )]
@@ -185,7 +185,7 @@ class AcceleratedCFD(CodeInterfaceBase):
     parser.modifyInternalDictionary(**Kwargs)
     parser.writeNewInput(currentInputsToPerturb,originalInputs)
     return currentInputFiles
-  
+
   def readFoamFile(self, filename):
     """
       This method is aimed to read a Open Faom file for accelerated CFD
@@ -206,9 +206,9 @@ class AcceleratedCFD(CodeInterfaceBase):
         if len(settings) > 1:
           del lines
           break
-    field = field_parser.parse_field_all(filename)   
+    field = field_parser.parse_field_all(filename)
     return settings, field
-  
+
   def finalizeCodeOutput(self, command, output, workingDir):
     """
       Called by RAVEN to modify output files (if needed) so that they are in a proper form.
@@ -230,13 +230,13 @@ class AcceleratedCFD(CodeInterfaceBase):
       time = float(ts.split(os.path.sep)[-1])
       timeList.append(time)
     timeList.sort()
-    
-    
+    results["time"] = np.zeros(len(timeList))
     for ts in resultingDirs:
       settingsVector, fieldVector = self.readFoamFile(os.path.join(ts, "Urom"))
       settingsScalar, fieldScalar = self.readFoamFile(os.path.join(ts, "srom"))
       time =  float(settingsVector['location'])
-      indx = findNearest(timeList, time)       
+      indx = findNearest(timeList, time)
+      results["time"][indx] = time
       for i in range(len(self.locations["xyz"])):
         variableName = ""
         for j, coord in enumerate(['x', 'y', 'z']):
