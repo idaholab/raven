@@ -26,16 +26,54 @@ import math
 import csv
 import re
 import copy
-import numpy
+import numpy as np
 from OpenFoamPP import field_parser
   
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from GenericCodeInterface import GenericParser
 
+def findNearest(array, value):
+  """
+    Find nearest value
+    @ In, array, numpy array, the array
+    @ In, value, float/int, the pivot value
+    @ Out, idx, int, the index
+  """
+  array = np.asarray(array)
+  idx = (np.abs(array - value)).argmin()
+  return idx
+
 class AcceleratedCFD(CodeInterfaceBase):
   """
     Provides code to interface RAVEN to AcceleratedCFD
   """
+  def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class and initialize
+      some members based on inputs. This can be overloaded in specialize code interface in order to
+      read specific flags.
+      Only one option is possible. You can choose here, if multi-deck mode is activated, from which deck you want to load the results
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None.
+    """
+    self.locations = {'x':None,'y':None,'z':None}
+    for child in xmlNode:
+      if child.tag == 'outputLocations':
+        x = child.find("x")
+        y = child.find("y")
+        z = child.find("z")
+        if x is not None:
+          self.locations['x'] = [val.strip() for val in x.text.split(",")]
+        if y is not None:
+          self.locations['y'] = [val.strip() for val in y.text.split(",")]
+        if z is not None:
+          self.locations['z'] = [val.strip() for val in z.text.split(",")]
+    if None in list(self.locations.values()):
+      raise IOError("outputLocations must be inputted! x, y z!")
+    if not( len(self.locations['x']) == len(self.locations['y']) == len(self.locations['z']) ):
+      raise IOError("outputLocations must have the same size! len(x) !=  len(y) != len(z)!")
+
+    
   def initialize(self, runInfo, oriInputFiles):
     """
       Method to initialize the run of a new step
@@ -44,15 +82,43 @@ class AcceleratedCFD(CodeInterfaceBase):
       @ Out, None
     """
     self.coords = {}
+    self.romName = None
+    self.romType = None
+    self.locations["xyz"] = np.zeros((len(self.locations["x"]), 3), dtype=int)
+    map = {'x':0,'y':1,'z':2}
     for index, inputFile in enumerate(oriInputFiles):
       if inputFile.getType().startswith("mesh"):
         coord = inputFile.getType().split("-")[-1].strip()
         if coord not in ['x', 'y', 'z']:
           raise IOError('Mesh type not == to x, y or z. Got: ' + coord)
-        self.coords[coord] = self.readFoamFile(inputFile.getAbsFile()) 
+        self.coords[coord] = self.readFoamFile(inputFile.getAbsFile())
+        for i in range(len(self.locations[coord])):
+          if self.locations[coord][i] in ['min','max','average']:
+            if self.locations[coord][i] == 'min':
+              operator = np.min
+            elif self.locations[coord][i] == 'max':
+              operator = np.max
+            else:
+              operator = np.average
+            v = operator(self.coords[coord][1][0])
+          else:
+            v = float(self.locations[coord][i])
+          self.locations["xyz"][i, map[coord]] = findNearest(self.coords[coord][1][0],v)
+      if inputFile.getType().lower() == 'input':
+        with open(inputFile.getAbsFile(), "r") as inputObj:
+          lines = inputObj.readlines()
+          for line in lines:
+            if line.strip().startswith("<romName>"):
+              self.romName = line.strip().replace("<romName>","").split("<")[0]
+            if line.strip().startswith("<romType>"):
+              self.romType = line.strip().replace("<romType>","").split("<")[0]
+            if self.romName is not None and self.romType is not None:
+              break
     if not len(self.coords):
       raise IOError('Mesh type files must be inputed (mesh-x, mesh-y, mesh-z). Got None!')
-        
+    if self.romName is None or self.romType is None:
+      raise IOError('<romName> or <romType> not found in input file!')
+
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
@@ -66,7 +132,7 @@ class AcceleratedCFD(CodeInterfaceBase):
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is the command to run the code (string), returnCommand[1] is the name of the output root
     """
     # find the input file (check that one input is provided)
-    inputToPerturb = self.findInps(inputFiles)
+    inputToPerturb = self.findInps(inputFiles,"input")
     
     # create output file root
     outputfile = 'out~' + inputToPerturb[0].getBase()
@@ -85,18 +151,19 @@ class AcceleratedCFD(CodeInterfaceBase):
     """
     return ('')
 
-  def findInps(self,inputFiles):
+  def findInps(self,inputFiles, inputType):
     """
       Locates the input files required by AcellerateCDF Interface
       @ In, inputFiles, list, list of Files objects
+      @ In, inputType, str, inputType to find (e.g. mesh-x, input, etc)
       @ Out, podDictInput, list, list containing AcellerateCFD required input files
     """
     podDictInput = []
     for inputFile in inputFiles:
-      if inputFile.getType().strip().lower() == "input":
+      if inputFile.getType().strip().lower() == inputType.lower():
         podDictInput.append(inputFile)
     if len(podDictInput) == 0:
-      raise IOError('no "input" type file has been found!')
+      raise IOError('no "'+inputType+'" type file has been found!')
     return podDictInput
 
   def createNewInput(self, currentInputFiles, oriInputFiles, samplerType, **Kwargs):
@@ -112,8 +179,8 @@ class AcceleratedCFD(CodeInterfaceBase):
     """
     if 'dynamiceventtree' in str(samplerType).lower():
       raise IOError("Dynamic Event Tree-based samplers not supported by AccelerateCFD interface yet!")
-    currentInputsToPerturb = self.findInps(currentInputFiles)
-    originalInputs         = self.findInps(oriInputFiles)
+    currentInputsToPerturb = self.findInps(currentInputFiles,"input")
+    originalInputs         = self.findInps(oriInputFiles,"input")
     parser = GenericParser.GenericParser(currentInputsToPerturb)
     parser.modifyInternalDictionary(**Kwargs)
     parser.writeNewInput(currentInputsToPerturb,originalInputs)
@@ -153,20 +220,37 @@ class AcceleratedCFD(CodeInterfaceBase):
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
     # open output file
-    outfileName = os.path.join(workingDir,output+".txt" )
-    print(outfileName)
-    with open(outfileName, 'r') as src:
-      headers = [x.strip() for x in  src.readline().split() ]
-      data = []
-      line = ""
-      # starts reading
-      while not line.strip().startswith("--"):
-        line = src.readline()
-        if not line.strip().startswith("--"):
-          data.append(",".join( line.split())+"\n")
-      # write the output file
-      with open(os.path.join(workingDir,output+".csv" ),"w") as outputFile:
-        outputFile.writelines(",".join( headers ) +"\n")
-        for i in range(len(data)):
-          outputFile.writelines(data[i])
-
+    resultFolder = os.path.join(workingDir,"rom",self.romType +"_"+ self.romName)
+    resultingDirs = [os.path.join(resultFolder, o) for o in os.listdir(resultFolder)
+                        if os.path.isdir(os.path.join(resultFolder,o))]
+    resultingDirs.sort()
+    timeList = []
+    results = {}
+    for ts in resultingDirs:
+      time = float(ts.split(os.path.sep)[-1])
+      timeList.append(time)
+    timeList.sort()
+    
+    
+    for ts in resultingDirs:
+      settingsVector, fieldVector = self.readFoamFile(os.path.join(ts, "Urom"))
+      settingsScalar, fieldScalar = self.readFoamFile(os.path.join(ts, "srom"))
+      time =  float(settingsVector['location'])
+      indx = findNearest(timeList, time)       
+      for i in range(len(self.locations["xyz"])):
+        variableName = ""
+        for j, coord in enumerate(['x', 'y', 'z']):
+          variableName = settingsVector['class']+"_"+coord + "_" + self.locations[coord][i]
+          val = fieldVector[0][self.locations["xyz"][i][j], j]
+          if variableName not in results:
+            results[variableName] = np.zeros(len(timeList))
+          results[variableName][indx] = val
+      for i in range(len(self.locations["xyz"])):
+        variableName = ""
+        for j, coord in enumerate(['x']):
+          variableName = settingsScalar['class']+"_"+coord + "_" + self.locations[coord][i]
+          val = fieldScalar[0][self.locations["xyz"][i][j]]
+          if variableName not in results:
+            results[variableName] = np.zeros(len(timeList))
+          results[variableName][indx] = val
+    return results
