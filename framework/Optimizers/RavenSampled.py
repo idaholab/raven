@@ -253,6 +253,8 @@ class RavenSampled(Optimizer):
     # get information and realization, and update trajectories
     info = self.getIdentifierFromPrefix(prefix, pop=True)
     _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
+    if full is None:
+      self.raiseAnError(RuntimeError, f'Expected to find entry with prefix "{prefix}" in TargetEvaluation! Found: {self._targetEvaluation.getVarValues("prefix")}')
     # trim down opt point to the useful parts
     # TODO making a new dict might be costly, maybe worth just passing whole point?
     ## testing suggests no big deal on smaller problem
