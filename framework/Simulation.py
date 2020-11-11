@@ -757,6 +757,8 @@ class Simulation(MessageHandler.MessageUser):
       self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
     self.jobHandler.shutdown()
     self.messageHandler.printWarnings()
+    # implicitly, the job finished successfully if we got here.
+    self.writeStatusFile()
     self.raiseAMessage('Run complete!',forcePrint=True)
 
   def generateAllAssemblers(self, objectInstance):
@@ -790,3 +792,13 @@ class Simulation(MessageHandler.MessageUser):
                                       .format(n=obj[1], m=mainClassStr) +
                                       '\nOptions are:', self.whichDict[mainClassStr].keys())
       objectInstance.generateAssembler(neededobjs)
+
+  def writeStatusFile(self):
+    """
+      A bad hack from ancient technologies so we can really tell
+      when RAVEN has successfully finished.
+      @ In, None
+      @ Out, Non
+    """
+    with open('.ravenStatus', 'w') as f:
+      f.writelines('Success')
