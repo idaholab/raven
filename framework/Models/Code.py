@@ -28,6 +28,7 @@ import platform
 import shlex
 import time
 import numpy as np
+from six import string_types
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -591,23 +592,29 @@ class Code(Model):
     ## My guess is that every code interface implements this given that the code
     ## below always adds .csv to the filename and the standard output file does
     ## not have an extension. - (DPM 4/6/2017)
-    outputFile = codeLogFile
+    outputFile, isStr = codeLogFile, True
     if 'finalizeCodeOutput' in dir(self.code) and returnCode == 0:
       finalCodeOutputFile = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
       ## Special case for RAVEN interface --ALFOA 09/17/17
-      ravenCase = False
-      if type(finalCodeOutputFile).__name__ == 'dict':
-        ravenCase = True
-      if ravenCase and self.code.__class__.__name__ != 'RAVEN':
-        self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be a str containing the new output file root!')
+      ravenCase = type(finalCodeOutputFile).__name__ == 'dict' and self.code.__class__.__name__ == 'RAVEN'
+      # check return of finalizecode output
+      if finalCodeOutputFile is not None:
+        isDict = isinstance(finalCodeOutputFile,dict)
+        isStr = isinstance(finalCodeOutputFile,string_types)
+        if not isDict and not isStr:
+          self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be either a str' +
+                                          'containing the new output file root or a dict of data!')
       if finalCodeOutputFile and not ravenCase:
-        outputFile = finalCodeOutputFile
+        if not isDict:
+          outputFile = finalCodeOutputFile
+        else:
+          returnDict = finalCodeOutputFile
 
     ## If the run was successful
     if returnCode == 0:
       ## This may be a tautology at this point --DPM 4/12/17
       ## Special case for RAVEN interface. Added ravenCase flag --ALFOA 09/17/17
-      if outputFile is not None and not ravenCase:
+      if outputFile and isStr and not ravenCase:
         outFile = Files.CSV()
         ## Should we be adding the file extension here?
         outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])

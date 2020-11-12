@@ -19,7 +19,6 @@
   [./test3]
     type   = 'RavenFramework'
     input  = 'test3_cobratf_code_interface.xml'
-    output = 'CobraTFinterfaceTest3/testDummyStep_MC/1/sample.ctf.csv CobraTFinterfaceTest3/testDummyStep_MC/2/sample.ctf.csv'
     text   = 'CobraTFinterfaceTest3/testDummyStep_MC/1/sample.inp CobraTFinterfaceTest3/testDummyStep_MC/1/vuq_param.txt CobraTFinterfaceTest3/testDummyStep_MC/2/sample.inp CobraTFinterfaceTest3/testDummyStep_MC/2/vuq_param.txt'
     csv    = 'CobraTFinterfaceTest3/cobra_out.csv'
     test_interface_only = True
@@ -28,7 +27,6 @@
   [./test4]
     type   = 'RavenFramework'
     input  = 'test4_cobratf_code_interface.xml'
-    output = 'CobraTFinterfaceTest4/testDummyStep_MC/1/heat_exchanger.ctf.csv CobraTFinterfaceTest4/testDummyStep_MC/2/heat_exchanger.ctf.csv'
     text   = 'CobraTFinterfaceTest4/testDummyStep_MC/1/heat_exchanger.inp CobraTFinterfaceTest4/testDummyStep_MC/1/vuq_param.txt CobraTFinterfaceTest4/testDummyStep_MC/2/heat_exchanger.inp CobraTFinterfaceTest4/testDummyStep_MC/2/vuq_param.txt'
     csv    = 'CobraTFinterfaceTest4/cobra_out.csv'
     test_interface_only = True
@@ -37,7 +35,6 @@
   [./test5]
     type   = 'RavenFramework'
     input  = 'test5_cobratf_code_interface.xml'
-    output = 'CobraTFinterfaceTest5/testDummyStep_Single/1/deck.ctf.csv'
     text   = 'CobraTFinterfaceTest5/testDummyStep_Single/1/deck.inp CobraTFinterfaceTest5/testDummyStep_Single/1/vuq_param.txt'
     csv    = 'CobraTFinterfaceTest5/cobra_out.csv'
     test_interface_only = True

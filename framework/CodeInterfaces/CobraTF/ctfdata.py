@@ -16,7 +16,6 @@ Modified by Alp Tezbasaran @ INL
 July 2018
 """
 
-
 import numpy as np
 
 class ctfdata:
@@ -47,6 +46,15 @@ class ctfdata:
 
     self.deckEndTimeInfo = self.getTimeDeck(self.lines)
     self.majorData, self.headerName = self.getMajor(self.lines)
+
+  def returnData(self):
+    """
+      Method to return the data in a dictionary
+      @ In, None
+      @ Out, data, dict, the dictionary containing the data {var1:array,var2:array,etc}
+    """
+    data = {var:self.majorData[:,i] for i, var in enumerate(self.headerName)}
+    return data
 
   def writeCSV(self, filen):
     """
