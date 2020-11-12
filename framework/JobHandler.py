@@ -205,7 +205,7 @@ class JobHandler(MessageHandler.MessageUser):
           self.raiseADebug("Head host IP      :", address)
           self.raiseADebug("Head redis pass   :", redisPassword)
         ## Get servers and run ray remote listener
-        if 'remoteNodes' in self.runInfoDict
+        if 'remoteNodes' in self.runInfoDict:
           servers = self.runInfoDict['remoteNodes']
         else:
           servers = self.__runRemoteListeningSockets(address)
