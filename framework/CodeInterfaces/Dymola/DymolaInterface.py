@@ -451,7 +451,7 @@ class Dymola(CodeInterfaceBase):
         # duplicated values
         for i in range(len(t[m])):
           index = t[m].index[i]
-          t[index] = t[index] + numpy.finfo(float).eps*10*(i+1)
+          t[index] = t[index] + numpy.finfo(float).eps*t[index]*(i+1)
         varTrajectories[:,0] = t.to_numpy()
       response = {var:varTrajectories[:,i] for (i, var) in enumerate(varNames[0])}
       # write CSV if the user requests it
