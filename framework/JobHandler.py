@@ -191,7 +191,7 @@ class JobHandler(MessageHandler.MessageUser):
         # number of processors
         nProcsHead = availableNodes.count(localHostName)
         if not nProcsHead:
-          selr.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
+          self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
           nProcsHead = None
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
         # create head node cluster
