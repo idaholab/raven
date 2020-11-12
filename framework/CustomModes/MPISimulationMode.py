@@ -93,6 +93,7 @@ class MPISimulationMode(Simulation.SimulationMode):
       else:
         #If only one batch just use original node file
         nodeCommand = runInfoDict["NodeParameter"]+" "+nodefile
+
     else:
       #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
       newBatchsize = newRunInfo['batchSize']
