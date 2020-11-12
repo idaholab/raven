@@ -278,8 +278,9 @@ class JobHandler(MessageHandler.MessageUser):
     address, redisPassword = None, None
     with open(rayLog, 'r') as rayLogObj:
       for line in rayLogObj.readlines():
-        if line.strip().startswith("ray start"):
-          address, redisPassword = line.strip().replace("ray start","").strip().split()
+        if "ray start" in line.strip():
+          ix = line.strip().find("ray start")
+          address, redisPassword = line.strip()[ix:].replace("ray start","").strip().split()
           address = address.split("=")[-1].replace("'","")
           redisPassword = redisPassword.split("=")[-1].replace("'","")
           break
