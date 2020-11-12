@@ -194,13 +194,22 @@ class JobHandler(MessageHandler.MessageUser):
           self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
           nProcsHead = None
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
+
         # create head node cluster
-        address, redisPassword = self.__runHeadNode(nProcsHead)
+        if 'headNode' in self.runInfoDict:
+          address, redisPassword = self.runInfoDict['headNode'], self.runInfoDict['redisPassword']
+        else:
+          address, redisPassword = self.__runHeadNode(nProcsHead)
+          self.runInfoDict['headNode'], self.runInfoDict['redisPassword'] = address, redisPassword
         if _rayAvail:
           self.raiseADebug("Head host IP      :", address)
           self.raiseADebug("Head redis pass   :", redisPassword)
         ## Get servers and run ray remote listener
-        servers = self.__runRemoteListeningSockets(address)
+        if 'remoteNodes' in self.runInfoDict:
+          servers = self.runInfoDict['remoteNodes']
+        else:
+          servers = self.__runRemoteListeningSockets(address)
+          self.runInfoDict['remoteNodes'] = servers
         ## initialize ray server with nProcs
         self.rayServer = ray.init(address=address, _redis_password=redisPassword) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
       else:
@@ -689,12 +698,19 @@ class JobHandler(MessageHandler.MessageUser):
             ## want to revisit this on the next iteration of this code.
             if len(item.args) > 0 and isinstance(item.args[0], Models.Code):
               kwargs = {}
+              if self.rayServer is not None and 'headNode' in self.runInfoDict:
+                kwargs['headNode'] = self.runInfoDict['headNode']
+                kwargs['redisPassword'] = self.runInfoDict['redisPassword']
+              if self.rayServer is not None and 'remoteNodes' in self.runInfoDict:
+                kwargs['remoteNodes'] = self.runInfoDict['remoteNodes']
               kwargs['INDEX'] = str(i)
               kwargs['INDEX1'] = str(i+i)
               kwargs['CURRENT_ID'] = str(self.__nextId)
               kwargs['CURRENT_ID1'] = str(self.__nextId+1)
               kwargs['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
               kwargs['FRAMEWORK_DIR'] = self.runInfoDict['FrameworkDir']
+
+
               ## This will not be used since the Code will create a new
               ## directory for its specific files and will spawn a process there
               ## so we will let the Code fill that in. Note, the line below
