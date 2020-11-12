@@ -321,7 +321,7 @@ class JobHandler(MessageHandler.MessageUser):
         ## Activate the remote socketing system
         ## let's build the command and then call the os-agnostic version
         if _rayAvail:
-          command=" ".join(["ray start", "--address="+address, "-num-cpus",str(ntasks)])
+          command=" ".join(["ray start", "--address="+address, "--num-cpus",str(ntasks)])
         else:
           ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
           command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
