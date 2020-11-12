@@ -318,7 +318,6 @@ class RAVEN(CodeInterfaceBase):
       @ Out, dataObjectsToReturn, dict, optional, this is a special case for RAVEN only. It returns the constructed dataobjects
                                                  (internally we check if the return variable is a dict and if it is returned by RAVEN (if not, we error out))
     """
-
     ##### TODO This is an exception to the way CodeInterfaces usually run.
     # The return dict for this CodeInterface is a dictionary of data objects (either one or two of them, up to one each point set and history set).
     # Normally, the end result of this method is producing a CSV file with the data to load.

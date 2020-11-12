@@ -187,13 +187,22 @@ class JobHandler(MessageHandler.MessageUser):
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         ## identify the local host name and get the number of local processors
         localHostName = self.__getLocalHost()
-        self.raiseADebug("Local host name is  : ", localHostName)
+        self.raiseADebug("Head host name is   : ", localHostName)
+        # number of processors
         nProcsHead = availableNodes.count(localHostName)
+        if not nProcsHead:
+          selr.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
+          nProcsHead = None
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
+        # create head node cluster
+        address, redisPassword = self.__runHeadNode(nProcsHead)
+        if _rayAvail:
+          self.raiseADebug("Head host IP      :", address)
+          self.raiseADebug("Head redis pass   :", redisPassword)
+        ## Get servers and run ray remote listener
+        servers = self.__runRemoteListeningSockets(address)
         ## initialize ray server with nProcs
-        self.rayServer = ray.init(num_cpus=int(nProcsHead)) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
-        ## Get localHost and servers
-        servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
+        self.rayServer = ray.init(address=address, _redis_password=redisPassword) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
       else:
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
@@ -206,7 +215,6 @@ class JobHandler(MessageHandler.MessageUser):
         if servers:
           self.raiseADebug("# of remote servers : ", str(len(servers)))
           self.raiseADebug("Remote servers      : ", " , ".join(servers))
-
     else:
       ## We are just using threading
       self.rayServer = None
@@ -234,6 +242,48 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, __getLocalHost, string, the local host name
     """
     return str(socket.getfqdn()).strip()
+
+  def __runHeadNode(self, nProcs):
+    """
+      Method to activate the head ray server
+      @ In, nProcs, int, the number of processors
+      @ Out, address, str, the retrieved address (ip:port)
+      @ Out, redisPassword, str, the redis password
+    """
+    address, redisPassword = None, None
+    # get local enviroment
+    localenv = os.environ.copy()
+    localenv["PYTHONPATH"] = os.pathsep.join(sys.path)
+    if _rayAvail:
+      command = ["ray","start","--head"]
+      if nProcs is not None:
+        command.append("--num-cpus="+str(nProcs))
+      outFile = open("ray_head.ip", 'w')
+      rayStart = utils.pickleSafeSubprocessPopen(command,shell=False,stdout=outFile, stderr=outFile, env=localenv)
+      rayStart.wait()
+      outFile.close()
+      if rayStart.returncode != 0:
+        self.raiseAnError(RuntimeError, "RAY failed to start on the --head node! Return code is {}".format(rayStart.returncode))
+      else:
+        address, redisPassword = self.__getRayInfoFromStart("ray_head.ip")
+    return address, redisPassword
+
+  def __getRayInfoFromStart(self, rayLog):
+    """
+      Read Ray info from shell return script
+      @ In, rayLog, str, the ray output log
+      @ Out, address, str, the retrieved address (ip:port)
+      @ Out, redisPassword, str, the redis password
+    """
+    address, redisPassword = None, None
+    with open(rayLog, 'r') as rayLogObj:
+      for line in rayLogObj.readlines():
+        if line.strip().startswith("ray start"):
+          address, redisPassword = line.strip().replace("ray start","").strip().split()
+          address = address.split("=")[-1].replace("'","")
+          redisPassword = redisPassword.split("=")[-1].replace("'","")
+          break
+    return address, redisPassword
 
   def __runRemoteListeningSockets(self,address):
     """
