@@ -79,7 +79,7 @@ class MPISimulationMode(Simulation.SimulationMode):
         self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
       newBatchsize = newRunInfo['batchSize']
       self.raiseADebug('Batch size is "{}"'.format(newBatchsize))
-      if newBatchsize > 1:
+      if self.__inPbs or self.__runQsub: #newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = runInfoDict['WorkingDir']
         for i in range(newBatchsize):
