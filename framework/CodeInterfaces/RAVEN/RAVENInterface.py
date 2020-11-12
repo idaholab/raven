@@ -239,7 +239,6 @@ class RAVEN(CodeInterfaceBase):
       if convDict['scalar']:
         # call conversion, value changes happen in-place
         module.manipulateScalarSampledVariables(modifDict)
-
     # we work on batchSizes here
     newBatchSize = Kwargs['NumMPI']
     internalParallel = Kwargs.get('internalParallel',False)
@@ -247,13 +246,12 @@ class RAVEN(CodeInterfaceBase):
       # we are in a distributed memory machine => we allocate a node file
       nodeFileToUse = os.path.join(Kwargs['BASE_WORKING_DIR'],"node_" +str(Kwargs['INDEX']))
       if not os.path.exists(nodeFileToUse):
-        if "NodeParameter" not in Kwargs:
-          raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" does not exist and no NodeParameter has been found!!')
+        if "PBS_NODEFILE" not in os.environ:
+          raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" and PBS_NODEFILE enviroment var do not exist!')
         else:
-          nodeFileToUse = Kwargs["NodeParameter"]
+          nodeFileToUse = os.environ["PBS_NODEFILE"]
       modifDict['RunInfo|mode'           ] = 'mpi'
       modifDict['RunInfo|mode|nodefile'  ] = nodeFileToUse
-
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
       modifDict['RunInfo|batchSize'] = newBatchSize
