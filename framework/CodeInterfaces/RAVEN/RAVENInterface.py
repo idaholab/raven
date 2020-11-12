@@ -260,7 +260,8 @@ class RAVEN(CodeInterfaceBase):
       modifDict['RunInfo|headNode'] = Kwargs['headNode']
       modifDict['RunInfo|redisPassword'] = Kwargs['redisPassword']
     if 'remoteNodes' in Kwargs:
-      modifDict['RunInfo|remoteNodes'] = ','.join(Kwargs['remoteNodes'])
+      if Kwargs['remoteNodes'] is not None and len(Kwargs['remoteNodes']):
+        modifDict['RunInfo|remoteNodes'] = ','.join(Kwargs['remoteNodes'])
 
     #modifDict['RunInfo|internalParallel'] = internalParallel
     # make tree
