@@ -677,7 +677,10 @@ def add_path(absolutepath):
     raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
   sys.path.append(absolutepath)
   # we add it in pythonpath too
-  os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep + absolutepath
+  newPath = os.environ.get("PYTHONPATH","") + os.pathsep + absolutepath
+  if len(newPath) >= 32000: #Some OS's have a limit of 2**15 for environ
+    print("WARNING: excessive length PYTHONPATH:'"+str(newPath)+"'")
+  os.environ['PYTHONPATH'] = newPath
 
 def add_path_recursively(absoluteInitialPath):
   """

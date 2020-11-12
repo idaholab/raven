@@ -571,6 +571,8 @@ class Simulation(MessageHandler.MessageUser):
           self.raiseAnError(IOError, 'RunInfo.WorkingDir is empty! Use "." to signify "work here" or specify a directory.')
         if '~' in tempName:
           tempName = os.path.expanduser(tempName)
+        xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
+        self.runInfoDict['InputDir'] = xmlDirectory
         if os.path.isabs(tempName):
           self.runInfoDict['WorkingDir'] = tempName
         elif "runRelative" in element.attrib:
