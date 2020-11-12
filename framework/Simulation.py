@@ -632,6 +632,12 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['postcommand'       ] = element.text
       elif element.tag == 'deleteOutExtension':
         self.runInfoDict['deleteOutExtension'] = element.text.strip().split(',')
+      elif element.tag == 'headNode':
+        self.runInfoDict['headNode'] = element.text.strip()
+      elif element.tag == 'redisPassword':
+        self.runInfoDict['redisPassword'] = element.text.strip()
+      elif element.tag == 'remoteNodes':
+        self.runInfoDict['remoteNodes'] = [el.strip() for el in element.text.strip().split(',')]
       elif element.tag == 'delSucLogFiles'    :
         if utils.stringIsTrue(element.text):
           self.runInfoDict['delSucLogFiles'    ] = True

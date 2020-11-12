@@ -255,6 +255,13 @@ class RAVEN(CodeInterfaceBase):
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
       modifDict['RunInfo|batchSize'] = newBatchSize
+
+    if 'headNode' in kwargs:
+      modifDict['RunInfo|headNode'] = kwargs['headNode']
+      modifDict['RunInfo|redisPassword'] = kwargs['redisPassword']
+    if 'remoteNodes' in kwargs:
+      modifDict['RunInfo|remoteNodes'] = ','.join(kwargs['remoteNodes'])
+
     #modifDict['RunInfo|internalParallel'] = internalParallel
     # make tree
     modifiedRoot = parser.modifyOrAdd(modifDict, save=True, allowAdd=True)
