@@ -26,6 +26,7 @@ import signal
 import copy
 import sys
 import abc
+import psutil
 from utils import importerUtils as im
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
 if im.isLibAvail("ray"):
@@ -123,6 +124,12 @@ class DistributedMemoryRunner(InternalRunner):
                                              modules = tuple([self.functionToRun.__module__]+list(set(utils.returnImportModuleString(inspect.getmodule(self.functionToRun),True)))))
       self.trackTime('runner_started')
       self.started = True
+      #if psutil.virtual_memory().percent >= pct:
+      self.raiseADebug("XXXXXXX:             Virtual memory is currently at % "+str(psutil.virtual_memory().percent))
+      gc.collect()
+      self.raiseADebug("XXXXXXX: Collecting: Virtual memory is currently at % "+str(psutil.virtual_memory().percent))
+      return
+
     except Exception as ae:
       #Uncomment if you need the traceback
       #exc_type, exc_value, exc_traceback = sys.exc_info()
