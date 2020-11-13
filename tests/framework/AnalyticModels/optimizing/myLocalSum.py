@@ -14,10 +14,16 @@
 
 def evaluate(Inputs):
   """
-    Evaluates Beale function.
-    @ In, x, float, value
-    @ In, y, float, value
-    @ Out, evaluate, value at x, y
+    Evaluates a weighted sum function.
+    $sum = \Sigma_{i=0} (i+1)*x_{i}$
+
+    min with replacement = n*(n-1)/2*lb occurs at x_{i} = lb (i.e., lower bound of the discrete variables)
+    max with replacement = n*(n-1)/2*ub occurs at x_{i} = ub (i.e., upper bound of the discrete variables)
+    min w/o replacement  = $\Sigma_{i=0}^{n-1} (lb+i)(i+1)$ occurs at x_{i} = lb+i
+    max w/o replacement  = $\Sigma_{i=0}^{n-1} (ub-n+1+i)(i+1)$ occurs at x_{i} = ub-n+1+i
+
+    @ In, Inputs, dictionary of variables
+    @ Out, sum, value at Inputs
   """
   sum = 0
   for Ind,var in enumerate(Inputs.keys()):

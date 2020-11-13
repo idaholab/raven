@@ -47,7 +47,8 @@ class GeneticAlgorithm(RavenSampled):
   """
   convergenceOptions = {'objective': r""" provides the desired value for the convergence criterion of the objective function
                         ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design variable at a given objective value, i.e., convergence is reached when: $$ Objevtive = \epsilon^{obj}$$.
-                        \default{1e-6}, if no criteria specified"""}
+                        \default{1e-6}, if no criteria specified""",
+                        'AHDp': r""" provides the desired value for the Average Hausdroff Distance between populations"""}
   def __init__(self):
     """
       Constructor.
@@ -601,12 +602,12 @@ class GeneticAlgorithm(RavenSampled):
       # get function from lookup
       f = getattr(self, '_checkConv{}'.format(fName))
       # check convergence function
-      okay = f(traj)
+      okay = f(traj,new=new,old=old)
       # store and update
       convs[conv] = okay
     return any(convs.values()), convs
 
-  def _checkConvObjective(self, traj):
+  def _checkConvObjective(self, traj,**kwargs):
     """
       Checks the change in objective for convergence
       @ In, traj, int, trajectory identifier
@@ -622,6 +623,59 @@ class GeneticAlgorithm(RavenSampled):
                                             got=obj,
                                             req=self._convergenceCriteria['objective']))
     return converged
+
+  def _checkConvAHDp(self, traj,**kwargs):
+    """
+      Computes the Average Hausdroff Distance as the termination criteria
+      @ In, traj, int, trajectory identifier
+      @ In, kwargs
+      @ Out, converged, bool, convergence state
+    """
+    from scipy.spatial.distance import directed_hausdorff
+    old = kwargs['old'].data
+    new = self._datasetToDataarray(kwargs['new']).data
+    AHDp = self._AHDp(old,new,3)
+    converged = (AHDp < self._convergenceCriteria['AHDp'])
+    self.raiseADebug(self.convFormat.format(name='AHDp',
+                                            conv=str(converged),
+                                            got=AHDp,
+                                            req=self._convergenceCriteria['AHDp']))
+    return converged
+
+  def _AHDp(self,A,B,p):
+    """
+      [summary]
+    """
+    return max(self._GDp(A,B,p),self._GDp(B,A,p))
+
+  def _GDp(self,A,B,p):
+    """
+      Modified Generational Distance Indicator
+      @ In, A, np.array, old population A
+      @ In, B, np.array, new population B
+      @ In, p, float, the order of norm
+      @ Out, _GDp, float, the modified generational distance $\frac{1}{n_A} \Sigma_{i=1}^{n_A}min_{b \in B} dist(ai,B)$
+    """
+    s = 0
+    # s = []
+    n = np.shape(A)[0]
+    for i in range(n):
+      s += self._popDist(A[i,:],B)**p
+      # s.append(self._popDist(A[i,:],B))
+    return (1/n * s)**(1/p)
+    # return max(s)
+
+  def _popDist(self,ai,B,q=2):
+    """
+      minimum minkowski distance from ai to B (nearest point in B)
+      @ In, ai, 1d array, the ith chromosome in the generation A
+      @ In, B, np.array, population B
+      @ Out, _popDist, float, the minimum distance from ai to B $inf_(\|ai-bj\|_q)**\frac{1}{q}$
+    """
+    nrm=[]
+    for j in range(np.shape(B)[0]):
+      nrm.append(np.linalg.norm(ai-B[j,:],q))
+    return min(nrm)
 
   def _updateConvergence(self, traj, new, old, acceptable):
     """
