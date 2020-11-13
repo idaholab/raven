@@ -27,6 +27,7 @@ import copy
 import sys
 import abc
 import psutil
+import gc
 from utils import importerUtils as im
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
 if im.isLibAvail("ray"):
