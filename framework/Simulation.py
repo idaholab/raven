@@ -725,6 +725,8 @@ class Simulation(MessageHandler.MessageUser):
       subprocess.call(args=remoteRunCommand["args"],
                       cwd=remoteRunCommand.get("cwd", None),
                       env=remoteRunCommand.get("env", None))
+      self.raiseADebug('Submitted in queque! Shutting down Jobhandler!')
+      self.jobHandler.shutdown()
       return
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:
