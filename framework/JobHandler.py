@@ -192,6 +192,8 @@ class JobHandler(MessageHandler.MessageUser):
         nProcsHead = availableNodes.count(localHostName)
         if not nProcsHead:
           self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
+          uniqueN = list(set(availableNodes))
+          self.raiseAWarning('Head host name "'+localHostName+'" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
           nProcsHead = None
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
 
