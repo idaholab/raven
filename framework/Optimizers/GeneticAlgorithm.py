@@ -70,6 +70,7 @@ class GeneticAlgorithm(RavenSampled):
     self.population = None # panda Dataset container containing the population at the beginning of each generation iteration
     self.popAge = None
     self.fitness = None
+    self.AHDp = np.NaN
     # self.bestObjective = None
 
   ##########################
@@ -257,6 +258,7 @@ class GeneticAlgorithm(RavenSampled):
     new['fitness'] = 'fitness of the current chromosome'
     new['age'] = 'age of current chromosome'
     new['batchId'] = 'Id of the batch to whom the chromosome belongs'
+    new['AHDp'] = 'p-Average Hausdorff Distance between populations'
     ok.update(new)
     return ok
 
@@ -626,7 +628,7 @@ class GeneticAlgorithm(RavenSampled):
 
   def _checkConvAHDp(self, traj,**kwargs):
     """
-      Computes the Average Hausdroff Distance as the termination criteria
+      Computes the Average Hausdorff Distance as the termination criteria
       @ In, traj, int, trajectory identifier
       @ In, kwargs
       @ Out, converged, bool, convergence state
@@ -635,6 +637,7 @@ class GeneticAlgorithm(RavenSampled):
     old = kwargs['old'].data
     new = self._datasetToDataarray(kwargs['new']).data
     AHDp = self._AHDp(old,new,3)
+    self.AHDp = AHDp
     converged = (AHDp < self._convergenceCriteria['AHDp'])
     self.raiseADebug(self.convFormat.format(name='AHDp',
                                             conv=str(converged),
@@ -751,7 +754,8 @@ class GeneticAlgorithm(RavenSampled):
     # meta variables
     toAdd = {'age': 0 if self.popAge==None else self.popAge,
              'batchId':self.batchId,
-             'fitness':rlz['fitness']}
+             'fitness':rlz['fitness'],
+             'AHDp':self.AHDp}
 
     for var, val in self.constants.items():
       toAdd[var] = val
