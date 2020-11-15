@@ -515,8 +515,8 @@ class Code(Model):
     commands=[]
     for runtype,cmd in executeCommand:
       newCommand=''
-      if runtype.lower() == 'parallel':
-        newCommand += precommand
+      if runtype.lower() == 'parallel': #or precommand.startswith("_specialSyntax_"):
+        newCommand += precommand.replace("_specialSyntax_","")
         newCommand += cmd+' '
         newCommand += postcommand
         commands.append(newCommand)

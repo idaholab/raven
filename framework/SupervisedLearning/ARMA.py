@@ -40,6 +40,13 @@ from scipy.stats import rv_histogram
 from utils import randomUtils, xmlUtils, mathUtils, utils
 import Distributions
 from .SupervisedLearning import supervisedLearning
+import os
+import sys
+print(os.environ)
+
+sys.path.append("/home/alfoa/MOOSERAVEN/trunk_git/raven_github/forks/raven/crow")
+sys.path.append("/home/alfoa/MOOSERAVEN/trunk_git/raven_github/forks/raven/crow/crow_modules")
+sys.path.append("/home/alfoa/MOOSERAVEN/trunk_git/raven_github/forks/raven/crow/install")
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ARMA(supervisedLearning):
