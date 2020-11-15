@@ -276,7 +276,10 @@ class JobHandler(MessageHandler.MessageUser):
       for nodeAddress in servers:
         self.raiseAMessage("Shutting down ray at address: "+ nodeAddress)
         command="ray stop"
-        utils.pickleSafeSubprocessPopen(['ssh',nodeAddress.split(":")[0],"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,env=localenv)
+        rayTerminate = utils.pickleSafeSubprocessPopen(['ssh',nodeAddress.split(":")[0],"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,env=localenv)
+        rayTerminate.wait()
+        if rayTerminate.returncode != 0:
+          self.raiseAWarning("RAY FAILED TO TERMINATE ON NODE: "+nodeAddress)
       # shutdown ray API (object storage, plasma, etc.)
       ray.shutdown()
 
