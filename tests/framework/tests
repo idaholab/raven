@@ -10,15 +10,6 @@
   [../]
  [../]
 
- [./simple_framework]
-  #REQUIREMENT_TEST R-IS-2
-  type = 'RavenFramework'
-  input = 'test_simple.xml'
-  output = 'revirD_tset/FirstMRun/1/out~ideal_pump revirD_tset/FirstMRun/6/out~ideal_pump'
-  csv = 'revirD_tset/FirstMRun/6/out~ideal_pump.csv'
-  required_executable = '../../RAVEN-%METHOD%'
- [../]
-
  [./external_xml]
    type = 'RavenFramework'
    input = 'test_External_XML.xml'
@@ -26,38 +17,15 @@
    csv = 'ExternalXMLTest/outGrid_dump.csv'
  [../]
 
- ## This test will exercise our ability to parse command line options
- [./simple_command_line_args]
-   type = 'RavenFramework'
-   input = 'test_simple.xml quiet silent all quiet'
-   output = 'revirD_tset/FirstMRun/1/out~ideal_pump revirD_tset/FirstMRun/6/out~ideal_pump'
-   csv = 'revirD_tset/FirstMRun/6/out~ideal_pump.csv'
-   required_executable = '../../RAVEN-%METHOD%'
-   ## Skip this test, if its duplicated failed
-   prereq = simple_framework
- [../]
-
  [./test_output]
   #REQUIREMENT_TEST R-RA-3
   type = 'RavenFramework'
   input = 'test_output.xml'
-  output = 'output_check/1-plot7_stem.png output_check/1-2DHistoryPlot_histogram.png output_check/1-test_line-line.png output_check/1-plot2_line-line.png output_check/1-plot4_scatter-scatter.png output_check/1-plot3_scatter-scatter.png output_check/1-plot9_stem.png output_check/1-plot8_stem.png output_check/1-plot6_histogram.png output_check/1-plot5_histogram.png output_check/1-plot11_step.png output_check/1-plot10_stem.png output_check/1-plot14_tri-surface-tri-surface.png output_check/1-plot13_surface-surface.png output_check/1-plot12_pseudocolor.png output_check/1-plot17_contour3D-filledContour3D.png output_check/1-plot16_contour-filledContour.png output_check/1-plot15_wireframe-wireframe.png output_check/1-plot18_scatter.png output_check/1-plot19_scatter.png output_check/fullprint_Pointset.csv'
+  output = 'output_check/1-plot7_stem.png output_check/1-2DHistoryPlot_histogram.png output_check/1-testPlot_line-line.png output_check/1-plot2_line-line.png output_check/1-plot4_scatter-scatter.png output_check/1-plot3_scatter-scatter.png output_check/1-plot9_stem.png output_check/1-plot8_stem.png output_check/1-plot6_histogram.png output_check/1-plot5_histogram.png output_check/1-plot11_step.png output_check/1-plot10_stem.png output_check/1-plot14_tri-surface-tri-surface.png output_check/1-plot13_surface-surface.png output_check/1-plot12_pseudocolor.png output_check/1-plot17_contour3D-filledContour3D.png output_check/1-plot16_contour-filledContour.png output_check/1-plot15_wireframe-wireframe.png output_check/1-plot18_scatter.png output_check/1-plot19_scatter.png output_check/fullprint_Pointset.csv'
   csv = 'output_check/fullprint_HistorySet_2.csv output_check/test_4.csv output_check/testprint_selective_hist1_4.csv output_check/testprint_selective_Pointset.csv'
   UnorderedXml = 'output_check/fullprint_HistorySet.xml output_check/fullprint_Pointset.xml'
   remove_unicode_identifier = true
    rel_err = 0.00002
- [../]
-
- [./test_rom_trainer_raven]
-  type = 'RavenFramework'
-  input = 'test_rom_trainer_raven.xml'
-  #skip = 'working in progress'
-  output = 'test_rom_trainer_raven/MC_for_rom_trainer/out~1~TMI test_rom_trainer_raven/MC_for_rom_trainer/out~2~TMI.csv'
-  csv = 'test_rom_trainer_raven/outputMontecarloRom_dump.csv test_rom_trainer_raven/outputMontecarloRomND_dump.csv'
-  max_time = 1500
-  rel_err = 0.001
-  required_executable = '../../RAVEN-%METHOD%'
-  skip = 'Relap issue #111'
  [../]
 
 [./test_rom_trainer]
@@ -92,7 +60,7 @@
 
  [./testFactorials]
   type = 'RavenFramework'
-  input = 'test_FullFactorial_Sampler.xml'
+  input = 'test_FullFactorial_Sampler.xml quiet silent all quiet'
   csv = 'Factorial/2levelFact_dump.csv Factorial/fullFact_dump.csv Factorial/pb_dump.csv'
   max_time = 500
   rel_err = 0.001
@@ -104,6 +72,17 @@
   csv = 'ResponseDesign/BoxBehnkenRespDesign_dump.csv ResponseDesign/CentralCompositeRespDesign_dump.csv'
   max_time = 500
   rel_err = 0.001
+ [../]
+
+  ## This test will exercise our ability to parse command line options
+ [./simple_command_line_args]
+   type = 'RavenFramework'
+   input = 'test_ResponseSurfaceDesign_Sampler.xml quiet silent all quiet'
+   output = 'ResponseDesign/BoxBehnkenRespDesign_dump.csv ResponseDesign/CentralCompositeRespDesign_dump.csv'
+   max_time = 500
+   rel_err = 0.001
+   ## Skip this test, if its duplicated failed
+   prereq = testResponseSurfaceDesigns
  [../]
 
  [./testGrid]
@@ -135,7 +114,7 @@
   type = 'RavenFramework'
   input = 'test_LHS_Sampler.xml'
   csv = 'LHStest/outLHS_dump.csv LHStest/samples1D.csv'
-  UnorderedXml = 'LHStest/outLHS_dump.xml LHStest/samples1D.xml'
+  #UnorderedXml = 'LHStest/outLHS_dump.xml LHStest/samples1D.xml'
   max_time = 500
   rel_err = 0.001
   [./xml_data]
@@ -144,24 +123,6 @@
    unordered = true
    remove_unicode_identifier = true
   [../]
- [../]
-
- [./testLHS_RELAP7]
-   type = 'RavenFramework'
-   input = 'test_LHS_Sampler_Raven.xml'
-   output = 'LHStestRaven/FirstMRun/1/out~clg_massflowrate_3eqn'
-   csv = 'LHStestRaven/outGrid_dump.csv'
-   method = 'devel opt'
-   required_executable = '../../RAVEN-%METHOD%'
- [../]
-
- [./testGrid_RELAP7]
-   type = 'RavenFramework'
-   input = 'test_Grid_Sampler_Raven.xml'
-   output = 'GridTestRaven/FirstMRun/1/out~clg.massflowrate.3eqn'
-   UnorderedCsv = 'GridTestRaven/outGrid_dump.csv GridTestRaven/outGridMax_dump.csv GridTestRaven/outGridMin_dump.csv GridTestRaven/outGridAverage_dump.csv GridTestRaven/outGridMaxFromHDF5_dump.csv GridTestRaven/outGridMinFromHDF5_dump.csv GridTestRaven/outGridAverageFromHDF5_dump.csv'
-   method = 'devel opt'
-   required_executable = '../../RAVEN-%METHOD%'
  [../]
 
 
@@ -182,16 +143,6 @@
   max_time = 100
   rel_err = 0.001
   prereq = testExternalModel
- [../]
-
- [./test_bison_mc_simple_and_alias_system]
-  #REQUIREMENT_TEST R-IS-6
-  type = 'RavenFramework'
-  input = 'test_bison_mc_simple.xml'
-  output = 'MCTestBison/CustomSampler/1/out~gap_perfect_transfer_test'
-  csv = 'MCTestBison/CustomSampler/3/out~gap_perfect_transfer_test.csv MCTestBison/CustomSampler/1/out~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/3/out~gap_perfect_transfer_test.csv MCTestBison/CustomSampler_noalias/1/out~gap_perfect_transfer_test.csv'
-  required_executable = '../../../bison/bison-%METHOD%'
-  skip_if_env = BUILD_ROOT
  [../]
 
  [./test_custom_mode]

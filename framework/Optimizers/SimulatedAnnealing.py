@@ -419,6 +419,7 @@ class SimulatedAnnealing(RavenSampled):
       @ In, info, dict, meta information about the opt point
       @ Out, acceptable, str, acceptability condition for point
       @ Out, old, dict, old opt point
+      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
     """
     # Check acceptability
     # NOTE: if self._optPointHistory[traj]: -> faster to use "try" for all but the first time
@@ -446,7 +447,7 @@ class SimulatedAnnealing(RavenSampled):
       old = None
     self._acceptHistory[traj].append(acceptable)
     self.raiseADebug(' ... {a}!'.format(a=acceptable))
-    return acceptable, old
+    return acceptable, old, 'None'
 
   def _acceptabilityCriterion(self,currentObjective,newObjective):
     """
@@ -677,7 +678,7 @@ class SimulatedAnnealing(RavenSampled):
       delta = (-amp/2.)+ amp * r
     elif self._coolingMethod == 'boltzmann':
       amp = min(np.sqrt(self.T), 1/3.0/alpha)
-      delta =  randomUtils.randomNormal(dim=D, samples=1)*alpha*amp
+      delta =  randomUtils.randomNormal(dim=D, size=1)*alpha*amp
     elif self._coolingMethod == 'veryfast':
       amp = randomUtils.random(dim=D, samples=1)
       delta = np.sign(amp-0.5)*self.T*((1+1.0/self.T)**abs(2*amp-1)-1.0)

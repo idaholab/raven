@@ -1,0 +1,68 @@
+<!--
+Structure:
+<root>
+  <install-method>
+    ...
+  </install method>
+  <next-install-method> etc
+</root>
+Note all install methods after "main" take
+  Instructions:
+
+ add library:                <library>pinned.version.number</library>
+ add with no pinned version: <library/>
+ remove a library:           <library>remove</library>
+ action for limited OS:      <library os='windows'>...
+ add library from forge:     <library source='forge'>...
+ optional:                   <library optional='True'>...
+ skip run/install check:     <library skip_check='True'>...
+
+ default OS is "all"
+ default source is "conda" meaning main conda repo
+ default optional is "false"
+
+ For more information about the command line arguments to library_handler.sh, see that module.
+ Also try
+       `python library_handler.sh -h` and
+       `python library_handler.sh conda -h`
+
+ end reading flow
+-->
+<dependencies>
+  <main>
+    <h5py>2.9.0</h5py>
+    <numpy>1.18.1</numpy>
+    <scipy>1.2.1</scipy>
+    <scikit-learn>0.21.2</scikit-learn>
+    <pandas>0.24.2</pandas>
+    <xarray>0.12.1</xarray>
+    <netcdf4>1.4.2</netcdf4>
+    <matplotlib>3.1.1</matplotlib>
+    <statsmodels>0.12.0</statsmodels>
+    <cloudpickle>1.1.1</cloudpickle>
+    <tensorflow>1.13.1</tensorflow>
+    <python skip_check='True'>3</python>
+    <hdf5 skip_check='True'/>
+    <swig skip_check='True'/>
+    <pylint/>
+    <coverage/>
+    <lxml/>
+    <psutil/>
+    <pip/>
+    <importlib_metadata/>
+    <pyside2 source='forge'/>
+    <nomkl os='linux' skip_check='True'/>
+    <numexpr os='linux'/>
+    <ray os="mac,linux" source="pip">1.0.0</ray>
+    <pillow optional='True'>6.0.0</pillow>
+    <line_profiler optional='True'/>
+  </main>
+  <alternate name="pip">
+    <hdf5>remove</hdf5>
+    <swig>remove</swig>
+    <pip>remove</pip>
+    <python>remove</python>
+    <nomkl>remove</nomkl>
+    <numexpr>remove</numexpr>
+  </alternate>
+</dependencies>

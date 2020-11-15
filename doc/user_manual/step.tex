@@ -99,21 +99,26 @@ This XML node has the following definable attributes:
 \begin{itemize}
 \itemsep0em
 \item \xmlAttr{name}, \xmlDesc{required string attribute}, user-defined name of
-this \textbf{Step}. \nb This name is used to reference this specific entity
-in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name
-of this \textbf{Step} is not listed in the  \xmlNode{Sequence} block, its action is not
-going to be performed.
+  this \textbf{Step}. \nb This name is used to reference this specific entity
+  in the \xmlNode{RunInfo} block, under the \xmlNode{Sequence} node. If the name
+  of this \textbf{Step} is not listed in the  \xmlNode{Sequence} block, its action is not
+  going to be performed.
 \item \xmlAttr{repeatFailureRuns}, \xmlDesc{optional integer attribute}, this optional
-attribute could be used to set a certain number of repetitions that need to be performed
-when a realization (i.e. run) fails (e.g. \xmlAttr{repeatFailureRuns} = ``3'', 3 tries).
+  attribute could be used to set a certain number of repetitions that need to be performed
+  when a realization (i.e. run) fails (e.g. \xmlAttr{repeatFailureRuns} = ``3'', 3 tries).
 \item \xmlAttr{pauseAtEnd}, \xmlDesc{optional boolean/string attribute (case insensitive)}, if True
-(True values = True, yes, y, t), the code will pause at the end of
-the step, waiting for a user signal to continue. This is used in case one or
-more of the \textbf{Outputs} are of type \textbf{OutStreams}.
-For example, it can be used when an \textbf{OutStreams} of type
-\textbf{Plot} is output to the screen. Thus, allowing the user to interact with
-the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
-\default{False}.
+  (True values = True, yes, y, t), the code will pause at the end of
+  the step, waiting for a user signal to continue. This is used in case one or
+  more of the \textbf{Outputs} are of type \textbf{OutStreams}.
+  For example, it can be used when an \textbf{OutStreams} of type
+  \textbf{Plot} is output to the screen. Thus, allowing the user to interact with
+  the \textbf{Plot} (e.g. rotate the figure, change the scale, etc.).
+  \default{False}.
+\item \xmlAttr{clearRunDir}, \xmlDesc{optional boolean attribute}, indicates whether the run
+  directory should be cleared (removed) before beginning
+  the Step calculation. The run directory has the same \xmlAttr{name} as the \xmlNode{Step} and is
+  located within the \xmlNode{WorkingDir}. Note this directory is only used for a \xmlNode{Step}
+  with certain \xmlNode{Model} types, such as \xmlNode{Code}.
 \end{itemize}
 
 In the \xmlNode{SingleRun} input block, the user needs to specify the objects

@@ -203,11 +203,11 @@ vals = randomUtils.randomNormal(3,engine=eng)
 checkArray('random normal single point for local engine provided',vals,right)
 ## test many points
 
-vals = randomUtils.randomNormal(3,5,engine=None)
+vals = randomUtils.randomNormal((5,3),engine=None)
 checkAnswer('randomNormal number of samples for engine not provided',len(vals),5)
 checkAnswer('randomNormal size of sample for engine not provided',len(vals[0]),3)
 
-vals = randomUtils.randomNormal(3,5,engine=eng)
+vals = randomUtils.randomNormal((5,3),engine=eng)
 checkAnswer('randomNormal number of samples for local engine provided',len(vals),5)
 checkAnswer('randomNormal size of sample for local engine provided',len(vals[0]),3)
 
@@ -222,6 +222,18 @@ for i in range(5):
 for i in range(5):
   n = randomUtils.randomIntegers(10,20,None,engine=eng) #no message handler, error handling will error out
   checkAnswer('random integer, {} sample for local engine provided'.format(i),n,right[i])
+### randomChoice(), sampling an element from a array-like object (1D or ND)
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
+arrayLike = [1,2,3,4]
+n = randomUtils.randomChoice(arrayLike,engine=None) #no message handler, error handling will error out
+checkAnswer('random choice from list [1D] of reals for engine not provided',n,2)
+arrayLike = np.asarray(([1,2,3],[5,6,7],[9,10,11]))
+n = randomUtils.randomChoice(arrayLike,engine=None) #no message handler, error handling will error out
+checkAnswer('random choice from ND-array of reals for engine not provided',n,11)
+arrayLike = [["andrea","paul","diego"],["joshua","congjian","mohammad"]]
+n = randomUtils.randomChoice(arrayLike,engine=None) #no message handler, error handling will error out
+checkTrue('random choice from ND-array of objects (strings) for engine not provided',n, ["andrea","paul","diego"])
 ### randomPermutation(), rearranging lists
 randomUtils.randomSeed(42,engine=None)
 randomUtils.randomSeed(42,engine=eng)

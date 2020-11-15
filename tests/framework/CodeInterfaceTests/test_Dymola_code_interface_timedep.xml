@@ -74,19 +74,19 @@
       </variable>
     </MonteCarlo>
     <Grid name="HYBGrid">
-        <variable name="G_a"> 
+        <variable name="G_a">
             <distribution>Grid_dist</distribution>
             <grid construction="equal" steps="1" type="value">0 1</grid>
         </variable>
-        <variable name="G_b"> 
+        <variable name="G_b">
             <distribution>Grid_dist</distribution>
             <grid construction="equal" steps="1" type="value">0 1</grid>
         </variable>
-        <variable name="G_c"> 
+        <variable name="G_c">
             <distribution>Grid_dist</distribution>
             <grid construction="equal" steps="1" type="value">0 1</grid>
         </variable>
-        <variable name="G_z"> 
+        <variable name="G_z">
             <distribution>Grid_dist</distribution>
             <grid construction="equal" steps="1" type="value">0 1</grid>
         </variable>
@@ -95,9 +95,9 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="testDummyStep" re-seeding="1">
-      <Input     class="Files"        type="DymolaInitialisation">dsin.txt</Input> 
-      <Input     class="Files"        type="DymolaVectors">addinp.txt</Input> 
+    <MultiRun name="testDummyStep" re-seeding="1" clearRunDir="False">
+      <Input     class="Files"        type="DymolaInitialisation">dsin.txt</Input>
+      <Input     class="Files"        type="DymolaVectors">addinp.txt</Input>
       <Input     class="DataObjects"  type="PointSet">CreateHIST_in</Input>
       <Model     class="Models"       type="EnsembleModel">Ensemble_Model</Model>
       <Sampler   class="Samplers"     type="EnsembleForward">Ensemble_Sampler</Sampler>
@@ -107,7 +107,7 @@
     <IOStep name="testPrintUnstructuredInputSpace">
        <Input     class="DataObjects" type="DataSet">BBHistorySet_out</Input>
        <Output    class="OutStreams"  type="Print">DB_BouncingBallDump</Output>
- 
+
     </IOStep>
   </Steps>
   <OutStreams>

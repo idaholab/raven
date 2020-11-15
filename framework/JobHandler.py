@@ -180,11 +180,9 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    ## set up enviroment
-    os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
-    ## Check if the list of unique nodes is present and, in case, initialize the
-    servers = None
     if self.runInfoDict['internalParallel']:
+      ## Check if the list of unique nodes is present and, in case, initialize the
+      servers = None
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         ## identify the local host name and get the number of local processors
@@ -198,7 +196,7 @@ class JobHandler(MessageHandler.MessageUser):
         servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
-                         pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+                           pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
         self.raiseADebug("Head node IP address: ", self.rayServer['node_ip_address'])
         self.raiseADebug("Redis address       : ", self.rayServer['redis_address'])
@@ -376,6 +374,26 @@ class JobHandler(MessageHandler.MessageUser):
     self.addJob(args, functionToRun, identifier, metadata,
                 forceUseThreads = True, uniqueHandler = uniqueHandler,
                 clientQueue = True)
+
+  def addFinishedJob(self, data, metadata=None, uniqueHandler="any", profile=False):
+    """
+      Takes an already-finished job (for example, a restart realization) and adds it to the finished queue.
+      @ In, data, dict, completed realization
+      @ In, data, dict, fully-evaluated realization
+      @ In, metadata, dict, optional, dictionary of metadata associated with
+        this run
+      @ In, uniqueHandler, string, optional, it is a special keyword attached to
+        this runner. For example, if present, to retrieve this runner using the
+        method jobHandler.getFinished, the uniqueHandler needs to be provided.
+        If uniqueHandler == 'any', every "client" can get this runner
+      @ In, profile, bool, optional, if True then at deconstruction timing statements will be printed
+      @ Out, None
+    """
+    # create a placeholder runner
+    run = Runners.PassthroughRunner(self.messageHandler, data, metadata=metadata, uniqueHandler=uniqueHandler, profile=profile)
+    # place it on the finished queue
+    with self.__queueLock:
+      self.__finished.append(run)
 
   def isFinished(self):
     """
@@ -705,7 +723,7 @@ class JobHandler(MessageHandler.MessageUser):
     @ Out, None
     """
     self.completed = True
-    if _rayAvail:
+    if _rayAvail and self.rayServer:
      ray.shutdown()
 
 
@@ -750,4 +768,3 @@ class JobHandler(MessageHandler.MessageUser):
           self.raiseADebug('Terminated job "{}" by request.'.format(job.identifier))
     if len(ids):
       self.raiseADebug('Tried to remove some jobs but not found in any queues:',', '.join(ids))
-

@@ -59,7 +59,7 @@ echo Cleaning old build ...
 ${RAVEN_BUILD_DIR}/clean_raven
 
 if [[ $LIBS_MODE == 0 ]]; then
-  # this mode can not be called currently 
+  # this mode can not be called currently
   #### FUTURE WORK:
   # clear .ravenrc
   #if [[ -f "$RAVEN_BUILD_DIR/.ravenrc" ]]; then
@@ -93,10 +93,7 @@ echo Making ...
 
 PYTHON_COMMAND=${PYTHON_COMMAND:=python}
 
-CROW_DIR=${CROW_DIR:=$RAVEN_BUILD_DIR/crow}
-if test ! -e $CROW_DIR/setup.py; then
-    CROW_DIR=$RAVEN_BUILD_DIR/../crow
-fi
+CROW_DIR=$RAVEN_BUILD_DIR/crow
 
 unset CXX CC
 
@@ -110,5 +107,15 @@ fi
 
 (cd $RAVEN_BUILD_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./framework/contrib/AMSC)
 
-
+if [ ! -z "$RAVEN_SIGNATURE" ];
+then
+    #This is to allow the code to be signed on mac os computers.
+    # It requires a signature (possibly self signed) to be used.
+    # Creating a signature is discussed at:
+    # https://developer.apple.com/library/archive/documentation/Security/Conceptual/CodeSigningGuide/Procedures/Procedures.html
+    # RAVEN_SIGNATURE can be added to .ravenrc
+    echo "... Signing code with '$RAVEN_SIGNATURE' ..."
+    (cd $CROW_DIR/install/crow_modules && pwd && codesign -s "$RAVEN_SIGNATURE" -v *.so)
+    (cd $RAVEN_BUILD_DIR/framework/contrib/AMSC && pwd && codesign -s "$RAVEN_SIGNATURE" -v *.so)
+fi
 echo ... done!
