@@ -301,7 +301,7 @@ class JobHandler(MessageHandler.MessageUser):
         command.append("--num-cpus="+str(nProcs))
       outFile = open("ray_head.ip", 'w')
       if newHeadNode is not None:
-        rayStart = utils.pickleSafeSubprocessPopen(['ssh',newHeadNode.split(":")[0],"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile, stderr=outFile, env=localenv)
+        rayStart = utils.pickleSafeSubprocessPopen(['ssh',newHeadNode.split(":")[0],"COMMAND='"+" ".join(command)+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile, stderr=outFile, env=localenv)
       else:
         rayStart = utils.pickleSafeSubprocessPopen(command,shell=False,stdout=outFile, stderr=outFile, env=localenv)
       rayStart.wait()
