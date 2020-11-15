@@ -56,6 +56,13 @@ class MPISimulationMode(Simulation.SimulationMode):
       @ In, runInfoDict, dict, the original runInfo
       @ Out, newRunInfo, dict, of modified values
     """
+    magicSyntax = False
+    if runInfoDict['NumMPI'] == -runInfoDict['NumThreads']:
+      # our special keyword
+      # we selected the nodes as select=batchSize:ncpus=NumThreads
+      # in the PBS_NODEFILE we have only a batchSize number of nodes
+      # but we want to have NumThreads nodes in each of them
+      magicSyntax = True
     newRunInfo = {}
     newRunInfo['batchSize'] = runInfoDict['batchSize']
     if self.__nodefile or self.__inPbs:
@@ -69,11 +76,16 @@ class MPISimulationMode(Simulation.SimulationMode):
       #XXX This is an undocumented way to pass information back
       newRunInfo['Nodes'] = list(lines)
       numMPI = runInfoDict['NumMPI']
+      numThreads = runInfoDict['NumThreads']
       oldBatchsize = runInfoDict['batchSize']
       #the batchsize is just the number of nodes of which there is one
       # per line in the nodefile divided by the numMPI (which is per run)
       # and the floor and int and max make sure that the numbers are reasonable
-      maxBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
+      if not magicSyntax:
+        maxBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
+      else:
+        maxBatchsize = newRunInfo['batchSize']
+
       if maxBatchsize < oldBatchsize:
         newRunInfo['batchSize'] = maxBatchsize
         self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
@@ -82,11 +94,19 @@ class MPISimulationMode(Simulation.SimulationMode):
       if self.__inPbs or self.__runQsub: # OLD: if newBatchsize > 1:
         #need to split node lines so that numMPI nodes are available per run
         workingDir = runInfoDict['WorkingDir']
-        for i in range(newBatchsize):
-          nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
-          for line in lines[i*numMPI:(i+1)*numMPI]:
-            nodeFile.write(line)
-          nodeFile.close()
+        if not magicSyntax:
+          for i in range(newBatchsize):
+            nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
+            for line in lines[i*numMPI:(i+1)*numMPI]:
+              nodeFile.write(line)
+            nodeFile.close()
+        else:
+          for i in range(newBatchsize):
+            nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
+            line = lines[i]
+            for _ in range(numThreads):
+              nodeFile.write(line)
+            nodeFile.close()
 
         #then give each index a separate file.
         nodeCommand = runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
@@ -108,10 +128,18 @@ class MPISimulationMode(Simulation.SimulationMode):
 
     # Create the mpiexec pre command
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
+    #if not magicSyntax:
     newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
-    if(runInfoDict['NumThreads'] > 1):
+    #else:
+    #  newRunInfo['precommand'] = "_specialSyntax_" + runInfoDict["MPIExec"]+" "+nodeCommand+" "+runInfoDict['precommand']
+
+    if runInfoDict['NumThreads'] > 1 and not magicSyntax:
       #add number of threads to the post command.
       newRunInfo['postcommand'] = " --n-threads=%NUM_CPUS% "+runInfoDict['postcommand']
+    else:
+      if self.__inPbs and magicSyntax:
+        newRunInfo['NumMPI'] = -1*runInfoDict['NumMPI']
+
     self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
     return newRunInfo
 
@@ -127,6 +155,9 @@ class MPISimulationMode(Simulation.SimulationMode):
       coresNeeded = self.__coresNeeded
     else:
       coresNeeded = runInfoDict['batchSize']*runInfoDict['NumMPI']
+      if runInfoDict['NumMPI'] == -runInfoDict['NumThreads']:
+        coresNeeded = runInfoDict['batchSize']
+
     # get the requested memory, if any
     if self.__memNeeded is not None:
       memString = ":mem="+self.__memNeeded

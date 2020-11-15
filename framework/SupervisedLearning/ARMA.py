@@ -40,6 +40,7 @@ from scipy.stats import rv_histogram
 from utils import randomUtils, xmlUtils, mathUtils, utils
 import Distributions
 from .SupervisedLearning import supervisedLearning
+
 #Internal Modules End--------------------------------------------------------------------------------
 
 class ARMA(supervisedLearning):

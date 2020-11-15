@@ -289,16 +289,25 @@ class RAVEN(CodeInterfaceBase):
     """
     failure = False
     # check for log file
-    try:
-      outputToRead = open(os.path.join(workingDir,output),"r")
-    except IOError:
-      print(self.printTag+' ERROR: The RAVEN SLAVE log file  "'+str(os.path.join(workingDir,output))+'" does not exist!')
+    ## NOTE this can be falsely accepted if the run dir isn't cleared before running,
+    ##      which it automatically is but can be disabled
+    toCheck = os.path.join(workingDir, self.innerWorkingDir, '.ravenStatus')
+    if not os.path.isfile(toCheck):
+      print(f'RAVENInterface WARNING: Could not find {toCheck}, assuming failed RAVEN run.')
       return True
-    # check for completed run
-    readLines = outputToRead.readlines()
-    if not any("Run complete" in x for x in readLines[-min(200,len(readLines)):]):
-      del readLines
-      return True
+    ### OLD read-the-output-stream method
+    # try:
+    #   print('DEBUGG workdir:', workingDir)
+    #   print('DEBUGG output:', output)
+    #   outputToRead = open(os.path.join(workingDir,output),"r")
+    # except IOError:
+    #   print(self.printTag+' ERROR: The RAVEN SLAVE log file  "'+str(os.path.join(workingDir,output))+'" does not exist!')
+    #   return True
+    # # check for completed run
+    # readLines = outputToRead.readlines()
+    # if not any("Run complete" in x for x in readLines[-min(200,len(readLines)):]):
+    #   del readLines
+    #   return True
     # check for output CSV (and data)
     if not failure:
       for filename in self.linkedDataObjectOutStreamsNames:
@@ -306,13 +315,13 @@ class RAVEN(CodeInterfaceBase):
         try:
           fileObj = open(outStreamFile,"r")
         except IOError:
-          print(self.printTag+' ERROR: The RAVEN SLAVE output file "'+str(outStreamFile)+'" does not exist!')
+          print(self.printTag+' ERROR: The RAVEN INNER output file "'+str(outStreamFile)+'" does not exist!')
           failure = True
         if not failure:
           readLines = fileObj.readlines()
           if any("nan" in x.lower() for x in readLines):
             failure = True
-            print(self.printTag+' ERROR: Found nan in RAVEN SLAVE output "'+str(outStreamFile)+'!')
+            print(self.printTag+' ERROR: Found nan in RAVEN INNER output "'+str(outStreamFile)+'!')
             break
           del readLines
     return failure
