@@ -529,6 +529,10 @@ def importFromPath(filename, printImporting = True):
     (name, ext) = os.path.splitext(name)
     (file, filename, data) = imp.find_module(name, [path])
     importedModule = imp.load_module(name, file, filename, data)
+    pythonPath = os.environ.get("PYTHONPATH","")
+    absPath = os.path.abspath(path)
+    if absPath not in pythonPath:
+      os.environ['PYTHONPATH'] = pythonPath+ os.pathsep + absPath
   except Exception as ae:
     raise Exception('(            ) '+ UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ '-> importing module '+ filename + ' at '+path+os.sep+name+' failed with error '+str(ae))
   return importedModule
@@ -655,6 +659,8 @@ def find_crow(framework_dir):
       pmoduleDir = os.path.join(crowDir,"install")
       if os.path.exists(pmoduleDir):
         sys.path.append(pmoduleDir)
+        # we add it in pythonpath too
+        os.environ['PYTHONPATH'] = os.environ.get("PYTHONPATH","") + os.pathsep + pmoduleDir
         return
     for crowDir in crowDirs:
       if os.path.exists(os.path.join(crowDir,"tests")):
@@ -670,6 +676,11 @@ def add_path(absolutepath):
   if not os.path.exists(absolutepath):
     raise IOError(UreturnPrintTag('UTILS') + ': '+UreturnPrintPostTag('ERROR')+ ' -> "'+absolutepath+ '" directory has not been found!')
   sys.path.append(absolutepath)
+  # we add it in pythonpath too
+  newPath = os.environ.get("PYTHONPATH","") + os.pathsep + absolutepath
+  if len(newPath) >= 32000: #Some OS's have a limit of 2**15 for environ
+    print("WARNING: excessive length PYTHONPATH:'"+str(newPath)+"'")
+  os.environ['PYTHONPATH'] = newPath
 
 def add_path_recursively(absoluteInitialPath):
   """
