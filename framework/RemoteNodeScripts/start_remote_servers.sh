@@ -51,10 +51,10 @@ function display_usage()
 	echo '  Options:'
 	echo '    --help'
 	echo '      Displays this text and exits'
-    echo ''
-    echo '    --remote-node-address'
-    echo '      Remote node address (ssh into)'
-    echo ''
+        echo ''
+        echo '    --remote-node-address'
+        echo '      Remote node address (ssh into)'
+        echo ''
 	echo '    --address'
 	echo '      Head node address'
 	echo ''
@@ -138,22 +138,15 @@ then
 fi
 
 # start the script
-# ssh in the remote node
-ssh $REMOTE_ADDRESS << EOF
-  # if REMOTE_BASH, source it
-  if [[ "$REMOTE_BASH" != "" ]];
-  then
-    source $REMOTE_BASH
-  fi
-  # run ray (the assumption here is that ray is installed in the
-  #          remote machine and in the PATH)
-  if ! command -v ray &> /dev/null
-  then
-      echo "ray could not be found in remote node!"
-      exit
-  fi
-  # execute the command
-  echo ray start --address=$HEAD_ADDRESS --redis-password=$REDIS_PASS --num-cpus $NUM_CPUS
-  # run the command
-  ray start --address=$HEAD_ADDRESS --redis-password=$REDIS_PASS --num-cpus $NUM_CPUS
-EOF
+# ssh in the remote node and run the ray servers
+CWD=`pwd`
+OUTPUT=$CWD/server_debug_$REMOTE_ADDRESS
+
+if [[ "$REMOTE_BASH" == "" ]];
+then
+  ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${OUTPUT} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $REDIS_PASS $NUM_CPUS"
+else
+  ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${OUTPUT} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $REDIS_PASS $NUM_CPUS $REMOTE_BASH"
+fi
+
+
