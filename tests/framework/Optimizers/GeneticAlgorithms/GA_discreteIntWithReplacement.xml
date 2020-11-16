@@ -54,14 +54,11 @@
 
       <GAparams>
         <populationSize>58</populationSize>
-        <parentSelection>rouletteWheel</parentSelection>
         <reproduction nParents="4">
           <crossover type="onePointCrossover">
-            <points>3</points>
             <crossoverProb>0.9</crossoverProb>
           </crossover>
           <mutation type="swapMutator">
-            <locs>2,5</locs>
             <mutationProb>0.1</mutationProb>
           </mutation>
         </reproduction>
@@ -69,12 +66,13 @@
           <a>0.2</a>
           <b>13.0</b>
         </fitness>
+        <parentSelection>rouletteWheel</parentSelection>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
 
-      <convergence>
-        <objective>0.0</objective>
-      </convergence>
+      <!--convergence>
+        <objective>56</objective>
+      </convergence-->
 
       <variable name="proj1">
         <distribution>unif_dist_wRepl</distribution>

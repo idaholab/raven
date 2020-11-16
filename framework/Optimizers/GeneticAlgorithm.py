@@ -133,8 +133,8 @@ class GeneticAlgorithm(RavenSampled):
     parentSelection = InputData.parameterInputFactory('parentSelection', strictMode=True,
         contentType=InputTypes.StringType,
         printPriority=108,
-        descr=r"""A node containing the criterion based on which the parents are selected. This can be
-                  a fitness proportionate selection such as:
+        descr=r"""A node containing the criterion based on which the parents are selected. This can be a
+                  fitness proportional selection such as:
                   a. \textbf{\textit{rouletteWheel}},
                   b. \textbf{\textit{stochasticUniversalSampling}},
                   c. \textbf{\textit{Tournament}},
@@ -167,7 +167,7 @@ class GeneticAlgorithm(RavenSampled):
     crossoverProbability = InputData.parameterInputFactory('crossoverProb', strictMode=True,
         contentType=InputTypes.FloatType,
         printPriority=108,
-        descr=r""" The probability governing the crossover occurance, i.e., the probability that if exceeded crossover will ocur.""")
+        descr=r""" The probability governing the crossover step, i.e., the probability that if exceeded crossover will occur.""")
     crossover.addSub(crossoverProbability)
     reproduction.addSub(crossover)
     # 2.  Mutation
@@ -189,7 +189,7 @@ class GeneticAlgorithm(RavenSampled):
     mutationProbability = InputData.parameterInputFactory('mutationProb', strictMode=True,
         contentType=InputTypes.FloatType,
         printPriority=108,
-        descr=r""" The probability governing the mutation occurance, i.e., the probability that if exceeded mutation will ocur.""")
+        descr=r""" The probability governing the mutation step, i.e., the probability that if exceeded mutation will ocur.""")
     mutation.addSub(mutationProbability)
     reproduction.addSub(mutation)
     GAparams.addSub(reproduction)
@@ -198,7 +198,7 @@ class GeneticAlgorithm(RavenSampled):
     survivorSelection = InputData.parameterInputFactory('survivorSelection', strictMode=True,
         contentType=InputTypes.StringType,
         printPriority=108,
-        descr=r"""a subnode containing the implemented servivor selection mechanisms.
+        descr=r"""a subnode containing the implemented survivor selection mechanisms.
                   This includes: a.    ageBased, or
                                  b.    fitnessBased.""")
     GAparams.addSub(survivorSelection)
