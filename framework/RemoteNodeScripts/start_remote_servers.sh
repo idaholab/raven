@@ -118,7 +118,7 @@ do
   shift
 done
 
-
+echo $REMOTE_ADDRESS
 if [[ "$REMOTE_ADDRESS" == "" ]];
 then
   echo ... ERROR: --remote-node-address argument must be inputted !
