@@ -646,7 +646,7 @@ def find_crow(framework_dir):
     @ Out, None
   """
   try:
-    import crow_modules.distribution1Dpy3
+    import crow_modules.distribution1Dpy2
     return
   except:
     ravenDir = os.path.dirname(framework_dir)
@@ -704,7 +704,7 @@ def findCrowModule(name):
   ext = 'py3' if sys.version_info.major > 2 else 'py2'
   try:
     module = import_module("crow_modules.{}{}".format(name,ext))
-  except ImportError as ie:
+  except (ImportError, ModuleNotFoundError) as ie:
     if not str(ie).startswith("No module named"):
       raise ie
     module = import_module("{}{}".format(name,ext))
