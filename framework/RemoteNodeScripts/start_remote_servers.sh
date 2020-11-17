@@ -51,10 +51,10 @@ function display_usage()
 	echo '  Options:'
 	echo '    --help'
 	echo '      Displays this text and exits'
-        echo ''
-        echo '    --remote-node-address'
-        echo '      Remote node address (ssh into)'
-        echo ''
+    echo ''
+    echo '    --remote-node-address'
+    echo '      Remote node address (ssh into)'
+    echo ''
 	echo '    --address'
 	echo '      Head node address'
 	echo ''
@@ -70,6 +70,13 @@ function display_usage()
 	echo '    --remote-bash-profile'
 	echo '      The bash profile to source before executing the tunneling commands'
 	echo ''
+	echo '     --python-path'
+	echo '      The PYTHONPATH enviroment variable'
+	echo ''
+	echo '     --working-dir'
+	echo '      The workind directory'
+	echo ''
+ 
 }
 
 # main
@@ -77,6 +84,8 @@ function display_usage()
 REMOTE_ADDRESS=""
 HEAD_ADDRESS=""
 REDIS_PASS=""
+PYTHONPATH=""
+WORKINGDIR=""
 # set default
 NUM_CPUS=1
 NUM_GPUS=-1
@@ -114,6 +123,14 @@ do
       shift
       REMOTE_BASH=$1
       ;;
+    --python-path)
+      shift
+      PYTHONPATH=$1
+      ;;
+      --working-dir)
+      shift
+      WORKINGDIR=$1
+      ;;
   esac
   shift
 done
@@ -137,6 +154,19 @@ then
   exit
 fi
 
+if [[ "$PYTHONPATH" == "" ]];
+then
+  echo ... ERROR: --python-path argument must be inputted !
+  exit
+fi
+
+if [[ "$WORKINGDIR" == "" ]];
+then
+  echo ... ERROR: --working-dir argument must be inputted !
+  exit
+fi
+
+
 # start the script
 # ssh in the remote node and run the ray servers
 CWD=`pwd`
@@ -144,9 +174,9 @@ OUTPUT=$CWD/server_debug_$REMOTE_ADDRESS
 
 if [[ "$REMOTE_BASH" == "" ]];
 then
-  ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${OUTPUT} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $REDIS_PASS $NUM_CPUS"
+  ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${WORKINGDIR} ${OUTPUT} ${PYTHONPATH} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $REDIS_PASS $NUM_CPUS"
 else
-  ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${OUTPUT} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $REDIS_PASS $NUM_CPUS $REMOTE_BASH"
+  ssh $REMOTE_ADDRESS $ECE_SCRIPT_DIR/server_start.py ${WORKINGDIR} ${OUTPUT} ${PYTHONPATH} "${ECE_SCRIPT_DIR}/start_ray.sh $OUTPUT $HEAD_ADDRESS $REDIS_PASS $NUM_CPUS $REMOTE_BASH"
 fi
 
 

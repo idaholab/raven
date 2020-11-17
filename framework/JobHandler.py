@@ -190,18 +190,13 @@ class JobHandler(MessageHandler.MessageUser):
         self.raiseADebug("Head host name is   : ", localHostName)
         # number of processors
         nProcsHead = availableNodes.count(localHostName)
-        newHead = False
         if not nProcsHead:
-          #newHead = True
           self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
           uniqueN = list(set(availableNodes))
           self.raiseAWarning('Head host name "'+localHostName+'" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
-          # we pick the first node in the available nodes and we make it as the head node for RAY
-          #newHeadNode = availableNodes[0]
-          #nProcsHead = availableNodes.count(newHeadNode)
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
-        if not nProcsHead:
-          nProcsHead+=1
+        #if not nProcsHead:
+        #  nProcsHead+=1
         # create head node cluster
         if 'headNode' in self.runInfoDict:
           address, redisPassword = self.runInfoDict['headNode'], self.runInfoDict['redisPassword']
@@ -381,8 +376,8 @@ class JobHandler(MessageHandler.MessageUser):
       ## Modify the python path used by the local environment
       localenv = os.environ.copy()
       pathSeparator = os.pathsep
-      if "PYTHONPATH" in localenv and len(localenv["PYTHONPATH"]) > 0:
-        previousPath = localenv["PYTHONPATH"]+pathSeparator
+      if "PYTHONPATH" in localenv and len(localenv["PYTHONPATH"].strip()) > 0:
+        previousPath = localenv["PYTHONPATH"].strip()+pathSeparator
       else:
         previousPath = ""
       localenv["PYTHONPATH"] = previousPath+pathSeparator.join(sys.path)
@@ -400,10 +395,10 @@ class JobHandler(MessageHandler.MessageUser):
         ## let's build the command and then call the os-agnostic version
         if _rayAvail:
           self.raiseADebug("Setting up RAY server in node: "+nodeId.strip())
-          #command=" ".join(["ray start", "--address="+address,"--redis-password="+redisPassword, "--num-cpus",str(ntasks)])
           runScript = os.path.join(self.runInfoDict['FrameworkDir'],"RemoteNodeScripts","start_remote_servers.sh")
-          command=" ".join([runScript,"--remote-node-address",nodeId, "--address",address,"--redis-password",redisPassword, "--num-cpus",str(ntasks),"--remote-bash-profile",self.runInfoDict['RemoteRunCommand']])
+          command=" ".join([runScript,"--remote-node-address",nodeId, "--address",address,"--redis-password",redisPassword, "--num-cpus",str(ntasks)," --working-dir ",self.runInfoDict['WorkingDir'],"--remote-bash-profile",self.runInfoDict['RemoteRunCommand']])
           print("command is: "+command)
+          command += " --python-path "+localenv["PYTHONPATH"]
           self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,stdout=outFile,stderr=outFile,env=localenv)
         else:
           ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
