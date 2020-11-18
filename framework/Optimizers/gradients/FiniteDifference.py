@@ -78,7 +78,7 @@ class FiniteDifference(GradientApproximater):
       # constraint handling
       if constraints is not None:
         denormed = constraints['denormalize'](new)
-        alt, delta = self._handleConstraints(denormed, constraints['denormalize'][opt], optVar, constraints)
+        alt, delta = self._handleConstraints(denormed, constraints['denormalize'](opt), optVar, constraints)
         denormed[optVar] = alt
         new = constraints['normalize'](denormed)
       # store as samplable point
