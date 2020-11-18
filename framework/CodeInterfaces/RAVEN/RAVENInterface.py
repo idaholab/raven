@@ -53,6 +53,7 @@ class RAVEN(CodeInterfaceBase):
     self.linkedDataObjectOutStreamsNames = None
     # input manipulation module
     self.inputManipulationModule = None
+    self.printFailedRuns = False  # whether to print failed runs to the screen
 
   def addDefaultExtension(self):
     """

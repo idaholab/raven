@@ -692,10 +692,13 @@ class Code(Model):
     else:
       self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
       absOutputFile = os.path.join(sampleDirectory,outputFile)
-      if os.path.exists(absOutputFile):
-        self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
-      else:
-        self.raiseAMessage(" No output " + absOutputFile)
+        if os.path.exists(absOutputFile):
+          if getattr(self.code, 'printFailedRuns', True):
+            self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
+          else:
+            self.raiseAMessage(f'Ouput is in "{os.path.abspath(absOutputFile)}"')
+        else:
+          self.raiseAMessage(" No output " + absOutputFile)
 
       ## If you made it here, then the run must have failed
       return None
