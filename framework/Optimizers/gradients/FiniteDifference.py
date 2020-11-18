@@ -77,8 +77,10 @@ class FiniteDifference(GradientApproximater):
       new[optVar] = optValue + delta
       # constraint handling
       if constraints is not None:
-        alt, delta = self._handleConstraints(new, opt, optVar, constraints)
-      new[optVar] = alt
+        denormed = constraints['denormalize'](new)
+        alt, delta = self._handleConstraints(denormed, constraints['denormalize'][opt], optVar, constraints)
+        denormed[optVar] = alt
+        new = constraints['normalize'](denormed)
       # store as samplable point
       evalPoints.append(new)
       evalInfo.append({'type': 'grad',
