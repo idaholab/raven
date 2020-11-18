@@ -516,15 +516,15 @@ class Code(Model):
     for runtype,cmd in executeCommand:
       newCommand=''
 
-      if runtype.lower() == 'parallel' or self.code.__class__.__name__ == 'RAVEN': #or precommand.startswith("_specialSyntax_"):
+      if runtype.lower() == 'parallel' #or self.code.__class__.__name__ == 'RAVEN':
         newCommand += precommand
-        if self.code.__class__.__name__ == 'RAVEN':
-          if "-n" in newCommand:
-            pre, after = newCommand.split(" -n ")
-            parts = after.split()
-            parts[0] = "1"
-            after = " ".join(parts)
-            newCommand = pre + " -n " + after
+        #if self.code.__class__.__name__ == 'RAVEN':
+        #  if "-n" in newCommand:
+        #    pre, after = newCommand.split(" -n ")
+        #    parts = after.split()
+        #    parts[0] = "1"
+        #    after = " ".join(parts)
+        #    newCommand = pre + " -n " + after
         newCommand += cmd+' '
         newCommand += postcommand
         commands.append(newCommand)
