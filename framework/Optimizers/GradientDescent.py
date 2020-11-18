@@ -531,7 +531,7 @@ class GradientDescent(RavenSampled):
     ## constraint functions is list of functions to call "evaluate" on
     ## inputs is dictionary of other stuff that constraints might need to be evaluated
     ## TODO we really should pass the checkFunctionalConstraints and check/applyBoundaryConstraints instead!!
-    constraints = {'boundary': self.distDict, 'functional': self._constraintFunctions, 'inputs': self.constants}
+    constraints = {'boundary': self.distDict, 'functional': self._constraintFunctions, 'inputs': self.constants, 'normalize': self.normalizeData, 'denormalize': self.denormalizeData}
     gradPoints, gradInfos = self._gradientInstance.chooseEvaluationPoints(opt, stepSize, constraints=constraints)
     for i, grad in enumerate(gradPoints):
       self._submitRun(grad, traj, step, 'grad_{}'.format(i), moreInfo=gradInfos[i])
