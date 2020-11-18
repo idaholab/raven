@@ -565,6 +565,7 @@ class GeneticAlgorithm(RavenSampled):
       self.bestFitness = Fit[0]
       self.bestObjective = obj[0]
     return point
+  
   def _checkAcceptability(self, traj, opt, optVal, info):
     """
       This is an abstract method for all RavenSampled Optimizer, whereas for GA all children are accepted
@@ -670,7 +671,7 @@ class GeneticAlgorithm(RavenSampled):
 
   def _popDist(self,ai,B,q=2):
     """
-      minimum minkowski distance from ai to B (nearest point in B)
+      Minimum Minkowski distance from ai to B (nearest point in B)
       @ In, ai, 1d array, the ith chromosome in the generation A
       @ In, B, np.array, population B
       @ Out, _popDist, float, the minimum distance from ai to B $inf_(\|ai-bj\|_q)**\frac{1}{q}$

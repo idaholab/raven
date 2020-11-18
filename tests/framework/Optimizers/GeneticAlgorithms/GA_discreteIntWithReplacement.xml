@@ -70,9 +70,10 @@
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
 
-      <!--convergence>
-        <objective>56</objective>
-      </convergence-->
+      <convergence>
+        <!--AHDp>1</AHDp-->
+        <objective>-1</objective>
+      </convergence>
 
       <variable name="proj1">
         <distribution>unif_dist_wRepl</distribution>
