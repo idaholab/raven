@@ -209,6 +209,12 @@ class JobHandler(MessageHandler.MessageUser):
             self.raiseADebug("Head redis pass   :", redisPassword)
           ## Get servers and run ray remote listener
           servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword)
+          if self.rayInstanciatedOutside:
+            # update the python path and working dir
+            self.__updateListeningSockets(localHostName)
+            # update head node paths
+            olderPath = os.environ["PYTHONPATH"].split(os.pathsep) if "PYTHONPATH" in os.environ else []
+            os.environ["PYTHONPATH"] = os.pathsep.join(list(set(olderPath+sys.path)))
           # add names in runInfo
           self.runInfoDict['remoteNodes'] = servers
           ## initialize ray server with nProcs
@@ -354,6 +360,43 @@ class JobHandler(MessageHandler.MessageUser):
           redisPassword = redisPassword.split("=")[-1].replace("'","")
           break
     return address, redisPassword
+
+  def __updateListeningSockets(self, localHostName):
+    """
+      Update the path in the remote nodes
+      @ In, localHostName, string, the head node name
+      @ Out, None
+    """
+    ## Get the local machine name and the remote nodes one
+    remoteNodesIP = self.__getLocalAndRemoteMachineNames()
+    ## Strip out the nodes' names
+    availableNodes = [node.strip() for node in self.runInfoDict['Nodes']]
+    ## Get unique nodes
+    uniqueNodes  = list(set(list(set(availableNodes))) - set([localHostName]))
+    servers      = []
+    self.remoteServers = {}
+    if len(uniqueNodes) > 0:
+      ## There are remote nodes that need to be activated
+      ## Modify the python path used by the local environment
+      localenv = os.environ.copy()
+      pathSeparator = os.pathsep
+      if "PYTHONPATH" in localenv and len(localenv["PYTHONPATH"].strip()) > 0:
+        previousPath = localenv["PYTHONPATH"].strip()+pathSeparator
+      else:
+        previousPath = ""
+      localenv["PYTHONPATH"] = previousPath+pathSeparator.join(sys.path)
+      ## Start
+      for nodeId in uniqueNodes:
+        remoteHostName =  remoteNodesIP[nodeId]
+        ## Activate the remote socketing system
+        ## let's build the command and then call the os-agnostic version
+        if _rayAvail:
+          self.raiseADebug("Updating RAY server in node: "+nodeId.strip())
+          runScript = os.path.join(self.runInfoDict['FrameworkDir'],"RemoteNodeScripts","update_path_in_remote_servers.sh")
+          command=" ".join([runScript,"--remote-node-address",nodeId," --working-dir ",self.runInfoDict['WorkingDir']])
+          print("command is: "+command)
+          command += " --python-path "+localenv["PYTHONPATH"]
+          self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localenv)
 
   def __runRemoteListeningSockets(self,address, localHostName, redisPassword):
     """
