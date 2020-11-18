@@ -516,7 +516,7 @@ class Code(Model):
     for runtype,cmd in executeCommand:
       newCommand=''
 
-      if runtype.lower() == 'parallel' #or self.code.__class__.__name__ == 'RAVEN':
+      if runtype.lower() == 'parallel': #or self.code.__class__.__name__ == 'RAVEN':
         newCommand += precommand
         #if self.code.__class__.__name__ == 'RAVEN':
         #  if "-n" in newCommand:
