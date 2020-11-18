@@ -526,7 +526,13 @@ class GradientDescent(RavenSampled):
     self._submitRun(opt, traj, step, 'opt')
     # GRAD POINTS
     # collect grad points
-    gradPoints, gradInfos = self._gradientInstance.chooseEvaluationPoints(opt, stepSize)
+    # HACK FIXME TODO adding constraints too
+    ## boundary is distribution dict of bounds
+    ## constraint functions is list of functions to call "evaluate" on
+    ## inputs is dictionary of other stuff that constraints might need to be evaluated
+    ## TODO we really should pass the checkFunctionalConstraints and check/applyBoundaryConstraints instead!!
+    constraints = {'boundary': self.distDict, 'functional': self._constraintFunctions, 'inputs': self.constants}
+    gradPoints, gradInfos = self._gradientInstance.chooseEvaluationPoints(opt, stepSize, constraints=constraints)
     for i, grad in enumerate(gradPoints):
       self._submitRun(grad, traj, step, 'grad_{}'.format(i), moreInfo=gradInfos[i])
 

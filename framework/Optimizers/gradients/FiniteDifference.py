@@ -56,7 +56,7 @@ class FiniteDifference(GradientApproximater):
   ###############
   # Run Methods #
   ###############
-  def chooseEvaluationPoints(self, opt, stepSize):
+  def chooseEvaluationPoints(self, opt, stepSize, constraints=None):
     """
       Determines new point(s) needed to evaluate gradient
       @ In, opt, dict, current opt point (normalized)
@@ -70,17 +70,100 @@ class FiniteDifference(GradientApproximater):
 
     directions = np.asarray(randomUtils.random(self.N) < 0.5) * 2 - 1
     for o, optVar in enumerate(self._optVars):
+      # pick a new grad eval point
       optValue = opt[optVar]
       new = copy.deepcopy(opt)
       delta = dh * directions[o]
       new[optVar] = optValue + delta
+      # constraint handling
+      if constraints is not None:
+        alt, delta = self._handleConstraints(new, opt, optVar, constraints)
+      new[optVar] = alt
+      # store as samplable point
       evalPoints.append(new)
       evalInfo.append({'type': 'grad',
                        'optVar': optVar,
                        'delta': delta})
-
-
     return evalPoints, evalInfo
+
+  def _handleConstraints(self, newPoint, original, optVar, constraints):
+    """ TODO HACK FIXME TEMP XXX """
+    # check optVar boundaries first
+    new = newPoint[optVar]
+    orgval = original[optVar]
+    delta = new - orgval
+    scale = abs(0.5*(new + orgval))
+    dist = constraints['boundary'][optVar]
+    lower = dist.lowerBound
+    upper = dist.upperBound
+    changed = False
+    if new < lower:
+      # FIXME someday raise a debug?
+      # can we use the other side?
+      # FIXME should search other side, we just going to try once
+      alt = orgval - delta
+      if lower < alt < upper:
+        new = alt
+        delta = - delta
+        changed = True
+      # can we just use the lower? Make sure we keep some relative distance
+      elif abs(lower - orgval) / scale > 1e-6: # TODO hardcoded number
+        new = lower
+        delta = new - orgval
+        changed = True
+      # if you got here we're dead
+      else:
+        raise RuntimeError(f'Could not find acceptable value for {optVar}: start {orgval:1.8e}, wanted {new:1.8e}, lower {lower:1.8e}.')
+    elif new > upper:
+      # FIXME someday raise a debug?
+      # can we use the other side?
+      # FIXME should search other side, we just going to try once
+      alt = orgval - delta
+      if lower < alt < upper:
+        new = alt
+        delta = - delta
+        changed = True
+      # can we just use the upper? Make sure we keep some relative distance
+      elif abs(upper - orgval)/(0.5*(upper + orgval)) > 1e-6: # TODO hardcoded number
+        new = upper
+        delta = new - orgval
+        changed = True
+      # if you got here we're dead
+      else:
+        raise RuntimeError(f'Could not find acceptable value for {optVar}: start {orgval:1.8e}, wanted {new:1.8e}, upper {upper:1.8e}.')
+    if changed:
+      newPoint[optVar] = new
+    # functional constraints
+    info = constraints['inputs']
+    allOkay = False
+    flipped = False
+    shrinkIters = 0
+    origDelta = delta
+    while not allOkay:
+      allOkay = True
+      for constraint in constraints['functional']:
+        info.update(newPoint)
+        okay = constraint.evaluate('constrain', info)
+        allOkay &= okay
+      if not allOkay:
+        # try incrementally shrinking
+        shrinkIters += 1
+        delta = origDelta / (2**shrinkIters)
+        # if we shrunk too far ...
+        if abs(delta) / scale < 1e-6:
+          # try the other side
+          if not flipped:
+            flipped = True
+            delta = - origDelta
+          # we already tried both sides!
+          else:
+            raise RuntimeError(f'Could not find acceptable value for {optVar}: start {orgval:1.8e}, wanted {new:1.8e}, rejected by constraints.')
+        new = orgval + delta
+        newPoint[optVar] = new
+    return new, delta
+
+
+
 
   def evaluate(self, opt, grads, infos, objVar):
     """
