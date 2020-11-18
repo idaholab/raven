@@ -185,6 +185,7 @@ class JobHandler(MessageHandler.MessageUser):
       servers = None
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
+        uniqueN = list(set(availableNodes))
         ## identify the local host name and get the number of local processors
         localHostName = self.__getLocalHost()
         self.raiseADebug("Head host name is   : ", localHostName)
@@ -192,31 +193,26 @@ class JobHandler(MessageHandler.MessageUser):
         nProcsHead = availableNodes.count(localHostName)
         if not nProcsHead:
           self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
-          uniqueN = list(set(availableNodes))
           self.raiseAWarning('Head host name "'+localHostName+'" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
-        #if not nProcsHead:
-        #  nProcsHead+=1
-        # create head node cluster
-        if 'headNode' in self.runInfoDict:
-          address, redisPassword = self.runInfoDict['headNode'], self.runInfoDict['redisPassword']
-        else:
-          address, redisPassword = self.__runHeadNode(nProcsHead)
+        if nProcsHead != len(availableNodes):
+          # create head node cluster
+          address, redisPassword = (self.runInfoDict['headNode'], self.runInfoDict['redisPassword']) if 'headNode' in self.runInfoDict else self.__runHeadNode(nProcsHead)
+          # add names in runInfo
           self.runInfoDict['headNode'], self.runInfoDict['redisPassword'] = address, redisPassword
-        if _rayAvail:
-          self.raiseADebug("Head host IP      :", address)
-          self.raiseADebug("Head redis pass   :", redisPassword)
-        ## Get servers and run ray remote listener
-        if 'remoteNodes' in self.runInfoDict:
-          servers = self.runInfoDict['remoteNodes']
-        else:
-          servers = self.__runRemoteListeningSockets(address, localHostName, redisPassword)
+          if _rayAvail:
+            self.raiseADebug("Head host IP      :", address)
+            self.raiseADebug("Head redis pass   :", redisPassword)
+          ## Get servers and run ray remote listener
+          servers = self.runInfoDict['remoteNodes'] if 'remoteNodes' in self.runInfoDict else self.__runRemoteListeningSockets(address, localHostName, redisPassword)
+          # add names in runInfo
           self.runInfoDict['remoteNodes'] = servers
-        ## initialize ray server with nProcs
-        self.rayServer = ray.init(address=address, _redis_password=redisPassword, log_to_driver=True) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
-
-        self.raiseADebug("NODES IN THE CLUSTER : ", str(ray.nodes()))
-
+          ## initialize ray server with nProcs
+          self.rayServer = ray.init(address=address, _redis_password=redisPassword) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
+          self.raiseADebug("NODES IN THE CLUSTER : ", str(ray.nodes()))
+        else:
+          self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
+          self.rayServer = ray.init(num_cpus=nProcsHead)
       else:
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
@@ -245,7 +241,7 @@ class JobHandler(MessageHandler.MessageUser):
     ## collect the qualified hostnames for each remote node
     for nodeId in list(set(self.runInfoDict['Nodes'])):
       hostNameMapping[nodeId.strip()] = socket.gethostbyname(nodeId.strip())
-      self.raiseADebug("Remote Host identified ", hostNameMapping[nodeId.strip()])
+      self.raiseADebug('Host "'+nodeId.strip()+'" identified with IP: ', hostNameMapping[nodeId.strip()])
 
     return hostNameMapping
 
