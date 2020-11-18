@@ -183,6 +183,8 @@ class JobHandler(MessageHandler.MessageUser):
     if self.runInfoDict['internalParallel']:
       ## Check if the list of unique nodes is present and, in case, initialize the
       servers = None
+      sys.path.append(self.runInfoDict['WorkingDir'])
+      self.rayInstanciatedOutside = False
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         uniqueN = list(set(availableNodes))
@@ -195,16 +197,18 @@ class JobHandler(MessageHandler.MessageUser):
           self.raiseAWarning("# of local procs are 0. Only remote procs are avalable")
           self.raiseAWarning('Head host name "'+localHostName+'" /= Avail Nodes "'+', '.join(uniqueN)+'"!')
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
+        # is ray instanciated outside?
+        self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
         if nProcsHead != len(availableNodes):
           # create head node cluster
-          address, redisPassword = (self.runInfoDict['headNode'], self.runInfoDict['redisPassword']) if 'headNode' in self.runInfoDict else self.__runHeadNode(nProcsHead)
+          address, redisPassword = (self.runInfoDict['headNode'], self.runInfoDict['redisPassword']) if self.rayInstanciatedOutside else self.__runHeadNode(nProcsHead)
           # add names in runInfo
           self.runInfoDict['headNode'], self.runInfoDict['redisPassword'] = address, redisPassword
           if _rayAvail:
             self.raiseADebug("Head host IP      :", address)
             self.raiseADebug("Head redis pass   :", redisPassword)
           ## Get servers and run ray remote listener
-          servers = self.runInfoDict['remoteNodes'] if 'remoteNodes' in self.runInfoDict else self.__runRemoteListeningSockets(address, localHostName, redisPassword)
+          servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword)
           # add names in runInfo
           self.runInfoDict['remoteNodes'] = servers
           ## initialize ray server with nProcs
@@ -259,7 +263,7 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    if _rayAvail and self.rayServer is not None:
+    if _rayAvail and self.rayServer is not None and not self.rayInstanciatedOutside:
       # we need to ssh and stop each remote node cluster (ray)
       servers = []
       if 'remoteNodes' in self.runInfoDict:
