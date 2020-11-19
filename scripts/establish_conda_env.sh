@@ -470,4 +470,14 @@ fi
 # activate environment and write settings if successful
 activate_env
 
+if [ -z "$RAVEN_SIGNATURE" ];
+then
+    RAVEN_SIGNATURE=$(read_ravenrc "RAVEN_SIGNATURE")
+fi
+if [ ! -z "$RAVEN_SIGNATURE" ];
+then
+    if [[ $ECE_VERBOSE == 0 ]]; then echo "... Using '$RAVEN_SIGNATURE' for signing ..."; fi
+    export RAVEN_SIGNATURE
+fi
+
 if [[ $ECE_VERBOSE == 0 ]]; then echo  ... done!; fi

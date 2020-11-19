@@ -57,3 +57,4 @@ stochasticCollocation/inputs/run/training_data.xml
 timeDepDataMining/inputs/basicStatisticsTimeDependent/
 timeDepDataMining/inputs/resultsHierarchicalDTW/
 timeDepDataMining/inputs/timeSliceKMeans/
+forwardSampling/Inputs/test_*.xml

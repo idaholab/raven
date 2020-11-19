@@ -104,6 +104,7 @@ import numpy
 import pandas as pd
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
+from utils import mathUtils
 
 class Dymola(CodeInterfaceBase):
   """
@@ -449,9 +450,19 @@ class Dymola(CodeInterfaceBase):
       m = t.duplicated()
       if len(t[m]):
         # duplicated values
+        tIndex = None
+        iIndex = 1
         for i in range(len(t[m])):
           index = t[m].index[i]
-          t[index] = t[index] + numpy.finfo(float).eps
+          if tIndex is None:
+            tIndex = t[index]
+          else:
+            if mathUtils.compareFloats(tIndex, t[index], tol=1.0E-15):
+              iIndex += 1
+            else:
+              iIndex = 1
+              tIndex = t[index]
+          t[index] = t[index] + numpy.finfo(float).eps*t[index]*iIndex
         varTrajectories[:,0] = t.to_numpy()
       response = {var:varTrajectories[:,i] for (i, var) in enumerate(varNames[0])}
       # write CSV if the user requests it
