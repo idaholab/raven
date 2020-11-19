@@ -407,6 +407,25 @@ class RavenSampled(Optimizer):
         modded = True
     return point, modded
 
+  def _checkBoundaryConstraints(self, point):
+    """
+      Checks (NOT fixes) boundary constraints of variables in "point" -> DENORMED point expected!
+      @ In, point, dict, potential point against which to check
+      @ Out, point, dict, adjusted variables
+      @ Out, modded, bool, whether point was modified or not
+    """
+    okay = True
+    for var in self.toBeSampled:
+      dist = self.distDict[var]
+      val = point[var]
+      lower = dist.lowerBound
+      upper = dist.upperBound
+      if val < lower or val > upper:
+        okay = False
+        break
+    return okay
+
+
   @abc.abstractmethod
   def _applyFunctionalConstraints(self, suggested, previous):
     """
