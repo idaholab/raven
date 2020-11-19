@@ -501,7 +501,7 @@ class GradientDescent(RavenSampled):
       suggested, modStepSize, info = self._stepInstance.fixConstraintViolations(suggested, previous, info)
       denormed = self.denormalizeData(suggested)
       self.raiseADebug(' ... suggested norm step {:1.2e}, new opt {}'.format(modStepSize, denormed))
-      passFuncs = self._checkFunctionalConstraints(denormed)
+      passFuncs = self._checkFunctionalConstraints(denormed) and self._checkBoundaryConstraints(denormed)
       tries -= 1
       if tries == 0:
         self.raiseAnError(NotImplementedError, 'No acceptable point findable! Now what?')
