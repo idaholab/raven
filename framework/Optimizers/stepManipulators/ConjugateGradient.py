@@ -78,6 +78,8 @@ class ConjugateGradient(StepManipulator):
     self._persistence = None     # consecutive line search converges until acceptance
     # __private
     # additional methods
+    self._minRotationAngle = 2.0 # how close to perpendicular should we try rotating towards?
+    self._numRandomPerp = 10     # how many random perpendiculars should we try rotating towards?
 
   def handleInput(self, specs):
     """
