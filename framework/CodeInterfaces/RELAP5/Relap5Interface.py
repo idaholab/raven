@@ -56,6 +56,21 @@ class Relap5(CodeInterfaceBase):
       for cnt in range(len(self.operators)):
         self.operators[cnt]['cardsValues'] = {card:cardValues[card] for card in self.operators[cnt]['cards']}
 
+  def _findInputFileIndex(self, currentInputFiles):
+    """
+      Find input file index
+      @ In, currentInputFiles, list, list of current input files to search from
+      @ Out, index, int, the index of the relap input
+    """
+    found = False
+    for index, inputFile in enumerate(currentInputFiles):
+      if inputFile.getExt() in self.getInputExtension():
+        found = True
+        break
+    if not found:
+      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    return index
+
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class and initialize
@@ -193,6 +208,34 @@ class Relap5(CodeInterfaceBase):
         except Exception as e:
           raise IOError('ERROR in "RELAP5 Code Interface": inputted <expression> is not valid! Exception:'+str(e) )
 
+  def __transferMetadata(self, metadataToTransfer, currentPath):
+    """
+      Method to tranfer metadata if present
+      @ In, metadataToTransfer, dict, the metadata to transfer
+      @ In currentPath, str, the current working path
+      @ Out, None
+    """
+    if metadataToTransfer is not None:
+      sourceID = metadataToTransfer.get("sourceID",None)
+      if sourceID is not None:
+        # search for restrt file
+        currentPath
+        sourcePath = os.path.join(currentPath,"../",sourceID)
+        rstrtFile = None
+        for fileToCheck in os.listdir(sourcePath):
+          if fileToCheck.strip() == 'restrt' or fileToCheck.strip().endswith(".r"):
+            rstrtFile = fileToCheck
+        if rstrtFile is None:
+          raise IOError("metadataToTransfer|sourceID has been provided but no restart file has been found!")
+        sourceFile = os.path.join(sourcePath, rstrtFile)
+        try:
+          shutil.copy(sourceFile, currentPath)
+        except:
+          raise IOError('not able to copy restart file from "'+sourceFile+'" to "'+currentPath+'"')
+      else:
+        raise IOError('the only metadtaToTransfer that is available in RELAP5 is "sourceID". Got instad: '+', '.join(metadataToTransfer.keys()))
+
+
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
       this generate a new input file depending on which sampler is chosen
@@ -208,7 +251,8 @@ class Relap5(CodeInterfaceBase):
     if det:
       self._samplersDictionary[samplerType] = self.DynamicEventTreeForRELAP5
       detVars   = Kwargs.get('DETVariables')
-      if not detVars: raise IOError('ERROR in "RELAP5 Code Interface": NO DET variables with DET sampler!!!')
+      if not detVars:
+        raise IOError('ERROR in "RELAP5 Code Interface": NO DET variables with DET sampler!!!')
       hdetVars  = Kwargs.get('HDETVariables')
       functVars = Kwargs.get('FunctionVariables')
       constVars = Kwargs.get('ConstantVariables')
@@ -222,37 +266,15 @@ class Relap5(CodeInterfaceBase):
       self._samplersDictionary[samplerType] = self.pointSamplerForRELAP5
     if len(self.operators) > 0:
       self._evaluateOperators(**Kwargs)
-    found = False
-    for index, inputFile in enumerate(currentInputFiles):
-      if inputFile.getExt() in self.getInputExtension():
-        found = True
-        break
-    if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    # find input file index
+    index = self._findInputFileIndex(currentInputFiles)
+    # instanciate the parser
     parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile(), det)
-    # if det, check which variable is connected to a trip (and consequentially must represent a stop condition)
-    trips = parser.getTrips()
-
-
-    metadataToTransfer = Kwargs.get("metadataToTransfer",None)
-    if metadataToTransfer is not None:
-      sourceID = metadataToTransfer.get("sourceID",None)
-      if sourceID is not None:
-        # search for restrt file
-        sourcePath = os.path.join(currentInputFiles[index].getPath(),"../",sourceID)
-        rstrtFile = None
-        for fileToCheck in os.listdir(sourcePath):
-          if fileToCheck.strip() == 'restrt' or fileToCheck.strip().endswith(".r"):
-            rstrtFile = fileToCheck
-        if rstrtFile is None:
-          raise IOError("metadataToTransfer|sourceID has been provided but no restart file has been found!")
-        sourceFile = os.path.join(sourcePath, rstrtFile)
-        try:
-          shutil.copy(sourceFile, currentInputFiles[index].getPath())
-        except:
-          raise IOError('not able to copy restart file from "'+sourceFile+'" to "'+currentInputFiles[index].getPath()+'"')
-      else:
-        raise IOError('the only metadtaToTransfer that is available in RELAP5 is "sourceID". Got instad: '+', '.join(metadataToTransfer.keys()))
+    if det:
+      # if det, check which variable is connected to a trip (and consequentially must represent a stop condition)
+      trips = parser.getTrips()
+    # transfer metadata
+    self.__transferMetadata(Kwargs.get("metadataToTransfer",None), currentInputFiles[index].getPath())
 
     if 'None' not in str(samplerType):
       modifDict = self._samplersDictionary[samplerType](**Kwargs)
