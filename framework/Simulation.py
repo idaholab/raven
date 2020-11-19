@@ -638,6 +638,8 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['redisPassword'] = element.text.strip()
       elif element.tag == 'remoteNodes':
         self.runInfoDict['remoteNodes'] = [el.strip() for el in element.text.strip().split(',')]
+      elif element.tag == 'PYTHONPATH':
+        self.runInfoDict['UPDATE_PYTHONPATH'] = element.text.strip()
       elif element.tag == 'delSucLogFiles'    :
         if utils.stringIsTrue(element.text):
           self.runInfoDict['delSucLogFiles'    ] = True

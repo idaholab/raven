@@ -101,13 +101,19 @@ class MPISimulationMode(Simulation.SimulationMode):
               nodeFile.write(line)
             nodeFile.close()
         else:
+          #os.environ["PBS_NODEFILE"]
+          newNodeFileHead = open(os.path.join(workingDir,"node_head"),"w")
+          newRunInfo['Nodes'] =[]
           for i in range(newBatchsize):
             nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
             line = lines[i]
             for _ in range(numThreads):
               nodeFile.write(line)
+              newNodeFileHead.write(line)
+              newRunInfo['Nodes'].append(line.strip())
             nodeFile.close()
-
+          newNodeFileHead.close()
+          os.environ["PBS_NODEFILE"] = os.path.join(workingDir,"node_head")
         #then give each index a separate file.
         nodeCommand = runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
       else:

@@ -125,7 +125,7 @@ class DistributedMemoryRunner(InternalRunner):
                                              modules = tuple([self.functionToRun.__module__]+list(set(utils.returnImportModuleString(inspect.getmodule(self.functionToRun),True)))))
       self.trackTime('runner_started')
       self.started = True
-      self.raiseADebug("Virtual memory is currently at % "+str(psutil.virtual_memory().percent))
+      #self.raiseADebug("Virtual memory is currently at % "+str(psutil.virtual_memory().percent))
       gc.collect()
       return
 

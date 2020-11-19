@@ -184,6 +184,9 @@ class JobHandler(MessageHandler.MessageUser):
       ## Check if the list of unique nodes is present and, in case, initialize the
       servers = None
       sys.path.append(self.runInfoDict['WorkingDir'])
+      if 'UPDATE_PYTHONPATH' in self.runInfoDict:
+        sys.path.extend([p.strip() for p in self.runInfoDict['UPDATE_PYTHONPATH'].split(":")])
+
       self.rayInstanciatedOutside = False
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
@@ -199,7 +202,7 @@ class JobHandler(MessageHandler.MessageUser):
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
         # is ray instanciated outside?
         self.rayInstanciatedOutside = 'headNode' in self.runInfoDict
-        if nProcsHead != len(availableNodes):
+        if nProcsHead != len(availableNodes) or self.rayInstanciatedOutside:
           # create head node cluster
           address, redisPassword = (self.runInfoDict['headNode'], self.runInfoDict['redisPassword']) if self.rayInstanciatedOutside else self.__runHeadNode(nProcsHead)
           # add names in runInfo
@@ -211,18 +214,18 @@ class JobHandler(MessageHandler.MessageUser):
           servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword)
           if self.rayInstanciatedOutside:
             # update the python path and working dir
-            self.__updateListeningSockets(localHostName)
+            # self.__updateListeningSockets(localHostName)
             # update head node paths
             olderPath = os.environ["PYTHONPATH"].split(os.pathsep) if "PYTHONPATH" in os.environ else []
             os.environ["PYTHONPATH"] = os.pathsep.join(list(set(olderPath+sys.path)))
           # add names in runInfo
           self.runInfoDict['remoteNodes'] = servers
           ## initialize ray server with nProcs
-          self.rayServer = ray.init(address=address, _redis_password=redisPassword) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
+          self.rayServer = ray.init(address=address, _redis_password=redisPassword,log_to_driver=False) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
           self.raiseADebug("NODES IN THE CLUSTER : ", str(ray.nodes()))
         else:
           self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
-          self.rayServer = ray.init(num_cpus=nProcsHead)
+          self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False)
       else:
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
@@ -427,8 +430,8 @@ class JobHandler(MessageHandler.MessageUser):
       ## Start
       for nodeId in uniqueNodes:
         ## Build the filename
-        outFileName = os.path.join(self.runInfoDict['WorkingDir'], nodeId.strip()+"_server_out.log")
-        outFile = open(outFileName, 'w')
+        #outFileName = os.path.join(self.runInfoDict['WorkingDir'], nodeId.strip()+"_server_out.log")
+        #outFile = open(outFileName, 'w')
 
         ## Check how many processors are available in the node
         ntasks = availableNodes.count(nodeId)
@@ -442,7 +445,8 @@ class JobHandler(MessageHandler.MessageUser):
           command=" ".join([runScript,"--remote-node-address",nodeId, "--address",address,"--redis-password",redisPassword, "--num-cpus",str(ntasks)," --working-dir ",self.runInfoDict['WorkingDir'],"--remote-bash-profile",self.runInfoDict['RemoteRunCommand']])
           print("command is: "+command)
           command += " --python-path "+localenv["PYTHONPATH"]
-          self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,stdout=outFile,stderr=outFile,env=localenv)
+          #utils.pickleSafeSubprocessPopen([command],shell=True,stdout=outFile,stderr=outFile,env=localenv)
+          self.remoteServers[nodeId] = utils.pickleSafeSubprocessPopen([command],shell=True,env=localenv)
         else:
           ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
           command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
@@ -497,6 +501,15 @@ class JobHandler(MessageHandler.MessageUser):
                                                profile=self.__profileJobs)
     else:
       arguments = args  if _rayAvail else  tuple([self.rayServer] + list(args))
+      #if _rayAvail:
+      #  pathSeparator = os.pathsep
+      #  if "PYTHONPATH" in os.environ and len(os.environ["PYTHONPATH"].strip()) > 0:
+      #    previousPath = os.environ["PYTHONPATH"].strip()+pathSeparator
+      #  else:
+      #    previousPath = ""
+      #  #print("XXXXXX PYTHON ENVIROMENT NEW: "+previousPath+pathSeparator.join(sys.path))
+      #  functionToRun.options(override_environment_variables={"PYTHONPATH":previousPath+pathSeparator.join(sys.path)})
+
       internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
                                                     arguments, functionToRun.remote if _rayAvail else functionToRun.original_function,
                                                     identifier, metadata,
