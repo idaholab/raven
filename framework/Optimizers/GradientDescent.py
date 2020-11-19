@@ -22,6 +22,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import copy
 from collections import deque, defaultdict
 import numpy as np
 
@@ -531,7 +532,7 @@ class GradientDescent(RavenSampled):
     ## constraint functions is list of functions to call "evaluate" on
     ## inputs is dictionary of other stuff that constraints might need to be evaluated
     ## TODO we really should pass the checkFunctionalConstraints and check/applyBoundaryConstraints instead!!
-    constraints = {'boundary': self.distDict, 'functional': self._constraintFunctions, 'inputs': self.constants, 'normalize': self.normalizeData, 'denormalize': self.denormalizeData}
+    constraints = {'boundary': self.distDict, 'functional': self._constraintFunctions, 'inputs': copy.deepcopy(self.constants), 'normalize': self.normalizeData, 'denormalize': self.denormalizeData}
     gradPoints, gradInfos = self._gradientInstance.chooseEvaluationPoints(opt, stepSize, constraints=constraints)
     for i, grad in enumerate(gradPoints):
       self._submitRun(grad, traj, step, 'grad_{}'.format(i), moreInfo=gradInfos[i])
