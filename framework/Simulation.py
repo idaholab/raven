@@ -571,6 +571,8 @@ class Simulation(MessageHandler.MessageUser):
           self.raiseAnError(IOError, 'RunInfo.WorkingDir is empty! Use "." to signify "work here" or specify a directory.')
         if '~' in tempName:
           tempName = os.path.expanduser(tempName)
+        xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
+        self.runInfoDict['InputDir'] = xmlDirectory
         if os.path.isabs(tempName):
           self.runInfoDict['WorkingDir'] = tempName
         elif "runRelative" in element.attrib:
@@ -630,6 +632,14 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['postcommand'       ] = element.text
       elif element.tag == 'deleteOutExtension':
         self.runInfoDict['deleteOutExtension'] = element.text.strip().split(',')
+      elif element.tag == 'headNode':
+        self.runInfoDict['headNode'] = element.text.strip()
+      elif element.tag == 'redisPassword':
+        self.runInfoDict['redisPassword'] = element.text.strip()
+      elif element.tag == 'remoteNodes':
+        self.runInfoDict['remoteNodes'] = [el.strip() for el in element.text.strip().split(',')]
+      elif element.tag == 'PYTHONPATH':
+        self.runInfoDict['UPDATE_PYTHONPATH'] = element.text.strip()
       elif element.tag == 'delSucLogFiles'    :
         if utils.stringIsTrue(element.text):
           self.runInfoDict['delSucLogFiles'    ] = True
@@ -717,6 +727,8 @@ class Simulation(MessageHandler.MessageUser):
       subprocess.call(args=remoteRunCommand["args"],
                       cwd=remoteRunCommand.get("cwd", None),
                       env=remoteRunCommand.get("env", None))
+      self.raiseADebug('Submitted in queque! Shutting down Jobhandler!')
+      self.jobHandler.shutdown()
       return
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:
@@ -757,6 +769,8 @@ class Simulation(MessageHandler.MessageUser):
       self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
     self.jobHandler.shutdown()
     self.messageHandler.printWarnings()
+    # implicitly, the job finished successfully if we got here.
+    self.writeStatusFile()
     self.raiseAMessage('Run complete!',forcePrint=True)
 
   def generateAllAssemblers(self, objectInstance):
@@ -790,3 +804,13 @@ class Simulation(MessageHandler.MessageUser):
                                       .format(n=obj[1], m=mainClassStr) +
                                       '\nOptions are:', self.whichDict[mainClassStr].keys())
       objectInstance.generateAssembler(neededobjs)
+
+  def writeStatusFile(self):
+    """
+      A bad hack from ancient technologies so we can really tell
+      when RAVEN has successfully finished.
+      @ In, None
+      @ Out, Non
+    """
+    with open('.ravenStatus', 'w') as f:
+      f.writelines('Success')

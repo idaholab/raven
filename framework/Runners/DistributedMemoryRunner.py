@@ -26,6 +26,8 @@ import signal
 import copy
 import sys
 import abc
+import psutil
+import gc
 from utils import importerUtils as im
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
 if im.isLibAvail("ray"):
@@ -123,11 +125,10 @@ class DistributedMemoryRunner(InternalRunner):
                                              modules = tuple([self.functionToRun.__module__]+list(set(utils.returnImportModuleString(inspect.getmodule(self.functionToRun),True)))))
       self.trackTime('runner_started')
       self.started = True
+      gc.collect()
     except Exception as ae:
       #Uncomment if you need the traceback
-      #exc_type, exc_value, exc_traceback = sys.exc_info()
-      #import traceback
-      #traceback.print_exception(exc_type, exc_value, exc_traceback)
+      self.exceptionTrace = sys.exc_info()
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.returnCode = -1
 

@@ -20,25 +20,15 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 #External Modules------------------------------------------------------------------------------------
 import collections
-import subprocess
-# try               : import Queue as queue
-# except ImportError: import queue
-import os
-import signal
-import copy
-import abc
+import sys
 import time
 import ctypes
 import inspect
-#import logging, logging.handlers
 import threading
 
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from BaseClasses import BaseType
-import MessageHandler
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -140,6 +130,7 @@ class SharedMemoryRunner(InternalRunner):
       self.trackTime('runner_started')
       self.started = True
     except Exception as ae:
+      self.exceptionTrace = sys.exc_info()
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.returnCode = -1
 
