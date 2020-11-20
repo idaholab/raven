@@ -275,10 +275,11 @@ class JobHandler(MessageHandler.MessageUser):
     if _rayAvail and self.rayServer is not None and not self.rayInstanciatedOutside:
       # we need to ssh and stop each remote node cluster (ray)
       servers = []
-      if 'remoteNodes' in self.runInfoDict:
-        servers += self.runInfoDict['remoteNodes']
-      if 'headNode' in self.runInfoDict:
-        servers += [self.runInfoDict['headNode']]
+      if False:
+        if 'remoteNodes' in self.runInfoDict:
+          servers += self.runInfoDict['remoteNodes']
+        if 'headNode' in self.runInfoDict:
+          servers += [self.runInfoDict['headNode']]
       # get local enviroment
       localenv = os.environ.copy()
       localenv["PYTHONPATH"] = os.pathsep.join(sys.path)
