@@ -180,13 +180,14 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
+    sys.path.append(self.runInfoDict['WorkingDir'])
+    if 'UPDATE_PYTHONPATH' in self.runInfoDict:
+      sys.path.extend([p.strip() for p in self.runInfoDict['UPDATE_PYTHONPATH'].split(":")])
+      olderPath = os.environ["PYTHONPATH"].split(os.pathsep) if "PYTHONPATH" in os.environ else []
+      os.environ["PYTHONPATH"] = os.pathsep.join(list(set(olderPath+sys.path)))
     if self.runInfoDict['internalParallel']:
       ## Check if the list of unique nodes is present and, in case, initialize the
       servers = None
-      sys.path.append(self.runInfoDict['WorkingDir'])
-      if 'UPDATE_PYTHONPATH' in self.runInfoDict:
-        sys.path.extend([p.strip() for p in self.runInfoDict['UPDATE_PYTHONPATH'].split(":")])
-
       self.rayInstanciatedOutside = False
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
