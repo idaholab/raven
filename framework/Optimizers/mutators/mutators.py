@@ -70,11 +70,11 @@ def scrambleMutator(offSprings,**kwargs):
   """
   locs = kwargs['locs']
   if locs == None:
-    eng = randomUtils.newRNG()
-    nLocs = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None,eng)
+    # eng = randomUtils.newRNG()
+    nLocs = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None)#,eng
     locs=[]
     for i in range(nLocs):
-      l = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None,eng)
+      l = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None)#,eng
       locs.append(l)
     locs = list(set(locs))
   nMutable = len(locs)
