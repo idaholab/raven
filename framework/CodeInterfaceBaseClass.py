@@ -46,6 +46,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     self._runOnShell = True      # True if the specified command by the code interfaces will be executed through shell.
     self._ravenWorkingDir = None # location of RAVEN's main working directory
     self._csvLoadUtil = 'pandas' # utility to use to load CSVs
+    self._writeCSV = False       # write CSV even if the data can be returned directly to raven (e.g. if the user requests them)
 
   def setRunOnShell(self, shell=True):
     """
@@ -114,6 +115,10 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     self._ravenWorkingDir = ravenWorkingDir
     self._readMoreXML(xmlNode)
+    # read global options
+    # should we print CSV even if the data can be directly returned to RAVEN?
+    csvLog = xmlNode.find("csv")
+    self._writeCSV = utils.stringIsTrue(csvLog.text if csvLog is not None else "False")
 
   def _readMoreXML(self, xmlNode):
     """
@@ -207,7 +212,11 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+      @ Out, output, string or dict, optional, if present and string:
+                                                 in case the root of the output file gets changed in this method (and a CSV is produced);
+                                               if present and dict:
+                                                 in case the output of the code is directly stored in a dictionary and can be directly used
+                                                 without the need that RAVEN reads an additional CSV
     """
     return output
 

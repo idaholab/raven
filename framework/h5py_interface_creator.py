@@ -396,7 +396,6 @@ class hdf5Database(MessageHandler.MessageUser):
     group.attrs[b'nVarsIntfloat' ] = len(varKeysIntfloat)
     group.attrs[b'nVarsOther'    ] = len(varKeysOther)
 
-
   def __addGroupRootLevel(self,groupName,rlz):
     """
       Function to add a group into the database (root level)
@@ -406,8 +405,7 @@ class hdf5Database(MessageHandler.MessageUser):
     """
     # Check in the "self.allGroupPaths" list if a group is already present...
     # If so, error (Deleting already present information is not desiderable)
-    if self.__returnGroupPath(groupName) != '-$':
-      # the group alread exists
+    while self.__returnGroupPath(groupName) != '-$':
       groupName = groupName + "_" + groupName
 
     parentName = self.parentGroupName.replace('/', '')

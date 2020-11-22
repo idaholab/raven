@@ -360,7 +360,7 @@ class RELAPparser():
         temp.append('*'+' deckNum: '+str(deckNum)+'\n')
       for j in sorted(modiDictionaryList):
         for var in modiDictionaryList[j]:
-          temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+str(var['value'])+'\n')
+          temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+'{:.5e}'.format(var['value'])+'\n')
       temp.append('*RAVEN INPUT VALUES\n')
 
       temp+=self.deckLines[deckNum]
@@ -428,7 +428,7 @@ class RELAPparser():
       @ Out, newline, string, modified line
     """
     temp=line.split()
-    temp[int(position)]=str(value)
+    temp[int(position)]='{:.5e}'.format(value)
     newline=temp.pop(0)
     for i in temp:
       newline=newline+'  '+i

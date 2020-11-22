@@ -166,7 +166,7 @@ class File(BaseType):
       @ In, None
       @ Out, __ext, string, extension of the file name (e.g. txt, csv)
     """
-    return self.__ext
+    return '' if not self.__ext else self.__ext
 
   def getLinkedCode(self):
     """
