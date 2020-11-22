@@ -636,6 +636,8 @@ class Clusters(Segments):
     self._clusterFeatures = None         # dict of lists, features to cluster on
     self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
     self._clusterVariableID = '_ROM_Cluster' # name by which clustering dimension shall be known
+    # add expected meta keys
+    self.addMetaKeys(['cluster_multiplicity'], {'cluster_multiplicity': ['_ROM_cluster']})
     # check if ROM has methods to cluster on (errors out if not)
     if not self._templateROM.isClusterable():
       self.raiseAnError(NotImplementedError, 'Requested ROM "{}" does not yet have methods for clustering!'.format(self._romName))
@@ -741,6 +743,8 @@ class Clusters(Segments):
       ## for clustered mode, this is complicated.
       result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
     # TODO add clusterWeights to "result" as meta to the output? This would be handy!
+    result['cluster_multiplicity'] = np.asarray([len(x) for c, x in self._clusterInfo['map'].items() if c != 'unclustered'])
+    result['_indexMap']['cluster_multiplicity'] = np.atleast_1d(['_ROM_Cluster'])
     return result
 
   def writePointwiseData(self, writeTo):
@@ -1537,7 +1541,7 @@ class Interpolated(supervisedLearning):
           self.raiseAnError(RuntimeError, 'The shape of the histories along the pivot parameter is not consistent! Try using a clustering classifier that always returns the same number of clusters.')
     results['_indexMap'] = {} #finalIndexMap
     for target, vals in results.items():
-      if target not in indices and target not in ['_indexMap']:
+      if target not in indices and target not in ['_indexMap']: # TODO get a list of meta vars?
         default = [] if vals.size == 1 else [pivotID]
         results['_indexMap'][target] = [self._macroParameter] + list(finalIndexMap.get(target, default))
     results[self._macroParameter] = macroIndexValues
