@@ -28,14 +28,16 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import numpy as np
 import abc
 import copy
+import sys
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, mathUtils, xmlUtils
 import MessageHandler
+import Decorators
 #Internal Modules End--------------------------------------------------------------------------------
 
 class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
@@ -87,6 +89,8 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self._dynamicHandling = False
     self._assembledObjects = None           # objects assembled by the ROM Model, passed through.
     self.numThreads = kwargs.pop('NumThreads', None)
+    self.metadataKeys = set() # keys that can be passed to DataObject as meta information
+    self.metadataParams = {}  # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     if kwargs != None:
       self.initOptionDict = kwargs
@@ -115,6 +119,11 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, None
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
+    # state = {}
+    # for k, v in self.__dict__.items():
+    #   new = copy.copy(v)
+    #   print(f'Serializing "{k}", sizeof {sys.getsizeof(new)}')
+    #   state[k] = new
     state = copy.copy(self.__dict__)
     state['initOptionDict'].pop('paramInput', None)
     ## capture what is normally pickled
@@ -129,7 +138,36 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, d, dict, it contains all the information needed by the ROM to be initialized
       @ Out, None
     """
+    # name = getattr(self, 'name', f'<<{self.__class__.__name__}>>')
+    # for k, v in d.items():
+    #   print(f'"{name}" Deserializing "{k}", sizeof {sys.getsizeof(v)}')
+    #   self.__dict__[k] = v
     self.__dict__.update(d)
+    # # temp for back compatability ## FIXME XXX REMOVE ME
+    # if 'metadataKeys' not in self.__dict__:
+    #   self.metadataKeys = set()
+    #   self.metadataParams = {}
+
+  def addMetaKeys(self, args, params=None):
+    """
+      Adds keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to register
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
+      @ Out, None
+    """
+    if params is None:
+      params = {}
+    self.metadataKeys = self.metadataKeys.union(set(args))
+    self.metadataParams.update(params)
+
+  def provideExpectedMetaKeys(self):
+    """
+      Provides the registered list of metadata keys for this entity.
+      @ In, None
+      @ Out, meta,tuple, (list(str),dict), expected keys (empty if none) and expected indexes related to expected keys
+    """
+    return self.metadataKeys, self.metadataParams
 
   def initialize(self,idict):
     """
