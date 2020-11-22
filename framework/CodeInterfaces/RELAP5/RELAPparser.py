@@ -81,7 +81,6 @@ class RELAPparser():
       self.getTripsMinorEditsAndControlVars()
       self.addTripsVarsInMinorEdits()
 
-
   def addControlVariablesForStoppingCoditions(self, monitoredTrips):
     """
       Method to add the control variables to make any trip in the input list to cause a stop of the code
@@ -212,7 +211,6 @@ class RELAPparser():
       self.inputMinorEdits[deckNum][splitted[0].strip()], isMinor = {'variable':splitted[1].strip(),'component':splitted[2].strip()}, True
     return isMinor
 
-
   def storeTrip(self,deckNum, splitted):
     """
     """
@@ -277,7 +275,6 @@ class RELAPparser():
         outfile.write('%s' %(i))
     outfile.close()
 
-
   def retrieveCardValues(self, listOfCards):
     """
       This method is to retrieve the card values contained in the list
@@ -290,7 +287,8 @@ class RELAPparser():
     # check all the decks
     for deck,card,word in listOfCards:
       if deck not in self.deckLines:
-        raise IOError("RELAP5 Interface: The number of deck found in the original input file is "+str(self.maxNumberOfDecks)+" while the user requested to modify the deck number "+str(deck))
+        raise IOError("RELAP5 Interface: The number of deck found in the original input file is "
+                      +str(self.maxNumberOfDecks)+" while the user requested to modify the deck number "+str(deck))
       if deck not in foundAllCards:
         foundAllCards[deck] = {}
         deckCards[deck] = defaultdict(list)
@@ -324,7 +322,8 @@ class RELAPparser():
                   else:
                     moveToNextLine=False
               if not foundWord:
-                raise IOError("RELAP5 Interface: The number of words found for card "+str(readCard)+" is "+str(numberOfWords)+"while the user requested to modify the word number "+str(word))
+                raise IOError("RELAP5 Interface: The number of words found for card "+str(readCard)
+                              +" is "+str(numberOfWords)+"while the user requested to modify the word number "+str(word))
       # check if all cards have been found
       if not all(foundAllCards[deck].values()):
         cardsNotFound = ""
@@ -352,7 +351,8 @@ class RELAPparser():
         decks.update(i['decks'])
     for deckNum in decks.keys():
       if deckNum not in self.deckLines.keys():
-        raise IOError("RELAP5 Interface: The number of deck found in the original input file is "+str(self.maxNumberOfDecks)+" while the user requested to modify the deck number "+str(deckNum))
+        raise IOError("RELAP5 Interface: The number of deck found in the original input file is "
+                      +str(self.maxNumberOfDecks)+" while the user requested to modify the deck number "+str(deckNum))
       temp               = []
       modiDictionaryList = decks[deckNum]
       temp.append('*RAVEN INPUT VALUES\n')
@@ -404,7 +404,6 @@ class RELAPparser():
           self.lastCntrLine[deckNum]      +=cnt
           self.lastMinorEditLine[deckNum] +=cnt
           self.lastTripLine[deckNum]      +=cnt
-
           toAdd[deckNum] = self.inputTrips[deckNum]['variableTrips'].keys()
           self.addControlVariablesForStoppingCoditions(toAdd)
       lines = lines + temp
