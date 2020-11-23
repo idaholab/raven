@@ -4,7 +4,7 @@
     <WorkingDir>discreteIntWithReplacement</WorkingDir>
     <!--Sequence>sample, MCprint</Sequence-->
     <Sequence>opt, print, printExport</Sequence>
-    <batchSize>10</batchSize>
+    <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
   </RunInfo>
 
@@ -16,8 +16,8 @@
       <Output         class="DataObjects" type="PointSet"         >MCOut</Output>
     </MultiRun> 
     <IOStep name="MCprint">
-      <Input  class="DataObjects"  type="PointSet"  >MCOut</Input>
-      <Output class="OutStreams"   type="Print"     >PrintMCOut</Output>
+      <Input          class="DataObjects"  type="PointSet"  >MCOut</Input>
+      <Output         class="OutStreams"   type="Print"     >PrintMCOut</Output>
     </IOStep>
     <MultiRun name="opt">
       <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
@@ -47,14 +47,14 @@
   <Optimizers>
     <GeneticAlgorithm name="GAoptimizer">
       <samplerInit>
-        <limit>4500</limit>
+        <limit>200</limit>
         <initialSeed>42</initialSeed>
-        <!--writeSteps>every</writeSteps-->
+        <writeSteps>final</writeSteps>
       </samplerInit>
 
       <GAparams>
         <populationSize>58</populationSize>
-        <reproduction nParents="4">
+        <reproduction nParents="10">
           <crossover type="onePointCrossover">
             <crossoverProb>0.9</crossoverProb>
           </crossover>
