@@ -743,8 +743,11 @@ class Clusters(Segments):
       ## for clustered mode, this is complicated.
       result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
     # TODO add clusterWeights to "result" as meta to the output? This would be handy!
-    result['cluster_multiplicity'] = np.asarray([len(x) for c, x in self._clusterInfo['map'].items() if c != 'unclustered'])
-    result['_indexMap']['cluster_multiplicity'] = np.atleast_1d(['_ROM_Cluster'])
+    try:
+      result['cluster_multiplicity'] = np.asarray([len(x) for c, x in self._clusterInfo['map'].items() if c != 'unclustered'])
+      result['_indexMap']['cluster_multiplicity'] = np.atleast_1d(['_ROM_Cluster'])
+    except KeyError as e:
+      self.raiseAWarning('_indexMap not found in results! Skipping adding clustering weights to meta output...')
     return result
 
   def writePointwiseData(self, writeTo):
