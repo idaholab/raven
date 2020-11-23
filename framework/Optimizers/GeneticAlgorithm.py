@@ -48,7 +48,8 @@ class GeneticAlgorithm(RavenSampled):
   convergenceOptions = {'objective': r""" provides the desired value for the convergence criterion of the objective function
                         ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design variable at a given objective value, i.e., convergence is reached when: $$ Objevtive = \epsilon^{obj}$$.
                         \default{1e-6}, if no criteria specified""",
-                        'AHDp': r""" provides the desired value for the Average Hausdroff Distance between populations"""}
+                        'AHDp': r""" provides the desired value for the Average Hausdorff Distance between populations""",
+                        'AHD': r""" provides the desired value for the Hausdorff Distance between populations"""}
   def __init__(self):
     """
       Constructor.
@@ -71,6 +72,7 @@ class GeneticAlgorithm(RavenSampled):
     self.popAge = None
     self.fitness = None
     self.AHDp = np.NaN
+    self.AHD = np.NaN
     # self.bestObjective = None
 
   ##########################
@@ -259,6 +261,7 @@ class GeneticAlgorithm(RavenSampled):
     new['age'] = 'age of current chromosome'
     new['batchId'] = 'Id of the batch to whom the chromosome belongs'
     new['AHDp'] = 'p-Average Hausdorff Distance between populations'
+    new['AHD'] = 'Hausdorff Distance between populations'
     ok.update(new)
     return ok
 
@@ -446,7 +449,7 @@ class GeneticAlgorithm(RavenSampled):
       # Make sure no children are exactly similar to parents
       flag = True
       counter = 0
-      while flag and counter<=5:
+      while flag and counter<=10:
         counter += 1
         repeated =[]
         for i in range(np.shape(population.data)[0]):
@@ -461,7 +464,8 @@ class GeneticAlgorithm(RavenSampled):
           flag = False
         children2 = children
         self.batch =np.shape(children2)[0]
-
+      # children2 = children
+      # self.batch =np.shape(children2)[0]
       children = xr.DataArray(children2,
                                 dims=['chromosome','Gene'],
                                 coords={'chromosome': np.arange(np.shape(children2)[0]),
@@ -565,7 +569,7 @@ class GeneticAlgorithm(RavenSampled):
       self.bestFitness = Fit[0]
       self.bestObjective = obj[0]
     return point
-  
+
   def _checkAcceptability(self, traj, opt, optVal, info):
     """
       This is an abstract method for all RavenSampled Optimizer, whereas for GA all children are accepted
@@ -631,13 +635,19 @@ class GeneticAlgorithm(RavenSampled):
     """
       Computes the Average Hausdorff Distance as the termination criteria
       @ In, traj, int, trajectory identifier
-      @ In, kwargs
+      @ In, kwargs, dict, dictionary of parameters for AHDp termination criteria:
+            old, np.array, old generation
+            new, np.array, new generation
+            p, float or integer, Minkowski norm order, (default 3)
       @ Out, converged, bool, convergence state
     """
-    from scipy.spatial.distance import directed_hausdorff
     old = kwargs['old'].data
     new = self._datasetToDataarray(kwargs['new']).data
-    AHDp = self._AHDp(old,new,3)
+    if ('p' not in kwargs.keys() or kwargs['p'] == None):
+      p = 3
+    else:
+      p = kwargs['p']
+    AHDp = self._AHDp(old,new,p)
     self.AHDp = AHDp
     converged = (AHDp < self._convergenceCriteria['AHDp'])
     self.raiseADebug(self.convFormat.format(name='AHDp',
@@ -646,9 +656,32 @@ class GeneticAlgorithm(RavenSampled):
                                             req=self._convergenceCriteria['AHDp']))
     return converged
 
+  def _checkConvAHD(self, traj,**kwargs):
+    """
+      Computes the Hausdorff Distance as the termination criteria
+      @ In, traj, int, trajectory identifier
+      @ In, kwargs, dict, dictionary of parameters for AHDp termination criteria:
+            old, np.array, old generation
+            new, np.array, new generation
+      @ Out, converged, bool, convergence state
+    """
+    old = kwargs['old'].data
+    new = self._datasetToDataarray(kwargs['new']).data
+    AHD = self._AHD(old,new)
+    self.AHD = AHD
+    converged = (AHD < self._convergenceCriteria['AHD'])
+    self.raiseADebug(self.convFormat.format(name='AHD',
+                                            conv=str(converged),
+                                            got=AHD,
+                                            req=self._convergenceCriteria['AHD']))
+    return converged
+
   def _AHDp(self,A,B,p):
     """
-      [summary]
+      p-average Hausdorff Distance for generation convergence
+      @ In, A, np.array, old population A
+      @ In, B, np.array, new population B
+      @ Out, _AHDp, float, average Hausdorff distance
     """
     return max(self._GDp(A,B,p),self._GDp(B,A,p))
 
@@ -661,13 +694,10 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, _GDp, float, the modified generational distance $\frac{1}{n_A} \Sigma_{i=1}^{n_A}min_{b \in B} dist(ai,B)$
     """
     s = 0
-    # s = []
     n = np.shape(A)[0]
     for i in range(n):
       s += self._popDist(A[i,:],B)**p
-      # s.append(self._popDist(A[i,:],B))
     return (1/n * s)**(1/p)
-    # return max(s)
 
   def _popDist(self,ai,B,q=2):
     """
@@ -680,6 +710,28 @@ class GeneticAlgorithm(RavenSampled):
     for j in range(np.shape(B)[0]):
       nrm.append(np.linalg.norm(ai-B[j,:],q))
     return min(nrm)
+
+  def _AHD(self,A,B):
+    """
+      Hausdorff Distance for generation convergence
+      @ In, A, np.array, old population A
+      @ In, B, np.array, new population B
+      @ Out, _AHD, float, Hausdorff distance
+    """
+    return max(self._GD(A,B),self._GD(B,A))
+
+  def _GD(self,A,B):
+    """
+      Generational Distance Indicator
+      @ In, A, np.array, old population A
+      @ In, B, np.array, new population B
+      @ Out, _GD, float, the generational distance $\frac{1}{n_A} \max_{i \in A}min_{b \in B} dist(ai,B)$
+    """
+    s = []
+    n = np.shape(A)[0]
+    for i in range(n):
+      s.append(self._popDist(A[i,:],B))
+    return max(s)
 
   def _updateConvergence(self, traj, new, old, acceptable):
     """
@@ -756,7 +808,8 @@ class GeneticAlgorithm(RavenSampled):
     toAdd = {'age': 0 if self.popAge==None else self.popAge,
              'batchId':self.batchId,
              'fitness':rlz['fitness'],
-             'AHDp':self.AHDp}
+             'AHDp':self.AHDp,
+             'AHD':self.AHD}
 
     for var, val in self.constants.items():
       toAdd[var] = val
