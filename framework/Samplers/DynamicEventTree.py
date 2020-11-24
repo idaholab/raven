@@ -373,6 +373,7 @@ class DynamicEventTree(Grid):
     # Store the information in a dictionary that has as keywords the distributions that triggered
     for node in root:
       distTrigger = root.findall(".//Distribution_trigger")
+
       if not len(distTrigger):
         self.raiseAnError(Exception, '"Distribution_trigger" node has not been found in file: '+str(filename))
       elif len(distTrigger) > 1:

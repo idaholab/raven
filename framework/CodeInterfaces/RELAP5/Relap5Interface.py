@@ -40,13 +40,8 @@ class Relap5(CodeInterfaceBase):
       @ In, oriInputFiles, list, list of the original input files
       @ Out, None
     """
-    found = False
-    for index, inputFile in enumerate(oriInputFiles):
-      if inputFile.getExt() in self.getInputExtension():
-        found = True
-        break
-    if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    self.detVars = [] # in case of DET
+    index = self._findInputFileIndex(oriInputFiles)
     parser = RELAPparser.RELAPparser(oriInputFiles[index].getAbsFile())
     cards = []
     for operator in self.operators:
@@ -98,7 +93,8 @@ class Relap5(CodeInterfaceBase):
         cards = child.find("cards")
         expression = child.find("expression")
         if cards is None or expression is None:
-          raise IOError('ERROR in "RELAP5 Code Interface": <' +'cards' if cards is None else 'expression'+  '> node must be inputted within the <operator> XML node' )
+          raise IOError('ERROR in "RELAP5 Code Interface": <' +'cards' if cards is None else 'expression'
+                        +  '> node must be inputted within the <operator> XML node' )
         operator['cards'] = [self._convertVariablNameInInfo(card.strip()) for card in cards.text.split(",")]
 
         expression = expression.text.strip()
@@ -146,6 +142,20 @@ class Relap5(CodeInterfaceBase):
     returnCommand = [('parallel',commandToRun)], outputfile
     return returnCommand
 
+
+  def _writeBranchInfo(self, filename, endTime, endTimeStep, tripVariable):
+    """
+      Method to write the branchInfo
+      @ In, filename, str, the file name
+      @ In, endTime, float, the end time
+      @ In, endTimeStep, float, the end time step
+      @ In, tripVariable, str, the variable that caused the stop of the simulation (trip)
+      @ Out, None
+    """
+    import dynamicEventTreeUtilities as detUtils
+    detUtils.writeXmlForDET(filename,tripVariable,[],{'end_time': endTime, 'end_ts': endTimeStep})
+
+
   def finalizeCodeOutput(self,command,output,workingDir):
     """
       This method is called by the RAVEN code at the end of each run (if the method is present, since it is optional).
@@ -158,6 +168,31 @@ class Relap5(CodeInterfaceBase):
     outputobj=relapdata.relapdata(os.path.join(workingDir,output+'.o'),self.outputDeck)
     if outputobj.hasAtLeastMinorData():
       response = outputobj.returnData()
+      if self.det:
+
+        # check end time
+        endTime = response['time'][-1]
+        endTimeStep = len(response['time'])
+        #check the variable that caused the trip (if any)
+        tripVariable = None
+        foundTrip = False
+        for var in self.detVars:
+          if foundTrip:
+            break
+          splitted =  var.split(":")
+          tripName =  splitted[len(splitted)-2].strip()
+          for deckNum in self.tripControlVariables:
+            if tripName in self.tripControlVariables[deckNum].values():
+              for cntrVar, trip in self.tripControlVariables[deckNum].items():
+                if response["cntrlvar_"+cntrVar][-1] != response["cntrlvar_"+cntrVar][-2]:
+                  # the trip went off
+                  tripVariable = trip
+                  foundTrip = True
+                  break
+        if tripVariable is not None:
+          filename = os.path.join(workingDir,output+"_actual_branch_info.xml")
+          self._writeBranchInfo(filename, endTime, endTimeStep, tripVariable)
+
       # write CSV logger if the flag is on
       if self._writeCSV:
         outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
@@ -248,31 +283,33 @@ class Relap5(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    self._samplersDictionary                = {}
-    det = 'dynamiceventtree' in str(samplerType).lower()
+    self._samplersDictionary = {}
+    self.tripControlVariables = None
+    self.det = 'dynamiceventtree' in str(samplerType).lower()
+    # find input file index
+    index = self._findInputFileIndex(currentInputFiles)
     # instanciate the parser
-    parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile(), det)
-    if det:
+    parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile(), self.det)
+    if self.det:
       self._samplersDictionary[samplerType] = self.DynamicEventTreeForRELAP5
-      detVars   = Kwargs.get('DETVariables')
-      if not detVars:
+      self.detVars   = Kwargs.get('DETVariables')
+      if not self.detVars:
         raise IOError('ERROR in "RELAP5 Code Interface": NO DET variables with DET sampler!!!')
       # check if the DET variables are part of a trip
       # the aleatory (DET variables) are only allowed in TRIPs since
       # we cannot assume how to create trips based on DET variables
-      isTrip = [True]*len(detVars)
       trips = parser.getTrips()
       varTrips, logTrips = trips.values()
       notTrips = []
-      for index, var in enumerate(detVars):
+      for var in self.detVars:
         splitted = var.split(":")
-        if splitted[len(splitted)-2] not in varTrips or var not in logTrips:
+        if splitted[len(splitted)-2] not in varTrips and var not in logTrips:
           notTrips.append(var)
       if len(notTrips):
-        raise IOError ('For Dynamic Event Tree-based approaches with RELAP5, '
-                       +'the DET variables must be part of a Trip. The variables "'
-                       +', '.join(notTrips)+'" are not part of Trips. Consider to sample them with the'
-                       +' HybridDynamicEventTree approach (treat them as epistemic uncertanties)!' )
+        raise IOError ('For Dynamic Event Tree-based approaches with RELAP5, \n'
+                       +'the DET variables must be part of a Trip. The variables \n"'
+                       +', '.join(notTrips)+'" are not part of Trips. Consider to sample \nthem with the'
+                       +' HybridDynamicEventTree approach (treat them \nas epistemic uncertanties)!' )
       #hdetVars  = Kwargs.get('HDETVariables')
       #functVars = Kwargs.get('FunctionVariables')
       #constVars = Kwargs.get('ConstantVariables')
@@ -281,11 +318,10 @@ class Relap5(CodeInterfaceBase):
       self._samplersDictionary[samplerType] = self.pointSamplerForRELAP5
     if len(self.operators) > 0:
       self._evaluateOperators(**Kwargs)
-    # find input file index
-    index = self._findInputFileIndex(currentInputFiles)
-    
-    #if det:
-    #  # if det, check which variable is connected to a trip (and consequentially must represent a stop condition)
+
+
+    #if self.det:
+    #  # if self.det, check which variable is connected to a trip (and consequentially must represent a stop condition)
     #  trips = parser.getTrips()
     # transfer metadata
     self.__transferMetadata(Kwargs.get("metadataToTransfer",None), currentInputFiles[index].getPath())
@@ -295,6 +331,8 @@ class Relap5(CodeInterfaceBase):
       parser.modifyOrAdd(modifDict,True)
 
     parser.printInput(currentInputFiles[index])
+    if self.det:
+      self.tripControlVariables = parser.additionalControlVariables
     return currentInputFiles
 
   def _convertVariablNameInInfo(self, variableName):
@@ -304,7 +342,6 @@ class Relap5(CodeInterfaceBase):
     """
     if type(variableName).__name__ == 'tuple':
       return variableName
-
     key = variableName.split(':')
     multiDeck = key[0].split("|")
     card, deck, word = key[0], 1, (key[-1] if len(key) >1 else 0)
@@ -377,5 +414,8 @@ class Relap5(CodeInterfaceBase):
         if deckActivated:
           raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
     modifDict['decks']=deckList
+    if self.det:
+      modifDict['DETvariables'] = self.detVars
+
     listDict.append(modifDict)
     return listDict

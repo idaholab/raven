@@ -79,7 +79,7 @@ class RELAPparser():
     if addMinorEdits:
       # add Minor Edits in case there are trips and the variables in the trip is not among the minor edits
       self.getTripsMinorEditsAndControlVars()
-      self.addTripsVarsInMinorEdits()
+
 
   def addControlVariablesForStoppingCoditions(self, monitoredTrips):
     """
@@ -87,17 +87,24 @@ class RELAPparser():
       @ In, monitoredTrips, dict, dictionary of list of monitored trips {deckNum:[trips]}
       @ Out, None
     """
+    self.additionalControlVariables = {}
     for deckNum in self.inputControlVars.keys():
+      self.additionalControlVariables[deckNum] = {}
       (rangeLow, rangeUp, fill) = (1,999,3) if self.controlVarType[deckNum] == 1 else (1,9999,4)
       #if self.controlVarType[deckNum] == 1: rangeLow, rangeUp, fill = 1,999,3
       #else                                : rangeLow, rangeUp, fill = 1,9999,4
-      availableControlVars  = [str(y).zfill(fill) for y in range(rangeLow,rangeUp) if y not in [int(x) for x in self.inputControlVars[deckNum].keys()]]
-      if len(availableControlVars) < len(monitoredTrips)+1: raise IOError("Not enough control variables' slots are available. We need at least "+str(len(monitoredTrips)+1)+" free slots!")
+      availableControlVars  = [str(y).zfill(fill) for y in range(rangeLow,rangeUp)
+                               if y not in [int(x) for x in self.inputControlVars[deckNum].keys()]]
+      if len(availableControlVars) < len(monitoredTrips)+1:
+        raise IOError("Not enough control variables' slots are available. We need at least "+str(len(monitoredTrips)+1)+" free slots!")
 
       presentTrips, cnt = self.inputTrips[deckNum]['variableTrips'].keys(), 501
-      while any([str(cnt) in s for s in presentTrips]) and cnt < 600: cnt+=1
-      if cnt == 600: raise IOError("All the Trip slots are used! We need at least " +str(len(monitoredTrips)+1)+" slots to specify the stop conditions!!!!")
-      else         : stopTripNumber, stopCntrVar = str(max(cnt,599)), availableControlVars.pop()
+      while any([str(cnt) in s for s in presentTrips]) and cnt < 600:
+        cnt+=1
+      if cnt == 600:
+        raise IOError("All the Trip slots are used! We need at least " +str(len(monitoredTrips)+1)+" slots to specify the stop conditions!!!!")
+      else:
+        stopTripNumber, stopCntrVar = str(max(cnt,599)), availableControlVars.pop()
       self.deckLines[deckNum].append("* START -- CONTROL VARIABLES ADDED BY RAVEN *\n")
       self.deckLines[deckNum].append(stopTripNumber + " cntrlvar "+stopCntrVar+" gt null 0 0.0 l "+"\n")
       self.deckLines[deckNum].append("600 "+stopTripNumber+" \n")
@@ -106,18 +113,19 @@ class RELAPparser():
       for cnt, trip in enumerate(monitoredTrips[deckNum]):
         controlVar = availableControlVars.pop()
         controlledControlVars.append(controlVar)
-        self.deckLines[deckNum].append("205"+controlVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " raven"+str(cnt)+" tripunit 1.0 0.0 0 \n")
+        self.deckLines[deckNum].append("205"+controlVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " r_"+str(trip)+" tripunit 1.0 0.0 0 \n")
+        self.additionalControlVariables[deckNum][controlVar.strip()] = trip
         self.deckLines[deckNum].append("205"+controlVar.strip()+"1".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " " + str(list(monitoredTrips[deckNum])[cnt])+" \n")
       # to fix. the following can handle only 50 trips
       self.lastCntrLine[deckNum]+=2
-      self.deckLines[deckNum].append("205"+stopCntrVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) +" tripstop sum 1.0 0.0 0 \n")
+      self.deckLines[deckNum].append("205"+stopCntrVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 )
+                                     +" tripstop sum 1.0 0.0 0 \n")
       tripCnt = 0
 
       for tripLine in range(int(math.ceil(float(len(monitoredTrips[deckNum]))/3.0))):
-        tripLineStr = str(tripLine+1).strip().zfill(2 if self.controlVarType[deckNum] == 1 else 1 )
         toWrite="205"+stopCntrVar.strip()+str(tripLine+1).strip().zfill(2 if self.controlVarType[deckNum] == 1 else 1 )+ (" 0.0 " if tripLine==0 else "")
         for x in range(3):
-          if tripCnt+1<len(monitoredTrips[deckNum]):
+          if tripCnt+1<= len(monitoredTrips[deckNum]):
             toWrite += " 1.0 cntrlvar " + controlledControlVars[tripCnt]
             tripCnt+=1
         toWrite += " \n"
@@ -131,21 +139,35 @@ class RELAPparser():
       @ In, None
       @ Out, None
     """
+    try:
+      cntrVars =  self.additionalControlVariables
+    except:
+      cntrVars = None
     for deckNum in self.inputTrips.keys():
       alreadyAvailableEdits = self.inputMinorEdits[deckNum].values()
       availableMinorEditsCards = [x for x in range(301,399) if str(x) not in self.inputMinorEdits[deckNum].keys()]
       addedVars = []
-      self.deckLines[deckNum].append("* START -- MINOR EDITS ADDED BY RAVEN *\n")
-      for trip in self.inputTrips[deckNum]['variableTrips'].values():
+      self.deckLines[deckNum].append("* START -- MINOR EDITS TRIPS ADDED BY RAVEN *\n")
+      for tripID, trip in self.inputTrips[deckNum]['variableTrips'].items():
         found = False
         for edit in alreadyAvailableEdits:
-          if trip['component'] in edit['component'] and trip['variable'] in edit['component']:
+          if trip['variable'] != 'time' and trip['component'] in edit['component'] and trip['variable'] in edit['component']:
             found = True
-        if not found and trip['variable'] != 'time' and trip['variable']+"_"+trip['component'] not in addedVars:
-          addedVars.append(trip['variable']+"_"+trip['component'])
+          elif trip['variable'] == 'time' and "timeof" in edit['variable'] and tripID in edit['component']:
+            found = True
+        # if not found and trip['variable']+"_"+trip['component'] not in addedVars:
+        if not found and trip['variable']+"_"+trip['component'] not in addedVars:
           if len(availableMinorEditsCards) == 0: raise IOError("Number of minor edits reached already the upper bound of RELAP5. There are no available cards to monitor the trips!")
-          self.deckLines[deckNum].append(str(availableMinorEditsCards.pop()) + " "+trip['variable']+" "+trip['component'] +"\n")
-      self.deckLines[deckNum].append("* END --  MINOR EDITS ADDED BY RAVEN *\n")
+          if trip['variable'] != 'time':
+            addedVars.append(trip['variable']+"_"+trip['component'])
+            self.deckLines[deckNum].append(str(availableMinorEditsCards.pop()) + " "+trip['variable']+" "+trip['component'] +"\n")
+          else:
+            addedVars.append("timeof"+"_"+tripID)
+            self.deckLines[deckNum].append(str(availableMinorEditsCards.pop()) + " "+"timeof"+" "+tripID +"\n")
+      if cntrVars is not None:
+        for cntrVar in cntrVars[deckNum]:
+          self.deckLines[deckNum].append(str(availableMinorEditsCards.pop()) + " "+"cntrlvar"+" "+cntrVar +"\n")
+      self.deckLines[deckNum].append("* END --  MINOR EDITS TRIPS ADDED BY RAVEN *\n")
 
   def getTripsMinorEditsAndControlVars(self):
     """
@@ -235,7 +257,8 @@ class RELAPparser():
         self.inputTrips[deckNum]['variableTrips'][tripNumber]['timeOf'] =  splitted[8].strip()
     if (601 <= int(splitted[0]) <= 799) or (20610010 <= int(splitted[0]) <= 20620000):
       if  not (5 <= len(splitted)<= 6):
-        raise IOError(self.printTag+ "ERROR: in RELAP5 input file the number of words in logical trip section needs to be 4 or 5 . Trip= "+splitted[0])
+        raise IOError(self.printTag+ "ERROR: in RELAP5 input file the number of words in logical trip section needs"
+                      +" to be 4 or 5 . Trip= "+splitted[0])
       tripNumber = splitted[0].strip()
       isTrip     = True
       self.inputTrips[deckNum]['logicalTrips'][tripNumber] = {}
@@ -404,8 +427,20 @@ class RELAPparser():
           self.lastCntrLine[deckNum]      +=cnt
           self.lastMinorEditLine[deckNum] +=cnt
           self.lastTripLine[deckNum]      +=cnt
-          toAdd[deckNum] = self.inputTrips[deckNum]['variableTrips'].keys()
-          self.addControlVariablesForStoppingCoditions(toAdd)
+          detVars = dictionaryList[0].get('DETvariables', None)
+          if detVars is not None:
+            toAdd[deckNum] = []
+            for var in detVars:
+              splitted =  var.split(":")
+              if "|" not in splitted[0] and len(decks) == deckNum:
+                toAdd[deckNum].append(splitted[0].strip())
+              elif "|" in splitted[0] and int(splitted[0].split("|")[0]) == deckNum:
+                toAdd[deckNum].append(splitted[0].split("|")[1].strip())
+            # toAdd[deckNum] = self.inputTrips[deckNum]['variableTrips'].keys()
+            if toAdd[deckNum]:
+              self.addControlVariablesForStoppingCoditions(toAdd)
+          # add trips and control variables
+          self.addTripsVarsInMinorEdits()
       lines = lines + temp
     return lines
 
