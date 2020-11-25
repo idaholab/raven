@@ -188,8 +188,8 @@ def randomIntegers(low, high, caller=None, engine=None):
   if isinstance(engine, np.random.RandomState):
     return engine.randint(low, high=high+1)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-    intRange = high - low
-    rawNum = low + random(engine=engine)*intRange
+    intRange = high - low + 1.0
+    rawNum = low + random(engine=engine)*intRange - 0.5
     rawInt = int(round(rawNum))
     if rawInt < low or rawInt > high:
       if caller:
