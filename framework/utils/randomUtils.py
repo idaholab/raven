@@ -25,8 +25,8 @@ from collections import deque, defaultdict
 from utils.utils import findCrowModule
 from utils import mathUtils
 
-# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
-# Numoy stochastic environment can not pass the test as this point
+# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
+# Numpy stochastic environment can not pass the test as this point
 stochasticEnv = 'crow'
 #stochasticEnv = 'numpy'
 
@@ -85,7 +85,7 @@ if stochasticEnv == 'numpy':
   npStochEnv = np.random.RandomState()
 else:
   crowStochEnv = findCrowModule('randomENG').RandomClass()
-  # this is needed for now since we need to split the stoch enviroments
+  # this is needed for now since we need to split the stoch environments
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 

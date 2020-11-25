@@ -214,7 +214,7 @@ checkAnswer('randomNormal size of sample for local engine provided',len(vals[0])
 ### randomIntegers(), sampling integers in a range
 randomUtils.randomSeed(42,engine=None)
 randomUtils.randomSeed(42,engine=eng)
-right = [14,18,20,12,17]
+right = [14,18,20,12,18]
 for i in range(5):
   n = randomUtils.randomIntegers(10,20,None,engine=None) #no message handler, error handling will error out
   checkAnswer('random integer, {} sample for engine not provided'.format(i),n,right[i])
@@ -239,9 +239,9 @@ randomUtils.randomSeed(42,engine=None)
 randomUtils.randomSeed(42,engine=eng)
 l = [1,2,3,4,5]
 l2 = randomUtils.randomPermutation(l,None,engine=None)
-checkArray('random permutation for engine not provided',l2,[2,4,5,1,3])
+checkArray('random permutation for engine not provided',l2,[2,5,4,1,3])
 l2 = randomUtils.randomPermutation(l,None,engine=eng)
-checkArray('random permutation for local engine provided',l2,[2,4,5,1,3])
+checkArray('random permutation for local engine provided',l2,[2,5,4,1,3])
 ### randPointsOnHypersphere(), unit hypersphere surface sampling (aka random direction)
 randomUtils.randomSeed(42,engine=None)
 randomUtils.randomSeed(42,engine=eng)
