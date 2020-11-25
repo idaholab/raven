@@ -251,8 +251,8 @@ def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
   rnorm = float(r)/np.linalg.norm(pts,axis=1)
   pts *= rnorm[:,np.newaxis]
   #TODO if all values in any given sample are 0,
-  #       this produces an unphysical result, so we should resample;
-  #       however, this probability is miniscule and the speed benefits of skipping checking loop seems worth it.
+  #       this produces an not physical result, so we should re-sample;
+  #       however, this probability is minuscule and the speed benefits of skipping checking loop seems worth it.
   if keepMatrix:
     return pts
   else:
