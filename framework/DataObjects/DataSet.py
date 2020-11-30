@@ -217,7 +217,10 @@ class DataSet(DataObject):
     # protect against back-changing realization
     rlz = copy.deepcopy(rlz)
     # if index map was included, remove that now before checking variables
-    indexMap = rlz.pop('_indexMap', None)
+    try:
+        indexMap = rlz.pop('_indexMap', None)
+    except AttributeError:
+        indexMap = None
     if indexMap is not None:
       # keep only those parts of the indexMap that correspond to variables we care about.
       indexMap = dict((key, val) for key, val in indexMap[0].items() if key in self.getVars()) # [0] because everything is nested in a list by now, it seems
