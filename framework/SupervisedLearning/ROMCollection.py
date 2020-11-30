@@ -1218,6 +1218,7 @@ class Interpolated(supervisedLearning):
     if self._maxCycles is not None:
       self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive steps.')
     self._macroSteps = {}                                               # collection of macro steps (e.g. each year)
+    self.addMetaKeys(['cluster_multiplicity'], {'cluster_multiplicity': ['_ROM_cluster']})
 
   # passthrough to template
   def setAdditionalParams(self, params):
