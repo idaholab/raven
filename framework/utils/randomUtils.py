@@ -24,6 +24,7 @@ from collections import deque, defaultdict
 
 from utils.utils import findCrowModule
 from utils import mathUtils
+import math
 
 # in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
 # Numpy stochastic environment can not pass the test as this point
@@ -189,8 +190,10 @@ def randomIntegers(low, high, caller=None, engine=None):
     return engine.randint(low, high=high+1)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
     intRange = high - low + 1.0
-    rawNum = low + random(engine=engine)*intRange - 0.5
-    rawInt = int(round(rawNum))
+    #rawNum = low + random(engine=engine)*intRange - 0.5
+    #rawInt = int(round(rawNum))
+    rawNum = low + random(engine=engine)*intRange
+    rawInt = math.floor(rawNum)
     if rawInt < low or rawInt > high:
       if caller:
         caller.raiseAMessage("Random int out of range")
@@ -252,7 +255,7 @@ def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
   pts *= rnorm[:,np.newaxis]
   #TODO if all values in any given sample are 0,
   #       this produces an not physical result, so we should re-sample;
-  #       however, this probability is minuscule and the speed benefits of skipping checking loop seems worth it.
+  #       however, this probability is very small and the speed benefits of skipping checking loop seems worth it.
   if keepMatrix:
     return pts
   else:
