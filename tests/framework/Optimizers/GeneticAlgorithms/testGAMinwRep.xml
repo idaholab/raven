@@ -20,18 +20,10 @@
     <WorkingDir>MinwReplacement</WorkingDir>
     <Sequence>optimize, print</Sequence>
     <batchSize>1</batchSize>
-    <!-- <maxQueueSize>100</maxQueueSize> -->
   </RunInfo>
 
   <Steps>
-    <!-- <MultiRun name="sample">
-      <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
-      <Model          class="Models"      type="ExternalModel"    >myLocalSum</Model>
-      <Sampler        class="Samplers"    type="MonteCarlo"       >MC</Sampler>
-      <Output         class="DataObjects" type="PointSet"         >optOut</Output>
-    </MultiRun> -->
     <MultiRun name="optimize" >
-      <!--re-seeding="032877" 120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
       <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
@@ -63,10 +55,9 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>20</limit>
+        <limit>50</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
-        <!-- <type>max</type> -->
       </samplerInit>
 
       <GAparams>
@@ -74,11 +65,9 @@
         <parentSelection>rouletteWheel</parentSelection>
         <reproduction nParents="20">
           <crossover type="onePointCrossover">
-            <!-- <points>3</points> -->
             <crossoverProb>0.8</crossoverProb>
           </crossover>
           <mutation type="swapMutator">
-            <!-- <locs>2,5</locs> -->
             <mutationProb>0.9</mutationProb>
           </mutation>
         </reproduction>
@@ -95,32 +84,26 @@
 
       <variable name="x1">
         <distribution>uniform_dist_Repl_1</distribution>
-        <!-- <initial>1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20</initial> -->
       </variable>
 
       <variable name="x2">
         <distribution>uniform_dist_Repl_1</distribution>
-        <!-- <initial>2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1</initial> -->
       </variable>
 
       <variable name="x3">
         <distribution>uniform_dist_Repl_1</distribution>
-        <!-- <initial>3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2</initial> -->
       </variable>
 
       <variable name="x4">
         <distribution>uniform_dist_Repl_1</distribution>
-        <!-- <initial>4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3</initial> -->
       </variable>
 
       <variable name="x5">
         <distribution>uniform_dist_Repl_1</distribution>
-        <!-- <initial>5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4</initial> -->
       </variable>
 
       <variable name="x6">
         <distribution>uniform_dist_Repl_1</distribution>
-        <!-- <initial>6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4,5</initial> -->
       </variable>
 
       <objective>ans</objective>
@@ -171,7 +154,6 @@
       <PointSet name="opt_export">
         <Input>trajID</Input>
         <Output>x1,x2,x3,x4,x5,x6,ans,age,batchId,fitness,iteration,accepted,conv_objective</Output>
-        <!-- <Output>x1,x2,x3,x4,x5,x6,ans,iteration,accepted,conv_objective</Output> fitness,conv_fitness -->
       </PointSet>
     </DataObjects>
 
