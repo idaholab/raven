@@ -440,7 +440,7 @@ class GeneticAlgorithm(RavenSampled):
         unique = set(children.data[chrom,:])
         if len(children.data[chrom,:]) != len(unique):
           for var in self.toBeSampled.keys(): ## TODO: there must be a smarter way to da id any variables strategy is without replacement
-            if (self.distDict[var].strategy == 'withOutReplacement'):
+            if (hasattr(self.distDict[var],'strategy') and self.distDict[var].strategy == 'withOutReplacement'):
               needsRepair = True
               break
       if needsRepair:
@@ -472,7 +472,6 @@ class GeneticAlgorithm(RavenSampled):
                                         'Gene':list(self.toBeSampled)})
       # 5 @ n: Submit children batch
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
-      # self._submitRun(children,traj,self.counter)
       for i in range(np.shape(children)[0]):
         newRlz={}
         for _,var in enumerate(self.toBeSampled.keys()):
@@ -784,18 +783,15 @@ class GeneticAlgorithm(RavenSampled):
       @ In, old, dict, previous optimal point (to resubmit)
     """
   pass
-
   def _applyFunctionalConstraints(self, suggested, previous):
     """
-      fixes functional constraints of variables in "point" -> DENORMED point expected!
+      applies functional constraints of variables in "suggested" -> DENORMED point expected!
       @ In, suggested, dict, potential point to apply constraints to
       @ In, previous, dict, previous opt point in consideration
       @ Out, point, dict, adjusted variables
       @ Out, modded, bool, whether point was modified or not
     """
-    pass
-  # END constraint handling
-  # * * * * * * * * * * * *
+    self.raiseAnError(NotImplementedError, 'Constraint Handling is not implemented yet!')
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
       Contributes additional entries to the solution export.

@@ -83,7 +83,6 @@
       </GAparams>
 
       <convergence>
-        <!-- <objective>-1</objective> -->
         <AHDp>1</AHDp>
       </convergence>
 

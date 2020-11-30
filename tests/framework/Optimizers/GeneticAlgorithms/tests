@@ -1,0 +1,105 @@
+[Tests]
+  [./MinwReplacement]
+    type = 'RavenFramework'
+    input = 'testGAMinwRep.xml'
+    heavy = true
+    max_time = 1500
+    [./data]
+      type = OrderedCSV
+      output = 'MinwReplacement/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MinwReplacementConvAHDp]
+    type = 'RavenFramework'
+    input = 'testGAMinwRepConvAHDp.xml'
+    heavy = true
+    max_time = 1500
+    [./data]
+      type = OrderedCSV
+      output = 'MinwReplacementConvAHDp/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MinwoReplacement]
+    type = 'RavenFramework'
+    input = 'testGAMinwoRep.xml'
+    heavy = true
+    max_time = 1500
+    [./data]
+      type = OrderedCSV
+      output = 'MinwoReplacement/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MinwoReplacementConvAHDp]
+    type = 'RavenFramework'
+    input = 'testGAMinwoRepConvAHDp.xml'
+    heavy = true
+    max_time = 1500
+    [./data]
+      type = OrderedCSV
+      output = 'MinwoReplacementConvAHDp/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MaxwReplacement]
+    type = 'RavenFramework'
+    input = 'testGAMaxwRep.xml'
+    heavy = true
+    max_time = 1500
+    [./data]
+      type = OrderedCSV
+      output = 'MaxwReplacement/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MaxwReplacementConvAHDp]
+    type = 'RavenFramework'
+    input = 'testGAMaxwRepConvAHDp.xml'
+    heavy = true
+    max_time = 1500
+    [./data]
+      type = OrderedCSV
+      output = 'MaxwReplacementConvAHDp/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MaxwoReplacement]
+    type = 'RavenFramework'
+    input = 'testGAMaxwoRep.xml'
+    heavy = true
+    max_time = 1500
+    [./data]
+      type = OrderedCSV
+      output = 'MaxwoReplacement/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
+  [./MaxwoReplacementConvAHDp]
+    type = 'RavenFramework'
+    input = 'testGAMaxwoRepConvAHDp.xml'
+    heavy = true
+    max_time = 1500
+    [./data]
+      type = OrderedCSV
+      output = 'MaxwoReplacementConvAHDp/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+[]

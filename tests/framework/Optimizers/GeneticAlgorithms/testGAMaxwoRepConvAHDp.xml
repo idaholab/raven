@@ -17,13 +17,20 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>MinwoReplacement</WorkingDir>
+    <WorkingDir>MaxwoReplacementConvAHDp</WorkingDir>
     <Sequence>optimize, print</Sequence>
-    <batchSize>1</batchSize>
+    <!-- <internalParallel>true</internalParallel>
+    <batchSize>8</batchSize> -->
     <!-- <maxQueueSize>100</maxQueueSize> -->
   </RunInfo>
 
   <Steps>
+    <!-- <MultiRun name="sample">
+      <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
+      <Model          class="Models"      type="ExternalModel"    >myLocalSum</Model>
+      <Sampler        class="Samplers"    type="MonteCarlo"       >MC</Sampler>
+      <Output         class="DataObjects" type="PointSet"         >optOut</Output>
+    </MultiRun> -->
     <MultiRun name="optimize" >
       <!--re-seeding="032877" 120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
@@ -71,11 +78,11 @@
         <limit>50</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
-        <type>min</type>
+        <type>max</type>
       </samplerInit>
 
       <GAparams>
-        <populationSize>50</populationSize>
+        <populationSize>60</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
         <reproduction nParents="10">
           <crossover type="onePointCrossover">
@@ -95,7 +102,8 @@
       </GAparams>
 
       <convergence>
-        <objective>-1</objective>
+        <!-- <objective>-1</objective> -->
+        <AHDp>1.0</AHDp>
       </convergence>
 
       <variable name="x1">
@@ -127,6 +135,61 @@
         <distribution>uniform_dist_woRepl_1</distribution>
         <!-- <initial>6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4,5</initial> -->
       </variable>
+<!--
+      <variable name=" fuelLocation_3">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>3</initial>
+      </variable>
+
+      <variable name=" fuelLocation_4">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>4</initial>
+      </variable>
+
+      <variable name=" fuelLocation_5">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>5</initial>
+      </variable>
+
+      <variable name=" fuelLocation_6">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>6</initial>
+      </variable>
+
+      <variable name=" fuelLocation_7">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>7</initial>
+      </variable>
+
+      <variable name=" fuelLocation_8">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>8</initial>
+      </variable>
+
+      <variable name=" fuelLocation_9">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>9</initial>
+      </variable>
+
+      <variable name=" fuelLocation_10">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>10</initial>
+      </variable>
+
+      <variable name=" fuelLocation_11">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>11</initial>
+      </variable>
+
+      <variable name=" fuelLocation_12">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>12</initial>
+      </variable>
+
+      <variable name=" fuelLocation_13">
+        <distribution>uniform_dist_woRepl_1</distribution>
+        <initial>13</initial>
+      </variable> -->
 
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
@@ -137,7 +200,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>50</limit>
+        <limit>60</limit>
         <initialSeed>20021986</initialSeed>
       </samplerInit>
       <variable name="x1">
@@ -175,8 +238,8 @@
       </PointSet>
       <PointSet name="opt_export">
         <Input>trajID</Input>
-        <Output>x1,x2,x3,x4,x5,x6,ans,age,batchId,fitness,iteration,accepted,conv_objective</Output>
-        <!-- <Output>x1,x2,x3,x4,x5,x6,ans,iteration,accepted,conv_objective</Output> -->
+        <Output>x1,x2,x3,x4,x5,x6,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
+        <!-- <Output>x1,x2,x3,x4,x5,x6,ans,iteration,accepted,conv_objective</Output> fitness,conv_fitness -->
       </PointSet>
     </DataObjects>
 

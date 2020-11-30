@@ -17,7 +17,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>MinwoReplacement</WorkingDir>
+    <WorkingDir>MinwoReplacementConvAHDp</WorkingDir>
     <Sequence>optimize, print</Sequence>
     <batchSize>1</batchSize>
     <!-- <maxQueueSize>100</maxQueueSize> -->
@@ -95,7 +95,7 @@
       </GAparams>
 
       <convergence>
-        <objective>-1</objective>
+        <AHDp>1.0</AHDp>
       </convergence>
 
       <variable name="x1">
@@ -175,8 +175,8 @@
       </PointSet>
       <PointSet name="opt_export">
         <Input>trajID</Input>
-        <Output>x1,x2,x3,x4,x5,x6,ans,age,batchId,fitness,iteration,accepted,conv_objective</Output>
-        <!-- <Output>x1,x2,x3,x4,x5,x6,ans,iteration,accepted,conv_objective</Output> -->
+        <Output>x1,x2,x3,x4,x5,x6,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
+        <!-- <Output>x1,x2,x3,x4,x5,x6,ans,iteration,accepted,conv_objective</Output> fitness,conv_fitness -->
       </PointSet>
     </DataObjects>
 

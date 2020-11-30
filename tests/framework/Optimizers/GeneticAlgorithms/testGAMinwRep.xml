@@ -63,7 +63,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>50</limit>
+        <limit>20</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <!-- <type>max</type> -->
@@ -72,7 +72,7 @@
       <GAparams>
         <populationSize>50</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="10">
+        <reproduction nParents="20">
           <crossover type="onePointCrossover">
             <!-- <points>3</points> -->
             <crossoverProb>0.8</crossoverProb>
@@ -157,7 +157,7 @@
   </Samplers>
 
     <Models>
-      <ExternalModel ModuleToLoad="../../AnalyticModels/optimizing/myLocalSum.py" name="myLocalSum" subType="">
+      <ExternalModel ModuleToLoad="../../../AnalyticModels/optimizing/myLocalSum.py" name="myLocalSum" subType="">
         <variables>x1,x2,x3,x4,x5,x6,ans</variables>
       </ExternalModel>
     </Models>

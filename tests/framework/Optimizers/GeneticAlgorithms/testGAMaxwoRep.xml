@@ -19,7 +19,8 @@
   <RunInfo>
     <WorkingDir>MaxwoReplacement</WorkingDir>
     <Sequence>optimize, print</Sequence>
-    <batchSize>1</batchSize>
+    <!-- <internalParallel>true</internalParallel>
+    <batchSize>8</batchSize> -->
     <!-- <maxQueueSize>100</maxQueueSize> -->
   </RunInfo>
 
@@ -74,7 +75,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>20</limit>
+        <limit>50</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
         <type>max</type>
