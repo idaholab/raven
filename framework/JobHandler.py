@@ -222,11 +222,11 @@ class JobHandler(MessageHandler.MessageUser):
           # add names in runInfo
           self.runInfoDict['remoteNodes'] = servers
           ## initialize ray server with nProcs
-          self.rayServer = ray.init(address=address, _redis_password=redisPassword,log_to_driver=False) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
+          self.rayServer = ray.init(address=address, _redis_password=redisPassword,log_to_driver=True) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
           self.raiseADebug("NODES IN THE CLUSTER : ", str(ray.nodes()))
         else:
           self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
-          self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False)
+          self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=True)
       else:
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
