@@ -24,7 +24,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize" >
+    <MultiRun name="optimize" re-seeding="2286">
       <!--re-seeding="032877" 120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>

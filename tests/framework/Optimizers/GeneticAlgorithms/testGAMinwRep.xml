@@ -23,7 +23,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize" >
+    <MultiRun name="optimize" re-seeding="2286">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
       <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>

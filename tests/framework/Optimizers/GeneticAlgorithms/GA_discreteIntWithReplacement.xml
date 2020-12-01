@@ -18,7 +18,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="sample">
+    <MultiRun name="sample" re-seeding="2286" >
       <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
       <Model          class="Models"      type="ExternalModel"    >MKbase</Model>
       <Sampler        class="Samplers"    type="MonteCarlo"       >MC</Sampler>
@@ -28,7 +28,7 @@
       <Input          class="DataObjects" type="PointSet"         >MCOut</Input>
       <Output         class="OutStreams"  type="Print"            >PrintMCOut</Output>
     </IOStep>
-    <MultiRun name="opt">
+    <MultiRun name="opt" re-seeding="2286">
       <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
       <Model          class="Models"      type="ExternalModel"    >MKbase</Model>
       <Optimizer      class="Optimizers"  type="GeneticAlgorithm" >GAoptimizer</Optimizer>
