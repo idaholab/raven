@@ -378,6 +378,7 @@ class Code(Model):
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
 
     kwargs['subDirectory'] = subDirectory
+    kwargs['alias'] = self.alias
 
     if 'SampledVars' in kwargs.keys():
       sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)

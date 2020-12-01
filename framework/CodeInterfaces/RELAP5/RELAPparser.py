@@ -355,23 +355,22 @@ class RELAPparser():
         raise IOError("RELAP5 Interface: The following cards have not been found in the original input files: "+cardsNotFound)
     return cardValues
 
-  def modifyOrAdd(self,dictionaryList,save=True):
+  def modifyOrAdd(self,modifyDict,save=True):
     """
       dictionaryList is a list of dictionaries of the required addition or modification
       the method looks in self.lines for a card number matching the card in modiDictionaryList
       and modifies the word from dictionaryList at needed
-      @ In, dictionaryList, list, list of dictionaries containing the info to modify the XML tree
+      @ In, modifyDict, dict, dictionary containing the info to modify the XML tree
       @ In, save, bool, optional, True if the original tree needs to be saved
       @ Out, lines, list, list of modified lines (of the original input)
     """
     decks              = {}
     toAdd              = {} # for DET
     lines              = []
-    for i in dictionaryList:
-      if 'decks' not in i.keys():
-        raise IOError(self.printTag+"ERROR: no card inputs found!!")
-      else:
-        decks.update(i['decks'])
+    if 'decks' not in modifyDict:
+      raise IOError(self.printTag+"ERROR: no card inputs found!!")
+    else:
+      decks = modifyDict['decks']
     for deckNum in decks.keys():
       if deckNum not in self.deckLines.keys():
         raise IOError("RELAP5 Interface: The number of deck found in the original input file is "
@@ -383,7 +382,10 @@ class RELAPparser():
         temp.append('*'+' deckNum: '+str(deckNum)+'\n')
       for j in sorted(modiDictionaryList):
         for var in modiDictionaryList[j]:
-          temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+'{:.5e}'.format(var['value'])+'\n')
+          try:
+            temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+'{:.5e}'.format(var['value'])+'\n')
+          except ValueError:
+            temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+var['value']+'\n')
       temp.append('*RAVEN INPUT VALUES\n')
 
       temp+=self.deckLines[deckNum]
@@ -427,7 +429,7 @@ class RELAPparser():
           self.lastCntrLine[deckNum]      +=cnt
           self.lastMinorEditLine[deckNum] +=cnt
           self.lastTripLine[deckNum]      +=cnt
-          detVars = dictionaryList[0].get('DETvariables', None)
+          detVars = modifyDict.get('DETvariables', None)
           if detVars is not None:
             toAdd[deckNum] = []
             for var in detVars:
@@ -463,7 +465,11 @@ class RELAPparser():
       @ Out, newline, string, modified line
     """
     temp=line.split()
-    temp[int(position)]='{:.5e}'.format(value)
+    try:
+      temp[int(position)]='{:.5e}'.format(value)
+    except ValueError:
+      temp[int(position)]=value
+
     newline=temp.pop(0)
     for i in temp:
       newline=newline+'  '+i

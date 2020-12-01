@@ -262,32 +262,40 @@ class DynamicEventTree(Grid):
     if not branchedLevel:
       self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
     # Loop of the parameters that have been changed after a trigger gets activated
-    for key in endInfo['branchChangedParams']:
-      endInfo['n_branches'] = 1 + int(len(endInfo['branchChangedParams'][key]['actualValue']))
-      if(len(endInfo['branchChangedParams'][key]['actualValue']) > 1):
-        #  Multi-Branch mode => the resulting branches from this parent calculation (just ended)
-        # will be more then 2
-        # unchangedPb = probability (not conditional probability yet) that the event does not occur
-        unchangedPb = 0.0
-        try:
-          # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha' """
-          for pb in range(len(endInfo['branchChangedParams'][key]['associatedProbability'])):
-            unchangedPb = unchangedPb + endInfo['branchChangedParams'][key]['associatedProbability'][pb]
-        except KeyError:
-          self.raiseAWarning("KeyError:"+str(key))
-        if(unchangedPb <= 1):
-          endInfo['branchChangedParams'][key]['unchangedPb'] = 1.0-unchangedPb
+    if 'None' not in endInfo['branchChangedParams']:
+      for key in endInfo['branchChangedParams']:
+        endInfo['n_branches'] = 1 + int(len(endInfo['branchChangedParams'][key]['actualValue']))
+        if(len(endInfo['branchChangedParams'][key]['actualValue']) > 1):
+          #  Multi-Branch mode => the resulting branches from this parent calculation (just ended)
+          # will be more then 2
+          # unchangedPb = probability (not conditional probability yet) that the event does not occur
+          unchangedPb = 0.0
+          try:
+            # changed_pb = probability (not conditional probability yet) that the event A occurs and the final state is 'alpha' """
+            for pb in range(len(endInfo['branchChangedParams'][key]['associatedProbability'])):
+              unchangedPb = unchangedPb + endInfo['branchChangedParams'][key]['associatedProbability'][pb]
+          except KeyError:
+            self.raiseAWarning("KeyError:"+str(key))
+          if(unchangedPb <= 1):
+            endInfo['branchChangedParams'][key]['unchangedPb'] = 1.0-unchangedPb
+          else:
+            self.raiseAWarning("unchangedPb > 1:"+str(unchangedPb))
         else:
-          self.raiseAWarning("unchangedPb > 1:"+str(unchangedPb))
+          # Two-Way mode => the resulting branches from this parent calculation (just ended) = 2
+          if branchedLevel[endInfo['branchDist']] > len(self.branchProbabilities[endInfo['branchDist']])-1:
+            pb = 1.0
+          else:
+            pb = self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]
+          endInfo['branchChangedParams'][key]['unchangedPb'] = 1.0 - pb
+          endInfo['branchChangedParams'][key]['associatedProbability'] = [pb]
+    else:
+      endInfo['n_branches'] = 2
+      if branchedLevel[endInfo['branchDist']] > len(self.branchProbabilities[endInfo['branchDist']])-1:
+        pb = 1.0
       else:
-        # Two-Way mode => the resulting branches from this parent calculation (just ended) = 2
-        if branchedLevel[endInfo['branchDist']] > len(self.branchProbabilities[endInfo['branchDist']])-1:
-          pb = 1.0
-        else:
-          pb = self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]
-        endInfo['branchChangedParams'][key]['unchangedPb'] = 1.0 - pb
-        endInfo['branchChangedParams'][key]['associatedProbability'] = [pb]
-
+        pb = self.branchProbabilities[endInfo['branchDist']][branchedLevel[endInfo['branchDist']]]
+      endInfo['branchChangedParams']['None']['unchangedPb'] = 1.0 - pb
+      endInfo['branchChangedParams']['None']['associatedProbability'] = [pb]
     self.branchCountOnLevel = 0
     # # set runEnded and running to true and false respectively
     # The branchedLevel counter is updated
@@ -333,9 +341,11 @@ class DynamicEventTree(Grid):
     # changedConditionalPb   = Conditional Probability of the branches in which the event has occurred
     for key in self.endInfo[index]['branchChangedParams']:
       self.endInfo[index]['branchChangedParams'][key]['changedConditionalPb'] = []
-      self.endInfo[index]['branchChangedParams'][key]['unchangedConditionalPb'] = parentCondPb*float(self.endInfo[index]['branchChangedParams'][key]['unchangedPb'])
+      self.endInfo[index]['branchChangedParams'][key]['unchangedConditionalPb'] = parentCondPb*float(self.endInfo[
+        index]['branchChangedParams'][key]['unchangedPb'])
       for pb in range(len(self.endInfo[index]['branchChangedParams'][key]['associatedProbability'])):
-        self.endInfo[index]['branchChangedParams'][key]['changedConditionalPb'].append(parentCondPb*float(self.endInfo[index]['branchChangedParams'][key]['associatedProbability'][pb]))
+        self.endInfo[index]['branchChangedParams'][key]['changedConditionalPb'].append(parentCondPb*float(self.endInfo[
+          index]['branchChangedParams'][key]['associatedProbability'][pb]))
 
   def __readBranchInfo(self,outBase=None,currentWorkingDir=None):
     """
@@ -411,7 +421,7 @@ class DynamicEventTree(Grid):
             self.actualBranchInfo[distName][varName]['associatedProbability'] = multiBranchPb
       else:
         # not provided information regardind
-        self.actualBranchInfo[distName]['None'] = {'varType':'None','actualValue':'None','oldValue':'None'}
+        self.actualBranchInfo[distName]['None'] = {'varType':None,'actualValue':[None],'oldValue':None}
     # remove the file
     if self.removeXmlBranchInfo:
       os.remove(filename)
@@ -607,7 +617,7 @@ class DynamicEventTree(Grid):
       endInfo['parentNode'].appendBranch(subGroup)
       # Fill the values dictionary that will be passed into the model in order to create an input
       # In this dictionary the info for changing the original input is stored
-      self.inputInfo['prefix'] = rname.encode()
+      self.inputInfo['prefix'] = rname
       self.inputInfo['standardDETvariables'] = self.standardDETvariables
       self.inputInfo['endTimeStep'] = endInfo['endTimeStep']
       self.inputInfo['branchChangedParam'] = subGroup.get('branchChangedParam')

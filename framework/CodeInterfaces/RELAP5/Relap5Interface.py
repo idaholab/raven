@@ -43,6 +43,7 @@ class Relap5(CodeInterfaceBase):
     self.detVars = [] # in case of DET
     index = self._findInputFileIndex(oriInputFiles)
     parser = RELAPparser.RELAPparser(oriInputFiles[index].getAbsFile())
+    self.numberOfDecks = parser.maxNumberOfDecks
     cards = []
     for operator in self.operators:
       cards += operator['cards']
@@ -75,6 +76,7 @@ class Relap5(CodeInterfaceBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
+    self.inputAliases = {}
     self.outputDeck = -1 # default is the last deck!
     self.operators  = []
     for child in xmlNode:
@@ -142,7 +144,6 @@ class Relap5(CodeInterfaceBase):
     returnCommand = [('parallel',commandToRun)], outputfile
     return returnCommand
 
-
   def _writeBranchInfo(self, filename, endTime, endTimeStep, tripVariable):
     """
       Method to write the branchInfo
@@ -153,8 +154,13 @@ class Relap5(CodeInterfaceBase):
       @ Out, None
     """
     import dynamicEventTreeUtilities as detUtils
-    detUtils.writeXmlForDET(filename,tripVariable,[],{'end_time': endTime, 'end_ts': endTimeStep})
-
+    tripVar =  tripVariable
+    if len(self.inputAliases):
+      for ravenVar, codeVar in self.inputAliases.items():
+        if codeVar.strip().startswith(tripVar.strip()):
+          tripVar = ravenVar
+          break
+    detUtils.writeXmlForDET(filename,tripVar,[],{'end_time': endTime, 'end_ts': endTimeStep})
 
   def finalizeCodeOutput(self,command,output,workingDir):
     """
@@ -246,6 +252,30 @@ class Relap5(CodeInterfaceBase):
         except Exception as e:
           raise IOError('ERROR in "RELAP5 Code Interface": inputted <expression> is not valid! Exception:'+str(e) )
 
+  def __copyRestartFile(self, sourcePath, currentPath, restartFileName = None):
+    """
+      Copy restart file
+      @ In, sourcePath, str, the source path where the restart is at
+      @ In, currentPath, str, the current location (where the restart will be copied)
+      @ In, restartFileName, str, optional, the restart file name if present (otherwise try to find one to copy in sourcePath)
+      @ Out, None
+    """
+    # search for restrt file
+    rstrtFile = None
+    rstFileName = restartFileName if restartFileName is not None else 'restrt'
+    for fileToCheck in os.listdir(sourcePath):
+      if rstFileName in fileToCheck.strip() or fileToCheck.strip().endswith(".r"):
+        rstrtFile = fileToCheck
+        break
+    if rstrtFile is None:
+      raise IOError("no restart file has been found!" + rstFileName + " not found!")
+    sourceFile = os.path.join(sourcePath, rstrtFile)
+    try:
+      shutil.copy(sourceFile, currentPath)
+    except:
+      raise IOError('not able to copy restart file from "'+sourceFile+'" to "'+currentPath+'"')
+
+
   def __transferMetadata(self, metadataToTransfer, currentPath):
     """
       Method to tranfer metadata if present
@@ -257,19 +287,8 @@ class Relap5(CodeInterfaceBase):
       sourceID = metadataToTransfer.get("sourceID",None)
       if sourceID is not None:
         # search for restrt file
-        currentPath
         sourcePath = os.path.join(currentPath,"../",sourceID)
-        rstrtFile = None
-        for fileToCheck in os.listdir(sourcePath):
-          if fileToCheck.strip() == 'restrt' or fileToCheck.strip().endswith(".r"):
-            rstrtFile = fileToCheck
-        if rstrtFile is None:
-          raise IOError("metadataToTransfer|sourceID has been provided but no restart file has been found!")
-        sourceFile = os.path.join(sourcePath, rstrtFile)
-        try:
-          shutil.copy(sourceFile, currentPath)
-        except:
-          raise IOError('not able to copy restart file from "'+sourceFile+'" to "'+currentPath+'"')
+        self.__copyRestartFile(sourcePath, currentPath)
       else:
         raise IOError('the only metadtaToTransfer that is available in RELAP5 is "sourceID". Got instad: '+', '.join(metadataToTransfer.keys()))
 
@@ -291,7 +310,8 @@ class Relap5(CodeInterfaceBase):
     # instanciate the parser
     parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile(), self.det)
     if self.det:
-      self._samplersDictionary[samplerType] = self.DynamicEventTreeForRELAP5
+      self.inputAliases = Kwargs.get('alias').get('input')
+      self._samplersDictionary[samplerType] = self.dynamicEventTreeForRELAP5
       self.detVars   = Kwargs.get('DETVariables')
       if not self.detVars:
         raise IOError('ERROR in "RELAP5 Code Interface": NO DET variables with DET sampler!!!')
@@ -319,7 +339,6 @@ class Relap5(CodeInterfaceBase):
     if len(self.operators) > 0:
       self._evaluateOperators(**Kwargs)
 
-
     #if self.det:
     #  # if self.det, check which variable is connected to a trip (and consequentially must represent a stop condition)
     #  trips = parser.getTrips()
@@ -327,6 +346,7 @@ class Relap5(CodeInterfaceBase):
     self.__transferMetadata(Kwargs.get("metadataToTransfer",None), currentInputFiles[index].getPath())
 
     if 'None' not in str(samplerType):
+      Kwargs['currentPath'] = currentInputFiles[index].getPath()
       modifDict = self._samplersDictionary[samplerType](**Kwargs)
       parser.modifyOrAdd(modifDict,True)
 
@@ -364,9 +384,8 @@ class Relap5(CodeInterfaceBase):
       in order to change the input file based on the information present in the Kwargs dictionary.
       This is specific for Point samplers (Grid, Stratified, Monte Carlo, etc.).
       @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
-      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
+      @ Out, modifDict, dict,  dictionary used by the parser to change the input file
     """
-    listDict = []
     modifDict = {}
     deckList = {1:{}}
     deckActivated = False
@@ -385,21 +404,28 @@ class Relap5(CodeInterfaceBase):
         if deckActivated:
           raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
     modifDict['decks']=deckList
-    listDict.append(modifDict)
-    return listDict
+    return modifDict
 
-  def DynamicEventTreeForRELAP5(self,**Kwargs):
+  def dynamicEventTreeForRELAP5(self,**Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
       This is specific for DET-based samplers.
       @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
-      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
+      @ Out, modifDict, dict,  dictionary used by the parser to change the input file
     """
-    listDict = []
     modifDict = {}
     deckList = {1:{}}
     deckActivated = False
+    if self.det:
+      modifDict['DETvariables'] = self.detVars
+      parentID = Kwargs.get("RAVEN_parentID", "none")
+      if parentID.lower() != "none":
+        Kwargs['SampledVars']['1|100:1'] = 'restart'
+        Kwargs['SampledVars']['1|103:1'] = '-1'
+        # now we can copy the restart file
+        sourcePath = os.path.join(Kwargs['currentPath'],"..",parentID)
+        self.__copyRestartFile(sourcePath, Kwargs['currentPath'])
     for keys in Kwargs['SampledVars']:
       deck, card, word = self._convertVariablNameInInfo(keys)
       deckActivated = deck > 1
@@ -414,8 +440,4 @@ class Relap5(CodeInterfaceBase):
         if deckActivated:
           raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
     modifDict['decks']=deckList
-    if self.det:
-      modifDict['DETvariables'] = self.detVars
-
-    listDict.append(modifDict)
-    return listDict
+    return modifDict
