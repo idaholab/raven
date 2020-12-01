@@ -24,6 +24,7 @@ from collections import deque, defaultdict
 
 from utils.utils import findCrowModule
 from utils import mathUtils
+import math
 
 # in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
 # Numoy stochastic environment can not pass the test as this point
@@ -188,9 +189,9 @@ def randomIntegers(low, high, caller=None, engine=None):
   if isinstance(engine, np.random.RandomState):
     return engine.randint(low, high=high+1)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-    intRange = high - low + 1
-    rawNum = low + random(engine=engine)*intRange - 0.5
-    rawInt = int(round(rawNum))
+    intRange = high - low + 1.
+    rawNum = low + random(engine=engine)*intRange 
+    rawInt = math.floor(rawNum)
     if rawInt < low or rawInt > high:
       if caller:
         caller.raiseAMessage("Random int out of range")
