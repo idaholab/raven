@@ -341,9 +341,9 @@ class JobHandler(MessageHandler.MessageUser):
     # set the client info
     internalJob.clientRunner = clientQueue
     #  set the groupping id if present
-    internalJob.groupId = None
     if groupInfo is not None:
       groupId =  groupInfo['id']
+      # TODO: create method in Runner to set flags,ids,etc in the instanciated runner
       internalJob.groupId = groupId
       if groupId not in self.__batching:
         self.__batching[groupId] = {"counter": 0, "ids": [], "size": groupInfo['size'], 'finished': []}
