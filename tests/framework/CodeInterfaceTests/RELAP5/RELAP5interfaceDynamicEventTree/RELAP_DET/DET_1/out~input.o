@@ -213,20 +213,9 @@
                                                                                                                         
      1    *RAVEN INPUT VALUES                                                                                           
      2    * card: 414 word: 6 value: 1.20000e+01                                                                        
-     3    * card: 454 word: 6 value: 2.60000e+01                                                                        
+     3    * card: 454 word: 6 value: 1.35200e+01                                                                        
      4    *RAVEN INPUT VALUES                                                                                           
-     5    =Typical pwr model for use in the FPoliSolutions RISA Project                                                 
-     6    *m: SNAP:Symbolic Nuclear Analysis Package, Version 3.0.2, November 05, 2019                                  
-     7    *m: PLUGIN:RELAP Version 6.2.2                                                                                
-     8    *m: CODE:RELAP5 3D Version 4.3                                                                                
-     9    *m: DATE:2/17/20                                                                                              
-    10    ******************************                                                                                
-    11    *        Model Options       *                                                                                
-    12    ******************************                                                                                
-    13    *d: This model was created by FPoliSolutions and contains information which                                   
-    14    *d:  is proprietary and/or which may be privileged. It is intended for use by                                 
-    15    *d: FPoliSolutions and/or contacts listed by them.If you have received this                                   
-    16    *d: model in error, please delete the model, and contact FpoliSolutions.                                      
+     5    =Typical pwr model                                                                                     
     17    *            type         state                                                                               
     18    100       restart       transnt                                                                               
     19    *             run                                                                                             
@@ -238,7 +227,7 @@
     25    *        variable     parameter                                                                               
     26    301      cntrlvar           802                                                                               
     27    414  time  0  ge  null  0  1.20000e+01  l                                                                     
-    28    454  time  0  ge  null  0  2.60000e+01  l                                                                     
+    28    454  time  0  ge  null  0  1.35200e+01  l                                                                     
     29    *455 time     0 ge null     0  0.0 l                                                                          
     30    * START -- CONTROL VARIABLES ADDED BY RAVEN *                                                                 
     31    599 cntrlvar 998 gt null 0 0.0 l                                                                              
@@ -258,15 +247,15 @@
     45    * END --  MINOR EDITS TRIPS ADDED BY RAVEN *                                                                  
     46    .                                                                                                             
 0RELAP5-3D/Ver:4.4.2      Reactor Excursion Leak Analysis Program
- Typical pwr model for use in the FPoliSolutions RISA Project                     20/12/01     20:42:49      
+ Typical pwr model                     20/12/02     12:51:20      
 1RELAP5-3D/Ver:4.4.2      Reactor Excursion Leak Analysis Program
- Typical pwr model for use in the FPoliSolutions RISA Project                     20/12/01     20:42:49      
+ Typical pwr model                     20/12/02     12:51:20      
 0Processing type is restart 
 +                                       problem option is transnt 
 0inp-chk, run option is run.    
 0Desired restart number is LAST.
 0Restart input file was written by program RELAP5-3D/Ver:4.4.2      on 20/12/01     11:17:41   , steady st run.
-0Problem name on restart file,  "Typical pwr model for use in the FPoliSolutions RISA Project                    ",
+0Problem name on restart file,  "Typical pwr model                    ",
  is the same as the title in input deck.
 0Restart and plot files will be written.
 0Plot file format is XDR (machine-INdep binary)
@@ -274,7 +263,7 @@
  If restart file is not corrupted, data from the LAST restart dump will be used to restart the problem.
  Otherwise, garbage may result.
 0Restart record       6019 written at time =     3000.000000 seconds entered.
-0Simulation name written to restart file is "Typical pwr model for use in the FPoliSolutions RISA Project                    "
+0Simulation name written to restart file is "Typical pwr model                    "
 0No r5force file will be written.
 0Option 100 is an option which is always defined and can be used to activate coding which is being tested by a developer.
 0Input units are assumed british      output units are british 
@@ -325,7 +314,7 @@
       451     time                 0    ge     null                  0        0.00000           nolatch         0.00000    
       452     time                 0    ge     null                  0        0.00000           nolatch         0.00000    
       453     time                 0    ge     null                  0        0.00000           nolatch         0.00000    
-      454     time                 0    ge     null                  0        26.0000           latch          -1.00000    
+      454     time                 0    ge     null                  0        13.5200           latch          -1.00000    
       455     time                 0    ge     cntrlvar            621        0.00000           nolatch         1.00000    
       456     time                 0    ge     cntrlvar            622        0.00000           nolatch         1.00000    
       457     time                 0    ge     cntrlvar            623        0.00000           nolatch         1.00000    
@@ -2440,12 +2429,12 @@
 0$$$$$$$$ For Hydro System 4 (1-step) the BPLU parameters are:    3    1
 0$$$$$$$$ For Hydro System 5 (1-step) the BPLU parameters are:    3    1
 1RELAP5-3D/Ver:4.4.2      Reactor Excursion Leak Analysis Program
- Typical pwr model for use in the FPoliSolutions RISA Project                     20/12/01     20:42:49      
+ Typical pwr model                     20/12/02     12:51:20      
 0MAJOR EDIT !!!  time=   0.00000000     sec, M. Edit # =         1
 0 attempted adv: tot.=        0 edit=        0  min.dt=  0.00000     sec  last dt= 5.000000E-02 sec  ms.red=    0.00000     lb
    repeated adv: tot.=        0 edit=        0  max.dt=  0.00000     sec  crnt.dt=  0.00000     sec  tot.ms=   1.149909E+06 lb
  successful adv: tot.=        0 edit=        0  avg.dt=  0.00000     sec  err.est=  0.00000          m.ratn=    0.00000    
-  requested adv: tot.=        0 edit=        0  req.dt= 5.000000E-02 sec      cpu= 0.207507     sec    time=    0.00000     sec
+  requested adv: tot.=        0 edit=        0  req.dt= 5.000000E-02 sec      cpu= 0.207130     sec    time=    0.00000     sec
    kinetics adv: tot.=        0 ksub=        0  kin.dt=  0.00000     sec
 0Solver cycles=, scycles=              0
 0Trip number, trip time (sec)
@@ -4418,7 +4407,7 @@
 0Total hydrogen generated  8.95973E-02 (lb)     
 0Total heat generated from metal-water reaction  5.98735E+06 (J)
 1RELAP5-3D/Ver:4.4.2      Reactor Excursion Leak Analysis Program
- Typical pwr model for use in the FPoliSolutions RISA Project                     20/12/01     20:42:49      
+ Typical pwr model                     20/12/02     12:51:20      
 0 HEAT STRUCTURE OUTPUT +++time=     0.00000     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -4545,7 +4534,7 @@
  5211-002  left  521-020000  556.159 -2.29343E-05 -2.31933E-07   0.0000     0.00   2     1.6435       0.0000     -2.29343E-05   556.16
            right   0-000000  556.159   0.0000       0.0000       0.0000     0.00   0     0.0000    
 1RELAP5-3D/Ver:4.4.2      Reactor Excursion Leak Analysis Program
- Typical pwr model for use in the FPoliSolutions RISA Project                     20/12/01     20:42:49      
+ Typical pwr model                     20/12/02     12:51:20      
 0 HEAT STRUCTURE OUTPUT +++time=     0.00000     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -5039,14 +5028,14 @@ MINOR EDIT time=  9.90000000E+00 adv=   400 M.Ed. Lines   100
    9.80000      0.99923       0.0000       0.0000      -1.0000      -1.0000    
    9.90000      0.99924       0.0000       0.0000      -1.0000      -1.0000    
 1RELAP5-3D/Ver:4.4.2      Reactor Excursion Leak Analysis Program
- Typical pwr model for use in the FPoliSolutions RISA Project                     20/12/01     20:42:49      
+ Typical pwr model                     20/12/02     12:51:20      
 0MAJOR EDIT !!!  time=   12.0500000     sec, M. Edit # =         2
 0 attempted adv: tot.=      490 edit=      490  min.dt= 2.500000E-02 sec  last dt= 2.500000E-02 sec  ms.red=   0.412447     lb
    repeated adv: tot.=        8 edit=        8  max.dt= 2.500000E-02 sec  crnt.dt= 4.724987E-02 sec  tot.ms=   1.149862E+06 lb
  successful adv: tot.=      482 edit=      482  avg.dt= 2.500000E-02 sec  err.est= 1.986253E-07      m.rato=   3.586780E-07
-  requested adv: tot.=      240 edit=      240  req.dt= 5.000000E-02 sec      cpu=  1.26516     sec    time=    12.0500     sec
+  requested adv: tot.=      240 edit=      240  req.dt= 5.000000E-02 sec      cpu=  1.21974     sec    time=    12.0500     sec
    kinetics adv: tot.=      482 ksub=        0  kin.dt= 2.500000E-02 sec
-0Solver cycles=, scycles=          26725
+0Solver cycles=, scycles=          26246
 0Trip number, trip time (sec)
      401  -1.000000         402   0.000000         410  -1.000000         411  -1.000000         412  -1.000000    
      413  -1.000000         414   12.00000         450   0.000000         451   0.000000         452   0.000000    
@@ -7828,7 +7817,7 @@ MINOR EDIT time=  9.90000000E+00 adv=   400 M.Ed. Lines   100
 0Total hydrogen generated  8.97816E-02 (lb)     
 0Total heat generated from metal-water reaction  5.99966E+06 (J)
 1RELAP5-3D/Ver:4.4.2      Reactor Excursion Leak Analysis Program
- Typical pwr model for use in the FPoliSolutions RISA Project                     20/12/01     20:42:49      
+ Typical pwr model                     20/12/02     12:51:20      
 0 HEAT STRUCTURE OUTPUT +++time=     12.0500     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -7955,7 +7944,7 @@ MINOR EDIT time=  9.90000000E+00 adv=   400 M.Ed. Lines   100
  5211-002  left  521-020000  556.241  -4.7762     -4.83011E-02   0.0000     0.00   2     1.6434       0.0000      -4.7762       556.18
            right   0-000000  556.159   0.0000       0.0000       0.0000     0.00   0     0.0000    
 1RELAP5-3D/Ver:4.4.2      Reactor Excursion Leak Analysis Program
- Typical pwr model for use in the FPoliSolutions RISA Project                     20/12/01     20:42:49      
+ Typical pwr model                     20/12/02     12:51:20      
 0 HEAT STRUCTURE OUTPUT +++time=     12.0500     sec
   str.no. side   bdry.vol.  surface  heat-trf.    heat-flux    critical     CHF   ht   heat-trf.   int.-heat    conv+rad     ht-st vol
                   number    temp.    convection   convection   heat-flux    mul  mode  coef.conv    source      -source       ave temp
@@ -8364,9 +8353,9 @@ MINOR EDIT time=  1.20500000E+01 adv=   490 M.Ed. Lines   122
    11.9000      0.99930       0.0000       0.0000      -1.0000      -1.0000    
    12.0000      0.99932       0.0000       0.0000      -1.0000      -1.0000    
    12.0500      0.99936       0.0000       1.0000      -1.0000       12.000    
- Hydro/Kinetics/TH cycles:         125045           4504         757481
- Hydro/Kinetics/TH time:       1.2504E-01     4.5040E-03     7.5748E-01
+ Hydro/Kinetics/TH cycles:         118770           4370         719646
+ Hydro/Kinetics/TH time:       1.1877E-01     4.3700E-03     7.1965E-01
 
- Final time=    12.0500     sec   advancements attempted=      490   kinetics advancements=      482   clock cycles:        1094326
+ Final time=    12.0500     sec   advancements attempted=      490   kinetics advancements=      482   clock cycles:        1046663
 
  Transient terminated by trip.

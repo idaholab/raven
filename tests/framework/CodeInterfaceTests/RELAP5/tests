@@ -67,6 +67,14 @@
    rel_err = 0.0001
  [../]
 
+ [./RELAP5interfaceDynamicET]
+  type = 'RavenFramework'
+  input = 'test_relap5_code_interface_dynamic_event_tree.xml'
+  csv = 'RELAP5interfaceDynamicEventTree/RELAP_out.csv RELAP5interfaceDynamicEventTree/RELAPout_hier.csv'
+  text = 'RELAP5interfaceDynamicEventTree/RELAP_DET/DET_1-2-1-2/input.i RELAP5interfaceDynamicEventTree/RELAP_DET/DET_1-1/input.i'
+  test_interface_only = True
+ [../]
+
 
 
 
