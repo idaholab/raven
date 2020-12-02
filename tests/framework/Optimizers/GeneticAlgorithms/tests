@@ -106,10 +106,21 @@
   [./GA_discreteIntWithReplacement]
     type = 'RavenFramework'
     input = 'GA_discreteIntWithReplacement.xml'
-    max_time = 30
+    max_time = 60
     [./csv]
      type = OrderedCSV
-     output = 'discreteIntWithReplacement/PrintOptOut_export.csv'
+     output = 'discreteIntWithReplacement/PrintOptOut_export.csv discreteIntWithReplacement/PrintOptOut.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./GA_knapsackBase]
+    type = 'RavenFramework'
+    input = 'GA_knapsackBase.xml'
+    max_time = 60
+    [./csv]
+     type = OrderedCSV
+     output = 'simpleKnapsack/PrintOptOut_export.csv  simpleKnapsack/PrintOptOut.csv'
      rel_err = 0.001
     [../]
   [../]
