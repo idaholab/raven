@@ -452,6 +452,7 @@ class DynamicEventTree(Grid):
     self.inputInfo['standardDETvariables'      ] = self.standardDETvariables
     self.inputInfo['initiatorDistribution'     ] = []
     self.inputInfo['triggeredVariable'         ] = b'None'
+    self.inputInfo['happenedEventVarHistory'   ] = []
     self.inputInfo['PbThreshold'               ] = []
     self.inputInfo['ValueThreshold'            ] = []
     self.inputInfo['branchChangedParam'        ] = [b'None']
@@ -583,11 +584,15 @@ class DynamicEventTree(Grid):
           branchChangedParamPb.append(endInfo['branchChangedParams'][key]['associatedProbability'][self.branchCountOnLevel-2])
           condPbC = endInfo['branchChangedParams'][key]['changedConditionalPb'][self.branchCountOnLevel-2]
           subGroup.add('happenedEvent',True)
+          hist = endInfo['parentNode'].get('happenedEventVarHistory') + [endInfo['branchDist']]
+          subGroup.add('happenedEventVarHistory', hist)
         else:
           subGroup.add('happenedEvent',endInfo['parentNode'].get('happenedEvent'))
+          subGroup.add('happenedEventVarHistory', endInfo['parentNode'].get('happenedEventVarHistory'))
           branchChangedParamValue.append(endInfo['branchChangedParams'][key]['oldValue'])
           branchChangedParamPb.append(endInfo['branchChangedParams'][key]['unchangedPb'])
           condPbUn =  endInfo['branchChangedParams'][key]['unchangedConditionalPb']
+
       subGroup.add('branchChangedParam',branchParams)
       # add conditional probability
       if self.branchCountOnLevel != 1:
@@ -629,6 +634,7 @@ class DynamicEventTree(Grid):
 
       #'RAVEN_parentID','RAVEN_isEnding'
       self.inputInfo['happenedEvent'] = subGroup.get('happenedEvent')
+      self.inputInfo['happenedEventVarHistory'] = subGroup.get('happenedEventVarHistory')
       # add additional edits if needed
       model.getAdditionalInputEdits(self.inputInfo)
       # add the newer branch name to the map

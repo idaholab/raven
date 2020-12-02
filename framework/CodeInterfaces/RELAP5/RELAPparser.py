@@ -433,6 +433,8 @@ class RELAPparser():
           if detVars is not None:
             toAdd[deckNum] = []
             for var in detVars:
+              if var in modifyDict.get('excludeTrips', []):
+                continue
               splitted =  var.split(":")
               if "|" not in splitted[0] and len(decks) == deckNum:
                 toAdd[deckNum].append(splitted[0].strip())

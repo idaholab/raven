@@ -144,6 +144,25 @@ class Relap5(CodeInterfaceBase):
     returnCommand = [('parallel',commandToRun)], outputfile
     return returnCommand
 
+  def _returnAliasedVariable(self, var, fromCodeToRaven = True):
+    """
+      Return the alias for variable in
+      @ In, var, str, the variable the alias should return for
+      @ Out, aliasVar, str, the aliased variable if found
+    """
+    aliasVar = var
+    if len(self.inputAliases):
+      for ravenVar, codeVar in self.inputAliases.items():
+        if fromCodeToRaven:
+          if codeVar.strip().startswith(var.strip()):
+            aliasVar = ravenVar
+            break
+        else:
+          if ravenVar.strip().startswith(var.strip()):
+            aliasVar = codeVar
+            break
+    return aliasVar
+
   def _writeBranchInfo(self, filename, endTime, endTimeStep, tripVariable):
     """
       Method to write the branchInfo
@@ -154,12 +173,7 @@ class Relap5(CodeInterfaceBase):
       @ Out, None
     """
     import dynamicEventTreeUtilities as detUtils
-    tripVar =  tripVariable
-    if len(self.inputAliases):
-      for ravenVar, codeVar in self.inputAliases.items():
-        if codeVar.strip().startswith(tripVar.strip()):
-          tripVar = ravenVar
-          break
+    tripVar = self._returnAliasedVariable(tripVariable)
     detUtils.writeXmlForDET(filename,tripVar,[],{'end_time': endTime, 'end_ts': endTimeStep})
 
   def finalizeCodeOutput(self,command,output,workingDir):
@@ -175,7 +189,6 @@ class Relap5(CodeInterfaceBase):
     if outputobj.hasAtLeastMinorData():
       response = outputobj.returnData()
       if self.det:
-
         # check end time
         endTime = response['time'][-1]
         endTimeStep = len(response['time'])
@@ -274,7 +287,6 @@ class Relap5(CodeInterfaceBase):
       shutil.copy(sourceFile, currentPath)
     except:
       raise IOError('not able to copy restart file from "'+sourceFile+'" to "'+currentPath+'"')
-
 
   def __transferMetadata(self, metadataToTransfer, currentPath):
     """
@@ -418,6 +430,8 @@ class Relap5(CodeInterfaceBase):
     deckList = {1:{}}
     deckActivated = False
     if self.det:
+      modifDict['happenedEvent'] = Kwargs['happenedEvent']
+      modifDict['excludeTrips'] = []
       modifDict['DETvariables'] = self.detVars
       parentID = Kwargs.get("RAVEN_parentID", "none")
       if parentID.lower() != "none":
@@ -426,6 +440,9 @@ class Relap5(CodeInterfaceBase):
         # now we can copy the restart file
         sourcePath = os.path.join(Kwargs['currentPath'],"..",parentID)
         self.__copyRestartFile(sourcePath, Kwargs['currentPath'])
+        # now we can check if the event happened and if so, remove the variable fro the det variable list
+        if modifDict['happenedEvent']:
+          modifDict['excludeTrips'] = [self._returnAliasedVariable(var, False) for var in Kwargs['happenedEventVarHistory']]
     for keys in Kwargs['SampledVars']:
       deck, card, word = self._convertVariablNameInInfo(keys)
       deckActivated = deck > 1
