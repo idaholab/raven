@@ -29,7 +29,7 @@
     type = 'RavenFramework'
     input = 'testGAMinwoRep.xml'
     heavy = true
-    max_time = 1500
+    max_time = 2500
     [./data]
       type = OrderedCSV
       output = 'MinwoReplacement/opt_export_0.csv'
@@ -42,7 +42,7 @@
     type = 'RavenFramework'
     input = 'testGAMinwoRepConvAHDp.xml'
     heavy = true
-    max_time = 1500
+    max_time = 2500
     [./data]
       type = OrderedCSV
       output = 'MinwoReplacementConvAHDp/opt_export_0.csv'

@@ -77,7 +77,7 @@
       <GAparams>
         <populationSize>50</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="10">
+        <reproduction nParents="20">
           <crossover type="onePointCrossover">
             <!-- <points>3</points> -->
             <crossoverProb>0.8</crossoverProb>
