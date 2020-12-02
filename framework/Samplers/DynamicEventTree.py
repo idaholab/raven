@@ -451,12 +451,12 @@ class DynamicEventTree(Grid):
     self.inputInfo['prefix'                    ] = rname
     self.inputInfo['standardDETvariables'      ] = self.standardDETvariables
     self.inputInfo['initiatorDistribution'     ] = []
-    self.inputInfo['triggeredVariable'         ] = b'None'
+    self.inputInfo['triggeredVariable'         ] = 'None'
     self.inputInfo['happenedEventVarHistory'   ] = []
     self.inputInfo['PbThreshold'               ] = []
     self.inputInfo['ValueThreshold'            ] = []
-    self.inputInfo['branchChangedParam'        ] = [b'None']
-    self.inputInfo['branchChangedParamValue'   ] = [b'None']
+    self.inputInfo['branchChangedParam'        ] = ['None']
+    self.inputInfo['branchChangedParamValue'   ] = ['None']
     self.inputInfo['startTime'                 ] = -sys.float_info.max
     self.inputInfo['endTimeStep'               ] = 0
     self.inputInfo['RAVEN_parentID'            ] = "None"
@@ -660,7 +660,7 @@ class DynamicEventTree(Grid):
         self.inputInfo['initiatorDistribution' ] = []
         self.inputInfo['PbThreshold'           ] = []
         self.inputInfo['ValueThreshold'        ] = []
-        self.inputInfo['triggeredVariable'     ] = b'None'
+        self.inputInfo['triggeredVariable'     ] = 'None'
       # Add the unbranched thresholds
       for key in self.branchProbabilities.keys():
         if not (key in self.toBeSampled[endInfo['branchDist']]) and (branchedLevel[key] < len(self.branchProbabilities[key])):
@@ -741,13 +741,12 @@ class DynamicEventTree(Grid):
       varInfo['HDETVariables'] = list(hvars.keys())
     varInfo['FunctionVariables'] = depVars
     varInfo['ConstantVariables'] = list(consts.keys())
-    if len(depVars):
-      # create graph structure
-      graphDict = dict.fromkeys(standardDet, [])
-      graphDict.update(depVars)
-      varInfo['dependencyGraph'] = graph(graphDict)
+    # if len(depVars):
+    #  # create graph structure
+    #  graphDict = dict.fromkeys(standardDet, [])
+    #  graphDict.update(depVars)
+    #  varInfo['dependencyGraph'] = graph(graphDict)
     return varInfo
-
 
   def __getQueueElement(self):
     """
