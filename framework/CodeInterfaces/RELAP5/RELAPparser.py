@@ -111,7 +111,8 @@ class RELAPparser():
       # should we exclude all?
       excludeAll = len(exclTrips[deckNum]) == len(monitoredTrips[deckNum])
       if excludeAll:
-        self.deckLines[deckNum].append(stopTripNumber + " time 0 le null 0 -1.0 "+"\n")
+        # 414  time  0  ge  null  0  1.00000e+01  l
+        self.deckLines[deckNum].append(stopTripNumber + " time 0 le null 0 -1.0 l"+"\n")
       else:
         self.deckLines[deckNum].append(stopTripNumber + " cntrlvar "+stopCntrVar+" gt null 0 0.0 l "+"\n")
       self.deckLines[deckNum].append("600 "+stopTripNumber+" \n")
