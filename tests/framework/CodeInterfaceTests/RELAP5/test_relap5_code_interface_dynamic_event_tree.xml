@@ -1,0 +1,71 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+    <RunInfo>
+      <WorkingDir>RELAP5interfaceDynamicEventTree</WorkingDir>
+      <Sequence>RELAP_DET,Outfiles</Sequence>
+      <batchSize>1</batchSize>
+    </RunInfo>
+    <Files>
+      <Input name="RELAPtrinp" type="">input.i</Input>
+      <Input name="RELAPrest" type="">restrt_SS</Input>
+    </Files>
+    <Steps>
+      <MultiRun clearRunDir="False" name="RELAP_DET" re-seeding="1">
+        <Input class="Files" type="">RELAPtrinp</Input>
+        <Input class="Files" type="">RELAPrest</Input>
+        <Model class="Models" type="Code">RELAPss</Model>
+        <Sampler class="Samplers" type="DynamicEventTree">DET</Sampler>
+        <Output class="DataObjects" type="HistorySet">RELAPout</Output>
+      </MultiRun>
+      <IOStep name="Outfiles" pauseAtEnd="false">
+        <Input class="DataObjects" type="HistorySet">RELAPout</Input>
+        <Output class="OutStreams" type="Print">RELAP_out</Output>
+      </IOStep>
+    </Steps>
+    <Distributions>
+      <Uniform name="endtimedist">
+        <lowerBound>10.0</lowerBound>
+        <upperBound>30.0</upperBound>
+      </Uniform>
+      <Uniform name="endtime2dist">
+        <lowerBound>10.0</lowerBound>
+        <upperBound>42.0</upperBound>
+      </Uniform>
+    </Distributions>
+    <Samplers>
+      <DynamicEventTree name='DET'>
+        <variable name='endtime'>
+          <distribution>endtimedist</distribution>
+          <grid type='CDF' construction='custom'>0.1 0.99</grid>
+        </variable> 
+        <variable name='endtime2'>
+          <distribution>endtime2dist</distribution>
+          <grid type='CDF' construction='custom'>0.5 0.99</grid>
+        </variable>
+      </DynamicEventTree>
+    </Samplers>
+
+    <Models>
+      <Code name="RELAPss" subType="Relap5">
+        <executable>
+          relap5.x
+        </executable>
+        <clargs type="text" arg="-r restrt_SS"/>
+        <alias variable="endtime" type="input">414:6</alias>
+        <alias variable="endtime2" type="input">454:6</alias>
+      </Code>
+    </Models>
+    <DataObjects>
+      <PointSet name="RELAPout">
+        <Input>endtime,endtime2</Input>
+        <Output>cntrlvar_802</Output>
+      </PointSet>
+    </DataObjects>
+    <OutStreams>
+      <Print name="RELAP_out">
+        <type>csv</type>
+        <source>RELAPout</source>
+      </Print>
+    </OutStreams>
+</Simulation>
+
