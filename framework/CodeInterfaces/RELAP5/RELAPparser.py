@@ -108,9 +108,13 @@ class RELAPparser():
       else:
         stopTripNumber, stopCntrVar = str(max(cnt,599)), availableControlVars.pop()
       self.deckLines[deckNum].append("* START -- CONTROL VARIABLES ADDED BY RAVEN *\n")
-      if len(exclTrips[deckNum]) != len(monitoredTrips[deckNum]):
+      # should we exclude all?
+      excludeAll = len(exclTrips[deckNum]) == len(monitoredTrips[deckNum])
+      if excludeAll:
+        self.deckLines[deckNum].append(stopTripNumber + " DISCARD "+"\n")
+      else:
         self.deckLines[deckNum].append(stopTripNumber + " cntrlvar "+stopCntrVar+" gt null 0 0.0 l "+"\n")
-        self.deckLines[deckNum].append("600 "+stopTripNumber+" \n")
+      self.deckLines[deckNum].append("600 "+stopTripNumber+" \n")
       # convert trips in tripunit for control variables
       controlledControlVars = []
       for cnt, trip in enumerate(monitoredTrips[deckNum]):
@@ -121,19 +125,24 @@ class RELAPparser():
         self.deckLines[deckNum].append("205"+controlVar.strip()+"1".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " " + str(list(monitoredTrips[deckNum])[cnt])+" \n")
       # to fix. the following can handle only 50 trips
       self.lastCntrLine[deckNum]+=2
-      if len(exclTrips[deckNum]) != len(monitoredTrips[deckNum]):
-        self.deckLines[deckNum].append("205"+stopCntrVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 )
-                                       +" tripstop sum 1.0 0.0 0 \n")
-        tripCnt = 0
-        for tripLine in range(int(math.ceil(float(len(monitoredTrips[deckNum]))/3.0))):
-          toWrite="205"+stopCntrVar.strip()+str(tripLine+1).strip().zfill(2 if self.controlVarType[deckNum] == 1 else 1 )+ (" 0.0 " if tripLine==0 else "")
-          stoppingTrips = list(set(monitoredTrips[deckNum]) - set(exclTrips[deckNum]))
-          for x in range(3):
-            if tripCnt+1<= len(stoppingTrips):
-              toWrite += " 1.0 cntrlvar " + controlledControlVars[tripCnt]
-              tripCnt+=1
-          toWrite += " \n"
-          self.deckLines[deckNum].append(toWrite)
+      # if len(exclTrips[deckNum]) != len(monitoredTrips[deckNum]):
+      self.deckLines[deckNum].append("205"+stopCntrVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 )
+                                     +" tripstop sum 1.0 0.0 0 \n")
+      # if not excludeAll:
+      tripCnt = 0
+      for tripLine in range(int(math.ceil(float(len(monitoredTrips[deckNum]))/3.0))):
+        toWrite="205"+stopCntrVar.strip()+str(tripLine+1).strip().zfill(2 if self.controlVarType[deckNum] == 1 else 1 )+ (" 0.0 " if tripLine==0 else "")
+        stoppingTrips = list(set(monitoredTrips[deckNum]) - set(exclTrips[deckNum]))
+        for x in range(3):
+          if tripCnt+1<= len(stoppingTrips):
+            toWrite += " 1.0 cntrlvar " + controlledControlVars[tripCnt]
+            tripCnt+=1
+        # else:
+        #  #  we exclude everything so we need to make sure the stop condition in the restart is neutralized
+
+
+        toWrite += " \n"
+        self.deckLines[deckNum].append(toWrite)
       self.deckLines[deckNum].append("* END -- CONTROL VARIABLES ADDED BY RAVEN *\n")
 
   def addTripsVarsInMinorEdits(self):
