@@ -102,4 +102,15 @@
       zero_threshold = 1e-5
     [../]
   [../]
+  
+  [./GA_discreteIntWithReplacement]
+    type = 'RavenFramework'
+    input = 'GA_discreteIntWithReplacement.xml'
+    max_time = 30
+    [./csv]
+     type = OrderedCSV
+     output = 'discreteIntWithReplacement/PrintOptOut.csv'
+     rel_err = 0.001
+    [../]
+  [../]
 []

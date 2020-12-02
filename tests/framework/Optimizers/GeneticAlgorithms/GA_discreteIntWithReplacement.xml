@@ -7,6 +7,7 @@
     <classesTested>GeneticAlgorithm</classesTested>
     <description>
       This test is designed to find the optimal solution of a multiple knapsack problem
+      The optimal solution should reach a maximum value of: planValue=20
     </description>
   </TestInfo>
   
@@ -56,7 +57,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAoptimizer">
       <samplerInit>
-        <limit>200</limit>
+        <limit>10</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>final</writeSteps>
       </samplerInit>
