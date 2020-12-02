@@ -404,7 +404,7 @@ class RELAPparser():
             moveToNextLine      = True
             cnt                 = 1
             while moveToNextLine:
-              if temp[lineNum+cnt].strip().startswith("+"):
+              if lineNum+cnt < len(temp) and temp[lineNum+cnt].strip().startswith("+"):
                 cardLines[card]['numberOfLevels'        ]+=1
                 cardLines[card]['numberOfAvailableWords']+=self.countNumberOfWords(temp[lineNum+cnt])
                 cnt+=1
