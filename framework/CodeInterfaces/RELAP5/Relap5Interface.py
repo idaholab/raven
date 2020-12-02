@@ -23,6 +23,7 @@ import copy
 import relapdata
 import shutil
 import re
+from collections import defaultdict
 from math import *
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import RELAPparser
@@ -431,7 +432,7 @@ class Relap5(CodeInterfaceBase):
     deckActivated = False
     if self.det:
       modifDict['happenedEvent'] = Kwargs['happenedEvent']
-      modifDict['excludeTrips'] = []
+      modifDict['excludeTrips'] = None
       modifDict['DETvariables'] = self.detVars
       parentID = Kwargs.get("RAVEN_parentID", "none")
       if parentID.lower() != "none":
@@ -442,7 +443,11 @@ class Relap5(CodeInterfaceBase):
         self.__copyRestartFile(sourcePath, Kwargs['currentPath'])
         # now we can check if the event happened and if so, remove the variable fro the det variable list
         if modifDict['happenedEvent']:
-          modifDict['excludeTrips'] = [self._returnAliasedVariable(var, False) for var in Kwargs['happenedEventVarHistory']]
+          modifDict['excludeTrips'] = defaultdict(list)
+          for var in Kwargs['happenedEventVarHistory']:
+            aliased = self._returnAliasedVariable(var, False)
+            deck, card, _ = self._convertVariablNameInInfo(aliased)
+            modifDict['excludeTrips'][deck].append(card)
     for keys in Kwargs['SampledVars']:
       deck, card, word = self._convertVariablNameInInfo(keys)
       deckActivated = deck > 1

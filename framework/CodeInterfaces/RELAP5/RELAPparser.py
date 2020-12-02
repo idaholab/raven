@@ -81,12 +81,14 @@ class RELAPparser():
       self.getTripsMinorEditsAndControlVars()
 
 
-  def addControlVariablesForStoppingCoditions(self, monitoredTrips):
+  def addControlVariablesForStoppingCoditions(self, monitoredTrips, excludeFromStop=None):
     """
       Method to add the control variables to make any trip in the input list to cause a stop of the code
       @ In, monitoredTrips, dict, dictionary of list of monitored trips {deckNum:[trips]}
+      @ In, excludeFromStop, dict, optional, dictionary of list of monitored trips {deckNum:[trips]} that should be excluded from the stop condition
       @ Out, None
     """
+    exclTrips = excludeFromStop if excludeFromStop is not None else dict.fromkeys(monitoredTrips.keys(), [])
     self.additionalControlVariables = {}
     for deckNum in self.inputControlVars.keys():
       self.additionalControlVariables[deckNum] = {}
@@ -106,8 +108,9 @@ class RELAPparser():
       else:
         stopTripNumber, stopCntrVar = str(max(cnt,599)), availableControlVars.pop()
       self.deckLines[deckNum].append("* START -- CONTROL VARIABLES ADDED BY RAVEN *\n")
-      self.deckLines[deckNum].append(stopTripNumber + " cntrlvar "+stopCntrVar+" gt null 0 0.0 l "+"\n")
-      self.deckLines[deckNum].append("600 "+stopTripNumber+" \n")
+      if len(exclTrips[deckNum]) != len(monitoredTrips[deckNum]):
+        self.deckLines[deckNum].append(stopTripNumber + " cntrlvar "+stopCntrVar+" gt null 0 0.0 l "+"\n")
+        self.deckLines[deckNum].append("600 "+stopTripNumber+" \n")
       # convert trips in tripunit for control variables
       controlledControlVars = []
       for cnt, trip in enumerate(monitoredTrips[deckNum]):
@@ -118,18 +121,19 @@ class RELAPparser():
         self.deckLines[deckNum].append("205"+controlVar.strip()+"1".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " " + str(list(monitoredTrips[deckNum])[cnt])+" \n")
       # to fix. the following can handle only 50 trips
       self.lastCntrLine[deckNum]+=2
-      self.deckLines[deckNum].append("205"+stopCntrVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 )
-                                     +" tripstop sum 1.0 0.0 0 \n")
-      tripCnt = 0
-
-      for tripLine in range(int(math.ceil(float(len(monitoredTrips[deckNum]))/3.0))):
-        toWrite="205"+stopCntrVar.strip()+str(tripLine+1).strip().zfill(2 if self.controlVarType[deckNum] == 1 else 1 )+ (" 0.0 " if tripLine==0 else "")
-        for x in range(3):
-          if tripCnt+1<= len(monitoredTrips[deckNum]):
-            toWrite += " 1.0 cntrlvar " + controlledControlVars[tripCnt]
-            tripCnt+=1
-        toWrite += " \n"
-        self.deckLines[deckNum].append(toWrite)
+      if len(exclTrips[deckNum]) != len(monitoredTrips[deckNum]):
+        self.deckLines[deckNum].append("205"+stopCntrVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 )
+                                       +" tripstop sum 1.0 0.0 0 \n")
+        tripCnt = 0
+        for tripLine in range(int(math.ceil(float(len(monitoredTrips[deckNum]))/3.0))):
+          toWrite="205"+stopCntrVar.strip()+str(tripLine+1).strip().zfill(2 if self.controlVarType[deckNum] == 1 else 1 )+ (" 0.0 " if tripLine==0 else "")
+          stoppingTrips = list(set(monitoredTrips[deckNum]) - set(exclTrips[deckNum]))
+          for x in range(3):
+            if tripCnt+1<= len(stoppingTrips):
+              toWrite += " 1.0 cntrlvar " + controlledControlVars[tripCnt]
+              tripCnt+=1
+          toWrite += " \n"
+          self.deckLines[deckNum].append(toWrite)
       self.deckLines[deckNum].append("* END -- CONTROL VARIABLES ADDED BY RAVEN *\n")
 
   def addTripsVarsInMinorEdits(self):
@@ -433,8 +437,6 @@ class RELAPparser():
           if detVars is not None:
             toAdd[deckNum] = []
             for var in detVars:
-              if var in modifyDict.get('excludeTrips', []):
-                continue
               splitted =  var.split(":")
               if "|" not in splitted[0] and len(decks) == deckNum:
                 toAdd[deckNum].append(splitted[0].strip())
@@ -442,7 +444,7 @@ class RELAPparser():
                 toAdd[deckNum].append(splitted[0].split("|")[1].strip())
             # toAdd[deckNum] = self.inputTrips[deckNum]['variableTrips'].keys()
             if toAdd[deckNum]:
-              self.addControlVariablesForStoppingCoditions(toAdd)
+              self.addControlVariablesForStoppingCoditions(toAdd, modifyDict.get('excludeTrips'))
           # add trips and control variables
           self.addTripsVarsInMinorEdits()
       lines = lines + temp
