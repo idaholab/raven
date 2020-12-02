@@ -109,7 +109,7 @@
     max_time = 30
     [./csv]
      type = OrderedCSV
-     output = 'discreteIntWithReplacement/PrintOptOut.csv'
+     output = 'discreteIntWithReplacement/PrintOptOut_export.csv'
      rel_err = 0.001
     [../]
   [../]
