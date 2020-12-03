@@ -585,6 +585,7 @@ if __name__ == '__main__':
       elif args.subset == 'pip':
         src = ''
         installer = 'pip'
+        equals = '=='
         actionArgs = ''
         addOptional = False
         limit = ['pip']

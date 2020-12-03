@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Optimizers/ConvergeGradient.InitSampler</name>
-    <author>talbpaul</author>
-    <created>2020-02-10</created>
+    <name>framework/Optimizers/ConvergeGradient.InitSamplerAllVars</name>
+    <author>MohammadAbdo</author>
+    <created>2020-11-02</created>
     <classesTested>Optimizer</classesTested>
     <description>
-      Extending on the Basic test, this test initializes values using a Sampler.
+      Extending on the Basic test, this test initializes all variables using a Sampler.
     </description>
     <analytic>
       This test uses Beale's function, which is documented in the analytic tests documentation under
@@ -15,7 +15,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>InitSampler</WorkingDir>
+    <WorkingDir>InitSamplerAllVars</WorkingDir>
     <Sequence>optimize, print</Sequence>
   </RunInfo>
 
@@ -49,6 +49,10 @@
         <distribution>beale_dist</distribution>
         <grid construction='equal' steps='1' type='CDF'>0.25 0.75</grid>
       </variable>
+      <variable name="y">
+        <distribution>beale_dist</distribution>
+        <grid construction='equal' steps='1' type='CDF'>0.25 0.75</grid>
+      </variable>
       <!-- TODO add function, const for testing -->
     </Grid>
   </Samplers>
@@ -61,7 +65,6 @@
       </variable>
       <variable name="y">
         <distribution>beale_dist</distribution>
-        <initial>-2, 2</initial>
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
       <samplerInit>
