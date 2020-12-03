@@ -129,6 +129,7 @@ one of the following:
   \item \xmlString{ARMA}, for time-dependent stochastic regression (time series generator)
   \item \xmlString{PolyExponential}, for time-dependent regression
   \item \xmlString{DMD}, for time-dependent regression
+  \item \xmlString{DMDC}, for time-dependent regression of linear system with Control
   \item \xmlString{KerasMLPClassifier}, for deep neuron network
 \end{itemize}
 
@@ -3403,6 +3404,128 @@ in \xmlNode{OutStream} of type \xmlAttr{Print}):
       <type>xml</type>
       <source>PolyExp</source>
       <what>eigs,amplitudes,modes</what>
+    </Print>
+    ...
+  </OutStreams>
+  ...
+</Simulation>
+\end{lstlisting}
+
+%%%% ROM Model - DMDC  %%%%%%%
+\subsubsection{DMDC}
+\label{subsubsec:polyexponential}
+The DMDC sub-type contains a single ROM type similar to DMD, aimed to construct a time-dependent surrogate model based on Dynamic 
+Mode Decomposition with Control (ref. \cite{proctor2016dynamic}).
+In addition to perform a ``dimensionality reduction regression'' like DMD, this surrogate will calculate the state-space 
+representation matrices A, B (and optional C) in a discrete time domain. 
+
+\begin{itemize}
+\item x[k+1]=A*x[k]+B*u[k]
+\item y[k+1]=C*x[k+1] (optional)
+\end{itemize}
+
+%
+In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+\xmlAttr{subType} needs to be set equal to \xmlString{DMDC} (see the example
+below).
+%
+\subnodeIntro
+
+\begin{itemize}
+  \item \xmlNode{dmdType}, \xmlDesc{string, optional field}, the type of Dynamic Mode Decomposition to apply. Available are:
+    \begin{itemize}
+      \item \textit{dmd}, for classical DMD
+    \end{itemize}
+  \default{dmd}
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, defines the pivot variable (e.g., time) that represents the
+  independent monotonic variable
+  \default{time}
+  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines output FOMs that are going to be predicted.
+  The pivot variable in \xmlNode{pivotParameter} is required in \xmlNode{Target}. In addition, it is optional to list each system 
+  output variables (y1, y2, etc.).
+    \begin{itemize} 
+      \item \textit{pivotParameter}, for A and B matrices calculations only;
+      \item \textit{pivotParameter, y(s)}, for A, B and C matrices calculations.
+    \end{itemize}  
+  \item \xmlNode{Actuators}, \xmlDesc{comma separated string, required field}, defines the actuators (i.e. system input parameters)
+  of this model. Each actuator variabls (u1, u2, etc.) needs to be listed here.
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (i.e. system input and state 
+  parameters) of this model. The pivot variables in \xmlNode{Actuators}, and each system state variable (x1, x2, etc.) are required in \xmlNode{Features}.
+  \item \xmlNode{rankSVD}, \xmlDesc{integer, optional field}, defines the truncation rank to be used for the SVD.
+     Available options are:
+     \begin{itemize}
+     \item \textit{-1}, no truncation is performed
+     \item \textit{0}, optimal rank is internally computed
+     \item \textit{>1}, this rank is going to be used for the truncation
+   \end{itemize}
+   \default{-1}
+  \item \xmlNode{SubtractNormUXY}, \xmlDesc{bool, optional field}, True if the initial values need to be subtracted from the 
+  actuators (u), state (x) and outputs (y) if any. False if the subtraction is not needed.
+    \default{False}
+
+\end{itemize}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+   <ROM name="DMDrom" subType="DMDC">
+      <pivotParameter>Time</pivotParameter>
+      <Target>Time,y1,y2</Target>
+      <Actuators>u1,u2</Actuators>
+      <Features>u1,u2,x1,x2,x3</Features> 
+      <rankSVD>-1</rankSVD>
+      <SubtractNormUXY>True</SubtractNormUXY>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+Once the ROM  is trained (\textbf{Step} \xmlNode{RomTrainer}), its parameters/coefficients can be exported into an XML file
+via an \xmlNode{OutStream} of type \xmlAttr{Print}. The following variable/parameters can be exported (i.e. \xmlNode{what} node
+in \xmlNode{OutStream} of type \xmlAttr{Print}):
+\begin{itemize}
+  \item \xmlNode{dmdType}, see XML input specifications above
+  \item \xmlNode{rankSVD}, see XML input specifications above
+  \item \xmlNode{acturators}, see XML input specifications above
+  \item \xmlNode{acturatorsCount}, XML node containing the number of actuators
+  \item \xmlNode{UNorm}, XML node containing the norminal values of actuators, which are the initial values in the training data
+  \item \xmlNode{states}, XML node containing the list of system state variables (x)
+  \item \xmlNode{statesCount}, XML node containing the number of state variables
+  \item \xmlNode{XNorm}, XML node containing the norminal values of state variables, which are the initial values in the training data
+  \item \xmlNode{XLast}, XML node containing the last value of state variables, which are the final values in the training data
+  \item \xmlNode{outputs}, XML node containing the list of system output variables (y)
+  \item \xmlNode{outputsCount}, XML node containing the number of output variables
+  \item \xmlNode{YNorm}, XML node containing the norminal values of output variables, which are the initial values in the training data
+  \item \xmlNode{dmdTimeScale}, XML node containing the array of the training time steps values
+  \item \xmlNode{Atilde}, XML node containing the A matrix in discrete time domain (real and imaginary and part, matrix shape, and format note)
+  \item \xmlNode{Btilde}, XML node containing the B matrix in discrete time domain (real and imaginary and part, matrix shape, and format note)
+  \item \xmlNode{Ctilde}, XML node containing the C matrix in discrete time domain (real and imaginary and part, matrix shape, and format note)
+\end{itemize}
+
+
+ See the following example:
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <OutStreams>
+    ...
+    <Print name = 'dumpAllCoefficients'>
+      <type>xml</type>
+      <source>rom_stats</source>
+      <!--
+        here the <what> node is omitted. All the available params/coefficients
+        are going to be printed out
+      -->
+    </Print>
+    <Print name = 'dumpSomeCoefficients'>
+      <type>xml</type>
+      <source>rom_stats</source>
+      <what>rankSVD,UNorm,XNorm,XLast,Atilde,Btilde</what>
     </Print>
     ...
   </OutStreams>
