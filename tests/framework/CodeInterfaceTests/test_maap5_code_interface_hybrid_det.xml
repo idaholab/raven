@@ -17,6 +17,7 @@
       <revision author="talbpaul" date="2016-10-25">removed dim in OutStream Plot for validation purposes</revision>
       <revision author="alfoa" date="2016-11-15">Updated input files</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2020-10-16">Removed plots since are not checked in this test.</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -85,8 +86,10 @@
       <Output class="Databases" type="HDF5">DataB_MAAP5_1</Output>
       <Output class="DataObjects" type="HistorySet">Temporal_Evolution</Output>
       <Output class="OutStreams" type="Print">test_dataobject</Output>
+      <!--
       <Output class="OutStreams" type="Plot">plotWWBBN</Output>
       <Output class="OutStreams" type="Plot">plotAFW</Output>
+      -->
     </MultiRun>
   </Steps>
 
@@ -105,6 +108,7 @@
       <type>csv</type>
       <source>Temporal_Evolution</source>
     </Print>
+    <!--
     <Plot name="plotWWBBN" overwrite="False">
       <plotSettings>
         <plot>
@@ -141,6 +145,7 @@
         </title>
       </actions>
     </Plot>
+    -->
   </OutStreams>
 
   <Databases>

@@ -24,9 +24,10 @@ from collections import deque, defaultdict
 
 from utils.utils import findCrowModule
 from utils import mathUtils
+import math
 
-# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
-# Numoy stochastic environment can not pass the test as this point
+# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
+# Numpy stochastic environment can not pass the test as this point
 stochasticEnv = 'crow'
 #stochasticEnv = 'numpy'
 
@@ -85,7 +86,7 @@ if stochasticEnv == 'numpy':
   npStochEnv = np.random.RandomState()
 else:
   crowStochEnv = findCrowModule('randomENG').RandomClass()
-  # this is needed for now since we need to split the stoch enviroments
+  # this is needed for now since we need to split the stoch environments
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 
@@ -149,54 +150,70 @@ def random(dim=1, samples=1, keepMatrix=False, engine=None):
   if keepMatrix:
     return vals
   else:
-    return _reduceRedundantListing(vals, dim, samples)
+    return _reduceRedundantListing(vals, (samples, dim))
 
-def randomNormal(dim=1, samples=1, keepMatrix=False, engine=None):
+def randomNormal(size=(1,), keepMatrix=False, engine=None):
   """
     Function to get a single random value, an array of random values, or a matrix of random values, normally distributed
-    @ In, dim, int, optional, dimensionality of samples
-    @ In, samples, int, optional, number of arrays to deliver
+    @ In, size, int or tuple, optional, shape of the samples to return
+      (if int, an array of samples will be returned if size>1, otherwise a float if keepMatrix is false)
     @ In, keepMatrix, bool, optional, if True then will always return np.array(np.array(float))
     @ In, engine, instance, optional, random number generator
     @ Out, vals, float, random normal number (or np.array with size [n] if n>1, or np.array with size [n,samples] if sampels>1)
   """
   engine = getEngine(engine)
-  dim = int(dim)
-  samples = int(samples)
+  if isinstance(size, int):
+    size = (size, )
   if isinstance(engine, np.random.RandomState):
-    vals = engine.randn(samples,dim)
+    vals = engine.randn(*size)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-    vals = np.zeros([samples,dim])
+    vals = np.zeros(np.prod(size))
     for i in range(len(vals)):
-      for j in range(len(vals[0])):
-        vals[i,j] = boxMullerGen.generate(engine=engine)
+      vals[i] = boxMullerGen.generate(engine=engine)
+    vals.shape = size
   if keepMatrix:
     return vals
   else:
-    return _reduceRedundantListing(vals,dim,samples)
+    return _reduceRedundantListing(vals,size)
 
-def randomIntegers(low, high, caller, engine=None):
+def randomIntegers(low, high, caller=None, engine=None):
   """
     Function to get a random integer
     @ In, low, int, low boundary
     @ In, high, int, upper boundary
-    @ In, caller, instance, object requesting the random integers
-    @ In, engine, instance, optional, random number generator
+    @ In, caller, instance, optional, object requesting the random integers
+    @ In, engine, instance, optional, optional, random number generator
     @ Out, rawInt, int, random int
   """
   engine = getEngine(engine)
   if isinstance(engine, np.random.RandomState):
     return engine.randint(low, high=high+1)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-    intRange = high - low
+    intRange = high - low + 1.0
     rawNum = low + random(engine=engine)*intRange
-    rawInt = int(round(rawNum))
+    rawInt = math.floor(rawNum)
     if rawInt < low or rawInt > high:
-      caller.raiseAMessage("Random int out of range")
+      if caller:
+        caller.raiseAMessage("Random int out of range")
       rawInt = max(low, min(rawInt, high))
     return rawInt
   else:
     raise TypeError('Engine type not recognized! {}'.format(type(engine)))
+
+def randomChoice(array, engine=None):
+  """
+    Generates a random sample from a given array-like (list or such) or N-D array
+    This equivalent to np.random.choice but extending the functionality to N-D arrays
+    @ In, array, list or np.ndarray, the array from which to pick
+    @ In, engine, instance, optional, optional, random number generator
+    @ Out, randomChoice, object, the random choice (1 element)
+  """
+  assert(hasattr(array,"shape") or isinstance(array,list))
+  if hasattr(array,"shape"):
+    coord = tuple([randomIntegers(0, dim-1, engine=engine) for dim in array.shape])
+    return array[coord]
+  else:
+    return array[randomIntegers(0, len(array)-1, engine=engine)]
 
 def randomPermutation(l,caller,engine=None):
   """
@@ -230,17 +247,17 @@ def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
   """
   engine=getEngine(engine)
   ## first fill random samples
-  pts = randomNormal(dim,samples=samples,keepMatrix=True,engine=engine)
+  pts = randomNormal(size=(samples, dim),keepMatrix=True,engine=engine)
   ## extend radius, place inside sphere through normalization
   rnorm = float(r)/np.linalg.norm(pts,axis=1)
   pts *= rnorm[:,np.newaxis]
   #TODO if all values in any given sample are 0,
-  #       this produces an unphysical result, so we should resample;
-  #       however, this probability is miniscule and the speed benefits of skipping checking loop seems worth it.
+  #       this produces an not physical result, so we should re-sample;
+  #       however, this probability is very small and the speed benefits of skipping checking loop seems worth it.
   if keepMatrix:
     return pts
   else:
-    return _reduceRedundantListing(pts,dim,samples)
+    return _reduceRedundantListing(pts,(samples, dim))
   return pts
 
 def randPointsInHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
@@ -260,7 +277,7 @@ def randPointsInHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
   if keepMatrix:
     return pts
   else:
-    return _reduceRedundantListing(pts,dim,samples)
+    return _reduceRedundantListing(pts,(samples, dim))
   return pts
 
 def newRNG(env=None):
@@ -279,23 +296,21 @@ def newRNG(env=None):
 
 ### internal utilities ###
 
-def _reduceRedundantListing(data,dim,samples):
+def _reduceRedundantListing(data,size):
   """
     Adjusts data to be intuitive for developers.
-     - if dim = samples = 1: returns a float
-     - if dim > 1 but samples = 1: returns a 1D numpy array of floats
-     - otherwise: returns a 2D numpy array indexed by [sample][dim]
-    @ In, data, numpy.array, two-dimensional array indexed by [sample][dim]
+     - if np.prod(size) => dim = samples = 1: returns a float
+     - if size[1,...,n] > 1 but size[0] (samples) = 1: returns a 1D numpy array of floats
+     - otherwise: returns a  numpy array indexed by the original shape
+    @ In, data, numpy.array, n-dimensional array indexed by [sample, :, ...,n]
     @ In, dim, int, dimensionality of each sample
     @ In, samples, int, number of samples taken
     @ Out, data, np.array, shape and size described above in method description.
   """
-  if dim==1 and samples==1: #user expects single float
-    return data[0][0]
-  elif samples==1: #user expects array of floats
+  if np.prod(size) == 1: #user expects single float
+    return data.flatten()[0]
+  elif size[0]==1: #user expects array of floats (or matrix)
     return data[0]
-  #elif dim==1: #potentially user expects array of floats, but probably wants array of single-entry arrays
-  #  return data[:,0]
   else:
     return data
 

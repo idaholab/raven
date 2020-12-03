@@ -24,10 +24,12 @@ import inspect
 import itertools
 import numpy as np
 import functools
+import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
+import Decorators
 import SupervisedLearning
 from utils import utils
 from utils import xmlUtils
@@ -37,6 +39,8 @@ import Files
 import LearningGate
 #Internal Modules End--------------------------------------------------------------------------------
 
+# set enviroment variable to avoid parallelim degradation in some surrogate models
+os.environ["MKL_NUM_THREADS"]="1"
 
 class ROM(Dummy):
   """
@@ -1420,6 +1424,7 @@ class ROM(Dummy):
     confidenceDict = self.supervisedEngine.confidence(inputToROM)
     return confidenceDict
 
+  @Decorators.timingProfile
   def evaluate(self, request):
     """
       When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
