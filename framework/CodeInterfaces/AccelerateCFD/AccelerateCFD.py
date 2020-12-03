@@ -18,17 +18,8 @@ Created on August 31, 2020
 
 comments: Interface for AccelerateCFD
 """
-
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
-import math
-import csv
-import re
-import copy
-import numpy as np
-from OpenFoamPP import field_parser
-
+from OpenFoamPP import fieldParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
 from GenericCodeInterface import GenericParser
 
@@ -72,7 +63,6 @@ class AcceleratedCFD(CodeInterfaceBase):
       raise IOError("outputLocations must be inputted! x, y z!")
     if not( len(self.locations['x']) == len(self.locations['y']) == len(self.locations['z']) ):
       raise IOError("outputLocations must have the same size! len(x) !=  len(y) != len(z)!")
-
 
   def initialize(self, runInfo, oriInputFiles):
     """
@@ -133,10 +123,8 @@ class AcceleratedCFD(CodeInterfaceBase):
     """
     # find the input file (check that one input is provided)
     inputToPerturb = self.findInps(inputFiles,"input")
-
     # create output file root
     outputfile = 'out~' + inputToPerturb[0].getBase()
-
     # create command
     # the input file name is hardcoded in AccelerateCFD (podInputs.xml)
     executeCommand = [('parallel', executable )]
@@ -206,7 +194,7 @@ class AcceleratedCFD(CodeInterfaceBase):
         if len(settings) > 1:
           del lines
           break
-    field = field_parser.parse_field_all(filename)
+    field = fieldParser.parseFieldAll(filename)
     return settings, field
 
   def finalizeCodeOutput(self, command, output, workingDir):
