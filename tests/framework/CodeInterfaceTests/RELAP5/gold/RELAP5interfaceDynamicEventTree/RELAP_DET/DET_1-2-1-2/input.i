@@ -1,10 +1,10 @@
 *RAVEN INPUT VALUES
 * card: 100 word: 1 value: restart
 * card: 103 word: 1 value: -1
-* card: 414 word: 6 value: 2.98000e+01
-* card: 454 word: 6 value: 2.60000e+01
+* card: 414 word: 6 value: 1.60000e+01
+* card: 454 word: 6 value: 1.35200e+01
 *RAVEN INPUT VALUES
-=Typical pwr model for use in the FPoliSolutions RISA Project
+=Typical pwr model
 *            type         state
 100  restart  transnt
 *             run
@@ -15,8 +15,8 @@
 201   25.0  1.0e-7    0.05    7     2  1000  1000
 *        variable     parameter
 301      cntrlvar           802
-414  time  0  ge  null  0  2.98000e+01  l
-454  time  0  ge  null  0  2.60000e+01  l
+414  time  0  ge  null  0  1.60000e+01  l
+454  time  0  ge  null  0  1.35200e+01  l
 * START -- CONTROL VARIABLES ADDED BY RAVEN *
 599 time 0 le null 0 -1.0 l
 600 599 

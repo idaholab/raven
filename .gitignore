@@ -45,6 +45,8 @@ tests/framework/test_rom_trainer/MC_for_rom_trainer/
 tests/framework/mpi_driver_test/FirstMRun/
 tests/framework/CodeInterfaceTests/MelcorInterface/testMelcor/*
 tests/framework/CodeInterfaceTests/RELAP5interfaceTestSingleRun/*
+tests/framework/CodeInterfaceTests/RELAP5/RELAP5interfaceHybridDynamicEventTree/RELAP_DET/
+tests/framework/CodeInterfaceTests/RELAP5/RELAP5interfaceDynamicEventTree/RELAP_DET
 work_in_progress/remote_tools/remote_tools
 work_in_progress/remote_tools/remote_tools.py
 work_in_progress/remote_tools/remote_tools_wrap.cxx
