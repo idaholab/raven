@@ -34,8 +34,8 @@ from SupervisedLearning.NDsplineRom        import NDsplineRom
 from SupervisedLearning.SciKitLearn        import SciKitLearn
 from SupervisedLearning.pickledROM         import pickledROM
 from SupervisedLearning.PolyExponential    import PolyExponential
-# from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
-from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition, DynamicModeDecompositionControl
+from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
+from SupervisedLearning.DynamicModeDecompositionControl import DynamicModeDecompositionControl
 from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters, Interpolated
 from .KerasClassifier import KerasClassifier
 from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier

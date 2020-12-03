@@ -584,7 +584,7 @@ def computeTruncatedTotalLeastSquare(X, Y, truncationRank):
   dY = Y.dot(VV)
   return dX, dY
 
-def computeTruncatedSingularValueDecomposition(X, truncationRank):
+def computeTruncatedSingularValueDecomposition(X, truncationRank, full = False, conj = True):
   """
     Compute Singular Value Decomposition and truncate it till a rank = truncationRank
     @ In, X, numpy.ndarray, the 2D matrix on which the SVD needs to be performed
@@ -594,10 +594,12 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank):
                                                   *  >1  user-defined truncation rank
                                                   *  >0. and < 1. computed rank is the number of the biggest sv needed to reach
                                                                   the energy identified by truncationRank
+    @ In, full, bool, optional, compute svd returning full matrices
+    @ In, conj, bool, optional, compute conjugate of right-singular vectors matrix)
     @ Out, (U, s, V), tuple of numpy.ndarray, (left-singular vectors matrix, singular values, right-singular vectors matrix)
   """
-  U, s, V = np.linalg.svd(X, full_matrices=False)
-  V = V.conj().T
+  U, s, V = np.linalg.svd(X, full_matrices=full)
+  V = V.conj().T if conj else V.T
 
   if truncationRank is 0:
     omeg = lambda x: 0.56 * x**3 - 0.95 * x**2 + 1.82 * x + 1.43
@@ -607,10 +609,10 @@ def computeTruncatedSingularValueDecomposition(X, truncationRank):
   elif truncationRank >= 1 and isinstance(truncationRank, int):
     rank = min(truncationRank, U.shape[1])
   else:
-    rank = X.shape[1]
+    rank = U.shape[1]
   U = U[:, :rank]
   V = V[:, :rank]
-  s = s[:rank]
+  s = np.diag(s)[:rank, :rank] if full else s[:rank]
   return U, s, V
 
 def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exactModes=True):

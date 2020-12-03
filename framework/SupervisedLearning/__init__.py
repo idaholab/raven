@@ -36,8 +36,8 @@ from .NDsplineRom        import NDsplineRom
 from .SciKitLearn        import SciKitLearn
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
-# from .DynamicModeDecomposition import DynamicModeDecomposition
-from .DynamicModeDecomposition import DynamicModeDecomposition, DynamicModeDecompositionControl
+from .DynamicModeDecomposition import DynamicModeDecomposition
+from .DynamicModeDecompositionControl import DynamicModeDecompositionControl
 from .ROMCollection      import Collection, Segments, Clusters, Interpolated
 
 # KERAS classifiers
