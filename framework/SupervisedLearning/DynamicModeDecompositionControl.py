@@ -15,7 +15,7 @@
 """
   Created on May 8, 2018
 
-  @author: talbpaul
+  @author: Haoyu Wang
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Base subclass definition for DynamicModeDecomposition ROM (transferred from alfoa in SupervisedLearning)
 """
@@ -68,9 +68,9 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     self.__Ctilde               = {}
     self.actuatorVals           = []                                   # Actuator values (e.g. U), the variable names are in self.ActuatorID
     
-    self.stateVals                   = []                                   # state values (e.g. X)
-    self.outputID                    = []                                   # output variables names (e.g. Y)
-    self.outputVals                  = []                                   # output values (e.g. Y)
+    self.stateVals                   = []                              # state values (e.g. X)
+    self.outputID                    = []                              # output variables names (e.g. Y)
+    self.outputVals                  = []                              # output values (e.g. Y)
     # some checks
     if not self.actuatorsID:
       self.raiseAnError(IOError,'Actuators XML node must be present for constructing DMDc !')
@@ -81,7 +81,6 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       @ In, featureVals, numpy.ndarray, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
       @ In, targetVals, numpy.ndarray, shape = [n_timeStep, n_dimensions], an array of time series data
     """
-    
     ### Extract the Pivot Values (Actuator, U) ###
     # self.ActuatorVals is Num_Entries*2 array, the snapshots of [u1, u2]
     self.actuatorVals = np.asarray([featureVals[:,self.features.index(act)] for act in self.actuatorsID]).T 
