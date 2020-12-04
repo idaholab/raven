@@ -28,6 +28,7 @@ import platform
 import shlex
 import time
 import numpy as np
+import pandas as pd
 from six import string_types
 #External Modules End--------------------------------------------------------------------------------
 
@@ -608,7 +609,6 @@ class Code(Model):
         if not isDict:
           outputFile = finalCodeOutput
         else:
-          outputFile = None
           returnDict = finalCodeOutput
 
     ## If the run was successful
@@ -628,6 +628,10 @@ class Code(Model):
         returnDict = csvLoader.toRealization(csvData)
 
       if not ravenCase:
+        # check if the csv needs to be printed
+        if self.code.getIfWriteCsv():
+          csvFileName = os.path.join(metaData['subDirectory'],outputFile+'.csv')
+          pd.DataFrame.from_dict(returnDict).to_csv(path_or_buf=csvFileName,index=False)
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
         returnDict.update(kwargs)
         returnValue = (kwargs['SampledVars'],returnDict)

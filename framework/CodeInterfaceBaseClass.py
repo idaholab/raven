@@ -64,6 +64,15 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     """
     return self._runOnShell
 
+  def getIfWriteCsv(self):
+    """
+      Returns self._writeCSV. True if a CSV is requested by the user even if
+      the code interface returns the data to RAVEN directly
+      @ In, None
+      @ Out, getIfWriteCsv, bool, should we write the csv?
+    """
+    return self._writeCSV
+
   def getCsvLoadUtil(self):
     """
       Returns the string representation of the CSV loading utility to use
