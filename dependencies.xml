@@ -30,17 +30,17 @@ Note all install methods after "main" take
 -->
 <dependencies>
   <main>
-    <h5py>2.9.0</h5py>
-    <numpy>1.18.1</numpy>
-    <scipy>1.2.1</scipy>
-    <scikit-learn>0.21.2</scikit-learn>
-    <pandas>0.24.2</pandas>
-    <xarray>0.12.1</xarray>
-    <netcdf4>1.4.2</netcdf4>
-    <matplotlib>3.1.1</matplotlib>
-    <statsmodels>0.12.0</statsmodels>
-    <cloudpickle>1.1.1</cloudpickle>
-    <tensorflow>1.13.1</tensorflow>
+    <h5py>2.10</h5py>
+    <numpy>1.18</numpy>
+    <scipy>1.2</scipy>
+    <scikit-learn>0.21</scikit-learn>
+    <pandas>1.1</pandas>
+    <xarray>0.16</xarray>
+    <netcdf4>1.5</netcdf4>
+    <matplotlib>3.2</matplotlib>
+    <statsmodels/>
+    <cloudpickle>1.6</cloudpickle>
+    <tensorflow>1.15</tensorflow>
     <python skip_check='True'>3</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>
@@ -53,8 +53,8 @@ Note all install methods after "main" take
     <pyside2 source='forge'/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
-    <ray os="mac,linux" source="pip">1.0.0</ray>
-    <pillow optional='True'>6.0.0</pillow>
+    <ray os="mac,linux" source="pip">1.0</ray>
+    <pillow optional='True'>6.0</pillow>
     <line_profiler optional='True'/>
   </main>
   <alternate name="pip">
