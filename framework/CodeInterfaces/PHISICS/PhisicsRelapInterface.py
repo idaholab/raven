@@ -151,16 +151,12 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, None
     """
-    self.PhisicsInterface._writeCSV = self._writeCSV
-    self.Relap5Interface._writeCSV = self._writeCSV
     # RELAP post processing
     dataRelap = self.Relap5Interface.finalizeCodeOutput(command,self.outFileName,workingDir)
     # PHISICS post processing
     dataPhisics = self.PhisicsInterface.finalizeCodeOutput(command,output,workingDir,phiRel=True,relapOut=self.outFileName)
     cmb = combine.combine(workingDir,dataRelap, dataPhisics,self.depTimeDict,self.inpTimeDict)
     response = cmb.returnData()
-    if self._writeCSV:
-      cmb.writeCSV(response, output+'.csv', workingDir)
     return response
 
   def checkForOutputFailure(self,output,workingDir):

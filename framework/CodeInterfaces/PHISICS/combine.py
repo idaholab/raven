@@ -94,16 +94,6 @@ class combine():
     response = {var: data[: , i] for i, var in enumerate(headers)}
     return response
 
-  def writeCSV(self,response,relapPhisicsCsv,workingDir):
-    """
-      Joins the RELAP csv and PHISICS csv based on the time lines selected from PHISICS.
-      @ In, response, dictionary, dictionary of values
-      @ In, relapPhisicsCsv, string, output file
-      @ In, workingDir, string, absolute path to working directory
-      @ Out, None
-    """
-    np.savetxt(os.path.join(workingDir,relapPhisicsCsv), np.atleast_2d(list(response.values())).T, delimiter=',', header=",".join(list(response.keys())), comments='')
-
   def returnData(self):
     """
       Method to return the data in a dictionary

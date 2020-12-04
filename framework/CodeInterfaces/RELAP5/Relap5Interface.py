@@ -144,9 +144,6 @@ class Relap5(CodeInterfaceBase):
     outputobj=relapdata.relapdata(os.path.join(workingDir,output+'.o'),self.outputDeck)
     if outputobj.hasAtLeastMinorData():
       response = outputobj.returnData()
-      # write CSV logger if the flag is on
-      if self._writeCSV:
-        outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
       return response
     else:
       raise IOError('Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')

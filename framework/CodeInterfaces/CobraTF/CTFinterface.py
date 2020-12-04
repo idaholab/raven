@@ -47,9 +47,6 @@ class CTF(CodeInterfaceBase):
     outfile  = os.path.join(workingDir,output+'.out')
     outputobj= ctfdata(outfile)
     response = outputobj.returnData()
-    # check if the csv needs to be written (user choice...default false)
-    if self._writeCSV:
-      outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
     return response
 
   def findInps(self,inputFiles):

@@ -228,27 +228,3 @@ class relapdata:
     """
     data = self.minordata
     return data
-
-  def writeCSV(self,filen):
-    """
-      Method that writes the csv file from minor edit data
-      @ In, filen, string, input file name
-      @ Out, None
-    """
-    #TODO this should be further reworked and optimized probably, but it is patched to work for now.
-    IOcsvfile=open(filen,'w')
-    if self.minordata != None:
-      IOcsvfile.write(','.join(s.strip() for s in self.minordata.keys()))
-    if len(self.ravenData) > 0:
-      IOcsvfile.write(',')
-    for j in range(len(self.ravenData.keys())):
-      IOcsvfile.write('%s' %(list(self.ravenData.keys())[j]))
-      if j+1<len(self.ravenData.keys()): IOcsvfile.write(',')
-    IOcsvfile.write('\n')
-    for i in range(len(self.minordata.get(list(self.minordata.keys())[0]))):
-      IOcsvfile.write(','.join(str(self.minordata.get(list(self.minordata.keys())[j])[i]) for j in range(len(self.minordata.keys()))))
-      if len(self.ravenData)>0:
-        IOcsvfile.write(',')
-      IOcsvfile.write(','.join(str(self.ravenData[list(self.ravenData.keys())[k]]) for k in range(len(self.ravenData.keys()))))
-      IOcsvfile.write('\n')
-    IOcsvfile.close()

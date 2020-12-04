@@ -39,12 +39,8 @@ class phisicsdata():
     mrtauDict = {}
     # list: markers delimiters used for parsing
     markerList = ['Fission matrices of', 'Scattering matrices of','Multigroup solver ended!']
-    # should the CSV be printed?
-    self._writeCSV = phisicsDataDict.get("writeCSV",False)
     # data
     self.data = defaultdict(list)
-
-
     if not self.phisicsRelap:
       self.instantOutputFileMPI, self.mrtauOutputFileMPI = self.fileOutName(phisicsDataDict)
     elif self.phisicsRelap and phisicsDataDict['numberOfMPI'] > 1:
@@ -155,9 +151,6 @@ class phisicsdata():
           data = np.zeros((len(h),len(mrtauTimeSteps)))
         data[:,timeStepIndex] = snapshoot
 
-        if self._writeCSV:
-          self.writeCSV(phisicsDict, timeStepIndex, mrtauTimeSteps, phisicsDataDict['jobTitle'])
-
       if phisicsDataDict['mrtauStandAlone']:
         decayHeatMrtau = self.getDecayHeatMrtau(
             timeStepIndex, mrtauTimeSteps,
@@ -175,10 +168,6 @@ class phisicsdata():
         if data is None:
           headers, data = h, np.zeros((len(h),len(mrtauTimeSteps)))
         data[:,timeStepIndex] = snapshoot
-
-        if self._writeCSV:
-          self.writeMrtauCSV(mrtauDict)
-
     #store the data
     self.data = {var:data[i,:] for i,var in enumerate(headers)}
 
@@ -1046,38 +1035,6 @@ class phisicsdata():
     snapshoot = np.asarray([str(mrtauDict.get('mrtauTimeSteps')[mrtauDict.get('timeStepIndex')])]
                            + mrtauDict.get('depList') + mrtauDict.get('decayHeatMrtau'),dtype=float)
     return headers, snapshoot
-
-  def writeCSV(self, instantDict, timeStepIndex, matchedTimeSteps, jobTitle):
-    """
-      Prints the INSTANT/MRTAU data in csv files.
-      @ In, InstantDict, dictionary, contains all the values collected from INSTANT output
-      @ In, timeStepIndex, integer, timestep number
-      @ In, matchedTimeSteps, list, list of time steps considered
-      @ In, jobTitle, string, job title parsed from INSTANT input
-      @ Out, None
-    """
-    if self.paramList != []:
-      csvOutput = os.path.join(instantDict.get('workingDir'), jobTitle + '.csv')
-      headers, snapshoot = self.phisicsTimeStepData(instantDict, timeStepIndex, matchedTimeSteps)
-      with open(csvOutput, 'a+') as f:
-        instantWriter = csv.writer(f,delimiter=str(','),quotechar=str(','),quoting=csv.QUOTE_MINIMAL)
-        if timeStepIndex == 0:
-          instantWriter.writerow(headers)
-        instantWriter.writerow(snapshoot.tolist())
-
-  def writeMrtauCSV(self, mrtauDict):
-    """
-      Prints the MRTAU standalone data in a csv file.
-      @ In, mrtauDict, dictionary, contains all the values collected from MRTAU output
-      @ Out, None
-    """
-    csvOutput = os.path.join(mrtauDict.get('workingDir'), 'mrtau' + '.csv')
-    headers, snapshoot = self.mrtauTimeStepData(mrtauDict)
-    with open(csvOutput, 'a+') as f:
-      mrtauWriter = csv.writer(f,delimiter=str(','),quotechar=str(','),quoting=csv.QUOTE_MINIMAL)
-      if mrtauDict.get('timeStepIndex') == 0:
-        mrtauWriter.writerow(headers)
-      mrtauWriter.writerow(snapshoot)
 
   def returnData(self):
     """

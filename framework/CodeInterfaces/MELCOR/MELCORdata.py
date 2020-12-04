@@ -137,27 +137,3 @@ class MELCORdata:
     data = self.timeParams
     data.update(self.functions)
     return data
-
-  def writeCsv(self,filen):
-    """
-      Output the parsed results into a CSV file
-      @ In, filen, str, the file name of the CSV file
-      @ Out, None
-    """
-    with open(filen,'w+') as IOcsvfile:
-      getHeaders = list(self.timeParams.keys())
-      getHeaders.pop(getHeaders.index("time"))
-      CFHeaders = list(self.functions.keys())
-      CFHeaders.pop(CFHeaders.index("time"))
-      headers = getHeaders+CFHeaders
-      header = ','.join(['time']+headers) + "\n"
-      IOcsvfile.write(header)
-      for cnt in range(len(self.timeParams['time'])):
-        stringToWrite = str(self.timeParams['time'][cnt])
-        for var in headers:
-          if var in self.timeParams:
-            stringToWrite+=","+str(self.timeParams[var][cnt])
-          else:
-            stringToWrite+=","+str(self.functions[var][cnt])
-        stringToWrite+="\n"
-        IOcsvfile.write(stringToWrite)
