@@ -111,8 +111,8 @@ class Projectile(CodeInterfaceBase):
       # starts reading
       while not line.strip().startswith("--"):
         line = src.readline()
-        if not line.strip().startswith("--"):
-          data.append(line.split())
+      else:
+        data.append(line.split())
     return headers, data
 
   def finalizeCodeOutput(self, command, output, workingDir):

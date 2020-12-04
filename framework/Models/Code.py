@@ -594,21 +594,22 @@ class Code(Model):
     ## not have an extension. - (DPM 4/6/2017)
     outputFile, isStr = codeLogFile, True
     if 'finalizeCodeOutput' in dir(self.code) and returnCode == 0:
-      finalCodeOutputFile = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
+      finalCodeOutput = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
       ## Special case for RAVEN interface --ALFOA 09/17/17
-      ravenCase = type(finalCodeOutputFile).__name__ == 'dict' and self.code.__class__.__name__ == 'RAVEN'
+      ravenCase = type(finalCodeOutput).__name__ == 'dict' and self.code.__class__.__name__ == 'RAVEN'
       # check return of finalizecode output
-      if finalCodeOutputFile is not None:
-        isDict = isinstance(finalCodeOutputFile,dict)
-        isStr = isinstance(finalCodeOutputFile,string_types)
+      if finalCodeOutput is not None:
+        isDict = isinstance(finalCodeOutput,dict)
+        isStr = isinstance(finalCodeOutput,string_types)
         if not isDict and not isStr:
           self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be either a str' +
                                           'containing the new output file root or a dict of data!')
-      if finalCodeOutputFile and not ravenCase:
+      if finalCodeOutput and not ravenCase:
         if not isDict:
-          outputFile = finalCodeOutputFile
+          outputFile = finalCodeOutput
         else:
-          returnDict = finalCodeOutputFile
+          outputFile = None
+          returnDict = finalCodeOutput
 
     ## If the run was successful
     if returnCode == 0:
@@ -637,14 +638,14 @@ class Code(Model):
         #  -> in addition, we have to fix the probability weights.
         ## get the number of realizations
         ### we already checked consistency in the CodeInterface, so just get the length of the first data object
-        numRlz = len(utils.first(finalCodeOutputFile.values()))
+        numRlz = len(utils.first(finalCodeOutput.values()))
         ## set up the return container
         exportDict = {'RAVEN_isBatch':True,'realizations':[]}
         ## set up each realization
         for n in range(numRlz):
           rlz = {}
           ## collect the results from INNER, both point set and history set
-          for dataObj in finalCodeOutputFile.values():
+          for dataObj in finalCodeOutput.values():
             # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
             new = dict((var,np.atleast_1d(val)) for var,val in dataObj.realization(index=n,unpackXArray=True).items())
             rlz.update( new )
