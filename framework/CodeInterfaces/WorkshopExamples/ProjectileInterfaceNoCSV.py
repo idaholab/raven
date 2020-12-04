@@ -47,6 +47,9 @@ class ProjectileNoCSV(Projectile):
     outfileName = os.path.join(workingDir,output+".txt" )
     headers, data = self._readOutputData(outfileName)
     dat = numpy.asarray(data).T
+    print(dat.shape)
+    print(data)
+    print(len(headers))
     output = {var:dat[i,:] for (i, var) in enumerate(headers)}
     return output
 
