@@ -27,7 +27,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import re
 import copy
 import numpy as np
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 
 class MELCORdata:
   """
@@ -67,7 +67,7 @@ class MELCORdata:
       @ In, timeBlock, dict, {"time":[lines Of Output for that time]}
       @ Out, functionValuesForEachTime, dict, {"time":{"functionName":"functionValue"}}
     """
-    functionValuesForEachTime = defaultdict(list)
+    functionValuesForEachTime = {'time': []}
     timeOneRegex_name = re.compile("^\s*CONTROL\s+FUNCTION\s+(?P<name>[^\(]*)\s+(\(.*\))?\s*IS\s+.+\s+TYPE.*$")
     timeOneRegex_value = re.compile("^\s*VALUE\s+=\s+(?P<value>[^\s]*)")
     startRegex = re.compile("\s*CONTROL\s*FUNCTION\s*NUMBER\s*CURRENT\s*VALUE")
@@ -89,6 +89,8 @@ class MELCORdata:
             break
           match = re.match(regex, line)
           if match is not None:
+            if match.groupdict()["name"] not in functionValuesForEachTime:
+              functionValuesForEachTime[match.groupdict()["name"]] = []
             functionValuesForEachTime[match.groupdict()["name"]].append(float(match.groupdict()["value"]))
       elif start == -2:
         for lineNumber, line in enumerate(listOfLines):
@@ -96,7 +98,11 @@ class MELCORdata:
           if fcnName is not None:
             fcnValue = re.match(timeOneRegex_value, listOfLines[lineNumber+1])
             if fcnValue is not None:
+              if fcnName.groupdict()["name"] not in functionValuesForEachTime:
+                functionValuesForEachTime[fcnName.groupdict()["name"]] = []
               functionValuesForEachTime[fcnName.groupdict()["name"]].append(float(fcnValue.groupdict()["value"]))
+    for parameter in functionValuesForEachTime:
+      functionValuesForEachTime[parameter] = np.asarray(functionValuesForEachTime[parameter])
     return functionValuesForEachTime
 
   def returnVolumeHybro(self,timeBlock):
@@ -104,7 +110,7 @@ class MELCORdata:
       CONTROL VOLUME HYDRODYNAMICS EDIT
       @ In, timeBlock, dict, {"time":[lines Of Output for that time]}
     """
-    volForEachTime = defaultdict(list)
+    volForEachTime = {'time': []}
     for time,listOfLines in timeBlock.items():
       volForEachTime['time'].append(float(time))
       for cnt, line in enumerate(listOfLines):
@@ -120,14 +126,20 @@ class MELCORdata:
             valueSplit = valueSplit[1:len(valueSplit)]
             for paramCnt,header in enumerate(headers):
               parameter = "volume_"+str(volumeNumber)+"_"+header.strip()
-              if parameter ==  'volume_1_ENERGY':
-                print("check")
               try:
-                testFloat = float(valueSplit[paramCnt])
-                volForEachTime[parameter].append(float(valueSplit[paramCnt]))
+                _ =  float(valueSplit[paramCnt])
+                if parameter not in volForEachTime:
+                  volForEachTime[parameter] = []
+                if parameter in volForEachTime and len(volForEachTime['time']) !=len(volForEachTime[parameter]):
+                  #  there might be repetition(same variable with different units)
+                  volForEachTime[parameter].append(float(valueSplit[paramCnt]))
               except ValueError:
                 # in this way, the "strings" are not placed in the resulting csv
                 pass
+    for parameter in volForEachTime:
+      if parameter == 'volume_2_CVVELO(1)':
+        print("a")
+      volForEachTime[parameter] = np.asarray(volForEachTime[parameter])
     return volForEachTime
 
   def returnData(self):
