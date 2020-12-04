@@ -74,7 +74,7 @@ class MELCORdata:
     regex = re.compile("^\s*(?P<name>( ?([0-9a-zA-Z-]+))*)\s+([0-9]+)\s*(?P<value>((([0-9.-]+)E(\+|-)[0-9][0-9])|((T|F))))\s*.*$")
     for time,listOfLines in timeBlock.items():
       functionValuesForEachTime['time'].append(float(time))
-      functionValues = {}
+
       start = -1
       for lineNumber, line in enumerate(listOfLines):
         if re.search(startRegex, line):
@@ -120,6 +120,8 @@ class MELCORdata:
             valueSplit = valueSplit[1:len(valueSplit)]
             for paramCnt,header in enumerate(headers):
               parameter = "volume_"+str(volumeNumber)+"_"+header.strip()
+              if parameter ==  'volume_1_ENERGY':
+                print("check")
               try:
                 testFloat = float(valueSplit[paramCnt])
                 volForEachTime[parameter].append(float(valueSplit[paramCnt]))
