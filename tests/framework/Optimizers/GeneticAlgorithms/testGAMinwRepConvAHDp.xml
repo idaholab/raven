@@ -44,12 +44,12 @@
   <Distributions>
     <UniformDiscrete name='uniform_dist_Repl_1'>
       <lowerBound>1</lowerBound>
-      <upperBound>20</upperBound>
+      <upperBound>6</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
         <UniformDiscrete name='uniform_dist_woRepl_1'>
       <lowerBound>1</lowerBound>
-      <upperBound>20</upperBound>
+      <upperBound>6</upperBound>
       <strategy>withOutReplacement</strategy>
     </UniformDiscrete>
   </Distributions>
@@ -57,15 +57,15 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>50</limit>
+        <limit>15</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
 
       <GAparams>
-        <populationSize>50</populationSize>
+        <populationSize>10</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="10">
+        <reproduction nParents="5">
           <crossover type="onePointCrossover">
             <!-- <points>3</points> -->
             <crossoverProb>0.8</crossoverProb>
@@ -83,7 +83,7 @@
       </GAparams>
 
       <convergence>
-        <AHDp>1</AHDp>
+        <AHDp>0.0</AHDp>
       </convergence>
 
       <variable name="x1">
@@ -101,20 +101,20 @@
         <!-- <initial>3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2</initial> -->
       </variable>
 
-      <variable name="x4">
+<!--       <variable name="x4">
         <distribution>uniform_dist_Repl_1</distribution>
-        <!-- <initial>4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3</initial> -->
+        <!~~ <initial>4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3</initial> ~~>
       </variable>
 
       <variable name="x5">
         <distribution>uniform_dist_Repl_1</distribution>
-        <!-- <initial>5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4</initial> -->
+        <!~~ <initial>5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4</initial> ~~>
       </variable>
 
       <variable name="x6">
         <distribution>uniform_dist_Repl_1</distribution>
-        <!-- <initial>6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4,5</initial> -->
-      </variable>
+        <!~~ <initial>6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,1,2,3,4,5</initial> ~~>
+      </variable> -->
 
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
@@ -125,7 +125,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>50</limit>
+        <limit>10</limit>
         <initialSeed>20021986</initialSeed>
       </samplerInit>
       <variable name="x1">
@@ -137,7 +137,7 @@
       <variable name="x3">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
-      <variable name="x4">
+      <!-- <variable name="x4">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
       <variable name="x5">
@@ -145,25 +145,25 @@
       </variable>
       <variable name="x6">
         <distribution>uniform_dist_Repl_1</distribution>
-      </variable>
+      </variable> -->
     </MonteCarlo>
   </Samplers>
 
     <Models>
       <ExternalModel ModuleToLoad="../../../AnalyticModels/optimizing/myLocalSum.py" name="myLocalSum" subType="">
-        <variables>x1,x2,x3,x4,x5,x6,ans</variables>
+        <variables>x1,x2,x3,ans</variables>
       </ExternalModel>
     </Models>
 
     <DataObjects>
       <PointSet name="placeholder"/>
       <PointSet name="optOut">
-        <Input>x1,x2,x3,x4,x5,x6</Input>
+        <Input>x1,x2,x3</Input>
         <Output>ans</Output>
       </PointSet>
       <PointSet name="opt_export">
         <Input>trajID</Input>
-        <Output>x1,x2,x3,x4,x5,x6,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
+        <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
         <!-- <Output>x1,x2,x3,x4,x5,x6,ans,iteration,accepted,conv_objective</Output> fitness,conv_fitness -->
       </PointSet>
     </DataObjects>

@@ -10,7 +10,7 @@
       The optimal solution should reach a maximum value of: planValue=20
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>discreteIntWithReplacement</WorkingDir>
     <Sequence>opt, print, printExport</Sequence>
@@ -24,7 +24,7 @@
       <Model          class="Models"      type="ExternalModel"    >MKbase</Model>
       <Sampler        class="Samplers"    type="MonteCarlo"       >MC</Sampler>
       <Output         class="DataObjects" type="PointSet"         >MCOut</Output>
-    </MultiRun> 
+    </MultiRun>
     <IOStep name="MCprint">
       <Input          class="DataObjects" type="PointSet"         >MCOut</Input>
       <Output         class="OutStreams"  type="Print"            >PrintMCOut</Output>
@@ -167,7 +167,7 @@
       <source>opt_export</source>
     </Print>
   </OutStreams>
-  
+
   <Samplers>
     <MonteCarlo name="MC">
       <samplerInit>
@@ -205,6 +205,6 @@
         <distribution>unif_dist_wRepl</distribution>
       </variable>
     </MonteCarlo>
-  </Samplers> 
+  </Samplers>
 
 </Simulation>

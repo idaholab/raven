@@ -9,7 +9,7 @@
       This test is designed to find the optimal solution of a basic knapsack problem
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>simpleKnapsack</WorkingDir>
     <!--Sequence>sample, MCprint</Sequence-->
@@ -24,7 +24,7 @@
       <Model          class="Models"      type="ExternalModel"    >Kbase</Model>
       <Sampler        class="Samplers"    type="MonteCarlo"       >MC</Sampler>
       <Output         class="DataObjects" type="PointSet"         >MCOut</Output>
-    </MultiRun> 
+    </MultiRun>
     <IOStep name="MCprint">
       <Input          class="DataObjects" type="PointSet"         >MCOut</Input>
       <Output         class="OutStreams"  type="Print"            >PrintMCOut</Output>
@@ -167,7 +167,7 @@
       <source>opt_export</source>
     </Print>
   </OutStreams>
-  
+
   <Samplers>
     <MonteCarlo name="MC">
       <samplerInit>
@@ -205,6 +205,6 @@
         <distribution>unif_dist_wRepl</distribution>
       </variable>
     </MonteCarlo>
-  </Samplers> 
+  </Samplers>
 
 </Simulation>

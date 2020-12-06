@@ -58,13 +58,13 @@ def onePointCrossover(parents,**kwargs):
   for ind,parent in enumerate(parentsPairs):
     parent = np.array(parent).reshape(2,-1) # two parents at a time
     if randomUtils.random(dim=1,samples=1) <= crossoverProb:
+      if (kwargs['points'] == None) or ('points' not in kwargs.keys()):
+        point = list([randomUtils.randomIntegers(1,nGenes-1,None)])
+      elif (any(i>=nGenes-1 for i in kwargs['points'])):
+        raise IOError('crossover point cannot be larger than number of Genes (variables)')
+      else:
+        point = kwargs['points']
       for i in range(nGenes):
-        if (kwargs['points'] == None) or ('points' not in kwargs.keys()):
-          point = list([randomUtils.randomIntegers(1,nGenes-1,None)])
-        elif (any(i>=nGenes-1 for i in kwargs['points'])):
-          raise IOError('crossover point cannot be larger than number of Genes (variables)')
-        else:
-          point = kwargs['points']
         if len(point)>1:
           raise IOError('In one Point Crossover a single crossover location should be provided!')
         children[2*ind:2*ind+2,i] = parent[np.arange(0,2)*(i<point[0])+np.arange(-1,-3,-1)*(i>=point[0]),i]

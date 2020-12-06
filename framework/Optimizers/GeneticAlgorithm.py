@@ -446,26 +446,8 @@ class GeneticAlgorithm(RavenSampled):
       if needsRepair:
         children = self._repairInstance(children,variables=list(self.toBeSampled),distInfo=self.distDict)
 
-      # Make sure no children are exactly similar to parents
-      flag = True
-      counter = 0
-      while flag and counter<=10:
-        counter += 1
-        repeated =[]
-        for i in range(np.shape(population.data)[0]):
-          for j in range (np.shape(children.data)[0]):
-            if all(population.data[i,:]==children.data[j,:]):
-              repeated.append(j)
-        repeated = list(set(repeated))
-        if repeated:
-          newChildren = self._mutationInstance(offSprings=children[repeated,:],locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
-          children.data[repeated,:] = newChildren.data
-        else:
-          flag = False
-        children2 = children
-        self.batch =np.shape(children2)[0]
-      # children2 = children
-      # self.batch =np.shape(children2)[0]
+      children2 = children
+      self.batch =np.shape(children2)[0]
       children = xr.DataArray(children2,
                                 dims=['chromosome','Gene'],
                                 coords={'chromosome': np.arange(np.shape(children2)[0]),
@@ -648,7 +630,7 @@ class GeneticAlgorithm(RavenSampled):
       p = kwargs['p']
     AHDp = self._AHDp(old,new,p)
     self.AHDp = AHDp
-    converged = (AHDp < self._convergenceCriteria['AHDp'])
+    converged = (AHDp <= self._convergenceCriteria['AHDp'])
     self.raiseADebug(self.convFormat.format(name='AHDp',
                                             conv=str(converged),
                                             got=AHDp,

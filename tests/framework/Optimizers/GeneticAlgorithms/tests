@@ -2,8 +2,6 @@
   [./MinwReplacement]
     type = 'RavenFramework'
     input = 'testGAMinwRep.xml'
-    heavy = true
-    max_time = 1500
     [./data]
       type = OrderedCSV
       output = 'MinwReplacement/opt_export_0.csv'
@@ -15,8 +13,6 @@
   [./MinwReplacementConvAHDp]
     type = 'RavenFramework'
     input = 'testGAMinwRepConvAHDp.xml'
-    heavy = true
-    max_time = 1500
     [./data]
       type = OrderedCSV
       output = 'MinwReplacementConvAHDp/opt_export_0.csv'
@@ -28,8 +24,6 @@
   [./MinwoReplacement]
     type = 'RavenFramework'
     input = 'testGAMinwoRep.xml'
-    heavy = true
-    max_time = 2500
     [./data]
       type = OrderedCSV
       output = 'MinwoReplacement/opt_export_0.csv'
@@ -41,8 +35,6 @@
   [./MinwoReplacementConvAHDp]
     type = 'RavenFramework'
     input = 'testGAMinwoRepConvAHDp.xml'
-    heavy = true
-    max_time = 2500
     [./data]
       type = OrderedCSV
       output = 'MinwoReplacementConvAHDp/opt_export_0.csv'
@@ -54,8 +46,6 @@
   [./MaxwReplacement]
     type = 'RavenFramework'
     input = 'testGAMaxwRep.xml'
-    heavy = true
-    max_time = 1500
     [./data]
       type = OrderedCSV
       output = 'MaxwReplacement/opt_export_0.csv'
@@ -67,8 +57,6 @@
   [./MaxwReplacementConvAHDp]
     type = 'RavenFramework'
     input = 'testGAMaxwRepConvAHDp.xml'
-    heavy = true
-    max_time = 1500
     [./data]
       type = OrderedCSV
       output = 'MaxwReplacementConvAHDp/opt_export_0.csv'
@@ -80,8 +68,6 @@
   [./MaxwoReplacement]
     type = 'RavenFramework'
     input = 'testGAMaxwoRep.xml'
-    heavy = true
-    max_time = 1500
     [./data]
       type = OrderedCSV
       output = 'MaxwoReplacement/opt_export_0.csv'
@@ -93,8 +79,6 @@
   [./MaxwoReplacementConvAHDp]
     type = 'RavenFramework'
     input = 'testGAMaxwoRepConvAHDp.xml'
-    heavy = true
-    max_time = 1500
     [./data]
       type = OrderedCSV
       output = 'MaxwoReplacementConvAHDp/opt_export_0.csv'
@@ -102,7 +86,7 @@
       zero_threshold = 1e-5
     [../]
   [../]
-  
+
   [./GA_discreteIntWithReplacement]
     type = 'RavenFramework'
     input = 'GA_discreteIntWithReplacement.xml'
