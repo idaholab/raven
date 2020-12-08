@@ -29,7 +29,6 @@ import shlex
 import time
 import numpy as np
 import pandas as pd
-from six import string_types
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -601,7 +600,7 @@ class Code(Model):
       # check return of finalizecode output
       if finalCodeOutput is not None:
         isDict = isinstance(finalCodeOutput,dict)
-        isStr = isinstance(finalCodeOutput,string_types)
+        isStr = isinstance(finalCodeOutput,str)
         if not isDict and not isStr:
           self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be either a str' +
                                           'containing the new output file root or a dict of data!')
