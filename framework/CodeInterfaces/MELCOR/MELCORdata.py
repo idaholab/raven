@@ -26,7 +26,8 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 import re
 import copy
-import itertools
+import numpy as np
+from collections import OrderedDict
 
 class MELCORdata:
   """
@@ -41,9 +42,7 @@ class MELCORdata:
     """
     self.lines      = open(filen,"r").readlines()
     timeBlocks      = self.getTimeBlocks()
-    self.timeParams = {}
-    volForEachTime  = self.returnVolumeHybro(timeBlocks)
-    self.timeParams.update(volForEachTime)
+    self.timeParams = self.returnVolumeHybro(timeBlocks)
     self.functions  = self.returnControlFunctions(timeBlocks)
 
   def getTimeBlocks(self):
@@ -68,13 +67,14 @@ class MELCORdata:
       @ In, timeBlock, dict, {"time":[lines Of Output for that time]}
       @ Out, functionValuesForEachTime, dict, {"time":{"functionName":"functionValue"}}
     """
-    functionValuesForEachTime = {}
+    functionValuesForEachTime = {'time': []}
     timeOneRegex_name = re.compile("^\s*CONTROL\s+FUNCTION\s+(?P<name>[^\(]*)\s+(\(.*\))?\s*IS\s+.+\s+TYPE.*$")
     timeOneRegex_value = re.compile("^\s*VALUE\s+=\s+(?P<value>[^\s]*)")
     startRegex = re.compile("\s*CONTROL\s*FUNCTION\s*NUMBER\s*CURRENT\s*VALUE")
     regex = re.compile("^\s*(?P<name>( ?([0-9a-zA-Z-]+))*)\s+([0-9]+)\s*(?P<value>((([0-9.-]+)E(\+|-)[0-9][0-9])|((T|F))))\s*.*$")
     for time,listOfLines in timeBlock.items():
-      functionValues = {}
+      functionValuesForEachTime['time'].append(float(time))
+
       start = -1
       for lineNumber, line in enumerate(listOfLines):
         if re.search(startRegex, line):
@@ -89,15 +89,20 @@ class MELCORdata:
             break
           match = re.match(regex, line)
           if match is not None:
-            functionValues[match.groupdict()["name"]] = match.groupdict()["value"]
+            if match.groupdict()["name"] not in functionValuesForEachTime:
+              functionValuesForEachTime[match.groupdict()["name"]] = []
+            functionValuesForEachTime[match.groupdict()["name"]].append(float(match.groupdict()["value"]))
       elif start == -2:
         for lineNumber, line in enumerate(listOfLines):
           fcnName = re.match(timeOneRegex_name, line)
           if fcnName is not None:
             fcnValue = re.match(timeOneRegex_value, listOfLines[lineNumber+1])
             if fcnValue is not None:
-              functionValues[fcnName.groupdict()["name"]] = fcnValue.groupdict()["value"]
-      functionValuesForEachTime[time] = functionValues
+              if fcnName.groupdict()["name"] not in functionValuesForEachTime:
+                functionValuesForEachTime[fcnName.groupdict()["name"]] = []
+              functionValuesForEachTime[fcnName.groupdict()["name"]].append(float(fcnValue.groupdict()["value"]))
+    for parameter in functionValuesForEachTime:
+      functionValuesForEachTime[parameter] = np.asarray(functionValuesForEachTime[parameter])
     return functionValuesForEachTime
 
   def returnVolumeHybro(self,timeBlock):
@@ -105,9 +110,9 @@ class MELCORdata:
       CONTROL VOLUME HYDRODYNAMICS EDIT
       @ In, timeBlock, dict, {"time":[lines Of Output for that time]}
     """
-    volForEachTime = {}
+    volForEachTime = {'time': []}
     for time,listOfLines in timeBlock.items():
-      results = {}
+      volForEachTime['time'].append(float(time))
       for cnt, line in enumerate(listOfLines):
         if line.strip().startswith("VOLUME"):
           headers  = line.strip().split()[1:len(line.strip().split())-1]
@@ -122,32 +127,27 @@ class MELCORdata:
             for paramCnt,header in enumerate(headers):
               parameter = "volume_"+str(volumeNumber)+"_"+header.strip()
               try:
-                testFloat = float(valueSplit[paramCnt])
-                results[parameter] = valueSplit[paramCnt]
+                _ =  float(valueSplit[paramCnt])
+                if parameter not in volForEachTime:
+                  volForEachTime[parameter] = []
+                if parameter in volForEachTime and len(volForEachTime['time']) !=len(volForEachTime[parameter]):
+                  #  there might be repetition(same variable with different units)
+                  volForEachTime[parameter].append(float(valueSplit[paramCnt]))
               except ValueError:
                 # in this way, the "strings" are not placed in the resulting csv
                 pass
-      volForEachTime[time] = copy.deepcopy(results)
+    for parameter in volForEachTime:
+      if parameter == 'volume_2_CVVELO(1)':
+        print("a")
+      volForEachTime[parameter] = np.asarray(volForEachTime[parameter])
     return volForEachTime
 
-  def writeCsv(self,filen):
+  def returnData(self):
     """
-      Output the parsed results into a CSV file
-      @ In, filen, str, the file name of the CSV file
-      @ Out, None
+      Method to return the data in a dictionary
+      @ In, None
+      @ Out, data, dict, the dictionary containing the data {var1:array,var2:array,etc}
     """
-    IOcsvfile=open(filen,'w+')
-    getHeaders = list(self.timeParams.values())[0].keys()
-    CFHeaders = list(self.functions.values())[0].keys()
-    header = ','.join(itertools.chain(getHeaders,CFHeaders))
-    header = "time,"+header+"\n"
-    IOcsvfile.write(header)
-    for time in sorted(self.timeParams.keys()):
-      stringToWrite = str(time)
-      for value in self.timeParams[time].values():
-        stringToWrite+=","+str(value)
-      for value in self.functions[time].values():
-        stringToWrite+=","+str(value)
-      stringToWrite+="\n"
-      IOcsvfile.write(stringToWrite)
-    IOcsvfile.close()
+    data = self.timeParams
+    data.update(self.functions)
+    return data

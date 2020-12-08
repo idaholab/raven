@@ -92,15 +92,7 @@ class XSCreator():
             for typeOfXs in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).keys():
               libraryChild = SubElement(tabulationChild, 'isotope', {'id':isotope, 'type':typeOfXs.lower()})
               for reaction in self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).keys():
-                #groupList = []
-                #valueList = []
                 for count,(group,value) in enumerate(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).items()):
-                  #numberOfGroupsPerturbed = len(self.listedDict.get('XS').get(tabulation).get(material).get(isotope).get(typeOfXs).get(reaction).keys()) - 1
-                  #groupList.append(group)
-                  #valueList.append(value)
-                  #if count == numberOfGroupsPerturbed:
-                    #groups = ','.join(str(e) for e in groupList)
-                    #values = ','.join(str(f) for f in valueList)
                   reactionChild = SubElement(libraryChild, self.formatXS(reaction), {'g':group})
                   reactionChild.text = value
     fileObj = open(inputFiles, 'w')

@@ -35,6 +35,8 @@
       <executable>
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
+      <!-- The following flag indicates that we will write a CSV with the data (by default we return the data directly to RAVEN) -->
+      <csv>True</csv>
     </Code>
 
     <EnsembleModel name="Ensemble_Model" subType="">
@@ -102,7 +104,6 @@
       <Model     class="Models"       type="EnsembleModel">Ensemble_Model</Model>
       <Sampler   class="Samplers"     type="EnsembleForward">Ensemble_Sampler</Sampler>
       <Output     class="DataObjects" type="DataSet">BBHistorySet_out</Output>
-      <Output    class="Databases"    type="HDF5">DB_BouncingBall</Output>
     </MultiRun>
     <IOStep name="testPrintUnstructuredInputSpace">
        <Input     class="DataObjects" type="DataSet">BBHistorySet_out</Input>
@@ -144,9 +145,5 @@
       <Index var="TimeFirstModel">G_vect</Index>
     </DataSet>
   </DataObjects>
-
-  <Databases>
-    <HDF5 name="DB_BouncingBall" readMode="overwrite"/>
-  </Databases>
 
 </Simulation>

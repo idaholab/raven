@@ -44,6 +44,7 @@ class PhisicsRelap5(CodeInterfaceBase):
     self.Relap5Interface = Relap5()
     self.Relap5Interface.addDefaultExtension()
 
+
   def definePhisicsVariables(self):
     """
       Lists the variables perturbable within PHISICS. The other variables will be related to RELAP.
@@ -150,19 +151,13 @@ class PhisicsRelap5(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, None
     """
-    relapPhisicsCsv = 'relapPhisics'
     # RELAP post processing
-    self.Relap5Interface.finalizeCodeOutput(command,self.outFileName,workingDir)
+    dataRelap = self.Relap5Interface.finalizeCodeOutput(command,self.outFileName,workingDir)
     # PHISICS post processing
-    self.PhisicsInterface.finalizeCodeOutput(command,output,workingDir,phiRel=True,relapOut=self.outFileName)
-    jobTitle = self.PhisicsInterface.jobTitle
-    combine.combine(workingDir,os.path.join(workingDir,self.outFileName+'.csv'),os.path.join(workingDir,jobTitle+'.csv'),self.depTimeDict,self.inpTimeDict,relapPhisicsCsv+'.csv')
-    # remove the old CSVs
-    if os.path.exists(os.path.join(workingDir,self.outFileName+'.csv')):
-      os.remove(os.path.join(workingDir,self.outFileName+'.csv'))
-    if os.path.exists(os.path.join(workingDir,self.outFileName+'.csv')):
-      os.remove(os.path.join(workingDir,jobTitle+'.csv'))
-    return relapPhisicsCsv
+    dataPhisics = self.PhisicsInterface.finalizeCodeOutput(command,output,workingDir,phiRel=True,relapOut=self.outFileName)
+    cmb = combine.combine(workingDir,dataRelap, dataPhisics,self.depTimeDict,self.inpTimeDict)
+    response = cmb.returnData()
+    return response
 
   def checkForOutputFailure(self,output,workingDir):
     """

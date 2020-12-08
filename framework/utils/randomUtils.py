@@ -11,22 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-'''
+"""
  This file contains the random number generating methods used in the framework.
  created on 07/15/2017
  @author: talbpaul
-'''
+"""
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import threading
 import numpy as np
+import math
 from collections import deque, defaultdict
 
 from utils.utils import findCrowModule
 from utils import mathUtils
-import math
 
-# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
+# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
 # Numpy stochastic environment can not pass the test as this point
 stochasticEnv = 'crow'
 #stochasticEnv = 'numpy'

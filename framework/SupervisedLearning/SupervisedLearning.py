@@ -14,7 +14,7 @@
 """
   Created on May 8, 2018
 
-  @author: talbpaul
+  @author: alfoa
 
   Originally from ../SupervisedLearning.py, split in PR #650 in July 2018
   Base subclass definition for all supported type of ROM aka Surrogate Models etc
@@ -46,7 +46,6 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
   returnType       = ''    # this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
   qualityEstType   = []    # this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
   ROMtype          = ''    # the broad class of the interpolator
-  ROMmultiTarget   = False #
   ROMtimeDependent = False # is this ROM able to treat time-like (any monotonic variable) explicitly in its formulation?
 
   @staticmethod
@@ -88,10 +87,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self._assembledObjects = None           # objects assembled by the ROM Model, passed through.
     self.numThreads = kwargs.pop('NumThreads', None)
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
-    if kwargs != None:
-      self.initOptionDict = kwargs
-    else:
-      self.initOptionDict = {}
+    self.initOptionDict = {} if kwargs is None else kwargs
     if 'Features' not in self.initOptionDict.keys():
       self.raiseAnError(IOError,'Feature names not provided')
     if 'Target' not in self.initOptionDict.keys():
