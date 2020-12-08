@@ -53,7 +53,6 @@
   type = 'RavenFramework'
   input = 'test_Dymola_code_interface.xml'
   output = 'DMInterfaceTest/testDummyStep/1/dsin.txt DMInterfaceTest/testDummyStep/2/dsin.txt DMInterfaceTest/testDummyStep/3/dsin.txt DMInterfaceTest/testDummyStep/4/dsin.txt DMInterfaceTest/testDummyStep/5/dsin.txt'
-  csv = 'DMInterfaceTest/testDummyStep/1/out~dsin.csv DMInterfaceTest/testDummyStep/2/out~dsin.csv DMInterfaceTest/testDummyStep/3/out~dsin.csv DMInterfaceTest/testDummyStep/4/out~dsin.csv DMInterfaceTest/testDummyStep/5/out~dsin.csv'
   test_interface_only = True
  [../]
 
@@ -61,7 +60,6 @@
   type = 'RavenFramework'
   input = 'test_Dymola_code_interface_load_some_vars.xml'
   output = 'DMInterfaceTestLoadSomeVars/testDummyStep/1/dsin.txt DMInterfaceTestLoadSomeVars/testDummyStep/2/dsin.txt DMInterfaceTestLoadSomeVars/testDummyStep/3/dsin.txt DMInterfaceTestLoadSomeVars/testDummyStep/4/dsin.txt DMInterfaceTestLoadSomeVars/testDummyStep/5/dsin.txt'
-  csv = 'DMInterfaceTestLoadSomeVars/testDummyStep/1/out~dsin.csv'
   test_interface_only = True
  [../]
 
@@ -69,7 +67,7 @@
   type = 'RavenFramework'
   input = 'test_Dymola_code_interface_timedep.xml'
   output = 'DMInterfaceTestTimedep/testDummyStep/BouncingBall++2/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++3/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++4/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++2/addinp.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++3/addinp.txt'
-  csv = 'DMInterfaceTestTimedep/testDummyStep/BouncingBall++1/out~dsin.csv DMInterfaceTestTimedep/testDummyStep/BouncingBall++5/out~dsin.csv'
+  csv = 'DMInterfaceTestTimedep/testDummyStep/BouncingBall++1/rawout~dsin.csv DMInterfaceTestTimedep/testDummyStep/BouncingBall++5/rawout~dsin.csv'
   text = 'DMInterfaceTestTimedep/testDummyStep/BouncingBall++1/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++1/addinp.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++5/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++5/addinp.txt'
   test_interface_only = True
 [../]
