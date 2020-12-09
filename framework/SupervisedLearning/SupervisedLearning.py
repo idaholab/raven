@@ -85,6 +85,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self.printTag = 'Supervised'
     self.messageHandler = messageHandler
     self._dynamicHandling = False
+    self._dynamicFeatures = False #  new API for ROMs. Does this ROM allow for "dynamic" features? (AKA features that can be time dependent?)
     self._assembledObjects = None           # objects assembled by the ROM Model, passed through.
     self.numThreads = kwargs.pop('NumThreads', None)
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
@@ -185,7 +186,10 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
 
     # construct the evaluation matrixes
-    featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
+    if self._dynamicFeatures:
+      featureValues = np.zeros(shape=(len(targetValues),targetValues.shape[1], len(self.features)))
+    else:
+      featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
@@ -195,13 +199,16 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
         valueToUse = np.asarray(valueToUse)
-        if len(valueToUse) != featureValues[:,0].size:
-          self.raiseAWarning('feature values:',featureValues[:,0].size,tag='ERROR')
+        if len(valueToUse) != featureValues.shape[0]:
+          self.raiseAWarning('feature values:',featureValues.shape[0],tag='ERROR')
           self.raiseAWarning('target values:',len(valueToUse),tag='ERROR')
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are != number of target outcomes!')
         self._localNormalizeData(values,names,feat)
         # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
-        featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        if self._dynamicFeatures:
+          featureValues[:, :, cnt] = valueToUse[:, :]
+        else:
+          featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
 
@@ -337,6 +344,15 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, isDynamic, bool, True if the ROM is able to treat dynamic data, False otherwise
     """
     return self._dynamicHandling
+
+  def canHandelDynamicFeatures(self):
+    """
+      This method is a utility function that tells if the relative ROM is able to
+      handle dynamic data (e.g. time-series) in its feature space
+      @ In, None
+      @ Out, isDynamic, bool, True if the ROM is able to treat dynamic data, False otherwise
+    """
+    return self._dynamicFeatures
 
   def reseed(self,seed):
     """

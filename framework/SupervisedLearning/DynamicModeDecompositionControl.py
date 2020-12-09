@@ -13,11 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on May 8, 2018
+  Created on Oct 01, 2020
 
-  @author: Haoyu Wang
-  Originally from SupervisedLearning.py, split in PR #650 in July 2018
-  Base subclass definition for DynamicModeDecomposition ROM (transferred from alfoa in SupervisedLearning)
+  @author: Haoyu Wang, Andrea Alfonsi
+
+  Dynamic Mode Decomposition with Control (The class is based on the DynamicModeDecomposition class)
 """
 #for future compatibility with Python 3--------------------------------------------------------------
 from __future__ import division, print_function, unicode_literals, absolute_import
@@ -58,51 +58,56 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
     """
     DynamicModeDecomposition.__init__(self,messageHandler,**kwargs)
-    self.printTag                    = 'DMDC'
+    self.printTag = 'DMDC'
+    self._dynamicFeatures = True
+    ### Extract the Actuator Variable Names (u)
     self.actuatorsID = kwargs.get("Actuators", None)
-    cUXY =  kwargs.get('SubtractNormUXY',False)  
-    self.dmdParams['centerUXY'] = cUXY           # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
-    self.stateID                     = []        # state variables names (e.g. X)
+    ### Extract the State Variable Names (x)
+    self.stateID = kwargs.get("StateVariables", None)
+    ### Extract the Output Names (Output, Y)
+    self.outputID = set(self.target) - set([self.pivotParameterID])
+    cUXY =  kwargs.get('SubtractNormUXY',False)
+    self.dmdParams['centerUXY'] = cUXY # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
     # variables filled up in the training stages
-    self.__Btilde               = {}  
-    self.__Ctilde               = {}
-    self.actuatorVals           = []                                   # Actuator values (e.g. U), the variable names are in self.ActuatorID
-    
-    self.stateVals                   = []                              # state values (e.g. X)
-    self.outputID                    = []                              # output variables names (e.g. Y)
-    self.outputVals                  = []                              # output values (e.g. Y)
+    self.__Btilde               = {} # B matrix
+    self.__Ctilde               = {} # C matrix
+    self.actuatorVals           = [] # Actuator values (e.g. U), the variable names are in self.ActuatorID
+    self.stateVals              = [] # state values (e.g. X)
+    self.outputVals             = [] # output values (e.g. Y)
     # some checks
     if not self.actuatorsID:
       self.raiseAnError(IOError,'Actuators XML node must be present for constructing DMDc !')
+    if not self.stateID:
+      self.raiseAnError(IOError,'StateVariables XML node must be present for constructing DMDc !')
+    # check if there are parameters
+    self.parametersIDs = set(self.features) - set(self.actuatorsID) - set(self.stateID)
 
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.
       @ In, featureVals, numpy.ndarray, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
-      @ In, targetVals, numpy.ndarray, shape = [n_timeStep, n_dimensions], an array of time series data
+      @ In, targetVals, numpy.ndarray, shape = [n_parameters,n_timeStep, n_dimensions], an array of time series data
     """
     ### Extract the Pivot Values (Actuator, U) ###
     # self.ActuatorVals is Num_Entries*2 array, the snapshots of [u1, u2]
-    self.actuatorVals = np.asarray([featureVals[:,self.features.index(act)] for act in self.actuatorsID]).T 
-    ### Extract the time marks "self.pivotVals" (discrete, in time step marks) ###
-    self.pivotVals = targetVals[:, self.target.index(self.pivotParameterID)]
-    ### Extract the Output Values (Output, Y)
-    self.outputID = set(self.target) - set([self.pivotParameterID])
+    self.actuatorVals = np.asarray([featureVals[:, :, self.features.index(act)] for act in self.actuatorsID]).T
+    ### Extract the time marks "self.pivotValues" (discrete, in time step marks) ###
+    self.pivotValues = targetVals[:, self.target.index(self.pivotParameterID)]
     # self.outputVals is Num_Entries*2 array, the snapshots of [y1, y2]
     self.outputVals =  np.asarray([targetVals[:,self.target.index(out)] for out in self.outputID]).T
     ### Extract the State Values (State, X) ###
-    self.stateID = set(self.features) - set(self.actuatorsID)
+
     # self.outputVals is Num_Entries*2 array, the snapshots of [y1, y2]
-    self.stateVals =  np.asarray([featureVals[:,self.features.index(st)] for st in self.stateID]).T
+    self.stateVals =  np.asarray([featureVals[:, :, self.features.index(st)] for st in self.stateID]).T
     # create matrices
     X1 = (self.stateVals[:-1, :] - self.stateVals[0,:]).T if self.dmdParams['centerUXY'] else self.stateVals[:-1, :].T
-    X2 = (self.stateVals[1, :] - self.stateVals[0,:]).T  if self.dmdParams['centerUXY'] else self.stateVals[1:, :].T
+    X2 = (self.stateVals[1:, :] - self.stateVals[0,:]).T  if self.dmdParams['centerUXY'] else self.stateVals[1:, :].T
     U =  (self.actuatorVals[:-1, :] - self.actuatorVals[0, :]).T  if self.dmdParams['centerUXY'] else self.actuatorVals[:-1, :].T
     Y1 = (self.outputVals[:-1, :] - self.outputVals[0, :]).T if self.dmdParams['centerUXY'] else self.outputVals[:-1, :].T
     # compute A,B,C matrices
     self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
-    self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotVals[0], 'intervals': ts, 'dt': self.pivotVals[1]-self.pivotVals[0]})
+    self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0], 'intervals': len(self.pivotValues) - 1, 'dt': self.pivotValues[1]-self.pivotValues[0]})
 
   #######
   def __evaluateLocal__(self,featureVals):
@@ -123,8 +128,8 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       returnEvaluation.update({VarID: featureVals[:, VarIndex]})
     Eval_U = np.asarray(Eval_U)
     _,ts_Eval = np.shape(Eval_U) # ts_Eval = 100
-    
-    
+
+
     ### Extract the initial state vector ###
     Eval_X = [[]]
     for VarID in self.stateID:
@@ -154,7 +159,7 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     # add description
     supervisedLearning.writeXMLPreamble(self, writeTo, targets)
     if not self.amITrained:
-      self.raiseAnError(RuntimeError,'ROM is not yet trained!')    
+      self.raiseAnError(RuntimeError,'ROM is not yet trained!')
     description  = ' This XML file contains the main information of the DMDC ROM.'
     description += ' The method is explained in:'
     description += ' Proctor, Joshua L., Steven L. Brunton, and J. Nathan Kutz. '
@@ -289,6 +294,9 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     # if R is singular matrix, raise an error
     if np.linalg.det(R) == 0:
       self.raiseAnError(RuntimeError, "The R matrix is singlular, Please check the singularity of [X1;U]!")
+    print(Vt.shape)
+    print(R.shape)
+    print(Q.T.shape)
     beta = X2.dot(Vt).dot(np.linalg.inv(R)).dot(Q.T)
     self.__Atilde = beta.dot(Ut[0:n, :].T)
     self.__Btilde = beta.dot(Ut[n:, :].T)
