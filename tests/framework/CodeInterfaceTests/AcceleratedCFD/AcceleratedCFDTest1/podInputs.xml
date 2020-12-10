@@ -1,42 +1,44 @@
 <basis>
     <velocityBasisName>basis1</velocityBasisName>
-    <scalarBasisName>basis1</scalarBasisName>
-    <scalarFieldName>s</scalarFieldName>
+    <basisPath>/home/yooj/6.AccelerateCFD/TestCase/bfsCase2.inl/bases</basisPath>
+    <velocityBasisName>basis1</velocityBasisName>
 </basis>
 
 <fullOrderModel>
+    <fomPath>/home/yooj/6.AccelerateCFD/TestCase/bfsCase2.inl/fom</fomPath>
     <librarySolution>
         <name>flow1</name>
-        <fomDirectoryName>pitz</fomDirectoryName>
+        <fomDirectoryName>bfs.full</fomDirectoryName>
     </librarySolution>
 </fullOrderModel>
 
 <rom>
-    <romName>pitz_rom</romName>
-    <romType>scalarTransport</romType>
+    <romName>bfs.rom</romName>
+    <romType>velocity</romType>
 </rom>
 
 <problemSetup>
-    <numVelocityModes>$RAVEN-velMods$</numVelocityModes>
-    <nu>1e-5</nu>
-    <numScalarModes>$RAVEN-scalMods$</numScalarModes>
-    <diff>1e-3</diff>
+    <numVelocityModes>54.0</numVelocityModes>
+    <nu>1e-4</nu>
+    <numScalarModes>89.0</numScalarModes>
 </problemSetup>
 
 <closureModel>
-    <nu_closure>1e-5</nu_closure>
+    <closureType>constant</closureType>
+    <closureNu>0.00076238255262430356</closureNu>
 </closureModel>
 
 <solver>
     <method>rk4</method>
     <tolerance>1e-9</tolerance>
-    <timestep>1e-6</timestep>
+    <timestep>1e-4</timestep>
     <startTime>0.0</startTime>
-    <endTime>0.05</endTime>
+    <endTime>0.51</endTime>
+    
     <!-- only used for backward Euler -->
     <maxInnerIterations>10</maxInnerIterations>
 </solver>
 
 <output>
-    <writeFrequency>10</writeFrequency>
+    <writeFrequency>1</writeFrequency>
 </output>

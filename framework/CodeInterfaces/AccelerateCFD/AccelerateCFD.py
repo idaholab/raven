@@ -20,6 +20,7 @@ comments: Interface for AccelerateCFD
 """
 import os
 import numpy as np
+import glob
 from sklearn import neighbors
 from OpenFoamPP import fieldParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
@@ -92,10 +93,10 @@ class AcceleratedCFD(CodeInterfaceBase):
               operator = np.max
             else:
               operator = np.average
-            v = operator(self.coords[coord][1][0])
+            v = operator(self.coords[coord][1])
           else:
             v = float(self.locations["inputCoords"][i, map[coord]])
-          self.locations["coords"][i, map[coord]] = self.coords[coord][1][0][findNearest(self.coords[coord][1][0],v)]
+          self.locations["coords"][i, map[coord]] = self.coords[coord][1][findNearest(self.coords[coord][1],v)]
       if inputFile.getType().lower() == 'input':
         with open(inputFile.getAbsFile(), "r") as inputObj:
           lines = inputObj.readlines()
@@ -112,11 +113,11 @@ class AcceleratedCFD(CodeInterfaceBase):
       raise IOError('<romName> or <romType> not found in input file!')
     # find nearest
     neigh = neighbors.KNeighborsRegressor(n_neighbors=1)
-    X = np.asarray([self.coords[coord][1][0] for coord in ['x', 'y', 'z']]).T
-    y = np.asarray (range(len(self.coords[coord][1][0])))
+    X = np.asarray([self.coords[coord][1] for coord in ['x', 'y', 'z']]).T
+    y = np.asarray (range(len(self.coords[coord][1])))
     neigh.fit(X, y)
     self.locations["loc"] = neigh.predict(self.locations["coords"])
-    
+
   def generateCommand(self, inputFiles, executable, clargs=None, fargs=None, preExec=None):
     """
       See base class.  Collects all the clargs and the executable to produce the command-line call.
@@ -202,7 +203,7 @@ class AcceleratedCFD(CodeInterfaceBase):
         if len(settings) > 1:
           del lines
           break
-    field = fieldParser.parseFieldAll(filename)
+    field = fieldParser.parseInternalField(filename)
     return settings, field
 
   def checkForOutputFailure(self,output,workingDir):
@@ -215,12 +216,19 @@ class AcceleratedCFD(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ Out, failure, bool, True if the job is failed, False otherwise
     """
-    resultFolder = os.path.join(workingDir,"rom",self.romType +"_"+ self.romName)
+    resultFolder = os.path.join(workingDir,"rom",self.romType +"_"+ self.romName, "processor0")
     resultingDirs = [os.path.join(resultFolder, o) for o in os.listdir(resultFolder)
                         if os.path.isdir(os.path.join(resultFolder,o))]
-  
-    time = resultingDirs[-1].split(os.path.sep)[-1]
-    failure = not (os.path.exists(os.path.join(time, "Urom")) or os.path.join(time, "srom"))
+    guard = None
+    for subDir in resultingDirs:
+      time = subDir.split(os.path.sep)[-1]
+      try:
+        guard = float(time)
+        break
+      except ValueError:
+        pass
+    if guard is not None:
+      failure = not (os.path.exists(os.path.join(subDir, "Urom")) or os.path.join(subDir, "srom"))
     return failure
 
   def finalizeCodeOutput(self, command, output, workingDir):
@@ -234,42 +242,65 @@ class AcceleratedCFD(CodeInterfaceBase):
       @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
     """
     # open output file
-    resultFolder = os.path.join(workingDir,"rom",self.romType +"_"+ self.romName)
+    resultFolders = glob.glob(os.path.join(workingDir,"rom",self.romType +"_"+ self.romName,"processor*"))
+    numberOfProcs = len(resultFolders)
+    resultFolders.sort()
+    resultFolder =  resultFolders[0]
+    results = {}
     resultingDirs = [os.path.join(resultFolder, o) for o in os.listdir(resultFolder)
                         if os.path.isdir(os.path.join(resultFolder,o))]
     resultingDirs.sort()
     timeList = []
-    results = {}
+    tsDirs =  resultingDirs
     for ts in resultingDirs:
-      time = float(ts.split(os.path.sep)[-1])
-      timeList.append(time)
+      try:
+        time = float(ts.split(os.path.sep)[-1])
+        timeList.append(time)
+      except ValueError:
+        tsDirs.pop(tsDirs.index(ts))
+    resultingDirs =  tsDirs
     timeList.sort()
     results["time"] = np.zeros(len(timeList))
     for ts in resultingDirs:
-      settingsVector, fieldVector = self.readFoamFile(os.path.join(ts, "Urom"))
-      settingsScalar, fieldScalar = self.readFoamFile(os.path.join(ts, "srom"))
+      refDict =  ts
+      fieldVector, fieldScalar = None, None
+      for proc in range(numberOfProcs):
+        whereToRead =  refDict.replace("processor0", "processor"+str(proc))
+        if os.path.exists(os.path.join(whereToRead, "Urom")):
+          settingsVector, fieldVect = self.readFoamFile(os.path.join(whereToRead, "Urom"))
+          if fieldVector is None:
+            fieldVector = fieldVect
+          else:
+            fieldVector = np.concatenate((fieldVector, fieldVect), axis=0)
+        if os.path.exists(os.path.join(whereToRead, "srom")):
+          settingsScalar, fieldScal = self.readFoamFile(os.path.join(whereToRead, "srom"))
+          if fieldVector is None:
+            fieldScalar =  fieldScal
+          else:
+            fieldScalar = np.concatenate((fieldScalar, fieldScal), axis=0)
       time =  float(settingsVector['location'])
       indx = findNearest(timeList, time)
       results["time"][indx] = time
-      
-      for i in range(len(self.locations["loc"])):
-        cord = settingsScalar['class'] + "-"
-        cord += str(tuple(self.locations['inputCoords'][i].tolist()))
-        cord = cord.replace(" ", "").replace("'", "").replace("(", "").replace(")", "").replace(",", "_").replace(".","_")
-        vals = fieldVector[0][int(self.locations["loc"][i])]
-        for j, coord in enumerate(['x', 'y', 'z']):
-          variableName = cord + "-" + coord
-          val = vals[j]
+      if fieldVector is not None:
+        for i in range(len(self.locations["loc"])):
+          cord = settingsVector['class'] + "-"
+          cord += str(tuple(self.locations['inputCoords'][i].tolist()))
+          cord = cord.replace(" ", "").replace("'", "").replace("(", "").replace(")", "").replace(",", "_").replace(".","_")
+          vals = fieldVector[int(self.locations["loc"][i])]
+          for j, coord in enumerate(['x', 'y', 'z']):
+            variableName = cord + "-" + coord
+            val = vals[j]
+            if variableName not in results:
+              results[variableName] = np.zeros(len(timeList))
+            results[variableName][indx] = val
+      if fieldScalar is not None:
+        for i in range(len(self.locations["loc"])):
+          cord = settingsScalar['class'] + "-"
+          cord += str(tuple(self.locations['inputCoords'][i].tolist()))
+          cord = cord.replace(" ", "").replace("'", "").replace("(", "").replace(")", "").replace(",", "_").replace(".","_")
+          variableName = cord
+          val = fieldScalar[int(self.locations["loc"][i])]
           if variableName not in results:
-            results[variableName] = np.zeros(len(timeList))          
+            results[variableName] = np.zeros(len(timeList))
           results[variableName][indx] = val
-      for i in range(len(self.locations["loc"])):
-        cord = settingsScalar['class'] + "-"
-        cord += str(tuple(self.locations['inputCoords'][i].tolist()))
-        cord = cord.replace(" ", "").replace("'", "").replace("(", "").replace(")", "").replace(",", "_").replace(".","_")
-        variableName = cord
-        val = fieldScalar[0][int(self.locations["loc"][i])]
-        if variableName not in results:
-          results[variableName] = np.zeros(len(timeList))
-        results[variableName][indx] = val
     return results
