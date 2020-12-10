@@ -587,7 +587,7 @@ class DataSet(DataObject):
             for k, v in rl.items():
               d[k] = {'dims':tuple(dims[k]) ,'data': v}
             rlz[index] =  xr.Dataset.from_dict(d)
-          rlz = xr.concat(rlz)
+          rlz = xr.concat(rlz,dim=self.sampleTag)
         else:
           d = {}
           dims =  self.getDimensions()
