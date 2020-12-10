@@ -11,6 +11,7 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2020-10-31">Added csv xml node in the Code block for showing how to use it.</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
@@ -30,6 +31,9 @@
         <!--  /path/to/relap/executable/relap5.x -->
         <!-- here we should put the executable. Since we want to test the interface only, it is going to be empty -->
       </executable>
+      <!-- The following flag indicates that we will write a CSV with the data (by default we return the data directly to RAVEN) -->
+      <csv>True</csv>
+      <!-- aliases -->
       <alias variable="heat_capacity_155_variable"    type="input">20100155:2</alias>
       <alias variable="heat_capacity_154_variable"    type="input">20100154:2</alias>
       <alias variable="massFlowRateAliasOutput" type="output">mflowj_505000000</alias>

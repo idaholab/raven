@@ -139,12 +139,12 @@ class Relap5(CodeInterfaceBase):
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+      @ Out, response, dict, dictionary containing the data
     """
-    outfile = os.path.join(workingDir,output+'.o')
-    outputobj=relapdata.relapdata(outfile,self.outputDeck)
+    outputobj=relapdata.relapdata(os.path.join(workingDir,output+'.o'),self.outputDeck)
     if outputobj.hasAtLeastMinorData():
-      outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
+      response = outputobj.returnData()
+      return response
     else:
       raise IOError('Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
 

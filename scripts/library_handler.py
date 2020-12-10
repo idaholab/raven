@@ -104,7 +104,7 @@ def checkLibraries(buildReport=False):
     if not found:
       missing.append((lib, needVersion))
       continue
-    if needVersion is not None and not checkSameVersion(foundVersion, needVersion):
+    if needVersion is not None and not checkSameVersion(needVersion, foundVersion):
       notQA.append((lib, needVersion, foundVersion))
     if buildReport:
       messages.append((lib, found, msg, foundVersion))
@@ -131,7 +131,8 @@ def checkSameVersion(expected, received):
   while rcvSplit[-1] == 0:
     rcvSplit.pop()
   exp = '.'.join(str(x) for x in expSplit)
-  rcv = '.'.join(str(x) for x in rcvSplit)
+  #Only check as many digits as given in expSplit
+  rcv = '.'.join(str(x) for x in rcvSplit[:len(expSplit)])
   if exp == rcv:
     return True
   return False

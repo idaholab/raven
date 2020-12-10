@@ -290,11 +290,15 @@ def process_result(index, _input_data, output_data):
     print(output_data.message)
     okaycolor = Colors.fail
   number_done = sum(results.values())
+  if results["fail"] > 0:
+    done = "{0}F{1}".format(number_done,results["fail"])
+  else:
+    done = number_done
   print(' '.join(["({done}/{togo})",
                   "{statcolor}{status:7s}{normcolor}"
                   "({timecolor}{time}{normcolor})"
                   "{namecolor}{test}{normcolor}"])
-        .format(done=number_done,
+        .format(done=done,
                 togo=len(function_list),
                 statcolor=okaycolor,
                 normcolor=Colors.norm,

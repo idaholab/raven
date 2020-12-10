@@ -655,7 +655,7 @@ class DataSet(DataObject):
     if old in self._scaleFactors:
       self._scaleFactors[new] = self._scaleFactors.pop(old)
     if self._data is not None:
-      self._data.rename({old:new},inplace=True)
+      self._data = self._data.rename({old:new})
 
   def reset(self):
     """
@@ -1053,9 +1053,7 @@ class DataSet(DataObject):
       # two methods: all at "once" or "split" into multiple parts.  "once" is faster, but not parallelizable.
       # ONCE #
       #if method == 'once':
-      val = dict((i,data[i]) for i in range(len(data)))
-      val = xr.Dataset(data_vars=val)
-      val = val.to_array(dim=self.sampleTag) # TODO labels preserved?
+      val = xr.concat(data, self.sampleTag)
       val.coords[self.sampleTag] = labels
       # SPLIT # currently unused, but could be for parallel performance
       #elif method == 'split':
@@ -1078,6 +1076,17 @@ class DataSet(DataObject):
       self.raiseAnError(TypeError,'Unrecognized data type for var "{}": "{}"'.format(var,type(data[0])))
     array.rename(var)
     return array
+
+  @staticmethod
+  def _clearDuplicates(toClear):
+    """
+      Clears out duplicate coordinates from a xr.DataArray
+      @ In, toClear, xr.DataArray, data array to remove duplicate coordinates
+      @ Out, toClear, xr.DataArray, new data array with no duplicates
+    """
+    for dim in toClear.coords.dims:
+      toClear = toClear.isel({dim:np.unique(toClear[dim], return_index=True)[1]})
+    return toClear
 
   def _convertArrayListToDataset(self,array,action='return'):
     """
@@ -1269,7 +1278,10 @@ class DataSet(DataObject):
           arrays[var] = self._collapseNDtoDataArray(varData,var,dtype=dtype)
         # END if for variable data type (ndarray, xarray, or scalar)
         # re-index samples
-        arrays[var][self.sampleTag] += firstSample
+        #was arrays[var][self.sampleTag] += firstSample
+        #This line works because arrays[var][self.sampleTag] is [0],
+        # or because firstSample is 0
+        arrays[var] = arrays[var].assign_coords({self.sampleTag:arrays[var][self.sampleTag]+firstSample})
       # collect all data into dataset, and update self._data
       self._convertArrayListToDataset(arrays,action='extend')
       # reset collector
