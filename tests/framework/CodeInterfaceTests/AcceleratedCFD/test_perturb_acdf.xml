@@ -66,58 +66,46 @@
   <DataObjects>
     <PointSet name="AcceleratedCFDPointSet">
       <Input>velMods,scalMods</Input>
-      <Output>time,
-          volScalarField-0_0_0_0_0_0-x,
-          volScalarField-0_0_0_0_0_0-y,
-          volScalarField-0_0_0_0_0_0-z,
-          volScalarField-1_0_1_0_1_0-x,
-          volScalarField-1_0_1_0_1_0-y,
-          volScalarField-1_0_1_0_1_0-z,
-          volScalarField-min_min_min-x,
-          volScalarField-min_min_min-y,
-          volScalarField-min_min_min-z,
-          volScalarField-max_max_max-x,
-          volScalarField-max_max_max-y,
-          volScalarField-max_max_max-z,
-          volScalarField-middle_middle_middle-x,
-          volScalarField-middle_middle_middle-y,
-          volScalarField-middle_middle_middle-z,
-          volScalarField-0_0_0_0_0_0,
-          volScalarField-1_0_1_0_1_0,
-          volScalarField-min_min_min,
-          volScalarField-max_max_max,
-          volScalarField-middle_middle_middle
+      <Output>time,volVectorField-0_0_0_0_0_0-x,
+      volVectorField-0_0_0_0_0_0-y,
+      volVectorField-0_0_0_0_0_0-z,
+      volVectorField-1_0_1_0_1_0-x,
+      volVectorField-1_0_1_0_1_0-y,
+      volVectorField-1_0_1_0_1_0-z,
+      volVectorField-min_min_min-x,
+      volVectorField-min_min_min-y,
+      volVectorField-min_min_min-z,
+      volVectorField-max_max_max-x,
+      volVectorField-max_max_max-y,
+      volVectorField-max_max_max-z,
+      volVectorField-middle_middle_middle-x,
+      volVectorField-middle_middle_middle-y,
+      volVectorField-middle_middle_middle-z
       </Output>
     </PointSet>
     <HistorySet name="AcceleratedCFDHistorySet">
       <Input>velMods,scalMods</Input>
-      <Output>time,
-      volScalarField-0_0_0_0_0_0-x,
-      volScalarField-0_0_0_0_0_0-y,
-      volScalarField-0_0_0_0_0_0-z,
-      volScalarField-1_0_1_0_1_0-x,
-      volScalarField-1_0_1_0_1_0-y,
-      volScalarField-1_0_1_0_1_0-z,
-      volScalarField-min_min_min-x,
-      volScalarField-min_min_min-y,
-      volScalarField-min_min_min-z,
-      volScalarField-max_max_max-x,
-      volScalarField-max_max_max-y,
-      volScalarField-max_max_max-z,
-      volScalarField-middle_middle_middle-x,
-      volScalarField-middle_middle_middle-y,
-      volScalarField-middle_middle_middle-z,
-      volScalarField-0_0_0_0_0_0,
-      volScalarField-1_0_1_0_1_0,
-      volScalarField-min_min_min,
-      volScalarField-max_max_max,
-      volScalarField-middle_middle_middle
+      <Output>time,volVectorField-0_0_0_0_0_0-x,
+      volVectorField-0_0_0_0_0_0-y,
+      volVectorField-0_0_0_0_0_0-z,
+      volVectorField-1_0_1_0_1_0-x,
+      volVectorField-1_0_1_0_1_0-y,
+      volVectorField-1_0_1_0_1_0-z,
+      volVectorField-min_min_min-x,
+      volVectorField-min_min_min-y,
+      volVectorField-min_min_min-z,
+      volVectorField-max_max_max-x,
+      volVectorField-max_max_max-y,
+      volVectorField-max_max_max-z,
+      volVectorField-middle_middle_middle-x,
+      volVectorField-middle_middle_middle-y,
+      volVectorField-middle_middle_middle-z
       </Output>
     </HistorySet>
   </DataObjects>
 
   
-  
+
   
   <OutStreams>
     <Print name="dumpAcceleratedCFDHistorySet">

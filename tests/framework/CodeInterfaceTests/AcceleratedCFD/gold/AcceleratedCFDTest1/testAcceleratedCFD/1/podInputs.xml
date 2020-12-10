@@ -1,0 +1,44 @@
+<basis>
+    <velocityBasisName>basis1</velocityBasisName>
+    <basisPath>/home/yooj/6.AccelerateCFD/TestCase/bfsCase2.inl/bases</basisPath>
+    <velocityBasisName>basis1</velocityBasisName>
+</basis>
+
+<fullOrderModel>
+    <fomPath>/home/yooj/6.AccelerateCFD/TestCase/bfsCase2.inl/fom</fomPath>
+    <librarySolution>
+        <name>flow1</name>
+        <fomDirectoryName>bfs.full</fomDirectoryName>
+    </librarySolution>
+</fullOrderModel>
+
+<rom>
+    <romName>bfs.rom</romName>
+    <romType>velocity</romType>
+</rom>
+
+<problemSetup>
+    <numVelocityModes>54.0</numVelocityModes>
+    <nu>1e-4</nu>
+    <numScalarModes>89.0</numScalarModes>
+</problemSetup>
+
+<closureModel>
+    <closureType>constant</closureType>
+    <closureNu>0.00076238255262430356</closureNu>
+</closureModel>
+
+<solver>
+    <method>rk4</method>
+    <tolerance>1e-9</tolerance>
+    <timestep>1e-4</timestep>
+    <startTime>0.0</startTime>
+    <endTime>0.51</endTime>
+    
+    <!-- only used for backward Euler -->
+    <maxInnerIterations>10</maxInnerIterations>
+</solver>
+
+<output>
+    <writeFrequency>1</writeFrequency>
+</output>
