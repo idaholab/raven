@@ -85,8 +85,8 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on input database stored in featureVals.
-      @ In, featureVals, numpy.ndarray, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
-      @ In, targetVals, numpy.ndarray, shape = [n_parameters,n_timeStep, n_dimensions], an array of time series data
+      @ In, featureVals, numpy.ndarray, shape=[n_samples,n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
+      @ In, targetVals, numpy.ndarray, shape = [n_samples,n_timeStep, n_dimensions], an array of time series data
     """
     ### Extract the Pivot Values (Actuator, U) ###
     # self.ActuatorVals is Num_Entries*2 array, the snapshots of [u1, u2]
