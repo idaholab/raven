@@ -94,18 +94,6 @@
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
 
-      <!-- <variable name="x4">
-        <distribution>uniform_dist_Repl_1</distribution>
-      </variable>
-
-      <variable name="x5">
-        <distribution>uniform_dist_Repl_1</distribution>
-      </variable>
-
-      <variable name="x6">
-        <distribution>uniform_dist_Repl_1</distribution>
-      </variable> -->
-
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>

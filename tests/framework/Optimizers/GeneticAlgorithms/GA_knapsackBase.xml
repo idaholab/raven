@@ -12,7 +12,6 @@
 
   <RunInfo>
     <WorkingDir>simpleKnapsack</WorkingDir>
-    <!--Sequence>sample, MCprint</Sequence-->
     <Sequence>opt, print, printExport</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
@@ -81,7 +80,6 @@
       </GAparams>
 
       <convergence>
-        <!--AHDp>1</AHDp-->
         <objective>-1</objective>
       </convergence>
 
