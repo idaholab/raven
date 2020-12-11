@@ -84,6 +84,7 @@
         <xsd:element name="persistence"        type="xsd:integer" minOccurs="0"/>
         <xsd:element name="objective"          type="xsd:float" minOccurs="0"/>
         <xsd:element name="temperature"        type="xsd:float" minOccurs="0"/>
+        <xsd:element name="AHDp"               type="xsd:float" minOccurs="0"/>
       </xsd:all>
     </xsd:complexType>
 
@@ -188,12 +189,14 @@
       <xsd:all>
         <xsd:element name="crossoverProb"   type="xsd:float" />
       </xsd:all>
+      <xsd:attribute name="type" type="xsd:string" />
     </xsd:complexType>
 
      <xsd:complexType name="mutationType">
       <xsd:all>
         <xsd:element name="mutationProb"   type="xsd:float" />
       </xsd:all>
+      <xsd:attribute name="type" type="xsd:string" />
     </xsd:complexType>
 
     <xsd:complexType name="reproductionType">
@@ -201,6 +204,7 @@
         <xsd:element name="crossover"   type="crossoverType" />
         <xsd:element name="mutation"    type="mutationType"  />
       </xsd:all>
+      <xsd:attribute name="nParents" type="xsd:integer" />
     </xsd:complexType>
 
     <xsd:complexType name="fitnessType">
@@ -208,7 +212,6 @@
         <xsd:element name="a"     type="xsd:float" />
         <xsd:element name="b"     type="xsd:float"/>
       </xsd:all>
-      <xsd:attribute name="class" type="xsd:string" use="required"/>
       <xsd:attribute name="type" type="xsd:string" />
     </xsd:complexType>
 

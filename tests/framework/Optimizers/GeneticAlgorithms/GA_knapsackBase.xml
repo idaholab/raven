@@ -3,7 +3,7 @@
   <TestInfo>
     <name>framework/Optimizers/GeneticAlgorithms/GA_knapsackBase</name>
     <author>mandd</author>
-    <created>2020-12-2</created>
+    <created>2020-12-02</created>
     <classesTested>GeneticAlgorithm</classesTested>
     <description>
       This test is designed to find the optimal solution of a basic knapsack problem

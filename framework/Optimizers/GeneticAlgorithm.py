@@ -381,11 +381,11 @@ class GeneticAlgorithm(RavenSampled):
   # abstract methods:
   def _useRealization(self, info, rlz):
     """
-    Used to feedback the collected runs into actionable items within the sampler.
-    This is called by localFinalizeActualSampling, and hence should contain the main skeleton.
-    @ In, info, dict, identifying information about the realization
-    @ In, rlz, xr.Dataset, new batched realizations
-    @ Out, None
+      Used to feedback the collected runs into actionable items within the sampler.
+      This is called by localFinalizeActualSampling, and hence should contain the main skeleton.
+      @ In, info, dict, identifying information about the realization
+      @ In, rlz, xr.Dataset, new batched realizations
+      @ Out, None
     """
     # The whole skeleton should be here, this should be calling all classes
     # and _private methods.
@@ -463,11 +463,11 @@ class GeneticAlgorithm(RavenSampled):
   def _datasetToDataarray(self,rlzDataset):
     """
       Converts the realization DataSet to a DataArray
-    @ In, rlzDataset, xr.dataset, the data set containing the batched realizations
-    @ Out, dataSet, xr.dataarray, a dataarray containing the realization with
-           dims = ['chromosome','Gene']
-           chromosomes are named 0,1,2...
-           Genes are named after variables to be sampled
+      @ In, rlzDataset, xr.dataset, the data set containing the batched realizations
+      @ Out, dataSet, xr.dataarray, a dataarray containing the realization with
+                     dims = ['chromosome','Gene']
+                     chromosomes are named 0,1,2...
+                     Genes are named after variables to be sampled
     """
     dataSet = xr.DataArray(np.atleast_2d(rlzDataset[list(self.toBeSampled)].to_array().transpose()),
                               dims=['chromosome','Gene'],
@@ -494,8 +494,10 @@ class GeneticAlgorithm(RavenSampled):
     #
     self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
     self._submissionQueue.append((point, info))
+  
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
+  
   def _resolveNewGeneration(self, traj, rlz, objectiveVal, fitness, info):
     """
       Store a new Generation after checking convergence
@@ -539,7 +541,7 @@ class GeneticAlgorithm(RavenSampled):
 
   def _collectOptPoint(self, population, fitness,objectiveVal):
     """
-      collects the point (dict) from a realization
+      Collects the point (dict) from a realization
       @ In, none
       @ Out, point, dict, point used in this realization
     """
@@ -572,6 +574,7 @@ class GeneticAlgorithm(RavenSampled):
     self._acceptHistory[traj].append(acceptable)
     self.raiseADebug(' ... {a}!'.format(a=acceptable))
     rejectionReason = None
+    
     return acceptable, old, rejectionReason
 
   def checkConvergence(self, traj, new, old):
@@ -593,6 +596,7 @@ class GeneticAlgorithm(RavenSampled):
       okay = f(traj,new=new,old=old)
       # store and update
       convs[conv] = okay
+    
     return any(convs.values()), convs
 
   def _checkConvObjective(self, traj,**kwargs):
@@ -742,7 +746,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, optVal, float, new optimal value
       @ Out, None
     """
-    # This is not required for simulated annealing as it's handled in the probabilistic acceptance criteria
+    # This is not required for the genetic algorithms as it's handled in the probabilistic acceptance criteria
     # But since it is an abstract method it has to exist
     pass
 
@@ -753,7 +757,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, old, float, previous optimization value
       @ Out, improved, bool, True if "sufficiently" improved or False if not.
     """
-    # This is not required for simulated annealing as it's handled in the probabilistic acceptance criteria
+    # This is not required for the genetic algorithms as it's handled in the probabilistic acceptance criteria
     # But since it is an abstract method it has to exist
     return True
 
@@ -765,6 +769,7 @@ class GeneticAlgorithm(RavenSampled):
       @ In, old, dict, previous optimal point (to resubmit)
     """
   pass
+
   def _applyFunctionalConstraints(self, suggested, previous):
     """
       applies functional constraints of variables in "suggested" -> DENORMED point expected!
@@ -774,6 +779,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, modded, bool, whether point was modified or not
     """
     self.raiseAnError(NotImplementedError, 'Constraint Handling is not implemented yet!')
+  
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
       Contributes additional entries to the solution export.
