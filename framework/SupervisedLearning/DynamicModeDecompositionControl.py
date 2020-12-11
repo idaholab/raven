@@ -27,6 +27,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import sys
 import numpy as np
 import scipy
+from sklearn import neighbors
 from scipy import spatial
 import matplotlib.pyplot as plt
 #External Modules End--------------------------------------------------------------------------------
@@ -90,8 +91,12 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       @ In, targetVals, numpy.ndarray, shape = [n_samples,n_timeStep, n_dimensions], an array of time series data
     """
     ### Extract the Pivot Values (Actuator, U) ###
+    self.neigh = None
     if len(self.parametersIDs):
       self.parameterValues =  np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
+      self.neigh = neighbors.KNeighborsRegressor(n_neighbors=1)
+      y = np.asarray (range(featureVals.shape[0]))
+      self.neigh.fit(self.parameterValues, y)   
     # self.ActuatorVals is Num_Entries*2 array, the snapshots of [u1, u2]. Shape is [n_samples, n_timesteps, n_actuators]
     self.actuatorVals = np.asarray([featureVals[:, :, self.features.index(act)] for act in self.actuatorsID]).T
     ### Extract the time marks "self.pivotValues" (discrete, in time step marks) ###
