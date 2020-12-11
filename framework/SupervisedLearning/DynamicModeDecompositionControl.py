@@ -69,11 +69,12 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     cUXY =  kwargs.get('SubtractNormUXY',False)
     self.dmdParams['centerUXY'] = cUXY # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
     # variables filled up in the training stages
-    self.__Btilde               = {} # B matrix
-    self.__Ctilde               = {} # C matrix
-    self.actuatorVals           = [] # Actuator values (e.g. U), the variable names are in self.ActuatorID
-    self.stateVals              = [] # state values (e.g. X)
-    self.outputVals             = [] # output values (e.g. Y)
+    self.__Btilde = {} # B matrix
+    self.__Ctilde = {} # C matrix
+    self.actuatorVals = None # Actuator values (e.g. U), the variable names are in self.ActuatorID
+    self.stateVals = None # state values (e.g. X)
+    self.outputVals = None # output values (e.g. Y)
+    self.parameterValues = None #  parameter values
     # some checks
     if not self.actuatorsID:
       self.raiseAnError(IOError,'Actuators XML node must be present for constructing DMDc !')
@@ -89,25 +90,30 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       @ In, targetVals, numpy.ndarray, shape = [n_samples,n_timeStep, n_dimensions], an array of time series data
     """
     ### Extract the Pivot Values (Actuator, U) ###
-    # self.ActuatorVals is Num_Entries*2 array, the snapshots of [u1, u2]
+    if len(self.parametersIDs):
+      self.parameterValues =  np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
+    # self.ActuatorVals is Num_Entries*2 array, the snapshots of [u1, u2]. Shape is [n_samples, n_timesteps, n_actuators]
     self.actuatorVals = np.asarray([featureVals[:, :, self.features.index(act)] for act in self.actuatorsID]).T
     ### Extract the time marks "self.pivotValues" (discrete, in time step marks) ###
-    self.pivotValues = targetVals[:, self.target.index(self.pivotParameterID)]
-    # self.outputVals is Num_Entries*2 array, the snapshots of [y1, y2]
-    self.outputVals =  np.asarray([targetVals[:,self.target.index(out)] for out in self.outputID]).T
+    self.pivotValues = targetVals[:, :, self.target.index(self.pivotParameterID)]
+    # self.outputVals is Num_Entries*2 array, the snapshots of [y1, y2]. Shape is [n_samples, n_timesteps, n_targets]
+    self.outputVals =  np.asarray([targetVals[:, :,self.target.index(out)] for out in self.outputID]).T
     ### Extract the State Values (State, X) ###
-
-    # self.outputVals is Num_Entries*2 array, the snapshots of [y1, y2]
+    # self.outputVals is Num_Entries*2 array, the snapshots of [y1, y2]. Shape is [n_samples, n_timesteps, n_state_variables]
     self.stateVals =  np.asarray([featureVals[:, :, self.features.index(st)] for st in self.stateID]).T
     # create matrices
-    X1 = (self.stateVals[:-1, :] - self.stateVals[0,:]).T if self.dmdParams['centerUXY'] else self.stateVals[:-1, :].T
-    X2 = (self.stateVals[1:, :] - self.stateVals[0,:]).T  if self.dmdParams['centerUXY'] else self.stateVals[1:, :].T
-    U =  (self.actuatorVals[:-1, :] - self.actuatorVals[0, :]).T  if self.dmdParams['centerUXY'] else self.actuatorVals[:-1, :].T
-    Y1 = (self.outputVals[:-1, :] - self.outputVals[0, :]).T if self.dmdParams['centerUXY'] else self.outputVals[:-1, :].T
-    # compute A,B,C matrices
-    self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
+    self.__Atilde = np.zeros((featureVals.shape[0], len(self.stateID), len(self.stateID)))
+    self.__Btilde = np.zeros((featureVals.shape[0], len(self.stateID), len(self.actuatorsID)))
+    self.__Ctilde = np.zeros((featureVals.shape[0], len(self.outputID), len(self.stateID)))
+    for smp in range(featureVals.shape[0]):
+      X1 = (self.stateVals[:-1,smp, :] - self.stateVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.stateVals[:-1,smp, :].T
+      X2 = (self.stateVals[1:,smp, :] - self.stateVals[0,smp,:]).T  if self.dmdParams['centerUXY'] else self.stateVals[1:,smp, :].T
+      U =  (self.actuatorVals[:-1,smp, :] - self.actuatorVals[0,smp, :]).T  if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp, :].T
+      Y1 = (self.outputVals[:-1,smp, :] - self.outputVals[0, smp, :]).T if self.dmdParams['centerUXY'] else self.outputVals[:-1,smp, :].T
+      # compute A,B,C matrices
+      self.__Atilde[smp, :, :] , self.__Btilde[smp, :, :], self.__Ctilde[smp, :, :] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
-    self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0], 'intervals': len(self.pivotValues) - 1, 'dt': self.pivotValues[1]-self.pivotValues[0]})
+    self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0, 0], 'intervals': len(self.pivotValues[0, : ]) - 1, 'dt': self.pivotValues[0, 1]-self.pivotValues[0, 0]})
 
   #######
   def __evaluateLocal__(self,featureVals):
@@ -212,67 +218,58 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       writeTo.addScalar(target, "acturators", ' '.join(self.actuatorsID))
     if "acturatorsCount" in what:
       writeTo.addScalar(target, "acturatorsCount", len(self.actuatorsID))
-    if "UNorm" in what and self.dmdParams['centerUXY']:
-      writeTo.addScalar(target, "UNorm", "; ".join('%.16e' % self.actuatorVals[0, :][col] for col in range(len(self.actuatorVals[0, :]))))
     if "states" in what:
       writeTo.addScalar(target, "states", ' '.join(self.stateID))
     if "statesCount" in what:
       writeTo.addScalar(target, "statesCount", len(self.stateID))
-    if "XNorm" in what and self.dmdParams['centerUXY']:
-      writeTo.addScalar(target, "XNorm", "; ".join('%.16e' % self.stateVals[0,:][col] for col in range(len(self.stateVals[0,:]))))
-
-    if "XLast" in what:
-      writeTo.addScalar(target, "XLast", "; ".join('%.16e' % self.stateVals[-1,:][col] for col in range(np.size(self.stateVals, axis=1))))
     if "outputs" in what:
       writeTo.addScalar(target, "outputs", ' '.join(self.outputID))
     if "outputsCount" in what:
       writeTo.addScalar(target, "outputsCount", len(self.outputID))
-    if "YNorm" in what and self.dmdParams['centerUXY']:
-      writeTo.addScalar(target, "YNorm", "; ".join('%.16e' % self.outputVals[0, :][col] for col in range(len(self.outputVals[0, :]))))
-
     if "dmdTimeScale" in what:
       writeTo.addScalar(target,"dmdTimeScale",' '.join(['%.3d' % elm for elm in self._getTimeScale()]))
 
-    if "Atilde" in what:
-      # write the real part of Atilde
-      AtildeReal = "; ".join(
-        " ".join('%.16e' % self.__Atilde[row,col].real for col in range(len(self.__Atilde[0])))
-        for row in range(len(self.__Atilde)))
-      writeTo.addScalar("Atilde","real",AtildeReal,root=targNode)
-      # write the imaginary part of Atilde
-      AtildeImage = "; ".join(
-        " ".join('%.16e' % self.__Atilde[row,col].imag for col in range(len(self.__Atilde[0])))
-        for row in range(len(self.__Atilde)))
-      writeTo.addScalar("Atilde","imaginary",AtildeImage,root=targNode)
-      writeTo.addScalar("Atilde","matrixShape",",".join(str(x) for x in np.shape(self.__Atilde)),root=targNode)
-      writeTo.addScalar("Atilde","formatNote","Matrix rows are separated by semicolon ';'",root=targNode)
-    if "Btilde" in what:
-      # write the real part of Btilde
-      BtildeReal = "; ".join(
-        " ".join('%.16e' % self.__Btilde[row,col].real for col in range(len(self.__Btilde[0])))
-        for row in range(len(self.__Btilde)))
-      writeTo.addScalar("Btilde","real",BtildeReal,root=targNode)
-      # write the imaginary part of Btilde
-      BtildeImage = "; ".join(
-        " ".join('%.16e' % self.__Btilde[row,col].imag for col in range(len(self.__Btilde[0])))
-        for row in range(len(self.__Btilde)))
-      writeTo.addScalar("Btilde","imaginary",BtildeImage,root=targNode)
-      writeTo.addScalar("Btilde","matrixShape",",".join(str(x) for x in np.shape(self.__Btilde)),root=targNode)
-      writeTo.addScalar("Btilde","formatNote","Matrix rows are separated by semicolon ';'",root=targNode)
+    for smp in range(self.stateVals.shape[1]):
+      attributeDict = {}
+      if len(self.parametersIDs):
+        attributeDict = {self.parametersIDs[index]:'%.6e' % self.parameterValues[smp,index] for index in range(len(self.parametersIDs))}
+      attributeDict["sample"] = str(smp)
 
-    if "Ctilde" in what and len(self.outputID) > 0:
-      # write the real part of Ctilde
-      CtildeReal = "; ".join(
-        " ".join('%.16e' % self.__Ctilde[row,col].real for col in range(len(self.__Ctilde[0])))
-        for row in range(len(self.__Ctilde)))
-      writeTo.addScalar("Ctilde","real",CtildeReal,root=targNode)
-      # write the imaginary part of Btilde
-      CtildeImage = "; ".join(
-        " ".join('%.16e' % self.__Ctilde[row,col].imag for col in range(len(self.__Ctilde[0])))
-        for row in range(len(self.__Ctilde)))
-      writeTo.addScalar("Ctilde","imaginary",CtildeImage,root=targNode)
-      writeTo.addScalar("Ctilde","matrixShape",",".join(str(x) for x in np.shape(self.__Ctilde)),root=targNode)
-      writeTo.addScalar("Ctilde","formatNote","Matrix rows are separated by semicolon ';'",root=targNode)
+      if "UNorm" in what and self.dmdParams['centerUXY']:
+        valCont = " ".join(['%.8e' % elm for elm in self.actuatorVals[:, smp, :].T.flatten().tolist()])
+        writeTo.addVector("UNorm","realization",valCont, root=targNode, attrs=attributeDict)
+
+      if "XNorm" in what and self.dmdParams['centerUXY']:
+        valCont = " ".join(['%.8e' % elm for elm in self.stateVals[:, smp, :].T.flatten().tolist()])
+        writeTo.addVector("XNorm","realization",valCont, root=targNode, attrs=attributeDict)
+        # writeTo.addScalar(target, "XNorm",  valCont)
+
+      if "XLast" in what:
+        valCont = " ".join(['%.8e' % elm for elm in self.stateVals[-1, smp, :].T.flatten().tolist()])
+        writeTo.addVector("XLast","realization",valCont, root=targNode, attrs=attributeDict)
+        # writeTo.addScalar(target, "XLast", valCont)
+
+      if "YNorm" in what and self.dmdParams['centerUXY']:
+        valCont = " ".join(['%.8e' % elm for elm in self.outputVals[:, smp, :].T.flatten().tolist()])
+        writeTo.addVector("YNorm","realization",valCont, root=targNode, attrs=attributeDict)
+        # writeTo.addScalar(target, "YNorm", valCont)
+
+      if "Atilde" in what:
+        valDict = {'real': " ".join(['%.8e' % elm for elm in self.__Atilde[smp, :, :].T.real.flatten().tolist()]),
+                   'imaginary':" ".join(['%.8e' % elm for elm in self.__Atilde[smp, :, :].T.imag.flatten().tolist()]),
+                   "matrixShape":",".join(str(x) for x in np.shape(self.__Atilde[smp, :, :]))}
+        writeTo.addVector("Atilde","realization",valDict, root=targNode, attrs=attributeDict)
+
+        valDict = {'real': " ".join(['%.8e' % elm for elm in self.__Btilde[smp, :, :].T.real.flatten().tolist()]),
+                   'imaginary':" ".join(['%.8e' % elm for elm in self.__Btilde[smp, :, :].T.imag.flatten().tolist()]),
+                   "matrixShape":",".join(str(x) for x in np.shape(self.__Btilde[smp, :, :]))}
+        writeTo.addVector("Btilde","realization",valDict, root=targNode, attrs=attributeDict)
+
+      if "Ctilde" in what and len(self.outputID) > 0:
+        valDict = {'real': " ".join(['%.8e' % elm for elm in self.__Ctilde[smp, :, :].T.real.flatten().tolist()]),
+                   'imaginary':" ".join(['%.8e' % elm for elm in self.__Ctilde[smp, :, :].T.imag.flatten().tolist()]),
+                   "matrixShape":",".join(str(x) for x in np.shape(self.__Ctilde[smp, :, :]))}
+        writeTo.addVector("Ctilde","realization",valDict, root=targNode, attrs=attributeDict)
 
   def _evaluateMatrices(self, X1, X2, U, Y1, rankSVD):
     """
@@ -282,7 +279,9 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       @ In, U, np.ndarray, m-dimension control vector by L (m*L)
       @ In, Y1, np.ndarray, m-dimension output vector by L (y*L)
       @ In, rankSVD, int, rank of the SVD
-      @ Out, None
+      @ Out, A, np.ndarray, the A matrix
+      @ Out, B, np.ndarray, the B matrix
+      @ Out, C, np.ndarray, the C matrix
     """
     n = len(X2)
     # Omega Matrix, stack X1 and U
@@ -294,12 +293,11 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     # if R is singular matrix, raise an error
     if np.linalg.det(R) == 0:
       self.raiseAnError(RuntimeError, "The R matrix is singlular, Please check the singularity of [X1;U]!")
-    print(Vt.shape)
-    print(R.shape)
-    print(Q.T.shape)
     beta = X2.dot(Vt).dot(np.linalg.inv(R)).dot(Q.T)
-    self.__Atilde = beta.dot(Ut[0:n, :].T)
-    self.__Btilde = beta.dot(Ut[n:, :].T)
-    self.__Ctilde = Y1.dot(scipy.linalg.pinv2(X1))
+    A = beta.dot(Ut[0:n, :].T)
+    B = beta.dot(Ut[n:, :].T)
+    C = Y1.dot(scipy.linalg.pinv2(X1))
+
+    return A, B, C
 
 
