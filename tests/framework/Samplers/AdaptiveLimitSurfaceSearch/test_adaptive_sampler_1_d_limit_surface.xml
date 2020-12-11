@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="silent">
   <!-- TestInfo -->
   <TestInfo>
     <name>framework/Samplers/AdaptiveLimitSurfaceSearch.limit_surface_1_dimensional</name>
@@ -9,7 +9,7 @@
     <description>
         This  test is aimed to test the capability of RAVEN to employ a goal oriented sampling. It tests the
         LimitSurfaceSearch algorithm using an external model as ``system code''.
-        In addition it ensures that a 1Dimensional Limit surface can be generated (1 uncertanty).
+        In addition it ensures that a 1Dimensional Limit surface can be generated (1 uncertainty).
     </description>
     <revisions>
       <revision author="alfoa" date="2018-11-29">New test for addressing issue #864</revision>
@@ -30,12 +30,13 @@
       <Model class="Models" type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
-      <Output class="DataObjects" type="PointSet">sampledPoints</Output>
-      <Output class="OutStreams" type="Print">sampledPointsDump</Output>
+      <Output class="DataObjects" type="PointSet">sampledPoints</Output>     
     </MultiRun>
     <IOStep name="adaptdump" pauseAtEnd="true">
+      <Input class="DataObjects" type="PointSet">sampledPoints</Input>
       <Input class="DataObjects" type="PointSet">limitSurface</Input>
       <Output class="OutStreams" type="Print">limitSurfaceDump</Output>
+      <Output class="OutStreams" type="Print">sampledPointsDump</Output>
     </IOStep>
   </Steps>
 
