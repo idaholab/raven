@@ -157,7 +157,7 @@
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="SimulatedAnnealingOptimizer">
         <xsd:sequence>
             <xsd:element name="samplerInit"      type="optInitType"            minOccurs="0"/>
@@ -183,37 +183,35 @@
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
     </xsd:complexType>
-        
+
     <xsd:complexType name="crossoverType">
       <xsd:all>
         <xsd:element name="crossoverProb"   type="xsd:float" />
       </xsd:all>
     </xsd:complexType>
-    
+
      <xsd:complexType name="mutationType">
       <xsd:all>
         <xsd:element name="mutationProb"   type="xsd:float" />
       </xsd:all>
     </xsd:complexType>
-    
+
     <xsd:complexType name="reproductionType">
       <xsd:all>
         <xsd:element name="crossover"   type="crossoverType" />
         <xsd:element name="mutation"    type="mutationType"  />
       </xsd:all>
     </xsd:complexType>
-    
+
     <xsd:complexType name="fitnessType">
-      <xsd:complexType mixed="true">
-        <xsd:attribute name="class" type="xsd:string" use="required"/>
-        <xsd:attribute name="type" type="xsd:string" />
-      </xsd:complexType>
       <xsd:all>
         <xsd:element name="a"     type="xsd:float" />
         <xsd:element name="b"     type="xsd:float"/>
       </xsd:all>
+      <xsd:attribute name="class" type="xsd:string" use="required"/>
+      <xsd:attribute name="type" type="xsd:string" />
     </xsd:complexType>
-    
+
     <xsd:complexType name="GAoptInitType">
       <xsd:all>
         <xsd:element name="populationSize"     type="xsd:integer"          />
@@ -223,7 +221,7 @@
         <xsd:element name="survivorSelection"  type="xsd:string"           />
       </xsd:all>
     </xsd:complexType>
-    
+
     <xsd:complexType name="GeneticAlgorithmOptimizer">
         <xsd:sequence>
             <xsd:element name="samplerInit"      type="optInitType"            minOccurs="0"/>
