@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation>
+<Simulation verbosity="silent">
   <!-- TestInfo -->
   <TestInfo>
     <name>framework/Samplers/AdaptiveLimitSurfaceSearch.adaptive_sampler_no_crossing</name>
