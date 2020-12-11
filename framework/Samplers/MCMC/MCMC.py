@@ -130,6 +130,7 @@ class MCMC(AdaptiveSampler):
       @ Out, None
     """
     AdaptiveSampler.__init__(self)
+    self.onlySampleAfterCollecting = True
     self._initialValues = {} # dict stores the user provided initial values, i.e. {var: val}
     self._updateValues = {} # dict stores input variables values for the current MCMC iteration, i.e. {var:val}
     self._proposal = {} # dict stores the proposal distributions for input variables, i.e. {var:dist}
