@@ -679,7 +679,7 @@ class SimulatedAnnealing(RavenSampled):
       delta = (-amp/2.)+ amp * r
     elif self._coolingMethod == 'boltzmann':
       amp = min(np.sqrt(self.T), 1/3.0/alpha)
-      delta =  randomUtils.randomNormal(dim=D, size=1)*alpha*amp
+      delta =  randomUtils.randomNormal(size=D)*alpha*amp
     elif self._coolingMethod == 'veryfast':
       amp = randomUtils.random(dim=D, samples=1)
       delta = np.sign(amp-0.5)*self.T*((1+1.0/self.T)**abs(2*amp-1)-1.0)
