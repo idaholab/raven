@@ -494,10 +494,10 @@ class GeneticAlgorithm(RavenSampled):
     #
     self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
     self._submissionQueue.append((point, info))
-  
+
   # END queuing Runs
   # * * * * * * * * * * * * * * * *
-  
+
   def _resolveNewGeneration(self, traj, rlz, objectiveVal, fitness, info):
     """
       Store a new Generation after checking convergence
@@ -574,7 +574,7 @@ class GeneticAlgorithm(RavenSampled):
     self._acceptHistory[traj].append(acceptable)
     self.raiseADebug(' ... {a}!'.format(a=acceptable))
     rejectionReason = None
-    
+
     return acceptable, old, rejectionReason
 
   def checkConvergence(self, traj, new, old):
@@ -596,7 +596,7 @@ class GeneticAlgorithm(RavenSampled):
       okay = f(traj,new=new,old=old)
       # store and update
       convs[conv] = okay
-    
+
     return any(convs.values()), convs
 
   def _checkConvObjective(self, traj,**kwargs):
@@ -779,7 +779,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, modded, bool, whether point was modified or not
     """
     self.raiseAnError(NotImplementedError, 'Constraint Handling is not implemented yet!')
-  
+
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
       Contributes additional entries to the solution export.
