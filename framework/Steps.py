@@ -717,7 +717,7 @@ class MultiRun(SingleRun):
               else:
                 # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
                 if not sampler.ableToHandelFailedRuns:
-                  self.failedRuns.append(copy.copy(finishedJob))
+                  self.failedRuns.append(copy.deepcopy(finishedJob))
                 self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
             if sampler.ableToHandelFailedRuns:
               self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
