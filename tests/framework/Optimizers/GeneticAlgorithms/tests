@@ -106,4 +106,15 @@
      rel_err = 0.001
     [../]
   [../]
+    
+  [./GA_knapsackBaseUnifXover]
+    type = 'RavenFramework'
+    input = 'GA_knapsackBaseUnifXover.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'simpleKnapsackUnifXover/PrintOptOut_export.csv  simpleKnapsackUnifXover/PrintOptOut.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+  
 []

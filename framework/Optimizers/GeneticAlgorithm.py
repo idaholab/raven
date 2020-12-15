@@ -46,7 +46,8 @@ class GeneticAlgorithm(RavenSampled):
     This class performs Genetic Algorithm optimization ...
   """
   convergenceOptions = {'objective': r""" provides the desired value for the convergence criterion of the objective function
-                        ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design variable at a given objective value, i.e., convergence is reached when: $$ Objevtive = \epsilon^{obj}$$.
+                        ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design variable 
+                         at a given objective value, i.e., convergence is reached when: $$ Objective = \epsilon^{obj}$$.
                         \default{1e-6}, if no criteria specified""",
                         'AHDp': r""" provides the desired value for the Average Hausdorff Distance between populations""",
                         'AHD': r""" provides the desired value for the Hausdorff Distance between populations"""}
@@ -88,8 +89,11 @@ class GeneticAlgorithm(RavenSampled):
     specs = super(GeneticAlgorithm, cls).getInputSpecification()
     specs.description = r"""The \xmlNode{GeneticAlgorithm} optimizer is a metaheuristic approach
                             to perform a global search in large design spaces. The methodology rose
-                            from the process of natural selection, and like others in the large class of the evolutionary algorithms, it utilizes genetic operations such as selection, crossover, and mutations to avoid being stuck in local minima and hence facilitates
-                            finding the global minima. More information can be found in:
+                            from the process of natural selection, and like others in the large class 
+                            of the evolutionary algorithms, it utilizes genetic operations such as 
+                            selection, crossover, and mutations to avoid being stuck in local minima 
+                            and hence facilitates finding the global minima. More information can 
+                            be found in:
                             Holland, John H. "Genetic algorithms." Scientific american 267.1 (1992): 66-73."""
 
     # GA Params
@@ -289,19 +293,19 @@ class GeneticAlgorithm(RavenSampled):
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
-    try:
-      self._crossoverPoints = crossoverNode.findFirst('points').value
-    except:
+    if crossoverNode.findFirst('points') is None:
       self._crossoverPoints = None
+    else:
+      self._crossoverPoints = crossoverNode.findFirst('points').value 
     self._crossoverProb = crossoverNode.findFirst('crossoverProb').value
     self._crossoverInstance = crossoversReturnInstance(self,name = self._crossoverType)
     # mutation node
     mutationNode = reproductionNode.findFirst('mutation')
     self._mutationType = mutationNode.parameterValues['type']
-    try:
+    if mutationNode.findFirst('locs') is None:
+      self._mutationLocs = None 
+    else:
       self._mutationLocs = mutationNode.findFirst('locs').value
-    except:
-      self._mutationLocs = None
     self._mutationProb = mutationNode.findFirst('mutationProb').value
     self._mutationInstance = mutatorsReturnInstance(self,name = self._mutationType)
     # Survivor selection
@@ -332,7 +336,6 @@ class GeneticAlgorithm(RavenSampled):
       self.raiseADebug('No persistence given; setting to 1.')
       self._requiredPersistence = 1
 
-    #defaults
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -434,24 +437,26 @@ class GeneticAlgorithm(RavenSampled):
       children = self._mutationInstance(offSprings=children,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
 
       # 4 @ n: repair/replacement
-      # repair should only happen if multiple genes in a single chromosome have the same values (), and at the same time the sampling of these genes should be with Out replacement.
+      # repair should only happen if multiple genes in a single chromosome have the same values (), 
+      # and at the same time the sampling of these genes should be with Out replacement.
       needsRepair = False
       for chrom in range(self._nChildren):
         unique = set(children.data[chrom,:])
         if len(children.data[chrom,:]) != len(unique):
-          for var in self.toBeSampled.keys(): ## TODO: there must be a smarter way to da id any variables strategy is without replacement
+          for var in self.toBeSampled.keys(): ## TODO: there must be a smarter way to check if a variables strategy is without replacement
             if (hasattr(self.distDict[var],'strategy') and self.distDict[var].strategy == 'withOutReplacement'):
               needsRepair = True
               break
       if needsRepair:
         children = self._repairInstance(children,variables=list(self.toBeSampled),distInfo=self.distDict)
-
+      print(children)
       children2 = children
-      self.batch =np.shape(children2)[0]
+      self.batch = np.shape(children2)[0]
       children = xr.DataArray(children2,
-                                dims=['chromosome','Gene'],
-                                coords={'chromosome': np.arange(np.shape(children2)[0]),
-                                        'Gene':list(self.toBeSampled)})
+                              dims=['chromosome','Gene'],
+                              coords={'chromosome': np.arange(np.shape(children2)[0]),
+                                      'Gene':list(self.toBeSampled)})
+      print(children)
       # 5 @ n: Submit children batch
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
       for i in range(np.shape(children)[0]):

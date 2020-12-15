@@ -29,6 +29,9 @@ from utils import utils,randomUtils
 
 def swapMutator(offSprings,**kwargs):
   """
+    This method performs the swap mutator. For each child, two genes are sampled and switched
+    E.g.:
+    child=[a,b,c,d,e] --> b and d are selected --> child = [a,d,c,b,e]
     @ In, offSprings, xr.DataArray, children resulting from the crossover process
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           locs, list, the 2 locations of the genes to be swapped
@@ -37,8 +40,7 @@ def swapMutator(offSprings,**kwargs):
     @ Out, children, xr.DataArray, the mutated chromosome, i.e., the child.
   """
   if kwargs['locs'] == None:
-    # eng = randomUtils.newRNG()
-    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))#,engine=eng
+    locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
     loc1 = locs[0]
     loc2 = locs[1]
   else:
@@ -60,6 +62,8 @@ def swapMutator(offSprings,**kwargs):
 # @profile
 def scrambleMutator(offSprings,**kwargs):
   """
+    This method performs the scramble mutator. For each child, a subset of genes is chosen 
+    and their values are shuffled randomly.
     @ In, offSprings, xr.DataArray, offsprings after crossover
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           chromosome, numpy.array, the chromosome that will mutate to the new child
@@ -70,11 +74,10 @@ def scrambleMutator(offSprings,**kwargs):
   """
   locs = kwargs['locs']
   if locs == None:
-    # eng = randomUtils.newRNG()
-    nLocs = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None)#,eng
+    nLocs = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None)
     locs=[]
     for i in range(nLocs):
-      l = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None)#,eng
+      l = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None)
       locs.append(l)
     locs = list(set(locs))
   nMutable = len(locs)

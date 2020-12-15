@@ -20,7 +20,6 @@
     <WorkingDir>MinwReplacementConvAHDp</WorkingDir>
     <Sequence>optimize, print</Sequence>
     <batchSize>1</batchSize>
-    <!-- <maxQueueSize>100</maxQueueSize> -->
   </RunInfo>
 
   <Steps>
@@ -57,7 +56,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>15</limit>
+        <limit>10</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>

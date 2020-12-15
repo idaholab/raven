@@ -57,7 +57,7 @@
   <Optimizers>
     <GeneticAlgorithm name="GAoptimizer">
       <samplerInit>
-        <limit>10</limit>
+        <limit>5</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>final</writeSteps>
       </samplerInit>

@@ -20,10 +20,7 @@
 """
 # External Imports
 import numpy as np
-import xarray as xr
-import math
 # Internal Imports
-from utils import randomUtils
 
 # [MANDD] Note: the fitness function are bounded by 2 parameters: a and b
 #               We should make this method flexible to accept different set of params

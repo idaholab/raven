@@ -56,8 +56,7 @@ def rouletteWheel(population,**kwargs):
         dims=['chromosome','Gene'],
         coords={'chromosome':np.arange(nParents),
                 'Gene': kwargs['variables']})
-  # imagine a wheel that is partitioned according to the selection
-  # probabilities
+  # imagine a wheel that is partitioned according to the selection probabilities
 
   for i in range(nParents):
     # set a random pointer
@@ -102,11 +101,9 @@ def tournamentSelection(population,**kwargs):
   if nParents >= popSize/2.0:
     # generate combination of 2 with replacement
     selectionList = np.atleast_2d(randomUtils.randomChoice(list(range(0,popSize)), 2*nParents, replace=False))
-    # randomUtils.randomChoice(np.array(np.arange(0,popSize)))
-                      # (np.arange(0,popSize), 2*nParents, replace=False)
+
   else: # nParents < popSize/2.0
     # generate combination of 2 without replacement
-    # mandd: raise a debug
     selectionList = np.atleast_2d(randomUtils.randomChoice(list(range(0,popSize)), 2*nParents))
 
   selectionList = selectionList.reshape(nParents,2)

@@ -298,7 +298,7 @@ class MessageHandler(object):
       @ In, message, string, the message to print
       @ In, tag, string, optional, the printed message type (usually Message, Debug, or Warning, and sometimes FIXME)
       @ In, verbosity, string, optional, the print priority of the message
-      @ In, color, string, optional, color to apply to message``
+      @ In, color, string, optional, color to apply to message
       @ Out, None
     """
     verbval = max(self.getDesiredVerbosity(caller),self.checkVerbosity(self.verbosity))
