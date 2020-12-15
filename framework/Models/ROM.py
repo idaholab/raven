@@ -272,6 +272,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("dmdType", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("Actuators", contentType=InputTypes.StringListType))
     inputSpecification.addSub(InputData.parameterInputFactory("StateVariables", contentType=InputTypes.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("InitStateVariables", contentType=InputTypes.StringListType))
     inputSpecification.addSub(InputData.parameterInputFactory("SubtractNormUXY", contentType=InputTypes.BoolType))
     # for deep learning neural network
     #inputSpecification.addSub(InputData.parameterInputFactory("DNN", InputTypes.StringType))

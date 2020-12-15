@@ -65,8 +65,9 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     self.actuatorsID = kwargs.get("Actuators", None)
     ### Extract the State Variable Names (x)
     self.stateID = kwargs.get("StateVariables", None)
-    ### Extract the Output Names (Output, Y)
-    self.outputID = set(self.target) - set([self.pivotParameterID])
+    ### Extract the Initilalization State Variable Names (x). Optional. If not
+    ### found, the state is initialized with the initial values in the state field
+    self.initStateID = kwargs.get("InitStateVariables", [])    
     cUXY =  kwargs.get('SubtractNormUXY',False)
     self.dmdParams['centerUXY'] = cUXY # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
     # variables filled up in the training stages
@@ -81,8 +82,13 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       self.raiseAnError(IOError,'Actuators XML node must be present for constructing DMDc !')
     if not self.stateID:
       self.raiseAnError(IOError,'StateVariables XML node must be present for constructing DMDc !')
+    # check if state ids in target
+    if not (set(self.stateID) <= set(self.target)):
+      self.raiseAnError(IOError,'StateVariables must be present in <Target> variables!')
+    ### Extract the Output Names (Output, Y)
+    self.outputID = list(set(self.target) - set([self.pivotParameterID]) -  set(self.stateID))
     # check if there are parameters
-    self.parametersIDs = set(self.features) - set(self.actuatorsID) - set(self.stateID)
+    self.parametersIDs = list(set(self.features) - set(self.actuatorsID) - set(self.initStateID))
 
   def __trainLocal__(self,featureVals,targetVals):
     """
@@ -105,7 +111,7 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     self.outputVals =  np.asarray([targetVals[:, :,self.target.index(out)] for out in self.outputID]).T
     ### Extract the State Values (State, X) ###
     # self.outputVals is Num_Entries*2 array, the snapshots of [y1, y2]. Shape is [n_samples, n_timesteps, n_state_variables]
-    self.stateVals =  np.asarray([featureVals[:, :, self.features.index(st)] for st in self.stateID]).T
+    self.stateVals =  np.asarray([targetVals[:, :, self.target.index(st)] for st in self.stateID]).T
     # create matrices
     self.__Atilde = np.zeros((featureVals.shape[0], len(self.stateID), len(self.stateID)))
     self.__Btilde = np.zeros((featureVals.shape[0], len(self.stateID), len(self.actuatorsID)))
@@ -126,20 +132,19 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       This method is used to inquire the DMD to evaluate (after normalization that in
       this case is not performed)  a set of points contained in featureVals.
       a KDTree algorithm is used to construct a weighting function for the reconstructed space
-      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_dimensions), an array of input data
+      @ In, featureVals, numpy.ndarray, shape= (n_requests, n_timeStep, n_dimensions), an array of input data
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
     ### Initialize the final return value ###
     returnEvaluation = {}
     ### Extract the Actuator signal U ###
-    Eval_U = []
+    Uvector = []
     for VarID in self.actuatorsID:
       VarIndex = self.features.index(VarID)
-      Eval_U.append(featureVals[:, VarIndex])
+      Uvector.append(featureVals[:, VarIndex])
       returnEvaluation.update({VarID: featureVals[:, VarIndex]})
-    Eval_U = np.asarray(Eval_U)
-    _,ts_Eval = np.shape(Eval_U) # ts_Eval = 100
-
+    Uvector = np.asarray(Uvector)
+    _,ts_Eval = np.shape(Uvector) # ts_Eval = 100
 
     ### Extract the initial state vector ###
     Eval_X = [[]]
@@ -150,7 +155,7 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
 
     ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
     for i in range(0,ts_Eval-1):
-      X_pred = np.reshape(self.__Atilde.dot(Eval_X[:,i]) + self.__Btilde.dot(Eval_U[:,i]),(-1,1))
+      X_pred = np.reshape(self.__Atilde.dot(Eval_X[:,i]) + self.__Btilde.dot(Uvector[:,i]),(-1,1))
       Eval_X = np.hstack((Eval_X,X_pred))
 
     ### Store the results to the dictionary "returnEvaluation"

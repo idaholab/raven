@@ -174,18 +174,13 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       else:
         self.raiseAnError(IOError,'The target '+target+' is not in the training set')
 
-    #FIXME: when we do not support anymore numpy <1.10, remove this IF STATEMENT
-    if int(np.__version__.split('.')[1]) >= 10:
-      targetValues = np.stack(targetValues, axis=-1)
-    else:
-      sl = (slice(None),) * np.asarray(targetValues[0]).ndim + (np.newaxis,)
-      targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
-
+    targetValues = np.stack(targetValues, axis=-1)
     # construct the evaluation matrixes
     if self._dynamicFeatures:
       featureValues = np.zeros(shape=(len(targetValues),targetValues.shape[1], len(self.features)))
     else:
       featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
+    self.featureShape = featureValues.shape
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
@@ -202,7 +197,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         self._localNormalizeData(values,names,feat)
         # valueToUse can be either a matrix (for who can handle time-dep data) or a vector (for who can not)
         if self._dynamicFeatures:
-          featureValues[:, :, cnt] = valueToUse[:, :]
+          featureValues[:, :, cnt] = (valueToUse[:, :]- self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
         else:
           featureValues[:,cnt] = ( (valueToUse[:,0] if len(valueToUse.shape) > 1 else valueToUse[:]) - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
     self.__trainLocal__(featureValues,targetValues)
@@ -260,7 +255,10 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
     # construct the evaluation matrix
-    featureValues = np.zeros(shape=(values[0].size,len(self.features)))
+    if self._dynamicFeatures:
+      featureValues = np.zeros(shape=(values[0].size, self.featureShape[1], self.featureShape[2]))
+    else:
+      featureValues = np.zeros(shape=(values[0].size, self.featureShape[2]))    
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
@@ -268,7 +266,11 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-        featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
+        
+        if self._dynamicFeatures:
+          featureValues[:, :, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1] 
+        else:
+          featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]       
     return self.__evaluateLocal__(featureValues)
 
   def reset(self):
