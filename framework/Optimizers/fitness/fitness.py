@@ -31,6 +31,7 @@ from utils import randomUtils
 # @profile
 def invLinear(rlz,**kwargs):
   """
+    Inverse linear fitness method
     .. math::
 
     fitness = \\frac{1}{a * obj + b * penalty}
@@ -38,7 +39,7 @@ def invLinear(rlz,**kwargs):
     @ In, rlz, xr.Dataset, containing the evaluation of a certain
               set of individuals (can be the initial population for the very first iteration,
               or a population of offsprings)
-    @ In, kwargs, dict, dictionary of parameters for this mutation method:
+    @ In, kwargs, dict, dictionary of parameters for this fitness method:
           objVar, string, the name of the objective variable
           a, float, linear coefficient for the objective function (default = 1.0)
           penalty, float, measuring the severity of the constraint violation. (default = 1.0)
@@ -64,6 +65,22 @@ def invLinear(rlz,**kwargs):
 
 
 def logistic(rlz,**kwargs):
+  """
+    Logistic fitness method
+    .. math::
+
+    fitness = \frac{1}{1+e^{-a(x-b)}}
+
+    @ In, rlz, xr.Dataset, containing the evaluation of a certain
+              set of individuals (can be the initial population for the very first iteration,
+              or a population of offsprings)
+    @ In, kwargs, dict, dictionary of parameters for this fitness method:
+          objVar, string, the name of the objective variable
+          a, float, linear coefficient for the objective function (default = 1.0)
+          penalty, float, measuring the severity of the constraint violation. (default = 1.0)
+          b, float, linear coefficient for the penalty measure. (default = 1.0)
+    @ Out, fitness, float, the fitness function of the given objective corresponding to a specific chromosome.
+  """
   if kwargs['a'] == None:
     a = 1.0
   else:

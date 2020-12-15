@@ -31,6 +31,7 @@ from itertools import combinations
 # @profile
 def onePointCrossover(parents,**kwargs):
   """
+    Method designed to perform crossover by swapping chromosome portions before/after specified or sampled location
     @ In, parents, xr.DataArray, parents involved in the mating process.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           crossoverProb, float, crossoverProb determines when child takes genes from a specific parent, default is random
@@ -75,7 +76,7 @@ def onePointCrossover(parents,**kwargs):
 
 def uniformCrossover(parents, parentIndexes,**kwargs):
   """
-    Method designed
+    Method designed to perform crossover by swapping genes one by one
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           parents, 2D array, parents in the current mating process.
           Shape is nParents x len(chromosome) i.e, number of Genes/Vars
