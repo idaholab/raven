@@ -24,10 +24,13 @@
   </RunInfo>
 
   <Distributions>
-    <Normal name="normal">
-      <mean>0</mean>
-      <sigma>1</sigma>
-    </Normal>
+    <MultivariateNormal method="pca" name="mvn">
+      <mu>0.0 0.0</mu>
+      <covariance>
+          1.0 0.0
+          0.0 1.0
+      </covariance>
+    </MultivariateNormal>
   </Distributions>
 
   <Models>
@@ -45,11 +48,11 @@
       </samplerInit>
       <likelihood log="False">zout</likelihood>
       <variable name="xin">
-        <distribution>normal</distribution>
+        <distribution dim="1">mvn</distribution>
         <initial>0</initial>
       </variable>
       <variable name="yin">
-        <distribution>normal</distribution>
+        <distribution dim="2">mvn</distribution>
         <initial>0</initial>
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
