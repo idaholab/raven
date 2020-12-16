@@ -172,6 +172,12 @@ __mutators['inversionMutator']  = inversionMutator
 
 
 def returnInstance(cls, name):
+  """
+    Method designed to return class instance:
+    @ In, cls, class type
+    @ In, name, string, name of class
+    @ Out, __crossovers[name], instance of class
+  """  
   if name not in __mutators:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __mutators[name]

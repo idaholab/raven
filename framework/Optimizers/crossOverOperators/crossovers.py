@@ -63,12 +63,12 @@ def onePointCrossover(parents,**kwargs):
       if (kwargs['points'] == None) or ('points' not in kwargs.keys()):
         point = list([randomUtils.randomIntegers(1,nGenes-1,None)])
       elif (any(i>=nGenes-1 for i in kwargs['points'])):
-        raise IOError('crossover point cannot be larger than number of Genes (variables)')
+        raise ValueError('Crossover point cannot be larger than number of Genes (variables)')
       else:
         point = kwargs['points']
       for i in range(nGenes):
         if len(point)>1:
-          raise IOError('In one Point Crossover a single crossover location should be provided!')
+          raise ValueError('In one Point Crossover a single crossover location should be provided!')
         children[2*ind:2*ind+2,i] = parent[np.arange(0,2)*(i<point[0])+np.arange(-1,-3,-1)*(i>=point[0]),i]
     else:
       # Each child is just a copy of the parents
@@ -162,6 +162,12 @@ __crossovers['uniformCrossover']   = uniformCrossover
 
 
 def returnInstance(cls, name):
+  """
+    Method designed to return class instance
+    @ In, cls, class type
+    @ In, name, string, name of class
+    @ Out, __crossovers[name], instance of class
+  """  
   if name not in __crossovers:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __crossovers[name]

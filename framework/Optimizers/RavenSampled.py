@@ -240,21 +240,12 @@ class RavenSampled(Optimizer):
         self.values[var] = val # TODO should be np.atleast_1d?
         ptProb = self.distDict[var].pdf(val)
         # sampler-required meta information # TODO should we not require this?
-      #   self.inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
-      #   self.inputInfo['SampledVarsPb'][var] = ptProb
-      # self.inputInfo['ProbabilityWeight'] = 1 # TODO assume all weight 1? Not well-distributed samples
-      # self.inputInfo['PointProbability'] = np.prod([x for x in self.inputInfo['SampledVarsPb'].values()])
-      # self.inputInfo['SamplerType'] = self.type
         inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
         inputInfo['SampledVarsPb'][var] = ptProb
       inputInfo['ProbabilityWeight'] = 1 # TODO assume all weight 1? Not well-distributed samples
       inputInfo['PointProbability'] = np.prod([x for x in inputInfo['SampledVarsPb'].values()])
       inputInfo['SamplerType'] = self.type
-      # self.inputInfo['batchId'] = self.batchId
       if self.inputInfo['batchMode']:
-        # self.inputInfo['SampledVars'] = self.values
-        # self.inputInfo['batchId'] = self.batchId
-        # batchData.append(copy.deepcopy(self.inputInfo))
         inputInfo['SampledVars'] = self.values
         inputInfo['batchId'] = self.batchId
         batchData.append(copy.deepcopy(inputInfo))

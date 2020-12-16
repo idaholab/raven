@@ -129,27 +129,12 @@ __survivorSelectors['ageBased'] = ageBased
 __survivorSelectors['fitnessBased'] = fitnessBased
 
 def returnInstance(cls, name):
+  """
+    Method designed to return class instance
+    @ In, cls, class type
+    @ In, name, string, name of class
+    @ Out, __crossovers[name], instance of class
+  """  
   if name not in __survivorSelectors:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __survivorSelectors[name]
-
-'''
-if __name__ == '__main__':
-  # I am leaving this part right now for the sake of testing,
-  # TODO REMOVE THIS IF BLOCK
-  population =[[1,2,3,4,5,6],[2,1,3,4,6,5],[6,5,4,3,2,1],[3,5,6,2,1,4]]
-  popFitness = [7.2,1.3,9.5,2.0]
-  popAge = [3,1,7,1]
-  offSprings = [[2,3,4,5,6,1],[1,3,5,2,4,6],[1,2,4,3,6,5]]
-  offSpringsFitness = [1.1,2.0,3.2]
-  newPop,newFit,newAge = fitnessBased(population=population,popAge=popAge,popFitness=popFitness,newRlz=offSprings,offSpringsFitness=offSpringsFitness)
-  print('Fitness Based Selection')
-  print('*'*23)
-  print('new population: {}, \n new Fitness {}, \n new Age {}'.format(newPop,newFit,newAge))
-  print('Note that the last parent and second offSpring had the same fitness, but the fitness based mechanism omitted the oldest one')
-  newPop2,newFit2,newAge2 = ageBased(population=population,popAge=popAge,popFitness=popFitness,offSprings=offSprings,offSpringsFitness=offSpringsFitness)
-  print('Age Based Selection')
-  print('*'*19)
-  print('new population: {}, \n new Fitness {}, \n new age'.format(newPop2,newFit2,newAge2))
-  print('Note that the second and forth chromosome had the same age, but for the age based mechanism it omitted the one with the lowest fitness')
-'''

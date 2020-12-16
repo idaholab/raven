@@ -102,6 +102,12 @@ __fitness['logistic']  = logistic
 
 
 def returnInstance(cls, name):
+  """
+    Method designed to return class instance:
+    @ In, cls, class type
+    @ In, name, string, name of class
+    @ Out, __crossovers[name], instance of class
+  """  
   if name not in __fitness:
     cls.raiseAnError (IOError, "{} FITNESS FUNCTION NOT IMPLEMENTED!!!!!".format(name))
   return __fitness[name]

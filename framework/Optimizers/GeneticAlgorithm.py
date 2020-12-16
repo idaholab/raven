@@ -694,6 +694,7 @@ class GeneticAlgorithm(RavenSampled):
       Minimum Minkowski distance from ai to B (nearest point in B)
       @ In, ai, 1d array, the ith chromosome in the generation A
       @ In, B, np.array, population B
+      @ In, q, integer, order of the norm
       @ Out, _popDist, float, the minimum distance from ai to B $inf_(\|ai-bj\|_q)**\frac{1}{q}$
     """
     nrm=[]

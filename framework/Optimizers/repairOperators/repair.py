@@ -58,6 +58,12 @@ __repairs = {}
 __repairs['replacementRepair']  = replacementRepair
 
 def returnInstance(cls, name):
+  """
+    Method designed to return class instance
+    @ In, cls, class type
+    @ In, name, string, name of class
+    @ Out, __crossovers[name], instance of class
+  """  
   if name not in __repairs:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __repairs[name]
