@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="quiet">
   <TestInfo>
     <name>framework/CodeInterfaceTests.MAAP5interfaceAHDETSampling</name>
     <author>alfoa</author>
