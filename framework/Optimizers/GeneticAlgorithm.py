@@ -46,7 +46,7 @@ class GeneticAlgorithm(RavenSampled):
     This class performs Genetic Algorithm optimization ...
   """
   convergenceOptions = {'objective': r""" provides the desired value for the convergence criterion of the objective function
-                        ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design variable 
+                        ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design variable
                          at a given objective value, i.e., convergence is reached when: $$ Objective = \epsilon^{obj}$$.
                         \default{1e-6}, if no criteria specified""",
                         'AHDp': r""" provides the desired value for the Average Hausdorff Distance between populations""",
@@ -89,10 +89,10 @@ class GeneticAlgorithm(RavenSampled):
     specs = super(GeneticAlgorithm, cls).getInputSpecification()
     specs.description = r"""The \xmlNode{GeneticAlgorithm} optimizer is a metaheuristic approach
                             to perform a global search in large design spaces. The methodology rose
-                            from the process of natural selection, and like others in the large class 
-                            of the evolutionary algorithms, it utilizes genetic operations such as 
-                            selection, crossover, and mutations to avoid being stuck in local minima 
-                            and hence facilitates finding the global minima. More information can 
+                            from the process of natural selection, and like others in the large class
+                            of the evolutionary algorithms, it utilizes genetic operations such as
+                            selection, crossover, and mutations to avoid being stuck in local minima
+                            and hence facilitates finding the global minima. More information can
                             be found in:
                             Holland, John H. "Genetic algorithms." Scientific american 267.1 (1992): 66-73."""
 
@@ -296,14 +296,14 @@ class GeneticAlgorithm(RavenSampled):
     if crossoverNode.findFirst('points') is None:
       self._crossoverPoints = None
     else:
-      self._crossoverPoints = crossoverNode.findFirst('points').value 
+      self._crossoverPoints = crossoverNode.findFirst('points').value
     self._crossoverProb = crossoverNode.findFirst('crossoverProb').value
     self._crossoverInstance = crossoversReturnInstance(self,name = self._crossoverType)
     # mutation node
     mutationNode = reproductionNode.findFirst('mutation')
     self._mutationType = mutationNode.parameterValues['type']
     if mutationNode.findFirst('locs') is None:
-      self._mutationLocs = None 
+      self._mutationLocs = None
     else:
       self._mutationLocs = mutationNode.findFirst('locs').value
     self._mutationProb = mutationNode.findFirst('mutationProb').value
@@ -437,7 +437,7 @@ class GeneticAlgorithm(RavenSampled):
       children = self._mutationInstance(offSprings=children,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
 
       # 4 @ n: repair/replacement
-      # repair should only happen if multiple genes in a single chromosome have the same values (), 
+      # repair should only happen if multiple genes in a single chromosome have the same values (),
       # and at the same time the sampling of these genes should be with Out replacement.
       needsRepair = False
       for chrom in range(self._nChildren):
@@ -449,20 +449,34 @@ class GeneticAlgorithm(RavenSampled):
               break
       if needsRepair:
         children = self._repairInstance(children,variables=list(self.toBeSampled),distInfo=self.distDict)
-      print(children)
-      children2 = children
-      self.batch = np.shape(children2)[0]
-      children = xr.DataArray(children2,
+
+      # Make sure no children are exactly similar to parents
+      flag = True
+      counter = 0
+      while flag and counter < self._populationSize: # and counter<=10
+        counter += 1
+        repeated =[]
+        for i in range(np.shape(population.data)[0]):
+          for j in range (np.shape(children.data)[0]):
+            if all(population.data[i,:]==children.data[j,:]):
+              repeated.append(j)
+        repeated = list(set(repeated))
+        if repeated:
+          newChildren = self._mutationInstance(offSprings=children[repeated,:],locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+          children.data[repeated,:] = newChildren.data
+        else:
+          flag = False
+      self.batch =np.shape(children)[0]
+      daChildren = xr.DataArray(children,
                               dims=['chromosome','Gene'],
-                              coords={'chromosome': np.arange(np.shape(children2)[0]),
+                              coords={'chromosome': np.arange(np.shape(children)[0]),
                                       'Gene':list(self.toBeSampled)})
-      print(children)
       # 5 @ n: Submit children batch
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
-      for i in range(np.shape(children)[0]):
+      for i in range(np.shape(daChildren)[0]):
         newRlz={}
         for _,var in enumerate(self.toBeSampled.keys()):
-          newRlz[var] = float(children.loc[i,var].values)
+          newRlz[var] = float(daChildren.loc[i,var].values)
         self._submitRun(newRlz, traj, self.getIteration(traj))
 
   def _datasetToDataarray(self,rlzDataset):
