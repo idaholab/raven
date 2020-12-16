@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Markov Chain Monte Carlo
-  This base class defines the principle methods required for MCMC
+  Metroplis Hastings Algorithm for Markov Chain Monte Carlo
 
   Created on June 26, 2020
   @author: wangc
@@ -26,7 +25,6 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-
 from .MCMC import MCMC
 from utils import utils,randomUtils,InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------

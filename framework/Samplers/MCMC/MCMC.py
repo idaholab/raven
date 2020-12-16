@@ -197,11 +197,13 @@ class MCMC(AdaptiveSampler):
   def _readInVariable(self, child, prefix):
     """
       Reads in a "variable" input parameter node.
+      This method is called by "_readMoreXMLbase" method within base class "Sampler".
       @ In, child, utils.InputData.ParameterInput, input parameter node to read from
       @ In, prefix, str, pass through parameter (not used), i.e. empty string. It is used
         by Sampler base class to indicate "Distribution"
       @ Out, None
     """
+    assert(prefix == "", '"prefix" should be empty, but got {}!'.format(prefix))
     varName = child.parameterValues['name']
     foundDist = child.findFirst('distribution')
     foundFunc = child.findFirst('function')
@@ -231,22 +233,22 @@ class MCMC(AdaptiveSampler):
         # set up mapping for variable to distribution
         self.variables2distributionsMapping[varName] = varData
         # flag distribution as needing to be sampled
-        self.toBeSampled[prefix + varName] = toBeSampled
-        self.toBeCalibrated[prefix + varName] = toBeSampled
+        self.toBeSampled[varName] = toBeSampled
+        self.toBeCalibrated[varName] = toBeSampled
         if varName not in self._initialValues:
           self._initialValues[varName] = None
       elif childChild.getName() == 'function':
         # function name
         toBeSampled = childChild.value
         # track variable as a functional sample
-        self.dependentSample[prefix + varName] = toBeSampled
+        self.dependentSample[varName] = toBeSampled
       elif childChild.getName() == 'initial':
         self._initialValues[varName] = childChild.value
       elif childChild.getName() == 'proposal':
         self._proposal[varName] = childChild.value
       elif childChild.getName() == 'probabilityFunction':
         toBeSampled = childChild.value
-        self.toBeCalibrated[prefix + varName] = toBeSampled
+        self.toBeCalibrated[varName] = toBeSampled
         self._priorFuns[varName] = toBeSampled
         if varName not in self._initialValues:
           self._initialValues[varName] = None
