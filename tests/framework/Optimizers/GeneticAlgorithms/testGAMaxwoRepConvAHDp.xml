@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
-    <name>framework/Optimizers/GA</name>
+    <name>framework/Optimizers/GA/MaxwoReplacementConvAHDp</name>
     <author>MohammadAbdo</author>
     <created>2020-05-16</created>
     <classesTested>GeneticAlgorithm</classesTested>

@@ -47,9 +47,8 @@ def replacementRepair(offSprings,**kwargs):
           children[chrom,ind] = x
           duplicated.add(x)
         else:
-          if (distInfo[offSprings['Gene'].data[ind]].strategy == 'withOutReplacement'):
-            # pool = set(range(int(distInfo[kwargs['variables'][ind]].lowerBound),int(distInfo[kwargs['variables'][ind]].upperBound)+1)) - unique
-            y = distInfo[kwargs['variables'][ind]].selectedRvs(list(duplicated))#int(np.random.choice(list(pool)))
+          if (distInfo[offSprings['Gene'].data[ind]].strategy == 'withoutReplacement'):
+            y = distInfo[kwargs['variables'][ind]].selectedRvs(list(duplicated))
             children[chrom,ind] = y
             duplicated.add(y)
   return children
@@ -67,7 +66,3 @@ def returnInstance(cls, name):
   if name not in __repairs:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __repairs[name]
-
-
-
-

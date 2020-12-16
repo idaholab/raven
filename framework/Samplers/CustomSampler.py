@@ -76,8 +76,8 @@ class CustomSampler(ForwardSampler):
     self.printTag = 'SAMPLER CUSTOM'
     self.readingFrom = None # either File or DataObject, determines sample generation
     self.indexes = None
-    self.batch = 1
-    self.batchId = 0
+    self.batch = 1    # number of samples in each batch
+    self.batchId = 0  # ID for each batch
 
   def _readMoreXMLbase(self,xmlNode):
     """

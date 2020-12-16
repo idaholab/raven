@@ -14,17 +14,17 @@
 
 import numpy as np
 
-def run(self,Input):
+def run(self,inputs):
   """
     Evaluate a simple function.
-    @ In, self, object, container
+    @ In, inputs, dictionary of variables
     @ Out, None
   """
   projValue = np.array([1,3,4,2,1,2,3,4,2,4])
   projCost  = np.array([3,2,5,3,2,4,6,3,5,3])
   knapsackCapacities = np.array([4,5,4,5,5])
 
-  projPlan = np.array([Input['proj1'],Input['proj2'],Input['proj3'],Input['proj4'],Input['proj5'],Input['proj6'],Input['proj7'],Input['proj8'],Input['proj9'],Input['proj10']])
+  projPlan = np.array([inputs['proj1'],inputs['proj2'],inputs['proj3'],inputs['proj4'],inputs['proj5'],inputs['proj6'],inputs['proj7'],inputs['proj8'],inputs['proj9'],inputs['proj10']])
   self.planValue = 0
   for n in range(0,10):
     if projPlan[n]>0:
@@ -36,14 +36,7 @@ def run(self,Input):
         knapsackCapacities[int(projPlan[n])-1] = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
         self.planValue = self.planValue - projValue[n]
 
-      #knapsackCapacities[int(projPlan[n])-1] = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
-      #self.planValue = self.planValue + projValue[n]
-
   if (knapsackCapacities>=0).all():
     self.validPlan =  0.
   else:
     self.validPlan = 1.
-
-  #counterNeg = np.sum(knapsackCapacities<0, axis=0)
-  #self.planValue = self.planValue - counterNeg * (10.)
-

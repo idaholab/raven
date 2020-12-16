@@ -86,8 +86,6 @@ class phisicsdata():
 
     data = None
 
-
-
     for timeStepIndex in range(len(mrtauTimeSteps)):
       if not phisicsDataDict['mrtauStandAlone']:
         keff, errorKeff = self.getKeff()

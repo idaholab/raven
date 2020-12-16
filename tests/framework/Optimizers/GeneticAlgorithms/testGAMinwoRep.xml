@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
-    <name>framework/Optimizers/GA</name>
+    <name>framework/Optimizers/GA/MinwoReplacement</name>
     <author>MohammadAbdo</author>
     <created>2020-05-16</created>
     <classesTested>GeneticAlgorithm</classesTested>
@@ -20,12 +20,10 @@
     <WorkingDir>MinwoReplacement</WorkingDir>
     <Sequence>optimize, print</Sequence>
     <batchSize>1</batchSize>
-    <!-- <maxQueueSize>100</maxQueueSize> -->
   </RunInfo>
 
   <Steps>
     <MultiRun name="optimize" re-seeding="2286">
-      <!--re-seeding="032877" 120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
       <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
@@ -98,18 +96,6 @@
         <distribution>uniform_dist_woRepl_1</distribution>
       </variable>
 
-      <!-- <variable name="x4">
-        <distribution>uniform_dist_woRepl_1</distribution>
-      </variable>
-
-      <variable name="x5">
-        <distribution>uniform_dist_woRepl_1</distribution>
-      </variable>
-
-      <variable name="x6">
-        <distribution>uniform_dist_woRepl_1</distribution>
-      </variable> -->
-
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
@@ -131,15 +117,6 @@
       <variable name="x3">
         <distribution>uniform_dist_woRepl_1</distribution>
       </variable>
-      <!-- <variable name="x4">
-        <distribution>uniform_dist_woRepl_1</distribution>
-      </variable>
-      <variable name="x5">
-        <distribution>uniform_dist_woRepl_1</distribution>
-      </variable>
-      <variable name="x6">
-        <distribution>uniform_dist_woRepl_1</distribution>
-      </variable> -->
     </MonteCarlo>
   </Samplers>
 

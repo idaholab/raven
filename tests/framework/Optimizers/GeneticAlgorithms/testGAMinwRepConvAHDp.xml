@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
-    <name>framework/Optimizers/GA</name>
+    <name>framework/Optimizers/GA/MinwReplacementConvAHDp</name>
     <author>MohammadAbdo</author>
     <created>2020-05-16</created>
     <classesTested>GeneticAlgorithm</classesTested>
@@ -24,7 +24,6 @@
 
   <Steps>
     <MultiRun name="optimize" re-seeding="2286">
-      <!--re-seeding="032877" 120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
       <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
@@ -121,15 +120,6 @@
       <variable name="x3">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
-      <!-- <variable name="x4">
-        <distribution>uniform_dist_Repl_1</distribution>
-      </variable>
-      <variable name="x5">
-        <distribution>uniform_dist_Repl_1</distribution>
-      </variable>
-      <variable name="x6">
-        <distribution>uniform_dist_Repl_1</distribution>
-      </variable> -->
     </MonteCarlo>
   </Samplers>
 
@@ -148,7 +138,6 @@
       <PointSet name="opt_export">
         <Input>trajID</Input>
         <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
-        <!-- <Output>x1,x2,x3,x4,x5,x6,ans,iteration,accepted,conv_objective</Output> fitness,conv_fitness -->
       </PointSet>
     </DataObjects>
 

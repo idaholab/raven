@@ -413,6 +413,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
       @ In, noMatchDict, dict, optional, {key:val} to search for antimatches (vars should NOT match vals within tolerance)
+      @ In, asDataSet, bool, optional, return realization from the data as a DataSet
       @ In, tol, float, optional, tolerance to which match should be made
       @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}) (valid only for dataset)
       @ In, options, dict, optional, options to be applied to the search

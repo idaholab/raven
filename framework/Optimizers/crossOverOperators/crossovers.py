@@ -79,6 +79,7 @@ def onePointCrossover(parents,**kwargs):
 def uniformCrossover(parents,**kwargs):
   """
     Method designed to perform crossover by swapping genes one by one
+    @ In, parents, xr.DataArray, parents involved in the mating process.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           parents, 2D array, parents in the current mating process.
           Shape is nParents x len(chromosome) i.e, number of Genes/Vars
@@ -96,9 +97,7 @@ def uniformCrossover(parents,**kwargs):
     crossoverProb = kwargs['crossoverProb']
 
   index = 0
-
   parentsPairs = list(combinations(parents,2))
-
   for parentPair in parentsPairs:
     parent1 = parentPair[0].values
     parent2 = parentPair[1].values
@@ -111,13 +110,15 @@ def uniformCrossover(parents,**kwargs):
 
 def twoPointsCrossover(parents, parentIndexes,**kwargs):
   """
-    Method designed to perform a twopoint crossover on 2 parents:
+    Method designed to perform a two point crossover on 2 parents:
     Partition each parents in three sequences (A,B,C):
     parent1 = A1 B1 C1
     parent2 = A2 B2 C2
     Then:
     children1 = A1 B2 C1
     children2 = A2 B1 C2
+    @ In, parents, xr.DataArray, parents involved in the mating process
+    @ In, parentIndexes, list, list containing pairs of parents
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
           parents, 2D array, parents in the current mating process.
           Shape is nParents x len(chromosome) i.e, number of Genes/Vars
@@ -219,7 +220,3 @@ def uniformCrossoverMethod(parent1,parent2,crossoverProb):
       children2[pos] = parent1[pos]
 
   return children1,children2
-
-
-
-

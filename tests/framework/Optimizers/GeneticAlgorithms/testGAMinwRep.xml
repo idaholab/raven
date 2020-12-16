@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
-    <name>framework/Optimizers/GA</name>
+    <name>framework/Optimizers/GA/MinwReplacement</name>
     <author>MohammadAbdo</author>
     <created>2020-05-16</created>
     <classesTested>GeneticAlgorithm</classesTested>
@@ -115,15 +115,6 @@
       <variable name="x3">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
-      <!-- <variable name="x4">
-        <distribution>uniform_dist_Repl_1</distribution>
-      </variable>
-      <variable name="x5">
-        <distribution>uniform_dist_Repl_1</distribution>
-      </variable>
-      <variable name="x6">
-        <distribution>uniform_dist_Repl_1</distribution>
-      </variable> -->
     </MonteCarlo>
   </Samplers>
 

@@ -511,11 +511,11 @@ class BoostDistribution(Distribution):
       rvsValue = np.array([self.rvs() for _ in range(size)])
     return rvsValue
 
-  def selectedRVS(self, discardedElems):
+  def selectedRvs(self, discardedElems):
     """
       Function to get random numbers for discrete distribution which exclude discardedElems
       @ In, discardedElems, list, list of values to be discarded
-      @ Out, rvsValue, float or list, requested random number or numbers
+      @ Out, rvsValue, float, requested random number
     """
     if not self.memory:
       self.raiseAnError(IOError,' The distribution '+ str(self.name) + ' does not support the method selectedRVS.')
@@ -1947,7 +1947,6 @@ class UniformDiscrete(Distribution):
         self.raiseAWarning("The Uniform Discrete distribution " + str(self.name) + " has been internally reset outside the sampler.")
       rvsValue = self.pot[-1]
       self.pot = np.resize(self.pot, self.pot.size - 1)
-      print(self.pot)
     return rvsValue
 
   def selectedRvs(self,discardedElems):

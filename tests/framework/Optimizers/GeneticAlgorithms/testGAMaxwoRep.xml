@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
-    <name>framework/Optimizers/GA</name>
+    <name>framework/Optimizers/GA/MaxwoReplacement</name>
     <author>MohammadAbdo</author>
     <created>2020-05-16</created>
     <classesTested>GeneticAlgorithm</classesTested>
@@ -19,20 +19,10 @@
   <RunInfo>
     <WorkingDir>MaxwoReplacement</WorkingDir>
     <Sequence>optimize, print</Sequence>
-    <!-- <internalParallel>true</internalParallel>
-    <batchSize>8</batchSize> -->
-    <!-- <maxQueueSize>100</maxQueueSize> -->
   </RunInfo>
 
   <Steps>
-    <!-- <MultiRun name="sample">
-      <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
-      <Model          class="Models"      type="ExternalModel"    >myLocalSum</Model>
-      <Sampler        class="Samplers"    type="MonteCarlo"       >MC</Sampler>
-      <Output         class="DataObjects" type="PointSet"         >optOut</Output>
-    </MultiRun> -->
     <MultiRun name="optimize" re-seeding="2286">
-      <!--re-seeding="032877" 120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
       <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>

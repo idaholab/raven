@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def evaluate(Inputs):
+def evaluate(inputs):
   """
     Evaluates a weighted sum function.
     $sum = \Sigma_{i=0} (i+1)*x_{i}$
@@ -22,13 +22,13 @@ def evaluate(Inputs):
     min w/o replacement  = $\Sigma_{i=0}^{n-1} (lb+i)(i+1)$ occurs at x_{i} = lb+i
     max w/o replacement  = $\Sigma_{i=0}^{n-1} (ub-n+1+i)(i+1)$ occurs at x_{i} = ub-n+1+i
 
-    @ In, Inputs, dictionary of variables
-    @ Out, sum, value at Inputs
+    @ In, inputs, dictionary of variables
+    @ Out, sum, value at inputs
   """
-  sum = 0
-  for Ind,var in enumerate(Inputs.keys()):
-    sum += (Ind+1) * Inputs[var]
-  return sum[:]
+  summ = 0
+  for ind,var in enumerate(inputs.keys()):
+    summ += (ind+1) * inputs[var]
+  return summ[:]
 
 def run(self,Inputs):
   """
