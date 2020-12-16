@@ -62,7 +62,7 @@ def swapMutator(offSprings,**kwargs):
 # @profile
 def scrambleMutator(offSprings,**kwargs):
   """
-    This method performs the scramble mutator. For each child, a subset of genes is chosen 
+    This method performs the scramble mutator. For each child, a subset of genes is chosen
     and their values are shuffled randomly.
     @ In, offSprings, xr.DataArray, offsprings after crossover
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
@@ -177,7 +177,7 @@ def returnInstance(cls, name):
     @ In, cls, class type
     @ In, name, string, name of class
     @ Out, __crossovers[name], instance of class
-  """  
+  """
   if name not in __mutators:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __mutators[name]

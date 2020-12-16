@@ -61,7 +61,7 @@ def ageBased(newRlz,**kwargs):
   newAge = list(map(lambda x:x+1, sortedAge.copy(deep=True)))
   newPopulation[-1:-np.shape(offSprings)[0]-1:-1] = offSprings
   newFitness[-1:-np.shape(offSprings)[0]-1:-1] = offSpringsFitness
-  newAge[-1:-np.shape(offSprings)[0]-1:-1] = [0]*np.shape(offSprings)[0] 
+  newAge[-1:-np.shape(offSprings)[0]-1:-1] = [0]*np.shape(offSprings)[0]
   # converting back to DataArrays
   newPopulation = xr.DataArray(newPopulation,
                                dims=['chromosome','Gene'],
@@ -100,20 +100,20 @@ def fitnessBased(newRlz,**kwargs):
   population = np.atleast_2d(kwargs['population'].data)
   popFitness = np.atleast_1d(kwargs['fitness'].data)
 
-  newPopulation = copy.deepcopy(population) 
-  newFitness = copy.deepcopy(popFitness) 
+  newPopulation = copy.deepcopy(population)
+  newFitness = copy.deepcopy(popFitness)
   newAge = list(map(lambda x:x+1, copy.deepcopy(popAge)))
   newPopulation = np.concatenate([newPopulation,offSprings])
   newFitness = np.concatenate([newFitness,offSpringsFitness])
   newAge.extend([0]*len(offSpringsFitness))
-  
+
   # sort population, popFitness according to age
   sortedFitness,sortedAge,sortedPopulation = zip(*[(x,y,z) for x,y,z in sorted(zip(newFitness,newAge,newPopulation),reverse=True,key=lambda x: (x[0], -x[1]))])
   sortedFitness,sortedAge,sortedPopulation = np.atleast_1d(list(sortedFitness)),list(sortedAge),np.atleast_1d(list(sortedPopulation))
   newPopulation = sortedPopulation[:-len(offSprings)]
   newFitness = sortedFitness[:-len(offSprings)]
   newAge = sortedAge[:-len(offSprings)]
-  
+
   newPopulation = xr.DataArray(newPopulation,
                                dims=['chromosome','Gene'],
                                coords={'chromosome':np.arange(np.shape(newPopulation)[0]),
@@ -121,7 +121,7 @@ def fitnessBased(newRlz,**kwargs):
   newFitness = xr.DataArray(newFitness,
                             dims=['chromosome'],
                             coords={'chromosome':np.arange(np.shape(newFitness)[0])})
-  
+
   return newPopulation,newFitness,newAge
 
 __survivorSelectors = {}
@@ -134,7 +134,7 @@ def returnInstance(cls, name):
     @ In, cls, class type
     @ In, name, string, name of class
     @ Out, __crossovers[name], instance of class
-  """  
+  """
   if name not in __survivorSelectors:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __survivorSelectors[name]

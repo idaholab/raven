@@ -55,10 +55,10 @@ def onePointCrossover(parents,**kwargs):
 
   # create children
   parentsPairs = list(combinations(parents,2))
-  
+
   for ind,parent in enumerate(parentsPairs):
     parent = np.array(parent).reshape(2,-1) # two parents at a time
-    
+
     if randomUtils.random(dim=1,samples=1) <= crossoverProb:
       if (kwargs['points'] == None) or ('points' not in kwargs.keys()):
         point = list([randomUtils.randomIntegers(1,nGenes-1,None)])
@@ -73,7 +73,7 @@ def onePointCrossover(parents,**kwargs):
     else:
       # Each child is just a copy of the parents
       children[2*ind:2*ind+2,:] = copy.deepcopy(parent)
-  
+
   return children
 
 def uniformCrossover(parents,**kwargs):
@@ -89,16 +89,16 @@ def uniformCrossover(parents,**kwargs):
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(int(2*comb(nParents,2))),
                                       'Gene':parents.coords['Gene'].values})
-  
+
   if (kwargs['crossoverProb'] == None) or ('crossoverProb' not in kwargs.keys()):
     crossoverProb = randomUtils.random(dim=1, samples=1)
   else:
     crossoverProb = kwargs['crossoverProb']
-    
+
   index = 0
-  
+
   parentsPairs = list(combinations(parents,2))
-  
+
   for parentPair in parentsPairs:
     parent1 = parentPair[0].values
     parent2 = parentPair[1].values
@@ -167,7 +167,7 @@ def returnInstance(cls, name):
     @ In, cls, class type
     @ In, name, string, name of class
     @ Out, __crossovers[name], instance of class
-  """  
+  """
   if name not in __crossovers:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __crossovers[name]

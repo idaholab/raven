@@ -63,7 +63,7 @@ def returnInstance(cls, name):
     @ In, cls, class type
     @ In, name, string, name of class
     @ Out, __crossovers[name], instance of class
-  """  
+  """
   if name not in __repairs:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __repairs[name]

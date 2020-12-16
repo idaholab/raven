@@ -119,7 +119,7 @@ def tournamentSelection(population,**kwargs):
 
 def rankSelection(population,**kwargs):
   """
-    Rank Selection mechanism for parent selection 
+    Rank Selection mechanism for parent selection
 
     @ In, population, xr.DataArray, populations containing all chromosomes (individuals) candidate to be parents, i.e. population.values.shape = populationSize x nGenes.
     @ In, kwargs, dict, dictionary of parameters for this mutation method:
@@ -155,7 +155,7 @@ def returnInstance(cls, name):
     @ In, cls, class type
     @ In, name, string, name of class
     @ Out, __crossovers[name], instance of class
-  """  
+  """
   if name not in __parentSelectors:
     cls.raiseAnError (IOError, "{} MECHANISM NOT IMPLEMENTED!!!!!".format(name))
   return __parentSelectors[name]

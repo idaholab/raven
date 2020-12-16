@@ -107,7 +107,7 @@ def returnInstance(cls, name):
     @ In, cls, class type
     @ In, name, string, name of class
     @ Out, __crossovers[name], instance of class
-  """  
+  """
   if name not in __fitness:
     cls.raiseAnError (IOError, "{} FITNESS FUNCTION NOT IMPLEMENTED!!!!!".format(name))
   return __fitness[name]
