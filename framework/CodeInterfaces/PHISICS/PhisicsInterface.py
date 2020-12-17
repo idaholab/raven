@@ -121,7 +121,7 @@ class Phisics(CodeInterfaceBase):
     """
     self.jobTitle = 'defaultInstant'
     for child in depletionRoot.findall(".//title"):
-      self.jobTitle = child.text
+      self.jobTitle = child.text.replace(" ","")
       break
     return
 
