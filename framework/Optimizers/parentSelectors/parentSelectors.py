@@ -42,9 +42,7 @@ def rouletteWheel(population,**kwargs):
     @ Out, selectedParents, xr.DataArray, selected parents, i.e. np.shape(selectedParents) = nParents x nGenes.
   """
   # Arguments
-  #pop = population.copy(deep=True)
   pop = copy.deepcopy(population)
-  #fitness = kwargs['fitness'].copy(deep=True)
   fitness = copy.deepcopy(kwargs['fitness'])
   nParents= kwargs['nParents']
   # if nparents = population size then do nothing (whole population are parents)
@@ -86,9 +84,9 @@ def tournamentSelection(population,**kwargs):
           variables, list, variable names
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
-  fitness = kwargs['fitness']
+  fitness = copy.deepcopy(kwargs['fitness'])
   nParents= kwargs['nParents']
-  pop = population.copy(deep=True)
+  pop = copy.deepcopy(population)
 
   popSize = population.values.shape[0]
 
@@ -126,9 +124,8 @@ def rankSelection(population,**kwargs):
           nParents, int, number of required parents.
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
-  fitness = kwargs['fitness'].copy(deep=True)
-
-  pop = population.copy(deep=True)
+  fitness = copy.deepcopy(kwargs['fitness'])
+  pop = copy.deepcopy(population)
 
   index = np.arange(0,pop.shape[0])
   rank = np.arange(0,pop.shape[0])
