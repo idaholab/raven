@@ -42,8 +42,10 @@ def rouletteWheel(population,**kwargs):
     @ Out, selectedParents, xr.DataArray, selected parents, i.e. np.shape(selectedParents) = nParents x nGenes.
   """
   # Arguments
-  pop = population.copy(deep=True)
-  fitness = kwargs['fitness'].copy(deep=True)
+  #pop = population.copy(deep=True)
+  pop = copy.deepcopy(population)
+  #fitness = kwargs['fitness'].copy(deep=True)
+  fitness = copy.deepcopy(kwargs['fitness'])
   nParents= kwargs['nParents']
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:
@@ -61,8 +63,6 @@ def rouletteWheel(population,**kwargs):
   for i in range(nParents):
     # set a random pointer
     roulettePointer = randomUtils.random(dim=1, samples=1)
-    # Rotate the wheel
-
     # initialize Probability
     counter = 0
     selectionProb = fitness.data/np.sum(fitness.data) # Share of the pie (rouletteWheel)
@@ -101,7 +101,6 @@ def tournamentSelection(population,**kwargs):
   if nParents >= popSize/2.0:
     # generate combination of 2 with replacement
     selectionList = np.atleast_2d(randomUtils.randomChoice(list(range(0,popSize)), 2*nParents, replace=False))
-
   else: # nParents < popSize/2.0
     # generate combination of 2 without replacement
     selectionList = np.atleast_2d(randomUtils.randomChoice(list(range(0,popSize)), 2*nParents))

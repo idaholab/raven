@@ -25,7 +25,8 @@
 import numpy as np
 import xarray as xr
 from operator import itemgetter
-from utils import utils,randomUtils
+from utils import utils, randomUtils
+import copy
 
 def swapMutator(offSprings,**kwargs):
   """
@@ -52,7 +53,7 @@ def swapMutator(offSprings,**kwargs):
                           coords={'chromosome': np.arange(np.shape(offSprings)[0]),
                                   'Gene':kwargs['variables']})
   for i in range(np.shape(offSprings)[0]):
-    children[i] = offSprings[i].copy(deep=True)
+    children[i] = copy.deepcopy(offSprings[i])
     ## TODO What happens if loc1 or 2 is out of range?! should we raise an error?
     if randomUtils.random(dim=1,samples=1)<=kwargs['mutationProb']:
       children[i,loc1] = offSprings[i,loc2]
@@ -87,7 +88,7 @@ def scrambleMutator(offSprings,**kwargs):
                           coords={'chromosome': np.arange(np.shape(offSprings)[0]),
                                   'Gene':kwargs['variables']})
   for i in range(np.shape(offSprings)[0]):
-    children[i] = offSprings[i].copy(deep=True)
+    children[i] = copy.deepcopy(offSprings[i])
     new = list(itemgetter(*locs)(offSprings[i].values))
     for ind,element in enumerate(locs):
       if randomUtils.random(dim=1,samples=1)< kwargs['mutationProb']:
