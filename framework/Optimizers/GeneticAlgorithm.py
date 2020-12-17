@@ -441,7 +441,6 @@ class GeneticAlgorithm(RavenSampled):
         unique = set(children.data[chrom,:])
         if len(children.data[chrom,:]) != len(unique):
           for var in self.toBeSampled.keys(): ## TODO: there must be a smarter way to check if a variables strategy is without replacement
-            print(self.distDict[var].strategy)
             if (hasattr(self.distDict[var],'strategy') and self.distDict[var].strategy == 'withoutReplacement'):
               needsRepair = True
               break
