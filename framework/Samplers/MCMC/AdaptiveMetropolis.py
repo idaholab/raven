@@ -22,7 +22,7 @@
 import numpy as np
 import copy
 import abc
-from collection import OrderedDict
+from collections import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
