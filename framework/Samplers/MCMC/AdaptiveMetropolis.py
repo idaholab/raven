@@ -155,37 +155,39 @@ class AdaptiveMetropolis(MCMC):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    if self.counter < 2:
-      for distName, orderedVars in self._orderedVars.items():
-        dist = self.distDict[orderedVars[0]]
-        if len(orderedVars) == 1:
-          var = orderedVars[0]
-          value = self._updateValues[var]
-          self.inputInfo['SampledVarsPb'][var] = dist.pdf(value)
-          self.inputInfo['ProbabilityWeight-' + var] = 1.
-        else:
-          value = [self._updateValues[var] for var in orderedVars]
-          for var in orderedVars:
-            self.inputInfo['SampledVarsPb'][var] = dist.pdf(value)
-            self.inputInfo['ProbabilityWeight-' + var] = 1.
-    else:
+    self.values.update(self._updateValues)
+    if self.counter > 1:
       self._localReady = False
       newVal = self._proposal.rvs()
       # update sampled value using proposal distribution
       for i, var in enumerate(self._orderedVarsList):
         self.values[var] = self._updateValues[var] + newVal[i]
+    self._setProbabilities()
+
+  def _setProbabilities(self):
+    """
+      Method to compute probability related information
+      @ In, None
+      @ Out, None
+    """
+    for distName, orderedVars in self._orderedVars.items():
+      dist = self.distDict[orderedVars[0]]
+      if len(orderedVars) == 1:
+        var = orderedVars[0]
+        value = self.values[var]
+        self.inputInfo['SampledVarsPb'][var] = dist.pdf(value)
         self.inputInfo['ProbabilityWeight-' + var] = 1.
-        elf.inputInfo['SampledVarsPb'][var] = 1.
+      else:
+        value = [self.values[var] for var in orderedVars]
+        for var in orderedVars:
+          self.inputInfo['SampledVarsPb'][var] = dist.pdf(value)
+          self.inputInfo['ProbabilityWeight-' + var] = 1.
     self.inputInfo['PointProbability'] = 1.0
     self.inputInfo['ProbabilityWeight' ] = 1.0
     self.inputInfo['SamplerType'] = 'Metropolis'
 
 
-          for key, value in self._updateValues.items():
-            # update value based on proposal distribution
-            newVal = value + self._proposal[key].rvs()
-            self.values[key] = newVal
-
+  ## unchanged, can be moved to MCMC base class
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
       General function (available to all samplers) that finalize the sampling
@@ -214,6 +216,7 @@ class AdaptiveMetropolis(MCMC):
       else:
         self._addToSolutionExport(self._currentRlz)
         self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
+      self._updateAdaptiveParams(self._currentRlz)
 
   def _useRealization(self, newRlz, currentRlz):
     """
@@ -222,17 +225,18 @@ class AdaptiveMetropolis(MCMC):
       @ In, currentRlz, dict, the current existing realization
       @ Out, acceptable, bool, True if we accept the new sampled point
     """
+    ## first compute acceptable probability vs. netLogLikelihood
     netLogPosterior = 0
     # compute net log prior
-    for var in self._updateValues:
-      newVal = newRlz[var]
-      currVal = currentRlz[var]
-      if var in self.distDict:
-        dist = self.distDict[var]
-        netLogPrior = dist.logPdf(newVal) - dist.logPdf(currVal)
+    for distName, orderedVars in self._orderedVars.items():
+      dist = self.distDict[orderedVars[0]]
+      if len(orderedVars) == 1:
+        var = orderedVars[0]
+        netLogPrior = dist.logPdf(newRlz[var]) - dist.logPdf(currentRlz[var])
       else:
-        fun = self._priorFuns[var]
-        netLogPrior = np.log(fun.evaluate("pdf", newRlz)) - np.log(fun.evaluate("pdf", currentRlz))
+        newVal = [newRlz[var] for var in orderedVars]
+        currVal = [currentRlz[var] for var in orderedVars]
+        netLogPrior = dist.logPdf(newVal) - dist.logPdf(currVal)
       netLogPosterior += netLogPrior
     if not self._logLikelihood:
       netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
@@ -242,6 +246,22 @@ class AdaptiveMetropolis(MCMC):
     acceptValue = np.log(self._acceptDist.rvs())
     acceptable = netLogPosterior > acceptValue
     return acceptable
+
+  def _updateAdaptiveParams(self, rlz):
+    """
+      Used to feedback the collected runs within the sampler
+      @ In, rlz, dict, the updated current existing realization
+      @ Out, None
+    """
+    orderedVarsVals = np.asarray([rlz[var] for var in self._orderedVarsList])
+    ## update _lambda
+    self._gamma = 1.0/(self.counter+1.0)
+    self._lambda = self._lambda * np.exp(self._gamma * (netLogPosterior - self._optAlpha))
+    diff = orderedVarsVals - self._ensembleMean
+    self._ensembleMean += self._gamma * diff
+    self._ensembleCov += self._gamma * (np.outer(diff, diff)-self._ensembleCov)
+    ## update proposal distribution
+    self._proposal = self.constructProposalDistribution(self._ensembleMean, self._ensembleCov.ravel())
 
   def localStillReady(self, ready):
     """
