@@ -171,13 +171,20 @@ class AdaptiveMetropolis(MCMC):
     else:
       self._localReady = False
       newVal = self._proposal.rvs()
+      # update sampled value using proposal distribution
       for i, var in enumerate(self._orderedVarsList):
-        self.values[var] = newVal[i]
+        self.values[var] = self._updateValues[var] + newVal[i]
         self.inputInfo['ProbabilityWeight-' + var] = 1.
         elf.inputInfo['SampledVarsPb'][var] = 1.
     self.inputInfo['PointProbability'] = 1.0
     self.inputInfo['ProbabilityWeight' ] = 1.0
     self.inputInfo['SamplerType'] = 'Metropolis'
+
+
+          for key, value in self._updateValues.items():
+            # update value based on proposal distribution
+            newVal = value + self._proposal[key].rvs()
+            self.values[key] = newVal
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
@@ -189,7 +196,52 @@ class AdaptiveMetropolis(MCMC):
       @ In, myInput, list, the generating input
       @ Out, None
     """
+    self._localReady = True
     MCMC.localFinalizeActualSampling(self, jobObject, model, myInput)
+    prefix = jobObject.getMetadata()['prefix']
+    _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
+    rlz = dict((var, full[var]) for var in (list(self.toBeCalibrated.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
+    rlz['traceID'] = self.counter
+    if self.counter == 1:
+      self._addToSolutionExport(rlz)
+      self._currentRlz = rlz
+    if self.counter > 1:
+      acceptable = self._useRealization(rlz, self._currentRlz)
+      if acceptable:
+        self._currentRlz = rlz
+        self._addToSolutionExport(rlz)
+        self._updateValues = dict((var, rlz[var]) for var in self._updateValues)
+      else:
+        self._addToSolutionExport(self._currentRlz)
+        self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
+
+  def _useRealization(self, newRlz, currentRlz):
+    """
+      Used to feedback the collected runs within the sampler
+      @ In, newRlz, dict, new generated realization
+      @ In, currentRlz, dict, the current existing realization
+      @ Out, acceptable, bool, True if we accept the new sampled point
+    """
+    netLogPosterior = 0
+    # compute net log prior
+    for var in self._updateValues:
+      newVal = newRlz[var]
+      currVal = currentRlz[var]
+      if var in self.distDict:
+        dist = self.distDict[var]
+        netLogPrior = dist.logPdf(newVal) - dist.logPdf(currVal)
+      else:
+        fun = self._priorFuns[var]
+        netLogPrior = np.log(fun.evaluate("pdf", newRlz)) - np.log(fun.evaluate("pdf", currentRlz))
+      netLogPosterior += netLogPrior
+    if not self._logLikelihood:
+      netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
+    else:
+      netLogLikelihood = newRlz[self._likelihood] - currentRlz[self._likelihood]
+    netLogPosterior += netLogLikelihood
+    acceptValue = np.log(self._acceptDist.rvs())
+    acceptable = netLogPosterior > acceptValue
+    return acceptable
 
   def localStillReady(self, ready):
     """
