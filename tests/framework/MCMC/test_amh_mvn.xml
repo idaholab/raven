@@ -17,7 +17,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>metropolis</WorkingDir>
+    <WorkingDir>amh_mvn</WorkingDir>
     <Sequence>amh, print</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
