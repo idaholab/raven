@@ -249,11 +249,11 @@ class Phisics(CodeInterfaceBase):
       commandToRun = executable
       outputfile = 'out~'
     else:
-      commandToRun = executable + ' ' + inputFiles[mapDict['inp'.lower(
-      )]].getFilename() + ' ' + inputFiles[mapDict['Xs-library'.lower(
-      )]].getFilename() + ' ' + inputFiles[mapDict['Material'.lower(
-      )]].getFilename() + ' ' + inputFiles[mapDict['Depletion_input'.lower(
-      )]].getFilename() + ' ' + self.instantOutput
+      commandToRun = executable + ' -i ' + inputFiles[mapDict['inp'.lower(
+      )]].getFilename() + ' -xs ' + inputFiles[mapDict['Xs-library'.lower(
+      )]].getFilename() + ' -mat ' + inputFiles[mapDict['Material'.lower(
+      )]].getFilename() + ' -dep ' + inputFiles[mapDict['Depletion_input'.lower(
+      )]].getFilename() + ' -o ' + self.instantOutput
       commandToRun = commandToRun.replace("\n", " ")
       commandToRun = re.sub("\s\s+", " ", commandToRun)
       outputfile = 'out~' + inputFiles[mapDict['inp'.lower()]].getBase()
@@ -445,7 +445,7 @@ class Phisics(CodeInterfaceBase):
         currentInputFiles[self.typeDict['path']].getAbsFile(),
         currentInputFiles, self.typeDict)
     self.outputFileNames(currentInputFiles[self.typeDict['path']].getAbsFile())
-    self.instantOutput = self.jobTitle + '.o'
+    self.instantOutput = self.jobTitle.replace(" ","") + '.o'
     self.depInp = currentInputFiles[self.typeDict[
         'depletion_input']].getAbsFile()  # for PHISICS/RELAP interface
     if not self.mrtauStandAlone:
