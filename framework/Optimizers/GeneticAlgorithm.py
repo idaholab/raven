@@ -30,6 +30,7 @@ from scipy.special import comb
 from collections import deque, defaultdict
 import xarray as xr
 import operator
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -409,7 +410,6 @@ class GeneticAlgorithm(RavenSampled):
 
     if self._activeTraj:
       # 5.2@ n-1: Survivor selection(rlz)
-
       # update population container given obtained children
 
       if self.counter > 1:
@@ -427,25 +427,27 @@ class GeneticAlgorithm(RavenSampled):
 
       # 2 @ n: Crossover from set of parents
       # create childrenCoordinates (x1,...,xM)
-      children = self._crossoverInstance(parents=parents,variables=list(self.toBeSampled),crossoverProb=self._crossoverProb,points=self._crossoverPoints)
+      childrenXover = self._crossoverInstance(parents=parents,variables=list(self.toBeSampled),crossoverProb=self._crossoverProb,points=self._crossoverPoints)
 
       # 3 @ n: Mutation
       # perform random directly on childrenCoordinates
-      children = self._mutationInstance(offSprings=children,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+      childrenMutated = self._mutationInstance(offSprings=childrenXover,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
 
       # 4 @ n: repair/replacement
       # repair should only happen if multiple genes in a single chromosome have the same values (),
       # and at the same time the sampling of these genes should be with Out replacement.
       needsRepair = False
       for chrom in range(self._nChildren):
-        unique = set(children.data[chrom,:])
-        if len(children.data[chrom,:]) != len(unique):
+        unique = set(childrenMutated.data[chrom,:])
+        if len(childrenMutated.data[chrom,:]) != len(unique):
           for var in self.toBeSampled.keys(): ## TODO: there must be a smarter way to check if a variables strategy is without replacement
             if (hasattr(self.distDict[var],'strategy') and self.distDict[var].strategy == 'withoutReplacement'):
               needsRepair = True
               break
       if needsRepair:
-        children = self._repairInstance(children,variables=list(self.toBeSampled),distInfo=self.distDict)
+        children = self._repairInstance(childrenMutated,variables=list(self.toBeSampled),distInfo=self.distDict)
+      else:
+        children = copy.deepcopy(childrenMutated)
 
       # Make sure no children are exactly similar to parents
       flag = True
