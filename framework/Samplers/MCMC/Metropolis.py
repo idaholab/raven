@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Metroplis Hastings Algorithm for Markov Chain Monte Carlo
+  Metropolis Hastings Algorithm for Markov Chain Monte Carlo
 
   Created on June 26, 2020
   @author: wangc
@@ -72,6 +72,38 @@ class Metropolis(MCMC):
       @ Out, None
     """
     MCMC.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    if not self._correlated:
+      for var in self._updateValues:
+        dist = self.distDict[var]
+        dim = dist.getDimensionality()
+        if dim != 1:
+          self.raiseAnError(IOError, 'When "proposal" is used, only 1-dimensional probability distribution is allowed!',
+                            'Please check your input for variable "{}".'.format(var),
+                            'Please refer to adaptive Metropolis Sampler if the input variables are correlated!')
+    else:
+      self.raiseAnError(IOError, 'Multivariate case can not be handled by Metropolis, please consider adaptive Metropolis!')
+
+    for var in self._updateValues:
+      dist = self.distDict[var]
+      if var in self._proposal:
+        self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', self._proposal[var])
+        distType = self._proposal[var].getDistType()
+        dim = self._proposal[var].getDimensionality()
+        if distType != 'Continuous':
+          self.raiseAnError(IOError, 'variable "{}" requires continuous proposal distribution, but "{}" is provided!'.format(var, distType))
+        if dim != 1:
+          self.raiseAnError(IOError, 'When "proposal" is used, only 1-dimensional probability distribution is allowed!',
+                            'Please check your input for variable "{}".'.format(var),
+                            'Please refer to adaptive Metropolis Sampler if the input variables are correlated!')
+      else:
+        untrStdDev = dist.untruncatedStdDev()
+        newStd = 2.38 * untrStdDev # see Andrieu-Thoms2008
+        propDist = self._availProposal['normal'](0.0, newStd)
+        propDist.initializeDistribution()
+        self._proposal[var] = propDist
+      if self._updateValues[var] is None:
+        value = dist.rvs()
+        self._updateValues[var] = value
 
   def localGenerateInput(self, model, myInput):
     """
@@ -97,7 +129,7 @@ class Metropolis(MCMC):
         self.inputInfo['ProbabilityWeight-' + key] = 1.
     self.inputInfo['PointProbability'] = 1.0
     self.inputInfo['ProbabilityWeight' ] = 1.0
-    self.inputInfo['SamplerType'] = 'Metroplis'
+    self.inputInfo['SamplerType'] = 'Metropolis'
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """

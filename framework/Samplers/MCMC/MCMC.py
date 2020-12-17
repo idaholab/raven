@@ -137,10 +137,12 @@ class MCMC(AdaptiveSampler):
     self._burnIn = 0      # integers indicate how many samples will be discarded
     self._likelihood = None # stores the output from the likelihood
     self._logLikelihood = False # True if the user provided likelihood is in log format
-    self._availProposal = {'normal': Distributions.Normal(0.0, 1.0),
-                           'uniform': Distributions.Uniform(-1.0, 1.0)} # available proposal distributions
+    self._availProposal = {'normal': Distributions.Normal,
+                           'multivariateNormal': Distributions.MultivariateNormal} # available proposal distributions
     self._acceptDist = Distributions.Uniform(0.0, 1.0) # uniform distribution for accept/rejection purpose
     self.toBeCalibrated = {} # parameters that will be calibrated
+    self.toBeCalibratedList = [] # list of variables that will be calibrated
+    self._correlated = False # True if input variables are correlated else False
     # assembler objects
     self.addAssemblerObject('proposal', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('probabilityFunction', InputData.Quantity.zero_to_infinity)
@@ -227,14 +229,20 @@ class MCMC(AdaptiveSampler):
         # variable dimensionality
         if 'dim' not in childChild.parameterValues:
           dim = 1
+          if self._correlated:
+            self.raiseAnError(IOError, 'Found both correlated and uncorrelated variables in "{}" Samplers!'.format(self.type),
+                             'Please check your input, all variables should either be uncorrelated or correlated!')
         else:
           dim = childChild.parameterValues['dim']
+          if not self._correlated:
+            self._correlated = True
         varData['dim'] = dim
         # set up mapping for variable to distribution
         self.variables2distributionsMapping[varName] = varData
         # flag distribution as needing to be sampled
         self.toBeSampled[varName] = toBeSampled
         self.toBeCalibrated[varName] = toBeSampled
+        self.toBeCalibratedList.append(varName)
         if varName not in self._initialValues:
           self._initialValues[varName] = None
       elif childChild.getName() == 'function':
@@ -249,6 +257,7 @@ class MCMC(AdaptiveSampler):
       elif childChild.getName() == 'probabilityFunction':
         toBeSampled = childChild.value
         self.toBeCalibrated[varName] = toBeSampled
+        self.toBeCalibratedList.append(varName)
         self._priorFuns[varName] = toBeSampled
         if varName not in self._initialValues:
           self._initialValues[varName] = None
@@ -260,26 +269,13 @@ class MCMC(AdaptiveSampler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    # TODO: currently, we only consider uncorrelated case
-    # initialize distributions
-    for _, dist in self._availProposal.items():
-      dist.initializeDistribution()
     self._acceptDist.initializeDistribution()
-    for var in self._updateValues:
-      if var in self._proposal:
-        self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', self._proposal[var])
-        distType = self._proposal[var].getDistType()
-        if distType != 'Continuous':
-          self.raiseAnError(IOError, 'variable "{}" requires continuous proposal distribution, but "{}" is provided!'.format(var, distType))
-      else:
-        self._proposal[var] = self._availProposal['normal']
 
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     ## TODO: currently AdaptiveSampler is still using self.assemblerDict to retrieve the target evaluation.
     # We should change it to using the following method.
     # retrieve target evaluation
     # self._targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self._targetEvaluation)
-
     for var, priorFun in self._priorFuns.items():
       self._priorFuns[var] = self.retrieveObjectFromAssemblerDict('probabilityFunction', priorFun)
       if "pdf" not in self._priorFuns[var].availableMethods():
@@ -290,15 +286,10 @@ class MCMC(AdaptiveSampler):
             for variable "{}"'.format(var))
       # initialize the input variable values
     for var, dist in self.distDict.items():
-      totDim = self.variables2distributionsMapping[var]['totDim']
       distType = dist.getDistType()
       if distType != 'Continuous':
         self.raiseAnError(IOError, 'variable "{}" requires continuous distribution, but "{}" is provided!'.format(var, distType))
-      if totDim != 1:
-        self.raiseAnError(IOError,"Total dimension for given distribution {} should be 1".format(dist.type))
-      if self._updateValues[var] is None:
-        value = dist.rvs()
-        self._updateValues[var] = value
+
 
   def localGenerateInput(self, model, myInput):
     """

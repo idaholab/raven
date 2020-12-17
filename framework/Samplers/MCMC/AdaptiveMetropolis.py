@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Adaptive Metroplis Hastings Algorithm for Markov Chain Monte Carlo
+  Adaptive Metropolis Hastings Algorithm for Markov Chain Monte Carlo
 
   Created on Dec. 16, 2020
   @author: wangc
@@ -25,13 +25,13 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Metropolis import Metropolis
+from .MCMC import MCMC
 from utils import utils,randomUtils,InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class AdaptiveMetropolis(Metropolis):
+class AdaptiveMetropolis(MCMC):
   """
-    Adaptive Metroplis Hastings Sampler
+    Adaptive Metropolis Hastings Sampler
   """
   @classmethod
   def getInputSpecification(cls):
@@ -52,7 +52,13 @@ class AdaptiveMetropolis(Metropolis):
       @ In, None
       @ Out, None
     """
-    AdaptiveMetropolis.__init__(self)
+    MCMC.__init__(self)
+    self._optAlpha = 0.234 # optimum acceptance rate
+    self._lambda = {'i': None, 'i+1': None, 'counter':0} # Grow or shrink factor for covariance for step i and i+1
+    self._mean = {'i': None, 'i+1': None} # mean for step i and i+1
+    self._cov = {'i': None, 'i+1': None} # covariance for step i and i+1
+    self._gamma = {'i': None, 'i+1': None}
+
 
   def handleInput(self, paramInput):
     """
@@ -60,7 +66,7 @@ class AdaptiveMetropolis(Metropolis):
       @ In, paramInput, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
-    AdaptiveMetropolis.handleInput(self, paramInput)
+    MCMC.handleInput(self, paramInput)
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -69,7 +75,39 @@ class AdaptiveMetropolis(Metropolis):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    AdaptiveMetropolis.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+    MCMC.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
+
+    if self.proposal:
+      self.raiseAWarning('In AdaptiveMetropolis, "proposal" will be automatic generated!',
+                         'The user provided proposal will not be used!')
+
+    ## Define proposal distribution
+
+
+    ## generate initial values for self._updateValues
+
+    for var in self._updateValues:
+      dist = self.distDict[var]
+      if var in self._proposal:
+        self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', self._proposal[var])
+        distType = self._proposal[var].getDistType()
+        dim = self._proposal[var].getDimensionality()
+        if distType != 'Continuous':
+          self.raiseAnError(IOError, 'variable "{}" requires continuous proposal distribution, but "{}" is provided!'.format(var, distType))
+        if dim != 1:
+          self.raiseAnError(IOError, 'When "proposal" is used, only 1-dimensional probability distribution is allowed!',
+                            'Please check your input for variable "{}".'.format(var),
+                            'Please refer to adaptive Metropolis Sampler if the input variables are correlated!')
+      else:
+        untrStdDev = dist.untruncatedStdDev()
+        newStd = 2.38 * untrStdDev # see Andrieu-Thoms2008
+        propDist = self._availProposal['normal'](0.0, newStd)
+        propDist.initializeDistribution()
+        self._proposal[var] = propDist
+
+      if self._updateValues[var] is None:
+        value = dist.rvs()
+        self._updateValues[var] = value
 
   def localGenerateInput(self, model, myInput):
     """
@@ -80,7 +118,7 @@ class AdaptiveMetropolis(Metropolis):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    AdaptiveMetropolis.localGenerateInput(self, model, myInput)
+    MCMC.localGenerateInput(self, model, myInput)
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
@@ -92,7 +130,7 @@ class AdaptiveMetropolis(Metropolis):
       @ In, myInput, list, the generating input
       @ Out, None
     """
-    AdaptiveMetropolis.localFinalizeActualSampling(self, jobObject, model, myInput)
+    MCMC.localFinalizeActualSampling(self, jobObject, model, myInput)
 
   def localStillReady(self, ready):
     """
@@ -101,5 +139,5 @@ class AdaptiveMetropolis(Metropolis):
       @ In,  ready, bool, a boolean representing whether the caller is prepared for another input.
       @ Out, ready, bool, a boolean representing whether the caller is prepared for another input.
     """
-    ready = self._localReady and AdaptiveMetropolis.localStillReady(self, ready)
+    ready = self._localReady and MCMC.localStillReady(self, ready)
     return ready
