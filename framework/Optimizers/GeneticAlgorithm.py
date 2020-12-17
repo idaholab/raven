@@ -391,7 +391,7 @@ class GeneticAlgorithm(RavenSampled):
     traj = info['traj']
     self.incrementIteration(traj)
     info['step'] = self.counter
-    
+
     rlz=copy.deepcopy(rlz1)
 
     # Developer note: each algorithm step is indicated by a number followed by the generation number
