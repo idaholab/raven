@@ -22,6 +22,7 @@
 import numpy as np
 import copy
 import abc
+from collection import OrderedDict
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -54,10 +55,11 @@ class AdaptiveMetropolis(MCMC):
     """
     MCMC.__init__(self)
     self._optAlpha = 0.234 # optimum acceptance rate
-    self._lambda = {'i': None, 'i+1': None, 'counter':0} # Grow or shrink factor for covariance for step i and i+1
-    self._mean = {'i': None, 'i+1': None} # mean for step i and i+1
-    self._cov = {'i': None, 'i+1': None} # covariance for step i and i+1
-    self._gamma = {'i': None, 'i+1': None}
+    self._lambda = None
+    self._gamma = None
+    self._ensembleMean = None
+    self._ensembleCov = None
+    self._orderedVars = OrderedDict() # ordered dict of variables that is used to construct proposal function
 
 
   def handleInput(self, paramInput):
@@ -76,38 +78,72 @@ class AdaptiveMetropolis(MCMC):
       @ Out, None
     """
     MCMC.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-
+    totalNumVars = len(self.variables2distributionsMapping)
+    ## compute initial gamma and lambda
+    self._lambda = 2.38**2/totalNumVars
+    self._gamma = 1.0/(self.counter+1.0)
+    if totalNumVars != len(self.toBeCalibrated):
+      self.raiseAnError(IOError, 'AdaptiveMetropolis can not handle "probabilityFunction" yet!',
+                        'Please check your input and provide "distribution" instead of "probabilityFunction"!')
     if self.proposal:
       self.raiseAWarning('In AdaptiveMetropolis, "proposal" will be automatic generated!',
                          'The user provided proposal will not be used!')
-
-    ## Define proposal distribution
-
-
-    ## generate initial values for self._updateValues
-
-    for var in self._updateValues:
-      dist = self.distDict[var]
-      if var in self._proposal:
-        self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', self._proposal[var])
-        distType = self._proposal[var].getDistType()
-        dim = self._proposal[var].getDimensionality()
-        if distType != 'Continuous':
-          self.raiseAnError(IOError, 'variable "{}" requires continuous proposal distribution, but "{}" is provided!'.format(var, distType))
-        if dim != 1:
-          self.raiseAnError(IOError, 'When "proposal" is used, only 1-dimensional probability distribution is allowed!',
-                            'Please check your input for variable "{}".'.format(var),
-                            'Please refer to adaptive Metropolis Sampler if the input variables are correlated!')
+    ## construct ordered variable list
+    ## construct ensemble mean and covariance that will be used for proposal distribution
+    ## ToDO: current structure only works for untruncated distribution
+    self._ensembleMean = np.zeros(totalNumVars)
+    self._ensembleCov = np.zeros((totalNumVars, totalNumVars))
+    index = 0
+    for distName, elementDict in self.distributions2variablesMapping.items():
+      orderedVars = [k for k, v in sorted(elementDict.items(), key=lambda item: item[1])]
+      self._orderedVars[distName] = orderedVars
+      dist = self.distDict[orderedVars[0]]
+      if len(elementDict) == 1:
+        mean = dist.untruncatedMean()
+        sigma = dist.untruncatedStdDev()
+        self._ensembleMean[index] = mean
+        self._ensembleCov[index, index] = sigma**2
+        ## update initial value
+        var = orderedVars[0]
+        if self._updateValues[var] is None:
+          value = dist.rvs()
+          self._updateValues[var] = value
+        ## update index
+        index += 1
       else:
-        untrStdDev = dist.untruncatedStdDev()
-        newStd = 2.38 * untrStdDev # see Andrieu-Thoms2008
-        propDist = self._availProposal['normal'](0.0, newStd)
-        propDist.initializeDistribution()
-        self._proposal[var] = propDist
-
-      if self._updateValues[var] is None:
+        if dist.type != 'MultivariateNormal':
+          self.raiseAnError(IOError, 'Only accept "MultivariateNormal" distribution, but got "{}"'.format(dist.type))
+        mean = dist.mu
+        cov = dist.covariance
+        totDim = len(mean)
+        cov = np.asarray(cov).reshape((totDim, totDim))
+        self._ensembleMean[index:index+totDim] = mean
+        self._ensembleCov[index:index+totDim, index:index+totDim] = cov
+        ## update initial value
         value = dist.rvs()
-        self._updateValues[var] = value
+        for i, var in enumerate(orderedVars):
+          if self._updateValues[var] is None:
+            self._updateValues[var] = value[i]
+        ## update index
+        index += totDim
+    ## construct the proposal distribution for given mean and covariance
+    self.proposal = self.constructProposalDistribution(self._ensembleMean, self._ensembleCov.ravel())
+
+  def constructProposalDistribution(self, mu, cov):
+    """
+      Methods to construct proposal distribution
+      @ In, mu, list or 1-d numpy.array, the mean value
+      @ In, cov, list or 1-d numpy.array, the covariance value
+      @ Out, proposal, Distribution Object, the constructed distribution object.
+    """
+    proposal = self._availProposal['multivariateNormal']()
+    proposal.mu = mu
+    proposal.covariance = cov.ravel()
+    proposal.dimension = len(mu)
+    proposal.rank = len(mu)
+    proposal.initializeDistribution()
+    return proposal
+
 
   def localGenerateInput(self, model, myInput):
     """

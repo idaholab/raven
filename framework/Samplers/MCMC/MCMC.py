@@ -141,7 +141,6 @@ class MCMC(AdaptiveSampler):
                            'multivariateNormal': Distributions.MultivariateNormal} # available proposal distributions
     self._acceptDist = Distributions.Uniform(0.0, 1.0) # uniform distribution for accept/rejection purpose
     self.toBeCalibrated = {} # parameters that will be calibrated
-    self.toBeCalibratedList = [] # list of variables that will be calibrated
     self._correlated = False # True if input variables are correlated else False
     # assembler objects
     self.addAssemblerObject('proposal', InputData.Quantity.zero_to_infinity)
@@ -242,7 +241,6 @@ class MCMC(AdaptiveSampler):
         # flag distribution as needing to be sampled
         self.toBeSampled[varName] = toBeSampled
         self.toBeCalibrated[varName] = toBeSampled
-        self.toBeCalibratedList.append(varName)
         if varName not in self._initialValues:
           self._initialValues[varName] = None
       elif childChild.getName() == 'function':
@@ -257,7 +255,6 @@ class MCMC(AdaptiveSampler):
       elif childChild.getName() == 'probabilityFunction':
         toBeSampled = childChild.value
         self.toBeCalibrated[varName] = toBeSampled
-        self.toBeCalibratedList.append(varName)
         self._priorFuns[varName] = toBeSampled
         if varName not in self._initialValues:
           self._initialValues[varName] = None
