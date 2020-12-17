@@ -1,0 +1,26 @@
+C ******************************************************************************
+C **************************    TIMER  Definition  *****************************
+C ******************************************************************************
+C TIMER FOR SCRAM
+WHEN REACTOR SCRAM IS TRUE
+  SET TIMER 21
+END
+
+C TIMER FOR VESSEL FAILURE
+WHEN RV FAILED IS TRUE
+   SET TIMER 23
+END
+
+C Branching TIMELOCA
+WHEN (TIM>TIMELOCA) AND (TIMELOCA /= -1)
+   SET TIMER 100
+END
+
+C Branching AFWOFF
+WHEN (TIM>AFWOFF) AND (AFWOFF /= -1)
+   SET TIMER 101
+END
+
+WHEN CORE HAS UNCOV IS TRUE
+  SET TIMER 99
+END

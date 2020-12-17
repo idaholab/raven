@@ -89,12 +89,14 @@ WHEN MWCST < 0.2E6
 END
 C Branching AFWOFF
 WHEN TIM > AFWOFF  AND AFWOFF /= -1
+ TIM101=1.0
  IEVNT(224)=1
 END
 C ************Leakage rate increases**********
 C Branching TIMELOCA
 WHEN TIM > TIMELOCA  AND TIMELOCA /= -1
  SET TIMER 28
+ TIM100=1.0
  ABBN(1)=0.008
  ABBN(2)=0.008
  ABBN(3)=0.008

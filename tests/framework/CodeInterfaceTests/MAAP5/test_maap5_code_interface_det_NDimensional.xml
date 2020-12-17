@@ -1,0 +1,123 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests.MAAP5interfaceDETSampling</name>
+    <author>alfoa</author>
+    <created>2016-06-27</created>
+    <classesTested>Models.Code.MAAP5, Samplers.DynamicEventTree</classesTested>
+    <description>
+       An example of using the the Model Code of type MAAP5.
+       This test is aimed to test the mechanics of the MAAP5 interface when used with the 
+       Dynamic Event Tree methodology.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2016-07-01">Addressed Dan's comments on interface (By Claudia Picoco)</revision>
+      <revision author="bobk" date="2016-07-07">Changes file mode on two XML test file from 775 to 664 so that they will not be flagged as modified after validate_xml is run.</revision>
+      <revision author="alfoa" date="2016-09-01">Close #650</revision>
+      <revision author="talbpaul" date="2016-09-15">Test updates</revision>
+      <revision author="talbpaul" date="2016-10-25">removed dim in OutStream Plot for validation purposes</revision>
+      <revision author="alfoa" date="2016-11-15">Updated input files</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>MAAP5_DET_ND_dist_test</WorkingDir>
+    <Sequence>testDummyStep</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="test.inp" type="">w4-loca-de.inp</Input>
+    <Input name="zion_par" type="">zion5.par</Input>
+<Input name="plot_file" type="">plot_900_502a.txt</Input>
+    <Input name="include_900_502" type="">include_900_502</Input>
+  </Files>
+
+  <Models>
+    <Code name="MyMAAP" subType="MAAP5">
+      <executable> ~/MAAPv5.04_Linux_Executable/maap504/x86/bin/pwr5d
+      </executable>
+      <clargs extension=".inp" type="input"/>
+      <boolMaapOutputVariables>IEVNT(691)</boolMaapOutputVariables>
+      <contMaapOutputVariables>PPS, PSGGEN(1), ZWDC2SG(1), WWTOTFW(1) </contMaapOutputVariables>
+      <stopSimulation>mission_time</stopSimulation>
+      <includeForTimer>include_900_502</includeForTimer>
+    </Code>
+  </Models>
+
+  <Distributions>
+      <NDInverseWeight name='testND'>
+          <p>2</p>
+          <dataFilename type='PDF'>dist.txt</dataFilename>
+          <workingDir>MAAP5_DET_ND_dist_test</workingDir>
+      </NDInverseWeight>
+  </Distributions>
+
+  <Samplers>
+    <DynamicEventTree name="det" removeXmlBranchInfo="no">
+      <variable name="TIMELOCA">
+        <distribution dim="1">testND</distribution>
+        <grid construction="custom" type="value">50 500 900</grid>
+      </variable>
+      <variable name="AFWOFF">
+        <distribution dim="2">testND</distribution>
+        <grid construction="custom" type="CDF">0.4 0.5</grid>
+      </variable>
+    </DynamicEventTree>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="testDummyStep" re-seeding="1">
+      <Input class="Files" type="">test.inp</Input>
+      <Input class="Files" type="">zion_par</Input>
+      <Input class="Files" type="">include_900_502</Input>
+      <Input class="Files" type="">plot_file</Input>
+      <Model class="Models" type="Code">MyMAAP</Model>
+      <Sampler class="Samplers" type="DynamicEventTree">det</Sampler>
+      <Output class="Databases" type="HDF5">DataB_MAAP5_1</Output>
+      <Output class="DataObjects" type="HistorySet">Temporal_Evolution</Output>
+      <Output class="OutStreams" type="Print">test_dataobject</Output>
+      <Output class="OutStreams" type="Plot">plotAFW</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="Temporal_Evolution" hierarchical="false">
+      <Input>TIMELOCA</Input>
+      <Output>TIME, PPS, PSGGEN(1), ZWDC2SG(1), WWTOTFW(1)</Output>
+      <options>
+          <pivotParameter>TIME</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="test_dataobject">
+      <type>csv</type>
+      <source>Temporal_Evolution</source>
+    </Print>
+    <Plot name="plotAFW" overwrite="False">
+      <plotSettings>
+        <plot>
+          <type>line</type>
+          <x>Temporal_Evolution|Output|TIME</x>
+          <y>Temporal_Evolution|Output|WWTOTFW(1)</y>
+          <interpPointsX>100</interpPointsX>
+        </plot>
+        <xlabel>Time[s]</xlabel>
+        <ylabel>AFW [kg/s]</ylabel>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text>Plot_AFW</text>
+        </title>
+      </actions>
+    </Plot>
+  </OutStreams>
+
+  <Databases>
+    <HDF5 name="DataB_MAAP5_1" readMode="overwrite"/>
+  </Databases>
+
+</Simulation>

@@ -77,7 +77,6 @@ class combine():
         valuesRelap = np.array(list(paramDict['relapData'].values())).T[lineNumber].tolist()
         data.append(valuesPhisics+valuesRelap)
         addedNow = True
-
       # if the relap time on a line is larger the TH_between_burn selected
       if paramDict['relapData']['time'][lineNumber] >= thBurnStep[THbetweenBurn]:
         # change the TH_between_burn selected

@@ -22,8 +22,8 @@ from __future__ import division, print_function , unicode_literals, absolute_imp
 import numpy as np
 import xarray
 import math
-import sys
-from copy import deepcopy
+import os
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -203,7 +203,6 @@ class LimitSurfaceIntegral(PostProcessor):
         modifiedMatrixDict[key] = np.concatenate((self.matrixDict[key][indecesToModifyOnes], self.matrixDict[key][indecesToModifyOnes]
                                                   + (self.matrixDict[key][indecesToModifyOnes]/avg * 1.e-14))) if key != self.target else res
       self.errorModel.train(modifiedMatrixDict)
-
     for varName, distName in self.variableDist.items():
       if distName != None:
         self.variableDist[varName] = self.retrieveObjectFromAssemblerDict('distribution', distName)

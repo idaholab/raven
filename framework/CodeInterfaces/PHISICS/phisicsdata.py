@@ -996,6 +996,8 @@ class phisicsdata():
     return rrNames, rrValues
 
   def phisicsTimeStepData(self, instantDict, timeStepIndex, matchedTimeSteps):
+<<<<<<< HEAD
+=======
     """
       Return PHISICS data
       @ In, InstantDict, dictionary, contains all the values collected from INSTANT output
@@ -1036,10 +1038,83 @@ class phisicsdata():
                            + mrtauDict.get('depList') + mrtauDict.get('decayHeatMrtau'),dtype=float)
     return headers, snapshoot
 
+  def writeCSV(self, instantDict, timeStepIndex, matchedTimeSteps, jobTitle):
+>>>>>>> 1ab7a2e479b9d0e9f1c04e829e98bf6234b0b24a
+    """
+      Return PHISICS data
+      @ In, InstantDict, dictionary, contains all the values collected from INSTANT output
+      @ In, timeStepIndex, integer, timestep number
+      @ In, matchedTimeSteps, list, list of time steps considered
+<<<<<<< HEAD
+      @ Out, headers, list, the list of variables
+      @ Out, snapshoot, np.array, the values for this timestep (timeStepIndex)
+    """
+    rrNames, rrValues = self.getRRlist(instantDict)
+    if self.phisicsRelap:
+      headers = ['timeMrTau'] + ['keff'] + ['errorKeff'] + rrNames + instantDict.get('fluxLabelList')
+      headers += instantDict.get('powerDensLabelList') + instantDict.get('depLabelList') + instantDict.get('decayLabelList')
+      headers += instantDict.get('xsLabelList') + ['cpuTime'] + instantDict.get('buLabelList')
+      snapshoot = np.asarray([str(matchedTimeSteps[timeStepIndex])] + instantDict.get('keff')
+                             + instantDict.get('errorKeff') + rrValues +instantDict.get('fluxList') + instantDict.get('powerDensList')
+                             + instantDict.get('depList') + instantDict.get('decayList') +instantDict.get('xsList')
+                             + [instantDict.get('cpuTime')] + instantDict.get('buList'),dtype=float)
+    else:
+      headers  = ['timeMrTau'] + ['keff'] + ['errorKeff'] + rrNames
+      headers += instantDict.get('fluxLabelList') + instantDict.get('matFluxLabelList')
+      headers += instantDict.get('depLabelList')+ instantDict.get('decayLabelList')
+      headers += instantDict.get('xsLabelList')+ ['cpuTime']+ instantDict.get('buLabelList')
+      snapshoot = np.asarray([str(matchedTimeSteps[timeStepIndex])] + instantDict.get('keff')
+                             + instantDict.get('errorKeff') + rrValues + instantDict.get('fluxList')
+                             + instantDict.get('matFluxList') + instantDict.get('depList') + instantDict.get('decayList')
+                             + instantDict.get('xsList') + instantDict.get('cpuTime') + instantDict.get('buList'), dtype=float)
+    return headers, snapshoot
+=======
+      @ In, jobTitle, string, job title parsed from INSTANT input
+      @ Out, None
+    """
+    if self.paramList != []:
+      csvOutput = os.path.join(instantDict.get('workingDir'), jobTitle + '.csv')
+      headers, snapshoot = self.phisicsTimeStepData(instantDict, timeStepIndex, matchedTimeSteps)
+      with open(csvOutput, 'a+') as f:
+        instantWriter = csv.writer(f,delimiter=str(','),quotechar=str(','),quoting=csv.QUOTE_MINIMAL)
+        if timeStepIndex == 0:
+          instantWriter.writerow(headers)
+        instantWriter.writerow(snapshoot.tolist())
+>>>>>>> 1ab7a2e479b9d0e9f1c04e829e98bf6234b0b24a
+
+  def mrtauTimeStepData(self, mrtauDict):
+    """
+      Return mrtau data
+      @ In, mrtauDict, dictionary, contains all the values collected from MRTAU output
+      @ Out, headers, list, the list of variables
+      @ Out, snapshoot, np.array, the values of the variables
+    """
+    headers = ['timeMrTau'] + self.numDensityLabelListMrtau + self.decayLabelListMrtau
+    snapshoot = np.asarray([str(mrtauDict.get('mrtauTimeSteps')[mrtauDict.get('timeStepIndex')])]
+                           + mrtauDict.get('depList') + mrtauDict.get('decayHeatMrtau'),dtype=float)
+    return headers, snapshoot
+
   def returnData(self):
     """
       Method to return the data in a dictionary
       @ In, None
       @ Out, self.data, dict, the dictionary containing the data {var1:array,var2:array,etc}
     """
+<<<<<<< HEAD
+=======
+    csvOutput = os.path.join(mrtauDict.get('workingDir'), 'mrtau' + '.csv')
+    headers, snapshoot = self.mrtauTimeStepData(mrtauDict)
+    with open(csvOutput, 'a+') as f:
+      mrtauWriter = csv.writer(f,delimiter=str(','),quotechar=str(','),quoting=csv.QUOTE_MINIMAL)
+      if mrtauDict.get('timeStepIndex') == 0:
+        mrtauWriter.writerow(headers)
+      mrtauWriter.writerow(snapshoot)
+
+  def returnData(self):
+    """
+      Method to return the data in a dictionary
+      @ In, None
+      @ Out, self.data, dict, the dictionary containing the data {var1:array,var2:array,etc}
+    """
+>>>>>>> 1ab7a2e479b9d0e9f1c04e829e98bf6234b0b24a
     return self.data
