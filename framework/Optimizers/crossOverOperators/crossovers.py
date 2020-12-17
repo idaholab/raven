@@ -69,7 +69,7 @@ def onePointCrossover(parents,**kwargs):
       for i in range(nGenes):
         if len(point)>1:
           raise ValueError('In one Point Crossover a single crossover location should be provided!')
-        children[2*ind:2*ind+2,i] = parent[np.arange(0,2)*(i<point[0])+np.arange(-1,-3,-1)*(i>=point[0]),i]
+        children[2*ind:2*ind+2,i] = copy.deepcopy(parent[np.arange(0,2)*(i<point[0])+np.arange(-1,-3,-1)*(i>=point[0]),i])
     else:
       # Each child is just a copy of the parents
       children[2*ind:2*ind+2,:] = copy.deepcopy(parent)
