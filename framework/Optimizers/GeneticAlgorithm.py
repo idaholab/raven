@@ -29,7 +29,6 @@ import numpy as np
 from scipy.special import comb
 from collections import deque, defaultdict
 import xarray as xr
-import operator
 import copy
 #External Modules End--------------------------------------------------------------------------------
 
@@ -485,7 +484,7 @@ class GeneticAlgorithm(RavenSampled):
         newRlz={}
         for _,var in enumerate(self.toBeSampled.keys()):
           newRlz[var] = float(daChildren.loc[i,var].values)
-        self._submitRun(newRlz, traj, self.getIteration(traj))
+        self._submitRun(copy.deepcopy(newRlz), traj, self.getIteration(traj))
 
   def _datasetToDataArray(self,rlzDataset):
     """

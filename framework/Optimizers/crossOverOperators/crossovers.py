@@ -41,7 +41,7 @@ def onePointCrossover(parents,**kwargs):
   """
   nParents,nGenes = np.shape(parents)
   # Number of children = 2* (nParents choose 2)
-  children = xr.DataArray(np.zeros((int(2*comb(nParents,2)),np.shape(parents)[1])),
+  children = xr.DataArray(np.zeros((int(2*comb(nParents,2)),nGenes)),
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(int(2*comb(nParents,2))),
                                       'Gene':kwargs['variables']})
