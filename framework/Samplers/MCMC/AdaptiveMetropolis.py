@@ -60,7 +60,7 @@ class AdaptiveMetropolis(MCMC):
     self._ensembleMean = None
     self._ensembleCov = None
     self._orderedVars = OrderedDict() # ordered dict of variables that is used to construct proposal function
-
+    self._orderedVarsList = []
 
   def handleInput(self, paramInput):
     """
@@ -85,7 +85,7 @@ class AdaptiveMetropolis(MCMC):
     if totalNumVars != len(self.toBeCalibrated):
       self.raiseAnError(IOError, 'AdaptiveMetropolis can not handle "probabilityFunction" yet!',
                         'Please check your input and provide "distribution" instead of "probabilityFunction"!')
-    if self.proposal:
+    if self._proposal:
       self.raiseAWarning('In AdaptiveMetropolis, "proposal" will be automatic generated!',
                          'The user provided proposal will not be used!')
     ## construct ordered variable list
@@ -97,6 +97,7 @@ class AdaptiveMetropolis(MCMC):
     for distName, elementDict in self.distributions2variablesMapping.items():
       orderedVars = [k for k, v in sorted(elementDict.items(), key=lambda item: item[1])]
       self._orderedVars[distName] = orderedVars
+      self._orderedVarsList.extend(orderedVars)
       dist = self.distDict[orderedVars[0]]
       if len(elementDict) == 1:
         mean = dist.untruncatedMean()
@@ -127,7 +128,7 @@ class AdaptiveMetropolis(MCMC):
         ## update index
         index += totDim
     ## construct the proposal distribution for given mean and covariance
-    self.proposal = self.constructProposalDistribution(self._ensembleMean, self._ensembleCov.ravel())
+    self._proposal = self.constructProposalDistribution(self._ensembleMean, self._ensembleCov.ravel())
 
   def constructProposalDistribution(self, mu, cov):
     """
@@ -154,7 +155,29 @@ class AdaptiveMetropolis(MCMC):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    MCMC.localGenerateInput(self, model, myInput)
+    if self.counter < 2:
+      for distName, orderedVars in self._orderedVars.items():
+        dist = self.distDict[orderedVars[0]]
+        if len(orderedVars) == 1:
+          var = orderedVars[0]
+          value = self._updateValues[var]
+          self.inputInfo['SampledVarsPb'][var] = dist.pdf(value)
+          self.inputInfo['ProbabilityWeight-' + var] = 1.
+        else:
+          value = [self._updateValues[var] for var in orderedVars]
+          for var in orderedVars:
+            self.inputInfo['SampledVarsPb'][var] = dist.pdf(value)
+            self.inputInfo['ProbabilityWeight-' + var] = 1.
+    else:
+      self._localReady = False
+      newVal = self._proposal.rvs()
+      for i, var in enumerate(self._orderedVarsList):
+        self.values[var] = newVal[i]
+        self.inputInfo['ProbabilityWeight-' + var] = 1.
+        elf.inputInfo['SampledVarsPb'][var] = 1.
+    self.inputInfo['PointProbability'] = 1.0
+    self.inputInfo['ProbabilityWeight' ] = 1.0
+    self.inputInfo['SamplerType'] = 'Metropolis'
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
