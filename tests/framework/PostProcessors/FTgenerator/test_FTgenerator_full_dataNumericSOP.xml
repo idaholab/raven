@@ -1,0 +1,66 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/FTgeneratorPostProcessor.FTgenerator_fullDataNumericSOP</name>
+    <author>mandd</author>
+    <created>2020-10-28</created>
+    <classesTested>FTgenerator</classesTested>
+    <description>
+      This test checks the FTgenerator PP on the generation of a SOP formula using numeric data
+    </description>
+  </TestInfo>
+  
+  <RunInfo>
+    <WorkingDir>FTgenFullDataNumeric</WorkingDir>
+    <Sequence>import,generateFT,printBoolDO</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="simDataFile">dataFull.csv</Input>
+  </Files>
+  
+  <Models>
+    <PostProcessor name="FTgeneratorTest" subType="FTgenerator">
+      <topEventID>TOP</topEventID>
+      <inputVars>BE_A,BE_B,BE_C</inputVars>
+      <fileName>faulTreeFullNameSOP</fileName>
+      <simOnly>false</simOnly>
+      <type>sop</type>
+    </PostProcessor>   
+  </Models>
+
+  <Steps>
+    <IOStep     name="import">
+      <Input    class="Files"         type=""              >simDataFile</Input>
+      <Output   class="DataObjects"   type="PointSet"      >simData</Output>
+    </IOStep>
+    <PostProcess name="generateFT">
+      <Input     class="DataObjects"  type="PointSet"      >simData</Input>
+      <Model     class="Models"       type="PostProcessor" >FTgeneratorTest</Model>
+      <Output    class="DataObjects"  type="PointSet"      >BoolSimData</Output>
+    </PostProcess>
+    <IOStep     name="printBoolDO"> 
+      <Input    class="DataObjects"   type="PointSet"      >BoolSimData</Input>
+      <Output   class="OutStreams"    type="Print"         >PrintPSsop</Output>
+    </IOStep>
+  </Steps>
+  
+  <DataObjects>
+    <PointSet name="simData">
+      <Input>BE_A,BE_B,BE_C</Input>
+      <Output>TOP</Output>
+    </PointSet>
+    <PointSet name="BoolSimData">
+      <Input>BE_A,BE_B,BE_C</Input>
+      <Output>TOP</Output>
+    </PointSet>
+  </DataObjects>
+  
+  <OutStreams>
+    <Print name="PrintPSsop">
+      <type>csv</type>
+      <source>BoolSimData</source>
+    </Print>
+  </OutStreams>
+  
+</Simulation>

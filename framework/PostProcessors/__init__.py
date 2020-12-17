@@ -51,10 +51,11 @@ from .ComparisonStatisticsModule import ComparisonStatistics
 from .RealizationAverager import RealizationAverager
 from .ParetoFrontierPostProcessor import ParetoFrontier
 from .MCSimporter import MCSImporter
+from .FTgenerator import FTgenerator
 # from .RavenOutput import RavenOutput # deprecated for now
 
 additionalModules = []
-## These utilize the optional prequisite library PySide, so don't error if they
+## These utilize the optional prerequisite library PySide, so don't error if they
 ## do not import appropriately.
 try:
   from .TopologicalDecomposition import QTopologicalDecomposition
@@ -90,5 +91,6 @@ __all__ = ['PostProcessor',
            'SampleSelector',
            'ETImporter',
            'RealizationAverager',
-           'ParetoFrontier'] + additionalModules
+           'ParetoFrontier',
+           'FTgenerator'] + additionalModules
 #           'RavenOutput', # deprecated for now

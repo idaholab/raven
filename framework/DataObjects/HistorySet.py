@@ -261,9 +261,9 @@ class HistorySet(DataSet):
     # don't rewrite everything; if we've written some already, just append (using mode)
     mode = 'a' if start > 0 else 'w'
     # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
-    # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
+    # If True, all the branches are going to be printed/plotted independently, otherwise the are going to be reconstructed
     # In this case, if self.hierarchical is False, the histories are going to be reconstructed
-    # (see _constructHierPaths for further explainations)
+    # (see _constructHierPaths for further explanations)
     if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
       fullData = self._constructHierPaths()[start-1:]
       data = self._data.where(self._data['RAVEN_isEnding']==True,drop=True)
@@ -298,16 +298,16 @@ class HistorySet(DataSet):
 
     if len(ordered):
       # hierarchical flag controls the printing/plotting of the dataobject in case it is an hierarchical one.
-      # If True, all the branches are going to be printed/plotted independenttly, otherwise the are going to be reconstructed
+      # If True, all the branches are going to be printed/plotted independently, otherwise the are going to be reconstructed
       # In this case, if self.hierarchical is False, the histories are going to be reconstructed
-      # (see _constructHierPaths for further explainations)
+      # (see _constructHierPaths for further explanations)
       if not self.hierarchical and 'RAVEN_isEnding' in self.getVars():
         for i in range(len(fullData)):
           # the mode is at the begin 'w' since we want to write the first portion of the history from scratch
           # once the first history portion is written, we change the mode to 'a' (append) since we continue
           # writing the other portions to the same file, in order to reconstruct the "full history" in the same
           # file.
-          # FIXME: This approach is drammatically SLOW!
+          # FIXME: This approach is dramatically SLOW!
           mode = 'w'
           filename = subFiles[i][:-4]
           for subSampleTag in range(len(fullData[i][self.sampleTag].values)):
