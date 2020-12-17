@@ -62,8 +62,8 @@
       </samplerInit>
 
       <GAparams>
-        <populationSize>45</populationSize>
-        <reproduction nParents="8">
+        <populationSize>14</populationSize>
+        <reproduction nParents="6">
           <crossover type="onePointCrossover">
             <crossoverProb>0.9</crossoverProb>
           </crossover>
@@ -85,43 +85,43 @@
 
       <variable name="proj1">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1</initial>
+        <initial>0,0,0,0,1,0,0,0,0,1,0,0,0,0</initial>
       </variable>
       <variable name="proj2">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0</initial>
+        <initial>0,0,0,1,0,0,0,0,1,0,0,0,0,1</initial>
       </variable>
       <variable name="proj3">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0</initial>
+        <initial>0,0,1,0,0,0,0,1,0,0,0,0,1,0</initial>
       </variable>
       <variable name="proj4">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0</initial>
+        <initial>0,1,0,0,0,0,1,0,0,0,0,1,0,0</initial>
       </variable>
       <variable name="proj5">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0</initial>
+        <initial>1,0,0,0,0,1,0,0,0,0,1,0,0,0</initial>
       </variable>
       <variable name="proj6">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1</initial>
+        <initial>0,0,0,0,1,0,0,0,0,1,0,0,0,0</initial>
       </variable>
       <variable name="proj7">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0</initial>
+        <initial>0,0,0,1,0,0,0,0,1,0,0,0,0,1</initial>
       </variable>
       <variable name="proj8">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0</initial>
+        <initial>0,0,1,0,0,0,0,1,0,0,0,0,1,0</initial>
       </variable>
       <variable name="proj9">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0</initial>
+        <initial>0,1,0,0,0,0,1,0,0,0,0,1,0,0</initial>
       </variable>
       <variable name="proj10">
         <distribution>unif_dist_wRepl</distribution>
-        <initial>1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0</initial>
+        <initial>1,0,0,0,0,1,0,0,0,0,1,0,0,0</initial>
       </variable>
 
       <objective>planValue</objective>

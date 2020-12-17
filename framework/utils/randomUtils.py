@@ -27,7 +27,7 @@ from collections import deque, defaultdict
 from utils.utils import findCrowModule
 from utils import mathUtils
 
-# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
+# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
 # Numpy stochastic environment can not pass the test as this point
 stochasticEnv = 'crow'
 #stochasticEnv = 'numpy'
