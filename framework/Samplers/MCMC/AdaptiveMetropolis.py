@@ -94,40 +94,52 @@ class AdaptiveMetropolis(MCMC):
     self._ensembleMean = np.zeros(totalNumVars)
     self._ensembleCov = np.zeros((totalNumVars, totalNumVars))
     index = 0
-    for distName, elementDict in self.distributions2variablesMapping.items():
-      orderedVars = [k for k, v in sorted(elementDict.items(), key=lambda item: item[1])]
-      self._orderedVars[distName] = orderedVars
-      self._orderedVarsList.extend(orderedVars)
-      dist = self.distDict[orderedVars[0]]
-      if len(elementDict) == 1:
-        mean = dist.untruncatedMean()
-        sigma = dist.untruncatedStdDev()
-        self._ensembleMean[index] = mean
-        self._ensembleCov[index, index] = sigma**2
-        ## update initial value
-        var = orderedVars[0]
-        if self._updateValues[var] is None:
-          value = dist.rvs()
-          self._updateValues[var] = value
-        ## update index
-        index += 1
+    for distName, elementList in self.distributions2variablesMapping.items():
+      totDim = max(self.distributions2variablesIndexList[distName])
+      orderedVars = []
+      if totDim == 1:
+        for elem in elementList:
+          key = list(elem.keys())[0]
+          if key in self._updateValues.keys():
+            orderedVars.append([key])
+            self._orderedVarsList.append(key)
+            dist = self.distDict[key]
+            mean = dist.untruncatedMean()
+            sigma = dist.untruncatedStdDev()
+            self._ensembleMean[index] = mean
+            self._ensembleCov[index, index] = sigma**2
+            ## update index
+            index += 1
+            if self._updateValues[key] is None:
+              value = dist.rvs()
+              self._updateValues[key] = value
+        # self._orderedVars: {distName:[[varlist], []]}
+        self._orderedVars[distName] = orderedVars
       else:
-        if dist.type != 'MultivariateNormal':
-          self.raiseAnError(IOError, 'Only accept "MultivariateNormal" distribution, but got "{}"'.format(dist.type))
-        mean = dist.mu
-        cov = dist.covariance
-        totDim = len(mean)
-        cov = np.asarray(cov).reshape((totDim, totDim))
-        self._ensembleMean[index:index+totDim] = mean
-        self._ensembleCov[index:index+totDim, index:index+totDim] = cov
-        ## update initial value
-        value = dist.rvs()
-        for i, var in enumerate(orderedVars):
-          if self._updateValues[var] is None:
-            self._updateValues[var] = value[i]
-        ## update index
-        index += totDim
-    ## construct the proposal distribution for given mean and covariance
+        elemDict = {}
+        for elem in elementList:
+          elemDict.update(elem)
+        orderedVars = [k for k, v in sorted(elemDict.items(), key=lambda item: item[1])]
+        var = orderedVars[0]
+        if var in self._updateValues.keys():
+          self._orderedVars[distName] = [orderedVars]
+          self._orderedVarsList.extend(orderedVars)
+          dist = self.distDict[var]
+          if dist.type != 'MultivariateNormal':
+            self.raiseAnError(IOError, 'Only accept "MultivariateNormal" distribution, but got "{}"'.format(dist.type))
+          mean = dist.mu
+          cov = dist.covariance
+          totDim = len(mean)
+          cov = np.asarray(cov).reshape((totDim, totDim))
+          self._ensembleMean[index:index+totDim] = mean
+          self._ensembleCov[index:index+totDim, index:index+totDim] = cov
+          ## update initial value
+          value = dist.rvs()
+          for i, var in enumerate(orderedVars):
+            if self._updateValues[var] is None:
+              self._updateValues[var] = value[i]
+          ## update index
+          index += totDim
     self._proposal = self.constructProposalDistribution(self._ensembleMean, self._ensembleCov.ravel())
 
   def constructProposalDistribution(self, mu, cov):
