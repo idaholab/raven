@@ -187,8 +187,8 @@ class AdaptiveMetropolis(MCMC):
     """
     for distName, orderedVars in self._orderedVars.items():
       totDim = max(self.distributions2variablesIndexList[distName])
+      dist = self.distDict[orderedVars[0][0]]
       if totDim == 1:
-        dist = self.distDict[orderedVars[0][0]]
         for var in orderedVars:
           key = var[0]
           value = self.values[key]
@@ -198,7 +198,7 @@ class AdaptiveMetropolis(MCMC):
         value = [self.values[var] for var in orderedVars[0]]
         for var in orderedVars[0]:
           self.inputInfo['SampledVarsPb'][var] = dist.pdf(value)
-          self.inputInfo['ProbabilityWeight-' + var] = 1.
+        self.inputInfo['ProbabilityWeight-' + distName] = 1.
     self.inputInfo['PointProbability'] = 1.0
     self.inputInfo['ProbabilityWeight' ] = 1.0
     self.inputInfo['SamplerType'] = 'Metropolis'
@@ -226,8 +226,8 @@ class AdaptiveMetropolis(MCMC):
     if self.counter > 1:
       alpha = self._useRealization(rlz, self._currentRlz)
       acceptable = self._checkAcceptance(alpha)
-      print('alpha:', alpha)
-      print('accepted:', acceptable)
+      # print('alpha:', alpha)
+      # print('accepted:', acceptable)
       if acceptable:
         self._currentRlz = rlz
         self._addToSolutionExport(rlz)
@@ -249,8 +249,8 @@ class AdaptiveMetropolis(MCMC):
     # compute net log prior
     for distName, orderedVars in self._orderedVars.items():
       totDim = max(self.distributions2variablesIndexList[distName])
+      dist = self.distDict[orderedVars[0][0]]
       if totDim == 1:
-        dist = self.distDict[orderedVars[0][0]]
         for var in orderedVars:
           key = var[0]
           netLogPosterior += dist.logPdf(newRlz[key]) - dist.logPdf(currentRlz[key])
@@ -291,7 +291,9 @@ class AdaptiveMetropolis(MCMC):
     self._ensembleCov += self._gamma * (np.outer(diff, diff)-self._ensembleCov)
     ## update proposal distribution
     size = len(self._ensembleMean)
-    print('lambda:', self._lambda)
+    # print('alpha', np.exp(alpha))
+    # print('lambda:', self._lambda)
+    # print('cov:', self._ensembleCov)
     self._proposal = self.constructProposalDistribution(np.zeros(size), self._lambda*self._ensembleCov.ravel())
 
   def localStillReady(self, ready):
