@@ -117,10 +117,10 @@ class RELAPparser():
         self.deckLines[deckNum].append(stopTripNumber + " cntrlvar "+stopCntrVar+" gt null 0 0.0 l "+"\n")
       self.deckLines[deckNum].append("600 "+stopTripNumber+" \n")
       # convert trips in tripunit for control variables
-      controlledControlVars = []
+      controlledControlVars = {}
       for cnt, trip in enumerate(monitoredTrips[deckNum]):
         controlVar = availableControlVars.pop()
-        controlledControlVars.append(controlVar)
+        controlledControlVars[trip] = controlVar
         self.deckLines[deckNum].append("205"+controlVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " r_"+str(trip)+" tripunit 1.0 0.0 0 \n")
         self.additionalControlVariables[deckNum][controlVar.strip()] = trip
         self.deckLines[deckNum].append("205"+controlVar.strip()+"1".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " " + str(list(monitoredTrips[deckNum])[cnt])+" \n")
@@ -136,12 +136,8 @@ class RELAPparser():
         stoppingTrips = list(set(monitoredTrips[deckNum]) - set(exclTrips[deckNum]))
         for x in range(3):
           if tripCnt+1<= len(stoppingTrips):
-            toWrite += " 1.0 cntrlvar " + controlledControlVars[tripCnt]
+            toWrite += " 1.0 cntrlvar " + controlledControlVars[stoppingTrips[tripCnt]]
             tripCnt+=1
-        # else:
-        #  #  we exclude everything so we need to make sure the stop condition in the restart is neutralized
-
-
         toWrite += " \n"
         self.deckLines[deckNum].append(toWrite)
       self.deckLines[deckNum].append("* END -- CONTROL VARIABLES ADDED BY RAVEN *\n")
