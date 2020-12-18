@@ -21,6 +21,7 @@ import fileinput
 import re
 import math
 from collections import defaultdict
+import copy
 
 def _splitRecordAndRemoveComments(line, delimiter=None):
   """
@@ -65,17 +66,20 @@ class RELAPparser():
     self.controlVarType   = {}    # {deckNum:1 CCC format or 2 CCCC format}
     self.deckLines        = {}
     self.maxNumberOfDecks = 0
-    self.presentStopTrip = None
+    self.presentStopTrip = {}
     prevDeckLineNum       = 0
     self.addMinorEdits    = addMinorEdits
-
+    pStop = None
     for lineNum, line in enumerate(lines):
       if line.strip().startswith("."):
         self.maxNumberOfDecks += 1
         self.deckLines[self.maxNumberOfDecks] = lines[prevDeckLineNum:lineNum]
+        self.presentStopTrip[self.maxNumberOfDecks] = copy.deepcopy(pStop)
+        pStop = None
         prevDeckLineNum = lineNum + 1
       elif line.strip().startswith("600"):
-        self.presentStopTrip = [el.strip() for el in line.strip()[3:].split()]
+        pStop = [el.strip() for el in line.strip()[3:].split()]
+        lines[lineNum] = "*"
 
     if self.maxNumberOfDecks < 1:
       raise IOError(self.printTag+ "ERROR: the file "+inputFile+" does not contain a end case fullstop '.'!")
@@ -94,6 +98,9 @@ class RELAPparser():
     exclTrips = excludeFromStop if excludeFromStop is not None else dict.fromkeys(monitoredTrips.keys(), [])
     self.additionalControlVariables = {}
     for deckNum in self.inputControlVars.keys():
+      originalStopping = [] if self.presentStopTrip[deckNum] is None else self.presentStopTrip[deckNum]
+      if len(originalStopping) > 1:
+        raise IOError("One slot for the stopping trip 600 must be left out for the DET! Number of trips specified for card 600 is: "+str(len(originalStopping)))
       self.additionalControlVariables[deckNum] = {}
       (rangeLow, rangeUp, fill) = (1,999,3) if self.controlVarType[deckNum] == 1 else (1,9999,4)
       #if self.controlVarType[deckNum] == 1: rangeLow, rangeUp, fill = 1,999,3
@@ -118,9 +125,7 @@ class RELAPparser():
         self.deckLines[deckNum].append(stopTripNumber + " time 0 le null 0 -1.0 l"+"\n")
       else:
         self.deckLines[deckNum].append(stopTripNumber + " cntrlvar "+stopCntrVar+" gt null 0 0.0 l "+"\n")
-      originalStopping = [] if self.presentStopTrip is None else self.presentStopTrip
-      if len(originalStopping) > 1:
-        raise IOError("One slot for the stopping trip 600 must be left out for the DET! Number of trips specified for card 600 is: "+str(len(originalStopping)))
+
       self.deckLines[deckNum].append("600 "+' '.join([stopTripNumber]+originalStopping)+" \n")
       # convert trips in tripunit for control variables
       controlledControlVars = {}
@@ -457,8 +462,14 @@ class RELAPparser():
             # toAdd[deckNum] = self.inputTrips[deckNum]['variableTrips'].keys()
             if toAdd[deckNum]:
               self.addControlVariablesForStoppingCoditions(toAdd, modifyDict.get('excludeTrips'))
+            else:
+              if self.presentStopTrip[deckNum] is not None:
+                self.deckLines[deckNum].append("600 "+" ".join(self.presentStopTrip[deckNum]) + "\n")
           # add trips and control variables
           self.addTripsVarsInMinorEdits()
+        else:
+          if self.presentStopTrip[deckNum] is not None:
+            self.deckLines[deckNum].append("600 "+" ".join(self.presentStopTrip[deckNum]) + "\n")
       lines = lines + temp
     return lines
 
