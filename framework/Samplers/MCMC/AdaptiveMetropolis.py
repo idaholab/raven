@@ -183,21 +183,22 @@ class AdaptiveMetropolis(MCMC):
       @ Out, None
     """
     for distName, orderedVars in self._orderedVars.items():
-      dist = self.distDict[orderedVars[0]]
-      if len(orderedVars) == 1:
-        var = orderedVars[0]
-        value = self.values[var]
-        self.inputInfo['SampledVarsPb'][var] = dist.pdf(value)
-        self.inputInfo['ProbabilityWeight-' + var] = 1.
-      else:
-        value = [self.values[var] for var in orderedVars]
+      totDim = max(self.distributions2variablesIndexList[distName])
+      if totDim == 1:
+        dist = self.distDict[orderedVars[0][0]]
         for var in orderedVars:
+          key = var[0]
+          value = self.values[key]
+          self.inputInfo['SampledVarsPb'][key] = dist.pdf(value)
+          self.inputInfo['ProbabilityWeight-' + key] = 1.
+      else:
+        value = [self.values[var] for var in orderedVars[0]]
+        for var in orderedVars[0]:
           self.inputInfo['SampledVarsPb'][var] = dist.pdf(value)
           self.inputInfo['ProbabilityWeight-' + var] = 1.
     self.inputInfo['PointProbability'] = 1.0
     self.inputInfo['ProbabilityWeight' ] = 1.0
     self.inputInfo['SamplerType'] = 'Metropolis'
-
 
   ## unchanged, can be moved to MCMC base class
   def localFinalizeActualSampling(self, jobObject, model, myInput):
@@ -241,15 +242,18 @@ class AdaptiveMetropolis(MCMC):
     netLogPosterior = 0
     # compute net log prior
     for distName, orderedVars in self._orderedVars.items():
-      dist = self.distDict[orderedVars[0]]
-      if len(orderedVars) == 1:
-        var = orderedVars[0]
-        netLogPrior = dist.logPdf(newRlz[var]) - dist.logPdf(currentRlz[var])
+      totDim = max(self.distributions2variablesIndexList[distName])
+      if totDim == 1:
+        dist = self.distDict[orderedVars[0][0]]
+        for var in orderedVars:
+          key = var[0]
+          netLogPrior = dist.logPdf(newRlz[key]) - dist.logPdf(currentRlz[key])
       else:
-        newVal = [newRlz[var] for var in orderedVars]
-        currVal = [currentRlz[var] for var in orderedVars]
+        newVal = [newRlz[var] for var in orderedVars[0]]
+        currVal = [currentRlz[var] for var in orderedVars[0]]
         netLogPrior = dist.logPdf(newVal) - dist.logPdf(currVal)
       netLogPosterior += netLogPrior
+
     if not self._logLikelihood:
       netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
     else:
