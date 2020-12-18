@@ -142,7 +142,8 @@ class AdaptiveMetropolis(MCMC):
               self._updateValues[var] = value[i]
           ## update index
           index += totDim
-    self._proposal = self.constructProposalDistribution(self._ensembleMean, self._ensembleCov.ravel())
+    size = len(self._ensembleMean)
+    self._proposal = self.constructProposalDistribution(np.zeros(size), self._lambda*self._ensembleCov.ravel())
 
   def constructProposalDistribution(self, mu, cov):
     """
@@ -291,7 +292,8 @@ class AdaptiveMetropolis(MCMC):
     self._ensembleMean += self._gamma * diff
     self._ensembleCov += self._gamma * (np.outer(diff, diff)-self._ensembleCov)
     ## update proposal distribution
-    self._proposal = self.constructProposalDistribution(self._ensembleMean, self._ensembleCov.ravel())
+    size = len(self._ensembleMean)
+    self._proposal = self.constructProposalDistribution(np.zeros(size), self._lambda*self._ensembleCov.ravel())
 
   def localStillReady(self, ready):
     """
