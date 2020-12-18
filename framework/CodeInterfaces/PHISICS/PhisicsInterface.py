@@ -121,7 +121,9 @@ class Phisics(CodeInterfaceBase):
     """
     self.jobTitle = 'defaultInstant'
     for child in depletionRoot.findall(".//title"):
-      self.jobTitle = child.text.replace(" ","")
+      self.jobTitle = child.text.strip()
+      if " " in self.jobTitle:
+        raise IOError("Job title can not have spaces in the title but must be a single string. E.g. from "+self.jobTitle+ " to "+ self.jobTitle.replace(" ",""))
       break
     return
 
