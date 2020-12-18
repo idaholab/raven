@@ -80,10 +80,9 @@ class AdaptiveMetropolis(MCMC):
       @ Out, None
     """
     MCMC.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-    totalNumVars = len(self.variables2distributionsMapping)
+    totalNumVars = len(self._updateValues)
     ## compute initial gamma and lambda
     self._lambda = 2.38**2/totalNumVars
-    self._gamma = 1.0/(self.counter+1.0)
     if totalNumVars != len(self.toBeCalibrated):
       self.raiseAnError(IOError, 'AdaptiveMetropolis can not handle "probabilityFunction" yet!',
                         'Please check your input and provide "distribution" instead of "probabilityFunction"!')
@@ -159,9 +158,7 @@ class AdaptiveMetropolis(MCMC):
     proposal.rank = len(mu)
     proposal.messageHandler = self.messageHandler
     proposal.initializeDistribution()
-
     return proposal
-
 
   def localGenerateInput(self, model, myInput):
     """
@@ -253,13 +250,11 @@ class AdaptiveMetropolis(MCMC):
         dist = self.distDict[orderedVars[0][0]]
         for var in orderedVars:
           key = var[0]
-          netLogPrior = dist.logPdf(newRlz[key]) - dist.logPdf(currentRlz[key])
+          netLogPosterior += dist.logPdf(newRlz[key]) - dist.logPdf(currentRlz[key])
       else:
         newVal = [newRlz[var] for var in orderedVars[0]]
         currVal = [currentRlz[var] for var in orderedVars[0]]
-        netLogPrior = dist.logPdf(newVal) - dist.logPdf(currVal)
-      netLogPosterior += netLogPrior
-
+        netLogPosterior += dist.logPdf(newVal) - dist.logPdf(currVal)
     if not self._logLikelihood:
       netLogLikelihood = np.log(newRlz[self._likelihood]) - np.log(currentRlz[self._likelihood])
     else:
