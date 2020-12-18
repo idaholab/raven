@@ -83,6 +83,7 @@ class AdaptiveMetropolis(MCMC):
     totalNumVars = len(self._updateValues)
     ## compute initial gamma and lambda
     self._lambda = 2.38**2/totalNumVars
+    # self._lambda = 2.38**2
     if totalNumVars != len(self.toBeCalibrated):
       self.raiseAnError(IOError, 'AdaptiveMetropolis can not handle "probabilityFunction" yet!',
                         'Please check your input and provide "distribution" instead of "probabilityFunction"!')
@@ -225,6 +226,8 @@ class AdaptiveMetropolis(MCMC):
     if self.counter > 1:
       alpha = self._useRealization(rlz, self._currentRlz)
       acceptable = self._checkAcceptance(alpha)
+      print('alpha:', alpha)
+      print('accepted:', acceptable)
       if acceptable:
         self._currentRlz = rlz
         self._addToSolutionExport(rlz)
@@ -282,12 +285,13 @@ class AdaptiveMetropolis(MCMC):
     orderedVarsVals = np.asarray([rlz[var] for var in self._orderedVarsList])
     ## update _lambda
     self._gamma = 1.0/(self.counter+1.0)
-    self._lambda = self._lambda * np.exp(self._gamma * (alpha - self._optAlpha))
+    self._lambda = self._lambda * np.exp(self._gamma * (np.exp(alpha) - self._optAlpha))
     diff = orderedVarsVals - self._ensembleMean
     self._ensembleMean += self._gamma * diff
     self._ensembleCov += self._gamma * (np.outer(diff, diff)-self._ensembleCov)
     ## update proposal distribution
     size = len(self._ensembleMean)
+    print('lambda:', self._lambda)
     self._proposal = self.constructProposalDistribution(np.zeros(size), self._lambda*self._ensembleCov.ravel())
 
   def localStillReady(self, ready):
