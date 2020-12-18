@@ -61,6 +61,8 @@ class AdaptiveMetropolis(MCMC):
     self._ensembleCov = None
     self._orderedVars = OrderedDict() # ordered dict of variables that is used to construct proposal function
     self._orderedVarsList = []
+    self._localReady = True # True if the submitted job finished
+    self._currentRlz = None # dict stores the current realizations, i.e. {var: val}
 
   def handleInput(self, paramInput):
     """
@@ -154,7 +156,9 @@ class AdaptiveMetropolis(MCMC):
     proposal.covariance = cov.ravel()
     proposal.dimension = len(mu)
     proposal.rank = len(mu)
+    proposal.messageHandler = self.messageHandler
     proposal.initializeDistribution()
+
     return proposal
 
 
@@ -221,7 +225,8 @@ class AdaptiveMetropolis(MCMC):
       self._addToSolutionExport(rlz)
       self._currentRlz = rlz
     if self.counter > 1:
-      acceptable = self._useRealization(rlz, self._currentRlz)
+      alpha = self._useRealization(rlz, self._currentRlz)
+      acceptable = self._checkAcceptance(alpha)
       if acceptable:
         self._currentRlz = rlz
         self._addToSolutionExport(rlz)
@@ -229,14 +234,14 @@ class AdaptiveMetropolis(MCMC):
       else:
         self._addToSolutionExport(self._currentRlz)
         self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
-      self._updateAdaptiveParams(self._currentRlz)
+      self._updateAdaptiveParams(alpha, self._currentRlz)
 
   def _useRealization(self, newRlz, currentRlz):
     """
       Used to feedback the collected runs within the sampler
       @ In, newRlz, dict, new generated realization
       @ In, currentRlz, dict, the current existing realization
-      @ Out, acceptable, bool, True if we accept the new sampled point
+      @ Out, netLogPosterior, float, the accepted probabilty
     """
     ## first compute acceptable probability vs. netLogLikelihood
     netLogPosterior = 0
@@ -259,20 +264,29 @@ class AdaptiveMetropolis(MCMC):
     else:
       netLogLikelihood = newRlz[self._likelihood] - currentRlz[self._likelihood]
     netLogPosterior += netLogLikelihood
+    return netLogPosterior
+
+  def _checkAcceptance(self, alpha):
+    """
+      Method to check the acceptance
+      @ In, alpha, float, the accepted probabilty
+      @ Out, acceptable, bool, True if we accept the new sampled point
+    """
     acceptValue = np.log(self._acceptDist.rvs())
-    acceptable = netLogPosterior > acceptValue
+    acceptable = alpha > acceptValue
     return acceptable
 
-  def _updateAdaptiveParams(self, rlz):
+  def _updateAdaptiveParams(self, alpha, rlz):
     """
       Used to feedback the collected runs within the sampler
+      @ In, alpha, float, the accepted probabilty
       @ In, rlz, dict, the updated current existing realization
       @ Out, None
     """
     orderedVarsVals = np.asarray([rlz[var] for var in self._orderedVarsList])
     ## update _lambda
     self._gamma = 1.0/(self.counter+1.0)
-    self._lambda = self._lambda * np.exp(self._gamma * (netLogPosterior - self._optAlpha))
+    self._lambda = self._lambda * np.exp(self._gamma * (alpha - self._optAlpha))
     diff = orderedVarsVals - self._ensembleMean
     self._ensembleMean += self._gamma * diff
     self._ensembleCov += self._gamma * (np.outer(diff, diff)-self._ensembleCov)
