@@ -19,4 +19,24 @@
    rel_err = 0.001
   [../]
  [../]
+ [./AdaptiveMetropolis]
+  type = 'RavenFramework'
+  input = 'test_amh.xml'
+  max_time = 500
+  [./csv]
+   type = OrderedCSV
+   output = 'amh/dumpExport.csv amh/dumpOut.csv'
+   rel_err = 0.001
+  [../]
+ [../]
+ [./AdaptiveMetropolisMVN]
+  type = 'RavenFramework'
+  input = 'test_amh_mvn.xml'
+  max_time = 500
+  [./csv]
+   type = OrderedCSV
+   output = 'amh_mvn/dumpExport.csv amh_mvn/dumpOut.csv'
+   rel_err = 0.001
+  [../]
+ [../]
 []

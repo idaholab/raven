@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <TestInfo>
     <name>framework/MCMC.Metropolis</name>
     <author>wangc</author>
@@ -39,18 +39,18 @@
   <Samplers>
     <AdaptiveMetropolis name="AdaptiveMetropolis">
       <samplerInit>
-        <limit>1000</limit>
+        <limit>700</limit>
         <initialSeed>070419</initialSeed>
         <burnIn>10</burnIn>
       </samplerInit>
       <likelihood log="False">zout</likelihood>
       <variable name="xin">
         <distribution>normal</distribution>
-        <initial>0</initial>
+        <initial>2</initial>
       </variable>
       <variable name="yin">
         <distribution>normal</distribution>
-        <initial>0</initial>
+        <initial>2</initial>
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
     </AdaptiveMetropolis>
