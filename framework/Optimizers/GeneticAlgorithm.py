@@ -29,7 +29,6 @@ import numpy as np
 from scipy.special import comb
 from collections import deque, defaultdict
 import xarray as xr
-import operator
 import copy
 #External Modules End--------------------------------------------------------------------------------
 
@@ -380,7 +379,7 @@ class GeneticAlgorithm(RavenSampled):
   # Run Methods #
   ###############
 
-  def _useRealization(self, info, rlz):
+  def _useRealization(self, info, rlz1):
     """
       Used to feedback the collected runs into actionable items within the sampler.
       This is called by localFinalizeActualSampling, and hence should contain the main skeleton.
@@ -392,6 +391,8 @@ class GeneticAlgorithm(RavenSampled):
     traj = info['traj']
     self.incrementIteration(traj)
     info['step'] = self.counter
+
+    rlz=copy.deepcopy(rlz1)
 
     # Developer note: each algorithm step is indicated by a number followed by the generation number
     # e.g., '5 @ n-1' refers to step 5 for generation n-1 (i.e., previous generation)
@@ -448,7 +449,6 @@ class GeneticAlgorithm(RavenSampled):
         children = self._repairInstance(childrenMutated,variables=list(self.toBeSampled),distInfo=self.distDict)
       else:
         children = copy.deepcopy(childrenMutated)
-
       # Make sure no children are exactly similar to parents
       flag = True
       counter = 0
@@ -472,14 +472,13 @@ class GeneticAlgorithm(RavenSampled):
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(np.shape(children)[0]),
                                       'Gene':list(self.toBeSampled)})
-
       # 5 @ n: Submit children batch
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
       for i in range(np.shape(daChildren)[0]):
         newRlz={}
         for _,var in enumerate(self.toBeSampled.keys()):
           newRlz[var] = float(daChildren.loc[i,var].values)
-        self._submitRun(newRlz, traj, self.getIteration(traj))
+        self._submitRun(copy.deepcopy(newRlz), traj, self.getIteration(traj))
 
   def _datasetToDataArray(self,rlzDataset):
     """

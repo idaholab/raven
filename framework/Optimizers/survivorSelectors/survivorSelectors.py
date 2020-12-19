@@ -56,9 +56,9 @@ def ageBased(newRlz,**kwargs):
   # sort population, popFitness according to age
   sortedAge,sortedPopulation,sortedFitness = zip(*[[x,y,z] for x,y,z in sorted(zip(popAge,population,popFitness),key=lambda x: (x[0], -x[2]))])# if equal age then use descending fitness
   sortedAge,sortedPopulation,sortedFitness = list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedFitness))
-  newPopulation = sortedPopulation.copy(deep=True)
-  newFitness = sortedFitness.copy(deep=True)
-  newAge = list(map(lambda x:x+1, sortedAge.copy(deep=True)))
+  newPopulation = copy.deepcopy(sortedPopulation)
+  newFitness    = copy.deepcopy(sortedFitness)
+  newAge = list(map(lambda x:x+1, copy.deepcopy(sortedAge)))
   newPopulation[-1:-np.shape(offSprings)[0]-1:-1] = offSprings
   newFitness[-1:-np.shape(offSprings)[0]-1:-1] = offSpringsFitness
   newAge[-1:-np.shape(offSprings)[0]-1:-1] = [0]*np.shape(offSprings)[0]
