@@ -311,6 +311,8 @@ class Code(Model):
       if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
         os.mkdir(subSubDirectory)
       ##########################################################################
+      if not os.path.exists(inputFile.getAbsFile()):
+        self.raiseAnError(ValueError, 'The input file '+inputFile.getFilename()+' does not exist in directory: '+inputFile.getPath())
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
       self.oriInputFiles[-1].setPath(subSubDirectory)
@@ -376,6 +378,7 @@ class Code(Model):
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
 
     kwargs['subDirectory'] = subDirectory
+    kwargs['alias'] = self.alias
 
     if 'SampledVars' in kwargs.keys():
       sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
