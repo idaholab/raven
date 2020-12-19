@@ -111,8 +111,8 @@ class RavenSampled(Optimizer):
     # public
     self.limit = None               # max samples
     self.type = 'Sampled Optimizer' # type
-    self.batch = 1
-    self.batchId = 0
+    self.batch = 1                  # batch size: 1 means no batching (default)
+    self.batchId = 0                # Id of each batch of evaluations
     # _protected
     self._writeSteps = 'final'      # when steps should be written
     self._submissionQueue = deque() # TODO change to Queue.Queue if multithreading samples

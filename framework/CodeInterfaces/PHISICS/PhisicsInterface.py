@@ -523,9 +523,9 @@ class Phisics(CodeInterfaceBase):
             **self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'generic':
         # check and modify modelpar.inp file
-        modelparParser = GenericParser(currentInputFiles)
-        modelparParser.modifyInternalDictionary(**Kwargs)
-        modelparParser.writeNewInput(currentInputFiles,oriInputFiles)
+        modelParParser = GenericParser(currentInputFiles)
+        modelParParser.modifyInternalDictionary(**Kwargs)
+        modelParParser.writeNewInput(currentInputFiles,oriInputFiles)
 
 
       # add CSV output from depletion
