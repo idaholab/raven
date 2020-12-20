@@ -37,9 +37,9 @@
   <Samplers>
     <Metropolis name="Metropolis">
       <samplerInit>
-        <limit>80000</limit>
+        <limit>1000</limit>
         <initialSeed>070419</initialSeed>
-        <burnIn>1000</burnIn>
+        <burnIn>100</burnIn>
       </samplerInit>
       <likelihood log="True">zout</likelihood>
       <variable name="xin">
@@ -93,7 +93,7 @@
 
     <PointSet name="out_export">
       <Input>traceID</Input>
-      <Output>xin, LogPosterior, AcceptRate</Output>
+      <Output>xin, LogPosterior, AcceptRate, zout</Output>
     </PointSet>
   </DataObjects>
 

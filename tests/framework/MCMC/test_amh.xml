@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/MCMC.Metropolis</name>
+    <name>framework/MCMC.AdaptiveMetropolis</name>
     <author>wangc</author>
-    <created>2020-06-26</created>
+    <created>2020-12-20</created>
     <classesTested>MCMC.Metropolis</classesTested>
     <description>
-      Test the Adaptive Markov Chain Monte Carlo algorithm: Metropolis Sampling
+      Test the Markov Chain Monte Carlo algorithm: Adaptive Metropolis Sampling
       A 2-D multivariate normal distribution is used as the likelihood function.
       mean: [5, 5], cov=[[1, 0.9], [0.9, 1]]
       Both input parameters have the standard normal distribution as their prior distribution.

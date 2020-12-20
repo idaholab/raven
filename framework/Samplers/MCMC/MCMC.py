@@ -338,13 +338,14 @@ class MCMC(AdaptiveSampler):
       self._currentRlz = rlz
     if self.counter > 1:
       alpha = self._useRealization(rlz, self._currentRlz)
-      self.netLogPosterior = alpha
       acceptable = self._checkAcceptance(alpha)
       if acceptable:
+        self.netLogPosterior = alpha
         self._currentRlz = rlz
         self._addToSolutionExport(rlz)
         self._updateValues = dict((var, rlz[var]) for var in self._updateValues)
       else:
+        self.netLogPosterior = 0.0
         self._addToSolutionExport(self._currentRlz)
         self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
 
