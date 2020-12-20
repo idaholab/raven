@@ -294,10 +294,10 @@ class AdaptiveMetropolis(MCMC):
 
 #### Things to do
 """
-0. Refactor All Algorityms
-1. add accept_rate[self.counter], netLogPosterior[self.counter]
+0. Refactor All Algorityms (DONE)
+1. add accept_rate[self.counter], netLogPosterior[self.counter] (DONE)
 2. Plots: a) Histogram of samples, b) sample vs iteration (trace plot),
-   c) log-posterior vs iteration, d) proposal acceptance rate vs iteration
+   c) log-posterior vs iteration, d) proposal acceptance rate vs iteration (DONE)
    In an optimally performing MCMC, the histogram of samples should converge to the posterior
    distribution, the trace of the chain should sample around the maximum of the posterior such
    that the samples are close to i.i.d (independent, identical distribution). The log-posterior

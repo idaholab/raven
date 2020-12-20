@@ -1,0 +1,185 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/MCMC.Metropolis</name>
+    <author>wangc</author>
+    <created>2020-12-20</created>
+    <classesTested>MCMC.Metropolis</classesTested>
+    <description>
+      Test the Markov Chain Monte Carlo algorithm: Adaptive Metropolis Sampling
+      likelihood function: N-Dimensional Gaussian distribution with
+      mu ~ Normal(0, 10)
+      var ~ LogNormal(0, 1.5)
+      Prior on mean is U(-500, 500)
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>OneDim</WorkingDir>
+    <Sequence>mh, print</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="uniform">
+      <lowerBound>-500</lowerBound>
+      <upperBound>500</upperBound>
+    </Uniform>
+    <Normal name="N1">
+      <mean>0</mean>
+      <sigma>2.38</sigma>
+    </Normal>
+    <Normal name="N2">
+      <mean>0</mean>
+      <sigma>2.38</sigma>
+    </Normal>
+    <Normal name="N3">
+      <mean>0</mean>
+      <sigma>2.38</sigma>
+    </Normal>
+    <Normal name="N4">
+      <mean>0</mean>
+      <sigma>2.38</sigma>
+    </Normal>
+    <Normal name="N5">
+      <mean>0</mean>
+      <sigma>2.38</sigma>
+    </Normal>
+    <Normal name="N6">
+      <mean>0</mean>
+      <sigma>2.38</sigma>
+    </Normal>
+    <Normal name="N7">
+      <mean>0</mean>
+      <sigma>2.38</sigma>
+    </Normal>
+    <Normal name="N8">
+      <mean>0</mean>
+      <sigma>2.38</sigma>
+    </Normal>
+    <Normal name="N9">
+      <mean>0</mean>
+      <sigma>2.38</sigma>
+    </Normal>
+    <Normal name="N10">
+      <mean>0</mean>
+      <sigma>2.38</sigma>
+    </Normal>
+  </Distributions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="likelihood" name="likelihood" subType="">
+      <variables>xin, zout</variables>
+    </ExternalModel>
+  </Models>
+
+  <Samplers>
+    <Metropolis name="Metropolis">
+      <samplerInit>
+        <limit>1000</limit>
+        <initialSeed>070419</initialSeed>
+        <burnIn>10</burnIn>
+      </samplerInit>
+      <likelihood log="True">zout</likelihood>
+      <variable name="x1">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N1</proposal>
+      </variable>
+      <variable name="x2">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N2</proposal>
+      </variable>
+      <variable name="x3">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N3</proposal>
+      </variable>
+      <variable name="x4">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N4</proposal>
+      </variable>
+      <variable name="x5">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N5</proposal>
+      </variable>
+      <variable name="x6">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N6</proposal>
+      </variable>
+      <variable name="x7">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N7</proposal>
+      </variable>
+      <variable name="x8">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N8</proposal>
+      </variable>
+      <variable name="x9">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N9</proposal>
+      </variable>
+      <variable name="x10">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">N10</proposal>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
+    </Metropolis>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mh">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">likelihood</Model>
+      <Sampler class="Samplers" type="Metropolis">Metropolis</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">out_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">out_export</Input>
+      <Input class="DataObjects" type="PointSet">outSet</Input>
+      <Output class="OutStreams" type="Print">dumpExport</Output>
+      <Output class="OutStreams" type="Print">dumpOut</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dumpOut">
+      <type>csv</type>
+      <source>outSet</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="dumpExport">
+      <type>csv</type>
+      <source>out_export</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+
+    <PointSet name="outSet">
+      <Input>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10</Input>
+      <Output>zout</Output>
+    </PointSet>
+
+    <PointSet name="out_export">
+      <Input>traceID</Input>
+      <Output>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, LogPosterior, AcceptRate</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>
