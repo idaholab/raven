@@ -177,6 +177,19 @@ class AdaptiveMetropolis(MCMC):
       # update sampled value using proposal distribution
       for i, var in enumerate(self._orderedVarsList):
         self.values[var] = self._updateValues[var] + newVal[i]
+        ## check the lowerBound and upperBound
+        lowerBound = self.distDict[var].lowerBound
+        upperBound = self.distDict[var].upperBound
+        distName = self.variables2distributionsMapping[var]['name']
+        totDim = max(self.distributions2variablesIndexList[distName])
+        if totDim > 1:
+          dim = self.variables2distributionsMapping[var]['dim']
+          lowerBound = lowerBound[dim-1]
+          upperBound = upperBound[dim-1]
+        if lowerBound is not None and self.values[var] < lowerBound:
+          self.values[var] = lowerBound
+        if upperBound is not None and self.values[var] > upperBound:
+          self.values[var] = upperBound
     self._setProbabilities()
 
   def _setProbabilities(self):
@@ -214,28 +227,9 @@ class AdaptiveMetropolis(MCMC):
       @ In, myInput, list, the generating input
       @ Out, None
     """
-    self._localReady = True
     MCMC.localFinalizeActualSampling(self, jobObject, model, myInput)
-    prefix = jobObject.getMetadata()['prefix']
-    _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
-    rlz = dict((var, full[var]) for var in (list(self.toBeCalibrated.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
-    rlz['traceID'] = self.counter
-    if self.counter == 1:
-      self._addToSolutionExport(rlz)
-      self._currentRlz = rlz
     if self.counter > 1:
-      alpha = self._useRealization(rlz, self._currentRlz)
-      acceptable = self._checkAcceptance(alpha)
-      # print('alpha:', alpha)
-      # print('accepted:', acceptable)
-      if acceptable:
-        self._currentRlz = rlz
-        self._addToSolutionExport(rlz)
-        self._updateValues = dict((var, rlz[var]) for var in self._updateValues)
-      else:
-        self._addToSolutionExport(self._currentRlz)
-        self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
-      self._updateAdaptiveParams(alpha, self._currentRlz)
+      self._updateAdaptiveParams(self.netLogPosterior[-1], self._currentRlz)
 
   def _useRealization(self, newRlz, currentRlz):
     """
@@ -264,16 +258,6 @@ class AdaptiveMetropolis(MCMC):
       netLogLikelihood = newRlz[self._likelihood] - currentRlz[self._likelihood]
     netLogPosterior += netLogLikelihood
     return netLogPosterior
-
-  def _checkAcceptance(self, alpha):
-    """
-      Method to check the acceptance
-      @ In, alpha, float, the accepted probabilty
-      @ Out, acceptable, bool, True if we accept the new sampled point
-    """
-    acceptValue = np.log(self._acceptDist.rvs())
-    acceptable = alpha > acceptValue
-    return acceptable
 
   def _updateAdaptiveParams(self, alpha, rlz):
     """
@@ -305,3 +289,25 @@ class AdaptiveMetropolis(MCMC):
     """
     ready = self._localReady and MCMC.localStillReady(self, ready)
     return ready
+
+
+
+#### Things to do
+"""
+0. Refactor All Algorityms
+1. add accept_rate[self.counter], netLogPosterior[self.counter]
+2. Plots: a) Histogram of samples, b) sample vs iteration (trace plot),
+   c) log-posterior vs iteration, d) proposal acceptance rate vs iteration
+   In an optimally performing MCMC, the histogram of samples should converge to the posterior
+   distribution, the trace of the chain should sample around the maximum of the posterior such
+   that the samples are close to i.i.d (independent, identical distribution). The log-posterior
+   chain should be smoothly varying around the maximum. Lastly, the acceptance rate depends on
+   the problem but typically for 1-d problems, the acceptance rate should be around 44%
+   (around 23% for more than 5 parameters).
+3. Update Metropolis algrithm with optimal step size: 2.38Sigma/ndim
+4. Add more examples
+   a. 1-D Gaussian model
+   b. 10-D Gaussian model
+   c. 50-D Gaussian model using Adaptive Metropolis
+5. Fix Fission Gas Release Model
+"""

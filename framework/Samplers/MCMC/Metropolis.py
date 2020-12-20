@@ -74,33 +74,40 @@ class Metropolis(MCMC):
     MCMC.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     if not self._correlated:
       for var in self._updateValues:
-        dist = self.distDict[var]
-        dim = dist.getDimensionality()
-        if dim != 1:
-          self.raiseAnError(IOError, 'When "proposal" is used, only 1-dimensional probability distribution is allowed!',
-                            'Please check your input for variable "{}".'.format(var),
-                            'Please refer to adaptive Metropolis Sampler if the input variables are correlated!')
+        if var in self.distDict:
+          dist = self.distDict[var]
+          dim = dist.getDimensionality()
+          if dim != 1:
+            self.raiseAnError(IOError, 'When "proposal" is used, only 1-dimensional probability distribution is allowed!',
+                              'Please check your input for variable "{}".'.format(var),
+                              'Please refer to adaptive Metropolis Sampler if the input variables are correlated!')
     else:
       self.raiseAnError(IOError, 'Multivariate case can not be handled by Metropolis, please consider adaptive Metropolis!')
 
     for var in self._updateValues:
-      dist = self.distDict[var]
-      if var in self._proposal:
-        self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', self._proposal[var])
-        distType = self._proposal[var].getDistType()
-        dim = self._proposal[var].getDimensionality()
-        if distType != 'Continuous':
-          self.raiseAnError(IOError, 'variable "{}" requires continuous proposal distribution, but "{}" is provided!'.format(var, distType))
-        if dim != 1:
-          self.raiseAnError(IOError, 'When "proposal" is used, only 1-dimensional probability distribution is allowed!',
-                            'Please check your input for variable "{}".'.format(var),
-                            'Please refer to adaptive Metropolis Sampler if the input variables are correlated!')
+      if var in self.distDict:
+        dist = self.distDict[var]
+        if var in self._proposal:
+          self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', self._proposal[var])
+          distType = self._proposal[var].getDistType()
+          dim = self._proposal[var].getDimensionality()
+          if distType != 'Continuous':
+            self.raiseAnError(IOError, 'variable "{}" requires continuous proposal distribution, but "{}" is provided!'.format(var, distType))
+          if dim != 1:
+            self.raiseAnError(IOError, 'When "proposal" is used, only 1-dimensional probability distribution is allowed!',
+                              'Please check your input for variable "{}".'.format(var),
+                              'Please refer to adaptive Metropolis Sampler if the input variables are correlated!')
+        else:
+          untrStdDev = dist.untruncatedStdDev()
+          newStd = 2.38 * untrStdDev # see Andrieu-Thoms2008
+          propDist = self._availProposal['normal'](0.0, newStd)
+          propDist.initializeDistribution()
+          self._proposal[var] = propDist
       else:
-        untrStdDev = dist.untruncatedStdDev()
-        newStd = 2.38 * untrStdDev # see Andrieu-Thoms2008
-        propDist = self._availProposal['normal'](0.0, newStd)
-        propDist.initializeDistribution()
-        self._proposal[var] = propDist
+        if var in self._proposal:
+          self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', self._proposal[var])
+        else:
+          self.raiseAnError(IOError, '"proposal" is required for variable "{}", but it is not provided!'.format(var))
       if self._updateValues[var] is None:
         value = dist.rvs()
         self._updateValues[var] = value
@@ -123,6 +130,13 @@ class Metropolis(MCMC):
         newVal = value + self._proposal[key].rvs()
         self.values[key] = newVal
         if key in self.distDict:
+          ## check the lowerBound and upperBound
+          lowerBound = self.distDict[key].lowerBound
+          upperBound = self.distDict[key].upperBound
+          if lowerBound is not None and self.values[key] < lowerBound:
+            self.values[key] = lowerBound
+          if upperBound is not None and self.values[key] > upperBound:
+            self.values[key] = upperBound
           self.inputInfo['SampledVarsPb'][key] = self.distDict[key].pdf(newVal)
         else:
           self.inputInfo['SampledVarsPb'][key] = self._priorFuns[key].evaluate("pdf", self.values)
@@ -141,31 +155,14 @@ class Metropolis(MCMC):
       @ In, myInput, list, the generating input
       @ Out, None
     """
-    self._localReady = True
     MCMC.localFinalizeActualSampling(self, jobObject, model, myInput)
-    prefix = jobObject.getMetadata()['prefix']
-    _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
-    rlz = dict((var, full[var]) for var in (list(self.toBeCalibrated.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
-    rlz['traceID'] = self.counter
-    if self.counter == 1:
-      self._addToSolutionExport(rlz)
-      self._currentRlz = rlz
-    if self.counter > 1:
-      acceptable = self._useRealization(rlz, self._currentRlz)
-      if acceptable:
-        self._currentRlz = rlz
-        self._addToSolutionExport(rlz)
-        self._updateValues = dict((var, rlz[var]) for var in self._updateValues)
-      else:
-        self._addToSolutionExport(self._currentRlz)
-        self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
 
   def _useRealization(self, newRlz, currentRlz):
     """
       Used to feedback the collected runs within the sampler
       @ In, newRlz, dict, new generated realization
       @ In, currentRlz, dict, the current existing realization
-      @ Out, acceptable, bool, True if we accept the new sampled point
+      @ Out, netLogPosterior, float, the accepted probabilty
     """
     netLogPosterior = 0
     # compute net log prior
@@ -184,9 +181,7 @@ class Metropolis(MCMC):
     else:
       netLogLikelihood = newRlz[self._likelihood] - currentRlz[self._likelihood]
     netLogPosterior += netLogLikelihood
-    acceptValue = np.log(self._acceptDist.rvs())
-    acceptable = netLogPosterior > acceptValue
-    return acceptable
+    return netLogPosterior
 
   def localStillReady(self, ready):
     """

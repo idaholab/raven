@@ -142,6 +142,7 @@ class MCMC(AdaptiveSampler):
     self._acceptDist = Distributions.Uniform(0.0, 1.0) # uniform distribution for accept/rejection purpose
     self.toBeCalibrated = {} # parameters that will be calibrated
     self._correlated = False # True if input variables are correlated else False
+    self.netLogPosterior = []
     # assembler objects
     self.addAssemblerObject('proposal', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('probabilityFunction', InputData.Quantity.zero_to_infinity)
@@ -317,7 +318,36 @@ class MCMC(AdaptiveSampler):
       @ In, myInput, list, the generating input
       @ Out, None
     """
+    self._localReady = True
     AdaptiveSampler.localFinalizeActualSampling(self, jobObject, model, myInput)
+    prefix = jobObject.getMetadata()['prefix']
+    _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
+    rlz = dict((var, full[var]) for var in (list(self.toBeCalibrated.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
+    rlz['traceID'] = self.counter
+    if self.counter == 1:
+      self._addToSolutionExport(rlz)
+      self._currentRlz = rlz
+    if self.counter > 1:
+      alpha = self._useRealization(rlz, self._currentRlz)
+      self.netLogPosterior.append(alpha)
+      acceptable = self._checkAcceptance(alpha)
+      if acceptable:
+        self._currentRlz = rlz
+        self._addToSolutionExport(rlz)
+        self._updateValues = dict((var, rlz[var]) for var in self._updateValues)
+      else:
+        self._addToSolutionExport(self._currentRlz)
+        self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
+
+  def _checkAcceptance(self, alpha):
+    """
+      Method to check the acceptance
+      @ In, alpha, float, the accepted probabilty
+      @ Out, acceptable, bool, True if we accept the new sampled point
+    """
+    acceptValue = np.log(self._acceptDist.rvs())
+    acceptable = alpha > acceptValue
+    return acceptable
 
   def localStillReady(self, ready):
     """
