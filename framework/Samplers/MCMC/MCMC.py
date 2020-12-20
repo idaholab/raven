@@ -142,9 +142,11 @@ class MCMC(AdaptiveSampler):
     self._acceptDist = Distributions.Uniform(0.0, 1.0) # uniform distribution for accept/rejection purpose
     self.toBeCalibrated = {} # parameters that will be calibrated
     self._correlated = False # True if input variables are correlated else False
-    self.netLogPosterior = [] # log-posterior vs iteration
+    self.netLogPosterior = 0.0 # log-posterior vs iteration
     self._localReady = True # True if the submitted job finished
     self._currentRlz = None # dict stores the current realizations, i.e. {var: val}
+    self._acceptRate = 1. # The accept rate for MCMC
+    self._acceptCount = 1 # The total number of accepted samples
     # assembler objects
     self.addAssemblerObject('proposal', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('probabilityFunction', InputData.Quantity.zero_to_infinity)
@@ -289,6 +291,8 @@ class MCMC(AdaptiveSampler):
       if distType != 'Continuous':
         self.raiseAnError(IOError, 'variable "{}" requires continuous distribution, but "{}" is provided!'.format(var, distType))
 
+    meta = ['LogPosterior', 'AcceptRate']
+    self.addMetaKeys(meta)
 
   def localGenerateInput(self, model, myInput):
     """
@@ -307,7 +311,7 @@ class MCMC(AdaptiveSampler):
         self.inputInfo['SampledVarsPb'][key] = self._priorFuns[key].evaluate("pdf", self._updateValues)
       self.inputInfo['ProbabilityWeight-' + key] = 1.
     self.inputInfo['PointProbability'] = 1.0
-    self.inputInfo['ProbabilityWeight' ] = 1.0
+    self.inputInfo['ProbabilityWeight'] = 1.0
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
@@ -330,7 +334,7 @@ class MCMC(AdaptiveSampler):
       self._currentRlz = rlz
     if self.counter > 1:
       alpha = self._useRealization(rlz, self._currentRlz)
-      self.netLogPosterior.append(alpha)
+      self.netLogPosterior = alpha
       acceptable = self._checkAcceptance(alpha)
       if acceptable:
         self._currentRlz = rlz
@@ -348,6 +352,9 @@ class MCMC(AdaptiveSampler):
     """
     acceptValue = np.log(self._acceptDist.rvs())
     acceptable = alpha > acceptValue
+    if acceptable:
+      self._acceptCount += 1
+    self._acceptRate = self._acceptCount/self.counter
     return acceptable
 
   def localStillReady(self, ready):

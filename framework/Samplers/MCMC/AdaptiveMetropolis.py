@@ -189,6 +189,8 @@ class AdaptiveMetropolis(MCMC):
         if upperBound is not None and self.values[var] > upperBound:
           self.values[var] = upperBound
     self._setProbabilities()
+    self.inputInfo['LogPosterior'] = self.netLogPosterior
+    self.inputInfo['AcceptRate'] = self._acceptRate
 
   def _setProbabilities(self):
     """
@@ -227,7 +229,7 @@ class AdaptiveMetropolis(MCMC):
     """
     MCMC.localFinalizeActualSampling(self, jobObject, model, myInput)
     if self.counter > 1:
-      self._updateAdaptiveParams(self.netLogPosterior[-1], self._currentRlz)
+      self._updateAdaptiveParams(self.netLogPosterior, self._currentRlz)
 
   def _useRealization(self, newRlz, currentRlz):
     """

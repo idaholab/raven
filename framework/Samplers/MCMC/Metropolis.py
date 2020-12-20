@@ -142,6 +142,8 @@ class Metropolis(MCMC):
     self.inputInfo['PointProbability'] = 1.0
     self.inputInfo['ProbabilityWeight' ] = 1.0
     self.inputInfo['SamplerType'] = 'Metropolis'
+    self.inputInfo['LogPosterior'] = self.netLogPosterior
+    self.inputInfo['AcceptRate'] = self._acceptRate
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
