@@ -328,7 +328,9 @@ class MCMC(AdaptiveSampler):
     self._localReady = True
     AdaptiveSampler.localFinalizeActualSampling(self, jobObject, model, myInput)
     prefix = jobObject.getMetadata()['prefix']
-    _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
+    # Profiling shows the following line increases the computational time by factor of 4
+    # _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
+    full = self._targetEvaluation.realization(index=self.counter-1)
     rlz = dict((var, full[var]) for var in (list(self.toBeCalibrated.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
     rlz['traceID'] = self.counter
     rlz['LogPosterior'] = self.inputInfo['LogPosterior']
@@ -338,14 +340,13 @@ class MCMC(AdaptiveSampler):
       self._currentRlz = rlz
     if self.counter > 1:
       alpha = self._useRealization(rlz, self._currentRlz)
+      self.netLogPosterior = alpha
       acceptable = self._checkAcceptance(alpha)
       if acceptable:
-        self.netLogPosterior = alpha
         self._currentRlz = rlz
         self._addToSolutionExport(rlz)
         self._updateValues = dict((var, rlz[var]) for var in self._updateValues)
       else:
-        self.netLogPosterior = 0.0
         self._addToSolutionExport(self._currentRlz)
         self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
 
