@@ -142,7 +142,9 @@ class MCMC(AdaptiveSampler):
     self._acceptDist = Distributions.Uniform(0.0, 1.0) # uniform distribution for accept/rejection purpose
     self.toBeCalibrated = {} # parameters that will be calibrated
     self._correlated = False # True if input variables are correlated else False
-    self.netLogPosterior = []
+    self.netLogPosterior = [] # log-posterior vs iteration
+    self._localReady = True # True if the submitted job finished
+    self._currentRlz = None # dict stores the current realizations, i.e. {var: val}
     # assembler objects
     self.addAssemblerObject('proposal', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('probabilityFunction', InputData.Quantity.zero_to_infinity)
@@ -268,7 +270,6 @@ class MCMC(AdaptiveSampler):
       @ Out, None
     """
     self._acceptDist.initializeDistribution()
-
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     ## TODO: currently AdaptiveSampler is still using self.assemblerDict to retrieve the target evaluation.
     # We should change it to using the following method.

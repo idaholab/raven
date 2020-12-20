@@ -55,14 +55,12 @@ class AdaptiveMetropolis(MCMC):
     """
     MCMC.__init__(self)
     self._optAlpha = 0.234 # optimum acceptance rate
-    self._lambda = None
-    self._gamma = None
-    self._ensembleMean = None
-    self._ensembleCov = None
+    self._lambda = None # adaptive updated factor for covariance matrix
+    self._gamma = None  # adaptive step size
+    self._ensembleMean = None # The mean vector of ordered variables that need to be calibrated
+    self._ensembleCov = None  # The covariance matrix of ordered variables
     self._orderedVars = OrderedDict() # ordered dict of variables that is used to construct proposal function
-    self._orderedVarsList = []
-    self._localReady = True # True if the submitted job finished
-    self._currentRlz = None # dict stores the current realizations, i.e. {var: val}
+    self._orderedVarsList = [] # List of ordered variables
 
   def handleInput(self, paramInput):
     """

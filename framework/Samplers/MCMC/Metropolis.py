@@ -53,8 +53,6 @@ class Metropolis(MCMC):
       @ Out, None
     """
     MCMC.__init__(self)
-    self._localReady = True # True if the submitted job finished
-    self._currentRlz = None # dict stores the current realizations, i.e. {var: val}
 
   def handleInput(self, paramInput):
     """
