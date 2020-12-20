@@ -117,7 +117,9 @@ class MCMC(AdaptiveSampler):
     vars = super(AdaptiveSampler, cls).getSolutionExportVariableNames()
     # TODO: multiple chains for MCMC
     new = {'traceID': 'integer identifying which iteration a Markov chain is on',
-           '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output at current iteration'
+           '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output at current iteration',
+           'LogPosterior': 'log-posterior distribution value',
+           'AcceptRate': 'the accept rate of MCMC algorithm'
            }
     vars.update(new)
     return vars
@@ -329,6 +331,8 @@ class MCMC(AdaptiveSampler):
     _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
     rlz = dict((var, full[var]) for var in (list(self.toBeCalibrated.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
     rlz['traceID'] = self.counter
+    rlz['LogPosterior'] = self.inputInfo['LogPosterior']
+    rlz['AcceptRate'] = self.inputInfo['AcceptRate']
     if self.counter == 1:
       self._addToSolutionExport(rlz)
       self._currentRlz = rlz

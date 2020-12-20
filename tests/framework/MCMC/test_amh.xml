@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/MCMC.Metropolis</name>
     <author>wangc</author>
@@ -98,7 +98,7 @@
 
     <PointSet name="out_export">
       <Input>traceID</Input>
-      <Output>xin, yin</Output>
+      <Output>xin, yin, LogPosterior, AcceptRate</Output>
     </PointSet>
   </DataObjects>
 </Simulation>
