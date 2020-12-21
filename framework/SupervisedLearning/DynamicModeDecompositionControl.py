@@ -106,7 +106,8 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     # self.ActuatorVals is Num_Entries*2 array, the snapshots of [u1, u2]. Shape is [n_samples, n_timesteps, n_actuators]
     self.actuatorVals = np.asarray([featureVals[:, :, self.features.index(act)] for act in self.actuatorsID]).T
     ### Extract the time marks "self.pivotValues" (discrete, in time step marks) ###
-    self.pivotValues = targetVals[:, :, self.target.index(self.pivotParameterID)]
+    ### the pivotValues must be all the same
+    self.pivotValues = targetVals[0, :, self.target.index(self.pivotParameterID)].flatten()
     # self.outputVals is Num_Entries*2 array, the snapshots of [y1, y2]. Shape is [n_samples, n_timesteps, n_targets]
     self.outputVals =  np.asarray([targetVals[:, :,self.target.index(out)] for out in self.outputID]).T
     ### Extract the State Values (State, X) ###
@@ -124,7 +125,7 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       # compute A,B,C matrices
       self.__Atilde[smp, :, :] , self.__Btilde[smp, :, :], self.__Ctilde[smp, :, :] = self._evaluateMatrices(X1, X2, U, Y1, self.dmdParams['rankSVD'])
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
-    self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0, 0], 'intervals': len(self.pivotValues[0, : ]) - 1, 'dt': self.pivotValues[0, 1]-self.pivotValues[0, 0]})
+    self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': self.pivotValues[0], 'intervals': len(self.pivotValues[:]) - 1, 'dt': self.pivotValues[1]-self.pivotValues[0]})
 
   #######
   def __evaluateLocal__(self,featureVals):
@@ -135,33 +136,40 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       @ In, featureVals, numpy.ndarray, shape= (n_requests, n_timeStep, n_dimensions), an array of input data
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
+    indeces = 0
+    if len(self.parametersIDs):
+      # shape(n_requests,n_parameters)
+      feats = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
+      indeces = self.neigh.predict(feats)
+      indeces.dtype = np.dtype(int)
     ### Initialize the final return value ###
     returnEvaluation = {}
     ### Extract the Actuator signal U ###
     Uvector = []
-    for VarID in self.actuatorsID:
-      VarIndex = self.features.index(VarID)
-      Uvector.append(featureVals[:, VarIndex])
-      returnEvaluation.update({VarID: featureVals[:, VarIndex]})
+    for varID in self.actuatorsID:
+      varIndex = self.features.index(varID)
+      Uvector.append(featureVals[:, :, varIndex])
+      returnEvaluation.update({varID: featureVals[:, :, varIndex]})
     Uvector = np.asarray(Uvector)
-    _,ts_Eval = np.shape(Uvector) # ts_Eval = 100
-
-    ### Extract the initial state vector ###
-    Eval_X = [[]]
-    for VarID in self.stateID:
-      VarIndex = self.features.index(VarID)
-      Eval_X[0].append(featureVals[0, VarIndex])
-    Eval_X = np.asarray(Eval_X).T
-
-    ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
-    for i in range(0,ts_Eval-1):
-      X_pred = np.reshape(self.__Atilde.dot(Eval_X[:,i]) + self.__Btilde.dot(Uvector[:,i]),(-1,1))
-      Eval_X = np.hstack((Eval_X,X_pred))
+    tsEval = Uvector.shape[-1] # ts_Eval = 100
+    ### Extract the initial state vector shape(n_requests,n_stateID)
+    initStates = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.initStateID]).T[0, :, :]
+    evalX = initStates
+    # for varID in self.initStateID:
+    #  varIndex = self.features.index(varID)
+    #  evalX[0].append(featureVals[0, 0, varIndex])
+    # evalX = np.asarray(evalX).T
+    
+    for index in indeces:
+      ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
+      for i in range(tsEval-1):
+        X_pred = np.reshape(self.__Atilde.dot(evalX[index, :,i]) + self.__Btilde.dot(Uvector[index,:,i]),(-1,1))
+        evalX[index] = np.hstack((evalX[index],X_pred))
 
     ### Store the results to the dictionary "returnEvaluation"
-    for VarID in self.stateID:
-      VarIndex = self.stateID.index(VarID)
-      returnEvaluation.update({VarID: Eval_X[VarIndex,:]})
+    for varID in self.stateID:
+      varIndex = self.stateID.index(varID)
+      returnEvaluation.update({varID: evalX[varIndex,:]})
 
     return returnEvaluation
 
@@ -246,11 +254,11 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       attributeDict["sample"] = str(smp)
 
       if "UNorm" in what and self.dmdParams['centerUXY']:
-        valCont = " ".join(['%.8e' % elm for elm in self.actuatorVals[:, smp, :].T.flatten().tolist()])
+        valCont = " ".join(['%.8e' % elm for elm in self.actuatorVals[0, smp, :].T.flatten().tolist()])
         writeTo.addVector("UNorm","realization",valCont, root=targNode, attrs=attributeDict)
 
       if "XNorm" in what and self.dmdParams['centerUXY']:
-        valCont = " ".join(['%.8e' % elm for elm in self.stateVals[:, smp, :].T.flatten().tolist()])
+        valCont = " ".join(['%.8e' % elm for elm in self.stateVals[0, smp, :].T.flatten().tolist()])
         writeTo.addVector("XNorm","realization",valCont, root=targNode, attrs=attributeDict)
         # writeTo.addScalar(target, "XNorm",  valCont)
 
@@ -260,7 +268,7 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
         # writeTo.addScalar(target, "XLast", valCont)
 
       if "YNorm" in what and self.dmdParams['centerUXY']:
-        valCont = " ".join(['%.8e' % elm for elm in self.outputVals[:, smp, :].T.flatten().tolist()])
+        valCont = " ".join(['%.8e' % elm for elm in self.outputVals[0, smp, :].T.flatten().tolist()])
         writeTo.addVector("YNorm","realization",valCont, root=targNode, attrs=attributeDict)
         # writeTo.addScalar(target, "YNorm", valCont)
 
