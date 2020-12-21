@@ -316,7 +316,7 @@ class AcceleratedCFD(CodeInterfaceBase):
       ppRomFile = os.path.join(workingDir,"rom",self.romType +"_"+ self.romName,"postProcessing","probe","0","Urom")
       if os.path.exists(ppRomFile):
         datai = pd.read_csv(ppRomFile,skiprows=3,header=None,sep='\s+').iloc[:,[0,1,2]].replace('[()]','',regex=True).astype(float)
-        datai = data_i.rename(columns={0:'t',1:'ux',2:'uy'})
+        datai = datai.rename(columns={0:'t',1:'ux',2:'uy'})
         dataList = [datai]
         romData = pd.concat(dataList,keys=['rom'])
         ufomux = self.dataFom.loc['fom'].mean()['ux']
