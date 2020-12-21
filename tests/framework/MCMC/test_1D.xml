@@ -7,6 +7,8 @@
     <classesTested>MCMC.Metropolis</classesTested>
     <description>
       Test the Markov Chain Monte Carlo algorithm: Adaptive Metropolis Sampling
+      Test to see if there is any degradation in Adaptive Metropolis Sampling
+      Heavy test: ~550s on Mac, set MaxTime < 700s
     </description>
   </TestInfo>
 
@@ -37,9 +39,9 @@
   <Samplers>
     <Metropolis name="Metropolis">
       <samplerInit>
-        <limit>1000</limit>
+        <limit>80000</limit>
         <initialSeed>070419</initialSeed>
-        <burnIn>100</burnIn>
+        <burnIn>0</burnIn>
       </samplerInit>
       <likelihood log="True">zout</likelihood>
       <variable name="xin">

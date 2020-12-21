@@ -40,8 +40,9 @@ def run(self, inputDict):
   xin = []
   for var in vars:
     xin.extend(inputDict[var])
-  xin = np.assarray(xin)
-  if np.all(xin < 500) and np.all(x>-500):
-    self.zout = st.multivariate_normal(mean=self.mu, cov=self.cov).logpdf(xin)
+  xin = np.asarray(xin)
+  if np.all(xin < 500) and np.all(xin > -500):
+    zout = st.multivariate_normal(mean=self.mu, cov=self.cov).logpdf(xin)
   else:
-    self.zout = np.asarray([-1.0E6])
+    zout = -1.0E6
+  self.zout = np.atleast_1d(zout)

@@ -15,7 +15,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>OneDim</WorkingDir>
+    <WorkingDir>TenDim</WorkingDir>
     <Sequence>mh, print</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
@@ -28,58 +28,58 @@
     </Uniform>
     <Normal name="N1">
       <mean>0</mean>
-      <sigma>2.38</sigma>
+      <sigma>1</sigma>
     </Normal>
     <Normal name="N2">
       <mean>0</mean>
-      <sigma>2.38</sigma>
+      <sigma>1</sigma>
     </Normal>
     <Normal name="N3">
       <mean>0</mean>
-      <sigma>2.38</sigma>
+      <sigma>0.2000104</sigma>
     </Normal>
     <Normal name="N4">
       <mean>0</mean>
-      <sigma>2.38</sigma>
+      <sigma>2.06276731</sigma>
     </Normal>
     <Normal name="N5">
       <mean>0</mean>
-      <sigma>2.38</sigma>
+      <sigma>1.55779212</sigma>
     </Normal>
     <Normal name="N6">
       <mean>0</mean>
-      <sigma>2.38</sigma>
+      <sigma>6.33134638</sigma>
     </Normal>
     <Normal name="N7">
       <mean>0</mean>
-      <sigma>2.38</sigma>
+      <sigma>0.18340701</sigma>
     </Normal>
     <Normal name="N8">
       <mean>0</mean>
-      <sigma>2.38</sigma>
+      <sigma>0.44157869</sigma>
     </Normal>
     <Normal name="N9">
       <mean>0</mean>
-      <sigma>2.38</sigma>
+      <sigma>0.18388237</sigma>
     </Normal>
     <Normal name="N10">
       <mean>0</mean>
-      <sigma>2.38</sigma>
+      <sigma>3.5896497</sigma>
     </Normal>
   </Distributions>
 
   <Models>
     <ExternalModel ModuleToLoad="likelihood" name="likelihood" subType="">
-      <variables>xin, zout</variables>
+      <variables>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, zout</variables>
     </ExternalModel>
   </Models>
 
   <Samplers>
     <Metropolis name="Metropolis">
       <samplerInit>
-        <limit>1000</limit>
+        <limit>10000</limit>
         <initialSeed>070419</initialSeed>
-        <burnIn>10</burnIn>
+        <burnIn>0</burnIn>
       </samplerInit>
       <likelihood log="True">zout</likelihood>
       <variable name="x1">
@@ -178,7 +178,7 @@
 
     <PointSet name="out_export">
       <Input>traceID</Input>
-      <Output>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, LogPosterior, AcceptRate</Output>
+      <Output>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, zout, AcceptRate</Output>
     </PointSet>
   </DataObjects>
 

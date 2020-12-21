@@ -306,7 +306,7 @@ class AdaptiveMetropolis(MCMC):
    (around 23% for more than 5 parameters).
 3. Update Metropolis algrithm with optimal step size: 2.38Sigma/ndim
 4. Add more examples
-   a. 1-D Gaussian model
+   a. 1-D Gaussian model (DONE)
    b. 10-D Gaussian model
    c. 50-D Gaussian model using Adaptive Metropolis
 5. Fix Fission Gas Release Model
