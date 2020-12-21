@@ -20,6 +20,7 @@ comments: Interface for AccelerateCFD
 """
 import os
 import numpy as np
+import pandas as pd
 import glob
 from sklearn import neighbors
 from OpenFoamPP import fieldParser
@@ -99,14 +100,23 @@ class AcceleratedCFD(CodeInterfaceBase):
           self.locations["coords"][i, map[coord]] = self.coords[coord][1][findNearest(self.coords[coord][1],v)]
       if inputFile.getType().lower() == 'input':
         with open(inputFile.getAbsFile(), "r") as inputObj:
-          lines = inputObj.readlines()
-          for line in lines:
-            if line.strip().startswith("<romName>"):
-              self.romName = line.strip().replace("<romName>","").split("<")[0]
-            if line.strip().startswith("<romType>"):
-              self.romType = line.strip().replace("<romType>","").split("<")[0]
-            if self.romName is not None and self.romType is not None:
-              break
+          xml = inputObj.read()
+        xml = '<root>\n' + xml + '\n</root>'
+        tree = ET.ElementTree(ET.fromstring(xml))
+        root = tree.getroot()
+        xmlFind = lambda str: root.findall(str)[0].text
+        self.fomPath = xmlFind('./fullOrderModel/fomPath')
+        self.fomName = xmlFind('./fullOrderModel/librarySolution/fomDirectoryName')
+        self.fomSubFolder = xmlFind('/postProcessing/probe/0/U')
+        self.fomDataFolder = os.path.join(self.fomPath,self.fomName,self.fomSubFolder)
+        self.romName = xmlFind('./rom/romName')
+        self.romType = xmlFind('./rom/romType')
+        # read data from FOM
+        datai = pd.read_csv(self.fomDataFolder,skiprows=3,header=None,sep='\s+').iloc[:,[0,1,2]].replace('[()]','',regex=True).astype(float)
+        datai = datai.rename(columns={0:'t',1:'ux',2:'uy'})
+        dataList = [datai]
+        self.dataFom = pd.concat(dataList,keys=['fom'])
+        
     if not len(self.coords):
       raise IOError('Mesh type files must be inputed (mesh-x, mesh-y, mesh-z). Got None!')
     if self.romName is None or self.romType is None:
@@ -303,4 +313,22 @@ class AcceleratedCFD(CodeInterfaceBase):
           if variableName not in results:
             results[variableName] = np.zeros(len(timeList))
           results[variableName][indx] = val
+      ppRomFile = os.path.join(workingDir,"rom",self.romType +"_"+ self.romName,"postProcessing","probe","0","Urom")
+      if os.path.exists(ppRomFile):
+        datai = pd.read_csv(ppRomFile,skiprows=3,header=None,sep='\s+').iloc[:,[0,1,2]].replace('[()]','',regex=True).astype(float)
+        datai = data_i.rename(columns={0:'t',1:'ux',2:'uy'})
+        dataList = [datai]
+        romData = pd.concat(dataList,keys=['rom'])
+        ufomux = self.dataFom.loc['fom'].mean()['ux']
+        uromux = romData.loc['rom'].mean()['ux']
+        ufomuy = self.dataFom.loc['fom'].mean()['uy']
+        uromuy = romData.loc['rom'].mean()['uy']
+        uerr = (ufomux-uromux) + (ufomuy-uromuy)
+        results["ufomux"] = np.asarray([ufomux]*len(timeList))
+        results["uromux"] = np.asarray([uromux]*len(timeList))
+        results["ufomuy"] = np.asarray([ufomuy]*len(timeList))
+        results["uromuy"] = np.asarray([uromuy]*len(timeList))
+        results["uerr"] = np.asarray([uerr]*len(timeList))
+      else:
+        print("WARNING: postprocessing file for rom "+self.romType +"_"+ self.romName+" not found! Path: "+ ppRomFile)
     return results
