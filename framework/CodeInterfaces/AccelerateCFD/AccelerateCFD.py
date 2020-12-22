@@ -108,8 +108,7 @@ class AcceleratedCFD(CodeInterfaceBase):
         xmlFind = lambda str: root.findall(str)[0].text
         self.fomPath = xmlFind('./fullOrderModel/fomPath')
         self.fomName = xmlFind('./fullOrderModel/librarySolution/fomDirectoryName')
-        self.fomSubFolder = '/postProcessing/probe/0/U'
-        self.fomDataFolder = os.path.join(self.fomPath,self.fomName,self.fomSubFolder)
+        self.fomDataFolder = os.path.join(self.fomPath,self.fomName,"postProcessing","probe","0","U")
         self.romName = xmlFind('./rom/romName')
         self.romType = xmlFind('./rom/romType')
         # read data from FOM
