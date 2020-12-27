@@ -91,7 +91,7 @@ class AdaptiveMetropolis(MCMC):
     ## construct ordered variable list
     ## construct ensemble mean and covariance that will be used for proposal distribution
     ## ToDO: current structure only works for untruncated distribution
-    self._ensembleMean = np.zeros(totalNumVars)
+    # self._ensembleMean = np.zeros(totalNumVars)
     self._ensembleCov = np.zeros((totalNumVars, totalNumVars))
     index = 0
     for distName, elementList in self.distributions2variablesMapping.items():
@@ -104,9 +104,9 @@ class AdaptiveMetropolis(MCMC):
             orderedVars.append([key])
             self._orderedVarsList.append(key)
             dist = self.distDict[key]
-            mean = dist.untruncatedMean()
+            # mean = dist.untruncatedMean()
             sigma = dist.untruncatedStdDev()
-            self._ensembleMean[index] = mean
+            # self._ensembleMean[index] = mean
             self._ensembleCov[index, index] = sigma**2
             ## update index
             index += 1
@@ -131,7 +131,7 @@ class AdaptiveMetropolis(MCMC):
           cov = dist.covariance
           totDim = len(mean)
           cov = np.asarray(cov).reshape((totDim, totDim))
-          self._ensembleMean[index:index+totDim] = mean
+          # self._ensembleMean[index:index+totDim] = mean
           self._ensembleCov[index:index+totDim, index:index+totDim] = cov
           ## update initial value
           value = dist.rvs()
@@ -140,6 +140,7 @@ class AdaptiveMetropolis(MCMC):
               self._updateValues[var] = value[i]
           ## update index
           index += totDim
+    self._ensembleMean = np.asarray([self._updateValues[var] for var in self._orderedVarsList])
     size = len(self._ensembleMean)
     self._proposal = self.constructProposalDistribution(np.zeros(size), self._lambda*self._ensembleCov.ravel())
 
