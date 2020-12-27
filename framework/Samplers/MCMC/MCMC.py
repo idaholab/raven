@@ -314,6 +314,8 @@ class MCMC(AdaptiveSampler):
       self.inputInfo['ProbabilityWeight-' + key] = 1.
     self.inputInfo['PointProbability'] = 1.0
     self.inputInfo['ProbabilityWeight'] = 1.0
+    self.inputInfo['LogPosterior'] = self.netLogPosterior
+    self.inputInfo['AcceptRate'] = self._acceptRate
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
@@ -347,6 +349,7 @@ class MCMC(AdaptiveSampler):
         self._addToSolutionExport(rlz)
         self._updateValues = dict((var, rlz[var]) for var in self._updateValues)
       else:
+        self._currentRlz.update({'traceID':self.counter, 'LogPosterior': self.inputInfo['LogPosterior'], 'AcceptRate':self.inputInfo['AcceptRate']})
         self._addToSolutionExport(self._currentRlz)
         self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
 
