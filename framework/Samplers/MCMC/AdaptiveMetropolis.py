@@ -257,6 +257,7 @@ class AdaptiveMetropolis(MCMC):
     else:
       netLogLikelihood = newRlz[self._likelihood] - currentRlz[self._likelihood]
     netLogPosterior += netLogLikelihood
+    netLogPosterior = min(0.0, netLogPosterior)
     return netLogPosterior
 
   def _updateAdaptiveParams(self, alpha, rlz):
