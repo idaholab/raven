@@ -63,7 +63,7 @@ class SPSA(GradientApproximater):
       @ Out, evalInfo, list(dict), identifying information about points
     """
     dh = self._proximity * stepSize
-    perturb = randomUtils.randPointsOnHypersphere(self.N)
+    perturb = np.atleast_1d(randomUtils.randPointsOnHypersphere(self.N))
     delta = {}
     new = {}
     for i, var in enumerate(self._optVars):
