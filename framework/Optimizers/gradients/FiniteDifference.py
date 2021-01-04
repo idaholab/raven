@@ -69,7 +69,6 @@ class FiniteDifference(GradientApproximater):
     evalInfo = []
 
     directions = np.atleast_1d(randomUtils.random(self.N) < 0.5) * 2 - 1
-    print(directions)
     for o, optVar in enumerate(self._optVars):
       optValue = opt[optVar]
       new = copy.deepcopy(opt)
