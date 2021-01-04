@@ -86,6 +86,12 @@ class MCMC(AdaptiveSampler):
     burnInInput = InputData.parameterInputFactory("burnIn", contentType=InputTypes.IntegerType,
         descr='')
     samplerInitInput.addSub(burnInInput)
+    tune = InputData.parameterInputFactory("tune", contentType=InputTypes.BoolType,
+        descr='')
+    samplerInitInput.addSub(tune)
+    tuneInterval = InputData.parameterInputFactory("tuneInterval", contentType=InputTypes.IntegerType,
+        descr='')
+    samplerInitInput.addSub(tuneInterval)
     inputSpecification.addSub(samplerInitInput)
     likelihoodInp = InputData.parameterInputFactory("likelihood",contentType=InputTypes.StringType,
         printPriority=5,
@@ -149,6 +155,12 @@ class MCMC(AdaptiveSampler):
     self._currentRlz = None # dict stores the current realizations, i.e. {var: val}
     self._acceptRate = 1. # The accept rate for MCMC
     self._acceptCount = 1 # The total number of accepted samples
+    self._tune = True
+    self._tuneInterval = 100
+    self._scaling = 1.0
+    self._countsUntilTune = self._tuneInterval
+    self._acceptInTune = 0
+    self._accepted = False
     # assembler objects
     self.addAssemblerObject('proposal', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('probabilityFunction', InputData.Quantity.zero_to_infinity)
@@ -193,6 +205,12 @@ class MCMC(AdaptiveSampler):
       burnIn = init.findFirst('burnIn')
       if burnIn is not None:
         self._burnIn = burnIn.value
+      tune = init.findFirst('tune')
+      if tune is not None:
+        self._tune = tune.value
+      tuneInterval = init.findFirst('tuneInterval')
+      if tuneInterval is not None:
+        self._tuneInterval = tuneInterval.value
     else:
       self.raiseAnError(IOError, 'MCMC', self.name, 'needs the samplerInit block')
     if self._burnIn >= self.limit:
@@ -343,8 +361,8 @@ class MCMC(AdaptiveSampler):
     if self.counter > 1:
       alpha = self._useRealization(rlz, self._currentRlz)
       self.netLogPosterior = alpha
-      acceptable = self._checkAcceptance(alpha)
-      if acceptable:
+      self._accepted = self._checkAcceptance(alpha)
+      if self._accepted:
         self._currentRlz = rlz
         self._addToSolutionExport(rlz)
         self._updateValues = dict((var, rlz[var]) for var in self._updateValues)
@@ -352,6 +370,15 @@ class MCMC(AdaptiveSampler):
         self._currentRlz.update({'traceID':self.counter, 'LogPosterior': self.inputInfo['LogPosterior'], 'AcceptRate':self.inputInfo['AcceptRate']})
         self._addToSolutionExport(self._currentRlz)
         self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
+
+  @abc.abstractmethod
+  def _useRealization(self, newRlz, currentRlz):
+    """
+      Used to feedback the collected runs within the sampler
+      @ In, newRlz, dict, new generated realization
+      @ In, currentRlz, dict, the current existing realization
+      @ Out, netLogPosterior, float, the accepted probabilty
+    """
 
   def _checkAcceptance(self, alpha):
     """
@@ -404,3 +431,26 @@ class MCMC(AdaptiveSampler):
     if self._burnIn < self.counter:
       rlz = dict((var, np.atleast_1d(val)) for var, val in rlz.items())
       self._solutionExport.addRealization(rlz)
+
+  @staticmethod
+  def tuneScalingParam(scale, acceptRate):
+    """
+      Tune the scaling parameter for the proposal distribution
+      Borrowed from PyMC3
+      @ In, scale, float, the scaling parameter for the proposal distribution
+      @ In, acceptRate, float, the accept rate
+      @ Out, scale, float, the adjusted scaling parameter
+    """
+    if acceptRate < 0.001:
+      scale *= 0.1
+    elif acceptRate < 0.05:
+      scale *= 0.5
+    elif acceptRate < 0.2:
+      scale *= 0.9
+    elif acceptRate > 0.95:
+      scale *= 10.0
+    elif acceptRate > 0.75:
+      scale *= 2.0
+    elif acceptRate > 0.5:
+      scale *= 1.1
+    return scale

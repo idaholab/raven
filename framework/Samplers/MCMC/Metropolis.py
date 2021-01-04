@@ -122,10 +122,17 @@ class Metropolis(MCMC):
     if self.counter < 2:
       MCMC.localGenerateInput(self, model, myInput)
     else:
+      ## tune scaling parameter
+      if not self._countsUntilTune and self._tune:
+        ### tune
+        self._scaling = self.tuneScalingParam(self._scaling, self._acceptInTune/float(self._tuneInterval))
+        ### reset counter
+        self._countsUntilTune = self._tuneInterval
+        self._acceptInTune = 0
       self._localReady = False
       for key, value in self._updateValues.items():
         # update value based on proposal distribution
-        newVal = value + self._proposal[key].rvs()
+        newVal = value + self._proposal[key].rvs() * self._scaling
         self.values[key] = newVal
         if key in self.distDict:
           ## check the lowerBound and upperBound
@@ -156,6 +163,9 @@ class Metropolis(MCMC):
       @ Out, None
     """
     MCMC.localFinalizeActualSampling(self, jobObject, model, myInput)
+    if self._tune:
+      self._acceptInTune = self._acceptInTune + 1 if self._accepted else self._acceptInTune
+      self._countsUntilTune -= 1
 
   def _useRealization(self, newRlz, currentRlz):
     """
