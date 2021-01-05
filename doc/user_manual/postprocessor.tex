@@ -1226,6 +1226,7 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are avai
         \item \textbf{min}, compute the minimum of each variable along each single history
          \item \textbf{max}, compute the maximum of each variable along each single history
          \item \textbf{average}, compute the average of each variable along each single history
+         \item \textbf{all}, join together all of the each variable in the history, and make the pivotParameter as an input parameter. (So if the original HistorySet had input parameters x,y, a pivotParameter of t, and output: a,b then the new input parameters would be x, y, t and the output would be a, b)
        \end{itemize}
         \nb This node can be inputted only if \xmlNode{pivotValue} and \xmlNode{row} are not present
      \item \xmlNode{pivotValue}, \xmlDesc{float, optional field}, the value of the pivotParameter with respect to the other outputs need to be extracted.
