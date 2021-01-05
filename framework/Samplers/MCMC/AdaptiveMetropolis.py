@@ -106,40 +106,64 @@ class AdaptiveMetropolis(MCMC):
     index = 0
     ## Construct proposal distribution
     if len(self._proposal) != 0:
-      for distName, elementList in self._proposalDist.items():
-        orderedVars = []
+      for propDistName, elementList in self._proposalDist.items():
         dim = elementList[0][1]
         if dim is None:
           for elem in elementList:
             key = elem[0]
             if key in self._updateValues.keys():
-              orderedVars.append([key])
               self._orderedVarsList.append(key)
               dist = self._proposal[key]
               sigma = dist.untruncatedStdDev()
               self._ensembleCov[index, index] = sigma**2
               ## update index
               index += 1
-          # self._orderedVars: {distName:[[varlist], []]}
-          self._orderedVars[distName] = orderedVars
+              # self._orderedVars: {distName:[[varlist], []]}
+              distName   = self.variables2distributionsMapping[key]['name']
+              totDim = max(self.distributions2variablesIndexList[distName])
+              if totDim > 1:
+                self.raiseAnError(IOError, 'Single dimension proposal distribution is provided for multivariate distribution variable "{}", this is not allowed!'.format(key))
+              if distName not in self._orderedVars:
+                self._orderedVars[distName] = [[key]]
+              else:
+                self._orderedVars[distName].append([key])
         else:
           orderedVars = [k for k, v in sorted(elementList, key=lambda item: item[1])]
           if len(orderedVars) != len(set(orderedVars)):
             self.raiseAnError(IOError, "Duplicated value of 'dim' is found for proposal distribution '{}'".format(distName))
           var = orderedVars[0]
           proposalDist = self._proposal[var]
-          if var in self._updateValues.keys():
+          distName   = self.variables2distributionsMapping[var]['name']
+          totDim = max(self.distributions2variablesIndexList[distName])
+          if totDim > 1:
+            listElem = self.distributions2variablesMapping[distName]
+            elemDict = {}
+            for elem in listElem:
+              elemDict.update(elem)
+            checkVars = [k for k, v in sorted(elemDict.items(), key=lambda item: item[1])]
+            if checkVars != orderedVars:
+              self.raiseAnError(IOError, 'The "dim" provided by "distribution" and "proposal" is not consistent for variables:', ','.join(checkVars))
             self._orderedVars[distName] = [orderedVars]
-            self._orderedVarsList.extend(orderedVars)
-            if proposalDist.type != 'MultivariateNormal':
-              self.raiseAnError(IOError, 'Only accept "MultivariateNormal" distribution, but got "{}"'.format(proposalDist.type))
-            mean = proposalDist.mu
-            cov = proposalDist.covariance
-            totDim = len(mean)
-            cov = np.asarray(cov).reshape((totDim, totDim))
-            self._ensembleCov[index:index+totDim, index:index+totDim] = cov
-            ## update index
-            index += totDim
+          else:
+            for key in orderedVars:
+              distName   = self.variables2distributionsMapping[key]['name']
+              totDim = max(self.distributions2variablesIndexList[distName])
+              if totDim > 1:
+                self.raiseAnError(IOError,'Multivariate proposal distribution is not allowed for mixed single and multivariate distribution!')
+              if distName not in self._orderedVars:
+                self._orderedVars[distName] = [[key]]
+              else:
+                self._orderedVars[distName].append([key])
+          self._orderedVarsList.extend(orderedVars)
+          if proposalDist.type != 'MultivariateNormal':
+            self.raiseAnError(IOError, 'Only accept "MultivariateNormal" distribution, but got "{}"'.format(proposalDist.type))
+          mean = proposalDist.mu
+          cov = proposalDist.covariance
+          totDim = len(mean)
+          cov = np.asarray(cov).reshape((totDim, totDim))
+          self._ensembleCov[index:index+totDim, index:index+totDim] = cov
+          ## update index
+          index += totDim
     else:
       for distName, elementList in self.distributions2variablesMapping.items():
         totDim = max(self.distributions2variablesIndexList[distName])
