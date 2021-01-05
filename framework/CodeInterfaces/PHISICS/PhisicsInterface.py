@@ -121,7 +121,9 @@ class Phisics(CodeInterfaceBase):
     """
     self.jobTitle = 'defaultInstant'
     for child in depletionRoot.findall(".//title"):
-      self.jobTitle = child.text
+      self.jobTitle = child.text.strip()
+      if " " in self.jobTitle:
+        raise IOError("Job title can not have spaces in the title but must be a single string. E.g. from "+self.jobTitle+ " to "+ self.jobTitle.replace(" ",""))
       break
     return
 
@@ -523,9 +525,9 @@ class Phisics(CodeInterfaceBase):
             **self.distributedPerturbedVars[perturbedParam])
       if perturbedParam == 'generic':
         # check and modify modelpar.inp file
-        modelparParser = GenericParser(currentInputFiles)
-        modelparParser.modifyInternalDictionary(**Kwargs)
-        modelparParser.writeNewInput(currentInputFiles,oriInputFiles)
+        modelParParser = GenericParser(currentInputFiles)
+        modelParParser.modifyInternalDictionary(**Kwargs)
+        modelParParser.writeNewInput(currentInputFiles,oriInputFiles)
 
 
       # add CSV output from depletion
