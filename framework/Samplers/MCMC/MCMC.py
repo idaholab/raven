@@ -104,9 +104,13 @@ class MCMC(AdaptiveSampler):
     variable = inputSpecification.getSub('variable')
     variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatType,
         descr=r"""inital value for given variable"""))
-    variable.addSub(InputData.assemblyInputFactory('proposal', contentType=InputTypes.StringType, strictMode=True,
+    proposal = InputData.assemblyInputFactory('proposal', contentType=InputTypes.StringType, strictMode=True,
         printPriority=30,
-        descr=r"""name of the Distribution that is used as proposal distribution"""))
+        descr=r"""name of the Distribution that is used as proposal distribution""")
+    proposal.addParam('dim', InputTypes.IntegerType, required=False,
+        descr=r"""for an ND proposal distribution, indicates the dimension within the ND Distribution that corresponds
+              to this variable""")
+    variable.addSub(proposal)
     variable.addSub(InputData.assemblyInputFactory('probabilityFunction', contentType=InputTypes.StringType, strictMode=True,
         printPriority=30,
         descr=r"""name of the function that is used as prior distribution (doesn't need to be normalized)"""))
@@ -141,6 +145,7 @@ class MCMC(AdaptiveSampler):
     self._initialValues = {} # dict stores the user provided initial values, i.e. {var: val}
     self._updateValues = {} # dict stores input variables values for the current MCMC iteration, i.e. {var:val}
     self._proposal = {} # dict stores the proposal distributions for input variables, i.e. {var:dist}
+    self._proposalDist = {}
     self._priorFuns = {} # dict stores the prior functions for input variables, i.e. {var:fun}
     self._burnIn = 0      # integers indicate how many samples will be discarded
     self._likelihood = None # stores the output from the likelihood
@@ -161,6 +166,7 @@ class MCMC(AdaptiveSampler):
     self._countsUntilTune = self._tuneInterval
     self._acceptInTune = 0
     self._accepted = False
+    self._stdProposalDefault = 0.2
     # assembler objects
     self.addAssemblerObject('proposal', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('probabilityFunction', InputData.Quantity.zero_to_infinity)
@@ -276,7 +282,13 @@ class MCMC(AdaptiveSampler):
       elif childChild.getName() == 'initial':
         self._initialValues[varName] = childChild.value
       elif childChild.getName() == 'proposal':
-        self._proposal[varName] = childChild.value
+        distName = childChild.value
+        dim = childChild.parameterValues.get('dim', None)
+        self._proposal[varName] = distName
+        if distName not in self._proposalDist:
+          self._proposalDist[distName] = [(varName, dim)]
+        else:
+          self._proposalDist[distName].append((varName, dim))
       elif childChild.getName() == 'probabilityFunction':
         toBeSampled = childChild.value
         self.toBeCalibrated[varName] = toBeSampled
@@ -380,6 +392,7 @@ class MCMC(AdaptiveSampler):
       ### reset counter
       self._countsUntilTune = self._tuneInterval
       self._acceptInTune = 0
+      print('scaling', self._scaling)
 
   @abc.abstractmethod
   def _useRealization(self, newRlz, currentRlz):

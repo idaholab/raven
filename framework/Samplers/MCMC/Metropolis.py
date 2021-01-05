@@ -83,6 +83,7 @@ class Metropolis(MCMC):
       self.raiseAnError(IOError, 'Multivariate case can not be handled by Metropolis, please consider adaptive Metropolis!')
 
     for var in self._updateValues:
+      std = self._stdProposalDefault
       if var in self.distDict:
         dist = self.distDict[var]
         if var in self._proposal:
@@ -97,15 +98,19 @@ class Metropolis(MCMC):
                               'Please refer to adaptive Metropolis Sampler if the input variables are correlated!')
         else:
           untrStdDev = dist.untruncatedStdDev()
-          newStd = 2.38 * untrStdDev # see Andrieu-Thoms2008
-          propDist = self._availProposal['normal'](0.0, newStd)
+          std *= untrStdDev
+          propDist = self._availProposal['normal'](0.0, std)
           propDist.initializeDistribution()
           self._proposal[var] = propDist
+          self.raiseAWarning('"proposal" is not provided for variable "{}", default normal distribution with std={} is used!'.format(var, std))
       else:
         if var in self._proposal:
           self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', self._proposal[var])
         else:
-          self.raiseAnError(IOError, '"proposal" is required for variable "{}", but it is not provided!'.format(var))
+          propDist = self._availProposal['normal'](0.0, std)
+          propDist.initializeDistribution()
+          self._proposal[var] = propDist
+          self.raiseAWarning('"proposal" is not provided for variable "{}", default normal distribution with std={} is used!'.format(var, std))
       if self._updateValues[var] is None:
         value = dist.rvs()
         self._updateValues[var] = value
