@@ -229,7 +229,7 @@ class MCMC(AdaptiveSampler):
         by Sampler base class to indicate "Distribution"
       @ Out, None
     """
-    assert(prefix == "", '"prefix" should be empty, but got {}!'.format(prefix))
+    assert prefix == "", '"prefix" should be empty, but got {}!'.format(prefix)
     varName = child.parameterValues['name']
     foundDist = child.findFirst('distribution')
     foundFunc = child.findFirst('function')
@@ -370,6 +370,16 @@ class MCMC(AdaptiveSampler):
         self._currentRlz.update({'traceID':self.counter, 'LogPosterior': self.inputInfo['LogPosterior'], 'AcceptRate':self.inputInfo['AcceptRate']})
         self._addToSolutionExport(self._currentRlz)
         self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
+    if self._tune:
+      self._acceptInTune = self._acceptInTune + 1 if self._accepted else self._acceptInTune
+      self._countsUntilTune -= 1
+    ## tune scaling parameter
+    if not self._countsUntilTune and self._tune:
+      ### tune
+      self._scaling = self.tuneScalingParam(self._scaling, self._acceptInTune/float(self._tuneInterval))
+      ### reset counter
+      self._countsUntilTune = self._tuneInterval
+      self._acceptInTune = 0
 
   @abc.abstractmethod
   def _useRealization(self, newRlz, currentRlz):
