@@ -176,7 +176,7 @@ class JobHandler(MessageHandler.MessageUser):
   def __initializeRay(self):
     """
       Internal method that is aimed to initialize the internal parallel system.
-      It initilizes the RAY implementation (with socketing system) in
+      It initializes the RAY implementation (with socketing system) in
       case RAVEN is run in a cluster with multiple nodes or the NumMPI > 1,
       otherwise multi-threading is used.
       @ In, None
@@ -349,7 +349,7 @@ class JobHandler(MessageHandler.MessageUser):
         self.__batching[groupId] = {"counter": 0, "ids": [], "size": groupInfo['size'], 'finished': []}
       self.__batching[groupId]["counter"] += 1
       if self.__batching[groupId]["counter"] > self.__batching[groupId]["size"]:
-        self.raiseAnError(RuntimeError, "gruoup id {} is full. Size reached:".format(groupId))
+        self.raiseAnError(RuntimeError, "group id {} is full. Size reached:".format(groupId))
       self.__batching[groupId]["ids"].append(identifier)
     # add the runner in the Queue
     self.reAddJob(internalJob)
@@ -559,6 +559,9 @@ class JobHandler(MessageHandler.MessageUser):
       jobIdentifier = ''
 
     with self.__queueLock:
+      print('###############')
+      print(self.__batching)
+      print('@@ self.__finished --> ' + str(self.__finished))
       runsToBeRemoved = []
       for i,run in enumerate(self.__finished):
         ## If the jobIdentifier does not match or the uniqueHandler does not
@@ -568,10 +571,15 @@ class JobHandler(MessageHandler.MessageUser):
           continue
         ## check if the run belongs to a subgroup and in case
         if run.groupId in self.__batching:
+          print('====> run.groupId in self.__batching: ' + str(run))
           self.__batching[run.groupId]['finished'].append(run)
         else:
           finished.append(run)
+          print('====> run.groupId NOT in self.__batching: ' + str(run))
+          print('====> run.groupId' + str(run.groupId))
+          print(self.__batching)
         if removeFinished:
+          print('====> removeFinished: ' + str(removeFinished))
           runsToBeRemoved.append(i)
           self.__checkAndRemoveFinished(run)
           ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
@@ -581,10 +589,13 @@ class JobHandler(MessageHandler.MessageUser):
         if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
           doneBatch = self.__batching.pop(groupId)
           finished.append(doneBatch['finished'])
+          print('*************')
+          print(self.__batching)
 
       ##Since these indices are sorted, reverse them to ensure that when we
       ## delete something it will not shift anything to the left (lower index)
       ## than it.
+      print(runsToBeRemoved)
       for i in reversed(runsToBeRemoved):
         self.__finished[i].trackTime('collected')
         del self.__finished[i]

@@ -388,11 +388,13 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, None
     """
     # The whole skeleton should be here, this should be calling all classes and _private methods.
+    rlz=copy.deepcopy(rlz1)
+    
+    print('1 =============')
+    print(rlz)
     traj = info['traj']
     self.incrementIteration(traj)
     info['step'] = self.counter
-
-    rlz=copy.deepcopy(rlz1)
 
     # Developer note: each algorithm step is indicated by a number followed by the generation number
     # e.g., '5 @ n-1' refers to step 5 for generation n-1 (i.e., previous generation)
@@ -437,6 +439,8 @@ class GeneticAlgorithm(RavenSampled):
       # 4 @ n: repair/replacement
       # repair should only happen if multiple genes in a single chromosome have the same values (),
       # and at the same time the sampling of these genes should be with Out replacement.
+      print('2 =============')
+      print(childrenMutated)
       needsRepair = False
       for chrom in range(self._nChildren):
         unique = set(childrenMutated.data[chrom,:])
@@ -449,6 +453,8 @@ class GeneticAlgorithm(RavenSampled):
         children = self._repairInstance(childrenMutated,variables=list(self.toBeSampled),distInfo=self.distDict)
       else:
         children = copy.deepcopy(childrenMutated)
+      print('3 =============')
+      print(children)
       # Make sure no children are exactly similar to parents
       flag = True
       counter = 0
@@ -472,6 +478,8 @@ class GeneticAlgorithm(RavenSampled):
                               dims=['chromosome','Gene'],
                               coords={'chromosome': np.arange(np.shape(children)[0]),
                                       'Gene':list(self.toBeSampled)})
+      print('4 =============')
+      print(daChildren)
       # 5 @ n: Submit children batch
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
       for i in range(np.shape(daChildren)[0]):
