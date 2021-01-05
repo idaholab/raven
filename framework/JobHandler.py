@@ -558,47 +558,47 @@ class JobHandler(MessageHandler.MessageUser):
     if jobIdentifier is None:
       jobIdentifier = ''
 
-    with self.__queueLock:
-      print('###############')
-      print(self.__batching)
-      print('@@ self.__finished --> ' + str(self.__finished))
-      runsToBeRemoved = []
-      for i,run in enumerate(self.__finished):
-        ## If the jobIdentifier does not match or the uniqueHandler does not
-        ## match, then don't bother trying to do anything with it
-        if not run.identifier.startswith(jobIdentifier) \
-           or uniqueHandler != run.uniqueHandler:
-          continue
-        ## check if the run belongs to a subgroup and in case
-        if run.groupId in self.__batching:
-          print('====> run.groupId in self.__batching: ' + str(run))
-          self.__batching[run.groupId]['finished'].append(run)
-        else:
-          finished.append(run)
-          print('====> run.groupId NOT in self.__batching: ' + str(run))
-          print('====> run.groupId' + str(run.groupId))
-          print(self.__batching)
-        if removeFinished:
-          print('====> removeFinished: ' + str(removeFinished))
-          runsToBeRemoved.append(i)
-          self.__checkAndRemoveFinished(run)
-          ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
+    #with self.__queueLock:
+    print('###############')
+    print(self.__batching)
+    print('@@ self.__finished --> ' + str(self.__finished))
+    runsToBeRemoved = []
+    for i,run in enumerate(self.__finished):
+      ## If the jobIdentifier does not match or the uniqueHandler does not
+      ## match, then don't bother trying to do anything with it
+      if not run.identifier.startswith(jobIdentifier) \
+         or uniqueHandler != run.uniqueHandler:
+        continue
+      ## check if the run belongs to a subgroup and in case
+      if run.groupId in self.__batching:
+        print('====> run.groupId in self.__batching: ' + str(run))
+        self.__batching[run.groupId]['finished'].append(run)
+      else:
+        finished.append(run)
+        print('====> run.groupId NOT in self.__batching: ' + str(run))
+        print('====> run.groupId' + str(run.groupId))
+        print(self.__batching)
+      if removeFinished:
+        print('====> removeFinished: ' + str(removeFinished))
+        runsToBeRemoved.append(i)
+        self.__checkAndRemoveFinished(run)
+        ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
 
-      ## check if batches are ready to be returned
-      for groupId in list(self.__batching.keys()):
-        if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
-          doneBatch = self.__batching.pop(groupId)
-          finished.append(doneBatch['finished'])
-          print('*************')
-          print(self.__batching)
+    ## check if batches are ready to be returned
+    for groupId in list(self.__batching.keys()):
+      if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
+        doneBatch = self.__batching.pop(groupId)
+        finished.append(doneBatch['finished'])
+        print('*************')
+        print(self.__batching)
 
-      ##Since these indices are sorted, reverse them to ensure that when we
-      ## delete something it will not shift anything to the left (lower index)
-      ## than it.
-      print(runsToBeRemoved)
-      for i in reversed(runsToBeRemoved):
-        self.__finished[i].trackTime('collected')
-        del self.__finished[i]
+    ##Since these indices are sorted, reverse them to ensure that when we
+    ## delete something it will not shift anything to the left (lower index)
+    ## than it.
+    print('runsToBeRemoved:' +str(runsToBeRemoved))
+    for i in reversed(runsToBeRemoved):
+      self.__finished[i].trackTime('collected')
+      del self.__finished[i]
     ## end with self.__queueLock
 
     return finished
