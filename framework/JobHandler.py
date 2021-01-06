@@ -579,6 +579,7 @@ class JobHandler(MessageHandler.MessageUser):
         print('====> run.groupId NOT in self.__batching: ' + str(run))
         print('====> run.groupId' + str(run.groupId))
         print(self.__batching)
+            
       if removeFinished:
         print('====> removeFinished: ' + str(removeFinished))
         runsToBeRemoved.append(i)
