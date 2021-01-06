@@ -8,7 +8,7 @@
     <description>
       Test the Markov Chain Monte Carlo algorithm: Adaptive Metropolis Sampling
       Test to see if there is any degradation in Adaptive Metropolis Sampling
-      Heavy test: ~550s on Mac, set MaxTime < 700s
+      Heavy test: ~550s on Mac, set MaxTime ~ 700s
     </description>
   </TestInfo>
 
