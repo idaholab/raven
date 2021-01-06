@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
   <TestInfo>
-    <name>framework/MCMC.Metropolis</name>
+    <name>framework/MCMC.MetropolisTenDimPropMVN</name>
     <author>wangc</author>
     <created>2020-12-20</created>
     <classesTested>MCMC.Metropolis</classesTested>

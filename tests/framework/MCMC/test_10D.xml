@@ -21,7 +21,7 @@
 
   <RunInfo>
     <WorkingDir>TenDim</WorkingDir>
-    <Sequence>mh, print</Sequence>
+    <Sequence>mh, print, pp</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
   </RunInfo>
@@ -77,6 +77,10 @@
     <ExternalModel ModuleToLoad="../likelihoods/likelihood_10D" name="likelihood" subType="">
       <variables>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, zout</variables>
     </ExternalModel>
+    <PostProcessor name="posteriorMode" subType="BasicStatistics">
+      <expectedValue prefix="mean">x1, x2, x3, x4, x5, x6, x7, x8, x9, x10</expectedValue>
+      <sigma prefix="sigma">x1, x2, x3, x4, x5, x6, x7, x8, x9, x10</sigma>
+    </PostProcessor>
   </Models>
 
   <Samplers>
@@ -155,6 +159,12 @@
       <Output class="OutStreams" type="Print">dumpExport</Output>
       <Output class="OutStreams" type="Print">dumpOut</Output>
     </IOStep>
+    <PostProcess name="pp">
+      <Input class="DataObjects" type="PointSet">out_export</Input>
+      <Model class="Models" type="PostProcessor">posteriorMode</Model>
+      <Output class="DataObjects" type="PointSet">posterior_basicStat</Output>
+      <Output class="OutStreams" type="Print">posterior_basicStat_dump</Output>
+    </PostProcess>
   </Steps>
 
   <OutStreams>
@@ -166,6 +176,11 @@
     <Print name="dumpExport">
       <type>csv</type>
       <source>out_export</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="posterior_basicStat_dump">
+      <type>csv</type>
+      <source>posterior_basicStat</source>
       <what>input, output</what>
     </Print>
   </OutStreams>
@@ -184,6 +199,11 @@
     <PointSet name="out_export">
       <Input>traceID</Input>
       <Output>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, zout, AcceptRate</Output>
+    </PointSet>
+
+    <PointSet name="posterior_basicStat">
+      <Output>mean_x1, mean_x2, mean_x3, mean_x4, mean_x5, mean_x6, mean_x7, mean_x8, mean_x9, mean_x10,
+              sigma_x1, sigma_x2, sigma_x3, sigma_x4, sigma_x5, sigma_x6, sigma_x7, sigma_x8, sigma_x9, sigma_x10</Output>
     </PointSet>
   </DataObjects>
 

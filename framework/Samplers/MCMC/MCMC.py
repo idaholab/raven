@@ -390,7 +390,6 @@ class MCMC(AdaptiveSampler):
       ### reset counter
       self._countsUntilTune = self._tuneInterval
       self._acceptInTune = 0
-      print('scaling', self._scaling)
 
   @abc.abstractmethod
   def _useRealization(self, newRlz, currentRlz):

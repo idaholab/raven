@@ -32,24 +32,24 @@
   max_time = 700
   [./csv]
    type = OrderedCSV
-   output = 'OneDimTune/dumpExport.csv OneDimTune/dumpOut.csv'
+   output = 'OneDimTune/posterior_basicStat_dump.csv'
    rel_err = 0.001
   [../]
  [../]
  [./MetropolisTenDim]
   type = 'RavenFramework'
   input = 'test_10D.xml'
-  max_time = 500
+  max_time = 700
   [./csv]
    type = OrderedCSV
-   output = 'TenDim/dumpExport.csv TenDim/dumpOut.csv'
+   output = 'TenDim/posterior_basicStat_dump.csv'
    rel_err = 0.001
   [../]
  [../]
  [./MetropolisTenDimMVN]
   type = 'RavenFramework'
   input = 'test_10D_mvn.xml'
-  max_time = 200
+  max_time = 700
   [./csv]
    type = OrderedCSV
    output = 'TenDimMVN/posterior_basicStat_dump.csv'
@@ -59,7 +59,7 @@
  [./MetropolisTenDimPropMVN]
   type = 'RavenFramework'
   input = 'test_10D_proposal_mvn.xml'
-  max_time = 200
+  max_time = 700
   [./csv]
    type = OrderedCSV
    output = 'TenDimPropMVN/posterior_basicStat_dump.csv'
