@@ -17,7 +17,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>amh</WorkingDir>
+    <WorkingDir>amhPropMVN</WorkingDir>
     <Sequence>amh, print</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
@@ -28,6 +28,13 @@
       <mean>0</mean>
       <sigma>1</sigma>
     </Normal>
+    <MultivariateNormal method="pca" name="mvn">
+      <mu>0.0 0.0</mu>
+      <covariance>
+          1.0 0.0
+          0.0 1.0
+      </covariance>
+    </MultivariateNormal>
   </Distributions>
 
   <Models>
@@ -39,18 +46,20 @@
   <Samplers>
     <AdaptiveMetropolis name="AdaptiveMetropolis">
       <samplerInit>
-        <limit>1000</limit>
+        <limit>700</limit>
         <initialSeed>070419</initialSeed>
-        <burnIn>500</burnIn>
+        <burnIn>10</burnIn>
       </samplerInit>
       <likelihood log="False">zout</likelihood>
       <variable name="xin">
         <distribution>normal</distribution>
         <initial>2</initial>
+        <proposal class="Distributions" type="MultivariateNormal" dim="1">mvn</proposal>
       </variable>
       <variable name="yin">
         <distribution>normal</distribution>
         <initial>2</initial>
+        <proposal class="Distributions" type="MultivariateNormal" dim="2">mvn</proposal>
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
     </AdaptiveMetropolis>

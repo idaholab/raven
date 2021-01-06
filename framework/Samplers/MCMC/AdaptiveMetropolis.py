@@ -44,6 +44,11 @@ class AdaptiveMetropolis(MCMC):
         specifying input of cls.
     """
     inputSpecification = super(AdaptiveMetropolis, cls).getInputSpecification()
+    samplerInit = inputSpecification.getSub('samplerInit')
+    adaptiveInterval = InputData.parameterInputFactory("adaptiveInterval", contentType=InputTypes.IntegerType,
+        descr='The number of sample steps for each proposal parameters update')
+    samplerInit.addSub(adaptiveInterval)
+    inputSpecification.addSub(samplerInit)
     return inputSpecification
 
   def __init__(self):
@@ -61,6 +66,7 @@ class AdaptiveMetropolis(MCMC):
     self._ensembleCov = None  # The covariance matrix of ordered variables
     self._orderedVars = OrderedDict() # ordered dict of variables that is used to construct proposal function
     self._orderedVarsList = [] # List of ordered variables
+    self._adaptiveInterval = 20
 
   def handleInput(self, paramInput):
     """
@@ -69,6 +75,12 @@ class AdaptiveMetropolis(MCMC):
       @ Out, None
     """
     MCMC.handleInput(self, paramInput)
+    init = paramInput.findFirst('samplerInit')
+    if init is not None:
+      # limit
+      adaptiveInterval = init.findFirst('adaptiveInterval')
+      if adaptiveInterval is not None:
+        self._adaptiveInterval = adaptiveInterval.value
 
   def initialize(self, externalSeeding=None, solutionExport=None):
     """
@@ -352,19 +364,27 @@ class AdaptiveMetropolis(MCMC):
       @ In, rlz, dict, the updated current existing realization
       @ Out, None
     """
-    orderedVarsVals = np.asarray([rlz[var] for var in self._orderedVarsList])
-    ## update _lambda
-    self._gamma = 1.0/(self.counter+1.0)
-    self._lambda = self._lambda * np.exp(self._gamma * (np.exp(alpha) - self._optAlpha))
-    diff = orderedVarsVals - self._ensembleMean
-    self._ensembleMean += self._gamma * diff
-    self._ensembleCov += self._gamma * (np.outer(diff, diff)-self._ensembleCov)
-    ## update proposal distribution
-    size = len(self._ensembleMean)
-    # print('alpha', np.exp(alpha))
-    # print('lambda:', self._lambda)
-    # print('cov:', self._ensembleCov)
-    self._proposal = self.constructProposalDistribution(np.zeros(size), self._lambda*self._ensembleCov.ravel())
+    ### first use normal strategy (tuneScalingParam) to update scaling parameter until burnIn
+    ### Reset scaling and then start to use adaptive approach to update scaling and cov parameters
+    if self.counter == self._burnIn:
+      self._lambda = self._scaling**2
+      self._scaling = 1.
+      self._tune = False
+    elif self.counter > self._burnIn:
+      orderedVarsVals = np.asarray([rlz[var] for var in self._orderedVarsList])
+      ## update _lambda
+      self._gamma = 1.0/np.sqrt(self.counter-self._burnIn+1.0)
+      self._lambda = self._lambda * np.exp(self._gamma * (np.exp(alpha) - self._optAlpha))
+      if self.counter % self._adaptiveInterval == 0:
+        diff = orderedVarsVals - self._ensembleMean
+        self._ensembleMean += self._gamma * diff
+        self._ensembleCov += self._gamma * (np.outer(diff, diff)-self._ensembleCov)
+        ## update proposal distribution
+        size = len(self._ensembleMean)
+        # print('alpha', np.exp(alpha))
+        # print('lambda:', self._lambda)
+        # print('cov:', self._ensembleCov)
+        self._proposal = self.constructProposalDistribution(np.zeros(size), self._lambda*self._ensembleCov.ravel())
 
   def localStillReady(self, ready):
     """

@@ -46,6 +46,26 @@
    rel_err = 0.001
   [../]
  [../]
+ [./MetropolisTenDimMVN]
+  type = 'RavenFramework'
+  input = 'test_10D_mvn.xml'
+  max_time = 200
+  [./csv]
+   type = OrderedCSV
+   output = 'TenDimMVN/posterior_basicStat_dump.csv'
+   rel_err = 0.001
+  [../]
+ [../]
+ [./MetropolisTenDimPropMVN]
+  type = 'RavenFramework'
+  input = 'test_10D_proposal_mvn.xml'
+  max_time = 200
+  [./csv]
+   type = OrderedCSV
+   output = 'TenDimPropMVN/posterior_basicStat_dump.csv'
+   rel_err = 0.001
+  [../]
+ [../]
  [./AdaptiveMetropolis]
   type = 'RavenFramework'
   input = 'test_amh.xml'
@@ -63,6 +83,16 @@
   [./csv]
    type = OrderedCSV
    output = 'amh_mvn/dumpExport.csv amh_mvn/dumpOut.csv'
+   rel_err = 0.001
+  [../]
+ [../]
+ [./AdaptiveMetropolisPropMVN]
+  type = 'RavenFramework'
+  input = 'test_amh_prop_mvn.xml'
+  max_time = 200
+  [./csv]
+   type = OrderedCSV
+   output = 'amhPropMVN/dumpExport.csv amhPropMVN/dumpOut.csv'
    rel_err = 0.001
   [../]
  [../]
