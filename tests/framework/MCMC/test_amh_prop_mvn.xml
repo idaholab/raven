@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
   <TestInfo>
-    <name>framework/MCMC.AdaptiveMetropolis</name>
+    <name>framework/MCMC.AdaptiveMetropolisPropMVN</name>
     <author>wangc</author>
     <created>2020-12-20</created>
     <classesTested>MCMC.Metropolis</classesTested>
@@ -10,7 +10,7 @@
       A 2-D multivariate normal distribution is used as the likelihood function.
       mean: [5, 5], cov=[[1, 0.9], [0.9, 1]]
       Both input parameters have the standard normal distribution as their prior distribution.
-      The proposal distributions for the input variables are also standard normal distribution.
+      The proposal distributions for the input variables multivariate normal distribution.
       ``TargetEvaluation'' is used to collect the inputs and outputs from the likelihood model.
       ``SolutionExport'' is used to store the posterior values for the input variables, i.e. ``xin'' and ``yin''
     </description>
@@ -38,7 +38,7 @@
   </Distributions>
 
   <Models>
-    <ExternalModel ModuleToLoad="likelihood" name="likelihood" subType="">
+    <ExternalModel ModuleToLoad="../likelihoods/likelihood_amh" name="likelihood" subType="">
       <variables>xin, yin, zout</variables>
     </ExternalModel>
   </Models>

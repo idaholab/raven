@@ -23,7 +23,7 @@
   type = 'RavenFramework'
   heavy = True
   input = 'test_1D.xml'
-  max_time = 500
+  max_time = 700
   output = 'OneDim/dumpExport.csv OneDim/dumpOut.csv'
  [../]
  [./MetropolisOneDimTune]

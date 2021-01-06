@@ -1,15 +1,20 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="silent">
   <TestInfo>
-    <name>framework/MCMC.Metropolis</name>
+    <name>framework/MCMC.MetropolisTenDim</name>
     <author>wangc</author>
     <created>2020-12-20</created>
     <classesTested>MCMC.Metropolis</classesTested>
     <description>
-      Test the Markov Chain Monte Carlo algorithm: Adaptive Metropolis Sampling
+      Test the Markov Chain Monte Carlo algorithm: Metropolis Sampling for high-dimensional
+      input space (10-dim):
       likelihood function: N-Dimensional Gaussian distribution with
-      mu ~ Normal(0, 10)
-      var ~ LogNormal(0, 1.5)
+      mu ~ Normal(0, 10), analytical mean values:
+      [-3.23840979,  4.32107943,  0.18209698, -5.10287563, -2.01392171,
+       10.67490632, -0.26232032,  5.92550919,  7.70044106,  6.86019041]
+      var ~ LogNormal(0, 1.5), analytical std values:
+      [ 1.58121149,  1.30760725,  0.25210521,  4.22805349,  2.75537484,
+       15.26527159,  0.16109538,  1.0258734 ,  0.0772615 ,  4.86960071]
       Prior on mean is U(-500, 500)
     </description>
   </TestInfo>
@@ -69,7 +74,7 @@
   </Distributions>
 
   <Models>
-    <ExternalModel ModuleToLoad="likelihood" name="likelihood" subType="">
+    <ExternalModel ModuleToLoad="../likelihoods/likelihood_10D" name="likelihood" subType="">
       <variables>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, zout</variables>
     </ExternalModel>
   </Models>
