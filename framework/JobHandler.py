@@ -579,13 +579,13 @@ class JobHandler(MessageHandler.MessageUser):
           print('====> run.groupId NOT in self.__batching: ' + str(run))
           print('====> run.groupId' + str(run.groupId))
           print(self.__batching)
-  
+
         if removeFinished:
           print('====> removeFinished: ' + str(removeFinished))
           runsToBeRemoved.append(i)
           self.__checkAndRemoveFinished(run)
           ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
-  
+
       ## check if batches are ready to be returned
       for groupId in list(self.__batching.keys()):
         if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
@@ -593,7 +593,7 @@ class JobHandler(MessageHandler.MessageUser):
           finished.append(doneBatch['finished'])
           print('*************')
           print(self.__batching)
-  
+
       ##Since these indices are sorted, reverse them to ensure that when we
       ## delete something it will not shift anything to the left (lower index)
       ## than it.
