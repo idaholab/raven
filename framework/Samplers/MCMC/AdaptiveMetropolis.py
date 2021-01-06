@@ -66,7 +66,7 @@ class AdaptiveMetropolis(MCMC):
     self._ensembleCov = None  # The covariance matrix of ordered variables
     self._orderedVars = OrderedDict() # ordered dict of variables that is used to construct proposal function
     self._orderedVarsList = [] # List of ordered variables
-    self._adaptiveInterval = 20
+    self._adaptiveInterval = 20 # The number of sample steps for each adaptive update of scaling and covariance parameters
 
   def handleInput(self, paramInput):
     """
@@ -77,7 +77,6 @@ class AdaptiveMetropolis(MCMC):
     MCMC.handleInput(self, paramInput)
     init = paramInput.findFirst('samplerInit')
     if init is not None:
-      # limit
       adaptiveInterval = init.findFirst('adaptiveInterval')
       if adaptiveInterval is not None:
         self._adaptiveInterval = adaptiveInterval.value
@@ -131,7 +130,7 @@ class AdaptiveMetropolis(MCMC):
               ## update index
               index += 1
               # self._orderedVars: {distName:[[varlist], []]}
-              distName   = self.variables2distributionsMapping[key]['name']
+              distName = self.variables2distributionsMapping[key]['name']
               totDim = max(self.distributions2variablesIndexList[distName])
               if totDim > 1:
                 self.raiseAnError(IOError, 'Single dimension proposal distribution is provided for multivariate distribution variable "{}", this is not allowed!'.format(key))
@@ -145,7 +144,7 @@ class AdaptiveMetropolis(MCMC):
             self.raiseAnError(IOError, "Duplicated value of 'dim' is found for proposal distribution '{}'".format(distName))
           var = orderedVars[0]
           proposalDist = self._proposal[var]
-          distName   = self.variables2distributionsMapping[var]['name']
+          distName = self.variables2distributionsMapping[var]['name']
           totDim = max(self.distributions2variablesIndexList[distName])
           if totDim > 1:
             listElem = self.distributions2variablesMapping[distName]
@@ -313,7 +312,6 @@ class AdaptiveMetropolis(MCMC):
     self.inputInfo['ProbabilityWeight' ] = 1.0
     self.inputInfo['SamplerType'] = 'Metropolis'
 
-  ## unchanged, can be moved to MCMC base class
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
       General function (available to all samplers) that finalize the sampling
@@ -372,7 +370,7 @@ class AdaptiveMetropolis(MCMC):
       self._tune = False
     elif self.counter > self._burnIn:
       orderedVarsVals = np.asarray([rlz[var] for var in self._orderedVarsList])
-      ## update _lambda
+      ## update _lambda and _gamma
       self._gamma = 1.0/np.sqrt(self.counter-self._burnIn+1.0)
       self._lambda = self._lambda * np.exp(self._gamma * (np.exp(alpha) - self._optAlpha))
       if self.counter % self._adaptiveInterval == 0:
@@ -381,9 +379,6 @@ class AdaptiveMetropolis(MCMC):
         self._ensembleCov += self._gamma * (np.outer(diff, diff)-self._ensembleCov)
         ## update proposal distribution
         size = len(self._ensembleMean)
-        # print('alpha', np.exp(alpha))
-        # print('lambda:', self._lambda)
-        # print('cov:', self._ensembleCov)
         self._proposal = self.constructProposalDistribution(np.zeros(size), self._lambda*self._ensembleCov.ravel())
 
   def localStillReady(self, ready):
@@ -395,25 +390,3 @@ class AdaptiveMetropolis(MCMC):
     """
     ready = self._localReady and MCMC.localStillReady(self, ready)
     return ready
-
-
-
-#### Things to do
-"""
-0. Refactor All Algorityms (DONE)
-1. add accept_rate[self.counter], netLogPosterior[self.counter] (DONE)
-2. Plots: a) Histogram of samples, b) sample vs iteration (trace plot),
-   c) log-posterior vs iteration, d) proposal acceptance rate vs iteration (DONE)
-   In an optimally performing MCMC, the histogram of samples should converge to the posterior
-   distribution, the trace of the chain should sample around the maximum of the posterior such
-   that the samples are close to i.i.d (independent, identical distribution). The log-posterior
-   chain should be smoothly varying around the maximum. Lastly, the acceptance rate depends on
-   the problem but typically for 1-d problems, the acceptance rate should be around 44%
-   (around 23% for more than 5 parameters).
-3. Update Metropolis algrithm with optimal step size: 2.38Sigma/ndim
-4. Add more examples
-   a. 1-D Gaussian model (DONE)
-   b. 10-D Gaussian model
-   c. 50-D Gaussian model using Adaptive Metropolis
-5. Fix Fission Gas Release Model
-"""

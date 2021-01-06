@@ -81,16 +81,16 @@ class MCMC(AdaptiveSampler):
         descr=r"""the limit for the total samples""")
     samplerInitInput.addSub(limitInput)
     initialSeedInput = InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType,
-        descr='')
+        descr=r"""The initial seed for random number generator""")
     samplerInitInput.addSub(initialSeedInput)
     burnInInput = InputData.parameterInputFactory("burnIn", contentType=InputTypes.IntegerType,
-        descr='')
+        descr=r"""The number of samples that will be discarded""")
     samplerInitInput.addSub(burnInInput)
     tune = InputData.parameterInputFactory("tune", contentType=InputTypes.BoolType,
-        descr='')
+        descr=r"""The option to tune the scaling parameter""")
     samplerInitInput.addSub(tune)
     tuneInterval = InputData.parameterInputFactory("tuneInterval", contentType=InputTypes.IntegerType,
-        descr='')
+        descr=r"""The number of sample steps for each tuning of scaling parameter""")
     samplerInitInput.addSub(tuneInterval)
     inputSpecification.addSub(samplerInitInput)
     likelihoodInp = InputData.parameterInputFactory("likelihood",contentType=InputTypes.StringType,
@@ -145,7 +145,7 @@ class MCMC(AdaptiveSampler):
     self._initialValues = {} # dict stores the user provided initial values, i.e. {var: val}
     self._updateValues = {} # dict stores input variables values for the current MCMC iteration, i.e. {var:val}
     self._proposal = {} # dict stores the proposal distributions for input variables, i.e. {var:dist}
-    self._proposalDist = {}
+    self._proposalDist = {} # dist stores the input variables for each proposal distribution, i.e. {distName:[(var,dim)]}
     self._priorFuns = {} # dict stores the prior functions for input variables, i.e. {var:fun}
     self._burnIn = 0      # integers indicate how many samples will be discarded
     self._likelihood = None # stores the output from the likelihood
@@ -160,13 +160,13 @@ class MCMC(AdaptiveSampler):
     self._currentRlz = None # dict stores the current realizations, i.e. {var: val}
     self._acceptRate = 1. # The accept rate for MCMC
     self._acceptCount = 1 # The total number of accepted samples
-    self._tune = True
-    self._tuneInterval = 100
-    self._scaling = 1.0
-    self._countsUntilTune = self._tuneInterval
-    self._acceptInTune = 0
-    self._accepted = False
-    self._stdProposalDefault = 0.2
+    self._tune = True # Tune the scaling parameter if True
+    self._tuneInterval = 100 # the number of sample steps for each tuning of scaling parameter
+    self._scaling = 1.0 # The initial scaling parameter
+    self._countsUntilTune = self._tuneInterval # The remain number of sample steps until the next tuning
+    self._acceptInTune = 0 # The accepted number of samples for given tune interval
+    self._accepted = False # The indication of current samples, True if accepted otherwise False
+    self._stdProposalDefault = 0.2 # the initial scaling of the std of proposal distribution (only apply to default)
     # assembler objects
     self.addAssemblerObject('proposal', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('probabilityFunction', InputData.Quantity.zero_to_infinity)
@@ -360,8 +360,6 @@ class MCMC(AdaptiveSampler):
     self._localReady = True
     AdaptiveSampler.localFinalizeActualSampling(self, jobObject, model, myInput)
     prefix = jobObject.getMetadata()['prefix']
-    # Profiling shows the following line increases the computational time by factor of 4
-    # _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
     full = self._targetEvaluation.realization(index=self.counter-1)
     rlz = dict((var, full[var]) for var in (list(self.toBeCalibrated.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
     rlz['traceID'] = self.counter
