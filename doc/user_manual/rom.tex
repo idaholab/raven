@@ -3432,26 +3432,28 @@ below).
 \subnodeIntro
 
 \begin{itemize}
-  \item \xmlNode{dmdType}, \xmlDesc{string, optional field}, the type of Dynamic Mode Decomposition to apply. Available are:
+  \item \xmlNode{dmdType}, \xmlDesc{string, optional field}, the type of Dynamic 
+  Mode Decomposition to apply. Available are:
     \begin{itemize}
       \item \textit{dmd}, for classical DMD
     \end{itemize}
   \default{dmd}
-  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, defines the pivot variable (e.g., time) that represents the
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, defines the pivot 
+  variable (e.g., time) that represents the
   independent monotonic variable
   \default{time}
+  
   \item \xmlNode{StateVariables}, \xmlDesc{comma separated string, required field},  
   defines the state variables (i.e. system variable vectors)
   of this model. Each state variable (x1, x2, etc.) needs to be listed here. The variables 
-  listed in \xmlNode{StateVariables} must be listed in the  \xmlNode{Target} node too.
+  indicated in \xmlNode{StateVariables} must be listed in the 
+   \xmlNode{Target} node too.
   
-  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines output FOMs that are going to be predicted.
-  The pivot variable in \xmlNode{pivotParameter} is required in \xmlNode{Target}. In addition, it is optional to list each system 
-  output variables (y1, y2, etc.).
-    \begin{itemize} 
-      \item \textit{pivotParameter}, for A and B matrices calculations only;
-      \item \textit{pivotParameter, y(s)}, for A, B and C matrices calculations.
-    \end{itemize}  
+  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines 
+  output FOMs that are going to be predicted.
+  The pivot variable in \xmlNode{pivotParameter} and the \xmlNode{StateVariables} 
+  variables must be listed in this node too. In addition, each system output variables 
+  (e.g. y1, y2, etc.) must be listed.
     
   \item \xmlNode{InitStateVariables},  \xmlDesc{comma separated string, required 
   field},  defines the state variables' ids  that should be used as initialization variable
@@ -3460,16 +3462,25 @@ below).
   ``exited'' by the \xmlNode{Actuators} signal. The variables listed in 
   \xmlNode{InitStateVariables} must be listed in the  \xmlNode{Features} node too.
   
-  \item \xmlNode{Actuators}, \xmlDesc{comma separated string, required field}, defines the actuators (i.e. system input parameters)
+  \item \xmlNode{Actuators}, \xmlDesc{comma separated string, required field}, 
+  defines the actuators (i.e. system input parameters)
   of this model. Each actuator variables (u1, u2, etc.) needs to be listed here.
-  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (i.e. system input and state 
-  parameters) of this model. The pivot variables in \xmlNode{Actuators}, and each system state variable (x1, x2, etc.) are required in \xmlNode{Features}.
+  
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines 
+  the features (i.e. system input and state 
+  parameters) of this model. The variables in \xmlNode{Actuators},  each system state 
+  variable \xmlNode{StateVariables} (x1, x2, etc.), and the initialization state variables  
+  \xmlNode{InitStateVariables} are required in \xmlNode{Features}. In addition to those
+  variables, a list of variables that can be use to ``parametrize'' the surrogate model 
+  can be listed (flow\_rate, power, etc.). Those ``parameterization'' parameters can 
+  come, for example, from a RAVEN sampling strategies (e.g. uncertanties).
+  
   \item \xmlNode{rankSVD}, \xmlDesc{integer, optional field}, defines the truncation rank to be used for the SVD.
      Available options are:
      \begin{itemize}
-     \item \textit{-1}, no truncation is performed
-     \item \textit{0}, optimal rank is internally computed
-     \item \textit{>1}, this rank is going to be used for the truncation
+     \item \textit{$-1$}, no truncation is performed
+     \item \textit{$0$}, optimal rank is internally computed
+     \item \textit{$>1$}, this rank is going to be used for the truncation
    \end{itemize}
    \default{-1}
   \item \xmlNode{SubtractNormUXY}, \xmlDesc{bool, optional field}, True if the initial values need to be subtracted from the 
@@ -3485,11 +3496,21 @@ below).
   <Models>
     ...
    <ROM name="DMDrom" subType="DMDC">
+      <!-- Target contains y(s) beside Time => Calculate A, B and C -->
+      <Target>Time,x1,x2,x3,y1,y2</Target>
+      <!-- Features include all the u(t), x(t), p(s) -->
+      <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
+      <!-- Actuator variables u(t) are listed below -->
+      <Actuators>u1</Actuators>
+      <!-- StateVariables x(t) are listed below -->
+      <StateVariables>x1, x2, x3</StateVariables>
+      <!-- Initialization Variables-->
+      <InitStateVariables>x1_init, x2_init, x3_init</InitStateVariables>
+      <!-- Pivot variable (e.g. Time) -->
       <pivotParameter>Time</pivotParameter>
-      <Target>Time,y1,y2</Target>
-      <Actuators>u1,u2</Actuators>
-      <Features>u1,u2,x1,x2,x3</Features> 
+      <!-- rankSVD -->
       <rankSVD>-1</rankSVD>
+      <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
       <SubtractNormUXY>True</SubtractNormUXY>
     </ROM>
     ...
@@ -3505,14 +3526,13 @@ in \xmlNode{OutStream} of type \xmlAttr{Print}):
   \item \xmlNode{dmdType}, see XML input specifications above
   \item \xmlNode{rankSVD}, see XML input specifications above
   \item \xmlNode{acturators}, see XML input specifications above
-  \item \xmlNode{acturatorsCount}, XML node containing the number of actuators
   \item \xmlNode{UNorm}, XML node containing the norminal values of actuators, which are the initial values in the training data
   \item \xmlNode{states}, XML node containing the list of system state variables (x)
-  \item \xmlNode{statesCount}, XML node containing the number of state variables
+  \item \xmlNode{initStates}, XML node containing the list of system state variables 
+  (x\_init) that are used for initializing the model in ``evaluation'' mode.
   \item \xmlNode{XNorm}, XML node containing the norminal values of state variables, which are the initial values in the training data
   \item \xmlNode{XLast}, XML node containing the last value of state variables, which are the final values in the training data
   \item \xmlNode{outputs}, XML node containing the list of system output variables (y)
-  \item \xmlNode{outputsCount}, XML node containing the number of output variables
   \item \xmlNode{YNorm}, XML node containing the norminal values of output variables, which are the initial values in the training data
   \item \xmlNode{dmdTimeScale}, XML node containing the array of the training time steps values
   \item \xmlNode{Atilde}, XML node containing the A matrix in discrete time domain (real and imaginary and part, matrix shape, and format note)

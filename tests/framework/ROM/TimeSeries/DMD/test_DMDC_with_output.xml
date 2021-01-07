@@ -43,8 +43,7 @@
       <!-- Target contains y(s) beside Time => Calculate A, B and C -->
       <Target>Time,x1,x2,x3,y1,y2</Target>
       <!-- Features include all the u(t), x(t), p(s) -->
-      <Features>u1,mod,flow</Features>
-      <!-- <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features> -->
+      <Features>u1,mod,flow,x1_init,x2_init,x3_init</Features>
       <!-- Actuator variables u(t) are listed below -->
       <Actuators>u1</Actuators>
       <!-- StateVariables x(t) are listed below -->
@@ -53,10 +52,10 @@
       <InitStateVariables>x1_init,x2_init,x3_init</InitStateVariables>
       <!-- Pivot variable (e.g. Time) -->
       <pivotParameter>Time</pivotParameter>
-      <rankSVD>-1</rankSVD>
       <!-- rankSVD: -1 = No truncation; 0 = optimized truncation; pos. int = truncation level -->
+      <rankSVD>-1</rankSVD>
+      <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
       <SubtractNormUXY>True</SubtractNormUXY>
-	  <!-- SubtractNormUXY: True = will subtract the initial values from U,X,Y -->
     </ROM>
   </Models>
 

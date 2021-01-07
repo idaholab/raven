@@ -217,8 +217,8 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     if skip is None: # skip =  None
       skip = []
 
-    what = ['dmdType','rankSVD','acturators','acturatorsCount',
-            'states','statesCount','outputs','outputsCount',
+    what = ['dmdType','rankSVD','acturators',
+            'states','outputs','initStates',
             'Atilde','Btilde','Ctilde','UNorm','XNorm','YNorm',
             'XLast','dmdTimeScale']
 
@@ -248,16 +248,12 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     targNode = writeTo._findTarget(writeTo.getRoot(), target)
     if "acturators" in what:
       writeTo.addScalar(target, "acturators", ' '.join(self.actuatorsID))
-    if "acturatorsCount" in what:
-      writeTo.addScalar(target, "acturatorsCount", len(self.actuatorsID))
     if "states" in what:
       writeTo.addScalar(target, "states", ' '.join(self.stateID))
-    if "statesCount" in what:
-      writeTo.addScalar(target, "statesCount", len(self.stateID))
+    if "initStates" in what:
+      writeTo.addScalar(target, "initStates", ' '.join(self.initStateID))
     if "outputs" in what:
       writeTo.addScalar(target, "outputs", ' '.join(self.outputID))
-    if "outputsCount" in what:
-      writeTo.addScalar(target, "outputsCount", len(self.outputID))
     if "dmdTimeScale" in what:
       writeTo.addScalar(target,"dmdTimeScale",' '.join(['%.3d' % elm for elm in self._getTimeScale()]))
 
