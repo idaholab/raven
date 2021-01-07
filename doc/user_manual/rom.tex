@@ -3417,11 +3417,11 @@ in \xmlNode{OutStream} of type \xmlAttr{Print}):
 The DMDC sub-type contains a single ROM type similar to DMD, aimed to construct a time-dependent surrogate model based on Dynamic 
 Mode Decomposition with Control (ref. \cite{proctor2016dynamic}).
 In addition to perform a ``dimensionality reduction regression'' like DMD, this surrogate will calculate the state-space 
-representation matrices A, B (and optional C) in a discrete time domain. 
+representation matrices A, B and  C in a discrete time domain. 
 
 \begin{itemize}
 \item x[k+1]=A*x[k]+B*u[k]
-\item y[k+1]=C*x[k+1] (optional)
+\item y[k+1]=C*x[k+1] 
 \end{itemize}
 
 %
@@ -3440,6 +3440,11 @@ below).
   \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, defines the pivot variable (e.g., time) that represents the
   independent monotonic variable
   \default{time}
+  \item \xmlNode{StateVariables}, \xmlDesc{comma separated string, required field},  
+  defines the state variables (i.e. system variable vectors)
+  of this model. Each state variable (x1, x2, etc.) needs to be listed here. The variables 
+  listed in \xmlNode{StateVariables} must be listed in the  \xmlNode{Target} node too.
+  
   \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines output FOMs that are going to be predicted.
   The pivot variable in \xmlNode{pivotParameter} is required in \xmlNode{Target}. In addition, it is optional to list each system 
   output variables (y1, y2, etc.).
@@ -3447,8 +3452,16 @@ below).
       \item \textit{pivotParameter}, for A and B matrices calculations only;
       \item \textit{pivotParameter, y(s)}, for A, B and C matrices calculations.
     \end{itemize}  
+    
+  \item \xmlNode{InitStateVariables},  \xmlDesc{comma separated string, required 
+  field},  defines the state variables' ids  that should be used as initialization variable
+  in the evaluation stage (for the evaluation of the model). These variables are used
+  for the first time step to initiate the rolling time-step prediction of the state variables,
+  ``exited'' by the \xmlNode{Actuators} signal. The variables listed in 
+  \xmlNode{InitStateVariables} must be listed in the  \xmlNode{Features} node too.
+  
   \item \xmlNode{Actuators}, \xmlDesc{comma separated string, required field}, defines the actuators (i.e. system input parameters)
-  of this model. Each actuator variabls (u1, u2, etc.) needs to be listed here.
+  of this model. Each actuator variables (u1, u2, etc.) needs to be listed here.
   \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (i.e. system input and state 
   parameters) of this model. The pivot variables in \xmlNode{Actuators}, and each system state variable (x1, x2, etc.) are required in \xmlNode{Features}.
   \item \xmlNode{rankSVD}, \xmlDesc{integer, optional field}, defines the truncation rank to be used for the SVD.

@@ -84,7 +84,11 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       self.raiseAnError(IOError,'StateVariables XML node must be present for constructing DMDc !')
     # check if state ids in target
     if not (set(self.stateID) <= set(self.target)):
-      self.raiseAnError(IOError,'StateVariables must be present in <Target> variables!')
+      self.raiseAnError(IOError,'StateVariables must also be listed among <Target> variables!')
+    # check if state ids in target
+    if not (set(self.initStateID) <= set(self.features)):
+      self.raiseAnError(IOError,'InitStateVariables must also be listed among <Features> variables!')
+      
     ### Extract the Output Names (Output, Y)
     self.outputID = list(set(self.target) - set([self.pivotParameterID]) -  set(self.stateID))
     # check if there are parameters
@@ -117,7 +121,12 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     self.__Atilde = np.zeros((featureVals.shape[0], len(self.stateID), len(self.stateID)))
     self.__Btilde = np.zeros((featureVals.shape[0], len(self.stateID), len(self.actuatorsID)))
     self.__Ctilde = np.zeros((featureVals.shape[0], len(self.outputID), len(self.stateID)))
+    from pydmd import DMDc
+    self.testDMDC = []
     for smp in range(featureVals.shape[0]):
+      dmdc = DMDc(svd_rank=-1)
+      dmdc.fit(self.stateVals[:,smp, :].T, self.actuatorVals[:-1,smp, :].T)
+      self.testDMDC.append(dmdc)
       X1 = (self.stateVals[:-1,smp, :] - self.stateVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.stateVals[:-1,smp, :].T
       X2 = (self.stateVals[1:,smp, :] - self.stateVals[0,smp,:]).T  if self.dmdParams['centerUXY'] else self.stateVals[1:,smp, :].T
       U =  (self.actuatorVals[:-1,smp, :] - self.actuatorVals[0,smp, :]).T  if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp, :].T
@@ -140,8 +149,8 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     if len(self.parametersIDs):
       # shape(n_requests,n_parameters)
       feats = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
-      indeces = self.neigh.predict(feats)
-      indeces.dtype = np.dtype(int)
+      indeces = self.neigh.predict(feats).astype(int)
+    nreqs = len(indeces)
     ### Initialize the final return value ###
     returnEvaluation = {}
     ### Extract the Actuator signal U ###
@@ -149,28 +158,33 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     for varID in self.actuatorsID:
       varIndex = self.features.index(varID)
       Uvector.append(featureVals[:, :, varIndex])
-      returnEvaluation.update({varID: featureVals[:, :, varIndex]})
+      returnEvaluation.update({varID: featureVals[:, :, varIndex] if nreqs > 1 else featureVals[:, :, varIndex].flatten()})
     Uvector = np.asarray(Uvector)
     tsEval = Uvector.shape[-1] # ts_Eval = 100
+
     ### Extract the initial state vector shape(n_requests,n_stateID)
     initStates = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.initStateID]).T[0, :, :]
-    evalX = initStates
-    # for varID in self.initStateID:
-    #  varIndex = self.features.index(varID)
-    #  evalX[0].append(featureVals[0, 0, varIndex])
-    # evalX = np.asarray(evalX).T
+    evalX = np.zeros((len(indeces), tsEval, len(self.initStateID)))
+    evalY = np.zeros((len(indeces), tsEval, len(self.outputID)))
     
-    for index in indeces:
+    for cnt, index in enumerate(indeces):
+      evalX[cnt, 0, :] = initStates
+      evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])      
       ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
       for i in range(tsEval-1):
-        X_pred = np.reshape(self.__Atilde.dot(evalX[index, :,i]) + self.__Btilde.dot(Uvector[index,:,i]),(-1,1))
-        evalX[index] = np.hstack((evalX[index],X_pred))
-
+        Xpred = np.reshape(self.__Atilde[index, :, :].dot(evalX[cnt, i, :]) + self.__Btilde[index, :, :].dot(Uvector[cnt,:,i]),(-1,1)).T
+        evalX[cnt, i+1, :] = Xpred
+        evalY[cnt, i+1, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, i+1, :])       
     ### Store the results to the dictionary "returnEvaluation"
     for varID in self.stateID:
       varIndex = self.stateID.index(varID)
-      returnEvaluation.update({varID: evalX[varIndex,:]})
-
+      returnEvaluation.update({varID: evalX[: , :, varIndex] if nreqs > 1 else evalX[: , :, varIndex].flatten()})
+    for varID in self.outputID:
+      varIndex = self.outputID.index(varID)
+      returnEvaluation.update({varID: evalY[: , :, varIndex] if nreqs > 1 else evalY[: , :, varIndex].flatten()})
+    
+    returnEvaluation[self.pivotParameterID] = np.asarray([self.pivotValues] * nreqs) if nreqs > 1 else self.pivotValues
+  
     return returnEvaluation
 
   def writeXMLPreamble(self, writeTo, targets = None):
