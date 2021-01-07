@@ -124,15 +124,15 @@ def checkSameVersion(expected, received):
     return True
   # A.B.C versioning -> 1.1.0 should match 1.1
   expSplit = [int(x) for x in expected.split('.')]
-  rcvSplit = [int(x) for x in received.split('.')]
+  #Only check as many digits as given in expSplit
+  rcvSplit = [int(x) for x in received.split('.')[:len(expSplit)]]
   # drop trailing 0s on both
   while expSplit[-1] == 0:
     expSplit.pop()
   while rcvSplit[-1] == 0:
     rcvSplit.pop()
   exp = '.'.join(str(x) for x in expSplit)
-  #Only check as many digits as given in expSplit
-  rcv = '.'.join(str(x) for x in rcvSplit[:len(expSplit)])
+  rcv = '.'.join(str(x) for x in rcvSplit)
   if exp == rcv:
     return True
   return False
@@ -568,6 +568,7 @@ if __name__ == '__main__':
   else:
     # provide an installation command
     preamble = '{installer} {action} {args} '
+    equalsTail = '' #if something is needed after an equals
     if args.installer == 'conda':
       installer = 'conda'
       equals = '='
@@ -587,6 +588,7 @@ if __name__ == '__main__':
         src = ''
         installer = 'pip'
         equals = '=='
+        equalsTail = '.*'
         actionArgs = ''
         addOptional = False
         limit = ['pip']
@@ -607,6 +609,7 @@ if __name__ == '__main__':
     elif args.installer == 'pip':
       installer = 'pip3'
       equals = '=='
+      equalsTail = '.*'
       actionArgs = ''
       libs = getRequiredLibs(useOS=args.useOS,
                              installMethod='pip',
@@ -622,7 +625,7 @@ if __name__ == '__main__':
     preamble = preamble.format(installer=installer, action=action, args=actionArgs)
     libTexts = ' '.join(['{lib}{ver}'
                          .format(lib=lib,
-                                 ver=('{e}{r}'.format(e=equals, r=request['version']) if request['version'] is not None else ''))
+                                 ver=('{e}{r}{et}'.format(e=equals, r=request['version'], et=equalsTail) if request['version'] is not None else ''))
                          for lib, request in libs.items()])
     if len(libTexts) > 0:
       print(preamble + libTexts)
