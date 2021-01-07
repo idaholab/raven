@@ -551,7 +551,7 @@ class JobHandler(MessageHandler.MessageUser):
         ExternalRunner objects) (if jobIdentifier is None), else the finished
         jobs matching the base case jobIdentifier
     """
-    removeFinished = True
+    #removeFinished = True
     finished = []
 
     ## If the user does not specify a jobIdentifier, then set it to the empty
