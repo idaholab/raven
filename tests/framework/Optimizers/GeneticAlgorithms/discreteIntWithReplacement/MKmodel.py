@@ -42,5 +42,5 @@ def run(self,inputs):
     self.validPlan =  0.
   else:
     self.validPlan = 1.
-  
+
   time.sleep(random.uniform(0.1, 0.2))
