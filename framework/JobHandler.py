@@ -429,12 +429,14 @@ class JobHandler(MessageHandler.MessageUser):
         if run:
           return False
 
-    ## Are there runs that need to be claimed? If so, then I cannot say I am
-    ## done.
-    if len(self.getFinishedNoPop()) > 0:
-      return False
+      ## Are there runs that need to be claimed? If so, then I cannot say I am
+      ## done.
+      print('*******************NoPop, len', len(self.getFinishedNoPop()))
+      if len(self.getFinishedNoPop()) > 0:
+        print('--------------------------Not ready')
+        return False
 
-    return True
+      return True
 
   def availability(self, client=False):
     """
@@ -552,7 +554,7 @@ class JobHandler(MessageHandler.MessageUser):
         jobs matching the base case jobIdentifier
     """
     #removeFinished = True
-    finished = []
+
 
     ## If the user does not specify a jobIdentifier, then set it to the empty
     ## string because every job will match this starting string.
@@ -560,9 +562,10 @@ class JobHandler(MessageHandler.MessageUser):
       jobIdentifier = ''
 
     with self.__queueLock:
-      print('###############')
-      print(self.__batching)
-      print('@@ self.__finished --> ' + str(self.__finished))
+      # print('###############')
+      # print(self.__batching)
+      # print('@@ self.__finished --> ' + str(self.__finished))
+      finished = []
       runsToBeRemoved = []
       for i,run in enumerate(self.__finished):
         ## If the jobIdentifier does not match or the uniqueHandler does not
@@ -572,16 +575,16 @@ class JobHandler(MessageHandler.MessageUser):
           continue
         ## check if the run belongs to a subgroup and in case
         if run.groupId in self.__batching:
-          print('====> run.groupId in self.__batching: ' + str(run))
+          # print('====> run.groupId in self.__batching: ' + str(run))
           self.__batching[run.groupId]['finished'].append(run)
         else:
           finished.append(run)
-          print('====> run.groupId NOT in self.__batching: ' + str(run))
-          print('====> run.groupId' + str(run.groupId))
-          print(self.__batching)
+          print('====> run.groupId NOT in self.__batching: ', str(run))
+          print('====> run.groupId', str(run.groupId))
+          print(self.__batching.keys())
 
         if removeFinished:
-          print('====> removeFinished: ' + str(removeFinished))
+          # print('====> removeFinished: ' + str(removeFinished))
           runsToBeRemoved.append(i)
           self.__checkAndRemoveFinished(run)
           ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
@@ -589,18 +592,27 @@ class JobHandler(MessageHandler.MessageUser):
       ## check if batches are ready to be returned
       for groupId in list(self.__batching.keys()):
         if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
-          doneBatch = self.__batching.pop(groupId)
-          finished.append(doneBatch['finished'])
-          print('*************')
-          print(self.__batching)
+          if removeFinished:
+            doneBatch = self.__batching.pop(groupId)
+            print('JobHandler: finished for', groupId, 'with size', len(doneBatch['finished']))
+          else:
+            doneBatch = self.__batching[groupId]
+            print('checking finished *******************************')
+          finished.append(copy.copy(doneBatch['finished']))
+          print('doneBatch type:', type(finished[-1]), len(finished[-1]))
 
-      ##Since these indices are sorted, reverse them to ensure that when we
-      ## delete something it will not shift anything to the left (lower index)
-      ## than it.
-      print('runsToBeRemoved:' +str(runsToBeRemoved))
-      for i in reversed(runsToBeRemoved):
-        self.__finished[i].trackTime('collected')
-        del self.__finished[i]
+
+          # print('*************')
+          # print(self.__batching)
+
+        ##Since these indices are sorted, reverse them to ensure that when we
+        ## delete something it will not shift anything to the left (lower index)
+        ## than it.
+        # print('runsToBeRemoved:' +str(runsToBeRemoved))
+      if removeFinished:
+        for i in reversed(runsToBeRemoved):
+          self.__finished[i].trackTime('collected')
+          del self.__finished[i]
       ## end with self.__queueLock
 
     return finished

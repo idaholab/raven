@@ -536,7 +536,7 @@ class GeneticAlgorithm(RavenSampled):
     old = self.population
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     if converged:
-      self._activeTraj = [0]
+      # self._activeTraj = [0]
       self._closeTrajectory(traj, 'converge', 'converged', self.bestObjective)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.

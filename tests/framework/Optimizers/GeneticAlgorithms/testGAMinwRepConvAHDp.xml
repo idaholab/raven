@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug" profile="jobs">
+<Simulation verbosity="silent" profile="jobs">
   <TestInfo>
     <name>framework/Optimizers/GA/MinwReplacementConvAHDp</name>
     <author>MohammadAbdo</author>
