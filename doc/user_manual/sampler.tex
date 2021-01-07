@@ -3332,7 +3332,9 @@ the computer to automatically "learn" better parameter values "on the fly".
           ``class'' of the listed object. Only ``Distributions'' is allowed.
         \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
           identifier or sub-type.
-        \item \xmlAttr{dim}, \xmlDesc{optional attribute}
+        \item \xmlAttr{dim}, \xmlDesc{positive integer, optional attribute}, required for
+        multivariate normal proposal distribution, indicates the dimension within the multivariate
+        normal distribution that corresponds to this variable.
       \end{itemize}
       \item \xmlNode{probabilityFunction}, \xmlDesc{Assembler Object}, specifies the prior distribution function..
       This node must contain the following two attributes:
@@ -3344,7 +3346,7 @@ the computer to automatically "learn" better parameter values "on the fly".
       \end{itemize}
       \nb This node is currently not allowed for Adaptive Metropolis Sampler.
     \end{itemize}
-    \nb For MCMC sampler, we only allow ``continuous'' distributions as input to \xmlNode{variable}.
+    \nb For this sampler, we only allow ``continuous'' distributions as input to \xmlNode{variable}.
     \item \constantVariablesDescription
 \end{itemize}
 
@@ -3368,7 +3370,7 @@ In addition, the settings for this sampler need to be specified in the \xmlNode{
 \end{itemize}
 
 In addition to the \xmlNode{variable} nodes, the main XML node
-\xmlNode{Metropolis} needs to contain the following supplementary sub-nodes:
+\xmlNode{AdaptiveMetropolis} needs to contain the following supplementary sub-nodes:
 
 \begin{itemize}
   \item \xmlNode{likelihood}, \xmlDesc{string, required node}, the output from the user provided likelihood function
