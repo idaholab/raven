@@ -419,13 +419,13 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
     tempList=copy.copy(self.__running+self.__clientRunning)
-    len1 = len(self.__queue)
-    len2 = len(self.__clientQueue)
+    len1 = copy.deepcopy(len(self.__queue))
+    len2 = copy.deepcopy(len(self.__clientQueue))
     print('--------')
-    print('self.__queue      : '   + str(self.__queue))
-    print('self.__clientQueue: '   + str(self.__clientQueue))
-    print('self.__running: '       + str(self.__running))
-    print('self.__clientRunning: ' + str(self.__clientRunning))
+    print('self.__queue         : '   + str(self.__queue))
+    print('self.__clientQueue   : '   + str(self.__clientQueue))
+    print('self.__running       : '   + str(self.__running))
+    print('self.__clientRunning : '   + str(self.__clientRunning))
 
     with self.__queueLock:
       ## If there is still something left in the queue, we are not done yet.
@@ -435,7 +435,7 @@ class JobHandler(MessageHandler.MessageUser):
 
       ## Otherwise, let's look at our running lists and see if there is a job
       ## that is not done.
-
+      print('After if len1>0 or len2>0: ' + str(len1) + ' , ' + str(len2))
       print(tempList)
       for run in tempList:
         if run:
@@ -443,7 +443,7 @@ class JobHandler(MessageHandler.MessageUser):
 
     ## Are there runs that need to be claimed? If so, then I cannot say I am
     ## done.
-    print('--------')
+    print('*--------*')
     if len(self.getFinishedNoPop()) > 0:
       print('getFinishedNoPop()')
       return False
