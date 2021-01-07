@@ -418,22 +418,36 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
+    tempList=copy.copy(self.__running+self.__clientRunning)
+    len1 = len(self.__queue)
+    len2 = len(self.__clientQueue)
+    print('--------')
+    print('self.__queue      : '   + str(self.__queue))
+    print('self.__clientQueue: '   + str(self.__clientQueue))
+    print('self.__running: '       + str(self.__running))
+    print('self.__clientRunning: ' + str(self.__clientRunning))
+    
     with self.__queueLock:
       ## If there is still something left in the queue, we are not done yet.
-      if len(self.__queue) > 0 or len(self.__clientQueue) > 0:
+      #if len(self.__queue) > 0 or len(self.__clientQueue) > 0:
+      if len1>0 or len2>0:
         return False
 
       ## Otherwise, let's look at our running lists and see if there is a job
       ## that is not done.
-      for run in self.__running+self.__clientRunning:
+      
+      print(tempList)
+      for run in tempList:
         if run:
           return False
 
     ## Are there runs that need to be claimed? If so, then I cannot say I am
     ## done.
+    print('--------')
     if len(self.getFinishedNoPop()) > 0:
+      print('getFinishedNoPop()')
       return False
-
+    
     return True
 
   def availability(self, client=False):
@@ -551,7 +565,6 @@ class JobHandler(MessageHandler.MessageUser):
         ExternalRunner objects) (if jobIdentifier is None), else the finished
         jobs matching the base case jobIdentifier
     """
-    #removeFinished = True
     finished = []
 
     ## If the user does not specify a jobIdentifier, then set it to the empty
@@ -565,6 +578,7 @@ class JobHandler(MessageHandler.MessageUser):
       print('@@ self.__finished --> ' + str(self.__finished))
       runsToBeRemoved = []
       for i,run in enumerate(self.__finished):
+        print('~~~~ i: ' + str(i) + ' ; run: ' + str(run))
         ## If the jobIdentifier does not match or the uniqueHandler does not
         ## match, then don't bother trying to do anything with it
         if not run.identifier.startswith(jobIdentifier) \
@@ -579,7 +593,7 @@ class JobHandler(MessageHandler.MessageUser):
           print('====> run.groupId NOT in self.__batching: ' + str(run))
           print('====> run.groupId' + str(run.groupId))
           print(self.__batching)
-
+        print('removeFinished: ' + str(removeFinished))
         if removeFinished:
           print('====> removeFinished: ' + str(removeFinished))
           runsToBeRemoved.append(i)
@@ -602,7 +616,7 @@ class JobHandler(MessageHandler.MessageUser):
         self.__finished[i].trackTime('collected')
         del self.__finished[i]
       ## end with self.__queueLock
-
+    print('%%%% finished --> ' + str(self.__finished))
     return finished
 
   def getFinishedNoPop(self):
