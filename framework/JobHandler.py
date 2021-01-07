@@ -426,7 +426,7 @@ class JobHandler(MessageHandler.MessageUser):
     print('self.__clientQueue: '   + str(self.__clientQueue))
     print('self.__running: '       + str(self.__running))
     print('self.__clientRunning: ' + str(self.__clientRunning))
-    
+
     with self.__queueLock:
       ## If there is still something left in the queue, we are not done yet.
       #if len(self.__queue) > 0 or len(self.__clientQueue) > 0:
@@ -435,7 +435,7 @@ class JobHandler(MessageHandler.MessageUser):
 
       ## Otherwise, let's look at our running lists and see if there is a job
       ## that is not done.
-      
+
       print(tempList)
       for run in tempList:
         if run:
@@ -447,7 +447,7 @@ class JobHandler(MessageHandler.MessageUser):
     if len(self.getFinishedNoPop()) > 0:
       print('getFinishedNoPop()')
       return False
-    
+
     return True
 
   def availability(self, client=False):
