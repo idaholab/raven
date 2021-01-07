@@ -13,8 +13,6 @@
 # limitations under the License.
 
 import numpy as np
-import time
-import random
 
 def run(self,inputs):
   """
@@ -43,4 +41,3 @@ def run(self,inputs):
   else:
     self.validPlan = 1.
 
-  time.sleep(random.uniform(0.1, 0.2))

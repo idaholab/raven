@@ -13,8 +13,6 @@
 # limitations under the License.
 
 import numpy as np
-import time
-import random
 
 def run(self,Input):
   """
@@ -45,8 +43,6 @@ def run(self,Input):
     self.validPlan =  0.
   else:
     self.validPlan = 1.
-
-  time.sleep(random.uniform(0.1, 0.2))
 
   #counterNeg = np.sum(knapsackCapacities<0, axis=0)
   #self.planValue = self.planValue - counterNeg * (10.)
