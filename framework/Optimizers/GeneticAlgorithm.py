@@ -476,7 +476,7 @@ class GeneticAlgorithm(RavenSampled):
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
       for i in range(np.shape(daChildren)[0]):
         newRlz={}
-        self.inputInfo['prefix'] = str(self.batchId) + '_' + str(i)
+        # self.inputInfo['prefix'] = str(self.batchId) + '_' + str(i)
         for _,var in enumerate(self.toBeSampled.keys()):
           newRlz[var] = float(daChildren.loc[i,var].values)
         self._submitRun(copy.deepcopy(newRlz), traj, self.getIteration(traj))
