@@ -222,18 +222,18 @@ class RavenSampled(Optimizer):
       self.batchId += 1
     else:
       self.inputInfo['batchMode'] = False
-    for i in range(self.batch):
-      inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode'],'prefix': str(self.batchId)+'_'+str(i)}
-      self.inputInfo['prefix'] = inputInfo['prefix']
+    for _ in range(self.batch):
+      inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}#,'prefix': str(self.batchId)+'_'+str(i)
+      # self.inputInfo['prefix'] = inputInfo['prefix']
       if self.counter == self.limit + 1:
         break
       # get point from stack
       point, info = self._submissionQueue.popleft()
       point = self.denormalizeData(point)
       # assign a tracking prefix
-      prefix = inputInfo['prefix']
-      # prefix = self.inputInfo['batchInfo']['prefix']
-      # inputInfo['prefix'] = prefix
+      # prefix = inputInfo['prefix']
+      prefix = self.inputInfo['prefix']
+      inputInfo['prefix'] = prefix
       # register the point tracking information
       self._registerSample(prefix, info)
       # build the point in the way the Sampler expects
