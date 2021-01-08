@@ -429,14 +429,15 @@ class JobHandler(MessageHandler.MessageUser):
         if run:
           return False
 
-      ## Are there runs that need to be claimed? If so, then I cannot say I am
-      ## done.
-      print('*******************NoPop, len', len(self.getFinishedNoPop()))
-      if len(self.getFinishedNoPop()) > 0:
-        print('--------------------------Not ready')
-        return False
+    ## Are there runs that need to be claimed? If so, then I cannot say I am
+    ## done.
+    numFinished = len(self.getFinishedNoPop())
+    print('*******************NoPop, len', numFinished)
+    if numFinished != 0:
+      print('--------------------------Not ready')
+      return False
 
-      return True
+    return True
 
   def availability(self, client=False):
     """
@@ -598,7 +599,7 @@ class JobHandler(MessageHandler.MessageUser):
           else:
             doneBatch = self.__batching[groupId]
             print('checking finished *******************************')
-          finished.append(copy.copy(doneBatch['finished']))
+          finished.append(doneBatch['finished'])
           print('doneBatch type:', type(finished[-1]), len(finished[-1]))
 
 

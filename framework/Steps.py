@@ -678,7 +678,11 @@ class MultiRun(SingleRun):
     # run step loop
     while True:
       # collect finished jobs
+      # isFinished = jobHandler.isFinished()
+      # print('================ isFinished', isFinished)
       finishedJobs = jobHandler.getFinished()
+
+
       # print("finishedJobs len", len(finishedJobs))
       ##BATCH... TO MODIFY. FIXME
       for finishedJobObjs in finishedJobs:
@@ -748,7 +752,9 @@ class MultiRun(SingleRun):
         # add new jobs, for DET-type samplers
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
         # NOTE for non-DET samplers, this check also happens outside this collection loop
+
         if sampler.onlySampleAfterCollecting:
+          print('add jobs ==============')
           self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary)
       # END for each collected finished run ...
       ## If all of the jobs given to the job handler have finished, and the sampler
