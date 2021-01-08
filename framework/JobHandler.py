@@ -618,6 +618,7 @@ class JobHandler(MessageHandler.MessageUser):
           try:
             del self.__finished[i]
           except ImportError:
+            print("+++++++++++++++++ can not delete jobs +++++++++++++++++++++++++")
             pass
       ## end with self.__queueLock
 
