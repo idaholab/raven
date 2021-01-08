@@ -592,7 +592,8 @@ class JobHandler(MessageHandler.MessageUser):
         if run.groupId in self.__batching:
           print('====> run.groupId in self.__batching: ' + str(run))
           print('====> run.groupId' + str(run.groupId))
-          self.__batching[run.groupId]['finished'].append(run)
+          if not run in self.__batching[run.groupId]['finished']:
+            self.__batching[run.groupId]['finished'].append(run)
         else:
           finished.append(run)
           print('====> run.groupId NOT in self.__batching: ' + str(run))
