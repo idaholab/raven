@@ -613,7 +613,10 @@ class JobHandler(MessageHandler.MessageUser):
       if removeFinished:
         for i in reversed(runsToBeRemoved):
           self.__finished[i].trackTime('collected')
-          del self.__finished[i]
+          try:
+            del self.__finished[i]
+          except ImportError:
+            pass
       ## end with self.__queueLock
 
     return finished
