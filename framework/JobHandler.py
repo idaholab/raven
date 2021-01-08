@@ -577,7 +577,9 @@ class JobHandler(MessageHandler.MessageUser):
         ## check if the run belongs to a subgroup and in case
         if run.groupId in self.__batching:
           # print('====> run.groupId in self.__batching: ' + str(run))
-          self.__batching[run.groupId]['finished'].append(run)
+          if not run in self.__batching[run.groupId]['finished']:
+            self.__batching[run.groupId]['finished'].append(run)
+          # self.__batching[run.groupId]['finished'].append(run)
         else:
           finished.append(run)
           print('====> run.groupId NOT in self.__batching: ', str(run))
@@ -594,11 +596,15 @@ class JobHandler(MessageHandler.MessageUser):
       for groupId in list(self.__batching.keys()):
         if removeFinished:
           if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
+            # print(self.__batching[groupId]['ids'])
             doneBatch = self.__batching.pop(groupId)
             print('JobHandler: finished for', groupId, 'with size', len(doneBatch['finished']))
             finished.append(doneBatch['finished'])
             print('remove: doneBatch type:', type(finished[-1]), len(finished[-1]))
+
         else:
+          if len(self.__batching[groupId]['finished']) >  self.__batching[groupId]['size']:
+            raise IOError('+++++ batching is messed up ++++++')
           doneBatch = self.__batching[groupId]
           print('checking finished *******************************')
           finished.append(doneBatch['finished'])
@@ -619,6 +625,7 @@ class JobHandler(MessageHandler.MessageUser):
             del self.__finished[i]
           except ImportError:
             print("+++++++++++++++++ can not delete jobs +++++++++++++++++++++++++")
+            raise IOError('stop')
             pass
       ## end with self.__queueLock
 
