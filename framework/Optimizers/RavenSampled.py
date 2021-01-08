@@ -204,7 +204,7 @@ class RavenSampled(Optimizer):
     # if any trajectories are still active, we're ready to provide an input
     ready = Optimizer.amIreadyToProvideAnInput(self)
     # we're not ready yet if we don't have anything in queue
-    ready = ready and len(self._submissionQueue)
+    ready = ready and len(self._submissionQueue) != 0
     return ready
 
   def localGenerateInput(self, model, inp):
@@ -294,6 +294,7 @@ class RavenSampled(Optimizer):
     # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
+    print("*** _submissionQueue ***: ", len(self._submissionQueue))
 
   def finalizeSampler(self, failedRuns):
     """

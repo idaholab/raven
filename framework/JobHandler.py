@@ -446,9 +446,12 @@ class JobHandler(MessageHandler.MessageUser):
 
     ## Are there runs that need to be claimed? If so, then I cannot say I am
     ## done.
-    print('*--------*')
-    if len(self.getFinishedNoPop()) > 0:
-      print('getFinishedNoPop()')
+
+    numFinished = len(self.getFinishedNoPop())
+    print('*******************NoPop, len', numFinished)
+    if numFinished != 0:
+      print('--------------------------Not ready')
+
       return False
 
     return True
@@ -568,7 +571,6 @@ class JobHandler(MessageHandler.MessageUser):
         ExternalRunner objects) (if jobIdentifier is None), else the finished
         jobs matching the base case jobIdentifier
     """
-    finished = []
 
     ## If the user does not specify a jobIdentifier, then set it to the empty
     ## string because every job will match this starting string.
@@ -576,9 +578,10 @@ class JobHandler(MessageHandler.MessageUser):
       jobIdentifier = ''
 
     with self.__queueLock:
-      print('###############')
-      print(self.__batching)
-      print('@@ self.__finished --> ' + str(self.__finished))
+      # print('###############')
+      # print(self.__batching)
+      # print('@@ self.__finished --> ' + str(self.__finished))
+      finished = []
       runsToBeRemoved = []
       for i,run in enumerate(self.__finished):
         print('~~~~ i: ' + str(i) + ' ; run: ' + str(run))
@@ -589,37 +592,59 @@ class JobHandler(MessageHandler.MessageUser):
           continue
         ## check if the run belongs to a subgroup and in case
         if run.groupId in self.__batching:
-          print('====> run.groupId in self.__batching: ' + str(run))
-          print('====> run.groupId' + str(run.groupId))
+
+          # print('====> run.groupId in self.__batching: ' + str(run))
           if not run in self.__batching[run.groupId]['finished']:
             self.__batching[run.groupId]['finished'].append(run)
+          # self.__batching[run.groupId]['finished'].append(run)
         else:
           finished.append(run)
-          print('====> run.groupId NOT in self.__batching: ' + str(run))
-          print('====> run.groupId' + str(run.groupId))
-          print(self.__batching)
-        print('removeFinished: ' + str(removeFinished))
+          print('====> run.groupId NOT in self.__batching: ', str(run))
+          print('====> run.groupId', str(run.groupId))
+          print(self.__batching.keys())
+
         if removeFinished:
-          print('====> removeFinished: ' + str(removeFinished))
+          # print('====> removeFinished: ' + str(removeFinished))
           runsToBeRemoved.append(i)
           self.__checkAndRemoveFinished(run)
           ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
 
       ## check if batches are ready to be returned
       for groupId in list(self.__batching.keys()):
-        if len(self.__batching[groupId]['finished']) == self.__batching[groupId]['size']:
-          doneBatch = self.__batching.pop(groupId)
-          finished.append(doneBatch['finished'])
-          print('*************')
-          print(self.__batching)
+        if removeFinished:
+          if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
+            # print(self.__batching[groupId]['ids'])
+            doneBatch = self.__batching.pop(groupId)
+            print('JobHandler: finished for', groupId, 'with size', len(doneBatch['finished']))
+            finished.append(doneBatch['finished'])
+            print('remove: doneBatch type:', type(finished[-1]), len(finished[-1]))
 
-      ##Since these indices are sorted, reverse them to ensure that when we
-      ## delete something it will not shift anything to the left (lower index)
-      ## than it.
-      print('runsToBeRemoved:' +str(runsToBeRemoved))
-      for i in reversed(runsToBeRemoved):
-        self.__finished[i].trackTime('collected')
-        del self.__finished[i]
+        else:
+          if len(self.__batching[groupId]['finished']) >  self.__batching[groupId]['size']:
+            raise IOError('+++++ batching is messed up ++++++')
+          doneBatch = self.__batching[groupId]
+          print('checking finished *******************************')
+
+          finished.append(doneBatch['finished'])
+          print('***doneBatch type:', type(finished[-1]), len(finished[-1]))
+
+
+          # print('*************')
+          # print(self.__batching)
+
+        ##Since these indices are sorted, reverse them to ensure that when we
+        ## delete something it will not shift anything to the left (lower index)
+        ## than it.
+        # print('runsToBeRemoved:' +str(runsToBeRemoved))
+      if removeFinished:
+        for i in reversed(runsToBeRemoved):
+          self.__finished[i].trackTime('collected')
+          try:
+            del self.__finished[i]
+          except ImportError:
+            print("+++++++++++++++++ can not delete jobs +++++++++++++++++++++++++")
+            raise IOError('stop')
+            pass
       ## end with self.__queueLock
     print('%%%% finished --> ' + str(self.__finished))
     return finished
