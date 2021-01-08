@@ -204,7 +204,7 @@ class RavenSampled(Optimizer):
     # if any trajectories are still active, we're ready to provide an input
     ready = Optimizer.amIreadyToProvideAnInput(self)
     # we're not ready yet if we don't have anything in queue
-    ready = ready and len(self._submissionQueue)
+    # ready = ready and len(self._submissionQueue)
     return ready
 
   def localGenerateInput(self, model, inp):

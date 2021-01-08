@@ -807,6 +807,7 @@ class MultiRun(SingleRun):
           self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
           break
       else:
+        print(' ... sampler has no new inputs currently.')
         if verbose:
           self.raiseADebug(' ... sampler has no new inputs currently.')
         break

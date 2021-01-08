@@ -592,15 +592,17 @@ class JobHandler(MessageHandler.MessageUser):
 
       ## check if batches are ready to be returned
       for groupId in list(self.__batching.keys()):
-        if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
-          if removeFinished:
+        if removeFinished:
+          if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
             doneBatch = self.__batching.pop(groupId)
             print('JobHandler: finished for', groupId, 'with size', len(doneBatch['finished']))
-          else:
-            doneBatch = self.__batching[groupId]
-            print('checking finished *******************************')
+            finished.append(doneBatch['finished'])
+            print('remove: doneBatch type:', type(finished[-1]), len(finished[-1]))
+        else:
+          doneBatch = self.__batching[groupId]
+          print('checking finished *******************************')
           finished.append(doneBatch['finished'])
-          print('doneBatch type:', type(finished[-1]), len(finished[-1]))
+          print('***doneBatch type:', type(finished[-1]), len(finished[-1]))
 
 
           # print('*************')
