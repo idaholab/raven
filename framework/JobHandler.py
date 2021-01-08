@@ -444,7 +444,7 @@ class JobHandler(MessageHandler.MessageUser):
     ## Are there runs that need to be claimed? If so, then I cannot say I am
     ## done.
     print('*--------*')
-    if len(self.getFinishedNoPop()) > 0:
+    if len(self.getFinishedNoPop()) > 0 and not self.__finished:
       print('getFinishedNoPop()')
       return False
 
@@ -587,6 +587,7 @@ class JobHandler(MessageHandler.MessageUser):
         ## check if the run belongs to a subgroup and in case
         if run.groupId in self.__batching:
           print('====> run.groupId in self.__batching: ' + str(run))
+          print('====> run.groupId' + str(run.groupId))
           self.__batching[run.groupId]['finished'].append(run)
         else:
           finished.append(run)
@@ -602,7 +603,7 @@ class JobHandler(MessageHandler.MessageUser):
 
       ## check if batches are ready to be returned
       for groupId in list(self.__batching.keys()):
-        if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
+        if len(self.__batching[groupId]['finished']) == self.__batching[groupId]['size']:
           doneBatch = self.__batching.pop(groupId)
           finished.append(doneBatch['finished'])
           print('*************')
