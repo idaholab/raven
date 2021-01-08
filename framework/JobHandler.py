@@ -440,8 +440,8 @@ class JobHandler(MessageHandler.MessageUser):
       for run in tempList:
         if run:
           return False
-        
-      if len1==0 and len2==0 and not self.__finished: 
+
+      if len1==0 and len2==0 and not self.__finished:
         return True
 
     ## Are there runs that need to be claimed? If so, then I cannot say I am
