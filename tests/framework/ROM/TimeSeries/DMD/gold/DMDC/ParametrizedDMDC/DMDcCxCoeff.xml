@@ -1,0 +1,146 @@
+<DataObjectMetadata name="rom_stats">
+  <DMDrom type="Static">
+    <ROM>
+      <type>DMDC</type>
+      <description> This XML file contains the main information of the DMDC ROM. The method is explained in: Proctor, Joshua L., Steven L. Brunton, and J. Nathan Kutz.  "Dynamic mode decomposition with control."  SIAM Journal on Applied Dynamical Systems 15, no. 1 (2016): 142-161.</description>
+    </ROM>
+    <DMDcModel>
+      <dmdType>dmd</dmdType>
+      <rankSVD>-1</rankSVD>
+      <acturators>u1</acturators>
+      <states>x1 x2 x3</states>
+      <initStates>x1_init x2_init x3_init</initStates>
+      <outputs>y1 y2</outputs>
+      <dmdTimeScale>000 010 020 030 040 050 060 070 080 090 100 110 120 130 140 150 160 170 180 190 200 210 220 230 240 250 260 270 280 290 300 310 320 330 340 350 360 370 380 390 400 410 420 430 440 450 460 470 480 490 500 510 520 530 540 550 560 570 580 590 600 610 620 630 640 650 660 670 680 690 700 710 720</dmdTimeScale>
+      <UNorm>
+        <realization flow="1.000000e+02" mod="1.000000e+00" sample="0">1.20122188e+06</realization>
+        <realization flow="8.000000e+01" mod="1.000000e+00" sample="1">1.20122188e+06</realization>
+        <realization flow="3.000000e+01" mod="0.000000e+00" sample="2">1.20122188e+06</realization>
+        <realization flow="8.000000e+01" mod="0.000000e+00" sample="3">1.18976155e+06</realization>
+        <realization flow="7.000000e+01" mod="1.000000e+00" sample="4">1.18976155e+06</realization>
+        <realization flow="7.000000e+01" mod="0.000000e+00" sample="5">1.18976155e+06</realization>
+      </UNorm>
+      <XNorm>
+        <realization flow="1.000000e+02" mod="1.000000e+00" sample="0">1.16028588e+06 5.24227738e-01 4.30993988e+02</realization>
+        <realization flow="8.000000e+01" mod="1.000000e+00" sample="1">1.16028588e+06 5.24227738e-01 4.30993988e+02</realization>
+        <realization flow="3.000000e+01" mod="0.000000e+00" sample="2">1.16028588e+06 5.24227738e-01 4.30993988e+02</realization>
+        <realization flow="8.000000e+01" mod="0.000000e+00" sample="3">1.17043917e+06 5.32417222e-01 4.27621618e+02</realization>
+        <realization flow="7.000000e+01" mod="1.000000e+00" sample="4">1.17043917e+06 5.32417222e-01 4.27621618e+02</realization>
+        <realization flow="7.000000e+01" mod="0.000000e+00" sample="5">1.17043917e+06 5.32417222e-01 4.27621618e+02</realization>
+      </XNorm>
+      <XLast>
+        <realization flow="1.000000e+02" mod="1.000000e+00" sample="0">1.25610160e+07 6.70677543e-01 5.51397766e+02</realization>
+        <realization flow="8.000000e+01" mod="1.000000e+00" sample="1">1.25610160e+07 6.70677543e-01 5.51397766e+02</realization>
+        <realization flow="3.000000e+01" mod="0.000000e+00" sample="2">1.25610160e+07 6.70677543e-01 5.51397766e+02</realization>
+        <realization flow="8.000000e+01" mod="0.000000e+00" sample="3">1.25711693e+07 6.78867027e-01 5.48025396e+02</realization>
+        <realization flow="7.000000e+01" mod="1.000000e+00" sample="4">1.25711693e+07 6.78867027e-01 5.48025396e+02</realization>
+        <realization flow="7.000000e+01" mod="0.000000e+00" sample="5">1.25711693e+07 6.78867027e-01 5.48025396e+02</realization>
+      </XLast>
+      <YNorm>
+        <realization flow="1.000000e+02" mod="1.000000e+00" sample="0">1.15062662e+06 7.79598450e+02</realization>
+        <realization flow="8.000000e+01" mod="1.000000e+00" sample="1">1.15062662e+06 7.79598450e+02</realization>
+        <realization flow="3.000000e+01" mod="0.000000e+00" sample="2">1.15062662e+06 7.79598450e+02</realization>
+        <realization flow="8.000000e+01" mod="0.000000e+00" sample="3">1.16923712e+06 7.82424583e+02</realization>
+        <realization flow="7.000000e+01" mod="1.000000e+00" sample="4">1.16923712e+06 7.82424583e+02</realization>
+        <realization flow="7.000000e+01" mod="0.000000e+00" sample="5">1.16923712e+06 7.82424583e+02</realization>
+      </YNorm>
+      <Atilde>
+        <realization flow="1.000000e+02" mod="1.000000e+00" sample="0">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,3</matrixShape>
+          <real>8.99354424e-01 -4.95324338e-10 -4.06863882e-07 -8.92792508e+10 -1.12729123e+03 -9.26802795e+05 1.08490157e+08 1.37098116e+00 1.12715249e+03</real>
+        </realization>
+        <realization flow="8.000000e+01" mod="1.000000e+00" sample="1">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,3</matrixShape>
+          <real>8.99354424e-01 -4.95324338e-10 -4.06863882e-07 -8.92792508e+10 -1.12729123e+03 -9.26802795e+05 1.08490157e+08 1.37098116e+00 1.12715249e+03</real>
+        </realization>
+        <realization flow="3.000000e+01" mod="0.000000e+00" sample="2">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,3</matrixShape>
+          <real>8.99354424e-01 -4.95324338e-10 -4.06863882e-07 -8.92792508e+10 -1.12729123e+03 -9.26802795e+05 1.08490157e+08 1.37098116e+00 1.12715249e+03</real>
+        </realization>
+        <realization flow="8.000000e+01" mod="0.000000e+00" sample="3">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,3</matrixShape>
+          <real>8.99354514e-01 -4.95323190e-10 -4.06862939e-07 -8.92792533e+10 -1.12729127e+03 -9.26802821e+05 1.08490160e+08 1.37098119e+00 1.12715253e+03</real>
+        </realization>
+        <realization flow="7.000000e+01" mod="1.000000e+00" sample="4">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,3</matrixShape>
+          <real>8.99354514e-01 -4.95323190e-10 -4.06862939e-07 -8.92792533e+10 -1.12729127e+03 -9.26802821e+05 1.08490160e+08 1.37098119e+00 1.12715253e+03</real>
+        </realization>
+        <realization flow="7.000000e+01" mod="0.000000e+00" sample="5">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,3</matrixShape>
+          <real>8.99354514e-01 -4.95323190e-10 -4.06862939e-07 -8.92792533e+10 -1.12729127e+03 -9.26802821e+05 1.08490160e+08 1.37098119e+00 1.12715253e+03</real>
+        </realization>
+      </Atilde>
+      <Btilde>
+        <realization flow="1.000000e+02" mod="1.000000e+00" sample="0">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,1</matrixShape>
+          <real>1.18409515e+00 1.51731062e-08 1.24745937e-05</real>
+        </realization>
+        <realization flow="8.000000e+01" mod="1.000000e+00" sample="1">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,1</matrixShape>
+          <real>1.18409515e+00 1.51731062e-08 1.24745937e-05</real>
+        </realization>
+        <realization flow="3.000000e+01" mod="0.000000e+00" sample="2">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,1</matrixShape>
+          <real>1.18409515e+00 1.51731062e-08 1.24745937e-05</real>
+        </realization>
+        <realization flow="8.000000e+01" mod="0.000000e+00" sample="3">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,1</matrixShape>
+          <real>1.18409515e+00 1.51731062e-08 1.24745937e-05</real>
+        </realization>
+        <realization flow="7.000000e+01" mod="1.000000e+00" sample="4">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,1</matrixShape>
+          <real>1.18409515e+00 1.51731062e-08 1.24745937e-05</real>
+        </realization>
+        <realization flow="7.000000e+01" mod="0.000000e+00" sample="5">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,1</matrixShape>
+          <real>1.18409515e+00 1.51731062e-08 1.24745937e-05</real>
+        </realization>
+      </Btilde>
+      <Ctilde>
+        <realization flow="1.000000e+02" mod="1.000000e+00" sample="0">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>1.02711924e+00 1.43816869e-04 -3.02753343e+00 -1.45825733e-02 -2.48900147e+03 -1.19886525e+01</real>
+        </realization>
+        <realization flow="8.000000e+01" mod="1.000000e+00" sample="1">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>1.02711924e+00 1.43816869e-04 -3.02753343e+00 -1.45825733e-02 -2.48900147e+03 -1.19886525e+01</real>
+        </realization>
+        <realization flow="3.000000e+01" mod="0.000000e+00" sample="2">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>1.02711924e+00 1.43816869e-04 -3.02753343e+00 -1.45825733e-02 -2.48900147e+03 -1.19886525e+01</real>
+        </realization>
+        <realization flow="8.000000e+01" mod="0.000000e+00" sample="3">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>1.02711919e+00 1.43816856e-04 -3.02752794e+00 -1.45825718e-02 -2.48899696e+03 -1.19886513e+01</real>
+        </realization>
+        <realization flow="7.000000e+01" mod="1.000000e+00" sample="4">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>1.02711919e+00 1.43816856e-04 -3.02752794e+00 -1.45825718e-02 -2.48899696e+03 -1.19886513e+01</real>
+        </realization>
+        <realization flow="7.000000e+01" mod="0.000000e+00" sample="5">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>1.02711919e+00 1.43816856e-04 -3.02752794e+00 -1.45825718e-02 -2.48899696e+03 -1.19886513e+01</real>
+        </realization>
+      </Ctilde>
+    </DMDcModel>
+  </DMDrom>
+  
+</DataObjectMetadata>

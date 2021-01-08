@@ -110,7 +110,7 @@ class DynamicModeDecomposition(supervisedLearning):
       @ Out, timeScale, numpy.array, the dmd or training reconstructed time scale
     """
     timeScaleInfo = self.timeScales['dmd'] if dmd else self.timeScales['training']
-    timeScale = np.arange(timeScaleInfo['t0'], timeScaleInfo['t0'] + timeScaleInfo['intervals'] * timeScaleInfo['dt'], timeScaleInfo['dt'])
+    timeScale = np.arange(timeScaleInfo['t0'], timeScaleInfo['intervals'] + timeScaleInfo['dt'], timeScaleInfo['dt'])
     return timeScale
 
   def __getTimeEvolution(self, target):
@@ -144,7 +144,8 @@ class DynamicModeDecomposition(supervisedLearning):
     pivotParamIndex   = self.target.index(self.pivotParameterID)
     self.pivotValues  = targetVals[0,:,pivotParamIndex]
     ts                = len(self.pivotValues)
-    for target in list(set(self.target) - set([self.pivotParameterID])): # target == decay_heat or decay_heat_pu
+    self.debugDmd = {}
+    for target in list(set(self.target) - set([self.pivotParameterID])):
       targetParamIndex  = self.target.index(target)
       snaps = targetVals[:,:,targetParamIndex]
       # if number of features (i.e. samples) > number of snapshots, we apply the high order DMD or HODMD has been requested
@@ -182,10 +183,8 @@ class DynamicModeDecomposition(supervisedLearning):
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
     returnEvaluation = {self.pivotParameterID:self.pivotValues}
-    # print(returnEvaluation)
     for target in list(set(self.target) - set([self.pivotParameterID])):
       reconstructData = self._reconstructData(target).real
-      # print(reconstructData)
       # find the nearest data and compute weights
       if len(reconstructData) > 1:
         weights, indexes = self.KDTreeFinder.query(featureVals, k=min(2**len(self.features),len(reconstructData)))
@@ -202,7 +201,6 @@ class DynamicModeDecomposition(supervisedLearning):
     return returnEvaluation
 
   def writeXMLPreamble(self, writeTo, targets = None):
-    # print("writeXMLPreamble")
     """
       Specific local method for printing anything desired to xml file at the begin of the print.
       @ In, writeTo, xmlUtils.StaticXmlElement instance, element to write to
@@ -219,7 +217,6 @@ class DynamicModeDecomposition(supervisedLearning):
     writeTo.addScalar('ROM',"description",description)
 
   def writeXML(self, writeTo, targets = None, skip = None):
-    # print("writeXML")
     """
       Adds requested entries to XML node.
       @ In, writeTo, xmlTuils.StaticXmlElement, element to write to

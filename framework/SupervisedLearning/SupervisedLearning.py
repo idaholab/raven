@@ -258,7 +258,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     if self._dynamicFeatures:
       featureValues = np.zeros(shape=(values[0].size, self.featureShape[1], self.featureShape[2]))
     else:
-      featureValues = np.zeros(shape=(values[0].size, self.featureShape[2]))    
+      featureValues = np.zeros(shape=(values[0].size, self.featureShape[1]))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
@@ -266,11 +266,11 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
         if not resp[0]:
           self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-        
+
         if self._dynamicFeatures:
-          featureValues[:, :, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1] 
+          featureValues[:, :, cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
         else:
-          featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]       
+          featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     return self.__evaluateLocal__(featureValues)
 
   def reset(self):

@@ -67,7 +67,7 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     self.stateID = kwargs.get("StateVariables", None)
     ### Extract the Initilalization State Variable Names (x). Optional. If not
     ### found, the state is initialized with the initial values in the state field
-    self.initStateID = kwargs.get("InitStateVariables", [])    
+    self.initStateID = kwargs.get("InitStateVariables", [])
     cUXY =  kwargs.get('SubtractNormUXY',False)
     self.dmdParams['centerUXY'] = cUXY # whether to subtract the nominal(initial) value from U, X and Y signal for calculation
     # variables filled up in the training stages
@@ -88,7 +88,7 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     # check if state ids in target
     if not (set(self.initStateID) <= set(self.features)):
       self.raiseAnError(IOError,'InitStateVariables must also be listed among <Features> variables!')
-      
+
     ### Extract the Output Names (Output, Y)
     self.outputID = list(set(self.target) - set([self.pivotParameterID]) -  set(self.stateID))
     # check if there are parameters
@@ -106,7 +106,7 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       self.parameterValues =  np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
       self.neigh = neighbors.KNeighborsRegressor(n_neighbors=1)
       y = np.asarray (range(featureVals.shape[0]))
-      self.neigh.fit(self.parameterValues, y)   
+      self.neigh.fit(self.parameterValues, y)
     # self.ActuatorVals is Num_Entries*2 array, the snapshots of [u1, u2]. Shape is [n_samples, n_timesteps, n_actuators]
     self.actuatorVals = np.asarray([featureVals[:, :, self.features.index(act)] for act in self.actuatorsID]).T
     ### Extract the time marks "self.pivotValues" (discrete, in time step marks) ###
@@ -121,12 +121,7 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     self.__Atilde = np.zeros((featureVals.shape[0], len(self.stateID), len(self.stateID)))
     self.__Btilde = np.zeros((featureVals.shape[0], len(self.stateID), len(self.actuatorsID)))
     self.__Ctilde = np.zeros((featureVals.shape[0], len(self.outputID), len(self.stateID)))
-    from pydmd import DMDc
-    self.testDMDC = []
     for smp in range(featureVals.shape[0]):
-      dmdc = DMDc(svd_rank=-1)
-      dmdc.fit(self.stateVals[:,smp, :].T, self.actuatorVals[:-1,smp, :].T)
-      self.testDMDC.append(dmdc)
       X1 = (self.stateVals[:-1,smp, :] - self.stateVals[0,smp,:]).T if self.dmdParams['centerUXY'] else self.stateVals[:-1,smp, :].T
       X2 = (self.stateVals[1:,smp, :] - self.stateVals[0,smp,:]).T  if self.dmdParams['centerUXY'] else self.stateVals[1:,smp, :].T
       U =  (self.actuatorVals[:-1,smp, :] - self.actuatorVals[0,smp, :]).T  if self.dmdParams['centerUXY'] else self.actuatorVals[:-1,smp, :].T
@@ -145,7 +140,7 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       @ In, featureVals, numpy.ndarray, shape= (n_requests, n_timeStep, n_dimensions), an array of input data
       @ Out, returnEvaluation , dict, dictionary of values for each target (and pivot parameter)
     """
-    indeces = 0
+    indeces = [0]
     if len(self.parametersIDs):
       # shape(n_requests,n_parameters)
       feats = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.parametersIDs]).T[0, :, :]
@@ -166,15 +161,15 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     initStates = np.asarray([featureVals[:, :, self.features.index(par)] for par in self.initStateID]).T[0, :, :]
     evalX = np.zeros((len(indeces), tsEval, len(self.initStateID)))
     evalY = np.zeros((len(indeces), tsEval, len(self.outputID)))
-    
+
     for cnt, index in enumerate(indeces):
       evalX[cnt, 0, :] = initStates
-      evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])      
+      evalY[cnt, 0, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, 0, :])
       ### perform the self-propagation of X, X[k+1] = A*X[k] + B*U[k] ###
       for i in range(tsEval-1):
         Xpred = np.reshape(self.__Atilde[index, :, :].dot(evalX[cnt, i, :]) + self.__Btilde[index, :, :].dot(Uvector[cnt,:,i]),(-1,1)).T
         evalX[cnt, i+1, :] = Xpred
-        evalY[cnt, i+1, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, i+1, :])       
+        evalY[cnt, i+1, :] = np.dot(self.__Ctilde[index, :, :], evalX[cnt, i+1, :])
     ### Store the results to the dictionary "returnEvaluation"
     for varID in self.stateID:
       varIndex = self.stateID.index(varID)
@@ -182,9 +177,8 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
     for varID in self.outputID:
       varIndex = self.outputID.index(varID)
       returnEvaluation.update({varID: evalY[: , :, varIndex] if nreqs > 1 else evalY[: , :, varIndex].flatten()})
-    
+
     returnEvaluation[self.pivotParameterID] = np.asarray([self.pivotValues] * nreqs) if nreqs > 1 else self.pivotValues
-  
     return returnEvaluation
 
   def writeXMLPreamble(self, writeTo, targets = None):
@@ -270,17 +264,14 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       if "XNorm" in what and self.dmdParams['centerUXY']:
         valCont = " ".join(['%.8e' % elm for elm in self.stateVals[0, smp, :].T.flatten().tolist()])
         writeTo.addVector("XNorm","realization",valCont, root=targNode, attrs=attributeDict)
-        # writeTo.addScalar(target, "XNorm",  valCont)
 
       if "XLast" in what:
         valCont = " ".join(['%.8e' % elm for elm in self.stateVals[-1, smp, :].T.flatten().tolist()])
         writeTo.addVector("XLast","realization",valCont, root=targNode, attrs=attributeDict)
-        # writeTo.addScalar(target, "XLast", valCont)
 
       if "YNorm" in what and self.dmdParams['centerUXY']:
         valCont = " ".join(['%.8e' % elm for elm in self.outputVals[0, smp, :].T.flatten().tolist()])
         writeTo.addVector("YNorm","realization",valCont, root=targNode, attrs=attributeDict)
-        # writeTo.addScalar(target, "YNorm", valCont)
 
       if "Atilde" in what:
         valDict = {'real': " ".join(['%.8e' % elm for elm in self.__Atilde[smp, :, :].T.real.flatten().tolist()]),
