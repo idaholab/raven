@@ -418,23 +418,40 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
+    tempList=copy.copy(self.__running+self.__clientRunning)
+    len1 = copy.deepcopy(len(self.__queue))
+    len2 = copy.deepcopy(len(self.__clientQueue))
+    print('--------')
+    print('self.__queue         : '   + str(self.__queue))
+    print('self.__clientQueue   : '   + str(self.__clientQueue))
+    print('self.__running       : '   + str(self.__running))
+    print('self.__clientRunning : '   + str(self.__clientRunning))
+
     with self.__queueLock:
       ## If there is still something left in the queue, we are not done yet.
-      if len(self.__queue) > 0 or len(self.__clientQueue) > 0:
+      #if len(self.__queue) > 0 or len(self.__clientQueue) > 0:
+      if len1>0 or len2>0:
         return False
 
       ## Otherwise, let's look at our running lists and see if there is a job
       ## that is not done.
-      for run in self.__running+self.__clientRunning:
+      print('After if len1>0 or len2>0: ' + str(len1) + ' , ' + str(len2))
+      print(tempList)
+      for run in tempList:
         if run:
           return False
 
+      #if len1==0 and len2==0 and not self.__finished:
+      #  return False
+
     ## Are there runs that need to be claimed? If so, then I cannot say I am
     ## done.
+
     numFinished = len(self.getFinishedNoPop())
     print('*******************NoPop, len', numFinished)
     if numFinished != 0:
       print('--------------------------Not ready')
+
       return False
 
     return True
@@ -554,8 +571,6 @@ class JobHandler(MessageHandler.MessageUser):
         ExternalRunner objects) (if jobIdentifier is None), else the finished
         jobs matching the base case jobIdentifier
     """
-    #removeFinished = True
-
 
     ## If the user does not specify a jobIdentifier, then set it to the empty
     ## string because every job will match this starting string.
@@ -569,6 +584,7 @@ class JobHandler(MessageHandler.MessageUser):
       finished = []
       runsToBeRemoved = []
       for i,run in enumerate(self.__finished):
+        print('~~~~ i: ' + str(i) + ' ; run: ' + str(run))
         ## If the jobIdentifier does not match or the uniqueHandler does not
         ## match, then don't bother trying to do anything with it
         if not run.identifier.startswith(jobIdentifier) \
@@ -576,6 +592,7 @@ class JobHandler(MessageHandler.MessageUser):
           continue
         ## check if the run belongs to a subgroup and in case
         if run.groupId in self.__batching:
+
           # print('====> run.groupId in self.__batching: ' + str(run))
           if not run in self.__batching[run.groupId]['finished']:
             self.__batching[run.groupId]['finished'].append(run)
@@ -607,6 +624,7 @@ class JobHandler(MessageHandler.MessageUser):
             raise IOError('+++++ batching is messed up ++++++')
           doneBatch = self.__batching[groupId]
           print('checking finished *******************************')
+
           finished.append(doneBatch['finished'])
           print('***doneBatch type:', type(finished[-1]), len(finished[-1]))
 
@@ -628,7 +646,7 @@ class JobHandler(MessageHandler.MessageUser):
             raise IOError('stop')
             pass
       ## end with self.__queueLock
-
+    print('%%%% finished --> ' + str(self.__finished))
     return finished
 
   def getFinishedNoPop(self):

@@ -40,3 +40,4 @@ def run(self,inputs):
     self.validPlan =  0.
   else:
     self.validPlan = 1.
+
