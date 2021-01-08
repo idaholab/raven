@@ -441,8 +441,8 @@ class JobHandler(MessageHandler.MessageUser):
         if run:
           return False
 
-      if len1==0 and len2==0 and not self.__finished:
-        return False
+      #if len1==0 and len2==0 and not self.__finished:
+      #  return False
 
     ## Are there runs that need to be claimed? If so, then I cannot say I am
     ## done.
