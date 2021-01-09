@@ -409,7 +409,6 @@ class GeneticAlgorithm(RavenSampled):
     self._collectOptPoint(population,fitness,objectiveVal)
     self._resolveNewGeneration(traj, rlz, objectiveVal, fitness, info)
 
-    print('_activeTraj', self._activeTraj)
     if self._activeTraj:
       # 5.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
@@ -468,7 +467,6 @@ class GeneticAlgorithm(RavenSampled):
           flag = False
 
       self.batch = np.shape(children)[0]
-      print('batch', self.batch)
 
       daChildren = xr.DataArray(children,
                               dims=['chromosome','Gene'],
