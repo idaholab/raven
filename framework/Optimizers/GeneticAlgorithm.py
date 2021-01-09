@@ -287,7 +287,6 @@ class GeneticAlgorithm(RavenSampled):
     reproductionNode = gaParamsNode.findFirst('reproduction')
     self._nParents = reproductionNode.parameterValues['nParents']
     self._nChildren = int(2*comb(self._nParents,2))
-    # self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
     # crossover node
     crossoverNode = reproductionNode.findFirst('crossover')
     self._crossoverType = crossoverNode.parameterValues['type']
@@ -412,7 +411,6 @@ class GeneticAlgorithm(RavenSampled):
     if self._activeTraj:
       # 5.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
-
       if self.counter > 1:
         population,fitness,age = self._survivorSelectionInstance(age=self.popAge, variables=list(self.toBeSampled), population=self.population, fitness=self.fitness, newRlz=rlz,offSpringsFitness=fitness)
         self.popAge = age
@@ -476,7 +474,6 @@ class GeneticAlgorithm(RavenSampled):
       # submit children coordinates (x1,...,xm), i.e., self.childrenCoordinates
       for i in range(np.shape(daChildren)[0]):
         newRlz={}
-        # self.inputInfo['prefix'] = str(self.batchId) + '_' + str(i)
         for _,var in enumerate(self.toBeSampled.keys()):
           newRlz[var] = float(daChildren.loc[i,var].values)
         self._submitRun(copy.deepcopy(newRlz), traj, self.getIteration(traj))
@@ -536,7 +533,6 @@ class GeneticAlgorithm(RavenSampled):
     old = self.population
     converged = self._updateConvergence(traj, rlz, old, acceptable)
     if converged:
-      # self._activeTraj = [0]
       self._closeTrajectory(traj, 'converge', 'converged', self.bestObjective)
     # NOTE: the solution export needs to be updated BEFORE we run rejectOptPoint or extend the opt
     #       point history.
@@ -588,7 +584,6 @@ class GeneticAlgorithm(RavenSampled):
     acceptable = 'accepted'
     try:
       old, _ = self._optPointHistory[traj][-1]
-      oldVal = old[self._objectiveVar]
     except IndexError:
       # if first sample, simply assume it's better!
       acceptable = 'first'
