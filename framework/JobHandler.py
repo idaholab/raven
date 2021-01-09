@@ -421,7 +421,7 @@ class JobHandler(MessageHandler.MessageUser):
     tempList=copy.copy(self.__running+self.__clientRunning)
     len1 = copy.deepcopy(len(self.__queue))
     len2 = copy.deepcopy(len(self.__clientQueue))
-    
+
     import time
     time.sleep(0.001)
 
