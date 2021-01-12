@@ -8,6 +8,10 @@
     <description>
       Test the Markov Chain Monte Carlo algorithm: Metropolis Sampling
       Test to see if there is any degradation in Metropolis Sampling
+      A large number (80000) of samples is used to test the efficiency
+      of Metropolis Sampler. It takes about 550 second in Mac machine.
+      If the time to run this test exceed 700s, some investigation should
+      be conducted to resolve the issue.
       Heavy test: ~550s on Mac, set MaxTime to 700s
     </description>
   </TestInfo>
