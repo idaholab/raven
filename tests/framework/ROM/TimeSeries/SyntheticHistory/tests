@@ -5,6 +5,7 @@
     csv = 'Fourier/samples_0.csv Fourier/samples_1.csv'
     UnorderedXml = 'Fourier/romMeta.xml'
     rel_err = 1e-6
+    zero_threshold = 1e-12
   [../]
 
 []
