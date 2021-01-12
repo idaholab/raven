@@ -39,7 +39,6 @@ class Fourier(TimeSeriesAnalyzer):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
-      @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -62,8 +61,6 @@ class Fourier(TimeSeriesAnalyzer):
   def __init__(self, *args, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler: a MessageHandler object in charge of raising errors,
-                           and printing messages
       @ In, args, list, an arbitrary list of positional values
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
       @ Out, None
@@ -74,7 +71,9 @@ class Fourier(TimeSeriesAnalyzer):
 
   def handleInput(self, spec):
     """
-      TODO
+      Reads user inputs into this object.
+      @ In, inp, InputData.InputParams, input specifications
+      @ Out, None
     """
     TimeSeriesAnalyzer.handleInput(self, spec)
     self._periods = spec.findFirst('periods').value
@@ -85,6 +84,7 @@ class Fourier(TimeSeriesAnalyzer):
       @ In, signal, np.ndarray, time series with dims [time, target]
       @ In, pivot, np.1darray, time-like parameter values
       @ In, targets, list(str), names of targets in same order as signal
+      @ In, simultFit, bool, optional, if False then fit Fourier individually
       @ Out, params, dict, characteristic parameters
     """
     fourierSignals = self._generateBaseFourier(pivot, self._periods)

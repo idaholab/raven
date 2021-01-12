@@ -36,7 +36,6 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     """
       Method to get a reference to a class that specifies the input data for
       class cls.
-      @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
@@ -47,11 +46,9 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     return specs
 
   ### INHERITED METHODS ###
-  def __init__(self, **kwargs):
+  def __init__(self, *args, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler: a MessageHandler object in charge of raising errors,
-                           and printing messages
       @ In, args, list, an arbitrary list of positional values
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
       @ Out, None
@@ -61,7 +58,9 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
 
   def handleInput(self, spec):
     """
-      TODO
+      Reads user inputs into this object.
+      @ In, inp, InputData.InputParams, input specifications
+      @ Out, None
     """
     self.target = spec.parameterValues['target']
 
@@ -71,6 +70,8 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
       Characterizes the provided time series ("signal") using methods specific to this algorithm.
       @ In, signal, np.array, time-dependent series
       @ In, pivot, np.array, time-like parameter
+      @ In, targets, list(str), names of targets
+      @ In, kwargs, dict, unused optional keyword arguments
       @ Out, params, dict, characterization of signal
     """
     pass
@@ -108,4 +109,4 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, target, str, which target to write info for
       @ Out, None
     """
-    pass # or can we loop over the characterizations?
+    pass # overwrite in subclasses

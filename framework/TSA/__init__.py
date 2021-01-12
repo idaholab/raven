@@ -12,20 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  The Samplers module includes the different type of Sampling strategy available in RAVEN
+  The TSA module includes algorithms for time series analysis in RAVEN.
 
-  Created on May 21, 2016
-  @author: alfoa
-  supercedes Samplers.py from alfoa (2/16/2013)
+  Created on Jan 8, 2021
+  @author: talbpaul
 """
 
 from __future__ import absolute_import
 
 # These lines ensure that we do not have to do something like:
-# 'from Samplers.Sampler import Sampler' outside of this submodule
 from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 
 from .Fourier import Fourier
+
 
 # Factory methods
 from .Factory import knownTypes

@@ -90,6 +90,7 @@ class SyntheticHistory(supervisedLearning):
       Perform training on input database stored in featureVals.
       @ In, featureVals, array, shape=[n_timeStep, n_dimensions], an array of input data # Not use for ARMA training
       @ In, targetVals, array, shape = [n_timeStep, n_dimensions], an array of time series data
+      @ Out, None
     """
     self.raiseADebug('Training...')
     # TODO obtain pivot parameter
@@ -153,14 +154,6 @@ class SyntheticHistory(supervisedLearning):
       root.append(algoNode)
 
   ### Segmenting and Clustering ###
-  def checkRequestedClusterFeatures(self, request):
-    """
-      Takes the user-requested features (sometimes "all") and interprets them for this ROM.
-      @ In, request, dict(list), as from ROMColletion.Cluster._extrapolateRequestedClusterFeatures
-      @ Out, interpreted, dict(list), interpreted features
-    """
-    TODO
-
   def isClusterable(self):
     """
       Allows ROM to declare whether it has methods for clustring. Default is no.
@@ -168,20 +161,7 @@ class SyntheticHistory(supervisedLearning):
       @ Out, isClusterable, bool, if True then has clustering mechanics.
     """
     # clustering methods have been added
-    return True
-
-  def getLocalRomClusterFeatures(self, featureTemplate, settings, request, picker=None, **kwargs):
-    """
-      Provides metrics aka features on which clustering compatibility can be measured.
-      This is called on LOCAL subsegment ROMs, not on the GLOBAL template ROM
-      @ In, featureTemplate, str, format for feature inclusion
-      @ In, settings, dict, as per getGlobalRomSegmentSettings
-      @ In, request, dict(list) or None, requested features to cluster on (by featureSet)
-      @ In, picker, slice, indexer for segmenting data
-      @ In, kwargs, dict, arbitrary keyword arguments
-      @ Out, features, dict, {target_metric: np.array(floats)} features to cluster on
-    """
-    TODO
+    return False # TODO
 
   ### ESSENTIALLY UNUSED ###
   def _localNormalizeData(self,values,names,feat):
