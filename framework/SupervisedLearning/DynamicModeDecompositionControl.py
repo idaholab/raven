@@ -90,7 +90,8 @@ class DynamicModeDecompositionControl(DynamicModeDecomposition):
       self.raiseAnError(IOError,'InitStateVariables must also be listed among <Features> variables!')
 
     ### Extract the Output Names (Output, Y)
-    self.outputID = list(set(self.target) - set([self.pivotParameterID]) -  set(self.stateID))
+    # self.outputID = list(set(self.target) - set([self.pivotParameterID]) -  set(self.stateID))
+    self.outputID = [x for x in self.target if x not in (set(self.stateID) | set([self.pivotParameterID]))]
     # check if there are parameters
     self.parametersIDs = list(set(self.features) - set(self.actuatorsID) - set(self.initStateID))
 

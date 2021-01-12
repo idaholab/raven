@@ -110,7 +110,7 @@ class DynamicModeDecomposition(supervisedLearning):
       @ Out, timeScale, numpy.array, the dmd or training reconstructed time scale
     """
     timeScaleInfo = self.timeScales['dmd'] if dmd else self.timeScales['training']
-    timeScale = np.arange(timeScaleInfo['t0'], timeScaleInfo['intervals'] + timeScaleInfo['dt'], timeScaleInfo['dt'])
+    timeScale = np.arange(timeScaleInfo['t0'], (timeScaleInfo['intervals']+1) * timeScaleInfo['dt'], timeScaleInfo['dt'])
     return timeScale
 
   def __getTimeEvolution(self, target):
