@@ -98,14 +98,17 @@ class SyntheticHistory(supervisedLearning):
     # TODO assumption: only one training signal
     pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
+    residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
     for algo in self.tsaAlgorithms:
       targets = algo.target
       indices = tuple(self.target.index(t) for t in targets)
-      signal = targetVals[0, :, indices]
+      signal = residual[0, :, indices].T # using tuple "indices" transposes, so transpose back
       params = algo.characterize(signal, pivots, targets)
       # store characteristics
       self.trainedParams[algo] = params
-      # TODO residual?
+      # obtain residual; the part of the signal not characterized by this algo
+      algoResidual = algo.getResidual(signal, params, pivots, None) # TODO randomEngine
+      residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
 
   def __evaluateLocal__(self, featureVals):

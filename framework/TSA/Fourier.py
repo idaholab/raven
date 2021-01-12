@@ -82,7 +82,7 @@ class Fourier(TimeSeriesAnalyzer):
   def characterize(self, signal, pivot, targets, simultFit=True):
     """
       Determines the charactistics of the signal based on this algorithm.
-      @ In, signal, np.ndarray, time series with dims [target, time]
+      @ In, signal, np.ndarray, time series with dims [time, target]
       @ In, pivot, np.1darray, time-like parameter values
       @ In, targets, list(str), names of targets in same order as signal
       @ Out, params, dict, characteristic parameters
@@ -100,7 +100,7 @@ class Fourier(TimeSeriesAnalyzer):
     # fit
     params = {}
     for tg, target in enumerate(targets):
-      history = signal[tg, :] # TODO need to keep in sync with SyntheticSignal ROM!
+      history = signal[:, tg] # TODO need to keep in sync with SyntheticSignal ROM!
       if simultFit and cond < 30:
         print(f'Fourier fitting condition number is {cond:1.1e} for "{target}". ',
                         ' Calculating all Fourier coefficients at once.')

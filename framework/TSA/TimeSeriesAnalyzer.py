@@ -66,7 +66,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     self.target = spec.parameterValues['target']
 
   @abc.abstractmethod
-  def characterize(self, signal, pivot):
+  def characterize(self, signal, pivot, targets, **kwargs):
     """
       Characterizes the provided time series ("signal") using methods specific to this algorithm.
       @ In, signal, np.array, time-dependent series
@@ -75,18 +75,29 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     pass
 
-  #@abc.abstractmethod
-  def getResidual(self, signal, pivot):
-    """ Removes trained signal from data and find residual """
-    pass # or is there a decent generic we can put here?
+  def getResidual(self, initial, params, pivot, randEngine):
+    """
+      Removes trained signal from data and find residual
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, randEngine, instance, optional, method to call to get random samples (for example "randEngine(size=6)")
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+    """
+    # DEFAULT IMPLEMENTATION, generate one signal and subtract it from the given one
+    # -> overload in inheritors to change behavior
+    sample = self.generate(params, pivot, randEngine)
+    residual = initial - sample
+    return residual
 
   @abc.abstractmethod
-  def generate(self, numSamples, randEngine, params=None):
+  def generate(self, params, pivot, randEngine):
     """
       Generates a synthetic history from fitted parameters.
-      @ In, numSamples, int, optional, number of samples to take (default to pivotParameters length)
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
       @ In, randEngine, instance, optional, method to call to get random samples (for example "randEngine(size=6)")
-      @ In, params, optional, fitted ARMA such as otained from self.fit()
       @ Out, synthetic, np.array(float), synthetic signal
     """
 
