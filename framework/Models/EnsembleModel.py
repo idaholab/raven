@@ -19,8 +19,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules----------------------------------------------------------------------------------
-import io
-import sys
 import copy
 import numpy as np
 import time
