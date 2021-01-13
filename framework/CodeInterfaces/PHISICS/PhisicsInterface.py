@@ -270,7 +270,7 @@ class Phisics(CodeInterfaceBase):
       @ In, workingDir, string, current working dir
       @ In, phiRel, dictionary, contains a key 'phiRel', value is True if PHISICS/RELAP is in coupled mode, empty otherwise
                                      and a key 'relapOut', value is the RELAP main output name
-      @ Out, finalizeCodeOutput, string, optional, present in case the root of the output file gets changed in this method.
+      @ Out, response, dict, the dictionary containing the output data
     """
     phisicsDataDict = {}
     if "phiRel" not in phiRel:
@@ -292,11 +292,10 @@ class Phisics(CodeInterfaceBase):
     phisicsDataDict['printSpatialRR'] = self.printSpatialRR
     phisicsDataDict['printSpatialFlux'] = self.printSpatialFlux
     phisicsDataDict['pertVariablesDict'] = self.distributedPerturbedVars
-    phisicsdata.phisicsdata(phisicsDataDict)
-    if not self.mrtauStandAlone:
-      return self.jobTitle
-    else:
-      return 'mrtau'
+    # read outputs
+    outputParser = phisicsdata.phisicsdata(phisicsDataDict)
+    response = outputParser.returnData()
+    return response
 
   def checkForOutputFailure(self, output, workingDir):
     """

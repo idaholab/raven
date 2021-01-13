@@ -11,22 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-'''
+"""
  This file contains the random number generating methods used in the framework.
  created on 07/15/2017
  @author: talbpaul
-'''
+"""
 
 from __future__ import division, print_function, unicode_literals, absolute_import
 import threading
 import numpy as np
+import math
 from collections import deque, defaultdict
 
 from utils.utils import findCrowModule
 from utils import mathUtils
 
 # in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
-# Numoy stochastic environment can not pass the test as this point
+# Numpy stochastic environment can not pass the test as this point
 stochasticEnv = 'crow'
 #stochasticEnv = 'numpy'
 
@@ -85,7 +86,7 @@ if stochasticEnv == 'numpy':
   npStochEnv = np.random.RandomState()
 else:
   crowStochEnv = findCrowModule('randomENG').RandomClass()
-  # this is needed for now since we need to split the stoch enviroments
+  # this is needed for now since we need to split the stoch environments
   distStochEnv = findCrowModule('distribution1D').DistributionContainer.instance()
   boxMullerGen = BoxMullerGenerator()
 
@@ -188,9 +189,9 @@ def randomIntegers(low, high, caller=None, engine=None):
   if isinstance(engine, np.random.RandomState):
     return engine.randint(low, high=high+1)
   elif isinstance(engine, findCrowModule('randomENG').RandomClass):
-    intRange = high - low
+    intRange = high - low + 1.0
     rawNum = low + random(engine=engine)*intRange
-    rawInt = int(round(rawNum))
+    rawInt = math.floor(rawNum)
     if rawInt < low or rawInt > high:
       if caller:
         caller.raiseAMessage("Random int out of range")
@@ -251,8 +252,8 @@ def randPointsOnHypersphere(dim,samples=1,r=1,keepMatrix=False,engine=None):
   rnorm = float(r)/np.linalg.norm(pts,axis=1)
   pts *= rnorm[:,np.newaxis]
   #TODO if all values in any given sample are 0,
-  #       this produces an unphysical result, so we should resample;
-  #       however, this probability is miniscule and the speed benefits of skipping checking loop seems worth it.
+  #       this produces an not physical result, so we should re-sample;
+  #       however, this probability is very small and the speed benefits of skipping checking loop seems worth it.
   if keepMatrix:
     return pts
   else:

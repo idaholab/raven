@@ -716,8 +716,7 @@ class EnsembleModel(Dummy):
       # we evaluate the model directly
       try:
         evaluation = modelToExecute['Instance'].evaluateSample.original_function(modelToExecute['Instance'], origInputList, samplerType, inputKwargs)
-      except Exception:
-        excType, excValue, excTrace = sys.exc_info()
+      except Exception as e:
         evaluation = None
     else:
       moveOn = False
@@ -734,7 +733,7 @@ class EnsembleModel(Dummy):
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, rerror):
         evaluation = None
-        excType, excValue, excTrace = finishedRun.exceptionTrace
+        e = rerror
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
           jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
@@ -744,12 +743,8 @@ class EnsembleModel(Dummy):
 
     if not evaluation:
       # the model failed
-      import traceback
-      msg = io.StringIO()
-      traceback.print_exception(excType, excValue, excTrace, limit=10, file=msg)
-      msg = msg.getvalue().replace('\n', '\n        ')
-      self.raiseAnError(RuntimeError, f'The Model "{modelToExecute["Instance"].name}" id "{localIdentifier}" '+
-                        f'failed! Trace:\n{"*"*72}\n{msg}\n{"*"*72}')
+      self.raiseAnError(RuntimeError,"The Model  " + modelToExecute['Instance'].name
+                        + " identified by " + localIdentifier +" failed! The error is below:\n"+str(e))
     else:
       if self.parallelStrategy == 1:
         inRunTargetEvaluations.addRealization(evaluation)
@@ -777,3 +772,5 @@ class EnsembleModel(Dummy):
     returnDict['general_metadata'] = inRunTargetEvaluations.getMeta(general=True)
 
     return returnDict, gotOutputs, evaluation
+
+
