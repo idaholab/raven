@@ -3454,6 +3454,7 @@ class MultivariateNormal(NDimensionalDistributions):
     """
     NDimensionalDistributions.__init__(self)
     self.type = 'MultivariateNormal'
+    self.distType = 'Continuous'
     self.mu  = None
     self.covariance = None
     self.covarianceType = 'abs'  # abs: absolute covariance, rel: relative covariance matrix
@@ -3706,6 +3707,15 @@ class MultivariateNormal(NDimensionalDistributions):
         coordinate[i] = x[i]
       pdfValue = self._distribution.pdf(coordinate)
     return pdfValue
+
+  def logPdf(self,x):
+    """
+      Function to get the log pdf at a provided coordinate
+      @ In, x, np.array, the x coordinates
+      @ Out, logPdf, np.array, requested log pdf
+    """
+    logPdf = np.log(self.pdf(x))
+    return logPdf
 
   def pdfInTransformedSpace(self,x):
     """
