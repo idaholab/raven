@@ -231,7 +231,7 @@ class HDF5(DateBase):
       @ Out, None
     """
     # realization must be a dictionary
-    assert(type(rlz).__name__ == "dict")
+    assert(type(rlz).__name__ in ["dict","defaultdict"])
     # prefix must be present
     if 'prefix' not in rlz:
       rlz['prefix'] = len(self.database)

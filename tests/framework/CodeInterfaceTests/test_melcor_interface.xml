@@ -11,6 +11,7 @@
       </description>
       <revisions>
           <revision author="alfoa" date="2017-04-27">Adding this test description.</revision>
+          <revision author="alfoa" date="2020-10-31">Added csv xml node in the Code block for showing how to use it.</revision>
       </revisions>
   </TestInfo>
 
@@ -30,6 +31,14 @@
 	<Code name="MELGEN" subType="Melcor">
 	  <executable>MELCOR_2.2/bin/melcor</executable>
 	  <preexec>MELCOR_2.2/bin/melgen</preexec>
+      <!--
+        READ THIS CAREFULLY!
+        The following flag indicates that we will write a CSV with
+        the data (by default we return the data directly to RAVEN)
+        IF NOT NEEDED, SET THIS FLAG TO FALSE (OR REMOVE THE NODE)
+        SINCE THE PERFORMANCE WILL IMPROVE
+      -->
+      <csv>True</csv>
     </Code>
   </Models>
 

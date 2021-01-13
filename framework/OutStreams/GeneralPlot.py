@@ -25,6 +25,7 @@ import numpy.ma as ma
 import platform
 import os
 import re
+import gc
 import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
 from collections import defaultdict
@@ -2094,3 +2095,4 @@ class GeneralPlot(OutStreamBase):
       plt.savefig(name + '.' + fileType, format = fileType)
     if 'screen' not in self.destinations:
       plt.close()
+    gc.collect()
