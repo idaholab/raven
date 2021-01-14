@@ -478,7 +478,7 @@ class Simulation(MessageHandler.MessageUser):
 
   def initialize(self):
     """
-      Method to intialize the simulation.
+      Method to initialize the simulation.
       Check/created working directory, check/set up the parallel environment, call step consistency checker
       @ In, None
       @ Out, None
@@ -709,7 +709,7 @@ class Simulation(MessageHandler.MessageUser):
       @ Out, None
     """
     #to do list
-    #can we remove the check on the esistence of the file, it might make more sense just to check in case they are input and before the step they are used
+    #can we remove the check on the existence of the file, it might make more sense just to check in case they are input and before the step they are used
     self.raiseADebug('entering the run')
     #controlling the PBS environment
     remoteRunCommand = self.__modeHandler.remoteRunCommand(dict(self.runInfoDict))

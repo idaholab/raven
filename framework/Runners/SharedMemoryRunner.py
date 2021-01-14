@@ -63,7 +63,6 @@ class SharedMemoryRunner(InternalRunner):
         this runner. For example, if present, to retrieve this runner using the
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
         If uniqueHandler == 'any', every "client" can get this runner
-      @ In, clientRunner, bool, optional,  Is this runner needed to be executed in client mode? Default = False
       @ In, profile, bool, optional, if True then at deconstruction timing statements will be printed
       @ Out, None
     """

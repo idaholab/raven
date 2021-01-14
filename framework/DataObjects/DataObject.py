@@ -405,14 +405,18 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     pass
 
   @abc.abstractmethod
-  def realization(self,index=None,matchDict=None,tol=1e-15):
+  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False, asDataSet = False, options = None):
     """
       Method to obtain a realization from the data, either by index or matching value.
-      Either "index" or "matchDict" must be supplied.
+      Either "index" or one of ("matchDict", "noMatchDict") must be supplied.
       If matchDict and no match is found, will return (len(self),None) after the pattern of numpy, scipy
       @ In, index, int, optional, number of row to retrieve (by index, not be "sample")
       @ In, matchDict, dict, optional, {key:val} to search for matches
+      @ In, noMatchDict, dict, optional, {key:val} to search for antimatches (vars should NOT match vals within tolerance)
+      @ In, asDataSet, bool, optional, return realization from the data as a DataSet
       @ In, tol, float, optional, tolerance to which match should be made
+      @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}) (valid only for dataset)
+      @ In, options, dict, optional, options to be applied to the search
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """

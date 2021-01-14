@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <TestInfo>
     <name>framework.safest_point_cdf_pp</name>
     <author>alfoa</author>
@@ -15,7 +15,7 @@
       <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
       <revision author="alfoa" date="2015-05-19">Closes #176</revision>
       <revision author="talbpaul" date="2015-06-04">regolding after SG feature ordering, also changed Adaptive sampler to LimitSurfaceSearch sampler</revision>
-      <revision author="cogljj" date="2015-09-29">Modifing external modules to use relative to working directory.</revision>
+      <revision author="cogljj" date="2015-09-29">Modifying external modules to use relative to working directory.</revision>
       <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
       <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>

@@ -45,9 +45,9 @@ import Models
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWS
 _rayAvail = im.isLibAvail("ray")
 if _rayAvail:
- import ray
+  import ray
 else:
- import pp
+  import pp
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
 
@@ -118,8 +118,10 @@ class JobHandler(MessageHandler.MessageUser):
     ## List of submitted job identifiers, includes jobs that have completed as
     ## this list is not cleared until a new step is entered
     self.__submittedJobs = []
-    ## Dict of failed jobs of the form { identifer: metadata }
+    ## Dict of failed jobs of the form { identifier: metadata }
     self.__failedJobs = {}
+    ## Dict containing info about batching
+    self.__batching = collections.defaultdict()
 
   def initialize(self, runInfoDict, messageHandler):
     """
@@ -136,7 +138,7 @@ class JobHandler(MessageHandler.MessageUser):
     # defaults to None; if None, then use batchSize instead
     if self.maxQueueSize is None:
       self.maxQueueSize = runInfoDict['batchSize']
-    # if requsted max size less than 1, we can't do that, so take 1 instead
+    # if requested max size less than 1, we can't do that, so take 1 instead
     if self.maxQueueSize < 1:
       self.raiseAWarning('maxQueueSize was set to be less than 1!  Setting to 1...')
       self.maxQueueSize = 1
@@ -174,7 +176,7 @@ class JobHandler(MessageHandler.MessageUser):
   def __initializeRay(self):
     """
       Internal method that is aimed to initialize the internal parallel system.
-      It initilizes the RAY implementation (with socketing system) in
+      It initializes the RAY implementation (with socketing system) in
       case RAVEN is run in a cluster with multiple nodes or the NumMPI > 1,
       otherwise multi-threading is used.
       @ In, None
@@ -224,7 +226,6 @@ class JobHandler(MessageHandler.MessageUser):
     for nodeId in list(set(self.runInfoDict['Nodes'])):
       hostNameMapping[nodeId.strip()] = socket.gethostbyname(nodeId.strip())
       self.raiseADebug("Remote Host identified ", hostNameMapping[nodeId.strip()])
-
     return hostNameMapping
 
   def __getLocalHost(self):
@@ -295,7 +296,7 @@ class JobHandler(MessageHandler.MessageUser):
       ## probably when we move to Python 3.
       time.sleep(self.sleepTime)
 
-  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads = False, uniqueHandler="any", clientQueue = False):
+  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads = False, uniqueHandler="any", clientQueue = False, groupInfo = None):
     """
       Method to add an internal run (function execution)
       @ In, args, dict, this is a list of arguments that will be passed as
@@ -312,12 +313,17 @@ class JobHandler(MessageHandler.MessageUser):
         this runner. For example, if present, to retrieve this runner using the
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
         If uniqueHandler == 'any', every "client" can get this runner
+      @ In, groupInfo, dict, optional, {id:string, size:int}.
+        - "id": it is a special keyword attached to
+          this runner to identify that this runner belongs to a special set of runs that need to be
+          grouped together (all will be retrievable only when all the runs ended).
+        - "size", number of runs in this group
       @ In, clientQueue, boolean, optional, if this run needs to be added in the
         clientQueue
       @ Out, None
     """
     assert "original_function" in dir(functionToRun), "to parallelize a function, it must be" \
-                                                          " decorated with RAVEN Parallel decorator"
+           " decorated with RAVEN Parallel decorator"
     if self.rayServer is None or forceUseThreads:
       internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
                                                functionToRun.original_function,
@@ -334,6 +340,17 @@ class JobHandler(MessageHandler.MessageUser):
 
     # set the client info
     internalJob.clientRunner = clientQueue
+    #  set the groupping id if present
+    if groupInfo is not None:
+      groupId =  groupInfo['id']
+      # TODO: create method in Runner to set flags,ids,etc in the instanciated runner
+      internalJob.groupId = groupId
+      if groupId not in self.__batching:
+        self.__batching[groupId] = {"counter": 0, "ids": [], "size": groupInfo['size'], 'finished': []}
+      self.__batching[groupId]["counter"] += 1
+      if self.__batching[groupId]["counter"] > self.__batching[groupId]["size"]:
+        self.raiseAnError(RuntimeError, "group id {} is full. Size reached:".format(groupId))
+      self.__batching[groupId]["ids"].append(identifier)
     # add the runner in the Queue
     self.reAddJob(internalJob)
 
@@ -386,7 +403,7 @@ class JobHandler(MessageHandler.MessageUser):
         this runner. For example, if present, to retrieve this runner using the
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
         If uniqueHandler == 'any', every "client" can get this runner
-      @ In, profile, bool, optional, if True then at deconstruction timing statements will be printed
+      @ In, profile, bool, optional, if True then at de-construction timing statements will be printed
       @ Out, None
     """
     # create a placeholder runner
@@ -401,20 +418,29 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
+    tempList=copy.copy(self.__running+self.__clientRunning)
+    len1 = copy.deepcopy(len(self.__queue))
+    len2 = copy.deepcopy(len(self.__clientQueue))
+
+    import time
+    time.sleep(0.001)
+
     with self.__queueLock:
       ## If there is still something left in the queue, we are not done yet.
-      if len(self.__queue) > 0 or len(self.__clientQueue) > 0:
+      #if len(self.__queue) > 0 or len(self.__clientQueue) > 0:
+      if len1>0 or len2>0:
         return False
 
       ## Otherwise, let's look at our running lists and see if there is a job
       ## that is not done.
-      for run in self.__running+self.__clientRunning:
+      for run in tempList:
         if run:
           return False
 
     ## Are there runs that need to be claimed? If so, then I cannot say I am
     ## done.
-    if len(self.getFinishedNoPop()) > 0:
+    numFinished = len(self.getFinishedNoPop())
+    if numFinished != 0:
       return False
 
     return True
@@ -534,35 +560,56 @@ class JobHandler(MessageHandler.MessageUser):
         ExternalRunner objects) (if jobIdentifier is None), else the finished
         jobs matching the base case jobIdentifier
     """
-    finished = []
-
     ## If the user does not specify a jobIdentifier, then set it to the empty
     ## string because every job will match this starting string.
     if jobIdentifier is None:
       jobIdentifier = ''
 
     with self.__queueLock:
+      finished = []
       runsToBeRemoved = []
       for i,run in enumerate(self.__finished):
         ## If the jobIdentifier does not match or the uniqueHandler does not
         ## match, then don't bother trying to do anything with it
         if not run.identifier.startswith(jobIdentifier) \
-        or uniqueHandler != run.uniqueHandler:
+           or uniqueHandler != run.uniqueHandler:
           continue
+        ## check if the run belongs to a subgroup and in case
+        if run.groupId in self.__batching:
+          if not run in self.__batching[run.groupId]['finished']:
+            self.__batching[run.groupId]['finished'].append(run)
+        else:
+          finished.append(run)
 
-        finished.append(run)
         if removeFinished:
           runsToBeRemoved.append(i)
           self.__checkAndRemoveFinished(run)
+          ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
 
-      ##Since these indices are sorted, reverse them to ensure that when we
-      ## delete something it will not shift anything to the left (lower index)
-      ## than it.
-      for i in reversed(runsToBeRemoved):
-        self.__finished[i].trackTime('collected')
-        del self.__finished[i]
-    ## end with self.__queueLock
+      ## check if batches are ready to be returned
+      for groupId in list(self.__batching.keys()):
+        if removeFinished:
+          if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
+            doneBatch = self.__batching.pop(groupId)
+            finished.append(doneBatch['finished'])
+        else:
+          if len(self.__batching[groupId]['finished']) >  self.__batching[groupId]['size']:
+            raise IOError('+++++ batching is messed up ++++++')
+          doneBatch = self.__batching[groupId]
+          finished.append(doneBatch['finished'])
 
+        ##Since these indices are sorted, reverse them to ensure that when we
+        ## delete something it will not shift anything to the left (lower index)
+        ## than it.
+      if removeFinished:
+        for i in reversed(runsToBeRemoved):
+          self.__finished[i].trackTime('collected')
+          try:
+            del self.__finished[i]
+          except ImportError:
+            raise IOError('stop')
+            pass
+      ## end with self.__queueLock
     return finished
 
   def getFinishedNoPop(self):
