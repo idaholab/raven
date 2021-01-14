@@ -99,8 +99,6 @@ class MelcorApp(CodeInterfaceBase):
     outfile = os.path.join(workingDir,output+'.out')
     outputobj=MELCORdata.MELCORdata(outfile)
     response = outputobj.returnData()
-    if self._writeCSV:
-      outputobj.writeCsv(os.path.join(workingDir,output+'.csv'))
     return response
 
   def checkForOutputFailure(self,output,workingDir):

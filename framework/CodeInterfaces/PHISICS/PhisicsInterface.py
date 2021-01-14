@@ -292,7 +292,6 @@ class Phisics(CodeInterfaceBase):
     phisicsDataDict['printSpatialRR'] = self.printSpatialRR
     phisicsDataDict['printSpatialFlux'] = self.printSpatialFlux
     phisicsDataDict['pertVariablesDict'] = self.distributedPerturbedVars
-    phisicsDataDict['writeCSV'] = self._writeCSV
     # read outputs
     outputParser = phisicsdata.phisicsdata(phisicsDataDict)
     response = outputParser.returnData()

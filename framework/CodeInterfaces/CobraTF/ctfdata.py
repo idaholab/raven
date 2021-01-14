@@ -56,17 +56,6 @@ class ctfdata:
     data = {var:self.majorData[:,i] for i, var in enumerate(self.headerName)}
     return data
 
-  def writeCSV(self, filen):
-    """
-      Method that writes the csv file from major edit data
-      @ In, filen, string (input file name)
-      @ Out, None
-    """
-    # create string for header names
-    headerString = ",".join(self.headerName)
-    # write & save array as csv file
-    np.savetxt(filen, self.majorData, delimiter=',', header=headerString, comments='')
-
   def getTimeDeck(self, lines):
     """
       Method to check ended time of the simulation (multi-deck compatible)

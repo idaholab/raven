@@ -37,8 +37,7 @@ class ProjectileNoCSV(Projectile):
   def finalizeCodeOutput(self, command, output, workingDir):
     """
       Called by RAVEN to modify output files (if needed) so that they are in a proper form.
-      In this case, the default .mat output needs to be converted to .csv output, which is the
-      format that RAVEN can communicate with.
+      In this case, the data are directly returned as a dictionary
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
