@@ -1,0 +1,42 @@
+<DataObjectMetadata name="rom_stats">
+  <DMDrom type="Static">
+    <ROM>
+      <type>DMDC</type>
+      <description> This XML file contains the main information of the DMDC ROM. The method is explained in: Proctor, Joshua L., Steven L. Brunton, and J. Nathan Kutz.  "Dynamic mode decomposition with control."  SIAM Journal on Applied Dynamical Systems 15, no. 1 (2016): 142-161.</description>
+    </ROM>
+    <DMDcModel>
+      <dmdType>dmd</dmdType>
+      <rankSVD>-1</rankSVD>
+      <acturators>u1</acturators>
+      <states>x1 x2 x3</states>
+      <initStates>x1_init x2_init x3_init</initStates>
+      <outputs>y2 y1</outputs>
+      <dmdTimeScale>000 010 020 030 040 050 060 070 080 090 100 110 120 130 140 150 160 170 180 190 200 210 220 230 240 250 260 270 280 290 300 310 320 330 340 350 360 370 380 390 400 410 420 430 440 450 460 470 480 490 500 510 520 530 540 550 560 570 580 590 600 610 620 630 640 650 660 670 680 690 700 710 720</dmdTimeScale>
+      <XLast>
+        <realization sample="0">1.25610160e+07 6.70677543e-01 5.51397766e+02</realization>
+      </XLast>
+      <Atilde>
+        <realization sample="0">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,3</matrixShape>
+          <real>-8.36386516e-13 -1.28561644e-08 -1.05696802e-05 -9.73674262e-03 1.06526289e+01 8.77920075e+03 1.18430321e-05 -1.17407129e-02 -9.67834212e+00</real>
+        </realization>
+      </Atilde>
+      <Btilde>
+        <realization sample="0">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>3,1</matrixShape>
+          <real>1.00000000e+00 1.28562596e-08 1.05697585e-05</real>
+        </realization>
+      </Btilde>
+      <Ctilde>
+        <realization sample="0">
+          <imaginary>0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00 0.00000000e+00</imaginary>
+          <matrixShape>2,3</matrixShape>
+          <real>-2.15559404e-06 1.00008831e+00 2.21175748e-03 -2.05623127e-03 1.81839710e+00 -1.69053117e+00</real>
+        </realization>
+      </Ctilde>
+    </DMDcModel>
+  </DMDrom>
+  
+</DataObjectMetadata>

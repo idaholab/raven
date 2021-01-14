@@ -714,8 +714,9 @@ class EnsembleModel(Dummy):
       # we evaluate the model directly
       try:
         evaluation = modelToExecute['Instance'].evaluateSample.original_function(modelToExecute['Instance'], origInputList, samplerType, inputKwargs)
-      except Exception as e:
+      except Exception as rerror:
         evaluation = None
+        e = rerror
     else:
       moveOn = False
       while not moveOn:
