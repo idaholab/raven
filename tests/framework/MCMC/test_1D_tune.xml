@@ -1,22 +1,19 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <TestInfo>
-    <name>framework/MCMC.MetropolisObserved</name>
+    <name>framework/MCMC.MetropolisOneDimTune</name>
     <author>wangc</author>
-    <created>2020-07-27</created>
+    <created>2020-12-20</created>
     <classesTested>MCMC.Metropolis</classesTested>
     <description>
       Test the Markov Chain Monte Carlo algorithm: Metropolis Sampling
-      assume xi, yi|rho ~ Normal(mu,cov), where mu=[0,0], and cov = [[1.0, rho], [rho, 1.0]]
-      1000 samples is generated using np.random.multivariate_normal as the observed data.
-      A non-informative prior for covariance matrices is the Jeffreys prior
-      (see Gelman et al., 1995), which is of the form 1/det(Cov)**(3/2).
-      A uniform distribution [-0.07, 0.07] is used as the proposal distribution.
+      specifically testing the auto tuning of scaling parameter with provided
+      tune interval.
     </description>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>observed</WorkingDir>
+    <WorkingDir>OneDimTune</WorkingDir>
     <Sequence>mh, print, pp</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
@@ -24,41 +21,39 @@
 
   <Distributions>
     <Uniform name="uniform">
-      <lowerBound>-0.07</lowerBound>
-      <upperBound>0.07</upperBound>
+      <lowerBound>-10</lowerBound>
+      <upperBound>10</upperBound>
     </Uniform>
+    <Normal name="normal">
+      <mean>0</mean>
+      <sigma>0.1</sigma>
+    </Normal>
   </Distributions>
 
   <Models>
-    <ExternalModel ModuleToLoad="../likelihoods/likelihood_observed" name="likelihood" subType="">
-      <variables>rho, pout</variables>
+    <ExternalModel ModuleToLoad="../likelihoods/likelihood_1D" name="likelihood" subType="">
+      <variables>xin, zout</variables>
     </ExternalModel>
     <PostProcessor name="posteriorMode" subType="BasicStatistics">
-      <expectedValue prefix="mean">rho</expectedValue>
-      <sigma prefix="sigma">rho</sigma>
+      <expectedValue prefix="mean">xin</expectedValue>
+      <sigma prefix="sigma">xin</sigma>
     </PostProcessor>
   </Models>
-
-  <Functions>
-    <External file="observed/prior.py" name="prior">
-      <variables>rho</variables>
-    </External>
-  </Functions>
 
   <Samplers>
     <Metropolis name="Metropolis">
       <samplerInit>
-        <limit>2000</limit>
+        <limit>8000</limit>
         <initialSeed>070419</initialSeed>
-        <burnIn>100</burnIn>
+        <burnIn>0</burnIn>
+        <tune>True</tune>
+        <tuneInterval>80</tuneInterval>
       </samplerInit>
-      <likelihood log="True">pout</likelihood>
-      <variable name="rho">
-        <!-- instead to use <distribution>normal</distribution>, use a user defined function -->
-        <probabilityFunction class="Functions" type="External">prior</probabilityFunction>
-        <!-- in this case, initial are required parameter -->
+      <likelihood log="True">zout</likelihood>
+      <variable name="xin">
+        <distribution>uniform</distribution>
         <initial>0</initial>
-        <proposal class="Distributions" type="Uniform">uniform</proposal>
+        <proposal class="Distributions" type="Normal">normal</proposal>
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
     </Metropolis>
@@ -106,22 +101,22 @@
 
   <DataObjects>
     <PointSet name="inputHolder">
-      <Input>rho</Input>
+      <Input>xin</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
 
     <PointSet name="outSet">
-      <Input>rho</Input>
-      <Output>pout</Output>
+      <Input>xin</Input>
+      <Output>zout</Output>
     </PointSet>
 
     <PointSet name="out_export">
       <Input>traceID</Input>
-      <Output>rho</Output>
+      <Output>xin, LogPosterior, AcceptRate, zout</Output>
     </PointSet>
 
     <PointSet name="posterior_basicStat">
-      <Output>mean_rho, sigma_rho</Output>
+      <Output>mean_xin, sigma_xin</Output>
     </PointSet>
   </DataObjects>
 

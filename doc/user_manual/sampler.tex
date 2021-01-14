@@ -3157,6 +3157,9 @@ of the algorithm, the goal in Bayesian inference is to maximize the unnormalized
 posterior distribution and collect samples of the target distributions, which are marginal
 posterior distributions, later to be used for inference.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Metropolis-Hastings Sampler %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Metropolis (Metropolis-Hastings Sampler)}
 \label{subsubsubsec:metropolis}
 The Metropolis-Hastings (MH) algorithm is a MCMC method for obtaining a sequence of random samples from a probability
@@ -3184,6 +3187,7 @@ the variables of interest.
       \item \functionDescription
       \item \xmlNode{initial}, \xmlDesc{float, optional field}, specified the initial value for given variable.
       \item \xmlNode{proposal}, \xmlDesc{Assembler Object}, specifies the proposal distribution for this variable.
+      \nb We only allow one-dimensional symmetric distribution to be the proposal distribution.
       This node must contain the following two attributes:
       \begin{itemize}
         \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
@@ -3227,6 +3231,11 @@ In addition, the settings for this sampler need to be specified in the \xmlNode{
     \item \xmlNode{limit},  \xmlDesc{integer, required field}, number of Metropolis samples needs to be generated;
     \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator;
     \item \xmlNode{burnIn}, \xmlDesc{integer, optional field}, specifies the number of initial samples that would be discarded.
+    \default{0}
+    \item \xmlNode{tune}, \xmlDesc{bool, optional field}, indicates whether to tune the scaling parameter of proposal distributions or not;
+    \default{`True'}
+    \item \xmlNode{tuneInterval}, \xmlDesc{integer, optional field}, the number of sample steps for each tuning of scaling parameter;
+    \default{100}
   \end{itemize}
 \end{itemize}
 
@@ -3282,6 +3291,133 @@ Example:
     </variable>
     <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
   </Metropolis>
+  ...
+</Samplers>
+\end{lstlisting}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Adaptive Metropolis Sampler %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Adaptive Metropolis Sampler}
+\label{subsubsubsec:adaptiveMetropolis}
+
+The search for improved proposal distributions of Metropolis sampler is often
+done manually, through trial and error, though this can be difficult especially
+in high dimensions. An alternative approach is adaptive Metropolis, which asks
+the computer to automatically ``learn'' better parameter values ``on the fly''.
+
+\specBlock{an}{AdaptiveMetropolis}
+%
+\attrIntro
+
+\begin{itemize}
+  \itemsep0em
+  \item \nameDescription
+\end{itemize}
+
+\variableIntro{AdaptiveMetropolis}
+
+\begin{itemize}
+  \item \variableDescription
+    \variableChildrenIntro
+    \begin{itemize}
+      \item \distributionDescription
+      \item \functionDescription
+      \item \xmlNode{initial}, \xmlDesc{float, optional field}, specified the initial value for given variable.
+      \item \xmlNode{proposal}, \xmlDesc{Assembler Object}, specifies the proposal distribution for this variable.
+      \nb We only allow one-dimensional symmetric distribution to be the proposal distribution.
+      This node must contain the following two attributes:
+      \begin{itemize}
+        \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
+          ``class'' of the listed object. Only ``Distributions'' is allowed.
+        \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
+          identifier or sub-type.
+        \item \xmlAttr{dim}, \xmlDesc{positive integer, optional attribute}, required for
+        multivariate normal proposal distribution, indicates the dimension within the multivariate
+        normal distribution that corresponds to this variable.
+      \end{itemize}
+      \item \xmlNode{probabilityFunction}, \xmlDesc{Assembler Object}, specifies the prior distribution function..
+      This node must contain the following two attributes:
+      \begin{itemize}
+        \item \xmlAttr{class}, \xmlDesc{required string attribute}, the main
+          ``class'' of the listed object. Only ``Functions'' is allowed.
+        \item \xmlAttr{type},  \xmlDesc{required string attribute}, the object
+          identifier or sub-type. Only ``External'' is allowed.
+      \end{itemize}
+      \textcolor{red}{\\\textbf{THIS NODE IS CURRENTLY NOT ALLOWED FOR ADAPTIVE METROPOLIS SAMPLER.}}
+    \end{itemize}
+    \nb For this sampler, we only allow ``continuous'' distributions as input to \xmlNode{variable}.
+    \item \constantVariablesDescription
+\end{itemize}
+
+In the \textbf{AdaptiveMetropolis} input block, the user needs to specify the variables need to be sampled.
+As already mentioned, these variables are inputted within consecutive xml blocks called \xmlNode{variable}.
+In addition, the settings for this sampler need to be specified in the \xmlNode{samplerInit} XML block:
+\begin{itemize}
+  \item \xmlNode{samplerInit},  \xmlDesc{required field}. In this xml-node, the following xml sub-nodes need to be specified:
+  \begin{itemize}
+    \item \xmlNode{limit},  \xmlDesc{integer, required field}, number of Metropolis samples needs to be generated;
+    \item \xmlNode{initialSeed}, \xmlDesc{integer, optional field}, initial seeding of random number generator;
+    \item \xmlNode{burnIn}, \xmlDesc{integer, optional field}, specifies the number of initial samples that would be discarded.
+    \default{0}
+    \item \xmlNode{tune}, \xmlDesc{bool, optional field}, indicates whether to tune the scaling parameter of proposal distributions or not;
+    \default{`True'}
+    \item \xmlNode{tuneInterval}, \xmlDesc{integer, optional field}, the number of sample steps for each tuning of scaling parameter;
+    \default{100}
+    \item \xmlNode{adaptiveInterval}, \xmlDesc{integer, optional field}, the number of sample steps for each proposal parameters update;
+    \default{20}
+  \end{itemize}
+\end{itemize}
+
+In addition to the \xmlNode{variable} nodes, the main XML node
+\xmlNode{AdaptiveMetropolis} needs to contain the following supplementary sub-nodes:
+
+\begin{itemize}
+  \item \xmlNode{likelihood}, \xmlDesc{string, required node}, the output from the user provided likelihood function
+  This node accept one attribute:
+  \begin{itemize}
+    \item \xmlAttr{log}, \xmlDesc{bool, optional field}, indicates whether the the log likelihood value is
+    provided or not. When True, the code expects to receive the log likehood value.
+    \default{`False'}
+  \end{itemize}
+  \item \assemblerDescription{Metropolis}
+  \constantSourceDescription{Metropolis}
+  \begin{itemize}
+    \item \xmlNode{TargetEvaluation}, \xmlDesc{string, required field},
+      represents the container where the system evaluations are stored.
+      %
+      From a practical point of view, this XML node must contain the name of
+      a data object defined in the \xmlNode{DataObjects} block (see
+      Section~\ref{sec:DataObjects}). The object here specified must be
+      input as  \xmlNode{Output} in the Steps that employ this sampling strategy.
+      %
+      The Adaptive Metropolis sampling accepts ``DataObjects'' of type
+      ``PointSet'' only.
+  \end{itemize}
+  \restartDescription{Metropolis}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML]
+<Samplers>
+  ...
+  <AdaptiveMetropolis name="AdaptiveMetropolis">
+    <samplerInit>
+      <limit>1000</limit>
+      <initialSeed>070419</initialSeed>
+      <burnIn>500</burnIn>
+    </samplerInit>
+    <likelihood log="False">zout</likelihood>
+    <variable name="xin">
+      <distribution>normal</distribution>
+      <initial>2</initial>
+    </variable>
+    <variable name="yin">
+      <distribution>normal</distribution>
+      <initial>2</initial>
+    </variable>
+    <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
+  </AdaptiveMetropolis>
   ...
 </Samplers>
 \end{lstlisting}
