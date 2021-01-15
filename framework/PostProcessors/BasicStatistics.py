@@ -20,6 +20,7 @@ from __future__ import division, print_function , unicode_literals, absolute_imp
 
 #External Modules---------------------------------------------------------------
 import numpy as np
+import scipy as sc
 import os
 import copy
 from collections import OrderedDict, defaultdict
@@ -60,6 +61,7 @@ class BasicStatistics(PostProcessor):
   vectorVals = ['sensitivity',
                 'covariance',
                 'pearson',
+                'spearman',
                 'NormalizedSensitivity',
                 'VarianceDependentSensitivity']
   # quantities that the standard error can be computed
@@ -1069,6 +1071,7 @@ class BasicStatistics(PostProcessor):
     if not skip:
       params = list(set(targets).union(set(features)))
       reducedCovar = getCovarianceSubset(params)
+      dataSet.sel(**{})
       targCoords = reducedCovar.coords['targets'].values
       if self.pivotParameter in reducedCovar.sizes.keys():
         pivotCoords = reducedCovar.coords[self.pivotParameter].values
@@ -1082,6 +1085,29 @@ class BasicStatistics(PostProcessor):
       else:
         corrMatrix = self.corrCoeff(reducedCovar.values)
         da = xr.DataArray(corrMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+        calculations[metric] = da
+    #
+    # spearman matrix
+    #
+    # see comments in covariance for notes on C implementation
+    metric = 'spearman'
+    targets,features,skip = startVector(metric)
+    if not skip:
+      params = list(set(targets).union(set(features)))
+      reducedCovar = getCovarianceSubset(params)
+      targCoords = reducedCovar.coords['targets'].values
+      if self.pivotParameter in reducedCovar.sizes.keys():
+        pivotCoords = dataSet.coords[self.pivotParameter].values
+        ds = None
+        for label, group in dataSet.groupby(self.pivotParameter):
+          spearmanMatrix = sc.stats.spearmanr(group.to_array())
+          da = xr.DataArray(spearmanMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+          ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
+        ds.coords[self.pivotParameter] = pivotCoords
+        calculations[metric] = ds
+      else:
+        spearmanMatrix,_ = sc.stats.spearmanr(dataSet[params].to_array().T)
+        da = xr.DataArray(spearmanMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
         calculations[metric] = da
     #
     # VarianceDependentSensitivity matrix
