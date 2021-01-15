@@ -524,6 +524,7 @@ class Segments(Collection):
       self.raiseADebug('Training segment', i, picker)
       newROM.train(data)
       roms.append(newROM)
+    templateROM.preserveInputCDF = False
     # format array for future use
     roms = np.array(roms)
     return roms

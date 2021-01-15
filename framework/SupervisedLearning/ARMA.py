@@ -95,7 +95,7 @@ class ARMA(supervisedLearning):
     self.zeroFilterTarget  = None # target for whom zeros should be filtered out
     self.zeroFilterTol     = None # tolerance for zerofiltering to be considered zero, set below
     self._masks            = collections.defaultdict(dict)   # dictionay of masks, including zeroFilterMask(where zero), notZeroFilterMask(Where non zero), and maskPeakRes.
-    self._minBins          = 20   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
+    self._minBins          = 50   # min number of bins to use in determining distributions, eventually can be user option, for now developer's pick
     #peaks
     self.peaks             = {} # dictionary of peaks information, by target
     # signal storage
@@ -1786,7 +1786,7 @@ class ARMA(supervisedLearning):
     targets = self.target
 
     # set up for input CDF preservation on a global scale
-    if self.preserveInputCDF:
+    if False: # self.preserveInputCDF:
       inputDists = {}
       for target in targets:
         if target == self.pivotParameterID:
@@ -1994,7 +1994,7 @@ class ARMA(supervisedLearning):
     # disable CDF preservation on subclusters
     ## Note that this might be a good candidate for a user option someday,
     ## but right now we can't imagine a use case that would turn it on
-    self.preserveInputCDF = False
+    # self.preserveInputCDF = False
     if 'long Fourier signal' in settings:
       for target, peak in self.peaks.items():
         subMean = self._getMeanFromGlobal(settings, picker)
