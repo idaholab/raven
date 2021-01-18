@@ -83,7 +83,6 @@ class FiniteDifference(GradientApproximater):
         # need NORM point, delta
         new = constraints['normalize'](altPoint)
         delta = new[optVar] - opt[optVar]
-      #print('DEBUGG end:', delta, new)
       # store as samplable point
       evalPoints.append(new)
       evalInfo.append({'type': 'grad',
@@ -92,11 +91,20 @@ class FiniteDifference(GradientApproximater):
     return evalPoints, evalInfo
 
   def _handleConstraints(self, newPoint, original, optVar, constraints):
-    """ TODO HACK FIXME TEMP XXX """
+    """
+      Allows the FiniteDifference to handle grad points that might violate constraints.
+      Note this should be generalized as much as possible to the base class, if the different
+      gradient approximation algorithms can find common ground in this algorithm.
+      @ In, newPoint, np.array, desired new sampling point
+      @ In, original, np.array, current opt point from which the new point is derived
+      @ In, optVar, string, name of optimization variable being perturbed
+      @ In, constraints, dict, boundary and functional constraints passed through
+      @ Out, newPoint, np.array, potentially-adjusted new gradient sampling point
+    """
     new = newPoint[optVar]
     orgval = original[optVar]
     delta = new - orgval
-    # FIXME div 0 protection
+    # TODO div 0 protection? Can it ever be 0?
     scale = abs(delta)
     dist = constraints['boundary'][optVar]
     lower = dist.lowerBound
@@ -136,7 +144,16 @@ class FiniteDifference(GradientApproximater):
 
 
   def _checkConstraints(self, point, optVar, lower, upper, constraints, info):
-    """ TODO """
+    """
+      Checks for constraint violations in point.
+      @ In, point, np.array, proposed sampling point
+      @ In, optVar, string, name of optimization variable being perturbed
+      @ In, lower, float, lower limit
+      @ In, upper, float, upper limit
+      @ In, constraints, dict, functional constraints imposed by user or similar
+      @ In, info, dict, other useful info such as constants, etc
+      @ Out, allOkay, bool, True if no constraints violated
+    """
     allOkay = lower < point[optVar] < upper
     if allOkay:
       for constraint in constraints:

@@ -1913,7 +1913,6 @@ class DataSet(DataObject):
     keep = self._getRequestedElements(kwargs)
     # get unique cluster labels
     clusterIDs = set(self._data[clusterLabel].values)
-    print('DEBUGG clusterIDs:')
     # write main CSV pointing to other files
     with open(fileName+'.csv','w') as writeFile: # TODO append mode if printing each step
       writeFile.writelines('{},filename\n'.format(clusterLabel))

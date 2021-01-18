@@ -30,14 +30,12 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #External Modules------------------------------------------------------------------------------------
 import abc
 import copy
-import sys
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, mathUtils, xmlUtils
 import MessageHandler
-import Decorators
 #Internal Modules End--------------------------------------------------------------------------------
 
 class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
@@ -119,11 +117,6 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, None
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
-    # state = {}
-    # for k, v in self.__dict__.items():
-    #   new = copy.copy(v)
-    #   print(f'Serializing "{k}", sizeof {sys.getsizeof(new)}')
-    #   state[k] = new
     state = copy.copy(self.__dict__)
     state['initOptionDict'].pop('paramInput', None)
     ## capture what is normally pickled
@@ -138,15 +131,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, d, dict, it contains all the information needed by the ROM to be initialized
       @ Out, None
     """
-    # name = getattr(self, 'name', f'<<{self.__class__.__name__}>>')
-    # for k, v in d.items():
-    #   print(f'"{name}" Deserializing "{k}", sizeof {sys.getsizeof(v)}')
-    #   self.__dict__[k] = v
     self.__dict__.update(d)
-    # # temp for back compatability ## FIXME XXX REMOVE ME
-    # if 'metadataKeys' not in self.__dict__:
-    #   self.metadataKeys = set()
-    #   self.metadataParams = {}
 
   def addMetaKeys(self, args, params=None):
     """

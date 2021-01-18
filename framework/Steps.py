@@ -33,7 +33,6 @@ import copy
 import numpy as np
 #import pickle as cloudpickle
 import cloudpickle
-import pickle as origpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -1048,6 +1047,9 @@ class IOStep(Step):
         fileobj = inDictionary['Input'][i]
         unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
         ## DEBUGG
+        # the following will iteratively check the size of objects being unpickled
+        # this is quite useful for finding memory crashes due to parallelism
+        # so I'm leaving it here for reference
         # print('CHECKING SIZE OF', unpickledObj)
         # target = unpickledObj# .supervisedEngine.supervisedContainer[0]._macroSteps[2025]._roms[0]
         # print('CHECKING SIZES')
