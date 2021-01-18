@@ -636,8 +636,6 @@ class Clusters(Segments):
     self._clusterFeatures = None         # dict of lists, features to cluster on
     self._featureTemplate = '{target}|{metric}|{id}' # created feature ID template
     self._clusterVariableID = '_ROM_Cluster' # name by which clustering dimension shall be known
-    # add expected meta keys
-    self.addMetaKeys(['cluster_multiplicity'], {'cluster_multiplicity': ['_ROM_cluster']})
     # check if ROM has methods to cluster on (errors out if not)
     if not self._templateROM.isClusterable():
       self.raiseAnError(NotImplementedError, 'Requested ROM "{}" does not yet have methods for clustering!'.format(self._romName))
@@ -651,7 +649,12 @@ class Clusters(Segments):
       self.raiseAMessage('No evalMode specified for clustered ROM, so defaulting to "truncated".')
       self._evaluationMode = 'truncated'
     self.raiseADebug('Clustered ROM evaluation mode set to "{}"'.format(self._evaluationMode))
-    # choice?
+
+    # add expected meta keys
+    #if self._evaluationMode == 'clustered':
+    #  self.addMetaKeys(['cluster_multiplicity'], {'cluster_multiplicity': [self._clusterVariableID]})
+
+    # how to choose representative cluster: static or random
     evalChoice = segmentNode.findFirst('evaluationClusterChoice')
     if evalChoice is not None:
       self._evaluationChoice = evalChoice.value
@@ -696,6 +699,11 @@ class Clusters(Segments):
     evalMode = params.pop('clusterEvalMode', None)
     if evalMode:
       self._evaluationMode = evalMode
+    # TODO
+    #if self._evaluationMode == 'clustered':
+    #  self.addMetaKeys(['cluster_multiplicity'], {'cluster_multiplicity': [self._clusterVariableID]})
+    #else:
+    #  self.removeMetaKeys(['cluster_multiplicity'])
     Segments.setAdditionalParams(self, params)
 
   def evaluate(self, edict):
@@ -742,9 +750,10 @@ class Clusters(Segments):
       ## for truncated mode, this is trivial.
       ## for clustered mode, this is complicated.
       result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
-    # TODO add clusterWeights to "result" as meta to the output? This would be handy!
-    result['cluster_multiplicity'] = np.asarray([len(x) for c, x in self._clusterInfo['map'].items() if c != 'unclustered'])
-    result['_indexMap']['cluster_multiplicity'] = np.atleast_1d(['_ROM_Cluster'])
+    # TODO add cluster multiplicity to "result" as meta to the output
+    #if self._evaluationMode == 'clustered':
+    #  result['cluster_multiplicity'] = np.asarray([len(x) for c, x in self._clusterInfo['map'].items() if c != 'unclustered'])
+    #  result['_indexMap']['cluster_multiplicity'] = np.atleast_1d([self._clusterVariableID])
     return result
 
   def writePointwiseData(self, writeTo):
@@ -762,6 +771,7 @@ class Clusters(Segments):
     # add some cluster stuff
     # cluster features
     ## both scaled and unscaled
+    labels = self._clusterInfo['labels']
     featureNames = sorted(list(self._clusterInfo['features']['unscaled'].keys()))
     for scaling in ['unscaled', 'scaled']:
       for name in featureNames:
@@ -770,7 +780,8 @@ class Clusters(Segments):
         rlz[varName] = np.asarray(self._clusterInfo['features'][scaling][name])
     varName = 'ClusterLabels'
     writeTo.addVariable(varName, np.array([]), classify='meta', indices=['segment_number'])
-    rlz[varName] = np.asarray(self._clusterInfo['labels'])
+    rlz[varName] = np.asarray(labels)
+
     writeTo.addRealization(rlz)
 
   def writeXML(self, writeTo, targets=None, skip=None):

@@ -161,6 +161,16 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self.metadataKeys = self.metadataKeys.union(set(args))
     self.metadataParams.update(params)
 
+  def removeMetaKeys(self, args):
+    """
+      Removes keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to de-register
+      @ Out, None
+    """
+    self.metadataKeys = self.metadataKeys - set(args)
+    for arg in set(args):
+      self.metadataParams.pop(arg, None)
+
   def provideExpectedMetaKeys(self):
     """
       Provides the registered list of metadata keys for this entity.
