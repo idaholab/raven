@@ -4753,6 +4753,8 @@ production cost modeling platform available from
 
 This allows inputs to be perturbed and data to be read out.
 
+\subsubsection{Sampler}
+
 For perturbing inputs, the sampled variable needs to be placed inside
 of \$( )\$ like \verb'$(var)$'. The sampled variable can have a
 constant added or a multiplication factor like \verb'$(var+3.2)$' or
@@ -4797,6 +4799,7 @@ that have the data in them perturbed.
 
 The \xmlNode{Code} model can be used with the
 \xmlAttr{subType="Prescient"} to run the Prescient Code Interface.
+The block currently does not have any option xml nodes.
 
 \begin{lstlisting}[style=XML]
   <Models>
@@ -4806,6 +4809,16 @@ The \xmlNode{Code} model can be used with the
     </Code>
   </Models>
 \end{lstlisting}
+
+\subsubsection{Output Files Conversion}
+
+The code interface reads in the \texttt{hourly\_summary.csv} and the
+\texttt{bus\_detail.csv} files. It will generate a \texttt{Date\_Hour}
+variable that can be used as the \xmlNode{pivotParameter}. From the
+hourly summary it will generate variables like TotalCosts and the
+other data that appears there.  For each of the busses in the bus
+detail file it generates variables like \texttt{Clay\_LMP} that can be
+used.
 
 \subsubsection{Installation of Libraries}
 
