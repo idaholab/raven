@@ -26,8 +26,8 @@ import TSA
 from .SupervisedLearning import supervisedLearning
 
 class SyntheticHistory(supervisedLearning):
-  r"""
-    This object leverages TSA algorithms to train then generate synthetic signals.
+  """
+    Leverage TSA algorithms to train then generate synthetic signals.
   """
   # class attribute
   ## define the clusterable features for this ROM.

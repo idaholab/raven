@@ -21,10 +21,10 @@ from utils import utils, InputData, InputTypes
 
 # utility methods
 class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
-  r"""
-    Base class for objects that coordinate the time series analysis algorithms in RAVEN. Note these
-    are not the ROM/SupervisedLearning objects; rather, they can be used by those as well as other
-    algorithms throughout the code. It is desirable to maintain these algorithims in a way they can
+  """
+    Act as base class for objects that coordinate the time series analysis algorithms in RAVEN. Note these
+    are not the ROM/SupervisedLearning objects; rather, used by those as well as other
+    algorithms throughout the code. Maintain these algorithims in a way they can
     be called without accessing all of RAVEN.
   """
   # class attribute

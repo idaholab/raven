@@ -26,9 +26,9 @@ from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 
 # utility methods
 class Fourier(TimeSeriesAnalyzer):
-  r"""
-    Fourier analysis; note this is not Fast Fourier, where all Fourier modes are used to fit a
-    signal. Instead, the presence of specifically-requested Fourier bases is detected.
+  """
+    Perform Fourier analysis; note this is not Fast Fourier, where all Fourier modes are used to fit a
+    signal. Instead, detect the presence of specifically-requested Fourier bases.
   """
   # class attribute
   ## define the clusterable features for this trainer.
