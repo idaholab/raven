@@ -8,14 +8,16 @@
     </revisions>
     <classesTested>CodeInterfaces.PrescientCodeInterface</classesTested>
     <description>
-      Test the Prescient Code Interface.
+      Test the Prescient Code Interface. This perturbs the demand on the
+      Abel bus. This should result in different outputs depending on the
+      value.
     </description>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>PrescientInterfaceTest</WorkingDir>
     <Sequence>runPrescient</Sequence>
-    <batchSize>2</batchSize>
+    <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
