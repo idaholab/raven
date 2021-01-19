@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="silent">
   <TestInfo>
-    <name>framework/MCMC.Metropolis</name>
+    <name>framework/MCMC.AdaptiveMetropolis</name>
     <author>wangc</author>
-    <created>2020-06-26</created>
+    <created>2020-12-20</created>
     <classesTested>MCMC.Metropolis</classesTested>
     <description>
-      Test the Markov Chain Monte Carlo algorithm: Metropolis Sampling
+      Test the Markov Chain Monte Carlo algorithm: Adaptive Metropolis Sampling
       A 2-D multivariate normal distribution is used as the likelihood function.
       mean: [5, 5], cov=[[1, 0.9], [0.9, 1]]
       Both input parameters have the standard normal distribution as their prior distribution.
@@ -14,12 +14,11 @@
       ``TargetEvaluation'' is used to collect the inputs and outputs from the likelihood model.
       ``SolutionExport'' is used to store the posterior values for the input variables, i.e. ``xin'' and ``yin''
     </description>
-    <requirements>R-RA-9</requirements>
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>metropolis</WorkingDir>
-    <Sequence>mh, makeRestart, print</Sequence>
+    <WorkingDir>amh</WorkingDir>
+    <Sequence>amh, print</Sequence>
     <batchSize>1</batchSize>
     <internalParallel>False</internalParallel>
   </RunInfo>
@@ -38,73 +37,38 @@
   </Models>
 
   <Samplers>
-    <Metropolis name="Metropolis">
+    <AdaptiveMetropolis name="AdaptiveMetropolis">
       <samplerInit>
         <limit>1000</limit>
         <initialSeed>070419</initialSeed>
-        <burnIn>10</burnIn>
+        <burnIn>500</burnIn>
       </samplerInit>
       <likelihood log="False">zout</likelihood>
       <variable name="xin">
         <distribution>normal</distribution>
-        <initial>0</initial>
-        <proposal class="Distributions" type="Normal">normal</proposal>
+        <initial>2</initial>
       </variable>
       <variable name="yin">
         <distribution>normal</distribution>
-        <initial>0</initial>
-        <proposal class="Distributions" type="Normal">normal</proposal>
-        <!-- <proposal>normal</proposal> -->
+        <initial>2</initial>
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
-    </Metropolis>
-    <Metropolis name="RestartMetropolis">
-      <samplerInit>
-        <limit>1010</limit>
-        <initialSeed>070419</initialSeed>
-        <burnIn>10</burnIn>
-      </samplerInit>
-      <likelihood>zout</likelihood>
-      <variable name="xin">
-        <distribution>normal</distribution>
-        <initial>0</initial>
-        <proposal class="Distributions" type="Normal">normal</proposal>
-      </variable>
-      <variable name="yin">
-        <distribution>normal</distribution>
-        <initial>0</initial>
-        <proposal class="Distributions" type="Normal">normal</proposal>
-        <!-- <proposal>normal</proposal> -->
-      </variable>
-      <TargetEvaluation class="DataObjects" type="PointSet">solnsRestart</TargetEvaluation>
-      <Restart class="DataObjects" type="PointSet">outSet</Restart>
-    </Metropolis>
+    </AdaptiveMetropolis>
   </Samplers>
 
   <Steps>
-    <MultiRun name="mh">
+    <MultiRun name="amh">
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
       <Model class="Models" type="ExternalModel">likelihood</Model>
-      <Sampler class="Samplers" type="Metropolis">Metropolis</Sampler>
+      <Sampler class="Samplers" type="AdaptiveMetropolis">AdaptiveMetropolis</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">out_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">outSet</Output>
-    </MultiRun>
-    <MultiRun name="makeRestart">
-      <Input class="DataObjects" type="PointSet">outSet</Input>
-      <Model class="Models" type="ExternalModel">likelihood</Model>
-      <Sampler class="Samplers" type="Metropolis">RestartMetropolis</Sampler>
-      <SolutionExport class="DataObjects" type="PointSet">exportRestart</SolutionExport>
-      <Output class="DataObjects" type="PointSet">solnsRestart</Output>
     </MultiRun>
     <IOStep name="print">
       <Input class="DataObjects" type="PointSet">out_export</Input>
       <Input class="DataObjects" type="PointSet">outSet</Input>
-      <Input class="DataObjects" type="PointSet">exportRestart</Input>
-      <Input class="DataObjects" type="PointSet">solnsRestart</Input>
       <Output class="OutStreams" type="Print">dumpExport</Output>
       <Output class="OutStreams" type="Print">dumpOut</Output>
-      <Output class="OutStreams" type="Print">dumpRestartExport</Output>
-      <Output class="OutStreams" type="Print">dumpRestartOut</Output>
     </IOStep>
   </Steps>
 
@@ -117,16 +81,6 @@
     <Print name="dumpExport">
       <type>csv</type>
       <source>out_export</source>
-      <what>input, output</what>
-    </Print>
-    <Print name="dumpRestartOut">
-      <type>csv</type>
-      <source>solnsRestart</source>
-      <what>input, output</what>
-    </Print>
-    <Print name="dumpRestartExport">
-      <type>csv</type>
-      <source>exportRestart</source>
       <what>input, output</what>
     </Print>
   </OutStreams>
@@ -144,18 +98,7 @@
 
     <PointSet name="out_export">
       <Input>traceID</Input>
-      <Output>xin, yin</Output>
-    </PointSet>
-
-    <PointSet name="solnsRestart">
-      <Input>xin, yin</Input>
-      <Output>zout</Output>
-    </PointSet>
-
-    <PointSet name="exportRestart">
-      <Input>traceID</Input>
-      <Output>xin, yin</Output>
+      <Output>xin, yin, LogPosterior, AcceptRate</Output>
     </PointSet>
   </DataObjects>
-
 </Simulation>

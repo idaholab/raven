@@ -11,16 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-"""
-  Markov Chain Samplers
-
-  created on June 26, 2020
-  @author: wangc
-"""
-from .MCMC import MCMC
-from .Metropolis import Metropolis
-from .AdaptiveMetropolis import AdaptiveMetropolis
-
-__all__ = ['Metropolis',
-           'AdaptiveMetropolis']
+import numpy as np
+def run(self, inputDict):
+  """
+    Method required by RAVEN to run this as an external model.
+    log likelihood function
+    @ In, self, object, object to store members on
+    @ In, inputDict, dict, dictionary containing inputs from RAVEN
+    @ Out, None
+  """
+  mu = 0.
+  sigma =  1.
+  self.xin = inputDict['xin']
+  if self.xin < 10. and self.xin > -10.:
+    self.zout = -0.5*(self.xin-mu)**2/sigma**2
+  else:
+    self.zout = np.asarray([-1.0E6])
