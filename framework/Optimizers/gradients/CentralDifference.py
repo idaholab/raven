@@ -39,7 +39,7 @@ class CentralDifference(GradientApproximater):
           """
     return specs
 
-  def chooseEvaluationPoints(self, opt, stepSize):
+  def chooseEvaluationPoints(self, opt, stepSize, **kwargs):
     """
       Determines new point(s) needed to evaluate gradient
       @ In, opt, dict, current opt point (normalized)

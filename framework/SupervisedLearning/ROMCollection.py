@@ -729,7 +729,10 @@ class Clusters(Segments):
       for r, rom in enumerate(self._roms):
         # "r" is the cluster label
         # find ROM in cluster
-        clusterIndex = 0 # list(self._clusterInfo['map'][r]).index(rom) # HACK FIXME working XXX
+        if self._evaluationChoice == 'first':
+          clusterIndex = 0
+        else:
+          clusterIndex = list(self._clusterInfo['map'][r]).index(rom)
         # find ROM in full history
         segmentIndex, _ = self._getSegmentIndexFromClusterIndex(r, self._clusterInfo['labels'], clusterIndex=clusterIndex)
         # make local modifications based on global settings
@@ -864,20 +867,17 @@ class Clusters(Segments):
     pivotLen = 0
     for cluster in clusters:
       # choose a ROM
-      # TODO user option? alternative is random, or ? centroids ?
-      chooseRomMode = 'first' # FIXME HACK if self._evaluationChoice is None else self._evaluationChoice
-      if chooseRomMode == 'first':
+      # TODO implement a distribution-based method for representative ROMs
+      if self._evaluationChoice == 'first':
         ## option 1: just take the first one
-        segmentIndex, clusterIndex = None, None # FIXME HACK self._getSegmentIndexFromClusterIndex(cluster, labelMap, clusterIndex=0)
-      elif chooseRomMode == 'random':
+        rom = self._roms[cluster]
+      elif self._evaluationChoice == 'random':
         ## option 2: choose randomly
         segmentIndex, clusterIndex = self._getSegmentIndexFromClusterIndex(cluster, labelMap, chooseRandom=True)
-      # grab the Chosen ROM to represent this cluster
-      rom = self._roms[cluster] # FIXME HACK self._clusterInfo['map'][cluster][clusterIndex] # the Chosen ROM
+        rom = self._clusterInfo['map'][cluster][clusterIndex]
       # evaluate the ROM
       subResults = rom.evaluate(evaluationDict)
-      # TODO FIXME should add "cluster" as an indexMap dimension!
-      ## INSTEAD, for now, just pile the realizations together, with no regard.
+      # collect results
       newLen = len(subResults[pivotID])
       pivotLen += newLen
       # if we're getting ND objects, identify indices and target-index dependence
@@ -1073,9 +1073,6 @@ class Clusters(Segments):
     ## train ROMs for each segment
     roms = self._trainSubdomainROMs(self._templateROM, counter, trainingSet, self._romGlobalAdjustments)
     self._clusterSegments(roms, divisions)
-    ### FIXME WORKING HACK changed how _clusterSegments works, to only keep one of each cluster rom
-    # only keep one of each cluster, for memory reduction
-    print('')
     # if there were some segments that won't compare well (e.g. leftovers), handle those separately
     if len(remainder):
       unclusteredROMs = self._trainSubdomainROMs(self._templateROM, remainder, trainingSet, self._romGlobalAdjustments)
@@ -1118,15 +1115,16 @@ class Clusters(Segments):
     # make cluster information dict
     self._clusterInfo['labels'] = labels
     ## clustered
-    # FIXME HACK the following line stores all the ROMs; until the ARMA is less of a memory killer,
-    # self._clusterInfo['map'] = dict((label, roms[labels == label]) for label in uniqueLabels)
-    # FIXME HACK we don't want that really, so we store it as a local var
-    romMapping = dict((label, roms[labels == label]) for label in uniqueLabels)
-    # FIXME HACK instead, we only keep the roms in self._roms, and keep mapping labels for the rest
-    allIndices = np.arange(0, len(roms))
-    self._clusterInfo['map'] = dict((label, allIndices[labels == label]) for label in uniqueLabels)
-    # TODO what about the unclustered ones? We throw them out in truncated representation, of necessity.
-    self._roms = list(romMapping[label][0] for label in uniqueLabels)
+    if self._evaluationChoice == 'first':
+      # save memory!
+      romMapping = dict((label, roms[labels == label]) for label in uniqueLabels)
+      allIndices = np.arange(0, len(roms))
+      self._clusterInfo['map'] = dict((label, allIndices[labels == label]) for label in uniqueLabels)
+      self._roms = list(romMapping[label][0] for label in uniqueLabels)
+    elif self._evaluationChoice == 'random':
+      # save options!
+      self._clusterInfo['map'] = dict((label, roms[labels==label]) for label in uniqueLabels)
+      self._roms = list(self._clusterInfo['map'][label][0] for label in uniqueLabels)
 
   def _weightAndScaleClusters(self, features, featureGroups, clusterFeatures, weightingStrategy):
     """

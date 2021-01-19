@@ -93,8 +93,7 @@ def formatSample(vars):
 # initialization
 #
 optVars = ['a', 'b', 'c']
-proximity = 0.01
-fd.initialize(optVars, proximity)
+fd.initialize(optVars)
 
 checkSame('Check num vars', fd.N, 3)
 
@@ -193,12 +192,11 @@ for v, var in enumerate(['a', 'b', 'c']):
 #
 # number of required samples
 #
-proximity = 0.01
 optVars = ['a', 'b', 'c']
-fd.initialize(optVars, proximity)
+fd.initialize(optVars)
 checkSame('Number of samples needed, 3 vars', fd.numGradPoints(), 3)
 optVars = ['a', 'b', 'c', 'd', 'e']
-fd.initialize(optVars, proximity)
+fd.initialize(optVars)
 checkSame('Number of samples needed, 5 vars', fd.numGradPoints(), 5)
 
 #
