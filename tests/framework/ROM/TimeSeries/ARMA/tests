@@ -270,4 +270,14 @@
       rel_err = 1e-3
     [../]
   [../]
+
+  [./InterpolatedMaxCycles]
+    type = 'RavenFramework'
+    input = 'interpolated_maxcycles.xml'
+    [./samples]
+      type = OrderedCSV
+      output = 'Interpolated/synthetic.csv Interpolated/resynthetic.csv'
+      rel_err = 1e-2 # only really need to test Year contents, not histories
+    [../]
+  [../]
 []

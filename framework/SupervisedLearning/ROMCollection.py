@@ -1222,8 +1222,9 @@ class Interpolated(supervisedLearning):
     except AttributeError:
       self.raiseAnError(IOError, '"interpolate" grouping requested but no <macroParameter> provided!')
     self._macroTemplate = Clusters(messageHandler, **kwargs)            # example "yearly" SVL engine collection
-    self._maxCycles = kwargs.get('maxCycles', None)
-    if self._maxCycles is not None:
+    maxCycles = inputSpecs.findFirst('maxCycles')
+    if maxCycles is not None:
+      self._maxCycles = maxCycles.value
       self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive steps.')
     self._macroSteps = {}                                               # collection of macro steps (e.g. each year)
 
@@ -1235,8 +1236,8 @@ class Interpolated(supervisedLearning):
       @ Out, setAdditionalParams, dict, additional params set
     """
     # max cycles
-    self._maxCycles = params.pop('maxCycles', None)
-    if self._maxCycles is not None:
+    maxCycles = params.pop('maxCycles', None)
+    if maxCycles is not None:
       self._maxCycles = maxCycles
       self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive step{"s" if self._maxCycles > 1 else ""}.')
     mh = params.get('messageHandler', None)
