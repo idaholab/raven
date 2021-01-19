@@ -5540,7 +5540,7 @@ param: MinNondispatchablePower MaxNondispatchablePower  :=
   ;
 
 param: Demand := 
- Abel 1 $var$
+ Abel 1 $(var)$
  Adams 1 48.239721998830426
  Adler 1 89.51700989473686
  Agricola 1 36.80143740116959

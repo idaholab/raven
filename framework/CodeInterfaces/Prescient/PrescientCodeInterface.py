@@ -51,8 +51,6 @@ class Prescient(CodeInterfaceBase):
       @ In, preExec, string, optional, a string the command that needs to be pre-executed before the actual command here defined
       @ Out, returnCommand, tuple, tuple containing the generated command. returnCommand[0] is a list of commands to run the code (string), returnCommand[1] is the name of the output root
     """
-    #print(inputFiles, exe, clargs, fargs, preExec)
-    #print("generateCommand")
     runnerInput = []
     for inp in inputFiles:
       if inp.getType() == 'PrescientRunnerInput':
@@ -70,9 +68,7 @@ class Prescient(CodeInterfaceBase):
             where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    #print(inputs, oinputs, samplerType, Kwargs)
-    #print("createNewInput")
-    self._output_directory = None
+    self._outputDirectory = None
     for singleInput in inputs:
       if singleInput.getType() == 'PrescientRunnerInput':
         #print("Need to modify", singleInput, "to fix", prescientLocation)
@@ -89,7 +85,7 @@ class Prescient(CodeInterfaceBase):
                 newPath = os.path.join(newPath, item)
             line = "--model-directory="+newPath
           elif line.lstrip().startswith("--output-directory="):
-            self._output_directory = line.split("=",1)[1].rstrip()
+            self._outputDirectory = line.split("=",1)[1].rstrip()
           newLines.append(line)
         newFile = open(singleInput.getAbsFile(),"w")
         for line in newLines:
@@ -99,15 +95,14 @@ class Prescient(CodeInterfaceBase):
         #print("SampledVars", Kwargs["SampledVars"])
         #print("Modifying", singleInput)
         data = open(singleInput.getAbsFile(),"r").read()
-        for var in Kwargs["SampledVars"]:
-          data = data.replace("$"+var+"$", str(Kwargs["SampledVars"][var]))
-        data = self.__process_data(data, Kwargs["SampledVars"])
+        data = self.__processData(data, Kwargs["SampledVars"])
         open(singleInput.getAbsFile(),"w").write(data)
       else:
-        print("Unknown Prescient input type", singleInput)
+        raise IOError("Unknown Prescient input type: " + singleInput.getType() +
+                      " for " + singleInput.getAbsFile())
     return inputs
 
-  def __process_data(self, data, samples):
+  def __processData(self, data, samples):
     """
       Processes the input data and does some simple arithmetic
       This is used on the input files to allow more flexible perturbations
@@ -141,31 +136,31 @@ class Prescient(CodeInterfaceBase):
         dictionary of each time, list of all the busses found and
         the data that each bus has
     """
-    inFile = open(filename, "r")
-    first = True
-    retDict = {}
-    busSet = set()
-    dataList = []
-    for line in inFile.readlines():
-      line = line.strip()
-      if first:
-        first = False
-        if not line.startswith("Date,Hour,Bus,"): # != "Date,Hour,Bus,Shortfall,Overgeneration,LMP,LMP DA":
-          assert False, "Unexpected first line of bus detail:" + line
-          a = 1/0 #because debug might be disabled
-        dataList = [s.replace(" ","_") for s in line.split(",")[3:]]
-        continue
-      splited = line.split(",")
-      date, hour, bus = splited[:3]
-      rest = splited[3:]
-      key = (date,hour)
-      busSet.add(bus)
-      timeDict = retDict.get(key,{})
-      timeDict[bus] = rest
-      retDict[key] = timeDict
-    busList = list(busSet)
-    busList.sort()
-    return retDict, busList, dataList
+    with open(filename, "r") as inFile:
+      first = True
+      retDict = {}
+      busSet = set()
+      dataList = []
+      for line in inFile.readlines():
+        line = line.strip()
+        if first:
+          first = False
+          if not line.startswith("Date,Hour,Bus,"): # != "Date,Hour,Bus,Shortfall,Overgeneration,LMP,LMP DA":
+            assert False, "Unexpected first line of bus detail:" + line
+            a = 1/0 #because debug might be disabled
+          dataList = [s.replace(" ","_") for s in line.split(",")[3:]]
+          continue
+        splited = line.split(",")
+        date, hour, bus = splited[:3]
+        rest = splited[3:]
+        key = (date,hour)
+        busSet.add(bus)
+        timeDict = retDict.get(key,{})
+        timeDict[bus] = rest
+        retDict[key] = timeDict
+      busList = list(busSet)
+      busList.sort()
+      return retDict, busList, dataList
 
   def finalizeCodeOutput(self, command, codeLogFile, subDirectory):
     """
@@ -178,8 +173,8 @@ class Prescient(CodeInterfaceBase):
     """
     #print("finalizeCodeOutput", command, codeLogFile, subDirectory)
     toRead = "hourly_summary" #"Daily_summary"
-    if self._output_directory is not None:
-      directory = os.path.join(subDirectory, self._output_directory)
+    if self._outputDirectory is not None:
+      directory = os.path.join(subDirectory, self._outputDirectory)
     else:
       directory = subDirectory
     readFile = os.path.join(directory, toRead)
