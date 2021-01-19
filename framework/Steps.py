@@ -679,20 +679,15 @@ class MultiRun(SingleRun):
     while True:
       # collect finished jobs
       # isFinished = jobHandler.isFinished()
-      # print('================ isFinished', isFinished)
       finishedJobs = jobHandler.getFinished()
 
-
-      # print("finishedJobs len", len(finishedJobs))
       ##BATCH... TO MODIFY. FIXME
       for finishedJobObjs in finishedJobs:
         if type(finishedJobObjs).__name__ in 'list':
           finishedJobList = finishedJobObjs
           self.raiseADebug('BATCHING: Collecting JOB batch named "{}".'.format(finishedJobList[0].groupId))
-          print(finishedJobList[0].groupId, 'len:', len(finishedJobList))
         else:
           finishedJobList = [finishedJobObjs]
-          print('*-*: No Batching', finishedJobObjs)
         for finishedJob in finishedJobList:
           finishedJob.trackTime('step_collected')
           # update number of collected runs
@@ -735,7 +730,6 @@ class MultiRun(SingleRun):
           # together, not one-at-a-time
           sampler.finalizeActualSampling(finishedJobs[0][0],model,inputs)
         else:
-          print("------------collect one at a time")
           # sampler isn't intending to batch, so we send them in one-at-a-time as per normal
           for finishedJob in finishedJobList:
             # finalize actual sampler
@@ -754,7 +748,6 @@ class MultiRun(SingleRun):
         # NOTE for non-DET samplers, this check also happens outside this collection loop
 
         if sampler.onlySampleAfterCollecting:
-          print('add jobs ==============')
           self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary)
       # END for each collected finished run ...
       ## If all of the jobs given to the job handler have finished, and the sampler
@@ -807,7 +800,6 @@ class MultiRun(SingleRun):
           self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
           break
       else:
-        print(' ... sampler has no new inputs currently.')
         if verbose:
           self.raiseADebug(' ... sampler has no new inputs currently.')
         break
