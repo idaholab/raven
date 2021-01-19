@@ -1786,7 +1786,7 @@ class ARMA(supervisedLearning):
     targets = self.target
 
     # set up for input CDF preservation on a global scale
-    if False: # self.preserveInputCDF:
+    if self.preserveInputCDF:
       inputDists = {}
       for target in targets:
         if target == self.pivotParameterID:
@@ -1831,6 +1831,7 @@ class ARMA(supervisedLearning):
           if len(full):
             # train Fourier on longer periods
             self.fourierResults[target] = self._trainFourier(pivotValues, full, targetVals, target=target)
+            # self.fourierResults[target] = self._trainFourier(pivotValues, full, targetVals, masks=self._masks[self.zeroFilterTarget]['notZeroFilterMask'], target=target)
             # remove longer signal from training data
             signal = self.fourierResults[target]['predict']
             targetVals = np.array(targetVals, dtype=np.float64)
