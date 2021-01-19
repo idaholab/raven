@@ -8,6 +8,7 @@
       Similar to ``interpolated'' test, but limits the number of cycles (years) sampled.
       \texttt{synthetic.csv} should have Year values of (0, 1, 2) while
       \texttt{resynthetic.csv} should have Year values of (0, 1).
+      Also tests the nyquistScalar option.
     </description>
   </TestInfo>
 
@@ -87,6 +88,7 @@
       <Target>Signal, Time</Target>
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
+      <nyquistScalar>0.4</nyquistScalar>
       <P>0</P>
       <Q>0</Q>
       <Fourier>100, 5, 3</Fourier>
@@ -100,7 +102,6 @@
       </Peaks>
       <Segment grouping='interpolate'>
         <macroParameter>Year</macroParameter>
-        <!--<clusterSpace>Fourier, Fourier.sin, Fourier.sine, ARMA.sigma, ARMA.arparams, Peaks.amplitude, Peaks.probability, mean, Peaks.amplitude.mean, Peaks.amplitude.histogram, Peaks.amplitude.</clusterSpace>-->
         <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
         <subspace divisions='10'>Time</subspace>
         <maxCycles>3</maxCycles>
