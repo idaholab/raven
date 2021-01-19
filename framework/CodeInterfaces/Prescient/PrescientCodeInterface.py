@@ -180,38 +180,43 @@ class Prescient(CodeInterfaceBase):
     readFile = os.path.join(directory, toRead)
     if toRead.lower().startswith("hourly"):
       busData, busList, busDataList = self._readBusData(os.path.join(directory, "bus_detail.csv"))
-      #Need to merge the date and hour
-      readFileNew = readFile + "_merged"
-      outFile = open(readFileNew+".csv","w")
+      outDict = {}
       inFile = open(readFile+".csv","r")
-      first = True
       hasNetDemand = False
+      firstLine = inFile.readline()
+      date, hour, rest = firstLine.split(",", maxsplit=2)
+      restSplit = rest.rstrip().split(",")
+      hourKey = hour.strip()
+      timeKey = date.rstrip()+"_"+hourKey
+      outDict[timeKey] = []
+      outDict[hour] = []
+      otherKeys = restSplit
+      for key in otherKeys:
+        outDict[key] = []
+      if "RenewablesUsed" in outDict and "Demand" in outDict:
+        hasNetDemand = True
+        outDict["NetDemand"] = []
+      first = False
+      for bus in busList:
+        for dataName in busDataList:
+          outDict[bus+"_"+dataName] = []
+
       for line in inFile.readlines():
         date, hour, rest = line.split(",", maxsplit=2)
-        outFile.write(date.rstrip()+"_"+hour.lstrip()+","+rest.rstrip())
-        if first:
-          if ",RenewablesUsed," in rest and ",Demand," in rest:
-            hasNetDemand = True
-            restSplit = rest.split(",")
-            renewablesUsedIndex = restSplit.index("RenewablesUsed")
-            demandIndex = restSplit.index("Demand")
-            outFile.write(","+"NetDemand")
-          first = False
-          for bus in busList:
-            for dataName in busDataList:
-              outFile.write(","+bus+"_"+dataName)
-        else:
-          if hasNetDemand:
-            #Calculate the demand - renewables used to get net demand
-            restSplit = rest.split(",")
-            netDemand = float(restSplit[demandIndex]) - float(restSplit[renewablesUsedIndex])
-            outFile.write(","+str(netDemand))
-          for bus in busList:
-            for data in busData[(date,hour)][bus]:
-              outFile.write(","+data)
-        outFile.write("\n")
-      readFile = readFileNew
-    return readFile
+        restSplit = rest.rstrip().split(",")
+        timeValue = date.rstrip()+"_"+hour.lstrip()
+        outDict[timeKey].append(timeValue)
+        outDict[hourKey].append(float(hour))
+        for key,value in zip(otherKeys,restSplit):
+          outDict[key].append(float(value))
+        if hasNetDemand:
+          #Calculate the demand - renewables used to get net demand
+          netDemand = outDict["Demand"][-1]  - outDict["RenewablesUsed"][-1]
+          outDict["NetDemand"].append(netDemand)
+        for bus in busList:
+          for dataName, data in zip(busDataList,busData[(date,hour)][bus]):
+            outDict[bus+"_"+dataName].append(float(data) if len(data) > 0 else float("NaN"))
+    return outDict
 
   def addDefaultExtension(self):
     """
