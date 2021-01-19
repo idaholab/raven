@@ -123,8 +123,8 @@ def checkSameVersion(expected, received):
   if expected == received:
     return True
   # A.B.C versioning -> 1.1.0 should match 1.1
-  expected = expected.replace("dev0","0")
-  received = received.replace("dev0","0")
+  expected = expected.replace("dev0", "0")
+  received = received.replace("dev0", "0")
   expSplit = [int(x) for x in expected.split('.')]
   rcvSplit = [int(x) for x in received.split('.')]
   # drop trailing 0s on both

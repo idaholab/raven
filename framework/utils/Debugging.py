@@ -19,9 +19,11 @@ talbpaul, 2020-11
 import sys
 from numbers import Number
 from collections import Set, Mapping, deque
+import numpy as np
 
 # these types have no depth, so should not be searched for subitems
-zero_depth_bases = (str, bytes, Number, range, bytearray)
+zeroDepthBases = (str, bytes, Number, range, bytearray)
+listLike = (tuple, list, Set, deque)
 
 def checkSizesWalk(obj, r=0, prename='', tol=1e4):
   """
@@ -34,48 +36,48 @@ def checkSizesWalk(obj, r=0, prename='', tol=1e4):
     @ In, tol, float, minimum size of object to enable printing
     @ Out, None
   """
-  size = getsize(obj)
+  size = getSize(obj)
   if size < tol:
     return
-  new_tol = min(0.5 * size, tol)
+  newTol = min(0.5 * size, tol)
   print('  '*r + f'-> {prename} ({type(obj)}): {size:1.1e}' )
-  if isinstance(obj, zero_depth_bases):
+  if isinstance(obj, zeroDepthBases):
     pass
-  elif isinstance(obj, (tuple, list, Set, deque)):
+  elif isinstance(obj, listLike) or (isinstance(obj, np.ndarray) and obj.dtype==object):
     for i, k in enumerate(obj):
-      checkSizesWalk(k, r+1, f'{prename}[{i}]', tol=new_tol)
+      checkSizesWalk(k, r+1, f'{prename}[{i}]', tol=newTol)
   elif isinstance(obj, Mapping) or hasattr(obj, 'items'):
     for k, v in obj.items():
-      checkSizesWalk(v, r+1, f'{prename}[{k}]', tol=new_tol)
+      checkSizesWalk(v, r+1, f'{prename}[{k}]', tol=newTol)
   if hasattr(obj, '__dict__'):
     for k, v in obj.__dict__.items():
-      checkSizesWalk(v, r+1, f'{prename}.{k}', tol=new_tol)
+      checkSizesWalk(v, r+1, f'{prename}.{k}', tol=newTol)
   if hasattr(obj, '__slots__'): # can have __slots__ with __dict__
     for i, s in enumerate(obj.__slots__):
       if hasattr(obj, s):
-        checkSizesWalk(getattr(obj, s), r+1, f'{prename}.<{i}>', tol=new_tol)
+        checkSizesWalk(getattr(obj, s), r+1, f'{prename}.<{i}>', tol=newTol)
 
-def getsize(obj_0):
+def getSize(obj0):
   """
     Recursively iterate to sum size of object & members.
-    @ In, obj_0, object, object to recurse through
+    @ In, obj0, object, object to recurse through
     @ Out, size, int, size of object in bytes
   """
-  _seen_ids = set()
+  _seenIds = set()
   def inner(obj):
     """
       Evaluate size of object only considering unique members
       @ In, obj, object, object to recurse through
       @ Out, size, int, size of object in bytes
     """
-    obj_id = id(obj)
-    if obj_id in _seen_ids:
+    objId = id(obj)
+    if objId in _seenIds:
       return 0
-    _seen_ids.add(obj_id)
+    _seenIds.add(objId)
     size = sys.getsizeof(obj)
-    if isinstance(obj, zero_depth_bases):
+    if isinstance(obj, zeroDepthBases):
       pass # bypass remaining control flow and return
-    elif isinstance(obj, (tuple, list, Set, deque)):
+    elif isinstance(obj, listLike) or (isinstance(obj, np.ndarray) and obj.dtype==object):
       size += sum(inner(i) for i in obj)
     elif isinstance(obj, Mapping) or hasattr(obj, 'items'):
       size += sum(inner(k) + inner(v) for k, v in getattr(obj, 'items')())
@@ -85,4 +87,4 @@ def getsize(obj_0):
     if hasattr(obj, '__slots__'): # can have __slots__ with __dict__
       size += sum(inner(getattr(obj, s)) for s in obj.__slots__ if hasattr(obj, s))
     return size
-  return inner(obj_0)
+  return inner(obj0)
