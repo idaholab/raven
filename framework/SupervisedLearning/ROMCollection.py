@@ -1214,6 +1214,7 @@ class Interpolated(supervisedLearning):
     """
     supervisedLearning.__init__(self, messageHandler, **kwargs)
     self.printTag = 'Interp. Cluster ROM'
+    self._maxCycles = None # maximum number of cycles to run (default no limit)
     # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
     #           "macroParameter" is for macro-steps (e.g. from year to year)
     inputSpecs = kwargs['paramInput'].findFirst('Segment')
