@@ -152,12 +152,13 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     pass
 
-  def train(self,tdict):
+  def train(self, tdict, indexMap=None):
     """
       Method to perform the training of the supervisedLearning algorithm
       NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires. So far the base class will do the translation into numpy
       @ In, tdict, dict, training dictionary
+      @ In, indexMap, dict, mapping of variables to their dependent indices, if any
       @ Out, None
     """
     if type(tdict) != dict:
@@ -181,7 +182,16 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
 
     # construct the evaluation matrixes
-    featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
+    ## add the indices if they're not present
+    needFeatures = copy.deepcopy(self.features)
+    needTargets = copy.deepcopy(self.target)
+    if indexMap:
+      for feat in self.features:
+        for index in indexMap.get(feat, []):
+          if index not in needFeatures and index not in needTargets:
+            needFeatures.append(feat)
+
+    featureValues = np.zeros(shape=(len(targetValues), len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')

@@ -34,6 +34,7 @@ from .NDinterpolatorRom  import NDinterpolatorRom
 from .NDinvDistWeight    import NDinvDistWeight
 from .NDsplineRom        import NDsplineRom
 from .SciKitLearn        import SciKitLearn
+from .SyntheticHistory   import SyntheticHistory
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
 from .DynamicModeDecomposition import DynamicModeDecomposition
