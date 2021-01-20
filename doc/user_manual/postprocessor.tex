@@ -1226,7 +1226,20 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are avai
         \item \textbf{min}, compute the minimum of each variable along each single history
          \item \textbf{max}, compute the maximum of each variable along each single history
          \item \textbf{average}, compute the average of each variable along each single history
-         \item \textbf{all}, join together all of the each variable in the history, and make the pivotParameter as an input parameter. (So if the original HistorySet had input parameters x,y, a pivotParameter of t, and output: a,b then the new input parameters would be x, y, t and the output would be a, b)
+         \item \textbf{all}, join together all of the each variable in
+           the history, and make the pivotParameter a regular
+           parameter.  Unlike the min and max operators, this keeps
+           all the data, just organized differently. This operator
+           does this by propogating the other input parameters for
+           each item of the pivotParameter.
+           Table~\ref{operator_all_switch_before} shows an example
+           HistorySet with input parameter x, pivot parameter t, and
+           output parameter b and then
+           Table~\ref{operator_all_switch_after} shows the resulting
+           PointSet with input parameters x and t, and output
+           parameter b. Note that which parameters are input and which
+           are output in the resulting PointSet depends on the
+           DataObject specification.
        \end{itemize}
         \nb This node can be inputted only if \xmlNode{pivotValue} and \xmlNode{row} are not present
      \item \xmlNode{pivotValue}, \xmlDesc{float, optional field}, the value of the pivotParameter with respect to the other outputs need to be extracted.
@@ -1280,6 +1293,32 @@ This example will show how the XML input block would look like:
   ...
 </Simulation>
 \end{lstlisting}
+
+\begin{table}[!hbtp]
+  \caption{Starting HistorySet for operator all}
+  \label{operator_all_switch_before}
+\begin{tabular}{l|l|l}
+  x & t & b \\
+  \hline
+  5.0 &  &  \\
+  \hline
+  & 1.0 & 6.0 \\
+  \hline
+  & 2.0 & 7.0 \\
+\end{tabular}
+\end{table}
+
+\begin{table}[!hbtp]
+  \caption{Resulting PointSet after operator all}
+  \label{operator_all_switch_after}
+\begin{tabular}{l|l|l}
+  x & t & b \\
+  \hline
+  5.0 & 1.0 & 6.0  \\
+  \hline
+  5.0 & 2.0 & 7.0 \\
+\end{tabular}
+\end{table}
 
 \paragraph{Method: HistorySetSampling}
 This Post-Processor performs the conversion from HistorySet to HistorySet
