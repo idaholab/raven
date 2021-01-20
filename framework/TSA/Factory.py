@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on the date shown in the git history
-  @author: shown in git history
+  Factory interface for returning classes and instances from the
+  Time Series Analysis module.
 """
 # from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 
