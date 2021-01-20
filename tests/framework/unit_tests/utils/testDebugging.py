@@ -73,21 +73,21 @@ checkAnswer('getSize np.float32', Debugging.getSize(np.float32(42.314)), 28)
 checkAnswer('getSize np.float64', Debugging.getSize(np.float64(42.314)), 32)
 checkAnswer('getSize str', Debugging.getSize('hello world!'), 61)
 checkAnswer('getSize bool', Debugging.getSize(True), 28)
-# list-like
+# list-like; tolerances determined mostly by windows test machine
 checkAnswer('getSize tuple', Debugging.getSize(tuple(range(10))), 404)
 checkAnswer('getSize list', Debugging.getSize(list(range(10))), 476)
 checkAnswer('getSize deque', Debugging.getSize(deque(range(10))), 908)
 checkAnswer('getSize set', Debugging.getSize(set(range(10))), 1012)
-checkAnswer('getSize np array int10', Debugging.getSize(np.arange(10, dtype=int)), 176)
-checkAnswer('getSize np array int100', Debugging.getSize(np.arange(100, dtype=int)), 896)
+checkAnswer('getSize np array int10', Debugging.getSize(np.arange(10, dtype=int)), 176, tol=40)
+checkAnswer('getSize np array int100', Debugging.getSize(np.arange(100, dtype=int)), 896, tol=400)
 checkAnswer('getSize np array float', Debugging.getSize(np.arange(10, dtype=float)), 176)
 checkAnswer('getSize np array bool', Debugging.getSize(np.ones(10, dtype=bool)), 106)
 checkAnswer('getSize np array object', Debugging.getSize(np.arange(10, dtype=object)), 452)
-checkAnswer('getSize np array flat', Debugging.getSize(np.arange(24)), 288)
+checkAnswer('getSize np array flat', Debugging.getSize(np.arange(24)), 288, tol=100)
 checkAnswer('getSize np array shaped', Debugging.getSize(np.arange(24).reshape(2,3,4)), 128)
 # dict-like
 a = dict((i, np.arange(i)) for i in range(10))
-checkAnswer('getSize dict nparray', Debugging.getSize(a), 1964)
+checkAnswer('getSize dict nparray', Debugging.getSize(a), 1964, tol=200)
 
 # list of lists
 a = []
@@ -99,13 +99,13 @@ checkAnswer('getSize list of lists', Debugging.getSize(a), 672)
 a = np.array([None]*10, dtype=object)
 for i in range(10):
   a[i] = np.arange(i)
-checkAnswer('getSize nparray 2 nested object', Debugging.getSize(a), 1496)
+checkAnswer('getSize nparray 2 nested object', Debugging.getSize(a), 1496, tol=200)
 
 b = np.array([None, None, None], dtype=object)
 b[0] = a[:3]
 b[1] = a[:7]
 b[2] = a[:]
-checkAnswer('getSize nparray 3 nested object', Debugging.getSize(b), 1728)
+checkAnswer('getSize nparray 3 nested object', Debugging.getSize(b), 1728, tol=200)
 
 # unchecked: classes, modules, probably a lot of other things
 
@@ -140,7 +140,7 @@ expected = """->  (<class 'numpy.ndarray'>): 1.7e+03
     -> [2][9] (<class 'numpy.ndarray'>): 1.7e+02
 """.split('\n')
 for l, line in enumerate(s.split('\n')):
-  checkTrue(f'checkSizesWalk[{l}]', line, expected[l])
+  checkTrue(f'checkSizesWalk[{l}]', line.strip(), expected[l].strip())
 
 print(results)
 
