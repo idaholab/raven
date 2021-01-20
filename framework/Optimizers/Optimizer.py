@@ -400,7 +400,7 @@ class Optimizer(AdaptiveSampler):
                                    .format(v=sampled, i=self._initSampler.name, s=self.name))
     self._initSampler.initialize(externalSeeding)
     # initialize points
-    numTraj = len(self._initialValues)
+    numTraj = len(self._initialValues) if self._initialValues else None
     ## if there are already-initialized variables (i.e. not sampled, but given), then check num samples
     if numTraj:
       if numTraj != self._initSampler.limit:
