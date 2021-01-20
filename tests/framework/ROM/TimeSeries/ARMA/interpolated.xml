@@ -10,7 +10,7 @@
       interpolating assumes clustering.
       The output \texttt{synthetic.csv} is the \emph{truncated} output form, with the clusters
       stacked sequentially. The output \texttt{resynthetic.csv} is the \emph{clustered} form,
-      with \texttt{\_ROM_Cluster} as one of the index dimensions.
+      with \texttt{_ROM_Cluster} as one of the index dimensions.
     </description>
     <revision author="talbpaul" date="2020-10-19">added test for unpickling as well</revision>
   </TestInfo>
