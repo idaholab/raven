@@ -44,7 +44,7 @@ def checkTrue(comment,value,expected):
     results["fail"] += 1
     return False
 
-def checkAnswer(comment, value, expected, tol=5e-2, updateResults=True):
+def checkAnswer(comment, value, expected, tol=10, updateResults=True):
   """
     This method is aimed to compare two floats given a certain tolerance
     @ In, comment, string, a comment printed out if it fails
