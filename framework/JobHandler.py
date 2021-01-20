@@ -418,17 +418,17 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
-    
+
     '''
     FIXME: The following two lines of codes have been a temporary fix for timing issues
-           on the collections of jobs in the jobHandler. This issue has emerged when 
+           on the collections of jobs in the jobHandler. This issue has emerged when
            performing batching. It is needed to review the relations between jobHandler
            and the Step when retrieving multiple jobs.
-           An issue has been opened: 'JobHandler and Batching #1402' 
+           An issue has been opened: 'JobHandler and Batching #1402'
     '''
     import time
     time.sleep(0.001)
-    
+
     with self.__queueLock:
       ## If there is still something left in the queue, we are not done yet.
       if len(self.__queue)>0 or len(self.__clientQueue)>0:
