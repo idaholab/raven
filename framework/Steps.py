@@ -678,21 +678,15 @@ class MultiRun(SingleRun):
     # run step loop
     while True:
       # collect finished jobs
-      # isFinished = jobHandler.isFinished()
-      # print('================ isFinished', isFinished)
       finishedJobs = jobHandler.getFinished()
 
-
-      # print("finishedJobs len", len(finishedJobs))
       ##BATCH... TO MODIFY. FIXME
       for finishedJobObjs in finishedJobs:
         if type(finishedJobObjs).__name__ in 'list':
           finishedJobList = finishedJobObjs
           self.raiseADebug('BATCHING: Collecting JOB batch named "{}".'.format(finishedJobList[0].groupId))
-          print(finishedJobList[0].groupId, 'len:', len(finishedJobList))
         else:
           finishedJobList = [finishedJobObjs]
-          print('*-*: No Batching', finishedJobObjs)
         for finishedJob in finishedJobList:
           finishedJob.trackTime('step_collected')
           # update number of collected runs
@@ -735,7 +729,6 @@ class MultiRun(SingleRun):
           # together, not one-at-a-time
           sampler.finalizeActualSampling(finishedJobs[0][0],model,inputs)
         else:
-          print("------------collect one at a time")
           # sampler isn't intending to batch, so we send them in one-at-a-time as per normal
           for finishedJob in finishedJobList:
             # finalize actual sampler
@@ -752,15 +745,12 @@ class MultiRun(SingleRun):
         # add new jobs, for DET-type samplers
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
         # NOTE for non-DET samplers, this check also happens outside this collection loop
-
         if sampler.onlySampleAfterCollecting:
-          print('add jobs ==============')
           self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary)
       # END for each collected finished run ...
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
-        # if len(jobHandler.getFinishedNoPop()) == 0 and len(sampler._submissionQueue) == 0:
         self.raiseADebug('Sampling finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       if not sampler.onlySampleAfterCollecting:
@@ -807,7 +797,6 @@ class MultiRun(SingleRun):
           self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
           break
       else:
-        print(' ... sampler has no new inputs currently.')
         if verbose:
           self.raiseADebug(' ... sampler has no new inputs currently.')
         break

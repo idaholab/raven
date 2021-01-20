@@ -418,22 +418,25 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, isFinished, bool, True all the runs in the queue are finished
     """
-    tempList=copy.copy(self.__running+self.__clientRunning)
-    len1 = copy.deepcopy(len(self.__queue))
-    len2 = copy.deepcopy(len(self.__clientQueue))
 
+    '''
+    FIXME: The following two lines of codes have been a temporary fix for timing issues
+           on the collections of jobs in the jobHandler. This issue has emerged when
+           performing batching. It is needed to review the relations between jobHandler
+           and the Step when retrieving multiple jobs.
+           An issue has been opened: 'JobHandler and Batching #1402'
+    '''
     import time
     time.sleep(0.001)
 
     with self.__queueLock:
       ## If there is still something left in the queue, we are not done yet.
-      #if len(self.__queue) > 0 or len(self.__clientQueue) > 0:
-      if len1>0 or len2>0:
+      if len(self.__queue)>0 or len(self.__clientQueue)>0:
         return False
 
       ## Otherwise, let's look at our running lists and see if there is a job
       ## that is not done.
-      for run in tempList:
+      for run in self.__running+self.__clientRunning:
         if run:
           return False
 

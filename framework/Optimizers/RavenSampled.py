@@ -294,7 +294,6 @@ class RavenSampled(Optimizer):
     # TODO FIXME let normalizeData work on an xr.DataSet (batch) not just a dictionary!
     rlz = self.normalizeData(rlz)
     self._useRealization(info, rlz)
-    print("*** _submissionQueue ***: ", len(self._submissionQueue))
 
   def finalizeSampler(self, failedRuns):
     """
