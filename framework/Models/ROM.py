@@ -42,7 +42,6 @@ class ROM(Dummy):
   """
     ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome
   """
-
   @classmethod
   def getInputSpecification(cls):
     """
@@ -1431,6 +1430,25 @@ class ROM(Dummy):
     for k,v in outputEvaluation.items():
       outputEvaluation[k] = np.atleast_1d(v)
     return outputEvaluation
+
+  def derivatives(self, request, feats = None, order="first"):
+    """
+      This method is aimed to evaluate the derivatives using this ROM
+      The differentiation method depends on the specific ROM. Numerical
+      differentiation is available by default for any ROM. Some ROMs (e.g.
+      neural networks) use automatic differentiation.
+      @ In, request, dict, coordinate of the central point
+      @ In, feats, list, optional, list of features we need to compute the
+                                   derivative for (default all)
+      @ In, order, str, order of the derivative (first, second)
+      @ Out, derivatives, dict, the dict containing the derivatives for each target
+                                ({'d(feature1)/d(target1)':np.array(size 1 or n_ts),
+                                  'd(feature1)/d(target1)':np.array(...)}. For example,
+                                {"x1/y1":np.array(...),"x2/y1":np.array(...),etc.}
+    """
+    inputToROM       = self._inputToInternal(request)
+    derivatives = self.supervisedEngine.derivatives(inputToROM,order,feats)
+    return derivatives
 
   def _externalRun(self,inRun):
     """
