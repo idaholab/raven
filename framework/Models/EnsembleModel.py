@@ -716,7 +716,7 @@ class EnsembleModel(Dummy):
       # we evaluate the model directly
       try:
         evaluation = modelToExecute['Instance'].evaluateSample.original_function(modelToExecute['Instance'], origInputList, samplerType, inputKwargs)
-      except Exception:
+      except Exception as e:
         excType, excValue, excTrace = sys.exc_info()
         evaluation = None
     else:
@@ -735,6 +735,7 @@ class EnsembleModel(Dummy):
       if isinstance(evaluation, rerror):
         evaluation = None
         excType, excValue, excTrace = finishedRun.exceptionTrace
+        e = rerror
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
           jobHandler.getFinished(jobIdentifier = modelToRemove + utils.returnIdSeparator() + identifier, uniqueHandler = self.name + identifier)
@@ -777,3 +778,5 @@ class EnsembleModel(Dummy):
     returnDict['general_metadata'] = inRunTargetEvaluations.getMeta(general=True)
 
     return returnDict, gotOutputs, evaluation
+
+

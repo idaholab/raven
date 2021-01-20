@@ -81,11 +81,17 @@ class MCMC(AdaptiveSampler):
         descr=r"""the limit for the total samples""")
     samplerInitInput.addSub(limitInput)
     initialSeedInput = InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType,
-        descr='')
+        descr=r"""The initial seed for random number generator""")
     samplerInitInput.addSub(initialSeedInput)
     burnInInput = InputData.parameterInputFactory("burnIn", contentType=InputTypes.IntegerType,
-        descr='')
+        descr=r"""The number of samples that will be discarded""")
     samplerInitInput.addSub(burnInInput)
+    tune = InputData.parameterInputFactory("tune", contentType=InputTypes.BoolType,
+        descr=r"""The option to tune the scaling parameter""")
+    samplerInitInput.addSub(tune)
+    tuneInterval = InputData.parameterInputFactory("tuneInterval", contentType=InputTypes.IntegerType,
+        descr=r"""The number of sample steps for each tuning of scaling parameter""")
+    samplerInitInput.addSub(tuneInterval)
     inputSpecification.addSub(samplerInitInput)
     likelihoodInp = InputData.parameterInputFactory("likelihood",contentType=InputTypes.StringType,
         printPriority=5,
@@ -98,9 +104,13 @@ class MCMC(AdaptiveSampler):
     variable = inputSpecification.getSub('variable')
     variable.addSub(InputData.parameterInputFactory('initial', contentType=InputTypes.FloatType,
         descr=r"""inital value for given variable"""))
-    variable.addSub(InputData.assemblyInputFactory('proposal', contentType=InputTypes.StringType, strictMode=True,
+    proposal = InputData.assemblyInputFactory('proposal', contentType=InputTypes.StringType, strictMode=True,
         printPriority=30,
-        descr=r"""name of the Distribution that is used as proposal distribution"""))
+        descr=r"""name of the Distribution that is used as proposal distribution""")
+    proposal.addParam('dim', InputTypes.IntegerType, required=False,
+        descr=r"""for an ND proposal distribution, indicates the dimension within the ND Distribution that corresponds
+              to this variable""")
+    variable.addSub(proposal)
     variable.addSub(InputData.assemblyInputFactory('probabilityFunction', contentType=InputTypes.StringType, strictMode=True,
         printPriority=30,
         descr=r"""name of the function that is used as prior distribution (doesn't need to be normalized)"""))
@@ -117,7 +127,9 @@ class MCMC(AdaptiveSampler):
     vars = super(AdaptiveSampler, cls).getSolutionExportVariableNames()
     # TODO: multiple chains for MCMC
     new = {'traceID': 'integer identifying which iteration a Markov chain is on',
-           '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output at current iteration'
+           '{VAR}': r'any variable from the \xmlNode{TargetEvaluation} input or output at current iteration',
+           'LogPosterior': 'log-posterior distribution value',
+           'AcceptRate': 'the accept rate of MCMC algorithm'
            }
     vars.update(new)
     return vars
@@ -133,14 +145,28 @@ class MCMC(AdaptiveSampler):
     self._initialValues = {} # dict stores the user provided initial values, i.e. {var: val}
     self._updateValues = {} # dict stores input variables values for the current MCMC iteration, i.e. {var:val}
     self._proposal = {} # dict stores the proposal distributions for input variables, i.e. {var:dist}
+    self._proposalDist = {} # dist stores the input variables for each proposal distribution, i.e. {distName:[(var,dim)]}
     self._priorFuns = {} # dict stores the prior functions for input variables, i.e. {var:fun}
     self._burnIn = 0      # integers indicate how many samples will be discarded
     self._likelihood = None # stores the output from the likelihood
     self._logLikelihood = False # True if the user provided likelihood is in log format
-    self._availProposal = {'normal': Distributions.Normal(0.0, 1.0),
-                           'uniform': Distributions.Uniform(-1.0, 1.0)} # available proposal distributions
+    self._availProposal = {'normal': Distributions.Normal,
+                           'multivariateNormal': Distributions.MultivariateNormal} # available proposal distributions
     self._acceptDist = Distributions.Uniform(0.0, 1.0) # uniform distribution for accept/rejection purpose
     self.toBeCalibrated = {} # parameters that will be calibrated
+    self._correlated = False # True if input variables are correlated else False
+    self.netLogPosterior = 0.0 # log-posterior vs iteration
+    self._localReady = True # True if the submitted job finished
+    self._currentRlz = None # dict stores the current realizations, i.e. {var: val}
+    self._acceptRate = 1. # The accept rate for MCMC
+    self._acceptCount = 1 # The total number of accepted samples
+    self._tune = True # Tune the scaling parameter if True
+    self._tuneInterval = 100 # the number of sample steps for each tuning of scaling parameter
+    self._scaling = 1.0 # The initial scaling parameter
+    self._countsUntilTune = self._tuneInterval # The remain number of sample steps until the next tuning
+    self._acceptInTune = 0 # The accepted number of samples for given tune interval
+    self._accepted = False # The indication of current samples, True if accepted otherwise False
+    self._stdProposalDefault = 0.2 # the initial scaling of the std of proposal distribution (only apply to default)
     # assembler objects
     self.addAssemblerObject('proposal', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('probabilityFunction', InputData.Quantity.zero_to_infinity)
@@ -185,6 +211,12 @@ class MCMC(AdaptiveSampler):
       burnIn = init.findFirst('burnIn')
       if burnIn is not None:
         self._burnIn = burnIn.value
+      tune = init.findFirst('tune')
+      if tune is not None:
+        self._tune = tune.value
+      tuneInterval = init.findFirst('tuneInterval')
+      if tuneInterval is not None:
+        self._tuneInterval = tuneInterval.value
     else:
       self.raiseAnError(IOError, 'MCMC', self.name, 'needs the samplerInit block')
     if self._burnIn >= self.limit:
@@ -197,11 +229,13 @@ class MCMC(AdaptiveSampler):
   def _readInVariable(self, child, prefix):
     """
       Reads in a "variable" input parameter node.
+      This method is called by "_readMoreXMLbase" method within base class "Sampler".
       @ In, child, utils.InputData.ParameterInput, input parameter node to read from
       @ In, prefix, str, pass through parameter (not used), i.e. empty string. It is used
         by Sampler base class to indicate "Distribution"
       @ Out, None
     """
+    assert prefix == "", '"prefix" should be empty, but got {}!'.format(prefix)
     varName = child.parameterValues['name']
     foundDist = child.findFirst('distribution')
     foundFunc = child.findFirst('function')
@@ -225,28 +259,39 @@ class MCMC(AdaptiveSampler):
         # variable dimensionality
         if 'dim' not in childChild.parameterValues:
           dim = 1
+          if self._correlated:
+            self.raiseAnError(IOError, 'Found both correlated and uncorrelated variables in "{}" Samplers!'.format(self.type),
+                             'Please check your input, all variables should either be uncorrelated or correlated!')
         else:
           dim = childChild.parameterValues['dim']
+          if not self._correlated:
+            self._correlated = True
         varData['dim'] = dim
         # set up mapping for variable to distribution
         self.variables2distributionsMapping[varName] = varData
         # flag distribution as needing to be sampled
-        self.toBeSampled[prefix + varName] = toBeSampled
-        self.toBeCalibrated[prefix + varName] = toBeSampled
+        self.toBeSampled[varName] = toBeSampled
+        self.toBeCalibrated[varName] = toBeSampled
         if varName not in self._initialValues:
           self._initialValues[varName] = None
       elif childChild.getName() == 'function':
         # function name
         toBeSampled = childChild.value
         # track variable as a functional sample
-        self.dependentSample[prefix + varName] = toBeSampled
+        self.dependentSample[varName] = toBeSampled
       elif childChild.getName() == 'initial':
         self._initialValues[varName] = childChild.value
       elif childChild.getName() == 'proposal':
-        self._proposal[varName] = childChild.value
+        distName = childChild.value
+        dim = childChild.parameterValues.get('dim', None)
+        self._proposal[varName] = distName
+        if distName not in self._proposalDist:
+          self._proposalDist[distName] = [(varName, dim)]
+        else:
+          self._proposalDist[distName].append((varName, dim))
       elif childChild.getName() == 'probabilityFunction':
         toBeSampled = childChild.value
-        self.toBeCalibrated[prefix + varName] = toBeSampled
+        self.toBeCalibrated[varName] = toBeSampled
         self._priorFuns[varName] = toBeSampled
         if varName not in self._initialValues:
           self._initialValues[varName] = None
@@ -258,26 +303,12 @@ class MCMC(AdaptiveSampler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
-    # TODO: currently, we only consider uncorrelated case
-    # initialize distributions
-    for _, dist in self._availProposal.items():
-      dist.initializeDistribution()
     self._acceptDist.initializeDistribution()
-    for var in self._updateValues:
-      if var in self._proposal:
-        self._proposal[var] = self.retrieveObjectFromAssemblerDict('proposal', self._proposal[var])
-        distType = self._proposal[var].getDistType()
-        if distType != 'Continuous':
-          self.raiseAnError(IOError, 'variable "{}" requires continuous proposal distribution, but "{}" is provided!'.format(var, distType))
-      else:
-        self._proposal[var] = self._availProposal['normal']
-
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     ## TODO: currently AdaptiveSampler is still using self.assemblerDict to retrieve the target evaluation.
     # We should change it to using the following method.
     # retrieve target evaluation
     # self._targetEvaluation = self.retrieveObjectFromAssemblerDict('TargetEvaluation', self._targetEvaluation)
-
     for var, priorFun in self._priorFuns.items():
       self._priorFuns[var] = self.retrieveObjectFromAssemblerDict('probabilityFunction', priorFun)
       if "pdf" not in self._priorFuns[var].availableMethods():
@@ -288,15 +319,12 @@ class MCMC(AdaptiveSampler):
             for variable "{}"'.format(var))
       # initialize the input variable values
     for var, dist in self.distDict.items():
-      totDim = self.variables2distributionsMapping[var]['totDim']
       distType = dist.getDistType()
       if distType != 'Continuous':
         self.raiseAnError(IOError, 'variable "{}" requires continuous distribution, but "{}" is provided!'.format(var, distType))
-      if totDim != 1:
-        self.raiseAnError(IOError,"Total dimension for given distribution {} should be 1".format(dist.type))
-      if self._updateValues[var] is None:
-        value = dist.rvs()
-        self._updateValues[var] = value
+
+    meta = ['LogPosterior', 'AcceptRate']
+    self.addMetaKeys(meta)
 
   def localGenerateInput(self, model, myInput):
     """
@@ -315,7 +343,9 @@ class MCMC(AdaptiveSampler):
         self.inputInfo['SampledVarsPb'][key] = self._priorFuns[key].evaluate("pdf", self._updateValues)
       self.inputInfo['ProbabilityWeight-' + key] = 1.
     self.inputInfo['PointProbability'] = 1.0
-    self.inputInfo['ProbabilityWeight' ] = 1.0
+    self.inputInfo['ProbabilityWeight'] = 1.0
+    self.inputInfo['LogPosterior'] = self.netLogPosterior
+    self.inputInfo['AcceptRate'] = self._acceptRate
 
   def localFinalizeActualSampling(self, jobObject, model, myInput):
     """
@@ -327,7 +357,61 @@ class MCMC(AdaptiveSampler):
       @ In, myInput, list, the generating input
       @ Out, None
     """
+    self._localReady = True
     AdaptiveSampler.localFinalizeActualSampling(self, jobObject, model, myInput)
+    prefix = jobObject.getMetadata()['prefix']
+    full = self._targetEvaluation.realization(index=self.counter-1)
+    rlz = dict((var, full[var]) for var in (list(self.toBeCalibrated.keys()) + [self._likelihood] + list(self.dependentSample.keys())))
+    rlz['traceID'] = self.counter
+    rlz['LogPosterior'] = self.inputInfo['LogPosterior']
+    rlz['AcceptRate'] = self.inputInfo['AcceptRate']
+    if self.counter == 1:
+      self._addToSolutionExport(rlz)
+      self._currentRlz = rlz
+    if self.counter > 1:
+      alpha = self._useRealization(rlz, self._currentRlz)
+      self.netLogPosterior = alpha
+      self._accepted = self._checkAcceptance(alpha)
+      if self._accepted:
+        self._currentRlz = rlz
+        self._addToSolutionExport(rlz)
+        self._updateValues = dict((var, rlz[var]) for var in self._updateValues)
+      else:
+        self._currentRlz.update({'traceID':self.counter, 'LogPosterior': self.inputInfo['LogPosterior'], 'AcceptRate':self.inputInfo['AcceptRate']})
+        self._addToSolutionExport(self._currentRlz)
+        self._updateValues = dict((var, self._currentRlz[var]) for var in self._updateValues)
+    if self._tune:
+      self._acceptInTune = self._acceptInTune + 1 if self._accepted else self._acceptInTune
+      self._countsUntilTune -= 1
+    ## tune scaling parameter
+    if not self._countsUntilTune and self._tune:
+      ### tune
+      self._scaling = self.tuneScalingParam(self._scaling, self._acceptInTune/float(self._tuneInterval))
+      ### reset counter
+      self._countsUntilTune = self._tuneInterval
+      self._acceptInTune = 0
+
+  @abc.abstractmethod
+  def _useRealization(self, newRlz, currentRlz):
+    """
+      Used to feedback the collected runs within the sampler
+      @ In, newRlz, dict, new generated realization
+      @ In, currentRlz, dict, the current existing realization
+      @ Out, netLogPosterior, float, the accepted probabilty
+    """
+
+  def _checkAcceptance(self, alpha):
+    """
+      Method to check the acceptance
+      @ In, alpha, float, the accepted probabilty
+      @ Out, acceptable, bool, True if we accept the new sampled point
+    """
+    acceptValue = np.log(self._acceptDist.rvs())
+    acceptable = alpha > acceptValue
+    if acceptable:
+      self._acceptCount += 1
+    self._acceptRate = self._acceptCount/self.counter
+    return acceptable
 
   def localStillReady(self, ready):
     """
@@ -367,3 +451,26 @@ class MCMC(AdaptiveSampler):
     if self._burnIn < self.counter:
       rlz = dict((var, np.atleast_1d(val)) for var, val in rlz.items())
       self._solutionExport.addRealization(rlz)
+
+  @staticmethod
+  def tuneScalingParam(scale, acceptRate):
+    """
+      Tune the scaling parameter for the proposal distribution
+      Borrowed from PyMC3
+      @ In, scale, float, the scaling parameter for the proposal distribution
+      @ In, acceptRate, float, the accept rate
+      @ Out, scale, float, the adjusted scaling parameter
+    """
+    if acceptRate < 0.001:
+      scale *= 0.1
+    elif acceptRate < 0.05:
+      scale *= 0.5
+    elif acceptRate < 0.2:
+      scale *= 0.9
+    elif acceptRate > 0.95:
+      scale *= 10.0
+    elif acceptRate > 0.75:
+      scale *= 2.0
+    elif acceptRate > 0.5:
+      scale *= 1.1
+    return scale
