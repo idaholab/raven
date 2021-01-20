@@ -488,6 +488,8 @@ class Simulation(MessageHandler.MessageUser):
     os.chdir(self.runInfoDict['WorkingDir'])
     #add also the new working dir to the path
     sys.path.append(os.getcwd())
+    # clear the raven status file, if any
+    self.clearStatusFile()
     #check consistency and fill the missing info for the // runs (threading, mpi, batches)
     self.runInfoDict['numProcByRun'] = self.runInfoDict['NumMPI']*self.runInfoDict['NumThreads']
     oldTotalNumCoresUsed = self.runInfoDict['totalNumCoresUsed']
@@ -793,12 +795,25 @@ class Simulation(MessageHandler.MessageUser):
                                       '\nOptions are:', self.whichDict[mainClassStr].keys())
       objectInstance.generateAssembler(neededobjs)
 
+  def clearStatusFile(self):
+    """
+      A bad hack from ancient technologies so we can really tell
+      when RAVEN has successfully finished.
+      @ In, None
+      @ Out, None
+    """
+    try:
+      os.remove('.ravenStatus')
+    except OSError as e:
+      if os.path.isfile('.ravenStatus'):
+        self.raiseAWarning(f'RAVEN status file detected but not removable! Got: "{e}"')
+
   def writeStatusFile(self):
     """
       A bad hack from ancient technologies so we can really tell
       when RAVEN has successfully finished.
       @ In, None
-      @ Out, Non
+      @ Out, None
     """
     with open('.ravenStatus', 'w') as f:
       f.writelines('Success')
