@@ -61,6 +61,8 @@ class FiniteDifference(GradientApproximater):
       Determines new point(s) needed to evaluate gradient
       @ In, opt, dict, current opt point (normalized)
       @ In, stepSize, float, distance from opt point to sample neighbors
+      @ In, constraints, dict, optional, boundary and functional constraints to respect when
+                                         choosing new sampling points
       @ Out, evalPoints, list(dict), list of points that need sampling
       @ Out, evalInfo, list(dict), identifying information about points
     """

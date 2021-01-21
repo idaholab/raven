@@ -797,8 +797,8 @@ class Simulation(MessageHandler.MessageUser):
 
   def clearStatusFile(self):
     """
-      A bad hack from ancient technologies so we can really tell
-      when RAVEN has successfully finished.
+      Remove the status file from disk so we can really tell when RAVEN has successfully finished.
+      This doesn't seem to be a very robust strategy, but it is working for now.
       @ In, None
       @ Out, None
     """
@@ -810,8 +810,8 @@ class Simulation(MessageHandler.MessageUser):
 
   def writeStatusFile(self):
     """
-      A bad hack from ancient technologies so we can really tell
-      when RAVEN has successfully finished.
+      Write a status file to disk so we can really tell when RAVEN has successfully finished.
+      This doesn't seem to be a very robust strategy, but it is working for now.
       @ In, None
       @ Out, None
     """

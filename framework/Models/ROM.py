@@ -1409,7 +1409,8 @@ class ROM(Dummy):
     """
       Overrides the base class method to assure child engine is also polled for its keys.
       @ In, None
-      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and the indexes related to expected keys
+      @ Out, metaKeys, set(str), names of meta variables being provided
+      @ Out, metaParams, dict, the independent indexes related to expected keys
     """
     # load own keys and params
     metaKeys, metaParams = Dummy.provideExpectedMetaKeys(self)

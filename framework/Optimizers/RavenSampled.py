@@ -411,8 +411,7 @@ class RavenSampled(Optimizer):
     """
       Checks (NOT fixes) boundary constraints of variables in "point" -> DENORMED point expected!
       @ In, point, dict, potential point against which to check
-      @ Out, point, dict, adjusted variables
-      @ Out, modded, bool, whether point was modified or not
+      @ Out, okay, bool, True if no constraints violated
     """
     okay = True
     for var in self.toBeSampled:
@@ -424,7 +423,6 @@ class RavenSampled(Optimizer):
         okay = False
         break
     return okay
-
 
   @abc.abstractmethod
   def _applyFunctionalConstraints(self, suggested, previous):

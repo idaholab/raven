@@ -650,10 +650,6 @@ class Clusters(Segments):
       self._evaluationMode = 'truncated'
     self.raiseADebug('Clustered ROM evaluation mode set to "{}"'.format(self._evaluationMode))
 
-    # add expected meta keys
-    #if self._evaluationMode == 'clustered':
-    #  self.addMetaKeys(['cluster_multiplicity'], {'cluster_multiplicity': [self._clusterVariableID]})
-
     # how to choose representative cluster: static or random
     evalChoice = segmentNode.findFirst('evaluationClusterChoice')
     if evalChoice is not None:

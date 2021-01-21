@@ -21,26 +21,18 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import os
-import signal
-import copy
 import sys
-import abc
-import psutil
 import gc
 from utils import importerUtils as im
 ## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWOS
 if im.isLibAvail("ray"):
   import ray
 else:
-  import pp
   import inspect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
-from BaseClasses import BaseType
-import MessageHandler
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -125,7 +117,6 @@ class DistributedMemoryRunner(InternalRunner):
                                              modules = tuple([self.functionToRun.__module__]+list(set(utils.returnImportModuleString(inspect.getmodule(self.functionToRun),True)))))
       self.trackTime('runner_started')
       self.started = True
-      #self.raiseADebug("Virtual memory is currently at % "+str(psutil.virtual_memory().percent))
       gc.collect()
       return
 
