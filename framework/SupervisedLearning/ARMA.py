@@ -728,7 +728,6 @@ class ARMA(supervisedLearning):
                                                     burnin = 2*max(self.P,self.Q)) # @alfoa, 2020
     return hist
 
-
   def _generateFourierSignal(self, pivots, periods):
     """
       Generate fourier signal as specified by the input file

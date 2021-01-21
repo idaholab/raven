@@ -1,0 +1,11 @@
+[Tests]
+  [./Fourier]
+    type = 'RavenFramework'
+    input = 'fourier.xml'
+    csv = 'Fourier/samples_0.csv Fourier/samples_1.csv'
+    output = 'Fourier/romMeta.xml' # cannot test <phase> when <amplitude> is effectively 0
+    rel_err = 1e-6
+    zero_threshold = 1e-12
+  [../]
+
+[]
