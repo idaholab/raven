@@ -33,6 +33,7 @@ from scipy.linalg import solve_discrete_lyapunov
 from scipy import stats
 from scipy.signal import find_peaks
 from scipy.stats import rv_histogram
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -716,15 +717,15 @@ class ARMA(supervisedLearning):
       numSamples =  len(self.pivotParameterValues)
     if randEngine is None:
       randEngine=self.randomEng
-    import statsmodels.api
-    hist = statsmodels.api.tsa.arma_generate_sample(ar = np.append(1., -model.arparams),
+    import statsmodels.tsa
+    hist = statsmodels.tsa.arima_process.arma_generate_sample(ar = np.append(1., -model.arparams),
                                                     ma = np.append(1., model.maparams),
                                                     nsample = numSamples,
                                                     distrvs = functools.partial(randomUtils.randomNormal,engine=randEngine),
                                        # functool.partial provide the random number generator as a function
                                        # with normal distribution and take engine as the positional arguments keywords.
-                                                    sigma = np.sqrt(model.sigma2),
-                                                    burnin = 2*max(self.P,self.Q)) # @epinas, 2018
+                                                    scale = np.sqrt(model.sigma2),
+                                                    burnin = 2*max(self.P,self.Q)) # @alfoa, 2020
     return hist
 
   def _generateFourierSignal(self, pivots, periods):

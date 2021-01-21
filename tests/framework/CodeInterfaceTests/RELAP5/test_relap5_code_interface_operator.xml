@@ -107,4 +107,12 @@
     <HDF5 name="DataB_REL5_1" readMode="overwrite"/>
   </Databases>
 
+  <DataObjects verbosity="silent">
+    <PointSet name="inputHolder">
+      <Input>1180801:2,1180802:2,1180901:3,20100154:2,20100155:2,20100156:2,20100157:2,13550801:6</Input>
+      <Output>p_345010000,p_180010000,p_280010000,voidg_345010000,voidg_335060000,voidg_212010000,mflowj_505000000,time</Output>
+    </PointSet>
+  </DataObjects>
+  
 </Simulation>
+

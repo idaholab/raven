@@ -127,7 +127,8 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                 'EnsembleForward',
                                                 'CustomSampler',
                                                 'AdaptiveMonteCarlo',
-                                                'Metropolis']
+                                                'Metropolis',
+                                                'AdaptiveMetropolis']
   validateDict['Optimizer'].append(testDict.copy())
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False

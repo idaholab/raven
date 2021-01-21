@@ -22,6 +22,7 @@
             <xsd:element name="EnsembleForward"          type="EnsembleForwardSampler" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="AdaptiveMonteCarlo"       type="AdaptiveMCSampler"      minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Metropolis"               type="MetropolisSampler"             minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="AdaptiveMetropolis"       type="MetropolisSampler"             minOccurs="0" maxOccurs="unbounded"/>
 
         </xsd:sequence>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
@@ -535,8 +536,21 @@
       <xsd:all>
         <xsd:element name="limit"                    type="xsd:string"  minOccurs="0"/>
         <xsd:element name="initialSeed"              type="xsd:integer" minOccurs="0"/>
-        <xsd:element name="burnIn"                     type="xsd:string"  minOccurs="0"/>
+        <xsd:element name="burnIn"                   type="xsd:string"  minOccurs="0"/>
+        <xsd:element name="tuneInterval"             type="xsd:integer" minOccurs="0"/>
+        <xsd:element name="tune"                     type="RavenBool"   minOccurs="0"/>
+        <xsd:element name="adaptiveInterval"         type="xsd:integer" minOccurs="0"/>
       </xsd:all>
+    </xsd:complexType>
+    
+    <xsd:complexType name="proposalObjectType">
+      <xsd:simpleContent>
+        <xsd:extension base='xsd:string'>
+          <xsd:attribute name='class' type='xsd:string' use='required' />
+          <xsd:attribute name='type'  type='xsd:string' use='required' />
+          <xsd:attribute name='dim'   type='xsd:integer' />
+        </xsd:extension>
+      </xsd:simpleContent>
     </xsd:complexType>
 
     <xsd:complexType name="metropolisVariableType">
@@ -547,7 +561,7 @@
           <xsd:element name="probabilityFunction" type="AssemblerObjectType"    minOccurs="1"/>
         </xsd:choice>
         <xsd:element name="initial" type="xsd:string" minOccurs="0"/>
-        <xsd:element name="proposal" type="AssemblerObjectType"    minOccurs="0" maxOccurs="1"/>
+        <xsd:element name="proposal" type="proposalObjectType"    minOccurs="0" maxOccurs="1"/>
       </xsd:sequence>
       <xsd:attribute name="name" type="xsd:string" use="required"/>
       <xsd:attribute name="shape" type="xsd:string"/>

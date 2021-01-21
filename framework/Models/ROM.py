@@ -24,10 +24,12 @@ import inspect
 import itertools
 import numpy as np
 import functools
+import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
+import Decorators
 import SupervisedLearning
 from utils import utils
 from utils import xmlUtils
@@ -37,6 +39,8 @@ import Files
 import LearningGate
 #Internal Modules End--------------------------------------------------------------------------------
 
+# set enviroment variable to avoid parallelim degradation in some surrogate models
+os.environ["MKL_NUM_THREADS"]="1"
 
 class ROM(Dummy):
   """
@@ -55,10 +59,26 @@ class ROM(Dummy):
 
     IndexSetInputType = InputTypes.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
     CriterionInputType = InputTypes.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
-
-    # general
+    ###########
+    # general #
+    ###########
     inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
+
+    ######################
+    # dynamically loaded #
+    ######################
+    for typ in SupervisedLearning.knownTypes():
+      obj = SupervisedLearning.returnClass(typ, None) # TODO no message handler available!
+      if hasattr(obj, 'getInputSpecifications'):
+        subspecs = obj.getInputSpecifications()
+        print('Known:', typ)
+        print(subspecs)
+        inputSpecification.mergeSub(subspecs)
+
+    ####################
+    # manually entered #
+    ####################
     # segmenting and clustering
     segment = InputData.parameterInputFactory("Segment", strictMode=True)
     segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
@@ -236,7 +256,6 @@ class ROM(Dummy):
     window.addParam('width', InputTypes.FloatType, True)
     peaks.addSub(window)
     peaks.addSub(nbin)
-
     peaks.addParam('threshold', InputTypes.FloatType)
     peaks.addParam('target', InputTypes.StringType)
     peaks.addParam('period', InputTypes.FloatType)
@@ -1401,8 +1420,6 @@ class ROM(Dummy):
                   "The time-dependent ROM requires all the histories are synchonized!")
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-      # grab assembled stuff and pass it through
-      ## TODO this should be changed when the SupervisedLearning objects themselves can use the Assembler
       self.supervisedEngine.train(self.trainingSet, self.assemblerDict)
       self.amITrained = self.supervisedEngine.amITrained
 
@@ -1418,6 +1435,7 @@ class ROM(Dummy):
     confidenceDict = self.supervisedEngine.confidence(inputToROM)
     return confidenceDict
 
+  @Decorators.timingProfile
   def evaluate(self, request):
     """
       When the ROM is used directly without need of having the sampler passing in the new values evaluate instead of run should be used

@@ -42,11 +42,12 @@ class CTF(CodeInterfaceBase):
       @ In, command, string, the command used to run the just ended job
       @ In, output, string, the Output name root
       @ In, workingDir, string, current working dir
-      @ Out, output, string, optional, present in case the root of the output file gets changed in this method.
+      @ Out, response, dict, dictionary containing the data {var1:array, var2:array, etc}
     """
     outfile  = os.path.join(workingDir,output+'.out')
     outputobj= ctfdata(outfile)
-    outputobj.writeCSV(os.path.join(workingDir,output+'.csv'))
+    response = outputobj.returnData()
+    return response
 
   def findInps(self,inputFiles):
     """

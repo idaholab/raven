@@ -180,11 +180,9 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
-    ## set up enviroment
-    os.environ['PYTHONPATH'] = os.pathsep.join(sys.path)
-    ## Check if the list of unique nodes is present and, in case, initialize the
-    servers = None
     if self.runInfoDict['internalParallel']:
+      ## Check if the list of unique nodes is present and, in case, initialize the
+      servers = None
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
         ## identify the local host name and get the number of local processors
@@ -198,7 +196,7 @@ class JobHandler(MessageHandler.MessageUser):
         servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
-                         pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
+                           pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
         self.raiseADebug("Head node IP address: ", self.rayServer['node_ip_address'])
         self.raiseADebug("Redis address       : ", self.rayServer['redis_address'])
@@ -725,7 +723,7 @@ class JobHandler(MessageHandler.MessageUser):
     @ Out, None
     """
     self.completed = True
-    if _rayAvail:
+    if _rayAvail and self.rayServer:
      ray.shutdown()
 
 

@@ -32,6 +32,7 @@ from SupervisedLearning.NDinterpolatorRom  import NDinterpolatorRom
 from SupervisedLearning.NDinvDistWeight    import NDinvDistWeight
 from SupervisedLearning.NDsplineRom        import NDsplineRom
 from SupervisedLearning.SciKitLearn        import SciKitLearn
+from SupervisedLearning.SyntheticHistory   import SyntheticHistory
 from SupervisedLearning.pickledROM         import pickledROM
 from SupervisedLearning.PolyExponential    import PolyExponential
 from SupervisedLearning.DynamicModeDecomposition import DynamicModeDecomposition
@@ -42,7 +43,6 @@ from SupervisedLearning.KerasConvNetClassifier import KerasConvNetClassifier
 from SupervisedLearning.KerasLSTMClassifier import KerasLSTMClassifier
 from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters
 
-## [ Add new class here ]
 ################################################################################
 
 
@@ -61,6 +61,7 @@ __interfaceDict['GaussPolynomialRom'    ] = GaussPolynomialRom
 __interfaceDict['HDMRRom'               ] = HDMRRom
 __interfaceDict['MSR'                   ] = MSR
 __interfaceDict['ARMA'                  ] = ARMA
+__interfaceDict['SyntheticHistory'      ] = SyntheticHistory
 __interfaceDict['pickledROM'            ] = pickledROM
 __interfaceDict['PolyExponential'       ] = PolyExponential
 __interfaceDict['DMD'                   ] = DynamicModeDecomposition

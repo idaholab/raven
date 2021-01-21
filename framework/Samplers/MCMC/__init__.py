@@ -20,5 +20,7 @@
 """
 from .MCMC import MCMC
 from .Metropolis import Metropolis
+from .AdaptiveMetropolis import AdaptiveMetropolis
 
-__all__ = ['Metroplis']
+__all__ = ['Metropolis',
+           'AdaptiveMetropolis']

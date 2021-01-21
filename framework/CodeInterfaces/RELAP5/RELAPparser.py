@@ -62,7 +62,6 @@ class RELAPparser():
         outfile.write('%s' %(i))
     outfile.close()
 
-
   def retrieveCardValues(self, listOfCards):
     """
       This method is to retrieve the card values contained in the list
@@ -144,7 +143,7 @@ class RELAPparser():
         temp.append('*'+' deckNum: '+str(deckNum)+'\n')
       for j in sorted(modiDictionaryList):
         for var in modiDictionaryList[j]:
-          temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+str(var['value'])+'\n')
+          temp.append('* card: '+j+' word: '+str(var['position'])+' value: '+'{:.7e}'.format(var['value'])+'\n')
       temp.append('*RAVEN INPUT VALUES\n')
 
       temp+=self.deckLines[deckNum]
@@ -204,7 +203,7 @@ class RELAPparser():
       @ Out, newline, string, modified line
     """
     temp=line.split()
-    temp[int(position)]=str(value)
+    temp[int(position)]='{:.7e}'.format(value)
     newline=temp.pop(0)
     for i in temp:
       newline=newline+'  '+i
