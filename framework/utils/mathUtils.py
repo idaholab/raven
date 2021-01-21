@@ -971,3 +971,52 @@ def giveZero():
     @ Out, giveZero, int, zero
   """
   return 0
+
+##########################
+# empirical distribution #
+##########################
+def characterizeCDF(data, binOps=None, minBins=1):
+  """
+    Constructs an empirical CDF from the given data
+    @ In, data, np.array(float), values to fit CDF to
+    @ In, binOps, int, setting for picking binning strategy
+    @ In, minBins, int, minimum bins for empirical CDF
+    @ Out, params, dict, essential parameters for CDF
+  """
+  # caluclate number of bins
+  # binOps=Length or value
+  nBins, _ = numBinsDraconis(data, low=minBins, binOps=binOps)
+  # construct histogram
+  counts, edges = np.histogram(data, bins=nBins, density=False)
+  counts = np.array(counts) / float(len(data))
+  # numerical CDF, normalizing to 0..1
+  cdf = np.cumsum(counts)
+  # set lowest value as first entry,
+  ## from Jun implementation, min of CDF set to 0 for ?numerical issues?
+  cdf = np.insert(cdf, 0, 0)
+  # store parameters
+  params = {'bins': edges,
+            'counts':counts,
+            'pdf' : counts * nBins,
+            'cdf' : cdf,
+            'lens' : len(data)}
+  return params
+
+def gaussianize(data, cdf, normEngine):
+  """
+    Transforms "data" via empirical CDF into Gaussian distribution
+    @ In, data, np.array, values to "gaussianize"
+    @ In, cdf, dict, CDF characerstics (as via "characterizeCDF")
+    @ Out, normed, np.array, gaussian version of "data"
+  """
+  cdfVals = sampleCDF(data, cdf)
+  normed = stats.norm.ppf(cdfVals)
+  return normed
+
+def sampleCDF(x, cdf):
+    """
+      Samples the empirical distribution's CDF at requested value(s)
+      @ In, x, float/np.array, value(s) at which to sample inverse CDF
+      @ In, cdf, dict, CDF parameters (as constructed by "_trainCDF")
+      @ Out, y, float, value of empirical CDF at x
+    """
