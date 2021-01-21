@@ -962,6 +962,37 @@ def angleBetweenVectors(a, b):
   ang = np.rad2deg(ang)
   return ang
 
+def derivative(f, x0, var, n = 1, h = 1e-6, order = None):
+  """
+    Compute the n-th partial derivative of function f 
+    with respect variable var (numerical differentation).
+    The derivative is computed with a central difference
+    approximation.
+    @ In, f, instance, the function to differentiate (format f(d) where d is a dictionary)
+    @ In, x0, dict, the dictionary containing the x0 coordinate
+    @ In, var, str, the variable of the resulting partial derivative
+    @ In, n, int, optional, the order of the derivative. If n>2, the order param must be inputted
+    @ In, h, float, the step size
+    @ In, order, int, the order (n points) to compute the derivative (required if n>2)
+    @ Out, deriv, float, the partial derivative of function f
+  """
+  from scipy.misc import derivative as dev
+  def func(x, var):
+    """
+      Simple function wrapper for using scipy
+      @ In, x, float, the point at which the nth derivative is found
+      @ In, var, str, the variable in the dictionary x0 corresponding
+                      to the part derivative to compute
+      @ Out, func, float, the evaluated function
+    """
+    d = copy.copy(x0)
+    d[var] = x
+    return f(d)
+  if not order:
+    assert(n <= 2)
+  deriv = dev(func, x0[var], dx=h, n=n, args=(var, ), order=order if order else 3)
+  return deriv
+
 # utility function for defaultdict
 def giveZero():
   """
