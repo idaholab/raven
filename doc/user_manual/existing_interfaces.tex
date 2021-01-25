@@ -4760,7 +4760,19 @@ of \$( )\$ like \verb'$(var)$'. The sampled variable can have a
 constant added or a multiplication factor like \verb'$(var+3.2)$' or
 \verb'$(var*2.1)$' or \verb'$(var*5.0+7.0)$' or \verb'$(a*-2.0)$'
 These can be placed in any of the .dat or .csv files that are listed
-in the \xmlNode{Files} section as \xmlAttr{type="PrescientInput"}
+in the \xmlNode{Files} section as \xmlAttr{type="PrescientInput"} An
+example line could be: \verb'Abel 1 $(var)$'
+
+\begin{lstlisting}[style=XML]
+  <Samplers>
+    <Grid name="grid">
+      <variable name="var">
+        <distribution>dist</distribution>
+        <grid construction="equal" steps="1" type="CDF">0.0 1.0</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+\end{lstlisting}
 
 
 \subsubsection{Files}
@@ -4814,11 +4826,33 @@ The block currently does not have any option xml nodes.
 
 The code interface reads in the \texttt{hourly\_summary.csv} and the
 \texttt{bus\_detail.csv} files. It will generate a \texttt{Date\_Hour}
-variable that can be used as the \xmlNode{pivotParameter}. From the
-hourly summary it will generate variables like TotalCosts and the
-other data that appears there.  For each of the busses in the bus
-detail file it generates variables like \texttt{Clay\_LMP} that can be
-used.
+variable that can be used as the \xmlNode{pivotParameter} and is a
+string with the date and hour. It also generates an \texttt{Hour}
+variable that is the hour as an integer.  From the hourly summary it
+will generate variables like TotalCosts and the other data that
+appears there.  For each of the busses in the bus detail file it
+generates variables like \texttt{Clay\_LMP} that can be used.
+
+Exactly which variables will appear will vary depending on the
+Prescient input files, but typical ones include \texttt{TotalCosts},
+\texttt{FixedCosts}, \texttt{VariableCosts}, \texttt{LoadShedding},
+\texttt{OverGeneration}, \texttt{ReserveShortfall},
+\texttt{RenewablesUsed}, \texttt{RenewablesCurtailment},
+\texttt{Demand}, \texttt{Price}, and \texttt{NetDemand}. Variables
+that can be included for a typical bus could include ones like
+\texttt{Abel\_LMP}, \texttt{Abel\_LMP\_DA}, \texttt{Abel\_Shortfall},
+and \texttt{Abel\_Overgeneration}.
+
+\begin{lstlisting}[style=XML]
+    <HistorySet name="samples">
+      <Input>var</Input>
+      <Output>Date_Hour, TotalCosts, FixedCosts, VariableCosts, LoadShedding, OverGeneration, ReserveShortfall, RenewablesUsed, RenewablesCurtailment, Demand, Price, NetDemand, Abel_LMP, Clay_LMP </Output>
+      <options>
+        <pivotParameter>Date_Hour</pivotParameter>
+      </options>
+    </HistorySet>
+\end{lstlisting}
+
 
 \subsubsection{Installation of Libraries}
 
