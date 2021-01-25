@@ -157,6 +157,17 @@
     [../]
   [../]
 
+  [./InitialStep]
+    type = 'RavenFramework'
+    input = 'initial_step.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'InitialStep/optOut.csv InitialStep/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+
   [./1variable]
     type = 'RavenFramework'
     input = '1_variable_gradient.xml'

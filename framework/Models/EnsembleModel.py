@@ -18,7 +18,9 @@ Module where the base class and the specialization of different type of Model ar
 from __future__ import division, print_function, unicode_literals, absolute_import
 #End compatibility block for Python 3----------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
+#External Modules----------------------------------------------------------------------------------
+import io
+import sys
 import copy
 import numpy as np
 import time
@@ -715,6 +717,7 @@ class EnsembleModel(Dummy):
       try:
         evaluation = modelToExecute['Instance'].evaluateSample.original_function(modelToExecute['Instance'], origInputList, samplerType, inputKwargs)
       except Exception as e:
+        excType, excValue, excTrace = sys.exc_info()
         evaluation = None
     else:
       moveOn = False
@@ -731,6 +734,7 @@ class EnsembleModel(Dummy):
       evaluation = finishedRun[0].getEvaluation()
       if isinstance(evaluation, rerror):
         evaluation = None
+        excType, excValue, excTrace = finishedRun.exceptionTrace
         e = rerror
         # the model failed
         for modelToRemove in list(set(self.orderList) - set([modelToExecute['Instance'].name])):
@@ -741,8 +745,12 @@ class EnsembleModel(Dummy):
 
     if not evaluation:
       # the model failed
-      self.raiseAnError(RuntimeError,"The Model  " + modelToExecute['Instance'].name
-                        + " identified by " + localIdentifier +" failed! The error is below:\n"+str(e))
+      import traceback
+      msg = io.StringIO()
+      traceback.print_exception(excType, excValue, excTrace, limit=10, file=msg)
+      msg = msg.getvalue().replace('\n', '\n        ')
+      self.raiseAnError(RuntimeError, f'The Model "{modelToExecute["Instance"].name}" id "{localIdentifier}" '+
+                        f'failed! Trace:\n{"*"*72}\n{msg}\n{"*"*72}')
     else:
       if self.parallelStrategy == 1:
         inRunTargetEvaluations.addRealization(evaluation)

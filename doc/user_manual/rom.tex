@@ -86,15 +86,17 @@
             \xmlNode{DataSet} with one of the indices being \texttt{\_ROM\_cluster}.
         \end{itemize}
      \item \xmlNode{evaluationClusterChoice}, \xmlDesc{string, optional field}, one of \xmlString{first} or
-        \xmlString{random}, determines, if \xmlAttr{grouping}$=cluster$, which 
-        strategy needs to be followed for the evaluation stage. If ``first'', the 
+        \xmlString{random}, determines, if \xmlAttr{grouping}$=cluster$, which
+        strategy needs to be followed for the evaluation stage. If ``first'', the
         first ROM (representative segmented ROM),in each cluster, is considered to
          be representative of the full space in the cluster (i.e. the evaluation is always performed
-         interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster, 
+         interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster,
          is choosen when an evaluation is requested.
-         %If ``centroid'', a ROM ``trained" on the centroids 
-         %information of each cluster is used for the evaluation (\nb ``centroid'' option is not 
-         %available yet). 
+	 \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
+	 ``random''.
+         %If ``centroid'', a ROM ``trained" on the centroids
+         %information of each cluster is used for the evaluation (\nb ``centroid'' option is not
+         %available yet).
          \default{first}
     \end{itemize}
 }

@@ -1046,6 +1046,18 @@ class IOStep(Step):
         ## unpickle the ROM
         fileobj = inDictionary['Input'][i]
         unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
+        ## DEBUGG
+        # the following will iteratively check the size of objects being unpickled
+        # this is quite useful for finding memory crashes due to parallelism
+        # so I'm leaving it here for reference
+        # print('CHECKING SIZE OF', unpickledObj)
+        # target = unpickledObj# .supervisedEngine.supervisedContainer[0]._macroSteps[2025]._roms[0]
+        # print('CHECKING SIZES')
+        # from utils.Debugging import checkSizesWalk
+        # checkSizesWalk(target, 1, str(type(target)), tol=2e4)
+        # print('*'*80)
+        # crashme
+        ## /DEBUGG
         if not isinstance(unpickledObj,Models.ROM):
           self.raiseAnError(RuntimeError,'Pickled object in "%s" is not a ROM.  Exiting ...' %str(fileobj))
         if not unpickledObj.amITrained:
@@ -1094,9 +1106,7 @@ class IOStep(Step):
     if 'fromDirectory' in paramInput.parameterValues:
       self.fromDirectory = paramInput.parameterValues['fromDirectory']
 
-#
-#
-#
+
 __interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun

@@ -49,6 +49,8 @@ class pickledROM(supervisedLearning):
     self.initOptionDict    = {}
     self.features          = ['PlaceHolder']
     self.target            = 'PlaceHolder'
+    self.metadataKeys = set() # keys that can be passed to DataObject as meta information
+    self.metadataParams = {}  # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
 
   def __confidenceLocal__(self,featureVals):
     """
