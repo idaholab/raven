@@ -53,6 +53,7 @@ class RAVEN(CodeInterfaceBase):
     self.linkedDataObjectOutStreamsNames = None
     # input manipulation module
     self.inputManipulationModule = None
+    self.printFailedRuns = False  # whether to print failed runs to the screen
 
   def addDefaultExtension(self):
     """
@@ -239,21 +240,23 @@ class RAVEN(CodeInterfaceBase):
       if convDict['scalar']:
         # call conversion, value changes happen in-place
         module.manipulateScalarSampledVariables(modifDict)
-
     # we work on batchSizes here
     newBatchSize = Kwargs['NumMPI']
     internalParallel = Kwargs.get('internalParallel',False)
     if int(Kwargs['numberNodes']) > 0:
       # we are in a distributed memory machine => we allocate a node file
       nodeFileToUse = os.path.join(Kwargs['BASE_WORKING_DIR'],"node_" +str(Kwargs['INDEX']))
-      if os.path.exists(nodeFileToUse):
-        modifDict['RunInfo|mode'           ] = 'mpi'
-        modifDict['RunInfo|mode|nodefile'  ] = nodeFileToUse
-      else:
-        raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" does not exist!')
+      if not os.path.exists(nodeFileToUse):
+        if "PBS_NODEFILE" not in os.environ:
+          raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" and PBS_NODEFILE enviroment var do not exist!')
+        else:
+          nodeFileToUse = os.environ["PBS_NODEFILE"]
+      modifDict['RunInfo|mode'] = 'mpi'
+      modifDict['RunInfo|mode|nodefile'  ] = nodeFileToUse
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
       modifDict['RunInfo|batchSize'] = newBatchSize
+
     #modifDict['RunInfo|internalParallel'] = internalParallel
     # make tree
     modifiedRoot = parser.modifyOrAdd(modifDict, save=True, allowAdd=True)
@@ -280,30 +283,25 @@ class RAVEN(CodeInterfaceBase):
     """
     failure = False
     # check for log file
-    try:
-      outputToRead = open(os.path.join(workingDir,output),"r")
-    except IOError:
-      print(self.printTag+' ERROR: The RAVEN SLAVE log file  "'+str(os.path.join(workingDir,output))+'" does not exist!')
+    ## NOTE this can be falsely accepted if the run dir isn't cleared before running,
+    ##      which it automatically is but can be disabled
+    toCheck = os.path.join(workingDir, self.innerWorkingDir, '.ravenStatus')
+    if not os.path.isfile(toCheck):
+      print(f'RAVENInterface WARNING: Could not find {toCheck}, assuming failed RAVEN run.')
       return True
-    # check for completed run
-    readLines = outputToRead.readlines()
-    if not any("Run complete" in x for x in readLines[-min(200,len(readLines)):]):
-      del readLines
-      return True
-    # check for output CSV (and data)
     if not failure:
       for filename in self.linkedDataObjectOutStreamsNames:
         outStreamFile = os.path.join(workingDir,self.innerWorkingDir,filename+".csv")
         try:
           fileObj = open(outStreamFile,"r")
         except IOError:
-          print(self.printTag+' ERROR: The RAVEN SLAVE output file "'+str(outStreamFile)+'" does not exist!')
+          print(self.printTag+' ERROR: The RAVEN INNER output file "'+str(outStreamFile)+'" does not exist!')
           failure = True
         if not failure:
           readLines = fileObj.readlines()
           if any("nan" in x.lower() for x in readLines):
             failure = True
-            print(self.printTag+' ERROR: Found nan in RAVEN SLAVE output "'+str(outStreamFile)+'!')
+            print(self.printTag+' ERROR: Found nan in RAVEN INNER output "'+str(outStreamFile)+'!')
             break
           del readLines
     return failure
@@ -318,7 +316,6 @@ class RAVEN(CodeInterfaceBase):
       @ Out, dataObjectsToReturn, dict, optional, this is a special case for RAVEN only. It returns the constructed dataobjects
                                                  (internally we check if the return variable is a dict and if it is returned by RAVEN (if not, we error out))
     """
-
     ##### TODO This is an exception to the way CodeInterfaces usually run.
     # The return dict for this CodeInterface is a dictionary of data objects (either one or two of them, up to one each point set and history set).
     # Normally, the end result of this method is producing a CSV file with the data to load.

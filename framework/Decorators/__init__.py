@@ -23,8 +23,15 @@ try:
   builtins.profile
   timingProfile = builtins.profile
 except (AttributeError, ImportError):
-  # builtins.profile = lambda f: f # alternative for using @profile
+  print('Unable to load "timingProfile" decorator; replacing with passthrough ...')
   timingProfile = lambda f: f
+
+# memory_profiler decorator, @Decorators.memoryProfile
+try:
+  from memory_profiler import profile as memoryProfile
+except (AttributeError, ImportError):
+  print('Unable to load "memoryProfile" decorator; replacing with passthrough ...')
+  memoryProfile = lambda f: f
 
 __all__ = ['Parallelization'] # note this is disallowed for use in RAVEN
 

@@ -97,7 +97,7 @@ class GradientHistory(StepManipulator):
       @ In, specs, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
-    #specs = specs
+    StepManipulator.handleInput(self, specs)
     growth = specs.findFirst('growthFactor')
     if growth is not None:
       self._growth = growth.value
@@ -117,13 +117,13 @@ class GradientHistory(StepManipulator):
   ###############
   # Run Methods #
   ###############
-  def initialStepSize(self, numOptVars=None, scaling=0.05, **kwargs):
+  def initialStepSize(self, numOptVars=None, scaling=1.0, **kwargs):
     """
       Provides an initial step size
       @ In, numOptVars, int, number of optimization variables
       @ In, scaling, float, optional, scaling factor
     """
-    return mathUtils.hyperdiagonal(np.ones(numOptVars) * scaling)
+    return mathUtils.hyperdiagonal(np.ones(numOptVars) * scaling) * self._initialStepScaling
 
   def step(self, prevOpt, gradientHist=None, prevStepSize=None, recommend=None, **kwargs):
     """

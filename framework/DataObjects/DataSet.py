@@ -929,12 +929,8 @@ class DataSet(DataObject):
           dim = dims[0]
           correctShape = rlz[dim].shape
           if rlz[var].shape != correctShape:
-            self.raiseAWarning(('Variable "{var}" with shape {vShape} '+
-                                'is not consistent with respect its index "{dim}" with shape {dShape}!')
-                               .format(var=var,
-                                       vShape=rlz[var].shape,
-                                       dim=dim,
-                                       dShape=correctShape))
+            self.raiseAWarning(f'Variable "{var}" with shape {rlz[var].shape} ' +
+                               f'is not consistent with respect its index "{dim}" with shape {correctShape} for DataSet "{self.name}"!')
             return False
         # if this variable depends on multiple dimensions, check shape
         elif len(dims) > 1:

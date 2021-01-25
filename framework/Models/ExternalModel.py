@@ -272,6 +272,7 @@ class ExternalModel(Dummy):
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     # collect results from model run
     result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
+    evalIndexMap = result.get('_indexMap', [{}])[0]
     # build realization
     ## do it in this order to make sure only the right variables are overwritten
     ## first inRun, which has everything from self.* and Input[*]
@@ -282,6 +283,8 @@ class ExternalModel(Dummy):
     rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs.items()))
     ## then get the inputs from SampledVars (overwriting any other entries)
     rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars'].items()))
+    if '_indexMap' in rlz:
+      rlz['_indexMap'][0].update(evalIndexMap)
     return rlz
 
   def collectOutput(self,finishedJob,output,options=None):

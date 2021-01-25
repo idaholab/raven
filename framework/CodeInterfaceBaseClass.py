@@ -46,6 +46,7 @@ class CodeInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object)):
     self._runOnShell = True      # True if the specified command by the code interfaces will be executed through shell.
     self._ravenWorkingDir = None # location of RAVEN's main working directory
     self._csvLoadUtil = 'pandas' # utility to use to load CSVs
+    self.printFailedRuns = True  # whether to print failed runs to the screen
     self._writeCSV = False       # write CSV even if the data can be returned directly to raven (e.g. if the user requests them)
 
   def setRunOnShell(self, shell=True):

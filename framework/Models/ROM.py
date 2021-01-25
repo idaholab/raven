@@ -94,6 +94,8 @@ class ROM(Dummy):
     segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
     ## clusterFeatures
     segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
+    ## max cycles (for Interpolated ROMCollection)
+    segment.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType))
     ## classifier
     clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType)
     clsfr.addParam('class', InputTypes.StringType, True)
@@ -106,8 +108,10 @@ class ROM(Dummy):
     segment.addSub(metric)
     segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType))
     inputSpecification.addSub(segment)
+    ##### END ROMCollection
     # pickledROM
     inputSpecification.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum))
+    inputSpecification.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType)) # for Interpolated ROMCollection
     # unsorted
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("gradient", contentType=InputTypes.StringType))
@@ -224,6 +228,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputTypes.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputTypes.FloatListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("nyquistScalar", contentType=InputTypes.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputTypes.BoolType))
     ### ARMA zero filter
     zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputTypes.StringType)
@@ -1399,6 +1404,21 @@ class ROM(Dummy):
     """
     paramDict = self.supervisedEngine.getInitParams()
     return paramDict
+
+  def provideExpectedMetaKeys(self):
+    """
+      Overrides the base class method to assure child engine is also polled for its keys.
+      @ In, None
+      @ Out, metaKeys, set(str), names of meta variables being provided
+      @ Out, metaParams, dict, the independent indexes related to expected keys
+    """
+    # load own keys and params
+    metaKeys, metaParams = Dummy.provideExpectedMetaKeys(self)
+    # add from engine
+    keys, params = self.supervisedEngine.provideExpectedMetaKeys()
+    metaKeys = metaKeys.union(keys)
+    metaParams.update(params)
+    return metaKeys, metaParams
 
   def train(self,trainingSet):
     """

@@ -22,7 +22,7 @@ def run(raven, inputs):
     @ Out, None
   """
   if not constrain(raven):
-    raise RuntimeError(f'Out of bounds: ({raven.x}, {raven.y})!')
+    raise RuntimeError(f'OffsetParabolaModel: Sample out of bounds! ({raven.x}, {raven.y})')
   raven.ans = main(raven.x, raven.y)
 
 def main(x, y):
@@ -32,8 +32,7 @@ def main(x, y):
     @ In, y, float, value
     @ Out, main, float, value
   """
-  return (x + 0.1)**2 + (y + 0.1) **2
-
+  return (x - 0.05)**2 + (y - 0.01) **2
 
 def constrain(raven):
   """
@@ -43,24 +42,6 @@ def constrain(raven):
   """
   x = raven.x
   y = raven.y
-  # circle
-  res = np.sqrt(x**2 + y**2)
-  if res <= 0.2:
-    return False
-  # rectangle
-  if 0.25 < x < 0.75 and 0 < y < 1:
+  if y < x:
     return False
   return True
-
-def implicitConstrain(raven):
-  """
-    Implicit constrain.
-    @ In, raven, object, raven self
-    @ Out, implicitConstrain, point ok or not?
-  """
-  x = raven.x
-  ans = raven.ans
-  if x+ans <= -0.2:
-    return False
-  else:
-    return True
