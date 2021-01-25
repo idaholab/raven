@@ -96,8 +96,8 @@ class HStoPSOperator(PostProcessorInterfaceBase):
       self.raiseAWarning('"pivotParameter" is not inputted! Default is "'+ self.pivotParameter +'"!')
     if self.settings['operationType'] is None:
       self.raiseAnError(IOError, 'No operation has been inputted!')
-    if self.settings['operationType'] == 'operator' and self.settings['operationValue'] not in ['max','min','average']:
-      self.raiseAnError(IOError, '"operator" can be either "max", "min" or "average"!')
+    if self.settings['operationType'] == 'operator' and self.settings['operationValue'] not in ['max','min','average','all']:
+      self.raiseAnError(IOError, '"operator" can be either "max", "min", "average" or "all"!')
 
   def run(self,inputDic):
     """
@@ -124,6 +124,22 @@ class HStoPSOperator(PostProcessorInterfaceBase):
       if self.settings['operationType'] == 'pivotValue':
         if self.pivotParameter not in inputDict['data']:
             self.raiseAnError(RuntimeError,'Pivot Variable "'+str(self.pivotParameter)+'" not found in data !')
+
+      if self.settings['operationValue'] == 'all':
+        #First of all make a new input variable of the time samples
+        origPivot = inputDict['data'][self.pivotParameter]
+        newPivot = np.concatenate(origPivot)
+        outputDic['data'][self.pivotParameter] = newPivot
+        #next, expand each of the input and meta parameters by duplicating them
+        for inVar in inputDict['inpVars']+inputDict['metaKeys']:
+          origSamples = outputDic['data'][inVar]
+          outputDic['data'][inVar] = np.empty(0)
+          for hist in range(numSamples):
+            #for each sample, need to expand since same in each time sample
+            outputDic['data'][inVar] = np.append(outputDic['data'][inVar],
+                                                 np.full(origPivot[hist].shape,
+                                                         origSamples[hist]))
+
 
       for hist in range(numSamples):
         for outputVar in inputDict['outVars']:
@@ -158,4 +174,7 @@ class HStoPSOperator(PostProcessorInterfaceBase):
               outputDic['data'][outputVar] = np.append(outputDic['data'][outputVar], copy.deepcopy(np.min(inputDict['data'][outputVar][hist])))
             elif self.settings['operationValue'] == 'average':
               outputDic['data'][outputVar] = np.append(outputDic['data'][outputVar], copy.deepcopy(np.mean(inputDict['data'][outputVar][hist])))
+            elif self.settings['operationValue'] == 'all':
+              outputDic['data'][outputVar] = np.append(outputDic['data'][outputVar], copy.deepcopy(inputDict['data'][outputVar][hist]))
+
       return outputDic
