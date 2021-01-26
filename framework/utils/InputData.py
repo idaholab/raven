@@ -126,6 +126,7 @@ class ParameterInput(object):
   contentType = None
   strictMode = True #If true, only allow parameters and subnodes that are listed
   description = '-- no description yet --'
+  default = 'no-default'
   printPriority = None
   _checkCanRead = None #If not none, call this function before trying to read
   # an xml file.  The function should return true or false depending on if
@@ -143,7 +144,7 @@ class ParameterInput(object):
 
   @classmethod
   def createClass(cls, name, ordered=False, contentType=None, baseNode=None,
-                  strictMode=True, descr=None, printPriority=None):
+                  strictMode=True, descr=None, printPriority=None, default='no-default'):
     """
       Initializes a new class.
       @ In, name, string, The name of the node.
@@ -152,6 +153,7 @@ class ParameterInput(object):
       @ In, baseNode, ParameterInput, optional, If not None, copy parameters and subnodes, subOrder, and contentType from baseNode.
       @ In, strictNode, bool, optional, If True, then only allow paramters and subnodes that are specifically mentioned.
       @ In, printPriority, int, optional, sets the priority for printing this node e.g. in the user
+      @ In, default, object, optional, default value for this parameter
       manual. Lower is higher priority; priority 0 gets printed first. See generateLatex for details.
       @ Out, None
     """
@@ -164,6 +166,7 @@ class ParameterInput(object):
     cls.name = name
     cls.strictMode = strictMode
     cls.description = descr if descr is not None else cls.description
+    cls.default = default
     if printPriority is None:
       # TODO set printPriority based on required/not required, but we don't have this system yet.
       cls.printPriority = 200
@@ -220,16 +223,20 @@ class ParameterInput(object):
     return None
 
   @classmethod
-  def addParam(cls, name, param_type=InputTypes.StringType, required=False, descr=None):
+  def addParam(cls, name, param_type=InputTypes.StringType, required=False, default='no-default', descr=None):
     """
       Adds a direct parameter to this class.  In XML this is an attribute.
       @ In, name, string, the name of the parameter
       @ In, param_type, subclass of InputType, optional, that specifies the type of the attribute.
       @ In, required, bool, optional, if True, this parameter is required.
+      @ In, default, object, optional, if provided, this is the default for this parameter
       @ Out, None
     """
+    if default != 'no-default':
+      assert(not required)
     cls.parameters[name] = {"type":param_type, "required":required,
-                            'description':descr if descr is not None else '-- no description yet --'}
+                            'description':descr if descr is not None else '-- no description yet --',
+                            'default':default}
 
   @classmethod
   def removeParam(cls, name, param_type=InputTypes.StringType, required=False):
@@ -472,6 +479,41 @@ class ParameterInput(object):
         return sub
     return None
 
+  def findNodesAndExtractValues(self, names):
+    """
+      Finds the first subparts with names.  Once found, the values
+      are extracted and if not found, a default value is search for (None if not found)
+      @ In, names, string, the names of the nodes to search for
+      @ Out, values, dict, dictionary of the found nodes and values
+      @ Out, notFound, list, list of the names that have not been found
+    """
+    values = dict.fromkeys(names)
+    notFound = []
+    found = []
+    for sub in self.subparts:
+      if sub.getName() in names:
+        values[name] = sub.values
+        found.append(name)
+    # check if defualt for the one not found
+    for n in list(set(names) - set(found)):
+      default = self.returnDefault(n)
+      values[name] = default
+      if default == 'no-default':
+        notFound.append(name)
+    return values, notFound
+
+  def returnDefault(self, name):
+    """
+      Finds the default of the first subpart with name.
+      If found, the default is returned. None is returned
+      otherwise.
+      @ In, name, string, the name of the node to search for
+      @ Out, default, object, the default value if found
+    """
+    if name in self.parameters:
+      return self.parameters[name]["default"]
+    return None
+
   def findAll(self, name):
     """
       Finds all the subparts with name.
@@ -611,12 +653,15 @@ class ParameterInput(object):
       name = re.sub(r'(?<!\\)_', r'\_', param)
       typ = info['type'].generateLatexType()
       req = 'required' if info['required'] else 'optional'
+      default = '\\default{'+ str(info['default']) +'}' if info['default'] != 'no-default' else ""
       desc = wrapText(info['description'], indent=doDent(recDepth, 3))
-      msg += '\n{i}  \\item \\xmlAttr{{{n}}}: \\xmlDesc{{{t}, {r}}}, \n{d}'.format(i=doDent(recDepth, 1),
+      msg += '\n{i}  \\item \\xmlAttr{{{n}}}: \\xmlDesc{{{t}, {r}}}, \n{d} {de}'.format(i=doDent(recDepth, 1),
                                                                                    n=name,
                                                                                    t=typ,
                                                                                    r=req,
-                                                                                   d=desc)
+                                                                                   d=desc,
+                                                                                   de=default)
+                                                                                   
     msg += '\n{i}\\end{{itemize}}\n'.format(i=doDent(recDepth))
     return msg
 
