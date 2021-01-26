@@ -78,6 +78,8 @@ class ConjugateGradient(StepManipulator):
     self._persistence = None     # consecutive line search converges until acceptance
     # __private
     # additional methods
+    self._minRotationAngle = 2.0 # how close to perpendicular should we try rotating towards?
+    self._numRandomPerp = 10     # how many random perpendiculars should we try rotating towards?
 
   def handleInput(self, specs):
     """
@@ -85,7 +87,7 @@ class ConjugateGradient(StepManipulator):
       @ In, specs, InputData.ParameterInput, parameter specs interpreted
       @ Out, None
     """
-    #specs = specs
+    StepManipulator.handleInput(self, specs)
     growth = specs.findFirst('growthFactor')
     if growth is not None:
       self._growth = growth.value
@@ -108,13 +110,13 @@ class ConjugateGradient(StepManipulator):
   ###############
   # Run Methods #
   ###############
-  def initialStepSize(self, numOptVars=None, scaling=0.05, **kwargs):
+  def initialStepSize(self, numOptVars=None, scaling=1.0, **kwargs):
     """
       Provides an initial step size
       @ In, numOptVars, int, number of optimization variables
       @ In, scaling, float, optional, scaling factor
     """
-    return mathUtils.hyperdiagonal(np.ones(numOptVars) * scaling)
+    return mathUtils.hyperdiagonal(np.ones(numOptVars) * scaling) * self._initialStepScaling
 
   def step(self, prevOpt, gradientHist=None, prevStepSize=None, objVar=None, **kwargs):
     """

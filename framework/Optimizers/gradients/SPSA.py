@@ -54,11 +54,12 @@ class SPSA(GradientApproximater):
           """
     return specs
 
-  def chooseEvaluationPoints(self, opt, stepSize):
+  def chooseEvaluationPoints(self, opt, stepSize, constraints=None):
     """
       Determines new point(s) needed to evaluate gradient
       @ In, opt, dict, current opt point (normalized)
       @ In, stepSize, float, distance from opt point to sample neighbors
+      @ In, constraints, dict, optional, constraints to check against when choosing new sample points
       @ Out, evalPoints, list(dict), list of points that need sampling
       @ Out, evalInfo, list(dict), identifying information about points
     """

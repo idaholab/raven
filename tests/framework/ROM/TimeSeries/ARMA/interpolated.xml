@@ -8,12 +8,16 @@
       Tests the mechanics of providing several set points for ARMAs on different
       years and interpolating the ARMAs to fill missing years. Note that as implemented,
       interpolating assumes clustering.
+      The output \texttt{synthetic.csv} is the \emph{truncated} output form, with the clusters
+      stacked sequentially. The output \texttt{resynthetic.csv} is the \emph{clustered} form,
+      with \texttt{_ROM_Cluster} as one of the index dimensions.
     </description>
+    <revision author="talbpaul" date="2020-10-19">added test for unpickling as well</revision>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Interpolated</WorkingDir>
-    <Sequence>load, train, serialize, stats, sample</Sequence>
+    <Sequence>load, train, serialize, stats, sample, deserialize, resample</Sequence>
   </RunInfo>
 
   <Steps>
@@ -29,6 +33,10 @@
       <Input class="Models" type="ROM">arma</Input>
       <Output class="Files" type="">pk</Output>
     </IOStep>
+    <IOStep name="deserialize">
+      <Input class="Files" type="">pk</Input>
+      <Output class="Models" type="ROM">rearma</Output>
+    </IOStep>
     <IOStep name="stats">
       <Input class="Models" type="ROM">arma</Input>
       <Output class="DataObjects" type="DataSet">romMeta</Output>
@@ -40,6 +48,13 @@
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="DataSet">synthetic</Output>
       <Output class="OutStreams" type="Print">synthetic</Output>
+    </MultiRun>
+    <MultiRun name="resample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">rearma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">resynthetic</Output>
+      <Output class="OutStreams" type="Print">resynthetic</Output>
     </MultiRun>
   </Steps>
 
@@ -66,6 +81,13 @@
       <Index var="Time">Signal</Index>
       <Index var="Year">Signal</Index>
     </DataSet>
+    <DataSet name="resynthetic">
+      <Input>scaling</Input>
+      <Output>Signal</Output>
+      <Index var="Time">Signal</Index>
+      <Index var="Year">Signal</Index>
+      <Index var="_ROM_Cluster">Signal</Index>
+    </DataSet>
     <DataSet name="romMeta"/>
   </DataObjects>
 
@@ -78,6 +100,8 @@
       <Q>0</Q>
       <Fourier>100, 5, 3</Fourier>
       <preserveInputCDF>False</preserveInputCDF>
+      <seed>42</seed>
+      <reseedCopies>False</reseedCopies>
       <Peaks target='Signal' threshold='-2' period='10'>
         <window width='0.5' >-1,1</window>
         <window width='0.55' >6,7</window>
@@ -90,6 +114,9 @@
         <subspace divisions='10'>Time</subspace>
       </Segment>
     </ROM>
+    <ROM name="rearma" subType="pickledROM">
+      <clusterEvalMode>clustered</clusterEvalMode>
+    </ROM>
     <PostProcessor name="classifier" subType="DataMining">
       <KDD labelFeature="labels" lib="SciKitLearn">
         <Features>Signal</Features>
@@ -99,12 +126,6 @@
     </PostProcessor>
   </Models>
 
-  <Metrics>
-    <SKL name="metric">
-      <metricType>regression|mean_squared_error</metricType>
-    </SKL>
-  </Metrics>
-
   <OutStreams>
     <Print name="romMeta">
       <type>csv</type>
@@ -113,6 +134,10 @@
     <Print name="synthetic">
       <type>csv</type>
       <source>synthetic</source>
+    </Print>
+    <Print name="resynthetic">
+      <type>csv</type>
+      <source>resynthetic</source>
     </Print>
   </OutStreams>
 

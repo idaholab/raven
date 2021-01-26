@@ -28,9 +28,9 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import numpy as np
 import abc
 import copy
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -86,6 +86,8 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self._dynamicHandling = False
     self._assembledObjects = None           # objects assembled by the ROM Model, passed through.
     self.numThreads = kwargs.pop('NumThreads', None)
+    self.metadataKeys = set() # keys that can be passed to DataObject as meta information
+    self.metadataParams = {}  # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
     self.initOptionDict = {} if kwargs is None else kwargs
     if 'Features' not in self.initOptionDict.keys():
@@ -126,6 +128,37 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ Out, None
     """
     self.__dict__.update(d)
+
+  def addMetaKeys(self, args, params=None):
+    """
+      Adds keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to register
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
+      @ Out, None
+    """
+    if params is None:
+      params = {}
+    self.metadataKeys = self.metadataKeys.union(set(args))
+    self.metadataParams.update(params)
+
+  def removeMetaKeys(self, args):
+    """
+      Removes keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to de-register
+      @ Out, None
+    """
+    self.metadataKeys = self.metadataKeys - set(args)
+    for arg in set(args):
+      self.metadataParams.pop(arg, None)
+
+  def provideExpectedMetaKeys(self):
+    """
+      Provides the registered list of metadata keys for this entity.
+      @ In, None
+      @ Out, meta,tuple, (list(str),dict), expected keys (empty if none) and expected indexes related to expected keys
+    """
+    return self.metadataKeys, self.metadataParams
 
   def initialize(self,idict):
     """

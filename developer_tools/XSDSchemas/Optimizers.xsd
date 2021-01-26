@@ -49,6 +49,7 @@
         <xsd:all>
           <xsd:element name="growthFactor" type="xsd:float" minOccurs="0" maxOccurs="1"/>
           <xsd:element name="shrinkFactor" type="xsd:float" minOccurs="0" maxOccurs="1"/>
+          <xsd:element name="initialStepScale" type="xsd:float" minOccurs="0" maxOccurs="1"/>
         </xsd:all>
     </xsd:complexType>
 

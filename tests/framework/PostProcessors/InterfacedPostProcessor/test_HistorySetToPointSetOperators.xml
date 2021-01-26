@@ -23,7 +23,8 @@
         PP_HStoPSoperatorPivotValuesNearestCeling,
         PP_HStoPSoperatorOperatorMax,
         PP_HStoPSoperatorOperatorMin,
-        PP_HStoPSoperatorOperatorAverage
+        PP_HStoPSoperatorOperatorAverage,
+        PP_HStoPSoperatorOperatorAll
     </Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -73,6 +74,11 @@
         <method>HStoPSOperator</method>
         <pivotParameter>time</pivotParameter>
         <operator>average</operator>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorAll" subType="InterfacedPostProcessor">
+        <method>HStoPSOperator</method>
+        <pivotParameter>time</pivotParameter>
+        <operator>all</operator>
     </PostProcessor>
   </Models>
 
@@ -125,6 +131,10 @@
         <type>csv</type>
         <source>out_PP_HStoPSPivotOperatorAverage</source>
     </Print>
+    <Print name="out_PP_HStoPSPivotOperatorAll_dump">
+        <type>csv</type>
+        <source>out_PP_HStoPSPivotOperatorAll</source>
+    </Print>
   </OutStreams>
 
   <DataObjects>
@@ -163,6 +173,10 @@
     </PointSet>
     <PointSet name="out_PP_HStoPSPivotOperatorAverage">
         <Input>x0,y0,z0</Input>
+        <Output>x,y,z</Output>
+    </PointSet>
+    <PointSet name="out_PP_HStoPSPivotOperatorAll">
+        <Input>x0,y0,z0,time</Input>
         <Output>x,y,z</Output>
     </PointSet>
     
@@ -235,6 +249,13 @@
           <Model class="Models" type="PostProcessor">HStoPSoperatorOperatorAverage</Model>
           <Output class="DataObjects" type="PointSet">out_PP_HStoPSPivotOperatorAverage</Output>
           <Output class="OutStreams" type="Print">out_PP_HStoPSPivotOperatorAverage_dump</Output>
+      </PostProcess>
+      <!-- apply operator-based projection All -->
+      <PostProcess name="PP_HStoPSoperatorOperatorAll">
+          <Input class="DataObjects" type="HistorySet">outMC</Input>
+          <Model class="Models" type="PostProcessor">HStoPSoperatorOperatorAll</Model>
+          <Output class="DataObjects" type="PointSet">out_PP_HStoPSPivotOperatorAll</Output>
+          <Output class="OutStreams" type="Print">out_PP_HStoPSPivotOperatorAll_dump</Output>
       </PostProcess>
   </Steps>
 
