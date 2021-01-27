@@ -715,7 +715,7 @@ class ARMA(supervisedLearning):
       @ Out, hist, np.array(float), synthetic ARMA signal
     """
     if numSamples is None:
-      numSamples =  len(self.pivotParameterValues)
+      numSamples =  len(self.pivotParameterVatatsues)
     if randEngine is None:
       randEngine=self.randomEng
     import statsmodels.tsa
