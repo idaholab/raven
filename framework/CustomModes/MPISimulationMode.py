@@ -73,7 +73,8 @@ class MPISimulationMode(Simulation.SimulationMode):
       #the batchsize is just the number of nodes of which there is one
       # per line in the nodefile divided by the numMPI (which is per run)
       # and the floor and int and max make sure that the numbers are reasonable
-      maxBatchsize = max(int(math.floor(len(lines)/numMPI)),1)
+      maxBatchsize = max(int(math.floor(len(lines) / numMPI)), 1)
+
       if maxBatchsize < oldBatchsize:
         newRunInfo['batchSize'] = maxBatchsize
         self.raiseAWarning("changing batchsize from "+str(oldBatchsize)+" to "+str(maxBatchsize)+" to fit on "+str(len(lines))+" processors")
@@ -83,16 +84,16 @@ class MPISimulationMode(Simulation.SimulationMode):
         #need to split node lines so that numMPI nodes are available per run
         workingDir = runInfoDict['WorkingDir']
         for i in range(newBatchsize):
-          nodeFile = open(os.path.join(workingDir,"node_"+str(i)),"w")
-          for line in lines[i*numMPI:(i+1)*numMPI]:
+          nodeFile = open(os.path.join(workingDir, f"node_{i}"), "w")
+          for line in lines[i*numMPI : (i+1) * numMPI]:
             nodeFile.write(line)
           nodeFile.close()
-
         #then give each index a separate file.
         nodeCommand = runInfoDict["NodeParameter"]+" %BASE_WORKING_DIR%/node_%INDEX% "
       else:
         #If only one batch just use original node file
         nodeCommand = runInfoDict["NodeParameter"]+" "+nodefile
+
     else:
       #Not in PBS, so can't look at PBS_NODEFILE and none supplied in input
       newBatchsize = newRunInfo['batchSize']
@@ -108,9 +109,10 @@ class MPISimulationMode(Simulation.SimulationMode):
     # Create the mpiexec pre command
     # Note, with defaults the precommand is "mpiexec -f nodeFile -n numMPI"
     newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
-    if(runInfoDict['NumThreads'] > 1):
+    if runInfoDict['NumThreads'] > 1:
       #add number of threads to the post command.
       newRunInfo['postcommand'] = " --n-threads=%NUM_CPUS% "+runInfoDict['postcommand']
+
     self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
     return newRunInfo
 
@@ -126,6 +128,7 @@ class MPISimulationMode(Simulation.SimulationMode):
       coresNeeded = self.__coresNeeded
     else:
       coresNeeded = runInfoDict['batchSize']*runInfoDict['NumMPI']
+
     # get the requested memory, if any
     if self.__memNeeded is not None:
       memString = ":mem="+self.__memNeeded

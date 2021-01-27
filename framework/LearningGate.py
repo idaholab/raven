@@ -174,6 +174,16 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     paramDict = self.supervisedContainer[-1].returnInitialParameters()
     return paramDict
 
+  def provideExpectedMetaKeys(self):
+    """
+      Overrides the base class method to assure child engine is also polled for its keys.
+      @ In, None
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and the indexes related to expected keys
+    """
+    # get from engine
+    keys, params = self.supervisedContainer[0].provideExpectedMetaKeys()
+    return keys, params
+
   def train(self, trainingSet, assembledObjects=None):
     """
       This function train the ROM this gate is linked to. This method is aimed to agnostically understand if a "time-dependent-like" ROM needs to be constructed.

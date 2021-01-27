@@ -80,6 +80,7 @@ class ARMA(supervisedLearning):
     self.fourierResults    = {} # dictionary of Fourier results, by target
     # training parameters
     self.fourierParams     = {} # dict of Fourier training params, by target (if requested, otherwise not present)
+    self.nyquistScalar     = kwargs.get('nyquistScalar', 1)
     self.P                 = kwargs.get('P', 3) # autoregressive lag
     self.Q                 = kwargs.get('Q', 3) # moving average lag
     self.segments          = kwargs.get('segments', 1)
@@ -728,7 +729,6 @@ class ARMA(supervisedLearning):
                                                     burnin = 2*max(self.P,self.Q)) # @alfoa, 2020
     return hist
 
-
   def _generateFourierSignal(self, pivots, periods):
     """
       Generate fourier signal as specified by the input file
@@ -897,7 +897,7 @@ class ARMA(supervisedLearning):
     if masks is not None:
       data = data[masks]
     import statsmodels.api
-    results =  statsmodels.tsa.arima_model.ARMA(data, order = (self.P, self.Q)).fit(disp = False)
+    results = statsmodels.tsa.arima_model.ARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
   def _trainCDF(self, data, binOps=None):
@@ -1826,8 +1826,8 @@ class ARMA(supervisedLearning):
           # NOTE: assuming training on only one history!
           targetVals = trainingDict[target][0]
           periods = np.asarray(self.fourierParams[target])
-          full = periods[periods > delta]
-          segment[target] = periods[np.logical_not(periods > delta)]
+          full = periods[periods > (delta*self.nyquistScalar)]
+          segment[target] = periods[np.logical_not(periods > (delta*self.nyquistScalar))]
           if len(full):
             # train Fourier on longer periods
             self.fourierResults[target] = self._trainFourier(pivotValues, full, targetVals, target=target)
@@ -2041,6 +2041,8 @@ class ARMA(supervisedLearning):
           # TODO can we do this all at once with a vector operation? -> you betcha
           evaluation[target][:, localPicker] += mySig
         else:
+          # if last segment is shorter than other clusters, just keep the part of the evaluation
+          #     that makes sense? I guess? What about the "truncated" case above? - talbpaul 2020-10
           evaluation[target][localPicker] += sig
     return evaluation
 
