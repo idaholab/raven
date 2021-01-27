@@ -1,0 +1,123 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework/MCMC.MetropolisOneDimTune</name>
+    <author>wangc</author>
+    <created>2020-12-20</created>
+    <classesTested>MCMC.Metropolis</classesTested>
+    <description>
+      Test the Markov Chain Monte Carlo algorithm: Metropolis Sampling
+      specifically testing the auto tuning of scaling parameter with provided
+      tune interval.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>OneDimTune</WorkingDir>
+    <Sequence>mh, print, pp</Sequence>
+    <batchSize>1</batchSize>
+    <internalParallel>False</internalParallel>
+  </RunInfo>
+
+  <Distributions>
+    <Uniform name="uniform">
+      <lowerBound>-10</lowerBound>
+      <upperBound>10</upperBound>
+    </Uniform>
+    <Normal name="normal">
+      <mean>0</mean>
+      <sigma>0.1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../likelihoods/likelihood_1D" name="likelihood" subType="">
+      <variables>xin, zout</variables>
+    </ExternalModel>
+    <PostProcessor name="posteriorMode" subType="BasicStatistics">
+      <expectedValue prefix="mean">xin</expectedValue>
+      <sigma prefix="sigma">xin</sigma>
+    </PostProcessor>
+  </Models>
+
+  <Samplers>
+    <Metropolis name="Metropolis">
+      <samplerInit>
+        <limit>8000</limit>
+        <initialSeed>070419</initialSeed>
+        <burnIn>0</burnIn>
+        <tune>True</tune>
+        <tuneInterval>80</tuneInterval>
+      </samplerInit>
+      <likelihood log="True">zout</likelihood>
+      <variable name="xin">
+        <distribution>uniform</distribution>
+        <initial>0</initial>
+        <proposal class="Distributions" type="Normal">normal</proposal>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
+    </Metropolis>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mh">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">likelihood</Model>
+      <Sampler class="Samplers" type="Metropolis">Metropolis</Sampler>
+      <SolutionExport class="DataObjects" type="PointSet">out_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">out_export</Input>
+      <Input class="DataObjects" type="PointSet">outSet</Input>
+      <Output class="OutStreams" type="Print">dumpExport</Output>
+      <Output class="OutStreams" type="Print">dumpOut</Output>
+    </IOStep>
+    <PostProcess name="pp">
+      <Input class="DataObjects" type="PointSet">out_export</Input>
+      <Model class="Models" type="PostProcessor">posteriorMode</Model>
+      <Output class="DataObjects" type="PointSet">posterior_basicStat</Output>
+      <Output class="OutStreams" type="Print">posterior_basicStat_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dumpOut">
+      <type>csv</type>
+      <source>outSet</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="dumpExport">
+      <type>csv</type>
+      <source>out_export</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="posterior_basicStat_dump">
+      <type>csv</type>
+      <source>posterior_basicStat</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>xin</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+
+    <PointSet name="outSet">
+      <Input>xin</Input>
+      <Output>zout</Output>
+    </PointSet>
+
+    <PointSet name="out_export">
+      <Input>traceID</Input>
+      <Output>xin, LogPosterior, AcceptRate, zout</Output>
+    </PointSet>
+
+    <PointSet name="posterior_basicStat">
+      <Output>mean_xin, sigma_xin</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

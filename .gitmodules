@@ -1,15 +1,15 @@
+[submodule "plugins/TEAL"]
+	path = plugins/TEAL
+	url = git@github.com:idaholab/TEAL.git
+[submodule "plugins/HERON"]
+	path = plugins/HERON
+	url = git@github.com:idaholab/HERON.git
 [submodule "plugins/SR2ML"]
 	path = plugins/SR2ML
-	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SR2ML.git
+	url = git@github.com:idaholab/SR2ML.git
 [submodule "plugins/LOGOS"]
 	path = plugins/LOGOS
-	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/LOGOS.git
+	url = git@github.com:idaholab/LOGOS.git
 [submodule "plugins/SRAW"]
 	path = plugins/SRAW
 	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SRAW.git
-[submodule "plugins/TEAL"]
-	path = plugins/TEAL
-	url = https://github.com/idaholab/TEAL.git
-[submodule "plugins/HERON"]
-	path = plugins/HERON
-	url = https://github.com/idaholab/HERON.git

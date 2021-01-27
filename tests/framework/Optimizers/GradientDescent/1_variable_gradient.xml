@@ -1,0 +1,197 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers.1variable</name>
+    <author>alfoa</author>
+    <created>2021-01-04</created>
+    <classesTested>Optimizer</classesTested>
+    <description>
+        This test is inspired by the the test ``framework/Optimizers.Basic''. The only two differences are: 1)
+        a single parameter is optimized and, 2) all the gradient options (finite difference, spsa, central diff, etc.)
+        are tested. This test is aimed to show how a single variable
+        optimization can be performed with RAVEN.
+    </description>
+    <analytic>
+      This test uses Beale's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>1variable</WorkingDir>
+    <Sequence>optimize_fd, optimize_cd, optimize_spsa, print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize_fd">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">beale</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter_fd</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export_fd</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut_fd</Output>
+    </MultiRun>
+    <MultiRun name="optimize_cd">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">beale</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter_cd</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export_cd</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut_cd</Output>
+    </MultiRun>
+    <MultiRun name="optimize_spsa">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="ExternalModel">beale</Model>
+      <Optimizer class="Optimizers" type="SPSA">opter_spsa</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export_spsa</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut_spsa</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export_fd</Input>
+      <Input class="DataObjects" type="PointSet">opt_export_cd</Input>
+      <Input class="DataObjects" type="PointSet">opt_export_spsa</Input>
+      <Output class="OutStreams" type="Print">opt_export_fd</Output>
+      <Output class="OutStreams" type="Print">opt_export_cd</Output>
+      <Output class="OutStreams" type="Print">opt_export_spsa</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name='beale_dist'>
+      <lowerBound>-4.5</lowerBound>
+      <upperBound>4.5</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <GradientDescent name="opter_fd">
+      <objective>ans</objective>
+      <variable name="x">
+        <distribution>beale_dist</distribution>
+        <initial>-2</initial>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut_fd</TargetEvaluation>
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+      <gradient>
+        <FiniteDifference/>
+      </gradient>
+      <stepSize>
+        <GradientHistory>
+          <growthFactor>1.25</growthFactor>
+          <shrinkFactor>1.5</shrinkFactor>
+        </GradientHistory>
+      </stepSize>
+      <acceptance>
+        <Strict/>
+      </acceptance>
+      <constant name='y'>0.5</constant>
+    </GradientDescent>
+    <GradientDescent name="opter_cd">
+      <objective>ans</objective>
+      <variable name="x">
+        <distribution>beale_dist</distribution>
+        <initial>-2</initial>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut_cd</TargetEvaluation>
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+      <gradient>
+        <CentralDifference/>
+      </gradient>
+      <stepSize>
+        <GradientHistory>
+          <growthFactor>1.25</growthFactor>
+          <shrinkFactor>1.5</shrinkFactor>
+        </GradientHistory>
+      </stepSize>
+      <acceptance>
+        <Strict/>
+      </acceptance>
+      <constant name='y'>0.5</constant>
+    </GradientDescent>
+    <GradientDescent name="opter_spsa">
+      <objective>ans</objective>
+      <variable name="x">
+        <distribution>beale_dist</distribution>
+        <initial>-2</initial>
+      </variable>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut_spsa</TargetEvaluation>
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+      <gradient>
+        <SPSA/>
+      </gradient>
+      <stepSize>
+        <GradientHistory>
+          <growthFactor>1.25</growthFactor>
+          <shrinkFactor>1.5</shrinkFactor>
+        </GradientHistory>
+      </stepSize>
+      <acceptance>
+        <Strict/>
+      </acceptance>
+      <constant name='y'>0.5</constant>
+    </GradientDescent>
+  </Optimizers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="dummyIN"/>
+    <PointSet name="optOut_fd">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="optOut_cd">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="optOut_spsa">
+      <Input>x,y</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="opt_export_fd">
+      <Input>trajID</Input>
+      <Output>x,y,ans,stepSize,iteration,accepted,conv_gradient</Output>
+    </PointSet>
+    <PointSet name="opt_export_cd">
+      <Input>trajID</Input>
+      <Output>x,y,ans,stepSize,iteration,accepted,conv_gradient</Output>
+    </PointSet>
+    <PointSet name="opt_export_spsa">
+      <Input>trajID</Input>
+      <Output>x,y,ans,stepSize,iteration,accepted,conv_gradient</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="opt_export_fd">
+      <type>csv</type>
+      <source>opt_export_fd</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Print name="opt_export_cd">
+      <type>csv</type>
+      <source>opt_export_cd</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+    <Print name="opt_export_spsa">
+      <type>csv</type>
+      <source>opt_export_spsa</source>
+      <clusterLabel>trajID</clusterLabel>
+    </Print>
+  </OutStreams>
+
+</Simulation>

@@ -1,0 +1,6 @@
+[Tests]
+  [./Fourier]
+    type = 'RavenPython'
+    input = 'testFourier.py'
+  [../]
+[]

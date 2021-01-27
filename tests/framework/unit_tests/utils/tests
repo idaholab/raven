@@ -31,6 +31,10 @@
   type = 'RavenPython'
   input = 'testInputData.py'
  [../]
+ [./Debugging]
+  type = 'RavenPython'
+  input = 'testDebugging.py'
+ [../]
 []
 
 

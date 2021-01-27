@@ -48,6 +48,7 @@ from .AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
 
 # MCMC Samplers
 from .MCMC import Metropolis
+from .MCMC import AdaptiveMetropolis
 
 # Factory methods
 from .Factory import knownTypes
@@ -58,4 +59,4 @@ from .Factory import returnClass
 __all__ = ['Sampler','AdaptiveSampler','ForwardSampler','MonteCarlo','Grid','CustomSampler','Stratified',
            'FactorialDesign','ResponseSurfaceDesign','Sobol','EnsembleForward','SparseGridCollocation',
            'DynamicEventTree','LimitSurfaceSearch','AdaptiveDynamicEventTree','AdaptiveSparseGrid','AdaptiveSobol',
-           'AdaptiveMonteCarlo','Metropolis']
+           'AdaptiveMonteCarlo','Metropolis', 'AdaptiveMetropolis']

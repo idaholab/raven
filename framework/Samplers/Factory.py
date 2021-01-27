@@ -47,6 +47,7 @@ from Samplers.AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
 
 # MCMC Samplers
 from .MCMC import Metropolis
+from .MCMC import AdaptiveMetropolis
 
 ## [ Add new class here ]
 ################################################################################
@@ -76,7 +77,8 @@ __interFaceDict['AdaptiveSparseGrid'      ] = AdaptiveSparseGrid
 __interFaceDict['DynamicEventTree'        ] = DynamicEventTree
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDynamicEventTree
 __interFaceDict['AdaptiveMonteCarlo'      ] = AdaptiveMonteCarlo
-__interFaceDict['Metropolis'               ] = Metropolis
+__interFaceDict['Metropolis'              ] = Metropolis
+__interFaceDict['AdaptiveMetropolis'      ] = AdaptiveMetropolis
 
 def knownTypes():
   """
