@@ -488,6 +488,8 @@ class Simulation(MessageHandler.MessageUser):
     os.chdir(self.runInfoDict['WorkingDir'])
     #add also the new working dir to the path
     sys.path.append(os.getcwd())
+    # clear the raven status file, if any
+    self.clearStatusFile()
     #check consistency and fill the missing info for the // runs (threading, mpi, batches)
     self.runInfoDict['numProcByRun'] = self.runInfoDict['NumMPI']*self.runInfoDict['NumThreads']
     oldTotalNumCoresUsed = self.runInfoDict['totalNumCoresUsed']
@@ -757,6 +759,8 @@ class Simulation(MessageHandler.MessageUser):
       self.raiseAMessage('-'*2+' End step {0:50} '.format(stepName+' of type: '+stepInstance.type)+2*'-'+'\n')#,color='green')
     self.jobHandler.shutdown()
     self.messageHandler.printWarnings()
+    # implicitly, the job finished successfully if we got here.
+    self.writeStatusFile()
     self.raiseAMessage('Run complete!',forcePrint=True)
 
   def generateAllAssemblers(self, objectInstance):
@@ -790,3 +794,26 @@ class Simulation(MessageHandler.MessageUser):
                                       .format(n=obj[1], m=mainClassStr) +
                                       '\nOptions are:', self.whichDict[mainClassStr].keys())
       objectInstance.generateAssembler(neededobjs)
+
+  def clearStatusFile(self):
+    """
+      Remove the status file from disk so we can really tell when RAVEN has successfully finished.
+      This doesn't seem to be a very robust strategy, but it is working for now.
+      @ In, None
+      @ Out, None
+    """
+    try:
+      os.remove('.ravenStatus')
+    except OSError as e:
+      if os.path.isfile('.ravenStatus'):
+        self.raiseAWarning(f'RAVEN status file detected but not removable! Got: "{e}"')
+
+  def writeStatusFile(self):
+    """
+      Write a status file to disk so we can really tell when RAVEN has successfully finished.
+      This doesn't seem to be a very robust strategy, but it is working for now.
+      @ In, None
+      @ Out, None
+    """
+    with open('.ravenStatus', 'w') as f:
+      f.writelines('Success')

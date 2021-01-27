@@ -25,6 +25,10 @@ def run(raven, Inputs):
     @ Out, None
   """
   #vs = list(Inputs.values())
+  for n in ['x', 'y']:
+    v = getattr(raven, n)
+    if v < 0 or v > 1:
+      raise RuntimeError(f'Value out of domain! {n} = {v}')
   raven.ans = main(raven.x, raven.y)
 
 def main(x, y):

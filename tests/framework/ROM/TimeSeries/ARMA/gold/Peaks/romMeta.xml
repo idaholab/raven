@@ -310,23 +310,6 @@
         </Peak_params>
       </Signal>
     </SegmentROM>
-    <SegmentROM segment="17" type="Static">
-      <Signal>
-        <ARMA_params>
-          <std>1.48674172936</std>
-        </ARMA_params>
-        <Peak_params>
-          <peak>
-            <Amplitude>9.288260418250001</Amplitude>
-            <Index>1.5</Index>
-          </peak>
-          <peak>
-            <Amplitude>8.721018187499999</Amplitude>
-            <Index>2.25</Index>
-          </peak>
-        </Peak_params>
-      </Signal>
-    </SegmentROM>
   </arma>
   
 </DataObjectMetadata>

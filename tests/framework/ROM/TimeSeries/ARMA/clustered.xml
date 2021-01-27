@@ -7,11 +7,14 @@
     <description>
       Tests the mechanics of clusterering the "time" subspace of the ARMA ROM.
     </description>
+    <revisions>
+      <revision author='talbpaul' date='2020-01-18'>added sampling, clarified to clustered representation</revision>
+    </revisions>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>Clustered</WorkingDir>
-    <Sequence>load, train, stats</Sequence>
+    <Sequence>load, train, stats, sample</Sequence>
   </RunInfo>
 
   <Steps>
@@ -28,6 +31,13 @@
       <Output class="DataObjects" type="DataSet">romMeta</Output>
       <Output class="OutStreams" type="Print">romMeta</Output>
     </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">arma</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">synthetic</Output>
+      <Output class="OutStreams" type="Print">synthetic</Output>
+    </MultiRun>
   </Steps>
 
   <Files>
@@ -46,6 +56,11 @@
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
+    <DataSet name="synthetic">
+      <Input>Signal</Input>
+      <Index var="Time">Signal</Index>
+      <!-- <Index var="_ROM_cluster">cluster_multiplicity</Index> -->
+    </DataSet>
     <DataSet name="romMeta"/>
   </DataObjects>
 
@@ -61,6 +76,7 @@
       <Segment grouping='cluster'>
         <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
         <subspace divisions='10' shift='first' >Time</subspace>
+        <!-- <evalMode>clustered</evalMode> -->
       </Segment>
     </ROM>
     <PostProcessor name="classifier" subType="DataMining">
@@ -71,16 +87,23 @@
     </PostProcessor>
   </Models>
 
-  <Metrics>
-    <SKL name="metric">
-      <metricType>regression|mean_squared_error</metricType>
-    </SKL>
-  </Metrics>
+  <Samplers>
+    <MonteCarlo name='mc'>
+      <samplerInit>
+        <limit>2</limit>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
 
   <OutStreams>
     <Print name="romMeta">
       <type>csv</type>
       <source>romMeta</source>
+    </Print>
+    <Print name="synthetic">
+      <type>csv</type>
+      <source>synthetic</source>
     </Print>
   </OutStreams>
 </Simulation>

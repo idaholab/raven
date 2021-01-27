@@ -75,6 +75,7 @@ class InternalRunner(Runner):
     self.runReturn      = None
     self.hasBeenAdded   = False
     self.returnCode     = 0
+    self.exceptionTrace = None    # sys.exc_info() if an error occurred while running
 
     ## These things cannot be deep copied
     self.skipOnCopy = ['functionToRun','thread','__queueLock']
