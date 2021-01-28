@@ -426,8 +426,8 @@ class JobHandler(MessageHandler.MessageUser):
            and the Step when retrieving multiple jobs.
            An issue has been opened: 'JobHandler and Batching #1402'
     '''
-    import time
-    time.sleep(0.001)
+    #import time
+    #time.sleep(0.001)
 
     with self.__queueLock:
       ## If there is still something left in the queue, we are not done yet.
@@ -442,7 +442,8 @@ class JobHandler(MessageHandler.MessageUser):
 
     ## Are there runs that need to be claimed? If so, then I cannot say I am
     ## done.
-    numFinished = len(self.getFinishedNoPop())
+    #numFinished = len(self.getFinishedNoPop())
+    numFinished = len(self.__finished)
     if numFinished != 0:
       return False
 
