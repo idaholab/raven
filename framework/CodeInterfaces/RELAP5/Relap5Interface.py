@@ -191,7 +191,7 @@ class Relap5(CodeInterfaceBase):
     if outputobj.hasAtLeastMinorData():
       response = outputobj.returnData()
       if self.det:
-        prefix = workingDir.split(os.path.sep)[-1] 
+        prefix = workingDir.split(os.path.sep)[-1]
         # check end time
         endTime = response['time'][-1]
         endTimeStep = len(response['time'])
@@ -355,10 +355,10 @@ class Relap5(CodeInterfaceBase):
     #  trips = parser.getTrips()
     # transfer metadata
     self.__transferMetadata(Kwargs.get("metadataToTransfer",None), currentInputFiles[index].getPath())
-    
-    if Kwargs['prefix'] == 'DET_1-2-1-2-2':
+
+    if Kwargs['prefix'] == 'DET_1-2-2-2':
       print("here")
-  
+
     if 'None' not in str(samplerType):
       Kwargs['currentPath'] = currentInputFiles[index].getPath()
       modifDict = self._samplersDictionary[samplerType](**Kwargs)
