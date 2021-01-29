@@ -138,19 +138,23 @@ class RELAPparser():
       # to fix. the following can handle only 50 trips
       self.lastCntrLine[deckNum]+=2
       # if len(exclTrips[deckNum]) != len(monitoredTrips[deckNum]):
-      self.deckLines[deckNum].append("205"+stopCntrVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 )
+      if not excludeAll:
+        self.deckLines[deckNum].append("205"+stopCntrVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 )
                                      +" tripstop sum 1.0 0.0 0 \n")
-      # if not excludeAll:
-      tripCnt = 0
-      for tripLine in range(int(math.ceil(float(len(monitoredTrips[deckNum]))/3.0))):
-        toWrite="205"+stopCntrVar.strip()+str(tripLine+1).strip().zfill(2 if self.controlVarType[deckNum] == 1 else 1 )+ (" 0.0 " if tripLine==0 else "")
-        stoppingTrips = list(set(monitoredTrips[deckNum]) - set(exclTrips[deckNum]))
-        for x in range(3):
-          if tripCnt+1<= len(stoppingTrips):
-            toWrite += " 1.0 cntrlvar " + controlledControlVars[stoppingTrips[tripCnt]]
-            tripCnt+=1
-        toWrite += " \n"
-        self.deckLines[deckNum].append(toWrite)
+      else:
+        self.deckLines[deckNum].append("205"+stopCntrVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 )
+                                     +" tripstop constant 0.0 \n")
+      if not excludeAll:
+        tripCnt = 0
+        for tripLine in range(int(math.ceil(float(len(monitoredTrips[deckNum]))/3.0))):
+          toWrite="205"+stopCntrVar.strip()+str(tripLine+1).strip().zfill(2 if self.controlVarType[deckNum] == 1 else 1 )+ (" 0.0 " if tripLine==0 else "")
+          stoppingTrips = list(set(monitoredTrips[deckNum]) - set(exclTrips[deckNum]))
+          for x in range(3):
+            if tripCnt+1<= len(stoppingTrips):
+              toWrite += " 1.0 cntrlvar " + controlledControlVars[stoppingTrips[tripCnt]]
+              tripCnt+=1
+          toWrite += " \n"
+          self.deckLines[deckNum].append(toWrite)
       self.deckLines[deckNum].append("* END -- CONTROL VARIABLES ADDED BY RAVEN *\n")
 
   def addTripsVarsInMinorEdits(self):
