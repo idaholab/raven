@@ -41,6 +41,7 @@ class Relap5(CodeInterfaceBase):
       @ In, oriInputFiles, list, list of the original input files
       @ Out, None
     """
+    self.tripControlVariables = {}
     self.detVars = [] # in case of DET
     index = self._findInputFileIndex(oriInputFiles)
     parser = RELAPparser.RELAPparser(oriInputFiles[index].getAbsFile())
@@ -190,6 +191,7 @@ class Relap5(CodeInterfaceBase):
     if outputobj.hasAtLeastMinorData():
       response = outputobj.returnData()
       if self.det:
+        prefix = workingDir.split(os.path.sep)[-1] 
         # check end time
         endTime = response['time'][-1]
         endTimeStep = len(response['time'])
@@ -201,9 +203,9 @@ class Relap5(CodeInterfaceBase):
             break
           splitted =  var.split(":")
           tripName =  splitted[len(splitted)-2].strip()
-          for deckNum in self.tripControlVariables:
-            if tripName in self.tripControlVariables[deckNum].values():
-              for cntrVar, trip in self.tripControlVariables[deckNum].items():
+          for deckNum in self.tripControlVariables[prefix]:
+            if tripName in self.tripControlVariables[prefix][deckNum].values():
+              for cntrVar, trip in self.tripControlVariables[prefix][deckNum].items():
                 if response["cntrlvar_"+cntrVar][-1] != response["cntrlvar_"+cntrVar][-2]:
                   # the trip went off
                   tripVariable = trip
@@ -312,7 +314,7 @@ class Relap5(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     self._samplersDictionary = {}
-    self.tripControlVariables = None
+    self.tripControlVariables[Kwargs['prefix']] = None
     self.det = 'dynamiceventtree' in str(samplerType).lower()
     # find input file index
     index = self._findInputFileIndex(currentInputFiles)
@@ -353,7 +355,10 @@ class Relap5(CodeInterfaceBase):
     #  trips = parser.getTrips()
     # transfer metadata
     self.__transferMetadata(Kwargs.get("metadataToTransfer",None), currentInputFiles[index].getPath())
-
+    
+    if Kwargs['prefix'] == 'DET_1-2-1-2-2':
+      print("here")
+  
     if 'None' not in str(samplerType):
       Kwargs['currentPath'] = currentInputFiles[index].getPath()
       modifDict = self._samplersDictionary[samplerType](**Kwargs)
@@ -361,7 +366,7 @@ class Relap5(CodeInterfaceBase):
 
     parser.printInput(currentInputFiles[index])
     if self.det:
-      self.tripControlVariables = parser.additionalControlVariables
+      self.tripControlVariables[Kwargs['prefix']] = parser.additionalControlVariables
     return currentInputFiles
 
   def _convertVariablNameInInfo(self, variableName):
