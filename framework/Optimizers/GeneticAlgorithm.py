@@ -703,7 +703,7 @@ class GeneticAlgorithm(RavenSampled):
 
   def _popDist(self,ai,b,q=2):
     """
-      Minimum Minkowski distance from ai to B (nearest point in B)
+      Minimum Minkowski distance from a_i to B (nearest point in B)
       @ In, ai, 1d array, the ith chromosome in the generation A
       @ In, b, np.array, population B
       @ In, q, integer, order of the norm
