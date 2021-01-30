@@ -148,7 +148,7 @@ class RELAPparser():
         tripCnt = 0
         for tripLine in range(int(math.ceil(float(len(monitoredTrips[deckNum]))/3.0))):
           toWrite="205"+stopCntrVar.strip()+str(tripLine+1).strip().zfill(2 if self.controlVarType[deckNum] == 1 else 1 )+ (" 0.0 " if tripLine==0 else "")
-          stoppingTrips = list(set(monitoredTrips[deckNum]) - set(exclTrips[deckNum]))
+          stoppingTrips = sorted(list(set(monitoredTrips[deckNum]) - set(exclTrips[deckNum])))
           for x in range(3):
             if tripCnt+1<= len(stoppingTrips):
               toWrite += " 1.0 cntrlvar " + controlledControlVars[stoppingTrips[tripCnt]]
