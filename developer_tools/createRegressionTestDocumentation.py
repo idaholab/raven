@@ -102,7 +102,7 @@ class testDescription(object):
     startDir = os.path.join(os.path.dirname(__file__),'../')
     for dirr,_,_ in os.walk(startDir):
       __testInfoList.extend(glob(os.path.join(dirr,"tests")))
-    for testInfoFile in __testInfoList:
+    for cnt, testInfoFile in enumerate(__testInfoList):
       if 'moose' in testInfoFile.split(os.sep) or not os.path.isfile(testInfoFile):
         continue
       fileObject = open(testInfoFile,"r+")
@@ -174,7 +174,9 @@ class testDescription(object):
     if createdDateNode is not None: createdDate = createdDateNode.text
     else                          : raise IOError("XML node <created> not found for test "+ fileName)
     if classTestedNode is not None: classTested = classTestedNode.text
-    else                          : raise IOError("XML node <classesTested> not found for test "+ fileName)
+    else:
+     classTested = "N/A"
+     print("Warning: XML node <classesTested> not found for test "+ fileName)
 
     nameChapter = name.replace("/", " ").replace("_", " ").upper()
     fileLocation = '.'+fileName.replace(self.__userPath,"")
