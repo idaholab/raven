@@ -53,6 +53,7 @@ class RAVEN(CodeInterfaceBase):
     self.linkedDataObjectOutStreamsNames = None
     # input manipulation module
     self.inputManipulationModule = None
+    self.printFailedRuns = False  # whether to print failed runs to the screen
 
   def addDefaultExtension(self):
     """
@@ -250,7 +251,7 @@ class RAVEN(CodeInterfaceBase):
           raise IOError(self.printTag+' ERROR: The nodefile "'+str(nodeFileToUse)+'" and PBS_NODEFILE enviroment var do not exist!')
         else:
           nodeFileToUse = os.environ["PBS_NODEFILE"]
-      modifDict['RunInfo|mode'           ] = 'mpi'
+      modifDict['RunInfo|mode'] = 'mpi'
       modifDict['RunInfo|mode|nodefile'  ] = nodeFileToUse
     if internalParallel or newBatchSize > 1:
       # either we have an internal parallel or NumMPI > 1
@@ -262,7 +263,6 @@ class RAVEN(CodeInterfaceBase):
     if 'remoteNodes' in Kwargs:
       if Kwargs['remoteNodes'] is not None and len(Kwargs['remoteNodes']):
         modifDict['RunInfo|remoteNodes'] = ','.join(Kwargs['remoteNodes'])
-
     #modifDict['RunInfo|internalParallel'] = internalParallel
     # make tree
     modifiedRoot = parser.modifyOrAdd(modifDict, save=True, allowAdd=True)
@@ -295,20 +295,6 @@ class RAVEN(CodeInterfaceBase):
     if not os.path.isfile(toCheck):
       print(f'RAVENInterface WARNING: Could not find {toCheck}, assuming failed RAVEN run.')
       return True
-    ### OLD read-the-output-stream method
-    # try:
-    #   print('DEBUGG workdir:', workingDir)
-    #   print('DEBUGG output:', output)
-    #   outputToRead = open(os.path.join(workingDir,output),"r")
-    # except IOError:
-    #   print(self.printTag+' ERROR: The RAVEN SLAVE log file  "'+str(os.path.join(workingDir,output))+'" does not exist!')
-    #   return True
-    # # check for completed run
-    # readLines = outputToRead.readlines()
-    # if not any("Run complete" in x for x in readLines[-min(200,len(readLines)):]):
-    #   del readLines
-    #   return True
-    # check for output CSV (and data)
     if not failure:
       for filename in self.linkedDataObjectOutStreamsNames:
         outStreamFile = os.path.join(workingDir,self.innerWorkingDir,filename+".csv")

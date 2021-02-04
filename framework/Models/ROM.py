@@ -60,10 +60,26 @@ class ROM(Dummy):
 
     IndexSetInputType = InputTypes.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
     CriterionInputType = InputTypes.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
-
-    # general
+    ###########
+    # general #
+    ###########
     inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
+
+    ######################
+    # dynamically loaded #
+    ######################
+    for typ in SupervisedLearning.knownTypes():
+      obj = SupervisedLearning.returnClass(typ, None) # TODO no message handler available!
+      if hasattr(obj, 'getInputSpecifications'):
+        subspecs = obj.getInputSpecifications()
+        print('Known:', typ)
+        print(subspecs)
+        inputSpecification.mergeSub(subspecs)
+
+    ####################
+    # manually entered #
+    ####################
     # segmenting and clustering
     segment = InputData.parameterInputFactory("Segment", strictMode=True)
     segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
@@ -78,6 +94,8 @@ class ROM(Dummy):
     segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
     ## clusterFeatures
     segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
+    ## max cycles (for Interpolated ROMCollection)
+    segment.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType))
     ## classifier
     clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType)
     clsfr.addParam('class', InputTypes.StringType, True)
@@ -90,8 +108,10 @@ class ROM(Dummy):
     segment.addSub(metric)
     segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType))
     inputSpecification.addSub(segment)
+    ##### END ROMCollection
     # pickledROM
     inputSpecification.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum))
+    inputSpecification.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType)) # for Interpolated ROMCollection
     # unsorted
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("gradient", contentType=InputTypes.StringType))
@@ -208,6 +228,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputTypes.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputTypes.FloatListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("nyquistScalar", contentType=InputTypes.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputTypes.BoolType))
     ### ARMA zero filter
     zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputTypes.StringType)
@@ -241,7 +262,6 @@ class ROM(Dummy):
     window.addParam('width', InputTypes.FloatType, True)
     peaks.addSub(window)
     peaks.addSub(nbin)
-
     peaks.addParam('threshold', InputTypes.FloatType)
     peaks.addParam('target', InputTypes.StringType)
     peaks.addParam('period', InputTypes.FloatType)
@@ -1385,6 +1405,21 @@ class ROM(Dummy):
     paramDict = self.supervisedEngine.getInitParams()
     return paramDict
 
+  def provideExpectedMetaKeys(self):
+    """
+      Overrides the base class method to assure child engine is also polled for its keys.
+      @ In, None
+      @ Out, metaKeys, set(str), names of meta variables being provided
+      @ Out, metaParams, dict, the independent indexes related to expected keys
+    """
+    # load own keys and params
+    metaKeys, metaParams = Dummy.provideExpectedMetaKeys(self)
+    # add from engine
+    keys, params = self.supervisedEngine.provideExpectedMetaKeys()
+    metaKeys = metaKeys.union(keys)
+    metaParams.update(params)
+    return metaKeys, metaParams
+
   def train(self,trainingSet):
     """
       This function train the ROM
@@ -1406,8 +1441,6 @@ class ROM(Dummy):
                   "The time-dependent ROM requires all the histories are synchonized!")
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-      # grab assembled stuff and pass it through
-      ## TODO this should be changed when the SupervisedLearning objects themselves can use the Assembler
       self.supervisedEngine.train(self.trainingSet, self.assemblerDict)
       self.amITrained = self.supervisedEngine.amITrained
 

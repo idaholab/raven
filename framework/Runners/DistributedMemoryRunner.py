@@ -21,9 +21,6 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import os
-import signal
-import copy
 import sys
 import abc
 import psutil
@@ -33,14 +30,11 @@ from utils import importerUtils as im
 if im.isLibAvail("ray"):
   import ray
 else:
-  import pp
   import inspect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
-from BaseClasses import BaseType
-import MessageHandler
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -126,9 +120,14 @@ class DistributedMemoryRunner(InternalRunner):
       self.trackTime('runner_started')
       self.started = True
       gc.collect()
+      return
+
     except Exception as ae:
       #Uncomment if you need the traceback
       self.exceptionTrace = sys.exc_info()
+      #exc_type, exc_value, exc_traceback = sys.exc_info()
+      #import traceback
+      #traceback.print_exception(exc_type, exc_value, exc_traceback)
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.returnCode = -1
 
