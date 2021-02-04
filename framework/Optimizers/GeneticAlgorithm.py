@@ -77,7 +77,7 @@ class GeneticAlgorithm(RavenSampled):
   ##########################
   # Initialization Methods #
   ##########################
-  
+
   @classmethod
   def getInputSpecification(cls):
     """
