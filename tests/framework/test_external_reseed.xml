@@ -18,20 +18,17 @@
       <revision author="talbpaul" date="2016-04-26">added check for pre-existing backup files when validating</revision>
       <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2018-10-02">changed working directory</revision>
     </revisions>
   </TestInfo>
   <RunInfo>
-    <WorkingDir>externalModel</WorkingDir>
+    <WorkingDir>externalModelReseed</WorkingDir>
     <Sequence>FirstMRun</Sequence>
     <batchSize>3</batchSize>
   </RunInfo>
 
-  <Files>
-    <Input name="Functions.py" type="">Functions.py</Input>
-  </Files>
-
   <Models>
-    <ExternalModel ModuleToLoad="Functions" name="PythonModule" subType="">
+    <ExternalModel ModuleToLoad="../externalModel/Functions" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
   </Models>

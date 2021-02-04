@@ -8,6 +8,7 @@ from decimal import Decimal
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import Element, SubElement, Comment
 from xml.dom import minidom
+from collections import defaultdict
 
 class XSCreator():
   """
@@ -77,9 +78,8 @@ class XSCreator():
       @ Out, modifiedFile, string, name of the xml file created (under a dummy name)
     """
     top = Element('scaling_library', {'print_xml':'t'})
-    print (self.listedDict)
-    for XS in self.listedDict.keys():
-      for tabulation in self.listedDict.get('XS').keys():
+    for XS in self.listedDict.iterkeys():
+      for tabulation in self.listedDict.get('XS').iterkeys():
         topChild = SubElement(top, 'set')
         if bool:
           tabList, valueList = self.tabMapping(tabulation,tabMapFileName)
@@ -119,6 +119,8 @@ class XSCreator():
       reactionTemplated = 'nalphaXS'
     elif reaction == 'NGXS':
       reactionTemplated = 'ngXS'
+    elif reaction == 'SCATTERINGXS':
+      reactionTemplated = 'ScatteringXS'
     else:
       raise IOError('the type of cross section '+reaction+' cannot be processed. Refer to manual for available reactions.')
     return reactionTemplated
@@ -164,21 +166,9 @@ class XSCreator():
       perturbedReactions.append(key.split('|')[5])
       perturbedGroups.append(key.split('|')[6])
 
-    for pertPhysicalParam in perturbedPhysicalParameters:
-      reconstructedDict[pertPhysicalParam] = {}
-      for pertTabulationPoint in perturbedTabulationPoint:
-        reconstructedDict[pertPhysicalParam][pertTabulationPoint] = {}
-        for mat in perturbedMaterials:
-          reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat] = {}
-          for isotope in perturbedIsotopes:
-            reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope] = {}
-            for reactType in perturbedTypes:
-              reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][reactType] = {}
-              for react in perturbedReactions:
-                reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][reactType][react] = {}
-                for group in perturbedGroups:
-                  reconstructedDict[pertPhysicalParam][pertTabulationPoint][mat][isotope][reactType][react][group] = {}
-    for typeKey, value in deconstructedDict.items():
+    myReconstructedDict = lambda: defaultdict(myReconstructedDict)
+    reconstructedDict = myReconstructedDict()
+    for typeKey, value in deconstructedDict.iteritems():
       if typeKey in pertDictSet:
         keyWords = typeKey.split('|')
         reconstructedDict[keyWords[0]][keyWords[1]][keyWords[2]][keyWords[3]][keyWords[4]][keyWords[5]][keyWords[6]] = value
