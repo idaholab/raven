@@ -1590,6 +1590,8 @@ class DataSet(DataObject):
     if noMatch is None:
       noMatch = {}
       allMatch = True
+    else:
+      allMatch = False
     assert(self._collector is not None)
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
