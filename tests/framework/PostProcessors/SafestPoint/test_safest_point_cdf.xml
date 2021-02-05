@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework.safest_point_cdf_pp</name>
     <author>alfoa</author>
