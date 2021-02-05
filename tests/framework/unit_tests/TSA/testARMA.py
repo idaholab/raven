@@ -30,7 +30,7 @@ if frameworkDir not in sys.path:
 from utils.utils import find_crow
 find_crow(frameworkDir)
 
-from utils import xmlUtils
+from utils import xmlUtils, randomUtils
 
 from TSA import ARMA
 
@@ -242,12 +242,14 @@ signalA, noise = createARMASignal(slags, nlags, pivot, plot=plot)
 signals = np.zeros((len(pivot), 1))
 signals[:, 0] = signalA
 
+engine = randomUtils.newRNG()
+
 ##########
 # Simplest reasonable case
 #
-np.random.seed(42) # forces MLE in statsmodels to be deterministic
 arma = createARMA(targets, 2, 3)
-params = arma.characterize(signals, pivot, targets, {'P': 2, 'Q': 3, 'gaussianize': False})
+settings = {'P': 2, 'Q': 3, 'gaussianize': False, 'seed': 42, 'engine': engine}
+params = arma.characterize(signals, pivot, targets, settings)
 check = params['A']['arma']
 # Note these are WAY OFF! They should match slags and nlags above.
 # I don't know how to convince it to get
@@ -262,35 +264,43 @@ checkArray('Simple ARMA MA', okay_ma, check['ma'], float, tol=1e-3)
 checkFloat('Simple ARMA variance', 0.9532563046953576, check['var'], tol=1e-3)
 # predict
 np.random.seed(42) # forces MLE in statsmodels to be deterministic
-new = arma.generate(params, pivot, None)[:, 0]
+new = arma.generate(params, pivot, settings)[:, 0]
+
 # spot check a few values -> could we check full arrays?
-checkFloat('Simple generate 0', 1.1642917566005964, new[0], tol=1e-6)
-checkFloat('Simple generate 250', -2.4302894919887144, new[250], tol=1e-6)
-checkFloat('Simple generate 500', 4.217159458440327, new[500], tol=1e-6)
-checkFloat('Simple generate 999', 0.4247628467380226, new[999], tol=1e-6)
+checkFloat('Simple generate 0', -1.0834098074509528, new[0], tol=1e-6)
+checkFloat('Simple generate 250', -3.947707011147049, new[250], tol=1e-6)
+checkFloat('Simple generate 500', -1.4304498185153571, new[500], tol=1e-6)
+checkFloat('Simple generate 999', -1.7825760423361088, new[999], tol=1e-6)
 # now do it again, but set the params how we want to
 params['A']['arma']['const'] = 0
 params['A']['arma']['AR'] = slags
 params['A']['arma']['MA'] = nlags
 params['A']['arma']['var'] = 1
 np.random.seed(42) # forces MLE in statsmodels to be deterministic
-new = arma.generate(params, pivot, None)[:, 0]
-checkFloat('Simple picked 0', 1.1133933463812284, new[0], tol=1e-6)
-checkFloat('Simple picked 250', -2.568264807375882, new[250], tol=1e-6)
-checkFloat('Simple picked 500', 4.2402152178387045, new[500], tol=1e-6)
-checkFloat('Simple picked 999', 0.35594972426163674, new[999], tol=1e-6)
+new = arma.generate(params, pivot, settings)[:, 0]
+checkFloat('Simple picked 0', 2.3613260219896035, new[0], tol=1e-6)
+checkFloat('Simple picked 250', -1.4007530275511393, new[250], tol=1e-6)
+checkFloat('Simple picked 500', 0.7956991243820065, new[500], tol=1e-6)
+checkFloat('Simple picked 999', 0.7196164370698425, new[999], tol=1e-6)
 
 ##########
-# Gaussianize, but we don't need to.
+# Gaussianize, but we don't technically need to.
+# That is, noise is already ~N(0, 1), but we go through the denormalization anyway
 #
-np.random.seed(42) # forces MLE in statsmodels to be deterministic
-params = arma.characterize(signals, pivot, targets, {'P': 2, 'Q': 3, 'gaussianize': True})
+settings = {'P': 2, 'Q': 3, 'gaussianize': True, 'seed': 42, 'engine': engine}
+params = arma.characterize(signals, pivot, targets, settings)
 # These are a little different from the non-Gaussianize above, but pretty close (kind of).
 # Given the numerical nature of the empirical CDF, maybe not too bad.
 okay_ar = [-0.1288380832279767, 0.5286049589896539]
 okay_ma = [0.7722899504423865, 0.18289761662693169, 0.20950559786741266]
 checkArray('Gaussian ARMA AR', okay_ar, params['A']['arma']['ar'], float, tol=1e-3)
 checkArray('Gaussian ARMA MA', okay_ma, params['A']['arma']['ma'], float, tol=1e-3)
+np.random.seed(42) # forces MLE in statsmodels to be deterministic
+new = arma.generate(params, pivot, settings)[:, 0]
+checkFloat('Simple denorm 0', -1.459305773140902, new[0], tol=1e-6)
+checkFloat('Simple denorm 250', 2.051286365253135, new[250], tol=1e-6)
+checkFloat('Simple denorm 500', -0.5047179383332892, new[500], tol=1e-6)
+checkFloat('Simple denorm 999', 1.3200315405820204, new[999], tol=1e-6)
 
 print(results)
 

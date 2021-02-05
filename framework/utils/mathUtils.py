@@ -1006,17 +1006,29 @@ def gaussianize(data, cdf):
   """
     Transforms "data" via empirical CDF into Gaussian distribution
     @ In, data, np.array, values to "gaussianize"
-    @ In, cdf, dict, CDF characerstics (as via "characterizeCDF")
+    @ In, cdf, dict, CDF characteristics (as via "characterizeCDF")
     @ Out, normed, np.array, gaussian version of "data"
   """
   cdfVals = sampleCDF(data, cdf)
   normed = stats.norm.ppf(cdfVals) # TODO could use RAVEN dist, but this is more modular
   return normed
 
+def degaussianize(data, cdf):
+  """
+    Transforms "data" via empirical CDF from Gaussian distribution
+    Opposite of "gaussianize" above
+    @ In, data, np.array, "normal" values to "degaussianize"
+    @ In, cdf, dict, CDF characteristics (as via "characterizeCDF")
+    @ Out, denormed, np.array, empirical version of "data"
+  """
+  cdfVals = stats.norm.cdf(data)
+  denormed = sampleICDF(cdfVals, cdf)
+  return denormed
+
 def sampleCDF(x, cdfParams):
   """
     Samples the empirical distribution's CDF at requested value(s)
-    @ In, x, float/np.array, value(s) at which to sample inverse CDF
+    @ In, x, float/np.array, value(s) at which to sample CDF
     @ In, cdf, dict, CDF parameters (as constructed by "characterizeCDF")
     @ Out, y, float/np.array, value of empirical CDF at x
   """
@@ -1043,6 +1055,32 @@ def sampleCDF(x, cdfParams):
   ## also, when Crow dist is asked for ppf(1) it returns sys.max (similar for ppf(0))
   y[y >= 1.0] = 1.0 - np.finfo(float).eps
   y[y <= 0.0] = np.finfo(float).eps
+  return y
+
+def sampleICDF(x, cdfParams):
+  """
+    Samples the inverse CDF defined by "cdfParams" to get values
+    @ In, x, float/np.array, value(s) at which to sample inverse CDF
+    @ In, cdf, dict, CDF parameters (as constructed by "characterizeCDF")
+    @ Out, y, float/np.array, value of empirical inverse CDF at x
+  """
+  x = np.atleast_1d(x)
+  y = np.zeros(x.shape)
+  # create masks for data outside range (above, below), inside range of empirical CDF
+  belowMask = x <= cdfParams['cdf'][0]
+  aboveMask = x >= cdfParams['cdf'][-1]
+  inMask = np.logical_and(np.logical_not(belowMask), np.logical_not(aboveMask))
+  # outside CDF set to min, max CDF values
+  y[belowMask] = cdfParams['bins'][0]
+  y[aboveMask] = cdfParams['bins'][-1]
+  # for points in the CDF linearly interpolate between empirical entries
+  ## get indices where points should be inserted (gives higher value)
+  indices = np.searchsorted(cdfParams['cdf'], x[inMask])
+  x0 = cdfParams['cdf'][indices - 1]
+  y0 = cdfParams['bins'][indices - 1]
+  xf = cdfParams['cdf'][indices]
+  yf = cdfParams['bins'][indices]
+  y = interpolateDist(x, y, x0, xf, y0, yf, inMask)
   return y
 
 def interpolateDist(x, y, x0, xf, y0, yf, mask):

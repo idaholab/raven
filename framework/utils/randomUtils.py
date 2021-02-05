@@ -18,10 +18,11 @@
 """
 
 from __future__ import division, print_function, unicode_literals, absolute_import
-import threading
-import numpy as np
+import sys
 import math
+import threading
 from collections import deque, defaultdict
+import numpy as np
 
 from utils.utils import findCrowModule
 from utils import mathUtils
@@ -175,6 +176,24 @@ def randomNormal(size=(1,), keepMatrix=False, engine=None):
     return vals
   else:
     return _reduceRedundantListing(vals,size)
+
+def randomMultivariateNormal(cov, size=1, mean=None):
+  """
+    Provides a random sample from a multivariate distribution.
+    @ In, cov, np.array, covariance matrix (must be square, positive definite)
+    @ In, size, int, optional, number of samples to return
+    @ In, mean, np.array, means for distributions (must be length of 1 side of covar matrix == len(cov[0]))
+    @ Out, vals, np.array, array of samples with size [n_samples, len(cov[0])]
+  """
+  dims = cov.shape[0]
+  if mean is None:
+    mean = np.zeros(dims)
+  eps = 10 * sys.float_info.epsilon
+  covEps = cov + eps * np.identity(dims)
+  decomp = np.linalg.cholesky(covEps)
+  randSamples = randomNormal(size=(dims, size)).reshape((dims, size))
+  vals = mean + np.dot(decomp, randSamples)
+  return vals
 
 def randomIntegers(low, high, caller=None, engine=None):
   """
