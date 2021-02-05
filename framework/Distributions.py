@@ -1955,9 +1955,9 @@ class UniformDiscrete(Distribution):
       @ Out, rvsValue, float, the random state
     """
     if self.nPoints is None:
-      self.xArray = np.arange(self.lowerBound,self.upperBound+1)
+      self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
     else:
-      self.xArray = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
+      self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
 
     self.xArray = np.setdiff1d(self.xArray,discardedElems)
 
