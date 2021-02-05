@@ -1587,7 +1587,7 @@ class DataSet(DataObject):
     """
     if toMatch is None:
       toMatch = {}
-      
+
     if noMatch == {}:
       allMatch = True
     if noMatch is None:
@@ -1595,7 +1595,7 @@ class DataSet(DataObject):
       allMatch = True
     else:
       allMatch = False
-      
+
     assert(self._collector is not None)
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
