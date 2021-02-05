@@ -1575,13 +1575,12 @@ class DataSet(DataObject):
       rlz[var] = vals
     return rlz
 
-  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15, options=None):
+  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15):
     """
       Obtains a realization from the collector storage matching the provided index
       @ In, toMatch, dict, elements to match
       @ In, noMatch, dict, elements to AVOID matching (should not match within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
-      @ In, options, dict, optional, options to be applied to the search
       @ Out, r, int, index where match was found OR size of data if not found
       @ Out, rlz, dict, realization as {var:value} OR None if not found
     """
