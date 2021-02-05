@@ -1589,11 +1589,8 @@ class DataSet(DataObject):
       toMatch = {}
     if noMatch is None:
       noMatch = {}
+      allMatch = True
     assert(self._collector is not None)
-    if options:
-      allMatch = options.get("returnAllMatch",False)
-    else:
-      allMatch = False
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
     matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
