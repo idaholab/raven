@@ -576,9 +576,9 @@ class DataSet(DataObject):
           if numInCollector > 0:
             index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, options=options)
       # add index map where necessary
-      for rl in (rlz if type(rlz).__name__ == "list" else [rlz]):
-        rl = self._addIndexMapToRlz(rl)
       if asDataSet:
+        for rl in (rlz if type(rlz).__name__ == "list" else [rlz]):
+          rl = self._addIndexMapToRlz(rl)
         if type(rlz).__name__ == "list":
           d = {}
           dims =  self.getDimensions()
@@ -1575,7 +1575,7 @@ class DataSet(DataObject):
       rlz[var] = vals
     return rlz
 
-  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15, options = None):
+  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15, options=None):
     """
       Obtains a realization from the collector storage matching the provided index
       @ In, toMatch, dict, elements to match
