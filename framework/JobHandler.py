@@ -556,7 +556,7 @@ class JobHandler(MessageHandler.MessageUser):
         each runner. If provided, just the jobs that have the uniqueIdentifier
         will be retrieved. By default uniqueHandler = 'any' => all the jobs for
         which no uniqueIdentifier has been set up are going to be retrieved
-      @ Out, finished, list, list of finished jobs (InternalRunner or
+      @ Out, finished, list, list of list containing finished jobs (InternalRunner or
         ExternalRunner objects) (if jobIdentifier is None), else the finished
         jobs matching the base case jobIdentifier
     """
