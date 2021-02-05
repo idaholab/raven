@@ -292,6 +292,28 @@ if False:
   plt.plot(x,y,'.')
   plt.show()
 
+### testing randomChoice(), a random sample or a sequence of random samples from a given array
+randomUtils.randomSeed(42,engine=None)
+randomUtils.randomSeed(42,engine=eng)
+
+testArray     = np.array([1,2,3,5])
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 1',testChoice,2)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 2',testChoice,5)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 3',testChoice,5)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 4',testChoice,1)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 5',testChoice,3)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 6',testChoice,5)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 7',testChoice,3)
+testChoice    = randomUtils.randomChoice(testArray)
+checkAnswer('Testing randomUtils.randomChoice 8',testChoice,3)
+
 ### randPointsInHypersphere(), random point in hypersphere
 randomUtils.randomSeed(42,engine=None)
 randomUtils.randomSeed(42,engine=eng)
