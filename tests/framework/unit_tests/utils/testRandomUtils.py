@@ -294,7 +294,6 @@ if False:
 
 ### testing randomChoice(), a random sample or a sequence of random samples from a given array
 randomUtils.randomSeed(42,engine=None)
-randomUtils.randomSeed(42,engine=eng)
 
 testArray     = np.array([1,2,3,5])
 testChoice    = randomUtils.randomChoice(testArray)
