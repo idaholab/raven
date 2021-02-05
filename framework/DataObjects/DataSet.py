@@ -576,10 +576,10 @@ class DataSet(DataObject):
           if numInCollector > 0:
             index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, options=options)
       # add index map where necessary
-      for rl in (rlz if type(rlz).__name__ in "list" else [rlz]):
+      for rl in (rlz if type(rlz).__name__ == "list" else [rlz]):
         rl = self._addIndexMapToRlz(rl)
       if asDataSet:
-        if type(rlz).__name__ in "list":
+        if type(rlz).__name__ == "list":
           d = {}
           dims =  self.getDimensions()
           for index, rl in enumerate(rlz):
