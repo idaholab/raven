@@ -21,7 +21,7 @@
 # These lines ensure that we do not have to do something like:
 # 'from Samplers.Sampler import Sampler' outside of this submodule
 from .GaussianProcessClassifier import GaussianProcessClassifier
-from .GaussianProcessRegressor import aussianProcessRegressor
+from .GaussianProcessRegressor import GaussianProcessRegressor
 # Factory methods
 from .Factory import knownTypes
 from .Factory import returnInstance

@@ -35,7 +35,7 @@ class GaussianProcessRegressor(SciktLearnBase):
   """
     Gaussian process regression (GPR)
   """
-  info = {'problemtype':'regression', 'normalize':False}
+  info = {'problemtype':'classification', 'normalize':False}
 
   def __init__(self,messageHandler,**kwargs):
     """
@@ -45,10 +45,10 @@ class GaussianProcessRegressor(SciktLearnBase):
       @ Out, None
     """
     import sklearn
-    import sklearn.svm
+    import sklearn.gaussian_process
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.gaussian_process.GaussianProcessRegressor)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.gaussian_process.GaussianProcessRegressor)
     SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod

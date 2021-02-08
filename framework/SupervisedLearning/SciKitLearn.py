@@ -151,8 +151,8 @@ class SciKitLearn(supervisedLearning):
       #self.availImpl['tree']['ExtraTreeClassifier'                 ] = (sklearn.tree.ExtraTreeClassifier                 , 'int'   ,  True )# An extremely randomized tree classifier.
       #self.availImpl['tree']['ExtraTreeRegressor'                  ] = (sklearn.tree.ExtraTreeRegressor                  , 'float' ,  True )# An extremely randomized tree regressor.
 
-      self.availImpl['GaussianProcess'] = {}
-      self.availImpl['GaussianProcess']['GaussianProcess'          ] = (sklearn.gaussian_process.GaussianProcessRegressor         , 'float' ,  False)
+      #self.availImpl['GaussianProcess'] = {}
+      #self.availImpl['GaussianProcess']['GaussianProcess'          ] = (sklearn.gaussian_process.GaussianProcessRegressor         , 'float' ,  False)
       # Neural network models (supervised)
       # To be removed when the supported minimum version of sklearn is moved to 0.18
       if int(sklearn.__version__.split(".")[1]) > 17:

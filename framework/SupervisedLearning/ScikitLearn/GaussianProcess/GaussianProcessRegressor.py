@@ -45,7 +45,7 @@ class GaussianProcessRegressor(SciktLearnBase):
       @ Out, None
     """
     import sklearn
-    import sklearn.svm
+    import sklearn.gaussian_process
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.gaussian_process.GaussianProcessRegressor)
