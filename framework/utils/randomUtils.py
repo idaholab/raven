@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """
  This file contains the random number generating methods used in the framework.
  created on 07/15/2017
@@ -27,7 +28,7 @@ import numpy as np
 from utils.utils import findCrowModule
 from utils import mathUtils
 
-# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpfull eventually.
+# in general, we will use Crow for now, but let's make it easy to switch just in case it is helpful eventually.
 # Numpy stochastic environment can not pass the test as this point
 stochasticEnv = 'crow'
 #stochasticEnv = 'numpy'
@@ -219,20 +220,36 @@ def randomIntegers(low, high, caller=None, engine=None):
   else:
     raise TypeError('Engine type not recognized! {}'.format(type(engine)))
 
-def randomChoice(array, engine=None):
+def randomChoice(array, size = 1, replace = True, engine = None):
   """
-    Generates a random sample from a given array-like (list or such) or N-D array
+    Generates a random sample or a sequence of random samples from a given array-like (list or such) or N-D array
     This equivalent to np.random.choice but extending the functionality to N-D arrays
     @ In, array, list or np.ndarray, the array from which to pick
+    @ In, size, int, optional, the number of samples to return
+    @ In, replace, bool, optional, allows replacement if True, default is True
     @ In, engine, instance, optional, optional, random number generator
-    @ Out, randomChoice, object, the random choice (1 element)
+    @ Out, selected, object, the random choice (1 element) or a list of elements
   """
   assert(hasattr(array,"shape") or isinstance(array,list))
-  if hasattr(array,"shape"):
-    coord = tuple([randomIntegers(0, dim-1, engine=engine) for dim in array.shape])
-    return array[coord]
-  else:
-    return array[randomIntegers(0, len(array)-1, engine=engine)]
+
+  if not replace:
+    if hasattr(array,"shape"):
+      raise RuntimeError("Option with replace False not available for ndarrays")
+    if len(array) < size:
+      raise RuntimeError("array size < of number of requested samples (size)")
+
+  sel = []
+  coords = array
+  for _ in range(size):
+    if hasattr(array,"shape"):
+      coord = tuple([randomIntegers(0, dim-1, engine=engine) for dim in coords.shape])
+      sel.append(coords[coord])
+    else:
+      sel.append(coords[randomIntegers(0, len(coords)-1, engine=engine)])
+    if not replace:
+      coords.remove(sel[-1])
+  selected = sel[0] if size == 1 else sel
+  return selected
 
 def randomPermutation(l,caller,engine=None):
   """
