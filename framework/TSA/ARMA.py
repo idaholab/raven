@@ -48,21 +48,21 @@ class ARMA(TimeSeriesAnalyzer):
     specs = super(ARMA, cls).getInputSpecification()
     specs.name = 'arma' # NOTE lowercase because ARMA already has Fourier and no way to resolve right now
     specs.description = r"""TimeSeriesAnalysis algorithm for determining the stochastic
-                            characteristics of signal with time-invariant variance"""
+                        characteristics of signal with time-invariant variance"""
     specs.addParam('reduce_memory', param_type=InputTypes.BoolType, required=False,
                    descr=r"""activates a lower memory usage ARMA training. This does tend to result
-                   in a slightly slower training time, at the benefit of lower memory usage. For
-                   example, in one 1000-length history test, low memory reduced memory usage by 2.3
-                   MiB, but increased training time by 0.4 seconds. No change in results has been
-                   observed switching between modes. Note that the ARMA must be
-                   retrained to change this property; it cannot be applied to serialized ARMAs.
-                   \default{False}""")
+                         in a slightly slower training time, at the benefit of lower memory usage. For
+                         example, in one 1000-length history test, low memory reduced memory usage by 2.3
+                         MiB, but increased training time by 0.4 seconds. No change in results has been
+                         observed switching between modes. Note that the ARMA must be
+                         retrained to change this property; it cannot be applied to serialized ARMAs.
+                         \default{False}""")
     specs.addSub(InputData.parameterInputFactory('SignalLag', contentType=InputTypes.FloatType,
                  descr=r"""the number of terms in the AutoRegressive term to retain in the
-                           regression; "P" in literature."""))
+                       regression; typically represented as $P$ in literature."""))
     specs.addSub(InputData.parameterInputFactory('NoiseLag', contentType=InputTypes.FloatType,
                  descr=r"""the number of terms in the Moving Average term to retain in the
-                           regression; "Q" in literature."""))
+                       regression; typically represented as $Q$ in literature."""))
     return specs
 
   #
