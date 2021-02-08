@@ -55,16 +55,12 @@
 
   <Models>
     <ROM name="synth" subType="SyntheticHistory">
-      <Target>signal1, signal2, hour</Target>
+      <Target>signal1, signal2, seconds</Target>
       <Features>scaling</Features>
-      <pivotParameter>hour</pivotParameter>
+      <pivotParameter>seconds</pivotParameter>
       <fourier target="signal1, signal2">
-        <periods>12, 24</periods>
+        <periods>2, 3, 5, 7, 10</periods>
       </fourier>
-      <arma target="signal1, signal2" seed='42'>
-        <SignalLag>2</SignalLag>
-        <NoiseLag>3</NoiseLag>
-      </arma>
     </ROM>
   </Models>
 

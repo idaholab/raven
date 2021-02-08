@@ -8,9 +8,9 @@
     zero_threshold = 1e-12
   [../]
 
-  [./Fourier]
+  [./ARMA]
     type = 'RavenFramework'
-    input = 'fourier.xml'
+    input = 'arma.xml'
     [./csv]
       type = OrderedCSV
       output = 'ARMA/samples_0.csv ARMA/samples_1.csv'
