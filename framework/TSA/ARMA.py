@@ -19,6 +19,8 @@ import collections
 import numpy as np
 import scipy as sp
 
+import Decorators
+
 from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, importerUtils
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 
@@ -47,6 +49,14 @@ class ARMA(TimeSeriesAnalyzer):
     specs.name = 'arma' # NOTE lowercase because ARMA already has Fourier and no way to resolve right now
     specs.description = r"""TimeSeriesAnalysis algorithm for determining the stochastic
                             characteristics of signal with time-invariant variance"""
+    specs.addParam('reduce_memory', param_type=InputTypes.BoolType, required=False,
+                   descr=r"""activates a lower memory usage ARMA training. This does tend to result
+                   in a slightly slower training time, at the benefit of lower memory usage. For
+                   example, in one 1000-length history test, low memory reduced memory usage by 2.3
+                   MiB, but increased training time by 0.4 seconds. No change in results has been
+                   observed switching between modes. Note that the ARMA must be
+                   retrained to change this property; it cannot be applied to serialized ARMAs.
+                   \default{False}""")
     specs.addSub(InputData.parameterInputFactory('SignalLag', contentType=InputTypes.FloatType,
                  descr=r"""the number of terms in the AutoRegressive term to retain in the
                            regression; "P" in literature."""))
@@ -78,10 +88,23 @@ class ARMA(TimeSeriesAnalyzer):
     settings = TimeSeriesAnalyzer.handleInput(self, spec)
     settings['P'] = spec.findFirst('SignalLag').value
     settings['Q'] = spec.findFirst('NoiseLag').value
+    settings['reduce_memory'] = spec.parameterValues.get('reduce_memory', settings['reduce_memory'])
 
-    engine = randomUtils.newRNG()
-    settings['randEngine'] = engine
+    return settings
 
+  def setDefaults(self, settings):
+    """
+      Fills default values for settings with default values.
+      @ In, settings, dict, existing settings
+      @ Out, settings, dict, modified settings
+    """
+    settings = TimeSeriesAnalyzer.setDefaults(self, settings)
+    if 'gaussianize' not in settings:
+      settings['gaussianize'] = True
+    if 'engine' not in settings:
+      settings['engine'] = randomUtils.newRNG()
+    if 'reduce_memory' not in settings:
+      settings['reduce_memory'] = False
     return settings
 
   def characterize(self, signal, pivot, targets, settings):
@@ -123,7 +146,13 @@ class ARMA(TimeSeriesAnalyzer):
       d = settings.get('d', 0)
       # TODO just use SARIMAX?
       model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q))
-      res = model.fit(low_memory=True)
+      res = model.fit(low_memory=settings['reduce_memory'])
+      #res = model.fit(low_memory=True)
+      # NOTE on low_memory use, test using SyntheticHistory.ARMA test:
+      #   case    | time used (s) | memory used (MiB)
+      #   low mem | 2.570851      | 0.5
+      #   no arg  | 2.153929      | 2.8
+      #   using low_memory, fit() takes an extra 0.4 seconds and uses 2 MB less
       # NOTE additional interesting arguments to model.fit:
       # -> method_kwargs passes arguments to scipy.optimize.fmin_l_bfgs_b() as kwargs
       #   -> disp: int, 0 or 50 or 100, in order of increasing verbosity for fit solve
@@ -207,13 +236,15 @@ class ARMA(TimeSeriesAnalyzer):
       @ Out, stateShocks, np.array, state shocks
       @ Out, initialState, np.array, initial random state
     """
-    msrCov = model['obs_cov'] # TODO is this always [[0]]? Can we save time that way?
-    # NOTE the measure shocks for the ARMA appear to always be zero. Can we safely assume this is
-    # always true? If so, no need to sample, just generate all zeros for this.
+    # measurement shocks -> these are usually near 0 but not exactly
+    # note in statsmodels.tsa.statespace.kalman_filter, mean of measure shocks is 0s
+    msrCov = model['obs_cov']
     msrShocks = randomUtils.randomMultivariateNormal(msrCov, size=size)
-    # state shocks
+    # state shocks -> these are the significant noise terms
+    # note in statsmodels.tsa.statespace.kalman_filter, mean of state shocks is 0s
     stateCov = model['state_cov']
     stateShocks = randomUtils.randomMultivariateNormal(stateCov, size=size)
+    # initial state
     initMean = initDict['mean']
     initCov = initDict['cov']
     initialState = randomUtils.randomMultivariateNormal(initCov, size=1, mean=initMean)

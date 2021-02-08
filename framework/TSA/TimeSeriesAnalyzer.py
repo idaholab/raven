@@ -66,6 +66,19 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     settings = {}
     settings['target'] = spec.parameterValues['target']
     settings['seed'] = spec.parameterValues.get('seed', None)
+
+    settings = self.setDefaults(settings)
+
+    return settings
+
+  def setDefaults(self, settings):
+    """
+      Fills default values for settings with default values.
+      @ In, settings, dict, existing settings
+      @ Out, settings, dict, modified settings
+    """
+    if 'seed' not in settings:
+      settings['seed'] = None
     return settings
 
   @abc.abstractmethod
@@ -76,7 +89,8 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, pivot, np.array, time-like parameter
       @ In, targets, list(str), names of targets
       @ In, settings, dict, additional settings specific to algorithm
-      @ Out, params, dict, characterization of signal
+      @ Out, params, dict, characterization of signal; structure as:
+                           params[target variable][characteristic] = value
     """
 
   def getResidual(self, initial, params, pivot, randEngine):

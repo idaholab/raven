@@ -248,7 +248,10 @@ engine = randomUtils.newRNG()
 # Simplest reasonable case
 #
 arma = createARMA(targets, 2, 3)
-settings = {'P': 2, 'Q': 3, 'gaussianize': False, 'seed': 42, 'engine': engine}
+settings = {'P': 2, 'Q': 3,
+            'gaussianize': False,
+            'seed': 42}
+settings = arma.setDefaults(settings)
 params = arma.characterize(signals, pivot, targets, settings)
 check = params['A']['arma']
 # Note these are WAY OFF! They should match slags and nlags above.
@@ -287,7 +290,10 @@ checkFloat('Simple picked 999', 0.7196164370698425, new[999], tol=1e-6)
 # Gaussianize, but we don't technically need to.
 # That is, noise is already ~N(0, 1), but we go through the denormalization anyway
 #
-settings = {'P': 2, 'Q': 3, 'gaussianize': True, 'seed': 42, 'engine': engine}
+settings = {'P': 2, 'Q': 3,
+            'gaussianize': True,
+            'seed': 42}
+settings = arma.setDefaults(settings)
 params = arma.characterize(signals, pivot, targets, settings)
 # These are a little different from the non-Gaussianize above, but pretty close (kind of).
 # Given the numerical nature of the empirical CDF, maybe not too bad.
