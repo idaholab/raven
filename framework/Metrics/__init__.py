@@ -28,8 +28,9 @@ from .PairwiseMetric import PairwiseMetric
 from .CDFAreaDifference import CDFAreaDifference
 from .PDFCommonArea import PDFCommonArea
 from .ScipyMetric import ScipyMetric
+from .DSS import DSS
 from .Factory import knownTypes
 from .Factory import returnInstance
 from .Factory import returnClass
 
-__all__ = ['DTW','SKL','PairwiseMetric','CDFAreaDifference','PDFCommonArea','ScipyMetric']
+__all__ = ['DTW','SKL','PairwiseMetric','CDFAreaDifference','PDFCommonArea','ScipyMetric','DSS']
