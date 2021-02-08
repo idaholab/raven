@@ -104,6 +104,11 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
       if not self.estimator.acceptsDistribution and isinstance(pData, Distributions.Distribution):
         self.raiseAnError(IOError, "Distribution is provided, but the metric ", self.estimator.name, " can not handle it!")
     feat, targ = pairedData
+    #---------------  Start of Changes - Ramon ---------------
+    if len(feat[1].shape) > 1 and len(targ[1].shape) > 1:
+      out = self.estimator.evaluate(feat, targ)
+      dynamicOutput.append(out)
+    #---------------  End of Changes - Ramon ---------------
     if isinstance(feat, Distributions.Distribution) and isinstance(targ, Distributions.Distribution):
       out = self.estimator.evaluate(feat, targ)
       dynamicOutput.append(out)
