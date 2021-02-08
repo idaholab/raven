@@ -1587,9 +1587,9 @@ class DataSet(DataObject):
     """
     if toMatch is None:
       toMatch = {}
-    
+
     assert(self._collector is not None)
-    
+
     if options:
       allMatch = options.get("returnAllMatch",False)
     else:
