@@ -14,7 +14,7 @@
     [./csv]
       type = OrderedCSV
       output = 'ARMA/samples_0.csv ARMA/samples_1.csv'
-      rel_err = 1e-6
+      rel_err = 2e-4
       zero_threshold = 1e-12
     [../]
     [./xml]
