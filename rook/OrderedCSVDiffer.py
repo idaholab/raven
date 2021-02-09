@@ -91,7 +91,7 @@ class OrderedCSVDiffer:
       @ Out, diff, float, metric difference between entries (relative diff)
     """
     if not is_number:
-      return a_obj == b_obj
+      return a_obj == b_obj, 0
     if self.__ignore_sign:
       a_obj = abs(a_obj)
       b_obj = abs(b_obj)
@@ -100,7 +100,7 @@ class OrderedCSVDiffer:
     if abs(b_obj) < self.__zero_threshold:
       b_obj = 0.0
     if self.__check_absolute_values:
-      return abs(a_obj-b_obj) < tol
+      return abs(a_obj-b_obj) < tol, abs(a_obj-b_obj)
     # otherwise, relative error
     scale = abs(b_obj) if b_obj != 0 else 1.0
     return abs(a_obj - b_obj) < scale * tol, abs((a_obj - b_obj) / scale)
@@ -196,9 +196,9 @@ class OrderedCSVDiffer:
                          +str(gold_value)+" and "
                          +str(test_value))
       if diffs:
-        msg.append('|Relative Difference| statistics:')
-        msg.append('  MEAN    rel. diff.: {:1.9e}'.format(sum(diffs)/float(len(diffs))))
-        msg.append('  LARGEST rel. diff.: {:1.9e}'.format(max(diffs)))
+        msg.append('| Difference | statistics:')
+        msg.append('  MEAN    diff.: {:1.9e}'.format(sum(diffs)/float(len(diffs))))
+        msg.append('  LARGEST diff.: {:1.9e}'.format(max(diffs)))
       self.finalize_message(same, msg, test_filename)
     return self.__same, self.__message
 
