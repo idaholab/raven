@@ -88,6 +88,7 @@ class OrderedCSVDiffer:
       @ In, is_number, bool, if True then treat as float with tolerance (else check equivalence)
       @ In, tol, float, tolerance at which to hold match (if float)
       @ Out, matches, bool, True if matching
+      @ Out, diff, float, metric difference between entries (relative diff)
     """
     if not is_number:
       return a_obj == b_obj
@@ -102,7 +103,7 @@ class OrderedCSVDiffer:
       return abs(a_obj-b_obj) < tol
     # otherwise, relative error
     scale = abs(b_obj) if b_obj != 0 else 1.0
-    return abs(a_obj-b_obj) < scale*tol
+    return abs(a_obj - b_obj) < scale * tol, abs((a_obj - b_obj) / scale)
 
   def diff(self):
     """
@@ -172,6 +173,7 @@ class OrderedCSVDiffer:
       # So now for a test row:
       #  gold_row[x][y] should match test_row[x][test_indexes[y]]
       ## check for matching rows
+      diffs = []
       for idx in range(1, len(gold_rows)):
         gold_row = gold_rows[idx]
         test_row = test_rows[idx]
@@ -186,12 +188,17 @@ class OrderedCSVDiffer:
                        +str(gold_value)+" and "
                        +str(test_value))
           else:
-            if not self.matches(gold_value, test_value, match_is_number,
-                                self.__rel_err):
+            match, diff = self.matches(gold_value, test_value, match_is_number, self.__rel_err)
+            diffs.append(diff)
+            if not match:
               same = False
               msg.append("Different values in "+gold_headers[column]+" for "
                          +str(gold_value)+" and "
                          +str(test_value))
+      if diffs:
+        msg.append('|Relative Difference| statistics:')
+        msg.append('  MEAN    rel. diff.: {:1.9e}'.format(sum(diffs)/float(len(diffs))))
+        msg.append('  LARGEST rel. diff.: {:1.9e}'.format(max(diffs)))
       self.finalize_message(same, msg, test_filename)
     return self.__same, self.__message
 
