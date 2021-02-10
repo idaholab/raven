@@ -504,7 +504,7 @@ class DataSet(DataObject):
     self._setScalingFactors()
 
   # @profile
-  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False, asDataSet = False, options = None):
+  def realization(self, index=None, matchDict=None, noMatchDict=None, tol=1e-15, unpackXArray=False, asDataSet = False, first = True):
     """
       Method to obtain a realization from the data, either by index or matching value.
       Either "index" or one of ("matchDict", "noMatchDict") must be supplied.
@@ -515,7 +515,7 @@ class DataSet(DataObject):
       @ In, tol, float, optional, tolerance to which match should be made
       @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}) (valid only for dataset)
       @ In, asDataSet, bool, optional, return realization from the data as a DataSet
-      @ In, options, dict, optional, options to be applied to the search
+      @ In, first, bool, optional, return the first matching realization only? Default:True
       @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
       @ Out, rlz, dict, realization requested (None if not found)
     """
@@ -567,32 +567,25 @@ class DataSet(DataObject):
           return 0, None
         # otherwise, get it from the collector
         else:
-          index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, options=options)
+          index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, first=first)
       # otherwise, first try to find it in the data
       else:
         index, rlz = self._getRealizationFromDataByValue(matchDict, noMatchDict, tol=tol, unpackXArray=unpackXArray)# should we add options=options to this one as well?
         # if no match found in data, try in the collector (if there's anything in it)
         if rlz is None:
           if numInCollector > 0:
-            index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, options=options)
+            index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, first=first)
       # add index map where necessary
       rlz = self._addIndexMapToRlz(rlz)
       # if as Dataset convert it
       if asDataSet:
-        for rl in (rlz if type(rlz).__name__ == "list" else [rlz]):
-          rl = self._addIndexMapToRlz(rl)
-        d = {}
-        dims =  self.getDimensions()
-        if type(rlz).__name__ == "list":
-          for index, rl in enumerate(rlz):
-            for k, v in rl.items():
-              d[k] = {'dims':tuple(dims[k]) ,'data': v}
-            rlz[index] =  xr.Dataset.from_dict(d)
-          rlz = xr.concat(rlz,dim=self.sampleTag)
-        else:
-          for k, v in rlz.items():
-            d[k] = {'dims':tuple(dims[k]) ,'data': v}
-          rlz =  xr.Dataset.from_dict(d)
+        rlzs = rlz if type(rlz).__name__ == "list" else [rlz]
+        rlzs = [self._addIndexMapToRlz(rl) for rl in rlzs]
+        dims = self.getDimensions()
+        for index, rl in enumerate(rlzs):
+          d = {k:{'dims':tuple(dims[k]) ,'data': v} for (k,v) in rl.items()}
+          rlz[index] =  xr.Dataset.from_dict(d)
+        rlz = xr.concat(rlz,dim=self.sampleTag)
       return index, rlz
 
   def remove(self,variable):
@@ -1575,15 +1568,17 @@ class DataSet(DataObject):
       rlz[var] = vals
     return rlz
 
-  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15, options=None):
+  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15, first=True):
     """
       Obtains a realization from the collector storage matching the provided index
       @ In, toMatch, dict, elements to match
       @ In, noMatch, dict, elements to AVOID matching (should not match within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
-      @ In, options, dict, optional, options to be applied to the search
-      @ Out, r, int, index where match was found OR size of data if not found
-      @ Out, rlz, dict, realization as {var:value} OR None if not found
+      @ In, first, bool, optional, return the first matching realization only? Default:True
+      @ Out, r (or rr), int or list, if first: int, index where match was found OR size of data if not found
+                             else    : list, list of indeces where matches were found OR size of data if not found
+      @ Out, rlz (or rlzs), dict or list, if first: dict, first matching realization as {var:value} OR None if not found
+                                else    : list, list of matching realizatiions as [{var:value1}, {var:value2}, ...]
     """
     if toMatch is None:
       toMatch = {}
@@ -1594,22 +1589,13 @@ class DataSet(DataObject):
       allMatch = options.get("returnAllMatch",False)
     else:
       allMatch = False
-    '''
-    if noMatch == {}:
-      allMatch = True
-    if noMatch is None:
-      noMatch = {}
-      allMatch = True
-    else:
-      allMatch = False
-    '''
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
     matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
     avoidVars, avoidVals = zip(*noMatch.items()) if noMatch else ([], [])
     matchIndices = tuple(self._orderedVars.index(var) for var in matchVars)# What did we use this in?
-    if allMatch:
-      matchIndexes, matchRlz = [], [] # used if allMatch == True, should it be range(np.shape(self._collector)[1]),[]?
+    if not first:
+      rr, rlz = [], []
     for r, row in enumerate(self._collector[:]): #TODO: CAN WE MAKE R START FROM LAST MATCHINDEXES ?
       match = True
       # find matches first
@@ -1638,16 +1624,16 @@ class DataSet(DataObject):
           if not match:
             break
       if match:
-        if not allMatch:
+        if first:
           break
         else:
-          matchIndexes.append(r)
-          matchRlz.append(self._getRealizationFromCollectorByIndex(r))
+          rr.append(r)
+          rlz.append(self._getRealizationFromCollectorByIndex(r))
     if match:
-      if not allMatch:
+      if first:
         return r, self._getRealizationFromCollectorByIndex(r)
       else:
-        return matchIndexes, matchRlz
+        return rr, rlz
     else:
       return len(self), None
 
@@ -2145,6 +2131,7 @@ class DataSet(DataObject):
   #    types = list('%.18e' if self._getCompatibleType(data[0][i]) == float else '%s' for i in range(len(ordered)))
   #    np.savetxt(outFile,data,header=header,fmt=types)
   #  # format data?
+
 
 
   ### HIERARCHICAL STUFF ###
