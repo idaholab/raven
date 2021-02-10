@@ -31,7 +31,6 @@ import shutil
 import inspect
 import subprocess
 import platform
-import copy
 from importlib import import_module
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.
@@ -1046,21 +1045,12 @@ def which(cmd):
           return name
   return None
 
-def orderClusterLabels(originalLables):
+# utility function for defaultdict
+def giveZero():
   """
-    Regulates labels such that the first unique one to appear is 0, second one is 1, and so on.
-    e.g. [B, B, C, B, A, A, D] becomes [0, 0, 1, 0, 2, 2, 3]
-    @ In, originalLabels, list, the original labeling system
-    @ Out, labels, np.array(int), ordinal labels
+    Utility function for defaultdict to 0
+    Needed only to avoid lambda pickling issues for defaultdicts
+    @ In, None
+    @ Out, giveZero, int, zero
   """
-  labels = np.zeros(len(originalLabels), dtype=int)
-  oldToNew = {}
-  nextUsableLabel = 0
-  for l, old in enumerate(originalLabels):
-    new = oldToNew.get(old, None)
-    if new is None:
-      oldToNew[old] = nextUsableLabel
-      new = nextUsableLabel
-      nextUsableLabel += 1
-    labels[l] = new
-  return labels
+  return 0
