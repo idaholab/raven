@@ -13,7 +13,6 @@
 # limitations under the License.
 """
 Created on Mar 7, 2013
-
 @author: crisr
 """
 #for future compatibility with Python 3--------------------------------------------------------------

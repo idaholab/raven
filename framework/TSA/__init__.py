@@ -24,6 +24,7 @@ from __future__ import absolute_import
 from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 
 from .Fourier import Fourier
+from .ARMA import ARMA
 
 
 # Factory methods

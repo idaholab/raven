@@ -62,11 +62,9 @@ class DataSet(DataObject):
     This class outlines the behavior for the basic in-memory DataObject, including support
     for ND and ragged input/output variable data shapes.  Other in-memory DataObjects are
     specialized implementations of this class.
-
     DataObject developed Oct 2017 with the intent to obtain linear performance from data objects when appending, over
     thousands of variables and millions of samples.  Wraps np.ndarray for collecting and uses xarray.Dataset
     for final form.  Subclasses are shortcuts (recipes) for this most general case.
-
     The interface for these data objects is specific.  The methods under "EXTERNAL API", "INITIALIZATION",
     and "BUILTINS" are the only methods that should be called to interact with the object.
   """
@@ -578,20 +576,20 @@ class DataSet(DataObject):
           if numInCollector > 0:
             index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, options=options)
       # add index map where necessary
-      for rl in (rlz if type(rlz).__name__ in "list" else [rlz]):
-        rl = self._addIndexMapToRlz(rl)
+      rlz = self._addIndexMapToRlz(rlz)
+      # if as Dataset convert it
       if asDataSet:
-        if type(rlz).__name__ in "list":
-          d = {}
-          dims =  self.getDimensions()
+        for rl in (rlz if type(rlz).__name__ == "list" else [rlz]):
+          rl = self._addIndexMapToRlz(rl)
+        d = {}
+        dims =  self.getDimensions()
+        if type(rlz).__name__ == "list":
           for index, rl in enumerate(rlz):
             for k, v in rl.items():
               d[k] = {'dims':tuple(dims[k]) ,'data': v}
             rlz[index] =  xr.Dataset.from_dict(d)
           rlz = xr.concat(rlz,dim=self.sampleTag)
         else:
-          d = {}
-          dims =  self.getDimensions()
           for k, v in rlz.items():
             d[k] = {'dims':tuple(dims[k]) ,'data': v}
           rlz =  xr.Dataset.from_dict(d)
@@ -1577,7 +1575,11 @@ class DataSet(DataObject):
       rlz[var] = vals
     return rlz
 
+<<<<<<< HEAD
   def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15, options = None):
+=======
+  def _getRealizationFromCollectorByValue(self, toMatch, noMatch, tol=1e-15, options=None):
+>>>>>>> origin/devel
     """
       Obtains a realization from the collector storage matching the provided index
       @ In, toMatch, dict, elements to match
@@ -1589,13 +1591,30 @@ class DataSet(DataObject):
     """
     if toMatch is None:
       toMatch = {}
+
+    assert(self._collector is not None)
+
+    if options:
+      allMatch = options.get("returnAllMatch",False)
+    else:
+      allMatch = False
+    '''
+    if noMatch == {}:
+      allMatch = True
     if noMatch is None:
       noMatch = {}
+<<<<<<< HEAD
     assert(self._collector is not None)
     if options:
       allMatch = options.get("returnAllMatch",False)
     else:
       allMatch = False
+=======
+      allMatch = True
+    else:
+      allMatch = False
+    '''
+>>>>>>> origin/devel
     # TODO KD Tree for faster values -> still want in collector?
     # TODO slow double loop
     matchVars, matchVals = zip(*toMatch.items()) if toMatch else ([], [])
@@ -2206,4 +2225,3 @@ class DataSet(DataObject):
       fromData = []
     endings = fromColl + fromData
     return endings
-
