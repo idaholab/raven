@@ -680,8 +680,13 @@ class MultiRun(SingleRun):
       # collect finished jobs
       finishedJobs = jobHandler.getFinished()
 
-      ##BATCH... TO MODIFY. FIXME
+      ##FIXME: THE BATCH STRATEGY IS TOO INTRUSIVE. A MORE ELEGANT WAY NEEDS TO BE FOUND (E.G. REALIZATION OBJECT)
       for finishedJobObjs in finishedJobs:
+        # NOTE: HERE WE RETRIEVE THE JOBS. IF BATCHING, THE ELEMENT IN finishedJobs is a LIST
+        #       WE DO THIS in this way because:
+        #           in case of BATCHING, the finalizeActualSampling method MUST BE called ONCE/BATCH
+        #           otherwise, the finalizeActualSampling method MUST BE called ONCE/job
+        #FIXME: This method needs to be improved since it is very intrusise
         if type(finishedJobObjs).__name__ in 'list':
           finishedJobList = finishedJobObjs
           self.raiseADebug('BATCHING: Collecting JOB batch named "{}".'.format(finishedJobList[0].groupId))
@@ -727,6 +732,9 @@ class MultiRun(SingleRun):
         if type(finishedJobObjs).__name__ in 'list': # TODO: should be consistent, if no batching should batch size be 1 or 0 ?
           # if sampler claims it's batching, then only collect once, since it will collect the batch
           # together, not one-at-a-time
+          # FIXME: IN HERE WE SEND IN THE INSTANCE OF THE FIRST JOB OF A BATCH
+          # FIXME: THIS IS DONE BECAUSE CURRENTLY SAMPLERS/OPTIMIZERS RETRIEVE SOME INFO from the Runner instance but it can be
+          # FIXME: dangerous if the sampler/optimizer requires info from each job. THIS MUST BE FIXED.
           sampler.finalizeActualSampling(finishedJobs[0][0],model,inputs)
         else:
           # sampler isn't intending to batch, so we send them in one-at-a-time as per normal
@@ -777,7 +785,7 @@ class MultiRun(SingleRun):
         interface for these?)
       @ In, jobHandler, object, the raven object used to handle jobs
       @ In, inDictionary, dict, additional step objects map
-      @ In, verbose, bool, optional, if True print DEBUD statements
+      @ In, verbose, bool, optional, if True print DEBUG statements
       @ Out, None
     """
     isEnsemble = isinstance(model, Models.EnsembleModel)

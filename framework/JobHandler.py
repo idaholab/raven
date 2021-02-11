@@ -317,7 +317,9 @@ class JobHandler(MessageHandler.MessageUser):
         - "id": it is a special keyword attached to
           this runner to identify that this runner belongs to a special set of runs that need to be
           grouped together (all will be retrievable only when all the runs ended).
-        - "size", number of runs in this group
+        - "size", number of runs in this group self.__batching
+        NOTE: If the "size" of the group is only set the first time a job of this group is added.
+              Consequentially the size is immutable
       @ In, clientQueue, boolean, optional, if this run needs to be added in the
         clientQueue
       @ Out, None
@@ -346,6 +348,8 @@ class JobHandler(MessageHandler.MessageUser):
       # TODO: create method in Runner to set flags,ids,etc in the instanciated runner
       internalJob.groupId = groupId
       if groupId not in self.__batching:
+        # NOTE: The size of the group is only set once the first job beloning to a group is added
+        #       ***** THE size of a group is IMMUTABLE *****
         self.__batching[groupId] = {"counter": 0, "ids": [], "size": groupInfo['size'], 'finished': []}
       self.__batching[groupId]["counter"] += 1
       if self.__batching[groupId]["counter"] > self.__batching[groupId]["size"]:
@@ -559,6 +563,14 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, finished, list, list of list containing finished jobs (InternalRunner or
         ExternalRunner objects) (if jobIdentifier is None), else the finished
         jobs matching the base case jobIdentifier
+        NOTE:
+        - in case the runs belong to a groupID (batching), each element of the list
+         contains a list of the finished runs belonging to that group (Batch)
+        - otherwise a flat list of jobs are returned.
+        For example:
+
+        finished =    [job1, job2, [job3.1, job3.2], job4 ] (job3.1/3.2 belong to the same groupID)
+                   or [job1, job2, job3, job4]
     """
     ## If the user does not specify a jobIdentifier, then set it to the empty
     ## string because every job will match this starting string.
@@ -604,11 +616,8 @@ class JobHandler(MessageHandler.MessageUser):
       if removeFinished:
         for i in reversed(runsToBeRemoved):
           self.__finished[i].trackTime('collected')
-          try:
-            del self.__finished[i]
-          except ImportError:
-            raise IOError('stop')
-            pass
+          del self.__finished[i]
+
       ## end with self.__queueLock
     return finished
 

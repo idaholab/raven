@@ -515,9 +515,19 @@ class DataSet(DataObject):
       @ In, tol, float, optional, tolerance to which match should be made
       @ In, unpackXArray, bool, optional, True if the coordinates of the xarray variables must be exposed in the dict (e.g. if P(t) => {P:ndarray, t:ndarray}) (valid only for dataset)
       @ In, asDataSet, bool, optional, return realization from the data as a DataSet
-      @ In, first, bool, optional, return the first matching realization only? Default:True
-      @ Out, index, int, optional, index where found (or len(self) if not found), only returned if matchDict
-      @ Out, rlz, dict, realization requested (None if not found)
+      @ In, first, bool, optional, return the first matching realization only?
+                                   If False, it returns a list of all mathing realizations Default:True
+      @ Out, (index, rlz), tuple ( (int, dict) or (list(int),list(dict)) ), where:
+                                 first element:
+                                   if first: int, index where match was found OR size of data if not found
+                                   else    : list, list of indices where matches were found OR size of data if not found
+                                 second element:
+                                   if first:
+                                     if asDataSet: xarray.Dataset, first matching realization as xarray.Dataset OR None if not found
+                                     else        : dict, first matching realization as {var:value} OR None if not found
+                                   else    :
+                                     if asDataSet: xarray.Dataset, all matching realizations as xarray.Dataset OR None if not found
+                                     else        : list, list of matching realizatiions as [{var:value1}, {var:value2}, ...]
     """
     # TODO convert input space to KD tree for faster searching -> XArray.DataArray has this built in?
     ## first, check that some direction was given, either an index or a match to find
@@ -1574,11 +1584,15 @@ class DataSet(DataObject):
       @ In, toMatch, dict, elements to match
       @ In, noMatch, dict, elements to AVOID matching (should not match within tolerance)
       @ In, tol, float, optional, tolerance to which match should be made
-      @ In, first, bool, optional, return the first matching realization only? Default:True
-      @ Out, r (or rr), int or list, if first: int, index where match was found OR size of data if not found
-                             else    : list, list of indeces where matches were found OR size of data if not found
-      @ Out, rlz (or rlzs), dict or list, if first: dict, first matching realization as {var:value} OR None if not found
-                                else    : list, list of matching realizatiions as [{var:value1}, {var:value2}, ...]
+      @ In, first, bool, optional, return the first matching realization only?
+                                   If False, it returns a list of all mathing realizations Default:True
+      @ Out, (r, rlz) or (rr, rlzs), tuple ( (int, dict) or (list(int),list(dict)) ), where:
+                                     first element:
+                                       if first:  r, int, index where match was found OR size of data if not found
+                                       else    : rr, list, list of indices where matches were found OR size of data if not found
+                                     second element:
+                                       if first: rlz, dict, first matching realization as {var:value} OR None if not found
+                                       else    : rlzs, list, list of matching realizatiions as [{var:value1}, {var:value2}, ...]
     """
     if toMatch is None:
       toMatch = {}
