@@ -597,16 +597,15 @@ class JobHandler(MessageHandler.MessageUser):
           runsToBeRemoved.append(i)
           self.__checkAndRemoveFinished(run)
           ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
-
       ## check if batches are ready to be returned
       for groupId in list(self.__batching.keys()):
+        if len(self.__batching[groupId]['finished']) >  self.__batching[groupId]['size']:
+           self.raiseAnError(RuntimeError,'The batching system got corrupted. Open an issue in RAVEN github!')
         if removeFinished:
           if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
             doneBatch = self.__batching.pop(groupId)
             finished.append(doneBatch['finished'])
         else:
-          if len(self.__batching[groupId]['finished']) >  self.__batching[groupId]['size']:
-            raise IOError('+++++ batching is messed up ++++++')
           doneBatch = self.__batching[groupId]
           finished.append(doneBatch['finished'])
 
