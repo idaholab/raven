@@ -24,4 +24,21 @@
       zero_threshold = 1e-3 # "constant" causes problems, all the rest are more accurate
     [../]
   [../]
+
+  [./FourierARMA]
+    type = 'RavenFramework'
+    input = 'fourier_arma.xml'
+    output = 'FourierARMA/plot_samples_0.png FourierARMA/plot_samples_1.png'
+    [./csv]
+      type = OrderedCSV
+      output = 'FourierARMA/samples_0.csv FourierARMA/samples_1.csv'
+      rel_err = 2e-1 # thank you, Windows
+    [../]
+    [./xml]
+      type = XML
+      output = 'FourierARMA/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
 []

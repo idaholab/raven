@@ -93,19 +93,19 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
                            params[target variable][characteristic] = value
     """
 
-  def getResidual(self, initial, params, pivot, randEngine):
+  def getResidual(self, initial, params, pivot, settings):
     """
       Removes trained signal from data and find residual
       @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
                                same order as self.target
       @ In, params, dict, training parameters as from self.characterize
       @ In, pivot, np.array, time-like array values
-      @ In, randEngine, instance, optional, method to call to get random samples (for example "randEngine(size=6)")
+      @ In, settings, dict, additional settings specific to algorithm
       @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
     """
     # DEFAULT IMPLEMENTATION, generate one signal and subtract it from the given one
     # -> overload in inheritors to change behavior
-    sample = self.generate(params, pivot, randEngine)
+    sample = self.generate(params, pivot, settings)
     residual = initial - sample
     return residual
 

@@ -158,6 +158,8 @@ class Fourier(TimeSeriesAnalyzer):
       # END for target in targets
     return params
 
+  # getResidual -> use base implementation
+
   def generate(self, params, pivot, settings):
     """
       Generates a synthetic history from fitted parameters.

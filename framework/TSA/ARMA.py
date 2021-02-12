@@ -147,7 +147,6 @@ class ARMA(TimeSeriesAnalyzer):
       # TODO just use SARIMAX?
       model = statsmodels.tsa.arima.model.ARIMA(normed, order=(P, d, Q))
       res = model.fit(low_memory=settings['reduce_memory'])
-      #res = model.fit(low_memory=True)
       # NOTE on low_memory use, test using SyntheticHistory.ARMA test:
       #   case    | time used (s) | memory used (MiB)
       #   low mem | 2.570851      | 0.5
@@ -175,7 +174,33 @@ class ARMA(TimeSeriesAnalyzer):
                                 'var': res.params[-1],  # variance
                                 'initials': initDist,   # characteristics for sampling initial states
                                 'model': model}
+      if not settings['reduce_memory']:
+        params[target]['arma']['results'] = res
     return params
+
+  def getResidual(self, initial, params, pivot, settings):
+    """
+      @ In, initial, np.array, original signal shaped [pivotValues, targets], targets MUST be in
+                               same order as self.target
+      @ In, params, dict, training parameters as from self.characterize
+      @ In, pivot, np.array, time-like array values
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, residual, np.array, reduced signal shaped [pivotValues, targets]
+    """
+    raise NotImplementedError('ARMA cannot provide a residual yet; it must be the last TSA used!')
+    # FIXME how to get a useful residual?
+    # -> the "residual" of the ARMA is ideally white noise, not a 0 vector, even if perfectly fit
+    #    so what does it mean to provide the residual from the ARMA training?
+    # in order to use "predict" (in-sample forecasting) can't be in low-memory mode
+    # if settings['reduce_memory']:
+    #   raise RuntimeError('Cannot get residual of ARMA if in reduced memory mode!')
+    # for tg, (target, data) in enumerate(params.items()):
+    #   armaData = data['arma']
+    #   modelParams = np.hstack([[armaData.get('const', 0)],
+    #                            armaData['ar'],
+    #                            armaData['ma'],
+    #                            [armaData.get('var', 1)]])
+    #   new = armaData['model'].predict(modelParams)
 
   def generate(self, params, pivot, settings):
     """
