@@ -1,3 +1,4 @@
+
 # Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +14,6 @@
 # limitations under the License.
 """
 Created on Mar 5, 2013
-
 @author: alfoa, cogljj, crisr
 """
 #for future compatibility with Python 3-----------------------------------------
@@ -42,7 +42,7 @@ import MessageHandler
 import Runners
 import Models
 # for internal parallel
-# # TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWS
+## TODO: REMOVE WHEN RAY AVAILABLE FOR WINDOWS
 _rayAvail = im.isLibAvail("ray")
 if _rayAvail:
   import ray
@@ -51,78 +51,76 @@ else:
 # end internal parallel module
 #Internal Modules End-----------------------------------------------------------
 
-# # FIXME: Finished jobs can bog down the queue waiting for other objects to take
-# # them away. Can we shove them onto a different list and free up the job queue?
-
+## FIXME: Finished jobs can bog down the queue waiting for other objects to take
+## them away. Can we shove them onto a different list and free up the job queue?
 
 class JobHandler(MessageHandler.MessageUser):
   """
     JobHandler class. This handles the execution of any job in the RAVEN
     framework
   """
-
   def __init__(self):
     """
       Init method
       @ In, None
       @ Out, None
     """
-    # # Print tag of this object
-    self.printTag = 'Job Handler'
-    # # Container of the running info (RunInfo block in the input file)
-    self.runInfoDict = {}
-    # # Is Ray Initialized?
+    ## Print tag of this object
+    self.printTag         = 'Job Handler'
+    ## Container of the running info (RunInfo block in the input file)
+    self.runInfoDict      = {}
+    ## Is Ray Initialized?
     self.isRayInitialized = False
-    # # Variable containing the info about the RAY parallel server. If None, multi-threading is used
+    ## Variable containing the info about the RAY parallel server. If None, multi-threading is used
     self.rayServer = None
 
-    # # Sleep time for collecting/inquiring/submitting new jobs
-    self.sleepTime = 1e-4  # 0.005
+    ## Sleep time for collecting/inquiring/submitting new jobs
+    self.sleepTime  = 1e-4 #0.005
 
-    # # Is the execution completed? When True, the JobHandler is shut down
+    ## Is the execution completed? When True, the JobHandler is shut down
     self.completed = False
 
-    # # Determines whether to collect and print job timing summaries at the end of job runs.
+    ## Determines whether to collect and print job timing summaries at the end of job runs.
     self.__profileJobs = False
 
-    # # Prevents the pending queue from growing indefinitely, but also allowing
-    # # extra jobs to be queued to prevent starving parallelized environments of
-    # # jobs.
+    ## Prevents the pending queue from growing indefinitely, but also allowing
+    ## extra jobs to be queued to prevent starving parallelized environments of
+    ## jobs.
     self.maxQueueSize = None
 
     ############################################################################
-    # # The following variables are protected by the __queueLock
+    ## The following variables are protected by the __queueLock
 
-    # # Placeholders for each actively running job. When a job finishes, its
-    # # spot in one of these lists will be reset to None and the next Runner will
-    # # be placed in a free None spot, and set to start
-    self.__running = []
+    ## Placeholders for each actively running job. When a job finishes, its
+    ## spot in one of these lists will be reset to None and the next Runner will
+    ## be placed in a free None spot, and set to start
+    self.__running       = []
     self.__clientRunning = []
 
-    # # Queue of jobs to be run, when something on the list above opens up, the
-    # # corresponding queue will pop a job (Runner) and put it into that location
-    # # and set it to start
-    self.__queue = collections.deque()
+    ## Queue of jobs to be run, when something on the list above opens up, the
+    ## corresponding queue will pop a job (Runner) and put it into that location
+    ## and set it to start
+    self.__queue       = collections.deque()
     self.__clientQueue = collections.deque()
 
-    # # A counter used for uniquely identifying the next id for an ExternalRunner
-    # # InternalRunners will increment this counter, but do not use it currently
+    ## A counter used for uniquely identifying the next id for an ExternalRunner
+    ## InternalRunners will increment this counter, but do not use it currently
     self.__nextId = 0
 
-    # # List of finished jobs. When a job finishes, it is placed here until
-    # # something from the main thread can remove them.
+    ## List of finished jobs. When a job finishes, it is placed here until
+    ## something from the main thread can remove them.
     self.__finished = []
 
-    # # End block of __queueLock protected variables
+    ## End block of __queueLock protected variables
     ############################################################################
 
     self.__queueLock = threading.RLock()
-    # # List of submitted job identifiers, includes jobs that have completed as
-    # # this list is not cleared until a new step is entered
+    ## List of submitted job identifiers, includes jobs that have completed as
+    ## this list is not cleared until a new step is entered
     self.__submittedJobs = []
-    # # Dict of failed jobs of the form { identifier: metadata }
+    ## Dict of failed jobs of the form { identifier: metadata }
     self.__failedJobs = {}
-    # # Dict containing info about batching
+    ## Dict containing info about batching
     self.__batching = collections.defaultdict()
 
   def initialize(self, runInfoDict, messageHandler):
@@ -144,13 +142,13 @@ class JobHandler(MessageHandler.MessageUser):
     if self.maxQueueSize < 1:
       self.raiseAWarning('maxQueueSize was set to be less than 1!  Setting to 1...')
       self.maxQueueSize = 1
-    self.raiseADebug('Setting maxQueueSize to', self.maxQueueSize)
+    self.raiseADebug('Setting maxQueueSize to',self.maxQueueSize)
 
-    # initialize PBS
+    #initialize PBS
     with self.__queueLock:
-      self.__running = [None] * self.runInfoDict['batchSize']
-      self.__clientRunning = [None] * self.runInfoDict['batchSize']
-    # # internal server is initialized only in case an internal calc is requested
+      self.__running       = [None]*self.runInfoDict['batchSize']
+      self.__clientRunning = [None]*self.runInfoDict['batchSize']
+    ## internal server is initialized only in case an internal calc is requested
     if not self.isRayInitialized:
       self.__initializeRay()
 
@@ -166,14 +164,14 @@ class JobHandler(MessageHandler.MessageUser):
         metadataFailedRun = running.getMetadata()
         metadataToKeep = metadataFailedRun
         if metadataFailedRun is not None:
-          metadataKeys = list(metadataFailedRun.keys())
+          metadataKeys      = list(metadataFailedRun.keys())
           if 'jobHandler' in metadataKeys:
             metadataKeys.pop(metadataKeys.index("jobHandler"))
             metadataToKeep = { keepKey: metadataFailedRun[keepKey] for keepKey in metadataKeys }
-        # # FIXME: The running.command was always internal now, so I removed it.
-        # # We should probably find a way to give more pertinent information.
+        ## FIXME: The running.command was always internal now, so I removed it.
+        ## We should probably find a way to give more pertinent information.
         self.raiseAMessage(" Process Failed " + str(running) + " internal returnCode " + str(returnCode))
-        self.__failedJobs[running.identifier] = (returnCode, copy.deepcopy(metadataToKeep))
+        self.__failedJobs[running.identifier]=(returnCode,copy.deepcopy(metadataToKeep))
 
   def __initializeRay(self):
     """
@@ -185,18 +183,18 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     if self.runInfoDict['internalParallel']:
-      # # Check if the list of unique nodes is present and, in case, initialize the
+      ## Check if the list of unique nodes is present and, in case, initialize the
       servers = None
       if len(self.runInfoDict['Nodes']) > 0:
         availableNodes = [nodeId.strip() for nodeId in self.runInfoDict['Nodes']]
-        # # identify the local host name and get the number of local processors
+        ## identify the local host name and get the number of local processors
         localHostName = self.__getLocalHost()
         self.raiseADebug("Local host name is  : ", localHostName)
         nProcsHead = availableNodes.count(localHostName)
         self.raiseADebug("# of local procs    : ", str(nProcsHead))
-        # # initialize ray server with nProcs
+        ## initialize ray server with nProcs
         self.rayServer = ray.init(num_cpus=int(nProcsHead)) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
-        # # Get localHost and servers
+        ## Get localHost and servers
         servers = self.__runRemoteListeningSockets(self.rayServer['redis_address'])
       else:
         self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
@@ -212,7 +210,7 @@ class JobHandler(MessageHandler.MessageUser):
           self.raiseADebug("Remote servers      : ", " , ".join(servers))
 
     else:
-      # # We are just using threading
+      ## We are just using threading
       self.rayServer = None
 
     self.isRayInitialized = True
@@ -224,7 +222,7 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, hostNameMapping, dict, dictionary containing the qualified names of the remote nodes
     """
     hostNameMapping = {}
-    # # collect the qualified hostnames for each remote node
+    ## collect the qualified hostnames for each remote node
     for nodeId in list(set(self.runInfoDict['Nodes'])):
       hostNameMapping[nodeId.strip()] = socket.gethostbyname(nodeId.strip())
       self.raiseADebug("Remote Host identified ", hostNameMapping[nodeId.strip()])
@@ -238,48 +236,48 @@ class JobHandler(MessageHandler.MessageUser):
     """
     return str(socket.getfqdn()).strip()
 
-  def __runRemoteListeningSockets(self, address):
+  def __runRemoteListeningSockets(self,address):
     """
       Method to activate the remote sockets for parallel python
       @ In, address, string, the head node redis address
       @ Out, servers, list, list containing the nodes in which the remote sockets have been activated
     """
-    # # Get the local machine name and the remote nodes one
+    ## Get the local machine name and the remote nodes one
     remoteNodesIP = self.__getLocalAndRemoteMachineNames()
 
-    # # Strip out the nodes' names
+    ## Strip out the nodes' names
     availableNodes = [node.strip() for node in self.runInfoDict['Nodes']]
 
-    # # Get unique nodes
-    uniqueNodes = list(set(availableNodes))
-    servers = []
+    ## Get unique nodes
+    uniqueNodes  = list(set(availableNodes))
+    servers      = []
 
     if len(uniqueNodes) > 1:
-      # # There are remote nodes that need to be activated
-      # # Modify the python path used by the local environment
+      ## There are remote nodes that need to be activated
+      ## Modify the python path used by the local environment
       localenv = os.environ.copy()
       pathSeparator = os.pathsep
       localenv["PYTHONPATH"] = pathSeparator.join(sys.path)
-      # # Start
+      ## Start
       for nodeId in uniqueNodes:
-        # # Build the filename
-        outFileName = os.path.join(self.runInfoDict['WorkingDir'], nodeId.strip() + "_server_out.log")
+        ## Build the filename
+        outFileName = os.path.join(self.runInfoDict['WorkingDir'], nodeId.strip()+"_server_out.log")
         outFile = open(outFileName, 'w')
 
-        # # Check how many processors are available in the node
+        ## Check how many processors are available in the node
         ntasks = availableNodes.count(nodeId)
-        remoteHostName = remoteNodesIP[nodeId]
+        remoteHostName =  remoteNodesIP[nodeId]
 
-        # # Activate the remote socketing system
-        # # let's build the command and then call the os-agnostic version
+        ## Activate the remote socketing system
+        ## let's build the command and then call the os-agnostic version
         if _rayAvail:
-          command = " ".join(["ray start", "--address=" + address, "-num-cpus", str(ntasks)])
+          command=" ".join(["ray start", "--address="+address, "-num-cpus",str(ntasks)])
         else:
-          ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'], "contrib", "pp", "ppserver.py")
-          command = " ".join([pythonCommand, ppserverScript, "-w", str(ntasks), "-i", remoteHostName, "-p", str(randint(1024, 65535)), "-t", "50000", "-g", localenv["PYTHONPATH"], "-d"])
+          ppserverScript = os.path.join(self.runInfoDict['FrameworkDir'],"contrib","pp","ppserver.py")
+          command=" ".join([pythonCommand,ppserverScript,"-w",str(ntasks),"-i",remoteHostName,"-p",str(randint(1024,65535)),"-t","50000","-g",localenv["PYTHONPATH"],"-d"])
 
-        utils.pickleSafeSubprocessPopen(['ssh', nodeId, "COMMAND='" + command + "'", self.runInfoDict['RemoteRunCommand']], shell=False, stdout=outFile, stderr=outFile, env=localenv)
-        # # update list of servers
+        utils.pickleSafeSubprocessPopen(['ssh',nodeId,"COMMAND='"+command+"'",self.runInfoDict['RemoteRunCommand']],shell=False,stdout=outFile,stderr=outFile,env=localenv)
+        ## update list of servers
         servers.append(nodeId)
 
     return servers
@@ -293,12 +291,12 @@ class JobHandler(MessageHandler.MessageUser):
     while not self.completed:
       self.fillJobQueue()
       self.cleanJobQueue()
-      # # TODO May want to revisit this:
-      # # http://stackoverflow.com/questions/29082268/python-time-sleep-vs-event-wait
-      # # probably when we move to Python 3.
+      ## TODO May want to revisit this:
+      ## http://stackoverflow.com/questions/29082268/python-time-sleep-vs-event-wait
+      ## probably when we move to Python 3.
       time.sleep(self.sleepTime)
 
-  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads=False, uniqueHandler="any", clientQueue=False, groupInfo=None):
+  def addJob(self, args, functionToRun, identifier, metadata=None, forceUseThreads = False, uniqueHandler="any", clientQueue = False, groupInfo = None):
     """
       Method to add an internal run (function execution)
       @ In, args, dict, this is a list of arguments that will be passed as
@@ -346,7 +344,7 @@ class JobHandler(MessageHandler.MessageUser):
     internalJob.clientRunner = clientQueue
     #  set the groupping id if present
     if groupInfo is not None:
-      groupId = groupInfo['id']
+      groupId =  groupInfo['id']
       # TODO: create method in Runner to set flags,ids,etc in the instanciated runner
       internalJob.groupId = groupId
       if groupId not in self.__batching:
@@ -395,8 +393,8 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     self.addJob(args, functionToRun, identifier, metadata,
-                forceUseThreads=True, uniqueHandler=uniqueHandler,
-                clientQueue=True)
+                forceUseThreads = True, uniqueHandler = uniqueHandler,
+                clientQueue = True)
 
   def addFinishedJob(self, data, metadata=None, uniqueHandler="any", profile=False):
     """
@@ -433,18 +431,18 @@ class JobHandler(MessageHandler.MessageUser):
            An issue has been opened: 'JobHandler and Batching #1402'
     '''
     with self.__queueLock:
-      # # If there is still something left in the queue, we are not done yet.
-      if len(self.__queue) > 0 or len(self.__clientQueue) > 0:
+      ## If there is still something left in the queue, we are not done yet.
+      if len(self.__queue)>0 or len(self.__clientQueue)>0:
         return False
 
-      # # Otherwise, let's look at our running lists and see if there is a job
-      # # that is not done.
-      for run in self.__running + self.__clientRunning:
+      ## Otherwise, let's look at our running lists and see if there is a job
+      ## that is not done.
+      for run in self.__running+self.__clientRunning:
         if run:
           return False
 
-    # # Are there runs that need to be claimed? If so, then I cannot say I am
-    # # done.
+    ## Are there runs that need to be claimed? If so, then I cannot say I am
+    ## done.
     numFinished = len(self.getFinishedNoPop())
     if numFinished != 0:
       return False
@@ -460,13 +458,13 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, availability, int the number of runs that can be added until we
       reach saturation
     """
-    # # Due to possibility of memory explosion, we should include the finished
-    # # queue when considering whether we should add a new job. There was an
-    # # issue when running on a distributed system where we saw that this list
-    # # seemed to be growing indefinitely as the main thread was unable to clear
-    # # that list within a reasonable amount of time. The issue on the main thread
-    # # should also be addressed, but at least we can prevent it on this end since
-    # # the main thread's issue may be legitimate.
+    ## Due to possibility of memory explosion, we should include the finished
+    ## queue when considering whether we should add a new job. There was an
+    ## issue when running on a distributed system where we saw that this list
+    ## seemed to be growing indefinitely as the main thread was unable to clear
+    ## that list within a reasonable amount of time. The issue on the main thread
+    ## should also be addressed, but at least we can prevent it on this end since
+    ## the main thread's issue may be legitimate.
 
     maxCount = self.maxQueueSize
     finishedCount = len(self.__finished)
@@ -492,28 +490,28 @@ class JobHandler(MessageHandler.MessageUser):
     """
     identifier = identifier.strip()
     with self.__queueLock:
-      # # Look through the finished jobs and attempt to find a matching
-      # # identifier. If the job exists here, it is finished
+      ## Look through the finished jobs and attempt to find a matching
+      ## identifier. If the job exists here, it is finished
       for run in self.__finished:
         if run.identifier == identifier:
           return True
 
-      # # Look through the pending jobs and attempt to find a matching identifier
-      # # If the job exists here, it is not finished
+      ## Look through the pending jobs and attempt to find a matching identifier
+      ## If the job exists here, it is not finished
       for queue in [self.__queue, self.__clientQueue]:
         for run in queue:
           if run.identifier == identifier:
             return False
 
-      # # Look through the running jobs and attempt to find a matching identifier
-      # # If the job exists here, it is not finished
-      for run in self.__running + self.__clientRunning:
+      ## Look through the running jobs and attempt to find a matching identifier
+      ## If the job exists here, it is not finished
+      for run in self.__running+self.__clientRunning:
         if run is not None and run.identifier == identifier:
           return False
 
-    # #  If you made it here and we still have not found anything, we have got
-    # # problems.
-    self.raiseAnError(RuntimeError, "Job " + identifier + " is unknown!")
+    ##  If you made it here and we still have not found anything, we have got
+    ## problems.
+    self.raiseAnError(RuntimeError,"Job "+identifier+" is unknown!")
 
   def areTheseJobsFinished(self, uniqueHandler="any"):
     """
@@ -551,7 +549,7 @@ class JobHandler(MessageHandler.MessageUser):
     """
     return self.__failedJobs
 
-  def getFinished(self, removeFinished=True, jobIdentifier='', uniqueHandler="any"):
+  def getFinished(self, removeFinished=True, jobIdentifier = '', uniqueHandler = "any"):
     """
       Method to get the list of jobs that ended (list of objects)
       @ In, removeFinished, bool, optional, flag to control if the finished jobs
@@ -570,25 +568,24 @@ class JobHandler(MessageHandler.MessageUser):
          contains a list of the finished runs belonging to that group (Batch)
         - otherwise a flat list of jobs are returned.
         For example:
-
         finished =    [job1, job2, [job3.1, job3.2], job4 ] (job3.1/3.2 belong to the same groupID)
                    or [job1, job2, job3, job4]
     """
-    # # If the user does not specify a jobIdentifier, then set it to the empty
-    # # string because every job will match this starting string.
+    ## If the user does not specify a jobIdentifier, then set it to the empty
+    ## string because every job will match this starting string.
     if jobIdentifier is None:
       jobIdentifier = ''
 
     with self.__queueLock:
       finished = []
       runsToBeRemoved = []
-      for i, run in enumerate(self.__finished):
-        # # If the jobIdentifier does not match or the uniqueHandler does not
-        # # match, then don't bother trying to do anything with it
+      for i,run in enumerate(self.__finished):
+        ## If the jobIdentifier does not match or the uniqueHandler does not
+        ## match, then don't bother trying to do anything with it
         if not run.identifier.startswith(jobIdentifier) \
            or uniqueHandler != run.uniqueHandler:
           continue
-        # # check if the run belongs to a subgroup and in case
+        ## check if the run belongs to a subgroup and in case
         if run.groupId in self.__batching:
           if not run in self.__batching[run.groupId]['finished']:
             self.__batching[run.groupId]['finished'].append(run)
@@ -598,27 +595,28 @@ class JobHandler(MessageHandler.MessageUser):
         if removeFinished:
           runsToBeRemoved.append(i)
           self.__checkAndRemoveFinished(run)
-          # #FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
-      # # check if batches are ready to be returned
+          ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
+      ## check if batches are ready to be returned
       for groupId in list(self.__batching.keys()):
-        if len(self.__batching[groupId]['finished']) > self.__batching[groupId]['size']:
-          self.raiseAnError(RuntimeError, 'The batching system got corrupted. Open an issue in RAVEN github!')
+        if len(self.__batching[groupId]['finished']) >  self.__batching[groupId]['size']:
+           self.raiseAnError(RuntimeError,'The batching system got corrupted. Open an issue in RAVEN github!')
         if removeFinished:
-          if len(self.__batching[groupId]['finished']) == self.__batching[groupId]['size']:
+          if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
             doneBatch = self.__batching.pop(groupId)
             finished.append(doneBatch['finished'])
         else:
           doneBatch = self.__batching[groupId]
           finished.append(doneBatch['finished'])
 
-        # #Since these indices are sorted, reverse them to ensure that when we
-        # # delete something it will not shift anything to the left (lower index)
-        # # than it.
+        ##Since these indices are sorted, reverse them to ensure that when we
+        ## delete something it will not shift anything to the left (lower index)
+        ## than it.
       if removeFinished:
         for i in reversed(runsToBeRemoved):
           self.__finished[i].trackTime('collected')
           del self.__finished[i]
-      # # end with self.__queueLock
+
+      ## end with self.__queueLock
     return finished
 
   def getFinishedNoPop(self):
@@ -632,11 +630,11 @@ class JobHandler(MessageHandler.MessageUser):
     finished = self.getFinished(False)
     return finished
 
-  # # Deprecating this function because I don't think it is doing the right thing
-  # # People using the job handler should be asking for what is available not the
-  # # number of free spots in the running block. Only the job handler should be
-  # # able to internally alter or query the running and clientRunning queues.
-  # # The outside environment can only access the queue and clientQueue variables.
+  ## Deprecating this function because I don't think it is doing the right thing
+  ## People using the job handler should be asking for what is available not the
+  ## number of free spots in the running block. Only the job handler should be
+  ## able to internally alter or query the running and clientRunning queues.
+  ## The outside environment can only access the queue and clientQueue variables.
   # def numFreeSpots(self, client=False):
 
   def numRunning(self):
@@ -645,10 +643,10 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, activeRuns, int, number of active runs
     """
-    # with self.__queueLock:
-    # # The size of the list does not change, only its contents, so I don't
-    # # think there should be any conflict if we are reading a variable from
-    # # one thread and updating it on the other thread.
+    #with self.__queueLock:
+    ## The size of the list does not change, only its contents, so I don't
+    ## think there should be any conflict if we are reading a variable from
+    ## one thread and updating it on the other thread.
     activeRuns = sum(run is not None for run in self.__running)
     return activeRuns
 
@@ -668,47 +666,47 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
 
-    # # Only the jobHandler's startLoop thread should have write access to the
-    # # self.__running variable, so we should be able to safely query this outside
-    # # of the lock given that this function is called only on that thread as well.
-    emptySlots = [i for i, run in enumerate(self.__running) if run is None]
+    ## Only the jobHandler's startLoop thread should have write access to the
+    ## self.__running variable, so we should be able to safely query this outside
+    ## of the lock given that this function is called only on that thread as well.
+    emptySlots = [i for i,run in enumerate(self.__running) if run is None]
 
-    # # Don't bother acquiring the lock if there are no empty spots or nothing
-    # # in the queue (this could be simultaneously added to by the main thread,
-    # # but I will be back here after a short wait on this thread so I am not
-    # # concerned about this potential inconsistency)
+    ## Don't bother acquiring the lock if there are no empty spots or nothing
+    ## in the queue (this could be simultaneously added to by the main thread,
+    ## but I will be back here after a short wait on this thread so I am not
+    ## concerned about this potential inconsistency)
     if len(emptySlots) > 0 and len(self.__queue) > 0:
       with self.__queueLock:
         for i in emptySlots:
-          # # The queue could be emptied during this loop, so we will to break
-          # # out as soon as that happens so we don't hog the lock.
+          ## The queue could be emptied during this loop, so we will to break
+          ## out as soon as that happens so we don't hog the lock.
           if len(self.__queue) > 0:
             item = self.__queue.popleft()
 
-            # # Okay, this is a little tricky, but hang with me here. Whenever
-            # # a code model is run, we need to replace some of its command
-            # # parameters. The way we do this is by looking at the job instance
-            # # and checking if the first argument (the self in
-            # # self.evaluateSample) is an instance of Code, if so, then we need
-            # # to replace the execution command. Is this fragile? Possibly. We may
-            # # want to revisit this on the next iteration of this code.
+            ## Okay, this is a little tricky, but hang with me here. Whenever
+            ## a code model is run, we need to replace some of its command
+            ## parameters. The way we do this is by looking at the job instance
+            ## and checking if the first argument (the self in
+            ## self.evaluateSample) is an instance of Code, if so, then we need
+            ## to replace the execution command. Is this fragile? Possibly. We may
+            ## want to revisit this on the next iteration of this code.
             if len(item.args) > 0 and isinstance(item.args[0], Models.Code):
               kwargs = {}
               kwargs['INDEX'] = str(i)
-              kwargs['INDEX1'] = str(i + i)
+              kwargs['INDEX1'] = str(i+i)
               kwargs['CURRENT_ID'] = str(self.__nextId)
-              kwargs['CURRENT_ID1'] = str(self.__nextId + 1)
+              kwargs['CURRENT_ID1'] = str(self.__nextId+1)
               kwargs['SCRIPT_DIR'] = self.runInfoDict['ScriptDir']
               kwargs['FRAMEWORK_DIR'] = self.runInfoDict['FrameworkDir']
-              # # This will not be used since the Code will create a new
-              # # directory for its specific files and will spawn a process there
-              # # so we will let the Code fill that in. Note, the line below
-              # # represents the WRONG directory for an instance of a code!
-              # # It is however the correct directory for a MultiRun step
-              # # -- DPM 5/4/17
+              ## This will not be used since the Code will create a new
+              ## directory for its specific files and will spawn a process there
+              ## so we will let the Code fill that in. Note, the line below
+              ## represents the WRONG directory for an instance of a code!
+              ## It is however the correct directory for a MultiRun step
+              ## -- DPM 5/4/17
               kwargs['WORKING_DIR'] = item.args[0].workingDir
               kwargs['BASE_WORKING_DIR'] = self.runInfoDict['WorkingDir']
-              kwargs['METHOD'] = os.environ.get("METHOD", "opt")
+              kwargs['METHOD'] = os.environ.get("METHOD","opt")
               kwargs['NUM_CPUS'] = str(self.runInfoDict['NumThreads'])
               item.args[3].update(kwargs)
 
@@ -719,8 +717,8 @@ class JobHandler(MessageHandler.MessageUser):
           else:
             break
 
-    # # Repeat the same process above, only for the clientQueue
-    emptySlots = [i for i, run in enumerate(self.__clientRunning) if run is None]
+    ## Repeat the same process above, only for the clientQueue
+    emptySlots = [i for i,run in enumerate(self.__clientRunning) if run is None]
     if len(emptySlots) > 0 and len(self.__clientQueue) > 0:
       with self.__queueLock:
         for i in emptySlots:
@@ -739,22 +737,22 @@ class JobHandler(MessageHandler.MessageUser):
     @ In, None
     @ Out, None
     """
-    # # The code handling these two lists was the exact same, I have taken the
-    # # liberty of condensing these loops into one and removing some of the
-    # # redundant checks to make this code a bit simpler.
+    ## The code handling these two lists was the exact same, I have taken the
+    ## liberty of condensing these loops into one and removing some of the
+    ## redundant checks to make this code a bit simpler.
     for runList in [self.__running, self.__clientRunning]:
-      for i, run in enumerate(runList):
+      for i,run in enumerate(runList):
         if run is not None and run.isDone():
-          # # We should only need the lock if we are touching the finished queue
-          # # which is cleared by the main thread. Again, the running queues
-          # # should not be modified by the main thread, however they may inquire
-          # # it by calling numRunning.
+          ## We should only need the lock if we are touching the finished queue
+          ## which is cleared by the main thread. Again, the running queues
+          ## should not be modified by the main thread, however they may inquire
+          ## it by calling numRunning.
           with self.__queueLock:
             self.__finished.append(run)
             self.__finished[-1].trackTime('jobHandler_finished')
             runList[i] = None
 
-  def setProfileJobs(self, profile=False):
+  def setProfileJobs(self,profile=False):
     """
       Sets whether profiles for jobs are printed or not.
       @ In, profile, bool, optional, if True then print timings for jobs when they are garbage collected
@@ -782,6 +780,7 @@ class JobHandler(MessageHandler.MessageUser):
     if _rayAvail and self.rayServer:
      ray.shutdown()
 
+
   def terminateAll(self):
     """
       Method to clear out the queue by killing all running processes.
@@ -805,7 +804,7 @@ class JobHandler(MessageHandler.MessageUser):
     """
     queues = [self.__queue, self.__clientQueue, self.__running, self.__clientRunning]
     with self.__queueLock:
-      for q, queue in enumerate(queues):
+      for q,queue in enumerate(queues):
         toRemove = []
         for job in queue:
           if job is not None and job.identifier in ids:
@@ -814,7 +813,7 @@ class JobHandler(MessageHandler.MessageUser):
             toRemove.append(job)
         for job in toRemove:
           # for fixed-spot queues, need to replace job with None not remove
-          if isinstance(queue, list):
+          if isinstance(queue,list):
             job.kill()
             queue[queue.index(job)] = None
           # for variable queues, can just remove the job
@@ -822,4 +821,4 @@ class JobHandler(MessageHandler.MessageUser):
             queue.remove(job)
           self.raiseADebug('Terminated job "{}" by request.'.format(job.identifier))
     if len(ids):
-      self.raiseADebug('Tried to remove some jobs but not found in any queues:', ', '.join(ids))
+      self.raiseADebug('Tried to remove some jobs but not found in any queues:',', '.join(ids))
