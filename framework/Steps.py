@@ -31,7 +31,7 @@ else:
   import cPickle as pickle
 import copy
 import numpy as np
-# import pickle as cloudpickle
+#import pickle as cloudpickle
 import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
@@ -47,14 +47,13 @@ from DataObjects import DataObject
 
 
 #----------------------------------------------------------------------------------------------------
-class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
+class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
   """
     This class implement one step of the simulation pattern.
     Usage:
     myInstance = Step()                                !Generate the instance
     myInstance.XMLread(xml.etree.ElementTree.Element)  !This method read the xml and perform all the needed checks
     myInstance.takeAstep()                             !This method perform the step
-
     --Internal chain [in square brackets methods that can be/must be overwritten]
     self.XMLread(xml)-->self._readMoreXML(xml)     -->[self._localInputAndChecks(xmlNode)]
     self.takeAstep() -->self_initializeStep()      -->[self._localInitializeStep()]
@@ -64,12 +63,10 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     myInstance.whoAreYou()                 -see BaseType class-
     myInstance.myCurrentSetting()          -see BaseType class-
     myInstance.printMe()                   -see BaseType class-
-
     --Adding a new step subclass--
      **<MyClass> should inherit at least from Step or from another step already presents
      **DO NOT OVERRIDE any of the class method that are not starting with self.local*
      **ADD your class to the dictionary __InterfaceDict at the end of the module
-
     Overriding the following methods overriding unless you inherit from one of the already existing methods:
     self._localInputAndChecks(xmlNode)      : used to specialize the xml reading and the checks
     self._localGetInitParams()              : used to retrieve the local parameters and values to be printed
@@ -84,14 +81,14 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
       @ Out, None
     """
     BaseType.__init__(self)
-    self.parList = []  # List of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
-    self.sleepTime = 0.005  # Waiting time before checking if a run is finished
-    # If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
+    self.parList    = []   # List of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
+    self.sleepTime  = 0.005  # Waiting time before checking if a run is finished
+    #If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
     #  re-seeding = a number to be used as a new seed
     #  re-seeding = 'continue' the use the already present random environment
-    # If there is no instruction (self.initSeed = None) the sampler will reinitialize
-    self.initSeed = None
-    self._knownAttribute += ['clearRunDir', 'sleepTime', 're-seeding', 'pauseAtEnd', 'fromDirectory', 'repeatFailureRuns']
+    #If there is no instruction (self.initSeed = None) the sampler will reinitialize
+    self.initSeed        = None
+    self._knownAttribute += ['clearRunDir', 'sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns']
     self._excludeFromModelValidation = ['SolutionExport']
     # how to handle failed runs. By default, the step fails.
     # If the attribute "repeatFailureRuns" is inputted, a certain number of repetitions are going to be performed
@@ -154,7 +151,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
 
     return inputSpecification
 
-  def _readMoreXML(self, xmlNode):
+  def _readMoreXML(self,xmlNode):
     """
       Handles the reading of all the XML describing the step
       Since step are not reused there will not be changes in the parameter describing the step after this reading
@@ -174,23 +171,23 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     printString = 'For step of type {0:15} and name {1:15} the attribute {3:10} has been assigned to a not understandable value {2:10}'
     self.raiseADebug('move this tests to base class when it is ready for all the classes')
     if not set(paramInput.parameterValues.keys()).issubset(set(self._knownAttribute)):
-      self.raiseAnError(IOError, 'In step of type {0:15} and name {1:15} there are unknown attributes {2:100}'.format(self.type, self.name, str(paramInput.parameterValues.keys())))
+      self.raiseAnError(IOError,'In step of type {0:15} and name {1:15} there are unknown attributes {2:100}'.format(self.type,self.name,str(paramInput.parameterValues.keys())))
     if 're-seeding' in paramInput.parameterValues:
-      self.initSeed = paramInput.parameterValues['re-seeding']
-      if self.initSeed.lower() == "continue":
-        self.initSeed = "continue"
+      self.initSeed=paramInput.parameterValues['re-seeding']
+      if self.initSeed.lower()   == "continue":
+        self.initSeed  = "continue"
       else:
         try:
-          self.initSeed = int(self.initSeed)
+          self.initSeed  = int(self.initSeed)
         except:
-          self.raiseAnError(IOError, printString.format(self.type, self.name, self.initSeed, 're-seeding'))
+          self.raiseAnError(IOError,printString.format(self.type,self.name,self.initSeed,'re-seeding'))
     if 'sleepTime' in paramInput.parameterValues:
       self.sleepTime = paramInput.parameterValues['sleepTime']
     self._clearRunDir = paramInput.parameterValues.get('clearRunDir', True)
     for child in paramInput.subparts:
       classType = child.parameterValues['class']
       classSubType = child.parameterValues['type']
-      self.parList.append([child.getName(), classType, classSubType, child.value])
+      self.parList.append([child.getName(),classType,classSubType,child.value])
 
     self.pauseEndStep = False
     if 'pauseAtEnd' in paramInput.parameterValues:
@@ -199,30 +196,30 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
       elif utils.stringIsFalse(paramInput.parameterValues['pauseAtEnd']):
         self.pauseEndStep = False
       else:
-        self.raiseAnError(IOError, printString.format(self.type, self.name, paramInput.parameterValues['pauseAtEnd'], 'pauseAtEnd'),
+        self.raiseAnError(IOError,printString.format(self.type,self.name,paramInput.parameterValues['pauseAtEnd'],'pauseAtEnd'),
                                   'expected one of {}'.format(utils.boolThingsFull))
     if 'repeatFailureRuns' in paramInput.parameterValues:
       failureSettings = str(paramInput.parameterValues['repeatFailureRuns']).split("|")
       self.failureHandling['fail'] = False
-      # failureSettings = str(xmlNode.attrib['repeatFailureRuns']).split("|")
-      # if len(failureSettings) not in [1,2]: (for future usage)
+      #failureSettings = str(xmlNode.attrib['repeatFailureRuns']).split("|")
+      #if len(failureSettings) not in [1,2]: (for future usage)
       #  self.raiseAnError(IOError,'repeatFailureRuns format error. Expecting either the repetition number only ' +
       #                            'or the repetition number and the perturbation factor separated by "|" symbol')
       if len(failureSettings) != 1:
-        self.raiseAnError(IOError, 'repeatFailureRuns format error. Expecting the repetition number only ')
+        self.raiseAnError(IOError,'repeatFailureRuns format error. Expecting the repetition number only ')
       self.failureHandling['repetitions'] = utils.intConversion(failureSettings[0])
-      # if len(failureSettings) == 2:
+      #if len(failureSettings) == 2:
       #  self.failureHandling['perturbationFactor'] = utils.floatConversion(failureSettings[1])
       if self.failureHandling['repetitions'] is None:
-        self.raiseAnError(IOError, 'In Step named ' + self.name + ' it was not possible to cast "repetitions" attribute into an integer!')
-      # if self.failureHandling['perturbationFactor'] is None:
+        self.raiseAnError(IOError,'In Step named '+self.name+' it was not possible to cast "repetitions" attribute into an integer!')
+      #if self.failureHandling['perturbationFactor'] is None:
       #  self.raiseAnError(IOError,'In Step named '+self.name+' it was not possible to cast "perturbationFactor" attribute into a float!')
     self._localInputAndCheckParam(paramInput)
     if None in self.parList:
-      self.raiseAnError(IOError, 'A problem was found in  the definition of the step ' + str(self.name))
+      self.raiseAnError(IOError,'A problem was found in  the definition of the step '+str(self.name))
 
   @abc.abstractmethod
-  def _localInputAndCheckParam(self, paramInput):
+  def _localInputAndCheckParam(self,paramInput):
     """
       Place here specialized reading, input consistency check and
       initialization of what will not change during the whole life of the object
@@ -245,7 +242,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     paramDict['Sleep time'  ] = str(self.sleepTime)
     paramDict['Initial seed'] = str(self.initSeed)
     for List in self.parList:
-      paramDict[List[0]] = 'Class: ' + str(List[1]) + ' Type: ' + str(List[2]) + '  Global name: ' + str(List[3])
+      paramDict[List[0]] = 'Class: '+str(List[1]) +' Type: '+str(List[2]) + '  Global name: '+str(List[3])
     paramDict.update(self._localGetInitParams())
     return paramDict
 
@@ -260,7 +257,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     """
     return {}
 
-  def _initializeStep(self, inDictionary):
+  def _initializeStep(self,inDictionary):
     """
       Method to initialize the current step.
       the job handler is restarted and re-seeding action are performed
@@ -272,7 +269,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     self._localInitializeStep(inDictionary)
 
   @abc.abstractmethod
-  def _localInitializeStep(self, inDictionary):
+  def _localInitializeStep(self,inDictionary):
     """
       This is the API for the local initialization of the children classes of step
       The inDictionary contains the instances for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
@@ -285,7 +282,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     pass
 
   @abc.abstractmethod
-  def _localTakeAstepRun(self, inDictionary):
+  def _localTakeAstepRun(self,inDictionary):
     """
       This is the API for the local run of a step for the children classes
       @ In, inDictionary, dict, contains the list of instances (see Simulation)
@@ -293,33 +290,33 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     """
     pass
 
-  def _registerMetadata(self, inDictionary):
+  def _registerMetadata(self,inDictionary):
     """
       collects expected metadata keys and deliver them to output data objects
       @ In, inDictionary, dict, initialization dictionary
       @ Out, None
     """
-    # # first collect them
+    ## first collect them
     metaKeys = set()
     metaParams = dict()
-    for role, entities in inDictionary.items():
-      if isinstance(entities, list):
+    for role,entities in inDictionary.items():
+      if isinstance(entities,list):
         for entity in entities:
-          if hasattr(entity, 'provideExpectedMetaKeys'):
+          if hasattr(entity,'provideExpectedMetaKeys'):
             keys, params = entity.provideExpectedMetaKeys()
             metaKeys = metaKeys.union(keys)
             metaParams.update(params)
       else:
-        if hasattr(entities, 'provideExpectedMetaKeys'):
+        if hasattr(entities,'provideExpectedMetaKeys'):
           keys, params = entities.provideExpectedMetaKeys()
           metaKeys = metaKeys.union(keys)
           metaParams.update(params)
-    # # then give them to the output data objects
-    for out in inDictionary['Output'] + (inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []):
+    ## then give them to the output data objects
+    for out in inDictionary['Output']+(inDictionary['TargetEvaluation'] if 'TargetEvaluation' in inDictionary else []):
       if 'addExpectedMeta' in dir(out):
-        out.addExpectedMeta(metaKeys, metaParams)
+        out.addExpectedMeta(metaKeys,metaParams)
 
-  def _endStepActions(self, inDictionary):
+  def _endStepActions(self,inDictionary):
     """
       This method is intended for performing actions at the end of a step
       @ In, inDictionary, dict, contains the list of instances (see Simulation)
@@ -327,11 +324,11 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     """
     if self.pauseEndStep:
       for i in range(len(inDictionary['Output'])):
-        # if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
+        #if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
         if inDictionary['Output'][i].type in ['OutStreamPlot']:
           inDictionary['Output'][i].endInstructions('interactive')
 
-  def takeAstep(self, inDictionary):
+  def takeAstep(self,inDictionary):
     """
       This should work for everybody just split the step in an initialization and the run itself
       inDictionary[role]=instance or list of instance
@@ -347,8 +344,6 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseType)):
     self.raiseAMessage('***     Closing the step      ***')
     self._endStepActions(inDictionary)
     self.raiseAMessage('***        Step closed        ***')
-
-
 #
 #
 #
@@ -356,7 +351,6 @@ class SingleRun(Step):
   """
     This is the step that will perform just one evaluation
   """
-
   def __init__(self):
     """
       Constructor
@@ -369,58 +363,58 @@ class SingleRun(Step):
     self.lockedFileName = "ravenLocked.raven"
     self.printTag = 'STEP SINGLERUN'
 
-  def _localInputAndCheckParam(self, paramInput):
+  def _localInputAndCheckParam(self,paramInput):
     """
       Place here specialized reading, input consistency check and
       initialization of what will not change during the whole life of the object
       @ In, paramInput, ParameterInput, node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
-    self.raiseADebug('the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below', 'FIXME')
-    found = 0
+    self.raiseADebug('the mapping used in the model for checking the compatibility of usage should be more similar to self.parList to avoid the double mapping below','FIXME')
+    found     = 0
     rolesItem = []
-    # collect model, other entries
+    #collect model, other entries
     for index, parameter in enumerate(self.parList):
-      if parameter[0] == 'Model':
-        found += 1
+      if parameter[0]=='Model':
+        found +=1
         modelIndex = index
       else:
         rolesItem.append(parameter[0])
-    # test the presence of one and only one model
+    #test the presence of one and only one model
     if found > 1:
-      self.raiseAnError(IOError, 'Only one model is allowed for the step named ' + str(self.name))
+      self.raiseAnError(IOError,'Only one model is allowed for the step named '+str(self.name))
     elif found == 0:
-      self.raiseAnError(IOError, 'No model has been found for the step named ' + str(self.name))
-    # clarify run by roles
-    roles = set(rolesItem)
+      self.raiseAnError(IOError,'No model has been found for the step named '+str(self.name))
+    #clarify run by roles
+    roles      = set(rolesItem)
     if 'Optimizer' in roles:
       self.samplerType = 'Optimizer'
       if 'Sampler' in roles:
-        self.raiseAnError(IOError, 'Only Sampler or Optimizer is alloweed for the step named ' + str(self.name))
-    # if single run, make sure model is an instance of Code class
+        self.raiseAnError(IOError, 'Only Sampler or Optimizer is alloweed for the step named '+str(self.name))
+    #if single run, make sure model is an instance of Code class
     if self.type == 'SingleRun':
       if self.parList[modelIndex][2] != 'Code':
-        self.raiseAnError(IOError, '<SingleRun> steps only support running "Code" model types!  Consider using a <MultiRun> step using a "Custom" sampler for other models.')
+        self.raiseAnError(IOError,'<SingleRun> steps only support running "Code" model types!  Consider using a <MultiRun> step using a "Custom" sampler for other models.')
       if 'Optimizer' in roles or 'Sampler' in roles:
-        self.raiseAnError(IOError, '<SingleRun> steps does not allow the usage of <Sampler> or <Optimizer>!  Consider using a <MultiRun> step.')
+        self.raiseAnError(IOError,'<SingleRun> steps does not allow the usage of <Sampler> or <Optimizer>!  Consider using a <MultiRun> step.')
       if 'SolutionExport' in roles:
-        self.raiseAnError(IOError, '<SingleRun> steps does not allow the usage of <SolutionExport>!  Consider using a <MultiRun> step with a <Sampler>/<Optimizer> that allows its usage.')
-    # build entry list for verification of correct input types
+        self.raiseAnError(IOError,'<SingleRun> steps does not allow the usage of <SolutionExport>!  Consider using a <MultiRun> step with a <Sampler>/<Optimizer> that allows its usage.')
+    #build entry list for verification of correct input types
     toBeTested = {}
     for role in roles:
-      toBeTested[role] = []
+      toBeTested[role]=[]
     for  myInput in self.parList:
       if myInput[0] in rolesItem:
-        toBeTested[ myInput[0]].append({'class':myInput[1], 'type':myInput[2]})
-    # use the models static testing of roles compatibility
+        toBeTested[ myInput[0]].append({'class':myInput[1],'type':myInput[2]})
+    #use the models static testing of roles compatibility
     for role in roles:
       if role not in self._excludeFromModelValidation:
-        Models.validate(self.parList[modelIndex][2], role, toBeTested[role], self)
+        Models.validate(self.parList[modelIndex][2], role, toBeTested[role],self)
     self.raiseADebug('reactivate check on Input as soon as loadCsv gets out from the PostProcessor models!')
     if 'Output' not in roles:
-      self.raiseAnError(IOError, 'It is not possible a run without an Output!')
+      self.raiseAnError(IOError,'It is not possible a run without an Output!')
 
-  def _localInitializeStep(self, inDictionary):
+  def _localInitializeStep(self,inDictionary):
     """
       This is the API for the local initialization of the children classes of step
       The inDictionary contains the instances for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
@@ -430,7 +424,7 @@ class SingleRun(Step):
       @ In, inDictionary, dict, the initialization dictionary
       @ Out, None
     """
-    # Model initialization
+    #Model initialization
     modelInitDict = {'Output':inDictionary['Output']}
     if 'SolutionExport' in inDictionary.keys():
       modelInitDict['SolutionExport'] = inDictionary['SolutionExport']
@@ -444,10 +438,10 @@ class SingleRun(Step):
           os.mkdir(currentWorkingDirectory)
           workingDirReady = True
         except FileExistsError:
-          if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory, 3.0):
-            self.raiseAWarning('directory ' + currentWorkingDirectory + ' is likely used by another program!!! ')
-          if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory, self.lockedFileName):
-              self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory " + currentWorkingDirectory + ". Please check your input!")
+          if utils.checkIfPathAreAccessedByAnotherProgram(currentWorkingDirectory,3.0):
+            self.raiseAWarning('directory '+ currentWorkingDirectory + ' is likely used by another program!!! ')
+          if utils.checkIfLockedRavenFileIsPresent(currentWorkingDirectory,self.lockedFileName):
+              self.raiseAnError(RuntimeError, self, "another instance of RAVEN is running in the working directory "+ currentWorkingDirectory+". Please check your input!")
           if self._clearRunDir and not alreadyTried:
             self.raiseAWarning(f'The calculation run directory {currentWorkingDirectory} already exists, ' +
                               'clearing existing files. This action can be disabled through the RAVEN Step input.')
@@ -465,33 +459,33 @@ class SingleRun(Step):
                                 'Files present in this directory may be replaced, and error handling may not occur as expected.')
             workingDirReady = True
           # register function to remove the locked file at the end of execution
-        atexit.register(utils.removeFile, os.path.join(currentWorkingDirectory, self.lockedFileName))
-    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict, inDictionary['Input'], modelInitDict)
+        atexit.register(utils.removeFile,os.path.join(currentWorkingDirectory,self.lockedFileName))
+    inDictionary['Model'].initialize(inDictionary['jobHandler'].runInfoDict,inDictionary['Input'],modelInitDict)
 
     self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(
-      inDictionary['Model'].type, inDictionary['Model'].name))
+      inDictionary['Model'].type,inDictionary['Model'].name))
 
-    # HDF5 initialization
+    #HDF5 initialization
     for i in range(len(inDictionary['Output'])):
-      # if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
+      #if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
       if 'HDF5' in inDictionary['Output'][i].type:
         inDictionary['Output'][i].initialize(self.name)
       elif isinstance(inDictionary['Output'][i], OutStreamBase):
         inDictionary['Output'][i].initialize(inDictionary)
-      self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type, inDictionary['Output'][i].name))
+      self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
     self._registerMetadata(inDictionary)
 
-  def _localTakeAstepRun(self, inDictionary):
+  def _localTakeAstepRun(self,inDictionary):
     """
       This is the API for the local run of a step for the children classes
       @ In, inDictionary, dict, contains the list of instances (see Simulation)
       @ Out, None
     """
-    jobHandler = inDictionary['jobHandler']
-    model = inDictionary['Model'     ]
-    sampler = inDictionary.get(self.samplerType, None)
-    inputs = inDictionary['Input'     ]
-    outputs = inDictionary['Output'    ]
+    jobHandler     = inDictionary['jobHandler']
+    model          = inDictionary['Model'     ]
+    sampler        = inDictionary.get(self.samplerType,None)
+    inputs         = inDictionary['Input'     ]
+    outputs        = inDictionary['Output'    ]
 
     # the input provided by a SingleRun is simply the file to be run.  model.run, however, expects stuff to perturb.
     # get an input to run -> different between SingleRun and PostProcessor runs
@@ -500,16 +494,16 @@ class SingleRun(Step):
     # else:
     #   newInput = inputs
 
-    # # The single run should still collect its SampledVars for the output maybe?
-    # # The problem here is when we call Code.collectOutput(), the sampledVars
-    # # is empty... The question is where do we ultimately get this information
-    # # the input object's input space or the desired output of the Output object?
-    # # I don't think all of the outputs need to specify their domain, so I suppose
-    # # this should default to all of the ones in the input? Is it possible to
-    # # get an input field in the outputs variable that is not in the inputs
-    # # variable defined above? - DPM 4/6/2017
-    # empty dictionary corresponds to sampling data in MultiRun
-    model.submit(inputs, None, jobHandler, **{'SampledVars':{'prefix':'None'}, 'additionalEdits':{}})
+    ## The single run should still collect its SampledVars for the output maybe?
+    ## The problem here is when we call Code.collectOutput(), the sampledVars
+    ## is empty... The question is where do we ultimately get this information
+    ## the input object's input space or the desired output of the Output object?
+    ## I don't think all of the outputs need to specify their domain, so I suppose
+    ## this should default to all of the ones in the input? Is it possible to
+    ## get an input field in the outputs variable that is not in the inputs
+    ## variable defined above? - DPM 4/6/2017
+    #empty dictionary corresponds to sampling data in MultiRun
+    model.submit(inputs, None, jobHandler, **{'SampledVars':{'prefix':'None'},'additionalEdits':{}})
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
@@ -521,9 +515,9 @@ class SingleRun(Step):
             else:
               output.addOutput()
         else:
-          self.raiseADebug('the job "' + finishedJob.identifier + '" has failed.')
+          self.raiseADebug('the job "'+finishedJob.identifier+'" has failed.')
           if self.failureHandling['fail']:
-            # add run to a pool that can be sent to the sampler later
+            #add run to a pool that can be sent to the sampler later
             self.failedRuns.append(copy.copy(finishedJob))
           else:
             if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
@@ -531,23 +525,23 @@ class SingleRun(Step):
             if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
               # we re-add the failed job
               jobHandler.reAddJob(finishedJob)
-              self.raiseAWarning('As prescribed in the input, trying to re-submit the job "' +
-                                 finishedJob.identifier + '". Trial ' +
+              self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+
+                                 finishedJob.identifier+'". Trial '+
                                str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +
-                               '/' + str(self.failureHandling['repetitions']))
+                               '/'+str(self.failureHandling['repetitions']))
               self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
             else:
-              # add run to a pool that can be sent to the sampler later
+              #add run to a pool that can be sent to the sampler later
               self.failedRuns.append(copy.copy(finishedJob))
-              self.raiseAWarning('The job "' + finishedJob.identifier + '" has been submitted ' +
-                                 str(self.failureHandling['repetitions']) + ' times, failing all the times!!!')
+              self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+
+                                 str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
       if jobHandler.isFinished() and len(jobHandler.getFinishedNoPop()) == 0:
         break
       time.sleep(self.sleepTime)
     if sampler is not None:
       sampler.handleFailedRuns(self.failedRuns)
     else:
-      if len(self.failedRuns) > 0:
+      if len(self.failedRuns)>0:
         self.raiseAWarning('There were %i failed runs!' % len(self.failedRuns))
 
   def _localGetInitParams(self):
@@ -563,12 +557,10 @@ class SingleRun(Step):
 #
 #
 
-
 class MultiRun(SingleRun):
   """
     this class implements one step of the simulation pattern' where several runs are needed
   """
-
   def __init__(self):
     """
       Constructor
@@ -576,35 +568,35 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     SingleRun.__init__(self)
-    self._samplerInitDict = {}  # this is a dictionary that gets sent as key-worded list to the initialization of the sampler
-    self.counter = 0  # just an handy counter of the runs already performed
+    self._samplerInitDict = {} #this is a dictionary that gets sent as key-worded list to the initialization of the sampler
+    self.counter          = 0  #just an handy counter of the runs already performed
     self.printTag = 'STEP MULTIRUN'
 
-  def _localInputAndCheckParam(self, paramInput):
+  def _localInputAndCheckParam(self,paramInput):
     """
       Place here specialized reading, input consistency check and
       initialization of what will not change during the whole life of the object
       @ In, paramInput, ParameterInput, node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
-    SingleRun._localInputAndCheckParam(self, paramInput)
+    SingleRun._localInputAndCheckParam(self,paramInput)
     if self.samplerType not in [item[0] for item in self.parList]:
-      self.raiseAnError(IOError, 'It is not possible a multi-run without a sampler or optimizer!')
+      self.raiseAnError(IOError,'It is not possible a multi-run without a sampler or optimizer!')
 
-  def _initializeSampler(self, inDictionary):
+  def _initializeSampler(self,inDictionary):
     """
       Method to initialize the sampler
       @ In, inDictionary, dict, contains the list of instances (see Simulation)
       @ Out, None
     """
     if 'SolutionExport' in inDictionary.keys():
-      self._samplerInitDict['solutionExport'] = inDictionary['SolutionExport']
+      self._samplerInitDict['solutionExport']=inDictionary['SolutionExport']
 
     inDictionary[self.samplerType].initialize(**self._samplerInitDict)
-    self.raiseADebug('for the role of sampler the item of class ' + inDictionary[self.samplerType].type + ' and name ' + inDictionary[self.samplerType].name + ' has been initialized')
-    self.raiseADebug('Sampler initialization dictionary: ' + str(self._samplerInitDict))
+    self.raiseADebug('for the role of sampler the item of class '+inDictionary[self.samplerType].type+' and name '+inDictionary[self.samplerType].name+' has been initialized')
+    self.raiseADebug('Sampler initialization dictionary: '+str(self._samplerInitDict))
 
-  def _localInitializeStep(self, inDictionary):
+  def _localInitializeStep(self,inDictionary):
     """
       This is the API for the local initialization of the children classes of step
       The inDictionary contains the instances for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
@@ -614,21 +606,21 @@ class MultiRun(SingleRun):
       @ In, inDictionary, dict, the initialization dictionary
       @ Out, None
     """
-    SingleRun._localInitializeStep(self, inDictionary)
+    SingleRun._localInitializeStep(self,inDictionary)
     # check that no input data objects are also used as outputs?
     for out in inDictionary['Output']:
-      if out.type not in ['PointSet', 'HistorySet', 'DataSet']:
+      if out.type not in ['PointSet','HistorySet','DataSet']:
         continue
       for inp in inDictionary['Input']:
-        if inp.type not in ['PointSet', 'HistorySet', 'DataSet']:
+        if inp.type not in ['PointSet','HistorySet','DataSet']:
           continue
         if inp == out:
-          self.raiseAnError(IOError, 'The same data object should not be used as both <Input> and <Output> in the same MultiRun step! ' \
-              +'Step: "{}", DataObject: "{}"'.format(self.name, out.name))
+          self.raiseAnError(IOError,'The same data object should not be used as both <Input> and <Output> in the same MultiRun step! ' \
+              + 'Step: "{}", DataObject: "{}"'.format(self.name,out.name))
     self.counter = 0
     self._samplerInitDict['externalSeeding'] = self.initSeed
     self._initializeSampler(inDictionary)
-    # generate lambda function list to collect the output without checking the type
+    #generate lambda function list to collect the output without checking the type
     self._outputCollectionLambda = []
     self._outputDictCollectionLambda = []
     # set up output collection lambdas
@@ -638,20 +630,20 @@ class MultiRun(SingleRun):
           self._outputCollectionLambda.append((lambda x:None, outIndex))
           self._outputDictCollectionLambda.append((lambda x:None, outIndex))
         else:
-          self._outputCollectionLambda.append((lambda x: inDictionary['Model'].collectOutput(x[0], x[1]), outIndex))
-          self._outputDictCollectionLambda.append((lambda x: inDictionary['Model'].collectOutputFromDict(x[0], x[1]), outIndex))
+          self._outputCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutput(x[0],x[1]), outIndex) )
+          self._outputDictCollectionLambda.append( (lambda x: inDictionary['Model'].collectOutputFromDict(x[0],x[1]), outIndex) )
       else:
         self._outputCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
         self._outputDictCollectionLambda.append((lambda x: x[1].addOutput(), outIndex))
     self._registerMetadata(inDictionary)
-    self.raiseADebug('Generating input batch of size ' + str(inDictionary['jobHandler'].runInfoDict['batchSize']))
+    self.raiseADebug('Generating input batch of size '+str(inDictionary['jobHandler'].runInfoDict['batchSize']))
     # set up and run the first batch of samples
     # FIXME this duplicates a lot of code from _locatTakeAstepRun, which should be consolidated
     # first, check and make sure the model is ready
     model = inDictionary['Model']
-    if isinstance(model, Models.ROM):
+    if isinstance(model,Models.ROM):
       if not model.amITrained:
-        model.raiseAnError(RuntimeError, 'ROM model "%s" has not been trained yet, so it cannot be sampled!' % model.name + \
+        model.raiseAnError(RuntimeError,'ROM model "%s" has not been trained yet, so it cannot be sampled!' %model.name+\
                                         ' Use a RomTrainer step to train it.')
     for inputIndex in range(inDictionary['jobHandler'].runInfoDict['batchSize']):
       if inDictionary[self.samplerType].amIreadyToProvideAnInput():
@@ -659,40 +651,39 @@ class MultiRun(SingleRun):
           newInput = self._findANewInputToRun(inDictionary[self.samplerType], inDictionary['Model'], inDictionary['Input'], inDictionary['Output'], inDictionary['jobHandler'])
           if newInput is not None:
             inDictionary["Model"].submit(newInput, inDictionary[self.samplerType].type, inDictionary['jobHandler'], **copy.deepcopy(inDictionary[self.samplerType].inputInfo))
-            self.raiseADebug('Submitted input ' + str(inputIndex + 1))
+            self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
-
   @profile
-  def _localTakeAstepRun(self, inDictionary):
+  def _localTakeAstepRun(self,inDictionary):
     """
       This is the API for the local run of a step for the children classes
       @ In, inDictionary, dict, contains the list of instances (see Simulation)
       @ Out, None
     """
     jobHandler = inDictionary['jobHandler']
-    model = inDictionary['Model'     ]
-    inputs = inDictionary['Input'     ]
-    outputs = inDictionary['Output'    ]
-    sampler = inDictionary[self.samplerType]
+    model      = inDictionary['Model'     ]
+    inputs     = inDictionary['Input'     ]
+    outputs    = inDictionary['Output'    ]
+    sampler    = inDictionary[self.samplerType]
     # check to make sure model can be run
-    # # first, if it's a ROM, check that it's trained
-    if isinstance(model, Models.ROM):
+    ## first, if it's a ROM, check that it's trained
+    if isinstance(model,Models.ROM):
       if not model.amITrained:
-        model.raiseAnError(RuntimeError, 'ROM model "%s" has not been trained yet, so it cannot be sampled!' % model.name + \
+        model.raiseAnError(RuntimeError,'ROM model "%s" has not been trained yet, so it cannot be sampled!' %model.name+\
                                         ' Use a RomTrainer step to train it.')
     # run step loop
     while True:
       # collect finished jobs
       finishedJobs = jobHandler.getFinished()
 
-      # #FIXME: THE BATCH STRATEGY IS TOO INTRUSIVE. A MORE ELEGANT WAY NEEDS TO BE FOUND (E.G. REALIZATION OBJECT)
+      ##FIXME: THE BATCH STRATEGY IS TOO INTRUSIVE. A MORE ELEGANT WAY NEEDS TO BE FOUND (E.G. REALIZATION OBJECT)
       for finishedJobObjs in finishedJobs:
         # NOTE: HERE WE RETRIEVE THE JOBS. IF BATCHING, THE ELEMENT IN finishedJobs is a LIST
         #       WE DO THIS in this way because:
         #           in case of BATCHING, the finalizeActualSampling method MUST BE called ONCE/BATCH
         #           otherwise, the finalizeActualSampling method MUST BE called ONCE/job
-        # FIXME: This method needs to be improved since it is very intrusise
+        #FIXME: This method needs to be improved since it is very intrusise
         if type(finishedJobObjs).__name__ in 'list':
           finishedJobList = finishedJobObjs
           self.raiseADebug('BATCHING: Collecting JOB batch named "{}".'.format(finishedJobList[0].groupId))
@@ -701,11 +692,11 @@ class MultiRun(SingleRun):
         for finishedJob in finishedJobList:
           finishedJob.trackTime('step_collected')
           # update number of collected runs
-          self.counter += 1
+          self.counter +=1
           # collect run if it succeeded
           if finishedJob.getReturnCode() == 0:
             for myLambda, outIndex in self._outputCollectionLambda:
-              myLambda([finishedJob, outputs[outIndex]])
+              myLambda([finishedJob,outputs[outIndex]])
               self.raiseADebug('Just collected job {j:^8} and sent to output "{o}"'
                               .format(j=finishedJob.identifier,
                                       o=inDictionary['Output'][outIndex].name))
@@ -715,7 +706,7 @@ class MultiRun(SingleRun):
             if self.failureHandling['fail']:
               # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
               if not sampler.ableToHandelFailedRuns:
-                # add run to a pool that can be sent to the sampler later
+                #add run to a pool that can be sent to the sampler later
                 self.failedRuns.append(copy.copy(finishedJob))
             else:
               if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
@@ -723,37 +714,37 @@ class MultiRun(SingleRun):
               if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
                 # we re-add the failed job
                 jobHandler.reAddJob(finishedJob)
-                self.raiseAWarning('As prescribed in the input, trying to re-submit the job "' + finishedJob.identifier + '". Trial ' +
-                                 str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) + '/' + str(self.failureHandling['repetitions']))
+                self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
+                                 str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
                 self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
               else:
                 # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
                 if not sampler.ableToHandelFailedRuns:
                   self.failedRuns.append(copy.copy(finishedJob))
-                self.raiseAWarning('The job "' + finishedJob.identifier + '" has been submitted ' + str(self.failureHandling['repetitions']) + ' times, failing all the times!!!')
+                self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
             if sampler.ableToHandelFailedRuns:
-              self.raiseAWarning('The sampler/optimizer "' + sampler.type + '" is able to handle failed runs!')
-            # pop the failed job from the list
+              self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
+            #pop the failed job from the list
             finishedJobList.pop(finishedJobList.index(finishedJob))
-        if type(finishedJobObjs).__name__ in 'list':  # TODO: should be consistent, if no batching should batch size be 1 or 0 ?
+        if type(finishedJobObjs).__name__ in 'list': # TODO: should be consistent, if no batching should batch size be 1 or 0 ?
           # if sampler claims it's batching, then only collect once, since it will collect the batch
           # together, not one-at-a-time
           # FIXME: IN HERE WE SEND IN THE INSTANCE OF THE FIRST JOB OF A BATCH
           # FIXME: THIS IS DONE BECAUSE CURRENTLY SAMPLERS/OPTIMIZERS RETRIEVE SOME INFO from the Runner instance but it can be
           # FIXME: dangerous if the sampler/optimizer requires info from each job. THIS MUST BE FIXED.
-          sampler.finalizeActualSampling(finishedJobs[0][0], model, inputs)
+          sampler.finalizeActualSampling(finishedJobs[0][0],model,inputs)
         else:
           # sampler isn't intending to batch, so we send them in one-at-a-time as per normal
           for finishedJob in finishedJobList:
             # finalize actual sampler
-            sampler.finalizeActualSampling(finishedJob, model, inputs)
+            sampler.finalizeActualSampling(finishedJob,model,inputs)
         for finishedJob in finishedJobList:
           finishedJob.trackTime('step_finished')
 
         # terminate jobs as requested by the sampler, in case they're not needed anymore
-        # # TODO is this a safe place to put this?
-        # # If it's placed after adding new jobs and IDs are re-used i.e. for failed tests,
-        # # -> then the new jobs will be killed if this is placed after new job submission!
+        ## TODO is this a safe place to put this?
+        ## If it's placed after adding new jobs and IDs are re-used i.e. for failed tests,
+        ## -> then the new jobs will be killed if this is placed after new job submission!
         jobHandler.terminateJobs(sampler.getJobsToEnd(clear=True))
 
         # add new jobs, for DET-type samplers
@@ -762,10 +753,10 @@ class MultiRun(SingleRun):
         if sampler.onlySampleAfterCollecting:
           self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary)
       # END for each collected finished run ...
-      # # If all of the jobs given to the job handler have finished, and the sampler
-      # # has nothing else to provide, then we are done with this step.
+      ## If all of the jobs given to the job handler have finished, and the sampler
+      ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
-        self.raiseADebug('Sampling finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(), jobHandler.numRunning(), len(jobHandler.getFinishedNoPop())))
+        self.raiseADebug('Sampling finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
       if not sampler.onlySampleAfterCollecting:
         # NOTE for some reason submission outside collection breaks the DET
@@ -795,10 +786,10 @@ class MultiRun(SingleRun):
       @ Out, None
     """
     isEnsemble = isinstance(model, Models.EnsembleModel)
-    # # In order to ensure that the queue does not grow too large, we will
-    # # employ a threshold on the number of jobs the jobHandler can take,
-    # # in addition, we cannot provide more jobs than the sampler can provide.
-    # # So, we take the minimum of these two values.
+    ## In order to ensure that the queue does not grow too large, we will
+    ## employ a threshold on the number of jobs the jobHandler can take,
+    ## in addition, we cannot provide more jobs than the sampler can provide.
+    ## So, we take the minimum of these two values.
     if verbose:
       self.raiseADebug('Testing if the sampler is ready to generate a new input')
     for _ in range(min(jobHandler.availability(isEnsemble), sampler.endJobRunnable())):
@@ -834,10 +825,10 @@ class MultiRun(SingleRun):
       @ In, jobHandler, object, the raven object used to handle jobs
       @ Out, newInp, list, list containing the new inputs (or None if a restart)
     """
-    # The value of "found" determines what the Sampler is ready to provide.
+    #The value of "found" determines what the Sampler is ready to provide.
     #  case 0: a new sample has been discovered and can be run, and newInp is a new input list.
     #  case 1: found the input in restart, and newInp is a realization dictionary of data to use
-    found, newInp = sampler.generateInput(model, inputs)
+    found, newInp = sampler.generateInput(model,inputs)
     if found == 1:
       kwargs = copy.deepcopy(sampler.inputInfo)
       # "submit" the finished run
@@ -852,12 +843,10 @@ class MultiRun(SingleRun):
 #
 #
 
-
 class PostProcess(SingleRun):
   """
     This is an alternate name for SingleRun
   """
-
 
 #
 #
@@ -866,7 +855,6 @@ class RomTrainer(Step):
   """
     This step type is used only to train a ROM
   """
-
   def __init__(self):
     """
       Constructor
@@ -876,20 +864,20 @@ class RomTrainer(Step):
     Step.__init__(self)
     self.printTag = 'STEP ROM TRAINER'
 
-  def _localInputAndCheckParam(self, paramInput):
+  def _localInputAndCheckParam(self,paramInput):
     """
       Place here specialized reading, input consistency check and
       initialization of what will not change during the whole life of the object
       @ In, paramInput, ParameterInput, node that represents the portion of the input that belongs to this Step class
       @ Out, None
     """
-    if [item[0] for item in self.parList].count('Input') != 1:
-      self.raiseAnError(IOError, 'Only one Input and only one is allowed for a training step. Step name: ' + str(self.name))
-    if [item[0] for item in self.parList].count('Output') < 1:
-      self.raiseAnError(IOError, 'At least one Output is need in a training step. Step name: ' + str(self.name))
+    if [item[0] for item in self.parList].count('Input')!=1:
+      self.raiseAnError(IOError,'Only one Input and only one is allowed for a training step. Step name: '+str(self.name))
+    if [item[0] for item in self.parList].count('Output')<1:
+      self.raiseAnError(IOError,'At least one Output is need in a training step. Step name: '+str(self.name))
     for item in self.parList:
-      if item[0] == 'Output' and item[2] not in ['ROM']:
-        self.raiseAnError(IOError, 'Only ROM output class are allowed in a training step. Step name: ' + str(self.name))
+      if item[0]=='Output' and item[2] not in ['ROM']:
+        self.raiseAnError(IOError,'Only ROM output class are allowed in a training step. Step name: '+str(self.name))
 
   def _localGetInitParams(self):
     """
@@ -901,7 +889,7 @@ class RomTrainer(Step):
     """
     return {}
 
-  def _localInitializeStep(self, inDictionary):
+  def _localInitializeStep(self,inDictionary):
     """
       This is the API for the local initialization of the children classes of step
       The inDictionary contains the instances for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
@@ -913,17 +901,15 @@ class RomTrainer(Step):
     """
     pass
 
-  def _localTakeAstepRun(self, inDictionary):
+  def _localTakeAstepRun(self,inDictionary):
     """
       This is the API for the local run of a step for the children classes
       @ In, inDictionary, dict, contains the list of instances (see Simulation)
       @ Out, None
     """
-    # Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method
+    #Train the ROM... It is not needed to add the trainingSet since it's already been added in the initialization method
     for ROM in inDictionary['Output']:
       ROM.train(inDictionary['Input'][0])
-
-
 #
 #
 #
@@ -932,7 +918,6 @@ class IOStep(Step):
     This step is used to extract or push information from/into a Database,
     or from a directory, or print out the data to an OutStream
   """
-
   def __init__(self):
     """
       Constructor
@@ -949,13 +934,13 @@ class IOStep(Step):
       @ In, inDictionary, dict, dictionary of all instances
       @ Out, outputs, list, list of Output instances
     """
-    outputs = []
+    outputs         = []
     for out in inDictionary['Output']:
       if not isinstance(out, OutStreamBase):
         outputs.append(out)
     return outputs
 
-  def _localInitializeStep(self, inDictionary):
+  def _localInitializeStep(self,inDictionary):
     """
       This is the API for the local initialization of the children classes of step
       The inDictionary contains the instances for each possible role supported in the step (dictionary keywords) the instances of the objects in list if more than one is allowed
@@ -967,88 +952,88 @@ class IOStep(Step):
     """
     # check if #inputs == #outputs
     # collect the outputs without outstreams
-    outputs = self.__getOutputs(inDictionary)
-    databases = set()
+    outputs         = self.__getOutputs(inDictionary)
+    databases       = set()
     self.actionType = []
-    errTemplate = 'In Step "{name}": When the Input is {inp}, this step accepts only {okay} as Outputs, ' + \
+    errTemplate = 'In Step "{name}": When the Input is {inp}, this step accepts only {okay} as Outputs, ' +\
                   'but received "{received}" instead!'
     if len(inDictionary['Input']) != len(outputs) and len(outputs) > 0:
-      self.raiseAnError(IOError, 'In Step named ' + self.name + \
-          ', the number of Inputs != number of Outputs, and there are Outputs. ' + \
-          'Inputs: %i Outputs: %i' % (len(inDictionary['Input']), len(outputs)))
-    # determine if this is a DATAS->HDF5, HDF5->DATAS or both.
+      self.raiseAnError(IOError,'In Step named ' + self.name + \
+          ', the number of Inputs != number of Outputs, and there are Outputs. '+\
+          'Inputs: %i Outputs: %i'%(len(inDictionary['Input']),len(outputs)) )
+    #determine if this is a DATAS->HDF5, HDF5->DATAS or both.
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
       # from HDF5 to ...
       if inDictionary['Input'][i].type == 'HDF5':
-        # # ... dataobject
+        ## ... dataobject
         if isinstance(outputs[i], DataObject.DataObject):
           self.actionType.append('HDF5-dataObjects')
-        # # ... anything else
+        ## ... anything else
         else:
-          self.raiseAnError(IOError, errTemplate.format(name=self.name,
-                                                       inp='HDF5',
-                                                       okay='DataObjects',
-                                                       received=inDictionary['Output'][i].type))
+          self.raiseAnError(IOError,errTemplate.format(name = self.name,
+                                                       inp = 'HDF5',
+                                                       okay = 'DataObjects',
+                                                       received = inDictionary['Output'][i].type))
       # from DataObject to ...
       elif  isinstance(inDictionary['Input'][i], DataObject.DataObject):
-        # # ... HDF5
+        ## ... HDF5
         if outputs[i].type == 'HDF5':
           self.actionType.append('dataObjects-HDF5')
-        # # ... anything else
+        ## ... anything else
         else:
-          self.raiseAnError(IOError, errTemplate.format(name=self.name,
-                                                       inp='DataObjects',
-                                                       okay='HDF5',
-                                                       received=inDictionary['Output'][i].type))
+          self.raiseAnError(IOError,errTemplate.format(name = self.name,
+                                                       inp = 'DataObjects',
+                                                       okay = 'HDF5',
+                                                       received = inDictionary['Output'][i].type))
       # from ROM model to ...
       elif isinstance(inDictionary['Input'][i], Models.ROM):
         # ... file
-        if isinstance(outputs[i], Files.File):
+        if isinstance(outputs[i],Files.File):
           self.actionType.append('ROM-FILES')
         # ... data object
         elif isinstance(outputs[i], DataObject.DataObject):
           self.actionType.append('ROM-dataObjects')
         # ... anything else
         else:
-          self.raiseAnError(IOError, errTemplate.format(name=self.name,
-                                                       inp='ROM',
-                                                       okay='Files or DataObjects',
-                                                       received=inDictionary['Output'][i].type))
+          self.raiseAnError(IOError,errTemplate.format(name = self.name,
+                                                       inp = 'ROM',
+                                                       okay = 'Files or DataObjects',
+                                                       received = inDictionary['Output'][i].type))
       # from File to ...
-      elif isinstance(inDictionary['Input'][i], Files.File):
+      elif isinstance(inDictionary['Input'][i],Files.File):
         # ... ROM
-        if isinstance(outputs[i], Models.ROM):
+        if isinstance(outputs[i],Models.ROM):
           self.actionType.append('FILES-ROM')
         # ... dataobject
-        elif isinstance(outputs[i], DataObject.DataObject):
+        elif isinstance(outputs[i],DataObject.DataObject):
           self.actionType.append('FILES-dataObjects')
         # ... anything else
         else:
-          self.raiseAnError(IOError, errTemplate.format(name=self.name,
-                                                       inp='Files',
-                                                       okay='ROM',
-                                                       received=inDictionary['Output'][i].type))
+          self.raiseAnError(IOError,errTemplate.format(name = self.name,
+                                                       inp = 'Files',
+                                                       okay = 'ROM',
+                                                       received = inDictionary['Output'][i].type))
       # from anything else to anything else
       else:
         self.raiseAnError(IOError,
                           'In Step "{name}": This step accepts only {okay} as Input. Received "{received}" instead!'
-                          .format(name=self.name,
-                                  okay='HDF5, DataObjects, ROM, or Files',
-                                  received=inDictionary['Input'][i].type))
+                          .format(name = self.name,
+                                  okay = 'HDF5, DataObjects, ROM, or Files',
+                                  received = inDictionary['Input'][i].type))
     # check actionType for fromDirectory
     if self.fromDirectory and len(self.actionType) == 0:
-      self.raiseAnError(IOError, 'In Step named ' + self.name + '. "fromDirectory" attribute provided but not conversion action is found (remove this atttribute for OutStream actions only"')
-    # Initialize all the HDF5 outputs.
+      self.raiseAnError(IOError,'In Step named ' + self.name + '. "fromDirectory" attribute provided but not conversion action is found (remove this atttribute for OutStream actions only"')
+    #Initialize all the HDF5 outputs.
     for i in range(len(outputs)):
-      # if type(outputs[i]).__name__ not in ['str','bytes','unicode']:
+      #if type(outputs[i]).__name__ not in ['str','bytes','unicode']:
       if 'HDF5' in inDictionary['Output'][i].type:
         if outputs[i].name not in databases:
           databases.add(outputs[i].name)
           outputs[i].initialize(self.name)
-          self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(outputs[i].type, outputs[i].name))
+          self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(outputs[i].type,outputs[i].name))
 
-    # if have a fromDirectory and are a dataObjects-*, need to load data
+    #if have a fromDirectory and are a dataObjects-*, need to load data
     if self.fromDirectory:
       for i in range(len(inDictionary['Input'])):
         if self.actionType[i].startswith('dataObjects-'):
@@ -1056,15 +1041,15 @@ class IOStep(Step):
           filename = os.path.join(self.fromDirectory, inInput.name)
           inInput.load(filename, style='csv')
 
-    # Initialize all the OutStreams
+    #Initialize all the OutStreams
     for output in inDictionary['Output']:
       if isinstance(output, OutStreamBase):
         output.initialize(inDictionary)
-        self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type, output.name))
+        self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
     # register metadata
     self._registerMetadata(inDictionary)
 
-  def _localTakeAstepRun(self, inDictionary):
+  def _localTakeAstepRun(self,inDictionary):
     """
       This is the API for the local run of a step for the children classes
       @ In, inDictionary, dict, contains the list of instances (see Simulation)
@@ -1073,50 +1058,50 @@ class IOStep(Step):
     outputs = self.__getOutputs(inDictionary)
     for i in range(len(outputs)):
       if self.actionType[i] == 'HDF5-dataObjects':
-        # inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
-        # # read the HDF5 into a data object
+        #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
+        ## read the HDF5 into a data object
         allRealizations = inDictionary['Input'][i].allRealizations()
-        # # TODO convert to load function when it can handle unstructured multiple realizations
+        ## TODO convert to load function when it can handle unstructured multiple realizations
         for rlz in allRealizations:
           outputs[i].addRealization(rlz)
       elif self.actionType[i] == 'dataObjects-HDF5':
-        # inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
-        # # write the data object into a HDF5
-        # # TODO convert to load function when it can handle unstructured multiple realizations
+        #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
+        ## write the data object into a HDF5
+        ## TODO convert to load function when it can handle unstructured multiple realizations
         for rlzNo in range(len(inDictionary['Input'][i])):
           rlz = inDictionary['Input'][i].realization(rlzNo, unpackXArray=True)
-          rlz = dict((var, np.atleast_1d(val)) for var, val in rlz.items())
+          rlz = dict((var,np.atleast_1d(val)) for var, val in rlz.items())
           outputs[i].addRealization(rlz)
 
       elif self.actionType[i] == 'ROM-dataObjects':
-        # inDictionary['Input'][i] is a ROM, outputs[i] is dataObject
-        # # print information from the ROM to the data set or associated XML.
+        #inDictionary['Input'][i] is a ROM, outputs[i] is dataObject
+        ## print information from the ROM to the data set or associated XML.
         romModel = inDictionary['Input'][i]
         # get non-pointwise data (to place in XML metadata of data object)
-        # # TODO how can user ask for particular information?
+        ## TODO how can user ask for particular information?
         xml = romModel.writeXML(what='all')
-        self.raiseADebug('Adding meta "{}" to output "{}"'.format(xml.getRoot().tag, outputs[i].name))
-        outputs[i].addMeta(romModel.name, node=xml)
+        self.raiseADebug('Adding meta "{}" to output "{}"'.format(xml.getRoot().tag,outputs[i].name))
+        outputs[i].addMeta(romModel.name, node = xml)
         # get pointwise data (to place in main section of data object)
         romModel.writePointwiseData(outputs[i])
 
       elif self.actionType[i] == 'ROM-FILES':
-        # inDictionary['Input'][i] is a ROM, outputs[i] is Files
-        # # pickle the ROM
-        # check the ROM is trained first
+        #inDictionary['Input'][i] is a ROM, outputs[i] is Files
+        ## pickle the ROM
+        #check the ROM is trained first
         if not inDictionary['Input'][i].amITrained:
-          self.raiseAnError(RuntimeError, 'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' % inDictionary['Input'][i].name)
+          self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
         fileobj = outputs[i]
         fileobj.open(mode='wb+')
-        cloudpickle.dump(inDictionary['Input'][i], fileobj)
+        cloudpickle.dump(inDictionary['Input'][i],fileobj)
         fileobj.flush()
         fileobj.close()
       elif self.actionType[i] == 'FILES-ROM':
-        # inDictionary['Input'][i] is a Files, outputs[i] is ROM
-        # # unpickle the ROM
+        #inDictionary['Input'][i] is a Files, outputs[i] is ROM
+        ## unpickle the ROM
         fileobj = inDictionary['Input'][i]
-        unpickledObj = pickle.load(open(fileobj.getAbsFile(), 'rb+'))
-        # # DEBUGG
+        unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
+        ## DEBUGG
         # the following will iteratively check the size of objects being unpickled
         # this is quite useful for finding memory crashes due to parallelism
         # so I'm leaving it here for reference
@@ -1127,11 +1112,11 @@ class IOStep(Step):
         # checkSizesWalk(target, 1, str(type(target)), tol=2e4)
         # print('*'*80)
         # crashme
-        # # /DEBUGG
-        if not isinstance(unpickledObj, Models.ROM):
-          self.raiseAnError(RuntimeError, 'Pickled object in "%s" is not a ROM.  Exiting ...' % str(fileobj))
+        ## /DEBUGG
+        if not isinstance(unpickledObj,Models.ROM):
+          self.raiseAnError(RuntimeError,'Pickled object in "%s" is not a ROM.  Exiting ...' %str(fileobj))
         if not unpickledObj.amITrained:
-          self.raiseAnError(RuntimeError, 'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' % unpickledObj.name)
+          self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
         # save reseeding parameters from pickledROM
         loadSettings = outputs[i].initializationOptionDict
         # train the ROM from the unpickled object
@@ -1141,15 +1126,15 @@ class IOStep(Step):
         outputs[i].setAdditionalParams(loadSettings)
 
       elif self.actionType[i] == 'FILES-dataObjects':
-        # inDictionary['Input'][i] is a Files, outputs[i] is PointSet
-        # # load a CSV from file
+        #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
+        ## load a CSV from file
         infile = inDictionary['Input'][i]
         options = {'fileToLoad':infile}
-        outputs[i].load(inDictionary['Input'][i].getPath(), 'csv', **options)
+        outputs[i].load(inDictionary['Input'][i].getPath(),'csv',**options)
 
       else:
         # unrecognized, and somehow not caught by the step reader.
-        self.raiseAnError(IOError, "Unknown action type " + self.actionType[i])
+        self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
 
     for output in inDictionary['Output']:
       if isinstance(output, OutStreamBase):
@@ -1164,9 +1149,9 @@ class IOStep(Step):
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
-    return paramDict  # no inputs
+    return paramDict # no inputs
 
-  def _localInputAndCheckParam(self, paramInput):
+  def _localInputAndCheckParam(self,paramInput):
     """
       Place here specialized reading, input consistency check and
       initialization of what will not change during the whole life of the object
@@ -1177,16 +1162,15 @@ class IOStep(Step):
       self.fromDirectory = paramInput.parameterValues['fromDirectory']
 
 
-__interFaceDict = {}
+__interFaceDict                      = {}
 __interFaceDict['SingleRun'        ] = SingleRun
 __interFaceDict['MultiRun'         ] = MultiRun
 __interFaceDict['IOStep'           ] = IOStep
 __interFaceDict['RomTrainer'       ] = RomTrainer
 __interFaceDict['PostProcess'      ] = PostProcess
-__base = 'Step'
+__base                               = 'Step'
 
-
-def returnInstance(Type, caller):
+def returnInstance(Type,caller):
   """
     Returns the instance of a Step
     @ In, Type, string, requested step
@@ -1194,4 +1178,4 @@ def returnInstance(Type, caller):
     @ Out, __interFaceDict, instance, instance of the step
   """
   return __interFaceDict[Type]()
-  caller.raiseAnError(NameError, 'not known ' + __base + ' type ' + Type)
+  caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
