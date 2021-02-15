@@ -15,27 +15,39 @@
   Generates training data in the form of Fourier signals.
 """
 import numpy as np
-from generators import fourier, toFile
+from generators import fourier, arma, toFile
 
-#############
-# Fourier A #
-#############
-seconds = np.arange(100) / 10. # 0 to 10 in 0.1 increments
+plot = True
 
+pivot = np.arange(1000)/10.
+
+amps = [8, 10, 12]
 periods = [2, 5, 10]
-amps = [0.5, 1, 2]
 phases = [0, np.pi/4, np.pi]
 intercept = 42
-signal0 = fourier(amps, periods, phases, seconds, mean=intercept)
+f = fourier(amps, periods, phases, pivot, mean=intercept)
 
-periods = [3]
-amps = [2]
-phases = [np.pi]
-intercept = 1
-signal1 = fourier(amps, periods, phases, seconds, mean=intercept)
+slags = [0.4, 0.2]
+nlags = [0.3, 0.2, 0.1]
+a0, _ = arma(slags, nlags, pivot, plot=False)
+slags = [0.5, 0.3]
+nlags = [0.1, 0.05, 0.01]
+a1, _ = arma(slags, nlags, pivot, plot=False)
 
-out = np.zeros((len(seconds), 3))
-out[:, 0] = seconds
-out[:, 1] = signal0
-out[:, 2] = signal1
-toFile(out, 'FourierA', targets=['signal1', 'signal2'], pivotName='seconds')
+s0 = f + a0
+s1 = f + a1
+
+if plot:
+  import matplotlib.pyplot as plt
+  fig, ax = plt.subplots()
+  ax.plot(pivot, s0, '.-', label='0')
+  ax.plot(pivot, s1, '.-', label='1')
+  ax.legend()
+  plt.show()
+
+
+out = np.zeros((len(pivot), 3))
+out[:, 0] = pivot
+out[:, 1] = f + a0
+out[:, 2] = f + a1
+toFile(out, 'FourierARMA_A')
