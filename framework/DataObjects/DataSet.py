@@ -587,8 +587,6 @@ class DataSet(DataObject):
         if rlz is None:
           if numInCollector > 0:
             index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, first=first)
-      # add index map where necessary
-      rlz = self._addIndexMapToRlz(rlz)
       # if as Dataset convert it
       if asDataSet:
         rlzs = rlz if type(rlz).__name__ == "list" else [rlz]
