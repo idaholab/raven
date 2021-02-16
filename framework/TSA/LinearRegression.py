@@ -64,14 +64,13 @@ class LinearRegression(TimeSeriesAnalyzer):
     settings['degree'] = spec.findFirst('degree').value
     return settings
 
-  def characterize(self, signal, pivot, targets, settings, simultFit=True):
+  def characterize(self, signal, pivot, targets, settings):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
       @ In, pivot, np.1darray, time-like parameter values
       @ In, targets, list(str), names of targets in same order as signal
       @ In, settings, dict, additional settings specific to this algorithm
-      @ In, simultFit, bool, optional, if False then fit Fourier individually
       @ Out, params, dict, characteristic parameters
     """
     from sklearn.preprocessing import PolynomialFeatures
@@ -85,9 +84,10 @@ class LinearRegression(TimeSeriesAnalyzer):
 
     for target in targets:
       results = sm.OLS(signal, xp).fit()
-      params[target]['model']['const'] = results.params[0]
+      params[target]['model']['intercept'] = results.params[0]
       for i, value in enumerate(results.params[1:]):
         params[target]['model'][f'coef{i+1}'] = value
+      params[target]['model']['object'] = results
     return params
 
 
@@ -97,9 +97,19 @@ class LinearRegression(TimeSeriesAnalyzer):
       @ In, params, dict, characterization such as otained from self.characterize()
       @ In, pivot, np.array(float), pivot parameter values
       @ In, settings, dict, additional settings specific to algorithm
-      @ Out, synthetic, np.array(float), synthetic ARMA signal
+      @ Out, synthetic, np.array(float), synthetic model signal
     """
-    pass
+    from sklearn.preprocessing import PolynomialFeatures
+    degree = settings['degree']
+    features = PolynomialFeatures(degree=degree)
+    xp = features.fit_transform(pivot.reshape(-1, 1))
+
+    for target, _ in params.items():
+      model = params[target]['model']['object']
+      synthetic = model.predict(xp)
+
+    return synthetic
+
 
   def writeXML(self, writeTo, params):
     """
@@ -108,4 +118,6 @@ class LinearRegression(TimeSeriesAnalyzer):
       @ In, params, dict, trained parameters as from self.characterize
       @ Out, None
     """
-    pass
+    for target, info in params.items():
+      base = xmlUtils.newNode(target)
+      writeTo.append(base)

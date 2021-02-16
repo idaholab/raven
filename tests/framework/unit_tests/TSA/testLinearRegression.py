@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This Module performs Unit Tests for the TSA.Fourier class.
+  This Module performs Unit Tests for the TSA.LinearRegression class.
   It can not be considered part of the active code but of the regression test system
 """
 import os
 import sys
-import copy
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -31,15 +30,12 @@ if frameworkDir not in sys.path:
 from utils.utils import find_crow
 find_crow(frameworkDir)
 
-from utils import xmlUtils, randomUtils
-
+from utils import xmlUtils
 from TSA import LinearRegression as LR
 
 plot = False
 
-print('Module undergoing testing:')
-print(LR)
-print('')
+print(f"\nModule undergoing testing:\n{LR}\n")
 
 results = {"pass":0,"fail":0}
 
@@ -208,11 +204,14 @@ def createRegression(targets, degree: int):
 ###################
 # generate signal
 targets = ['A'] #, 'B', 'C']
-pivot = np.linspace(0, 100, 1000)
+pivot = np.linspace(0, 100, 100)
 N = len(pivot)
+okay_coefs = [1.0, 2.0, 3.0]
+coef_titles = ['Simple Polynomial Regression Intercept',
+               'Simple Polynomial Regression Coeff 1',
+               'Simple Polynomial Regression Coeff 2',]
 
-signalA = 20 + (2 * pivot) + (10 * (pivot**2)) + np.random.normal(0, 1, 1000)
-
+signalA = okay_coefs[0] + (okay_coefs[1] * pivot) + (okay_coefs[2] * (pivot**2)) + np.random.normal(0, 1, 100)
 signals = np.zeros((N, 1))
 signals[:, 0] = signalA
 
@@ -224,76 +223,26 @@ settings = {'degree': 2}
 settings = model.setDefaults(settings)
 params = model.characterize(signals, pivot, targets, settings)
 check = params['A']['model']
-print(check)
-okay_coefs = [20.0, 2.0, 10.0]
-coef_titles = ['Simple Polynomial Regression Intercept',
-               'Simple Polynomial Regression Coeff 1',
-               'Simple Polynomial Regression Coeff 2',]
 
 for title, real, pred in zip(coef_titles, okay_coefs, check):
-  checkFloat(title, real, check[pred], tol=1e-3)
+  checkFloat(title, real, check[pred], tol=1e-1)
 
-# okay_ar = [-0.03664183847944618, 0.46691996180943424]
-# okay_ma = [0.7333673476702858, 0.23819605887929196, 0.2293730352216328]
-# checkFloat('Simple ARMA intercept', 0.07723188355891732, check['const'], tol=1e-3)
-# checkArray('Simple ARMA AR', okay_ar, check['ar'], float, tol=1e-3)
-# checkArray('Simple ARMA MA', okay_ma, check['ma'], float, tol=1e-3)
-# checkFloat('Simple ARMA variance', 0.9532563046953576, check['var'], tol=1e-3)
-#
-# # predict
-# np.random.seed(42) # forces MLE in statsmodels to be deterministic
-# new = arma.generate(params, pivot, settings)[:, 0]
-#
-# # spot check a few values -> could we check full arrays?
-# checkFloat('Simple generate 0', -1.0834098074509528, new[0], tol=1e-6)
-# checkFloat('Simple generate 250', -3.947707011147049, new[250], tol=1e-6)
-# checkFloat('Simple generate 500', -1.4304498185153571, new[500], tol=1e-6)
-# checkFloat('Simple generate 999', -1.7825760423361088, new[999], tol=1e-6)
-# # now do it again, but set the params how we want to
-# params['A']['arma']['const'] = 0
-# params['A']['arma']['AR'] = slags
-# params['A']['arma']['MA'] = nlags
-# params['A']['arma']['var'] = 1
-# np.random.seed(42) # forces MLE in statsmodels to be deterministic
-# new = arma.generate(params, pivot, settings)[:, 0]
-# checkFloat('Simple picked 0', 2.3613260219896035, new[0], tol=1e-6)
-# checkFloat('Simple picked 250', -1.4007530275511393, new[250], tol=1e-6)
-# checkFloat('Simple picked 500', 0.7956991243820065, new[500], tol=1e-6)
-# checkFloat('Simple picked 999', 0.7196164370698425, new[999], tol=1e-6)
-#
-# ##########
-# # Gaussianize, but we don't technically need to.
-# # That is, noise is already ~N(0, 1), but we go through the denormalization anyway
-# #
-# settings = {'P': 2, 'Q': 3,
-#             'gaussianize': True,
-#             'seed': 42}
-# settings = arma.setDefaults(settings)
-# params = arma.characterize(signals, pivot, targets, settings)
-# # These are a little different from the non-Gaussianize above, but pretty close (kind of).
-# # Given the numerical nature of the empirical CDF, maybe not too bad.
-# okay_ar = [-0.1288380832279767, 0.5286049589896539]
-# okay_ma = [0.7722899504423865, 0.18289761662693169, 0.20950559786741266]
-# checkArray('Gaussian ARMA AR', okay_ar, params['A']['arma']['ar'], float, tol=1e-3)
-# checkArray('Gaussian ARMA MA', okay_ma, params['A']['arma']['ma'], float, tol=1e-3)
-# np.random.seed(42) # forces MLE in statsmodels to be deterministic
-# new = arma.generate(params, pivot, settings)[:, 0]
-# checkFloat('Simple denorm 0', -1.459305773140902, new[0], tol=1e-6)
-# checkFloat('Simple denorm 250', 2.051286365253135, new[250], tol=1e-6)
-# checkFloat('Simple denorm 500', -0.5047179383332892, new[500], tol=1e-6)
-# checkFloat('Simple denorm 999', 1.3200315405820204, new[999], tol=1e-6)
-#
-# print(results)
-#
-# sys.exit(results["fail"])
-# """
-#   <TestInfo>
-#     <name>framework.unit_tests.TSA.Fourier</name>
-#     <author>talbpaul</author>
-#     <created>2021-01-05</created>
-#     <classesTested>TSA.Fourier</classesTested>
-#     <description>
-#        This test is a Unit Test for the Fourier TimeSeriesAnalyzer classes.
-#     </description>
-#   </TestInfo>
-# """
+y = model.generate(params, pivot, settings)
+plt.plot(pivot, signalA, 'o')
+plt.plot(pivot, y)
+plt.show()
+
+print(results)
+
+sys.exit(results["fail"])
+"""
+  <TestInfo>
+    <name>framework.unit_tests.TSA.LinearRegression</name>
+    <author>dylanjm</author>
+    <created>2021-02-16</created>
+    <classesTested>TSA.LinearRegression</classesTested>
+    <description>
+       This test is a Unit Test for the LinearRegression TimeSeriesAnalyzer classes.
+    </description>
+  </TestInfo>
+"""
