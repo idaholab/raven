@@ -100,13 +100,14 @@ class LinearRegression(TimeSeriesAnalyzer):
       @ Out, synthetic, np.array(float), synthetic model signal
     """
     from sklearn.preprocessing import PolynomialFeatures
+    synthetic = np.zeros((len(pivot), len(params)))
     degree = settings['degree']
     features = PolynomialFeatures(degree=degree)
     xp = features.fit_transform(pivot.reshape(-1, 1))
 
-    for target, _ in params.items():
+    for t, (target, _) in enumerate(params.items()):
       model = params[target]['model']['object']
-      synthetic = model.predict(xp)
+      synthetic[:, t] = model.predict(xp)
 
     return synthetic
 
@@ -121,3 +122,7 @@ class LinearRegression(TimeSeriesAnalyzer):
     for target, info in params.items():
       base = xmlUtils.newNode(target)
       writeTo.append(base)
+      for name, value in info['model'].items():
+        if name == 'object':
+          continue
+        base.append(xmlUtils.newNode('name', text=f'{float(value):1.9e}'))

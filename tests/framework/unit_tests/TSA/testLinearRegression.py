@@ -227,11 +227,6 @@ check = params['A']['model']
 for title, real, pred in zip(coef_titles, okay_coefs, check):
   checkFloat(title, real, check[pred], tol=1e-1)
 
-y = model.generate(params, pivot, settings)
-plt.plot(pivot, signalA, 'o')
-plt.plot(pivot, y)
-plt.show()
-
 print(results)
 
 sys.exit(results["fail"])
