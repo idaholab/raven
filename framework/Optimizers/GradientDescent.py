@@ -22,6 +22,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import copy
 from collections import deque, defaultdict
 import numpy as np
 
@@ -201,7 +202,6 @@ class GradientDescent(RavenSampled):
     self._gradientInstance = None  # instance of GradientApproximater
     self._stepInstance = None      # instance of StepManipulator
     self._acceptInstance = None    # instance of AcceptanceCondition
-    self._gradProximity = 0.01     # TODO user input, the proximity for gradient evaluations
     # history trackers, by traj, are deques (-1 is most recent)
     self._gradHistory = {}         # gradients
     self._stepHistory = {}         # {'magnitude': size, 'versor': direction, 'info': dict} for step
@@ -290,7 +290,7 @@ class GradientDescent(RavenSampled):
       @ Out, None
     """
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-    self._gradientInstance.initialize(self.toBeSampled, self._gradProximity)
+    self._gradientInstance.initialize(self.toBeSampled)
     self._stepInstance.initialize(self.toBeSampled, persistence=self._requiredPersistence)
     self._acceptInstance.initialize()
     # if single trajectory, turn off follower termination
@@ -500,7 +500,7 @@ class GradientDescent(RavenSampled):
       suggested, modStepSize, info = self._stepInstance.fixConstraintViolations(suggested, previous, info)
       denormed = self.denormalizeData(suggested)
       self.raiseADebug(' ... suggested norm step {:1.2e}, new opt {}'.format(modStepSize, denormed))
-      passFuncs = self._checkFunctionalConstraints(denormed)
+      passFuncs = self._checkFunctionalConstraints(denormed) and self._checkBoundaryConstraints(denormed)
       tries -= 1
       if tries == 0:
         self.raiseAnError(NotImplementedError, 'No acceptable point findable! Now what?')
@@ -526,7 +526,13 @@ class GradientDescent(RavenSampled):
     self._submitRun(opt, traj, step, 'opt')
     # GRAD POINTS
     # collect grad points
-    gradPoints, gradInfos = self._gradientInstance.chooseEvaluationPoints(opt, stepSize)
+    # HACK FIXME TODO adding constraints too
+    ## boundary is distribution dict of bounds
+    ## constraint functions is list of functions to call "evaluate" on
+    ## inputs is dictionary of other stuff that constraints might need to be evaluated
+    ## TODO we really should pass the checkFunctionalConstraints and check/applyBoundaryConstraints instead!!
+    constraints = {'boundary': self.distDict, 'functional': self._constraintFunctions, 'inputs': copy.deepcopy(self.constants), 'normalize': self.normalizeData, 'denormalize': self.denormalizeData}
+    gradPoints, gradInfos = self._gradientInstance.chooseEvaluationPoints(opt, stepSize, constraints=constraints)
     for i, grad in enumerate(gradPoints):
       self._submitRun(grad, traj, step, 'grad_{}'.format(i), moreInfo=gradInfos[i])
 

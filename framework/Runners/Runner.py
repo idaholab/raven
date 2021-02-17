@@ -56,6 +56,7 @@ class Runner(MessageHandler.MessageUser):
     self.identifier     = 'generalOut'  ## Default identifier name
     self.metadata       = copy.copy(metadata)
     self.uniqueHandler  = uniqueHandler
+    self.groupId        = None  # the id of the group this run belong to (batching, if activated)
     self.started        = False
 
     ## First attempt to use a user-specified identifier name

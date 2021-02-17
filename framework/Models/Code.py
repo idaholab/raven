@@ -309,7 +309,7 @@ class Code(Model):
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
       if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
-        os.mkdir(subSubDirectory)
+        os.makedirs(subSubDirectory)
       ##########################################################################
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
@@ -370,7 +370,7 @@ class Code(Model):
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
       if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
-        os.mkdir(subSubDirectory)
+        os.makedirs(subSubDirectory)
       ##########################################################################
       newInputSet[index].setPath(subSubDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
@@ -692,12 +692,17 @@ class Code(Model):
       return exportDict
 
     else:
+      self.raiseAMessage("*"*50)
       self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
       absOutputFile = os.path.join(sampleDirectory,outputFile)
       if os.path.exists(absOutputFile):
-        self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
+        if getattr(self.code, 'printFailedRuns', True):
+          self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
+        else:
+          self.raiseAMessage(f'Ouput is in "{os.path.abspath(absOutputFile)}"')
       else:
         self.raiseAMessage(" No output " + absOutputFile)
+      self.raiseAMessage("*"*50)
 
       ## If you made it here, then the run must have failed
       return None

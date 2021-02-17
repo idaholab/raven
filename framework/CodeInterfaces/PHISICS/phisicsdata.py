@@ -144,6 +144,7 @@ class phisicsdata():
         else:
           phisicsDict['matFluxLabelList'] = matFluxLabelList
           phisicsDict['matFluxList'] = matFluxList
+
         # collect data
         h, snapshoot = self.phisicsTimeStepData(phisicsDict, timeStepIndex, mrtauTimeSteps)
         if data is None:
@@ -174,7 +175,7 @@ class phisicsdata():
   def summedDictValues(self, nestedDict):
     """
       Sums the values from the deepest nest of a dictionary.
-      @ In, nestedDict, dictionary, nested dictionaries of intergers or floats
+      @ In, nestedDict, dictionary, nested dictionaries of integers or floats
       @ Out, summedDict, dictionary, dictionary of integer or float
     """
     summedDict = lambda: defaultdict(summedDict)
@@ -220,7 +221,7 @@ class phisicsdata():
     """
       Removes the file that RAVEN reads for postprocessing.
       @ In, jobTitle, string, job title name
-      @ In, bool, bool, True if mrtau is standalone, false otherwise
+      @ In, bool, bool, True if mrtau is stand alone, false otherwise
       @ Out, None
     """
     if not bool:
@@ -320,6 +321,7 @@ class phisicsdata():
     """
     count = 0
     timeSteps = []
+    nts = 0
     with open(os.path.join(self.workingDir, self.mrtauOutputFileMPI[0]),
               'r') as outfile:
       for line in outfile:
@@ -328,12 +330,14 @@ class phisicsdata():
         if count == 1:
           stringIsFloatNumber = self.isFloatNumber(line.split(','))
           if stringIsFloatNumber:
+            ts = float(line.split(',')[0])
+            if timeSteps and ts <= float(timeSteps[-1]):
+              break
             timeSteps.append(line.split(',')[0])
         if count > 1:
           break
-    timeSteps.pop(
-        0
-    )  # Removes the first time step, t=0, to make the number of time steps match with the number of time steps in INSTANT.
+    # Removes the first time step, t=0, to make the number of time steps match with the number of time steps in INSTANT.
+    timeSteps.pop(0)
     return timeSteps
 
   def getMrtauTimeSteps(self, atomsInp):
@@ -352,7 +356,7 @@ class phisicsdata():
 
   def getMrtauIsotopeList(self, atomsInp):
     """
-      Gets the isotope in the MRTAU standalone output.
+      Gets the isotope in the MRTAU stand alone output.
       @ In, atomsInp, string, path to file pointed by the node <atoms_csv> in the lib path file
       @ Out, None
     """
@@ -544,10 +548,10 @@ class phisicsdata():
     """
       Locates what the position number of the x, y, z coordinates and the first energy group are in the INSTANT csv output file.
       @ In, IDlist, list, list of all the parameter in the csv output
-      @ Out, xPositionInList, interger, position of the parameter x in the list
-      @ Out, yPositionInList, interger, position of the parameter y in the list
-      @ Out, zPositionInList, interger, position of the parameter z in the list
-      @ Out, firstGroupPositionInList, interger, position of the first energy parameter
+      @ Out, xPositionInList, integer, position of the parameter x in the list
+      @ Out, yPositionInList, integer, position of the parameter y in the list
+      @ Out, zPositionInList, integer, position of the parameter z in the list
+      @ Out, firstGroupPositionInList, integer, position of the first energy parameter
     """
     xPositionInList = None
     yPositionInList = None
@@ -703,7 +707,7 @@ class phisicsdata():
       Reads the INSTANT csv file to get the material density info relative to depletion.
       @ In, timeStepIndex, integer, timestep number
       @ In, matchedTimeSteps, list, list of time steps considered
-      @ In, numberOfMPI, interger, number of MPI used
+      @ In, numberOfMPI, integer, number of MPI used
       @ Out, depLabelList, list, list of labels relative to depletion
       @ Out, depList, list, list of values relative to depletion
     """
@@ -719,7 +723,7 @@ class phisicsdata():
         for line in outfile:
           line = re.sub(
               r' ', r'', line
-          )  # remove all spaces in a line. comma sperarated lines are parsed below
+          )  # remove all spaces in a line. comma separated lines are parsed below
           if re.search(r'TIME', line):
             line = line.rstrip()
             self.isotopeList = line.split(',')
@@ -778,7 +782,7 @@ class phisicsdata():
   def getCPUtime(self, numberOfMPI):
     """
       Gets the PHISICS CPU time.
-      @ In, numberOfMPI, interger, number of MPI user-selected
+      @ In, numberOfMPI, integer, number of MPI user-selected
       @ Out, cpuTime, list, cpu time (string) in a list
     """
     cpuTimes = []

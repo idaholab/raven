@@ -86,15 +86,17 @@
             \xmlNode{DataSet} with one of the indices being \texttt{\_ROM\_cluster}.
         \end{itemize}
      \item \xmlNode{evaluationClusterChoice}, \xmlDesc{string, optional field}, one of \xmlString{first} or
-        \xmlString{random}, determines, if \xmlAttr{grouping}$=cluster$, which 
-        strategy needs to be followed for the evaluation stage. If ``first'', the 
+        \xmlString{random}, determines, if \xmlAttr{grouping}$=cluster$, which
+        strategy needs to be followed for the evaluation stage. If ``first'', the
         first ROM (representative segmented ROM),in each cluster, is considered to
          be representative of the full space in the cluster (i.e. the evaluation is always performed
-         interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster, 
+         interrogating the first ROM in each cluster); If ``random'', a random ROM, in each cluster,
          is choosen when an evaluation is requested.
-         %If ``centroid'', a ROM ``trained" on the centroids 
-         %information of each cluster is used for the evaluation (\nb ``centroid'' option is not 
-         %available yet). 
+	 \nb if ``first'' is used, there is \emph{substantial} memory savings when compared to using
+	 ``random''.
+         %If ``centroid'', a ROM ``trained" on the centroids
+         %information of each cluster is used for the evaluation (\nb ``centroid'' option is not
+         %available yet).
          \default{first}
     \end{itemize}
 }
@@ -2936,6 +2938,128 @@ Therefore, it uses the square error as the loss function, and the output is a se
   \item \betaBMLPDescription{0.999}
   \item \epsilonMLPDescription{1e-8}
 \end{itemize}
+
+%%%% ROM Model - SyntheticHistory  %%%%%%%
+\subsubsection{SyntheticHistory}
+% NOTE TODO: this ROM has the "descr" nodes fully filled in the InputSpecs.
+\label{subsubsec:arma}
+The SyntheticHistory sub-type uses various Time Series Analysis (TSA) algorithms to characterize and
+reproduce synthetic histories. It is a more general implementation of the ARMA ROM. The available
+algorithms are discussed in more detail below. The SyntheticHistory ROM uses the TSA algorithms to
+characterize then reproduce time series in sequence; for example, if using Fourier then ARMA, the
+SyntheticHistory ROM will characterize the Fourier properties using the Fourier TSA algorithm on a
+training signal, then send the residual to the ARMA TSA algorithm for characterization. Generating
+new signals works in reverse, first generating a signal using the ARMA TSA algorithm then
+superimposing the Fourier TSA algorithm.
+
+%
+In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+\xmlAttr{subType} needs to be \xmlString{SyntheticHistory} (see the example
+below).
+%
+\subnodeIntro
+
+\begin{itemize}
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, defines the features (e.g., scaling). Note that only
+  one feature is allowed for \xmlString{SyntheticHistory} and in current implementation this is used for evaluation only.
+  \item \xmlNode{Target}, \xmlDesc{comma separated string, required field}, defines the variable(s) of the
+    time series.  Should include the pivot parameter (or Index).
+  \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, defines the pivot variable (e.g., time) that is non-decreasing in
+  the input HistorySet.
+\end{itemize}
+
+In addition, any number of the following TSA algorithms may be included as subnodes of this ROM:
+
+\begin{itemize}
+  %%%%% FOURIER %%%%%
+  \item \xmlNode{Fourier} uses regression to fit requested Fourier bases by their amplitudes to
+    deterministically match the training signal. Fourier signals are defined with the following form:
+    \begin{equation*}
+      F_m(t) = C_m\sin\left( \frac{2\pi}{k_m}t + \phi_m\right)
+    \end{equation*}
+    where $m$ indexes a particular base period $k_m$, $C_m$ is the amplitude of this Fourier base in the
+    training signal, and $\phi_m$ is the phase shift of this Fourier base in the training signal.
+
+    \xmlNode{Fourier} has the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{target}, \xmlDesc{comma seperated string, required field}, indicates which
+        target signals should be trained as part of this ROM using this TSA algorithm.
+      \item \xmlAttr{seed}, \xmlDesc{integer, optional}, provides a static seed to be used for
+        random number generation in this ROM. Unused for the Fourier TSA algorithm.
+    \end{itemize}
+    \xmlNode{Fourier} further has the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{periods}, \xmlDesc{comma seperated floats, required field}, indicates which base
+        periods whose Fourier reperesentations should be fit to the training signal. For example, in
+        a signal with hourly measurements, selecting the period \xmlString{12, 24} would fit the daily
+        (24-hour) and half-daily (12-hour) periodic trends.
+    \end{itemize}
+
+  %%%%% ARMA %%%%%
+  \item \xmlNode{ARMA} characterizes the signal using Auto-Regressive and Moving Average
+    coefficients to stochastically fit the training signal.
+    The ARMA representation has the following form:
+    \begin{equation*}
+      A_t = \sum_{i=1}^P \phi_i A_{t-i} + \epsilon_t + \sum_{j=1}^Q \theta_j \epsilon_{t-j},
+    \end{equation*}
+    where $t$ indicates a discrete time step, $\phi$ are the signal lag (or auto-regressive)
+    coefficients, $P$ is the number of signal lag terms to consider, $\epsilon$ is a random noise
+    term, $\theta$ are the noise lag (or moving average) coefficients, and $Q$ is the number of
+    noise lag terms to consider. The ARMA algorithms are developed in RAVEN using the
+    \texttt{statsmodels} Python library.
+
+    \xmlNode{ARMA} has the following parameters:
+    \begin{itemize}
+      \item \xmlAttr{target}, \xmlDesc{comma seperated string, required field}, indicates which
+        target signals should be trained as part of this ROM using this TSA algorithm.
+      \item \xmlAttr{seed}, \xmlDesc{integer, optional}, provides a static seed to be used for
+        random number generation in this ROM. This applies both to the training and sampling of this
+        ROM.
+      \item \xmlAttr{reduce\_memory}, \xmlDesc{boolean, optional field}, activates a lower memory
+        usage ARMA training. This does tend to result
+        in a slightly slower training time, at the benefit of lower memory usage. For
+        example, in one 1000-length history test, low memory reduced memory usage by 2.3
+        MiB (80\%), but increased training time by 0.4 seconds (20\%). No change in results has been
+        observed switching between modes. Note that the ARMA must be
+        retrained to change this property; it cannot be applied to serialized ARMAs.
+        \default{False}
+    \end{itemize}
+    \xmlNode{ARMA} further has the following subnodes:
+    \begin{itemize}
+      \item \xmlNode{SignalLag}, \xmlDesc{integer, required field}, number of signal lag terms to
+        include in the autoregression term.
+      \item \xmlNode{NoiseLag}, \xmlDesc{integer, required field}, number of noise lag terms to
+        include in the moving average term.
+    \end{itemize}
+\end{itemize}
+
+
+
+
+\textbf{SyntheticHistory Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType,pivotLength,shift,target,threshold,period,width}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="synth" subType="SyntheticHistory">
+      <Target>signal1, signal2, hour</Target>
+      <Features>scaling</Features>
+      <pivotParameter>hour</pivotParameter>
+      <fourier target="signal1, signal2">
+        <periods>12, 24</periods>
+      </fourier>
+      <arma target="signal1, signal2" seed='42'>
+        <SignalLag>2</SignalLag>
+        <NoiseLag>3</NoiseLag>
+      </arma>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
 
 %%%% ROM Model - ARMA  %%%%%%%
 \subsubsection{ARMA}
