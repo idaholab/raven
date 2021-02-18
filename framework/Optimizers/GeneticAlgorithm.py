@@ -152,7 +152,8 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""a node containing the reproduction methods.
                   This accepts subnodes that specifies the types of crossover and mutation.""")
-    reproduction.addParam("nParents", InputTypes.IntegerType, True) # number of parents to be considered in the reproduction phase
+    reproduction.addParam("nParents", InputTypes.IntegerType, True,
+                          descr="number of parents to be considered in the reproduction phase")
     # 1.  Crossover
     crossover = InputData.parameterInputFactory('crossover', strictMode=True,
         contentType=InputTypes.StringType,
@@ -163,7 +164,8 @@ class GeneticAlgorithm(RavenSampled):
                                  c.    Uniform Crossover,
                                  d.    Whole Arithmetic Recombination, or
                                  e.    Davis’ Order Crossover.""")
-    crossover.addParam("type", InputTypes.StringType, True) # type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)
+    crossover.addParam("type", InputTypes.StringType, True,
+                       descr="type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
         contentType=InputTypes.IntegerListType,
         printPriority=108,
@@ -185,7 +187,8 @@ class GeneticAlgorithm(RavenSampled):
                                  c.    Swap,
                                  d.    Scramble, or
                                  e.    Inversion.""")
-    mutation.addParam("type", InputTypes.StringType, True) # type of mutation operation to be used (e.g., bit, swap, or scramble)
+    mutation.addParam("type", InputTypes.StringType, True,
+                      descr="type of mutation operation to be used (e.g., bit, swap, or scramble")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
         contentType=InputTypes.IntegerListType,
         printPriority=108,
@@ -194,7 +197,7 @@ class GeneticAlgorithm(RavenSampled):
     mutationProbability = InputData.parameterInputFactory('mutationProb', strictMode=True,
         contentType=InputTypes.FloatType,
         printPriority=108,
-        descr=r""" The probability governing the mutation step, i.e., the probability that if exceeded mutation will ocur.""")
+        descr=r""" The probability governing the mutation step, i.e., the probability that if exceeded mutation will occur.""")
     mutation.addSub(mutationProbability)
     reproduction.addSub(mutation)
     GAparams.addSub(reproduction)
