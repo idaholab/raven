@@ -14,10 +14,9 @@
 """
   Linear and Polynomial Regression
 """
-import copy
-import collections
 import numpy as np
-import sklearn.linear_model
+import utils.importerUtils
+statsmodels = utils.importerUtils.importModuleLazy("statsmodels", globals())
 
 from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
 from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
