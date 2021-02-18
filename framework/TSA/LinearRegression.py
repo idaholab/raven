@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
+  Linear and Polynomial Regression
 """
 import copy
 import collections
@@ -97,7 +98,7 @@ class LinearRegression(TimeSeriesAnalyzer):
       @ In, params, dict, characterization such as otained from self.characterize()
       @ In, pivot, np.array(float), pivot parameter values
       @ In, settings, dict, additional settings specific to algorithm
-      @ Out, synthetic, np.array(float), synthetic model signal
+      @ Out, synthetic, np.array(float), synthetic estimated model signal
     """
     from sklearn.preprocessing import PolynomialFeatures
     synthetic = np.zeros((len(pivot), len(params)))

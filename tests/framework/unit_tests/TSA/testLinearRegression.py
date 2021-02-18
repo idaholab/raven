@@ -211,15 +211,65 @@ coef_titles = ['Simple Polynomial Regression Intercept',
                'Simple Polynomial Regression Coeff 1',
                'Simple Polynomial Regression Coeff 2',]
 
-signalA = okay_coefs[0] + (okay_coefs[1] * pivot) + (okay_coefs[2] * (pivot**2)) + np.random.normal(0, 1, 100)
+signalA = okay_coefs[0] + (okay_coefs[1] * pivot) + (okay_coefs[2] * (pivot**2))
 signals = np.zeros((N, 1))
 signals[:, 0] = signalA
 
-##########
-# Simplest reasonable case
-#
 model = createRegression(targets, 2)
 settings = {'degree': 2}
+settings = model.setDefaults(settings)
+params = model.characterize(signals, pivot, targets, settings)
+check = params['A']['model']
+
+for title, real, pred in zip(coef_titles, okay_coefs, check):
+  checkFloat(title, real, check[pred], tol=1e-1)
+
+############################
+# Simple w/ Random Noise   #
+############################
+signalA += np.random.normal(0, 1, 100)
+signals = np.zeros((N, 1))
+signals[:, 0] = signalA
+
+model = createRegression(targets, 2)
+settings = {'degree': 2}
+settings = model.setDefaults(settings)
+params = model.characterize(signals, pivot, targets, settings)
+check = params['A']['model']
+
+for title, real, pred in zip(coef_titles, okay_coefs, check):
+  checkFloat(title, real, check[pred], tol=1e-1)
+
+################
+# Complex Case #
+################
+okay_coefs += [4.0]
+coef_titles += ['Simple Polynomial Regression Coeff 3']
+signalB = okay_coefs[0] + (okay_coefs[1] * pivot) + (okay_coefs[2] * (pivot**2)) + (okay_coefs[3] * (pivot**3))
+signals = np.zeros((N, 1))
+signals[:, 0] = signalB
+
+model = createRegression(targets, 3)
+settings = {'degree': 3}
+settings = model.setDefaults(settings)
+params = model.characterize(signals, pivot, targets, settings)
+check = params['A']['model']
+
+for title, real, pred in zip(coef_titles, okay_coefs, check):
+  checkFloat(title, real, check[pred], tol=1e-1)
+
+################################
+# Complex Case w/ Random Noise #
+################################
+################
+# Complex Case #
+################
+signalB += np.random.normal(0, 1, 100)
+signals = np.zeros((N, 1))
+signals[:, 0] = signalB
+
+model = createRegression(targets, 3)
+settings = {'degree': 3}
 settings = model.setDefaults(settings)
 params = model.characterize(signals, pivot, targets, settings)
 check = params['A']['model']
@@ -232,7 +282,8 @@ print(results)
 sys.exit(results["fail"])
 """
   <TestInfo>
-    <name>framework.unit_tests.TSA.LinearRegression</name>
+    <name>framework.unit_te
+sts.TSA.LinearRegression</name>
     <author>dylanjm</author>
     <created>2021-02-16</created>
     <classesTested>TSA.LinearRegression</classesTested>
