@@ -676,11 +676,4 @@ class RavenSampled(Optimizer):
     self._cancelAssociatedJobs(traj)
 
 
-  def needDenormalized(self):
-    """
-      Determines if the currently used algorithms should be normalizing the input space or not
-      @ In, None
-      @ Out, needDenormalized, bool, True if normalizing should NOT be performed
-    """
-    # overload as needed in inheritors
-    return True
+
