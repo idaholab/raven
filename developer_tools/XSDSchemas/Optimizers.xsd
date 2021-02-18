@@ -7,6 +7,7 @@
         <xsd:sequence>
           <xsd:element name="GradientDescent" type="GradientDescentOptimizer" minOccurs="0" maxOccurs="unbounded"/>
           <xsd:element name="SimulatedAnnealing" type="SimulatedAnnealingOptimizer" minOccurs="0" maxOccurs="unbounded"/>
+          <xsd:element name="GeneticAlgorithm" type="GeneticAlgorithmOptimizer" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
         <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
     </xsd:complexType>
@@ -84,6 +85,7 @@
         <xsd:element name="persistence"        type="xsd:integer" minOccurs="0"/>
         <xsd:element name="objective"          type="xsd:float" minOccurs="0"/>
         <xsd:element name="temperature"        type="xsd:float" minOccurs="0"/>
+        <xsd:element name="AHDp"               type="xsd:float" minOccurs="0"/>
       </xsd:all>
     </xsd:complexType>
 
@@ -157,9 +159,77 @@
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
     </xsd:complexType>
+
     <xsd:complexType name="SimulatedAnnealingOptimizer">
         <xsd:sequence>
             <xsd:element name="samplerInit"      type="optInitType"            minOccurs="0"/>
+            <xsd:element name="convergence"      type="SAConvergenceType"      minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="coolingSchedule"  type="OptCoolingScheduleType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="variable"         type="optVarType"             minOccurs="1" maxOccurs='unbounded'/>
+            <xsd:element name="objective"        type="xsd:string"             minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="TargetEvaluation" type="AssemblerObjectType"    minOccurs="1" maxOccurs="1"/>
+            <xsd:element name="constant"         type="constantVarType"        minOccurs="0" maxOccurs='unbounded'/>
+            <xsd:element name="ConstantSource"         minOccurs="0" maxOccurs='unbounded'>
+              <xsd:complexType mixed="true">
+                <xsd:attribute name="class" type="xsd:string" use="required"/>
+                <xsd:attribute name="type" type="xsd:string" />
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="Constraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="ImplicitConstraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Sampler"          type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Restart"          type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="restartTolerance" type="xsd:float"           minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="variableTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="1"/>
+        </xsd:sequence>
+        <xsd:attribute name="name"      type="xsd:string" use="required"/>
+        <xsd:attribute name="verbosity" type="verbosityAttr"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="crossoverType">
+      <xsd:all>
+        <xsd:element name="crossoverProb"   type="xsd:float" />
+      </xsd:all>
+      <xsd:attribute name="type" type="xsd:string" />
+    </xsd:complexType>
+
+     <xsd:complexType name="mutationType">
+      <xsd:all>
+        <xsd:element name="mutationProb"   type="xsd:float" />
+      </xsd:all>
+      <xsd:attribute name="type" type="xsd:string" />
+    </xsd:complexType>
+
+    <xsd:complexType name="reproductionType">
+      <xsd:all>
+        <xsd:element name="crossover"   type="crossoverType" />
+        <xsd:element name="mutation"    type="mutationType"  />
+      </xsd:all>
+      <xsd:attribute name="nParents" type="xsd:integer" />
+    </xsd:complexType>
+
+    <xsd:complexType name="fitnessType">
+      <xsd:all>
+        <xsd:element name="a"     type="xsd:float" />
+        <xsd:element name="b"     type="xsd:float"/>
+      </xsd:all>
+      <xsd:attribute name="type" type="xsd:string" />
+    </xsd:complexType>
+
+    <xsd:complexType name="GAoptInitType">
+      <xsd:all>
+        <xsd:element name="populationSize"     type="xsd:integer"          />
+        <xsd:element name="parentSelection"    type="xsd:string"           />
+        <xsd:element name="reproduction"       type="reproductionType"     />
+        <xsd:element name="fitness"            type="fitnessType"          />
+        <xsd:element name="survivorSelection"  type="xsd:string"           />
+      </xsd:all>
+    </xsd:complexType>
+
+    <xsd:complexType name="GeneticAlgorithmOptimizer">
+        <xsd:sequence>
+            <xsd:element name="samplerInit"      type="optInitType"            minOccurs="0"/>
+            <xsd:element name="GAparams"         type="GAoptInitType"          minOccurs="0" maxOccurs="1"/>
             <xsd:element name="convergence"      type="SAConvergenceType"      minOccurs="0" maxOccurs="1"/>
             <xsd:element name="coolingSchedule"  type="OptCoolingScheduleType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="variable"         type="optVarType"             minOccurs="1" maxOccurs='unbounded'/>

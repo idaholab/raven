@@ -1,3 +1,4 @@
+
 # Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +14,6 @@
 # limitations under the License.
 """
 Created on Mar 5, 2013
-
 @author: alfoa, cogljj, crisr
 """
 #for future compatibility with Python 3-----------------------------------------
@@ -568,7 +568,6 @@ class JobHandler(MessageHandler.MessageUser):
          contains a list of the finished runs belonging to that group (Batch)
         - otherwise a flat list of jobs are returned.
         For example:
-
         finished =    [job1, job2, [job3.1, job3.2], job4 ] (job3.1/3.2 belong to the same groupID)
                    or [job1, job2, job3, job4]
     """
