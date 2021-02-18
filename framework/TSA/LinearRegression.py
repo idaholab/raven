@@ -76,7 +76,7 @@ class LinearRegression(TimeSeriesAnalyzer):
     from sklearn.preprocessing import PolynomialFeatures
     import statsmodels.api as sm
 
-    params = {f'{target}': {'model': {}} for target in targets}
+    params = {target: {'model': {}} for target in targets}
 
     degree = settings['degree']
     features = PolynomialFeatures(degree=degree)

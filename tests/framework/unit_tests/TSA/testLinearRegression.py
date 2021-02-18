@@ -182,12 +182,25 @@ def checkFails(comment, errstr, function, update=True, args=None, kwargs=None):
 ######################################
 #            CONSTRUCTION            #
 ######################################
-def createRegressionXML(targets, degree: int):
+def createRegressionXML(targets: list[str], degree: int):
+  """
+    Return regression XML node for RAVEN input.
+
+    @ In, targets, list[str], list of strings describing targets for current RAVEN run.
+    @ In, degree, int, the degree of polynomial to fit.
+    @ Out, xml, xml.etree.ElementTree.Element, new node
+  """
   xml = xmlUtils.newNode('Regression', attrib={'target':','.join(targets)})
   xml.append(xmlUtils.newNode('degree', text=f'{degree}'))
   return xml
 
 def createFromXML(xml):
+  """
+    Return LinearRegression TSA object.
+
+    @ In, xml, xml.etree.ElementTree.Element, RAVEN input xml.
+    @ Out, regression, TSA.LinearRegression, Regression object.
+  """
   regression = LR.LinearRegression()
   inputSpec = LR.LinearRegression.getInputSpecification()()
   inputSpec.parseNode(xml)
@@ -195,6 +208,13 @@ def createFromXML(xml):
   return regression
 
 def createRegression(targets, degree: int):
+  """
+    Return regression object.
+
+    @ In, targets, list[str], list of string describing targets.
+    @ In, degree, int, the degree of polynomial to fit.
+    @ Out, regression, TSA.LinearRegression, Regression object.
+  """
   xml = createRegressionXML(targets, degree)
   regression = createFromXML(xml)
   return regression
@@ -282,8 +302,7 @@ print(results)
 sys.exit(results["fail"])
 """
   <TestInfo>
-    <name>framework.unit_te
-sts.TSA.LinearRegression</name>
+    <name>framework.unit_tests.TSA.LinearRegression</name>
     <author>dylanjm</author>
     <created>2021-02-16</created>
     <classesTested>TSA.LinearRegression</classesTested>
