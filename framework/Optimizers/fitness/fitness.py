@@ -57,7 +57,7 @@ def invLinear(rlz,**kwargs):
     penalty = kwargs['penalty']
 
   objVar = kwargs['objVar']
-  fitness = 1.0/(a * eval('rlz[\'' + objVar + '\']') + b * penalty)
+  fitness = 1.0/(a * rlz[objVar] + b * penalty)
   return fitness
 
 
@@ -89,7 +89,7 @@ def logistic(rlz,**kwargs):
     b = kwargs['b']
 
   objVar = kwargs['objVar']
-  val = eval('rlz[\'' + objVar + '\']')
+  val = rlz[objVar]
   denom = 1.0 + np.exp(-a * (val - b))
   fitness = 1.0 / denom
 

@@ -152,7 +152,7 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""a node containing the reproduction methods.
                   This accepts subnodes that specifies the types of crossover and mutation.""")
-    reproduction.addParam("nParents", InputTypes.IntegerType, True)
+    reproduction.addParam("nParents", InputTypes.IntegerType, True) # number of parents to be considered in the reproduction phase
     # 1.  Crossover
     crossover = InputData.parameterInputFactory('crossover', strictMode=True,
         contentType=InputTypes.StringType,
@@ -163,7 +163,7 @@ class GeneticAlgorithm(RavenSampled):
                                  c.    Uniform Crossover,
                                  d.    Whole Arithmetic Recombination, or
                                  e.    Davis’ Order Crossover.""")
-    crossover.addParam("type", InputTypes.StringType, True)
+    crossover.addParam("type", InputTypes.StringType, True) # type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
         contentType=InputTypes.IntegerListType,
         printPriority=108,
@@ -185,7 +185,7 @@ class GeneticAlgorithm(RavenSampled):
                                  c.    Swap,
                                  d.    Scramble, or
                                  e.    Inversion.""")
-    mutation.addParam("type", InputTypes.StringType, True)
+    mutation.addParam("type", InputTypes.StringType, True) # type of mutation operation to be used (e.g., bit, swap, or scramble)
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
         contentType=InputTypes.IntegerListType,
         printPriority=108,
@@ -576,11 +576,10 @@ class GeneticAlgorithm(RavenSampled):
     """
       This is an abstract method for all RavenSampled Optimizer, whereas for GA all children are accepted
       @ In, traj, int, identifier
-      @ In, opt, dict, new opt point
-      @ In, optVal, float, new optimization value
-      @ Out, acceptable, str, acceptability condition for point
-      @ Out, old, dict, old opt point
-      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
+      @ Out, (acceptable, old, rejectionReason), tuple, tuple which contains the following three items:
+                                                        acceptable, str, acceptability condition for point
+                                                        old, dict, old opt point
+                                                        rejectReason, str, reject reason of opt point, or return None if accepted
     """
     acceptable = 'accepted'
     try:

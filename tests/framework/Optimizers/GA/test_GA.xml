@@ -23,7 +23,6 @@
 
   <Steps>
     <MultiRun name="optimize" >
-      <!--re-seeding="032877" 120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">myLocalSum</Model>
       <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
@@ -41,11 +40,6 @@
 
   <Distributions>
     <UniformDiscrete name='uniform_dist_woRepl_1'>
-      <!-- <varType>int</varType>
-      <strategy>
-        <order>False</order>
-        <replacement>True</replacement>
-      </strategy> -->
       <lowerBound>1</lowerBound>
       <upperBound>20</upperBound>
       <strategy>withoutReplacement</strategy>
@@ -113,61 +107,7 @@
         <distribution>uniform_dist_woRepl_1</distribution>
         <initial>6,7,8,9,10,11,12,13,14,15</initial>
       </variable>
-<!--
-      <variable name=" fuelLocation_3">
-        <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>3</initial>
-      </variable>
 
-      <variable name=" fuelLocation_4">
-        <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>4</initial>
-      </variable>
-
-      <variable name=" fuelLocation_5">
-        <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>5</initial>
-      </variable>
-
-      <variable name=" fuelLocation_6">
-        <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>6</initial>
-      </variable>
-
-      <variable name=" fuelLocation_7">
-        <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>7</initial>
-      </variable>
-
-      <variable name=" fuelLocation_8">
-        <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>8</initial>
-      </variable>
-
-      <variable name=" fuelLocation_9">
-        <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>9</initial>
-      </variable>
-
-      <variable name=" fuelLocation_10">
-        <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>10</initial>
-      </variable>
-
-      <variable name=" fuelLocation_11">
-        <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>11</initial>
-      </variable>
-
-      <variable name=" fuelLocation_12">
-        <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>12</initial>
-      </variable>
-
-      <variable name=" fuelLocation_13">
-        <distribution>uniform_dist_woRepl_1</distribution>
-        <initial>13</initial>
-      </variable> -->
 
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
@@ -189,7 +129,6 @@
       <PointSet name="opt_export">
         <Input>trajID</Input>
         <Output>x1,x2,x3,x4,x5,x6,ans</Output>
-        <!-- <Output>x1,x2,x3,x4,x5,x6,ans,iteration,accepted,conv_objective</Output> fitness,conv_fitness -->
       </PointSet>
     </DataObjects>
 

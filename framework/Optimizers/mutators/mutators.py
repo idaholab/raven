@@ -92,7 +92,6 @@ def scrambleMutator(offSprings,**kwargs):
     new = list(itemgetter(*locs)(offSprings[i].values))
     for ind,element in enumerate(locs):
       if randomUtils.random(dim=1,samples=1)< kwargs['mutationProb']:
-        ## TODO: use randomUtils instead
         children[i,locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(offSprings.data[i,locs[0]:locs[-1]+1]),None)
   return children
 

@@ -225,7 +225,6 @@ class RavenSampled(Optimizer):
       self.inputInfo['batchMode'] = False
     for _ in range(self.batch):
       inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}  # ,'prefix': str(self.batchId)+'_'+str(i)
-      # self.inputInfo['prefix'] = inputInfo['prefix']
       if self.counter == self.limit + 1:
         break
       # get point from stack
@@ -273,7 +272,7 @@ class RavenSampled(Optimizer):
     # collect finished job
     prefix = job.getMetadata()['prefix']
     # If we're not looking for the prefix, don't bother with using it
-    # # this usually happens if we've cancelled the run but it's already done
+    ## this usually happens if we've cancelled the run but it's already done
     if not self.stillLookingForPrefix(prefix):
       return
     # FIXME implicit constraints probable should be handled here too
@@ -675,3 +674,13 @@ class RavenSampled(Optimizer):
     Optimizer._closeTrajectory(self, traj, action, reason, value)
     # kill jobs associated with trajectory
     self._cancelAssociatedJobs(traj)
+
+
+  def needDenormalized(self):
+    """
+      Determines if the currently used algorithms should be normalizing the input space or not
+      @ In, None
+      @ Out, needDenormalized, bool, True if normalizing should NOT be performed
+    """
+    # overload as needed in inheritors
+    return True
