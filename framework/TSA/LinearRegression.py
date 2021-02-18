@@ -125,4 +125,4 @@ class LinearRegression(TimeSeriesAnalyzer):
       for name, value in info['model'].items():
         if name == 'object':
           continue
-        base.append(xmlUtils.newNode('name', text=f'{float(value):1.9e}'))
+        base.append(xmlUtils.newNode(name, text=f'{float(value):1.9e}'))
