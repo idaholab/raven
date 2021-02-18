@@ -54,7 +54,6 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     myInstance = Step()                                !Generate the instance
     myInstance.XMLread(xml.etree.ElementTree.Element)  !This method read the xml and perform all the needed checks
     myInstance.takeAstep()                             !This method perform the step
-
     --Internal chain [in square brackets methods that can be/must be overwritten]
     self.XMLread(xml)-->self._readMoreXML(xml)     -->[self._localInputAndChecks(xmlNode)]
     self.takeAstep() -->self_initializeStep()      -->[self._localInitializeStep()]
@@ -64,12 +63,10 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     myInstance.whoAreYou()                 -see BaseType class-
     myInstance.myCurrentSetting()          -see BaseType class-
     myInstance.printMe()                   -see BaseType class-
-
     --Adding a new step subclass--
      **<MyClass> should inherit at least from Step or from another step already presents
      **DO NOT OVERRIDE any of the class method that are not starting with self.local*
      **ADD your class to the dictionary __InterfaceDict at the end of the module
-
     Overriding the following methods overriding unless you inherit from one of the already existing methods:
     self._localInputAndChecks(xmlNode)      : used to specialize the xml reading and the checks
     self._localGetInitParams()              : used to retrieve the local parameters and values to be printed
