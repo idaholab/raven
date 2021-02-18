@@ -407,7 +407,7 @@ class ARMA(supervisedLearning):
                                                          masks=fullMask,  # In future, a consolidated masking system for multiple signal processors can be implemented.
                                                          target=target)
         self._signalStorage[target]['fourier'] = copy.deepcopy(self.fourierResults[target]['predict'])
-        timeSeriesData -= self.fourierResults[target]['predict']
+        timeSeriesData = timeSeriesData.astype(float)- self.fourierResults[target]['predict'].astype(float)
         self._signalStorage[target]['nofourier'] = copy.deepcopy(timeSeriesData)
       # zero filter application
       ## find the mask for the requested target where values are nonzero
@@ -1009,7 +1009,7 @@ class ARMA(supervisedLearning):
         intercept += thisIntercept
         # remove this signal from the signal to fit
         thisSignal = thisIntercept + thisCoeff * fSignal
-        signalToFit -= thisSignal
+        signalToFit = signalToFit.astype(float) -thisSignal.astype(float)
     else:
       self.raiseADebug('Fourier fitting condition number is {:1.1e}.'.format(condNumber),
                        ' Calculating all Fourier coefficients at once.')
@@ -1816,6 +1816,9 @@ class ARMA(supervisedLearning):
       pivotValues = trainingDict[self.pivotParameterID][0]
       # use the first segment as typical of all of them, NOTE might be bad assumption
       delta = pivotValues[slicers[0][-1]] - pivotValues[slicers[0][0]]
+      # NOTE: if moving the segmentation length Fourier after segmentation uncomment the line below
+      # delta = pivotValues[slicers[1][0]] - pivotValues[slicers[0][0]]
+      
       # any Fourier longer than the delta should be trained a priori, leaving the reaminder
       #    to be specific to individual ROMs
       full = {}      # train these periods on the full series
@@ -1827,7 +1830,12 @@ class ARMA(supervisedLearning):
           targetVals = trainingDict[target][0]
           periods = np.asarray(self.fourierParams[target])
           full = periods[periods > (delta*self.nyquistScalar)]
-          segment[target] = periods[np.logical_not(periods > (delta*self.nyquistScalar))]
+          
+          #NOTE: train all the Fourier periods in the segment.
+          # segment[target] = periods
+
+          # # NOTE: orignially train the Fouirer whose periods shorter than segmentation length after segmentation. segment[target] store the shorter than segmentation length Fourier period.
+          segment[target] = periods[np.logical_not(periods > delta)]
           if len(full):
             # train Fourier on longer periods
             self.fourierResults[target] = self._trainFourier(pivotValues, full, targetVals, target=target)

@@ -535,6 +535,14 @@ class Segments(Collection):
       newROM.adjustLocalRomSegment(self._romGlobalAdjustments, picker)
       self.raiseADebug('Training segment', i, picker)
       newROM.train(data)
+      # NOTE unccoment below to segpdfile.to_csv line, to debug each segment dictionary
+      subdict = {}
+      for target, signals in newROM._signalStorage.items():
+        for name, signal in signals.items():
+          varName = '{}_{}'.format(target,name)
+          subdict[varName] = signal
+      segpdfile = pd.DataFrame(subdict)
+      segpdfile.to_csv('seg_{}.csv'.format(i),index = False)
       roms.append(newROM)
     templateROM.preserveInputCDF = False
     # format array for future use
