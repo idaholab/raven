@@ -165,7 +165,7 @@ class GeneticAlgorithm(RavenSampled):
                                  d.    Whole Arithmetic Recombination, or
                                  e.    Davis’ Order Crossover.""")
     crossover.addParam("type", InputTypes.StringType, True,
-                       descr="type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform")
+                       descr="type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
         contentType=InputTypes.IntegerListType,
         printPriority=108,
@@ -188,7 +188,7 @@ class GeneticAlgorithm(RavenSampled):
                                  d.    Scramble, or
                                  e.    Inversion.""")
     mutation.addParam("type", InputTypes.StringType, True,
-                      descr="type of mutation operation to be used (e.g., bit, swap, or scramble")
+                      descr="type of mutation operation to be used (e.g., bit, swap, or scramble)")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
         contentType=InputTypes.IntegerListType,
         printPriority=108,
