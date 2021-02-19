@@ -5,6 +5,6 @@
   [../]
   [./LinearRegression]
     type = 'RavenPython'
-    input = 'testLinearRegression.py'
+    input = 'testPolynomialRegression.py'
   [../]
 []
