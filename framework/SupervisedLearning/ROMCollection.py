@@ -361,7 +361,6 @@ class Segments(Collection):
             #    pivot parameter, along which we are concatenating
             lens[pivotIndex] = lastEntry
             result[target] = np.zeros(lens)
-
       # place subresult into overall result # TODO this assumes consistent history length! True for ARMA at least.
       entries = len(subResults[pivotID])
       # There's a problem here, if using Clustering; the residual shorter-length element at the end might be represented
@@ -535,15 +534,15 @@ class Segments(Collection):
       newROM.adjustLocalRomSegment(self._romGlobalAdjustments, picker)
       self.raiseADebug('Training segment', i, picker)
       newROM.train(data)
-      # NOTE unccoment below to segpdfile.to_csv line, to debug each segment dictionary
-      subdict = {}
-      for target, signals in newROM._signalStorage.items():
-        for name, signal in signals.items():
-          varName = '{}_{}'.format(target,name)
-          subdict[varName] = signal
-      segpdfile = pd.DataFrame(subdict)
-      segpdfile.to_csv('seg_{}.csv'.format(i),index = False)
-      roms.append(newROM)
+      # # NOTE unccoment below to segpdfile.to_csv line, to debug each segment dictionary
+      # subdict = {}
+      # for target, signals in newROM._signalStorage.items():
+      #   for name, signal in signals.items():
+      #     varName = '{}_{}'.format(target,name)
+      #     subdict[varName] = signal
+      # segpdfile = pd.DataFrame(subdict) 
+      # segpdfile.to_csv('seg_{}.csv'.format(i),index = False)
+      # roms.append(newROM)
     templateROM.preserveInputCDF = False
     # format array for future use
     roms = np.array(roms)

@@ -422,7 +422,7 @@ class ARMA(supervisedLearning):
     # Applied Energy, 87(2010) 843-855
     for t,target in enumerate(self.target):
       # if target correlated with the zero-filter target, truncate the training material now?
-      timeSeriesData = targetVals[:,t]
+      # timeSeriesData = targetVals[:,t]
       self.raiseADebug('... analyzing ARMA properties for target "{}" ...'.format(target))
       self.cdfParams[target] = self._trainCDF(timeSeriesData, binOps=2)
       # normalize data
@@ -611,7 +611,6 @@ class ARMA(supervisedLearning):
           sample = self._generateARMASignal(result,
                                             numSamples = self._masks[target]['notZeroFilterMask'].sum(),
                                             randEngine = self.randomEng)
-
           ## if so, then expand result into signal space (functionally, put back in all the zeros)
           signal = np.zeros(len(self.pivotParameterValues))
           signal[self._masks[target]['notZeroFilterMask']] = sample
@@ -1816,9 +1815,8 @@ class ARMA(supervisedLearning):
       pivotValues = trainingDict[self.pivotParameterID][0]
       # use the first segment as typical of all of them, NOTE might be bad assumption
       delta = pivotValues[slicers[0][-1]] - pivotValues[slicers[0][0]]
-      # NOTE: if moving the segmentation length Fourier after segmentation uncomment the line below
-      # delta = pivotValues[slicers[1][0]] - pivotValues[slicers[0][0]]
-      
+      # # NOTE: if moving the segmentation length Fourier after segmentation uncomment the line below
+      delta = pivotValues[slicers[1][0]] - pivotValues[slicers[0][0]]
       # any Fourier longer than the delta should be trained a priori, leaving the reaminder
       #    to be specific to individual ROMs
       full = {}      # train these periods on the full series
@@ -1830,24 +1828,22 @@ class ARMA(supervisedLearning):
           targetVals = trainingDict[target][0]
           periods = np.asarray(self.fourierParams[target])
           full = periods[periods > (delta*self.nyquistScalar)]
-          
           #NOTE: train all the Fourier periods in the segment.
-          # segment[target] = periods
-
+          segment[target] = periods
           # # NOTE: orignially train the Fouirer whose periods shorter than segmentation length after segmentation. segment[target] store the shorter than segmentation length Fourier period.
-          segment[target] = periods[np.logical_not(periods > delta)]
-          if len(full):
-            # train Fourier on longer periods
-            self.fourierResults[target] = self._trainFourier(pivotValues, full, targetVals, target=target)
-            # self.fourierResults[target] = self._trainFourier(pivotValues, full, targetVals, masks=self._masks[self.zeroFilterTarget]['notZeroFilterMask'], target=target)
-            # remove longer signal from training data
-            signal = self.fourierResults[target]['predict']
-            targetVals = np.array(targetVals, dtype=np.float64)
-            targetVals -= signal
-            trainingDict[target][0] = targetVals
+          #segment[target] = periods[np.logical_not(periods > delta)]
+          # if len(full):
+          #   # train Fourier on longer periods
+          #   self.fourierResults[target] = self._trainFourier(pivotValues, full, targetVals, target=target)
+          #   # self.fourierResults[target] = self._trainFourier(pivotValues, full, targetVals, masks=self._masks[self.zeroFilterTarget]['notZeroFilterMask'], target=target)
+          #   # remove longer signal from training data
+          #   signal = self.fourierResults[target]['predict']
+          #   targetVals = np.array(targetVals, dtype=np.float64)
+          #   targetVals -= signal
+          #   trainingDict[target][0] = targetVals
       # store the segment-based periods in the settings to return
       settings['segment Fourier periods'] = segment
-      settings['long Fourier signal'] = self.fourierResults
+      settings['long Fourier signal'] = self.fourierResults 
     return settings, trainingDict
 
   def parametrizeGlobalRomFeatures(self, featureDict):
