@@ -1999,7 +1999,7 @@ class ARMA(supervisedLearning):
     # disable CDF preservation on subclusters
     ## Note that this might be a good candidate for a user option someday,
     ## but right now we can't imagine a use case that would turn it on
-    # self.preserveInputCDF = False
+    self.preserveInputCDF = False
     if 'long Fourier signal' in settings:
       for target, peak in self.peaks.items():
         subMean = self._getMeanFromGlobal(settings, picker)

@@ -542,8 +542,8 @@ class Segments(Collection):
       #     subdict[varName] = signal
       # segpdfile = pd.DataFrame(subdict) 
       # segpdfile.to_csv('seg_{}.csv'.format(i),index = False)
-      # roms.append(newROM)
-    templateROM.preserveInputCDF = False
+      roms.append(newROM)
+    #templateROM.preserveInputCDF = False
     # format array for future use
     roms = np.array(roms)
     return roms
