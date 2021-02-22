@@ -182,7 +182,7 @@ def checkFails(comment, errstr, function, update=True, args=None, kwargs=None):
 ######################################
 #            CONSTRUCTION            #
 ######################################
-def createRegressionXML(targets: list[str], degree: int):
+def createRegressionXML(targets, degree):
   """
     Return regression XML node for RAVEN input.
 
@@ -207,7 +207,7 @@ def createFromXML(xml):
   regression.handleInput(inputSpec)
   return regression
 
-def createRegression(targets, degree: int):
+def createRegression(targets, degree):
   """
     Return regression object.
 
