@@ -1,0 +1,134 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <TestInfo>
+    <name>framework/PostProcessors/DynamicSystemScaling/test_dss_full</name>
+    <author>yoshrk</author>
+    <created>2021-02-20</created>
+    <classesTested>PostProcessors.PPDSSFull</classesTested>
+    <description>
+      This test checks the DSS PostProcessor with DSS metric
+    </description>
+    <revisions>
+      <revision author='yoshrk' date='2021-02-20'>no writing directly to files from postprocessors</revision>
+    </revisions>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>DSS</WorkingDir>
+    <Sequence>mcRun1, mcRun2, PP2</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="lorentzAttractor_timeScale_I" name="PythonModule1" subType="">
+      <variables>sigma,rho,beta,x1,y1,z1,time1,x0,y0,z0</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="lorentzAttractor_timeScale_II" name="PythonModule2" subType="">
+      <variables>sigma,rho,beta,x2,y2,z2,time2,x0,y0,z0</variables>
+    </ExternalModel>
+    <PostProcessor name="pp2" subType="PPDSSFull">
+      <Features type="variable">x1,y1,z1</Features>
+      <pivotParameterFeature>time1</pivotParameterFeature>
+      <Targets type="variable">x2,y2,z2</Targets>
+      <pivotParameterTarget>time2</pivotParameterTarget>
+      <multiOutput>raw_values</multiOutput>
+      <scale>DataSynthesis</scale>
+      <scaleBeta>1,1,1</scaleBeta>
+      <scaleOmega>1,1,1</scaleOmega>
+    </PostProcessor>
+  </Models>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder">
+      <Input>x0,y0,z0</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <HistorySet name="pp2_out">
+      <Output>
+        x1_omega_norm,x1_beta,x2_omega_norm,x2_beta,x1_x2_D,x1_x2_process_time,x1_x2_local_distance,x1_x2_total_distance,x1_x2_standard_deviation,
+        y1_omega_norm,y1_beta,y2_omega_norm,y2_beta,y1_y2_D,y1_y2_process_time,y1_y2_local_distance,y1_y2_total_distance,y1_y2_standard_deviation,
+        z1_omega_norm,z1_beta,z2_omega_norm,z2_beta,z1_z2_D,z1_z2_process_time,z1_z2_local_distance,z1_z2_total_distance,z1_z2_standard_deviation
+      </Output>
+      <options>
+        <pivotParameter>pivot_parameter</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="outMC1">
+      <Input>x0,y0,z0</Input>
+      <Output>time1,x1,y1,z1</Output>
+      <options>
+        <pivotParameter>time1</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="outMC2">
+      <Input>x0,y0,z0</Input>
+      <Output>time2,x2,y2,z2</Output>
+      <options>
+        <pivotParameter>time2</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="pp2_print">
+      <type>csv</type>
+      <source>pp2_out</source>
+    </Print>
+  </OutStreams>
+
+  <Distributions>
+    <Normal name="x0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="y0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+    <Normal name="z0_distrib">
+      <mean>4</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="x0">
+        <distribution>x0_distrib</distribution>
+      </variable>
+      <variable name="y0">
+        <distribution>y0_distrib</distribution>
+      </variable>
+      <variable name="z0">
+        <distribution>z0_distrib</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mcRun1" re-seeding="20021986">
+      <Input     class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
+      <Model     class="Models"           type="ExternalModel"  >PythonModule1</Model>
+      <Sampler   class="Samplers"         type="MonteCarlo"     >MC_external</Sampler>
+      <Output    class="DataObjects"      type="HistorySet"     >outMC1</Output>
+    </MultiRun>
+    <MultiRun name="mcRun2" re-seeding="13010405">
+      <Input     class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
+      <Model     class="Models"           type="ExternalModel"  >PythonModule2</Model>
+      <Sampler   class="Samplers"         type="MonteCarlo"     >MC_external</Sampler>
+      <Output    class="DataObjects"      type="HistorySet"     >outMC2</Output>
+    </MultiRun>
+    <PostProcess name="PP2">
+      <Input class="DataObjects" type="HistorySet">outMC1</Input>
+      <Input class="DataObjects" type="HistorySet">outMC2</Input>
+      <Model class="Models" type="PostProcessor">pp2</Model>
+      <Output class="DataObjects" type="HistorySet">pp2_out</Output>
+      <Output class="OutStreams" type="Print">pp2_print</Output>
+    </PostProcess>
+  </Steps>
+
+</Simulation>
