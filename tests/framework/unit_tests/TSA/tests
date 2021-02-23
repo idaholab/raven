@@ -3,4 +3,8 @@
     type = 'RavenPython'
     input = 'testFourier.py'
   [../]
+  [./LinearRegression]
+    type = 'RavenPython'
+    input = 'testPolynomialRegression.py'
+  [../]
 []
