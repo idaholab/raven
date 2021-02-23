@@ -23,7 +23,6 @@ sys.path.append(frameworkDir)
 from utils import utils
 utils.find_crow(frameworkDir)
 from utils import frontUtils
-import testMathUtils as tMU
 
 randomENG = utils.findCrowModule("randomENG")
 
@@ -31,8 +30,50 @@ print (frontUtils)
 
 results = {"pass":0,"fail":0}
 
+def checkAnswer(comment,value,expected,tol=1e-7,updateResults=True):
+  """
+    This method is aimed to compare two floats given a certain tolerance
+    @ In, comment, string, a comment printed out if it fails
+    @ In, value, float, the value to compare
+    @ In, expected, float, the expected value
+    @ In, tol, float, optional, the tolerance
+    @ In, updateResults, bool, optional, if True updates global results
+    @ Out, None
+  """
+  if abs(value - expected) > tol:
+    print("checking answer",comment,value,"!=",expected)
+    if updateResults:
+      results["fail"] += 1
+    return False
+  else:
+    if updateResults:
+      results["pass"] += 1
+    return True
 
-test = np.array([ 0.21573114, -0.92937786,  0.29952775],
+def checkArray(comment,check,expected,tol=1e-7):
+  """
+    This method is aimed to compare two arrays of floats given a certain tolerance
+    @ In, comment, string, a comment printed out if it fails
+    @ In, check, list, the value to compare
+    @ In, expected, list, the expected value
+    @ In, tol, float, optional, the tolerance
+    @ Out, None
+  """
+  same=True
+  if len(check) != len(expected):
+    same=False
+  else:
+    for i in range(len(check)):
+      same = same*checkAnswer(comment+'[%i]'%i,check[i],expected[i],tol,False)
+  if not same:
+    print("checking array",comment,"did not match!")
+    results['fail']+=1
+    return False
+  else:
+    results['pass']+=1
+    return True
+
+test = np.array([[ 0.21573114, -0.92937786,  0.29952775],
                 [ 0.94716548, -0.31085637, -0.07903087],
                 [ 0.6485263,  -0.72106429,  0.24388507],
                 [ 0.3466882,  -0.78716832,  0.51007189],
@@ -41,15 +82,17 @@ test = np.array([ 0.21573114, -0.92937786,  0.29952775],
                 [-0.24039731,  0.54889384,  0.80057772],
                 [ 0.06213356,  0.28552822, -0.95635404],
                 [-0.20190017,  0.66695686, -0.71722024],
-                [-0.62399932, -0.22858416,  0.74724436])
+                [-0.62399932, -0.22858416,  0.74724436]])
 
 mask = frontUtils.nonDominatedFrontier(test, returnMask=True)
 answerMask = np.array([True, True, True, False, False, True, False, True, True, True])
-tMU.checkArray('nonDominatedFrontier with Mask', mask, answerMask)
+checkArray('nonDominatedFrontier with mask', mask.tolist(), answerMask.tolist())
 
 indexes = frontUtils.nonDominatedFrontier(test, returnMask=False)
 answerIndexes = np.array([0, 1, 2, 5, 7, 8, 9])
-tMU.checkArray('nonDominatedFrontier with indexes', indexes, answerIndexes)
+checkArray('nonDominatedFrontier with indexes', indexes.tolist(), answerIndexes.tolist())
+
+print(results)
 
 sys.exit(results["fail"])
 
