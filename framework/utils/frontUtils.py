@@ -25,7 +25,19 @@ import numpy as np
 def nonDominatedFrontier(data, returnMask):
   """
     This method is designed to identify the set of non-dominated points (nEfficientPoints)
-    @ In, data, np.array, data matrix (nPoints, nCosts) containing the data point
+
+    If returnMask=True, then a True/False mask (isEfficientMask) is returned
+    Non-dominated points pFront can be obtained as follows:
+      mask = nonDominatedFrontier(data,True)
+      pFront = data[np.array(mask)]
+
+    If returnMask=False, then an integer array containing the indexes of the non-dominated points is returned
+    Non-dominated points pFront can be obtained as follows:
+      mask = nonDominatedFrontier(data,False)
+      pFront = data[np.array(mask)]
+      mask = nonDominatedFrontier(data,True)
+
+    @ In, data, np.array, data matrix (nPoints, nCosts) containing the data points
     @ In, returnMask, bool, type of data to be returned: indices (False) or True/False mask (True)
     @ Out, isEfficientMask , np.array, data matrix (nPoints, 1) boolean array
     @ Out, isEfficient, np.array, data matrix (nEfficientPoints, 1) integer array of indices
@@ -34,18 +46,14 @@ def nonDominatedFrontier(data, returnMask):
   """
   isEfficient = np.arange(data.shape[0])
   nPoints = data.shape[0]
-  nextPointIndex = 0  
+  nextPointIndex = 0
   while nextPointIndex<len(data):
     nondominatedPointMask = np.any(data<data[nextPointIndex], axis=1)
     nondominatedPointMask[nextPointIndex] = True
-    isEfficient = isEfficient[nondominatedPointMask] 
+    isEfficient = isEfficient[nondominatedPointMask]
     data = data[nondominatedPointMask]
     nextPointIndex = np.sum(nondominatedPointMask[:nextPointIndex])+1
   if returnMask:
-    # In this case a True/False mask (isEfficientMask) is returned
-    # Non-dominated points pFront can be obtained as follows:
-    #    mask = nonDominatedFrontier(data,True)
-    #    pFront = data[np.array(mask)] 
     isEfficientMask = np.zeros(nPoints, dtype = bool)
     isEfficientMask[isEfficient] = True
     return isEfficientMask
