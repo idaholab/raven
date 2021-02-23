@@ -38,8 +38,8 @@ def nonDominatedFrontier(data, returnMask):
 
     @ In, data, np.array, data matrix (nPoints, nCosts) containing the data points
     @ In, returnMask, bool, type of data to be returned: indices (False) or True/False mask (True)
-    @ Out, isEfficientMask , np.array, data matrix (nPoints, 1) boolean array
-    @ Out, isEfficient, np.array, data matrix (nEfficientPoints, 1) integer array of indices
+    @ Out, isEfficientMask , np.array, data matrix (nPoints,1), array  of boolean values if returnMask=True
+    @ Out, isEfficient, np.array, data matrix (nEfficientPoints,1), integer array of indexes if returnMask=False
 
     Reference: the following code has been adapted from https://stackoverflow.com/questions/32791911/fast-calculation-of-pareto-front-in-python
   """
