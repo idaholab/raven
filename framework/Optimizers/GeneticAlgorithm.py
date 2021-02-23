@@ -392,6 +392,8 @@ class GeneticAlgorithm(RavenSampled):
     """
     # The whole skeleton should be here, this should be calling all classes and _private methods.
     traj = info['traj']
+    for t in self._activeTraj[1:]:
+      self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory',0)#, None
     self.incrementIteration(traj)
     info['step'] = self.counter
 
