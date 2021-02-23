@@ -2971,8 +2971,9 @@ below).
 In addition, any number of the following TSA algorithms may be included as subnodes of this ROM:
 
 \begin{itemize}
-\item \xmlNode{PolynomialRegression} fits time-series data using a polynomial
-  function of degree one or greater.
+  %%%%% PolynomialRegression %%%%%
+
+\item \xmlNode{PolynomialRegression} fits time-series data using a polynomial function of degree one or greater.
 
   \xmlNode{PolynomialRegression} has the following attributes:
   \begin{itemize}
@@ -2985,9 +2986,7 @@ In addition, any number of the following TSA algorithms may be included as subno
   \item \xmlNode{degree}, \xmlDesc{integer, required field}, indicates which
     degree of polynomial to fit to the presented data.
   \end{itemize}
-  \end{itemize}
 
-\begin{itemize}
   %%%%% FOURIER %%%%%
   \item \xmlNode{Fourier} uses regression to fit requested Fourier bases by their amplitudes to
     deterministically match the training signal. Fourier signals are defined with the following form:
