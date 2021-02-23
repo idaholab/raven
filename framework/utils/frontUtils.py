@@ -31,11 +31,10 @@ def nonDominatedFrontier(data, returnMask):
       mask = nonDominatedFrontier(data,True)
       pFront = data[np.array(mask)]
 
-    If returnMask=False, then an integer array containing the indexes of the non-dominated points is returned
+    If returnMask=False, then an array of integer values containing the indexes of the non-dominated points is returned
     Non-dominated points pFront can be obtained as follows:
       mask = nonDominatedFrontier(data,False)
       pFront = data[np.array(mask)]
-      mask = nonDominatedFrontier(data,True)
 
     @ In, data, np.array, data matrix (nPoints, nCosts) containing the data points
     @ In, returnMask, bool, type of data to be returned: indices (False) or True/False mask (True)
