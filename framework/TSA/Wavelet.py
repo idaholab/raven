@@ -79,6 +79,8 @@ class Wavelet(TimeSeriesAnalyzer):
       results = params[target]['results']
       results['coeff_a'], results['coeff_d'] = pywt.dwt(signal, family)
 
+    return params
+
 
 
   def generate(self, params, pivot, settings):
