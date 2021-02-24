@@ -16,7 +16,7 @@
 """
 import numpy as np
 
-from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
+from utils import InputData, InputTypes, xmlUtils
 from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 
 
@@ -34,11 +34,15 @@ class Wavelet(TimeSeriesAnalyzer):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
+    import pywt
     specs = super(Wavelet, cls).getInputSpecification()
     specs.name = 'Wavelet'
-    specs.descriiption = """FILL THIS IN"""
-    specs.addSub(InputData.parameterInputFactory('family', contentType=InputTypes.StringType,
-                                                 descr="""FILL THIS IN"""))
+    specs.descriiption = """TimeSeriesAnalysis algorithm """
+    specs.addSub(InputData.parameterInputFactory(
+      'family',
+      contentType=InputTypes.StringType,
+      descr="""The type of wavelet to use for the transformation."""
+    ))
     return specs
 
 
