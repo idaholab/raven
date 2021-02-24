@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
+  Discrete Wavelet Transformation for Characterization of Time-Series Data.
 """
 import numpy as np
 
@@ -22,6 +23,7 @@ from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 # utility methods
 class Wavelet(TimeSeriesAnalyzer):
   """
+    Perform Discrete Wavelet Transformation on time-dependent data.
   """
 
   @classmethod
@@ -63,15 +65,22 @@ class Wavelet(TimeSeriesAnalyzer):
 
   def characterize(self, signal, pivot, targets, settings):
     """
-      Determines the charactistics of the signal based on this algorithm.
+      This function utilizes the Discrete Wavelet Transform to
+      characterize a time-dependent series of data.
+
       @ In, signal, np.ndarray, time series with dims [time, target]
       @ In, pivot, np.1darray, time-like parameter values
       @ In, targets, list(str), names of targets in same order as signal
       @ In, settings, dict, additional settings specific to this algorithm
-      @ In, simultFit, bool, optional, if False then fit Fourier individually
       @ Out, params, dict, characteristic parameters
     """
+    # TODO extend to continuous wavelet transform
     import pywt
+
+    ## The pivot input parameter isn't used explicity in the
+    ## transformation as it assumed/required that each element in the
+    ## time-dependent series is independent, uniquely indexed and
+    ## sorted in time.
     family = settings['family']
     params = {target: {'results': {}} for target in targets}
 
@@ -109,4 +118,8 @@ class Wavelet(TimeSeriesAnalyzer):
       @ In, params, dict, trained parameters as from self.characterize
       @ Out, None
     """
-    pass
+    for target, info in params.items():
+      base = xmlUtils.newNode(target)
+      writeTo.append(base)
+      for name, value in info['results'].items():
+        base.append(xmlUtils.newNode(name, text=','.join(value)))
