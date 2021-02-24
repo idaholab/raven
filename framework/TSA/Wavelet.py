@@ -73,7 +73,12 @@ class Wavelet(TimeSeriesAnalyzer):
     """
     import pywt
     family = settings['family']
-    cA, cD = pywt.dwt(signal, family)
+    params = {target: {'results': {}} for target in targets}
+
+    for target in targets:
+      results = params[target]['results']
+      results['coeff_a'], results['coeff_d'] = pywt.dwt(signal, family)
+
 
 
   def generate(self, params, pivot, settings):
@@ -84,7 +89,15 @@ class Wavelet(TimeSeriesAnalyzer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, synthetic, np.array(float), synthetic ARMA signal
     """
-    pass
+    import pywt
+    synthetic = np.zeros((len(pivot), len(params)))
+    family = settings['family']
+    for t, (target, _) in enumerate(params.items()):
+      results = params[target]['results']
+      cA = results['coeff_a']
+      cD = results['coeff_d']
+      synthetic[:, t] = pywt.idwt(cA, cD, family)
+    return synthetic
 
 
   def writeXML(self, writeTo, params):
