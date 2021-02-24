@@ -32,12 +32,12 @@ find_crow(frameworkDir)
 
 from utils import xmlUtils, randomUtils
 
-from TSA import ARMA
+from TSA import Wavelet
 
 plot = False
 
 print('Module undergoing testing:')
-print(ARMA)
+print(Wavelet)
 print('')
 
 results = {"pass":0,"fail":0}
@@ -185,58 +185,59 @@ def checkFails(comment, errstr, function, update=True, args=None, kwargs=None):
 ######################################
 #            CONSTRUCTION            #
 ######################################
-def createARMAXML(targets, P, Q):
-  xml = xmlUtils.newNode('ARMA', attrib={'target':','.join(targets)})
-  xml.append(xmlUtils.newNode('SignalLag', text=f'{P}'))
-  xml.append(xmlUtils.newNode('NoiseLag', text=f'{Q}'))
+def createWaveletXML(targets, family):
+  xml = xmlUtils.newNode('Wavelet', attrib={'target':','.join(targets)})
+  xml.append(xmlUtils.newNode('family', text=family))
   return xml
 
 def createFromXML(xml):
-  arma = ARMA()
-  inputSpec = ARMA.getInputSpecification()()
+  wavelet = Wavelet.Wavelet()
+  inputSpec = wavelet.getInputSpecification()()
   inputSpec.parseNode(xml)
-  arma.handleInput(inputSpec)
-  return arma
+  wavelet.handleInput(inputSpec)
+  return wavelet
 
-def createARMA(targets, P, Q):
-  xml = createARMAXML(targets, P, Q)
-  arma = createFromXML(xml)
-  return arma
+def createWavelet(targets, family):
+  xml = createWaveletXML(targets, family)
+  wavelet = createFromXML(xml)
+  return wavelet
 
-def createARMASignal(slags, nlags, pivot, noise=None, intercept=0, plot=False):
-  if plot:
-    import matplotlib.pyplot as plt
-    fig, ax = plt.subplots()
-  signal = np.zeros(len(pivot)) + intercept
-  if noise is None:
-    noise = np.random.normal(loc=0, scale=1, size=len(pivot))
-  signal += noise
-  # moving average: random noise lag
-  for q, theta in enumerate(nlags):
-    signal[q+1:] += theta * noise[:-(q+1)]
-  # autoregressive: signal lag
-  for t, time in enumerate(pivot):
-    for p, phi in enumerate(slags):
-      if t > p:
-        signal[t] += phi * signal[t - p - 1]
-  if plot:
-    ax.plot(pivot, noise, 'k:')
-    ax.plot(pivot, signal, 'g.-')
-    plt.show()
-  return signal, noise
+##########################################
+# Discrete Wavelet Transform Simple Case #
+##########################################
+targets = ['A']
+pivot = np.linspace(0, 8, 8)
+N = len(pivot)
+true_a = [5.65685425,  7.39923721,  0.22414387,  3.33677403,  7.77817459]
+true_d = [-2.44948974, -1.60368225, -4.44140056, -0.41361256, 1.22474487]
+titles = ['Simple Wavelet Transform Approximation Coefficients',
+          'Simple Wavelet Transform Details Coefficients',]
 
+signal = [3, 7, 1, 1, -2, 5, 4, 6]
+signals = np.zeros((N, 1))
+signals[:, 0] = signal
 
-print(results)
+transform = createWavelet(targets, family='db2')
+settings = {'family': 'db2'}
+settings = transform.setDefaults(settings)
+params = transform.characterize(signals, pivot, targets, settings)
+check = params['A']['results']
+
+for real_a, pred_a in zip(true_a, check['coeff_a']):
+  checkFloat(titles[0], real_a, pred_a, tol=1e-8)
+
+for real_d, pred_d in zip(true_d, check['coeff_d']):
+  checkFloat(titles[1], real_d, pred_d, tol=1e-8)
 
 sys.exit(results["fail"])
 """
   <TestInfo>
-    <name>framework.unit_tests.TSA.Fourier</name>
-    <author>talbpaul</author>
-    <created>2021-01-05</created>
-    <classesTested>TSA.Fourier</classesTested>
+    <name>framework.unit_tests.TSA.Wavelet</name>
+    <author>dylanjm</author>
+    <created>2021-02-24</created>
+    <classesTested>TSA.Wavelet</classesTested>
     <description>
-       This test is a Unit Test for the Fourier TimeSeriesAnalyzer classes.
+       This test is a Unit Test for the Wavelet TimeSeriesAnalyzer classes.
     </description>
   </TestInfo>
 """

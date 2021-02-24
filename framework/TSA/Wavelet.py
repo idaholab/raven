@@ -75,9 +75,9 @@ class Wavelet(TimeSeriesAnalyzer):
     family = settings['family']
     params = {target: {'results': {}} for target in targets}
 
-    for target in targets:
+    for i, target in enumerate(targets):
       results = params[target]['results']
-      results['coeff_a'], results['coeff_d'] = pywt.dwt(signal, family)
+      results['coeff_a'], results['coeff_d'] = pywt.dwt(signal[:, i], family)
 
     return params
 
