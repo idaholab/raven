@@ -110,6 +110,6 @@
   [./NDEnsemble2Outs]
     type = 'RavenFramework'
     input = 'nd_ensemble_2outs.xml'
-    csv = 'nd1.csv nd2.csv ps.csv'
+    csv = 'NDEnsemble2Outs/nd1.csv NDEnsemble2Outs/nd2.csv NDEnsemble2Outs/ps.csv'
   [../]
 []
