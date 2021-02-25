@@ -129,6 +129,11 @@ randomUtils.randomSeed(12345,engine=eng) #next float would be 0.95071430641 if s
 checkAnswer('First float from second seed for engine not provided',randomUtils.random(engine=None),0.929616092817)
 checkAnswer('First float from second seed for local engine provided',randomUtils.random(engine=eng),0.929616092817)
 
+# long int seed set and retrieve
+engLong = randomUtils.newRNG()
+engLong.seed(3890346734)
+checkAnswer('Long int seed retrieval', engLong.get_rng_seed(), 3890346734)
+
 ### random(), sampling on [0,1]
 ## single sampling
 randomUtils.randomSeed(42,engine=None)
