@@ -56,7 +56,7 @@ Note all install methods after "main" take
     <ray os="mac,linux" source="pip">1.0</ray>
     <pillow optional='True'>6.0</pillow>
     <line_profiler optional='True'/>
-    <pywavelets optional='True'>1.1</pywavelets>
+    <pywavelets>1.1</pywavelets>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
