@@ -106,4 +106,10 @@
    input = 'test_em_reuse.xml'
    UnorderedCsv = 'checkReusability/printData.csv'
  [../]
+
+  [./NDEnsemble2Outs]
+    type = 'RavenFramework'
+    input = 'nd_ensemble_2outs.xml'
+    csv = 'nd1.csv nd2.csv ps.csv'
+  [../]
 []
