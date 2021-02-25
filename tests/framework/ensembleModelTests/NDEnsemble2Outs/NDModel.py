@@ -20,8 +20,8 @@ def run(raven, info):
     @ In, info, dict, dictionary containing inputs from RAVEN
     @ Out, None
   """
-  x = np.linspace(0,1,11)
-  y = np.linspace(0,1,11)
+  x = np.linspace(0,1,3)
+  y = np.linspace(0,1,3)
   c = np.zeros((len(x), len(y)))
   c += x * raven.a
   c = c.T

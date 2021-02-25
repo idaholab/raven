@@ -20,4 +20,4 @@ def run(raven, info):
     @ In, info, dict, dictionary containing inputs from RAVEN
     @ Out, None
   """
-  raven.d = raven.c.sum()
+  raven.d = raven.c.mean()
