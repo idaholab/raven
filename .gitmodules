@@ -15,4 +15,4 @@
 	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SRAW.git
 [submodule "plugins/FARM"]
 	path = plugins/FARM
-	url = https://github.com/Argonne-National-Laboratory/FARM.git
+	url = git@github.com:Argonne-National-Laboratory/FARM.git
