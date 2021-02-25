@@ -30,6 +30,10 @@
 
   <DataObjects>
     <PointSet name="placeholder"/>
+    <PointSet name="ps">
+      <Input>a, b</Input>
+      <Output>d</Output>
+    </PointSet>
     <DataSet name="nd_eval">
       <Input>a, b</Input>
       <Output>c</Output>
@@ -52,10 +56,6 @@
       <Index var="x">c</Index>
       <Index var="y">c</Index>
     </DataSet>
-    <PointSet name="ps">
-      <Input>a, b</Input>
-      <Output>d</Output>
-    </PointSet>
   </DataObjects>
 
   <Models>
