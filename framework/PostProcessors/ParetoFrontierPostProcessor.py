@@ -25,6 +25,7 @@ import numpy as np
 from .PostProcessor import PostProcessor
 from utils import utils
 from utils import InputData, InputTypes
+from utils import frontUtils
 import Runners
 #Internal Modules End-----------------------------------------------------------
 
@@ -55,7 +56,14 @@ class ParetoFrontier(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(ParetoFrontier, cls).getInputSpecification()
+    
+    objective = InputData.parameterInputFactory('objective', contentType=InputTypes.StringType)
+    objective.addParam('goal',       param_type=InputTypes.StringType, required=True)
+    objective.addParam('upperLimit', param_type=InputTypes.StringType, required=False)
+    objective.addParam('lowerLimit', param_type=InputTypes.StringType, required=False)
+    inputSpecification.addSub(objective)
 
+    '''
     costIDInput = InputData.parameterInputFactory("costID", contentType=InputTypes.StringType)
     costIDInput.addParam("inv", InputTypes.BoolType, True)
     inputSpecification.addSub(costIDInput)
@@ -71,6 +79,7 @@ class ParetoFrontier(PostProcessor):
     valueLimitInput = InputData.parameterInputFactory("valueLimit", contentType=InputTypes.FloatType)
     valueLimitInput.addParam("type", InputTypes.StringType, True)
     inputSpecification.addSub(valueLimitInput)
+    '''
 
     return inputSpecification
 
@@ -80,6 +89,22 @@ class ParetoFrontier(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
+    self.objectives = {}
+
+    for child in paramInput.subparts:
+      if child.getName() == 'objective':
+        self.objectives[child.value]={}
+        if child.parameterValues['goal'] in ['min','max']:
+          self.objectives[child.value]['goal'] = child.parameterValues['goal']
+        else:
+          self.raiseAnError(IOError, 'ParetoFrontier postprocessor {}: the objective {} expects a min/max goal, but received {} inputs!".'
+                                  .format(self.name,child.value,child.parameterValues['goal']))
+        if child.parameterValues['upperLimit'] is not None:
+          self.objectives[child.value]['upperLimit'] = child.parameterValues['upperLimit']
+        if child.parameterValues['lowerLimit'] is not None:
+          self.objectives[child.value]['lowerLimit'] = child.parameterValues['lowerLimit']
+        
+    '''
     costID  = paramInput.findFirst('costID')
     self.costID  = costID.value
     self.invCost = costID.parameterValues['inv']
@@ -97,7 +122,7 @@ class ParetoFrontier(PostProcessor):
     if valueLimit is not None:
       self.valueLimit = valueLimit.value
       self.valueLimitType = valueLimit.parameterValues['type']
-
+    '''
 
   def inputToInternal(self, currentInp):
     """
@@ -124,12 +149,22 @@ class ParetoFrontier(PostProcessor):
     """
     inData = self.inputToInternal(inputIn)
     data = inData.asDataset()
-
+    
+    for obj in self.objectives.keys():
+      if self.objectives[obj]['goal']=='max':
+        data[obj] = (-1.) * data[obj]
+        
+    '''
     if self.invCost:
       data[self.costID] = (-1.) * data[self.costID]
     if self.invValue:
       data[self.valueID] = (-1.) * data[self.valueID]
-
+    '''
+    
+    paretoFrontMask = frontUtils.nonDominatedFrontier(data, returnMask=True)
+    selection = data[np.array(paretoFrontMask)]
+    
+    '''
     sortedData = data.sortby(self.costID)
     coordinates = np.zeros(1,dtype=int)
     for index,elem in enumerate(sortedData[self.costID].values):
@@ -138,12 +173,20 @@ class ParetoFrontier(PostProcessor):
         coordinates = np.append(coordinates,index)
 
     selection = sortedData.isel(RAVEN_sample_ID=coordinates)
-
+    '''
+    
+    for obj in self.objectives.keys():
+      if self.objectives[obj]['goal']=='max':
+        selection[obj] = (-1.) * selection[obj]
+        
+    '''    
     if self.invCost:
       selection[self.costID] = (-1.) * selection[self.costID]
     if self.invValue:
       selection[self.valueID] = (-1.) * selection[self.valueID]
-
+    '''
+    
+    '''
     if self.valueLimit is not None:
       if self.valueLimitType=="upper":
         selection = selection.where(selection[self.valueID]<=self.valueLimit)
@@ -154,6 +197,7 @@ class ParetoFrontier(PostProcessor):
         selection = selection.where(selection[self.costID]<=self.costLimit)
       else:
         selection = selection.where(selection[self.costID]>=self.costLimit)
+    '''
 
     filteredParetoFrontier = selection.to_array().values
     paretoFrontierData = np.transpose(filteredParetoFrontier)
