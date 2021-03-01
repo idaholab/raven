@@ -10,5 +10,6 @@
   [./Wavelet]
     type = 'RavenPython'
     input = 'testWavelet.py'
+    required_libraries = 'pywavelets'
   [../]
 []
