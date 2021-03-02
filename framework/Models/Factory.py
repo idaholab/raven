@@ -14,10 +14,6 @@
 """
 Factory for generating the instances of the  Models Module
 """
-#for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
-
 from utils import utils
 
 from .Model         import Model
@@ -30,12 +26,55 @@ from .PostProcessor import PostProcessor
 from .HybridModels  import HybridModel
 from .HybridModels  import LogicalModel
 
+#### PostProcessors
+from .PostProcessorBase import PostProcessorBase
+from .Metric import Metric
+from .ETImporter import ETImporter
+from .DataMining import DataMining
+from .SafestPoint import SafestPoint
+from .LimitSurface import LimitSurface
+from .ValueDuration import ValueDuration
+from .SampleSelector import SampleSelector
+from .ImportanceRank import ImportanceRank
+from .CrossValidation import CrossValidation
+from .BasicStatistics import BasicStatistics
+from .LimitSurfaceIntegral import LimitSurfaceIntegral
+from .FastFourierTransform import FastFourierTransform
+from .ExternalPostProcessor import ExternalPostProcessor
+from .InterfacedPostProcessor import InterfacedPostProcessor
+from .TopologicalDecomposition import TopologicalDecomposition
+from .FTImporter import FTImporter
+from .DataClassifier import DataClassifier
+from .ComparisonStatisticsModule import ComparisonStatistics
+from .RealizationAverager import RealizationAverager
+from .ParetoFrontierPostProcessor import ParetoFrontier
+from .MCSimporter import MCSImporter
+from .EconomicRatio import EconomicRatio
+# from .RavenOutput import RavenOutput # deprecated for now
+
+## These utilize the optional prequisite library PySide, so don't error if they
+## do not import appropriately.
+try:
+  from .TopologicalDecomposition import QTopologicalDecomposition
+  from .DataMining import QDataMining
+except ImportError:
+  pass
+
 __base = 'Model'
 __interFaceDict = {}
 
 for classObj in utils.getAllSubclasses(eval(__base)):
   key = classObj.__name__
   __interFaceDict[key] = classObj
+
+## Adding aliases for certain classes that are exposed to the user.
+__interFaceDict['External'] = ExternalPostProcessor
+try:
+  __interFaceDict['TopologicalDecomposition' ] = QTopologicalDecomposition
+  __interFaceDict['DataMining'               ] = QDataMining
+except NameError:
+  ## The correct names should already be used for these classes otherwise
+  pass
 
 #here the class methods are called to fill the information about the usage of the classes
 for classType in __interFaceDict.values():
