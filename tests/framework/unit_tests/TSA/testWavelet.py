@@ -186,11 +186,24 @@ def checkFails(comment, errstr, function, update=True, args=None, kwargs=None):
 #            CONSTRUCTION            #
 ######################################
 def createWaveletXML(targets, family):
+  """
+    Return Wavelet XML node for RAVEN input.
+
+    @ In, targets, list[str], list of strings describing targets for current RAVEN run.
+    @ In, family, str, the family of wavelet to use.
+    @ Out, xml, xml.etree.ElementTree.Element, new node
+  """
   xml = xmlUtils.newNode('Wavelet', attrib={'target':','.join(targets)})
   xml.append(xmlUtils.newNode('family', text=family))
   return xml
 
 def createFromXML(xml):
+  """
+    Return Wavelet TSA object.
+
+    @ In, xml, xml.etree.ElementTree.Element, RAVEN input xml.
+    @ Out, wavelet, TSA.Wavelet, Wavelet object.
+  """
   wavelet = Wavelet.Wavelet()
   inputSpec = wavelet.getInputSpecification()()
   inputSpec.parseNode(xml)
@@ -198,6 +211,13 @@ def createFromXML(xml):
   return wavelet
 
 def createWavelet(targets, family):
+  """
+    Return regression object.
+
+    @ In, targets, list[str], list of string describing targets.
+    @ In, degree, int, the degree of polynomial to fit.
+    @ Out, wavelet, TSA.Wavelet, Wavelet object.
+  """
   xml = createWaveletXML(targets, family)
   wavelet = createFromXML(xml)
   return wavelet
