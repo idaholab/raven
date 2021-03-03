@@ -171,7 +171,8 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
       @ Out, None
     """
     self.converged = False
-    self.basicStatPP = BasicStatistics(self.messageHandler) # TODO should use factory!
+    self.basicStatPP = BasicStatistics({}) # TODO should use factory!
+    self.basicStatPP.messageHandler = self.messageHandler
     # check if solutionExport is actually a "DataObjects" type "PointSet"
     if self._solutionExport.type != "PointSet":
       self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ self._solutionExport.type +'!')
