@@ -85,13 +85,13 @@ class TopologicalDecomposition(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
     self.acceptedPersistenceParam = ['difference','probability','count']#,'area']
@@ -144,6 +144,7 @@ class TopologicalDecomposition(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     for child in paramInput.subparts:
       if child.getName() == "graph":
         self.graph = child.value.lower()
@@ -353,7 +354,10 @@ except ImportError as e:
     __QtAvailable = False
 
 if __QtAvailable:
-  class QTopologicalDecomposition(TopologicalDecomposition,qtc.QObject):
+  class mQTopologicalDecomposition(type(TopologicalDecomposition), type(qtc.QObject)):
+    pass
+
+  class QTopologicalDecomposition(TopologicalDecomposition, qtc.QObject, metaclass=mQTopologicalDecomposition):
     """
       TopologicalDecomposition class - Computes an approximated hierarchical
       Morse-Smale decomposition from an input point cloud consisting of an
@@ -373,14 +377,14 @@ if __QtAvailable:
       inputSpecification.addSub(InputData.parameterInputFactory("interactive"))
       return inputSpecification
 
-    def __init__(self, messageHandler):
+    def __init__(self, runInfoDict):
       """
        Constructor
        @ In, messageHandler, message handler object
        @ Out, None
       """
 
-      TopologicalDecomposition.__init__(self, messageHandler)
+      TopologicalDecomposition.__init__(self, runInfoDict)
       qtc.QObject.__init__(self)
 
       self.interactive = False

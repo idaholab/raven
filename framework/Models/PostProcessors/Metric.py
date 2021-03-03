@@ -72,13 +72,13 @@ class Metric(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.printTag = 'POSTPROCESSOR Metrics'
     self.dynamic        = False # is it time-dependent?
     self.features       = None  # list of feature variables
@@ -217,6 +217,7 @@ class Metric(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'Metric':
         if 'type' not in child.parameterValues.keys() or 'class' not in child.parameterValues.keys():

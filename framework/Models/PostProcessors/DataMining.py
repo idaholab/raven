@@ -166,13 +166,13 @@ class DataMining(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.printTag = 'POSTPROCESSOR DATAMINING'
 
     self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_one)
@@ -398,6 +398,7 @@ class DataMining(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     ## By default, we want to name the 'labels' by the name of this
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
@@ -902,7 +903,10 @@ except ImportError as e:
     __QtAvailable = False
 
 if __QtAvailable:
-  class QDataMining(DataMining,qtc.QObject):
+  class mQDataMining(type(DataMining), type(qtc.QObject)):
+    pass
+
+  class QDataMining(DataMining, qtc.QObject, metaclass=mQDataMining):
     """
       DataMining class - Computes a hierarchical clustering from an input point
       cloud consisting of an arbitrary number of input parameters
@@ -920,13 +924,13 @@ if __QtAvailable:
       inputSpecification = super(QDataMining, cls).getInputSpecification()
       return inputSpecification
 
-    def __init__(self, messageHandler):
+    def __init__(self, runInfoDict):
       """
        Constructor
        @ In, messageHandler, message handler object
        @ Out, None
       """
-      DataMining.__init__(self, messageHandler)
+      DataMining.__init__(self, runInfoDict)
       qtc.QObject.__init__(self)
       self.interactive = False
 

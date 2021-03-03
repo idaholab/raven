@@ -39,13 +39,13 @@ class MCSImporter(PostProcessor):
   """
     This is the base class of the PostProcessor that imports Minimal Cut Sets (MCSs) into RAVEN as a PointSet
   """
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.printTag  = 'POSTPROCESSOR MCS IMPORTER'
     self.expand    = None  # option that controls the structure of the ET. If True, the tree is expanded so that
                            # all possible sequences are generated. Sequence label is maintained according to the
@@ -80,7 +80,7 @@ class MCSImporter(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
+    PostProcessor._handleInput(self, paramInput)
     expand = paramInput.findFirst('expand')
     self.expand = expand.value
 

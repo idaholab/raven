@@ -53,13 +53,13 @@ class ValueDuration(PostProcessor):
                                                   contentType=InputTypes.IntegerType))
     return inSpec
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.dynamic = True # from base class, indicates time-dependence is handled internally
     self.numBins = None # integer number of bins to use in creating the duration curve. TODO default?
     self.targets = None # list of strings, variables to apply postprocessor to
@@ -70,6 +70,7 @@ class ValueDuration(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     for child in paramInput.subparts:
       tag = child.getName()
       if tag == 'target':
@@ -138,4 +139,3 @@ class ValueDuration(PostProcessor):
     realizations = evaluation[1]
     for rlz in realizations:
       output.addRealization(rlz)
-

@@ -18,6 +18,7 @@ Module where the base class and the specialization of different type of Model ar
 #External Modules------------------------------------------------------------------------------------
 import os
 import abc
+import copy
 import inspect
 import importlib
 #External Modules End--------------------------------------------------------------------------------
@@ -44,6 +45,15 @@ class PostProcessor(Model):
     """
     inputSpecification = super(PostProcessor, cls).getInputSpecification()
     return inputSpecification
+
+  @classmethod
+  def generateValidateDict(cls):
+    """
+      This method generate a independent copy of validateDict for the calling class
+      @ In, None
+      @ Out, None
+    """
+    super(PostProcessor, cls).generateValidateDict()
 
   @classmethod
   def specializeValidateDict(cls):
