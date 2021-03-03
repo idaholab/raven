@@ -119,19 +119,19 @@ class BasicStatistics(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.acceptedCalcParam = self.scalarVals + self.vectorVals
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
     self.methodsToRun = []  # if a function is present, its outcome name is here stored... if it matches one of the known outcomes, the pp is going to use the function to compute it
     self.externalFunction = []
-    self.printTag = 'POSTPROCESSOR BASIC STATISTIC'
+    self.printTag = 'PostProcessor BASIC STATISTIC'
     self.addAssemblerObject('Function', InputData.Quantity.zero_to_one)
     self.biased = False # biased statistics?
     self.pivotParameter = None # time-dependent statistics pivot parameter

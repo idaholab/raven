@@ -29,7 +29,7 @@ import sys
 
 #External Modules End--------------------------------------------------------------------------------
 
-from PostProcessors import BasicStatistics
+from Models.PostProcessors.BasicStatistics import BasicStatistics
 from .AdaptiveSampler import AdaptiveSampler
 from .MonteCarlo import MonteCarlo
 import Distributions

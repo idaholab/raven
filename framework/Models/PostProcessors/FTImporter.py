@@ -16,9 +16,6 @@ Created on Dec 21, 2017
 
 @author: mandd
 """
-
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 import xml.etree.ElementTree as ET
@@ -40,17 +37,6 @@ class FTImporter(PostProcessor):
   """
     This is the base class of the postprocessor that imports Fault-Trees (FTs) into RAVEN as a PointSet
   """
-  def __init__(self, messageHandler):
-    """
-      Constructor
-      @ In, messageHandler, MessageHandler, message handler object
-      @ Out, None
-    """
-    PostProcessor.__init__(self, messageHandler)
-    self.printTag = 'POSTPROCESSOR FT IMPORTER'
-    self.FTFormat = None # chosen format of the FT file
-    self.topEventID = None
-
   @classmethod
   def getInputSpecification(cls):
     """
@@ -65,6 +51,17 @@ class FTImporter(PostProcessor):
     inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=fileAllowedFormats))
     inputSpecification.addSub(InputData.parameterInputFactory("topEventID", contentType=InputTypes.StringType))
     return inputSpecification
+
+  def __init__(self, runInfoDict):
+    """
+      Constructor
+      @ In, messageHandler, MessageHandler, message handler object
+      @ Out, None
+    """
+    PostProcessor.__init__(self, runInfoDict)
+    self.printTag = 'POSTPROCESSOR FT IMPORTER'
+    self.FTFormat = None # chosen format of the FT file
+    self.topEventID = None
 
   def initialize(self, runInfo, inputs, initDict) :
     """
@@ -82,6 +79,7 @@ class FTImporter(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     fileFormat = paramInput.findFirst('fileFormat')
     self.fileFormat = fileFormat.value
     topEventID = paramInput.findFirst('topEventID')
@@ -95,7 +93,6 @@ class FTImporter(PostProcessor):
     """
     faultTreeModel = FTStructure(inputs, self.topEventID)
     return faultTreeModel.returnDict()
-
 
   def collectOutput(self, finishedJob, output):
     """

@@ -453,7 +453,10 @@ class Simulation(MessageHandler.MessageUser):
               #if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
               if name not in self.whichDict[Class]:
                 if "needsRunInfo" in self.addWhatDict[Class].__dict__:
-                  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
+                  if childChild.tag == 'PostProcessor':
+                    self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.attrib['subType'],self.runInfoDict,self)
+                  else:
+                    self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
                 else:
                   self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
               else:
