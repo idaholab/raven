@@ -1539,10 +1539,10 @@ class ROM(Dummy):
       # reset the ROM before perform cross validation
       cvMetrics = {}
       self.reset()
-      outputMetrics = self.cvInstance.interface.run([self, trainingSet])
+      outputMetrics = self.cvInstance.run([self, trainingSet])
       exploredTargets = []
       for cvKey, metricValues in outputMetrics.items():
-        info = self.cvInstance.interface._returnCharacteristicsOfCvGivenOutputName(cvKey)
+        info = self.cvInstance._returnCharacteristicsOfCvGivenOutputName(cvKey)
         if info['targetName'] in exploredTargets:
           self.raiseAnError(IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name, "' for ROM '", rom.name,  "'!")
         exploredTargets.append(info['targetName'])
@@ -1556,7 +1556,7 @@ class ROM(Dummy):
       @ Out, None
     """
     useCV = True
-    initDict =  self.cvInstance.interface.initializationOptionDict
+    initDict =  self.cvInstance.initializationOptionDict
     if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
       if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
         useCV = False
