@@ -34,7 +34,7 @@ import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from Models.PostProcessors import LimitSurface
+from Models.PostProcessors.LimitSurface import LimitSurface
 from .AdaptiveSampler import AdaptiveSampler
 import Distributions
 from AMSC_Object import AMSC_Object

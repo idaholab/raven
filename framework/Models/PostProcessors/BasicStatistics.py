@@ -145,6 +145,7 @@ class BasicStatistics(PostProcessor):
     self.multipleFeatures = True # True if multiple features are employed in linear regression as feature inputs
     self.sampleSize     = None # number of sample size
     self.calculations   = {}
+
   def inputToInternal(self, currentInp):
     """
       Method to convert an input object into the internal format that is

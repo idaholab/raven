@@ -100,7 +100,7 @@ class LimitSurfaceIntegral(PostProcessor):
     self.functionS = None # evaluation classifier for the integration
     self.errorModel = None # classifier used for the error estimation
     self.computationPrefix = None # output prefix for the storage of the probability and, if requested, bounding error
-    self.stat = BasicStatistics(self.messageHandler)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
+    self.stat = BasicStatistics(runInfoDict)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue'] # expected value calculation
     self.addAssemblerObject('distribution', InputData.Quantity.zero_to_infinity) # distributions are optional
     self.printTag = 'POSTPROCESSOR INTEGRAL' # print tag
@@ -176,6 +176,7 @@ class LimitSurfaceIntegral(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+    self.stat.messageHandler = self.messageHandler
     self.inputToInternal(inputs)
     if self.integralType in ['montecarlo']:
       self.stat.toDo = {'expectedValue':[{'targets':set([self.target]), 'prefix':self.computationPrefix}]}
