@@ -187,6 +187,7 @@ class DataMining(PostProcessor):
     self.PreProcessor = None    ## Instance of PreProcessor, default is None
     self.metric = None          ## Instance of Metric, default is None
     self.pivotParameter = None  ## default pivotParameter for HistorySet
+    self._type = None           ## the type of library that are used for data mining, i.e. SciKitLearn
 
   def _localWhatDoINeed(self):
     """
@@ -413,7 +414,7 @@ class DataMining(PostProcessor):
           self.initializationOptionDict[child.getName()] = {}
           for key,value in child.parameterValues.items():
             if key == 'lib':
-              self.type = value
+              self._type = value
             elif key == 'labelFeature':
               self.labelFeature = value
             else:
@@ -431,13 +432,13 @@ class DataMining(PostProcessor):
       #TODO, if doing time dependent data mining that needs this, an error
       # should be thrown
       self.pivotParameter = None
-    if self.type:
+    if self._type:
       #TODO unSurpervisedEngine needs to be able to handle both methods
       # without this if statement.
       if self.pivotParameter is not None:
         self.unSupervisedEngine = unSupervisedLearning.returnInstance("temporalSciKitLearn", self, **self.initializationOptionDict['KDD'])
       else:
-        self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance(self._type, self, **self.initializationOptionDict['KDD'])
     else:
       self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
     ## If the user has not defined a label feature, then we will force it to be
