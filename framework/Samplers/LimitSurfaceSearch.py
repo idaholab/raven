@@ -365,6 +365,7 @@ class LimitSurfaceSearch(AdaptiveSampler):
     """
     self.converged        = False
     self.limitSurfacePP   = LimitSurface({})
+    self.limitSurfacePP.messageHandler = self.messageHandler
     if 'Function' in self.assemblerDict.keys():
       self.goalFunction = self.assemblerDict['Function'][0][3]
     # if 'TargetEvaluation' in self.assemblerDict.keys():
