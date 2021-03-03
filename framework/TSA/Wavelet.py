@@ -34,9 +34,9 @@ class Wavelet(TimeSeriesAnalyzer):
     """
     try:
       import pywt
-    except ModuleNotFoundError as e:
-      print(e)
+    except ModuleNotFoundError:
       print("This RAVEN TSA Module requires the PYWAVELETS library to be installed in the current python environment")
+      raise ModuleNotFoundError
     specs = super(Wavelet, cls).getInputSpecification()
     specs.name = 'Wavelet'
     specs.descriiption = """TimeSeriesAnalysis algorithm """
