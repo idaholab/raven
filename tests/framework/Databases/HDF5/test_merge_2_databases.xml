@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Databases.test_merge_2_databases</name>
+    <name>framework/Databases/HDF5.test_merge_2_databases</name>
     <author>alfoa</author>
     <created>2015-03-03</created>
     <classesTested>Databases.HDF5</classesTested>

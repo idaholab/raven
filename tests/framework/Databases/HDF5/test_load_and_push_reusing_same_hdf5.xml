@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Databases.load_and_push_reusing_same_hdf5</name>
+    <name>framework/Databases/HDF5.load_and_push_reusing_same_hdf5</name>
     <author>alfoa</author>
     <created>2016-12-12</created>
     <classesTested>Databases.HDF5</classesTested>
@@ -142,7 +142,7 @@
         <type>csv</type>
         <source>reloadedPointSet</source>
     </Print>
-    
+
   </OutStreams>
 
   <DataObjects>
