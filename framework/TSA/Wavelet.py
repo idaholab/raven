@@ -32,7 +32,11 @@ class Wavelet(TimeSeriesAnalyzer):
       Method to get a reference to a class that specifies the input data for class cls.
       @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
-    import pywt
+    try:
+      import pywt
+    except ModuleNotFoundError as e:
+      print(e)
+      print("This RAVEN TSA Module requires the PYWAVELETS library to be installed in the current python environment")
     specs = super(Wavelet, cls).getInputSpecification()
     specs.name = 'Wavelet'
     specs.descriiption = """TimeSeriesAnalysis algorithm """
