@@ -53,7 +53,7 @@
     [./xml]
       type = XML
       output = 'Wavelet/romMeta.xml'
-      rel_err = 1e-2
+      rel_err = 1e-6
     [../]
   [../]
 []
