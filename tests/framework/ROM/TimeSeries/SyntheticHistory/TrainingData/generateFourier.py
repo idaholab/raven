@@ -38,4 +38,4 @@ out = np.zeros((len(seconds), 3))
 out[:, 0] = seconds
 out[:, 1] = signal0
 out[:, 2] = signal1
-toFile(out, 'FourierA', targets=['signal1', 'signal2'], pivotName='seconds')
+toFile(out, 'Wavelet_A', targets=['signal1', 'signal2'], pivotName='seconds')

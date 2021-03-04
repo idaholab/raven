@@ -32,14 +32,9 @@ class Wavelet(TimeSeriesAnalyzer):
       Method to get a reference to a class that specifies the input data for class cls.
       @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
-    try:
-      import pywt
-    except ModuleNotFoundError:
-      print("This RAVEN TSA Module requires the PYWAVELETS library to be installed in the current python environment")
-      raise ModuleNotFoundError
     specs = super(Wavelet, cls).getInputSpecification()
-    specs.name = 'Wavelet'
-    specs.descriiption = """TimeSeriesAnalysis algorithm """
+    specs.name = 'wavelet'
+    specs.descriiption = """Discrete Wavelet TimeSeriesAnalysis algorithm."""
     specs.addSub(InputData.parameterInputFactory(
       'family',
       contentType=InputTypes.StringType,
@@ -92,6 +87,7 @@ class Wavelet(TimeSeriesAnalyzer):
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = TimeSeriesAnalyzer.handleInput(self, spec)
+    settings['family'] = spec.findFirst('family').value
     return settings
 
 
@@ -107,7 +103,12 @@ class Wavelet(TimeSeriesAnalyzer):
       @ Out, params, dict, characteristic parameters
     """
     # TODO extend to continuous wavelet transform
-    import pywt
+    try:
+      import pywt
+    except ModuleNotFoundError:
+      print("This RAVEN TSA Module requires the PYWAVELETS library to be installed in the current python environment")
+      raise ModuleNotFoundError
+
 
     ## The pivot input parameter isn't used explicity in the
     ## transformation as it assumed/required that each element in the
@@ -132,7 +133,12 @@ class Wavelet(TimeSeriesAnalyzer):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, synthetic, np.array(float), synthetic ARMA signal
     """
-    import pywt
+    try:
+      import pywt
+    except ModuleNotFoundError:
+      print("This RAVEN TSA Module requires the PYWAVELETS library to be installed in the current python environment")
+      raise ModuleNotFoundError
+
     synthetic = np.zeros((len(pivot), len(params)))
     family = settings['family']
     for t, (target, _) in enumerate(params.items()):
@@ -154,4 +160,4 @@ class Wavelet(TimeSeriesAnalyzer):
       base = xmlUtils.newNode(target)
       writeTo.append(base)
       for name, value in info['results'].items():
-        base.append(xmlUtils.newNode(name, text=','.join(value)))
+        base.append(xmlUtils.newNode(name, text=','.join([str(v) for v in value])))
