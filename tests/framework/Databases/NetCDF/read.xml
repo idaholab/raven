@@ -55,9 +55,9 @@
   </DataObjects>
 
   <Databases>
-    <NetCDF name="0d" directory="../Write/DatabaseStorage" readMode="overwrite"/>
-    <NetCDF name="1d" directory="../Write/DatabaseStorage" readMode="overwrite"/>
-    <NetCDF name="nd" directory="../Write/DatabaseStorage" readMode="overwrite"/>
+    <NetCDF name="0d" directory="../Write/DatabaseStorage" readMode="read"/>
+    <NetCDF name="1d" directory="../Write/DatabaseStorage" readMode="read"/>
+    <NetCDF name="nd" directory="../Write/DatabaseStorage" readMode="read"/>
   </Databases>
 
   <OutStreams>

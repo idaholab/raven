@@ -70,8 +70,9 @@ check for output.
       the file \texttt{path/to/file1} to the file \texttt{gold/path/to/file1}.
   \item[gold\_files] Gold filenames, if different from the default. These are 1 to 1 mappings with the
       \texttt{output} files listed above, and use the same relative pathing. Using the example under
-      [output] above, including \texttt{gold\_files = 'path/to/file2'} would compare the file
-      \texttt{path/to/file1} to the file \texttt{gold/path/to/file2}.
+      \textbf{output} above, including \texttt{gold\_files = 'gold/path/to/file2'} would compare the file
+      \texttt{path/to/file1} to the file \texttt{gold/path/to/file2}. \nb Unlike the default,
+      \texttt{gold} is not automatically added to the \textttt{gold\_files} path.
 \end{description}
 
 \subsection{Exists}

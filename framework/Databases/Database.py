@@ -75,12 +75,6 @@ class DateBase(BaseType):
     self.variables = None               # if not None, list of specific variables requested to be stored by user
     self._extension = '.db'             # filetype extension to use, if no filename given
 
-  def _readMoreXML(self, xml):
-    """
-      Read XML into input params
-
-    """
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the database parameter input.
@@ -103,8 +97,8 @@ class DateBase(BaseType):
     if varNode is not None:
       self.variables =  varNode.value
     # read mode
-    self.readMode = paramInput.parameterValues['readMode'].strip().lower()
-    self.raiseADebug(f'{self.type} Read Mode is "'+self.readMode+'".')
+    self.readMode = paramInput.parameterValues['readMode']
+    self.raiseADebug(f'{self.type} "{self.name}" Read Mode is "{self.readMode}".')
     if self.readMode == 'overwrite':
       # check if self.databaseDir exists or create in case not
       if not os.path.isdir(self.databaseDir):
@@ -141,7 +135,11 @@ class DateBase(BaseType):
       @ In, None
       @ Out, None
     """
-    pass
+    # if in overwrite mode, remove existing database
+    if self.readMode == 'overwrite':
+      path = self.get_fullpath()
+      if os.path.exists(path):
+        os.remove(path)
 
   def get_fullpath(self):
     """
@@ -174,7 +172,6 @@ class DateBase(BaseType):
       Adds a "row" (or "sample") to this database.
       This is the method to add data to this database.
       Note that rlz can include many more variables than this database actually wants.
-      Before actually adding the realization, data is formatted for this data object.
       @ In, rlz, dict, {var:val} format where
                          "var" is the variable name as a string,
                          "val" is either a float or a np.ndarray of values.

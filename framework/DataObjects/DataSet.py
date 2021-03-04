@@ -674,6 +674,32 @@ class DataSet(DataObject):
     self._alignedIndexes = {}
     self._scaleFactors = {}
 
+  def setData(self, data, meta):
+    """
+      Directly set the data for this data object, such as from an on-file database.
+      @ In, data, xr.Dataset, structured data set including the sampleID with realizations
+      @ In, meta, dict, dictionary of xmlUtils.StaticXmlElement elements with meta information
+      @ Out, None
+    """
+    assert isinstance(data, xr.Dataset)
+    self._collector = None
+    self._data = data
+    self._meta = meta
+    if 'DataSet' in meta:
+      pointwiseMeta = meta['DataSet'].getRoot().find('general/pointwise_meta').text.split(',')
+      if pointwiseMeta:
+        self.addExpectedMeta(pointwiseMeta, overwrite=True)
+
+  def getData(self):
+    """
+      Acquire the data for this dataset, as might go into an on-file database.
+      @ In, None
+      @ Out, data, xr.Dataset, sample data
+      @ Out, meta, dict, dictionary of xmlUtils.StaticXmlElement elements with meta information
+    """
+    self.asDataset()
+    return self._data, self._meta
+
   def sliceByIndex(self,index):
     """
       Returns list of realizations at "snapshots" along dimension "index".
@@ -1471,28 +1497,6 @@ class DataSet(DataObject):
     # collapse into xr.Dataset
     self.asDataset()
 
-  def _fromNetCDF(self,fileName, **kwargs):
-    """
-      Reads this data object from file that is netCDF.  If not netCDF4, this could be slow.
-      Loads data lazily; it won't be pulled into memory until operations are attempted on the specific data
-      @ In, fileName, str, path/name to read file
-      @ In, kwargs, dict, optional, keywords to pass to netCDF4 reading
-                                    See http://xarray.pydata.org/en/stable/io.html#netcdf for options
-      @ Out, None
-    """
-    # NOTE: DO NOT use open_dataset unless you wrap it in a "with xr.open_dataset(f) as ds"!
-    # -> open_dataset does NOT close the file object after loading!
-    # -> however, load_dataset fully loads the ds into memory and closes the file.
-    self._data = xr.load_dataset(fileName)
-    # convert metadata back to XML files
-    for key, val in self._data.attrs.items():
-      self._meta[key] = xmlUtils.staticFromString(val)
-    # re-add meta vars
-    if 'DataSet' in self._meta:
-      pointwiseMeta = self._meta['DataSet'].getRoot().find('general/pointwise_meta').text.split(',')
-      if pointwiseMeta:
-        self.addExpectedMeta(pointwiseMeta, overwrite=True)
-
   def _fromXarrayDataset(self,dataset):
     """
     """
@@ -2020,32 +2024,6 @@ class DataSet(DataObject):
         xml = xmlUtils.prettify(target.getRoot(),startingTabs=1,addRavenNewlines=False)
         ofile.writelines('  {}\n'.format(xml))
       ofile.writelines('</DataObjectMetadata>\n')
-
-  def _toNetCDF(self, fileName, **kwargs):
-    """
-      Writes this data object to file in netCDF4.
-      @ In, fileName, str, path/name to write file
-      @ In, kwargs, dict, optional, keywords to pass to netCDF4 writing
-                                    One good option is format='NETCDF4' to assure netCDF4 is used
-                                    See http://xarray.pydata.org/en/stable/io.html#netcdf for options
-      @ Out, None
-    """
-    # TODO set up to use dask for on-disk operations -> or is that a different data object?
-    # convert metadata into writeable
-    for key, xml in self._meta.items():
-      self._data.attrs[key] = xmlUtils.prettify(xml.getRoot())
-    # get rid of "object" types
-    for var in self._data:
-      if self._data[var].dtype == np.dtype(object):
-        # is it a string?
-        if mathUtils.isAString(self._data[var].values[0]):
-          self._data[var] = self._data[var].astype(str)
-    # if this is open somewhere else, we can't write to it
-    # TODO is there a way to check if it's writable? I can't find one ...
-    try:
-      self._data.to_netcdf(fileName, **kwargs)
-    except PermissionError:
-      self.raiseAnError(PermissionError, f'NetCDF file "{fileName}" denied RAVEN permission to write! Is it open in another program?')
 
   def _usePandasWriteCSV(self,fileName,data,ordered,keepSampleTag=False,keepIndex=False,mode='w'):
     """

@@ -1,10 +1,15 @@
 [Tests]
-  [./write]
+  [./Write]
     type = 'RavenFramework'
     input = 'write.xml'
     [./create]
       type = Exists
-      output = 'Write/0d.xml Write/1d.xml Write/nd.xml Write/DatabaseStorage/0d.nc Write/DatabaseStorage/1d.nc Write/DatabaseStorage/nd.nc'
+      output = 'Write/0d.xml Write/1d.xml Write/nd.xml'
+    [../]
+    [./database]
+      type = NetCDF
+      output = 'Write/DatabaseStorage/0d.nc Write/DatabaseStorage/1d.nc Write/DatabaseStorage/nd.nc'
+      gold_files = 'gold/Write/DatabaseStorage/0d.nc gold/write/DatabaseStorage/1d.nc gold/Write/DatabaseStorage/nd.nc'
     [../]
     [./samples]
       type = UnorderedCSV
@@ -12,10 +17,10 @@
     [../]
   [../]
 
-  [./read]
+  [./Read]
     type = 'RavenFramework'
     input = 'read.xml'
-    prereq = write
+    prereq = Write
     [./create]
       type = Exists
       output = 'Read/0d.xml Read/1d.xml Read/nd.xml'
@@ -27,6 +32,14 @@
     [../]
   [../]
 
+  [./Sample]
+    type = 'RavenFramework'
+    input = 'sample.xml'
+    [./database]
+      type = NetCDF
+      output = 'Sample/DatabaseStorage/all.nc Sample/DatabaseStorage/select.nc'
+    [../]
+  [../]
 []
 
 
