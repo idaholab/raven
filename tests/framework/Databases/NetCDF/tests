@@ -9,7 +9,7 @@
     [./database]
       type = NetCDF
       output = 'Write/DatabaseStorage/0d.nc Write/DatabaseStorage/1d.nc Write/DatabaseStorage/nd.nc'
-      gold_files = 'gold/Write/DatabaseStorage/0d.nc gold/write/DatabaseStorage/1d.nc gold/Write/DatabaseStorage/nd.nc'
+      gold_files = 'gold/Write/DatabaseStorage/0d.nc gold/Write/DatabaseStorage/1d.nc gold/Write/DatabaseStorage/nd.nc'
     [../]
     [./samples]
       type = UnorderedCSV
