@@ -45,6 +45,7 @@
   [./Wavelet]
     type = 'RavenFramework'
     input = 'wavelet.xml'
+    required_libraries = 'pywavelets'
     [./csv]
       type = OrderedCSV
       output = 'Wavelet/samples_0.csv Wavelet/samples_1.csv'
