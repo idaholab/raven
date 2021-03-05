@@ -83,7 +83,7 @@ class Wavelet(TimeSeriesAnalyzer):
   def handleInput(self, spec):
     """
       Reads user inputs into this object.
-      @ In, inp, InputData.InputParams, input specifications
+      @ In, spec, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
     settings = TimeSeriesAnalyzer.handleInput(self, spec)
