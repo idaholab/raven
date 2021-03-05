@@ -415,6 +415,16 @@ class DataSet(DataObject):
       meta.update(dict((key,self._meta[key]) for key in gKeys))
     return meta
 
+  def getData(self):
+    """
+      Acquire the data for this dataset, as might go into an on-file database.
+      @ In, None
+      @ Out, data, xr.Dataset, sample data
+      @ Out, meta, dict, dictionary of xmlUtils.StaticXmlElement elements with meta information
+    """
+    self.asDataset()
+    return self._data, self._meta
+
   def getVars(self,subset=None):
     """
       Gives list of variables that are part of this dataset.
@@ -685,20 +695,58 @@ class DataSet(DataObject):
     self._collector = None
     self._data = data
     self._meta = meta
+    # if we have meta information, we can reconstruct the IO space for this DO
     if 'DataSet' in meta:
-      pointwiseMeta = meta['DataSet'].getRoot().find('general/pointwise_meta').text.split(',')
-      if pointwiseMeta:
-        self.addExpectedMeta(pointwiseMeta, overwrite=True)
+      self._setStructureFromMetaXML(meta['DataSet'])
+    # otherwise, we don't know where anything goes, so dump it all in output
+    else:
+      self._pivotParams = {}
+      # index map
+      for var in data:
+        indices = list(data[var].coords.keys())
+        for idx in indices:
+          if idx == self.sampleTag:
+            continue
+          if idx not in self._pivotParams:
+            self._pivotParams[idx] = []
+          self._pivotParams[idx].append(var)
+        self._outputs.append(var)
+      self._metavars = self._outputs[:]
 
-  def getData(self):
+  # DEBUGG FIXME move this to the right spot
+  def _setStructureFromMetaXML(self, meta):
     """
-      Acquire the data for this dataset, as might go into an on-file database.
-      @ In, None
-      @ Out, data, xr.Dataset, sample data
-      @ Out, meta, dict, dictionary of xmlUtils.StaticXmlElement elements with meta information
+      Sets this DataSet's structure based on structured meta XML
+      @ In, meta, xmlUtils.StaticXmlElement, xml structure
+      @ Out, None
     """
-    self.asDataset()
-    return self._data, self._meta
+    root = meta.getRoot()
+    # locate index map
+    dims = root.find('dims')
+    varToDim = {}
+    if dims is not None:
+      for child in dims:
+        varToDim[child.tag] = list(x.strip() for x in child.text.split(','))
+    # inputs, outputs, indices meta
+    inputs = root.find('general/inputs')
+    if inputs is not None:
+      self._inputs = list(x.strip() for x in inputs.text.split(','))
+    outputs = root.find('general/outputs')
+    if outputs is not None:
+      self._outputs = list(x.strip() for x in outputs.text.split(','))
+    self._orderedVars = self._inputs + self._outputs
+    self._pivotParams = {}
+    for var in self._orderedVars:
+      if var in varToDim:
+        indices = varToDim[var]
+        for idx in indices:
+          if idx not in self._pivotParams:
+            self._pivotParams[idx] = []
+          self._pivotParams[idx].append(var)
+    pointwiseMeta = root.find('general/pointwise_meta').text.split(',')
+    if pointwiseMeta:
+      self.addExpectedMeta(pointwiseMeta, overwrite=True)
+
 
   def sliceByIndex(self,index):
     """
