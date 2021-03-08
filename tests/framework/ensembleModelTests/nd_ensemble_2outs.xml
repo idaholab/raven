@@ -1,0 +1,108 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/ensembleModelTests.NDEnsemble2Outs</name>
+    <author>talbpaul</author>
+    <created>2021-02-25</created>
+    <classesTested>Models.EnsembleModel</classesTested>
+    <description>
+      Tests having 2 outputs in an ensemble model with an ND model. See #1119.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>NDEnsemble2Outs</WorkingDir>
+    <Sequence>sample</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="EnsembleModel">ens</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="PointSet">ps</Output>
+      <Output class="DataObjects" type="DataSet">nd1</Output>
+      <Output class="DataObjects" type="DataSet">nd2</Output>
+      <Output class="OutStreams" type="Print">ps</Output>
+      <Output class="OutStreams" type="Print">nd1</Output>
+      <Output class="OutStreams" type="Print">nd2</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="ps">
+      <Input>a, b</Input>
+      <Output>d</Output>
+    </PointSet>
+    <DataSet name="nd_eval">
+      <Input>a, b</Input>
+      <Output>c</Output>
+      <Index var="x">c</Index>
+      <Index var="y">c</Index>
+    </DataSet>
+    <DataSet name="s_eval">
+      <Input>c</Input>
+      <Output>d</Output>
+      <Index var="x">c</Index>
+      <Index var="y">c</Index>
+    </DataSet>
+    <DataSet name="nd1">
+      <Output>a, b, c</Output>
+      <Index var="x">c</Index>
+      <Index var="y">c</Index>
+    </DataSet>
+    <DataSet name="nd2">
+      <Output>a, b, c</Output>
+      <Index var="x">c</Index>
+      <Index var="y">c</Index>
+    </DataSet>
+  </DataObjects>
+
+  <Models>
+    <ExternalModel ModuleToLoad="NDModel" name="NDModel" subType="">
+      <variables>a, b, c, x, y</variables>
+    </ExternalModel>
+    <ExternalModel ModuleToLoad="Summary" name="Summary" subType="">
+      <variables>c, d</variables>
+    </ExternalModel>
+    <EnsembleModel name="ens" subType="">
+      <Model class="Models" type="ExternalModel">NDModel
+        <Input class="DataObjects" type="PointSet">placeholder</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet">nd_eval</TargetEvaluation>
+      </Model>
+      <Model class="Models" type="ExternalModel">Summary
+        <Input class="DataObjects" type="PointSet">placeholder</Input>
+        <TargetEvaluation class="DataObjects" type="DataSet">s_eval</TargetEvaluation>
+      </Model>
+    </EnsembleModel>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>2</limit>
+      </samplerInit>
+      <constant name="a">2</constant>
+      <constant name="b">3</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="nd1">
+      <type>csv</type>
+      <source>nd1</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="nd2">
+      <type>csv</type>
+      <source>nd2</source>
+      <what>input,output</what>
+    </Print>
+    <Print name="ps">
+      <type>csv</type>
+      <source>ps</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+</Simulation>

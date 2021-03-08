@@ -276,13 +276,13 @@ class ExternalModel(Dummy):
     # build realization
     ## do it in this order to make sure only the right variables are overwritten
     ## first inRun, which has everything from self.* and Input[*]
-    rlz =      dict((var,np.atleast_1d(val)) for var,val in inRun.items())
+    rlz = dict((var, np.atleast_1d(val)) for var, val in inRun.items())
     ## then result, which has the expected outputs and possibly changed inputs
-    rlz.update(dict((var,np.atleast_1d(val)) for var,val in result.items()))
+    rlz.update(dict((var, np.atleast_1d(val)) for var, val in result.items()))
     ## then get the metadata from kwargs
-    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs.items()))
+    rlz.update(dict((var, np.atleast_1d(val)) for var, val in kwargs.items()))
     ## then get the inputs from SampledVars (overwriting any other entries)
-    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars'].items()))
+    rlz.update(dict((var, np.atleast_1d(val)) for var, val in kwargs['SampledVars'].items()))
     if '_indexMap' in rlz:
       rlz['_indexMap'][0].update(evalIndexMap)
     return rlz
