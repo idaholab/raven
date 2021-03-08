@@ -27,6 +27,7 @@ import numpy as np
 #Internal Modules------------------------------------------------------------------------------------
 from utils import InputData, InputTypes
 from h5py_interface_creator import hdf5Database as h5Data
+from DataObjects import PointSet, HistorySet
 from .Database import DateBase
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -114,6 +115,9 @@ class HDF5(DateBase):
       @ In, source, DataObjects.DataObject, object to write to file
       @ Out, None
     """
+    if not isinstance(source, (PointSet, HistorySet)):
+      self.raiseAnError(TypeError, 'RAVEN HDF5 Databases cannot currently handle N-Dimensional Datasets; ' +
+                        f'use NetCDF instead. Received Dataset for database "{source.name}"')
     for r in range(len(source)):
       rlz = source.realization(r, unpackXArray=True)
       rlz = dict((var, np.atleast_1d(val)) for var, val in rlz.items())
@@ -145,6 +149,12 @@ class HDF5(DateBase):
     # prefix must be present
     if 'prefix' not in rlz:
       rlz['prefix'] = len(self.database)
+    # check dimensionality
+    if '_indexMap' in rlz:
+      for var, dims in rlz['_indexMap'][0]:
+        if len(dims) > 1:
+          self.raiseAnError(TypeError, 'RAVEN HDF5 Databases cannot currently handle N-Dimensional data; ' +
+                            f'use NetCDF instead. Received ND data for variable "{var}": {dims}')
     self.database.addGroup(rlz)
     self.built = True
 
