@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Databases.HDF5selective</name>
+    <name>framework/Databases/HDF5.HDF5selective</name>
     <author>talbpaul</author>
     <created>2017-07-06</created>
     <classesTested>Databases.HDF5</classesTested>
