@@ -324,15 +324,16 @@ class HistorySet(DataSet):
     else:
       self.raiseAWarning('No output space variables have been requested for DataObject "{}"! No history files will be printed!'.format(self.name))
 
-  def addExpectedMeta(self,keys, params={}):
+  def addExpectedMeta(self,keys, params={}, overwrite=False):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
       @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
         values of the dictionary are lists of the corresponding indexes/coordinates of given variable
+      @ In, overwrite, bool, optional, if True then allow existing data while changing keys
       @ Out, None
     """
-    extraKeys = DataSet.addExpectedMeta(self, keys, params)
+    extraKeys = DataSet.addExpectedMeta(self, keys, params=params, overwrite=overwrite)
     self._inputMetaVars.extend(list(key for key in extraKeys if key not in params))
     if params:
       self._outputMetaVars.extend(list(key for key in extraKeys if key in params))
