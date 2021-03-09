@@ -110,8 +110,6 @@ class RAVENparser():
                 self.databases[rName] = full
                 foundDatabases = True
 
-    # if not foundOutStreams:
-    #   raise IOError(self.printTag+' ERROR: at least one <OutStreams> of type "Print" needs to be inputted in the active Steps!!')
     if not foundOutStreams and not foundDatabases:
       raise IOError(self.printTag+' ERROR: No <OutStreams><Print> or <Databases><NetCDF readMode="overwrite"> found in the active <Steps> of inner RAVEN!')
 

@@ -714,50 +714,6 @@ class DataSet(DataObject):
         self._outputs.append(var)
       self._metavars = self._outputs[:]
 
-  # DEBUGG FIXME move this to the right spot
-  def _setStructureFromMetaXML(self, meta):
-    """
-      Sets this DataSet's structure based on structured meta XML
-      @ In, meta, xmlUtils.StaticXmlElement, xml structure
-      @ Out, None
-    """
-    root = meta.getRoot()
-    # locate index map
-    dims = root.find('dims')
-    varToDim = {}
-    if dims is not None:
-      for child in dims:
-        varToDim[child.tag] = list(x.strip() for x in child.text.split(','))
-    # inputs, outputs, indices meta
-    inputs = root.find('general/inputs')
-    if inputs is not None:
-      self._inputs = list(x.strip() for x in inputs.text.split(','))
-    outputs = root.find('general/outputs')
-    if outputs is not None:
-      self._outputs = list(x.strip() for x in outputs.text.split(','))
-    self._orderedVars = self._inputs + self._outputs
-    self._pivotParams = {}
-    for var in self._orderedVars:
-      if var in varToDim:
-        indices = varToDim[var]
-        for idx in indices:
-          if idx not in self._pivotParams:
-            self._pivotParams[idx] = []
-          self._pivotParams[idx].append(var)
-    pointwiseMeta = root.find('general/pointwise_meta').text.split(',')
-    if pointwiseMeta:
-      self.addExpectedMeta(pointwiseMeta, overwrite=True)
-
-  def getData(self):
-    """
-      Acquire the data for this dataset, as might go into an on-file database.
-      @ In, None
-      @ Out, data, xr.Dataset, sample data
-      @ Out, meta, dict, dictionary of xmlUtils.StaticXmlElement elements with meta information
-    """
-    self.asDataset()
-    return self._data, self._meta
-
   def sliceByIndex(self,index):
     """
       Returns list of realizations at "snapshots" along dimension "index".
@@ -1963,6 +1919,39 @@ class DataSet(DataObject):
         self._scaleFactors[name] = (m,s)
       except Exception:
         self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(name))
+
+  def _setStructureFromMetaXML(self, meta):
+    """
+      Sets this DataSet's structure based on structured meta XML
+      @ In, meta, xmlUtils.StaticXmlElement, xml structure
+      @ Out, None
+    """
+    root = meta.getRoot()
+    # locate index map
+    dims = root.find('dims')
+    varToDim = {}
+    if dims is not None:
+      for child in dims:
+        varToDim[child.tag] = list(x.strip() for x in child.text.split(','))
+    # inputs, outputs, indices meta
+    inputs = root.find('general/inputs')
+    if inputs is not None:
+      self._inputs = list(x.strip() for x in inputs.text.split(','))
+    outputs = root.find('general/outputs')
+    if outputs is not None:
+      self._outputs = list(x.strip() for x in outputs.text.split(','))
+    self._orderedVars = self._inputs + self._outputs
+    self._pivotParams = {}
+    for var in self._orderedVars:
+      if var in varToDim:
+        indices = varToDim[var]
+        for idx in indices:
+          if idx not in self._pivotParams:
+            self._pivotParams[idx] = []
+          self._pivotParams[idx].append(var)
+    pointwiseMeta = root.find('general/pointwise_meta').text.split(',')
+    if pointwiseMeta:
+      self.addExpectedMeta(pointwiseMeta, overwrite=True)
 
   def _toCSV(self, fileName, start=0, **kwargs):
     """
