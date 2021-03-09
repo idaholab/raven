@@ -13,3 +13,6 @@
 [submodule "plugins/SRAW"]
 	path = plugins/SRAW
 	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SRAW.git
+[submodule "plugins/FARM"]
+	path = plugins/FARM
+	url = git@github.com:Argonne-National-Laboratory/FARM.git

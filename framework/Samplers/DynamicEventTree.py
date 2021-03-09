@@ -96,6 +96,7 @@ class DynamicEventTree(Grid):
     @ Out, None
     """
     Grid.__init__(self)
+    self.onlySampleAfterCollecting = True # see note in Steps.MultiRun about the not-point-sampler loop
     # Working directory (Path of the directory in which all the outputs,etc. are stored)
     self.workingDir                        = ""
     # (optional) if not present, the sampler will not change the relative keyword in the input file

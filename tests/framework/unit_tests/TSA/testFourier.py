@@ -276,6 +276,13 @@ checkFloat('Signal C period 0 phase', abs(params['C']['coeffs'][periods[0]]['pha
 checkFloat('Signal C period 1 phase',     params['C']['coeffs'][periods[1]]['phase'] , phasesC[1])
 checkFloat('Signal C period 2 phase',     params['C']['coeffs'][periods[2]]['phase'] , phasesC[2])
 
+# residual
+## add constant to training, make sure we get constant back
+const = 42.0
+residSig = signals + const
+resid = fourier.getResidual(residSig, params, pivot, settings)
+checkFloat('Residual check', (resid-const).sum(), 0)
+
 # recreate signals
 res = fourier.generate(params, pivot, None)
 for tg, target in enumerate(targets):

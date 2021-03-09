@@ -101,7 +101,8 @@ class SyntheticHistory(supervisedLearning):
     pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
     residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
-    for algo in self.tsaAlgorithms:
+    numAlgo = len(self.tsaAlgorithms)
+    for a, algo in enumerate(self.tsaAlgorithms):
       settings = self.algoSettings[algo]
       targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
@@ -110,9 +111,11 @@ class SyntheticHistory(supervisedLearning):
       # store characteristics
       self.trainedParams[algo] = params
       # obtain residual; the part of the signal not characterized by this algo
-      # FIXME
-      # algoResidual = algo.getResidual(signal, params, pivots, None) # TODO randomEngine
-      # residual[0, :, indices] = algoResidual.T # transpose, again because of indices
+      # workaround: skip the last one, since it's often the ARMA and the residual isn't known for
+      #             the ARMA
+      if a < numAlgo - 1:
+        algoResidual = algo.getResidual(signal, params, pivots, settings)
+        residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
 
   def __evaluateLocal__(self, featureVals):
@@ -122,15 +125,15 @@ class SyntheticHistory(supervisedLearning):
     """
     pivots = self.pivotParameterValues
     result = np.zeros((self.pivotParameterValues.size, len(self.target) - 1)) # -1 is pivot
-    for algo in self.tsaAlgorithms:
+    for algo in self.tsaAlgorithms[::-1]:
       settings = self.algoSettings[algo]
       targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
       params = self.trainedParams[algo]
       signal = algo.generate(params, pivots, settings)
-      result[:, indices] = signal
+      result[:, indices] += signal
     # RAVEN realization construction
-    rlz = dict((target, signal[:, t]) for t, target in enumerate(self.target) if target != self.pivotParameterID)
+    rlz = dict((target, result[:, t]) for t, target in enumerate(self.target) if target != self.pivotParameterID)
     rlz[self.pivotParameterID] = self.pivotParameterValues
     return rlz
 

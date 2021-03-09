@@ -133,7 +133,11 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference','ConjugateGradient','SimulatedAnnealing']
+  validateDict['Optimizer'][0]['type'] = ['SPSA',
+                                          'FiniteDifference',
+                                          'ConjugateGradient',
+                                          'SimulatedAnnealing',
+                                          'GeneticAlgorithm']
 
   @classmethod
   def generateValidateDict(cls):
@@ -375,21 +379,34 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    prefix = kwargs.get("prefix")
-    uniqueHandler = kwargs.get("uniqueHandler",'any')
-    forceThreads = kwargs.get("forceThreads",False)
+    nRuns = 1
+    batchMode =  kwargs.get("batchMode", False)
+    if batchMode:
+      nRuns = kwargs["batchInfo"]['nRuns']
 
-    ## These kwargs are updated by createNewInput, so the job either should not
-    ## have access to the metadata, or it needs to be updated from within the
-    ## evaluateSample function, which currently is not possible since that
-    ## function does not know about the job instance.
-    metadata = kwargs
+    for index in range(nRuns):
+      if batchMode:
+        kw =  kwargs['batchInfo']['batchRealizations'][index]
+      else:
+        kw = kwargs
 
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, uniqueHandler=uniqueHandler, forceUseThreads=forceThreads)
+      prefix = kw.get("prefix")
+      uniqueHandler = kw.get("uniqueHandler",'any')
+      forceThreads = kw.get("forceThreads",False)
+
+      ## These kw are updated by createNewInput, so the job either should not
+      ## have access to the metadata, or it needs to be updated from within the
+      ## evaluateSample function, which currently is not possible since that
+      ## function does not know about the job instance.
+      metadata = kw
+
+      ## This may look a little weird, but due to how the parallel python library
+      ## works, we are unable to pass a member function as a job because the
+      ## pp library loses track of what self is, so instead we call it from the
+      ## class and pass self in as the first parameter
+      jobHandler.addJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
+                        uniqueHandler=uniqueHandler, forceUseThreads=forceThreads,
+                        groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
 
   def addOutputFromExportDictionary(self,exportDict,output,options,jobIdentifier):
     """

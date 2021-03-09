@@ -242,8 +242,6 @@ signalA, noise = createARMASignal(slags, nlags, pivot, plot=plot)
 signals = np.zeros((len(pivot), 1))
 signals[:, 0] = signalA
 
-engine = randomUtils.newRNG()
-
 ##########
 # Simplest reasonable case
 #
@@ -265,6 +263,25 @@ checkFloat('Simple ARMA intercept', 0.07723188355891732, check['const'], tol=1e-
 checkArray('Simple ARMA AR', okay_ar, check['ar'], float, tol=1e-3)
 checkArray('Simple ARMA MA', okay_ma, check['ma'], float, tol=1e-3)
 checkFloat('Simple ARMA variance', 0.9532563046953576, check['var'], tol=1e-3)
+# residual
+# XXX FIXME WIP TODO
+# r = params['A']['arma']['results']
+# p = r.predict()
+# f = r.fittedvalues
+# res = r.resid
+# freq, bins = np.histogram(res, bins=32)
+# #p = np.hstack([p[1:], np.atleast_1d(p[0])]) # left-shift
+# #resid = signalA - p
+# import matplotlib.pyplot as plt
+# fig, ax = plt.subplots()
+# ax.plot(0.5*(bins[1:]+bins[:-1]), freq, '.-')
+# #ax.plot(f, res, '.')
+# #ax.plot(pivot, signalA, 'o-')
+# #ax.plot(pivot, p, '+-')
+# #ax.plot(pivot, f, 'x-')
+# #ax.plot(pivot, res, '.:')
+# plt.show()
+
 # predict
 np.random.seed(42) # forces MLE in statsmodels to be deterministic
 new = arma.generate(params, pivot, settings)[:, 0]

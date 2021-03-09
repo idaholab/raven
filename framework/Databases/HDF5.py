@@ -151,7 +151,7 @@ class HDF5(DateBase):
       rlz['prefix'] = len(self.database)
     # check dimensionality
     if '_indexMap' in rlz:
-      for var, dims in rlz['_indexMap'][0]:
+      for var, dims in rlz['_indexMap'][0].items():
         if len(dims) > 1:
           self.raiseAnError(TypeError, 'RAVEN HDF5 Databases cannot currently handle N-Dimensional data; ' +
                             f'use NetCDF instead. Received ND data for variable "{var}": {dims}')
