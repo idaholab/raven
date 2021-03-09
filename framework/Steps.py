@@ -772,11 +772,11 @@ class MultiRun(SingleRun):
       @ In, sampler, Sampler, the sampler in charge of generating the sample
       @ In, model, Model, the model in charge of evaluating the sample
       @ In, inputs, object, the raven object used as the input in this step
-        (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
+        (i.e., a DataObject, File, or Database, I guess? Maybe these should all
         inherit from some base "Data" so that we can ensure a consistent
         interface for these?)
       @ In, outputs, object, the raven object used as the output in this step
-        (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
+        (i.e., a DataObject, File, or Database, I guess? Maybe these should all
         inherit from some base "Data" so that we can ensure a consistent
         interface for these?)
       @ In, jobHandler, object, the raven object used to handle jobs
