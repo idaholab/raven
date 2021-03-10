@@ -32,7 +32,7 @@ class PostProcessorPluginBase(PostProcessor, PluginBase):
   """
   # List containing the methods that need to be checked in order to assess the
   # validity of a certain plugin. This list needs to be populated by the derived class
-  _methodsToCheck = ['getInputSpecification', 'handlePluginInput', 'initializePlugin', 'runPlugin']
+  _methodsToCheck = ['getInputSpecification', 'handlePluginInput', 'initializePlugin', 'runPluginDataProcessor']
   entityType = 'PostProcessor'
 
   ##################################################
@@ -58,25 +58,36 @@ class PostProcessorPluginBase(PostProcessor, PluginBase):
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
-      this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
-      after this call the next one will be run
+      This function is used to initialize the plugin, i.e. set up working dir,
+      call the initializePlugin method from the plugin
       @ In, runInfo, dict, it is the run info from the jobHandler
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    ### original "inputs" will be processed to generate certain type of inputs for users
-    self.initializePlugin(inputs)
+    self.initializePlugin()
 
-  def run(self, inputIn):
+  def _generatePluginInput(self, inputDataObjs):
+    """
+      convert input data objects into standardized format of data
+      (xarray.Dataset, pandas.DataFrame, dict, numpy.array)
+      @ In, inputDataObjs, list, list of DataObjects that needs to be converted
+      @ Out, inputDs, list, list of current inputs for plugin
+    """
+    # convert to xarray.Dataset
+    inputDs = [inp.asDataset() for inp in inputDataObjs]
+    return inputDs
+
+  def run(self, inputDataObjs):
     """
       This method executes the postprocessor action.
-      @ In,  inputIn, object, object containing the data to process.
-      Should avoid to use (inputToInternal output), and passing xarray directly/dataset
-      Possible inputs include: dict, xarray.Dataset, pd.DataFrame
-      @ Out, dict, xarray.Dataset, pd.DataFrame --> I think we can avoid collectoutput in the plugin pp
+      @ In,  inputDataObjs, list, list of DataObjects
+      @ Out, outputDs, dict, xarray.Dataset, pd.DataFrame
+        --> I think we can avoid collectoutput in the plugin pp
     """
-    self.runPlugin(inputIn)
+    inputDs = self._generatePluginInput(inputDataObjs)
+    outputDs = self.runPluginDataProcessor(inputDs)
+    return outputDs
 
   ##################################################
   # Plugin APIs
@@ -104,21 +115,19 @@ class PostProcessorPluginBase(PostProcessor, PluginBase):
     """
     pass
 
-  def initializePlugin(self, inputs):
+  def initializePlugin(self):
     """
-      this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
-      after this call the next one will be run
-      @ In, inputs, type TBD
+      Optional method to initialize the Plugin
     """
     pass
 
   @abc.abstractmethod
-  def runPlugin(self, inputIn):
+  def runPluginDataProcessor(self, inputDs):
     """
       This method executes the postprocessor action.
-      @ In,  inputIn, object, object containing the data to process.
-      Should avoid to use (inputToInternal output), and passing xarray directly/dataset
-      Possible inputs include: dict, xarray.Dataset, pd.DataFrame
-      @ Out, dict, xarray.Dataset, pd.DataFrame --> I think we can avoid collectoutput in the plugin pp
+      @ In,  inputDs, list, list of current inputs
+        (possible inputs include: dict, xarray.Dataset, pd.DataFrame)
+      @ Out, outputDs, dict, xarray.Dataset, pd.DataFrame
+        --> I think we can avoid collectoutput in the plugin pp
     """
     pass
