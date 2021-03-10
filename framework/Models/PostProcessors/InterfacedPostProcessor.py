@@ -77,13 +77,13 @@ class InterfacedPostProcessor(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.methodToRun = None
 
   def initialize(self, runInfo, inputs, initDict):

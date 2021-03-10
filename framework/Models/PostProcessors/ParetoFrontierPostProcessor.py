@@ -33,13 +33,13 @@ class ParetoFrontier(PostProcessor):
     This postprocessor selects the points that lie on the Pareto frontier
     The postprocessor acts only on PointSet and return a subset of such PointSet
   """
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.valueLimit = None   # variable associated with the lower limit of the value dimension
     self.costLimit  = None   # variable associated with the upper limit of the cost dimension
     self.invCost    = False  # variable which indicates if the cost dimension is inverted (e.g., it represents savings rather than costs)
@@ -80,6 +80,7 @@ class ParetoFrontier(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     costID  = paramInput.findFirst('costID')
     self.costID  = costID.value
     self.invCost = costID.parameterValues['inv']

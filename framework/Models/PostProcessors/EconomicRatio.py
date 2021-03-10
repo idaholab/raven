@@ -75,13 +75,13 @@ class EconomicRatio(BasicStatistics):
 
     return inputSpecification
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    BasicStatistics.__init__(self, messageHandler)
+    BasicStatistics.__init__(self, runInfoDict)
 
   def inputToInternal(self, currentInp):
     """

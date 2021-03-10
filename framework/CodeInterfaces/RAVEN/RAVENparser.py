@@ -84,7 +84,6 @@ class RAVENparser():
               outStream = self.tree.find('.//OutStreams/Print[@name="'+role.text.strip()+ '"]'+'/source')
               if outStream is None:
                 continue # can have an outstream in inner but still use database return
-                # raise IOError(self.printTag+' ERROR: The OutStream of type "Print" named "'+role.text.strip()+'" has not been found!')
               dataObjectType = None
               linkedDataObjectPointSet = self.tree.find('.//DataObjects/PointSet[@name="'+outStream.text.strip()+ '"]')
               if linkedDataObjectPointSet is None:
@@ -104,7 +103,6 @@ class RAVENparser():
               db = self.tree.find(f'.//Databases/NetCDF[@name="{rName}"]')
               if db is None:
                 continue # can have a database in inner but still use outsream return
-                # raise IOError(f'{self.printTag} ERROR: The NetCDF Database "{role.text.strip()}" in Inner Steps was not found!')
               if db.attrib['readMode'] == 'overwrite':
                 dirs = db.attrib.get('directory', 'DatabaseStorage')
                 name = db.attrib.get('filename', db.attrib['name']+'.nc')

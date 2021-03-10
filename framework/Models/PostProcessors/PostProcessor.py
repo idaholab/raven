@@ -12,28 +12,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Module where the base class and the specialization of different type of Model are
+Base class for PostProcessors
+Created on March 3, 2021
+
+@author: wangc
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import os
-import inspect
+import abc
+import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Model import Model
-from utils import utils
+from Models import Model
 from Decorators.Parallelization import Parallel
-import PostProcessors
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PostProcessor(Model):
   """
     PostProcessor is an Action System. All the models here, take an input and perform an action
   """
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    inputSpecification = super(PostProcessor, cls).getInputSpecification()
+    return inputSpecification
+
+  @classmethod
+  def generateValidateDict(cls):
+    """
+      This method generate a independent copy of validateDict for the calling class
+      @ In, None
+      @ Out, None
+    """
+    super(PostProcessor, cls).generateValidateDict()
+
   @classmethod
   def specializeValidateDict(cls):
     """
@@ -77,7 +98,7 @@ class PostProcessor(Model):
     cls.validateDict['Function'  ][0]['required'    ] = False
     cls.validateDict['Function'  ][0]['multiplicity'] = 1
 
-  def __init__(self,runInfoDict):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
@@ -89,57 +110,17 @@ class PostProcessor(Model):
     self.workingDir = ''          # path for working directory
     self.printTag = 'POSTPROCESSOR MODEL'
 
-  def provideExpectedMetaKeys(self):
-    """
-      Overrides the base class method to assure child postprocessor is also polled for its keys.
-      @ In, None
-      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and the indexes related to expected keys
-    """
-    # get keys as per base class
-    metaKeys,metaParams = Model.provideExpectedMetaKeys(self)
-    # add postprocessor keys
-    try:
-      keys, params = self.interface.provideExpectedMetaKeys()
-      metaKeys = metaKeys.union(keys)
-      metaParams.update(params)
-    except AttributeError:
-      pass # either "interface" has no method for returning meta keys, or "interface" is not established yet.
-    return metaKeys, metaParams
+  # use BaseClass method provideExpectedMetaKeys and addMetaKeys to provide and modify metadata
 
-  def whatDoINeed(self):
+  def _handleInput(self, paramInput):
     """
-      This method is used mainly by the Simulation class at the Step construction stage.
-      It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
-      be initialize. It is an abstract method -> It must be implemented in the derived class!
-      NB. In this implementation, the method only calls the self.interface.whatDoINeed() method
-      @ In, None
-      @ Out, needDict, dict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
-    """
-    return self.interface.whatDoINeed()
-
-  def generateAssembler(self,initDict):
-    """
-      This method is used mainly by the Simulation class at the Step construction stage.
-      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-      It is an abstract method -> It must be implemented in the derived class!
-      NB. In this implementation, the method only calls the self.interface.generateAssembler(initDict) method
-      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    self.interface.generateAssembler(initDict)
+    Model._handleInput(self, paramInput)
 
-  def _readMoreXML(self,xmlNode):
-    """
-      Function to read the portion of the xml input that belongs to this specialized class
-      and initialize some stuff based on the inputs got
-      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
-      @ Out, None
-    """
-    Model._readMoreXML(self, xmlNode)
-    self.interface = PostProcessors.returnInstance(self.subType,self)
-    self.interface._readMoreXML(xmlNode)
-
-  def initialize(self,runInfo,inputs, initDict=None):
+  def initialize(self, runInfo, inputs, initDict=None):
     """
       this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
       after this call the next one will be run
@@ -147,24 +128,46 @@ class PostProcessor(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    self.workingDir = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
-    self.interface.initialize(runInfo, inputs, initDict)
+    self.inputs = inputs
+    if 'stepName' in runInfo:
+      self.workingDir = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
+    else:
+      self.workingDir = runInfo['WorkingDir']
     self.inputCheckInfo = [(inp.name, inp.type) for inp in inputs]
 
-  def submit(self,myInput,samplerType,jobHandler,**kwargs):
+  def createNewInput(self,myInput,samplerType,**kwargs): # --> inputToInternal
     """
-        This will submit an individual sample to be evaluated by this model to a
-        specified jobHandler. Note, some parameters are needed by createNewInput
-        and thus descriptions are copied from there.
-        @ In, myInput, list, the inputs (list) to start from to generate the new one
-        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-        @ In,  jobHandler, JobHandler instance, the global job handler instance
-        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+      This function will return a new input to be submitted to the model, it is called by the sampler.
+      here only a PointSet is accepted a local copy of the values is performed.
+      For a PointSet, only the last set of entries is copied
+      The copied values are returned as a dictionary back
+      @ In, myInput, list, the inputs (list) to start from to generate the new one
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-        @ Out, None
+      @ Out, myInput, list, the inputs (list) to start from to generate the new one
     """
-    kwargs['forceThreads'] = True
-    Model.submit(self,myInput, samplerType, jobHandler, **kwargs)
+    return myInput
+
+  def inputToInternal(self, currentInput):
+    """
+      Method to convert an input object into the internal format that is
+      understandable by this pp.
+      @ In, currentInput, object, an object that needs to be converted
+      @ Out, inputToInternal, list, list of current inputs
+    """
+    return [(copy.deepcopy(currentInput))]
+
+  @abc.abstractmethod
+  def run(self, input):
+    """
+      This method executes the postprocessor action.
+      @ In,  input, object, object containing the data to process.
+      Should avoid to use (inputToInternal output), and passing xarray directly/dataset
+      Possible inputs include: dict, xarray.Dataset, pd.DataFrame
+      @ Out, dict, xarray.Dataset, pd.DataFrame --> I think we can avoid collectoutput in the plugin pp
+    """
+    pass
 
   @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
@@ -183,8 +186,23 @@ class PostProcessor(Model):
     Input = self.createNewInput(myInput,samplerType, **kwargs)
     if Input is not None and len(Input) == 0:
       Input = None
-    returnValue = (Input, self.interface.run(Input))
+    returnValue = (Input, self.run(Input))
     return returnValue
+
+  def submit(self,myInput,samplerType,jobHandler,**kwargs):
+    """
+        This will submit an individual sample to be evaluated by this model to a
+        specified jobHandler. Note, some parameters are needed by createNewInput
+        and thus descriptions are copied from there.
+        @ In, myInput, list, the inputs (list) to start from to generate the new one
+        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In,  jobHandler, JobHandler instance, the global job handler instance
+        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
+           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ Out, None
+    """
+    kwargs['forceThreads'] = True
+    Model.submit(self,myInput, samplerType, jobHandler,**kwargs)
 
   def collectOutput(self,finishedjob,output,options=None):
     """
@@ -198,18 +216,19 @@ class PostProcessor(Model):
     if outputCheckInfo in self.inputCheckInfo:
       self.raiseAnError(IOError, 'DataObject',output.name,'is used as both input and output of', \
               self.interface.printTag, 'This is not allowed! Please use different DataObjet as output')
-    self.interface.collectOutput(finishedjob,output)
 
-  def createNewInput(self,myInput,samplerType,**kwargs):
-    """
-      This function will return a new input to be submitted to the model, it is called by the sampler.
-      here only a PointSet is accepted a local copy of the values is performed.
-      For a PointSet, only the last set of entries is copied
-      The copied values are returned as a dictionary back
-      @ In, myInput, list, the inputs (list) to start from to generate the new one
-      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
-      @ Out, myInput, list, the inputs (list) to start from to generate the new one
-    """
-    return myInput
+    evaluation = finishedJob.getEvaluation()
+    if isinstance(evaluation, Runners.Error):
+      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
+
+    outputRealization = evaluation[1]
+    if output.type in ['PointSet','HistorySet']:
+      if self.outputDataset:
+        self.raiseAnError(IOError, "DataSet output is required, but the provided type of DataObject is",output.type)
+      self.raiseADebug('Dumping output in data object named ' + output.name)
+      output.addRealization(outputRealization)
+    elif output.type in ['DataSet']:
+      self.raiseADebug('Dumping output in DataSet named ' + output.name)
+      output.load(outputRealization,style='dataset')
+    else:
+      self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')

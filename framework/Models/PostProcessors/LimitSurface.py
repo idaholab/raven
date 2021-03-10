@@ -70,13 +70,13 @@ class LimitSurface(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self,messageHandler)
+    PostProcessor.__init__(self,runInfoDict)
     self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.testMatrix        = OrderedDict()    #This is the n-dimensional matrix representing the testing grid
@@ -234,6 +234,7 @@ class LimitSurface(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
+    PostProcessor.initialize(self, runInfo, inputs, initDict)
     self._initializeLSpp(runInfo, inputs, initDict)
     self._initializeLSppROM(self.inputs[self.indexes])
 
@@ -303,6 +304,7 @@ class LimitSurface(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     initDict = {}
     for child in paramInput.subparts:
       initDict[child.getName()] = child.value

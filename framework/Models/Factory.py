@@ -14,10 +14,6 @@
 """
 Factory for generating the instances of the  Models Module
 """
-#for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
-
 from utils import utils
 
 from .Model         import Model
@@ -26,9 +22,42 @@ from .ROM           import ROM
 from .ExternalModel import ExternalModel
 from .Code          import Code
 from .EnsembleModel import EnsembleModel
-from .PostProcessor import PostProcessor
 from .HybridModels  import HybridModel
 from .HybridModels  import LogicalModel
+
+#### PostProcessors
+from .PostProcessors import PostProcessor
+from .PostProcessors import FTImporter
+from .PostProcessors import BasicStatistics
+from .PostProcessors import LimitSurface
+from .PostProcessors import Metric
+from .PostProcessors import ETImporter
+from .PostProcessors.DataMining import DataMining
+from .PostProcessors import SafestPoint
+from .PostProcessors import ValueDuration
+from .PostProcessors import SampleSelector
+from .PostProcessors import ImportanceRank
+from .PostProcessors import CrossValidation
+from .PostProcessors import LimitSurfaceIntegral
+from .PostProcessors import FastFourierTransform
+from .PostProcessors.ExternalPostProcessor import ExternalPostProcessor
+from .PostProcessors import InterfacedPostProcessor
+from .PostProcessors.TopologicalDecomposition import TopologicalDecomposition
+from .PostProcessors import DataClassifier
+from .PostProcessors.ComparisonStatisticsModule import ComparisonStatistics
+from .PostProcessors import RealizationAverager
+from .PostProcessors.ParetoFrontierPostProcessor import ParetoFrontier
+from .PostProcessors.MCSimporter import MCSImporter
+from .PostProcessors import EconomicRatio
+# from .PostProcessors import RavenOutput # deprecated for now
+
+## These utilize the optional prequisite library PySide, so don't error if they
+## do not import appropriately.
+try:
+  from .PostProcessors.TopologicalDecomposition import QTopologicalDecomposition
+  from .PostProcessors.DataMining import QDataMining
+except ImportError:
+  pass
 
 __base = 'Model'
 __interFaceDict = {}
@@ -37,10 +66,20 @@ for classObj in utils.getAllSubclasses(eval(__base)):
   key = classObj.__name__
   __interFaceDict[key] = classObj
 
-#here the class methods are called to fill the information about the usage of the classes
+try:
+  __interFaceDict['TopologicalDecomposition' ] = QTopologicalDecomposition
+  __interFaceDict['DataMining'               ] = QDataMining
+except NameError:
+  ## The correct names should already be used for these classes otherwise
+  pass
+
+# #here the class methods are called to fill the information about the usage of the classes
 for classType in __interFaceDict.values():
   classType.generateValidateDict()
   classType.specializeValidateDict()
+
+## Adding aliases for certain classes that are exposed to the user.
+__interFaceDict['External'] = ExternalPostProcessor
 
 def knownTypes():
   """

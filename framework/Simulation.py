@@ -454,7 +454,10 @@ class Simulation(MessageHandler.MessageUser):
               #if name not in self.entities[Class].keys():  self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self)
               if name not in self.entities[Class]:
                 if "needsRunInfo" in self.entityModules[Class].__dict__:
-                  self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self.runInfoDict,self)
+                  if childChild.tag == 'PostProcessor':
+                    self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.attrib['subType'],self.runInfoDict,self)
+                  else:
+                    self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self.runInfoDict,self)
                 else:
                   self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self)
               else:
