@@ -125,31 +125,44 @@ class NetCDF(DateBase):
     # apparently we're storing samples!
     # -> do we already have data present?
     path = self.get_fullpath()
+    print(f'DEBUGG {self.name} DB path:', path)
     if os.path.isfile(path):
       # load data as 100 sample chunks, lazily (not into memory)
       # -> using the argument "chunks" triggers the lazy loading using dask
       # existing = xr.open_dataset(path, chunks={'RAVEN_sample_ID': 100}) # TODO user option
+      print('DEBUGG -> exists')
       existing = True
       with xr.open_dataset(path) as ds: # autocloses at end of scope
+        print('DEBUGG -> ds:')
+        print(ds)
         counter = int(ds.RAVEN_sample_ID.values[-1]) + 1
     else:
+      print('DEBUGG -> NOT exists')
       existing = None
       counter = 0
     # create DS from realization # TODO make a feature of the Realization object
     indexMap = rlz.get('_indexMap', [{}])[0]
+    print('DEBUGG -> imap:', indexMap)
     indices = list(set().union(*(set(x) for x in indexMap.values())))
+    print('DEBUGG -> indices:', indices)
+    print('DEBUGG -> filter variables:', self.variables)
     # verbose but slower
     xarrs = {}
     for var in rlz:
       if var == '_indexMap' or var in indices + ['SampledVars', 'SampledVarsPb', 'crowDist', 'SamplerType']:
+        print('DEBUGG -> -> skipped var:', var)
         continue
       if self.variables is not None and var not in self.variables:
+        print('DEBUGG -> -> skipped var:', var)
         continue
+      print('DEBUGG -> -> var:', var)
       vals = rlz[var]
       dims = indexMap.get(var, [])
       if not dims and len(vals) == 1:
         vals = vals[0]
+      print('DEBUGG -> -> dims:', dims)
       coords = dict((idx, rlz[idx]) for idx in indexMap.get(var, []))
+      print('DEBUGG -> -> coords:', coords)
       xarrs[var] = xr.DataArray(vals, dims=dims, coords=coords).expand_dims(dim={'RAVEN_sample_ID': [counter]})
     rlzDS = xr.Dataset(xarrs)
     if existing:
