@@ -86,13 +86,13 @@ class ImportanceRank(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.targets = []
     self.features = []
     self.latent = []
@@ -120,6 +120,7 @@ class ImportanceRank(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'what':
         what = child.value.strip()

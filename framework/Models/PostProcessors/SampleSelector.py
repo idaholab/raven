@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on July 2, 2019
+Created on August 28, 2018
 
-@author: talbpw
+@author: giovannimaronati
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
 
@@ -28,10 +28,11 @@ from utils import utils
 from utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
-class RealizationAverager(PostProcessor):
+class SampleSelector(PostProcessor):
   """
-    Does the average of multiple realizations along the RAVEN_sampleID dimension
-    ONLY, leaving the other dimensions as they are.
+    This postprocessor selects the row in which the minimum or the maximum
+    of a target is found.The postprocessor can  act on DataObject, and
+    generates a DataObject in return.
   """
 
   @classmethod
@@ -43,20 +44,26 @@ class RealizationAverager(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inSpec= super(RealizationAverager, cls).getInputSpecification()
+    inSpec= super(SampleSelector, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
-                                                  contentType=InputTypes.StringListType))
+                                                  contentType=InputTypes.StringType))
+    criterion = InputData.parameterInputFactory('criterion',
+                                                contentType=InputTypes.StringType,
+                                                strictMode=True)
+    criterion.addParam('value', InputTypes.IntegerType)
+    inSpec.addSub(criterion)
     return inSpec
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.dynamic = True # from base class, indicates time-dependence is handled internally
-    self.targets = None # string, variables to apply postprocessor to
+    self.target = None # string, variable to apply postprocessor to
+    self.value = None  # only used when the criterion needs a value, the value to use
 
   def _handleInput(self, paramInput):
     """
@@ -64,10 +71,24 @@ class RealizationAverager(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     for child in paramInput.subparts:
       tag = child.getName()
       if tag == 'target':
-        self.targets = child.value
+        self.target = child.value
+      if tag == 'criterion':
+        self.criterion = child.value
+        self.value = child.parameterValues.get('value',None)
+      elif tag == 'number':
+        self.numBins = child.value
+
+    # check "target" given if needed
+    if self.criterion not in ['index']:
+      if self.target is None:
+        self.raiseAnError(IOError,'Criterion "{}" requires a <target> be identified!'.format(self.criterion))
+
+
+
 
   def inputToInternal(self, currentInp):
     """
@@ -80,27 +101,32 @@ class RealizationAverager(PostProcessor):
     if len(currentInp) > 1:
       self.raiseAnError(IOError, 'Expected 1 input DataObject, but received {} inputs!'.format(len(currentInp)))
     currentInp = currentInp[0]
-    if currentInp.type not in ['DataSet']:
-      self.raiseAnError(IOError, 'RealizationAverager postprocessor "{}" requires a DataSet input! Got "{}".'
-                                 .format(self.name, currentInp.type))
+    if currentInp.type not in ['PointSet','HistorySet','DataSet']:
+      self.raiseAnError(IOError, 'SampleSelector postprocessor "{}" requires a DataObject input! Got "{}".'
+                                 .format(self.name, currentInput.type))
     return currentInp
 
-  def run(self, inputs):
+  def run(self, inputIn):
     """
       This method executes the postprocessor action.
-      @ In, inputs, list(object), objects containing the data to process.
+      @ In, inputIn, object, object contained the data to process. (inputToInternal output)
       @ Out, realizations, list, list of realizations obtained
     """
-    if not set(self.targets) <= set(inputs[0].getVars()):
-      self.raiseAnError(KeyError, 'The requested targets were not all found in the input data! ' +
-                        'Unused: {}. '.format(set(inputs[0].getVars()) - set(self.targets)) +
-                        'Missing: {}.'.format(set(self.targets) - set(inputs[0].getVars())))
-    dataSet = inputs[0].asDataset()[self.targets] # we checked for singularity earlier, so this should be the only one
-    averaged = dataSet.mean(dim='RAVEN_sample_ID')
-    averaged = averaged.expand_dims('RAVEN_sample_ID')
-    averaged['RAVEN_sample_ID'] = [0]
-    return averaged
+    inData = self.inputToInternal(inputIn)
+    realizations = []
+    d = inData.asDataset()
+    # find index we want depending on criterion
+    if self.criterion == 'min':
+      i = d[self.target].argmin()
+    elif self.criterion == 'max':
+      i = d[self.target].argmax()
+    elif self.criterion == 'index':
+      i = self.value
+    else:
+      self.raiseAnError(IOError,'Unrecognized criterion: "{}"'.format(self.criterion))
+    pick = inData.realization(index = i)
 
+    return pick
 
   def collectOutput(self, finishedJob, output):
     """
@@ -110,6 +136,7 @@ class RealizationAverager(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    result = evaluation[1]
-    self.raiseADebug('Sending output to DataSet "{name}"'.format(name=output.name))
-    output.load(result, style='dataset')
+    pick = evaluation[1]
+    for key,value in pick.items():
+      pick[key] = np.atleast_1d(value)
+    output.addRealization(pick)
