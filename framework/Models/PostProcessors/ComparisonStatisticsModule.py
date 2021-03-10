@@ -321,13 +321,13 @@ class ComparisonStatistics(PostProcessor):
       self.dataPulls = []
       self.referenceData = {}
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.dataDict = {}  # Dictionary of all the input data, keyed by the name
     self.compareGroups = []  # List of each of the groups that will be compared
     # self.dataPulls = [] #List of data references that will be used
@@ -363,6 +363,7 @@ class ComparisonStatistics(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     for outer in paramInput.subparts:
       if outer.getName() == 'compare':
         compareGroup = ComparisonStatistics.CompareGroup()

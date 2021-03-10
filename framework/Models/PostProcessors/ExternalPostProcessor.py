@@ -36,13 +36,13 @@ class ExternalPostProcessor(PostProcessor):
     object, thus the function should produce a scalar value per row of data. I
     have no idea what happens if the function produces multiple outputs.
   """
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.methodsToRun = []              # A list of strings specifying what
                                         # methods the user wants to compute from
                                         # the external interfaces
@@ -162,6 +162,7 @@ class ExternalPostProcessor(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'method':
         methods = child.value.split(',')

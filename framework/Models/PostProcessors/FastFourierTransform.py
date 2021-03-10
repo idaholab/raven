@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on August 28, 2018
+Created on September 11, 2018
 
 @author: talbpaul
 """
@@ -23,16 +23,14 @@ import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
-from utils import utils
 from utils import InputData, InputTypes
+from .PostProcessor import PostProcessor
 #Internal Modules End-----------------------------------------------------------
 
-class ValueDuration(PostProcessor):
+class FastFourierTransform(PostProcessor):
   """
-    Constructs a load duration curve.
-    x-axis is time spent above a particular variable's value,
-    y-axis is the value of the variable.
+    Constructs fast-fourier transform data for a history
+    Outputs are "frequency" for each index and "amplitude" for each target
   """
 
   @classmethod
@@ -45,24 +43,22 @@ class ValueDuration(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inSpec= super(ValueDuration, cls).getInputSpecification()
+    inSpec = super(FastFourierTransform, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
                                                   contentType=InputTypes.StringListType,
                                                   strictMode=True))
-    inSpec.addSub(InputData.parameterInputFactory('bins',
-                                                  contentType=InputTypes.IntegerType))
     return inSpec
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.dynamic = True # from base class, indicates time-dependence is handled internally
-    self.numBins = None # integer number of bins to use in creating the duration curve. TODO default?
     self.targets = None # list of strings, variables to apply postprocessor to
+    self.indices = None # dict of {string:string}, key is target and value is index (independent monotonic var)
 
   def _handleInput(self, paramInput):
     """
@@ -70,12 +66,11 @@ class ValueDuration(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     for child in paramInput.subparts:
       tag = child.getName()
       if tag == 'target':
         self.targets = set(child.value)
-      elif tag == 'bins':
-        self.numBins = child.value
 
   def inputToInternal(self, currentInp):
     """
@@ -86,11 +81,24 @@ class ValueDuration(PostProcessor):
       @ Out, currentInp, DataObject.HistorySet, input data
     """
     if len(currentInp) > 1:
-      self.raiseAnError(IOError, 'Expected 1 input HistorySet, but received {} inputs!'.format(len(currentInp)))
+      self.raiseAnError(IOError, 'Expected 1 input HistorySet or DataSet, but received {} inputs!'.format(len(currentInp)))
     currentInp = currentInp[0]
-    if currentInp.type not in ['HistorySet']:
-      self.raiseAnError(IOError, 'ValueDuration postprocessor "{}" requires a HistorySet input! Got "{}".'
+    if currentInp.type not in ['HistorySet','DataSet']:
+      self.raiseAnError(IOError, 'FastFourierTransform postprocessor "{}" requires a HistorySet or DataSet input! Got "{}".'
                                  .format(self.name, currentInput.type))
+    # check targets requested depend only on one index (no more or less)
+    okay = True
+    for target in self.targets:
+      indices = currentInp.getDimensions(var=target)
+      if len(indices) != 1:
+        okay = False
+        if len(indices) == 0:
+          self.raiseAWarning('Target "{}" is a scalar! FFT cannot be performed.'.format(target))
+        else:
+          self.raiseAWarning('Target "{}" has {} index dimensions! FFT can only currently handle one.'.format(target,len(indices)))
+    if not okay:
+      self.raiseAnError(IndexError,'Some targets were not dimensioned correctly. See warnings for more details. Exiting.')
+    # return data object
     return currentInp
 
   def run(self, inputIn):
@@ -99,9 +107,13 @@ class ValueDuration(PostProcessor):
       @ In, inputIn, object, object contained the data to process. (inputToInternal output)
       @ Out, realizations, list, list of realizations obtained
     """
+    # do checking and isolate input
     inData = self.inputToInternal(inputIn)
+
+    # storage for each realization
     realizations = []
-    # new load duration curve for each sample
+    # loop over realizations and perform fft
+    ## TODO can the loop be avoided?
     for s in range(len(inData)):
       # obtain relevant sample
       sample = inData.realization(index=s)
@@ -109,22 +121,22 @@ class ValueDuration(PostProcessor):
       rlz = {}
       # separate curve for each target
       for target in self.targets:
-        data = sample[target]
-        # bin values
-        counts, edges = np.histogram(data,self.numBins)
-        ## reverse order of histogram, edges to get load duration axes
-        counts = counts[::-1]
-        edges = edges[::-1]
-        ## cumulatively stack counts, starting with highest value bin
-        cumulative = np.cumsum(counts)
-
-        # store results
-        rlz['counts_'+target] = cumulative
-        ## only keep upper value of edges so lengths match
-        rlz['bins_'+target] = edges[1:]
-
-        realizations.append(rlz)
-
+        # get complex ndarray (real and imaginary parts)
+        data = sample[target].values
+        N = len(data)
+        mixed = np.fft.fft(data)
+        freq = np.fft.fftfreq(N)
+        # select positive values
+        freq = freq[:int(N/2)]
+        mixed = mixed[:int(N/2)].real
+        #data = zip(freq,1.0/freq,mixed.real)
+        #data.sort(key=lambda x:abs(x[2]), reverse=True)
+        #freq,period,amp = zip(*data)
+        # TODO change frequencies based on delta index? Example: time
+        rlz[target+'_fft_frequency'] = freq
+        rlz[target+'_fft_period'] = 1.0/freq
+        rlz[target+'_fft_amplitude'] = mixed
+      realizations.append(rlz)
     return realizations
 
   def collectOutput(self, finishedJob, output):
@@ -138,4 +150,3 @@ class ValueDuration(PostProcessor):
     realizations = evaluation[1]
     for rlz in realizations:
       output.addRealization(rlz)
-

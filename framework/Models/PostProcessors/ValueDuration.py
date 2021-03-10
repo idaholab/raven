@@ -14,7 +14,7 @@
 """
 Created on August 28, 2018
 
-@author: giovannimaronati
+@author: talbpaul
 """
 from __future__ import division, print_function , unicode_literals, absolute_import
 
@@ -28,11 +28,11 @@ from utils import utils
 from utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
-class SampleSelector(PostProcessor):
+class ValueDuration(PostProcessor):
   """
-    This postprocessor selects the row in which the minimum or the maximum
-    of a target is found.The postprocessor can  act on DataObject, and
-    generates a DataObject in return.
+    Constructs a load duration curve.
+    x-axis is time spent above a particular variable's value,
+    y-axis is the value of the variable.
   """
 
   @classmethod
@@ -44,26 +44,25 @@ class SampleSelector(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inSpec= super(SampleSelector, cls).getInputSpecification()
+    ## This will replace the lines above
+    inSpec= super(ValueDuration, cls).getInputSpecification()
     inSpec.addSub(InputData.parameterInputFactory('target',
-                                                  contentType=InputTypes.StringType))
-    criterion = InputData.parameterInputFactory('criterion',
-                                                contentType=InputTypes.StringType,
-                                                strictMode=True)
-    criterion.addParam('value', InputTypes.IntegerType)
-    inSpec.addSub(criterion)
+                                                  contentType=InputTypes.StringListType,
+                                                  strictMode=True))
+    inSpec.addSub(InputData.parameterInputFactory('bins',
+                                                  contentType=InputTypes.IntegerType))
     return inSpec
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.dynamic = True # from base class, indicates time-dependence is handled internally
-    self.target = None # string, variable to apply postprocessor to
-    self.value = None  # only used when the criterion needs a value, the value to use
+    self.numBins = None # integer number of bins to use in creating the duration curve. TODO default?
+    self.targets = None # list of strings, variables to apply postprocessor to
 
   def _handleInput(self, paramInput):
     """
@@ -71,23 +70,13 @@ class SampleSelector(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     for child in paramInput.subparts:
       tag = child.getName()
       if tag == 'target':
-        self.target = child.value
-      if tag == 'criterion':
-        self.criterion = child.value
-        self.value = child.parameterValues.get('value',None)
-      elif tag == 'number':
+        self.targets = set(child.value)
+      elif tag == 'bins':
         self.numBins = child.value
-
-    # check "target" given if needed
-    if self.criterion not in ['index']:
-      if self.target is None:
-        self.raiseAnError(IOError,'Criterion "{}" requires a <target> be identified!'.format(self.criterion))
-
-
-
 
   def inputToInternal(self, currentInp):
     """
@@ -98,10 +87,10 @@ class SampleSelector(PostProcessor):
       @ Out, currentInp, DataObject.HistorySet, input data
     """
     if len(currentInp) > 1:
-      self.raiseAnError(IOError, 'Expected 1 input DataObject, but received {} inputs!'.format(len(currentInp)))
+      self.raiseAnError(IOError, 'Expected 1 input HistorySet, but received {} inputs!'.format(len(currentInp)))
     currentInp = currentInp[0]
-    if currentInp.type not in ['PointSet','HistorySet','DataSet']:
-      self.raiseAnError(IOError, 'SampleSelector postprocessor "{}" requires a DataObject input! Got "{}".'
+    if currentInp.type not in ['HistorySet']:
+      self.raiseAnError(IOError, 'ValueDuration postprocessor "{}" requires a HistorySet input! Got "{}".'
                                  .format(self.name, currentInput.type))
     return currentInp
 
@@ -113,19 +102,31 @@ class SampleSelector(PostProcessor):
     """
     inData = self.inputToInternal(inputIn)
     realizations = []
-    d = inData.asDataset()
-    # find index we want depending on criterion
-    if self.criterion == 'min':
-      i = d[self.target].argmin()
-    elif self.criterion == 'max':
-      i = d[self.target].argmax()
-    elif self.criterion == 'index':
-      i = self.value
-    else:
-      self.raiseAnError(IOError,'Unrecognized criterion: "{}"'.format(self.criterion))
-    pick = inData.realization(index = i)
+    # new load duration curve for each sample
+    for s in range(len(inData)):
+      # obtain relevant sample
+      sample = inData.realization(index=s)
+      # solutions for each realization are stored in this dict
+      rlz = {}
+      # separate curve for each target
+      for target in self.targets:
+        data = sample[target]
+        # bin values
+        counts, edges = np.histogram(data,self.numBins)
+        ## reverse order of histogram, edges to get load duration axes
+        counts = counts[::-1]
+        edges = edges[::-1]
+        ## cumulatively stack counts, starting with highest value bin
+        cumulative = np.cumsum(counts)
 
-    return pick
+        # store results
+        rlz['counts_'+target] = cumulative
+        ## only keep upper value of edges so lengths match
+        rlz['bins_'+target] = edges[1:]
+
+        realizations.append(rlz)
+
+    return realizations
 
   def collectOutput(self, finishedJob, output):
     """
@@ -135,7 +136,6 @@ class SampleSelector(PostProcessor):
       @ Out, None
     """
     evaluation = finishedJob.getEvaluation()
-    pick = evaluation[1]
-    for key,value in pick.items():
-      pick[key] = np.atleast_1d(value)
-    output.addRealization(pick)
+    realizations = evaluation[1]
+    for rlz in realizations:
+      output.addRealization(rlz)

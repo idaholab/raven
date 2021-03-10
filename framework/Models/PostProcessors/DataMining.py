@@ -166,13 +166,13 @@ class DataMining(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, messageHandler):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
-    PostProcessor.__init__(self, messageHandler)
+    PostProcessor.__init__(self, runInfoDict)
     self.printTag = 'POSTPROCESSOR DATAMINING'
 
     self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_one)
@@ -187,6 +187,7 @@ class DataMining(PostProcessor):
     self.PreProcessor = None    ## Instance of PreProcessor, default is None
     self.metric = None          ## Instance of Metric, default is None
     self.pivotParameter = None  ## default pivotParameter for HistorySet
+    self._type = None           ## the type of library that are used for data mining, i.e. SciKitLearn
 
   def _localWhatDoINeed(self):
     """
@@ -398,6 +399,7 @@ class DataMining(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
+    PostProcessor._handleInput(self, paramInput)
     ## By default, we want to name the 'labels' by the name of this
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
@@ -412,7 +414,7 @@ class DataMining(PostProcessor):
           self.initializationOptionDict[child.getName()] = {}
           for key,value in child.parameterValues.items():
             if key == 'lib':
-              self.type = value
+              self._type = value
             elif key == 'labelFeature':
               self.labelFeature = value
             else:
@@ -430,13 +432,13 @@ class DataMining(PostProcessor):
       #TODO, if doing time dependent data mining that needs this, an error
       # should be thrown
       self.pivotParameter = None
-    if self.type:
+    if self._type:
       #TODO unSurpervisedEngine needs to be able to handle both methods
       # without this if statement.
       if self.pivotParameter is not None:
         self.unSupervisedEngine = unSupervisedLearning.returnInstance("temporalSciKitLearn", self, **self.initializationOptionDict['KDD'])
       else:
-        self.unSupervisedEngine = unSupervisedLearning.returnInstance(self.type, self, **self.initializationOptionDict['KDD'])
+        self.unSupervisedEngine = unSupervisedLearning.returnInstance(self._type, self, **self.initializationOptionDict['KDD'])
     else:
       self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
     ## If the user has not defined a label feature, then we will force it to be
@@ -902,7 +904,10 @@ except ImportError as e:
     __QtAvailable = False
 
 if __QtAvailable:
-  class QDataMining(DataMining,qtc.QObject):
+  class mQDataMining(type(DataMining), type(qtc.QObject)):
+    pass
+
+  class QDataMining(DataMining, qtc.QObject, metaclass=mQDataMining):
     """
       DataMining class - Computes a hierarchical clustering from an input point
       cloud consisting of an arbitrary number of input parameters
@@ -920,13 +925,13 @@ if __QtAvailable:
       inputSpecification = super(QDataMining, cls).getInputSpecification()
       return inputSpecification
 
-    def __init__(self, messageHandler):
+    def __init__(self, runInfoDict):
       """
        Constructor
        @ In, messageHandler, message handler object
        @ Out, None
       """
-      DataMining.__init__(self, messageHandler)
+      DataMining.__init__(self, runInfoDict)
       qtc.QObject.__init__(self)
       self.interactive = False
 
