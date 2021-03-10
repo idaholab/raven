@@ -5,7 +5,10 @@
     <created>2021-03-09</created>
     <classesTested>Databases.NetCDF</classesTested>
     <description>
-      Tests using NetCDF as a writable database format, and then adding to it.
+      Test using NetCDF as a writable database format, and then adding to it.
+      Given two methods of writing to the database, ``sampling'' (one realization at a time) and
+      ``io'' (via IOStep), check that all possible combinations come out the same: sample-sample,
+      sample-io, io-sample, and io-io.
     </description>
   </TestInfo>
 

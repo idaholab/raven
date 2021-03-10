@@ -76,11 +76,17 @@ class NetCDF(DateBase):
         # is it a string?
         if mathUtils.isAString(ds[var].values[0]):
           ds[var] = ds[var].astype(str)
-    # is there existing data? Read it in and concatenate it, if so
+    # is there existing data? Read it in and merge it, if so
+    # -> we've already wiped the file in initializeDatabase if it's in write mode
+    # -> extra care is needed for the sample ID
+    # -> the convention is that loading from existing is like adding the realizations from existing
+    #    as if they were new realizations to this database
     if os.path.isfile(path):
       exists = xr.load_dataset(path)
-      # NOTE order matters! "exists" then "ds" preserves order in which
-      # data was stored to this database.
+      if 'RAVEN_sample_ID' in exists:
+        floor = int(exists['RAVEN_sample_ID'].values[-1]) + 1
+        new = ds['RAVEN_sample_ID'].values + floor
+        ds = ds.assign_coords(RAVEN_sample_ID=new)
       ds = xr.concat((exists, ds), 'RAVEN_sample_ID')
     # if this is open somewhere else, we can't write to it
     # TODO is there a way to check if it's writable? I can't find one ...
@@ -125,10 +131,10 @@ class NetCDF(DateBase):
       # existing = xr.open_dataset(path, chunks={'RAVEN_sample_ID': 100}) # TODO user option
       existing = True
       with xr.open_dataset(path) as ds: # autocloses at end of scope
-        counter = len(ds.RAVEN_sample_ID) + 1
+        counter = int(ds.RAVEN_sample_ID.values[-1]) + 1
     else:
       existing = None
-      counter = 1
+      counter = 0
     # create DS from realization # TODO make a feature of the Realization object
     indexMap = rlz.get('_indexMap', [{}])[0]
     indices = list(set().union(*(set(x) for x in indexMap.values())))
