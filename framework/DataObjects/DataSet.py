@@ -1936,10 +1936,16 @@ class DataSet(DataObject):
     # inputs, outputs, indices meta
     inputs = root.find('general/inputs')
     if inputs is not None:
-      self._inputs = list(x.strip() for x in inputs.text.split(','))
+      if inputs.text is None:
+        self._inputs = []
+      else:
+        self._inputs = list(x.strip() for x in inputs.text.split(','))
     outputs = root.find('general/outputs')
     if outputs is not None:
-      self._outputs = list(x.strip() for x in outputs.text.split(','))
+      if outputs.text is None:
+        self._outputs = []
+      else:
+        self._outputs = list(x.strip() for x in outputs.text.split(','))
     self._orderedVars = self._inputs + self._outputs
     self._pivotParams = {}
     for var in self._orderedVars:

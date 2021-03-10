@@ -66,7 +66,7 @@ class NetCDF(DateBase):
     ds, meta = source.getData()
     # we actually just tell the DataSet to write out as netCDF
     path = self.get_fullpath()
-    # TODO set up to use dask for on-disk operations -> or is that a different data object?
+    # TODO set up to use dask for on-disk operations
     # convert metadata into writeable
     for key, xml in meta.items():
       ds.attrs[key] = xmlUtils.prettify(xml.getRoot())
@@ -76,6 +76,12 @@ class NetCDF(DateBase):
         # is it a string?
         if mathUtils.isAString(ds[var].values[0]):
           ds[var] = ds[var].astype(str)
+    # is there existing data? Read it in and concatenate it, if so
+    if os.path.isfile(path):
+      exists = xr.load_dataset(path)
+      # NOTE order matters! "exists" then "ds" preserves order in which
+      # data was stored to this database.
+      ds = xr.concat((exists, ds), 'RAVEN_sample_ID')
     # if this is open somewhere else, we can't write to it
     # TODO is there a way to check if it's writable? I can't find one ...
     try:

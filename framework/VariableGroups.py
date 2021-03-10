@@ -60,6 +60,8 @@ class VariableGroup(BaseClasses.BaseType):
     if 'name' not in node.attrib.keys():
       self.raiseAnError(IOError,'VariableGroups require a "name" attribute!')
     self.name = node.attrib['name']
+    if node.text is None:
+      node.text = ''
     # loop through variables and expand list
     for dep in [s.strip() for s in node.text.split(',')]:
       if dep == '':
