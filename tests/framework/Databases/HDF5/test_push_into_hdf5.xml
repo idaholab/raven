@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/Databases.test_push_into_hdf5</name>
+    <name>framework/Databases/HDF5.test_push_into_hdf5</name>
     <author>alfoa</author>
     <created>2013-11-11</created>
     <classesTested>DataObjects.PointSet, DataObjects.HistorySet, Databases.HDF5</classesTested>

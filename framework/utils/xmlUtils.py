@@ -97,8 +97,6 @@ def prettify(tree, doc=False, docLevel=0, startingTabs=0, addRavenNewlines=True)
     prettifyNode(tree, tabs=startingTabs, ravenNewlines=addRavenNewlines)
     return toString(ET.tostring(tree))
 
-  return toWrite
-
 def newNode(tag, text='', attrib=None):
   """
     Creates a new node with the desired tag, text, and attributes more simply than can be done natively.
@@ -500,6 +498,17 @@ class StaticXmlElement(object):
       targ = newNode(target)
       root.append(targ)
     return targ
+
+def staticFromString(s):
+  """
+    Parse string as XML.
+    @ In, s, str, XML in string format
+    @ Out, new, StaticXmlElement, xml
+  """
+  new = StaticXmlElement('temp')
+  new._root = ET.fromstring(s)
+  new._tree = ET.ElementTree(element=new._root)
+  return new
 
 #
 # Dynamic version
