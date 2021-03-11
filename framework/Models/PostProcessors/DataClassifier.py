@@ -74,6 +74,8 @@ class DataClassifier(PostProcessor):
     self.mapping    = {}  # dictionary for mapping input space between different DataObjects {'variableName':'externalFunctionName'}
     self.funcDict   = {}  # Contains the function to be used {'variableName':externalFunctionInstance}
     self.label      = None # ID of the variable which containf the label values
+    self.outputMultipleRealizations = True # True indicate multiple realizations are returned
+
     # assembler objects to be requested
     self.addAssemblerObject('Function', InputData.Quantity.one_to_infinity)
 
@@ -143,6 +145,8 @@ class DataClassifier(PostProcessor):
             self.raiseAnError(IOError, "Only PointSet is allowed as classifier, but HistorySet", inputObject.name, "is provided!")
         else:
           dataType = 'target'
+          newInput[dataType]['data'] = inputObject.asDataset(outType='dict')['data']
+          newInput[dataType]['dims'] = inputObject.getDimensions()
           if not haveTarget:
             haveTarget = True
           else:
@@ -189,12 +193,8 @@ class DataClassifier(PostProcessor):
     targetDict = inputDict['target']
     classifierDict = inputDict['classifier']
     outputDict = {}
+    outputDict.update(inputDict['target']['data'])
     outputType = targetDict['type']
-    outputDict['dataType'] = outputType
-    outputDict['dataFrom'] = targetDict['name']
-    if outputType == 'HistorySet':
-      outputDict['historySizes'] = copy.copy(targetDict['historySizes'])
-
     numRlz = utils.first(targetDict['input'].values()).size
     outputDict[self.label] = []
     for i in range(numRlz):
@@ -218,34 +218,19 @@ class DataClassifier(PostProcessor):
       if outputType == 'PointSet':
         outputDict[self.label].append(label)
       else:
-        outputDict[self.label].append(np.asarray([label]*outputDict['historySizes'][i]))
+        outputDict[self.label].append(np.asarray([label]*targetDict['historySizes'][i]))
     outputDict[self.label] = np.asarray(outputDict[self.label])
+    outputDict['dims'] = inputDict['target']['dims']
+
     return outputDict
 
-  def collectOutput(self, finishedJob, output):
+  def collectOutput(self, finishedJob, output, options=None):
     """
-      Method to place all of the computed data into output object
-      @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor
-      @ In, output, object, the object where we want to place our computed results
+      Function to place all of the computed data into the output object
+      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
+      @ In, output, dataObjects, The object where we want to place our computed results
+      @ In, options, dict, optional, not used in PostProcessor.
+        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    evaluation = finishedJob.getEvaluation()
-    inputObjects, outputDict = evaluation
-
-    if isinstance(output, Files.File):
-      self.raiseAnError(IOError, "Dump results to files is not yet implemented!")
-
-    for inp in inputObjects:
-      if inp.name == outputDict['dataFrom']:
-        inputObject = inp
-        break
-
-    ## Copy any data you need from the input DataObject before adding new data
-    rlzs = inputObject.asDataset(outType='dict')['data']
-    rlzs[self.label] = outputDict[self.label]
-    if output.type == 'PointSet':
-      output.load(rlzs, style='dict')
-    elif output.type == 'HistorySet':
-      if inputObject.type != 'HistorySet':
-        self.raiseAnError(IOError, "Copying the data from input PointSet", inputObject.name, "to output HistorySet", output.name, "is currently not allowed!")
-      output.load(rlzs, style='dict', dims=inputObject.getDimensions())
+    PostProcessor.collectOutput(self, finishedJob, output, options=options)
