@@ -56,22 +56,29 @@ from .PostProcessors import EconomicRatio
 try:
   from .PostProcessors.TopologicalDecomposition import QTopologicalDecomposition
   from .PostProcessors.DataMining import QDataMining
+  renaming = {'QTopologicalDecomposition': 'TopologicalDecomposition',
+              'QDataMining': 'DataMining'}
 except ImportError:
-  pass
+  renaming = {}
 
 __base = 'Model'
 __interFaceDict = {}
 
+
 for classObj in utils.getAllSubclasses(eval(__base)):
   key = classObj.__name__
+  key = renaming.get(key, key) # get alias if provided, else use key
   __interFaceDict[key] = classObj
 
-try:
-  __interFaceDict['TopologicalDecomposition' ] = QTopologicalDecomposition
-  __interFaceDict['DataMining'               ] = QDataMining
-except NameError:
-  ## The correct names should already be used for these classes otherwise
-  pass
+# NOTE the following causes QDataMining to be entered into the __interFaceDict a second time,
+#      which somehow passed the test machines but seg faulted on my machine. I don't think we need
+#      it in there twice, anyway. - talbpaul, 2021-3-11
+# try:
+#   __interFaceDict['TopologicalDecomposition' ] = QTopologicalDecomposition
+#   __interFaceDict['DataMining'               ] = QDataMining
+# except NameError:
+#   ## The correct names should already be used for these classes otherwise
+#   pass
 
 # #here the class methods are called to fill the information about the usage of the classes
 for classType in __interFaceDict.values():
