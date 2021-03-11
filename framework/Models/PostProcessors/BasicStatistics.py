@@ -1307,15 +1307,3 @@ class BasicStatistics(PostProcessor):
       @ Out, None
     """
     PostProcessor.collectOutput(self, finishedJob, output, options=options)
-    evaluation = finishedJob.getEvaluation()
-    outputRealization = evaluation[1]
-    if output.type in ['PointSet','HistorySet']:
-      if self.outputDataset:
-        self.raiseAnError(IOError, "DataSet output is required, but the provided type of DataObject is",output.type)
-      self.raiseADebug('Dumping output in data object named ' + output.name)
-      output.addRealization(outputRealization)
-    elif output.type in ['DataSet']:
-      self.raiseADebug('Dumping output in DataSet named ' + output.name)
-      output.load(outputRealization,style='dataset')
-    else:
-      self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
