@@ -111,6 +111,7 @@ class PostProcessor(Model):
     self.workingDir = ''          # path for working directory
     self.printTag = 'POSTPROCESSOR MODEL'
     self.validDataType = ['PointSet','HistorySet'] # The list of accepted types of DataObject
+    self.outputDataset  = False # True if the user wants to dump the outputs to dataset
 
   def _handleInput(self, paramInput):
     """
