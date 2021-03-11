@@ -200,7 +200,7 @@ class PostProcessor(Model):
     kwargs['forceThreads'] = True
     Model.submit(self,myInput, samplerType, jobHandler,**kwargs)
 
-  def collectOutput(self,finishedjob,output,options=None):
+  def collectOutput(self,finishedJob,output,options=None):
     """
       Method that collects the outputs from the "run" method of the PostProcessor
       @ In, finishedJob, InternalRunner object, instance of the run just finished
