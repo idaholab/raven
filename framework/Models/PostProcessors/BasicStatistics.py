@@ -145,6 +145,7 @@ class BasicStatistics(PostProcessor):
     self.multipleFeatures = True # True if multiple features are employed in linear regression as feature inputs
     self.sampleSize     = None # number of sample size
     self.calculations   = {}
+    self.validDataType  = ['PointSet', 'HistorySet', 'DataSet'] # The list of accepted types of DataObject
 
   def inputToInternal(self, currentInp):
     """
@@ -1296,13 +1297,16 @@ class BasicStatistics(PostProcessor):
     outputSet = self.__runLocal(inputData)
     return outputSet
 
-  def collectOutput(self, finishedJob, output):
+  def collectOutput(self, finishedJob, output, options=None):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
       @ In, output, dataObjects, The object where we want to place our computed results
+      @ In, options, dict, optional, not used in PostProcessor.
+        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
+    PostProcessor.collectOutput(self, finishedJob, output, options=options)
     evaluation = finishedJob.getEvaluation()
     outputRealization = evaluation[1]
     if output.type in ['PointSet','HistorySet']:

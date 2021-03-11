@@ -109,21 +109,19 @@ class PostProcessor(Model):
     self.action = None            # action
     self.workingDir = ''          # path for working directory
     self.printTag = 'POSTPROCESSOR MODEL'
-
-  # use BaseClass method provideExpectedMetaKeys and addMetaKeys to provide and modify metadata
+    self.validDataType = ['PointSet','HistorySet'] # The list of accepted types of DataObject
 
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the model parameter input.
-      @ In, paramInput, ParameterInput, the already parsed input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
     Model._handleInput(self, paramInput)
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
-      this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
-      after this call the next one will be run
+      Method to initialize the PostProcessor
       @ In, runInfo, dict, it is the run info from the jobHandler
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
@@ -135,12 +133,10 @@ class PostProcessor(Model):
       self.workingDir = runInfo['WorkingDir']
     self.inputCheckInfo = [(inp.name, inp.type) for inp in inputs]
 
-  def createNewInput(self,myInput,samplerType,**kwargs): # --> inputToInternal
+  def createNewInput(self,myInput,samplerType,**kwargs):
     """
-      This function will return a new input to be submitted to the model, it is called by the sampler.
-      here only a PointSet is accepted a local copy of the values is performed.
-      For a PointSet, only the last set of entries is copied
-      The copied values are returned as a dictionary back
+      This function will return a new input to be submitted to the postprocesor.
+      (Not used but required by model base class)
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, is the type of sampler that is calling to generate a new input
       @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
@@ -152,7 +148,7 @@ class PostProcessor(Model):
   def inputToInternal(self, currentInput):
     """
       Method to convert an input object into the internal format that is
-      understandable by this pp.
+      understandable by the PostProcessor.
       @ In, currentInput, object, an object that needs to be converted
       @ Out, inputToInternal, list, list of current inputs
     """
@@ -206,12 +202,15 @@ class PostProcessor(Model):
 
   def collectOutput(self,finishedjob,output,options=None):
     """
-      Method that collects the outputs from the previous run
+      Method that collects the outputs from the "run" method of the PostProcessor
       @ In, finishedJob, InternalRunner object, instance of the run just finished
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
-      @ In, options, dict, optional, dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
+      @ In, options, dict, optional, not used in PostProcessor.
+        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
+    if output.type not in self.validDataType:
+      self.raiseAnError(IOError, 'Output type', str(output.type), 'is not allowed!')
     outputCheckInfo = (output.name, output.type)
     if outputCheckInfo in self.inputCheckInfo:
       self.raiseAnError(IOError, 'DataObject',output.name,'is used as both input and output of', \
@@ -220,15 +219,13 @@ class PostProcessor(Model):
     evaluation = finishedJob.getEvaluation()
     if isinstance(evaluation, Runners.Error):
       self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-
     outputRealization = evaluation[1]
+
     if output.type in ['PointSet','HistorySet']:
       if self.outputDataset:
-        self.raiseAnError(IOError, "DataSet output is required, but the provided type of DataObject is",output.type)
+        self.raiseAnError(IOError, "DataSet output is required, but the provided type of DataObject is", output.type)
       self.raiseADebug('Dumping output in data object named ' + output.name)
       output.addRealization(outputRealization)
     elif output.type in ['DataSet']:
       self.raiseADebug('Dumping output in DataSet named ' + output.name)
       output.load(outputRealization,style='dataset')
-    else:
-      self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
