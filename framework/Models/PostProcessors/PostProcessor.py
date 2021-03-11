@@ -116,6 +116,8 @@ class PostProcessor(Model):
     ## collect the PostProcessor returned outputs. DataObject.addRealization is used to
     ## collect single realization, while DataObject.load is used to collect multiple realizations
     ## However, the DataObject.load can not be directly used to collect single realization
+    ## One possible solution is all postpocessors return a list of realizations, and we only
+    ## use addRealization method to add the collections into the DataObjects
     self.outputMultipleRealizations = False
 
   def _handleInput(self, paramInput):

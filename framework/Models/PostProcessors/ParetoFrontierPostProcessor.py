@@ -44,6 +44,8 @@ class ParetoFrontier(PostProcessor):
     self.costLimit  = None   # variable associated with the upper limit of the cost dimension
     self.invCost    = False  # variable which indicates if the cost dimension is inverted (e.g., it represents savings rather than costs)
     self.invValue   = False  # variable which indicates if the value dimension is inverted (e.g., it represents a lost value rather than value)
+    self.validDataType = ['PointSet'] # The list of accepted types of DataObject
+    self.outputMultipleRealizations = True # True indicate multiple realizations are returned
 
   @classmethod
   def getInputSpecification(cls):
@@ -164,22 +166,13 @@ class ParetoFrontier(PostProcessor):
 
     return paretoFrontierDict
 
-  def collectOutput(self, finishedJob, output):
+  def collectOutput(self, finishedJob, output, options=None):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, DataObject.DataObject, The object where we want to place our computed results
+      @ In, output, dataObjects, The object where we want to place our computed results
+      @ In, options, dict, optional, not used in PostProcessor.
+        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    evaluation = finishedJob.getEvaluation()
-
-    outputDict ={}
-    outputDict['data'] = evaluation[1]
-
-    if output.type in ['PointSet']:
-      outputDict['dims'] = {}
-      for key in outputDict.keys():
-        outputDict['dims'][key] = []
-      output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
-    else:
-        self.raiseAnError(RuntimeError, 'ParetoFrontier failed: Output type ' + str(output.type) + ' is not supported.')
+    PostProcessor.collectOutput(self, finishedJob, output, options=options)

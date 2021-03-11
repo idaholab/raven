@@ -57,6 +57,8 @@ class RealizationAverager(PostProcessor):
     PostProcessor.__init__(self, runInfoDict)
     self.dynamic = True # from base class, indicates time-dependence is handled internally
     self.targets = None # string, variables to apply postprocessor to
+    self.validDataType = ['DataSet'] # The list of accepted types of DataObject
+    self.outputMultipleRealizations = True # True indicate multiple realizations are returned
 
   def _handleInput(self, paramInput):
     """
@@ -102,15 +104,13 @@ class RealizationAverager(PostProcessor):
     averaged['RAVEN_sample_ID'] = [0]
     return averaged
 
-
-  def collectOutput(self, finishedJob, output):
+  def collectOutput(self, finishedJob, output, options=None):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, DataObject.DataObject, The object where we want to place our computed results
+      @ In, output, dataObjects, The object where we want to place our computed results
+      @ In, options, dict, optional, not used in PostProcessor.
+        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    evaluation = finishedJob.getEvaluation()
-    result = evaluation[1]
-    self.raiseADebug('Sending output to DataSet "{name}"'.format(name=output.name))
-    output.load(result, style='dataset')
+    PostProcessor.collectOutput(self, finishedJob, output, options=options)
