@@ -185,7 +185,11 @@ class ParetoFrontier(PostProcessor):
     if self.invValue:
       selection[self.valueID] = (-1.) * selection[self.valueID]
     '''
-    
+    for obj in self.objectives.keys():
+      if 'upperLimit' in self.objectives[obj].keys():
+        selection = selection.where(selection[obj]<=self.objectives[obj]['upperLimit'])
+      if 'lowerLimit' in self.objectives[obj].keys():
+        selection = selection.where(selection[obj]>=self.objectives[obj]['lowerLimit'])    
     '''
     if self.valueLimit is not None:
       if self.valueLimitType=="upper":
@@ -202,7 +206,7 @@ class ParetoFrontier(PostProcessor):
     filteredParetoFrontier = selection.to_array().values
     paretoFrontierData = np.transpose(filteredParetoFrontier)
     paretoFrontierDict = {}
-    for index,varID in enumerate(sortedData.data_vars):
+    for index,varID in enumerate(data.data_vars):
       paretoFrontierDict[varID] = paretoFrontierData[:,index]
 
     return paretoFrontierDict
