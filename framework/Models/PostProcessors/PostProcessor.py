@@ -110,8 +110,13 @@ class PostProcessor(Model):
     self.action = None            # action
     self.workingDir = ''          # path for working directory
     self.printTag = 'POSTPROCESSOR MODEL'
-    self.validDataType = ['PointSet','HistorySet'] # The list of accepted types of DataObject
     self.outputDataset  = False # True if the user wants to dump the outputs to dataset
+    self.validDataType = ['PointSet','HistorySet'] # The list of accepted types of DataObject
+    ## Currently, we have used both DataObject.addRealization and DataObject.load to
+    ## collect the PostProcessor returned outputs. DataObject.addRealization is used to
+    ## collect single realization, while DataObject.load is used to collect multiple realizations
+    ## However, the DataObject.load can not be directly used to collect single realization
+    self.outputMultipleRealizations = False
 
   def _handleInput(self, paramInput):
     """
@@ -227,7 +232,14 @@ class PostProcessor(Model):
       if self.outputDataset:
         self.raiseAnError(IOError, "DataSet output is required, but the provided type of DataObject is", output.type)
       self.raiseADebug('Dumping output in data object named ' + output.name)
-      output.addRealization(outputRealization)
+      if self.outputMultipleRealizations:
+        if 'dims' in outputRealization:
+          dims = outputRealization.pop('dims')
+        else:
+          dims = {}
+        output.load(outputRealization, style='dict', dims=dims)
+      else:
+        output.addRealization(outputRealization)
     elif output.type in ['DataSet']:
       self.raiseADebug('Dumping output in DataSet named ' + output.name)
-      output.load(outputRealization,style='dataset')
+      output.load(outputRealization, style='dataset')

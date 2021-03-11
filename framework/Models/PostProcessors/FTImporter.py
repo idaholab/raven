@@ -63,6 +63,11 @@ class FTImporter(PostProcessor):
     self.FTFormat = None # chosen format of the FT file
     self.topEventID = None
     self.validDataType = ['PointSet'] # The list of accepted types of DataObject
+    ## Currently, we have used both DataObject.addRealization and DataObject.load to
+    ## collect the PostProcessor returned outputs. DataObject.addRealization is used to
+    ## collect single realization, while DataObject.load is used to collect multiple realizations
+    ## However, the DataObject.load can not be directly used to collect single realization
+    self.outputMultipleRealizations = True
 
   def initialize(self, runInfo, inputs, initDict) :
     """

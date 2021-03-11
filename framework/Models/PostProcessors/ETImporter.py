@@ -53,7 +53,11 @@ class ETImporter(PostProcessor):
     self.fileFormat = None # chosen format of the ET file
     self.allowedFormats = ['OpenPSA'] # ET formats that are supported
     self.validDataType = ['PointSet'] # The list of accepted types of DataObject
-
+    ## Currently, we have used both DataObject.addRealization and DataObject.load to
+    ## collect the PostProcessor returned outputs. DataObject.addRealization is used to
+    ## collect single realization, while DataObject.load is used to collect multiple realizations
+    ## However, the DataObject.load can not be directly used to collect single realization
+    self.outputMultipleRealizations = True
 
   @classmethod
   def getInputSpecification(cls):
