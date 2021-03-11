@@ -236,10 +236,11 @@ class PostProcessor(Model):
       self.raiseADebug('Dumping output in data object named ' + output.name)
       if self.outputMultipleRealizations:
         if 'dims' in outputRealization:
-          dims = outputRealization.pop('dims')
+          dims = outputRealization['dims']
         else:
           dims = {}
-        output.load(outputRealization, style='dict', dims=dims)
+        print(outputRealization.keys())
+        output.load(outputRealization['data'], style='dict', dims=dims)
       else:
         output.addRealization(outputRealization)
     elif output.type in ['DataSet']:

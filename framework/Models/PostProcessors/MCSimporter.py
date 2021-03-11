@@ -144,7 +144,7 @@ class MCSImporter(PostProcessor):
       for be in mcs:
         mcsPointSet[be][counter] = 1.0
       counter = counter+1
-
+    mcsPointSet = {'data': mcsPointSet, 'dims': {}}
     return mcsPointSet
 
   def collectOutput(self, finishedJob, output, options=None):

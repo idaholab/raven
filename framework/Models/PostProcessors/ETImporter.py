@@ -106,6 +106,7 @@ class ETImporter(PostProcessor):
     """
     eventTreeModel = ETStructure(self.expand, inputs)
     outputDict, variables = eventTreeModel.returnDict()
+    outputDict = {'data': outputDict, 'dims':{}}
     return outputDict
 
   def collectOutput(self, finishedJob, output, options=None):

@@ -95,10 +95,12 @@ class FTImporter(PostProcessor):
     """
       This method executes the postprocessor action.
       @ In,  inputs, list, list of file objects
-      @ Out, out, dict, dict containing the processed FT
+      @ Out, outputDict, dict, dict containing the processed FT
     """
     faultTreeModel = FTStructure(inputs, self.topEventID)
-    return faultTreeModel.returnDict()
+    outputDict = faultTreeModel.returnDict()
+    outputDict = {'data': outputDict, 'dims':{}}
+    return outputDict
 
   def collectOutput(self, finishedJob, output, options=None):
     """

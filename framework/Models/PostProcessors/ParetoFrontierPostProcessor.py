@@ -163,7 +163,7 @@ class ParetoFrontier(PostProcessor):
     paretoFrontierDict = {}
     for index,varID in enumerate(sortedData.data_vars):
       paretoFrontierDict[varID] = paretoFrontierData[:,index]
-
+    paretoFrontierDict = {'data':paretoFrontierDict, 'dims':{}}
     return paretoFrontierDict
 
   def collectOutput(self, finishedJob, output, options=None):

@@ -220,8 +220,7 @@ class DataClassifier(PostProcessor):
       else:
         outputDict[self.label].append(np.asarray([label]*targetDict['historySizes'][i]))
     outputDict[self.label] = np.asarray(outputDict[self.label])
-    outputDict['dims'] = inputDict['target']['dims']
-
+    outputDict = {'data': outputDict, 'dims':inputDict['target']['dims']}
     return outputDict
 
   def collectOutput(self, finishedJob, output, options=None):
