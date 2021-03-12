@@ -19,6 +19,7 @@
 
 from .Fourier import Fourier
 from .ARMA import ARMA
+from .Wavelet import Wavelet
 
 # This machinery will automatically populate the "knownTypes" given the
 # imports defined above.
@@ -27,6 +28,7 @@ __interFaceDict = {}
 
 __interFaceDict['fourier'] = Fourier
 __interFaceDict['arma'] = ARMA
+__interFaceDict['wavelet'] = Wavelet
 
 def knownTypes():
   """

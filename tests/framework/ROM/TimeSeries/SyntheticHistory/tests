@@ -41,4 +41,20 @@
       zero_threshold = 1e-3
     [../]
   [../]
+
+  [./Wavelet]
+    type = 'RavenFramework'
+    input = 'wavelet.xml'
+    required_libraries = 'pywavelets'
+    [./csv]
+      type = OrderedCSV
+      output = 'Wavelet/samples_0.csv Wavelet/samples_1.csv'
+      rel_err = 2e-1
+    [../]
+    [./xml]
+      type = XML
+      output = 'Wavelet/romMeta.xml'
+      rel_err = 1e-6
+    [../]
+  [../]
 []

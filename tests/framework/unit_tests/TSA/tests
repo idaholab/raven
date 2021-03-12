@@ -3,8 +3,13 @@
     type = 'RavenPython'
     input = 'testFourier.py'
   [../]
-  [./LinearRegression]
+  [./PolynomialRegression]
     type = 'RavenPython'
     input = 'testPolynomialRegression.py'
+  [../]
+  [./Wavelet]
+    type = 'RavenPython'
+    input = 'testWavelet.py'
+    required_libraries = 'pywavelets'
   [../]
 []

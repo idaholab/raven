@@ -25,10 +25,7 @@ import time
 import abc
 import os
 import sys
-if sys.version_info.major > 2:
-  import pickle
-else:
-  import cPickle as pickle
+import pickle
 import copy
 import numpy as np
 #import pickle as cloudpickle
@@ -43,6 +40,7 @@ from utils import InputData, InputTypes
 import Models
 from OutStreams import OutStreamBase
 from DataObjects import DataObject
+from Databases import Database
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -465,10 +463,11 @@ class SingleRun(Step):
     self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(
       inDictionary['Model'].type,inDictionary['Model'].name))
 
-    #HDF5 initialization
+    #Database initialization
     for i in range(len(inDictionary['Output'])):
       #if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
-      if 'HDF5' in inDictionary['Output'][i].type:
+      # if 'Database' in inDictionary['Output'][i].type:
+      if isinstance(inDictionary['Output'][i], Database):
         inDictionary['Output'][i].initialize(self.name)
       elif isinstance(inDictionary['Output'][i], OutStreamBase):
         inDictionary['Output'][i].initialize(inDictionary)
@@ -773,11 +772,11 @@ class MultiRun(SingleRun):
       @ In, sampler, Sampler, the sampler in charge of generating the sample
       @ In, model, Model, the model in charge of evaluating the sample
       @ In, inputs, object, the raven object used as the input in this step
-        (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
+        (i.e., a DataObject, File, or Database, I guess? Maybe these should all
         inherit from some base "Data" so that we can ensure a consistent
         interface for these?)
       @ In, outputs, object, the raven object used as the output in this step
-        (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
+        (i.e., a DataObject, File, or Database, I guess? Maybe these should all
         inherit from some base "Data" so that we can ensure a consistent
         interface for these?)
       @ In, jobHandler, object, the raven object used to handle jobs
@@ -815,11 +814,11 @@ class MultiRun(SingleRun):
       @ In, sampler, Sampler, the sampler in charge of generating the sample
       @ In, model, Model, the model in charge of evaluating the sample
       @ In, inputs, object, the raven object used as the input in this step
-        (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
+        (i.e., a DataObject, File, or Database, I guess? Maybe these should all
         inherit from some base "Data" so that we can ensure a consistent
         interface for these?)
       @ In, outputs, object, the raven object used as the output in this step
-        (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
+        (i.e., a DataObject, File, or Database, I guess? Maybe these should all
         inherit from some base "Data" so that we can ensure a consistent
         interface for these?)
       @ In, jobHandler, object, the raven object used to handle jobs
@@ -961,30 +960,30 @@ class IOStep(Step):
       self.raiseAnError(IOError,'In Step named ' + self.name + \
           ', the number of Inputs != number of Outputs, and there are Outputs. '+\
           'Inputs: %i Outputs: %i'%(len(inDictionary['Input']),len(outputs)) )
-    #determine if this is a DATAS->HDF5, HDF5->DATAS or both.
+    #determine if this is a DATAS->Database, Database->DATAS or both.
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
-      # from HDF5 to ...
-      if inDictionary['Input'][i].type == 'HDF5':
+      # from Database to ...
+      if isinstance(inDictionary['Input'][i], Database):
         ## ... dataobject
         if isinstance(outputs[i], DataObject.DataObject):
-          self.actionType.append('HDF5-dataObjects')
+          self.actionType.append('Database-dataObjects')
         ## ... anything else
         else:
           self.raiseAnError(IOError,errTemplate.format(name = self.name,
-                                                       inp = 'HDF5',
+                                                       inp = 'Database',
                                                        okay = 'DataObjects',
                                                        received = inDictionary['Output'][i].type))
       # from DataObject to ...
       elif  isinstance(inDictionary['Input'][i], DataObject.DataObject):
-        ## ... HDF5
-        if outputs[i].type == 'HDF5':
-          self.actionType.append('dataObjects-HDF5')
+        ## ... Database
+        if isinstance(outputs[i], Database):
+          self.actionType.append('dataObjects-Database')
         ## ... anything else
         else:
           self.raiseAnError(IOError,errTemplate.format(name = self.name,
                                                        inp = 'DataObjects',
-                                                       okay = 'HDF5',
+                                                       okay = 'Database',
                                                        received = inDictionary['Output'][i].type))
       # from ROM model to ...
       elif isinstance(inDictionary['Input'][i], Models.ROM):
@@ -1019,15 +1018,15 @@ class IOStep(Step):
         self.raiseAnError(IOError,
                           'In Step "{name}": This step accepts only {okay} as Input. Received "{received}" instead!'
                           .format(name = self.name,
-                                  okay = 'HDF5, DataObjects, ROM, or Files',
+                                  okay = 'Database, DataObjects, ROM, or Files',
                                   received = inDictionary['Input'][i].type))
     # check actionType for fromDirectory
     if self.fromDirectory and len(self.actionType) == 0:
       self.raiseAnError(IOError,'In Step named ' + self.name + '. "fromDirectory" attribute provided but not conversion action is found (remove this atttribute for OutStream actions only"')
-    #Initialize all the HDF5 outputs.
+    #Initialize all the Database outputs.
     for i in range(len(outputs)):
       #if type(outputs[i]).__name__ not in ['str','bytes','unicode']:
-      if 'HDF5' in inDictionary['Output'][i].type:
+      if isinstance(inDictionary['Output'][i], Database):
         if outputs[i].name not in databases:
           databases.add(outputs[i].name)
           outputs[i].initialize(self.name)
@@ -1057,21 +1056,12 @@ class IOStep(Step):
     """
     outputs = self.__getOutputs(inDictionary)
     for i in range(len(outputs)):
-      if self.actionType[i] == 'HDF5-dataObjects':
-        #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
-        ## read the HDF5 into a data object
-        allRealizations = inDictionary['Input'][i].allRealizations()
-        ## TODO convert to load function when it can handle unstructured multiple realizations
-        for rlz in allRealizations:
-          outputs[i].addRealization(rlz)
-      elif self.actionType[i] == 'dataObjects-HDF5':
-        #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
-        ## write the data object into a HDF5
-        ## TODO convert to load function when it can handle unstructured multiple realizations
-        for rlzNo in range(len(inDictionary['Input'][i])):
-          rlz = inDictionary['Input'][i].realization(rlzNo, unpackXArray=True)
-          rlz = dict((var,np.atleast_1d(val)) for var, val in rlz.items())
-          outputs[i].addRealization(rlz)
+      if self.actionType[i] == 'Database-dataObjects':
+        #inDictionary['Input'][i] is Database, outputs[i] is a DataObjects
+        inDictionary['Input'][i].loadIntoData(outputs[i])
+      elif self.actionType[i] == 'dataObjects-Database':
+        #inDictionary['Input'][i] is a dataObjects, outputs[i] is Database
+        outputs[i].saveDataToFile(inDictionary['Input'][i])
 
       elif self.actionType[i] == 'ROM-dataObjects':
         #inDictionary['Input'][i] is a ROM, outputs[i] is dataObject

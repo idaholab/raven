@@ -525,7 +525,7 @@ below) in the \xmlNode{Input} nodes.
   <IOStep name='PushDataObjectsIntoDatabase'>
     <Input  class='DataObjects'     type='HistorySet'>aHistorySet</Input>
     <Input  class='DataObjects'     type='PointSet'>aTPS</Input>
-    <Output class='Databases' type='HDF5'>aDatabase</Output>
+    <Output class='Databases' type='NetCDF'>aDatabase</Output>
     <Output class='Databases' type='HDF5'>aDatabase</Output>
   </IOStep>
   ...
@@ -538,9 +538,9 @@ A summary of the objects that can go from/to other objects is shown in Table \re
   \centering
   \begin{tabular}{l|l|l}
     \xmlNode{Input} & \xmlNode{Output} & Resulting behavior  \\ \hline
-    DataObject & HDF5       & Store to On-Disk Database      \\
+    DataObject & Database   & Store to On-Disk Database      \\
                & OutStream  & Print or Plot Data             \\ \hline
-    HDF5       & DataObject & Load from On-Disk Database     \\ \hline
+    Database   & DataObject & Load from On-Disk Database     \\ \hline
     File       & DataObject & Load from On-Disk CSV          \\
                & ROM        & Load On-Disk Serialized ROM    \\ \hline
     ROM        & DataObject & Print ROM Metadata to CSV, XML \\

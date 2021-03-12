@@ -180,8 +180,8 @@ class Simulation(MessageHandler.MessageUser):
      The module should possess a function <MyModule>.returnInstance('<myType>',caller) that returns a pointer to the class <myType>.
     Add in Simulation.__init__ the following
      self.<myClass>Dict = {}
-     self.addWhatDict['<myClass>'] = <MyModule>
-     self.whichDict['<myClass>'  ] = self.<myClass>+'Dict'
+     self.entityModules['<myClass>'] = <MyModule>
+     self.entities['<myClass>'  ] = self.<myClass>+'Dict'
     The XML describing the new entity should be organized as it follows:
      <MyModule (camelback with first letter capital)>
        <MyType (camelback with first letter capital) name='here a user given name' subType='here additional specialization'>
@@ -284,34 +284,34 @@ class Simulation(MessageHandler.MessageUser):
 
     #this dictionary contain the static factory that return the instance of one of the allowed entities in the simulation
     #the keywords are the name of the module that contains the specialization of that specific entity
-    self.addWhatDict  = {}
-    self.addWhatDict['Steps'            ] = Steps
-    self.addWhatDict['DataObjects'      ] = DataObjects
-    self.addWhatDict['Samplers'         ] = Samplers
-    self.addWhatDict['Optimizers'       ] = Optimizers
-    self.addWhatDict['Models'           ] = Models
-    self.addWhatDict['Distributions'    ] = Distributions
-    self.addWhatDict['Databases'        ] = Databases
-    self.addWhatDict['Functions'        ] = Functions
-    self.addWhatDict['Files'            ] = Files
-    self.addWhatDict['Metrics'          ] = Metrics
-    self.addWhatDict['OutStreams'       ] = OutStreams
+    self.entityModules  = {}
+    self.entityModules['Steps'            ] = Steps
+    self.entityModules['DataObjects'      ] = DataObjects
+    self.entityModules['Samplers'         ] = Samplers
+    self.entityModules['Optimizers'       ] = Optimizers
+    self.entityModules['Models'           ] = Models
+    self.entityModules['Distributions'    ] = Distributions
+    self.entityModules['Databases'        ] = Databases
+    self.entityModules['Functions'        ] = Functions
+    self.entityModules['Files'            ] = Files
+    self.entityModules['Metrics'          ] = Metrics
+    self.entityModules['OutStreams'       ] = OutStreams
 
 
     #Mapping between an entity type and the dictionary containing the instances for the simulation
-    self.whichDict = {}
-    self.whichDict['Steps'           ] = self.stepsDict
-    self.whichDict['DataObjects'     ] = self.dataDict
-    self.whichDict['Samplers'        ] = self.samplersDict
-    self.whichDict['Optimizers'      ] = self.samplersDict
-    self.whichDict['Models'          ] = self.modelsDict
-    self.whichDict['RunInfo'         ] = self.runInfoDict
-    self.whichDict['Files'           ] = self.filesDict
-    self.whichDict['Distributions'   ] = self.distributionsDict
-    self.whichDict['Databases'       ] = self.dataBasesDict
-    self.whichDict['Functions'       ] = self.functionsDict
-    self.whichDict['Metrics'         ] = self.metricsDict
-    self.whichDict['OutStreams'      ] = self.outStreamsDict
+    self.entities = {}
+    self.entities['Steps'           ] = self.stepsDict
+    self.entities['DataObjects'     ] = self.dataDict
+    self.entities['Samplers'        ] = self.samplersDict
+    self.entities['Optimizers'      ] = self.samplersDict
+    self.entities['Models'          ] = self.modelsDict
+    self.entities['RunInfo'         ] = self.runInfoDict
+    self.entities['Files'           ] = self.filesDict
+    self.entities['Distributions'   ] = self.distributionsDict
+    self.entities['Databases'       ] = self.dataBasesDict
+    self.entities['Functions'       ] = self.functionsDict
+    self.entities['Metrics'         ] = self.metricsDict
+    self.entities['OutStreams'      ] = self.outStreamsDict
 
     # The QApplication
     ## The benefit of this enumerated type is that anything other than
@@ -422,47 +422,50 @@ class Simulation(MessageHandler.MessageUser):
     for child in xmlNode:
       if child.tag == 'VariableGroups':
         continue #we did these before the for loop
-      if child.tag in self.whichDict:
+      if child.tag in self.entities:
         self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag
         if len(child.attrib) == 0:
           globalAttributes = {}
         else:
           globalAttributes = child.attrib
-        if Class not in ['RunInfo'] and "returnInputParameter" in self.addWhatDict[Class].__dict__:
-          paramInput = self.addWhatDict[Class].returnInputParameter()
+        if Class not in ['RunInfo'] and "returnInputParameter" in self.entityModules[Class].__dict__:
+          paramInput = self.entityModules[Class].returnInputParameter()
           paramInput.parseNode(child)
           for childChild in paramInput.subparts:
             childName = childChild.getName()
             if "name" not in childChild.parameterValues:
               self.raiseAnError(IOError,'not found name attribute for '+childName +' in '+Class)
             name = childChild.parameterValues["name"]
-            if "needsRunInfo" in self.addWhatDict[Class].__dict__:
-              self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childName,self.runInfoDict,self)
+            if "needsRunInfo" in self.entityModules[Class].__dict__:
+              self.entities[Class][name] = self.entityModules[Class].returnInstance(childName,self.runInfoDict,self)
             else:
-              self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childName,self)
-            self.whichDict[Class][name].handleInput(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
+              self.entities[Class][name] = self.entityModules[Class].returnInstance(childName,self)
+            self.entities[Class][name].handleInput(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
         elif Class != 'RunInfo':
           for childChild in child:
             subType = childChild.tag
             if 'name' in childChild.attrib.keys():
               name = childChild.attrib['name']
               self.raiseADebug('Reading type '+str(childChild.tag)+' with name '+name)
-              #place the instance in the proper dictionary (self.whichDict[Type]) under his name as key,
+              #place the instance in the proper dictionary (self.entities[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
-              #if name not in self.whichDict[Class].keys():  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
-              if name not in self.whichDict[Class]:
-                if "needsRunInfo" in self.addWhatDict[Class].__dict__:
-                  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self.runInfoDict,self)
+              #if name not in self.entities[Class].keys():  self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self)
+              if name not in self.entities[Class]:
+                if "needsRunInfo" in self.entityModules[Class].__dict__:
+                  if childChild.tag == 'PostProcessor':
+                    self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.attrib['subType'],self.runInfoDict,self)
+                  else:
+                    self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self.runInfoDict,self)
                 else:
-                  self.whichDict[Class][name] = self.addWhatDict[Class].returnInstance(childChild.tag,self)
+                  self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self)
               else:
                 self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
-              self.whichDict[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
+              self.entities[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
             else:
               self.raiseAnError(IOError,'not found name attribute for one "{}": {}'.format(Class,subType))
       else:
-        #tag not in whichDict, check if it's a documentation tag
+        #tag not in entities, check if it's a documentation tag
         if child.tag not in ['TestInfo']:
           self.raiseAnError(IOError,'<'+child.tag+'> is not among the known simulation components '+repr(child))
     # If requested, duplicate input
@@ -522,19 +525,19 @@ class Simulation(MessageHandler.MessageUser):
       @ Out, None
     """
     for [role, myClass, objectType, name] in stepInstance.parList:
-      if myClass != 'Step' and myClass not in list(self.whichDict.keys()):
+      if myClass != 'Step' and myClass not in list(self.entities.keys()):
         self.raiseAnError(IOError, f'For step named "{stepName}" the role "{role}" has been ' +
                                    f'assigned to an unknown class type "{myClass}"!')
-      if name not in self.whichDict[myClass]:
+      if name not in self.entities[myClass]:
         self.raiseADebug('name:',name)
         self.raiseADebug('myClass:',myClass)
-        self.raiseADebug('list:',list(self.whichDict[myClass].keys()))
-        self.raiseADebug('whichDict[myClass]',self.whichDict[myClass])
+        self.raiseADebug('list:',list(self.entities[myClass].keys()))
+        self.raiseADebug('entities[myClass]',self.entities[myClass])
         self.raiseAnError(IOError, f'In step "{stepName}" the class "{myClass}" named "{name}" ' +
                           f'supposed to be used for the role "{role}" has not been found!')
       if myClass != 'Files':
         # check if object type is consistent
-        objtype = self.whichDict[myClass][name].type
+        objtype = self.entities[myClass][name].type
 
   def __readRunInfo(self,xmlNode,runInfoSkip,xmlFilename):
     """
@@ -700,8 +703,8 @@ class Simulation(MessageHandler.MessageUser):
     msg=__prntDict(self.filesDict,msg)
     msg=__prntDict(self.dataBasesDict,msg)
     msg=__prntDict(self.outStreamsDict,msg)
-    msg=__prntDict(self.addWhatDict,msg)
-    msg=__prntDict(self.whichDict,msg)
+    msg=__prntDict(self.entityModules,msg)
+    msg=__prntDict(self.entities,msg)
     self.raiseADebug(msg)
 
   def run(self):
@@ -732,9 +735,9 @@ class Simulation(MessageHandler.MessageUser):
       for [key,b,c,d] in stepInstance.parList:
         #Only for input and output we allow more than one object passed to the step, so for those we build a list
         if key == 'Input' or key == 'Output':
-          stepInputDict[key].append(self.whichDict[b][d])
+          stepInputDict[key].append(self.entities[b][d])
         else:
-          stepInputDict[key] = self.whichDict[b][d]
+          stepInputDict[key] = self.entities[b][d]
       #add the global objects
       stepInputDict['jobHandler'] = self.jobHandler
       #generate the needed assembler to send to the step
@@ -773,26 +776,26 @@ class Simulation(MessageHandler.MessageUser):
       neededobjs    = {}
       neededObjects = objectInstance.whatDoINeed()
       for mainClassStr in neededObjects.keys():
-        if mainClassStr not in self.whichDict.keys() and mainClassStr != 'internal':
+        if mainClassStr not in self.entities.keys() and mainClassStr != 'internal':
           self.raiseAnError(IOError,'Main Class '+mainClassStr+' needed by '+stp.name + ' unknown!')
         neededobjs[mainClassStr] = {}
         for obj in neededObjects[mainClassStr]:
           if obj[1] in vars(self):
             neededobjs[mainClassStr][obj[1]] = vars(self)[obj[1]]
-          elif obj[1] in self.whichDict[mainClassStr].keys():
+          elif obj[1] in self.entities[mainClassStr].keys():
             if obj[0]:
-              if obj[0] not in self.whichDict[mainClassStr][obj[1]].type:
-                self.raiseAnError(IOError,'Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.whichDict[mainClassStr][obj[1]].type)
-            neededobjs[mainClassStr][obj[1]] = self.whichDict[mainClassStr][obj[1]]
+              if obj[0] not in self.entities[mainClassStr][obj[1]].type:
+                self.raiseAnError(IOError,'Type of requested object '+obj[1]+' does not match the actual type!'+ obj[0] + ' != ' + self.entities[mainClassStr][obj[1]].type)
+            neededobjs[mainClassStr][obj[1]] = self.entities[mainClassStr][obj[1]]
             self.generateAllAssemblers(neededobjs[mainClassStr][obj[1]])
           elif obj[1] in 'all':
             # if 'all' we get all the objects of a certain 'mainClassStr'
-            for allObject in self.whichDict[mainClassStr]:
-              neededobjs[mainClassStr][allObject] = self.whichDict[mainClassStr][allObject]
+            for allObject in self.entities[mainClassStr]:
+              neededobjs[mainClassStr][allObject] = self.entities[mainClassStr][allObject]
           else:
             self.raiseAnError(IOError,'Requested object <{n}> is not part of the Main Class <{m}>!'
                                       .format(n=obj[1], m=mainClassStr) +
-                                      '\nOptions are:', self.whichDict[mainClassStr].keys())
+                                      '\nOptions are:', self.entities[mainClassStr].keys())
       objectInstance.generateAssembler(neededobjs)
 
   def clearStatusFile(self):
