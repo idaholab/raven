@@ -22,7 +22,7 @@ import numpy as np
 
 
 
-def nonDominatedFrontier(data, returnMask):
+def nonDominatedFrontier(data, returnMask, minMask=None):
   """
     This method is designed to identify the set of non-dominated points (nEfficientPoints)
 
@@ -38,11 +38,19 @@ def nonDominatedFrontier(data, returnMask):
 
     @ In, data, np.array, data matrix (nPoints, nCosts) containing the data points
     @ In, returnMask, bool, type of data to be returned: indices (False) or True/False mask (True)
+    @ Out, minMask, np.array, array (nCosts,1) of boolean values: True (dimension need to be minimized), False (dimension need to be maximized)  
     @ Out, isEfficientMask , np.array, data matrix (nPoints,1), array  of boolean values if returnMask=True
     @ Out, isEfficient, np.array, data matrix (nEfficientPoints,1), integer array of indexes if returnMask=False
 
     Reference: the following code has been adapted from https://stackoverflow.com/questions/32791911/fast-calculation-of-pareto-front-in-python
   """
+  if minMask is not None and minMask.shape[0] != data.shape[1]:
+    raise IOError("nonDominatedFrontier method: minMask has shape " + str(data.shape) + " while minMask has shape " + str(minMask.shape))
+  else:
+    for index,elem in np.ndenumerate(minMask):
+      if not elem:
+        data[:,index] = -1. * data[:,index]
+  
   isEfficient = np.arange(data.shape[0])
   nPoints = data.shape[0]
   nextPointIndex = 0
