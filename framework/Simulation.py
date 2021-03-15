@@ -296,7 +296,12 @@ class Simulation(MessageHandler.MessageUser):
     self.entityModules['Files'            ] = Files
     self.entityModules['Metrics'          ] = Metrics
     self.entityModules['OutStreams'       ] = OutStreams
-
+    # register plugins
+    # -> only don't actually load them, because we want to lazy load if at all possible
+    # -> instead, we just provide the pointer to the plugins dicts
+    for name, module in self.entityModules.items():
+      if hasattr(module, 'setPluginFactory'):
+        module.setPluginFactory(PluginFactory)
 
     #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.entities = {}
@@ -430,7 +435,7 @@ class Simulation(MessageHandler.MessageUser):
           globalAttributes = {}
         else:
           globalAttributes = child.attrib
-        if Class not in ['RunInfo'] and "returnInputParameter" in self.entityModules[Class].__dict__:
+        if Class not in ['RunInfo'] and self.entityModules[Class].factory.returnInputParameter:
           paramInput = self.entityModules[Class].returnInputParameter()
           paramInput.parseNode(child)
           for childChild in paramInput.subparts:
@@ -438,10 +443,7 @@ class Simulation(MessageHandler.MessageUser):
             if "name" not in childChild.parameterValues:
               self.raiseAnError(IOError,'not found name attribute for '+childName +' in '+Class)
             name = childChild.parameterValues["name"]
-            if "needsRunInfo" in self.entityModules[Class].__dict__:
-              self.entities[Class][name] = self.entityModules[Class].returnInstance(childName,self.runInfoDict,self)
-            else:
-              self.entities[Class][name] = self.entityModules[Class].returnInstance(childName,self)
+            self.entities[Class][name] = self.entityModules[Class].factory.returnInstance(childName, self.runInfoDict, self)
             self.entities[Class][name].handleInput(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
         elif Class != 'RunInfo':
           for childChild in child:
@@ -453,13 +455,11 @@ class Simulation(MessageHandler.MessageUser):
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               #if name not in self.entities[Class].keys():  self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self)
               if name not in self.entities[Class]:
-                if "needsRunInfo" in self.entityModules[Class].__dict__:
-                  if childChild.tag == 'PostProcessor':
-                    self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.attrib['subType'],self.runInfoDict,self)
-                  else:
-                    self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self.runInfoDict,self)
+                # postprocessors use subType, so specialize here
+                if childChild.tag == 'PostProcessor':
+                  self.entities[Class][name] = self.entityModules[Class].factory.returnInstance(childChild.attrib['subType'], self.runInfoDict, self)
                 else:
-                  self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self)
+                  self.entities[Class][name] = self.entityModules[Class].factory.returnInstance(childChild.tag, self.runInfoDict, self)
               else:
                 self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
               self.entities[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
