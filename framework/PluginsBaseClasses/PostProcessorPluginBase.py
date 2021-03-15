@@ -22,6 +22,10 @@ import abc
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
+import Files
+from utils import InputData, InputTypes
+from DataObjects import DataObject
+from Databases import Database
 from .PluginBase import PluginBase
 from Models.PostProcessors.PostProcessor import PostProcessor
 #Internal Modules End-----------------------------------------------------------
@@ -38,6 +42,42 @@ class PostProcessorPluginBase(PostProcessor, PluginBase):
   ##################################################
   # Methods for Internal Use
   ##################################################
+  def createNewInput(self,inputObjs,samplerType,**kwargs):
+    """
+      This function is used to convert internal DataObjects to user-friendly format of data.
+      The output from this function will be directly passed to the "run" method.
+      @ In, inputObjs, list, list of DataObjects
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input.
+          Not used for PostProcessor, and "None" is used during "Step" "PostProcess" handling
+      @ In, **kwargs, dict, is a dictionary that contains the information coming from the sampler,
+          a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}.
+          Not used for PostProcessor, and {'SampledVars':{'prefix':'None'}, 'additionalEdits':{}}
+          is used during "Step" "PostProcess" handling
+      @ Out, inputDs, list, list of data set that will be directly used by the "PostProcessor.run" method.
+    """
+    #### TODO: This method probably need to move to PostProcessor Base Class when we have converted
+    #### all internal PostProcessors to use Dataset
+
+    ## Type 1: DataObjects => Dataset
+    ## Type 2: File => File
+    ## Type 3: HDF5 => ?
+    assert type(inputObjs) == list
+    inputDs = []
+    for inp in inputObjs:
+      if isinstance(inp, Files.File):
+        inputDs.append(inp)
+      elif isinstance(inp, DataObject.DataObject):
+        # convert to xarray.Dataset
+        inputDs.append(inp.asDataset())
+      elif isinstance(inp, Database):
+        self.raiseAnError(IOError, "Database", inp.name, "can not be handled directly by this Post Processor")
+      else:
+        self.raiseAnError(IOError, "Unknown input is found", str(inp))
+
+
+  ##################################################
+  # Plugin APIs
+  ##################################################
   def __init__(self, runInfoDict):
     """
       Constructor
@@ -47,26 +87,6 @@ class PostProcessorPluginBase(PostProcessor, PluginBase):
     PluginBase.__init__(self)
     PostProcessor.__init__(self, runInfoDict)
 
-  def createNewInput(self,inputDataObjs,samplerType,**kwargs):
-    """
-      This function is used to convert internal DataObjects to user-friendly format of data.
-      The output from this function will be directly passed to the "run" method.
-      @ In, inputDataObjs, list, list of DataObjects
-      @ In, samplerType, string, is the type of sampler that is calling to generate a new input.
-          Not used for PostProcessor, and "None" is used during "Step" "PostProcess" handling
-      @ In, **kwargs, dict, is a dictionary that contains the information coming from the sampler,
-          a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}.
-          Not used for PostProcessor, and {'SampledVars':{'prefix':'None'}, 'additionalEdits':{}}
-          is used during "Step" "PostProcess" handling
-      @ Out, inputDs, list, list of data set that will be directly used by the "PostProcessor.run" method.
-    """
-    # convert to xarray.Dataset
-    inputDs = [inp.asDataset() for inp in inputDataObjs]
-    return inputDs
-
-  ##################################################
-  # Plugin APIs
-  ##################################################
   @classmethod
   def getInputSpecification(cls):
     """
