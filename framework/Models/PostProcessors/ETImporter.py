@@ -52,6 +52,12 @@ class ETImporter(PostProcessor):
                            # original tree
     self.fileFormat = None # chosen format of the ET file
     self.allowedFormats = ['OpenPSA'] # ET formats that are supported
+    self.validDataType = ['PointSet'] # The list of accepted types of DataObject
+    ## Currently, we have used both DataObject.addRealization and DataObject.load to
+    ## collect the PostProcessor returned outputs. DataObject.addRealization is used to
+    ## collect single realization, while DataObject.load is used to collect multiple realizations
+    ## However, the DataObject.load can not be directly used to collect single realization
+    self.outputMultipleRealizations = True
 
   @classmethod
   def getInputSpecification(cls):
@@ -95,35 +101,21 @@ class ETImporter(PostProcessor):
   def run(self, inputs):
     """
       This method executes the PostProcessor action.
-      @ In,  inputs, list, list of file objects
-      @ Out, None
+      @ In, inputs, list, list of file objects
+      @ Out, outputDict, dict, dictionary of outputs
     """
     eventTreeModel = ETStructure(self.expand, inputs)
-    return eventTreeModel.returnDict()
+    outputDict, variables = eventTreeModel.returnDict()
+    outputDict = {'data': outputDict, 'dims':{}}
+    return outputDict
 
-  def collectOutput(self, finishedJob, output):
+  def collectOutput(self, finishedJob, output, options=None):
     """
       Function to place all of the computed data into the output object, (DataObjects)
       @ In, finishedJob, object, JobHandler object that is in charge of running this PostProcessor
       @ In, output, object, the object where we want to place our computed results
+      @ In, options, dict, optional, not used in PostProcessor.
+        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    evaluation = finishedJob.getEvaluation()
-    outputDict ={}
-    outputDict['data'], variables = evaluation[1]
-    if not set(output.getVars('input')) == set(variables):
-      self.raiseAnError(RuntimeError, ' ETImporter: set of branching variables in the '
-                                      'ET ( ' + str(variables)  + ' ) is not identical to the'
-                                      ' set of input variables specified in the PointSet (' + str(output.getParaKeys('inputs')) +')')
-    # Output to file
-    if set(outputDict['data'].keys()) != set(output.getVars(subset='input')+output.getVars(subset='output')):
-      self.raiseAnError(RuntimeError, 'ETImporter failed: set of variables specified in the output '
-                                      'dataObject (' + str(set(outputDict['data'].keys())) + ') is different from the set of '
-                                      'variables specified in the ET (' + str(set(output.getVars(subset='input')+output.getVars(subset='output'))))
-    if output.type in ['PointSet']:
-      outputDict['dims'] = {}
-      for key in outputDict.keys():
-        outputDict['dims'][key] = []
-      output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
-    else:
-        self.raiseAnError(RuntimeError, 'ETImporter failed: Output type ' + str(output.type) + ' is not supported.')
+    PostProcessor.collectOutput(self, finishedJob, output, options=options)
