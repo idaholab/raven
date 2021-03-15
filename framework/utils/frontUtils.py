@@ -14,7 +14,7 @@
 """
   Repository of utils for non-dominated and Pareto frontier methods
   Created  Feb 18, 2020
-  @authors: Diego Mandelli
+  @authors: Diego Mandelli and Mohammad Abdo
 """
 # External Imports
 import numpy as np
@@ -58,3 +58,30 @@ def nonDominatedFrontier(data, returnMask):
     return isEfficientMask
   else:
     return isEfficient
+
+def rankNonDominatedFrontiers(data):
+  """
+    This method ranks the non dominated fronts by omitting thr first front from the data
+    and searching the remaining data for a new one recursively.
+    @ In, data, np.array, data matrix (nPoints, nObjectives) containing the multi-objective
+                          evaluations of each point/individual, element (i,j)
+                          means jth objective function at the ith point/individual
+    @ out, nonDominatedRank, list, a list of length nPoints that has the ranking
+                                  of the front passing through each point
+  """
+  nonDominatedRank = np.zeros(data.shape[0],dtype=int)
+  rank = 0
+  indicesDominated = list(np.arange(data.shape[0]))
+  indicesNonDominated = []
+  rawData = data
+  while np.shape(data)[0] > 0:
+    rank += 1
+    indicesNonDominated = list(nonDominatedFrontier(data, False))
+    if rank > 1:
+      for i in range(len(indicesNonDominated)):
+        indicesNonDominated[i] = indicesDominated[indicesNonDominated[i]]
+    indicesDominated = list(set(indicesDominated)-set(indicesNonDominated))
+    data = rawData[indicesDominated]
+    nonDominatedRank[indicesNonDominated] = rank
+  nonDominatedRank = list(nonDominatedRank)
+  return nonDominatedRank
