@@ -56,7 +56,7 @@ class ParetoFrontier(PostProcessor):
         specifying input of cls.
     """
     inputSpecification = super(ParetoFrontier, cls).getInputSpecification()
-    
+
     objective = InputData.parameterInputFactory('objective', contentType=InputTypes.StringType)
     objective.addParam('goal',       param_type=InputTypes.StringType, required=True)
     objective.addParam('upperLimit', param_type=InputTypes.FloatType, required=False)
@@ -83,7 +83,7 @@ class ParetoFrontier(PostProcessor):
                                   .format(self.name,child.value,child.parameterValues['goal']))
         if 'upperLimit' in child.parameterValues.keys():
           self.objectives[child.value]['upperLimit'] = child.parameterValues['upperLimit']
-        if 'lowerLimit' in child.parameterValues.keys(): 
+        if 'lowerLimit' in child.parameterValues.keys():
           self.objectives[child.value]['lowerLimit'] = child.parameterValues['lowerLimit']
 
 
@@ -115,9 +115,9 @@ class ParetoFrontier(PostProcessor):
 
     dataTemp = data[list(self.objectives.keys())]
     for index,obj in enumerate(self.objectives.keys()):
-      if self.objectives[obj]['goal']=='max': 
+      if self.objectives[obj]['goal']=='max':
         dataTemp[obj] = (-1.) * dataTemp[obj]
-        
+
     paretoFrontMask = frontUtils.nonDominatedFrontier(np.transpose(dataTemp.to_array().values), returnMask=False)
     selection = data.isel(RAVEN_sample_ID=np.array(paretoFrontMask))
 
