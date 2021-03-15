@@ -422,6 +422,7 @@ class Simulation(MessageHandler.MessageUser):
     for child in xmlNode:
       if child.tag == 'VariableGroups':
         continue #we did these before the for loop
+      xmlUtils.replaceVariableGroups(child, varGroups)
       if child.tag in self.entities:
         self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
         Class = child.tag

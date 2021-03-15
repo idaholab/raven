@@ -85,6 +85,11 @@ class InterfacedPostProcessor(PostProcessor):
     """
     PostProcessor.__init__(self, runInfoDict)
     self.methodToRun = None
+    ## Currently, we have used both DataObject.addRealization and DataObject.load to
+    ## collect the PostProcessor returned outputs. DataObject.addRealization is used to
+    ## collect single realization, while DataObject.load is used to collect multiple realizations
+    ## However, the DataObject.load can not be directly used to collect single realization
+    self.outputMultipleRealizations = True
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -199,13 +204,13 @@ class InterfacedPostProcessor(PostProcessor):
       form = self.postProcessor.outputFormat
     return form
 
-  def collectOutput(self, finishedJob, output):
+  def collectOutput(self, finishedJob, output, options=None):
     """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
+      Function to place all of the computed data into the output object, (DataObjects)
+      @ In, finishedJob, object, JobHandler object that is in charge of running this PostProcessor
+      @ In, output, object, the object where we want to place our computed results
+      @ In, options, dict, optional, not used in PostProcessor.
+        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    evaluations = finishedJob.getEvaluation()
-    evaluation = evaluations[1]
-    output.load(evaluation['data'], style='dict', dims=evaluation['dims'])
+    PostProcessor.collectOutput(self, finishedJob, output, options=options)

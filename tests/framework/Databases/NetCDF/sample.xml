@@ -24,6 +24,10 @@
     </MultiRun>
   </Steps>
 
+  <VariableGroups>
+    <Group name="GRO_select">c, f</Group>
+  </VariableGroups>
+
   <DataObjects>
     <PointSet name="placeholder"/>
   </DataObjects>
@@ -31,7 +35,7 @@
   <Databases>
     <NetCDF name="all" readMode="overwrite"/>
     <NetCDF name="select" readMode="overwrite">
-      <variables>c, f</variables>
+      <variables>GRO_select</variables>
     </NetCDF>
   </Databases>
 

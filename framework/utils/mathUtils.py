@@ -869,7 +869,7 @@ def readVariableGroups(xmlNode, messageHandler, caller):
     name = child.attrib['name']
     nodes[name] = child
     if child.text is None:
-      needs = []
+      needs = [''] # needs to be an empty string, not simply []
     else:
       needs = [s.strip().strip('-+^%') for s in child.text.split(',')]
     for n in needs:

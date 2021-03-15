@@ -140,11 +140,11 @@ class BasicStatistics(PostProcessor):
     self.sampleTag      = None  # Tag used to track samples
     self.pbPresent      = False # True if the ProbabilityWeight is available
     self.realizationWeight = None # The joint probabilities
-    self.outputDataset  = False # True if the user wants to dump the outputs to dataset
     self.steMetaIndex   = 'targets' # when Dataset is requested as output, the default index of ste metadata is ['targets', self.pivotParameter]
     self.multipleFeatures = True # True if multiple features are employed in linear regression as feature inputs
     self.sampleSize     = None # number of sample size
     self.calculations   = {}
+    self.validDataType  = ['PointSet', 'HistorySet', 'DataSet'] # The list of accepted types of DataObject
 
   def inputToInternal(self, currentInp):
     """
@@ -1296,22 +1296,13 @@ class BasicStatistics(PostProcessor):
     outputSet = self.__runLocal(inputData)
     return outputSet
 
-  def collectOutput(self, finishedJob, output):
+  def collectOutput(self, finishedJob, output, options=None):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
       @ In, output, dataObjects, The object where we want to place our computed results
+      @ In, options, dict, optional, not used in PostProcessor.
+        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    evaluation = finishedJob.getEvaluation()
-    outputRealization = evaluation[1]
-    if output.type in ['PointSet','HistorySet']:
-      if self.outputDataset:
-        self.raiseAnError(IOError, "DataSet output is required, but the provided type of DataObject is",output.type)
-      self.raiseADebug('Dumping output in data object named ' + output.name)
-      output.addRealization(outputRealization)
-    elif output.type in ['DataSet']:
-      self.raiseADebug('Dumping output in DataSet named ' + output.name)
-      output.load(outputRealization,style='dataset')
-    else:
-      self.raiseAnError(IOError, 'Output type ' + str(output.type) + ' unknown.')
+    PostProcessor.collectOutput(self, finishedJob, output, options=options)
