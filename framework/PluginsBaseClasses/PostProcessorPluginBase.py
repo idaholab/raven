@@ -32,11 +32,11 @@ class PostProcessorPluginBase(PostProcessor, PluginBase):
   """
   # List containing the methods that need to be checked in order to assess the
   # validity of a certain plugin. This list needs to be populated by the derived class
-  _methodsToCheck = ['getInputSpecification', 'handlePluginInput', 'initializePlugin', 'runPluginDataProcessor']
+  _methodsToCheck = ['getInputSpecification', '_handleInput']
   entityType = 'PostProcessor'
 
   ##################################################
-  # Methods to link internal PostProcessor methods
+  # Methods for Internal Use
   ##################################################
   def __init__(self, runInfoDict):
     """
@@ -47,52 +47,26 @@ class PostProcessorPluginBase(PostProcessor, PluginBase):
     PluginBase.__init__(self)
     PostProcessor.__init__(self, runInfoDict)
 
-  def _handleInput(self, paramInput):
+  def createNewInput(self,inputDataObjs,samplerType,**kwargs):
     """
-      Function to handle the common parts of the model parameter input.
-      @ In, paramInput, ParameterInput, the already parsed input.
-      @ Out, None
-    """
-    PostProcessor._handleInput(self, paramInput)
-    self.handlePluginInput(paramInput)
-
-  def initialize(self, runInfo, inputs, initDict=None):
-    """
-      This function is used to initialize the plugin, i.e. set up working dir,
-      call the initializePlugin method from the plugin
-      @ In, runInfo, dict, it is the run info from the jobHandler
-      @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
-      @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
-    """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.initializePlugin()
-
-  def _generatePluginInput(self, inputDataObjs):
-    """
-      convert input data objects into standardized format of data
-      (xarray.Dataset, pandas.DataFrame, dict, numpy.array)
-      @ In, inputDataObjs, list, list of DataObjects that needs to be converted
-      @ Out, inputDs, list, list of current inputs for plugin
+      This function is used to convert internal DataObjects to user-friendly format of data.
+      The output from this function will be directly passed to the "run" method.
+      @ In, inputDataObjs, list, list of DataObjects
+      @ In, samplerType, string, is the type of sampler that is calling to generate a new input.
+          Not used for PostProcessor, and "None" is used during "Step" "PostProcess" handling
+      @ In, **kwargs, dict, is a dictionary that contains the information coming from the sampler,
+          a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}.
+          Not used for PostProcessor, and {'SampledVars':{'prefix':'None'}, 'additionalEdits':{}}
+          is used during "Step" "PostProcess" handling
+      @ Out, inputDs, list, list of data set that will be directly used by the "PostProcessor.run" method.
     """
     # convert to xarray.Dataset
     inputDs = [inp.asDataset() for inp in inputDataObjs]
     return inputDs
 
-  def run(self, inputDataObjs):
-    """
-      This method executes the postprocessor action.
-      @ In,  inputDataObjs, list, list of DataObjects
-      @ Out, outputDs, dict, xarray.Dataset, pd.DataFrame
-        --> I think we can avoid collectoutput in the plugin pp
-    """
-    inputDs = self._generatePluginInput(inputDataObjs)
-    outputDs = self.runPluginDataProcessor(inputDs)
-    return outputDs
-
   ##################################################
   # Plugin APIs
   ##################################################
-
   @classmethod
   def getInputSpecification(cls):
     """
@@ -105,29 +79,30 @@ class PostProcessorPluginBase(PostProcessor, PluginBase):
     inputSpecification = super(PostProcessorPluginBase, cls).getInputSpecification()
     return inputSpecification
 
+  def initialize(self, runInfo, inputs, initDict=None):
+    """
+      This function is used to initialize the plugin, i.e. set up working dir,
+      call the initializePlugin method from the plugin
+      @ In, runInfo, dict, it is the run info from the jobHandler
+      @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
+      @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
+    """
+    PostProcessor.initialize(self, runInfo, inputs, initDict)
 
-  @abc.abstractmethod
-  def handlePluginInput(self, paramInput):
+  def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the model parameter input.
-      @ In, paramInput, ParameterInput, the already parsed input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
-    pass
+    PostProcessor._handleInput(self, paramInput)
 
-  def initializePlugin(self):
-    """
-      Optional method to initialize the Plugin
-    """
-    pass
-
-  @abc.abstractmethod
-  def runPluginDataProcessor(self, inputDs):
-    """
-      This method executes the postprocessor action.
-      @ In,  inputDs, list, list of current inputs
-        (possible inputs include: dict, xarray.Dataset, pd.DataFrame)
-      @ Out, outputDs, dict, xarray.Dataset, pd.DataFrame
-        --> I think we can avoid collectoutput in the plugin pp
-    """
-    pass
+  ### "run" is required for each specific PostProcessor, it is an abstractmethod in
+  ### PostProcessor base class.
+  # def run(self, inputDs):
+  #   """
+  #     This method executes the postprocessor action.
+  #     @ In,  inputDs, list, list of Datasets
+  #     @ Out, outputDs, dict, xarray.Dataset, pd.DataFrame
+  #       --> I think we can avoid collectoutput in the plugin pp
+  #   """
