@@ -59,27 +59,9 @@ class ParetoFrontier(PostProcessor):
     
     objective = InputData.parameterInputFactory('objective', contentType=InputTypes.StringType)
     objective.addParam('goal',       param_type=InputTypes.StringType, required=True)
-    objective.addParam('upperLimit', param_type=InputTypes.StringType, required=False)
-    objective.addParam('lowerLimit', param_type=InputTypes.StringType, required=False)
+    objective.addParam('upperLimit', param_type=InputTypes.FloatType, required=False)
+    objective.addParam('lowerLimit', param_type=InputTypes.FloatType, required=False)
     inputSpecification.addSub(objective)
-
-    '''
-    costIDInput = InputData.parameterInputFactory("costID", contentType=InputTypes.StringType)
-    costIDInput.addParam("inv", InputTypes.BoolType, True)
-    inputSpecification.addSub(costIDInput)
-
-    valueIDInput = InputData.parameterInputFactory("valueID", contentType=InputTypes.StringType)
-    valueIDInput.addParam("inv", InputTypes.BoolType, True)
-    inputSpecification.addSub(valueIDInput)
-
-    costLimitInput = InputData.parameterInputFactory("costLimit", contentType=InputTypes.FloatType)
-    costLimitInput.addParam("type", InputTypes.StringType, True)
-    inputSpecification.addSub(costLimitInput)
-
-    valueLimitInput = InputData.parameterInputFactory("valueLimit", contentType=InputTypes.FloatType)
-    valueLimitInput.addParam("type", InputTypes.StringType, True)
-    inputSpecification.addSub(valueLimitInput)
-    '''
 
     return inputSpecification
 
@@ -99,30 +81,11 @@ class ParetoFrontier(PostProcessor):
         else:
           self.raiseAnError(IOError, 'ParetoFrontier postprocessor {}: the objective {} expects a min/max goal, but received {} inputs!".'
                                   .format(self.name,child.value,child.parameterValues['goal']))
-        if child.parameterValues['upperLimit'] is not None:
+        if 'upperLimit' in child.parameterValues.keys():
           self.objectives[child.value]['upperLimit'] = child.parameterValues['upperLimit']
-        if child.parameterValues['lowerLimit'] is not None:
+        if 'lowerLimit' in child.parameterValues.keys(): 
           self.objectives[child.value]['lowerLimit'] = child.parameterValues['lowerLimit']
-        
-    '''
-    costID  = paramInput.findFirst('costID')
-    self.costID  = costID.value
-    self.invCost = costID.parameterValues['inv']
 
-    valueID = paramInput.findFirst('valueID')
-    self.valueID = valueID.value
-    self.invValue = valueID.parameterValues['inv']
-
-    costLimit  = paramInput.findFirst('costLimit')
-    if costLimit is not None:
-      self.costLimit  = costLimit.value
-      self.costLimitType = costLimit.parameterValues['type']
-
-    valueLimit = paramInput.findFirst('valueLimit')
-    if valueLimit is not None:
-      self.valueLimit = valueLimit.value
-      self.valueLimitType = valueLimit.parameterValues['type']
-    '''
 
   def inputToInternal(self, currentInp):
     """
@@ -149,59 +112,20 @@ class ParetoFrontier(PostProcessor):
     """
     inData = self.inputToInternal(inputIn)
     data = inData.asDataset()
-    
-    for obj in self.objectives.keys():
-      if self.objectives[obj]['goal']=='max':
-        data[obj] = (-1.) * data[obj]
-        
-    '''
-    if self.invCost:
-      data[self.costID] = (-1.) * data[self.costID]
-    if self.invValue:
-      data[self.valueID] = (-1.) * data[self.valueID]
-    '''
-    
-    paretoFrontMask = frontUtils.nonDominatedFrontier(data, returnMask=True)
-    selection = data[np.array(paretoFrontMask)]
-    
-    '''
-    sortedData = data.sortby(self.costID)
-    coordinates = np.zeros(1,dtype=int)
-    for index,elem in enumerate(sortedData[self.costID].values):
-      if (index>1) and (sortedData[self.valueID].values[index]>sortedData[self.valueID].values[coordinates[-1]]):
-        # the point at index is part of the pareto frontier
-        coordinates = np.append(coordinates,index)
 
-    selection = sortedData.isel(RAVEN_sample_ID=coordinates)
-    '''
-    
-    for obj in self.objectives.keys():
-      if self.objectives[obj]['goal']=='max':
-        selection[obj] = (-1.) * selection[obj]
+    dataTemp = data[list(self.objectives.keys())]
+    for index,obj in enumerate(self.objectives.keys()):
+      if self.objectives[obj]['goal']=='max': 
+        dataTemp[obj] = (-1.) * dataTemp[obj]
         
-    '''    
-    if self.invCost:
-      selection[self.costID] = (-1.) * selection[self.costID]
-    if self.invValue:
-      selection[self.valueID] = (-1.) * selection[self.valueID]
-    '''
+    paretoFrontMask = frontUtils.nonDominatedFrontier(np.transpose(dataTemp.to_array().values), returnMask=False)
+    selection = data.isel(RAVEN_sample_ID=np.array(paretoFrontMask))
+
     for obj in self.objectives.keys():
       if 'upperLimit' in self.objectives[obj].keys():
         selection = selection.where(selection[obj]<=self.objectives[obj]['upperLimit'])
       if 'lowerLimit' in self.objectives[obj].keys():
-        selection = selection.where(selection[obj]>=self.objectives[obj]['lowerLimit'])    
-    '''
-    if self.valueLimit is not None:
-      if self.valueLimitType=="upper":
-        selection = selection.where(selection[self.valueID]<=self.valueLimit)
-      else:
-        selection = selection.where(selection[self.valueID]>=self.valueLimit)
-    if self.costLimit is not None:
-      if self.costLimitType=="upper":
-        selection = selection.where(selection[self.costID]<=self.costLimit)
-      else:
-        selection = selection.where(selection[self.costID]>=self.costLimit)
-    '''
+        selection = selection.where(selection[obj]>=self.objectives[obj]['lowerLimit'])
 
     filteredParetoFrontier = selection.to_array().values
     paretoFrontierData = np.transpose(filteredParetoFrontier)

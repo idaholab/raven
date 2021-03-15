@@ -44,7 +44,9 @@ def nonDominatedFrontier(data, returnMask, minMask=None):
 
     Reference: the following code has been adapted from https://stackoverflow.com/questions/32791911/fast-calculation-of-pareto-front-in-python
   """
-  if minMask is not None and minMask.shape[0] != data.shape[1]:
+  if minMask is None:
+    pass
+  elif minMask is not None and minMask.shape[0] != data.shape[1]:
     raise IOError("nonDominatedFrontier method: minMask has shape " + str(data.shape) + " while minMask has shape " + str(minMask.shape))
   else:
     for index,elem in np.ndenumerate(minMask):
