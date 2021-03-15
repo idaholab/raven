@@ -362,7 +362,7 @@ class RAVEN(CodeInterfaceBase):
         ## load the XML initialization information and type
         dataObjectInfo = self.outStreamsNamesAndType[filename]
         # create an instance of the correct data object type
-        data = DataObjects.returnInstance(dataObjectInfo[1], None)
+        data = DataObjects.factory.returnInstance(dataObjectInfo[1], None)
         # initialize the data object by reading the XML
         data.readXML(dataObjectInfo[2], messageHandler, variableGroups=self.variableGroups)
         # set the name, then load the data
@@ -382,9 +382,9 @@ class RAVEN(CodeInterfaceBase):
       dbName = self.linkedDatabaseName
       path = self.outDatabases[dbName]
       fullPath = os.path.join(workingDir, self.innerWorkingDir, path)
-      data = DataObjects.returnInstance('DataSet', None)
+      data = DataObjects.factory.returnInstance('DataSet', None)
       info = {'WorkingDir': self._ravenWorkingDir}
-      db = Databases.returnInstance('NetCDF', info, None)
+      db = Databases.factory.returnInstance('NetCDF', info, None)
       db.databaseDir, db.filename = os.path.split(fullPath)
       db.loadIntoData(data)
       dataObjectsToReturn[dbName] = data

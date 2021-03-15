@@ -777,7 +777,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     self.reOrderStep = int(self.initOptionDict.pop('reOrderStep', 5))
 
     # return a SciKitLearn instance as engine for SKL data mining
-    self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)
+    self.SKLEngine = factory.returnInstance('SciKitLearn',self, **self.initOptionDict)
 
     self.normValues = None
     self.outputDict = {}

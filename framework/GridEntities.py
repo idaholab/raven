@@ -30,6 +30,7 @@ import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from EntityFactoryBase import EntityFactory
 from utils.utils import UreturnPrintTag,partialEval,floatConversion,compare, metaclass_insert
 from BaseClasses import BaseType
 import utils.TreeStructure as ETS
@@ -720,7 +721,7 @@ class MultiGridEntity(GridBase):
     self.subGridVolumetricRatio = None                                 # initial subgrid volumetric ratio
     self.grid                   = ETS.HierarchicalTree(self.messageHandler,
                                   self.__createNewNode("InitialGrid",
-                                  {"grid":returnInstance("GridEntity",self,
+                                  {"grid":factory.returnInstance("GridEntity",self,
                                    self.messageHandler),"level":"1"})) # grid hierarchical Container
     self.multiGridIterator      = ["1", None]                          # multi grid iterator [first position is the level ID, the second it the multi-index]
     self.mappingLevelName       = {'1':None}                           # mapping between grid level and node name
@@ -808,7 +809,7 @@ class MultiGridEntity(GridBase):
       @ Out, node, Node, new node
     """
     node = ETS.HierarchicalNode(self.messageHandler,nodeName)
-    node.add("grid",returnInstance("GridEntity",self.messageHandler))
+    node.add("grid",factory.returnInstance("GridEntity",self.messageHandler))
     for key, attribute in attributes.items():
       node.add(key,attribute)
     return node
@@ -862,7 +863,7 @@ class MultiGridEntity(GridBase):
           initDict.pop("transformationMethods")
         for idcnt, fcellId in enumerate(foundCells):
           didWeFoundCells[fcellId] = True
-          newGrid                  = returnInstance("GridEntity", self, self.messageHandler)
+          newGrid                  = factory.returnInstance("GridEntity", self, self.messageHandler)
           verteces                 = parentNodeCellIds[fcellId]
           lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), sys.float_info.max), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), -sys.float_info.max)
           for vertex in verteces:
@@ -1081,32 +1082,6 @@ class MultiGridEntity(GridBase):
           self.raiseAnError(Exception,'parameter '+parameterName+'already present in MultiGridEntity subnode '+ node.name + '!')
     self.updateParameter(parameterName, value, True, nodeName)
 
-"""
- Internal Factory of Classes
-"""
-__base                             = 'GridEntities'
-__interFaceDict                    = {}
-__interFaceDict['GridEntity'     ] = GridEntity
-__interFaceDict['MultiGridEntity'] = MultiGridEntity
-__knownTypes                       = __interFaceDict.keys()
-
-def knownTypes():
-  """
-    Method to return the types known by this module
-    @ In, None
-    @ Out, __knownTypes, list, list of known types (e.g. [GridEntity, MultiGridEntity, etc.])
-  """
-  return __knownTypes
-
-def returnInstance(Type,caller,messageHandler=None):
-  """
-    Method to return an instance of a class defined in this module
-    @ In, Type, string, Class name (e.g. GridEntity)
-    @ In, caller, instance, instance of the caller object
-    @ In, messageHandler, optional instance, instance of the messageHandler system
-    @ Out, returnInstance, instance, instance of the requested class
-  """
-  try:
-    return __interFaceDict[Type](messageHandler)
-  except KeyError:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+factory = EntityFactory('GridEntities')
+factory.registerType('GridEntity', GridEntity)
+factory.registerType('MultiGridEntity', MultiGridEntity)

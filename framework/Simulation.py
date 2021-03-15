@@ -177,7 +177,7 @@ class Simulation(MessageHandler.MessageUser):
      of the base class of the module: <MyModule>=<myClass>+'s'.
      The base class of the module is by convention named as the new type of simulation component <myClass>.
      The module should contain a set of classes named <myType> that are child of the base class <myClass>.
-     The module should possess a function <MyModule>.returnInstance('<myType>',caller) that returns a pointer to the class <myType>.
+     The module should possess a function <MyModule>.factory.returnInstance('<myType>',caller) that returns a pointer to the class <myType>.
     Add in Simulation.__init__ the following
      self.<myClass>Dict = {}
      self.entityModules['<myClass>'] = <MyModule>
@@ -453,7 +453,6 @@ class Simulation(MessageHandler.MessageUser):
               self.raiseADebug('Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.entities[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
-              #if name not in self.entities[Class].keys():  self.entities[Class][name] = self.entityModules[Class].returnInstance(childChild.tag,self)
               if name not in self.entities[Class]:
                 # postprocessors use subType, so specialize here
                 if childChild.tag == 'PostProcessor':

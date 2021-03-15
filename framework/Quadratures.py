@@ -32,6 +32,7 @@ import inspect
 #External Modules End-----------------------------------------------------------------
 
 #Internal Modules
+from EntityFactoryBase import EntityFactory
 from BaseClasses import BaseType
 from JobHandler import JobHandler
 import MessageHandler
@@ -797,46 +798,27 @@ def makeSingleCoeff(N,i,idx,iSet):
       c += (-1)**sum(d)
   return c
 
-"""
- Interface Dictionary (factory) (private)
-"""
-__base = 'QuadratureSet'
-__interFaceDict = {}
-__interFaceDict['Legendre'         ] = Legendre
-__interFaceDict['CDFLegendre'      ] = CDFLegendre
-__interFaceDict['CDFClenshawCurtis'] = CDFClenshawCurtis
-__interFaceDict['Hermite'          ] = Hermite
-__interFaceDict['Laguerre'         ] = Laguerre
-__interFaceDict['Jacobi'           ] = Jacobi
-__interFaceDict['ClenshawCurtis'   ] = ClenshawCurtis
-__interFaceDict['TensorGrid'       ] = TensorGrid
-__interFaceDict['SmolyakSparseGrid'] = SmolyakSparseGrid
-#keyword lookups for input use
-__interFaceDict['smolyak'          ] = SmolyakSparseGrid
-__interFaceDict['tensor'           ] = TensorGrid
-__knownTypes = __interFaceDict.keys()
+class QuadFactory(EntityFactory):
+  """
+    Specific factory for this module
+  """
+  def returnInstance(self, Type, runInfo, caller, **kwargs):
+    """
+      Returns an instance pointer from this module.
+      @ In, Type, string, requested object
+      @ In, caller, object, requesting object
+      @ In, kwargs, dict, additional keyword arguments to constructor
+      @ Out, __interFaceDict, instance, instance of the object
+    """
+    # some modification necessary to distinguish CDF on Legendre versus CDF on ClenshawCurtis
+    if Type=='CDF':
+      if kwargs['Subtype']=='Legendre':
+        return self._registeredTypes['CDFLegendre']()
+      elif kwargs['Subtype']=='ClenshawCurtis':
+        return self._registeredTypes['CDFClenshawCurtis']()
+    return self.returnClass(Type, caller)()
 
-def knownTypes():
-  """
-    Returns list of known types
-    @ In, None
-    @ Out, None
-  """
-  return __knownTypes
-
-def returnInstance(Type,caller,**kwargs):
-  """
-    function used to generate a Filter class
-    @ In, Type, string, quad type
-    @ Out, returnInstance, instance, of the Specialized Filter class
-  """
-  # some modification necessary to distinguish CDF on Legendre versus CDF on ClenshawCurtis
-  if Type=='CDF':
-    if   kwargs['Subtype']=='Legendre':
-      return __interFaceDict['CDFLegendre']()
-    elif kwargs['Subtype']=='ClenshawCurtis':
-      return __interFaceDict['CDFClenshawCurtis']()
-  if Type in knownTypes():
-    return __interFaceDict[Type]()
-  else:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+factory = QuadFactory('QuadratureSet')
+factory.registerAllSubtypes(QuadratureSet)
+factory.registerType('smolyak', SmolyakSparseGrid)
+factory.registerType('tensor', TensorGrid)

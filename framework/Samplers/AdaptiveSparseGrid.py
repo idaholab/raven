@@ -203,7 +203,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
 
     #create the index set
     self.raiseADebug('Starting index set generation...')
-    self.indexSet = IndexSets.returnInstance('AdaptiveSet',self)
+    self.indexSet = IndexSets.factory.returnInstance('AdaptiveSet',self)
     self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     for pt in self.indexSet.active:
       self.inTraining.add(pt)
@@ -537,8 +537,8 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
       @ In, points, list(tuple(int)), optional, points
       @ Out, sparseGrid, SparseGrid object, new sparseGrid using self's points plus points' points
     """
-    sparseGrid = Quadratures.returnInstance(self.sparseGridType,self)
-    iset = IndexSets.returnInstance('Custom',self)
+    sparseGrid = Quadratures.factory.returnInstance(self.sparseGridType,self)
+    iset = IndexSets.factory.returnInstance('Custom',self)
     iset.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     iset.setPoints(self.indexSet.points)
     iset.addPoints(points)

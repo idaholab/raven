@@ -96,7 +96,7 @@ class EnsembleForward(ForwardSampler):
     """
     #TODO remove using xmlNode
     # this import happens here because a recursive call is made if we attempt it in the header
-    from .Factory import returnInstance,knownTypes
+    from .Factory import factory
     for child in xmlNode:
       #sampler initialization
       if child.tag == 'samplerInit':
@@ -104,7 +104,7 @@ class EnsembleForward(ForwardSampler):
       # read in samplers
       elif child.tag in self.acceptableSamplers:
         child.attrib['name'] = child.tag
-        self.instanciatedSamplers[child.tag] = returnInstance(child.tag,self)
+        self.instanciatedSamplers[child.tag] = factory.returnInstance(child.tag,self)
         #FIXME the variableGroups needs to be fixed
         self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
         # fill toBeSampled so that correct check for samplable variables occurs
@@ -120,7 +120,7 @@ class EnsembleForward(ForwardSampler):
       elif child.tag == 'constant':
         pass
       # some samplers aren't eligible for ensembling
-      elif child.tag in knownTypes():
+      elif child.tag in factory.knownTypes():
         self.raiseAnError(IOError,'Sampling strategy "{}" is not usable in "{}".  Available options include: {}.'.format(child.tag,self.type,", ".join(self.acceptableSamplers)))
       # catch-all for bad inputs
       else:

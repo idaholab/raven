@@ -28,6 +28,7 @@ import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from EntityFactoryBase import EntityFactory
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -460,35 +461,5 @@ class AdaptiveSet(IndexSet):
     for a in self.active:
       self.raiseADebug('       ',a)
 
-
-"""
-Interface Dictionary (factory) (private)
-"""
-__base = 'IndexSet'
-__interFaceDict = {}
-__interFaceDict['TensorProduct'  ] = TensorProduct
-__interFaceDict['TotalDegree'    ] = TotalDegree
-__interFaceDict['HyperbolicCross'] = HyperbolicCross
-__interFaceDict['Custom'         ] = Custom
-__interFaceDict['AdaptiveSet'    ] = AdaptiveSet
-__knownTypes = list(__interFaceDict.keys())
-
-def knownTypes():
-  """
-    Returns the known types.
-    @ In, None
-    @ Out, dict, list of known types
-  """
-  return __knownTypes
-
-def returnInstance(Type,caller):
-  """
-    Factory.
-    @ In, Type, string, requested object type
-    @ In, caller, object, object requesting an instance
-    @ Out, IndexSet object, requested object
-  """
-  if Type in knownTypes():
-    return __interFaceDict[Type](caller.messageHandler)
-  else:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+factory = EntityFactory('IndexSet')
+factory.registerAllSubtypes(IndexSet)

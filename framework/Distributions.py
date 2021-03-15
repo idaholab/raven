@@ -3899,7 +3899,7 @@ class MultivariateNormal(NDimensionalDistributions):
 
 DistributionsCollection.addSub(MultivariateNormal.getInputSpecification())
 
-factory = EntityFactory('Distribution')
+factory = EntityFactory('Distribution', returnInputParameter=True)
 factory.registerAllSubtypes(Distribution)
 factory.unregisterSubtype('BoostDistribution')
 

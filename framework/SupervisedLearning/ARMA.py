@@ -118,7 +118,7 @@ class ARMA(supervisedLearning):
     else:
       self.seed = int(self.seed)
 
-    self.normEngine = Distributions.returnInstance('Normal',self)
+    self.normEngine = Distributions.factory.returnInstance('Normal',self)
     self.normEngine.mean = 0.0
     self.normEngine.sigma = 1.0
     self.normEngine.upperBoundUsed = False

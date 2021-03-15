@@ -29,6 +29,7 @@ import xml.etree.ElementTree as ET
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules
+from EntityFactoryBase import EntityFactory
 from BaseClasses import BaseType
 import Distributions
 import Quadratures
@@ -423,34 +424,5 @@ class Jacobi(OrthogonalPolynomial):
     return np.sqrt(coeff)
 
 
-
-"""
- Interface Dictionary (factory) (private)
-"""
-__base = 'OrthoPolynomial'
-__interFaceDict = {}
-__interFaceDict['Legendre'] = Legendre
-__interFaceDict['Hermite'] = Hermite
-__interFaceDict['Laguerre'] = Laguerre
-__interFaceDict['Jacobi'] = Jacobi
-#__interFaceDict['Lagrange'] = Lagrange TODO
-__knownTypes = __interFaceDict.keys()
-
-def knownTypes():
-  """
-    Returns the object types known here.
-     @ In, None
-     @ Out, knownTypes, list, known types
-  """
-  return __knownTypes
-
-def returnInstance(Type,caller):
-  """
-    function used to generate a OrthoPoly class
-    @ In, Typer, string, OrthoPoly type
-    @ Out, returnInstance, OrthoPoly instance, Instance of the Specialized Filter class
-  """
-  if Type in knownTypes():
-    return __interFaceDict[Type]()
-  else:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+factory = EntityFactory('OrthoPolynomial')
+factory.registerAllSubtypes(OrthogonalPolynomial)
