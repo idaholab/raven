@@ -64,7 +64,7 @@ class EntityFactory(object):
     """
       Registers all inheritors of the baseType as types by classname for this entity.
       @ In, baseType, object, base class type (e.g. Sampler.Sampler)
-      @ In, alias, dict, optional, alias names to use for registration names
+      @ In, alias, dict, optional, alias names to use for registration names as {"ObjectName": "AliasName"}
       @ Out, None
     """
     if alias is None:

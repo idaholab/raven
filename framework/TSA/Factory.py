@@ -23,4 +23,7 @@ from .ARMA import ARMA
 from .Wavelet import Wavelet
 
 factory = EntityFactory('TimeSeriesAnalyzer')
-factory.registerAllSubtypes(TimeSeriesAnalyzer)
+# TODO map lower case to upper case, because of silly ROM namespace problems
+aliases = {'Fourier': 'fourier',
+           'ARMA': 'arma'}
+factory.registerAllSubtypes(TimeSeriesAnalyzer, alias=aliases)
