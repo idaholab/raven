@@ -47,7 +47,7 @@ def nonDominatedFrontier(data, returnMask, minMask=None):
   if minMask is None:
     pass
   elif minMask is not None and minMask.shape[0] != data.shape[1]:
-    raise IOError("nonDominatedFrontier method: minMask has shape " + str(data.shape) + " while minMask has shape " + str(minMask.shape))
+    raise IOError("nonDominatedFrontier method: Data features do not match minMask dimensions: data has shape " + str(data.shape) + " while minMask has shape " + str(minMask.shape))
   else:
     for index,elem in np.ndenumerate(minMask):
       if not elem:

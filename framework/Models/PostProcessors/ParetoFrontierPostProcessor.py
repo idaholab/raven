@@ -46,6 +46,7 @@ class ParetoFrontier(PostProcessor):
     self.invCost    = False  # variable which indicates if the cost dimension is inverted (e.g., it represents savings rather than costs)
     self.invValue   = False  # variable which indicates if the value dimension is inverted (e.g., it represents a lost value rather than value)
 
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -57,13 +58,16 @@ class ParetoFrontier(PostProcessor):
     """
     inputSpecification = super(ParetoFrontier, cls).getInputSpecification()
 
+    objDataType = InputTypes.makeEnumType("objective", "objectiveType", ['min','max'])
+
     objective = InputData.parameterInputFactory('objective', contentType=InputTypes.StringType)
-    objective.addParam('goal',       param_type=InputTypes.StringType, required=True)
-    objective.addParam('upperLimit', param_type=InputTypes.FloatType, required=False)
-    objective.addParam('lowerLimit', param_type=InputTypes.FloatType, required=False)
+    objective.addParam('goal',       param_type=objDataType,           required=True)
+    objective.addParam('upperLimit', param_type=InputTypes.FloatType,  required=False)
+    objective.addParam('lowerLimit', param_type=InputTypes.FloatType,  required=False)
     inputSpecification.addSub(objective)
 
     return inputSpecification
+
 
   def _handleInput(self, paramInput):
     """
@@ -76,15 +80,9 @@ class ParetoFrontier(PostProcessor):
     for child in paramInput.subparts:
       if child.getName() == 'objective':
         self.objectives[child.value]={}
-        if child.parameterValues['goal'] in ['min','max']:
-          self.objectives[child.value]['goal'] = child.parameterValues['goal']
-        else:
-          self.raiseAnError(IOError, 'ParetoFrontier postprocessor {}: the objective {} expects a min/max goal, but received {} inputs!".'
-                                  .format(self.name,child.value,child.parameterValues['goal']))
-        if 'upperLimit' in child.parameterValues.keys():
-          self.objectives[child.value]['upperLimit'] = child.parameterValues['upperLimit']
-        if 'lowerLimit' in child.parameterValues.keys():
-          self.objectives[child.value]['lowerLimit'] = child.parameterValues['lowerLimit']
+        self.objectives[child.value]['goal']       = child.parameterValues['goal']
+        self.objectives[child.value]['upperLimit'] = child.parameterValues.get('upperLimit')
+        self.objectives[child.value]['lowerLimit'] = child.parameterValues.get('lowerLimit')
 
 
   def inputToInternal(self, currentInp):
@@ -104,6 +102,7 @@ class ParetoFrontier(PostProcessor):
                                  .format(self.name, currentInp.type))
     return currentInp
 
+
   def run(self, inputIn):
     """
       This method executes the postprocessor action.
@@ -122,9 +121,9 @@ class ParetoFrontier(PostProcessor):
     selection = data.isel(RAVEN_sample_ID=np.array(paretoFrontMask))
 
     for obj in self.objectives.keys():
-      if 'upperLimit' in self.objectives[obj].keys():
+      if self.objectives[obj]['upperLimit']:
         selection = selection.where(selection[obj]<=self.objectives[obj]['upperLimit'])
-      if 'lowerLimit' in self.objectives[obj].keys():
+      if self.objectives[obj]['lowerLimit']:
         selection = selection.where(selection[obj]>=self.objectives[obj]['lowerLimit'])
 
     filteredParetoFrontier = selection.to_array().values
@@ -134,6 +133,7 @@ class ParetoFrontier(PostProcessor):
       paretoFrontierDict[varID] = paretoFrontierData[:,index]
 
     return paretoFrontierDict
+
 
   def collectOutput(self, finishedJob, output):
     """
