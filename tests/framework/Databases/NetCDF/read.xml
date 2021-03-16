@@ -1,0 +1,77 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Databases/NetCDF.Read</name>
+    <author>talbpaul</author>
+    <created>2021-03-03</created>
+    <classesTested>Databases.NetCDF</classesTested>
+    <description>
+      Tests using NetCDF as a readable database format.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>Read</WorkingDir>
+    <Sequence>read,write</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Databases" type="NetCDF">0d</Input>
+      <Input class="Databases" type="NetCDF">1d</Input>
+      <Input class="Databases" type="NetCDF">nd</Input>
+      <Output class="DataObjects" type="PointSet">0d_data</Output>
+      <Output class="DataObjects" type="HistorySet">1d_data</Output>
+      <Output class="DataObjects" type="DataSet">nd_data</Output>
+    </IOStep>
+    <IOStep name="write">
+      <Input class="DataObjects" type="PointSet">0d_data</Input>
+      <Input class="DataObjects" type="HistorySet">1d_data</Input>
+      <Input class="DataObjects" type="DataSet">nd_data</Input>
+      <Output class="OutStreams" type="Print">0d</Output>
+      <Output class="OutStreams" type="Print">1d</Output>
+      <Output class="OutStreams" type="Print">nd</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="0d_data">
+      <Input>a</Input>
+      <Output>d</Output>
+    </PointSet>
+    <HistorySet name="1d_data">
+      <Input>b</Input>
+      <Output>e</Output>
+      <options>
+        <pivotParameter>x</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name='nd_data'>
+      <Input>c</Input>
+      <Output>f</Output>
+      <Index var="x">f</Index>
+      <Index var="y">f</Index>
+    </DataSet>
+  </DataObjects>
+
+  <Databases>
+    <NetCDF name="0d" directory="../Write/DatabaseStorage" readMode="read"/>
+    <NetCDF name="1d" directory="../Write/DatabaseStorage" readMode="read"/>
+    <NetCDF name="nd" directory="../Write/DatabaseStorage" readMode="read"/>
+  </Databases>
+
+  <OutStreams>
+    <Print name="0d">
+      <type>csv</type>
+      <source>0d_data</source>
+    </Print>
+    <Print name="1d">
+      <type>csv</type>
+      <source>1d_data</source>
+    </Print>
+    <Print name="nd">
+      <type>csv</type>
+      <source>nd_data</source>
+    </Print>
+  </OutStreams>
+</Simulation>

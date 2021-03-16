@@ -151,7 +151,7 @@
     </HistorySet>
     <HistorySet name="sim_PS_out">
       <Input>ACC_sim,time_LPI,time_LPR</Input>
-      <Output>time, temp, out, ACC_status, LPI_status, LPR_status</Output>
+      <Output>time, temp, out, ACC_status, LPI_status, LPR_status, sequence</Output>
     </HistorySet>
   </DataObjects>
   

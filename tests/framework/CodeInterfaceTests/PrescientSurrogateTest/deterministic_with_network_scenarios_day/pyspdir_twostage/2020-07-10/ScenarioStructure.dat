@@ -1,0 +1,62 @@
+set Stages :=
+Stage_1 Stage_2
+;
+
+set StageVariables[Stage_1] :=
+UnitOn[*,*]
+;
+
+set StageVariables[Stage_2] :=
+PowerGeneratedAboveMinimum[*,*]
+;
+
+set StageExpressions[Stage_2] := 
+MaximumPowerAvailable[*,*]
+PowerGenerated[*,*]
+;
+
+set StageDerivedVariables[Stage_1] :=
+StartupCost[*,*]
+ShutdownCost[*,*]
+UnitStart[*,*]
+UnitStop[*,*]
+;
+
+set StageDerivedVariables[Stage_2] :=
+ProductionCost[*,*]
+NondispatchablePowerUsed[*,*]
+ReserveShortfall[*]
+LoadGenerateMismatch[*,*]
+posLoadGenerateMismatch[*,*]
+negLoadGenerateMismatch[*,*]
+;
+
+param StageCost :=
+Stage_1 StageCost[Stage_1]
+Stage_2 StageCost[Stage_2]
+;
+
+set Nodes :=
+   root
+   root_1
+;
+
+param NodeStage :=
+   root Stage_1
+   root_1 Stage_2
+;
+
+set Children[root] := 
+   root_1;
+
+param ConditionalProbability :=
+   root 1.0
+   root_1 1.0
+;
+
+set Scenarios :=
+   Scenario_1;
+
+param ScenarioLeafNode :=
+   Scenario_1 root_1
+;

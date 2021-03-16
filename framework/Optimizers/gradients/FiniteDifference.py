@@ -56,11 +56,13 @@ class FiniteDifference(GradientApproximater):
   ###############
   # Run Methods #
   ###############
-  def chooseEvaluationPoints(self, opt, stepSize):
+  def chooseEvaluationPoints(self, opt, stepSize, constraints=None):
     """
       Determines new point(s) needed to evaluate gradient
       @ In, opt, dict, current opt point (normalized)
       @ In, stepSize, float, distance from opt point to sample neighbors
+      @ In, constraints, dict, optional, boundary and functional constraints to respect when
+                                         choosing new sampling points
       @ Out, evalPoints, list(dict), list of points that need sampling
       @ Out, evalInfo, list(dict), identifying information about points
     """
@@ -70,17 +72,98 @@ class FiniteDifference(GradientApproximater):
 
     directions = np.atleast_1d(randomUtils.random(self.N) < 0.5) * 2 - 1
     for o, optVar in enumerate(self._optVars):
+      # pick a new grad eval point
       optValue = opt[optVar]
       new = copy.deepcopy(opt)
-      delta = dh * directions[o]
+      delta = dh * directions[o] # note this is NORMALIZED space delta
       new[optVar] = optValue + delta
+      # constraint handling
+      if constraints is not None:
+        # all constraints speak DENORM space, not NORM space
+        denormed = constraints['denormalize'](new)
+        altPoint = self._handleConstraints(denormed, constraints['denormalize'](opt), optVar, constraints)
+        # need NORM point, delta
+        new = constraints['normalize'](altPoint)
+        delta = new[optVar] - opt[optVar]
+      # store as samplable point
       evalPoints.append(new)
       evalInfo.append({'type': 'grad',
                        'optVar': optVar,
                        'delta': delta})
-
-
     return evalPoints, evalInfo
+
+  def _handleConstraints(self, newPoint, original, optVar, constraints):
+    """
+      Allows the FiniteDifference to handle grad points that might violate constraints.
+      Note this should be generalized as much as possible to the base class, if the different
+      gradient approximation algorithms can find common ground in this algorithm.
+      @ In, newPoint, np.array, desired new sampling point
+      @ In, original, np.array, current opt point from which the new point is derived
+      @ In, optVar, string, name of optimization variable being perturbed
+      @ In, constraints, dict, boundary and functional constraints passed through
+      @ Out, newPoint, np.array, potentially-adjusted new gradient sampling point
+    """
+    new = newPoint[optVar]
+    orgval = original[optVar]
+    delta = new - orgval
+    # TODO div 0 protection? Can it ever be 0?
+    scale = abs(delta)
+    dist = constraints['boundary'][optVar]
+    lower = dist.lowerBound
+    upper = dist.upperBound
+    info = constraints['inputs'] # has constants and such
+    origDelta = delta # save the starting delta so we can keep track of it
+    # check the new point to see if we're good or need to do something
+    okay = self._checkConstraints(newPoint, optVar, lower, upper, constraints['functional'], info)
+    if okay:
+      return newPoint
+    # we're not okay, so let's check if we're ok by flipping the delta direction
+    delta = - origDelta
+    newPoint[optVar] = orgval + delta
+    okay = self._checkConstraints(newPoint, optVar, lower, upper, constraints['functional'], info)
+    if okay:
+      return newPoint
+    # well, that didn't work, so now we try cutting delta (in the original direction)
+    ## first get the workable distance (bounded by distance to boundary)
+    if origDelta < 0:
+      delta =  - min(abs(lower - orgval), abs(origDelta))
+    else:
+      delta =  min(upper - orgval, origDelta)
+    flipped = False   # have we checked the other side of the opt point?
+    while not okay:
+      okay = self._checkConstraints(newPoint, optVar, lower, upper, constraints['functional'], info)
+      if not okay:
+        delta /= 2
+        if abs(delta) / scale < 1e-2:
+          if not flipped:
+            delta = - origDelta
+            flipped = True
+          else:
+            raise RuntimeError(f'Could not find acceptable value for {optVar}: start {orgval:1.8e}, wanted {new:1.8e}, rejected all options via constraints.')
+        else:
+          newPoint[optVar] = orgval + delta
+    return newPoint
+
+
+  def _checkConstraints(self, point, optVar, lower, upper, constraints, info):
+    """
+      Checks for constraint violations in point.
+      @ In, point, np.array, proposed sampling point
+      @ In, optVar, string, name of optimization variable being perturbed
+      @ In, lower, float, lower limit
+      @ In, upper, float, upper limit
+      @ In, constraints, dict, functional constraints imposed by user or similar
+      @ In, info, dict, other useful info such as constants, etc
+      @ Out, allOkay, bool, True if no constraints violated
+    """
+    allOkay = lower < point[optVar] < upper
+    if allOkay:
+      for constraint in constraints:
+        info.update(point)
+        okay = constraint.evaluate('constrain', info)
+        allOkay &= okay
+    return allOkay
+
 
   def evaluate(self, opt, grads, infos, objVar):
     """

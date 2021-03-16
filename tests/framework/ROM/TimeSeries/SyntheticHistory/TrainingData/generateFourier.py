@@ -15,6 +15,7 @@
   Generates training data in the form of Fourier signals.
 """
 import numpy as np
+from generators import fourier, toFile
 
 #############
 # Fourier A #
@@ -25,25 +26,16 @@ periods = [2, 5, 10]
 amps = [0.5, 1, 2]
 phases = [0, np.pi/4, np.pi]
 intercept = 42
-signal0 = np.zeros(len(seconds))
-for k, period in enumerate(periods):
-  signal0 += amps[k] * np.sin(2*np.pi / period * seconds + phases[k])
+signal0 = fourier(amps, periods, phases, seconds, mean=intercept)
 
 periods = [3]
 amps = [2]
 phases = [np.pi]
 intercept = 1
-signal1 = np.zeros(len(seconds))
-for k, period in enumerate(periods):
-  signal1 += amps[k] * np.sin(2*np.pi / period * seconds + phases[k])
+signal1 = fourier(amps, periods, phases, seconds, mean=intercept)
 
 out = np.zeros((len(seconds), 3))
 out[:, 0] = seconds
 out[:, 1] = signal0
 out[:, 2] = signal1
-fname = 'FourierA'
-subname = f'{fname}_0.csv'
-np.savetxt(subname, out, delimiter=',', header='seconds,signal1,signal2', comments='')
-with open(f'{fname}.csv', 'w') as f:
-  f.writelines('scaling,filename\n')
-  f.writelines(f'1,{subname}\n')
+toFile(out, 'Wavelet_A', targets=['signal1', 'signal2'], pivotName='seconds')

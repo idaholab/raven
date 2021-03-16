@@ -5,6 +5,25 @@
 \begin{document}
 \maketitle
 
+\section{Format}
+Test files use the \texttt{GetPot} or \texttt{hit} format, such as the following:
+\begin{verbatim}
+[Tests]
+  [./test_name_1]
+    type = <Tester>
+    # other Tester options
+    [./check_1]
+      type = <Differ>
+      output = 'path/to/file1 path/to/file2'
+      # other Differ options
+    [../]
+  [../]
+[]
+\end{verbatim}
+where \texttt{<Tester>} is replaced by one of the Testers described below, and \texttt{<Differ>}
+is replace by one of the Differs described below. Options for the Tester are included under
+\texttt{other Tester options}, while Differ options are included under \texttt{other Differ options}.
+
 \section{Testers}
 
 The testers are used to run a test.  The tester can fail the test, or
@@ -13,7 +32,8 @@ in the test input.
 
 \subsection{Common Features}
 
-These are the features that are common to all testers.
+These are the features that are common to all testers. These may be included as Tester options in the
+example above.
 
 \begin{description}
   \item[type] The type of this test. Example: 'GenericExecutable'
@@ -45,8 +65,14 @@ check for output.
 
 \begin{description}
   \item[type] The type of this differ
-  \item[output] Output files to check
-  \item[gold\_files] Gold filenames
+  \item[output] Output files to check. These by default compare the same path in the working directory
+      and under the \texttt{gold} directory. For example, \texttt{output = 'path/to/file1'} would compare
+      the file \texttt{path/to/file1} to the file \texttt{gold/path/to/file1}.
+  \item[gold\_files] Gold filenames, if different from the default. These are 1 to 1 mappings with the
+      \texttt{output} files listed above, and use the same relative pathing. Using the example under
+      \textbf{output} above, including \texttt{gold\_files = 'gold/path/to/file2'} would compare the file
+      \texttt{path/to/file1} to the file \texttt{gold/path/to/file2}. \nb Unlike the default,
+      \texttt{gold} is not automatically added to the \textttt{gold\_files} path.
 \end{description}
 
 \subsection{Exists}
@@ -89,8 +115,8 @@ The {\tt main.py} command takes an argument {\tt --config-file} which can be use
 \item[only\_run\_types] only run the listed types. Equivalent to {\tt --only-run-types}
 \item[add\_non\_default\_run\_types] add a run type that is not run by default. Equivalent to {\tt --add-non-default-run-types}
 \item[add\_path] comma separated list of additional paths that need be added in PYTHON PATH (sys.path).  Equivalent to {\tt --add-path}
-\item[update\_or\_add\_env\_variables] comma separated list of environment variables to update or add. 
-The syntax is at follows: $NAME=NEW\_VALUE$ (if a new env variable needs to be created or updated), 
+\item[update\_or\_add\_env\_variables] comma separated list of environment variables to update or add.
+The syntax is at follows: $NAME=NEW\_VALUE$ (if a new env variable needs to be created or updated),
 $NAME>NEW\_VALUE$ (if an env variable needs to be updated appending NEW\_VALUE to it).  Equivalent to {\tt --update-or-add-env-variables}
 \item[test\_dir] directory where the tests are located.  Equivalent to {\tt --test-dir}
 \item[command\_prefix] prefix for the test commands.  Equivalent to {\tt --command-prefix}

@@ -20,25 +20,15 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 #External Modules------------------------------------------------------------------------------------
 import collections
-import subprocess
-# try               : import Queue as queue
-# except ImportError: import queue
-import os
-import signal
-import copy
-import abc
+import sys
 import time
 import ctypes
 import inspect
-#import logging, logging.handlers
 import threading
 
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
-from BaseClasses import BaseType
-import MessageHandler
 from .InternalRunner import InternalRunner
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -63,7 +53,6 @@ class SharedMemoryRunner(InternalRunner):
         this runner. For example, if present, to retrieve this runner using the
         method jobHandler.getFinished, the uniqueHandler needs to be provided.
         If uniqueHandler == 'any', every "client" can get this runner
-      @ In, clientRunner, bool, optional,  Is this runner needed to be executed in client mode? Default = False
       @ In, profile, bool, optional, if True then at deconstruction timing statements will be printed
       @ Out, None
     """
@@ -140,6 +129,7 @@ class SharedMemoryRunner(InternalRunner):
       self.trackTime('runner_started')
       self.started = True
     except Exception as ae:
+      self.exceptionTrace = sys.exc_info()
       self.raiseAWarning(self.__class__.__name__ + " job "+self.identifier+" failed with error:"+ str(ae) +" !",'ExceptedError')
       self.returnCode = -1
 
