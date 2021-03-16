@@ -962,7 +962,7 @@ def angleBetweenVectors(a, b):
   ang = np.rad2deg(ang)
   return ang
 
-def derivative(f, x0, var, n = 1, h = 1e-6, order = None):
+def derivative(f, x0, var, n = 1, h = None):
   """
     Compute the n-th partial derivative of function f 
     with respect variable var (numerical differentation).
@@ -971,12 +971,12 @@ def derivative(f, x0, var, n = 1, h = 1e-6, order = None):
     @ In, f, instance, the function to differentiate (format f(d) where d is a dictionary)
     @ In, x0, dict, the dictionary containing the x0 coordinate
     @ In, var, str, the variable of the resulting partial derivative
-    @ In, n, int, optional, the order of the derivative. If n>2, the order param must be inputted
-    @ In, h, float, the step size
-    @ In, order, int, the order (n points) to compute the derivative (required if n>2)
+    @ In, n, int, optional, the order of the derivative. (max 10)
+    @ In, h, float, optional, the step size, default automatically computed
     @ Out, deriv, float, the partial derivative of function f
   """
-  from scipy.misc import derivative as dev
+  import numdifftools as nd
+  assert(n <= 10)
   def func(x, var):
     """
       Simple function wrapper for using scipy
@@ -988,9 +988,24 @@ def derivative(f, x0, var, n = 1, h = 1e-6, order = None):
     d = copy.copy(x0)
     d[var] = x
     return f(d)
-  if not order:
-    assert(n <= 2)
-  deriv = dev(func, x0[var], dx=h, n=n, args=(var, ), order=order if order else 3)
+  do = nd.Derivative(func, order=n)
+  deriv = do(x0[var],var)
+  
+  #from scipy.misc import derivative as dev
+  #def func(x, var):
+  #  """
+  #    Simple function wrapper for using scipy
+  #    @ In, x, float, the point at which the nth derivative is found
+  #    @ In, var, str, the variable in the dictionary x0 corresponding
+  #                    to the part derivative to compute
+  #    @ Out, func, float, the evaluated function
+  #  """
+  #  d = copy.copy(x0)
+  #  d[var] = x
+  #  return f(d)
+  #if not order:
+  #  assert(n <= 2)
+  #deriv = dev(func, x0[var], dx=h, n=n, args=(var, ), order=order if order else 3)
   return deriv
 
 # utility function for defaultdict

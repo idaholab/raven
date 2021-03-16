@@ -57,6 +57,7 @@ Note all install methods after "main" take
     <pillow optional='True'>6.0</pillow>
     <line_profiler optional='True'/>
     <pywavelets optional='True'>1.1</pywavelets>
+    <numdifftools source="pip">0.9.39</numdifftools>
   </main>
   <alternate name="pip">
     <hdf5>remove</hdf5>
