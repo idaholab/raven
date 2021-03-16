@@ -802,7 +802,7 @@ class QuadFactory(EntityFactory):
   """
     Specific factory for this module
   """
-  def returnInstance(self, Type, runInfo, caller, **kwargs):
+  def returnInstance(self, Type, caller, **kwargs):
     """
       Returns an instance pointer from this module.
       @ In, Type, string, requested object

@@ -38,10 +38,10 @@ class IndexSet(MessageHandler.MessageUser):
     is a set of all combinations of polynomial orders needed to represent the
     original model to a "level" L (maxPolyOrder).
   """
-  def __init__(self,messageHandler):
+  def __init__(self,messageHandler=None):
     """
       Constructor.
-      @ In, messageHandler, MessageHandler object, global message handling instance
+      @ In, messageHandler, MessageHandler object, optional, global message handling instance
       @ Out, None
     """
     self.type          = 'IndexSet' #type of index set (Tensor Product, Total Degree, Hyperbolic Cross)

@@ -94,12 +94,13 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     return (True, '')
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, messageHandler=None, **kwargs):
     """
       constructor for unSupervisedLearning class.
       @ In, messageHandler, object, Message handler object
       @ In, kwargs, dict, arguments for the unsupervised learning algorithm
     """
+    assert messageHandler is not None
     self.printTag = 'unSupervised'
     self.messageHandler = messageHandler
 
@@ -777,7 +778,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     self.reOrderStep = int(self.initOptionDict.pop('reOrderStep', 5))
 
     # return a SciKitLearn instance as engine for SKL data mining
-    self.SKLEngine = factory.returnInstance('SciKitLearn',self, **self.initOptionDict)
+    self.SKLEngine = factory.returnInstance('SciKitLearn', self, messageHandler=self.messageHandler, **self.initOptionDict)
 
     self.normValues = None
     self.outputDict = {}

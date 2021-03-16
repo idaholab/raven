@@ -49,15 +49,14 @@ class SyntheticHistory(supervisedLearning):
     return specs
 
   ### INHERITED METHODS ###
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler: a MessageHandler object in charge of raising errors,
                            and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     self.printTag = 'SyntheticHistoryROM'
     self._dynamicHandling = True # This ROM is able to manage the time-series on its own.
     # training storage
@@ -80,7 +79,7 @@ class SyntheticHistory(supervisedLearning):
     self.pivotParameterID = inp.findFirst('pivotParameter').value # TODO does a base class do this?
     for sub in inp.subparts:
       if sub.name in TSA.factory.knownTypes():
-        algo = TSA.factory.returnInstance(sub.name, self.messageHandler)
+        algo = TSA.factory.returnInstance(sub.name, self)
         self.algoSettings[algo] = algo.handleInput(sub)
         self.tsaAlgorithms.append(algo)
     if self.pivotParameterID not in self.target:

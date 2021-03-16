@@ -700,7 +700,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
       @ Out, dataObject, DataObject object, data object with cut points
     """
     #create a new data ojbect
-    dataObject = DataObjects.factory.returnInstance('PointSet',self)
+    dataObject = DataObjects.factory.returnInstance('PointSet', self)
     dataObject.type ='PointSet'
     #write xml to set up data object
     #  -> name it the amalgamation of the subset parts
@@ -739,12 +739,12 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
       polyDict[c] = self.polyDict[c]
       imptDict[c] = self.importanceDict[c]
     #instantiate an adaptive index set for this ROM
-    iSet = IndexSets.factory.returnInstance('AdaptiveSet',self)
+    iSet = IndexSets.factory.returnInstance('AdaptiveSet', self)
     iSet.initialize(subset,imptDict,self.maxPolyOrder,full=True)
     iSet.verbosity=verbosity
     #instantiate a sparse grid quadrature
-    self.SQs[subset] = Quadratures.factory.returnInstance(self.sparseGridType,self)
-    self.SQs[subset].initialize(subset,iSet,distDict,quadDict,self.jobHandler,self.messageHandler)
+    self.SQs[subset] = Quadratures.factory.returnInstance(self.sparseGridType, self)
+    self.SQs[subset].initialize(subset,iSet,distDict,quadDict,self.jobHandler, self.messageHandler)
     #instantiate the SVLs.  Note that we need to call both __init__ and initialize with dictionaries.
     #for target in self.targets:
     initDict = {'IndexSet'       : iSet.type,
@@ -752,7 +752,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
                 'Interpolation'  : SVL.itpDict,
                 'Features'       : list(subset),
                 'Target'         : self.targets}
-    self.ROMs[subset] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom',self,**initDict)
+    self.ROMs[subset] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom', self, messageHandler=self.messageHandler, **initDict)
     initializeDict = {'SG'       : self.SQs[subset],
                       'dists'    : distDict,
                       'quads'    : quadDict,
@@ -763,7 +763,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     self.ROMs[subset].verbosity = verbosity
     #instantiate the shell ROM that contains the SVLs
     #   NOTE: the shell is only needed so we can call the train method with a data object.
-    self.romShell[subset] = Models.factory.returnInstance('ROM',{},self)
+    self.romShell[subset] = Models.factory.returnInstance('ROM', self, runInfo={})
     self.romShell[subset].subType = 'GaussPolynomialRom'
     self.romShell[subset].messageHandler = self.messageHandler
     self.romShell[subset].verbosity = verbosity

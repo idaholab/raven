@@ -203,7 +203,7 @@ class AdaptiveSparseGrid(SparseGridCollocation,AdaptiveSampler):
 
     #create the index set
     self.raiseADebug('Starting index set generation...')
-    self.indexSet = IndexSets.factory.returnInstance('AdaptiveSet',self)
+    self.indexSet = IndexSets.factory.returnInstance('AdaptiveSet', self)
     self.indexSet.initialize(self.features,self.importanceDict,self.maxPolyOrder)
     for pt in self.indexSet.active:
       self.inTraining.add(pt)

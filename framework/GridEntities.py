@@ -241,13 +241,13 @@ class GridEntity(GridBase):
     """
     return self.gridContainer['gridLength'] if 'gridLength' in self.gridContainer.keys() else 0
 
-  def __init__(self,messageHandler):
+  def __init__(self, messageHandler=None):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, global message handler
+      @ In, messageHandler, MessageHandler, keyword, global message handler
       @ Out, None
     """
-    GridBase.__init__(self,messageHandler)
+    GridBase.__init__(self, messageHandler=messageHandler)
     self.gridContainer['dimensionNames']        = []                 # this is the ordered list of the variable names (ordering match self.gridStepSize anfd the ordering in the test matrixes)
     self.gridContainer['gridVectors']           = {}                 # {'name of the variable':numpy.ndarray['the coordinate']}
     self.gridContainer['bounds']                = {'upperBounds':{},'lowerBounds':{}} # dictionary of lower and upper bounds
@@ -721,10 +721,10 @@ class MultiGridEntity(GridBase):
     self.subGridVolumetricRatio = None                                 # initial subgrid volumetric ratio
     self.grid                   = ETS.HierarchicalTree(self.messageHandler,
                                   self.__createNewNode("InitialGrid",
-                                  {"grid":factory.returnInstance("GridEntity",self,
-                                   self.messageHandler),"level":"1"})) # grid hierarchical Container
-    self.multiGridIterator      = ["1", None]                          # multi grid iterator [first position is the level ID, the second it the multi-index]
-    self.mappingLevelName       = {'1':None}                           # mapping between grid level and node name
+                                      {"grid":factory.returnInstance("GridEntity",self, messageHandler=self.messageHandler),
+                                       "level":"1"})) # grid hierarchical Container
+    self.multiGridIterator      = ["1", None]     # multi grid iterator [first position is the level ID, the second it the multi-index]
+    self.mappingLevelName       = {'1':None}      # mapping between grid level and node name
 
   def __len__(self):
     """
@@ -809,7 +809,7 @@ class MultiGridEntity(GridBase):
       @ Out, node, Node, new node
     """
     node = ETS.HierarchicalNode(self.messageHandler,nodeName)
-    node.add("grid",factory.returnInstance("GridEntity",self.messageHandler))
+    node.add("grid", factory.returnInstance("GridEntity", self, messageHandler=self.messageHandler))
     for key, attribute in attributes.items():
       node.add(key,attribute)
     return node
@@ -863,7 +863,7 @@ class MultiGridEntity(GridBase):
           initDict.pop("transformationMethods")
         for idcnt, fcellId in enumerate(foundCells):
           didWeFoundCells[fcellId] = True
-          newGrid                  = factory.returnInstance("GridEntity", self, self.messageHandler)
+          newGrid                  = factory.returnInstance("GridEntity", self, messageHandler=self.messageHandler)
           verteces                 = parentNodeCellIds[fcellId]
           lowerBounds,upperBounds  = dict.fromkeys(parentGrid.returnParameter('dimensionNames'), sys.float_info.max), dict.fromkeys(parentGrid.returnParameter('dimensionNames'), -sys.float_info.max)
           for vertex in verteces:

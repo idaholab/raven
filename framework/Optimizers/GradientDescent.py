@@ -36,6 +36,8 @@ from .gradients import factory as gradFactory
 from .stepManipulators import factory as stepFactory
 from .acceptanceConditions import factory as acceptFactory
 
+from .stepManipulators import NoConstraintResolutionFound, NoMoreStepsNeeded
+
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GradientDescent(RavenSampled):

@@ -85,7 +85,7 @@ class Grid(ForwardSampler):
     self.gridInfo             = {}           # {'name of the variable':Type}  --> Type: CDF/Value
     self.externalgGridCoord   = False        # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
     self.gridCoordinate       = []           # current grid coordinates
-    self.gridEntity           = GridEntities.factory.returnInstance('GridEntity',self)
+    self.gridEntity           = GridEntities.factory.returnInstance('GridEntity', self)
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """

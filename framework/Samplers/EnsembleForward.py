@@ -104,7 +104,7 @@ class EnsembleForward(ForwardSampler):
       # read in samplers
       elif child.tag in self.acceptableSamplers:
         child.attrib['name'] = child.tag
-        self.instanciatedSamplers[child.tag] = factory.returnInstance(child.tag,self)
+        self.instanciatedSamplers[child.tag] = factory.returnInstance(child.tag, self)
         #FIXME the variableGroups needs to be fixed
         self.instanciatedSamplers[child.tag].readXML(child,self.messageHandler,variableGroups={},globalAttributes=self.globalAttributes)
         # fill toBeSampled so that correct check for samplable variables occurs

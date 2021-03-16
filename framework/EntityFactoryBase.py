@@ -99,23 +99,32 @@ class EntityFactory(object):
     # is this from an unloaded plugin?
     # return class from known types
     try:
-      return self._registeredTypes[Type]
+      try: # DEBUGG
+        return self._registeredTypes[Type]
+      except TypeError as e:
+        print(f'DEBUGG FAILED on {self.name}.{Type} from {caller}')
+        raise e
     except KeyError:
       # otherwise, error
       msg = f'"{self.name}" module does not recognize type "{Type}"; '
       msg += f'known types are: {self.knownTypes()}'
       caller.raiseAnError(NameError, msg)
 
-  def returnInstance(self, Type, runInfo, caller, **kwargs):
+  def returnInstance(self, Type, caller, runInfo=None, **kwargs):
     """
       Returns an instance pointer from this module.
       @ In, Type, string, requested object
       @ In, caller, object, requesting object
+      @ In, runInfo, dict, optional, info from RunInfo block of input
       @ In, kwargs, dict, additional keyword arguments to constructor
       @ Out, __interFaceDict, instance, instance of the object
     """
     if self.needsRunInfo:
-      return self.returnClass(Type, caller)(runInfo, **kwargs)
+      try: # DEBUGG
+        return self.returnClass(Type, caller)(runInfo, **kwargs)
+      except TypeError as e:
+        print(f'DEBUGG FAILED on {self.name}.{Type} from {caller}')
+        raise e
     else:
       return self.returnClass(Type, caller)(**kwargs)
 

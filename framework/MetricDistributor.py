@@ -186,7 +186,7 @@ class MetricDistributorFactory(EntityFactory):
       @ In, caller, instance, object that will share its messageHandler instance
       @ Out, returnInstance, instance, an instance of this class
     """
-    return self.returnClass(Type)(estimator, caller.messageHandler)
+    return self.returnClass(Type, caller)(estimator, caller.messageHandler)
 
 factory = MetricDistributorFactory('Distributor')
 factory.registerType('MetricDistributor', MetricDistributor)

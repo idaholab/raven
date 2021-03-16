@@ -443,7 +443,7 @@ class Simulation(MessageHandler.MessageUser):
             if "name" not in childChild.parameterValues:
               self.raiseAnError(IOError,'not found name attribute for '+childName +' in '+Class)
             name = childChild.parameterValues["name"]
-            self.entities[Class][name] = self.entityModules[Class].factory.returnInstance(childName, self.runInfoDict, self)
+            self.entities[Class][name] = self.entityModules[Class].factory.returnInstance(childName, self, runInfo=self.runInfoDict)
             self.entities[Class][name].handleInput(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
         elif Class != 'RunInfo':
           for childChild in child:
@@ -456,9 +456,9 @@ class Simulation(MessageHandler.MessageUser):
               if name not in self.entities[Class]:
                 # postprocessors use subType, so specialize here
                 if childChild.tag == 'PostProcessor':
-                  self.entities[Class][name] = self.entityModules[Class].factory.returnInstance(childChild.attrib['subType'], self.runInfoDict, self)
+                  self.entities[Class][name] = self.entityModules[Class].factory.returnInstance(childChild.attrib['subType'], self, runInfo=self.runInfoDict)
                 else:
-                  self.entities[Class][name] = self.entityModules[Class].factory.returnInstance(childChild.tag, self.runInfoDict, self)
+                  self.entities[Class][name] = self.entityModules[Class].factory.returnInstance(childChild.tag, self, runInfo=self.runInfoDict)
               else:
                 self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
               self.entities[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)

@@ -384,7 +384,7 @@ class RAVEN(CodeInterfaceBase):
       fullPath = os.path.join(workingDir, self.innerWorkingDir, path)
       data = DataObjects.factory.returnInstance('DataSet', None)
       info = {'WorkingDir': self._ravenWorkingDir}
-      db = Databases.factory.returnInstance('NetCDF', info, None)
+      db = Databases.factory.returnInstance('NetCDF', None, runInfo=info)
       db.databaseDir, db.filename = os.path.split(fullPath)
       db.loadIntoData(data)
       dataObjectsToReturn[dbName] = data

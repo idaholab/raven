@@ -214,7 +214,7 @@ class External(BaseType):
     """
     return self.__inputVariables[:]
 
-factory = EntityFactory('function', needsRunInfo=True)
+factory = EntityFactory('function', needsRunInfo=True, returnInputParameter=True)
 factory.registerType('External', External)
 
 # add input specifications in FunctionCollection

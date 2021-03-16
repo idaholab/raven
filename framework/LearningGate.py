@@ -77,7 +77,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     # check if pivotParameter is specified and in case store it
     self.pivotParameterId = self.initializationOptions.get("pivotParameter", 'time')
     # return instance of the ROMclass
-    modelInstance = SupervisedLearning.factory.returnInstance(ROMclass, self, **self.initializationOptions)
+    modelInstance = SupervisedLearning.factory.returnInstance(ROMclass, self, messageHandler=self.messageHandler, **self.initializationOptions)
     # check if the model can autonomously handle the time-dependency
     # (if not and time-dep data are passed in, a list of ROMs are constructed)
     self.canHandleDynamicData = modelInstance.isDynamic()
@@ -98,7 +98,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
       # determine type of segment to load -> limited by InputData to specific options
       segType = segSpecs.parameterValues.get('grouping', 'segment')
       self.initializationOptions['modelInstance'] = modelInstance
-      SVL = SupervisedLearning.factory.returnInstance(nameToClass[segType], self, **self.initializationOptions)
+      SVL = SupervisedLearning.factory.returnInstance(nameToClass[segType], self, messageHandler=self.messageHandler, **self.initializationOptions)
       self.supervisedContainer = [SVL]
 
   def __getstate__(self):
@@ -128,7 +128,10 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     self.__dict__.update(newstate)
     if not newstate['amITrained']:
       # NOTE this will fail if the ROM requires the paramInput spec! Fortunately, you shouldn't pickle untrained.
-      modelInstance             = SupervisedLearning.factory.returnInstance(self.ROMclass,self,**self.initializationOptions)
+      modelInstance = SupervisedLearning.factory.returnInstance(self.ROMclass,
+                                                                self,
+                                                                messageHandler=self.messageHandler,
+                                                                **self.initializationOptions)
       self.supervisedContainer  = [modelInstance]
 
   def setAdditionalParams(self, params):

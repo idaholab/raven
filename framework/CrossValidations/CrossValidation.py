@@ -35,13 +35,14 @@ class CrossValidation(utils.metaclass_insert(abc.ABCMeta), MessageHandler.Messag
     Cross validation methods used to validate models
   """
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, messageHandler=None, **kwargs):
     """
       This is the basic method initialize the cross validation object
       @ In, messageHandler, object, Message handler object
       @ In, kwargs, dict, arguments for the Pairwise metric
       @ Out, none
     """
+    assert messageHandler is not None
     self.messageHandler = messageHandler
     self.printTag = 'Cross Validation'
     if kwargs != None:
