@@ -73,7 +73,7 @@ class PostProcessorPluginBase(PostProcessor, PluginBase):
         self.raiseAnError(IOError, "Database", inp.name, "can not be handled directly by this Post Processor")
       else:
         self.raiseAnError(IOError, "Unknown input is found", str(inp))
-
+    return inputDs
 
   ##################################################
   # Plugin APIs
@@ -126,3 +126,11 @@ class PostProcessorPluginBase(PostProcessor, PluginBase):
   #     @ Out, outputDs, dict, xarray.Dataset, pd.DataFrame
   #       --> I think we can avoid collectoutput in the plugin pp
   #   """
+
+  ##################################
+  # Utils Functions
+  # 1. Dataset to dict
+  # 2. Dict to dataset
+  # 3. DataFrame to Dataset
+  # 4. Dataset to DataFrame
+  ##################################
