@@ -460,7 +460,7 @@ class EnsembleModel(Dummy):
     for modelIn in self.modelsDictionary.keys():
       targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation']] = modelIn
       # collect data
-      newIndexMap = outcomes[modelIn]['response'].pop('_indexMap', None)
+      newIndexMap = outcomes[modelIn]['response'].get('_indexMap', None)
       if newIndexMap:
         joinedIndexMap.update(newIndexMap[0])
       joinedResponse.update(outcomes[modelIn]['response'])

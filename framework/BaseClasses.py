@@ -22,7 +22,7 @@ import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils, InputData, InputTypes, mathUtils
+from utils import InputData, InputTypes, mathUtils
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -92,24 +92,6 @@ class BaseType(MessageHandler.MessageUser):
       verbLocal = xmlNode.attrib.get('verbosity')
       self.verbosity = verbLocal if verbLocal is not None else verbGlobal
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
-    #search and replace variableGroups where found in texts
-    def replaceVariableGroups(node):
-      """
-        Replaces variables groups with variable entries in text of nodes
-        @ In, node, xml.etree.ElementTree.Element, the node to search for replacement
-        @ Out, None
-      """
-      if node.text is not None and node.text.strip() != '':
-        textEntries = list(t.strip() for t in node.text.split(','))
-        for t,text in enumerate(textEntries):
-          if text in variableGroups.keys():
-            textEntries[t] = variableGroups[text].getVarsString()
-            self.raiseADebug('Replaced text in <%s> with variable group "%s"' %(node.tag,text))
-        #note: if we don't explicitly convert to string, scikitlearn chokes on unicode type
-        node.text = str(','.join(textEntries))
-      for child in node:
-        replaceVariableGroups(child)
-    replaceVariableGroups(xmlNode)
     self._readMoreXML(xmlNode)
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
@@ -131,31 +113,12 @@ class BaseType(MessageHandler.MessageUser):
       self.name = paramInput.parameterValues['name']
     else:
       self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
-    self.type     = paramInput.getName()
-    if self.globalAttributes!= None:
+    self.type = paramInput.getName()
+    if self.globalAttributes is not None:
       self.globalAttributes = globalAttributes
     if 'verbosity' in paramInput.parameterValues:
       self.verbosity = paramInput.parameterValues['verbosity'].lower()
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
-    #TODO fix replacing Variable Groups.
-    #search and replace variableGroups where found in texts
-    # def replaceVariableGroups(node):
-    #   """
-    #     Replaces variables groups with variable entries in text of nodes
-    #     @ In, node, xml.etree.ElementTree.Element, the node to search for replacement
-    #     @ Out, None
-    #   """
-    #   if node.text is not None and node.text.strip() != '':
-    #     textEntries = list(t.strip() for t in node.text.split(','))
-    #     for t,text in enumerate(textEntries):
-    #       if text in variableGroups.keys():
-    #         textEntries[t] = variableGroups[text].getVarsString()
-    #         self.raiseADebug('Replaced text in <%s> with variable group "%s"' %(node.tag,text))
-    #     #note: if we don't explicitly convert to string, scikitlearn chokes on unicode type
-    #     node.text = str(','.join(textEntries))
-    #   for child in node:
-    #     replaceVariableGroups(child)
-    #replaceVariableGroups(xmlNode)
     self._handleInput(paramInput)
     self.raiseADebug('------Reading Completed for:')
     self.printMe()

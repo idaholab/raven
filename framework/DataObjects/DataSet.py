@@ -39,20 +39,6 @@ except ValueError:
 import CsvLoader
 from utils import utils, cached_ndarray, xmlUtils, mathUtils
 
-# for profiling with kernprof
-# try:
-#   import __builtin__
-#   __builtin__.profile
-# except (AttributeError,ImportError):
-#   # profiler not preset, so pass through
-#   def profile(func):
-#     """
-#       Dummy for when profiler is missing.
-#       @ In, func, method, method to run
-#       @ Out, func, method, method to run
-#     """
-#     return func
-
 #
 #
 #
@@ -100,12 +86,13 @@ class DataSet(DataObject):
 
   ### EXTERNAL API ###
   # These are the methods that RAVEN entities should call to interact with the data object
-  def addExpectedMeta(self,keys, params={}):
+  def addExpectedMeta(self, keys, params={}, overwrite=False):
     """
       Registers meta to look for in realizations.
       @ In, keys, set(str), keys to register
       @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
         values of the dictionary are lists of the corresponding indexes/coordinates of given variable
+      @ In, overwrite, bool, optional, if True then allow existing data while changing keys
       @ Out, keys, list(str), extra keys that has been registered
     """
     # TODO add option to skip parts of meta if user wants to
@@ -115,8 +102,9 @@ class DataSet(DataObject):
     if len(keys) == 0:
       return keys
     # CANNOT add expected meta after samples are started
-    assert(self._data is None)
-    assert(self._collector is None or len(self._collector) == 0)
+    if not overwrite:
+      assert(self._data is None)
+      assert(self._collector is None or len(self._collector) == 0)
     self._metavars.extend(keys)
     self._orderedVars.extend(keys)
     self.setPivotParams(params)
@@ -427,6 +415,16 @@ class DataSet(DataObject):
       meta.update(dict((key,self._meta[key]) for key in gKeys))
     return meta
 
+  def getData(self):
+    """
+      Acquire the data for this dataset, as might go into an on-file database.
+      @ In, None
+      @ Out, data, xr.Dataset, sample data
+      @ Out, meta, dict, dictionary of xmlUtils.StaticXmlElement elements with meta information
+    """
+    self.asDataset()
+    return self._data, self._meta
+
   def getVars(self,subset=None):
     """
       Gives list of variables that are part of this dataset.
@@ -473,7 +471,7 @@ class DataSet(DataObject):
       self.raiseAnError(RuntimeError,'Unrecognized request type:',type(var))
     return res
 
-  def load(self,dataIn,style='netCDF',**kwargs):
+  def load(self, dataIn, style='netCDF', **kwargs):
     """
       Reads this dataset from disk based on the format.
       @ In, dataIn, str, path and name of file to read
@@ -487,7 +485,7 @@ class DataSet(DataObject):
       dataIn = kwargs['fileToLoad'].getAbsFile()
     # load based on style for loading
     if style == 'netcdf':
-      self._fromNetCDF(dataIn,**kwargs)
+      self._fromNetCDF(dataIn, **kwargs)
     elif style == 'csv':
       # make sure we don't include the "csv"
       if dataIn.endswith('.csv'):
@@ -585,8 +583,6 @@ class DataSet(DataObject):
         if rlz is None:
           if numInCollector > 0:
             index, rlz = self._getRealizationFromCollectorByValue(matchDict, noMatchDict, tol=tol, first=first)
-      # add index map where necessary
-      rlz = self._addIndexMapToRlz(rlz)
       # if as Dataset convert it
       if asDataSet:
         rlzs = rlz if type(rlz).__name__ == "list" else [rlz]
@@ -689,6 +685,35 @@ class DataSet(DataObject):
     self._alignedIndexes = {}
     self._scaleFactors = {}
 
+  def setData(self, data, meta):
+    """
+      Directly set the data for this data object, such as from an on-file database.
+      @ In, data, xr.Dataset, structured data set including the sampleID with realizations
+      @ In, meta, dict, dictionary of xmlUtils.StaticXmlElement elements with meta information
+      @ Out, None
+    """
+    assert isinstance(data, xr.Dataset)
+    self._collector = None
+    self._data = data
+    self._meta = meta
+    # if we have meta information, we can reconstruct the IO space for this DO
+    if 'DataSet' in meta:
+      self._setStructureFromMetaXML(meta['DataSet'])
+    # otherwise, we don't know where anything goes, so dump it all in output
+    else:
+      self._pivotParams = {}
+      # index map
+      for var in data:
+        indices = list(data[var].coords.keys())
+        for idx in indices:
+          if idx == self.sampleTag:
+            continue
+          if idx not in self._pivotParams:
+            self._pivotParams[idx] = []
+          self._pivotParams[idx].append(var)
+        self._outputs.append(var)
+      self._metavars = self._outputs[:]
+
   def sliceByIndex(self,index):
     """
       Returns list of realizations at "snapshots" along dimension "index".
@@ -720,7 +745,7 @@ class DataSet(DataObject):
     """
     self.asDataset() #just in case there is stuff left in the collector
     if style.lower() == 'netcdf':
-      self._toNetCDF(fileName,**kwargs)
+      self._toNetCDF(fileName, **kwargs)
     elif style.lower() == 'csv':
       if len(self) == 0:
         self.raiseAWarning('Nothing to write to CSV! Checking metadata ...')
@@ -1486,23 +1511,6 @@ class DataSet(DataObject):
     # collapse into xr.Dataset
     self.asDataset()
 
-  def _fromNetCDF(self,fileName, **kwargs):
-    """
-      Reads this data object from file that is netCDF.  If not netCDF4, this could be slow.
-      Loads data lazily; it won't be pulled into memory until operations are attempted on the specific data
-      @ In, fileName, str, path/name to read file
-      @ In, kwargs, dict, optional, keywords to pass to netCDF4 reading
-                                    See http://xarray.pydata.org/en/stable/io.html#netcdf for options
-      @ Out, None
-    """
-    # TODO set up to use dask for on-disk operations -> or is that a different data object?
-    self._data = xr.open_dataset(fileName)
-    # NOTE: open_dataset does NOT close the file object after loading (lazy loading)
-    ## -> if you try to rm the file in Windows before closing, it will fail with WindowsError 32: file in use!
-    # convert metadata back to XML files
-    for key,val in self._data.attrs.items():
-      self._meta[key] = pk.loads(val.encode('utf-8'))
-
   def _fromXarrayDataset(self,dataset):
     """
     """
@@ -1819,7 +1827,9 @@ class DataSet(DataObject):
     needed = set(self._orderedVars)
     missing = needed - provided
     if len(missing) > 0:
-      self.raiseAnError(IOError,'Not all variables requested for data object "{}" were found in csv "{}.csv"! Missing: {}'.format(self.name,fileName,missing))
+      extra = provided - needed
+      self.raiseAnError(IOError, f'Not all variables requested for data object "{self.name}" were found in csv "{fileName}.csv"!' +
+                        f'\nNeeded: {needed}; \nUnused: {extra}; \nMissing: {missing}')
     # otherwise, return happily and continue loading the CSV
     return dims
 
@@ -1909,6 +1919,45 @@ class DataSet(DataObject):
         self._scaleFactors[name] = (m,s)
       except Exception:
         self.raiseADebug('Had an issue with setting scaling factors for variable "{}". No big deal.'.format(name))
+
+  def _setStructureFromMetaXML(self, meta):
+    """
+      Sets this DataSet's structure based on structured meta XML
+      @ In, meta, xmlUtils.StaticXmlElement, xml structure
+      @ Out, None
+    """
+    root = meta.getRoot()
+    # locate index map
+    dims = root.find('dims')
+    varToDim = {}
+    if dims is not None:
+      for child in dims:
+        varToDim[child.tag] = list(x.strip() for x in child.text.split(','))
+    # inputs, outputs, indices meta
+    inputs = root.find('general/inputs')
+    if inputs is not None:
+      if inputs.text is None:
+        self._inputs = []
+      else:
+        self._inputs = list(x.strip() for x in inputs.text.split(','))
+    outputs = root.find('general/outputs')
+    if outputs is not None:
+      if outputs.text is None:
+        self._outputs = []
+      else:
+        self._outputs = list(x.strip() for x in outputs.text.split(','))
+    self._orderedVars = self._inputs + self._outputs
+    self._pivotParams = {}
+    for var in self._orderedVars:
+      if var in varToDim:
+        indices = varToDim[var]
+        for idx in indices:
+          if idx not in self._pivotParams:
+            self._pivotParams[idx] = []
+          self._pivotParams[idx].append(var)
+    pointwiseMeta = root.find('general/pointwise_meta').text.split(',')
+    if pointwiseMeta:
+      self.addExpectedMeta(pointwiseMeta, overwrite=True)
 
   def _toCSV(self, fileName, start=0, **kwargs):
     """
@@ -2021,20 +2070,6 @@ class DataSet(DataObject):
         xml = xmlUtils.prettify(target.getRoot(),startingTabs=1,addRavenNewlines=False)
         ofile.writelines('  {}\n'.format(xml))
       ofile.writelines('</DataObjectMetadata>\n')
-
-  def _toNetCDF(self,fileName,**kwargs):
-    """
-      Writes this data object to file in netCDF4.
-      @ In, fileName, str, path/name to write file
-      @ In, kwargs, dict, optional, keywords to pass to netCDF4 writing
-                                    One good option is format='NETCDF4' to assure netCDF4 is used
-                                    See http://xarray.pydata.org/en/stable/io.html#netcdf for options
-      @ Out, None
-    """
-    # TODO set up to use dask for on-disk operations -> or is that a different data object?
-    # convert metadata into writeable
-    self._data.attrs = dict((key,pk.dumps(val)) for key,val in self._meta.items())
-    self._data.to_netcdf(fileName,**kwargs)
 
   def _usePandasWriteCSV(self,fileName,data,ordered,keepSampleTag=False,keepIndex=False,mode='w'):
     """

@@ -1,0 +1,151 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Databases/HDF5.test_push_into_hdf5</name>
+    <author>alfoa</author>
+    <created>2013-11-11</created>
+    <classesTested>DataObjects.PointSet, DataObjects.HistorySet, Databases.HDF5</classesTested>
+    <description>
+       The idea of this input case is to test che capability of RAVEN create a Database HDF5 from DataObjects.PointSet and DataObjects.HistorySet and to
+       construct from a Database the DataObjects.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2015-05-19">Closes #171</revision>
+      <revision author="alfoa" date="2015-06-18">Changed Name of all DataObjects</revision>
+      <revision author="alfoa" date="2015-06-21">modified Names + added new capabilities and flexibility in DataObjects + added options block. Modified XSD schema and manual to reflect the modifications</revision>
+      <revision author="maljdan" date="2016-04-06">Updating test cases to reflect the changes to the user input.</revision>
+      <revision author="talbpaul" date="2016-04-26">added check for pre-existing backup files when validating</revision>
+      <revision author="maljdan" date="2016-05-20">Updating the test cases to remove references to Point or History.</revision>
+      <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
+      <revision author="alfoa" date="2019-03-01">Modified test location</revision>
+    </revisions>
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>test_extract_data_s_from_hdf5</WorkingDir>
+    <Sequence>MonteCarlo,test_extract,test_push_in,test_extract_again</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+  </Files>
+
+  <Models>
+    <ExternalModel ModuleToLoad="pump_fake" name="PumpFake" subType="">
+      <variables>zeroToOne,time,pipe1_Hw,pipe1_Dh,pipe1_Area,pump_mass_flow_rate</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="zeroToOne">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="RAVENmc3">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>1</initialSeed>
+      </samplerInit>
+      <variable name="zeroToOne">
+        <distribution>zeroToOne</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="MonteCarlo">
+      <Input class="DataObjects" type="PointSet">inputHolder</Input>
+      <Model class="Models" type="ExternalModel">PumpFake</Model>
+      <Sampler class="Samplers" type="MonteCarlo">RAVENmc3</Sampler>
+      <Output class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Output>
+    </MultiRun>
+    <IOStep name="test_extract">
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
+      <Input class="Databases" type="HDF5">MC_TEST_EXTRACT_STEP</Input>
+      <Output class="DataObjects" type="HistorySet">HistorySet_from_database</Output>
+      <Output class="DataObjects" type="PointSet">Pointset_from_database</Output>
+      <Output class="OutStreams" type="Print">Pointset_from_database_dump</Output>
+      <Output class="OutStreams" type="Print">HistorySet_from_database_dump</Output>
+    </IOStep>
+    <IOStep name="test_push_in">
+      <Input class="DataObjects" type="HistorySet">HistorySet_from_database</Input>
+      <Input class="DataObjects" type="PointSet">Pointset_from_database</Input>
+      <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
+      <Output class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Output>
+    </IOStep>
+    <IOStep name="test_extract_again">
+      <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
+      <Input class="Databases" type="HDF5">MC_TEST_PUSH_STEP</Input>
+      <Output class="DataObjects" type="HistorySet">HistorySet_IN_database</Output>
+      <Output class="DataObjects" type="PointSet">Pointset_IN_database</Output>
+      <Output class="OutStreams" type="Print">Pointset_IN_database_dump</Output>
+      <Output class="OutStreams" type="Print">HistorySet_IN_database_dump</Output>
+    </IOStep>
+  </Steps>
+
+  <Databases>
+    <HDF5 name="MC_TEST_EXTRACT_STEP" readMode="overwrite"/>
+    <HDF5 name="MC_TEST_PUSH_STEP" readMode="overwrite"/>
+  </Databases>
+
+  <OutStreams>
+    <Print name="Pointset_from_database_dump">
+      <type>csv</type>
+      <source>Pointset_from_database</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="Pointset_IN_database_dump">
+      <type>csv</type>
+      <source>Pointset_IN_database</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="HistorySet_IN_database_dump">
+      <type>csv</type>
+      <source>HistorySet_IN_database</source>
+      <what>input, output</what>
+    </Print>
+    <Print name="HistorySet_from_database_dump">
+      <type>csv</type>
+      <source>HistorySet_from_database</source>
+      <what>input, output</what>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="inputHolder">
+      <Input>zeroToOne</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="Pointset_from_database">
+      <options>
+        <inputRow>-1</inputRow>
+      </options>
+      <Input>zeroToOne</Input>
+      <Output>pump_mass_flow_rate, time, pipe1_Hw</Output>
+    </PointSet>
+    <PointSet name="Pointset_IN_database">
+      <options>
+        <inputRow>-1</inputRow>
+      </options>
+      <Input>zeroToOne</Input>
+      <Output>pump_mass_flow_rate, time, pipe1_Hw</Output>
+    </PointSet>
+    <HistorySet name="HistorySet_from_database">
+      <options>
+        <inputRow>-1</inputRow>
+      </options>
+      <Input>zeroToOne</Input>
+      <Output>pump_mass_flow_rate, time, pipe1_Hw</Output>
+    </HistorySet>
+    <HistorySet name="HistorySet_IN_database">
+      <options>
+        <inputRow>-1</inputRow>
+      </options>
+      <Input>zeroToOne</Input>
+      <Output>pump_mass_flow_rate, time, pipe1_Hw</Output>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>
