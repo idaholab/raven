@@ -1693,7 +1693,6 @@ class ROM(Dummy):
       def return_train_values(self, feat):
         return self.rom.trainingSet.get(feat)
 
-
       def input_names(self):
         return self._input_names
 
