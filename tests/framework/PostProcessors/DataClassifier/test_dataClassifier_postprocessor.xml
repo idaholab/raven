@@ -150,7 +150,7 @@
     </PointSet>
     <PointSet name="sim_PS_out">
       <Input>ACC_status,time_LPI,time_LPR</Input>
-      <Output>out, LPI_status, LPR_status</Output>
+      <Output>out, LPI_status, LPR_status, sequence</Output>
     </PointSet>
   </DataObjects>
   

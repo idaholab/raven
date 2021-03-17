@@ -213,7 +213,7 @@ class RAVEN(CodeInterfaceBase):
       else:
         # the one we want wasn't found!
         raise IOError(f'{self.printTag} ERROR: The Database named "{self.linkedDatabaseName}" listed '+
-                      'in <outputDatabase> was not found among the written Databases in the inner RAVEN! '+
+                      'in <outputDatabase> was not found among the written Databases in active Steps in the inner RAVEN! '+
                       f'Found: {list(self.outDatabases.keys())}')
 
     # get variable groups
