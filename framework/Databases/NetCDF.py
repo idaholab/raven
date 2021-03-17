@@ -66,7 +66,7 @@ class NetCDF(DateBase):
     ds, meta = source.getData()
     # we actually just tell the DataSet to write out as netCDF
     path = self.get_fullpath()
-    # TODO set up to use dask for on-disk operations -> or is that a different data object?
+    # TODO set up to use dask for on-disk operations
     # convert metadata into writeable
     for key, xml in meta.items():
       ds.attrs[key] = xmlUtils.prettify(xml.getRoot())
@@ -76,6 +76,17 @@ class NetCDF(DateBase):
         # is it a string?
         if mathUtils.isAString(ds[var].values[0]):
           ds[var] = ds[var].astype(str)
+    # is there existing data? Read it in and merge it, if so
+    # -> we've already wiped the file in initializeDatabase if it's in write mode
+    if os.path.isfile(path):
+      exists = xr.load_dataset(path)
+      if 'RAVEN_sample_ID' in exists:
+        floor = int(exists['RAVEN_sample_ID'].values[-1]) + 1
+        new = ds['RAVEN_sample_ID'].values + floor
+        ds = ds.assign_coords(RAVEN_sample_ID=new)
+      # NOTE order matters! This preserves the sampling order in which data was inserted
+      #      into this database
+      ds = xr.concat((exists, ds), 'RAVEN_sample_ID')
     # if this is open somewhere else, we can't write to it
     # TODO is there a way to check if it's writable? I can't find one ...
     try:
@@ -119,10 +130,10 @@ class NetCDF(DateBase):
       # existing = xr.open_dataset(path, chunks={'RAVEN_sample_ID': 100}) # TODO user option
       existing = True
       with xr.open_dataset(path) as ds: # autocloses at end of scope
-        counter = len(ds.RAVEN_sample_ID) + 1
+        counter = int(ds.RAVEN_sample_ID.values[-1]) + 1
     else:
       existing = None
-      counter = 1
+      counter = 0
     # create DS from realization # TODO make a feature of the Realization object
     indexMap = rlz.get('_indexMap', [{}])[0]
     indices = list(set().union(*(set(x) for x in indexMap.values())))
@@ -142,18 +153,8 @@ class NetCDF(DateBase):
     rlzDS = xr.Dataset(xarrs)
     if existing:
       with xr.open_dataset(path) as ds: # autocloses at end of scope
+        # after research, best approach is concatenating xr.DataSet along RAVEN_sample_ID dim
         new = xr.concat((ds, rlzDS), dim='RAVEN_sample_ID')
     else:
       new = rlzDS
     new.to_netcdf(path) # TODO would appending instead of writing work for new samples? I doubt it.
-    # after research, best approach is concatenating xr.DataSet along RAVEN_sample_ID dim:
-    # FIXME this is just good pseudocode right now
-    ## load old
-    # old = xr.load_dataset('ds.nc')
-    # ## make new dataarrays
-    # new = list(xr.DataArray(rlz[var], dims=('RAVEN_sample_ID' ++indexMap), coords={'RAVEN_sample_ID': [counter]}) for var in rlz)
-    # ## combine into dataset
-    # new_ds = xr.Dataset(dict((str(i), new[i]) for i in range(dims)))
-    # ## concat datasets
-    # new = xr.concat((old, new_ds), dim='RAVEN_sample_ID')
-    # raise NotImplementedError

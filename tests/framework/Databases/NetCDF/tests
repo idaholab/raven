@@ -40,6 +40,16 @@
       output = 'Sample/DatabaseStorage/all.nc Sample/DatabaseStorage/select.nc'
     [../]
   [../]
+
+  [./TwiceWrite]
+    type = 'RavenFramework'
+    input = 'twice_write.xml'
+    [./database]
+      type = NetCDF
+      output = 'TwiceWrite/io_io.nc TwiceWrite/io_sample.nc TwiceWrite/sample_io.nc TwiceWrite/sample_sample.nc'
+      gold_files = 'gold/TwiceWrite/correct.nc gold/TwiceWrite/correct.nc gold/TwiceWrite/correct.nc gold/TwiceWrite/correct.nc'
+    [../]
+  [../]
 []
 
 

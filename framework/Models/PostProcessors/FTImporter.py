@@ -62,6 +62,12 @@ class FTImporter(PostProcessor):
     self.printTag = 'POSTPROCESSOR FT IMPORTER'
     self.FTFormat = None # chosen format of the FT file
     self.topEventID = None
+    self.validDataType = ['PointSet'] # The list of accepted types of DataObject
+    ## Currently, we have used both DataObject.addRealization and DataObject.load to
+    ## collect the PostProcessor returned outputs. DataObject.addRealization is used to
+    ## collect single realization, while DataObject.load is used to collect multiple realizations
+    ## However, the DataObject.load can not be directly used to collect single realization
+    self.outputMultipleRealizations = True
 
   def initialize(self, runInfo, inputs, initDict) :
     """
@@ -89,26 +95,20 @@ class FTImporter(PostProcessor):
     """
       This method executes the postprocessor action.
       @ In,  inputs, list, list of file objects
-      @ Out, out, dict, dict containing the processed FT
+      @ Out, outputDict, dict, dict containing the processed FT
     """
     faultTreeModel = FTStructure(inputs, self.topEventID)
-    return faultTreeModel.returnDict()
+    outputDict = faultTreeModel.returnDict()
+    outputDict = {'data': outputDict, 'dims':{}}
+    return outputDict
 
-  def collectOutput(self, finishedJob, output):
+  def collectOutput(self, finishedJob, output, options=None):
     """
       Function to place all of the computed data into the output object, (DataObjects)
-      @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor
+      @ In, finishedJob, object, JobHandler object that is in charge of running this PostProcessor
       @ In, output, object, the object where we want to place our computed results
+      @ In, options, dict, optional, not used in PostProcessor.
+        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    evaluation = finishedJob.getEvaluation()
-    outputDict ={}
-    outputDict['data'] = evaluation[1]
-
-    outputDict['dims'] = {}
-    for key in outputDict['data'].keys():
-      outputDict['dims'][key] = []
-    if output.type in ['PointSet']:
-      output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
-    else:
-      self.raiseAnError(RuntimeError, 'FTImporter failed: Output type ' + str(output.type) + ' is not supported.')
+    PostProcessor.collectOutput(self, finishedJob, output, options=options)

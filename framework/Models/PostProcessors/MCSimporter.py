@@ -50,6 +50,12 @@ class MCSImporter(PostProcessor):
     self.expand    = None  # option that controls the structure of the ET. If True, the tree is expanded so that
                            # all possible sequences are generated. Sequence label is maintained according to the
                            # original tree
+    self.validDataType = ['PointSet'] # The list of accepted types of DataObject
+    ## Currently, we have used both DataObject.addRealization and DataObject.load to
+    ## collect the PostProcessor returned outputs. DataObject.addRealization is used to
+    ## collect single realization, while DataObject.load is used to collect multiple realizations
+    ## However, the DataObject.load can not be directly used to collect single realization
+    self.outputMultipleRealizations = True
 
   @classmethod
   def getInputSpecification(cls):
@@ -138,27 +144,19 @@ class MCSImporter(PostProcessor):
       for be in mcs:
         mcsPointSet[be][counter] = 1.0
       counter = counter+1
-
+    mcsPointSet = {'data': mcsPointSet, 'dims': {}}
     return mcsPointSet
 
-  def collectOutput(self, finishedJob, output):
+  def collectOutput(self, finishedJob, output, options=None):
     """
       Function to place all of the computed data into the output object, (DataObjects)
       @ In, finishedJob, object, JobHandler object that is in charge of running this PostProcessor
       @ In, output, object, the object where we want to place our computed results
+      @ In, options, dict, optional, not used in PostProcessor.
+        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    evaluation = finishedJob.getEvaluation()
-    outputDict ={}
-    outputDict['data'] = evaluation[1]
-
-    if output.type in ['PointSet']:
-      outputDict['dims'] = {}
-      for key in outputDict.keys():
-        outputDict['dims'][key] = []
-      output.load(outputDict['data'], style='dict', dims=outputDict['dims'])
-    else:
-        self.raiseAnError(RuntimeError, 'MCSImporter failed: Output type ' + str(output.type) + ' is not supported.')
+    PostProcessor.collectOutput(self, finishedJob, output, options=options)
 
 def mcsReader(mcsListFile):
   """
