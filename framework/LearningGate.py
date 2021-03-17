@@ -289,6 +289,36 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
             resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
     return resultsDict
 
+  def derivatives(self, request, order=1, feats=None):
+    """
+      Method to perform the evaluation of the derivatives around a point or a set of points through the linked surrogate model
+      @ In, request, dict, realizations request ({'feature1':np.array(n_realizations),'feature2',np.array(n_realizations)})
+      @ In, order, int, optional, the order of the derivatives (1 =first, 2=second, etc.). default 1.
+      @ In, feats, list, optional, list of features we need to compute the
+                                   derivative for (default all)
+      @ Out, resultsDict, dict, the dict containing the derivatives for each target
+                                ({'d(feature1)|d(target1)':np.array(size 1 or n_ts),
+                                  'd(feature1)|d(target1)':np.array(...)}. For example,
+                                {"dx1|dy1":np.array(...),"dx2|dy1":np.array(...),etc.}
+    """
+    if self.pickled:
+      self.raiseAnError(RuntimeError,'ROM "'+self.initializationOptions['name']+'" has not been loaded yet!  Use an IOStep to load it.')
+    if not self.amITrained:
+      self.raiseAnError(RuntimeError, "ROM "+self.initializationOptions['name']+" has not been trained yet and, consequentially, can not be evaluated for derivative enstimation!")
+    resultsDict = {}
+    if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
+      resultsDict = mathUtils.derivatives(self.supervisedContainer[0].evaluate, request, var=feats, n=order)
+    else:
+      for rom in self.supervisedContainer:
+        sliceEvaluation = mathUtils.derivatives(rom.evaluate, request, var=feats, n=order)
+        if len(list(resultsDict.keys())) == 0:
+          resultsDict.update(sliceEvaluation)
+        else:
+          for key in resultsDict.keys():
+            resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
+    return resultsDict
+
+
 __interfaceDict                         = {}
 __interfaceDict['SupervisedGate'      ] = supervisedLearningGate
 __base                                  = 'supervisedGate'
