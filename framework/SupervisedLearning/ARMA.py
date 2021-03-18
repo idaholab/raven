@@ -1843,7 +1843,7 @@ class ARMA(supervisedLearning):
           #   trainingDict[target][0] = targetVals
       # store the segment-based periods in the settings to return
       settings['segment Fourier periods'] = segment
-      settings['long Fourier signal'] = self.fourierResults 
+      settings['long Fourier signal'] = self.fourierResults
     return settings, trainingDict
 
   def parametrizeGlobalRomFeatures(self, featureDict):
@@ -2051,7 +2051,7 @@ class ARMA(supervisedLearning):
           evaluation[target][localPicker] += sig
     return evaluation
 
-  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None):
+  def finalizeGlobalRomSegmentEvaluation(self, settings, evaluation, weights=None, slicer=None):
     """
       Allows any global settings to be applied to the signal collected by the ROMCollection instance.
       Note this is called on the GLOBAL templateROM from the ROMcollection, NOT on the LOCAL supspace segment ROMs!
@@ -2063,7 +2063,7 @@ class ARMA(supervisedLearning):
     # backtransform signal to preserve CDF
     ## how nicely does this play with zerofiltering?
     evaluation = self._finalizeGlobalRSE_preserveCDF(settings, evaluation, weights)
-    evaluation = self._finalizeGlobalRSE_zeroFilter(settings, evaluation, weights)
+    evaluation = self._finalizeGlobalRSE_zeroFilter(settings, evaluation, weights, slicer)
     return evaluation
 
   def _finalizeGlobalRSE_preserveCDF(self, settings, evaluation, weights):
@@ -2099,7 +2099,7 @@ class ARMA(supervisedLearning):
           evaluation[target] = self._transformThroughInputCDF(evaluation[target], dist, weights)
     return evaluation
 
-  def _finalizeGlobalRSE_zeroFilter(self, settings, evaluation, weights):
+  def _finalizeGlobalRSE_zeroFilter(self, settings, evaluation, weights, slicer=None):
     """
       Helper method for finalizeGlobalRomSegmentEvaluation,
       particularly for zerofiltering
@@ -2110,13 +2110,21 @@ class ARMA(supervisedLearning):
     """
     if self.zeroFilterTarget:
       mask = self._masks[self.zeroFilterTarget]['zeroFilterMask']
-      if self.multicycle:
-        evaluation[self.zeroFilterTarget][:, mask] = 0
+      if slicer is not None:
+
+        newMask = []
+        for sl in slicer:
+          m = mask[sl.start:sl.stop].tolist()
+          newMask.extend(m)
+        newMask = np.asarray(newMask)
       else:
-        evaluation[self.zeroFilterTarget][mask] = 0
+        newMask = mask
+
+      if self.multicycle:
+        evaluation[self.zeroFilterTarget][:, newMask] = 0
+      else:
+        evaluation[self.zeroFilterTarget][newMask] = 0
     return evaluation
-
-
 
   ### Peak Picker ###
   def _peakPicker(self,signal,low):

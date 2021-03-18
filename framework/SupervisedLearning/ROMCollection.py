@@ -540,7 +540,7 @@ class Segments(Collection):
       #   for name, signal in signals.items():
       #     varName = '{}_{}'.format(target,name)
       #     subdict[varName] = signal
-      # segpdfile = pd.DataFrame(subdict) 
+      # segpdfile = pd.DataFrame(subdict)
       # segpdfile.to_csv('seg_{}.csv'.format(i),index = False)
       roms.append(newROM)
     #templateROM.preserveInputCDF = False
@@ -723,13 +723,14 @@ class Clusters(Segments):
       ## Right now consider it as if it wasn't an available feature, cuz it kinda isn't.
       result = Segments.evaluate(self, edict)
     elif self._evaluationMode in ['truncated', 'clustered']:
-      # NOTE: the needs of "truncated" and "clustered" are very similar, so they are only
+      ## NOTE: the needs of "truncated" and "clustered" are very similar, so they are only
       ## differentiated by a couple small differences in this "elif".
       if self._evaluationMode == 'truncated':
         result, weights = self._createTruncatedEvaluation(edict)
       else:
         result, weights = self._createNDEvaluation(edict)
       clusterStartIndex = 0 # what index does this cluster start on in the truncated signal?
+      globalLocalPicker = []
       for r, rom in enumerate(self._roms):
         # "r" is the cluster label
         # find ROM in cluster
@@ -744,6 +745,7 @@ class Clusters(Segments):
         #where in the original signal does this cluster-representing segment come from
         globalPicker = slice(delim[0], delim[-1] + 1)
         segmentLen = globalPicker.stop - globalPicker.start
+        globalLocalPicker.append(globalPicker)
         # where in the truncated signal does this cluster sit?
         if self._evaluationMode == 'truncated':
           localPicker = slice(clusterStartIndex, clusterStartIndex + segmentLen)
@@ -756,7 +758,7 @@ class Clusters(Segments):
       # make final modifications to full signal based on global settings
       ## for truncated mode, this is trivial.
       ## for clustered mode, this is complicated.
-      result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights)
+      result = self._templateROM.finalizeGlobalRomSegmentEvaluation(self._romGlobalAdjustments, result, weights=weights, slicer=globalLocalPicker)
     # TODO add cluster multiplicity to "result" as meta to the output
     #if self._evaluationMode == 'clustered':
     #  result['cluster_multiplicity'] = np.asarray([len(x) for c, x in self._clusterInfo['map'].items() if c != 'unclustered'])
