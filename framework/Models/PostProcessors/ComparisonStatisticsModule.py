@@ -487,7 +487,7 @@ class ComparisonStatistics(PostProcessor):
           value = dataStat[key]
           if np.isscalar(value):
             dataPairs.append((key, value))
-        extraCsv = Files.returnInstance('CSV',self)
+        extraCsv = Files.factory.returnInstance('CSV', self)
         extraCsv.initialize(newFileName,self.messageHandler)
         extraCsv.open("w")
         extraCsv.write(",".join(['"' + str(x[0]) + '"' for x in dataPairs]))

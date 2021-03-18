@@ -33,6 +33,7 @@ import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from EntityFactoryBase import EntityFactory
 from BaseClasses import BaseType
 import Files
 from utils import utils
@@ -1151,21 +1152,5 @@ class IOStep(Step):
     if 'fromDirectory' in paramInput.parameterValues:
       self.fromDirectory = paramInput.parameterValues['fromDirectory']
 
-
-__interFaceDict                      = {}
-__interFaceDict['SingleRun'        ] = SingleRun
-__interFaceDict['MultiRun'         ] = MultiRun
-__interFaceDict['IOStep'           ] = IOStep
-__interFaceDict['RomTrainer'       ] = RomTrainer
-__interFaceDict['PostProcess'      ] = PostProcess
-__base                               = 'Step'
-
-def returnInstance(Type,caller):
-  """
-    Returns the instance of a Step
-    @ In, Type, string, requested step
-    @ In, caller, object, requesting object
-    @ Out, __interFaceDict, instance, instance of the step
-  """
-  return __interFaceDict[Type]()
-  caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+factory = EntityFactory('Step')
+factory.registerAllSubtypes(Step)

@@ -283,7 +283,7 @@ class CrossValidation(PostProcessor):
     for key, value in initDict.items():
       if key == "SciKitLearn":
         groups = value.pop("labels",None)
-        cvEngine = CrossValidations.returnInstance(key, self, **value)
+        cvEngine = CrossValidations.factory.returnInstance(key, self, messageHandler=self.messageHandler, **value)
         break
     if cvEngine is None:
       self.raiseAnError(IOError, "No cross validation engine is provided!")

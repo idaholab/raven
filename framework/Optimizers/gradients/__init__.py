@@ -26,6 +26,4 @@ from .FiniteDifference import FiniteDifference
 #from .CentralDifference import CentralDifference
 #from .SPSA import SPSA
 
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
+from .Factory import factory

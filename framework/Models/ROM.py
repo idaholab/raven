@@ -69,8 +69,8 @@ class ROM(Dummy):
     ######################
     # dynamically loaded #
     ######################
-    for typ in SupervisedLearning.knownTypes():
-      obj = SupervisedLearning.returnClass(typ, None) # TODO no message handler available!
+    for typ in SupervisedLearning.factory.knownTypes():
+      obj = SupervisedLearning.factory.returnClass(typ, None) # TODO no message handler available!
       if hasattr(obj, 'getInputSpecifications'):
         subspecs = obj.getInputSpecifications()
         print('Known:', typ)
@@ -1374,7 +1374,7 @@ class ROM(Dummy):
       @ In, initializationOptions, dict, the initialization options
       @ Out, None
     """
-    self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
+    self.supervisedEngine = LearningGate.factory.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
 
   def reset(self):
     """

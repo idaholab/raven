@@ -123,10 +123,10 @@ class LimitSurface(PostProcessor):
       @ Out, None
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.gridEntity = GridEntities.returnInstance("MultiGridEntity",self,self.messageHandler)
+    self.gridEntity = GridEntities.factory.returnInstance("MultiGridEntity", self, messageHandler=self.messageHandler)
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
-      self.ROM = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})
+      self.ROM = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})
     else:
       self.ROM = self.assemblerDict['ROM'][0][3]
     self.ROM.reset()

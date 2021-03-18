@@ -43,21 +43,20 @@ class SyntheticHistory(supervisedLearning):
         descr=r"""A ROM for characterizing and generating synthetic histories. This ROM makes use of
                a variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new
                signals based on training signal sets. """)
-    for typ in TSA.knownTypes():
-      c = TSA.returnClass(typ, None) # TODO no message handler for second argument
+    for typ in TSA.factory.knownTypes():
+      c = TSA.factory.returnClass(typ, None) # TODO no message handler for second argument
       specs.addSub(c.getInputSpecification())
     return specs
 
   ### INHERITED METHODS ###
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler: a MessageHandler object in charge of raising errors,
                            and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     self.printTag = 'SyntheticHistoryROM'
     self._dynamicHandling = True # This ROM is able to manage the time-series on its own.
     # training storage
@@ -79,8 +78,8 @@ class SyntheticHistory(supervisedLearning):
     """
     self.pivotParameterID = inp.findFirst('pivotParameter').value # TODO does a base class do this?
     for sub in inp.subparts:
-      if sub.name in TSA.knownTypes():
-        algo = TSA.returnInstance(sub.name, self.messageHandler)
+      if sub.name in TSA.factory.knownTypes():
+        algo = TSA.factory.returnInstance(sub.name, self)
         self.algoSettings[algo] = algo.handleInput(sub)
         self.tsaAlgorithms.append(algo)
     if self.pivotParameterID not in self.target:

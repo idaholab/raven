@@ -74,13 +74,14 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         return(False, ' The array must be 1-d. Got shape: '+str(np.asarray(arrayIn).shape))
     return (True,'')
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, messageHandler=None, **kwargs):
     """
       A constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
+      @ In, messageHandler, MessageHandler object, optional, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
+    assert messageHandler is not None
     self.printTag = 'Supervised'
     self.messageHandler = messageHandler
     self._dynamicHandling = False

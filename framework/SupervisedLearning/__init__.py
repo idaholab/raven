@@ -46,7 +46,4 @@ from .KerasMLPClassifier import KerasMLPClassifier
 from .KerasConvNetClassifier import KerasConvNetClassifier
 from .KerasLSTMClassifier import KerasLSTMClassifier
 
-# Factory methods
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
+from .Factory import factory
