@@ -25,6 +25,7 @@ import numpy as np
 from .PostProcessor import PostProcessor
 from utils import utils
 from utils import InputData, InputTypes
+from utils import frontUtils
 import Runners
 #Internal Modules End-----------------------------------------------------------
 
@@ -47,6 +48,7 @@ class ParetoFrontier(PostProcessor):
     self.validDataType = ['PointSet'] # The list of accepted types of DataObject
     self.outputMultipleRealizations = True # True indicate multiple realizations are returned
 
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -58,23 +60,16 @@ class ParetoFrontier(PostProcessor):
     """
     inputSpecification = super(ParetoFrontier, cls).getInputSpecification()
 
-    costIDInput = InputData.parameterInputFactory("costID", contentType=InputTypes.StringType)
-    costIDInput.addParam("inv", InputTypes.BoolType, True)
-    inputSpecification.addSub(costIDInput)
+    objDataType = InputTypes.makeEnumType("objective", "objectiveType", ['min','max'])
 
-    valueIDInput = InputData.parameterInputFactory("valueID", contentType=InputTypes.StringType)
-    valueIDInput.addParam("inv", InputTypes.BoolType, True)
-    inputSpecification.addSub(valueIDInput)
-
-    costLimitInput = InputData.parameterInputFactory("costLimit", contentType=InputTypes.FloatType)
-    costLimitInput.addParam("type", InputTypes.StringType, True)
-    inputSpecification.addSub(costLimitInput)
-
-    valueLimitInput = InputData.parameterInputFactory("valueLimit", contentType=InputTypes.FloatType)
-    valueLimitInput.addParam("type", InputTypes.StringType, True)
-    inputSpecification.addSub(valueLimitInput)
+    objective = InputData.parameterInputFactory('objective', contentType=InputTypes.StringType)
+    objective.addParam('goal',       param_type=objDataType,           required=True)
+    objective.addParam('upperLimit', param_type=InputTypes.FloatType,  required=False)
+    objective.addParam('lowerLimit', param_type=InputTypes.FloatType,  required=False)
+    inputSpecification.addSub(objective)
 
     return inputSpecification
+
 
   def _handleInput(self, paramInput):
     """
@@ -82,24 +77,14 @@ class ParetoFrontier(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
-    costID  = paramInput.findFirst('costID')
-    self.costID  = costID.value
-    self.invCost = costID.parameterValues['inv']
+    self.objectives = {}
 
-    valueID = paramInput.findFirst('valueID')
-    self.valueID = valueID.value
-    self.invValue = valueID.parameterValues['inv']
-
-    costLimit  = paramInput.findFirst('costLimit')
-    if costLimit is not None:
-      self.costLimit  = costLimit.value
-      self.costLimitType = costLimit.parameterValues['type']
-
-    valueLimit = paramInput.findFirst('valueLimit')
-    if valueLimit is not None:
-      self.valueLimit = valueLimit.value
-      self.valueLimitType = valueLimit.parameterValues['type']
+    for child in paramInput.subparts:
+      if child.getName() == 'objective':
+        self.objectives[child.value]={}
+        self.objectives[child.value]['goal']       = child.parameterValues['goal']
+        self.objectives[child.value]['upperLimit'] = child.parameterValues.get('upperLimit')
+        self.objectives[child.value]['lowerLimit'] = child.parameterValues.get('lowerLimit')
 
 
   def inputToInternal(self, currentInp):
@@ -119,6 +104,7 @@ class ParetoFrontier(PostProcessor):
                                  .format(self.name, currentInp.type))
     return currentInp
 
+
   def run(self, inputIn):
     """
       This method executes the postprocessor action.
@@ -128,40 +114,24 @@ class ParetoFrontier(PostProcessor):
     inData = self.inputToInternal(inputIn)
     data = inData.asDataset()
 
-    if self.invCost:
-      data[self.costID] = (-1.) * data[self.costID]
-    if self.invValue:
-      data[self.valueID] = (-1.) * data[self.valueID]
+    dataTemp = data[list(self.objectives.keys())]
+    for index,obj in enumerate(self.objectives.keys()):
+      if self.objectives[obj]['goal']=='max':
+        dataTemp[obj] = (-1.) * dataTemp[obj]
 
-    sortedData = data.sortby(self.costID)
-    coordinates = np.zeros(1,dtype=int)
-    for index,elem in enumerate(sortedData[self.costID].values):
-      if (index>1) and (sortedData[self.valueID].values[index]>sortedData[self.valueID].values[coordinates[-1]]):
-        # the point at index is part of the pareto frontier
-        coordinates = np.append(coordinates,index)
+    paretoFrontMask = frontUtils.nonDominatedFrontier(np.transpose(dataTemp.to_array().values), returnMask=False)
+    selection = data.isel(RAVEN_sample_ID=np.array(paretoFrontMask))
 
-    selection = sortedData.isel(RAVEN_sample_ID=coordinates)
-
-    if self.invCost:
-      selection[self.costID] = (-1.) * selection[self.costID]
-    if self.invValue:
-      selection[self.valueID] = (-1.) * selection[self.valueID]
-
-    if self.valueLimit is not None:
-      if self.valueLimitType=="upper":
-        selection = selection.where(selection[self.valueID]<=self.valueLimit)
-      else:
-        selection = selection.where(selection[self.valueID]>=self.valueLimit)
-    if self.costLimit is not None:
-      if self.costLimitType=="upper":
-        selection = selection.where(selection[self.costID]<=self.costLimit)
-      else:
-        selection = selection.where(selection[self.costID]>=self.costLimit)
+    for obj in self.objectives.keys():
+      if self.objectives[obj]['upperLimit']:
+        selection = selection.where(selection[obj]<=self.objectives[obj]['upperLimit'])
+      if self.objectives[obj]['lowerLimit']:
+        selection = selection.where(selection[obj]>=self.objectives[obj]['lowerLimit'])
 
     filteredParetoFrontier = selection.to_array().values
     paretoFrontierData = np.transpose(filteredParetoFrontier)
     paretoFrontierDict = {}
-    for index,varID in enumerate(sortedData.data_vars):
+    for index,varID in enumerate(data.data_vars):
       paretoFrontierDict[varID] = paretoFrontierData[:,index]
     paretoFrontierDict = {'data':paretoFrontierDict, 'dims':{}}
     return paretoFrontierDict
