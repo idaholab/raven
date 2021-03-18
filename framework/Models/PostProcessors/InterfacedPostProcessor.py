@@ -120,7 +120,7 @@ class InterfacedPostProcessor(PostProcessor):
     paramInput = InputData.parseFromList(xmlNode, interfaceClasses)
 
     self.methodToRun = paramInput.getName()
-    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.returnPostProcessorInterface(self.methodToRun,self)
+    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.factory.returnInstance(self.methodToRun, self, messageHandler=self.messageHandler)
     if not isinstance(self.postProcessor,PostProcessorInterfaceBase):
       self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor '+ self.name +
                         ' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')

@@ -120,9 +120,9 @@ class Sobol(SparseGridCollocation):
         quadDict[c]=self.quadDict[c]
         polyDict[c]=self.polyDict[c]
         imptDict[c]=self.importanceDict[c]
-      iset=IndexSets.returnInstance(SVL.indexSetType,self)
+      iset = IndexSets.factory.returnInstance(SVL.indexSetType, self)
       iset.initialize(combo,imptDict,SVL.maxPolyOrder)
-      self.SQs[combo] = Quadratures.returnInstance(self.sparseGridType,self)
+      self.SQs[combo] = Quadratures.factory.returnInstance(self.sparseGridType, self, messageHandler=self.messageHandler)
       self.SQs[combo].initialize(combo,iset,distDict,quadDict,self.jobHandler,self.messageHandler)
       initDict={'IndexSet'       :iset.type,             # type of index set
                 'PolynomialOrder':SVL.maxPolyOrder,      # largest polynomial
@@ -135,7 +135,7 @@ class Sobol(SparseGridCollocation):
                       'quads':quadDict,             # quadratures
                       'polys':polyDict,             # polynomials
                       'iSet' :iset}                 # index set
-      self.ROMs[combo] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
+      self.ROMs[combo] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom', self, messageHandler=self.messageHandler, **initDict)
       self.ROMs[combo].initialize(initializeDict)
       self.ROMs[combo].messageHandler = self.messageHandler
     #make combined sparse grids

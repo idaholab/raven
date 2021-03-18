@@ -26,9 +26,4 @@ from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 from .Fourier import Fourier
 from .ARMA import ARMA
 
-
-# Factory methods
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
-
+from .Factory import factory

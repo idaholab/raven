@@ -29,6 +29,4 @@ from .OutStreamBase import OutStreamBase
 from .FilePrint import FilePrint
 from .GeneralPlot import GeneralPlot as Plot
 
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
+from .Factory import factory

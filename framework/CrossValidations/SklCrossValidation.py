@@ -38,14 +38,13 @@ class SciKitLearn(CrossValidation):
   # dictionary of available cross validation methods {mainClass:(classPointer, output Type (float))}
   availImpl = {}
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       Constructor for SciKitLearn class
-      @ In, messageHandler, MessageHandler, Message handler object
       @ In, kwargs, dict, arguments for the SciKitLearn
       @ Out, None
     """
-    CrossValidation.__init__(self, messageHandler, **kwargs)
+    CrossValidation.__init__(self, **kwargs)
     self.printTag = 'SKLearn Cross Validation'
 
     if len(self.availImpl) == 0:
