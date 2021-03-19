@@ -185,6 +185,7 @@
         <xsd:attribute name="name"      type="xsd:string" use="required"/>
         <xsd:attribute name="verbosity" type="verbosityAttr"/>
     </xsd:complexType>
+
     <xsd:complexType name="crossoverType">
       <xsd:all>
         <xsd:element name="crossoverProb"   type="xsd:float" />

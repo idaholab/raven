@@ -869,7 +869,7 @@ def readVariableGroups(xmlNode, messageHandler, caller):
     name = child.attrib['name']
     nodes[name] = child
     if child.text is None:
-      needs = []
+      needs = [''] # needs to be an empty string, not simply []
     else:
       needs = [s.strip().strip('-+^%') for s in child.text.split(',')]
     for n in needs:
@@ -971,3 +971,141 @@ def giveZero():
     @ Out, giveZero, int, zero
   """
   return 0
+
+##########################
+# empirical distribution #
+##########################
+def characterizeCDF(data, binOps=None, minBins=1):
+  """
+    Constructs an empirical CDF from the given data
+    @ In, data, np.array(float), values to fit CDF to
+    @ In, binOps, int, setting for picking binning strategy
+    @ In, minBins, int, minimum bins for empirical CDF
+    @ Out, params, dict, essential parameters for CDF
+  """
+  # caluclate number of bins
+  # binOps=Length or value
+  nBins, _ = numBinsDraconis(data, low=minBins, binOps=binOps)
+  # construct histogram
+  counts, edges = np.histogram(data, bins=nBins, density=False)
+  counts = np.array(counts) / float(len(data))
+  # numerical CDF, normalizing to 0..1
+  cdf = np.cumsum(counts)
+  # set lowest value as first entry,
+  ## from Jun implementation, min of CDF set to 0 for ?numerical issues?
+  cdf = np.insert(cdf, 0, 0)
+  # store parameters
+  params = {'bins': edges,
+            'counts':counts,
+            'pdf' : counts * nBins,
+            'cdf' : cdf,
+            'lens' : len(data)}
+  return params
+
+def gaussianize(data, cdf):
+  """
+    Transforms "data" via empirical CDF into Gaussian distribution
+    @ In, data, np.array, values to "gaussianize"
+    @ In, cdf, dict, CDF characteristics (as via "characterizeCDF")
+    @ Out, normed, np.array, gaussian version of "data"
+  """
+  cdfVals = sampleCDF(data, cdf)
+  normed = stats.norm.ppf(cdfVals) # TODO could use RAVEN dist, but this is more modular
+  return normed
+
+def degaussianize(data, cdf):
+  """
+    Transforms "data" via empirical CDF from Gaussian distribution
+    Opposite of "gaussianize" above
+    @ In, data, np.array, "normal" values to "degaussianize"
+    @ In, cdf, dict, CDF characteristics (as via "characterizeCDF")
+    @ Out, denormed, np.array, empirical version of "data"
+  """
+  cdfVals = stats.norm.cdf(data)
+  denormed = sampleICDF(cdfVals, cdf)
+  return denormed
+
+def sampleCDF(x, cdfParams):
+  """
+    Samples the empirical distribution's CDF at requested value(s)
+    @ In, x, float/np.array, value(s) at which to sample CDF
+    @ In, cdf, dict, CDF parameters (as constructed by "characterizeCDF")
+    @ Out, y, float/np.array, value of empirical CDF at x
+  """
+  # TODO could this be covered by an empirical distribution from Distributions?
+  # set up I/O
+  x = np.atleast_1d(x)
+  y = np.zeros(x.shape)
+  # create masks for data outside range (above, below), inside range of empirical CDF
+  belowMask = x <= cdfParams['bins'][0]
+  aboveMask = x >= cdfParams['bins'][-1]
+  inMask = np.logical_and(np.logical_not(belowMask), np.logical_not(aboveMask))
+  # outside CDF set to min, max CDF values
+  y[belowMask] = cdfParams['cdf'][0]
+  y[aboveMask] = cdfParams['cdf'][-1]
+  # for points in the CDF linearly interpolate between empirical entries
+  ## get indices where points should be inserted (gives higher value)
+  indices = np.searchsorted(cdfParams['bins'], x[inMask])
+  x0 = cdfParams['bins'][indices-1]
+  y0 = cdfParams['cdf'][indices-1]
+  xf = cdfParams['bins'][indices]
+  yf = cdfParams['cdf'][indices]
+  y = interpolateDist(x, y, x0, xf, y0, yf, inMask)
+  # numerical errors can happen due to not-sharp 0 and 1 in empirical cdf
+  ## also, when Crow dist is asked for ppf(1) it returns sys.max (similar for ppf(0))
+  y[y >= 1.0] = 1.0 - np.finfo(float).eps
+  y[y <= 0.0] = np.finfo(float).eps
+  return y
+
+def sampleICDF(x, cdfParams):
+  """
+    Samples the inverse CDF defined by "cdfParams" to get values
+    @ In, x, float/np.array, value(s) at which to sample inverse CDF
+    @ In, cdf, dict, CDF parameters (as constructed by "characterizeCDF")
+    @ Out, y, float/np.array, value of empirical inverse CDF at x
+  """
+  x = np.atleast_1d(x)
+  y = np.zeros(x.shape)
+  # create masks for data outside range (above, below), inside range of empirical CDF
+  belowMask = x <= cdfParams['cdf'][0]
+  aboveMask = x >= cdfParams['cdf'][-1]
+  inMask = np.logical_and(np.logical_not(belowMask), np.logical_not(aboveMask))
+  # outside CDF set to min, max CDF values
+  y[belowMask] = cdfParams['bins'][0]
+  y[aboveMask] = cdfParams['bins'][-1]
+  # for points in the CDF linearly interpolate between empirical entries
+  ## get indices where points should be inserted (gives higher value)
+  indices = np.searchsorted(cdfParams['cdf'], x[inMask])
+  x0 = cdfParams['cdf'][indices - 1]
+  y0 = cdfParams['bins'][indices - 1]
+  xf = cdfParams['cdf'][indices]
+  yf = cdfParams['bins'][indices]
+  y = interpolateDist(x, y, x0, xf, y0, yf, inMask)
+  return y
+
+def interpolateDist(x, y, x0, xf, y0, yf, mask):
+  """
+    Interplotes values for samples "x" to get dependent values "y" given bins
+    @ In, x, np.array, sampled points (independent var)
+    @ In, y, np.array, sampled points (dependent var)
+    @ In, x0, np.array, left-nearest neighbor in empirical distribution for each x
+    @ In, xf, np.array, right-nearest neighbor in empirical distribution for each x
+    @ In, y0, np.array, value at left-nearest neighbor in empirical distribution for each x
+    @ In, yf, np.array, value at right-nearest neighbor in empirical distribution for each x
+    @ In, mask, np.array, boolean mask in "y" where the distribution values apply
+    @ Out, y, np.array, same "y" but with values inserted
+  """
+  ### handle divide-by-zero problems first, specially
+  # check for where div zero prooblems will occur
+  divZeroMask = x0 == xf
+  # careful with double masking -> doesn't always do what you think it does
+  zMask = [a[divZeroMask] for a in np.where(mask)]
+  y[tuple(zMask)] = 0.5 * (yf[divZeroMask] + y0[divZeroMask])
+  ### interpolate all other points as y = low + slope * frac
+  okayMask = np.logical_not(divZeroMask)
+  dy = yf[okayMask] - y0[okayMask]
+  dx = xf[okayMask] - x0[okayMask]
+  frac = x[mask][okayMask] - x0[okayMask]
+  okayWhere = [a[okayMask] for a in np.where(mask)]
+  y[tuple(okayWhere)] = y0 + dy/dx * frac
+  return y

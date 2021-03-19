@@ -51,15 +51,14 @@ class MSR(NDinterpolatorRom):
     from an input point cloud consisting of an arbitrary number of input
     parameters and one or more response values per input point
   """
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
     self.printTag = 'MSR ROM'
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
     self.acceptedPersistenceParam = ['difference','probability','count','area']

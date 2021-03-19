@@ -44,14 +44,13 @@ class Collection(supervisedLearning):
   """
     A container that handles collections of ROMs in a particular way.
   """
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       Constructor.
-      @ In, messageHandler, MesageHandler.MessageHandler, message tracker
       @ In, kwargs, dict, options and initialization settings (from XML)
       @ Out, None
     """
-    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     self.printTag = 'ROM Collection'              # message printing appearance
     self._romName = kwargs.get('name', 'unnamed') # name of the requested ROM
     self._templateROM = kwargs['modelInstance']   # example of a ROM that will be used in this grouping, set by setTemplateROM
@@ -159,14 +158,13 @@ class Segments(Collection):
   ########################
   # CONSTRUCTION METHODS #
   ########################
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       Constructor.
-      @ In, messageHandler, MesageHandler.MessageHandler, message tracker
       @ In, kwargs, dict, options and initialization settings (from XML)
       @ Out, None
     """
-    Collection.__init__(self, messageHandler, **kwargs)
+    Collection.__init__(self, **kwargs)
     self.printTag = 'Segmented ROM'
     self._divisionInstructions = {}    # which parameters are clustered, and how, and how much?
     self._divisionMetrics = None       # requested metrics to apply; if None, implies everything we know about
@@ -620,14 +618,13 @@ class Clusters(Segments):
     finalizeGlovalRomSegmentEvaluation on the templateROM.
   """
   ## Constructors ##
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       Constructor.
-      @ In, messageHandler, MesageHandler.MessageHandler, message tracker
       @ In, kwargs, dict, options and initialization settings (from XML)
       @ Out, None
     """
-    Segments.__init__(self, messageHandler, **kwargs)
+    Segments.__init__(self, **kwargs)
     self.printTag = 'Clustered ROM'
     self._divisionClassifier = None      # Classifier to cluster subdomain ROMs
     self._metricClassifiers = None       # Metrics for clustering subdomain ROMs
@@ -679,7 +676,7 @@ class Clusters(Segments):
     classifier = self._assembledObjects.get('Classifier', [[None]*4])[0][3]
     if classifier is not None:
       # Try using the pp directly, not just the uSVE
-      classifier = classifier.interface.unSupervisedEngine
+      classifier = classifier.unSupervisedEngine
     else:
       self.raiseAnError(IOError, 'Clustering was requested, but no <Classifier> provided!')
     self._divisionClassifier = classifier
@@ -1199,14 +1196,13 @@ class Clusters(Segments):
 #
 class Interpolated(supervisedLearning):
   """ In addition to clusters for each history, interpolates between histories. """
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       Constructor.
-      @ In, messageHandler, MessageHandler instance, message handler
       @ In, kwargs, dict, initialization options
       @ Out, None
     """
-    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     self.printTag = 'Interp. Cluster ROM'
     self._maxCycles = None # maximum number of cycles to run (default no limit)
     # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
@@ -1216,7 +1212,7 @@ class Interpolated(supervisedLearning):
       self._macroParameter = inputSpecs.findFirst('macroParameter').value # pivot parameter for macro steps (e.g. years)
     except AttributeError:
       self.raiseAnError(IOError, '"interpolate" grouping requested but no <macroParameter> provided!')
-    self._macroTemplate = Clusters(messageHandler, **kwargs)            # example "yearly" SVL engine collection
+    self._macroTemplate = Clusters(**kwargs)            # example "yearly" SVL engine collection
     maxCycles = inputSpecs.findFirst('maxCycles')
     if maxCycles is not None:
       self._maxCycles = maxCycles.value

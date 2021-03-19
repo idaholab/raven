@@ -130,7 +130,7 @@
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="KnapsackModel" name="Kbase" subType="">
+    <ExternalModel ModuleToLoad="../simpleKnapsack/KnapsackModel" name="Kbase" subType="">
       <variables>proj1,proj2,proj3,proj4,proj5,proj6,proj7,proj8,proj9,proj10,planValue,validPlan</variables>
     </ExternalModel>
   </Models>

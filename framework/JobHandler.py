@@ -1,3 +1,4 @@
+
 # Copyright 2017 Battelle Energy Alliance, LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +14,6 @@
 # limitations under the License.
 """
 Created on Mar 5, 2013
-
 @author: alfoa, cogljj, crisr
 """
 #for future compatibility with Python 3-----------------------------------------
@@ -317,7 +317,9 @@ class JobHandler(MessageHandler.MessageUser):
         - "id": it is a special keyword attached to
           this runner to identify that this runner belongs to a special set of runs that need to be
           grouped together (all will be retrievable only when all the runs ended).
-        - "size", number of runs in this group
+        - "size", number of runs in this group self.__batching
+        NOTE: If the "size" of the group is only set the first time a job of this group is added.
+              Consequentially the size is immutable
       @ In, clientQueue, boolean, optional, if this run needs to be added in the
         clientQueue
       @ Out, None
@@ -346,6 +348,8 @@ class JobHandler(MessageHandler.MessageUser):
       # TODO: create method in Runner to set flags,ids,etc in the instanciated runner
       internalJob.groupId = groupId
       if groupId not in self.__batching:
+        # NOTE: The size of the group is only set once the first job beloning to a group is added
+        #       ***** THE size of a group is IMMUTABLE *****
         self.__batching[groupId] = {"counter": 0, "ids": [], "size": groupInfo['size'], 'finished': []}
       self.__batching[groupId]["counter"] += 1
       if self.__batching[groupId]["counter"] > self.__batching[groupId]["size"]:
@@ -426,9 +430,6 @@ class JobHandler(MessageHandler.MessageUser):
            and the Step when retrieving multiple jobs.
            An issue has been opened: 'JobHandler and Batching #1402'
     '''
-    import time
-    time.sleep(0.001)
-
     with self.__queueLock:
       ## If there is still something left in the queue, we are not done yet.
       if len(self.__queue)>0 or len(self.__clientQueue)>0:
@@ -559,9 +560,16 @@ class JobHandler(MessageHandler.MessageUser):
         each runner. If provided, just the jobs that have the uniqueIdentifier
         will be retrieved. By default uniqueHandler = 'any' => all the jobs for
         which no uniqueIdentifier has been set up are going to be retrieved
-      @ Out, finished, list, list of finished jobs (InternalRunner or
+      @ Out, finished, list, list of list containing finished jobs (InternalRunner or
         ExternalRunner objects) (if jobIdentifier is None), else the finished
         jobs matching the base case jobIdentifier
+        NOTE:
+        - in case the runs belong to a groupID (batching), each element of the list
+         contains a list of the finished runs belonging to that group (Batch)
+        - otherwise a flat list of jobs are returned.
+        For example:
+        finished =    [job1, job2, [job3.1, job3.2], job4 ] (job3.1/3.2 belong to the same groupID)
+                   or [job1, job2, job3, job4]
     """
     ## If the user does not specify a jobIdentifier, then set it to the empty
     ## string because every job will match this starting string.
@@ -588,16 +596,15 @@ class JobHandler(MessageHandler.MessageUser):
           runsToBeRemoved.append(i)
           self.__checkAndRemoveFinished(run)
           ##FIXME: IF THE RUN IS PART OF A BATCH AND IT FAILS, WHAT DO WE DO? alfoa
-
       ## check if batches are ready to be returned
       for groupId in list(self.__batching.keys()):
+        if len(self.__batching[groupId]['finished']) >  self.__batching[groupId]['size']:
+           self.raiseAnError(RuntimeError,'The batching system got corrupted. Open an issue in RAVEN github!')
         if removeFinished:
           if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
             doneBatch = self.__batching.pop(groupId)
             finished.append(doneBatch['finished'])
         else:
-          if len(self.__batching[groupId]['finished']) >  self.__batching[groupId]['size']:
-            raise IOError('+++++ batching is messed up ++++++')
           doneBatch = self.__batching[groupId]
           finished.append(doneBatch['finished'])
 
@@ -607,11 +614,8 @@ class JobHandler(MessageHandler.MessageUser):
       if removeFinished:
         for i in reversed(runsToBeRemoved):
           self.__finished[i].trackTime('collected')
-          try:
-            del self.__finished[i]
-          except ImportError:
-            raise IOError('stop')
-            pass
+          del self.__finished[i]
+
       ## end with self.__queueLock
     return finished
 

@@ -99,7 +99,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Output' ][0]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
   validateDict['Output' ][1]['class'       ] = 'Databases'
-  validateDict['Output' ][1]['type'        ] = ['HDF5']
+  validateDict['Output' ][1]['type'        ] = ['NetCDF', 'HDF5']
   validateDict['Output' ][1]['required'    ] = False
   validateDict['Output' ][1]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
@@ -133,11 +133,11 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type']         = ['SPSA',
-                                                  'FiniteDifference',
-                                                  'ConjugateGradient',
-                                                  'SimulatedAnnealing',
-                                                  'GeneticAlgorithm']
+  validateDict['Optimizer'][0]['type'] = ['SPSA',
+                                          'FiniteDifference',
+                                          'ConjugateGradient',
+                                          'SimulatedAnnealing',
+                                          'GeneticAlgorithm']
 
   @classmethod
   def generateValidateDict(cls):

@@ -59,14 +59,13 @@ class HDMRRom(GaussPolynomialRom):
     """
     pass
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    GaussPolynomialRom.__init__(self,messageHandler,**kwargs)
+    GaussPolynomialRom.__init__(self, **kwargs)
     self.initialized   = False #true only when self.initialize has been called
     self.printTag      = 'HDMR_ROM('+'-'.join(self.target)+')'
     self.sobolOrder    = None #depth of HDMR/Sobol expansion

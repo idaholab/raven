@@ -40,14 +40,13 @@ class NDsplineRom(NDinterpolatorRom):
     An N-dimensional Spline model
   """
   ROMtype         = 'NDsplineRom'
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
+    NDinterpolatorRom.__init__(self, **kwargs)
     self.printTag = 'ND-SPLINE ROM'
     for _ in range(len(self.target)):
       self.interpolator.append(interpolationND.NDSpline())

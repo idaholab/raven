@@ -13,7 +13,6 @@
 # limitations under the License.
 """
 Created on Mar 7, 2013
-
 @author: crisr
 """
 #for future compatibility with Python 3--------------------------------------------------------------
@@ -38,6 +37,7 @@ import math as math
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from EntityFactoryBase import EntityFactory
 from BaseClasses import BaseType
 from utils import utils
 from utils.randomUtils import random
@@ -3899,52 +3899,9 @@ class MultivariateNormal(NDimensionalDistributions):
 
 DistributionsCollection.addSub(MultivariateNormal.getInputSpecification())
 
-__base                                = 'Distribution'
-__interFaceDict                       = {}
-__interFaceDict['Uniform'           ] = Uniform
-__interFaceDict['Normal'            ] = Normal
-__interFaceDict['Gamma'             ] = Gamma
-__interFaceDict['Beta'              ] = Beta
-__interFaceDict['Triangular'        ] = Triangular
-__interFaceDict['Poisson'           ] = Poisson
-__interFaceDict['Binomial'          ] = Binomial
-__interFaceDict['Bernoulli'         ] = Bernoulli
-__interFaceDict['Categorical'       ] = Categorical
-__interFaceDict['MarkovCategorical' ] = MarkovCategorical
-__interFaceDict['Logistic'          ] = Logistic
-__interFaceDict['Exponential'       ] = Exponential
-__interFaceDict['LogNormal'         ] = LogNormal
-__interFaceDict['Weibull'           ] = Weibull
-__interFaceDict['Custom1D'          ] = Custom1D
-__interFaceDict['NDInverseWeight'   ] = NDInverseWeight
-__interFaceDict['NDCartesianSpline' ] = NDCartesianSpline
-__interFaceDict['MultivariateNormal'] = MultivariateNormal
-__interFaceDict['Laplace'           ] = Laplace
-__interFaceDict['Geometric'         ] = Geometric
-__interFaceDict['LogUniform'        ] = LogUniform
-__interFaceDict['UniformDiscrete'   ] = UniformDiscrete
-__knownTypes                          = __interFaceDict.keys()
-
-def knownTypes():
-  """
-    Return the known types
-    @ In, None
-    @ Out, __knownTypes, list, the known types
-  """
-  return __knownTypes
-
-def returnInstance(Type,caller):
-  """
-    Function interface for creating an instance to a database specialized class (for example, HDF5)
-    @ In, Type, string, class type
-    @ In, caller, instance, the caller instance
-    @ Out, returnInstance, instance, instance of the class
-    Note: Interface function
-  """
-  try:
-    return __interFaceDict[Type]()
-  except KeyError:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+factory = EntityFactory('Distribution', returnInputParameter=True)
+factory.registerAllSubtypes(Distribution)
+factory.unregisterSubtype('BoostDistribution')
 
 def returnInputParameter():
   """

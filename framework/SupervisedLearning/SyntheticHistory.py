@@ -43,25 +43,25 @@ class SyntheticHistory(supervisedLearning):
         descr=r"""A ROM for characterizing and generating synthetic histories. This ROM makes use of
                a variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new
                signals based on training signal sets. """)
-    for typ in TSA.knownTypes():
-      c = TSA.returnClass(typ, None) # TODO no message handler for second argument
+    for typ in TSA.factory.knownTypes():
+      c = TSA.factory.returnClass(typ, None) # TODO no message handler for second argument
       specs.addSub(c.getInputSpecification())
     return specs
 
   ### INHERITED METHODS ###
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler: a MessageHandler object in charge of raising errors,
                            and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     self.printTag = 'SyntheticHistoryROM'
     self._dynamicHandling = True # This ROM is able to manage the time-series on its own.
     # training storage
-    self.trainedParams = {} # holds results of training each
+    self.algoSettings = {}  # initialization settings for each algorithm
+    self.trainedParams = {} # holds results of training each algorithm
     self.tsaAlgorithms = [] # list and order for tsa algorithms to use
     # data manipulation
     self.pivotParameterID = None      # string name for time-like pivot parameter
@@ -78,9 +78,9 @@ class SyntheticHistory(supervisedLearning):
     """
     self.pivotParameterID = inp.findFirst('pivotParameter').value # TODO does a base class do this?
     for sub in inp.subparts:
-      if sub.name in TSA.knownTypes():
-        algo = TSA.returnInstance(sub.name, self.messageHandler)
-        algo.handleInput(sub)
+      if sub.name in TSA.factory.knownTypes():
+        algo = TSA.factory.returnInstance(sub.name, self)
+        self.algoSettings[algo] = algo.handleInput(sub)
         self.tsaAlgorithms.append(algo)
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError, 'The pivotParameter must be included in the target space.')
@@ -100,16 +100,21 @@ class SyntheticHistory(supervisedLearning):
     pivots = targetVals[0, :, pivotIndex]
     self.pivotParameterValues = pivots[:] # TODO any way to avoid storing these?
     residual = targetVals[:, :, :] # deep-ish copy, so we don't mod originals
-    for algo in self.tsaAlgorithms:
-      targets = algo.target
+    numAlgo = len(self.tsaAlgorithms)
+    for a, algo in enumerate(self.tsaAlgorithms):
+      settings = self.algoSettings[algo]
+      targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
       signal = residual[0, :, indices].T # using tuple "indices" transposes, so transpose back
-      params = algo.characterize(signal, pivots, targets)
+      params = algo.characterize(signal, pivots, targets, settings)
       # store characteristics
       self.trainedParams[algo] = params
       # obtain residual; the part of the signal not characterized by this algo
-      algoResidual = algo.getResidual(signal, params, pivots, None) # TODO randomEngine
-      residual[0, :, indices] = algoResidual.T # transpose, again because of indices
+      # workaround: skip the last one, since it's often the ARMA and the residual isn't known for
+      #             the ARMA
+      if a < numAlgo - 1:
+        algoResidual = algo.getResidual(signal, params, pivots, settings)
+        residual[0, :, indices] = algoResidual.T # transpose, again because of indices
       # TODO meta store signal, residual?
 
   def __evaluateLocal__(self, featureVals):
@@ -119,14 +124,15 @@ class SyntheticHistory(supervisedLearning):
     """
     pivots = self.pivotParameterValues
     result = np.zeros((self.pivotParameterValues.size, len(self.target) - 1)) # -1 is pivot
-    for algo in self.tsaAlgorithms:
-      targets = algo.target
+    for algo in self.tsaAlgorithms[::-1]:
+      settings = self.algoSettings[algo]
+      targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
       params = self.trainedParams[algo]
-      signal = algo.generate(params, pivots, None) # TODO random engine for third argument
-      result[:, indices] = signal
+      signal = algo.generate(params, pivots, settings)
+      result[:, indices] += signal
     # RAVEN realization construction
-    rlz = dict((target, signal[:, t]) for t, target in enumerate(self.target) if target != self.pivotParameterID)
+    rlz = dict((target, result[:, t]) for t, target in enumerate(self.target) if target != self.pivotParameterID)
     rlz[self.pivotParameterID] = self.pivotParameterValues
     return rlz
 

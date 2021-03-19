@@ -38,7 +38,7 @@ import platform
 from utils import utils
 from utils import mathUtils
 import MessageHandler
-import DataObjects
+from EntityFactoryBase import EntityFactory
 #Internal Modules End-----------------------------------------------------------
 
 # FIXME: temporarily force to use Agg backend for now, otherwise it will cause segmental fault for test:
@@ -94,12 +94,13 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     return (True, '')
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, messageHandler=None, **kwargs):
     """
       constructor for unSupervisedLearning class.
       @ In, messageHandler, object, Message handler object
       @ In, kwargs, dict, arguments for the unsupervised learning algorithm
     """
+    assert messageHandler is not None
     self.printTag = 'unSupervised'
     self.messageHandler = messageHandler
 
@@ -777,7 +778,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     self.reOrderStep = int(self.initOptionDict.pop('reOrderStep', 5))
 
     # return a SciKitLearn instance as engine for SKL data mining
-    self.SKLEngine = returnInstance('SciKitLearn',self, **self.initOptionDict)
+    self.SKLEngine = factory.returnInstance('SciKitLearn', self, messageHandler=self.messageHandler, **self.initOptionDict)
 
     self.normValues = None
     self.outputDict = {}
@@ -1403,35 +1404,7 @@ class Scipy(unSupervisedLearning):
     """
     return self.SCIPYtype
 
-__interfaceDict = {}
-__interfaceDict['SciKitLearn'] = SciKitLearn
-__interfaceDict['temporalSciKitLearn'] = temporalSciKitLearn
-__interfaceDict['Scipy'] = Scipy
-
-__base = 'unSuperVisedLearning'
-
-def returnInstance(modelClass, caller, **kwargs):
-  """
-    This function return an instance of the request model type
-    @ In, modelClass, string, representing the instance to create
-    @ In, caller, object, object that will share its messageHandler instance
-    @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
-    @ Out, object, an instance of a Model
-  """
-  try:
-    return __interfaceDict[modelClass](caller.messageHandler, **kwargs)
-  except KeyError as ae:
-    # except Exception as(ae):
-    caller.raiseAnError(NameError, 'unSupervisedLearning', 'Unknown ' + __base + ' type ' + str(modelClass)+'.Error: '+ str(ae))
-
-def returnClass(modelClass, caller):
-  """
-    This function return an instance of the request model type
-    @ In, modelClass, string, representing the class to retrieve
-    @ In, caller, object, object that will share its messageHandler instance
-    @ Out, the class definition of the Model
-  """
-  try:
-    return __interfaceDict[modelClass]
-  except KeyError:
-    caller.raiseanError(NameError, 'unSupervisedLearning', 'not known ' + __base + ' type ' + modelClass)
+factory = EntityFactory('unSuperVisedLearning')
+factory.registerType('SciKitLearn', SciKitLearn)
+factory.registerType('temporalSciKitLearn', temporalSciKitLearn)
+factory.registerType('Scipy', Scipy)

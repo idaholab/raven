@@ -33,6 +33,7 @@ from utils import mathUtils
 from utils import utils
 import MessageHandler
 import Distributions
+from EntityFactoryBase import EntityFactory
 #Internal Modules End--------------------------------------------------------------------------------
 class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHandler.MessageUser):
   """
@@ -173,31 +174,19 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     output = np.asarray(output)
     return output
 
-__interfaceDict                         = {}
-__interfaceDict['MetricDistributor'      ] = MetricDistributor
-__base                                  = 'Distributor'
+class MetricDistributorFactory(EntityFactory):
+  """
+    Specific factory for metric distributors
+  """
+  def returnInstance(self, Type, estimator, caller):
+    """
+      This function return an instance of the request model type
+      @ In, distributorType, string, string representing the class to retrieve
+      @ In, estimator, list of instance of given metrics
+      @ In, caller, instance, object that will share its messageHandler instance
+      @ Out, returnInstance, instance, an instance of this class
+    """
+    return self.returnClass(Type, caller)(estimator, caller.messageHandler)
 
-def returnInstance(distributorType, estimator, caller):
-  """
-    This function return an instance of the request model type
-    @ In, distributorType, string, string representing the class to retrieve
-    @ In, estimator, list of instance of given metrics
-    @ In, caller, instance, object that will share its messageHandler instance
-    @ Out, returnInstance, instance, an instance of this class
-  """
-  try:
-    return __interfaceDict[distributorType](estimator, caller.messageHandler)
-  except KeyError as ae:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+str(distributorType))
-
-def returnClass(distributorType,caller):
-  """
-    This function return an instance of the request model type
-    @ In, distributorType, string, string representing the class to retrieve
-    @ In, caller, instnace, object that will share its messageHandler instance
-    @ Out, returnClass, the class definition
-  """
-  try:
-    return __interfaceDict[distributorType]
-  except KeyError:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+distributorType)
+factory = MetricDistributorFactory('Distributor')
+factory.registerType('MetricDistributor', MetricDistributor)

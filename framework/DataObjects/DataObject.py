@@ -51,7 +51,6 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     RAVEN entity to another.  Fundamentally, they consist of a collection of realizations, each of
     which contains inputs, outputs, and pointwise metadata.  In addition, the data object has global
     metadata.  The pointwise inputs and outputs could be floats, time-dependent, or ND-dependent variables.
-
     This base class is used to force the consistent API between all data containers
   """
   ### INPUT SPECIFICATION ###
@@ -471,5 +470,3 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, None
     """
     pass
-
-

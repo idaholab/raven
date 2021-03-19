@@ -17,7 +17,8 @@ import numpy as np
 def run(self,Input):
   """
     Evaluate a simple function.
-    @ In, self, object, container
+    @ In, self, object, object to store members on
+    @ In, Input, dict, dictionary containing inputs from RAVEN
     @ Out, None
   """
   projValue = np.array([1,3,4,2,1,2,3,4,2,4])
@@ -36,14 +37,9 @@ def run(self,Input):
         knapsackCapacity = knapsackCapacity - projCost[n]
         self.planValue = self.planValue - projValue[n]
 
-      #knapsackCapacities[int(projPlan[n])-1] = knapsackCapacities[int(projPlan[n])-1] - projCost[n]
-      #self.planValue = self.planValue + projValue[n]
-
   if knapsackCapacity>=0:
     self.validPlan =  0.
   else:
     self.validPlan = 1.
 
-  #counterNeg = np.sum(knapsackCapacities<0, axis=0)
-  #self.planValue = self.planValue - counterNeg * (10.)
 

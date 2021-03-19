@@ -43,14 +43,12 @@ class DynamicModeDecomposition(supervisedLearning):
         Data-Driven Modeling of Complex Systems. SIAM Other Titles in
         Applied Mathematics, 2016
   """
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, **kwargs):
     """
       DMD constructor
-      @ In, messageHandler, MessageHandler.MessageUser, a MessageHandler object in charge of raising errors,
-                           and printing messages
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
     """
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     self.availDmdAlgorithms          = ['dmd','hodmd']                      # available dmd types: basic dmd and high order dmd
     self.dmdParams                   = {}                                   # dmd settings container
     self.printTag                    = 'DMD'                                # print tag

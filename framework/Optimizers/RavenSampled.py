@@ -28,11 +28,12 @@ import numpy as np
 import copy
 #External Modules End--------------------------------------------------------------------------------
 
-#Internal
+# Internal
 #Modules------------------------------------------------------------------------------------
 from utils import InputData, InputTypes
 from .Optimizer import Optimizer
 #Internal Modules End--------------------------------------------------------------------------------
+
 
 class RavenSampled(Optimizer):
   """
@@ -107,23 +108,23 @@ class RavenSampled(Optimizer):
       @ Out, None
     """
     Optimizer.__init__(self)
-    ## Instance Variable Initialization
+    # # Instance Variable Initialization
     # public
-    self.limit = None               # max samples
-    self.type = 'Sampled Optimizer' # type
-    self.batch = 1                  # batch size: 1 means no batching (default)
-    self.batchId = 0                # Id of each batch of evaluations
+    self.limit = None  # max samples
+    self.type = 'Sampled Optimizer'  # type
+    self.batch = 1  # batch size: 1 means no batching (default)
+    self.batchId = 0  # Id of each batch of evaluations
     # _protected
-    self._writeSteps = 'final'      # when steps should be written
-    self._submissionQueue = deque() # TODO change to Queue.Queue if multithreading samples
-    self._stepTracker = {}          # action tracking: what is collected, what needs collecting?
-    self._optPointHistory = {}      # by traj, is a deque (-1 is most recent)
-    self._maxHistLen = 2            # FIXME who should set this?
+    self._writeSteps = 'final'  # when steps should be written
+    self._submissionQueue = deque()  # TODO change to Queue.Queue if multithreading samples
+    self._stepTracker = {}  # action tracking: what is collected, what needs collecting?
+    self._optPointHistory = {}  # by traj, is a deque (-1 is most recent)
+    self._maxHistLen = 2  # FIXME who should set this?
     # __private
-    self.__stepCounter = {}         # tracks the "generation" or "iteration" of each trajectory -> iteration is defined by inheritor
+    self.__stepCounter = {}  # tracks the "generation" or "iteration" of each trajectory -> iteration is defined by inheritor
     # additional methods
-    ## register adaptive sample identification criteria
-    self.registerIdentifier('step') # the step within the action
+    # # register adaptive sample identification criteria
+    self.registerIdentifier('step')  # the step within the action
 
   def handleInput(self, paramInput):
     """
@@ -191,7 +192,7 @@ class RavenSampled(Optimizer):
       @ In, traj, int, the trajectory of interest
       @ Out, None
     """
-    self._stepTracker[traj] = {'opt': None} # add entries in inheritors as needed
+    self._stepTracker[traj] = {'opt': None}  # add entries in inheritors as needed
 
   def amIreadyToProvideAnInput(self):
     """
@@ -223,8 +224,7 @@ class RavenSampled(Optimizer):
     else:
       self.inputInfo['batchMode'] = False
     for _ in range(self.batch):
-      inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}#,'prefix': str(self.batchId)+'_'+str(i)
-      # self.inputInfo['prefix'] = inputInfo['prefix']
+      inputInfo = {'SampledVarsPb':{}, 'batchMode':self.inputInfo['batchMode']}  # ,'prefix': str(self.batchId)+'_'+str(i)
       if self.counter == self.limit + 1:
         break
       # get point from stack
@@ -237,14 +237,14 @@ class RavenSampled(Optimizer):
       # register the point tracking information
       self._registerSample(prefix, info)
       # build the point in the way the Sampler expects
-      for var in self.toBeSampled: #, val in point.items():
-        val = point[var] if isinstance(point[var],float) else np.atleast_1d(point[var].data)[0]
-        self.values[var] = val # TODO should be np.atleast_1d?
+      for var in self.toBeSampled:  # , val in point.items():
+        val = point[var] if isinstance(point[var], float) else np.atleast_1d(point[var].data)[0]
+        self.values[var] = val  # TODO should be np.atleast_1d?
         ptProb = self.distDict[var].pdf(val)
         # sampler-required meta information # TODO should we not require this?
         inputInfo['ProbabilityWeight-{}'.format(var)] = ptProb
         inputInfo['SampledVarsPb'][var] = ptProb
-      inputInfo['ProbabilityWeight'] = 1 # TODO assume all weight 1? Not well-distributed samples
+      inputInfo['ProbabilityWeight'] = 1  # TODO assume all weight 1? Not well-distributed samples
       inputInfo['PointProbability'] = np.prod([x for x in inputInfo['SampledVarsPb'].values()])
       inputInfo['SamplerType'] = self.type
       if self.inputInfo['batchMode']:
@@ -278,19 +278,20 @@ class RavenSampled(Optimizer):
     # FIXME implicit constraints probable should be handled here too
     # get information and realization, and update trajectories
     info = self.getIdentifierFromPrefix(prefix, pop=True)
-    if self._targetEvaluation.isEmpty:
-      self.raiseAnError(RuntimeError, f'Expected to find entry with prefix "{prefix}" in TargetEvaluation "{self._targetEvaluation.name}", but it is empty!')
     if self.batch == 1:
       _, rlz = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
     else:
       # NOTE if here, then rlz is actually a xr.Dataset, NOT a dictionary!!
-      _, rlz = self._targetEvaluation.realization(matchDict={'batchId': self.batchId}, asDataSet=True,options={'returnAllMatch':True})
+      _, rlz = self._targetEvaluation.realization(matchDict={'batchId': self.batchId}, asDataSet=True, first=False)
     # _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix}, asDataSet=False)
-    if rlz is None:
+    if self._targetEvaluation.isEmpty:
+      self.raiseAnError(RuntimeError, f'Expected to find entry with prefix "{prefix}" in TargetEvaluation "{self._targetEvaluation.name}", but it is empty!')
+    _, full = self._targetEvaluation.realization(matchDict={'prefix': prefix})
+    if full is None:
       self.raiseAnError(RuntimeError, f'Expected to find entry with prefix "{prefix}" in TargetEvaluation! Found: {self._targetEvaluation.getVarValues("prefix")}')
     # trim down opt point to the useful parts
     # TODO making a new dict might be costly, maybe worth just passing whole point?
-    ## testing suggests no big deal on smaller problem
+    # # testing suggests no big deal on smaller problem
     # the sign of the objective function is flipped in case we do maximization
     # so get the correct-signed value into the realization
     if self._minMax == 'max':
@@ -311,7 +312,7 @@ class RavenSampled(Optimizer):
     bestPoint = None
     s = -1 if self._minMax == 'max' else 1
     # check converged trajectories
-    self.raiseAMessage('*'*80)
+    self.raiseAMessage('*' * 80)
     self.raiseAMessage('Optimizer Final Results:')
     self.raiseADebug('')
     self.raiseADebug(' - Trajectory Results:')
@@ -348,7 +349,7 @@ class RavenSampled(Optimizer):
     self.raiseAMessage(finalTemplateInt.format(name='trajID', value=bestTraj))
     for var, val in bestPoint.items():
       self.raiseAMessage(finalTemplate.format(name=var, value=val))
-    self.raiseAMessage('*'*80)
+    self.raiseAMessage('*' * 80)
     # write final best solution to soln export
     self._updateSolutionExport(bestTraj, self.normalizeData(bestOpt), 'final', 'None')
 
@@ -473,7 +474,7 @@ class RavenSampled(Optimizer):
     """
     normed = copy.deepcopy(previous)
     oldVal = normed[self._objectiveVar]
-    normed.pop(self._objectiveVar,oldVal)
+    normed.pop(self._objectiveVar, oldVal)
     denormed = self.denormalizeData(normed)
     denormed[self._objectiveVar] = oldVal
     accept = self._checkImpFunctionalConstraints(denormed)
@@ -508,7 +509,7 @@ class RavenSampled(Optimizer):
       @ In, rlz, xr.DataSet, batched realizations
       @ In, optVal, list of floats, values of objective variable
     """
-    self.raiseADebug('*'*80)
+    self.raiseADebug('*' * 80)
     self.raiseADebug('Trajectory {} iteration {} resolving new opt point ...'.format(traj, info['step']))
     # note the collection of the opt point
     self._stepTracker[traj]['opt'] = (rlz, info)
@@ -523,7 +524,7 @@ class RavenSampled(Optimizer):
     #       point history.
     if self._writeSteps == 'every':
       self._updateSolutionExport(traj, rlz, acceptable, rejectReason)
-    self.raiseADebug('*'*80)
+    self.raiseADebug('*' * 80)
     # decide what to do next
     if acceptable in ['accepted', 'first']:
       # record history
@@ -532,8 +533,8 @@ class RavenSampled(Optimizer):
       # nothing else to do but wait for the grad points to be collected
     elif acceptable == 'rejected':
       self._rejectOptPoint(traj, info, old)
-    else: # e.g. rerun
-      pass # nothing to do, just keep moving
+    else:  # e.g. rerun
+      pass  # nothing to do, just keep moving
 
   # support methods for _resolveNewOptPoint
   @abc.abstractmethod
@@ -643,7 +644,7 @@ class RavenSampled(Optimizer):
       try:
         self._submissionQueue.remove(x)
       except ValueError:
-        pass # it must have been submitted since we flagged it for removal
+        pass  # it must have been submitted since we flagged it for removal
     # get prefixes of already-submitted jobs; get all matches, and pop them so we don't track them anymore
     prefixes = self.getPrefixFromIdentifier(ginfo, getAll=True, pop=True)
     self.raiseADebug('Canceling grad jobs for traj "{}" iteration "{}":'.format(traj, 'all' if step is None else step), prefixes)
@@ -657,7 +658,7 @@ class RavenSampled(Optimizer):
     """
     traj = Optimizer.initializeTrajectory(self, traj=traj)
     self._optPointHistory[traj] = deque(maxlen=self._maxHistLen)
-    self.__stepCounter[traj] = -1 # allows 0-based counting
+    self.__stepCounter[traj] = -1  # allows 0-based counting
     self._initializeStep(traj)
     return traj
 
@@ -673,3 +674,6 @@ class RavenSampled(Optimizer):
     Optimizer._closeTrajectory(self, traj, action, reason, value)
     # kill jobs associated with trajectory
     self._cancelAssociatedJobs(traj)
+
+
+

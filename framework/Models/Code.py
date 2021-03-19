@@ -246,7 +246,7 @@ class Code(Model):
       else:
         self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
-    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType, self)
+    self.code = Code.CodeInterfaces.factory.returnInstance(self.subType, self)
     self.code.readMoreXML(xmlNode, self._ravenWorkingDir) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
@@ -309,7 +309,7 @@ class Code(Model):
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
       if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
-        os.mkdir(subSubDirectory)
+        os.makedirs(subSubDirectory)
       ##########################################################################
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
@@ -370,7 +370,7 @@ class Code(Model):
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
       if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
-        os.mkdir(subSubDirectory)
+        os.makedirs(subSubDirectory)
       ##########################################################################
       newInputSet[index].setPath(subSubDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)

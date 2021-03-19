@@ -77,6 +77,7 @@ class GeneticAlgorithm(RavenSampled):
   ##########################
   # Initialization Methods #
   ##########################
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -151,7 +152,8 @@ class GeneticAlgorithm(RavenSampled):
         printPriority=108,
         descr=r"""a node containing the reproduction methods.
                   This accepts subnodes that specifies the types of crossover and mutation.""")
-    reproduction.addParam("nParents", InputTypes.IntegerType, True)
+    reproduction.addParam("nParents", InputTypes.IntegerType, True,
+                          descr="number of parents to be considered in the reproduction phase")
     # 1.  Crossover
     crossover = InputData.parameterInputFactory('crossover', strictMode=True,
         contentType=InputTypes.StringType,
@@ -162,7 +164,8 @@ class GeneticAlgorithm(RavenSampled):
                                  c.    Uniform Crossover,
                                  d.    Whole Arithmetic Recombination, or
                                  e.    Davis’ Order Crossover.""")
-    crossover.addParam("type", InputTypes.StringType, True)
+    crossover.addParam("type", InputTypes.StringType, True,
+                       descr="type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)")
     crossoverPoint = InputData.parameterInputFactory('points', strictMode=True,
         contentType=InputTypes.IntegerListType,
         printPriority=108,
@@ -184,7 +187,8 @@ class GeneticAlgorithm(RavenSampled):
                                  c.    Swap,
                                  d.    Scramble, or
                                  e.    Inversion.""")
-    mutation.addParam("type", InputTypes.StringType, True)
+    mutation.addParam("type", InputTypes.StringType, True,
+                      descr="type of mutation operation to be used (e.g., bit, swap, or scramble)")
     mutationLocs = InputData.parameterInputFactory('locs', strictMode=True,
         contentType=InputTypes.IntegerListType,
         printPriority=108,
@@ -193,7 +197,7 @@ class GeneticAlgorithm(RavenSampled):
     mutationProbability = InputData.parameterInputFactory('mutationProb', strictMode=True,
         contentType=InputTypes.FloatType,
         printPriority=108,
-        descr=r""" The probability governing the mutation step, i.e., the probability that if exceeded mutation will ocur.""")
+        descr=r""" The probability governing the mutation step, i.e., the probability that if exceeded mutation will occur.""")
     mutation.addSub(mutationProbability)
     reproduction.addSub(mutation)
     GAparams.addSub(reproduction)
@@ -388,6 +392,8 @@ class GeneticAlgorithm(RavenSampled):
     """
     # The whole skeleton should be here, this should be calling all classes and _private methods.
     traj = info['traj']
+    for t in self._activeTraj[1:]:
+      self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory',0)#, None
     self.incrementIteration(traj)
     info['step'] = self.counter
 
@@ -575,11 +581,10 @@ class GeneticAlgorithm(RavenSampled):
     """
       This is an abstract method for all RavenSampled Optimizer, whereas for GA all children are accepted
       @ In, traj, int, identifier
-      @ In, opt, dict, new opt point
-      @ In, optVal, float, new optimization value
-      @ Out, acceptable, str, acceptability condition for point
-      @ Out, old, dict, old opt point
-      @ Out, rejectReason, str, reject reason of opt point, or return None if accepted
+      @ Out, (acceptable, old, rejectionReason), tuple, tuple which contains the following three items:
+                                                        acceptable, str, acceptability condition for point
+                                                        old, dict, old opt point
+                                                        rejectReason, str, reject reason of opt point, or return None if accepted
     """
     acceptable = 'accepted'
     try:
@@ -703,7 +708,7 @@ class GeneticAlgorithm(RavenSampled):
 
   def _popDist(self,ai,b,q=2):
     """
-      Minimum Minkowski distance from ai to B (nearest point in B)
+      Minimum Minkowski distance from a_i to B (nearest point in B)
       @ In, ai, 1d array, the ith chromosome in the generation A
       @ In, b, np.array, population B
       @ In, q, integer, order of the norm
