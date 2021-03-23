@@ -244,6 +244,9 @@ fourier = createFourier(targets, periods)
 settings = {'periods': periods}
 params = fourier.characterize(signals, pivot, targets, settings)
 
+checkTrue("fourier can generate", fourier.canGenerate())
+checkTrue("fourier can characterize", fourier.canCharacterize())
+
 # intercepts
 checkFloat('Signal A intercept', params['A']['intercept'], 0)
 checkFloat('Signal B intercept', params['B']['intercept'], 0)

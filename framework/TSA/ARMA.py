@@ -25,11 +25,11 @@ from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, impor
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 
 import Distributions
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
+from .TimeSeriesAnalyzer import TimeSeriesAnalyzer, TimeSeriesGenerator, TimeSeriesCharacterizer
 
 
 # utility methods
-class ARMA(TimeSeriesAnalyzer):
+class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
   r"""
     AutoRegressive Moving Average time series analyzer algorithm
   """
@@ -76,7 +76,7 @@ class ARMA(TimeSeriesAnalyzer):
       @ Out, None
     """
     # general infrastructure
-    TimeSeriesAnalyzer.__init__(self, *args, **kwargs)
+    super().__init__(self, *args, **kwargs)
     self._minBins = 20 # this feels arbitrary; used for empirical distr. of data
 
   def handleInput(self, spec):
