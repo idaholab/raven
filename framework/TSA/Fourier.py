@@ -21,11 +21,11 @@ import numpy as np
 import sklearn.linear_model
 
 from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
+from .TimeSeriesAnalyzer import TimeSeriesAnalyzer, TimeSeriesGenerator, TimeSeriesCharacterizer
 
 
 # utility methods
-class Fourier(TimeSeriesAnalyzer):
+class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
   """
     Perform Fourier analysis; note this is not Fast Fourier, where all Fourier modes are used to fit a
     signal. Instead, detect the presence of specifically-requested Fourier bases.
@@ -66,7 +66,7 @@ class Fourier(TimeSeriesAnalyzer):
       @ Out, None
     """
     # general infrastructure
-    TimeSeriesAnalyzer.__init__(self, *args, **kwargs)
+    super().__init__(self, *args, **kwargs)
 
   def handleInput(self, spec):
     """

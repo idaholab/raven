@@ -31,13 +31,28 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
   ## define the clusterable features for this trainer.
   _features = []
 
+  def canGenerate(self) -> bool:
+    """
+    A predicate function to determine if object instance inherits from TimeSeriesGenerator.
+
+    @ Out, boolean, True if instance can generate
+    """
+    return isinstance(self, TimeSeriesGenerator)
+
+  def canCharacterize(self) -> bool:
+    """
+    A predicate function to determine if object instance inherits from TimeSeriesCharacterizer.
+
+    @ Out, boolean, True if instance can characterize
+    """
+    return isinstance(self, TimeSeriesCharacterizer)
+
   @classmethod
   def getInputSpecification(cls):
     """
-      Method to get a reference to a class that specifies the input data for
-      class cls.
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
-        specifying input of cls.
+      Method to get a reference to a class that specifies the input data for class cls.
+
+      @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = InputData.parameterInputFactory(cls.__name__, ordered=False, strictMode=True)
     specs.description = 'Base class for time series analysis algorithms used in RAVEN.'
@@ -81,18 +96,6 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
       settings['seed'] = None
     return settings
 
-  @abc.abstractmethod
-  def characterize(self, signal, pivot, targets, settings):
-    """
-      Characterizes the provided time series ("signal") using methods specific to this algorithm.
-      @ In, signal, np.array, time-dependent series
-      @ In, pivot, np.array, time-like parameter
-      @ In, targets, list(str), names of targets
-      @ In, settings, dict, additional settings specific to algorithm
-      @ Out, params, dict, characterization of signal; structure as:
-                           params[target variable][characteristic] = value
-    """
-
   def getResidual(self, initial, params, pivot, settings):
     """
       Removes trained signal from data and find residual
@@ -109,6 +112,30 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     residual = initial - sample
     return residual
 
+  def writeXML(self, writeTo, params):
+    """
+      Allows the engine to put whatever it wants into an XML to print to file.
+      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
+      @ In, params, dict, parameters from training this ROM
+      @ Out, None
+    """
+    pass # overwrite in subclasses if desired
+
+
+class TimeSeriesGenerator(TimeSeriesAnalyzer):
+  """
+  Act as an identifying class for algorithms that can generate synthetic time histories.
+  """
+
+  def __init__(self, *args, **kwargs):
+    """
+      A constructor that will appropriately intialize a supervised learning object
+      @ In, args, list, an arbitrary list of positional values
+      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ Out, None
+    """
+    self.name = self.__class__.__name__ # the name the class shall be known by during its RAVEN life
+
   @abc.abstractmethod
   def generate(self, params, pivot, settings):
     """
@@ -118,12 +145,32 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
       @ In, settings, dict, additional settings specific to algorithm
       @ Out, synthetic, np.array(float), synthetic signal
     """
+    pass
 
-  def writeXML(self, writeTo, params):
+
+class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
+  """
+  Act as an identifying class for algorithms that can generate characterize time-dependent signals.
+  """
+
+  def __init__(self, *args, **kwargs):
     """
-      Allows the engine to put whatever it wants into an XML to print to file.
-      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
-      @ In, params, dict, parameters from training this ROM
+      A constructor that will appropriately intialize a supervised learning object
+      @ In, args, list, an arbitrary list of positional values
+      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
       @ Out, None
     """
-    pass # overwrite in subclasses if desired
+    self.name = self.__class__.__name__ # the name the class shall be known by during its RAVEN life
+
+  @abc.abstractmethod
+  def characterize(self, signal, pivot, targets, settings):
+    """
+      Characterizes the provided time series ("signal") using methods specific to this algorithm.
+      @ In, signal, np.array, time-dependent series
+      @ In, pivot, np.array, time-like parameter
+      @ In, targets, list(str), names of targets
+      @ In, settings, dict, additional settings specific to algorithm
+      @ Out, params, dict, characterization of signal; structure as:
+                           params[target variable][characteristic] = value
+    """
+    pass

@@ -20,10 +20,10 @@ import utils.importerUtils
 statsmodels = utils.importerUtils.importModuleLazy("statsmodels", globals())
 
 from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
+from .TimeSeriesAnalyzer import TimeSeriesAnalyzer, TimeSeriesCharacterizer, TimeSeriesGenerator
 
 
-class PolynomialRegression(TimeSeriesAnalyzer):
+class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
   """
   """
 
@@ -53,7 +53,7 @@ class PolynomialRegression(TimeSeriesAnalyzer):
       @ Out, None
     """
     # general infrastructure
-    TimeSeriesAnalyzer.__init__(self, *args, **kwargs)
+    super().__init__(self, *args, **kwargs)
 
   def handleInput(self, spec):
     """
