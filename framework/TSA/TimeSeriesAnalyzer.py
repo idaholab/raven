@@ -35,6 +35,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     A predicate function to determine if object instance inherits from TimeSeriesGenerator.
 
+    @ In, None
     @ Out, boolean, True if instance can generate
     """
     return isinstance(self, TimeSeriesGenerator)
@@ -43,6 +44,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     """
     A predicate function to determine if object instance inherits from TimeSeriesCharacterizer.
 
+    @ In, None
     @ Out, boolean, True if instance can characterize
     """
     return isinstance(self, TimeSeriesCharacterizer)
@@ -127,15 +129,6 @@ class TimeSeriesGenerator(TimeSeriesAnalyzer):
   Act as an identifying class for algorithms that can generate synthetic time histories.
   """
 
-  def __init__(self, *args, **kwargs):
-    """
-      A constructor that will appropriately intialize a supervised learning object
-      @ In, args, list, an arbitrary list of positional values
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
-      @ Out, None
-    """
-    self.name = self.__class__.__name__ # the name the class shall be known by during its RAVEN life
-
   @abc.abstractmethod
   def generate(self, params, pivot, settings):
     """
@@ -152,15 +145,6 @@ class TimeSeriesCharacterizer(TimeSeriesAnalyzer):
   """
   Act as an identifying class for algorithms that can generate characterize time-dependent signals.
   """
-
-  def __init__(self, *args, **kwargs):
-    """
-      A constructor that will appropriately intialize a supervised learning object
-      @ In, args, list, an arbitrary list of positional values
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
-      @ Out, None
-    """
-    self.name = self.__class__.__name__ # the name the class shall be known by during its RAVEN life
 
   @abc.abstractmethod
   def characterize(self, signal, pivot, targets, settings):
