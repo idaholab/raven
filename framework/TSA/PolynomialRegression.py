@@ -20,7 +20,7 @@ import utils.importerUtils
 statsmodels = utils.importerUtils.importModuleLazy("statsmodels", globals())
 
 from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer, TimeSeriesCharacterizer, TimeSeriesGenerator
+from .TimeSeriesAnalyzer import TimeSeriesCharacterizer, TimeSeriesGenerator
 
 
 class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
@@ -61,7 +61,7 @@ class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
       @ In, inp, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
-    settings = TimeSeriesAnalyzer.handleInput(self, spec)
+    settings = super().handleInput(spec)
     settings['degree'] = spec.findFirst('degree').value
     return settings
 
