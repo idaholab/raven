@@ -21,7 +21,7 @@ import numpy as np
 import sklearn.linear_model
 
 from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer, TimeSeriesGenerator, TimeSeriesCharacterizer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
 
 # utility methods
@@ -74,7 +74,7 @@ class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
       @ In, inp, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
-    settings = TimeSeriesAnalyzer.handleInput(self, spec)
+    settings = super().handleInput(spec)
     settings['periods'] = spec.findFirst('periods').value
     return settings
 

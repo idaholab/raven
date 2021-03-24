@@ -17,7 +17,7 @@
 import numpy as np
 
 from utils import InputData, InputTypes, xmlUtils
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer, TimeSeriesGenerator, TimeSeriesCharacterizer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
 
 # utility methods
@@ -86,7 +86,7 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
       @ In, spec, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
-    settings = TimeSeriesAnalyzer.handleInput(self, spec)
+    settings = super().handleInput(spec)
     settings['family'] = spec.findFirst('family').value
     return settings
 
