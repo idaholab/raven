@@ -1188,18 +1188,18 @@ class ROM(Dummy):
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['PointSet', 'HistorySet', 'DataSet']
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Dummy.__init__(self,runInfoDict)
-    self.initializationOptionDict = {'NumThreads': runInfoDict.get('NumThreads', 1)}         # ROM initialization options
-    self.amITrained               = False      # boolean flag, is the ROM trained?
-    self.supervisedEngine         = None       # dict of ROM instances (== number of targets => keys are the targets)
-    self.printTag = 'ROM MODEL'
-    self.cvInstance               = None             # Instance of provided cross validation
+    super().__init__(self)
+    self.initializationOptionDict = None  # ROM initialization options
+    self.amITrained = False               # boolean flag, is the ROM trained?
+    self.supervisedEngine = None          # dict of ROM instances (== number of targets => keys are the targets)
+    self.printTag = 'ROM MODEL'           # label
+    self.cvInstance = None                # Instance of provided cross validation
     # Dictionary of Keras Neural Network Core layers
     self.kerasDict = {}
 
@@ -1311,6 +1311,14 @@ class ROM(Dummy):
     self.__dict__ = d
     # since we pop this out during saving state, initialize it here
     self.assemblerDict = {}
+
+  def applyRunInfo(self, runInfo):
+    """
+      Take information from the RunInfo
+      @ In, runInfo, dict, RunInfo info
+      @ Out, None
+    """
+    self.initializationOptionDict = {'NumThreads': runInfo.get('NumThreads', 1)}         # ROM initialization options
 
   def _readMoreXML(self,xmlNode):
     """

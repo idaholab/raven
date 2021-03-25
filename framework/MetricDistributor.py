@@ -16,32 +16,25 @@ Created on Noverber 16, 2017
 
 @author: wangc
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import inspect
 import abc
-import copy
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
-from utils import mathUtils
+from BaseClasses import BaseType, MessageUser
 from utils import utils
-import MessageHandler
 import Distributions
 from EntityFactoryBase import EntityFactory
 #Internal Modules End--------------------------------------------------------------------------------
-class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHandler.MessageUser):
+class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUser):
   """
     This class represents an interface with all the metrics algorithms
     It is a utility class needed to hide the discernment between time-dependent and static
     metrics
   """
-  def __init__(self, estimator, messageHandler):
+  def __init__(self, estimator, **kwargs):
     """
       A constructor
       @ In, estimator, instance of given metric
@@ -49,6 +42,7 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
+    super().__init__(**kwargs)
     self.printTag                = 'MetricDistributor'
     # object of message handler
     self.messageHandler          = messageHandler

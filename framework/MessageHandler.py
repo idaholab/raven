@@ -48,14 +48,14 @@ all the RAVEN objects.  This usually happens by passing it to BaseClass.readXML,
 objects that don't inherit from BaseClass, the messageHandler instance should be passed
 and set via instantiation or initialization.  The appropriate class member to point at the
 messageHandler instance reference is "self.messageHandler," for reasons that will be made clear
-with the  MessageUser superclass.
+with the BaseClasses.MessageUser superclass.
 
 While an object can access the messageHandler to raise messages and errors, for convienience
-we provide the MessageUser superclass, which BaseType and (almost?) all other Raven objects
+RAVEN provides the MessageUser superclass, which BaseType and (almost?) all other Raven objects
 inherit from.  This provides simplistic hooks for a developer to raise an error or message
 with the standard message priorities, as
 
-self.raiseAnError(IOError,'Input value is invalid:',value)
+self.raiseAnError(IOError, 'Input value is invalid:', value)
 
 There are currently 4 verbosity levels/message priorities.  They are:
  - silent: only errors are displayed
@@ -71,89 +71,9 @@ self.raiseAMessage('Hello, World', verbosity='silent')
 will be printed along with errors if the simulation verbosity is set to 'silent', as well as
 all other levels.
 
-TL;DR: MessageUser is a superclass that gives access to hooks to the simulation's MessageHandler
+TL;DR: BaseClasses/MessageUser is a superclass that gives access to hooks to the simulation's MessageHandler
 instance, while the MessageHandler is an output stream control tool.
 """
-
-class MessageUser(object):
-  """
-    Inheriting from this class grants access to methods used by the MessageHandler.
-    In order to work properly, a subclass of this superclass should have a member
-    'self.messageHandler' that references a MessageHandler instance.
-  """
-  def raiseAnError(self,etype,*args,**kwargs):
-    """
-      Raises an error. By default shows in all verbosity levels.
-      @ In, etype, Exception, Exception class to raise (e.g. IOError)
-      @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
-      @ In, **kwargs, dict, optional arguments, which can be:
-                            verbosity, the priority of the message (default 'silent')
-                            tag, the message label (default 'ERROR')
-      @ Out, None
-    """
-    verbosity = kwargs.get('verbosity','silent')
-    tag       = kwargs.get('tag'      ,'ERROR' )
-    color     = kwargs.get('color'    ,None     )
-    msg = ' '.join(str(a) for a in args)
-    self.messageHandler.error(self,etype,msg,str(tag),verbosity,color)
-
-  def raiseAWarning(self,*args,**kwargs):
-    """
-      Prints a warning. By default shows in 'quiet', 'all', and 'debug'
-      @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
-      @ In, **kwargs, dict, optional arguments, which can be:
-                            verbosity, the priority of the message (default 'quiet')
-                            tag, the message label (default 'Warning')
-      @ Out, None
-    """
-    verbosity = kwargs.get('verbosity','quiet'  )
-    tag       = kwargs.get('tag'      ,'Warning')
-    color     = kwargs.get('color'    ,None     )
-    msg = ' '.join(str(a) for a in args)
-    self.messageHandler.message(self, msg, str(tag), verbosity, color)
-
-  def raiseAMessage(self,*args,**kwargs):
-    """
-      Prints a message. By default shows in 'all' and 'debug'
-      @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
-      @ In, **kwargs, dict, optional arguments, which can be:
-                            verbosity, the priority of the message (default 'all')
-                            tag, the message label (default 'Message')
-      @ Out, None
-    """
-    verbosity  = kwargs.get('verbosity' ,'all'    )
-    tag        = kwargs.get('tag'       ,'Message')
-    color      = kwargs.get('color'     ,None     )
-    forcePrint = kwargs.get('forcePrint',False     )
-    msg = ' '.join(str(a) for a in args)
-    self.messageHandler.message(self,msg,str(tag),verbosity,color,forcePrint=forcePrint)
-
-  def raiseADebug(self,*args,**kwargs):
-    """
-      Prints a debug message. By default shows only in 'debug'
-      @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
-      @ In, **kwargs, dict, optional arguments, which can be:
-                            verbosity, the priority of the message (default 'debug')
-                            tag, the message label (default 'DEBUG')
-      @ Out, None
-    """
-    verbosity = kwargs.get('verbosity','debug')
-    tag       = kwargs.get('tag'      ,'DEBUG')
-    color     = kwargs.get('color'    ,None   )
-    msg = ' '.join(str(a) for a in args)
-    self.messageHandler.message(self,msg,str(tag),verbosity,color)
-
-  def getLocalVerbosity(self,default=None):
-    """
-      Attempts to learn the local verbosity level of itself
-      @ In, default, string, optional, the verbosity level to return if not found
-      @ Out, verbosity, string, verbosity type (e.g. 'all')
-    """
-    if hasattr(self,'verbosity'):
-      return self.verbosity
-    else:
-      return default
-
 
 class MessageHandler(object):
   """
@@ -259,7 +179,7 @@ class MessageHandler(object):
       @ In, obj, instance, preferably an object with a printTag method; otherwise, a string or an object
       @ Out, tag, string, string to print
     """
-    if type(obj).__name__ in ['str','unicode']:
+    if type(obj).__name__ in ['str','unicode']: # ?when is this ever not true?
       return obj
     if hasattr(obj,'printTag'):
       tag = str(obj.printTag)
@@ -273,8 +193,8 @@ class MessageHandler(object):
       @ In, caller, instance, the object desiring to print
       @ Out, desVerbosity, int, integer equivalent to verbosity level
     """
-    localVerb = caller.getLocalVerbosity(default=self.verbosity)
-    if localVerb == None:
+    localVerb = caller.getVerbosity()
+    if localVerb is None:
       localVerb = self.verbosity
     desVerbosity = self.checkVerbosity(localVerb)
     return desVerbosity

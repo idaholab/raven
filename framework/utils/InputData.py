@@ -439,7 +439,7 @@ class ParameterInput(object):
           foundSubs += 1
         elif sub._checkCanRead.check(child):
           subInstance = sub()
-          foundSub += 1
+          foundSubs += 1
       if foundSubs > 0:
         subNames.add(childName)
         subInstance.parseNode(child, errorList, parentList + [childName])
@@ -693,8 +693,9 @@ class RavenBase(ParameterInput):
     This can be used as a base class for things that inherit from BaseType
   """
 RavenBase.createClass("RavenBase", baseNode=None)
+RavenBase.addParam("name", param_type=InputTypes.StringType, required=True, descr='User-defined name to designate this entity in the RAVEN input file.')
 verbs = InputTypes.makeEnumType('verbosity', 'verbosityType', ['silent', 'quiet', 'all', 'debug'])
-RavenBase.addParam("verbosity", param_type=verbs, descr='Desired verbosity of messages coming from this entity') #XXX should be enumeration
+RavenBase.addParam("verbosity", param_type=verbs, descr='Desired verbosity of messages coming from this entity')
 
 
 #

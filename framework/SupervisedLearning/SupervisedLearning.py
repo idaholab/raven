@@ -35,10 +35,11 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, mathUtils, xmlUtils
+from BaseClasses import MessageUser
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
+class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
   """
     This is the general interface to any supervisedLearning learning method.
     Essentially it contains a train method and an evaluate method
@@ -74,16 +75,15 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         return(False, ' The array must be 1-d. Got shape: '+str(np.asarray(arrayIn).shape))
     return (True,'')
 
-  def __init__(self, messageHandler=None, **kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately initialize a supervised learning object
       @ In, messageHandler, MessageHandler object, optional, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    assert messageHandler is not None
+    super().__init__(**kwargs)
     self.printTag = 'Supervised'
-    self.messageHandler = messageHandler
     self._dynamicHandling = False
     self._assembledObjects = None           # objects assembled by the ROM Model, passed through.
     self.numThreads = kwargs.pop('NumThreads', None)

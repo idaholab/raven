@@ -37,7 +37,7 @@ import platform
 #Internal Modules---------------------------------------------------------------
 from utils import utils
 from utils import mathUtils
-import MessageHandler
+from BaseClasses import MessageUser
 from EntityFactoryBase import EntityFactory
 #Internal Modules End-----------------------------------------------------------
 
@@ -55,7 +55,7 @@ if utils.displayAvailable() and platform.system() != 'Windows':
   matplotlib.use('TkAgg')
 import matplotlib.pylab as plt
 
-class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
+class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
   """
     This is the general interface to any unSuperisedLearning learning method.
     Essentially it contains a train, and evaluate methods
@@ -94,15 +94,14 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageHandler.M
 
     return (True, '')
 
-  def __init__(self, messageHandler=None, **kwargs):
+  def __init__(self, **kwargs):
     """
       constructor for unSupervisedLearning class.
       @ In, messageHandler, object, Message handler object
       @ In, kwargs, dict, arguments for the unsupervised learning algorithm
     """
-    assert messageHandler is not None
+    super().__init__(**kwargs)
     self.printTag = 'unSupervised'
-    self.messageHandler = messageHandler
 
     ## booleanFlag that controls the normalization procedure. If true, the
     ## normalization is performed. Default = True

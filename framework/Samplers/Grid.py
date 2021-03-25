@@ -79,7 +79,7 @@ class Grid(ForwardSampler):
     @ In, None
     @ Out, None
     """
-    ForwardSampler.__init__(self)
+    super().__init__()
     self.printTag = 'SAMPLER GRID'
     self.axisName             = []           # the name of each axis (variable)
     self.gridInfo             = {}           # {'name of the variable':Type}  --> Type: CDF/Value

@@ -16,39 +16,11 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
-#External Modules------------------------------------------------------------------------------------
-import numpy as np
-from scipy import spatial, interpolate
-import os
-from glob import glob
-import copy
-import math
-from collections import OrderedDict, defaultdict
-import time
 import importlib
-import abc
-import six
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from utils import utils
-from utils import mathUtils
-from utils import xmlUtils
-from utils.RAVENiterators import ravenArrayIterator
 from utils import InputData
-import DataObjects
-from Assembler import Assembler
-import LearningGate
-import MessageHandler
-import GridEntities
-import Files
-import Models
-import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
-#Internal Modules End--------------------------------------------------------------------------------
 
 class InterfacedPostProcessor(PostProcessor):
   """

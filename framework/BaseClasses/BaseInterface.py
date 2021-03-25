@@ -15,52 +15,27 @@
 Created on Mar 16, 2013
 @author: crisr
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-#External Modules------------------------------------------------------------------------------------
-import inspect
 import sys
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes, mathUtils
 import MessageHandler
-#Internal Modules End--------------------------------------------------------------------------------
+from BaseClasses import BaseType, InputDataUser
+from utils import InputTypes, mathUtils
 
-class BaseType(MessageHandler.MessageUser):
+class BaseInterface(BaseType):
   """
     this is the base class for each general type used by the simulation
   """
-
-  @classmethod
-  def getInputSpecification(cls):
+  def __init__(self, **kwargs):
     """
-      Method to get a reference to a class that specifies the input data for
-      class cls.
-      @ In, cls, the class for which we are retrieving the specification
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
-        specifying input of cls.
+      Construct.
+      @ In, kwargs, dict, passthrough keyword arguments
+      @ Out, None
     """
-    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.RavenBase)
-    inputSpecification.addParam("name", InputTypes.StringType, True, descr='User-defined name to designate this entity in the RAVEN input file.')
-
-    return inputSpecification
-
-  @classmethod
-  def getSolutionExportVariableNames(cls):
-    """
-      Compiles a list of acceptable SolutionExport variable options.
-      @ In, None
-      @ Out, vars, dict, {varName: manual description} for each solution export option
-    """
-    return {}
-
-  def __init__(self):
+    super().__init__(**kwargs)
     self.name             = ''                                                          # name of this istance (alias)
     self.type             = type(self).__name__                                         # specific type within this class
     self.verbosity        = None                                                        # verbosity level (see message handler)
     self.globalAttributes = {}                                                          # this is a dictionary that contains parameters that are set at the level of the base classes defining the types
-    self._knownAttribute  = []                                                          # this is a list of strings representing the allowed attribute in the xml input for the class
-    self._knownAttribute += ['name','verbosity']                                        # attributes that are known
     self.printTag         = 'BaseType'                                                  # the tag that refers to this class in all the specific printing
     self.messageHandler   = None                                                        # message handling object
     self.variableGroups   = {}                                                          # the variables this class needs to be aware of

@@ -21,10 +21,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import copy
 import itertools
-try:
-  import cPickle as pk
-except ImportError:
-  import pickle as pk
+import pickle as pk
 
 import numpy as np
 import pandas as pd

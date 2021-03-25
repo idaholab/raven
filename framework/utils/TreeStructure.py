@@ -25,7 +25,7 @@ from utils import xmlUtils
 
 #message handler
 import os, sys
-import MessageHandler
+from BaseClasses import MessageUser
 
 ##################
 # MODULE METHODS #
@@ -430,13 +430,13 @@ class InputNode:
     """
     return self.children
 
-class HierarchicalNode(MessageHandler.MessageUser):
+class HierarchicalNode(MessageUser):
   """
     The Node class. It represents the base for each TreeStructure construction
     These Nodes are particularly for heirarchal structures.
   """
   #TODO the common elements between this and InputNode should be abstracted to a Node class.
-  def __init__(self, messageHandler, name, valuesIn={}, text=''):
+  def __init__(self, name, valuesIn={}, text='', **kwargs):
     """
       Initialize Tree,
       @ In, messageHandler, MessageHandler instance, the message handler to use
@@ -444,20 +444,18 @@ class HierarchicalNode(MessageHandler.MessageUser):
       @ In, valuesIn, dict, optional, is a dictionary of values
       @ In, text, string, optional, the node's text, as <name>text</name>
     """
+    super().__init__(**kwargs)
     #check message handler is first object
     values         = valuesIn.copy()
     self.name      = name
     self.type      = 'Node'
     self.printTag  = 'Node:<'+self.name+'>'
-    if type(messageHandler) != MessageHandler.MessageHandler:
-      raise(IOError,'Tried to initialize '+self.type+' without a message handler!  Was given: '+str(messageHandler))
     self.values    = values
     self.text      = text
     self._branches = []
     self.parentname= None
     self.parent    = None
     self.depth     = 0
-    self.messageHandler = messageHandler
     self.iterCounter = 0
 
   def __eq__(self,other):
@@ -830,12 +828,12 @@ class InputTree:
 
 
 
-class HierarchicalTree(MessageHandler.MessageUser):
+class HierarchicalTree(MessageUser):
   """
     The class that realizes a hierarchal Tree Structure
   """
   #TODO the common elements between HierarchicalTree and InputTree should be extracted to a Tree class.
-  def __init__(self, messageHandler, node=None):
+  def __init__(self, node=None, **kwargs):
     """
       Constructor
       @ In, messageHandler, MessageHandler instance, the message handler to use
@@ -845,9 +843,6 @@ class HierarchicalTree(MessageHandler.MessageUser):
     if not hasattr(self,"type"):
       self.type = 'NodeTree'
     self.printTag  = self.type+'<'+str(node)+'>'
-    if type(messageHandler) != MessageHandler.MessageHandler:
-      raise(IOError,'Tried to initialize NodeTree without a message handler!  Was given: '+str(messageHandler))
-    self.messageHandler = messageHandler
     self._rootnode = node
     if node:
       node.parentname='root'

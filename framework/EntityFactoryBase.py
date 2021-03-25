@@ -17,6 +17,7 @@ Created March 15, 2020
 @author: talbpaul
 """
 
+from BaseClasses import InputDataUser
 from utils import utils
 
 class EntityFactory(object):
@@ -109,7 +110,7 @@ class EntityFactory(object):
       msg += f'known types are: {self.knownTypes()}'
       caller.raiseAnError(NameError, msg)
 
-  def returnInstance(self, Type, caller, runInfo=None, **kwargs):
+  def returnInstance(self, Type, caller, **kwargs):
     """
       Returns an instance pointer from this module.
       @ In, Type, string, requested object
@@ -118,14 +119,18 @@ class EntityFactory(object):
       @ In, kwargs, dict, additional keyword arguments to constructor
       @ Out, __interFaceDict, instance, instance of the object
     """
-    if self.needsRunInfo:
-      try: # DEBUGG
-        return self.returnClass(Type, caller)(runInfo, **kwargs)
-      except TypeError as e:
-        print(f'DEBUGG FAILED on {self.name}.{Type} from {caller}')
-        raise e
-    else:
-      return self.returnClass(Type, caller)(**kwargs)
+    return self.returnClass(Type, caller)(**kwargs)
+
+  def collectInputSpecs(self, base):
+    """
+      Extends "base" to include all specs for all objects known by this factory as children of "base"
+      @ In, base, InputData.ParameterInput, starting spec
+      @ Out, None
+    """
+    for name in self.knownTypes():
+      cls = self.returnClass(name, None)
+      if isinstance(cls, InputDataUser):
+        base.addSub(cls.getInputSpecifications())
 
   #############
   # UTILITIES

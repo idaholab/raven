@@ -27,13 +27,12 @@ import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses import BaseEntity, Assembler, InputDataUser
 from utils import utils
-from Assembler import Assembler
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
+class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputDataUser)):
   """
     A model is something that given an input will return an output reproducing some physical model
     it could as complex as a stand alone code, a reduced order model trained somehow or something
@@ -197,14 +196,13 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         raise IOError('It is not possible to use '+anItem['class']+' type = ' +anItem['type']+' as '+who)
     return True
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
-    Assembler.__init__(self)
+    super().__init__()
     #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
     #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
     self.alias    = {'input':{},'output':{}}
@@ -296,7 +294,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
 
-  @abc.abstractmethod
+  #@abc.abstractmethod
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
@@ -355,7 +353,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     """
     pass
 
-  @abc.abstractmethod
+  #@abc.abstractmethod
   def createNewInput(self,myInput,samplerType,**kwargs):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.

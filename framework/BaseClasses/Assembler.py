@@ -24,30 +24,32 @@ import abc
 #External Modules End--------------------------------------------------------------------------------
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, InputData
+from BaseClasses import MessageUser
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class Assembler(MessageHandler.MessageUser):
+class Assembler(MessageUser):
   """
     Assembler class is used as base class for all the objects that need, for initialization purposes,
     to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
   """
-  def __init__(self):
+  def __init__(self, **kwargs):
     """
       Constructor
       @ In, None
       @ Out, None
     """
+    super().__init__(**kwargs)
     self.type = self.__class__.__name__  # type
     self.name = self.__class__.__name__  # name
-    if not hasattr(self, 'assemblerObjects'): # protect against polyinheritance woes
-      self.assemblerObjects = {}           # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-      # _requiredAsmbObject = [check_number, [name_list], [number_list]]
-      #  where name_list is the tokens required (if check_number is True)
-      #  and number_list is a list of InputData.Quantity for the number required
-      self._requiredAsmbObject = [False, [], []]
-      self.assemblerDict = {}               # {'class':[['class','type','name',instance]]}}
+    #if not hasattr(self, 'assemblerObjects'): # protect against polyinheritance woes
+    self.assemblerObjects = {}           # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
+    # _requiredAsmbObject = [check_number, [name_list], [number_list]]
+    #  where name_list is the tokens required (if check_number is True)
+    #  and number_list is a list of InputData.Quantity for the number required
+    self._requiredAsmbObject = [False, [], []]
+    self.assemblerDict = {}               # {'class':[['class','type','name',instance]]}}
     # list. first entry boolean flag. True if the XML parser must look for objects;
     # second entry tuple.first entry list of object can be retrieved, second entry multiplicity (-1,-2,-n means optional (max 1 object,2 object, no number limit))
 

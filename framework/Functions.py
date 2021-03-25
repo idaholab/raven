@@ -28,7 +28,7 @@ from __future__ import division, print_function, absolute_import
 
 #Internal Modules------------------------------------------------------------------------------------
 from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseType
+from BaseClasses import BaseType, InputDataUser
 from utils import utils, InputData, InputTypes
 from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ class FunctionCollection(InputData.ParameterInput):
 
 FunctionCollection.createClass("Functions")
 
-class External(BaseType):
+class External(BaseType, InputDataUser):
   """
     This class is the base class for different wrappers for external functions
     providing the tools to solve F(x)=0 where at least one of the components of
@@ -57,7 +57,7 @@ class External(BaseType):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(External, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addParam("file", InputTypes.StringType, True)
     inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringListType))
     return inputSpecification

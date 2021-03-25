@@ -28,27 +28,27 @@ import pandas as pd
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import utils
+from BaseClasses import MessageUser
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CsvLoader(MessageHandler.MessageUser):
+class CsvLoader(MessageUser):
   """
     Class aimed to load the CSV files
   """
   acceptableUtils = ['pandas', 'numpy']
 
-  def __init__(self, messageHandler):
+  def __init__(self, **kwargs):
     """
       Constructor
       @ In, messageHandler, MessageHandler, the message handler
       @ Out, None
     """
+    super().__init__(**kwargs)
     self.type = 'CsvLoader'               # naming type for this class
     self.printTag = self.type             # message handling representation
     self.allOutParam = False              # all output parameters?
     self.allFieldNames = []               # "header" of the CSV file
-    self.messageHandler = messageHandler  # message handling utility
 
   def loadCsvFile(self, myFile, nullOK=None, utility='pandas'):
     """

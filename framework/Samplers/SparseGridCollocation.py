@@ -69,10 +69,9 @@ class SparseGridCollocation(Grid):
       @ In, None
       @ Out, None
     """
-    Grid.__init__(self)
+    super().__init__()
     self.type           = 'SparseGridCollocationSampler'
     self.printTag       = 'SAMPLER '+self.type.upper()
-    self.assemblerObjects={}    #dict of external objects required for assembly
     self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
     self.indexSetType   = None  #TP, TD, or HC; the type of index set to use
     self.polyDict       = {}    #varName-indexed dict of polynomial types

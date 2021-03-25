@@ -29,7 +29,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses import BaseType, MessageUser
 from utils import mathUtils
 from utils import utils
 import SupervisedLearning
@@ -41,13 +41,13 @@ from EntityFactoryBase import EntityFactory
 #
 #
 #
-class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), MessageHandler.MessageUser):
+class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), MessageUser):
   """
     This class represents an interface with all the supervised learning algorithms
     It is a utility class needed to hide the discernment between time-dependent and static
     surrogate models
   """
-  def __init__(self, ROMclass, messageHandler, **kwargs):
+  def __init__(self, ROMclass, **kwargs):
     """
       A constructor that will appropriately initialize a supervised learning object (static or time-dependent)
       @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
@@ -56,7 +56,6 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
       @ Out, None
     """
     self.printTag = 'SupervisedGate'
-    self.messageHandler = messageHandler
     self.initializationOptions = kwargs
     self.amITrained = False
     self.ROMclass = ROMclass

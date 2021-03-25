@@ -37,8 +37,7 @@ import time
 #Internal Modules---------------------------------------------------------------
 from utils import importerUtils as im
 from utils import utils
-from BaseClasses import BaseType
-import MessageHandler
+from BaseClasses import MessageUser
 import Runners
 import Models
 # for internal parallel
@@ -54,7 +53,7 @@ else:
 ## FIXME: Finished jobs can bog down the queue waiting for other objects to take
 ## them away. Can we shove them onto a different list and free up the job queue?
 
-class JobHandler(MessageHandler.MessageUser):
+class JobHandler(MessageUser):
   """
     JobHandler class. This handles the execution of any job in the RAVEN
     framework

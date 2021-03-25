@@ -51,10 +51,9 @@ class Sobol(SparseGridCollocation):
       @ In, None
       @ Out, None
     """
-    Grid.__init__(self)
+    super().__init__()
     self.type           = 'SobolSampler'
     self.printTag       = 'SAMPLER SOBOL'
-    self.assemblerObjects={}    #dict of external objects required for assembly
     self.maxPolyOrder   = None  #L, the relative maximum polynomial order to use in any dimension
     self.sobolOrder     = None  #S, the order of the HDMR expansion (1,2,3), queried from the sobol ROM
     self.indexSetType   = None  #the type of index set to use, queried from the sobol ROM

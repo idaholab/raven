@@ -24,25 +24,19 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import numpy as np
 import scipy.special.orthogonal as quads
 import scipy.fftpack as fftpack
-import scipy.misc as misc
 import itertools
-import collections #.OrderedDict as collections.OrderedDict
-import operator #.operator.itemgetter as operator.itemgetter
-import inspect
+import collections
+import operator
 #External Modules End-----------------------------------------------------------------
 
 #Internal Modules
 from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseType
-from JobHandler import JobHandler
-import MessageHandler
-from utils import utils
+from BaseClasses import MessageUser
 from Decorators.Parallelization import Parallel
-from utils import importerUtils as im
 #Internal Modules End-----------------------------------------------------------------
 
 
-class SparseGrid(MessageHandler.MessageUser):
+class SparseGrid(MessageUser):
   """
     Base class to produce sparse-grid multiple-dimension quadrature.
   """
@@ -567,7 +561,7 @@ class SmolyakSparseGrid(SparseGrid):
 #
 #
 #
-class QuadratureSet(MessageHandler.MessageUser):
+class QuadratureSet(MessageUser):
   """
     Base class to produce standard quadrature points and weights.
      Points and weights are obtained as

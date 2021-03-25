@@ -31,12 +31,11 @@ import collections
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
-from utils import utils
+from BaseClasses import BaseType, InputDataUser
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class DateBase(BaseType):
+class DateBase(BaseType, InputDataUser):
   """
     class to handle a database,
     Used to add and retrieve attributes and values from said database
@@ -51,7 +50,7 @@ class DateBase(BaseType):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(DateBase, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addParam("directory", InputTypes.StringType)
     inputSpecification.addParam("filename", InputTypes.StringType)
     inputSpecification.addParam("readMode", InputTypes.makeEnumType("readMode","readModeType",["overwrite","read"]), True)

@@ -27,17 +27,14 @@ import h5py  as h5
 import numpy as np
 import os
 import copy
-try:
-  import cPickle as pk
-except ImportError:
-  import pickle as pk
+import pickle as pk
 import string
 import difflib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, mathUtils
-import MessageHandler
+from BaseClasses import InputDataUser
 import Files
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -72,7 +69,7 @@ def _loads(val):
 #  *************************
 #
 
-class hdf5Database(MessageHandler.MessageUser):
+class hdf5Database(InputDataUser):
   """
     class to create a h5py (hdf5) database
   """

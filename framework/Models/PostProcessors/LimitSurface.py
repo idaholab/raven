@@ -339,7 +339,7 @@ class LimitSurface(PostProcessor):
       @ Out, None
     """
     cellIds = self.gridEntity.retrieveCellIds([self.listSurfPointNegative,self.listSurfPointPositive],self.name)
-    if self.getLocalVerbosity() == 'debug':
+    if self.getVerbosity() == 'debug':
       self.raiseADebug("Limit Surface cell IDs are: \n"+ " \n".join([str(cellID) for cellID in cellIds]))
     self.raiseAMessage("Number of cells to be refined are "+str(len(cellIds))+". RefinementSteps = "+str(max([refinementSteps,2]))+"!")
     self.gridEntity.refineGrid({"cellIDs":cellIds,"refiningNumSteps":int(max([refinementSteps,2]))})
@@ -385,7 +385,7 @@ class LimitSurface(PostProcessor):
       toBeTested = np.atleast_2d(toBeTested).T if self.nVar == 1 else toBeTested
       #printing----------------------
       self.raiseADebug('LimitSurface:  Limit surface candidate points')
-      if self.getLocalVerbosity() == 'debug':
+      if self.getVerbosity() == 'debug':
         for coordinate in np.rollaxis(toBeTested, 0):
           myStr = ''
           for iVar, varnName in enumerate(self.axisName):
@@ -405,7 +405,7 @@ class LimitSurface(PostProcessor):
         nPosPoints = len(listSurfPointPositive)
       listSurfPoint[nodeName] = listSurfPointNegative + listSurfPointPositive
       #printing----------------------
-      if self.getLocalVerbosity() == 'debug':
+      if self.getVerbosity() == 'debug':
         if len(listSurfPoint[nodeName]) > 0:
           self.raiseADebug('LimitSurface: Limit surface points:')
         for coordinate in listSurfPoint[nodeName]:

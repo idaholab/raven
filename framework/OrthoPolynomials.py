@@ -30,13 +30,11 @@ import xml.etree.ElementTree as ET
 
 #Internal Modules
 from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseType
+from BaseClasses import MessageUser
 import Distributions
-import Quadratures
-import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
-class OrthogonalPolynomial(MessageHandler.MessageUser):
+class OrthogonalPolynomial(MessageUser):
   """
     Provides polynomial generators and evaluators for stochastic collocation.
   """
