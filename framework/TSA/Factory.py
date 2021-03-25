@@ -26,5 +26,6 @@ from .PolynomialRegression import PolynomialRegression
 factory = EntityFactory('TimeSeriesAnalyzer')
 # TODO map lower case to upper case, because of silly ROM namespace problems
 aliases = {'Fourier': 'fourier',
-           'ARMA': 'arma'}
+           'ARMA': 'arma',
+           'Wavelet': 'wavelet'}
 factory.registerAllSubtypes(TimeSeriesAnalyzer, alias=aliases)
