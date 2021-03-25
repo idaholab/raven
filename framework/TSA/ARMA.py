@@ -98,7 +98,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       @ In, settings, dict, existing settings
       @ Out, settings, dict, modified settings
     """
-    settings = TimeSeriesAnalyzer.setDefaults(self, settings)
+    settings = super().setDefaults(settings)
     if 'gaussianize' not in settings:
       settings['gaussianize'] = True
     if 'engine' not in settings:
