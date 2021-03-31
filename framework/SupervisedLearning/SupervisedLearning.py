@@ -74,10 +74,10 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
         return(False, ' The array must be 1-d. Got shape: '+str(np.asarray(arrayIn).shape))
     return (True,'')
 
-  def __init__(self, **kwargs):
+  def __init__(self, **initDict):
     """
       A constructor that will appropriately initialize a supervised learning object
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, initDict, dict, an arbitrary list of kwargs
       @ Out, None
     """
     super().__init__()
@@ -97,7 +97,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
     self.muAndSigmaFeatures = {}   # normalization parameters
     self.metadataKeys = set()      # keys that can be passed to DataObject as meta information
     self.metadataParams = {}       # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
-    self.readInitDict(kwargs)
+    self.readInitDict(initDict)
 
   def readInitDict(self, initDict):
     """

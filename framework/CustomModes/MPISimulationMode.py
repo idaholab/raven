@@ -32,13 +32,13 @@ class MPISimulationMode(Simulation.SimulationMode):
     MPISimulationMode is a specialized class of SimulationMode.
     It is aimed to distribute the runs using the MPI protocol
   """
-  def __init__(self):
+  def __init__(self, *args):
     """
       Constructor
-      @ In, None
+      @ In, args, list, unused positional arguments
       @ Out, None
     """
-    super().__init__()
+    super().__init__(*args)
     #Figure out if we are in PBS
     self.__inPbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False

@@ -1318,7 +1318,7 @@ class ROM(Dummy):
       @ In, runInfo, dict, RunInfo info
       @ Out, None
     """
-    self.initializationOptionDict = {'NumThreads': runInfo.get('NumThreads', 1)}         # ROM initialization options
+    self.initializationOptionDict['NumThreads'] = runInfo.get('NumThreads', 1)
 
   def _readMoreXML(self,xmlNode):
     """

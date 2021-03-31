@@ -85,13 +85,13 @@ class TopologicalDecomposition(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, info from run info
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
     self.acceptedPersistenceParam = ['difference','probability','count']#,'area']

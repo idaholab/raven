@@ -57,10 +57,10 @@ class SimulationMode(MessageUser):
     and other parameters.  remoteRunCommand lets a command to run RAVEN
     remotely be specified.
   """
-  def __init__(self, simulation):
+  def __init__(self, *args):
     """
       Constructor
-      @ In, simulation, Simulation.SimulationMode, the simulation to modify
+      @ In, args, list, unused positional arguments
       @ Out, None
     """
     super().__init__()

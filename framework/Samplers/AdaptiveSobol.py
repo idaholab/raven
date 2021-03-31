@@ -525,7 +525,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #set up HDMRRom for training
     self._finalizeROM()
 
-  def _finalizeROM(self,rom=None,include=[]):
+  def _finalizeROM(self, rom=None, include=[]):
     """
       Delivers necessary structures to the HDMRRom object
       @ In, rom, HDMRRom object, optional, rom to finalize before training, defaults to target rom
@@ -549,7 +549,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
         del initDict['ROMs'][subset]
     rom.supervisedEngine.supervisedContainer[0].initialize(initDict)
 
-  def _finalizeSubset(self,subset):
+  def _finalizeSubset(self, subset):
     """
       On completion, finalizes the subset by initializing the associated ROM.
       @ In, subset, tuple(str), subset to finalize
@@ -566,7 +566,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #store rom in dedicated use set
     self.useSet[subset] = self.romShell[subset].supervisedEngine.supervisedContainer[0]
 
-  def _generateSubsets(self,subset):
+  def _generateSubsets(self, subset):
     """
       Returns a list of the possible subset combinations available, and estimates their impact
       @ In, subset, tuple(str), the leading subset to add more subsets from
@@ -683,7 +683,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #if not, we have nothing to run.
     return False
 
-  def _makeCutDataObject(self,subset):
+  def _makeCutDataObject(self, subset):
     """
       Creates a new PointSet dataobject for a cut subset
       @ In, subset, tuple(str), the subset to make the object for
@@ -705,7 +705,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     dataObject.readXML(node)
     return dataObject
 
-  def _makeSubsetRom(self,subset):
+  def _makeSubsetRom(self, subset):
     """
       Constructs a ROM for the given subset (but doesn't train it!).
       @ In, subset, tuple(string), subset for cut plane
@@ -752,7 +752,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     self.ROMs[subset].verbosity = verbosity
     #instantiate the shell ROM that contains the SVLs
     #   NOTE: the shell is only needed so we can call the train method with a data object.
-    self.romShell[subset] = Models.factory.returnInstance('ROM', runInfo={})
+    self.romShell[subset] = Models.factory.returnInstance('ROM')
     self.romShell[subset].subType = 'GaussPolynomialRom'
     self.romShell[subset].verbosity = verbosity
     self.romShell[subset].initializationOptionDict['Target']= self.targets

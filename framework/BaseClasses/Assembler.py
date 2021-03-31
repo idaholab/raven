@@ -34,18 +34,16 @@ class Assembler(MessageUser):
     Assembler class is used as base class for all the objects that need, for initialization purposes,
     to get pointers (links) of other objects at the Simulation stage (Simulation.run() method)
   """
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       Constructor
       @ In, None
       @ Out, None
     """
-    super().__init__(**kwargs)
+    super().__init__()
     self.type = self.__class__.__name__  # type
     self.name = self.__class__.__name__  # name
-    #if not hasattr(self, 'assemblerObjects'): # protect against polyinheritance woes
     self.assemblerObjects = {}           # {MainClassName(e.g.Distributions):[class(e.g.Models),type(e.g.ROM),objectName]}
-    # _requiredAsmbObject = [check_number, [name_list], [number_list]]
     #  where name_list is the tokens required (if check_number is True)
     #  and number_list is a list of InputData.Quantity for the number required
     self._requiredAsmbObject = [False, [], []]
