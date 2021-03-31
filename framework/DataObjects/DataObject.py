@@ -18,7 +18,6 @@ import abc
 
 from BaseClasses import BaseEntity
 from utils import utils, InputData, InputTypes
-from MessageHandler import MessageHandler
 
 class DataObjectsCollection(InputData.ParameterInput):
   """
@@ -199,9 +198,6 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
     # check if protected vars have been violated
     if set(self.protectedTags).intersection(set(self._orderedVars)):
       self.raiseAnError(IOError, 'Input, Output and Index variables can not be part of RAVEN protected tags: '+','.join(self.protectedTags))
-
-    if self.messageHandler is None:
-      self.messageHandler = MessageHandler()
 
   def _setDefaultPivotParams(self):
     """

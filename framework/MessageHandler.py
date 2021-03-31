@@ -16,19 +16,12 @@ Created on Apr 20, 2015
 
 @author: talbpaul
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 import sys
 import time
 import bisect
-#External Modules End--------------------------------------------------------------------------------
+import builtins
 
-#Internal Modules------------------------------------------------------------------------------------
 from utils import utils
-#Internal Modules End--------------------------------------------------------------------------------
 
 _starttime = time.time()
 
@@ -73,6 +66,10 @@ all other levels.
 
 TL;DR: BaseClasses/MessageUser is a superclass that gives access to hooks to the simulation's MessageHandler
 instance, while the MessageHandler is an output stream control tool.
+
+In an effort to make the MH more flexible, we insert getMessageHandler into the python "builtins" module.
+This means that any time after this module (MessageHandler) is imported, you can use
+"getMessageHandler(name='default')" to retrieve a particular message handler as identified by "name".
 """
 
 class MessageHandler(object):
@@ -89,7 +86,9 @@ class MessageHandler(object):
     """
     self.starttime    = _starttime
     self.printTag     = 'MESSAGE HANDLER'
-    self.verbosity    = None
+    self.verbosity    = 'all'
+    self.callerLength = 25
+    self.tagLength    = 15
     self.suppressErrs = False
     self.printTime    = True
     self.inColor      = False
@@ -106,16 +105,16 @@ class MessageHandler(object):
     self.warnings     = [] #collection of warnings that were raised during this run
     self.warningCount = [] #count of the collections of warning above
 
-  def initialize(self,initDict):
+  def initialize(self, initDict):
     """
       Initializes basic instance attributes
       @ In, initDict, dict, dictionary of global options
       @ Out, None
     """
-    self.verbosity     = initDict.get('verbosity','all').lower()
-    self.callerLength  = initDict.get('callerLength',40)
-    self.tagLength     = initDict.get('tagLength',30)
-    self.suppressErrs  = utils.stringIsTrue(initDict.get('suppressErrs', 'False'))
+    self.verbosity = initDict.get('verbosity','all').lower()
+    self.callerLength = initDict.get('callerLength',25)
+    self.tagLength = initDict.get('tagLength',15)
+    self.suppressErrs = utils.stringIsTrue(initDict.get('suppressErrs', 'False'))
 
   def printWarnings(self):
     """
@@ -137,7 +136,7 @@ class MessageHandler(object):
       else:
         print('There were %i warnings during the simulation run.' %sum(self.warningCount))
 
-  def paint(self,str,color):
+  def paint(self, str, color):
     """
       Formats string with color
       @ In, str, string, string
@@ -149,7 +148,7 @@ class MessageHandler(object):
       return str
     return self.colors[color.lower()]+str+self.colors['neutral']
 
-  def setTimePrint(self,msg):
+  def setTimePrint(self, msg):
     """
       Allows the code to toggle timestamp printing.
       @ In, msg, string, the string that means true or false
@@ -164,7 +163,7 @@ class MessageHandler(object):
       self.tagLength = 15
       self.printTime = False
 
-  def setColor(self,inColor):
+  def setColor(self, inColor):
     """
       Allows output to screen to be colorized.
       @ In, inColor, string, boolean value
@@ -173,7 +172,7 @@ class MessageHandler(object):
     if utils.stringIsTrue(inColor):
       self.inColor = True
 
-  def getStringFromCaller(self,obj):
+  def getStringFromCaller(self, obj):
     """
       Determines the appropriate print string from an object
       @ In, obj, instance, preferably an object with a printTag method; otherwise, a string or an object
@@ -187,30 +186,33 @@ class MessageHandler(object):
       tag = str(obj)
     return tag
 
-  def getDesiredVerbosity(self,caller):
+  def getDesiredVerbosity(self, caller):
     """
       Tries to use local verbosity; otherwise uses global
       @ In, caller, instance, the object desiring to print
       @ Out, desVerbosity, int, integer equivalent to verbosity level
     """
-    localVerb = caller.getVerbosity()
+    if hasattr(caller, 'getVerbosity'):
+      localVerb = caller.getVerbosity()
+    else:
+      localVerb = None
     if localVerb is None:
       localVerb = self.verbosity
     desVerbosity = self.checkVerbosity(localVerb)
     return desVerbosity
 
-  def checkVerbosity(self,verb):
+  def checkVerbosity(self, verb):
     """
       Converts English-readable verbosity to computer-legible integer
       @ In, verb, string, the string verbosity equivalent
       @ Out, currentVerb, int, integer equivalent to verbosity level
     """
     if str(verb).strip().lower() not in self.verbCode.keys():
-      raise IOError('Verbosity key '+str(verb)+' not recognized!  Options are '+str(list(self.verbCode.keys())+[None]))
+      raise IOError(f'Verbosity key {verb} not recognized!  Options are {list(self.verbCode.keys())}')
     currentVerb = self.verbCode[str(verb).strip().lower()]
     return currentVerb
 
-  def error(self,caller,etype,message,tag='ERROR',verbosity='silent',color=None):
+  def error(self, caller, etype, message, tag='ERROR', verbosity='silent', color=None):
     """
       Raise an error message, unless errors are suppressed.
       @ In, caller, object, the entity desiring to print a message
@@ -231,7 +233,7 @@ class MessageHandler(object):
         sys.tracebacklimit=0
       raise etype(message)
 
-  def message(self,caller,message,tag,verbosity,color=None,writeTo=sys.stdout, forcePrint=False):
+  def message(self, caller, message, tag, verbosity, color=None, writeTo=sys.stdout, forcePrint=False):
     """
       Print a message
       @ In, caller, object, the entity desiring to print a message
@@ -243,14 +245,14 @@ class MessageHandler(object):
       @ Out, None
     """
     verbval = self.checkVerbosity(verbosity)
-    okay,msg = self._printMessage(caller,message,tag,verbval,color,forcePrint)
+    okay, msg = self._printMessage(caller, message, tag, verbval, color, forcePrint)
     if tag.lower().strip() == 'warning':
       self.addWarning(message)
     if okay:
       print(msg,file=writeTo)
     sys.stdout.flush()
 
-  def addWarning(self,msg):
+  def addWarning(self, msg):
     """
       Stores warnings so that they can be reported in summary later.
       @ In, msg, string, only the main part of the message, used to determine uniqueness
@@ -263,7 +265,7 @@ class MessageHandler(object):
     else:
       self.warningCount[index] += 1
 
-  def _printMessage(self,caller,message,tag,verbval,color=None,forcePrint=False):
+  def _printMessage(self, caller, message, tag, verbval, color=None, forcePrint=False):
     """
       Checks verbosity to determine whether something should be printed, and formats message
       @ In, caller , object, the entity desiring to print a message
@@ -286,7 +288,7 @@ class MessageHandler(object):
     msg=self.stdMessage(ctag,tag,message,color)
     return shouldIPrint,msg
 
-  def stdMessage(self,pre,tag,post,color=None):
+  def stdMessage(self, pre, tag, post, color=None):
     """
       Formats string for pretty printing
       @ In, pre  , string, who is printing the message
@@ -321,3 +323,34 @@ def timePrint(message):
   msg = ''
   msg+='('+'{:8.2f}'.format(curtime)+' sec) '
   print(msg + message)
+
+_handlers = {}
+
+def makeHandler(name):
+  """
+    Instantiate and register new instance of message handler
+    @ In, name, str, identifying name for new handler
+    @ Out, makeHandler, MessageHandler, instance
+  """
+  handler = MessageHandler()
+  _handlers[name] = handler
+  return handler
+
+# default handler
+makeHandler('default')
+
+def getHandler(name='default'):
+  """
+    Retrieve a message handling instance.
+    Styled after the Python logging module, maybe we should be switching to that.
+    @ In, name, str, optional, identifying name of handler to return
+    @ Out, getHandler, MessageHandler, instance (created if not existing)
+  """
+  h = _handlers.get(name, None)
+  if h is None:
+    h = makeHandler(name)
+  # NOTE: idk why, but h = _handlers.get(name, makeHandler(name)) does not work.
+  # I think it's because it executes makeHandler(name) regardless of if name is present or not.
+  return h
+
+builtins.getMessageHandler = getHandler

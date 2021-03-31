@@ -15,12 +15,6 @@
 Created on Mar 7, 2013
 @author: crisr
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#from __builtin__ import None
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 import sys
 import numpy as np
 import scipy
@@ -33,15 +27,11 @@ from numpy import linalg as LA
 import copy
 import math as math
 
-#External Modules End--------------------------------------------------------------------------------
-
-#Internal Modules------------------------------------------------------------------------------------
 from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseInterface, InputDataUser
+from BaseClasses import BaseEntity, InputDataUser
 from utils import utils
 from utils.randomUtils import random
 from utils import randomUtils
-#from utils.randomUtils import randomPermutation
 distribution1D = utils.findCrowModule('distribution1D')
 from utils import mathUtils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
@@ -90,7 +80,7 @@ class DistributionsCollection(InputData.ParameterInput):
 DistributionsCollection.createClass("Distributions")
 
 
-class Distribution(BaseInterface, InputDataUser):
+class Distribution(BaseEntity, InputDataUser):
   """
     A general class containing the distributions
   """
@@ -164,7 +154,6 @@ class Distribution(BaseInterface, InputDataUser):
     self.__adjustmentType = pdict.pop('adjustmentType'  )
     self.dimensionality   = pdict.pop('dimensionality'  )
     self.type             = pdict.pop('type'            )
-    self.messageHandler   = pdict.pop('messageHandler'  )
     self._localSetState(pdict)
     self.initializeDistribution()
 
@@ -228,7 +217,6 @@ class Distribution(BaseInterface, InputDataUser):
     paramDict['lowerBound'      ] = self.lowerBound
     paramDict['adjustmentType'  ] = self.__adjustmentType
     paramDict['dimensionality'  ] = self.dimensionality
-    paramDict['messageHandler'  ] = self.messageHandler
     return paramDict
 
   def rvsWithinCDFbounds(self,lowerBound,upperBound):

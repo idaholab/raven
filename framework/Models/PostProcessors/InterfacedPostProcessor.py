@@ -49,13 +49,13 @@ class InterfacedPostProcessor(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.methodToRun = None
     ## Currently, we have used both DataObject.addRealization and DataObject.load to
     ## collect the PostProcessor returned outputs. DataObject.addRealization is used to
@@ -92,7 +92,7 @@ class InterfacedPostProcessor(PostProcessor):
     paramInput = InputData.parseFromList(xmlNode, interfaceClasses)
 
     self.methodToRun = paramInput.getName()
-    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.factory.returnInstance(self.methodToRun, self, messageHandler=self.messageHandler)
+    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.factory.returnInstance(self.methodToRun)
     if not isinstance(self.postProcessor,PostProcessorInterfaceBase):
       self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor '+ self.name +
                         ' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')

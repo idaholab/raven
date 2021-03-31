@@ -15,45 +15,40 @@
 Created on Mar 16, 2013
 @author: crisr
 """
-import sys
 
-import MessageHandler
-from BaseClasses import BaseType, InputDataUser
-from utils import InputTypes, mathUtils
+from BaseClasses import BaseType
+from utils import mathUtils
 
 class BaseInterface(BaseType):
   """
     this is the base class for each general type used by the simulation
   """
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       Construct.
-      @ In, kwargs, dict, passthrough keyword arguments
+      @ In, None
       @ Out, None
     """
-    super().__init__(**kwargs)
+    super().__init__()
     self.name             = ''                                                          # name of this istance (alias)
     self.type             = type(self).__name__                                         # specific type within this class
     self.verbosity        = None                                                        # verbosity level (see message handler)
     self.globalAttributes = {}                                                          # this is a dictionary that contains parameters that are set at the level of the base classes defining the types
     self.printTag         = 'BaseType'                                                  # the tag that refers to this class in all the specific printing
-    self.messageHandler   = None                                                        # message handling object
     self.variableGroups   = {}                                                          # the variables this class needs to be aware of
     self.metadataKeys     = set()                                                       # list of registered metadata keys to expect from this entity
     self.metadataParams   = {}                                                          # dictionary of registered metadata keys with repect to their indexes
 
-  def readXML(self,xmlNode,messageHandler,variableGroups={},globalAttributes=None):
+  def readXML(self, xmlNode, variableGroups={}, globalAttributes=None):
     """
       provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
       that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
       verbosity (xml attribute)
       @ In, xmlNode, ET.Element, input xml
-      @ In, messageHandler, MessageHandler object, message handler
       @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
     """
-    self.setMessageHandler(messageHandler)
     self.variableGroups = variableGroups
     if 'name' in xmlNode.attrib.keys():
       self.name = xmlNode.attrib['name']
@@ -71,18 +66,16 @@ class BaseInterface(BaseType):
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
 
-  def handleInput(self, paramInput, messageHandler, variableGroups={}, globalAttributes=None):
+  def handleInput(self, paramInput, variableGroups={}, globalAttributes=None):
     """
       provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _handleInput
       that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
       verbosity (xml attribute)
       @ In, paramInput, InputParameter, input data from xml
-      @ In, messageHandler, MessageHandler object, message handler
       @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
     """
-    self.setMessageHandler(messageHandler)
     self.variableGroups = variableGroups
     if 'name' in paramInput.parameterValues:
       self.name = paramInput.parameterValues['name']
@@ -115,18 +108,6 @@ class BaseInterface(BaseType):
       @ Out, None
     """
     pass
-
-  def setMessageHandler(self,handler):
-    """
-      Function to set up the link to the the common Message Handler
-      @ In, handler, MessageHandler object, message handler
-      @ Out, None
-    """
-    if not isinstance(handler,MessageHandler.MessageHandler):
-      e=IOError('Attempted to set the message handler for '+str(self)+' to '+str(handler))
-      print('\nERROR! Setting MessageHandler in BaseClass,',e,'\n')
-      sys.exit(1)
-    self.messageHandler = handler
 
   def whoAreYou(self):
     """

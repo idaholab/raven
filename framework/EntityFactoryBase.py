@@ -17,10 +17,11 @@ Created March 15, 2020
 @author: talbpaul
 """
 
+from BaseClasses import MessageUser
 from BaseClasses import InputDataUser
 from utils import utils
 
-class EntityFactory(object):
+class EntityFactory(MessageUser):
   """
     Provides structure for entity factory
   """
@@ -33,7 +34,7 @@ class EntityFactory(object):
       @ In, returnInputParameter, bool, optional, whether this entity can use inputParams (otherwise xml)
       @ Out, None
     """
-    self.name = None                          # name of entity, e.g. Sampler
+    self.name = None                                 # name of entity, e.g. Sampler
     self.needsRunInfo = needsRunInfo                 # whether entity needs run info
     self.returnInputParameter = returnInputParameter # use xml or inputParams
     self._registeredTypes = {}                       # registered types for this entity
@@ -89,12 +90,11 @@ class EntityFactory(object):
     # NOTE: plugins might not be listed if they haven't been loaded yet!
     return self._registeredTypes.keys()
 
-  def returnClass(self, Type, caller):
+  def returnClass(self, Type):
     """
       Returns an object construction pointer from this module.
       @ In, Type, string, requested object
-      @ In, caller, object, requesting object
-      @ Out, __interFaceDict, instance, instance of the object
+      @ Out, returnClass, object, class of the object
     """
     # is this from an unloaded plugin?
     # return class from known types
@@ -110,16 +110,16 @@ class EntityFactory(object):
       msg += f'known types are: {self.knownTypes()}'
       caller.raiseAnError(NameError, msg)
 
-  def returnInstance(self, Type, caller, **kwargs):
+  def returnInstance(self, Type, **kwargs):
     """
       Returns an instance pointer from this module.
       @ In, Type, string, requested object
-      @ In, caller, object, requesting object
-      @ In, runInfo, dict, optional, info from RunInfo block of input
       @ In, kwargs, dict, additional keyword arguments to constructor
-      @ Out, __interFaceDict, instance, instance of the object
+      @ Out, returnInstance, instance, instance of the object
     """
-    return self.returnClass(Type, caller)(**kwargs)
+    cls = self.returnClass(Type)
+    instance = cls(**kwargs)
+    return instance
 
   def collectInputSpecs(self, base):
     """

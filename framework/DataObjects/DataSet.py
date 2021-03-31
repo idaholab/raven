@@ -1854,7 +1854,7 @@ class DataSet(DataObject):
     # datasets can have them because we don't have a 2d+ CSV storage strategy yet
     else:
       nullOK = True
-    loader = CsvLoader.CsvLoader(self.messageHandler)
+    loader = CsvLoader.CsvLoader()
     df = loader.loadCsvFile(fname, nullOK=nullOK)
     return df
 

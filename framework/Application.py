@@ -49,12 +49,15 @@ if __QtAvailable:
     """
     windowClosed = qtc.Signal(str)
 
-    def __init__(self, arg1, interactionType=Interaction.Yes, **kwargs):
+    def __init__(self, arg1, interactionType=Interaction.Yes):
       """
         A default constructor which will initialize an empty dictionary of user
         interfaces that will be managed by this instance.
+        @ In, arg1, list, unknown
+        @ In, interactionType, Interaction, boolean-like
+        @ Out, None
       """
-      super().__init__(**kwargs)
+      super().__init__()
       self.printTag = 'RAVEN Application'
       self.UIs = {}
       self.interactionType = interactionType

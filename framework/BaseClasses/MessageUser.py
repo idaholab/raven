@@ -18,12 +18,11 @@ Moved from MessageHandler
 
 @author: talbpaul
 """
+import MessageHandler
 
 class MessageUser(object):
   """
     Inheriting from this class grants access to methods used by the MessageHandler.
-    In order to work properly, a subclass of this superclass should have a member
-    'self.messageHandler' that references a MessageHandler instance.
   """
   def __init__(self): #, messageHandler=None, verbosity=None, **kwargs):
     """
@@ -32,7 +31,8 @@ class MessageUser(object):
       @ In, verbosity, MessageHandler.MessageHandler, optional, message handler
       @ Out, None
     """
-    self.messageHandler = None   # instance responsible for handling messages
+    # NOTE getMessageHandler is inserted into the builtins by the MessageHandler module
+    self.messageHandler = getMessageHandler()  # instance responsible for handling messages
     self.verbosity = None        # message verbosity for this instance
     # if messageHandler is not None:
     #   self.setMessageHandler(messageHandler)
@@ -66,7 +66,7 @@ class MessageUser(object):
     """
     return self.verbosity
 
-  def raiseAnError(self,etype,*args,**kwargs):
+  def raiseAnError(self, etype, *args, **kwargs):
     """
       Raises an error. By default shows in all verbosity levels.
       @ In, etype, Exception, Exception class to raise (e.g. IOError)
@@ -82,7 +82,7 @@ class MessageUser(object):
     msg = ' '.join(str(a) for a in args)
     self.messageHandler.error(self,etype,msg,str(tag),verbosity,color)
 
-  def raiseAWarning(self,*args,**kwargs):
+  def raiseAWarning(self, *args, **kwargs):
     """
       Prints a warning. By default shows in 'quiet', 'all', and 'debug'
       @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
@@ -97,7 +97,7 @@ class MessageUser(object):
     msg = ' '.join(str(a) for a in args)
     self.messageHandler.message(self, msg, str(tag), verbosity, color)
 
-  def raiseAMessage(self,*args,**kwargs):
+  def raiseAMessage(self, *args, **kwargs):
     """
       Prints a message. By default shows in 'all' and 'debug'
       @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
@@ -113,7 +113,7 @@ class MessageUser(object):
     msg = ' '.join(str(a) for a in args)
     self.messageHandler.message(self,msg,str(tag),verbosity,color,forcePrint=forcePrint)
 
-  def raiseADebug(self,*args,**kwargs):
+  def raiseADebug(self, *args, **kwargs):
     """
       Prints a debug message. By default shows only in 'debug'
       @ In, *args, dict, comma-seperated list of things to put in message (as print() function)
@@ -122,8 +122,8 @@ class MessageUser(object):
                             tag, the message label (default 'DEBUG')
       @ Out, None
     """
-    verbosity = kwargs.get('verbosity','debug')
-    tag       = kwargs.get('tag'      ,'DEBUG')
-    color     = kwargs.get('color'    ,None   )
+    verbosity = kwargs.get('verbosity', 'debug')
+    tag = kwargs.get('tag', 'DEBUG')
+    color = kwargs.get('color', None)
     msg = ' '.join(str(a) for a in args)
-    self.messageHandler.message(self,msg,str(tag),verbosity,color)
+    self.messageHandler.message(self, msg, str(tag), verbosity, color)

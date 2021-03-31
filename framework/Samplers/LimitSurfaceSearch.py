@@ -34,12 +34,13 @@ import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from Models.PostProcessors.LimitSurface import LimitSurface
-from .AdaptiveSampler import AdaptiveSampler
+from Models import factory as modelsFactory
+#from Models.PostProcessors.LimitSurface import LimitSurface
 import Distributions
 from AMSC_Object import AMSC_Object
 from utils import randomUtils
 from utils import InputData, InputTypes
+from .AdaptiveSampler import AdaptiveSampler
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -363,9 +364,8 @@ class LimitSurfaceSearch(AdaptiveSampler):
       @ In, solutionExport, DataObjects, optional, a PointSet to hold the solution (a list of limit surface points)
       @ Out, None
     """
-    self.converged        = False
-    self.limitSurfacePP   = LimitSurface({})
-    self.limitSurfacePP.messageHandler = self.messageHandler
+    self.converged = False
+    self.limitSurfacePP = modelsFactory.returnInstance('LimitSurface')
     if 'Function' in self.assemblerDict.keys():
       self.goalFunction = self.assemblerDict['Function'][0][3]
     # if 'TargetEvaluation' in self.assemblerDict.keys():

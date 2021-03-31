@@ -20,7 +20,6 @@ import abc
 
 #Internal Modules------------------------------------------------------------------------------------
 from BaseClasses import MessageUser
-import MessageHandler
 from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -32,11 +31,10 @@ class CrossValidation(utils.metaclass_insert(abc.ABCMeta), MessageUser):
   def __init__(self, **kwargs):
     """
       This is the basic method initialize the cross validation object
-      @ In, messageHandler, object, Message handler object
       @ In, kwargs, dict, arguments for the Pairwise metric
       @ Out, none
     """
-    super().__init__(**kwargs)
+    super().__init__()
     self.printTag = 'Cross Validation'
     if kwargs != None:
       self.initOptionDict = kwargs

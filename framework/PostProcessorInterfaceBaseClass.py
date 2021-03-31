@@ -97,13 +97,12 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object), Mes
 
     return inputSpecification
 
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, optional, message handler object
       @ Out, None
     """
-    super().__init__(**kwargs)
+    super().__init__()
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
 

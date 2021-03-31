@@ -34,18 +34,15 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUse
     It is a utility class needed to hide the discernment between time-dependent and static
     metrics
   """
-  def __init__(self, estimator, **kwargs):
+  def __init__(self, estimator):
     """
       A constructor
       @ In, estimator, instance of given metric
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    super().__init__(**kwargs)
+    super().__init__()
     self.printTag                = 'MetricDistributor'
-    # object of message handler
-    self.messageHandler          = messageHandler
     # instance of given Metric
     self.estimator                = estimator
     # True if the instance of given metric, i.e. 'estimator', can handle time-dependent data, else False
@@ -172,15 +169,14 @@ class MetricDistributorFactory(EntityFactory):
   """
     Specific factory for metric distributors
   """
-  def returnInstance(self, Type, estimator, caller):
+  def returnInstance(self, Type, estimator):
     """
       This function return an instance of the request model type
       @ In, distributorType, string, string representing the class to retrieve
       @ In, estimator, list of instance of given metrics
-      @ In, caller, instance, object that will share its messageHandler instance
       @ Out, returnInstance, instance, an instance of this class
     """
-    return self.returnClass(Type, caller)(estimator, caller.messageHandler)
+    return self.returnClass(Type)(estimator)
 
 factory = MetricDistributorFactory('Distributor')
 factory.registerType('MetricDistributor', MetricDistributor)

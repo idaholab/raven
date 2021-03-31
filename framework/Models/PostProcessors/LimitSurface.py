@@ -70,13 +70,13 @@ class LimitSurface(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self,runInfoDict)
+    super().__init__()
     self.parameters        = {}               #parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.surfPoint         = None             #coordinate of the points considered on the limit surface
     self.testMatrix        = OrderedDict()    #This is the n-dimensional matrix representing the testing grid
@@ -123,7 +123,7 @@ class LimitSurface(PostProcessor):
       @ Out, None
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.gridEntity = GridEntities.factory.returnInstance("MultiGridEntity", self, messageHandler=self.messageHandler)
+    self.gridEntity = GridEntities.factory.returnInstance("MultiGridEntity")
     self.externalFunction = self.assemblerDict['Function'][0][3]
     if 'ROM' not in self.assemblerDict.keys():
       self.ROM = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn', self, **{'SKLtype':'neighbors|KNeighborsClassifier',"n_neighbors":1, 'Features':','.join(list(self.parameters['targets'])), 'Target':[self.externalFunction.name]})

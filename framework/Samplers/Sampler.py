@@ -26,9 +26,9 @@ import numpy as np
 from BaseClasses.InputDataUser import InputDataUser
 
 from utils import utils,randomUtils,InputData, InputTypes
-from BaseClasses import BaseInterface, Assembler
+from BaseClasses import BaseEntity, Assembler
 
-class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseInterface), Assembler, InputDataUser):
+class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputDataUser):
   """
     This is the base class for samplers
     Samplers own the sampling strategy (Type) and they generate the input values using the associate distribution.

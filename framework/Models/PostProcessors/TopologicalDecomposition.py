@@ -88,7 +88,7 @@ class TopologicalDecomposition(PostProcessor):
   def __init__(self, runInfoDict):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, runInfoDict, dict, info from run info
       @ Out, None
     """
     PostProcessor.__init__(self, runInfoDict)
@@ -377,15 +377,15 @@ if __QtAvailable:
       inputSpecification.addSub(InputData.parameterInputFactory("interactive"))
       return inputSpecification
 
-    def __init__(self, runInfoDict):
+    def __init__(self):
       """
        Constructor
-       @ In, messageHandler, message handler object
+       @ In, None
        @ Out, None
       """
-
-      TopologicalDecomposition.__init__(self, runInfoDict)
-      qtc.QObject.__init__(self)
+      super().__init__()
+      # TopologicalDecomposition.__init__(self)
+      # qtc.QObject.__init__(self)
 
       self.interactive = False
       self.uiDone = True ## If it has not been requested, then we are not waiting for a UI

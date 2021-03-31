@@ -254,7 +254,7 @@ class Code(Model):
       else:
         self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
-    self.code = Code.CodeInterfaces.factory.returnInstance(self.subType, self)
+    self.code = Code.CodeInterfaces.factory.returnInstance(self.subType)
     self.code.readMoreXML(xmlNode, self._ravenWorkingDir) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
@@ -625,9 +625,9 @@ class Code(Model):
       if outputFile and isStr and not ravenCase:
         outFile = Files.CSV()
         ## Should we be adding the file extension here?
-        outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
+        outFile.initialize(outputFile+'.csv', path=metaData['subDirectory'])
 
-        csvLoader = CsvLoader.CsvLoader(self.messageHandler)
+        csvLoader = CsvLoader.CsvLoader()
         # does this CodeInterface have sufficiently intense (or limited) CSV files that
         #   it needs to assume floats and use numpy, or can we use pandas?
         loadUtility = self.code.getCsvLoadUtil()

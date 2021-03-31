@@ -21,8 +21,6 @@ Created March 19, 2021
 Split from original BaseClasses.py module
 """
 
-import sys
-
 from utils import mathUtils
 from .BaseType import BaseType
 
@@ -70,23 +68,20 @@ class BaseEntity(BaseType):
     self._knownAttribute  = []                                                          # this is a list of strings representing the allowed attribute in the xml input for the class
     self._knownAttribute += ['name','verbosity']                                        # attributes that are known
     self.printTag         = 'BaseType'                                                  # the tag that refers to this class in all the specific printing
-    self.messageHandler   = None                                                        # message handling object
     self.variableGroups   = {}                                                          # the variables this class needs to be aware of
     self.metadataKeys     = set()                                                       # list of registered metadata keys to expect from this entity
     self.metadataParams   = {}                                                          # dictionary of registered metadata keys with repect to their indexes
 
-  def readXML(self, xmlNode, messageHandler, variableGroups=None, globalAttributes=None):
+  def readXML(self, xmlNode, variableGroups=None, globalAttributes=None):
     """
       provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
       that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
       verbosity (xml attribute)
       @ In, xmlNode, ET.Element, input xml
-      @ In, messageHandler, MessageHandler object, message handler
       @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
     """
-    self.setMessageHandler(messageHandler)
     self.variableGroups = variableGroups
     if 'name' in xmlNode.attrib.keys():
       self.name = xmlNode.attrib['name']
@@ -104,18 +99,16 @@ class BaseEntity(BaseType):
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
 
-  def handleInput(self, paramInput, messageHandler, variableGroups={}, globalAttributes=None):
+  def handleInput(self, paramInput, variableGroups={}, globalAttributes=None):
     """
       provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _handleInput
       that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
       verbosity (xml attribute)
       @ In, paramInput, InputParameter, input data from xml
-      @ In, messageHandler, MessageHandler object, message handler
       @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
     """
-    self.setMessageHandler(messageHandler)
     self.variableGroups = variableGroups
     if 'name' in paramInput.parameterValues:
       self.name = paramInput.parameterValues['name']

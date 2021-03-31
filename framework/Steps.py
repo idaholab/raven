@@ -34,7 +34,7 @@ import cloudpickle
 
 #Internal Modules------------------------------------------------------------------------------------
 from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseInterface, InputDataUser
+from BaseClasses import BaseEntity, InputDataUser
 import Files
 from utils import utils
 from utils import InputData, InputTypes
@@ -46,7 +46,7 @@ from Databases import Database
 
 
 #----------------------------------------------------------------------------------------------------
-class Step(utils.metaclass_insert(abc.ABCMeta, BaseInterface, InputDataUser)):
+class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
   """
     This class implement one step of the simulation pattern.
     Usage:
@@ -405,7 +405,7 @@ class SingleRun(Step):
     #use the models static testing of roles compatibility
     for role in roles:
       if role not in self._excludeFromModelValidation:
-        Models.validate(self.parList[modelIndex][2], role, toBeTested[role],self)
+        Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
     self.raiseADebug('reactivate check on Input as soon as loadCsv gets out from the PostProcessor models!')
     if 'Output' not in roles:
       self.raiseAnError(IOError,'It is not possible a run without an Output!')
@@ -1110,7 +1110,6 @@ class IOStep(Step):
         # train the ROM from the unpickled object
         outputs[i].train(unpickledObj)
         # reseed as requested
-        loadSettings['messageHandler'] = self.messageHandler
         outputs[i].setAdditionalParams(loadSettings)
 
       elif self.actionType[i] == 'FILES-dataObjects':

@@ -70,7 +70,7 @@ class ROM(Dummy):
     # dynamically loaded #
     ######################
     for typ in SupervisedLearning.factory.knownTypes():
-      obj = SupervisedLearning.factory.returnClass(typ, None) # TODO no message handler available!
+      obj = SupervisedLearning.factory.returnClass(typ)
       if hasattr(obj, 'getInputSpecifications'):
         subspecs = obj.getInputSpecifications()
         print('Known:', typ)
@@ -1194,8 +1194,8 @@ class ROM(Dummy):
       @ In, None
       @ Out, None
     """
-    super().__init__(self)
-    self.initializationOptionDict = None  # ROM initialization options
+    super().__init__()
+    self.initializationOptionDict = {}    # ROM initialization options
     self.amITrained = False               # boolean flag, is the ROM trained?
     self.supervisedEngine = None          # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'           # label
@@ -1382,7 +1382,7 @@ class ROM(Dummy):
       @ In, initializationOptions, dict, the initialization options
       @ Out, None
     """
-    self.supervisedEngine = LearningGate.factory.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
+    self.supervisedEngine = LearningGate.factory.returnInstance('SupervisedGate', self.subType, **initializationOptions)
 
   def reset(self):
     """
@@ -1439,7 +1439,6 @@ class ROM(Dummy):
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
-      self.supervisedEngine.messageHandler = self.messageHandler
     else:
       # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
       if type(trainingSet).__name__ != 'dict' and trainingSet.type == 'HistorySet':

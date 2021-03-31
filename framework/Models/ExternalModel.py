@@ -151,7 +151,7 @@ class ExternalModel(Dummy):
       self.ModuleToLoad = paramInput.parameterValues['ModuleToLoad']
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
       # load the external module and point it to self.sim
-      self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
+      self.sim = utils.importFromPath(moduleToLoadString, self.messageHandler.getDesiredVerbosity(self)>1)
     ## NOTE we implicitly assume not having ModuleToLoad means you're a plugin or a known type.
     elif paramInput.parameterValues['subType'].strip() is not None:
       ExternalModel.plugins.loadPlugin("ExternalModel",paramInput.parameterValues['subType'])

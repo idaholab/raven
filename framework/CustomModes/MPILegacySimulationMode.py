@@ -73,14 +73,13 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
     MPILegacySimulationMode is a specialized class of SimulationMode.
     It is aimed to distribute the runs using the MPI protocol
   """
-  def __init__(self,messageHandler):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, instance, instance of the messageHandler class
+      @ In, None
       @ Out, None
     """
-    Simulation.SimulationMode.__init__(self,messageHandler)
-    self.messageHandler = messageHandler
+    Simulation.SimulationMode.__init__(self)
     #Figure out if we are in PBS
     self.__inPbs = "PBS_NODEFILE" in os.environ
     self.__nodefile = False

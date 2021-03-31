@@ -15,9 +15,6 @@
   Utility module containing methods commonly used throughout the Python framework.
 """
 
-from __future__ import division, print_function, absolute_import
-# WARNING if you import unicode_literals here, we fail tests (e.g. framework.testFactorials).  This may be a future-proofing problem. 2015-04.
-
 # *************************** NOTE FOR DEVELOPERS ***************************
 # Do not import numpy or scipy or other libraries that are not              *
 # built into python.  Otherwise the import can fail, and since utils        *
@@ -31,7 +28,6 @@ import shutil
 import inspect
 import subprocess
 import platform
-import copy
 from importlib import import_module
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.

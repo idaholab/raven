@@ -97,10 +97,9 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
   def __init__(self, **kwargs):
     """
       constructor for unSupervisedLearning class.
-      @ In, messageHandler, object, Message handler object
       @ In, kwargs, dict, arguments for the unsupervised learning algorithm
     """
-    super().__init__(**kwargs)
+    super().__init__()
     self.printTag = 'unSupervised'
 
     ## booleanFlag that controls the normalization procedure. If true, the
@@ -387,14 +386,13 @@ class SciKitLearn(unSupervisedLearning):
   modelType = 'SciKitLearn'
   availImpl = {}
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
      constructor for SciKitLearn class.
-     @ In, messageHandler, MessageHandler, Message handler object
      @ In, kwargs, dict, arguments for the SciKitLearn algorithm
      @ Out, None
     """
-    unSupervisedLearning.__init__(self, messageHandler, **kwargs)
+    unSupervisedLearning.__init__(self, **kwargs)
     if len(self.availImpl) == 0:
       import sklearn.cluster
       import sklearn.mixture
@@ -757,14 +755,13 @@ class temporalSciKitLearn(unSupervisedLearning):
     Data mining library to perform SciKitLearn algorithms along temporal data
   """
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       constructor for temporalSciKitLearn class.
-      @ In, messageHandler, Message handler object
       @ In, kwargs, arguments for the SciKitLearn algorithm
       @ Out, None
     """
-    unSupervisedLearning.__init__(self, messageHandler, **kwargs)
+    unSupervisedLearning.__init__(self, **kwargs)
     self.printTag = 'TEMPORALSCIKITLEARN'
 
     if 'SKLtype' not in self.initOptionDict.keys():
@@ -777,7 +774,7 @@ class temporalSciKitLearn(unSupervisedLearning):
     self.reOrderStep = int(self.initOptionDict.pop('reOrderStep', 5))
 
     # return a SciKitLearn instance as engine for SKL data mining
-    self.SKLEngine = factory.returnInstance('SciKitLearn', self, messageHandler=self.messageHandler, **self.initOptionDict)
+    self.SKLEngine = factory.returnInstance('SciKitLearn', **self.initOptionDict)
 
     self.normValues = None
     self.outputDict = {}
@@ -1296,14 +1293,13 @@ class Scipy(unSupervisedLearning):
   availImpl['cluster'] = {}
   availImpl['cluster']['Hierarchical'] = (hier.hierarchy, 'float')  # Perform Hierarchical Clustering of data.
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
      constructor for Scipy class.
-     @ In, messageHandler, MessageHandler, Message handler object
      @ In, kwargs, dict, arguments for the Scipy algorithm
      @ Out, None
     """
-    unSupervisedLearning.__init__(self, messageHandler, **kwargs)
+    unSupervisedLearning.__init__(self, **kwargs)
     self.printTag = 'SCIPY'
     if 'SCIPYtype' not in self.initOptionDict.keys():
       self.raiseAnError(IOError, ' to define a Scipy unSupervisedLearning Method the SCIPYtype keyword is needed (from KDD ' + self.name + ')')
