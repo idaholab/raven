@@ -94,7 +94,7 @@ class ConjugateGradient(StepManipulator):
     shrink = specs.findFirst('shrinkFactor')
     if shrink is not None:
       self._shrink = shrink.value
-    print(self._initialStepScaling)
+
   def initialize(self, optVars, persistence=None, **kwargs):
     """
       initializes this object
@@ -116,8 +116,6 @@ class ConjugateGradient(StepManipulator):
       @ In, numOptVars, int, number of optimization variables
       @ In, scaling, float, optional, scaling factor
     """
-    print("figa")
-    print(mathUtils.hyperdiagonal(np.ones(numOptVars) * scaling) * self._initialStepScaling)
     return mathUtils.hyperdiagonal(np.ones(numOptVars) * scaling) * self._initialStepScaling
 
   def step(self, prevOpt, gradientHist=None, prevStepSize=None, objVar=None, **kwargs):
