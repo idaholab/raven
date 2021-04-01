@@ -18,11 +18,6 @@
   @author: alfoa
   supercedes Samplers.py from alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 from collections import OrderedDict
 import copy
 import numpy as np
@@ -30,18 +25,13 @@ from operator import mul
 from functools import reduce
 from scipy import spatial
 from math import ceil
-import sys
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
 from Models import factory as modelsFactory
-#from Models.PostProcessors.LimitSurface import LimitSurface
 import Distributions
 from AMSC_Object import AMSC_Object
 from utils import randomUtils
 from utils import InputData, InputTypes
 from .AdaptiveSampler import AdaptiveSampler
-#Internal Modules End--------------------------------------------------------------------------------
 
 
 class LimitSurfaceSearch(AdaptiveSampler):

@@ -294,7 +294,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
       self.raiseADebug(" Failed in Node: "+str(xmlNode),verbostiy='silent')
       self.raiseAnError(IOError,'missed subType for the model '+self.name)
 
-  #@abc.abstractmethod
+  @abc.abstractmethod
   def evaluateSample(self, myInput, samplerType, kwargs):
     """
         This will evaluate an individual sample on this model. Note, parameters
@@ -353,7 +353,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     """
     pass
 
-  #@abc.abstractmethod
+  @abc.abstractmethod
   def createNewInput(self,myInput,samplerType,**kwargs):
     """
       This function will return a new input to be submitted to the model, it is called by the sampler.

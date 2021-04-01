@@ -21,7 +21,9 @@ from utils import mathUtils
 
 class BaseInterface(BaseType):
   """
-    this is the base class for each general type used by the simulation
+    Archetype for "interface" classes, including implementations/strategies/algorithms to execute
+    the intention of BaseEntity types. For example, SupervisedLearning Engines are an Interface
+    to the Models.ROM class. Base interfaces define APIs for adding new algorithm classes.
   """
   ################################
   # Core API (confirmed)
@@ -109,7 +111,7 @@ class BaseInterface(BaseType):
 
   ################################
   # API (legacy) - these should go away as we convert existing systems
-  def readXML(self, xmlNode, variableGroups={}, globalAttributes=None):
+  def readXML(self, xmlNode, variableGroups=None, globalAttributes=None):
     """
       provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
       that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
@@ -119,8 +121,9 @@ class BaseInterface(BaseType):
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
     """
-    self.variableGroups = variableGroups
-    if 'name' in xmlNode.attrib.keys():
+    super().handleInput()
+    self.variableGroups = variableGroups if variableGroups is not None else {}
+    if 'name' in xmlNode.attrib:
       self.name = xmlNode.attrib['name']
     else:
       self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)

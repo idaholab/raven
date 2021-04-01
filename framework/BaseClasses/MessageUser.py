@@ -32,12 +32,8 @@ class MessageUser(object):
       @ Out, None
     """
     # NOTE getMessageHandler is inserted into the builtins by the MessageHandler module
-    self.messageHandler = getMessageHandler()  # instance responsible for handling messages
-    self.verbosity = None        # message verbosity for this instance
-    # if messageHandler is not None:
-    #   self.setMessageHandler(messageHandler)
-    # if verbosity is not None:
-    #   self.setVerbosity(verbosity)
+    self.messageHandler = getMessageHandler() # instance responsible for handling messages
+    self.verbosity = None                     # message verbosity for this instance
 
   def setMessageHandler(self, mh):
     """
@@ -45,9 +41,7 @@ class MessageUser(object):
       @ In, mh, MessageHandler.MessageHandler, message handler
       @ Out, None
     """
-    # when in debug mode, check to make sure message handler is handed down
-    assert mh is not None
-    # TODO? assert isinstance(mh, MessageHandler.MessageHandler)
+    assert isinstance(mh, MessageHandler.MessageHandler)
     self.messageHandler = mh
 
   def setVerbosity(self, verbosity):

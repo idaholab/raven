@@ -22,13 +22,8 @@ Created on Mar 16, 2013
 @author: crisr
 """
 
-import sys
-
-#Internal Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes, mathUtils
 from .MessageUser import MessageUser
 from .InputDataUser import InputDataUser
-import MessageHandler
 
 class BaseType(MessageUser, InputDataUser): # TODO add InputDataUser when all entities are converted
   """
