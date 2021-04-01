@@ -46,6 +46,7 @@ class InputDataUser(object):
     """
       Handles the input from the user.
       @ In, InputData.ParameterInput, the parsed input
+      @ In, kwargs, dict, keyword arguments
       @ Out, None
     """
     pass # extend this method to parse input

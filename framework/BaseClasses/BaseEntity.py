@@ -82,7 +82,7 @@ class BaseEntity(BaseType):
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
     """
-    self.variableGroups = variableGroups
+    self.variableGroups = variableGroups if variableGroups is not None else {}
     if 'name' in xmlNode.attrib.keys():
       self.name = xmlNode.attrib['name']
     else:
@@ -99,7 +99,7 @@ class BaseEntity(BaseType):
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
 
-  def handleInput(self, paramInput, variableGroups={}, globalAttributes=None):
+  def handleInput(self, paramInput, variableGroups=None, globalAttributes=None):
     """
       provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _handleInput
       that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
@@ -109,7 +109,7 @@ class BaseEntity(BaseType):
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
     """
-    self.variableGroups = variableGroups
+    self.variableGroups = variableGroups if variableGroups is not None else {}
     if 'name' in paramInput.parameterValues:
       self.name = paramInput.parameterValues['name']
     else:

@@ -37,8 +37,6 @@ class pickledROM(supervisedLearning):
     self.initOptionDict = {}
     self.features = ['PlaceHolder']
     self.target = 'PlaceHolder'
-    self.metadataKeys = set()
-    self.metadataParams = {}
 
   def readInitDict(self, initDict):
     """

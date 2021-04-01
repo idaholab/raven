@@ -21,7 +21,9 @@ from utils import mathUtils
 
 class BaseInterface(BaseType):
   """
-    this is the base class for each general type used by the simulation
+    Archetype for "interface" classes, including implementations/strategies/algorithms to execute
+    the intention of BaseEntity types. For example, SupervisedLearning Engines are an Interface
+    to the Models.ROM class. Base interfaces define APIs for adding new algorithm classes.
   """
   def __init__(self):
     """
@@ -39,7 +41,7 @@ class BaseInterface(BaseType):
     self.metadataKeys     = set()                                                       # list of registered metadata keys to expect from this entity
     self.metadataParams   = {}                                                          # dictionary of registered metadata keys with repect to their indexes
 
-  def readXML(self, xmlNode, variableGroups={}, globalAttributes=None):
+  def readXML(self, xmlNode, variableGroups=None, globalAttributes=None):
     """
       provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
       that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
@@ -49,7 +51,7 @@ class BaseInterface(BaseType):
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
     """
-    self.variableGroups = variableGroups
+    self.variableGroups = variableGroups if variableGroups is not None else {}
     if 'name' in xmlNode.attrib.keys():
       self.name = xmlNode.attrib['name']
     else:
@@ -66,7 +68,7 @@ class BaseInterface(BaseType):
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
 
-  def handleInput(self, paramInput, variableGroups={}, globalAttributes=None):
+  def handleInput(self, paramInput, variableGroups=None, globalAttributes=None):
     """
       provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _handleInput
       that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
@@ -76,7 +78,8 @@ class BaseInterface(BaseType):
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
     """
-    self.variableGroups = variableGroups
+    super().handleInput()
+    self.variableGroups = variableGroups if variableGroups is not None else {}
     if 'name' in paramInput.parameterValues:
       self.name = paramInput.parameterValues['name']
     else:
