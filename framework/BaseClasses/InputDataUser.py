@@ -39,7 +39,7 @@ class InputDataUser(object):
       @ Out, InputData.ParameterInput, the parsed input
     """
     paramInput = self.getInputSpecification()()
-    paramInput.paraseNode(xml)
+    paramInput.parseNode(xml)
     return paramInput
 
   def handleInput(self, paramInput, **kwargs):

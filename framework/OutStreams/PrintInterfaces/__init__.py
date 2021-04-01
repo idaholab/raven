@@ -12,21 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  The OutStreamManagers module includes the different type of ways to output
-  data available in RAVEN
+  Implementations of printing strategies for OutStreams.
 
-  Created on April 5, 2016
-  @author: maljdp
-  supercedes OutStreamManager.py from alfoa (11/14/2013)
+  Created April 1, 2021
+  @author: talbpaul
 """
+from .PrintInterface import PrintInterface
+from .FilePrint import FilePrint as Print
 
-## These lines ensure that we do not have to do something like:
-## 'from OutStreamManagers.OutStreamPlot import OutStreamPlot' outside
-## of this submodule
-
-# Entities
-from .OutStreamEntity import OutStreamEntity
-#from .PrintEntity import PrintEntity
-from .PlotEntity import Plot
-
-from .Factory import factory
+# from .Factory import factory # TODO
