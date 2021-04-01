@@ -16,29 +16,22 @@ Created on Nov 14, 2013
 
 @author: alfoa
 """
-
-## External Modules-------------------------------------------------------------
 import numpy as np
 import ast
 import copy
 import numpy.ma as ma
-import platform
 import os
 import re
 import gc
 import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
 from collections import defaultdict
-## External Modules End---------------------------------------------------------
 
-## Internal Modules-------------------------------------------------------------
 from utils.InputData import parameterInputFactory as PIF
-from utils import utils, mathUtils, InputTypes
+from utils import utils, mathUtils
 from utils import mathUtils
-from utils.cached_ndarray import c1darray
-from .OutStreamBase import OutStreamBase
+from .OutStreamInterface import OutStreamInterface
 from ClassProperty import ClassProperty
-## Internal Modules End---------------------------------------------------------
 
 #display = True
 display = utils.displayAvailable()
@@ -47,7 +40,7 @@ if not display:
 
 import matplotlib.pyplot as plt
 
-class GeneralPlot(OutStreamBase):
+class GeneralPlot(OutStreamInterface):
   """
     OutStream of type Plot
   """
@@ -144,7 +137,7 @@ class GeneralPlot(OutStreamBase):
       @ In, None
       @ Out, None
     """
-    OutStreamBase.__init__(self)
+    super().__init__()
     self.printTag = 'OUTSTREAM PLOT'
 
     ## default plot is 2D
@@ -957,6 +950,10 @@ class GeneralPlot(OutStreamBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
+    subDir = xmlNode.attrib.get('dir', None)
+    if subDir:
+      subDir = os.path.expanduser(subDir)
+    self.subDirectory = subDir
     if 'dim' in xmlNode.attrib:
       self.raiseAnError(IOError,"the 'dim' attribute has been deprecated. This warning became an error in January 2017")
     if 'overwrite' in xmlNode.attrib:
@@ -1051,7 +1048,7 @@ class GeneralPlot(OutStreamBase):
       grid = list(map(int, self.options['plotSettings']['gridSpace'].split(' ')))
       self.gridSpace = matplotlib.gridspec.GridSpec(grid[0], grid[1])
 
-  def addOutput(self):
+  def run(self):
     """
       Function to show and/or save a plot (outputs Plot on the screen or on file/s)
       @ In,  None

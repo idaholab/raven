@@ -949,8 +949,8 @@ class IOStep(Step):
     """
     # check if #inputs == #outputs
     # collect the outputs without outstreams
-    outputs         = self.__getOutputs(inDictionary)
-    databases       = set()
+    outputs = self.__getOutputs(inDictionary)
+    databases = set()
     self.actionType = []
     errTemplate = 'In Step "{name}": When the Input is {inp}, this step accepts only {okay} as Outputs, ' +\
                   'but received "{received}" instead!'

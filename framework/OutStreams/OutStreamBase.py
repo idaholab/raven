@@ -16,20 +16,10 @@ Created on Nov 14, 2013
 
 @author: alfoa
 """
-#for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
-
-#External Modules---------------------------------------------------------------
 import os
-#External Modules End-----------------------------------------------------------
 
-#Internal Modules---------------------------------------------------------------
 from BaseClasses import BaseEntity
-import DataObjects
-import Models
 from utils import InputTypes
-#Internal Modules End-----------------------------------------------------------
 
 class OutStreamBase(BaseEntity):
   """
@@ -55,13 +45,8 @@ class OutStreamBase(BaseEntity):
       @ Out, None
     """
     super().__init__()
-
-    ## Use the class name as the type, so as we extend this class, this is
-    ## automatically updated to be the correct value. Honestly, we shouldn't
-    ## need this as we can just reference the class name wherever this is used.
-    ## Otherwise, if you don't agree with that sentiment, then this should at
-    ## least propogate itself up the hierarchy
-    self.type = self.__class__.__name__
+    self._interface = None    # interface implementation handled by this Entity
+    self.type = 'Base'        # identifying type
 
     # outstreaming options
     self.options = {}
@@ -85,20 +70,14 @@ class OutStreamBase(BaseEntity):
       @ In, xmlNode, xml.etree.ElementTree.Element, xml element node
       @ Out, None
     """
-    ## general options for all OutStreams
-    spec = self.getInputSpecification()()
-    spec.parseNode(xmlNode)
-    subDir = spec.parameterValues.get('dir', None)
-    if subDir:
-      subDir = os.path.expanduser(subDir)
-    self.subDirectory = subDir
-    ## pass remaining to inheritors
-    # if unconverted, use the old xml reading
-    if 'localReadXML' in dir(self):
-      self.localReadXML(xmlNode)
-    # otherwise it has _handleInput (and it should) and use input specs
+    from .GeneralPlot import GeneralPlot # can't import earlier without circular reference
+    # legacy interface still uses raw xml
+    if isinstance(self._interface, GeneralPlot):
+      spec = xmlNode
     else:
-      self._handleInput(spec)
+      spec = self.getInputSpecification()()
+      spec.parseNode(xmlNode)
+    self._interface.handleInput(spec)
 
   def _handleInput(self, spec):
     """

@@ -19,11 +19,10 @@ Created on Nov 14, 2013
 import os
 
 from utils import InputData, InputTypes
-import DataObjects
-from .OutStreamBase import OutStreamBase
+from .OutStreamInterface import OutStreamInterface
 from ClassProperty import ClassProperty
 
-class FilePrint(OutStreamBase):
+class FilePrint(OutStreamInterface):
   """
     Class for managing the printing of files as an output stream.
   """
@@ -35,15 +34,6 @@ class FilePrint(OutStreamBase):
 
   _availableOutStreamTypes = ['csv', 'xml']
 
-  @ClassProperty
-  def availableOutStreamTypes(cls):
-    """
-        A class level constant that tells developers what outstreams are
-        available from this class
-        @ In, cls, the OutStreams class of which this object will be a type
-    """
-    return cls._availableOutStreamTypes
-
   @classmethod
   def getInputSpecification(cls):
     """
@@ -51,7 +41,7 @@ class FilePrint(OutStreamBase):
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
-    spec = OutStreamBase.getInputSpecification()
+    spec = super().getInputSpecification()
 
     types = InputTypes.makeEnumType('FilePrintTypes', 'FilePrintTypes', cls._availableOutStreamTypes)
     spec.addSub(InputData.parameterInputFactory('type', contentType=types))
@@ -72,7 +62,7 @@ class FilePrint(OutStreamBase):
       @ In, None
       @ Out, None
     """
-    OutStreamBase.__init__(self)
+    super().__init__()
     self.type = 'OutStreamFilePrint'
     self.printTag = 'OUTSTREAM PRINT'
     self.sourceName = []
@@ -82,7 +72,7 @@ class FilePrint(OutStreamBase):
     self.indexPrinted = {} # keys are filenames, which should be reset at the end of every step
     self.subDirectory = None # subdirectory where to store the outputs
 
-  def _handleInput(self, spec):
+  def handleInput(self, spec):
     """
       Loads the input specs for this object.
       @ In, spec, InputData.ParameterInput, input specifications
@@ -144,13 +134,14 @@ class FilePrint(OutStreamBase):
     # the linking to the source is performed in the base class initialize method
     OutStreamBase.initialize(self, inDict)
 
-  def addOutput(self):
+  def run(self):
     """
       Calls output functions on desired instances in order to print out the
       linked dataObjects
       @ In, None
       @ Out, None
     """
+    super().run()
     dictOptions = {}
     dictOptions['filenameroot'] = self.name
     if len(self.filename) > 0:
