@@ -34,6 +34,7 @@ class EntityFactory(MessageUser):
       @ In, returnInputParameter, bool, optional, whether this entity can use inputParams (otherwise xml)
       @ Out, None
     """
+    super().__init__()
     self.name = None                                 # name of entity, e.g. Sampler
     self.needsRunInfo = needsRunInfo                 # whether entity needs run info
     self.returnInputParameter = returnInputParameter # use xml or inputParams
@@ -108,7 +109,7 @@ class EntityFactory(MessageUser):
       # otherwise, error
       msg = f'"{self.name}" module does not recognize type "{Type}"; '
       msg += f'known types are: {self.knownTypes()}'
-      caller.raiseAnError(NameError, msg)
+      self.raiseAnError(NameError, msg)
 
   def returnInstance(self, Type, **kwargs):
     """

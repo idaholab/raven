@@ -12,21 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on Nov 14, 2013
+Created on April 2, 2021
 
-@author: alfoa, talbpaul
+@author: talbpaul
 """
-from BaseClasses import BaseEntity
-from utils import InputTypes
 
-class OutStreamEntity(BaseEntity):
+from OutStreams import OutStreamInterface
+
+class PrintInterface(OutStreamInterface):
   """
-    OUTSTREAM CLASS
-    This class is a general base class for outstream action classes
-    For example, a matplotlib interface class or Print class, etc.
+    Archetype for Print implementations
   """
-  ###################
-  # API
   @classmethod
   def getInputSpecification(cls):
     """
@@ -44,45 +40,30 @@ class OutStreamEntity(BaseEntity):
       @ Out, None
     """
     super().__init__()
-    self.printTag = 'OutStreamManager'
-    self.type = 'Base'        # identifying type
+    self.printTag = 'PrintInterface'
 
-  def _handleInput(self, spec):
+  def handleInput(self, spec):
     """
       Loads the input specs for this object.
       @ In, spec, InputData.ParameterInput, input specifications
       @ Out, None
     """
-    super()._handleInput(spec)
+    super().handleInput(spec)
 
   def initialize(self, stepEntities):
     """
-      Initialize the OutStream for a new Step
-      @ In, stepEntities, dict, the Entities used in the current Step. Sources are taken from this.
+      Function to initialize the OutStream.
+      @ In, stepEntities, dict, contains all the Objects are going to be used in the
+                                current step. The sources are searched into this.
       @ Out, None
     """
     pass
 
-  def addOutput(self):
+  def run(self):
     """
-      Function to craft a new output (for example a CSV file or a plot)
+      Main run method.
       @ In, None
       @ Out, None
     """
     pass
 
-  #########################
-  # Utility
-  def getInitParams(self):
-    """
-      This function is called from the base class to print some of the
-      information inside the class. Whatever is permanent in the class and not
-      inherited from the parent class should be mentioned here. The information
-      is passed back in the dictionary. No information about values that change
-      during the simulation are allowed.
-      @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys
-        and each parameter's initial value as the dictionary values
-    """
-    paramDict = {}
-    return paramDict

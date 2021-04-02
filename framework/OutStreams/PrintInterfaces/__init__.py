@@ -20,4 +20,4 @@
 from .PrintInterface import PrintInterface
 from .FilePrint import FilePrint as Print
 
-# from .Factory import factory # TODO
+from .Factory import factory

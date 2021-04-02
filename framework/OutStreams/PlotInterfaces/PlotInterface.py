@@ -12,21 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on Nov 14, 2013
+Created on April 1, 2021
 
-@author: alfoa, talbpaul
+@author: talbpaul
 """
-from BaseClasses import BaseEntity
-from utils import InputTypes
 
-class OutStreamEntity(BaseEntity):
+from OutStreams import OutStreamInterface
+
+class PlotInterface(OutStreamInterface):
   """
-    OUTSTREAM CLASS
-    This class is a general base class for outstream action classes
-    For example, a matplotlib interface class or Print class, etc.
+    Archetype for Plot implementations
   """
-  ###################
-  # API
   @classmethod
   def getInputSpecification(cls):
     """
@@ -44,35 +40,58 @@ class OutStreamEntity(BaseEntity):
       @ Out, None
     """
     super().__init__()
-    self.printTag = 'OutStreamManager'
-    self.type = 'Base'        # identifying type
+    self.printTag = 'PlotInterface'
+    self.overwrite = True     # overwrite existing creations? # TODO not in input specs?
+    self.subDirectory = None  # directory to save generated files to # TODO should be in spec
+    self.filename = ''        # target file name? TODO should be in spec
 
-  def _handleInput(self, spec):
+  def handleInput(self, spec):
     """
       Loads the input specs for this object.
       @ In, spec, InputData.ParameterInput, input specifications
       @ Out, None
     """
-    super()._handleInput(spec)
+    super().handleInput(spec)
 
-  def initialize(self, stepEntities):
+  def initialize(self, inDict):
     """
-      Initialize the OutStream for a new Step
-      @ In, stepEntities, dict, the Entities used in the current Step. Sources are taken from this.
+      Function to initialize the OutStream. It basically looks for the "data"
+      object and links it to the system.
+      @ In, inDict, dict, contains all the Objects are going to be used in the
+      current step. The sources are searched into this.
       @ Out, None
     """
     pass
 
-  def addOutput(self):
+  def run(self):
     """
-      Function to craft a new output (for example a CSV file or a plot)
+      Main run method.
       @ In, None
       @ Out, None
     """
     pass
 
-  #########################
+  ##################
   # Utility
+  def findSource(self, name, stepEntities):
+    """
+      Find a source from the potential step sources.
+      @ In, name, str, name of the source
+      @ In, stepEntities, dict, entities from the Step
+      @ Out, findSource, object, discovered object or None
+    """
+    for out in stepEntities['Output']:
+      if out.name == name:
+        return out
+    for inp in stepEntities['Input']:
+      if inp.name == name:
+        return inp
+    for other in ['TargetEvaluation', 'SolutionExport']:
+      if other in stepEntities:
+        if stepEntities[other].name == name:
+          return stepEntities[other]
+    return None
+
   def getInitParams(self):
     """
       This function is called from the base class to print some of the
@@ -85,4 +104,10 @@ class OutStreamEntity(BaseEntity):
         and each parameter's initial value as the dictionary values
     """
     paramDict = {}
+    paramDict['Global Class Type                  '] = 'OutStreamManager'
+    paramDict['Specialized Class Type             '] = self.type
+    if self.overwrite:
+      paramDict['Overwrite output everytime called'] = 'True'
+    else:
+      paramDict['Overwrite output everytime called'] = 'False'
     return paramDict

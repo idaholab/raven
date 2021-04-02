@@ -19,6 +19,6 @@
 """
 from .PlotInterface import PlotInterface
 from .SamplePlot import SamplePlot
-# from .GeneralPlot import GeneralPlot as Plot
+from .GeneralPlot import GeneralPlot as Plot
 
 from .Factory import factory

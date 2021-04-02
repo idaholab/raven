@@ -30,17 +30,12 @@ from collections import defaultdict
 from utils.InputData import parameterInputFactory as PIF
 from utils import utils, mathUtils
 from utils import mathUtils
-from .OutStreamInterface import OutStreamInterface
+from .PlotInterface import PlotInterface
 from ClassProperty import ClassProperty
-
-#display = True
-display = utils.displayAvailable()
-if not display:
-  matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 
-class GeneralPlot(OutStreamInterface):
+class GeneralPlot(PlotInterface):
   """
     OutStream of type Plot
   """
@@ -50,6 +45,7 @@ class GeneralPlot(OutStreamInterface):
   ## the variables immutable (so long as no one touches the internally stored
   ## "_"-prefixed), so other objects don't accidentally modify them.
 
+  # TODO these should be moved into the InputParams
   ## available 2D and 3D plot types
   _availableOutStreamTypes = {2:['scatter', 'line', 'histogram', 'stem', 'step',
                                  'pseudocolor', 'dataMining', 'contour',
@@ -88,7 +84,7 @@ class GeneralPlot(OutStreamInterface):
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
-    spec = OutStreamBase.getInputSpecification()
+    spec = super().getInputSpecification()
     # TODO this is waaaaay to much to convert right now
     # For now, accept a blank plotting check and sort it out later.
     spec.strictMode = False
@@ -139,6 +135,8 @@ class GeneralPlot(OutStreamInterface):
     """
     super().__init__()
     self.printTag = 'OUTSTREAM PLOT'
+    self.options = {}    # outstreaming options # no addl info from original developer
+    self.counter = 0     # counter # no additional info given by original developer
 
     ## default plot is 2D
     self.dim = None
@@ -790,15 +788,19 @@ class GeneralPlot(OutStreamInterface):
   ####################
   #  PUBLIC METHODS  #
   ####################
-  def localGetInitParams(self):
+  def getInitParams(self):
     """
-      This method is called from the base function. It retrieves the initial
-      characteristic params that need to be seen by the whole enviroment
+      This function is called from the base class to print some of the
+      information inside the class. Whatever is permanent in the class and not
+      inherited from the parent class should be mentioned here. The information
+      is passed back in the dictionary. No information about values that change
+      during the simulation are allowed.
       @ In, None
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = {}
+    paramDict = super().getInitParams()
+    paramDict[f'OutStream Available {self.dim}D   :'] = self.availableOutStreamTypes[self.dim]
     paramDict['Plot is '] = str(self.dim) + 'D'
     for index in range(len(self.sourceName)):
       paramDict['Source Name ' + str(index) + ' :'] = self.sourceName[index]
@@ -938,18 +940,23 @@ class GeneralPlot(OutStreamInterface):
         if 'mixtureCovars' in self.options['plotSettings']['plot'][pltIndex]['attributes'].keys():
           self.mixtureCovars.append(self.options['plotSettings']['plot'][pltIndex]['attributes']['mixtureCovars'].split(','))
     self.numberAggregatedOS = len(self.options['plotSettings']['plot'])
+    # collect sources
+    self.legacyCollectSources(inDict)
     # initialize here the base class
-    OutStreamBase.initialize(self, inDict)
+    super().initialize(inDict)
     # execute actions (we execute the actions here also because we can perform a check at runtime!!
     self.__executeActions()
 
-  def localReadXML(self, xmlNode):
+  def handleInput(self, xmlNode):
     """
       This Function is called from the base class, It reads the parameters that
       belong to a plot block
+      Overriding default methods, until this interface uses input params. FIXME
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
+    # because we're reading XML not inputParams, we don't call super, and have to set our own name
+    self.name = xmlNode.attrib['name']
     subDir = xmlNode.attrib.get('dir', None)
     if subDir:
       subDir = os.path.expanduser(subDir)

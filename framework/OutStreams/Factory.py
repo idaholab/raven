@@ -22,8 +22,8 @@ from EntityFactoryBase import EntityFactory
 # Entities
 from .OutStreamEntity import OutStreamEntity
 from .PlotEntity import Plot
-#from .PrintEntity import PrintEntity
+from .PrintEntity import Print
 
 factory = EntityFactory('OutStreams')
-#factory.registerType('Print', PrintEntity)
+factory.registerType('Print', Print)
 factory.registerType('Plot', Plot)

@@ -81,4 +81,10 @@
   rel_err = 0.0001
   required_libraries = 'PIL'
  [../]
+
+  [./SamplePlot]
+    type = 'RavenFramework'
+    input = 'sample_plot.xml'
+    output = 'SamplePlot/plotter.png'
+  [../]
 []

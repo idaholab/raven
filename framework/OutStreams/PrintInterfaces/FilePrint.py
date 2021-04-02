@@ -14,26 +14,17 @@
 """
 Created on Nov 14, 2013
 
-@author: alfoa
+@author: alfoa, talbpaul
 """
 import os
 
 from utils import InputData, InputTypes
-from .OutStreamInterface import OutStreamInterface
-from ClassProperty import ClassProperty
+from .PrintInterface import PrintInterface
 
-class FilePrint(OutStreamInterface):
+class FilePrint(PrintInterface):
   """
     Class for managing the printing of files as an output stream.
   """
-
-  ## Promoting these to static class variables, since they will not alter from
-  ## object to object. The use of the @ClassProperty with only a getter makes
-  ## the variables immutable (so long as no one touches the internally stored
-  ## "_"-prefixed), so other objects don't accidentally modify them.
-
-  _availableOutStreamTypes = ['csv', 'xml']
-
   @classmethod
   def getInputSpecification(cls):
     """
@@ -43,17 +34,12 @@ class FilePrint(OutStreamInterface):
     """
     spec = super().getInputSpecification()
 
-    types = InputTypes.makeEnumType('FilePrintTypes', 'FilePrintTypes', cls._availableOutStreamTypes)
+    types = InputTypes.makeEnumType('FilePrintTypes', 'FilePrintTypes', ['csv', 'xml'])
     spec.addSub(InputData.parameterInputFactory('type', contentType=types))
     spec.addSub(InputData.parameterInputFactory('source', contentType=InputTypes.StringListType))
     spec.addSub(InputData.parameterInputFactory('what', contentType=InputTypes.StringListType))
-    spec.addSub(InputData.parameterInputFactory('filename', contentType=InputTypes.StringType))
     spec.addSub(InputData.parameterInputFactory('clusterLabel', contentType=InputTypes.StringType))
 
-    # these are in user manual or code, but don't appear to be used/documented ...
-    # spec.addSub(InputData.parameterInputFactory('target', contentType=InputTypes.StringListType))
-    # spec.addSub(InputData.parameterInputFactory('directory',
-    # contentType=InputTypes.StringListType))
     return spec
 
   def __init__(self):
@@ -68,6 +54,7 @@ class FilePrint(OutStreamInterface):
     self.sourceName = []
     self.sourceData = None
     self.what = None
+    self.options = {}    # outstreaming options # no addl info from original developer
     # dictionary of what indices have already been printed, so we don't duplicate writing efforts
     self.indexPrinted = {} # keys are filenames, which should be reset at the end of every step
     self.subDirectory = None # subdirectory where to store the outputs
@@ -78,6 +65,8 @@ class FilePrint(OutStreamInterface):
       @ In, spec, InputData.ParameterInput, input specifications
       @ Out, None
     """
+    super().handleInput(spec)
+
     typ = spec.findFirst('type')
     if typ is None:
       self.raiseAnError(IOError, f'OutStream.Print "{self.name}" is missing the "type" node!')
@@ -107,7 +96,7 @@ class FilePrint(OutStreamInterface):
         if not target.startswith(('input', 'output', 'metadata')):
           self.raiseAnError(IOError, f'<what> requests must start with "input", "output", or "metadata"! See OutStream.Print "{self.name}"')
 
-  def localGetInitParams(self):
+  def getInitParams(self):
     """
       This method is called from the base function. It retrieves the initial
       characteristic params that need to be seen by the whole enviroment
@@ -123,16 +112,15 @@ class FilePrint(OutStreamInterface):
         paramDict['Variable Name ' + str(index) + ' :'] = var
     return paramDict
 
-  def initialize(self, inDict):
+  def initialize(self, stepEntities):
     """
       Function to initialize the OutStream. It basically looks for the "data"
       object and links it to the system
-      @ In, inDict, dict, It contains all the Object are going to be used in the
-        current step. The sources are searched into this.
+      @ In, stepEntities, dict, entities from the current Step
       @ Out, None
     """
-    # the linking to the source is performed in the base class initialize method
-    OutStreamBase.initialize(self, inDict)
+    self.legacyCollectSources(stepEntities)
+    super().initialize(stepEntities)
 
   def run(self):
     """

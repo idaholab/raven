@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on April 1, 2021
+Created on April 2, 2021
 
 @author: talbpaul
 """
@@ -21,16 +21,10 @@ import matplotlib
 
 from utils import utils, InputTypes
 from .OutStreamEntity import OutStreamEntity
-from .PlotInterfaces import factory as interfaceFactory
-
-# initialize display settings
-display = utils.displayAvailable()
-if not display:
-  matplotlib.use('Agg')
+from .PrintInterfaces import factory as interfaceFactory
 
 
-
-class Plot(OutStreamEntity):
+class Print(OutStreamEntity):
   """
     Handler for Plot implementations
   """
@@ -43,15 +37,15 @@ class Plot(OutStreamEntity):
     """
     spec = super().getInputSpecification()
     okTypes = list(interfaceFactory.knownTypes())
-    okEnum = InputTypes.makeEnumType('OutStreamPlot', 'OutStreamPlotType', okTypes)
-    spec.addParam('subType', required=False, param_type=okEnum, descr=r"""Type of OutStream Plot to generate.""")
+    okEnum = InputTypes.makeEnumType('OutStreamPrint', 'OutStreamPrintType', okTypes)
+    spec.addParam('subType', required=False, param_type=okEnum, descr=r"""Type of OutStream Print to generate.""")
     # TODO add specs depending on the one chosen, not all of them!
     # FIXME the GeneralPlot has a vast need for converting to input specs. Until then,
     #       we cannot strictly check anything related to it.
     spec.strictMode = False
     for name in okTypes:
-      plotter = interfaceFactory.returnClass(name)
-      subSpecs = plotter.getInputSpecification()
+      printer = interfaceFactory.returnClass(name)
+      subSpecs = printer.getInputSpecification()
       spec.mergeSub(subSpecs)
     return spec
 
@@ -62,8 +56,8 @@ class Plot(OutStreamEntity):
       @ Out, None
     """
     super().__init__()
-    self.printTag = 'PlotEntity'
-    self._plotter = None            # implemention, inheriting from interface
+    self.printTag = 'PrintEntity'
+    self._printer = None            # implemention, inheriting from interface
 
   def _readMoreXML(self, xml):
     """
@@ -71,14 +65,8 @@ class Plot(OutStreamEntity):
       @ In, xml, xml.etree.ElementTree.Element, input
       @ Out, None
     """
-    # TODO remove this when GeneralPlot conforms to inputParams
-    subType = xml.attrib.get('subType', 'GeneralPlot').strip()
-    if subType == 'GeneralPlot':
-      self._plotter = interfaceFactory.returnInstance(subType)
-      self._plotter.handleInput(xml)
-    else:
-      spec = self.parseXML(xml)
-      self.handleInput(spec)
+    spec = self.parseXML(xml)
+    self.handleInput(spec)
 
   def _handleInput(self, spec):
     """
@@ -87,10 +75,9 @@ class Plot(OutStreamEntity):
       @ Out, None
     """
     super()._handleInput(spec)
-    # we specialized out the GeneralPlot in _readMoreXML, so here we have a real inputParams user
-    reqType = spec.parameterValues['subType']
-    self._plotter = interfaceFactory.returnInstance(reqType)
-    self._plotter.handleInput(spec)
+    reqType = spec.parameterValues.get('subType', 'FilePrint')
+    self._printer = interfaceFactory.returnInstance(reqType)
+    self._printer.handleInput(spec)
 
   def initialize(self, stepEntities):
     """
@@ -99,7 +86,7 @@ class Plot(OutStreamEntity):
       @ Out, None
     """
     super().initialize(stepEntities)
-    self._plotter.initialize(stepEntities)
+    self._printer.initialize(stepEntities)
 
   def addOutput(self):
     """
@@ -108,7 +95,7 @@ class Plot(OutStreamEntity):
       @ In, None
       @ Out, None
     """
-    self._plotter.run()
+    self._printer.run()
 
   ################
   # Utility
@@ -124,5 +111,5 @@ class Plot(OutStreamEntity):
         and each parameter's initial value as the dictionary values
     """
     paramDict = super().getInitParams()
-    paramDict.update(self._plotter.getInitParams())
+    paramDict.update(self._printer.getInitParams())
     return paramDict
