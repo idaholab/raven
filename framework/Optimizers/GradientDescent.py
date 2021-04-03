@@ -290,6 +290,8 @@ class GradientDescent(RavenSampled):
     self._gradientInstance.initialize(self.toBeSampled)
     self._stepInstance.initialize(self.toBeSampled, persistence=self._requiredPersistence)
     self._acceptInstance.initialize()
+    # keys = self._stepInstance.getSolutionExportVariableNames()
+    # self.addMetaKeys(list(keys.keys()))
     # if single trajectory, turn off follower termination
     if len(self._initialValues) < 2:
       self.raiseADebug('Setting terminateFollowers to False since only 1 trajectory exists.')
