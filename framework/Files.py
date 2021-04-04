@@ -28,8 +28,8 @@ import bisect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from EntityFactoryBase import EntityFactory
 from BaseClasses import BaseType
-from utils import utils, mathUtils
 #Internal Modules End--------------------------------------------------------------------------------
 
 class File(BaseType):
@@ -573,32 +573,7 @@ class UserGenerated(File):
 #
 #
 #
-"""
-  Interface Dictionary (factory)(private)
-"""
-__base                        = 'Data'
-__interFaceDict               = {}
-__interFaceDict['RAVEN']      = RAVENGenerated
-__interFaceDict['CSV']        = CSV
-__interFaceDict['Input']      = UserGenerated
-__knownTypes                  = __interFaceDict.keys()
-
-def knownTypes():
-  """
-    Returns known types.
-    @ In, None
-    @ Out, __knownTypes, list, list of known types
-  """
-  return __knownTypes
-
-def returnInstance(Type,caller):
-  """
-    Returns an object construction pointer from this module.
-    @ In, Type, string, requested object
-    @ In, caller, object, requesting object
-    @ Out, __interFaceDict, instance, instance of the object
-  """
-  try:
-    return __interFaceDict[Type]()
-  except KeyError:
-    caller.raiseAnError(NameError,'Files module does not recognize '+__base+' type '+Type)
+factory = EntityFactory('Files')
+factory.registerType('RAVEN', RAVENGenerated)
+factory.registerType('CSV', CSV)
+factory.registerType('Input', UserGenerated)

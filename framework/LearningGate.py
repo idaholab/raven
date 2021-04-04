@@ -33,8 +33,8 @@ from BaseClasses import BaseType
 from utils import mathUtils
 from utils import utils
 import SupervisedLearning
-import Metrics
 import MessageHandler
+from EntityFactoryBase import EntityFactory
 #Internal Modules End--------------------------------------------------------------------------------
 
 #
@@ -77,7 +77,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     # check if pivotParameter is specified and in case store it
     self.pivotParameterId = self.initializationOptions.get("pivotParameter", 'time')
     # return instance of the ROMclass
-    modelInstance = SupervisedLearning.returnInstance(ROMclass, self, **self.initializationOptions)
+    modelInstance = SupervisedLearning.factory.returnInstance(ROMclass, self, messageHandler=self.messageHandler, **self.initializationOptions)
     # check if the model can autonomously handle the time-dependency
     # (if not and time-dep data are passed in, a list of ROMs are constructed)
     self.canHandleDynamicData = modelInstance.isDynamic()
@@ -98,7 +98,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
       # determine type of segment to load -> limited by InputData to specific options
       segType = segSpecs.parameterValues.get('grouping', 'segment')
       self.initializationOptions['modelInstance'] = modelInstance
-      SVL = SupervisedLearning.returnInstance(nameToClass[segType], self, **self.initializationOptions)
+      SVL = SupervisedLearning.factory.returnInstance(nameToClass[segType], self, messageHandler=self.messageHandler, **self.initializationOptions)
       self.supervisedContainer = [SVL]
 
   def __getstate__(self):
@@ -128,7 +128,10 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     self.__dict__.update(newstate)
     if not newstate['amITrained']:
       # NOTE this will fail if the ROM requires the paramInput spec! Fortunately, you shouldn't pickle untrained.
-      modelInstance             = SupervisedLearning.returnInstance(self.ROMclass,self,**self.initializationOptions)
+      modelInstance = SupervisedLearning.factory.returnInstance(self.ROMclass,
+                                                                self,
+                                                                messageHandler=self.messageHandler,
+                                                                **self.initializationOptions)
       self.supervisedContainer  = [modelInstance]
 
   def setAdditionalParams(self, params):
@@ -318,35 +321,20 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
             resultsDict[key] = np.append(resultsDict[key],sliceEvaluation[key])
     return resultsDict
 
+class LearningGateFactory(EntityFactory):
+  """
+    Specific factory for LearningGate
+  """
+  def returnInstance(self, Type, romClass, caller, **kwargs):
+    """
+      Return an instance of the requested type
+      @ In, Type, str, string name of gate requested
+      @ In, romClass, str, string representing the instance to create
+      @ In, caller, instance, object that will share its messageHandler instance
+      @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
+      @ Out, returnInstance, instance, an instance of a ROM
+    """
+    return self.returnClass(Type, caller)(romClass, caller.messageHandler, **kwargs)
 
-__interfaceDict                         = {}
-__interfaceDict['SupervisedGate'      ] = supervisedLearningGate
-__base                                  = 'supervisedGate'
-
-def returnInstance(gateType, ROMclass, caller, **kwargs):
-  """
-    This function return an instance of the request model type
-    @ In, ROMclass, string, string representing the instance to create
-    @ In, caller, instance, object that will share its messageHandler instance
-    @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
-    @ Out, returnInstance, instance, an instance of a ROM
-  """
-  try:
-    return __interfaceDict[gateType](ROMclass, caller.messageHandler,**kwargs)
-  except KeyError as e:
-    if gateType not in __interfaceDict:
-      caller.raiseAnError(NameError,'not known '+__base+' type '+str(gateType))
-    else:
-      raise e
-
-def returnClass(ROMclass,caller):
-  """
-    This function return an instance of the request model type
-    @ In, ROMclass, string, string representing the class to retrieve
-    @ In, caller, instnace, object that will share its messageHandler instance
-    @ Out, returnClass, the class definition of a ROM
-  """
-  try:
-    return __interfaceDict[ROMclass]
-  except KeyError:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+ROMclass)
+factory = LearningGateFactory('supervisedGate')
+factory.registerType('SupervisedGate', supervisedLearningGate)

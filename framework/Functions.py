@@ -27,6 +27,7 @@ from __future__ import division, print_function, absolute_import
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from EntityFactoryBase import EntityFactory
 from BaseClasses import BaseType
 from utils import utils, InputData, InputTypes
 from CustomCommandExecuter import execCommand
@@ -213,38 +214,11 @@ class External(BaseType):
     """
     return self.__inputVariables[:]
 
-"""
- Interface Dictionary (factory) (private)
-"""
-__base = 'function'
-__interFaceDict = {}
-__interFaceDict['External'] = External
-__knownTypes                = __interFaceDict.keys()
+factory = EntityFactory('function', needsRunInfo=True, returnInputParameter=True)
+factory.registerType('External', External)
 
 # add input specifications in FunctionCollection
-FunctionCollection.addSub(__interFaceDict['External'].getInputSpecification())
-
-def knownTypes():
-  """
-    Returns known types.
-    @ In, None
-    @ Out, __knownTypes, list, list of known types
-  """
-  return __knownTypes
-
-needsRunInfo = True
-
-def returnInstance(Type,runInfoDict, caller):
-  """
-    Returns an object construction pointer from this module.
-    @ In, Type, string, requested object
-    @ In, caller, object, requesting object
-    @ Out, __interFaceDict, instance, instance of the object
-  """
-  if Type in knownTypes():
-    return __interFaceDict[Type](runInfoDict)
-  else:
-    caller.raiseAnError(NameError,'FUNCTIONS','not known '+__base+' type '+Type)
+FunctionCollection.addSub(External.getInputSpecification())
 
 def returnInputParameter():
   """

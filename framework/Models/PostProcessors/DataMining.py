@@ -436,9 +436,9 @@ class DataMining(PostProcessor):
       #TODO unSurpervisedEngine needs to be able to handle both methods
       # without this if statement.
       if self.pivotParameter is not None:
-        self.unSupervisedEngine = unSupervisedLearning.returnInstance("temporalSciKitLearn", self, **self.initializationOptionDict['KDD'])
+        self.unSupervisedEngine = unSupervisedLearning.factory.returnInstance("temporalSciKitLearn", self, messageHandler=self.messageHandler, **self.initializationOptionDict['KDD'])
       else:
-        self.unSupervisedEngine = unSupervisedLearning.returnInstance(self._type, self, **self.initializationOptionDict['KDD'])
+        self.unSupervisedEngine = unSupervisedLearning.factory.returnInstance(self._type, self, messageHandler=self.messageHandler, **self.initializationOptionDict['KDD'])
     else:
       self.raiseAnError(IOError, 'No Data Mining Algorithm is supplied!')
     ## If the user has not defined a label feature, then we will force it to be
@@ -576,7 +576,7 @@ class DataMining(PostProcessor):
     if not self.unSupervisedEngine.amITrained:
       metric = None
       if self.metric is not None:
-        metric = MetricDistributor.returnInstance('MetricDistributor', self.metric, self)
+        metric = MetricDistributor.factory.returnInstance('MetricDistributor', self.metric, self)
       self.unSupervisedEngine.train(Input['Features'], metric)
     self.unSupervisedEngine.confidence()
     self.userInteraction()

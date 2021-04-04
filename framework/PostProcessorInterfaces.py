@@ -28,6 +28,7 @@ import inspect
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from EntityFactoryBase import EntityFactory
 from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -38,13 +39,8 @@ for dirr,_,_ in os.walk(startDir):
   utils.add_path(dirr)
 __moduleImportedList = []
 
-'''
- Interfaced Post Processor
- Here all the Interfaced Post-Processors located in the raven/framework/PostProcessorFunctions folder are parsed and their instance is returned
-'''
 
-__base          = 'PostProcessor'
-__interFaceDict = {}
+factory = EntityFactory('InterfacedPostProcessor')
 for moduleIndex in range(len(__moduleInterfaceList)):
   if 'class' in open(__moduleInterfaceList[moduleIndex]).read():
     __moduleImportedList.append(utils.importFromPath(__moduleInterfaceList[moduleIndex],False))
@@ -52,8 +48,7 @@ for moduleIndex in range(len(__moduleInterfaceList)):
       # in this way we can get all the class methods
       classMethods = [method for method in dir(modClass) if callable(getattr(modClass, method))]
       if 'run' in classMethods:
-        __interFaceDict[key] = modClass
-__knownTypes = list(__interFaceDict.keys())
+        factory.registerType(key, modClass)
 
 def interfaceClasses():
   """
@@ -61,23 +56,4 @@ def interfaceClasses():
     @ In, None
     @ Out, interfaceClasses, list of classes available
   """
-  return list(__interFaceDict.values())
-
-def knownTypes():
-  """
-    This function returns the types of interfaced post-processors available
-    @ In, None,
-    @ Out, __knownTypes, list, list of recognized post-processors
-  """
-  return __knownTypes
-
-def returnPostProcessorInterface(Type,caller):
-  """
-    This function returns interfaced post-processors interface
-    @ In, Type, string, type of Interfaced PostProcessor to run
-    @ In, caller, instance of the PostProcessor class
-    @ Out, __interFaceDict[Type](), dict, interfaced PostProcessor dictionary
-  """
-  if Type not in knownTypes():
-    caller.raiseAnError(NameError,'"%s" type unrecognized:' %__base,Type)
-  return __interFaceDict[Type](caller.messageHandler)
+  return list(factory._registeredTypes.values())

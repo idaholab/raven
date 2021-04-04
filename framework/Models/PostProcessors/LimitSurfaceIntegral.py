@@ -181,7 +181,7 @@ class LimitSurfaceIntegral(PostProcessor):
     if self.integralType in ['montecarlo']:
       self.stat.toDo = {'expectedValue':[{'targets':set([self.target]), 'prefix':self.computationPrefix}]}
       self.stat.initialize(runInfo, inputs, initDict)
-    self.functionS = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self,
+    self.functionS = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn', self,
                                                           **{'SKLtype':'neighbors|KNeighborsClassifier',
                                                              'Features':list(self.variableDist.keys()),
                                                              'Target':[self.target], 'n_jobs': -1})
@@ -190,7 +190,7 @@ class LimitSurfaceIntegral(PostProcessor):
     self.raiseADebug(self.matrixDict)
     if self.computeErrrorBounds:
       #  create a model for computing the "error"
-      self.errorModel = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self,
+      self.errorModel = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn', self,
                                                           **{'SKLtype':'neighbors|KNeighborsClassifier',
                                                              'Features':list(self.variableDist.keys()),
                                                              'Target':[self.target], 'weights': 'distance', 'n_jobs': -1})

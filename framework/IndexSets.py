@@ -28,6 +28,7 @@ import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
+from EntityFactoryBase import EntityFactory
 import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -37,10 +38,10 @@ class IndexSet(MessageHandler.MessageUser):
     is a set of all combinations of polynomial orders needed to represent the
     original model to a "level" L (maxPolyOrder).
   """
-  def __init__(self,messageHandler):
+  def __init__(self,messageHandler=None):
     """
       Constructor.
-      @ In, messageHandler, MessageHandler object, global message handling instance
+      @ In, messageHandler, MessageHandler object, optional, global message handling instance
       @ Out, None
     """
     self.type          = 'IndexSet' #type of index set (Tensor Product, Total Degree, Hyperbolic Cross)
@@ -460,35 +461,5 @@ class AdaptiveSet(IndexSet):
     for a in self.active:
       self.raiseADebug('       ',a)
 
-
-"""
-Interface Dictionary (factory) (private)
-"""
-__base = 'IndexSet'
-__interFaceDict = {}
-__interFaceDict['TensorProduct'  ] = TensorProduct
-__interFaceDict['TotalDegree'    ] = TotalDegree
-__interFaceDict['HyperbolicCross'] = HyperbolicCross
-__interFaceDict['Custom'         ] = Custom
-__interFaceDict['AdaptiveSet'    ] = AdaptiveSet
-__knownTypes = list(__interFaceDict.keys())
-
-def knownTypes():
-  """
-    Returns the known types.
-    @ In, None
-    @ Out, dict, list of known types
-  """
-  return __knownTypes
-
-def returnInstance(Type,caller):
-  """
-    Factory.
-    @ In, Type, string, requested object type
-    @ In, caller, object, object requesting an instance
-    @ Out, IndexSet object, requested object
-  """
-  if Type in knownTypes():
-    return __interFaceDict[Type](caller.messageHandler)
-  else:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+factory = EntityFactory('IndexSet')
+factory.registerAllSubtypes(IndexSet)

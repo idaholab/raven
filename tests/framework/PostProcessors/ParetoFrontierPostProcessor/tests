@@ -2,27 +2,27 @@
  [./ParetoFrontier]
   type = 'RavenFramework'
   input = 'test_paretoFrontier.xml'
-  csv = 'ParetoFrontier/PrintPareto.csv'
+  UnorderedCsv = 'ParetoFrontier/PrintPareto.csv'
  [../]
  [./ParetoFrontierWithCostLimit]
   type = 'RavenFramework'
   input = 'test_paretoFrontierWithCostLimit.xml'
-  csv = 'ParetoFrontier/PrintParetoCostLimit.csv'
+  UnorderedCsv = 'ParetoFrontier/PrintParetoCostLimit.csv'
  [../]
  [./ParetoFrontierWithValueLimit]
   type = 'RavenFramework'
   input = 'test_paretoFrontierWithValueLimit.xml'
-  csv = 'ParetoFrontier/PrintParetoValueLimit.csv'
+  UnorderedCsv = 'ParetoFrontier/PrintParetoValueLimit.csv'
  [../]
  [./ParetoFrontierWithBothLimits]
   type = 'RavenFramework'
   input = 'test_paretoFrontierWithBothLimits.xml'
-  csv = 'ParetoFrontier/PrintParetoBothLimits.csv'
+  UnorderedCsv = 'ParetoFrontier/PrintParetoBothLimits.csv'
  [../]
  [./ParetoFrontierInverted]
   type = 'RavenFramework'
   input = 'test_paretoFrontierInverted.xml'
-  csv = 'ParetoFrontier/PrintParetoInverted.csv'
+  UnorderedCsv = 'ParetoFrontier/PrintParetoInverted.csv'
  [../]
 []
 

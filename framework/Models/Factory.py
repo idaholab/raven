@@ -14,6 +14,8 @@
 """
 Factory for generating the instances of the  Models Module
 """
+
+from EntityFactoryBase import EntityFactory
 from utils import utils
 
 from .Model         import Model
@@ -61,55 +63,16 @@ try:
 except ImportError:
   renaming = {}
 
-__base = 'Model'
-__interFaceDict = {}
-
-
-for classObj in utils.getAllSubclasses(eval(__base)):
-  key = classObj.__name__
-  key = renaming.get(key, key) # get alias if provided, else use key
-  __interFaceDict[key] = classObj
-
-# NOTE the following causes QDataMining to be entered into the __interFaceDict a second time,
-#      which somehow passed the test machines but seg faulted on my machine. I don't think we need
-#      it in there twice, anyway. - talbpaul, 2021-3-11
-# try:
-#   __interFaceDict['TopologicalDecomposition' ] = QTopologicalDecomposition
-#   __interFaceDict['DataMining'               ] = QDataMining
-# except NameError:
-#   ## The correct names should already be used for these classes otherwise
-#   pass
+factory = EntityFactory('Model', needsRunInfo=True)
+factory.registerAllSubtypes(Model, alias=renaming)
 
 # #here the class methods are called to fill the information about the usage of the classes
-for classType in __interFaceDict.values():
+for className in factory.knownTypes():
+  classType = factory.returnClass(className, None)
   classType.generateValidateDict()
   classType.specializeValidateDict()
 
-## Adding aliases for certain classes that are exposed to the user.
-__interFaceDict['External'] = ExternalPostProcessor
-
-def knownTypes():
-  """
-    Return the known types
-    @ In, None
-    @ Out, knownTypes, list, list of known types
-  """
-  return __interFaceDict.keys()
-
-needsRunInfo = True
-
-def returnInstance(Type,runInfoDict,caller):
-  """
-    function used to generate a Model class
-    @ In, Type, string, Model type
-    @ Out, returnInstance, instance, Instance of the Specialized Model class
-  """
-  try:
-    return __interFaceDict[Type](runInfoDict)
-  except KeyError:
-    availableClasses = ','.join(__interFaceDict.keys())
-    caller.raiseAnError(NameError,
-      'Requested {}, i.e. "{}", is not recognized (Available options: {})'.format(__base, Type, availableClasses))
+factory.registerType('External', ExternalPostProcessor)
 
 def validate(className,role,what,caller):
   """
@@ -120,7 +83,7 @@ def validate(className,role,what,caller):
     @ In, caller, instance, the instance of the caller
     @ Out, None
   """
-  if className in __interFaceDict:
-    return __interFaceDict[className].localValidateMethod(role,what)
+  if className in factory.knownTypes():
+    return factory.returnClass(className, caller).localValidateMethod(role, what)
   else:
-    caller.raiseAnError(IOError, 'The model "{}" is not registered for class "{}"'.format(className, __base))
+    caller.raiseAnError(IOError, 'The model "{}" is not registered for class "{}"'.format(className, factory.name))

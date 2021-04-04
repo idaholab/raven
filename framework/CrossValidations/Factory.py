@@ -21,52 +21,11 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3-------------------------------------------
 
 ################################################################################
+from EntityFactoryBase import EntityFactory
 from utils import utils
 from .CrossValidation import CrossValidation
 from .SklCrossValidation import SciKitLearn
 ## [ Add new class here ]
 
-"""
-  Interface Dictionary (factory) (private)
-"""
-# This machinery will automatically populate the "knownTypes" given the
-# imports defined above.
-__base = 'CrossValidation'
-__interFaceDict = {}
-
-for classObj in utils.getAllSubclasses(eval(__base)):
-  __interFaceDict[classObj.__name__] = classObj
-
-def knownTypes():
-  """
-    Returns a list of strings that define the types of instantiable objects for
-    this base factory.
-    @ In, None
-    @ Out, knownTypes, list, list of known types
-  """
-  return __interFaceDict.keys()
-
-def returnInstance(Type, caller, **kwargs):
-  """
-    This function return an instance of the request model type
-    @ In, Type, string, string should be one of the knownTypes.
-    @ In, caller, instance, the object requesting the class (used for error/debug messaging).
-    @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
-    @ Out, object, instance,  an instance of a cross validation
-  """
-  try:
-    return __interFaceDict[Type](caller.messageHandler, **kwargs)
-  except KeyError:
-    caller.raiseAnError(NameError, 'unSupervisedLearning', 'Unknown ' + __base + ' type ' + str(Type))
-
-def returnClass(Type,caller):
-  """
-    Attempts to return a particular class type available to this factory.
-    @ In, Type, string, string should be one of the knownTypes.
-    @ In, caller, instance, the object requesting the class (used for error/debug messaging).
-    @ Out, returnClass, class, reference to the subclass
-  """
-  try:
-    return __interFaceDict[Type]
-  except KeyError:
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+factory = EntityFactory('CrossValidation')
+factory.registerAllSubtypes(CrossValidation)
