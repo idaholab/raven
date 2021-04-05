@@ -1,18 +1,18 @@
 [submodule "plugins/TEAL"]
 	path = plugins/TEAL
-	url = git@github.com:idaholab/TEAL.git
+	url = https://github.com/idaholab/TEAL.git
 [submodule "plugins/HERON"]
 	path = plugins/HERON
-	url = git@github.com:idaholab/HERON.git
+	url = https://github.com/idaholab/HERON.git
 [submodule "plugins/SR2ML"]
 	path = plugins/SR2ML
-	url = git@github.com:idaholab/SR2ML.git
+	url = https://github.com/idaholab/SR2ML.git
 [submodule "plugins/LOGOS"]
 	path = plugins/LOGOS
-	url = git@github.com:idaholab/LOGOS.git
+	url = https://github.com/idaholab/LOGOS.git
 [submodule "plugins/SRAW"]
 	path = plugins/SRAW
 	url = git@hpcgitlab.hpc.inl.gov:RAVEN_PLUGINS/SRAW.git
 [submodule "plugins/FARM"]
 	path = plugins/FARM
-	url = git@github.com:Argonne-National-Laboratory/FARM.git
+	url = https://github.com/Argonne-National-Laboratory/FARM.git

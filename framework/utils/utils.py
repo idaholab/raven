@@ -14,6 +14,9 @@
 """
   Utility module containing methods commonly used throughout the Python framework.
 """
+# NOTE we still import these from __future__ here because many machines still running
+# python 2.X need to use this file (for example the plugin installer)
+from __future__ import division, print_function, absolute_import
 
 # *************************** NOTE FOR DEVELOPERS ***************************
 # Do not import numpy or scipy or other libraries that are not              *

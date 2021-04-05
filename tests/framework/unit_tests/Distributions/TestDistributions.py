@@ -110,7 +110,7 @@ def getDistribution(xmlElement):
   """
     Parses the xmlElement and returns the distribution
   """
-  distributionInstance = Distributions.factory.returnInstance(xmlElement.tag, mh)
+  distributionInstance = Distributions.factory.returnInstance(xmlElement.tag)
   distributionInstance.setMessageHandler(mh)
   paramInput = distributionInstance.getInputSpecification()()
   paramInput.parseNode(xmlElement)
