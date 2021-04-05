@@ -25,10 +25,7 @@ import time
 import abc
 import os
 import sys
-if sys.version_info.major > 2:
-  import pickle
-else:
-  import cPickle as pickle
+import pickle
 import copy
 import numpy as np
 #import pickle as cloudpickle
@@ -36,25 +33,26 @@ import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from EntityFactoryBase import EntityFactory
+from BaseClasses import BaseEntity, InputDataUser
 import Files
 from utils import utils
 from utils import InputData, InputTypes
 import Models
 from OutStreams import OutStreamBase
 from DataObjects import DataObject
+from Databases import Database
 #Internal Modules End--------------------------------------------------------------------------------
 
 
 #----------------------------------------------------------------------------------------------------
-class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
+class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
   """
     This class implement one step of the simulation pattern.
     Usage:
     myInstance = Step()                                !Generate the instance
     myInstance.XMLread(xml.etree.ElementTree.Element)  !This method read the xml and perform all the needed checks
     myInstance.takeAstep()                             !This method perform the step
-
     --Internal chain [in square brackets methods that can be/must be overwritten]
     self.XMLread(xml)-->self._readMoreXML(xml)     -->[self._localInputAndChecks(xmlNode)]
     self.takeAstep() -->self_initializeStep()      -->[self._localInitializeStep()]
@@ -64,12 +62,10 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     myInstance.whoAreYou()                 -see BaseType class-
     myInstance.myCurrentSetting()          -see BaseType class-
     myInstance.printMe()                   -see BaseType class-
-
     --Adding a new step subclass--
      **<MyClass> should inherit at least from Step or from another step already presents
      **DO NOT OVERRIDE any of the class method that are not starting with self.local*
      **ADD your class to the dictionary __InterfaceDict at the end of the module
-
     Overriding the following methods overriding unless you inherit from one of the already existing methods:
     self._localInputAndChecks(xmlNode)      : used to specialize the xml reading and the checks
     self._localGetInitParams()              : used to retrieve the local parameters and values to be printed
@@ -77,21 +73,20 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._localTakeAstepRun(inDictionary)   : this is where the step happens, after this call the output is ready
   """
 
-  def __init__(self):
+  def __init__(self, **kwargs):
     """
       Constructor
       @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
+    super().__init__(**kwargs)
     self.parList    = []   # List of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
     self.sleepTime  = 0.005  # Waiting time before checking if a run is finished
     #If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
     #  re-seeding = a number to be used as a new seed
     #  re-seeding = 'continue' the use the already present random environment
     #If there is no instruction (self.initSeed = None) the sampler will reinitialize
-    self.initSeed        = None
-    self._knownAttribute += ['clearRunDir', 'sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns']
+    self.initSeed = None
     self._excludeFromModelValidation = ['SolutionExport']
     # how to handle failed runs. By default, the step fails.
     # If the attribute "repeatFailureRuns" is inputted, a certain number of repetitions are going to be performed
@@ -108,7 +103,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(Step, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.description = r"""
                        The \textbf{MultiRun} step allows the user to assemble the calculation flow of
                        an analysis that requires multiple ``runs'' of the same model.
@@ -173,8 +168,6 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     printString = 'For step of type {0:15} and name {1:15} the attribute {3:10} has been assigned to a not understandable value {2:10}'
     self.raiseADebug('move this tests to base class when it is ready for all the classes')
-    if not set(paramInput.parameterValues.keys()).issubset(set(self._knownAttribute)):
-      self.raiseAnError(IOError,'In step of type {0:15} and name {1:15} there are unknown attributes {2:100}'.format(self.type,self.name,str(paramInput.parameterValues.keys())))
     if 're-seeding' in paramInput.parameterValues:
       self.initSeed=paramInput.parameterValues['re-seeding']
       if self.initSeed.lower()   == "continue":
@@ -360,7 +353,7 @@ class SingleRun(Step):
       @ In, None
       @ Out, None
     """
-    Step.__init__(self)
+    super().__init__()
     self.samplerType = 'Sampler'
     self.failedRuns = []
     self.lockedFileName = "ravenLocked.raven"
@@ -412,7 +405,7 @@ class SingleRun(Step):
     #use the models static testing of roles compatibility
     for role in roles:
       if role not in self._excludeFromModelValidation:
-        Models.validate(self.parList[modelIndex][2], role, toBeTested[role],self)
+        Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
     self.raiseADebug('reactivate check on Input as soon as loadCsv gets out from the PostProcessor models!')
     if 'Output' not in roles:
       self.raiseAnError(IOError,'It is not possible a run without an Output!')
@@ -468,10 +461,11 @@ class SingleRun(Step):
     self.raiseADebug('for the role Model  the item of class {0:15} and name {1:15} has been initialized'.format(
       inDictionary['Model'].type,inDictionary['Model'].name))
 
-    #HDF5 initialization
+    #Database initialization
     for i in range(len(inDictionary['Output'])):
       #if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
-      if 'HDF5' in inDictionary['Output'][i].type:
+      # if 'Database' in inDictionary['Output'][i].type:
+      if isinstance(inDictionary['Output'][i], Database):
         inDictionary['Output'][i].initialize(self.name)
       elif isinstance(inDictionary['Output'][i], OutStreamBase):
         inDictionary['Output'][i].initialize(inDictionary)
@@ -570,7 +564,7 @@ class MultiRun(SingleRun):
       @ In, None
       @ Out, None
     """
-    SingleRun.__init__(self)
+    super().__init__()
     self._samplerInitDict = {} #this is a dictionary that gets sent as key-worded list to the initialization of the sampler
     self.counter          = 0  #just an handy counter of the runs already performed
     self.printTag = 'STEP MULTIRUN'
@@ -657,7 +651,7 @@ class MultiRun(SingleRun):
             self.raiseADebug('Submitted input '+str(inputIndex+1))
         except utils.NoMoreSamplesNeeded:
           self.raiseAMessage('Sampler returned "NoMoreSamplesNeeded".  Continuing...')
-
+  @profile
   def _localTakeAstepRun(self,inDictionary):
     """
       This is the API for the local run of a step for the children classes
@@ -679,44 +673,70 @@ class MultiRun(SingleRun):
     while True:
       # collect finished jobs
       finishedJobs = jobHandler.getFinished()
-      for finishedJob in finishedJobs:
-        finishedJob.trackTime('step_collected')
-        # update number of collected runs
-        self.counter +=1
-        # collect run if it succeeded
-        if finishedJob.getReturnCode() == 0:
-          for myLambda, outIndex in self._outputCollectionLambda:
-            myLambda([finishedJob,outputs[outIndex]])
-            self.raiseADebug('Just collected job {j:^8} and sent to output "{o}"'
+
+      ##FIXME: THE BATCH STRATEGY IS TOO INTRUSIVE. A MORE ELEGANT WAY NEEDS TO BE FOUND (E.G. REALIZATION OBJECT)
+      for finishedJobObjs in finishedJobs:
+        # NOTE: HERE WE RETRIEVE THE JOBS. IF BATCHING, THE ELEMENT IN finishedJobs is a LIST
+        #       WE DO THIS in this way because:
+        #           in case of BATCHING, the finalizeActualSampling method MUST BE called ONCE/BATCH
+        #           otherwise, the finalizeActualSampling method MUST BE called ONCE/job
+        #FIXME: This method needs to be improved since it is very intrusise
+        if type(finishedJobObjs).__name__ in 'list':
+          finishedJobList = finishedJobObjs
+          self.raiseADebug('BATCHING: Collecting JOB batch named "{}".'.format(finishedJobList[0].groupId))
+        else:
+          finishedJobList = [finishedJobObjs]
+        for finishedJob in finishedJobList:
+          finishedJob.trackTime('step_collected')
+          # update number of collected runs
+          self.counter +=1
+          # collect run if it succeeded
+          if finishedJob.getReturnCode() == 0:
+            for myLambda, outIndex in self._outputCollectionLambda:
+              myLambda([finishedJob,outputs[outIndex]])
+              self.raiseADebug('Just collected job {j:^8} and sent to output "{o}"'
                               .format(j=finishedJob.identifier,
                                       o=inDictionary['Output'][outIndex].name))
-        # pool it if it failed, before we loop back to "while True" we'll check for these again
-        else:
-          self.raiseADebug('the job "{}" has failed.'.format(finishedJob.identifier))
-          if self.failureHandling['fail']:
-            # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
-            if not sampler.ableToHandelFailedRuns:
-              #add run to a pool that can be sent to the sampler later
-              self.failedRuns.append(copy.copy(finishedJob))
+          # pool it if it failed, before we loop back to "while True" we'll check for these again
           else:
-            if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
-              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
-            if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
-              # we re-add the failed job
-              jobHandler.reAddJob(finishedJob)
-              self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
-                               str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
-              self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
-            else:
+            self.raiseADebug('the job "{}" has failed.'.format(finishedJob.identifier))
+            if self.failureHandling['fail']:
               # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
               if not sampler.ableToHandelFailedRuns:
+                #add run to a pool that can be sent to the sampler later
                 self.failedRuns.append(copy.copy(finishedJob))
-              self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
-          if sampler.ableToHandelFailedRuns:
-            self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
-        # finalize actual sampler
-        sampler.finalizeActualSampling(finishedJob,model,inputs)
-        finishedJob.trackTime('step_finished')
+            else:
+              if finishedJob.identifier not in self.failureHandling['jobRepetitionPerformed']:
+                self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] = 1
+              if self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] <= self.failureHandling['repetitions']:
+                # we re-add the failed job
+                jobHandler.reAddJob(finishedJob)
+                self.raiseAWarning('As prescribed in the input, trying to re-submit the job "'+finishedJob.identifier+'". Trial '+
+                                 str(self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier]) +'/'+str(self.failureHandling['repetitions']))
+                self.failureHandling['jobRepetitionPerformed'][finishedJob.identifier] += 1
+              else:
+                # is this sampler/optimizer able to handle failed runs? If not, add the failed run in the pool
+                if not sampler.ableToHandelFailedRuns:
+                  self.failedRuns.append(copy.copy(finishedJob))
+                self.raiseAWarning('The job "'+finishedJob.identifier+'" has been submitted '+ str(self.failureHandling['repetitions'])+' times, failing all the times!!!')
+            if sampler.ableToHandelFailedRuns:
+              self.raiseAWarning('The sampler/optimizer "'+sampler.type+'" is able to handle failed runs!')
+            #pop the failed job from the list
+            finishedJobList.pop(finishedJobList.index(finishedJob))
+        if type(finishedJobObjs).__name__ in 'list': # TODO: should be consistent, if no batching should batch size be 1 or 0 ?
+          # if sampler claims it's batching, then only collect once, since it will collect the batch
+          # together, not one-at-a-time
+          # FIXME: IN HERE WE SEND IN THE INSTANCE OF THE FIRST JOB OF A BATCH
+          # FIXME: THIS IS DONE BECAUSE CURRENTLY SAMPLERS/OPTIMIZERS RETRIEVE SOME INFO from the Runner instance but it can be
+          # FIXME: dangerous if the sampler/optimizer requires info from each job. THIS MUST BE FIXED.
+          sampler.finalizeActualSampling(finishedJobs[0][0],model,inputs)
+        else:
+          # sampler isn't intending to batch, so we send them in one-at-a-time as per normal
+          for finishedJob in finishedJobList:
+            # finalize actual sampler
+            sampler.finalizeActualSampling(finishedJob,model,inputs)
+        for finishedJob in finishedJobList:
+          finishedJob.trackTime('step_finished')
 
         # terminate jobs as requested by the sampler, in case they're not needed anymore
         ## TODO is this a safe place to put this?
@@ -724,36 +744,67 @@ class MultiRun(SingleRun):
         ## -> then the new jobs will be killed if this is placed after new job submission!
         jobHandler.terminateJobs(sampler.getJobsToEnd(clear=True))
 
-        # add new jobs
-        isEnsemble = isinstance(model, Models.EnsembleModel)
+        # add new jobs, for DET-type samplers
         # put back this loop (do not take it away again. it is NEEDED for NOT-POINT samplers(aka DET)). Andrea
-        ## In order to ensure that the queue does not grow too large, we will
-        ## employ a threshold on the number of jobs the jobHandler can take,
-        ## in addition, we cannot provide more jobs than the sampler can provide.
-        ## So, we take the minimum of these two values.
-        self.raiseADebug('Testing if the sampler is ready to generate a new input')
-        for _ in range(min(jobHandler.availability(isEnsemble), sampler.endJobRunnable())):
-
-          if sampler.amIreadyToProvideAnInput():
-            try:
-              newInput = self._findANewInputToRun(sampler, model, inputs, outputs, jobHandler)
-              if newInput is not None:
-                model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
-            except utils.NoMoreSamplesNeeded:
-              self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
-              break
-          else:
-            self.raiseADebug(' ... sampler has no new inputs currently.')
-            break
+        # NOTE for non-DET samplers, this check also happens outside this collection loop
+        if sampler.onlySampleAfterCollecting:
+          self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary)
+      # END for each collected finished run ...
       ## If all of the jobs given to the job handler have finished, and the sampler
       ## has nothing else to provide, then we are done with this step.
       if jobHandler.isFinished() and not sampler.amIreadyToProvideAnInput():
         self.raiseADebug('Sampling finished with %d runs submitted, %d jobs running, and %d completed jobs waiting to be processed.' % (jobHandler.numSubmitted(),jobHandler.numRunning(),len(jobHandler.getFinishedNoPop())) )
         break
+      if not sampler.onlySampleAfterCollecting:
+        # NOTE for some reason submission outside collection breaks the DET
+        # however, it is necessary i.e. batch sampling
+        self._addNewRuns(sampler, model, inputs, outputs, jobHandler, inDictionary, verbose=False)
       time.sleep(self.sleepTime)
-    # END while loop that runs the step iterations
+    # END while loop that runs the step iterations (collection and submission-for-DET)
     # if any collected runs failed, let the sampler treat them appropriately, and any other closing-out actions
     sampler.finalizeSampler(self.failedRuns)
+
+  def _addNewRuns(self, sampler, model, inputs, outputs, jobHandler, inDictionary, verbose=True):
+    """
+      Checks for open spaces and adds new runs to jobHandler queue (via model.submit currently)
+      @ In, sampler, Sampler, the sampler in charge of generating the sample
+      @ In, model, Model, the model in charge of evaluating the sample
+      @ In, inputs, object, the raven object used as the input in this step
+        (i.e., a DataObject, File, or Database, I guess? Maybe these should all
+        inherit from some base "Data" so that we can ensure a consistent
+        interface for these?)
+      @ In, outputs, object, the raven object used as the output in this step
+        (i.e., a DataObject, File, or Database, I guess? Maybe these should all
+        inherit from some base "Data" so that we can ensure a consistent
+        interface for these?)
+      @ In, jobHandler, object, the raven object used to handle jobs
+      @ In, inDictionary, dict, additional step objects map
+      @ In, verbose, bool, optional, if True print DEBUG statements
+      @ Out, None
+    """
+    isEnsemble = isinstance(model, Models.EnsembleModel)
+    ## In order to ensure that the queue does not grow too large, we will
+    ## employ a threshold on the number of jobs the jobHandler can take,
+    ## in addition, we cannot provide more jobs than the sampler can provide.
+    ## So, we take the minimum of these two values.
+    if verbose:
+      self.raiseADebug('Testing if the sampler is ready to generate a new input')
+    for _ in range(min(jobHandler.availability(isEnsemble), sampler.endJobRunnable())):
+      if sampler.amIreadyToProvideAnInput():
+        try:
+          newInput = self._findANewInputToRun(sampler, model, inputs, outputs, jobHandler)
+          if newInput is not None:
+            model.submit(newInput, inDictionary[self.samplerType].type, jobHandler, **copy.deepcopy(sampler.inputInfo))
+        except utils.NoMoreSamplesNeeded:
+          self.raiseAMessage(' ... Sampler returned "NoMoreSamplesNeeded".  Continuing...')
+          break
+      else:
+        if verbose:
+          self.raiseADebug(' ... sampler has no new inputs currently.')
+        break
+    else:
+      if verbose:
+        self.raiseADebug(' ... no available JobHandler spots currently (or the Sampler is done.)')
 
   def _findANewInputToRun(self, sampler, model, inputs, outputs, jobHandler):
     """
@@ -761,11 +812,11 @@ class MultiRun(SingleRun):
       @ In, sampler, Sampler, the sampler in charge of generating the sample
       @ In, model, Model, the model in charge of evaluating the sample
       @ In, inputs, object, the raven object used as the input in this step
-        (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
+        (i.e., a DataObject, File, or Database, I guess? Maybe these should all
         inherit from some base "Data" so that we can ensure a consistent
         interface for these?)
       @ In, outputs, object, the raven object used as the output in this step
-        (i.e., a DataObject, File, or HDF5, I guess? Maybe these should all
+        (i.e., a DataObject, File, or Database, I guess? Maybe these should all
         inherit from some base "Data" so that we can ensure a consistent
         interface for these?)
       @ In, jobHandler, object, the raven object used to handle jobs
@@ -773,7 +824,7 @@ class MultiRun(SingleRun):
     """
     #The value of "found" determines what the Sampler is ready to provide.
     #  case 0: a new sample has been discovered and can be run, and newInp is a new input list.
-    #  case 1: found the input in restart, and newInp is a realization dicitonary of data to use
+    #  case 1: found the input in restart, and newInp is a realization dictionary of data to use
     found, newInp = sampler.generateInput(model,inputs)
     if found == 1:
       kwargs = copy.deepcopy(sampler.inputInfo)
@@ -784,6 +835,7 @@ class MultiRun(SingleRun):
       # through if we add several samples at once through the restart. If we actually returned
       # a Realization object from the Sampler, this would not be a problem. - talbpaul
     return newInp
+
 #
 #
 #
@@ -806,7 +858,7 @@ class RomTrainer(Step):
       @ In, None
       @ Out, None
     """
-    Step.__init__(self)
+    super().__init__()
     self.printTag = 'STEP ROM TRAINER'
 
   def _localInputAndCheckParam(self,paramInput):
@@ -869,7 +921,7 @@ class IOStep(Step):
       @ In, None
       @ Out, None
     """
-    Step.__init__(self)
+    super().__init__()
     self.printTag = 'STEP IOCOMBINED'
     self.fromDirectory = None
 
@@ -906,30 +958,30 @@ class IOStep(Step):
       self.raiseAnError(IOError,'In Step named ' + self.name + \
           ', the number of Inputs != number of Outputs, and there are Outputs. '+\
           'Inputs: %i Outputs: %i'%(len(inDictionary['Input']),len(outputs)) )
-    #determine if this is a DATAS->HDF5, HDF5->DATAS or both.
+    #determine if this is a DATAS->Database, Database->DATAS or both.
     # also determine if this is an invalid combination
     for i in range(len(outputs)):
-      # from HDF5 to ...
-      if inDictionary['Input'][i].type == 'HDF5':
+      # from Database to ...
+      if isinstance(inDictionary['Input'][i], Database):
         ## ... dataobject
         if isinstance(outputs[i], DataObject.DataObject):
-          self.actionType.append('HDF5-dataObjects')
+          self.actionType.append('Database-dataObjects')
         ## ... anything else
         else:
           self.raiseAnError(IOError,errTemplate.format(name = self.name,
-                                                       inp = 'HDF5',
+                                                       inp = 'Database',
                                                        okay = 'DataObjects',
                                                        received = inDictionary['Output'][i].type))
       # from DataObject to ...
       elif  isinstance(inDictionary['Input'][i], DataObject.DataObject):
-        ## ... HDF5
-        if outputs[i].type == 'HDF5':
-          self.actionType.append('dataObjects-HDF5')
+        ## ... Database
+        if isinstance(outputs[i], Database):
+          self.actionType.append('dataObjects-Database')
         ## ... anything else
         else:
           self.raiseAnError(IOError,errTemplate.format(name = self.name,
                                                        inp = 'DataObjects',
-                                                       okay = 'HDF5',
+                                                       okay = 'Database',
                                                        received = inDictionary['Output'][i].type))
       # from ROM model to ...
       elif isinstance(inDictionary['Input'][i], Models.ROM):
@@ -964,15 +1016,15 @@ class IOStep(Step):
         self.raiseAnError(IOError,
                           'In Step "{name}": This step accepts only {okay} as Input. Received "{received}" instead!'
                           .format(name = self.name,
-                                  okay = 'HDF5, DataObjects, ROM, or Files',
+                                  okay = 'Database, DataObjects, ROM, or Files',
                                   received = inDictionary['Input'][i].type))
     # check actionType for fromDirectory
     if self.fromDirectory and len(self.actionType) == 0:
       self.raiseAnError(IOError,'In Step named ' + self.name + '. "fromDirectory" attribute provided but not conversion action is found (remove this atttribute for OutStream actions only"')
-    #Initialize all the HDF5 outputs.
+    #Initialize all the Database outputs.
     for i in range(len(outputs)):
       #if type(outputs[i]).__name__ not in ['str','bytes','unicode']:
-      if 'HDF5' in inDictionary['Output'][i].type:
+      if isinstance(inDictionary['Output'][i], Database):
         if outputs[i].name not in databases:
           databases.add(outputs[i].name)
           outputs[i].initialize(self.name)
@@ -1002,21 +1054,12 @@ class IOStep(Step):
     """
     outputs = self.__getOutputs(inDictionary)
     for i in range(len(outputs)):
-      if self.actionType[i] == 'HDF5-dataObjects':
-        #inDictionary['Input'][i] is HDF5, outputs[i] is a DataObjects
-        ## read the HDF5 into a data object
-        allRealizations = inDictionary['Input'][i].allRealizations()
-        ## TODO convert to load function when it can handle unstructured multiple realizations
-        for rlz in allRealizations:
-          outputs[i].addRealization(rlz)
-      elif self.actionType[i] == 'dataObjects-HDF5':
-        #inDictionary['Input'][i] is a dataObjects, outputs[i] is HDF5
-        ## write the data object into a HDF5
-        ## TODO convert to load function when it can handle unstructured multiple realizations
-        for rlzNo in range(len(inDictionary['Input'][i])):
-          rlz = inDictionary['Input'][i].realization(rlzNo, unpackXArray=True)
-          rlz = dict((var,np.atleast_1d(val)) for var, val in rlz.items())
-          outputs[i].addRealization(rlz)
+      if self.actionType[i] == 'Database-dataObjects':
+        #inDictionary['Input'][i] is Database, outputs[i] is a DataObjects
+        inDictionary['Input'][i].loadIntoData(outputs[i])
+      elif self.actionType[i] == 'dataObjects-Database':
+        #inDictionary['Input'][i] is a dataObjects, outputs[i] is Database
+        outputs[i].saveDataToFile(inDictionary['Input'][i])
 
       elif self.actionType[i] == 'ROM-dataObjects':
         #inDictionary['Input'][i] is a ROM, outputs[i] is dataObject
@@ -1067,7 +1110,6 @@ class IOStep(Step):
         # train the ROM from the unpickled object
         outputs[i].train(unpickledObj)
         # reseed as requested
-        loadSettings['messageHandler'] = self.messageHandler
         outputs[i].setAdditionalParams(loadSettings)
 
       elif self.actionType[i] == 'FILES-dataObjects':
@@ -1107,20 +1149,6 @@ class IOStep(Step):
       self.fromDirectory = paramInput.parameterValues['fromDirectory']
 
 
-__interFaceDict                      = {}
-__interFaceDict['SingleRun'        ] = SingleRun
-__interFaceDict['MultiRun'         ] = MultiRun
-__interFaceDict['IOStep'           ] = IOStep
-__interFaceDict['RomTrainer'       ] = RomTrainer
-__interFaceDict['PostProcess'      ] = PostProcess
-__base                               = 'Step'
 
-def returnInstance(Type,caller):
-  """
-    Returns the instance of a Step
-    @ In, Type, string, requested step
-    @ In, caller, object, requesting object
-    @ Out, __interFaceDict, instance, instance of the step
-  """
-  return __interFaceDict[Type]()
-  caller.raiseAnError(NameError,'not known '+__base+' type '+Type)
+factory = EntityFactory('Step')
+factory.registerAllSubtypes(Step)

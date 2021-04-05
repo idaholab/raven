@@ -36,6 +36,7 @@
     <Group name="intersect">x_even, ^x_first</Group>
     <Group name="sym_diff">x_odd, % x_first</Group>
     <Group name="empty"> <!-- comment --></Group>
+    <Group name="emptier"/>
   </VariableGroups>
 
   <Distributions>

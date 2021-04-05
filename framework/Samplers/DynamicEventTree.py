@@ -98,6 +98,7 @@ class DynamicEventTree(Grid):
     @ Out, None
     """
     Grid.__init__(self)
+    self.onlySampleAfterCollecting = True # see note in Steps.MultiRun about the not-point-sampler loop
     # Working directory (Path of the directory in which all the outputs,etc. are stored)
     self.workingDir                        = ""
     # (optional) if not present, the sampler will not change the relative keyword in the input file
@@ -562,7 +563,7 @@ class DynamicEventTree(Grid):
       # Get Parent node name => the branch name is creating appending to this name  a comma and self.branchCountOnLevel counter
       rname = endInfo['parentNode'].get('name') + '-' + str(self.branchCountOnLevel)
       # create a subgroup that will be appended to the parent element in the xml tree structure
-      subGroup = ETS.HierarchicalNode(self.messageHandler,rname)
+      subGroup = ETS.HierarchicalNode(rname)
       subGroup.add('parent', endInfo['parentNode'].get('name'))
       subGroup.add('name', rname)
       subGroup.add('completedHistory', False)
@@ -912,8 +913,6 @@ class DynamicEventTree(Grid):
         self.hybridNumberSamplers = 1
         # the user can decided how to sample the epistemic
         self.hybridStrategyToApply[child.attrib['type']] = self.hybridSamplersAvail[child.attrib['type']]()
-        # give the hybridsampler sampler the message handler
-        self.hybridStrategyToApply[child.attrib['type']].setMessageHandler(self.messageHandler)
         # make the hybridsampler sampler read  its own xml block
         childCopy = copy.deepcopy(child)
         childCopy.tag = child.attrib['type']
@@ -979,7 +978,7 @@ class DynamicEventTree(Grid):
       hybridNumber = 1
     self.TreeInfo = {}
     for precSample in range(hybridNumber):
-      elm = ETS.HierarchicalNode(self.messageHandler,self.name + '_' + str(precSample+1))
+      elm = ETS.HierarchicalNode(f'{self.name}_{precSample+1}')
       elm.add('name', self.name + '_'+ str(precSample+1))
       elm.add('startTime', str(0.0))
       # Initialize the endTime to be equal to the start one...
@@ -999,7 +998,7 @@ class DynamicEventTree(Grid):
       elm.add('branchedLevel', self.branchedLevel[0])
       # Here it is stored all the info regarding the DET => we create the info for all the
       # branchings and we store them
-      self.TreeInfo[self.name + '_' + str(precSample+1)] = ETS.HierarchicalTree(self.messageHandler,elm)
+      self.TreeInfo[f'{self.name}_{precSample+1}'] = ETS.HierarchicalTree(elm)
 
     initBranchProbabilities = copy.copy(self.branchProbabilities)
     initBranchValues        = copy.copy(self.branchValues)

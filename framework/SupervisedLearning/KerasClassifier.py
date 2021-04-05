@@ -65,10 +65,9 @@ class KerasClassifier(supervisedLearning):
   tempModelFile = "a_temporary_file_for_storing_a_keras_model.h5"
   modelAttr = "the_model_all_serialized_and_turned_into_an_hdf5_file_and_stuff"
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a keras deep neural network object
-      @ In, messageHandler, MessageHandler, a MessageHandler object in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
       @ Out, None
     """
@@ -200,9 +199,15 @@ class KerasClassifier(supervisedLearning):
       # Apply multiplicative 1-centered Gaussian noise. As it is a regularization layer, it is only active at training time.
       self.availNoise['gaussiandropout'] = tf.keras.layers.GaussianDropout
 
+    super().__init__(**kwargs)
 
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
-
+  def readInitDict(self, initDict):
+    """
+      Reads in the initialization dict to initialize this instance
+      @ In, initDict, dict, keywords passed to constructor
+      @ Out, None
+    """
+    super().readInitDict(initDict)
     # parameter dictionary at the initial stage
     self.initDict = copy.deepcopy(self.initOptionDict)
     self.printTag = 'KerasClassifier'

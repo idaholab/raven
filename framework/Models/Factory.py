@@ -14,10 +14,8 @@
 """
 Factory for generating the instances of the  Models Module
 """
-#for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
 
+from EntityFactoryBase import EntityFactory
 from utils import utils
 
 from .Model         import Model
@@ -26,55 +24,65 @@ from .ROM           import ROM
 from .ExternalModel import ExternalModel
 from .Code          import Code
 from .EnsembleModel import EnsembleModel
-from .PostProcessor import PostProcessor
 from .HybridModels  import HybridModel
 from .HybridModels  import LogicalModel
 
-__base = 'Model'
-__interFaceDict = {}
+#### PostProcessors
+from .PostProcessors import PostProcessor
+from .PostProcessors import FTImporter
+from .PostProcessors import BasicStatistics
+from .PostProcessors import LimitSurface
+from .PostProcessors import Metric
+from .PostProcessors import ETImporter
+from .PostProcessors.DataMining import DataMining
+from .PostProcessors import SafestPoint
+from .PostProcessors import ValueDuration
+from .PostProcessors import SampleSelector
+from .PostProcessors import ImportanceRank
+from .PostProcessors import CrossValidation
+from .PostProcessors import LimitSurfaceIntegral
+from .PostProcessors import FastFourierTransform
+from .PostProcessors.ExternalPostProcessor import ExternalPostProcessor
+from .PostProcessors import InterfacedPostProcessor
+from .PostProcessors.TopologicalDecomposition import TopologicalDecomposition
+from .PostProcessors import DataClassifier
+from .PostProcessors.ComparisonStatisticsModule import ComparisonStatistics
+from .PostProcessors import RealizationAverager
+from .PostProcessors.ParetoFrontierPostProcessor import ParetoFrontier
+from .PostProcessors.MCSimporter import MCSImporter
+from .PostProcessors import EconomicRatio
+# from .PostProcessors import RavenOutput # deprecated for now
 
-for classObj in utils.getAllSubclasses(eval(__base)):
-  key = classObj.__name__
-  __interFaceDict[key] = classObj
+## These utilize the optional prequisite library PySide, so don't error if they
+## do not import appropriately.
+try:
+  from .PostProcessors.TopologicalDecomposition import QTopologicalDecomposition
+  from .PostProcessors.DataMining import QDataMining
+  renaming = {'QTopologicalDecomposition': 'TopologicalDecomposition',
+              'QDataMining': 'DataMining'}
+except ImportError:
+  renaming = {}
 
-#here the class methods are called to fill the information about the usage of the classes
-for classType in __interFaceDict.values():
+factory = EntityFactory('Model', needsRunInfo=True)
+factory.registerAllSubtypes(Model, alias=renaming)
+
+# #here the class methods are called to fill the information about the usage of the classes
+for className in factory.knownTypes():
+  classType = factory.returnClass(className)
   classType.generateValidateDict()
   classType.specializeValidateDict()
 
-def knownTypes():
-  """
-    Return the known types
-    @ In, None
-    @ Out, knownTypes, list, list of known types
-  """
-  return __interFaceDict.keys()
+factory.registerType('External', ExternalPostProcessor)
 
-needsRunInfo = True
-
-def returnInstance(Type,runInfoDict,caller):
-  """
-    function used to generate a Model class
-    @ In, Type, string, Model type
-    @ Out, returnInstance, instance, Instance of the Specialized Model class
-  """
-  try:
-    return __interFaceDict[Type](runInfoDict)
-  except KeyError:
-    availableClasses = ','.join(__interFaceDict.keys())
-    caller.raiseAnError(NameError,
-      'Requested {}, i.e. "{}", is not recognized (Available options: {})'.format(__base, Type, availableClasses))
-
-def validate(className,role,what,caller):
+def validate(className, role, what):
   """
     This is the general interface for the validation of a model usage
     @ In, className, string, the name of the class
     @ In, role, string, the role assumed in the Step
     @ In, what, string, type of object
-    @ In, caller, instance, the instance of the caller
     @ Out, None
   """
-  if className in __interFaceDict:
-    return __interFaceDict[className].localValidateMethod(role,what)
+  if className in factory.knownTypes():
+    return factory.returnClass(className).localValidateMethod(role, what)
   else:
-    caller.raiseAnError(IOError, 'The model "{}" is not registered for class "{}"'.format(className, __base))
+    caller.raiseAnError(IOError, 'The model "{}" is not registered for class "{}"'.format(className, factory.name))

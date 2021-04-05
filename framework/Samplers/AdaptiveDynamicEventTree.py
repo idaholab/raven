@@ -38,7 +38,6 @@ from .DynamicEventTree import DynamicEventTree
 from .LimitSurfaceSearch import LimitSurfaceSearch
 from utils import utils
 import utils.TreeStructure as ETS
-import MessageHandler
 #Internal Modules End--------------------------------------------------------------------------------
 
 class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
@@ -282,7 +281,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
       bcnt += 1
       rname = info['parentNode'].get('name') + '-' + str(bcnt)
     # create a subgroup that will be appended to the parent element in the xml tree structure
-    subGroup = ETS.HierarchicalNode(self.messageHandler,rname)
+    subGroup = ETS.HierarchicalNode(rname)
     subGroup.add('parent', info['parentNode'].get('name'))
     subGroup.add('name', rname)
     self.raiseADebug('cond pb = '+str(info['parentNode'].get('conditionalPb')))
@@ -442,7 +441,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
         self._constructEndInfoFromBranch(model, myInput, info, cdfValues)
       else:
         # create a new tree, since there are no branches that are close enough to the adaptive request
-        elm = ETS.HierarchicalNode(self.messageHandler,self.name + '_' + str(len(self.TreeInfo.keys())+1))
+        elm = ETS.HierarchicalNode(self.name + '_' + str(len(self.TreeInfo.keys())+1))
         elm.add('name', self.name + '_'+ str(len(self.TreeInfo.keys())+1))
         elm.add('startTime', 0.0)
         # Initialize the endTime to be equal to the start one...
@@ -475,7 +474,7 @@ class AdaptiveDynamicEventTree(DynamicEventTree, LimitSurfaceSearch):
           elm.add('hybridsamplerCoordinate', hybridSampled)
         self.inputInfo.update({'ProbabilityWeight-'+key.strip():value for key,value in self.inputInfo['SampledVarsPb'].items()})
         # Here it is stored all the info regarding the DET => we create the info for all the branchings and we store them
-        self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.HierarchicalTree(self.messageHandler,elm)
+        self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys())+1)] = ETS.HierarchicalTree(elm)
         self._createRunningQueueBeginOne(self.TreeInfo[self.name + '_' + str(len(self.TreeInfo.keys()))],branchedLevel, model,myInput)
     return DynamicEventTree.localGenerateInput(self,model,myInput)
 

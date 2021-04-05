@@ -45,7 +45,7 @@ def createElement(tag,attrib={},text={}):
     Method to create a dummy xml element readable by the distribution classes
     @ In, tag, string, the node tag
     @ In, attrib, dict, optional, the attribute of the xml node
-    @ In, text, dict, optional, the dict containig what should be in the xml text
+    @ In, text, dict, optional, the dict containing what should be in the xml text
   """
   element = ET.Element(tag,attrib)
   element.text = text
@@ -79,8 +79,8 @@ def checkCrowDist(comment,dist,expectedCrowDist):
   """
     Check the consistency of the crow distributions
     @ In, comment, string, a comment
-    @ In, dist, instance, the distrubtion to inquire
-    @ In, expectedCrowDist, dict, the dictionary of the expected distrubution (with all the parameters)
+    @ In, dist, instance, the distribution to inquire
+    @ In, expectedCrowDist, dict, the dictionary of the expected distribution (with all the parameters)
     @ Out, None
   """
   crowDist = dist.getCrowDistDict()
@@ -94,7 +94,7 @@ def checkIntegral(name,dist,low,high,numpts=1e4,tol=1e-3):
   """
     Check the consistency of the pdf integral (cdf)
     @ In, name, string, the name printed out if it fails
-    @ In, dist, instance, the distrubtion to inquire
+    @ In, dist, instance, the distribution to inquire
     @ In, low, float, the lower bound of the dist
     @ In, high, float, the uppper bound of the dist
     @ In, numpts, int, optional, the number of integration points
@@ -110,7 +110,7 @@ def getDistribution(xmlElement):
   """
     Parses the xmlElement and returns the distribution
   """
-  distributionInstance = Distributions.returnInstance(xmlElement.tag, mh)
+  distributionInstance = Distributions.factory.returnInstance(xmlElement.tag)
   distributionInstance.setMessageHandler(mh)
   paramInput = distributionInstance.getInputSpecification()()
   paramInput.parseNode(xmlElement)
@@ -119,10 +119,10 @@ def getDistribution(xmlElement):
   return distributionInstance
 
 #Test module methods
-print(Distributions.knownTypes())
+print(Distributions.factory.knownTypes())
 #Test error
 try:
-  Distributions.returnInstance("unknown",'dud')
+  Distributions.factory.returnInstance("unknown",'dud')
 except:
   print("error worked")
 
@@ -1106,6 +1106,33 @@ checkAnswer("Custom1D cdf(1.9)",Custom1D.cdf(1.9), 0.971283153684)
 
 checkAnswer("Custom1D ppf(0.0139034475135)",Custom1D.ppf(0.0139034475135),-2.19999191499)
 checkAnswer("Custom1D ppf(00.971283440184)",Custom1D.ppf(0.971283440184),1.90000436617)
+
+#Test UniformDiscrete
+
+UniformDiscreteElement = ET.Element("UniformDiscrete",{"name":"test"})
+UniformDiscreteElement.append(createElement("lowerBound", text="3"))
+UniformDiscreteElement.append(createElement("upperBound", text="6"))
+UniformDiscreteElement.append(createElement("strategy", text="withoutReplacement"))
+
+UniformDiscrete = getDistribution(UniformDiscreteElement)
+
+## Should these be checked?
+initParams = UniformDiscrete.getInitParams()
+
+discardedElems = np.array([5,6])
+
+checkAnswer("UniformDiscrete rvs1",UniformDiscrete.selectedRvs(discardedElems),3)
+checkAnswer("UniformDiscrete rvs2",UniformDiscrete.selectedRvs(discardedElems),3)
+checkAnswer("UniformDiscrete rvs3",UniformDiscrete.selectedRvs(discardedElems),3)
+checkAnswer("UniformDiscrete rvs4",UniformDiscrete.selectedRvs(discardedElems),4)
+checkAnswer("UniformDiscrete rvs5",UniformDiscrete.selectedRvs(discardedElems),3)
+checkAnswer("UniformDiscrete rvs6",UniformDiscrete.selectedRvs(discardedElems),3)
+checkAnswer("UniformDiscrete rvs7",UniformDiscrete.selectedRvs(discardedElems),4)
+checkAnswer("UniformDiscrete rvs8",UniformDiscrete.selectedRvs(discardedElems),4)
+checkAnswer("UniformDiscrete rvs9",UniformDiscrete.selectedRvs(discardedElems),4)
+checkAnswer("UniformDiscrete rvs10",UniformDiscrete.selectedRvs(discardedElems),3)
+checkAnswer("UniformDiscrete rvs11",UniformDiscrete.selectedRvs(discardedElems),4)
+checkAnswer("UniformDiscrete rvs12",UniformDiscrete.selectedRvs(discardedElems),3)
 
 
 print(results)

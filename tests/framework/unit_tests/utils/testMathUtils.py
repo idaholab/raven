@@ -26,13 +26,12 @@ import numpy as np
 import xml.etree.ElementTree as ET
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
+
 from utils import mathUtils
 
-from MessageHandler import MessageHandler
-mh = MessageHandler()
-mh.initialize({})
-
 print (mathUtils)
+mh = getMessageHandler()
+mh.verbosity = 'debug'
 
 results = {"pass":0,"fail":0}
 
@@ -454,7 +453,7 @@ example = """<VariableGroups>
   <Group name="symmrev">d,%a</Group>
 </VariableGroups>"""
 node = ET.fromstring(example)
-groups = mathUtils.readVariableGroups(node,mh,None)
+groups = mathUtils.readVariableGroups(node)
 
 # test contents
 def testVarGroup(groups,g,right):
