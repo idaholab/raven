@@ -22,6 +22,7 @@
 #  python install_plugins -s path/to/plugin -f
 import os
 import sys
+print(sys.version, sys.executable)
 import shutil
 import argparse
 import plugin_handler as pluginHandler
