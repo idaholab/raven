@@ -29,11 +29,10 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses import BaseInterface, MessageUser
 from utils import mathUtils
 from utils import utils
 import SupervisedLearning
-import MessageHandler
 from EntityFactoryBase import EntityFactory
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -41,22 +40,21 @@ from EntityFactoryBase import EntityFactory
 #
 #
 #
-class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), MessageHandler.MessageUser):
+class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseInterface), MessageUser):
   """
     This class represents an interface with all the supervised learning algorithms
     It is a utility class needed to hide the discernment between time-dependent and static
     surrogate models
   """
-  def __init__(self, ROMclass, messageHandler, **kwargs):
+  def __init__(self, ROMclass, **kwargs):
     """
       A constructor that will appropriately initialize a supervised learning object (static or time-dependent)
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, ROMclass, string, the surrogate model type
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
+    super().__init__()
     self.printTag = 'SupervisedGate'
-    self.messageHandler = messageHandler
     self.initializationOptions = kwargs
     self.amITrained = False
     self.ROMclass = ROMclass
@@ -77,7 +75,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     # check if pivotParameter is specified and in case store it
     self.pivotParameterId = self.initializationOptions.get("pivotParameter", 'time')
     # return instance of the ROMclass
-    modelInstance = SupervisedLearning.factory.returnInstance(ROMclass, self, messageHandler=self.messageHandler, **self.initializationOptions)
+    modelInstance = SupervisedLearning.factory.returnInstance(ROMclass, **self.initializationOptions)
     # check if the model can autonomously handle the time-dependency
     # (if not and time-dep data are passed in, a list of ROMs are constructed)
     self.canHandleDynamicData = modelInstance.isDynamic()
@@ -98,7 +96,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
       # determine type of segment to load -> limited by InputData to specific options
       segType = segSpecs.parameterValues.get('grouping', 'segment')
       self.initializationOptions['modelInstance'] = modelInstance
-      SVL = SupervisedLearning.factory.returnInstance(nameToClass[segType], self, messageHandler=self.messageHandler, **self.initializationOptions)
+      SVL = SupervisedLearning.factory.returnInstance(nameToClass[segType], **self.initializationOptions)
       self.supervisedContainer = [SVL]
 
   def __getstate__(self):
@@ -128,10 +126,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
     self.__dict__.update(newstate)
     if not newstate['amITrained']:
       # NOTE this will fail if the ROM requires the paramInput spec! Fortunately, you shouldn't pickle untrained.
-      modelInstance = SupervisedLearning.factory.returnInstance(self.ROMclass,
-                                                                self,
-                                                                messageHandler=self.messageHandler,
-                                                                **self.initializationOptions)
+      modelInstance = SupervisedLearning.factory.returnInstance(self.ROMclass, **self.initializationOptions)
       self.supervisedContainer  = [modelInstance]
 
   def setAdditionalParams(self, params):
@@ -140,9 +135,6 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseType), Mess
       @ In, params, dict, parameters to set (dependent on ROM)
       @ Out, None
     """
-    newMH = params.get('messageHandler', None)
-    if newMH:
-      self.messageHandler = newMH
     for rom in self.supervisedContainer:
       rom.setAdditionalParams(params)
 
@@ -296,16 +288,17 @@ class LearningGateFactory(EntityFactory):
   """
     Specific factory for LearningGate
   """
-  def returnInstance(self, Type, romClass, caller, **kwargs):
+  def returnInstance(self, Type, romClass, **kwargs):
     """
       Return an instance of the requested type
       @ In, Type, str, string name of gate requested
       @ In, romClass, str, string representing the instance to create
-      @ In, caller, instance, object that will share its messageHandler instance
       @ In, kwargs, dict, a dictionary specifying the keywords and values needed to create the instance.
       @ Out, returnInstance, instance, an instance of a ROM
     """
-    return self.returnClass(Type, caller)(romClass, caller.messageHandler, **kwargs)
+    cls = self.returnClass(Type)
+    instance = cls(romClass, **kwargs)
+    return instance
 
 factory = LearningGateFactory('supervisedGate')
 factory.registerType('SupervisedGate', supervisedLearningGate)

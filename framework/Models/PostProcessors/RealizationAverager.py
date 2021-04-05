@@ -48,13 +48,13 @@ class RealizationAverager(PostProcessor):
                                                   contentType=InputTypes.StringListType))
     return inSpec
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.dynamic = True # from base class, indicates time-dependence is handled internally
     self.targets = None # string, variables to apply postprocessor to
     self.validDataType = ['DataSet'] # The list of accepted types of DataObject

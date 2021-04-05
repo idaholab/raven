@@ -25,13 +25,13 @@ import os
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses import BaseEntity
 import DataObjects
 import Models
-from utils import utils, InputData, InputTypes
+from utils import InputTypes
 #Internal Modules End-----------------------------------------------------------
 
-class OutStreamBase(BaseType):
+class OutStreamBase(BaseEntity):
   """
     OUTSTREAM CLASS
     This class is a general base class for outstream action classes
@@ -44,7 +44,7 @@ class OutStreamBase(BaseType):
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
-    spec = BaseType.getInputSpecification()
+    spec = super().getInputSpecification()
     spec.addParam('dir', param_type=InputTypes.StringType, required=False)
     return spec
 
@@ -54,7 +54,7 @@ class OutStreamBase(BaseType):
       @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
+    super().__init__()
 
     ## Use the class name as the type, so as we extend this class, this is
     ## automatically updated to be the correct value. Honestly, we shouldn't

@@ -25,7 +25,6 @@ from utils import utils
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import DataObjects
 import Databases
-from MessageHandler import MessageHandler
 
 class RAVEN(CodeInterfaceBase):
   """
@@ -354,17 +353,15 @@ class RAVEN(CodeInterfaceBase):
     #####
     dataObjectsToReturn = {}
     numRlz = None
-    messageHandler = MessageHandler()
-    messageHandler.initialize({'verbosity':'quiet'})
     if self.linkedDataObjectOutStreamsNames:
       for filename in self.linkedDataObjectOutStreamsNames:
         # load the output CSV into a data object, so we can return that
         ## load the XML initialization information and type
         dataObjectInfo = self.outStreamsNamesAndType[filename]
         # create an instance of the correct data object type
-        data = DataObjects.factory.returnInstance(dataObjectInfo[1], None)
+        data = DataObjects.factory.returnInstance(dataObjectInfo[1])
         # initialize the data object by reading the XML
-        data.readXML(dataObjectInfo[2], messageHandler, variableGroups=self.variableGroups)
+        data.readXML(dataObjectInfo[2], variableGroups=self.variableGroups)
         # set the name, then load the data
         data.name = filename
         data.load(os.path.join(workingDir,self.innerWorkingDir,filename),style='csv')
@@ -382,9 +379,10 @@ class RAVEN(CodeInterfaceBase):
       dbName = self.linkedDatabaseName
       path = self.outDatabases[dbName]
       fullPath = os.path.join(workingDir, self.innerWorkingDir, path)
-      data = DataObjects.factory.returnInstance('DataSet', None)
+      data = DataObjects.factory.returnInstance('DataSet')
       info = {'WorkingDir': self._ravenWorkingDir}
-      db = Databases.factory.returnInstance('NetCDF', None, runInfo=info)
+      db = Databases.factory.returnInstance('NetCDF')
+      db.applyRunInfo(info)
       db.databaseDir, db.filename = os.path.split(fullPath)
       db.loadIntoData(data)
       dataObjectsToReturn[dbName] = data

@@ -54,13 +54,13 @@ class SampleSelector(PostProcessor):
     inSpec.addSub(criterion)
     return inSpec
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.dynamic = True # from base class, indicates time-dependence is handled internally
     self.target = None # string, variable to apply postprocessor to
     self.value = None  # only used when the criterion needs a value, the value to use

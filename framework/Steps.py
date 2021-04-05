@@ -34,7 +34,7 @@ import cloudpickle
 
 #Internal Modules------------------------------------------------------------------------------------
 from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseType
+from BaseClasses import BaseEntity, InputDataUser
 import Files
 from utils import utils
 from utils import InputData, InputTypes
@@ -46,7 +46,7 @@ from Databases import Database
 
 
 #----------------------------------------------------------------------------------------------------
-class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
+class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
   """
     This class implement one step of the simulation pattern.
     Usage:
@@ -73,21 +73,20 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     self._localTakeAstepRun(inDictionary)   : this is where the step happens, after this call the output is ready
   """
 
-  def __init__(self):
+  def __init__(self, **kwargs):
     """
       Constructor
       @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
+    super().__init__(**kwargs)
     self.parList    = []   # List of list [[role played in the step, class type, specialization, global name (user assigned by the input)]]
     self.sleepTime  = 0.005  # Waiting time before checking if a run is finished
     #If a step possess re-seeding instruction it is going to ask to the sampler to re-seed according
     #  re-seeding = a number to be used as a new seed
     #  re-seeding = 'continue' the use the already present random environment
     #If there is no instruction (self.initSeed = None) the sampler will reinitialize
-    self.initSeed        = None
-    self._knownAttribute += ['clearRunDir', 'sleepTime','re-seeding','pauseAtEnd','fromDirectory','repeatFailureRuns']
+    self.initSeed = None
     self._excludeFromModelValidation = ['SolutionExport']
     # how to handle failed runs. By default, the step fails.
     # If the attribute "repeatFailureRuns" is inputted, a certain number of repetitions are going to be performed
@@ -104,7 +103,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(Step, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.description = r"""
                        The \textbf{MultiRun} step allows the user to assemble the calculation flow of
                        an analysis that requires multiple ``runs'' of the same model.
@@ -169,8 +168,6 @@ class Step(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     """
     printString = 'For step of type {0:15} and name {1:15} the attribute {3:10} has been assigned to a not understandable value {2:10}'
     self.raiseADebug('move this tests to base class when it is ready for all the classes')
-    if not set(paramInput.parameterValues.keys()).issubset(set(self._knownAttribute)):
-      self.raiseAnError(IOError,'In step of type {0:15} and name {1:15} there are unknown attributes {2:100}'.format(self.type,self.name,str(paramInput.parameterValues.keys())))
     if 're-seeding' in paramInput.parameterValues:
       self.initSeed=paramInput.parameterValues['re-seeding']
       if self.initSeed.lower()   == "continue":
@@ -356,7 +353,7 @@ class SingleRun(Step):
       @ In, None
       @ Out, None
     """
-    Step.__init__(self)
+    super().__init__()
     self.samplerType = 'Sampler'
     self.failedRuns = []
     self.lockedFileName = "ravenLocked.raven"
@@ -408,7 +405,7 @@ class SingleRun(Step):
     #use the models static testing of roles compatibility
     for role in roles:
       if role not in self._excludeFromModelValidation:
-        Models.validate(self.parList[modelIndex][2], role, toBeTested[role],self)
+        Models.validate(self.parList[modelIndex][2], role, toBeTested[role])
     self.raiseADebug('reactivate check on Input as soon as loadCsv gets out from the PostProcessor models!')
     if 'Output' not in roles:
       self.raiseAnError(IOError,'It is not possible a run without an Output!')
@@ -567,7 +564,7 @@ class MultiRun(SingleRun):
       @ In, None
       @ Out, None
     """
-    SingleRun.__init__(self)
+    super().__init__()
     self._samplerInitDict = {} #this is a dictionary that gets sent as key-worded list to the initialization of the sampler
     self.counter          = 0  #just an handy counter of the runs already performed
     self.printTag = 'STEP MULTIRUN'
@@ -861,7 +858,7 @@ class RomTrainer(Step):
       @ In, None
       @ Out, None
     """
-    Step.__init__(self)
+    super().__init__()
     self.printTag = 'STEP ROM TRAINER'
 
   def _localInputAndCheckParam(self,paramInput):
@@ -924,7 +921,7 @@ class IOStep(Step):
       @ In, None
       @ Out, None
     """
-    Step.__init__(self)
+    super().__init__()
     self.printTag = 'STEP IOCOMBINED'
     self.fromDirectory = None
 
@@ -1113,7 +1110,6 @@ class IOStep(Step):
         # train the ROM from the unpickled object
         outputs[i].train(unpickledObj)
         # reseed as requested
-        loadSettings['messageHandler'] = self.messageHandler
         outputs[i].setAdditionalParams(loadSettings)
 
       elif self.actionType[i] == 'FILES-dataObjects':
@@ -1151,6 +1147,8 @@ class IOStep(Step):
     """
     if 'fromDirectory' in paramInput.parameterValues:
       self.fromDirectory = paramInput.parameterValues['fromDirectory']
+
+
 
 factory = EntityFactory('Step')
 factory.registerAllSubtypes(Step)

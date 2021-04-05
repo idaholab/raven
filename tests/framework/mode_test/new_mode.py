@@ -24,13 +24,13 @@ class NewMode(Simulation.SimulationMode):
     NewMode is a class for running a python program.
   """
 
-  def __init__(self,simulation):
+  def __init__(self, simulation):
     """
       Get the simulation and store it.
       @ In, simulation, Simulation.SimulationMode, the simulation to modify
       @ Out, None
     """
-    Simulation.SimulationMode.__init__(self,simulation)
+    super().__init__(simulation)
     self.__simulation = simulation
 
   def modifySimulation(self):

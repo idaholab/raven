@@ -28,20 +28,18 @@ import datetime
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
-from BaseClasses import BaseType
-import MessageHandler
+from BaseClasses import BaseType, MessageUser
 from .Error import Error
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Runner(MessageHandler.MessageUser):
+class Runner(MessageUser):
   """
     Generic base class for running codes and models in parallel environments
     both internally (shared data) and externally.
   """
-  def __init__(self, messageHandler, identifier=None, metadata=None, uniqueHandler="any", profile=False):
+  def __init__(self, identifier=None, metadata=None, uniqueHandler="any", profile=False):
     """
       Initialize command variable
-      @ In, messageHandler, MessageHandler instance, the global RAVEN message handler instance
       @ In, identifier, string, optional, id of this job
       @ In, metadata, dict, optional, dictionary of metadata associated with this Runner
       @ In, uniqueHandler, string, optional, it is a special keyword attached to this runner. For example, if present, to retrieve this runner using the method jobHandler.getFinished, the uniqueHandler needs to be provided.
@@ -49,10 +47,10 @@ class Runner(MessageHandler.MessageUser):
       @ In, profile, bool, optional, if True then timing statements will be printed during garbage collection
       @ Out, None
     """
+    super().__init__()
     self.timings = {}
     self.timings['created'] = time.time()
     self.__printTimings = profile
-    self.messageHandler = messageHandler
     self.identifier     = 'generalOut'  ## Default identifier name
     self.metadata       = copy.copy(metadata)
     self.uniqueHandler  = uniqueHandler

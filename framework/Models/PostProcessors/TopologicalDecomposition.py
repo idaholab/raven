@@ -85,13 +85,13 @@ class TopologicalDecomposition(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
     self.acceptedPersistenceParam = ['difference','probability','count']#,'area']
@@ -377,15 +377,15 @@ if __QtAvailable:
       inputSpecification.addSub(InputData.parameterInputFactory("interactive"))
       return inputSpecification
 
-    def __init__(self, runInfoDict):
+    def __init__(self):
       """
        Constructor
-       @ In, messageHandler, message handler object
+       @ In, None
        @ Out, None
       """
-
-      TopologicalDecomposition.__init__(self, runInfoDict)
-      qtc.QObject.__init__(self)
+      super().__init__()
+      # TopologicalDecomposition.__init__(self)
+      # qtc.QObject.__init__(self)
 
       self.interactive = False
       self.uiDone = True ## If it has not been requested, then we are not waiting for a UI

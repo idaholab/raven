@@ -12,17 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  This module containes the base class fo all the Forward Sampling Strategies
+  Module defines the Base Classes used for standard objects in RAVEN.
 
-  Created on May 21, 2016
-  @author: alfoa
-  supercedes Samplers.py from alfoa (2/16/2013)
+  Created on March 19, 2021
+  @author: talbpaul
+  supercedes BaseClasses.py from alfoa (2013-03-16)
 """
 
-from .Sampler import Sampler
+# Design notes, see github #1486
 
-class ForwardSampler(Sampler):
-  """
-    This is a general forward, blind, static sampler
-  """
-  pass
+# Make this namespace available at the framework level
+
+from .InputDataUser import InputDataUser
+from .MessageUser import MessageUser
+from .BaseType import BaseType
+from .BaseEntity import BaseEntity
+from .Assembler import Assembler
+from .BaseInterface import BaseInterface
+
