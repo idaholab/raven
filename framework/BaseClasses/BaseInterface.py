@@ -78,7 +78,7 @@ class BaseInterface(BaseType):
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
     """
-    super().handleInput()
+    super().handleInput(paramInput)
     self.variableGroups = variableGroups if variableGroups is not None else {}
     if 'name' in paramInput.parameterValues:
       self.name = paramInput.parameterValues['name']
