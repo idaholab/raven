@@ -13,11 +13,10 @@
 # limitations under the License.
 """
 Module where the base class and the specialization of different type of Model are
-"""
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
+@author crisrab, alfoa
+
+"""
 #External Modules------------------------------------------------------------------------------------
 import copy
 import numpy as np
@@ -47,7 +46,6 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, None
     """
     cls.plugins = importlib.import_module("Models.ModelPlugInFactory")
-
 
   @classmethod
   def getInputSpecification(cls):
@@ -352,8 +350,26 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, runInfo, dict, it is the run info from the jobHandler
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
+      @ In, None
     """
     pass
+
+  def serialize(self,fileo,**kwargs):
+    """
+      This method is the base class method that is aimed to serialize the model (and derived) instances.
+      @ In, fileo, str or File object, the filename of the output serialized binary file or the RAVEN File instance
+      @ In, kwargs, dict, dictionary of options that the derived class might require
+      @ Out, None
+    """
+    import cloudpickle
+    if isinstance(fileo,str):
+      fileobj = open(filename, mode='wb+')
+    else:
+      fileobj = fileo
+      fileobj.open(mode='wb+')
+    cloudpickle.dump(self,fileobj)
+    fileobj.flush()
+    fileobj.close()
 
   @abc.abstractmethod
   def createNewInput(self,myInput,samplerType,**kwargs):

@@ -1079,14 +1079,13 @@ class IOStep(Step):
       elif self.actionType[i] == 'ROM-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         ## pickle the ROM
-        #check the ROM is trained first
+        # check the ROM is trained first
         if not inDictionary['Input'][i].amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
-        fileobj = outputs[i]
-        fileobj.open(mode='wb+')
-        cloudpickle.dump(inDictionary['Input'][i],fileobj)
-        fileobj.flush()
-        fileobj.close()
+        # call the serialize method within the model
+        ## TODO: ADD Deserialization method
+        inDictionary['Input'][i].serialize(outputs[i])
+
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
         ## unpickle the ROM
