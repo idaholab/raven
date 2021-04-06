@@ -17,7 +17,7 @@ Created on April 1, 2021
 @author: talbpaul
 """
 
-from OutStreams import OutStreamInterface
+from OutStreams import OutStreamInterface, OutStreamEntity
 
 class PlotInterface(OutStreamInterface):
   """
@@ -81,6 +81,8 @@ class PlotInterface(OutStreamInterface):
       @ Out, findSource, object, discovered object or None
     """
     for out in stepEntities['Output']:
+      if isinstance(out, OutStreamEntity):
+        continue
       if out.name == name:
         return out
     for inp in stepEntities['Input']:
