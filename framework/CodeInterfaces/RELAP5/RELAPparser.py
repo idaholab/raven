@@ -481,7 +481,6 @@ class RELAPparser():
                 toAdd[deckNum].append(splitted[0].strip())
               elif "|" in splitted[0] and int(splitted[0].split("|")[0]) == deckNum:
                 toAdd[deckNum].append(splitted[0].split("|")[1].strip())
-            # toAdd[deckNum] = self.inputTrips[deckNum]['variableTrips'].keys()
             if toAdd[deckNum]:
               self.addControlVariablesForStoppingCoditions(toAdd, modifyDict.get('excludeTrips'))
             else:
