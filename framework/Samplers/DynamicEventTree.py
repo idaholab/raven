@@ -556,7 +556,6 @@ class DynamicEventTree(Grid):
         nBranches -= 1
     # Loop over the branches for which the inputs must be created
     for _ in range(nBranches):
-      #del self.inputInfo
       self.counter += 1
       self.branchCountOnLevel += 1
       branchedLevel = copy.deepcopy(branchedLevelParent)

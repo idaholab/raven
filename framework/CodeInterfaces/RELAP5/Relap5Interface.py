@@ -341,23 +341,13 @@ class Relap5(CodeInterfaceBase):
                        +'the DET variables must be part of a Trip. The variables \n"'
                        +', '.join(notTrips)+'" are not part of Trips. Consider to sample \nthem with the'
                        +' HybridDynamicEventTree approach (treat them \nas epistemic uncertanties)!' )
-      #hdetVars  = Kwargs.get('HDETVariables')
-      #functVars = Kwargs.get('FunctionVariables')
-      #constVars = Kwargs.get('ConstantVariables')
-      #graph = Kwargs.get('dependencyGraph')
     else:
       self._samplersDictionary[samplerType] = self.pointSamplerForRELAP5
     if len(self.operators) > 0:
       self._evaluateOperators(**Kwargs)
 
-    #if self.det:
-    #  # if self.det, check which variable is connected to a trip (and consequentially must represent a stop condition)
-    #  trips = parser.getTrips()
     # transfer metadata
     self.__transferMetadata(Kwargs.get("metadataToTransfer",None), currentInputFiles[index].getPath())
-
-    if Kwargs['prefix'] == 'DET_1-2-2-2':
-      print("here")
 
     if 'None' not in str(samplerType):
       Kwargs['currentPath'] = currentInputFiles[index].getPath()

@@ -180,7 +180,6 @@ class RELAPparser():
             found = True
           elif trip['variable'] == 'time' and "timeof" in edit['variable'] and tripID in edit['component']:
             found = True
-        # if not found and trip['variable']+"_"+trip['component'] not in addedVars:
         if not found and trip['variable']+"_"+trip['component'] not in addedVars:
           if len(availableMinorEditsCards) == 0: raise IOError("Number of minor edits reached already the upper bound of RELAP5. There are no available cards to monitor the trips!")
           if trip['variable'] != 'time':
@@ -219,6 +218,10 @@ class RELAPparser():
 
   def getMinorEditsInfo(self):
     """
+      This method is aimed to retrieve and store (in self.inputMinorEdits)
+      the information linked to minor edits (control variables, trips, etc.)
+      @ In, None
+      @ Out, None
     """
     for deckNum in self.deckLines.keys():
       for lineNum, line in enumerate(self.deckLines[deckNum]):
@@ -229,6 +232,11 @@ class RELAPparser():
 
   def storeControlVars(self,deckNum, splitted):
     """
+      This method is aimed to store the control variables info (id, operation, etc.)
+      in self (i.e. self.inputControlVars, self.controlVarType)
+      @ In, deckNum, int, the deck number that should be scanned and for which the info must be retrieved/stored
+      @ In, splitted, list, list of line splitted (splitted[0] == card id, splitted[1:n_words] card words)
+      @ Out, isCntr, bool, boolean True if this card is a control vars (and consequentially the info are stored), False otherwise
     """
     isCntr = False
     if int(splitted[0]) == 20500000:
@@ -247,6 +255,11 @@ class RELAPparser():
 
   def storeMinorEdit(self,deckNum, splitted):
     """
+      This method is aimed to store the minor edits info (which variables, etc)
+      in self (i.e. self.inputMinorEdits)
+      @ In, deckNum, int, the deck number that should be scanned and for which the info must be retrieved/stored
+      @ In, splitted, list, list of line splitted (splitted[0] == card id, splitted[1:n_words] card words)
+      @ Out, isMinor, bool, boolean True if this card is a minor edit card(and consequentially the info are stored), False otherwise
     """
     isMinor = False
     if deckNum not in self.inputMinorEdits.keys():
@@ -260,6 +273,11 @@ class RELAPparser():
 
   def storeTrip(self,deckNum, splitted):
     """
+      This method is aimed to store the trips info (which variables, etc)
+      in self (i.e. self.inputTrips)
+      @ In, deckNum, int, the deck number that should be scanned and for which the info must be retrieved/stored
+      @ In, splitted, list, list of line splitted (splitted[0] == card id, splitted[1:n_words] card words)
+      @ Out, isTrip, bool, boolean True if this card is a trip card(and consequentially the info are stored), False otherwise
     """
     isTrip = False
     if deckNum not in self.inputTrips.keys():
