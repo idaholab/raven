@@ -20,14 +20,14 @@ Created on March 3, 2021
 
 #External Modules------------------------------------------------------------------------------------
 import os
-import abc
-import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 import Runners
 from Models import Model
 from Decorators.Parallelization import Parallel
+from utils import utils, InputTypes
+from .PostProcessors import factory as interfaceFactory
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PostProcessor(Model):
@@ -41,11 +41,17 @@ class PostProcessor(Model):
       Method to get a reference to a class that specifies the input data for
       class cls.
       @ In, cls, the class for which we are retrieving the specification
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+      @ Out, spec, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(PostProcessor, cls).getInputSpecification()
-    return inputSpecification
+    spec = super().getInputSpecification()
+    validTypes = list(interfaceFactory.knownTypes())
+    typeEnum = InputTypes.makeEnumType(validTypes)
+    for name in typeEnum:
+      pp = interfaceFactory.returnClass(name)
+      subSpec = pp.getInputSpecification()
+      spec.mergeSub(subSpec)
+    return spec
 
   @classmethod
   def generateValidateDict(cls):
@@ -54,7 +60,7 @@ class PostProcessor(Model):
       @ In, None
       @ Out, None
     """
-    super(PostProcessor, cls).generateValidateDict()
+    super().generateValidateDict()
 
   @classmethod
   def specializeValidateDict(cls):
@@ -99,26 +105,17 @@ class PostProcessor(Model):
     cls.validateDict['Function'  ][0]['required'    ] = False
     cls.validateDict['Function'  ][0]['multiplicity'] = 1
 
-  def __init__(self):
+  def __init__(self, runInfoDict):
     """
       Constructor
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
       @ Out, None
     """
-    super().__init__()
+    super().__init__(self,runInfoDict)
     self.inputCheckInfo  = []     # List of tuple, i.e input objects info [('name','type')]
     self.action = None            # action
-    self.workingDir = ''          # path for working directory
     self.printTag = 'POSTPROCESSOR MODEL'
-    self.outputDataset  = False # True if the user wants to dump the outputs to dataset
-    self.validDataType = ['PointSet','HistorySet'] # The list of accepted types of DataObject
-    ## Currently, we have used both DataObject.addRealization and DataObject.load to
-    ## collect the PostProcessor returned outputs. DataObject.addRealization is used to
-    ## collect single realization, while DataObject.load is used to collect multiple realizations
-    ## However, the DataObject.load can not be directly used to collect single realization
-    ## One possible solution is all postpocessors return a list of realizations, and we only
-    ## use addRealization method to add the collections into the DataObjects
-    self.outputMultipleRealizations = False
+    self._pp = None
 
   def _handleInput(self, paramInput):
     """
@@ -126,7 +123,10 @@ class PostProcessor(Model):
       @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
-    Model._handleInput(self, paramInput)
+    super()._handleInput(self, paramInput)
+    reqType = paramInput.parameterValues['subType']
+    self._pp = interfaceFactory.returnInstance (reqType)
+    self._pp._handleInput(paramInput)
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -135,11 +135,9 @@ class PostProcessor(Model):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    self.inputs = inputs
-    if 'stepName' in runInfo:
-      self.workingDir = os.path.join(runInfo['WorkingDir'],runInfo['stepName']) #generate current working dir
-    else:
-      self.workingDir = runInfo['WorkingDir']
+    super().initialize(runInfo, inputs, initDict)
+    self._pp.initialize(runInfo, inputs, initDict)
+    settings = self._pp.getSettings()
     self.inputCheckInfo = [(inp.name, inp.type) for inp in inputs]
 
   def createNewInput(self,myInput,samplerType,**kwargs):
@@ -153,26 +151,6 @@ class PostProcessor(Model):
       @ Out, myInput, list, the inputs (list) to start from to generate the new one
     """
     return myInput
-
-  def inputToInternal(self, currentInput):
-    """
-      Method to convert an input object into the internal format that is
-      understandable by the PostProcessor.
-      @ In, currentInput, object, an object that needs to be converted
-      @ Out, inputToInternal, list, list of current inputs
-    """
-    return [(copy.deepcopy(currentInput))]
-
-  @abc.abstractmethod
-  def run(self, input):
-    """
-      This method executes the postprocessor action.
-      @ In,  input, object, object containing the data to process.
-      Should avoid to use (inputToInternal output), and passing xarray directly/dataset
-      Possible inputs include: dict, xarray.Dataset, pd.DataFrame
-      @ Out, dict, xarray.Dataset, pd.DataFrame --> I think we can avoid collectoutput in the plugin pp
-    """
-    pass
 
   @Parallel()
   def evaluateSample(self, myInput, samplerType, kwargs):
@@ -188,10 +166,10 @@ class PostProcessor(Model):
           the second item will be the output of this model given the specified
           inputs
     """
-    Input = self.createNewInput(myInput,samplerType, **kwargs)
-    if Input is not None and len(Input) == 0:
-      Input = None
-    returnValue = (Input, self.run(Input))
+    ppInput = self.createNewInput(myInput,samplerType, **kwargs)
+    if ppInput is not None and len(ppInput) == 0:
+      ppInput = None
+    returnValue = (ppInput, self._pp.run(ppInput))
     return returnValue
 
   def submit(self,myInput,samplerType,jobHandler,**kwargs):
@@ -207,9 +185,9 @@ class PostProcessor(Model):
         @ Out, None
     """
     kwargs['forceThreads'] = True
-    Model.submit(self,myInput, samplerType, jobHandler,**kwargs)
+    super().submit(self,myInput, samplerType, jobHandler,**kwargs)
 
-  def collectOutput(self,finishedJob,output,options=None):
+  def collectOutput(self, finishedJob, output, options=None):
     """
       Method that collects the outputs from the "run" method of the PostProcessor
       @ In, finishedJob, InternalRunner object, instance of the run just finished
@@ -218,31 +196,9 @@ class PostProcessor(Model):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    if output.type not in self.validDataType:
-      self.raiseAnError(IOError, 'Output type', str(output.type), 'is not allowed!')
     outputCheckInfo = (output.name, output.type)
     if outputCheckInfo in self.inputCheckInfo:
       self.raiseAnError(IOError, 'DataObject',output.name,'is used as both input and output of', \
               self.interface.printTag, 'This is not allowed! Please use different DataObjet as output')
 
-    evaluation = finishedJob.getEvaluation()
-    if isinstance(evaluation, Runners.Error):
-      self.raiseAnError(RuntimeError, "No available output to collect (run possibly not finished yet)")
-    outputRealization = evaluation[1]
-
-    if output.type in ['PointSet','HistorySet']:
-      if self.outputDataset:
-        self.raiseAnError(IOError, "DataSet output is required, but the provided type of DataObject is", output.type)
-      self.raiseADebug('Dumping output in data object named ' + output.name)
-      if self.outputMultipleRealizations:
-        if 'dims' in outputRealization:
-          dims = outputRealization['dims']
-        else:
-          dims = {}
-        print(outputRealization.keys())
-        output.load(outputRealization['data'], style='dict', dims=dims)
-      else:
-        output.addRealization(outputRealization)
-    elif output.type in ['DataSet']:
-      self.raiseADebug('Dumping output in DataSet named ' + output.name)
-      output.load(outputRealization, style='dataset')
+    self._pp.collectOutput(finishedJob, output, options)
