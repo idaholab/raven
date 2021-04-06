@@ -58,9 +58,6 @@ done
 echo Cleaning old build ...
 ${RAVEN_BUILD_DIR}/clean_raven
 
-echo Installing ExamplePlugin ...
-./scripts/install_plugins.py -s ./plugins/ExamplePlugin
-
 if [[ $LIBS_MODE == 0 ]]; then
   # this mode can not be called currently
   #### FUTURE WORK:
