@@ -76,6 +76,7 @@ class OutStreamInterface(BaseInterface):
       @ In, stepEntities, dict, Entities from the Step
       @ Out, None
     """
+    super().initialize()
     if self.subDirectory is not None:
       if not os.path.exists(self.subDirectory):
         os.makedirs(self.subDirectory)
