@@ -15,6 +15,7 @@
   Created on April 1, 2021
 
   @author: talbpaul
+  historically designed and architected by @alfoa
 """
 
 from EntityFactoryBase import EntityFactory

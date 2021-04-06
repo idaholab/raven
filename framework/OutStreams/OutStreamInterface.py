@@ -81,10 +81,11 @@ class OutStreamInterface(BaseInterface):
       if not os.path.exists(self.subDirectory):
         os.makedirs(self.subDirectory)
 
-  # this method is used by the original OutStreams, GeneralPlot and File Print.
   def legacyCollectSources(self, inDict):
     """
       Collect the usable sources in the format this plotter expects.
+      This is a legacy method; it is used by FilePrint and GeneralPlot (the original two OutStreams),
+      but appears to be specific to particular approaches so should not necessarily be adopted generally.
       @ In, inDict, dict, Step entities
       @ Out, None
     """
@@ -98,7 +99,7 @@ class OutStreamInterface(BaseInterface):
           break
       if not foundData:
         for inp in inDict['Input']:
-          if not type(inp) == type(""):
+          if not isinstance(inp, str):
             if inp.name.strip() == self.sourceName[outIndex] and inp.type in DataObjects.factory.knownTypes():
               self.sourceData.append(inp)
               foundData = True
@@ -110,7 +111,8 @@ class OutStreamInterface(BaseInterface):
           self.sourceData.append(inDict['TargetEvaluation'])
           foundData = True
       if not foundData and 'SolutionExport' in inDict.keys():
-        if inDict['SolutionExport'].name.strip() == self.sourceName[outIndex] and inDict['SolutionExport'].type in DataObjects.factory.knownTypes():
+        if inDict['SolutionExport'].name.strip() == self.sourceName[outIndex] \
+            and inDict['SolutionExport'].type in DataObjects.factory.knownTypes():
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData:

@@ -61,7 +61,7 @@ class PlotInterface(OutStreamInterface):
       current step. The sources are searched into this.
       @ Out, None
     """
-    pass
+    super().initialize(inDict)
 
   def run(self):
     """

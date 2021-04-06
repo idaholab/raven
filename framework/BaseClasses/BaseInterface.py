@@ -90,7 +90,8 @@ class BaseInterface(BaseType):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and indexes/dimensions corresponding to expected keys
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and
+                                           indexes/dimensions corresponding to expected keys
     """
     return self.metadataKeys, self.metadataParams
 
@@ -113,8 +114,9 @@ class BaseInterface(BaseType):
   # API (legacy) - these should go away as we convert existing systems
   def readXML(self, xmlNode, variableGroups=None, globalAttributes=None):
     """
-      provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
-      that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
+      provide a basic reading capability from the xml input file for what is common to all types in
+      the simulation than calls _readMoreXML that needs to be overloaded and used as API. Each type
+      supported by the simulation should have: name (xml attribute), type (xml tag),
       verbosity (xml attribute)
       @ In, xmlNode, ET.Element, input xml
       @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
