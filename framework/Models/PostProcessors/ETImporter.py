@@ -26,7 +26,7 @@ import copy
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
 from utils import xmlUtils as xmlU
 from utils import utils
@@ -35,7 +35,7 @@ from .ETStructure import ETStructure
 #Internal Modules End-----------------------------------------------------------
 
 
-class ETImporter(PostProcessor):
+class ETImporter(PostProcessorInterface):
   """
     This is the base class of the PostProcessor that imports Event-Trees (ETs) into RAVEN as a PointSet
   """
@@ -68,7 +68,7 @@ class ETImporter(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(ETImporter, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("expand"    , contentType=InputTypes.BoolType))
     return inputSpecification
@@ -81,7 +81,7 @@ class ETImporter(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(self, runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -89,7 +89,7 @@ class ETImporter(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(self, paramInput)
     fileFormat = paramInput.findFirst('fileFormat')
     self.fileFormat = fileFormat.value
     if self.fileFormat not in self.allowedFormats:
@@ -118,4 +118,4 @@ class ETImporter(PostProcessor):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    PostProcessor.collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(self, finishedJob, output, options=options)

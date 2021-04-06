@@ -25,7 +25,7 @@ from collections import OrderedDict
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
 from utils import xmlUtils as xmlU
 from utils import utils
@@ -33,7 +33,7 @@ from .FTStructure import FTStructure
 import Files
 #Internal Modules End-----------------------------------------------------------
 
-class FTImporter(PostProcessor):
+class FTImporter(PostProcessorInterface):
   """
     This is the base class of the postprocessor that imports Fault-Trees (FTs) into RAVEN as a PointSet
   """
@@ -46,7 +46,7 @@ class FTImporter(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(FTImporter, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     fileAllowedFormats = InputTypes.makeEnumType("FTFileFormat", "FTFileFormatType", ["OpenPSA"])
     inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=fileAllowedFormats))
     inputSpecification.addSub(InputData.parameterInputFactory("topEventID", contentType=InputTypes.StringType))
@@ -77,7 +77,7 @@ class FTImporter(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(self, runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -85,7 +85,7 @@ class FTImporter(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(self, paramInput)
     fileFormat = paramInput.findFirst('fileFormat')
     self.fileFormat = fileFormat.value
     topEventID = paramInput.findFirst('topEventID')
@@ -111,4 +111,4 @@ class FTImporter(PostProcessor):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    PostProcessor.collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(self, finishedJob, output, options=options)

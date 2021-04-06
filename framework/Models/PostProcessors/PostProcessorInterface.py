@@ -19,6 +19,7 @@ Created on April 6, 2021
 
 #External Modules------------------------------------------------------------------------------------
 import copy
+import abc
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -69,7 +70,7 @@ class PostProcessorInterface(BaseInterface):
       @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
-    supper()._handleInput(self, paramInput)
+    super()._handleInput(self, paramInput)
 
   def initialize(self, runInfo, inputs, initDict=None):
     """

@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Factory for generating the instances of the  Models Module
-"""
+  The Models module for building, running, and simulating things in RAVEN.
 
-from EntityFactoryBase import EntityFactory
+  Created on May 9, 2017
+  @author: maljdp
+"""
 from .PostProcessorInterface import PostProcessorInterface
 from .FTImporter import FTImporter
 from .BasicStatistics import BasicStatistics
@@ -41,21 +42,14 @@ from .MCSimporter import MCSImporter
 from .EconomicRatio import EconomicRatio
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.
+additionalModules = []
 try:
   from .TopologicalDecomposition import QTopologicalDecomposition
   from .DataMining import QDataMining
-  renaming = {'QTopologicalDecomposition': 'TopologicalDecomposition',
-              'QDataMining': 'DataMining'}
+  additionalModules.append(QTopologicalDecomposition)
+  additionalModules.append(QDataMining)
 except ImportError:
-  renaming = {}
+  pass
+## [ Add new class here ]
 
-factory = EntityFactory('PostProcessor', needsRunInfo=True)
-factory.registerAllSubtypes(Model, alias=renaming)
-
-## Here the class methods are called to fill the information about the usage of the classes
-for className in factory.knownTypes():
-  classType = factory.returnClass(className)
-  classType.generateValidateDict()
-  classType.specializeValidateDict()
-
-factory.registerType('External', ExternalPostProcessor)
+from .Factory import factory
