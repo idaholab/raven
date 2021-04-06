@@ -27,9 +27,12 @@ import xarray as xr
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from .ValidationAlgorithms import DSS
-from .ValidationAlgorithms import PCM
-from .ValidationAlgorithms import Representativity
+import validationAlgorithms
+#from .validationAlgorithms import
+#from .validationAlgorithms import DSS
+#from .validationAlgorithms import DSS
+#from .validationAlgorithms import PCM
+#from .validationAlgorithms import Representativity
 from utils import utils, mathUtils
 from utils import InputData, InputTypes
 import MetricDistributor
@@ -48,38 +51,38 @@ class ValidationGate(PostProcessor):
       Method to get a reference to a class that specifies the input data for
       class cls.
       @ In, cls, the class for which we are retrieving the specification
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+      @ Out, specs, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(Validation, cls).getInputSpecification()
-
+    specs = super(Validation, cls).getInputSpecification()
     preProcessorInput = InputData.parameterInputFactory("PreProcessor", contentType=InputTypes.StringType)
     preProcessorInput.addParam("class", InputTypes.StringType)
     preProcessorInput.addParam("type", InputTypes.StringType)
-
     pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
-
-    inputSpecification.addSub(pivotParameterInput)
-
+    specs.addSub(pivotParameterInput)
     metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
     metricInput.addParam("class", InputTypes.StringType)
     metricInput.addParam("type", InputTypes.StringType)
-
-    inputSpecification.addSub(metricInput)
+    specs.addSub(metricInput)
     # registration of validation algorithm
+    for typ in validationAlgorithms.factory.knownTypes():
+      algoInput = validationAlgorithms.factory.returnClass(typ)
+    specs.addSub(algoInput.getInputSpecification())
+    
+    
     for algo in _factoryTypes()
       algoInput = InputData.parameterInputFactory(algo)
       algoInput.addParam(_returnClass(algo).getInputSpecification())
-      inputSpecification.addParam("ValidationAlgorithm",algoInput)
-    inputSpecification.addSub(kddInput)
+      specs.addParam("ValidationAlgorithm",algoInput)
+    specs.addSub(kddInput)
     preProcessorInput = InputData.parameterInputFactory("PreProcessor", contentType=InputTypes.StringType)
     preProcessorInput.addParam("class", InputTypes.StringType)
     preProcessorInput.addParam("type", InputTypes.StringType)
 
-    inputSpecification.addSub(preProcessorInput)
+    specs.addSub(preProcessorInput)
 
-    return inputSpecification
+    return specs
 
   def __init__(self, runInfoDict):
     """
