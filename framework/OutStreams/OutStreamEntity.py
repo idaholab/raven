@@ -16,10 +16,12 @@ Created on Nov 14, 2013
 
 @author: alfoa, talbpaul
 """
-from BaseClasses import BaseEntity
-from utils import InputTypes
+from abc import abstractmethod, ABCMeta
 
-class OutStreamEntity(BaseEntity):
+from utils.utils import metaclass_insert
+from BaseClasses import BaseEntity
+
+class OutStreamEntity(metaclass_insert(ABCMeta, BaseEntity)):
   """
     OUTSTREAM CLASS
     This class is a general base class for outstream action classes
@@ -63,26 +65,10 @@ class OutStreamEntity(BaseEntity):
     """
     pass
 
+  @abstractmethod
   def addOutput(self):
     """
       Function to craft a new output (for example a CSV file or a plot)
       @ In, None
       @ Out, None
     """
-    pass
-
-  #########################
-  # Utility
-  def getInitParams(self):
-    """
-      This function is called from the base class to print some of the
-      information inside the class. Whatever is permanent in the class and not
-      inherited from the parent class should be mentioned here. The information
-      is passed back in the dictionary. No information about values that change
-      during the simulation are allowed.
-      @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys
-        and each parameter's initial value as the dictionary values
-    """
-    paramDict = {}
-    return paramDict
