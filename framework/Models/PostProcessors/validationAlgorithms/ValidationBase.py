@@ -49,21 +49,7 @@ class ValidationBase(PostProcessor):
       @ Out, specs, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(Metric, cls).getInputSpecification()
-    featuresInput = InputData.parameterInputFactory("Features", contentType=InputTypes.StringListType)
-    featuresInput.addParam("type", InputTypes.StringType)
-    specs.addSub(featuresInput)
-    targetsInput = InputData.parameterInputFactory("Targets", contentType=InputTypes.StringListType)
-    targetsInput.addParam("type", InputTypes.StringType)
-    specs.addSub(targetsInput)
-    specs.addSub(multiOutputInput)
-    weightInput = InputData.parameterInputFactory("weight", contentType=InputTypes.FloatListType)
-    specs.addSub(weightInput)
-    pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
-    specs.addSub(pivotParameterInput)
-    metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
-    metricInput.addParam("class", InputTypes.StringType, True)
-    metricInput.addParam("type", InputTypes.StringType, True)
+    specs = super(ValidationBase, cls).getInputSpecification()
     specs.addSub(metricInput)
 
     return specs
@@ -84,58 +70,6 @@ class ValidationBase(PostProcessor):
     self.pivotValues    = []
     # assembler objects to be requested
     self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
-
-  def __getMetricSide(self, metricDataName, currentInputs):
-    """
-      Gets the metricDataName and stores it in inputDict.
-      @ In, metricDataName, string, the name of the metric data to find in currentInputs
-      @ In, currentInputs, list of inputs to the step.
-      @ Out, metricData, (data, probability) or Distribution
-    """
-    origMetricDataName = metricDataName
-    metricData = None
-    if metricDataName.count("|") == 2:
-      #Split off the data name and if this is input or output.
-      dataName, inputOrOutput, metricDataName = metricDataName.split("|")
-      inputOrOutput = [inputOrOutput.lower()]
-    else:
-      dataName = None
-      inputOrOutput = ['input','output']
-    for currentInput in currentInputs:
-      inputType = None
-      if hasattr(currentInput, 'type'):
-        inputType = currentInput.type
-      if dataName is not None and dataName != currentInput.name:
-        continue
-      if inputType in ['PointSet', 'HistorySet']:
-        dataSet = currentInput.asDataset()
-        metadata = currentInput.getMeta(pointwise=True)
-        for ioType in inputOrOutput:
-          if metricDataName in currentInput.getVars(ioType):
-            if metricData is not None:
-              self.raiseAnError(IOError, "Same feature or target variable " + metricDataName + "is found in multiple input objects")
-            #Found the data, now put it in the return value.
-            requestData = copy.copy(dataSet[metricDataName].values)
-            if len(requestData.shape) == 1:
-              requestData = requestData.reshape(-1,1)
-            # If requested data are from input space, the shape will be (nSamples, 1)
-            # If requested data are from history output space, the shape will be (nSamples, nTimeSteps)
-            if 'ProbabilityWeight' in metadata:
-              weights = metadata['ProbabilityWeight'].values
-            else:
-              # TODO is this correct sizing generally?
-              weights = np.ones(requestData.shape[0])
-            metricData = (requestData, weights)
-      elif isinstance(currentInput, Distributions.Distribution):
-        if currentInput.name == metricDataName and dataName is None:
-          if metricData is not None:
-            self.raiseAnError(IOError, "Same feature or target variable " + metricDataName + "is found in multiple input objects")
-          #Found the distribution, now put it in the return value
-          metricData = currentInput
-
-    if metricData is None:
-      self.raiseAnError(IOError, "Feature or target variable " + origMetricDataName + " is not found")
-    return metricData
 
   def inputToInternal(self, currentInputs):
     """

@@ -28,11 +28,6 @@ import xarray as xr
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
 import validationAlgorithms
-#from .validationAlgorithms import
-#from .validationAlgorithms import DSS
-#from .validationAlgorithms import DSS
-#from .validationAlgorithms import PCM
-#from .validationAlgorithms import Representativity
 from utils import utils, mathUtils
 from utils import InputData, InputTypes
 import MetricDistributor
@@ -59,8 +54,15 @@ class ValidationGate(PostProcessor):
     preProcessorInput = InputData.parameterInputFactory("PreProcessor", contentType=InputTypes.StringType)
     preProcessorInput.addParam("class", InputTypes.StringType)
     preProcessorInput.addParam("type", InputTypes.StringType)
+    specs.addSub(preProcessorInput)
     pivotParameterInput = InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType)
     specs.addSub(pivotParameterInput)
+    featuresInput = InputData.parameterInputFactory("Features", contentType=InputTypes.StringListType)
+    featuresInput.addParam("type", InputTypes.StringType)
+    specs.addSub(featuresInput)
+    targetsInput = InputData.parameterInputFactory("Targets", contentType=InputTypes.StringListType)
+    targetsInput.addParam("type", InputTypes.StringType)
+    specs.addSub(targetsInput)
     metricInput = InputData.parameterInputFactory("Metric", contentType=InputTypes.StringType)
     metricInput.addParam("class", InputTypes.StringType)
     metricInput.addParam("type", InputTypes.StringType)
@@ -69,16 +71,6 @@ class ValidationGate(PostProcessor):
     for typ in validationAlgorithms.factory.knownTypes():
       algoInput = validationAlgorithms.factory.returnClass(typ)
     specs.addSub(algoInput.getInputSpecification())
-    
-    
-    for algo in _factoryTypes()
-      algoInput = InputData.parameterInputFactory(algo)
-      algoInput.addParam(_returnClass(algo).getInputSpecification())
-      specs.addParam("ValidationAlgorithm",algoInput)
-    specs.addSub(kddInput)
-    preProcessorInput = InputData.parameterInputFactory("PreProcessor", contentType=InputTypes.StringType)
-    preProcessorInput.addParam("class", InputTypes.StringType)
-    preProcessorInput.addParam("type", InputTypes.StringType)
 
     specs.addSub(preProcessorInput)
 
@@ -93,9 +85,9 @@ class ValidationGate(PostProcessor):
     PostProcessor.__init__(self, runInfoDict)
     self.printTag = 'POSTPROCESSOR VALIDATION'
 
-    #self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_one)
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_one)
-
+    self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_one)
+    
     self.solutionExport = None  ## A data object to hold derived info about the algorithm being performed,
                                 ## e.g., cluster centers or a projection matrix for dimensionality reduction methods
 
@@ -198,9 +190,7 @@ class ValidationGate(PostProcessor):
       @ Out, None
     """
     PostProcessor.initialize(self, runInfo, inputs, initDict)
-    if "SolutionExport" in initDict:
-      self.solutionExport = initDict["SolutionExport"]
-    if "PreProcessor" in self.assemblerDict:
+    if 'PreProcessor' in self.assemblerDict:
       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
     if 'Metric' in self.assemblerDict:
       self.metric = self.assemblerDict['Metric'][0][3]
