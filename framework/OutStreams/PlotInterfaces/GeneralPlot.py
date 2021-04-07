@@ -16,38 +16,26 @@ Created on Nov 14, 2013
 
 @author: alfoa
 """
-
-## External Modules-------------------------------------------------------------
 import numpy as np
 import ast
 import copy
 import numpy.ma as ma
-import platform
 import os
 import re
 import gc
 import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
 from collections import defaultdict
-## External Modules End---------------------------------------------------------
 
-## Internal Modules-------------------------------------------------------------
 from utils.InputData import parameterInputFactory as PIF
-from utils import utils, mathUtils, InputTypes
+from utils import utils, mathUtils
 from utils import mathUtils
-from utils.cached_ndarray import c1darray
-from .OutStreamBase import OutStreamBase
+from .PlotInterface import PlotInterface
 from ClassProperty import ClassProperty
-## Internal Modules End---------------------------------------------------------
-
-#display = True
-display = utils.displayAvailable()
-if not display:
-  matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 
-class GeneralPlot(OutStreamBase):
+class GeneralPlot(PlotInterface):
   """
     OutStream of type Plot
   """
@@ -57,6 +45,7 @@ class GeneralPlot(OutStreamBase):
   ## the variables immutable (so long as no one touches the internally stored
   ## "_"-prefixed), so other objects don't accidentally modify them.
 
+  # TODO these should be moved into the InputParams
   ## available 2D and 3D plot types
   _availableOutStreamTypes = {2:['scatter', 'line', 'histogram', 'stem', 'step',
                                  'pseudocolor', 'dataMining', 'contour',
@@ -95,7 +84,7 @@ class GeneralPlot(OutStreamBase):
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
-    spec = OutStreamBase.getInputSpecification()
+    spec = super().getInputSpecification()
     # TODO this is waaaaay to much to convert right now
     # For now, accept a blank plotting check and sort it out later.
     spec.strictMode = False
@@ -144,8 +133,10 @@ class GeneralPlot(OutStreamBase):
       @ In, None
       @ Out, None
     """
-    OutStreamBase.__init__(self)
+    super().__init__()
     self.printTag = 'OUTSTREAM PLOT'
+    self.options = {}    # outstreaming options # no addl info from original developer
+    self.counter = 0     # counter # no additional info given by original developer
 
     ## default plot is 2D
     self.dim = None
@@ -797,15 +788,19 @@ class GeneralPlot(OutStreamBase):
   ####################
   #  PUBLIC METHODS  #
   ####################
-  def localGetInitParams(self):
+  def getInitParams(self):
     """
-      This method is called from the base function. It retrieves the initial
-      characteristic params that need to be seen by the whole enviroment
+      This function is called from the base class to print some of the
+      information inside the class. Whatever is permanent in the class and not
+      inherited from the parent class should be mentioned here. The information
+      is passed back in the dictionary. No information about values that change
+      during the simulation are allowed.
       @ In, None
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = {}
+    paramDict = super().getInitParams()
+    paramDict[f'OutStream Available {self.dim}D   :'] = self.availableOutStreamTypes[self.dim]
     paramDict['Plot is '] = str(self.dim) + 'D'
     for index in range(len(self.sourceName)):
       paramDict['Source Name ' + str(index) + ' :'] = self.sourceName[index]
@@ -945,23 +940,35 @@ class GeneralPlot(OutStreamBase):
         if 'mixtureCovars' in self.options['plotSettings']['plot'][pltIndex]['attributes'].keys():
           self.mixtureCovars.append(self.options['plotSettings']['plot'][pltIndex]['attributes']['mixtureCovars'].split(','))
     self.numberAggregatedOS = len(self.options['plotSettings']['plot'])
+    # collect sources
+    self.legacyCollectSources(inDict)
     # initialize here the base class
-    OutStreamBase.initialize(self, inDict)
+    super().initialize(inDict)
     # execute actions (we execute the actions here also because we can perform a check at runtime!!
     self.__executeActions()
 
-  def localReadXML(self, xmlNode):
+  def handleInput(self, xmlNode):
     """
       This Function is called from the base class, It reads the parameters that
       belong to a plot block
+      Overriding default methods, until this interface uses input params. FIXME
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    if 'dim' in xmlNode.attrib:
-      self.raiseAnError(IOError,"the 'dim' attribute has been deprecated. This warning became an error in January 2017")
+    # because we're reading XML not inputParams, we don't call super, and have to set our own:
+    # - name
+    # - subdirectory
+    # - overwrite
+    self.name = xmlNode.attrib['name']
+    subDir = xmlNode.attrib.get('dir', None)
+    if subDir:
+      subDir = os.path.expanduser(subDir)
+    self.subDirectory = subDir
     if 'overwrite' in xmlNode.attrib:
       self.overwrite = utils.stringIsTrue(xmlNode.attrib['overwrite'])
     foundPlot = False
+    if 'dim' in xmlNode.attrib:
+      self.raiseAnError(IOError,"the 'dim' attribute has been deprecated. This warning became an error in January 2017")
     for subnode in xmlNode:
       # if actions, read actions block
       if subnode.tag == 'filename':
@@ -1051,7 +1058,7 @@ class GeneralPlot(OutStreamBase):
       grid = list(map(int, self.options['plotSettings']['gridSpace'].split(' ')))
       self.gridSpace = matplotlib.gridspec.GridSpec(grid[0], grid[1])
 
-  def addOutput(self):
+  def run(self):
     """
       Function to show and/or save a plot (outputs Plot on the screen or on file/s)
       @ In,  None
@@ -1212,7 +1219,7 @@ class GeneralPlot(OutStreamBase):
       #################
       #  SCATTER PLOT #
       #################
-      self.raiseADebug('creating plot' + self.name)
+      self.raiseADebug('creating plot ' + self.name)
       if self.outStreamTypes[pltIndex] == 'scatter':
         if 's' not in plotSettings.keys():
           plotSettings['s'] = '20'
