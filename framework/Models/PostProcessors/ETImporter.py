@@ -39,13 +39,13 @@ class ETImporter(PostProcessor):
   """
     This is the base class of the PostProcessor that imports Event-Trees (ETs) into RAVEN as a PointSet
   """
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.printTag  = 'POSTPROCESSOR ET IMPORTER'
     self.expand    = None  # option that controls the structure of the ET. If True, the tree is expanded so that
                            # all possible sequences are generated. Sequence label is maintained according to the

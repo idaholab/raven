@@ -16,23 +16,13 @@ Created on Apr 30, 2015
 
 @author: alfoa
 '''
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 import os
 from copy import deepcopy
-from utils import xmlUtils
-import bisect
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
-from utils import utils, mathUtils
-#Internal Modules End--------------------------------------------------------------------------------
+from EntityFactoryBase import EntityFactory
+from BaseClasses import BaseEntity
 
-class File(BaseType):
+class File(BaseEntity):
   """
     This class is the base implementation of the file object entity in RAVEN.
     This is needed in order to standardize the object manipulation in the RAVEN code
@@ -43,7 +33,7 @@ class File(BaseType):
       @ In,  None
       @ Out, None
     """
-    BaseType.__init__(self)
+    super().__init__()
     self.__file = None              # when open, refers to open file, else None
     self.__path = ''                # file path
     self.__base = ''                # file base
@@ -484,16 +474,14 @@ class RAVENGenerated(File):
     This class is for file objects that are created and used internally by RAVEN.
     Initialization is through calling self.initialize
   """
-  def initialize(self,filename,messageHandler,path='.',type='internal'):
+  def initialize(self, filename, path='.', type='internal'):
     """
       Since this is internally generated, set up all the basic information.
       @ In, filename, string, name of the file
-      @ In, messageHandler, MessageHandler object, message handler
       @ In, path, string, optional, path to file object
       @ In, type, string, optional, type for labeling
       @ Out, None
     """
-    self.messageHandler = messageHandler
     self.type = type
     self.printTag = 'Internal File'
     self.setPath(path)
@@ -509,16 +497,15 @@ class CSV(RAVENGenerated):
   """
     Specialized class specific to CSVs.  Was useful, may not be now, might be again.
   """
-  def initialize(self,filename,messageHandler,path='.',type='csv'):
+  def initialize(self, filename, path='.', type='csv'):
     """
       Since this is internally generated, set up all the basic information.
       @ In, filename, string, name of the file
-      @ In, messageHandler, MessageHandler object, message handler
       @ In, path, string, optional, path to file object
       @ In, type, string, optional, type for labeling
       @ Out, None
     """
-    RAVENGenerated.initialize(self,filename,messageHandler,path,type)
+    RAVENGenerated.initialize(self, filename, path, type)
     self.printTag = 'Internal CSV'
 #
 #
@@ -573,32 +560,7 @@ class UserGenerated(File):
 #
 #
 #
-"""
-  Interface Dictionary (factory)(private)
-"""
-__base                        = 'Data'
-__interFaceDict               = {}
-__interFaceDict['RAVEN']      = RAVENGenerated
-__interFaceDict['CSV']        = CSV
-__interFaceDict['Input']      = UserGenerated
-__knownTypes                  = __interFaceDict.keys()
-
-def knownTypes():
-  """
-    Returns known types.
-    @ In, None
-    @ Out, __knownTypes, list, list of known types
-  """
-  return __knownTypes
-
-def returnInstance(Type,caller):
-  """
-    Returns an object construction pointer from this module.
-    @ In, Type, string, requested object
-    @ In, caller, object, requesting object
-    @ Out, __interFaceDict, instance, instance of the object
-  """
-  try:
-    return __interFaceDict[Type]()
-  except KeyError:
-    caller.raiseAnError(NameError,'Files module does not recognize '+__base+' type '+Type)
+factory = EntityFactory('Files')
+factory.registerType('RAVEN', RAVENGenerated)
+factory.registerType('CSV', CSV)
+factory.registerType('Input', UserGenerated)

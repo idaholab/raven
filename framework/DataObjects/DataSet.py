@@ -21,10 +21,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 
 import copy
 import itertools
-try:
-  import cPickle as pk
-except ImportError:
-  import pickle as pk
+import pickle as pk
 
 import numpy as np
 import pandas as pd
@@ -1857,7 +1854,7 @@ class DataSet(DataObject):
     # datasets can have them because we don't have a 2d+ CSV storage strategy yet
     else:
       nullOK = True
-    loader = CsvLoader.CsvLoader(self.messageHandler)
+    loader = CsvLoader.CsvLoader()
     df = loader.loadCsvFile(fname, nullOK=nullOK)
     return df
 

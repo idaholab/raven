@@ -79,13 +79,13 @@ class CrossValidation(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.printTag = 'POSTPROCESSOR CROSS VALIDATION'
     self.dynamic        = False # is it time-dependent?
     self.metricsDict    = {}    # dictionary of metrics that are going to be assembled
@@ -283,7 +283,7 @@ class CrossValidation(PostProcessor):
     for key, value in initDict.items():
       if key == "SciKitLearn":
         groups = value.pop("labels",None)
-        cvEngine = CrossValidations.returnInstance(key, self, **value)
+        cvEngine = CrossValidations.factory.returnInstance(key, **value)
         break
     if cvEngine is None:
       self.raiseAnError(IOError, "No cross validation engine is provided!")

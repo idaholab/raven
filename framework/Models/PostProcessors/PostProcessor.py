@@ -99,13 +99,13 @@ class PostProcessor(Model):
     cls.validateDict['Function'  ][0]['required'    ] = False
     cls.validateDict['Function'  ][0]['multiplicity'] = 1
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
       @ Out, None
     """
-    Model.__init__(self,runInfoDict)
+    super().__init__()
     self.inputCheckInfo  = []     # List of tuple, i.e input objects info [('name','type')]
     self.action = None            # action
     self.workingDir = ''          # path for working directory

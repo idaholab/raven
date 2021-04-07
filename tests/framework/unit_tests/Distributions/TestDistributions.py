@@ -110,7 +110,7 @@ def getDistribution(xmlElement):
   """
     Parses the xmlElement and returns the distribution
   """
-  distributionInstance = Distributions.returnInstance(xmlElement.tag, mh)
+  distributionInstance = Distributions.factory.returnInstance(xmlElement.tag)
   distributionInstance.setMessageHandler(mh)
   paramInput = distributionInstance.getInputSpecification()()
   paramInput.parseNode(xmlElement)
@@ -119,10 +119,10 @@ def getDistribution(xmlElement):
   return distributionInstance
 
 #Test module methods
-print(Distributions.knownTypes())
+print(Distributions.factory.knownTypes())
 #Test error
 try:
-  Distributions.returnInstance("unknown",'dud')
+  Distributions.factory.returnInstance("unknown",'dud')
 except:
   print("error worked")
 

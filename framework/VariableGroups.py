@@ -48,14 +48,13 @@ class VariableGroup(BaseClasses.BaseType):
     self.variables      = []             #list of variable names
     self.initialized    = False          #true when initialized
 
-  def readXML(self, node, messageHandler, varGroups):
+  def readXML(self, node, varGroups):
     """
       reads XML for more information
       @ In, node, xml.etree.ElementTree.Element, xml element to read data from
       @ In, varGroups, dict, other variable groups including ones this depends on (if any)
       @ Out, None
     """
-    self.messageHandler = messageHandler
     #establish the name
     if 'name' not in node.attrib.keys():
       self.raiseAnError(IOError,'VariableGroups require a "name" attribute!')

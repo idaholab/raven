@@ -23,9 +23,7 @@ from .Database import DateBase as Database
 from .HDF5 import HDF5
 from .NetCDF import NetCDF
 
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
+from .Factory import factory
 
 class DatabasesCollection(InputData.ParameterInput):
   """
@@ -35,8 +33,6 @@ class DatabasesCollection(InputData.ParameterInput):
 DatabasesCollection.createClass("Databases")
 DatabasesCollection.addSub(HDF5.getInputSpecification())
 DatabasesCollection.addSub(NetCDF.getInputSpecification())
-
-needsRunInfo = True
 
 def returnInputParameter():
   """

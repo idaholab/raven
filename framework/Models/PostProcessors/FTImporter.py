@@ -52,13 +52,13 @@ class FTImporter(PostProcessor):
     inputSpecification.addSub(InputData.parameterInputFactory("topEventID", contentType=InputTypes.StringType))
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.printTag = 'POSTPROCESSOR FT IMPORTER'
     self.FTFormat = None # chosen format of the FT file
     self.topEventID = None

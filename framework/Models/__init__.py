@@ -71,39 +71,5 @@ except ImportError:
 
 ## [ Add new class here ]
 
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import needsRunInfo
+from .Factory import factory
 from .Factory import validate
-
-# We should not really need this as we do not use wildcard imports
-__all__ = ['Model',
-           'Dummy',
-           'ROM',
-           'ExternalModel',
-           'Code',
-           'EnsembleModel',
-           'PostProcessor',
-           'HybridModel',
-           'LogicalModel',
-           'BasicStatistics',
-           'ComparisonStatistics',
-           'ExternalPostProcessor',
-           'ImportanceRank',
-           'InterfacedPostProcessor',
-           'LimitSurface',
-           'LimitSurfaceIntegral',
-           'SafestPoint',
-           'TopologicalDecomposition',
-           'DataMining',
-           'Metric',
-           'CrossValidation',
-           'ValueDuration',
-           'FastFourierTransform',
-           'FTImporter',
-           'DataClassifier',
-           'SampleSelector',
-           'ETImporter',
-           'RealizationAverager',
-           'ParetoFrontier']+ additionalModules
-#           'RavenOutput', # deprecated for now

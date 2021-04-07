@@ -16,21 +16,13 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-#External Modules------------------------------------------------------------------------------------
 import numpy as np
 import xarray
 import math
-import sys
-from copy import deepcopy
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from .BasicStatistics import BasicStatistics
 from utils import InputData, InputTypes
 import LearningGate
-import Files
-#Internal Modules End--------------------------------------------------------------------------------
 
 
 class LimitSurfaceIntegral(PostProcessor):
@@ -82,13 +74,14 @@ class LimitSurfaceIntegral(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
+    from Models import factory as modelsFactory # delay import to allow definition
     self.variableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
     self.target = None  # target that defines the f(x1,x2,...,xn)
     self.tolerance = 0.0001  # integration tolerance
@@ -100,7 +93,7 @@ class LimitSurfaceIntegral(PostProcessor):
     self.functionS = None # evaluation classifier for the integration
     self.errorModel = None # classifier used for the error estimation
     self.computationPrefix = None # output prefix for the storage of the probability and, if requested, bounding error
-    self.stat = BasicStatistics(runInfoDict)  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
+    self.stat = modelsFactory.returnInstance('BasicStatistics')  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue'] # expected value calculation
     self.addAssemblerObject('distribution', InputData.Quantity.zero_to_infinity) # distributions are optional
     self.printTag = 'POSTPROCESSOR INTEGRAL' # print tag
@@ -176,12 +169,11 @@ class LimitSurfaceIntegral(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    self.stat.messageHandler = self.messageHandler
     self.inputToInternal(inputs)
     if self.integralType in ['montecarlo']:
       self.stat.toDo = {'expectedValue':[{'targets':set([self.target]), 'prefix':self.computationPrefix}]}
       self.stat.initialize(runInfo, inputs, initDict)
-    self.functionS = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self,
+    self.functionS = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn',
                                                           **{'SKLtype':'neighbors|KNeighborsClassifier',
                                                              'Features':list(self.variableDist.keys()),
                                                              'Target':[self.target], 'n_jobs': -1})
@@ -190,7 +182,7 @@ class LimitSurfaceIntegral(PostProcessor):
     self.raiseADebug(self.matrixDict)
     if self.computeErrrorBounds:
       #  create a model for computing the "error"
-      self.errorModel = LearningGate.returnInstance('SupervisedGate','SciKitLearn', self,
+      self.errorModel = LearningGate.factory.returnInstance('SupervisedGate','SciKitLearn',
                                                           **{'SKLtype':'neighbors|KNeighborsClassifier',
                                                              'Features':list(self.variableDist.keys()),
                                                              'Target':[self.target], 'weights': 'distance', 'n_jobs': -1})

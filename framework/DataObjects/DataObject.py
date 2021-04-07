@@ -14,27 +14,10 @@
 """
   Base class for both in-memory and in-disk data structures.
 """
-#For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
-
-import os
-import sys
-import copy
-import functools
-try:
-  import cPickle as pk
-except ImportError:
-  import pickle as pk
-import xml.etree.ElementTree as ET
-
 import abc
-import numpy as np
-import pandas as pd
-import xarray as xr
 
-from BaseClasses import BaseType
-from utils import utils, cached_ndarray, InputData, InputTypes, xmlUtils, mathUtils
-from MessageHandler import MessageHandler
+from BaseClasses import BaseEntity
+from utils import utils, InputData, InputTypes
 
 class DataObjectsCollection(InputData.ParameterInput):
   """
@@ -45,7 +28,7 @@ DataObjectsCollection.createClass("DataObjects")
 #
 #
 #
-class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
+class DataObject(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
   """
     Base class.  Data objects are RAVEN's method for storing data internally and passing it from one
     RAVEN entity to another.  Fundamentally, they consist of a collection of realizations, each of
@@ -99,7 +82,7 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
+    super().__init__()
     self.name             = 'DataObject'
     self.printTag         = self.name
     self._sampleTag       = 'RAVEN_sample_ID' # column name to track samples
@@ -215,9 +198,6 @@ class DataObject(utils.metaclass_insert(abc.ABCMeta,BaseType)):
     # check if protected vars have been violated
     if set(self.protectedTags).intersection(set(self._orderedVars)):
       self.raiseAnError(IOError, 'Input, Output and Index variables can not be part of RAVEN protected tags: '+','.join(self.protectedTags))
-
-    if self.messageHandler is None:
-      self.messageHandler = MessageHandler()
 
   def _setDefaultPivotParams(self):
     """

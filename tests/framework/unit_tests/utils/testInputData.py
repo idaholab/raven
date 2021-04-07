@@ -19,6 +19,7 @@ frameworkPath = os.path.join(os.path.dirname(__file__), *(['..']*4), 'framework'
 sys.path.append(frameworkPath)
 
 from utils import InputData
+print('Testing:', InputData)
 
 results = {'pass':0, 'fail':0}
 
@@ -49,6 +50,7 @@ if same:
 else:
   print('InputData MultiRun LatexSpecs did not match gold file!')
   results['fail'] += 1
+
 
 # cleanup
 try:

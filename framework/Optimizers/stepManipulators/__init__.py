@@ -37,6 +37,4 @@ from .StepManipulator import StepManipulator
 from .GradientHistory import GradientHistory
 from .ConjugateGradient import ConjugateGradient
 
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
+from .Factory import factory

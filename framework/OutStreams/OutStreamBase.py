@@ -25,13 +25,13 @@ import os
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses import BaseEntity
 import DataObjects
 import Models
-from utils import utils, InputData, InputTypes
+from utils import InputTypes
 #Internal Modules End-----------------------------------------------------------
 
-class OutStreamBase(BaseType):
+class OutStreamBase(BaseEntity):
   """
     OUTSTREAM CLASS
     This class is a general base class for outstream action classes
@@ -44,7 +44,7 @@ class OutStreamBase(BaseType):
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
-    spec = BaseType.getInputSpecification()
+    spec = super().getInputSpecification()
     spec.addParam('dir', param_type=InputTypes.StringType, required=False)
     return spec
 
@@ -54,7 +54,7 @@ class OutStreamBase(BaseType):
       @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
+    super().__init__()
 
     ## Use the class name as the type, so as we extend this class, this is
     ## automatically updated to be the correct value. Honestly, we shouldn't
@@ -156,24 +156,24 @@ class OutStreamBase(BaseType):
     for agrosindex in range(self.numberAggregatedOS):
       foundData = False
       for output in inDict['Output']:
-        if output.name.strip() == self.sourceName[agrosindex] and output.type in DataObjects.knownTypes():
+        if output.name.strip() == self.sourceName[agrosindex] and output.type in DataObjects.factory.knownTypes():
           self.sourceData.append(output)
           foundData = True
       if not foundData:
         for inp in inDict['Input']:
           if not type(inp) == type(""):
-            if inp.name.strip() == self.sourceName[agrosindex] and inp.type in DataObjects.knownTypes():
+            if inp.name.strip() == self.sourceName[agrosindex] and inp.type in DataObjects.factory.knownTypes():
               self.sourceData.append(inp)
               foundData = True
             elif type(inp) == Models.ROM:
               self.sourceData.append(inp)
               foundData = True  # good enough
       if not foundData and 'TargetEvaluation' in inDict.keys():
-        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in DataObjects.knownTypes():
+        if inDict['TargetEvaluation'].name.strip() == self.sourceName[agrosindex] and inDict['TargetEvaluation'].type in DataObjects.factory.knownTypes():
           self.sourceData.append(inDict['TargetEvaluation'])
           foundData = True
       if not foundData and 'SolutionExport' in inDict.keys():
-        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in DataObjects.knownTypes():
+        if inDict['SolutionExport'].name.strip() == self.sourceName[agrosindex] and inDict['SolutionExport'].type in DataObjects.factory.knownTypes():
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData:

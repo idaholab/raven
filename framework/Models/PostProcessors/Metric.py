@@ -72,13 +72,13 @@ class Metric(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.printTag = 'POSTPROCESSOR Metrics'
     self.dynamic        = False # is it time-dependent?
     self.features       = None  # list of feature variables
@@ -317,7 +317,7 @@ class Metric(PostProcessor):
     outputDict = {}
     assert(len(self.features) == len(measureList))
     for metricInstance in self.metricsDict.values():
-      metricEngine = MetricDistributor.returnInstance('MetricDistributor',metricInstance,self)
+      metricEngine = MetricDistributor.factory.returnInstance('MetricDistributor', metricInstance)
       for cnt in range(len(self.targets)):
         nodeName = (str(self.targets[cnt]) + '_' + str(self.features[cnt])).replace("|","_")
         varName = metricInstance.name + '|' + nodeName
