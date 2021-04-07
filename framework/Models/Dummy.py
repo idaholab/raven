@@ -36,13 +36,13 @@ class Dummy(Model):
     This is a dummy model that just return the effect of the sampler. The values reported as input in the output
     are the output of the sampler and the output is the counter of the performed sampling
   """
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Model.__init__(self,runInfoDict)
+    super().__init__()
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
     #the following variable are reset at each call of the initialize method
     self.printTag = 'DUMMY MODEL'

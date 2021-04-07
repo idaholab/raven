@@ -16,41 +16,33 @@ Created on Noverber 16, 2017
 
 @author: wangc
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import inspect
 import abc
-import copy
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
-from utils import mathUtils
+from BaseClasses import BaseType, MessageUser
 from utils import utils
-import MessageHandler
 import Distributions
+from EntityFactoryBase import EntityFactory
 #Internal Modules End--------------------------------------------------------------------------------
-class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHandler.MessageUser):
+class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUser):
   """
     This class represents an interface with all the metrics algorithms
     It is a utility class needed to hide the discernment between time-dependent and static
     metrics
   """
-  def __init__(self, estimator, messageHandler):
+  def __init__(self, estimator):
     """
       A constructor
       @ In, estimator, instance of given metric
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
+    super().__init__()
     self.printTag                = 'MetricDistributor'
-    # object of message handler
-    self.messageHandler          = messageHandler
     # instance of given Metric
     self.estimator                = estimator
     # True if the instance of given metric, i.e. 'estimator', can handle time-dependent data, else False
@@ -173,31 +165,18 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType),MessageHand
     output = np.asarray(output)
     return output
 
-__interfaceDict                         = {}
-__interfaceDict['MetricDistributor'      ] = MetricDistributor
-__base                                  = 'Distributor'
+class MetricDistributorFactory(EntityFactory):
+  """
+    Specific factory for metric distributors
+  """
+  def returnInstance(self, Type, estimator):
+    """
+      This function return an instance of the request model type
+      @ In, distributorType, string, string representing the class to retrieve
+      @ In, estimator, list of instance of given metrics
+      @ Out, returnInstance, instance, an instance of this class
+    """
+    return self.returnClass(Type)(estimator)
 
-def returnInstance(distributorType, estimator, caller):
-  """
-    This function return an instance of the request model type
-    @ In, distributorType, string, string representing the class to retrieve
-    @ In, estimator, list of instance of given metrics
-    @ In, caller, instance, object that will share its messageHandler instance
-    @ Out, returnInstance, instance, an instance of this class
-  """
-  try:
-    return __interfaceDict[distributorType](estimator, caller.messageHandler)
-  except KeyError as ae:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+str(distributorType))
-
-def returnClass(distributorType,caller):
-  """
-    This function return an instance of the request model type
-    @ In, distributorType, string, string representing the class to retrieve
-    @ In, caller, instnace, object that will share its messageHandler instance
-    @ Out, returnClass, the class definition
-  """
-  try:
-    return __interfaceDict[distributorType]
-  except KeyError:
-    caller.raiseAnError(NameError,'not known '+__base+' type '+distributorType)
+factory = MetricDistributorFactory('Distributor')
+factory.registerType('MetricDistributor', MetricDistributor)

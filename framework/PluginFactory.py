@@ -135,12 +135,14 @@ def loadEntities(name, plugin):
           _pluginEntities[candidate.entityType][registerName] = candidate
           print(' ... registered "{}" as a "{}" RAVEN entity.'.format(registerName, candidate.entityType))
 
-def getEntities(entityType):
+def getEntities(entityType=None):
   """
     Provides loaded entities.
-    @ In, entityType, str, class of entity to load (e.g. ExternalModel)
+    @ In, entityType, str, optional, class of entity to load (e.g. ExternalModel)
     @ Out, _pluginEntities, dict, name: class of plugin entities
   """
+  if entityType is None:
+    return _pluginEntities
   return _pluginEntities.get(entityType, {})
 
 ## factory loading

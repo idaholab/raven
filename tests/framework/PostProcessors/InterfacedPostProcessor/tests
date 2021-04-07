@@ -101,7 +101,7 @@
   [./HStoPSoperators]
     type   = 'RavenFramework'
     input  = 'test_HistorySetToPointSetOperators.xml'
-    csv    = 'HStoPSoperators/out_PP_HStoPSRows_dump.csv HStoPSoperators/out_PP_HStoPSPivotOperatorMin_dump.csv HStoPSoperators/out_PP_HStoPSPivotOperatorMax_dump.csv HStoPSoperators/out_PP_HStoPSPivotOperatorAverage_dump.csv HStoPSoperators/out_PP_HStoPSPivotValuesInterpolate_dump.csv HStoPSoperators/out_PP_HStoPSPivotValuesNearestCeling_dump.csv HStoPSoperators/out_PP_HStoPSPivotValuesNearestFloor_dump.csv HStoPSoperators/out_PP_HStoPSPivotValuesNearest_dump.csv'
+    csv    = 'HStoPSoperators/out_PP_HStoPSRows_dump.csv HStoPSoperators/out_PP_HStoPSPivotOperatorMin_dump.csv HStoPSoperators/out_PP_HStoPSPivotOperatorMax_dump.csv HStoPSoperators/out_PP_HStoPSPivotOperatorAverage_dump.csv HStoPSoperators/out_PP_HStoPSPivotValuesInterpolate_dump.csv HStoPSoperators/out_PP_HStoPSPivotValuesNearestCeling_dump.csv HStoPSoperators/out_PP_HStoPSPivotValuesNearestFloor_dump.csv HStoPSoperators/out_PP_HStoPSPivotValuesNearest_dump.csv HStoPSoperators/out_PP_HStoPSPivotOperatorAll_dump.csv'
   [../]
   [./historySetSampling_and_sync]
     type   = 'RavenFramework'

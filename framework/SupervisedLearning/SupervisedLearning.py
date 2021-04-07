@@ -14,7 +14,7 @@
 """
   Created on May 8, 2018
 
-  @author: talbpaul
+  @author: alfoa
 
   Originally from ../SupervisedLearning.py, split in PR #650 in July 2018
   Base subclass definition for all supported type of ROM aka Surrogate Models etc
@@ -28,17 +28,17 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import numpy as np
 import abc
 import copy
+import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, mathUtils, xmlUtils
-import MessageHandler
+from BaseClasses import MessageUser
 #Internal Modules End--------------------------------------------------------------------------------
 
-class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
+class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
   """
     This is the general interface to any supervisedLearning learning method.
     Essentially it contains a train method and an evaluate method
@@ -46,7 +46,6 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
   returnType       = ''    # this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
   qualityEstType   = []    # this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
   ROMtype          = ''    # the broad class of the interpolator
-  ROMmultiTarget   = False #
   ROMtimeDependent = False # is this ROM able to treat time-like (any monotonic variable) explicitly in its formulation?
 
   @staticmethod
@@ -75,23 +74,40 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         return(False, ' The array must be 1-d. Got shape: '+str(np.asarray(arrayIn).shape))
     return (True,'')
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, **initDict):
     """
       A constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, initDict, dict, an arbitrary list of kwargs
       @ Out, None
     """
+    super().__init__()
     self.printTag = 'Supervised'
-    self.messageHandler = messageHandler
-    self._dynamicHandling = False
-    self._assembledObjects = None           # objects assembled by the ROM Model, passed through.
-    self.numThreads = kwargs.pop('NumThreads', None)
+    self.features = None           # "inputs" to this model
+    self.target = None             # "outputs" of this model
+    self.amITrained = False
+    self._dynamicHandling = False  # time-like dependence in the model?
+    self._assembledObjects = None  # objects assembled by the ROM Model, passed through.
+    self.numThreads = None         # threading for run
+    self.initOptionDict = None     # construction variables
+    self.verbosity = None          # printing verbosity
+    self.kerasROMDict = None       # dictionary for ROM builded by Keras
+    #average value and sigma are used for normalization of the feature data
+    #a dictionary where for each feature a tuple (average value, sigma)
+    #these need to be declared in the child classes!!!!
+    self.muAndSigmaFeatures = {}   # normalization parameters
+    self.metadataKeys = set()      # keys that can be passed to DataObject as meta information
+    self.metadataParams = {}       # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
+    self.readInitDict(initDict)
+
+  def readInitDict(self, initDict):
+    """
+      Reads in the initialization dict to initialize this instance
+      @ In, initDict, dict, keywords passed to constructor
+      @ Out, None
+    """
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
-    if kwargs != None:
-      self.initOptionDict = kwargs
-    else:
-      self.initOptionDict = {}
+    self.numThreads = initDict.pop('NumThreads', None)
+    self.initOptionDict = {} if initDict is None else initDict
     if 'Features' not in self.initOptionDict.keys():
       self.raiseAnError(IOError,'Feature names not provided')
     if 'Target' not in self.initOptionDict.keys():
@@ -100,14 +116,9 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self.target = self.initOptionDict.pop('Target')
     self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
     for target in self.target:
-      if target in self.features: #self.features.count(target) > 0:
-        self.raiseAnError(IOError,'The target "'+target+'" is also in the features!')
-    #average value and sigma are used for normalization of the feature data
-    #a dictionary where for each feature a tuple (average value, sigma)
-    self.muAndSigmaFeatures = {}
-    #these need to be declared in the child classes!!!!
-    self.amITrained = False
-    self.kerasROMDict = self.initOptionDict.pop('KerasROMDict', None) # dictionary for ROM builded by Keras
+      if target in self.features:
+        self.raiseAnError(IOError, f'The target "{target}" is also in the features!')
+    self.kerasROMDict = self.initOptionDict.pop('KerasROMDict', None)
 
   def __getstate__(self):
     """
@@ -131,7 +142,38 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     self.__dict__.update(d)
 
-  def initialize(self,idict):
+  def addMetaKeys(self, args, params=None):
+    """
+      Adds keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to register
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
+      @ Out, None
+    """
+    if params is None:
+      params = {}
+    self.metadataKeys = self.metadataKeys.union(set(args))
+    self.metadataParams.update(params)
+
+  def removeMetaKeys(self, args):
+    """
+      Removes keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to de-register
+      @ Out, None
+    """
+    self.metadataKeys = self.metadataKeys - set(args)
+    for arg in set(args):
+      self.metadataParams.pop(arg, None)
+
+  def provideExpectedMetaKeys(self):
+    """
+      Provides the registered list of metadata keys for this entity.
+      @ In, None
+      @ Out, meta,tuple, (list(str),dict), expected keys (empty if none) and expected indexes related to expected keys
+    """
+    return self.metadataKeys, self.metadataParams
+
+  def initialize(self, idict):
     """
       Initialization method
       @ In, idict, dict, dictionary of initialization parameters
@@ -156,12 +198,13 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     pass
 
-  def train(self,tdict):
+  def train(self, tdict, indexMap=None):
     """
       Method to perform the training of the supervisedLearning algorithm
       NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires. So far the base class will do the translation into numpy
       @ In, tdict, dict, training dictionary
+      @ In, indexMap, dict, mapping of variables to their dependent indices, if any
       @ Out, None
     """
     if type(tdict) != dict:
@@ -185,7 +228,16 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       targetValues = np.concatenate([np.asarray(arr)[sl] for arr in targetValues], axis=np.asarray(targetValues[0]).ndim)
 
     # construct the evaluation matrixes
-    featureValues = np.zeros(shape=(len(targetValues),len(self.features)))
+    ## add the indices if they're not present
+    needFeatures = copy.deepcopy(self.features)
+    needTargets = copy.deepcopy(self.target)
+    if indexMap:
+      for feat in self.features:
+        for index in indexMap.get(feat, []):
+          if index not in needFeatures and index not in needTargets:
+            needFeatures.append(feat)
+
+    featureValues = np.zeros(shape=(len(targetValues), len(self.features)))
     for cnt, feat in enumerate(self.features):
       if feat not in names:
         self.raiseAnError(IOError,'The feature sought '+feat+' is not in the training set')
@@ -352,9 +404,6 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, params, dict, parameters to set (dependent on ROM)
       @ Out, None
     """
-    newMH = params.pop('messageHandler', None)
-    if newMH:
-      self.messageHandler = newMH
     # reseeding is common to many
     seed = params.pop('seed', None)
     if seed:

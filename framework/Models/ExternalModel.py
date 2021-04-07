@@ -63,35 +63,33 @@ class ExternalModel(Dummy):
     #cls.raiseADebug('think about how to import the roles to allowed class for the external model. For the moment we have just all')
     pass
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Dummy.__init__(self,runInfoDict)
-    self.sim                      = None
-    self.modelVariableValues      = {}                                          # dictionary of variable values for the external module imported at runtime
-    self.modelVariableType        = {}                                          # dictionary of variable types, used for consistency checks
-    self.listOfRavenAwareVars     = []                                          # list of variables RAVEN needs to be aware of
+    super().__init__()
+    self.sim = None
+    self.modelVariableValues = {}     # dictionary of variable values for the external module imported at runtime
+    self.modelVariableType = {}       # dictionary of variable types, used for consistency checks
+    self.listOfRavenAwareVars = []    # list of variables RAVEN needs to be aware of
     self._availableVariableTypes = ['float','bool','int','ndarray',
                                     'c1darray','float16','float32','float64',
                                     'float128','int16','int32','int64','bool8'] # available data types
     self._availableVariableTypes = self._availableVariableTypes + ['numpy.'+item for item in self._availableVariableTypes]                   # as above
-    self.printTag                 = 'EXTERNAL MODEL'
-    self.initExtSelf              = utils.Object()
-    self.workingDir = runInfoDict['WorkingDir']
+    self.printTag = 'EXTERNAL MODEL'  # label
+    self.initExtSelf = utils.Object() # initial externalizable object
+    self.workingDir = None            # RAVEN working dir
     self.pickled = False #  is this model pickled?
-  
-  def copyModel(self, source):
+  def applyRunInfo(self, runInfo):
     """
-      This method is used to copy the external model from another model
-      @ In, source, externalModel instance, the source to copy from
+      Take information from the RunInfo
+      @ In, runInfo, dict, RunInfo info
       @ Out, None
     """
-    self.pickled = True
-    self.__dict__.update(source.__dict__)
-  
+    self.workingDir = runInfo['WorkingDir']
+
   def initialize(self,runInfo,inputs,initDict=None):
     """
       this needs to be over written if a re initialization of the model is need it gets called at every beginning of a step
@@ -156,7 +154,6 @@ class ExternalModel(Dummy):
       self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
     elif paramInput.parameterValues['subType'].strip() == 'pickledModel':
       self.pickled = True
-      
     ## NOTE we implicitly assume not having ModuleToLoad means you're a plugin or a known type.
     elif paramInput.parameterValues['subType'].strip() is not None:
       ExternalModel.plugins.loadPlugin("ExternalModel",paramInput.parameterValues['subType'])
@@ -292,17 +289,20 @@ class ExternalModel(Dummy):
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     # collect results from model run
-    result = self.evaluate(inRun)
+    result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
+    evalIndexMap = result.get('_indexMap', [{}])[0]
     # build realization
     ## do it in this order to make sure only the right variables are overwritten
     ## first inRun, which has everything from self.* and Input[*]
-    rlz =      dict((var,np.atleast_1d(val)) for var,val in inRun.items())
+    rlz = dict((var, np.atleast_1d(val)) for var, val in inRun.items())
     ## then result, which has the expected outputs and possibly changed inputs
-    rlz.update(dict((var,np.atleast_1d(val)) for var,val in result.items()))
+    rlz.update(dict((var, np.atleast_1d(val)) for var, val in result.items()))
     ## then get the metadata from kwargs
-    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs.items()))
+    rlz.update(dict((var, np.atleast_1d(val)) for var, val in kwargs.items()))
     ## then get the inputs from SampledVars (overwriting any other entries)
-    rlz.update(dict((var,np.atleast_1d(val)) for var,val in kwargs['SampledVars'].items()))
+    rlz.update(dict((var, np.atleast_1d(val)) for var, val in kwargs['SampledVars'].items()))
+    if '_indexMap' in rlz:
+      rlz['_indexMap'][0].update(evalIndexMap)
     return rlz
 
   def collectOutput(self,finishedJob,output,options=None):
@@ -326,6 +326,6 @@ class ExternalModel(Dummy):
         if outputSize == -1:
           outputSize = len(np.atleast_1d(evaluation[key]))
         if not mathUtils.sizeMatch(evaluation[key],outputSize):
-          self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(len(np.atleast_1d(outcomes[key]))))
+          self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(outputSize))
 
     Dummy.collectOutput(self, finishedJob, output, options)

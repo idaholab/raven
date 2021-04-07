@@ -254,4 +254,28 @@
     UnorderedXml = 'Peaks/romMeta.xml'
     rel_err = 1e-6
   [../]
+
+  [./Interpolated]
+    type = 'RavenFramework'
+    input = 'interpolated.xml'
+    skip = 'inconsistent see 1351'
+    [./meta]
+      type = XML
+      unordered = true
+      output = 'Interpolated/romMeta.xml'
+      rel_err = 1e-3
+    [../]
+    [./csv]
+      type = OrderedCSV
+      output = 'Interpolated/synthetic.csv Interpolated/resynthetic.csv'
+      rel_err = 1e-3
+    [../]
+  [../]
+
+  [./InterpolatedMaxCycles]
+    type = 'RavenFramework'
+    input = 'interpolated_maxcycles.xml'
+    csv = 'InterpolatedMaxCycles/synthetic.csv InterpolatedMaxCycles/resynthetic.csv'
+    skip = 'inconsistent see 1351'
+  [../]
 []

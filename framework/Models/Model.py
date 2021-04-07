@@ -27,13 +27,12 @@ import importlib
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses import BaseEntity, Assembler, InputDataUser
 from utils import utils
-from Assembler import Assembler
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
+class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputDataUser)):
   """
     A model is something that given an input will return an output reproducing some physical model
     it could as complex as a stand alone code, a reduced order model trained somehow or something
@@ -99,7 +98,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
   validateDict['Output' ][0]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
   validateDict['Output' ][1]['class'       ] = 'Databases'
-  validateDict['Output' ][1]['type'        ] = ['HDF5']
+  validateDict['Output' ][1]['type'        ] = ['NetCDF', 'HDF5']
   validateDict['Output' ][1]['required'    ] = False
   validateDict['Output' ][1]['multiplicity'] = 'n'
   validateDict['Output'].append(testDict.copy())
@@ -127,12 +126,17 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                 'EnsembleForward',
                                                 'CustomSampler',
                                                 'AdaptiveMonteCarlo',
-                                                'Metropolis']
+                                                'Metropolis',
+                                                'AdaptiveMetropolis']
   validateDict['Optimizer'].append(testDict.copy())
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
   validateDict['Optimizer'][0]['multiplicity'] = 1
-  validateDict['Optimizer'][0]['type']         = ['SPSA','FiniteDifference','ConjugateGradient','SimulatedAnnealing']
+  validateDict['Optimizer'][0]['type'] = ['SPSA',
+                                          'FiniteDifference',
+                                          'ConjugateGradient',
+                                          'SimulatedAnnealing',
+                                          'GeneticAlgorithm']
 
   @classmethod
   def generateValidateDict(cls):
@@ -192,14 +196,13 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
         raise IOError('It is not possible to use '+anItem['class']+' type = ' +anItem['type']+' as '+who)
     return True
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
-    Assembler.__init__(self)
+    super().__init__()
     #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
     #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
     self.alias    = {'input':{},'output':{}}
@@ -374,21 +377,34 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    prefix = kwargs.get("prefix")
-    uniqueHandler = kwargs.get("uniqueHandler",'any')
-    forceThreads = kwargs.get("forceThreads",False)
+    nRuns = 1
+    batchMode =  kwargs.get("batchMode", False)
+    if batchMode:
+      nRuns = kwargs["batchInfo"]['nRuns']
 
-    ## These kwargs are updated by createNewInput, so the job either should not
-    ## have access to the metadata, or it needs to be updated from within the
-    ## evaluateSample function, which currently is not possible since that
-    ## function does not know about the job instance.
-    metadata = kwargs
+    for index in range(nRuns):
+      if batchMode:
+        kw =  kwargs['batchInfo']['batchRealizations'][index]
+      else:
+        kw = kwargs
 
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, uniqueHandler=uniqueHandler, forceUseThreads=forceThreads)
+      prefix = kw.get("prefix")
+      uniqueHandler = kw.get("uniqueHandler",'any')
+      forceThreads = kw.get("forceThreads",False)
+
+      ## These kw are updated by createNewInput, so the job either should not
+      ## have access to the metadata, or it needs to be updated from within the
+      ## evaluateSample function, which currently is not possible since that
+      ## function does not know about the job instance.
+      metadata = kw
+
+      ## This may look a little weird, but due to how the parallel python library
+      ## works, we are unable to pass a member function as a job because the
+      ## pp library loses track of what self is, so instead we call it from the
+      ## class and pass self in as the first parameter
+      jobHandler.addJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
+                        uniqueHandler=uniqueHandler, forceUseThreads=forceThreads,
+                        groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
 
   def addOutputFromExportDictionary(self,exportDict,output,options,jobIdentifier):
     """
