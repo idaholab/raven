@@ -15,11 +15,13 @@
 Created on Mar 16, 2013
 @author: crisr
 """
+from abc import ABCMeta, abstractmethod
 
-from BaseClasses import BaseType
 from utils import mathUtils
+from utils.utils import metaclass_insert
+from BaseClasses import BaseType
 
-class BaseInterface(BaseType):
+class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
   """
     Archetype for "interface" classes, including implementations/strategies/algorithms to execute
     the intention of BaseEntity types. For example, SupervisedLearning Engines are an Interface
@@ -48,7 +50,7 @@ class BaseInterface(BaseType):
       provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _handleInput
       that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
       verbosity (xml attribute)
-      @ In, paramInput, InputParameter, input data from xml
+      @ In, paramInput, utils.InputData.parameterInput, input data from xml
       @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
@@ -76,13 +78,13 @@ class BaseInterface(BaseType):
     """
     pass
 
+  @abstractmethod
   def run(self, *args, **kwargs):
     """
       Main method to "do what you do".
       @ In, args, list, positional arguments
       @ In, kwargs, dict, keyword arguments
     """
-    pass
 
   ################################
   # Utility API

@@ -69,6 +69,7 @@ class SamplePlot(PlotInterface):
                                 current step. The sources are searched into this.
       @ Out, None
     """
+    super().initialize(stepEntities)
     src = self.findSource(self.sourceName, stepEntities)
     if src is None:
       self.raiseAnError(IOError, f'No source named "{self.sourceName}" was found in the Step for SamplePlot "{self.name}"!')

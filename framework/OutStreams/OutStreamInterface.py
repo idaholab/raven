@@ -68,7 +68,7 @@ class OutStreamInterface(BaseInterface):
     self.overwrite = spec.parameterValues.get('overwrite')
     fname = spec.findFirst('filename')
     if fname is not None:
-      self.filename = fname
+      self.filename = fname.value
 
   def initialize(self, stepEntities):
     """
@@ -80,6 +80,20 @@ class OutStreamInterface(BaseInterface):
     if self.subDirectory is not None:
       if not os.path.exists(self.subDirectory):
         os.makedirs(self.subDirectory)
+
+  def getInitParams(self):
+    """
+      This function is called from the base class to print some of the
+      information inside the class. Whatever is permanent in the class and not
+      inherited from the parent class should be mentioned here. The information
+      is passed back in the dictionary. No information about values that change
+      during the simulation are allowed.
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = {}
+    return paramDict
 
   def legacyCollectSources(self, inDict):
     """

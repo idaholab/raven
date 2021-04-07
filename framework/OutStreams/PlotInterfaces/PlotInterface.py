@@ -41,9 +41,6 @@ class PlotInterface(OutStreamInterface):
     """
     super().__init__()
     self.printTag = 'PlotInterface'
-    self.overwrite = True     # overwrite existing creations? # TODO not in input specs?
-    self.subDirectory = None  # directory to save generated files to # TODO should be in spec
-    self.filename = ''        # target file name? TODO should be in spec
 
   def handleInput(self, spec):
     """
@@ -53,19 +50,22 @@ class PlotInterface(OutStreamInterface):
     """
     super().handleInput(spec)
 
-  def initialize(self, inDict):
+  def initialize(self, stepEntities):
     """
       Function to initialize the OutStream. It basically looks for the "data"
       object and links it to the system.
-      @ In, inDict, dict, contains all the Objects are going to be used in the
+      @ In, stepEntities, dict, contains all the Objects are going to be used in the
       current step. The sources are searched into this.
       @ Out, None
     """
-    super().initialize(inDict)
+    super().initialize(stepEntities)
 
   def run(self):
     """
       Main run method.
+      Generally, the sources from which data should be taken for plots has been established by now,
+      often though the "initialize" method. This method should generate plots, and probably
+      store them to file, depending on the strategy of this plotter. See examples in other plotters.
       @ In, None
       @ Out, None
     """
@@ -105,8 +105,8 @@ class PlotInterface(OutStreamInterface):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = {}
-    paramDict['Global Class Type                  '] = 'OutStreamManager'
+    paramDict = super().getInitParams()
+    paramDict['Global Class Type                  '] = 'Plotter'
     paramDict['Specialized Class Type             '] = self.type
     if self.overwrite:
       paramDict['Overwrite output everytime called'] = 'True'

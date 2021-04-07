@@ -955,17 +955,20 @@ class GeneralPlot(PlotInterface):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    # because we're reading XML not inputParams, we don't call super, and have to set our own name
+    # because we're reading XML not inputParams, we don't call super, and have to set our own:
+    # - name
+    # - subdirectory
+    # - overwrite
     self.name = xmlNode.attrib['name']
     subDir = xmlNode.attrib.get('dir', None)
     if subDir:
       subDir = os.path.expanduser(subDir)
     self.subDirectory = subDir
-    if 'dim' in xmlNode.attrib:
-      self.raiseAnError(IOError,"the 'dim' attribute has been deprecated. This warning became an error in January 2017")
     if 'overwrite' in xmlNode.attrib:
       self.overwrite = utils.stringIsTrue(xmlNode.attrib['overwrite'])
     foundPlot = False
+    if 'dim' in xmlNode.attrib:
+      self.raiseAnError(IOError,"the 'dim' attribute has been deprecated. This warning became an error in January 2017")
     for subnode in xmlNode:
       # if actions, read actions block
       if subnode.tag == 'filename':
@@ -1216,7 +1219,7 @@ class GeneralPlot(PlotInterface):
       #################
       #  SCATTER PLOT #
       #################
-      self.raiseADebug('creating plot' + self.name)
+      self.raiseADebug('creating plot ' + self.name)
       if self.outStreamTypes[pltIndex] == 'scatter':
         if 's' not in plotSettings.keys():
           plotSettings['s'] = '20'
