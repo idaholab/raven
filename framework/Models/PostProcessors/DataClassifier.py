@@ -77,7 +77,7 @@ class DataClassifier(PostProcessorInterface):
       @ In, initDict, dict, optional, dictionary with initialization options
       @ Out, None
     """
-    super().initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     for key, val in self.mapping.items():
      self.funcDict[key] = self.retrieveObjectFromAssemblerDict('Function',val[1])
 
@@ -87,7 +87,7 @@ class DataClassifier(PostProcessorInterface):
       @ In, paramInput, ParameterInput, the already parsed input
       @ Out, None
     """
-    super()._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'variable':
         func = child.findFirst('Function')
@@ -222,4 +222,4 @@ class DataClassifier(PostProcessorInterface):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    super().collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output, options=options)

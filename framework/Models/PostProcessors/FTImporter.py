@@ -77,7 +77,7 @@ class FTImporter(PostProcessorInterface):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    super().initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -85,7 +85,7 @@ class FTImporter(PostProcessorInterface):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super()._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     fileFormat = paramInput.findFirst('fileFormat')
     self.fileFormat = fileFormat.value
     topEventID = paramInput.findFirst('topEventID')
@@ -111,4 +111,4 @@ class FTImporter(PostProcessorInterface):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    super().collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output, options=options)

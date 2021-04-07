@@ -257,7 +257,7 @@ class BasicStatistics(PostProcessorInterface):
 
     #for backward compatibility, compile the full list of parameters used in Basic Statistics calculations
     self.parameters['targets'] = list(self.allUsedParams)
-    super().initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     inputObj = inputs[-1] if type(inputs) == list else inputs
     if inputObj.type == 'HistorySet':
       self.dynamic = True
@@ -1305,4 +1305,4 @@ class BasicStatistics(PostProcessorInterface):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    super().collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output, options=options)

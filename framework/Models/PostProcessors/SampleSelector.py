@@ -68,7 +68,7 @@ class SampleSelector(PostProcessorInterface):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
-    super()._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       tag = child.getName()
       if tag == 'target':

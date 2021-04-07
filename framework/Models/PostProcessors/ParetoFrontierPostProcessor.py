@@ -145,4 +145,4 @@ class ParetoFrontier(PostProcessorInterface):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    super().collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output, options=options)

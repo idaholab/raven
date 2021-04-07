@@ -16,8 +16,6 @@ Created on Nov 1, 2019
 
 @author: mandd
 """
-
-from __future__ import division, print_function , unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
@@ -78,7 +76,7 @@ class MCSImporter(PostProcessorInterface):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    super().initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -86,7 +84,7 @@ class MCSImporter(PostProcessorInterface):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super()._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     expand = paramInput.findFirst('expand')
     self.expand = expand.value
 
@@ -156,7 +154,7 @@ class MCSImporter(PostProcessorInterface):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    super().collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output, options=options)
 
 def mcsReader(mcsListFile):
   """

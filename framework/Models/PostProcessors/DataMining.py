@@ -382,7 +382,7 @@ class DataMining(PostProcessorInterface):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    super().initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     if "SolutionExport" in initDict:
       self.solutionExport = initDict["SolutionExport"]
     if "PreProcessor" in self.assemblerDict:
@@ -398,7 +398,7 @@ class DataMining(PostProcessorInterface):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super()._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     ## By default, we want to name the 'labels' by the name of this
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information

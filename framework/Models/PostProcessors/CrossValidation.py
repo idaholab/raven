@@ -106,7 +106,7 @@ class CrossValidation(PostProcessorInterface):
       @ In, inputs, list, list of inputs
       @ In, initDict, dict, dictionary with initialization options
     """
-    super().initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
 
     for metricIn in self.assemblerDict['Metric']:
       if metricIn[2] in self.metricsDict.keys():
@@ -122,7 +122,7 @@ class CrossValidation(PostProcessorInterface):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super()._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     self.initializationOptionDict = {}
     scoreList = ['maximum', 'average', 'median']
     cvNode = paramInput.findFirst('SciKitLearn')

@@ -354,7 +354,7 @@ class ComparisonStatistics(PostProcessorInterface):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    super().initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -362,7 +362,7 @@ class ComparisonStatistics(PostProcessorInterface):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super()._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for outer in paramInput.subparts:
       if outer.getName() == 'compare':
         compareGroup = ComparisonStatistics.CompareGroup()

@@ -64,7 +64,7 @@ class RealizationAverager(PostProcessorInterface):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
-    super()._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       tag = child.getName()
       if tag == 'target':
@@ -111,4 +111,4 @@ class RealizationAverager(PostProcessorInterface):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    super().collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output, options=options)

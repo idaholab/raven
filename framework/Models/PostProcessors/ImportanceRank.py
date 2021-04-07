@@ -118,7 +118,7 @@ class ImportanceRank(PostProcessorInterface):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super()._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'what':
         what = child.value.strip()
@@ -206,7 +206,7 @@ class ImportanceRank(PostProcessorInterface):
       @ In, inputs, list, list of inputs
       @ In, initDict, dict, dictionary with initialization options
     """
-    super().initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     self.mvnDistribution = self.retrieveObjectFromAssemblerDict('mvnDistribution', self.mvnDistribution)
   def inputToInternal(self, currentInp):
     """
