@@ -20,12 +20,12 @@ import numpy as np
 import xarray
 import math
 
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
 import LearningGate
 
 
-class LimitSurfaceIntegral(PostProcessor):
+class LimitSurfaceIntegral(PostProcessorInterface):
   """
     This post-processor computes the n-dimensional integral of a Limit Surface
   """
@@ -40,7 +40,7 @@ class LimitSurfaceIntegral(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(LimitSurfaceIntegral, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
 
     LSIVariableInput = InputData.parameterInputFactory("variable")
     LSIVariableInput.addParam("name", InputTypes.StringType)
@@ -104,7 +104,7 @@ class LimitSurfaceIntegral(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(self, paramInput)
     for child in paramInput.subparts:
       varName = None
       if child.getName() == 'variable':

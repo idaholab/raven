@@ -22,14 +22,14 @@ import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils
 from utils import InputData, InputTypes
 from utils import frontUtils
 import Runners
 #Internal Modules End-----------------------------------------------------------
 
-class ParetoFrontier(PostProcessor):
+class ParetoFrontier(PostProcessorInterface):
   """
     This postprocessor selects the points that lie on the Pareto frontier
     The postprocessor acts only on PointSet and return a subset of such PointSet
@@ -58,7 +58,7 @@ class ParetoFrontier(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(ParetoFrontier, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
 
     objDataType = InputTypes.makeEnumType("objective", "objectiveType", ['min','max'])
 
@@ -145,4 +145,4 @@ class ParetoFrontier(PostProcessor):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    PostProcessor.collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(self, finishedJob, output, options=options)

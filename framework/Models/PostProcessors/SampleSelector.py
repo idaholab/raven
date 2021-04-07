@@ -16,19 +16,16 @@ Created on August 28, 2018
 
 @author: giovannimaronati
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 #External Modules End-----------------------------------------------------------
 
-#Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils
 from utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
-class SampleSelector(PostProcessor):
+class SampleSelector(PostProcessorInterface):
   """
     This postprocessor selects the row in which the minimum or the maximum
     of a target is found.The postprocessor can  act on DataObject, and
@@ -71,7 +68,7 @@ class SampleSelector(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(self, paramInput)
     for child in paramInput.subparts:
       tag = child.getName()
       if tag == 'target':
@@ -86,9 +83,6 @@ class SampleSelector(PostProcessor):
     if self.criterion not in ['index']:
       if self.target is None:
         self.raiseAnError(IOError,'Criterion "{}" requires a <target> be identified!'.format(self.criterion))
-
-
-
 
   def inputToInternal(self, currentInp):
     """

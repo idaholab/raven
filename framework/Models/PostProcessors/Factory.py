@@ -49,13 +49,7 @@ try:
 except ImportError:
   renaming = {}
 
-factory = EntityFactory('PostProcessor', needsRunInfo=True)
-factory.registerAllSubtypes(Model, alias=renaming)
-
-## Here the class methods are called to fill the information about the usage of the classes
-for className in factory.knownTypes():
-  classType = factory.returnClass(className)
-  classType.generateValidateDict()
-  classType.specializeValidateDict()
+factory = EntityFactory('PostProcessorInterface', needsRunInfo=True)
+factory.registerAllSubtypes(PostProcessorInterface, alias=renaming)
 
 factory.registerType('External', ExternalPostProcessor)

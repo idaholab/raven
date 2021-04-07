@@ -17,8 +17,6 @@ Created on Nov 1, 2017
 @author: dan maljovec, mandd
 """
 
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 import xml.etree.ElementTree as ET
@@ -81,7 +79,7 @@ class ETImporter(PostProcessorInterface):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    super().initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -89,7 +87,7 @@ class ETImporter(PostProcessorInterface):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super()._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     fileFormat = paramInput.findFirst('fileFormat')
     self.fileFormat = fileFormat.value
     if self.fileFormat not in self.allowedFormats:
@@ -118,4 +116,4 @@ class ETImporter(PostProcessorInterface):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    super().collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output, options=options)

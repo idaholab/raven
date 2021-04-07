@@ -20,7 +20,7 @@
 """
 import numpy as np
 
-from Models import factory as modelsFactory
+from Models.PostProcessors import factory as ppFactory
 from utils import InputData, InputTypes
 from .AdaptiveSampler import AdaptiveSampler
 from .MonteCarlo import MonteCarlo
@@ -30,7 +30,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
   """
     A sampler that will adaptively locate the limit surface of a given problem
   """
-  bS = modelsFactory.returnClass('BasicStatistics')
+  bS = ppFactory.returnClass('BasicStatistics')
   statScVals = bS.scalarVals
   statErVals = bS.steVals
   usableStats = []

@@ -16,7 +16,6 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import math
@@ -24,7 +23,7 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils
 from utils import mathUtils
 from utils import InputData, InputTypes
@@ -258,7 +257,7 @@ def _getPDFandCDFfromData(dataName, data, csv, methodInfo, interpolation,
   return dataStats, cdfFunc, pdfFunc
 
 
-class ComparisonStatistics(PostProcessor):
+class ComparisonStatistics(PostProcessorInterface):
   """
     ComparisonStatistics is to calculate statistics that compare
     two different codes or code to experimental data.
@@ -355,7 +354,7 @@ class ComparisonStatistics(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(self, runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -363,7 +362,7 @@ class ComparisonStatistics(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(self, paramInput)
     for outer in paramInput.subparts:
       if outer.getName() == 'compare':
         compareGroup = ComparisonStatistics.CompareGroup()

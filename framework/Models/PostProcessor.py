@@ -46,8 +46,8 @@ class PostProcessor(Model):
     """
     spec = super().getInputSpecification()
     validTypes = list(interfaceFactory.knownTypes())
-    typeEnum = InputTypes.makeEnumType(validTypes)
-    for name in typeEnum:
+    typeEnum = InputTypes.makeEnumType('PostProcessor', 'PostProcessorType', validTypes)
+    for name in validTypes:
       pp = interfaceFactory.returnClass(name)
       subSpec = pp.getInputSpecification()
       spec.mergeSub(subSpec)
@@ -105,13 +105,13 @@ class PostProcessor(Model):
     cls.validateDict['Function'  ][0]['required'    ] = False
     cls.validateDict['Function'  ][0]['multiplicity'] = 1
 
-  def __init__(self, runInfoDict):
+  def __init__(self ):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    super().__init__(self,runInfoDict)
+    super().__init__()
     self.inputCheckInfo  = []     # List of tuple, i.e input objects info [('name','type')]
     self.action = None            # action
     self.printTag = 'POSTPROCESSOR MODEL'
@@ -123,7 +123,7 @@ class PostProcessor(Model):
       @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
-    super()._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     reqType = paramInput.parameterValues['subType']
     self._pp = interfaceFactory.returnInstance (reqType)
     self._pp._handleInput(paramInput)
@@ -137,7 +137,6 @@ class PostProcessor(Model):
     """
     super().initialize(runInfo, inputs, initDict)
     self._pp.initialize(runInfo, inputs, initDict)
-    settings = self._pp.getSettings()
     self.inputCheckInfo = [(inp.name, inp.type) for inp in inputs]
 
   def createNewInput(self,myInput,samplerType,**kwargs):
@@ -185,7 +184,7 @@ class PostProcessor(Model):
         @ Out, None
     """
     kwargs['forceThreads'] = True
-    super().submit(self,myInput, samplerType, jobHandler,**kwargs)
+    super().submit(myInput, samplerType, jobHandler,**kwargs)
 
   def collectOutput(self, finishedJob, output, options=None):
     """

@@ -16,8 +16,6 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import xarray
@@ -26,13 +24,13 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from .BasicStatistics import BasicStatistics
 from utils import InputData, InputTypes
 from utils.RAVENiterators import ravenArrayIterator
 #Internal Modules End--------------------------------------------------------------------------------
 
-class SafestPoint(PostProcessor):
+class SafestPoint(PostProcessorInterface):
   """
     It searches for the probability-weighted safest point inside the space of the system controllable variables
   """
@@ -101,7 +99,7 @@ class SafestPoint(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(self, paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'outputName':
         self.outputName = child.value

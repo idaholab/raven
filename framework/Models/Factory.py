@@ -29,7 +29,7 @@ from .HybridModels  import LogicalModel
 from .PostProcessor import PostProcessor
 
 factory = EntityFactory('Model', needsRunInfo=True)
-factory.registerAllSubtypes(Model, alias=renaming)
+factory.registerAllSubtypes(Model)
 
 # #here the class methods are called to fill the information about the usage of the classes
 for className in factory.knownTypes():

@@ -28,14 +28,14 @@ import csv
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
 from utils import xmlUtils as xmlU
 from utils import utils
 #Internal Modules End-----------------------------------------------------------
 
 
-class MCSImporter(PostProcessor):
+class MCSImporter(PostProcessorInterface):
   """
     This is the base class of the PostProcessor that imports Minimal Cut Sets (MCSs) into RAVEN as a PointSet
   """
@@ -65,7 +65,7 @@ class MCSImporter(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(MCSImporter, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("expand",       contentType=InputTypes.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("BElistColumn", contentType=InputTypes.StringType))
     return inputSpecification
@@ -78,7 +78,7 @@ class MCSImporter(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(self, runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -86,7 +86,7 @@ class MCSImporter(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(self, paramInput)
     expand = paramInput.findFirst('expand')
     self.expand = expand.value
 
@@ -156,7 +156,7 @@ class MCSImporter(PostProcessor):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    PostProcessor.collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(self, finishedJob, output, options=options)
 
 def mcsReader(mcsListFile):
   """

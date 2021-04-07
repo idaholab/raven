@@ -16,8 +16,6 @@ Created on August 23, 2017
 
 @author: wangc
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import os
@@ -32,10 +30,10 @@ from utils import InputData, InputTypes
 import Files
 import Distributions
 import MetricDistributor
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Metric(PostProcessor):
+class Metric(PostProcessorInterface):
   """
     Metrics class.
   """
@@ -207,7 +205,7 @@ class Metric(PostProcessor):
       @ In, inputs, list, list of inputs
       @ In, initDict, dict, dictionary with initialization options
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(self, runInfo, inputs, initDict)
     for metricIn in self.assemblerDict['Metric']:
       self.metricsDict[metricIn[2]] = metricIn[3]
 
@@ -217,7 +215,7 @@ class Metric(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(self, paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'Metric':
         if 'type' not in child.parameterValues.keys() or 'class' not in child.parameterValues.keys():

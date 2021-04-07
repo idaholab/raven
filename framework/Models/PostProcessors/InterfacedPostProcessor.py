@@ -18,11 +18,11 @@ Created on July 10, 2013
 """
 import importlib
 
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 
-class InterfacedPostProcessor(PostProcessor):
+class InterfacedPostProcessor(PostProcessorInterface):
   """
     This class allows to interface a general-purpose post-processor created ad-hoc by the user.
     While the ExternalPostProcessor is designed for analysis-dependent cases, the InterfacedPostProcessor is designed more generic cases
@@ -43,10 +43,7 @@ class InterfacedPostProcessor(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(RavenOutput, cls).getInputSpecification()
-
-    ## TODO: Fill this in with the appropriate tags
-
+    inputSpecification = super().getInputSpecification()
     return inputSpecification
 
   def __init__(self):
@@ -71,7 +68,7 @@ class InterfacedPostProcessor(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(self, runInfo, inputs, initDict)
 
     inputObj = inputs[-1] if type(inputs) == list else inputs
     metaKeys = inputObj.getVars('meta')
@@ -185,4 +182,4 @@ class InterfacedPostProcessor(PostProcessor):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    PostProcessor.collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(self, finishedJob, output, options=options)

@@ -16,8 +16,6 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import os
@@ -26,13 +24,13 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
 import Files
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
 #Internal Modules End--------------------------------------------------------------------------------
 
-class ImportanceRank(PostProcessor):
+class ImportanceRank(PostProcessorInterface):
   """
     ImportantRank class. It computes the important rank for given input parameters
     1. The importance of input parameters can be ranked via their sensitivies (SI: sensitivity index)
@@ -120,7 +118,7 @@ class ImportanceRank(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(self, paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'what':
         what = child.value.strip()
@@ -208,7 +206,7 @@ class ImportanceRank(PostProcessor):
       @ In, inputs, list, list of inputs
       @ In, initDict, dict, dictionary with initialization options
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(self, runInfo, inputs, initDict)
     self.mvnDistribution = self.retrieveObjectFromAssemblerDict('mvnDistribution', self.mvnDistribution)
   def inputToInternal(self, currentInp):
     """

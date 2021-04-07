@@ -15,7 +15,6 @@
 Created on July 10, 2013
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
 #External Modules---------------------------------------------------------------
 import numpy as np
 import copy
@@ -24,7 +23,7 @@ import xarray as xr
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils, mathUtils
 from utils import InputData, InputTypes
 import Files
@@ -32,7 +31,7 @@ import unSupervisedLearning
 import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
-class DataMining(PostProcessor):
+class DataMining(PostProcessorInterface):
   """
     DataMiningPostProcessor class. It will apply the specified KDD algorithms in
     the models to a dataset, each specified algorithm's output can be loaded to
@@ -383,7 +382,7 @@ class DataMining(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(self, runInfo, inputs, initDict)
     if "SolutionExport" in initDict:
       self.solutionExport = initDict["SolutionExport"]
     if "PreProcessor" in self.assemblerDict:
@@ -399,7 +398,7 @@ class DataMining(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(self, paramInput)
     ## By default, we want to name the 'labels' by the name of this
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
@@ -904,10 +903,7 @@ except ImportError as e:
     __QtAvailable = False
 
 if __QtAvailable:
-  class mQDataMining(type(DataMining), type(qtc.QObject)):
-    pass
-
-  class QDataMining(DataMining, qtc.QObject, metaclass=mQDataMining):
+  class QDataMining(DataMining, qtc.QObject):
     """
       DataMining class - Computes a hierarchical clustering from an input point
       cloud consisting of an arbitrary number of input parameters
