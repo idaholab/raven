@@ -12,9 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Created on April 04, 2021
+  Created on April 04, 2021
 
-@author: alfoa
+  @author: alfoa
+  
+  This class represents a base class for the validation algorithms
+  It inherits from the PostProcessor directly
+  ##TODO: Recast it once the new PostProcesso API gets in place
 """
 
 #External Modules------------------------------------------------------------------------------------
@@ -50,8 +54,7 @@ class ValidationBase(PostProcessor):
         specifying input of cls.
     """
     specs = super(ValidationBase, cls).getInputSpecification()
-    specs.addSub(metricInput)
-
+    #specs.addSub(metricInput)
     return specs
 
   def __init__(self):
@@ -65,9 +68,9 @@ class ValidationBase(PostProcessor):
     self.dynamic        = False # is it time-dependent?
     self.features       = None  # list of feature variables
     self.targets        = None  # list of target variables
-    self.metricsDict    = {}    # dictionary of metrics that are going to be assembled
-    self.pivotParameter = None
-    self.pivotValues    = []
+    #self.metricsDict    = {}   # dictionary of metrics that are going to be assembled
+    self.pivotParameter = None  # pivot parameter (present if dynamic == True)
+    self.pivotValues    = None  # pivot values (present if dynamic == True)
     # assembler objects to be requested
     self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
 
