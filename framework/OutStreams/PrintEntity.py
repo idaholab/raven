@@ -110,8 +110,4 @@ class Print(OutStreamEntity):
     """
     paramDict = super().getInitParams()
     paramDict.update(self._printer.getInitParams())
-<<<<<<< HEAD
     return paramDict
-=======
-    return paramDict
->>>>>>> devel
