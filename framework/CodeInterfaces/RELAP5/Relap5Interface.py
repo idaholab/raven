@@ -314,8 +314,9 @@ class Relap5(CodeInterfaceBase):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     self._samplersDictionary = {}
-    self.tripControlVariables[Kwargs['prefix']] = None
     self.det = 'dynamiceventtree' in str(samplerType).lower()
+    if self.det:
+      self.tripControlVariables[Kwargs['prefix']] = None
     # find input file index
     index = self._findInputFileIndex(currentInputFiles)
     # instanciate the parser
