@@ -23,6 +23,7 @@ import numpy as np
 import pandas as pd
 import xml.etree.ElementTree as ET
 import glob
+import math
 from sklearn import neighbors
 from OpenFoamPP import fieldParser
 from CodeInterfaceBaseClass import CodeInterfaceBase
@@ -76,7 +77,7 @@ class AcceleratedCFD(CodeInterfaceBase):
       @ In, oriInputFiles, list, list of the original input files
       @ Out, None
     """
-    self.coords = {}
+    coordsLocal = {}
     self.romName = None
     self.romType = None
     self.locations["coords"] = np.zeros(self.locations["inputCoords"].shape)
@@ -86,7 +87,7 @@ class AcceleratedCFD(CodeInterfaceBase):
         coord = inputFile.getType().split("-")[-1].strip()
         if coord not in ['x', 'y', 'z']:
           raise IOError('Mesh type not == to x, y or z. Got: ' + coord)
-        self.coords[coord] = self.readFoamFile(inputFile.getAbsFile())
+        coordsLocal[coord] = self.readFoamFile(inputFile.getAbsFile())
         for i in range(len(self.locations["inputCoords"])):
           if self.locations["inputCoords"][i, map[coord]] in ['min','max','middle']:
             if self.locations["inputCoords"][i, map[coord]] == 'min':
@@ -95,10 +96,10 @@ class AcceleratedCFD(CodeInterfaceBase):
               operator = np.max
             else:
               operator = np.average
-            v = operator(self.coords[coord][1])
+            v = operator(coordsLocal[coord][1])
           else:
             v = float(self.locations["inputCoords"][i, map[coord]])
-          self.locations["coords"][i, map[coord]] = self.coords[coord][1][findNearest(self.coords[coord][1],v)]
+          self.locations["coords"][i, map[coord]] = coordsLocal[coord][1][findNearest(coordsLocal[coord][1],v)]
       if inputFile.getType().lower() == 'input':
         with open(inputFile.getAbsFile(), "r") as inputObj:
           xml = inputObj.read()
@@ -117,14 +118,16 @@ class AcceleratedCFD(CodeInterfaceBase):
         dataList = [datai]
         self.dataFom = pd.concat(dataList,keys=['fom'])
         
-    if not len(self.coords):
+    if not len(coordsLocal):
       raise IOError('Mesh type files must be inputed (mesh-x, mesh-y, mesh-z). Got None!')
     if self.romName is None or self.romType is None:
       raise IOError('<romName> or <romType> not found in input file!')
     # find nearest
     neigh = neighbors.KNeighborsRegressor(n_neighbors=1)
-    X = np.asarray([self.coords[coord][1] for coord in ['x', 'y', 'z']]).T
-    y = np.asarray (range(len(self.coords[coord][1])))
+    s = len(coordsLocal[coord][1])
+    X = np.asarray([coordsLocal[coord][1] for coord in ['x', 'y', 'z']]).T
+    del coordsLocal
+    y = np.asarray (range( s ))
     neigh.fit(X, y)
     self.locations["loc"] = neigh.predict(self.locations["coords"])
 
@@ -146,7 +149,8 @@ class AcceleratedCFD(CodeInterfaceBase):
     outputfile = 'out~' + inputToPerturb[0].getBase()
     # create command
     # the input file name is hardcoded in AccelerateCFD (podInputs.xml)
-    executeCommand = [('parallel', executable )]
+    # executeCommand = [('parallel', executable )]
+    executeCommand = [("parallel", "podPrecompute -parallel"), ("parallel", "podROM -i podInputs.xml -parallel"), ("parallel", "podFlowReconstruct -parallel"), ("parallel", "podPostProcess aVelocityFOM -parallel"),  ("serial", "cd rom/"+self.romType+"_"+self.romName+"/"+"system"),   ("serial", "rm  controlDict"), ("serial", "cp controlDict.2 controlDict"), ("serial", "cd ../"), ("parallel", "postProcess -parallel"), ("serial", "cd ../..")]
     returnCommand = executeCommand, outputfile
     return returnCommand
 
@@ -188,6 +192,7 @@ class AcceleratedCFD(CodeInterfaceBase):
       raise IOError("Dynamic Event Tree-based samplers not supported by AccelerateCFD interface yet!")
     currentInputsToPerturb = self.findInps(currentInputFiles,"input")
     originalInputs         = self.findInps(oriInputFiles,"input")
+    print(currentInputsToPerturb)
     parser = GenericParser.GenericParser(currentInputsToPerturb)
     parser.modifyInternalDictionary(**Kwargs)
     parser.writeNewInput(currentInputsToPerturb,originalInputs)
@@ -319,11 +324,20 @@ class AcceleratedCFD(CodeInterfaceBase):
         datai = datai.rename(columns={0:'t',1:'ux',2:'uy'})
         dataList = [datai]
         romData = pd.concat(dataList,keys=['rom'])
+        # averageVelocity
         ufomux = self.dataFom.loc['fom'].mean()['ux']
         uromux = romData.loc['rom'].mean()['ux']
         ufomuy = self.dataFom.loc['fom'].mean()['uy']
         uromuy = romData.loc['rom'].mean()['uy']
-        uerr = (ufomux-uromux) + (ufomuy-uromuy)
+        # standardDeviation
+        ufomuxStd = self.dataFom.loc['fom'].std()['ux']
+        uromuxStd = romData.loc['rom'].std()['ux']
+        ufomuyStd = self.dataFom.loc['fom'].std()['uy']
+        uromuyStd = romData.loc['rom'].std()['uy']
+
+        uerr = math.sqrt((ufomux-uromux)**2 + (ufomuy-uromuy)**2) 
+        # uerr=math.sqrt((ufomuxStd-uromuxStd)**2 + (ufomuyStd-uromuyStd)**2)
+
         results["ufomux"] = np.asarray([ufomux]*len(timeList))
         results["uromux"] = np.asarray([uromux]*len(timeList))
         results["ufomuy"] = np.asarray([ufomuy]*len(timeList))
