@@ -12,19 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on April 1, 2021
+  Implementations of printing strategies for OutStreams.
 
+  Created April 1, 2021
   @author: talbpaul
-  historically designed and architected by @alfoa
 """
+from .PrintInterface import PrintInterface
+from .FilePrint import FilePrint as Print
 
-from EntityFactoryBase import EntityFactory
-
-# Entities
-from .OutStreamEntity import OutStreamEntity
-from .PlotEntity import Plot
-from .PrintEntity import Print
-
-factory = EntityFactory('OutStreams')
-factory.registerType('Print', Print)
-factory.registerType('Plot', Plot)
+from .Factory import factory

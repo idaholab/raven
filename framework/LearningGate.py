@@ -261,10 +261,24 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseInterface),
           confidenceDict[key] = np.append(confidenceDict[key],sliceEvaluation[key])
     return confidenceDict
 
+  # compatibility with BaseInterface requires having a "run" method
+  # TODO during SVL rework, "run" should probably replace "evaluate", maybe?
+  def run(self, request):
+    """
+      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
+      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      the interface with the kernels requires.
+      @ In, request, dict, realizations request ({'feature1':np.array(n_realizations),
+                                                  'feature2',np.array(n_realizations)})
+      @ Out, run, dict, dictionary of results ({target1:np.array,'target2':np.array}).
+    """
+    return self.evaluate(request)
+
   def evaluate(self,request):
     """
       Method to perform the evaluation of a point or a set of points through the linked surrogate model
-      @ In, request, dict, realizations request ({'feature1':np.array(n_realizations),'feature2',np.array(n_realizations)})
+      @ In, request, dict, realizations request ({'feature1':np.array(n_realizations),
+                                                  'feature2',np.array(n_realizations)})
       @ Out, resultsDict, dict, dictionary of results ({target1:np.array,'target2':np.array}).
     """
     if self.pickled:
