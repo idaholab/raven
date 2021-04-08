@@ -500,7 +500,7 @@ class SingleRun(Step):
     ## get an input field in the outputs variable that is not in the inputs
     ## variable defined above? - DPM 4/6/2017
     #empty dictionary corresponds to sampling data in MultiRun
-    model.submit(inputs, None, jobHandler, **{'SampledVars':{'prefix':'None'}, 'prefix':1, 'additionalEdits':{}})
+    model.submit(inputs, None, jobHandler, **{'SampledVars':{'prefix':'None'}, 'additionalEdits':{}})
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
