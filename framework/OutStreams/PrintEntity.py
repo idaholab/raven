@@ -16,10 +16,8 @@ Created on April 2, 2021
 
 @author: talbpaul
 """
-import os
-import matplotlib
 
-from utils import utils, InputTypes
+from utils import InputTypes
 from .OutStreamEntity import OutStreamEntity
 from .PrintInterfaces import factory as interfaceFactory
 
@@ -112,4 +110,8 @@ class Print(OutStreamEntity):
     """
     paramDict = super().getInitParams()
     paramDict.update(self._printer.getInitParams())
+<<<<<<< HEAD
     return paramDict
+=======
+    return paramDict
+>>>>>>> devel

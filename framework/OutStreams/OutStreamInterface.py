@@ -68,7 +68,7 @@ class OutStreamInterface(BaseInterface):
     self.overwrite = spec.parameterValues.get('overwrite')
     fname = spec.findFirst('filename')
     if fname is not None:
-      self.filename = fname
+      self.filename = fname.value
 
   def initialize(self, stepEntities):
     """
@@ -76,14 +76,30 @@ class OutStreamInterface(BaseInterface):
       @ In, stepEntities, dict, Entities from the Step
       @ Out, None
     """
+    super().initialize()
     if self.subDirectory is not None:
       if not os.path.exists(self.subDirectory):
         os.makedirs(self.subDirectory)
 
-  # this method is used by the original OutStreams, GeneralPlot and File Print.
+  def getInitParams(self):
+    """
+      This function is called from the base class to print some of the
+      information inside the class. Whatever is permanent in the class and not
+      inherited from the parent class should be mentioned here. The information
+      is passed back in the dictionary. No information about values that change
+      during the simulation are allowed.
+      @ In, None
+      @ Out, paramDict, dict, dictionary containing the parameter names as keys
+        and each parameter's initial value as the dictionary values
+    """
+    paramDict = {}
+    return paramDict
+
   def legacyCollectSources(self, inDict):
     """
       Collect the usable sources in the format this plotter expects.
+      This is a legacy method; it is used by FilePrint and GeneralPlot (the original two OutStreams),
+      but appears to be specific to particular approaches so should not necessarily be adopted generally.
       @ In, inDict, dict, Step entities
       @ Out, None
     """
@@ -97,7 +113,7 @@ class OutStreamInterface(BaseInterface):
           break
       if not foundData:
         for inp in inDict['Input']:
-          if not type(inp) == type(""):
+          if not isinstance(inp, str):
             if inp.name.strip() == self.sourceName[outIndex] and inp.type in DataObjects.factory.knownTypes():
               self.sourceData.append(inp)
               foundData = True
@@ -109,7 +125,8 @@ class OutStreamInterface(BaseInterface):
           self.sourceData.append(inDict['TargetEvaluation'])
           foundData = True
       if not foundData and 'SolutionExport' in inDict.keys():
-        if inDict['SolutionExport'].name.strip() == self.sourceName[outIndex] and inDict['SolutionExport'].type in DataObjects.factory.knownTypes():
+        if inDict['SolutionExport'].name.strip() == self.sourceName[outIndex] \
+            and inDict['SolutionExport'].type in DataObjects.factory.knownTypes():
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData:

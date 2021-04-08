@@ -57,7 +57,7 @@ class PrintInterface(OutStreamInterface):
                                 current step. The sources are searched into this.
       @ Out, None
     """
-    pass
+    super().initialize(stepEntities)
 
   def run(self):
     """

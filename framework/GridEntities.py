@@ -16,29 +16,23 @@ Created on Mar 30, 2015
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
+import abc
+import sys
 
 #External Modules------------------------------------------------------------------------------------
-#import itertools
 import numpy as np
 from scipy.interpolate import interp1d
-import sys
-import abc
-import itertools
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from EntityFactoryBase import EntityFactory
 from utils.utils import UreturnPrintTag,partialEval,floatConversion,compare, metaclass_insert
-from BaseClasses import BaseInterface
+from BaseClasses import BaseEntity
 import utils.TreeStructure as ETS
 from utils.RAVENiterators import ravenArrayIterator
-#import TreeStructure as TS
 #Internal Modules End--------------------------------------------------------------------------------
 
-class GridBase(metaclass_insert(abc.ABCMeta, BaseInterface)):
+class GridBase(metaclass_insert(abc.ABCMeta, BaseEntity)):
   """
     Base Class that needs to be used when a new Grid class is generated
     It provides all the methods to create, modify, and handle a grid in the phase space.

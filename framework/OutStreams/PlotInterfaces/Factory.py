@@ -25,6 +25,5 @@ from .SamplePlot import SamplePlot
 from .GeneralPlot import GeneralPlot
 
 factory = EntityFactory('Plot')
-#factory.registerType('Print', PrintEntity)
-factory.registerType('SamplePlot', SamplePlot)
 factory.registerType('GeneralPlot', GeneralPlot)
+factory.registerType('SamplePlot', SamplePlot)
