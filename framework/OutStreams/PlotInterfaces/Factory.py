@@ -15,16 +15,15 @@
   Created on April 1, 2021
 
   @author: talbpaul
-  historically designed and architected by @alfoa
 """
 
 from EntityFactoryBase import EntityFactory
 
 # Entities
-from .OutStreamEntity import OutStreamEntity
-from .PlotEntity import Plot
-from .PrintEntity import Print
+from .PlotInterface import PlotInterface
+from .SamplePlot import SamplePlot
+from .GeneralPlot import GeneralPlot
 
-factory = EntityFactory('OutStreams')
-factory.registerType('Print', Print)
-factory.registerType('Plot', Plot)
+factory = EntityFactory('Plot')
+factory.registerType('GeneralPlot', GeneralPlot)
+factory.registerType('SamplePlot', SamplePlot)

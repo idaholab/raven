@@ -1,0 +1,79 @@
+<Simulation verbosity = 'debug'>
+
+  <TestInfo>
+    <name>framework/OutStreams.SamplePlot</name>
+    <author>talbpaul</author>
+    <created>2021-04-01</created>
+    <classesTested>OutStreams.SamplePlot</classesTested>
+    <description>
+      Tests use of the SamplePlot plotter.
+      Samples data, then plots the samples using the SamplePlot plotter.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>SamplePlot</WorkingDir>
+    <Sequence>sample,plot</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+    </MultiRun>
+    <IOStep name="plot">
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Output class="OutStreams" type="Plot">plotter</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <PointSet name="samples">
+      <Input>v0,angle</Input>
+      <Output>r</Output>
+    </PointSet>
+  </DataObjects>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../AnalyticModels/projectile.py" name="projectile" subType="">
+      <variables>v0,angle,r</variables>
+    </ExternalModel>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>100</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="v0">
+        <distribution>vel_dist</distribution>
+      </variable>
+      <variable name="angle">
+        <distribution>angle_dist</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Distributions>
+    <Uniform name="vel_dist">
+      <lowerBound>1</lowerBound>
+      <upperBound>60</upperBound>
+    </Uniform>
+    <Uniform name="angle_dist">
+      <lowerBound>5</lowerBound>
+      <upperBound>85</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <OutStreams>
+    <Plot name="plotter" subType="SamplePlot">
+      <source>samples</source>
+      <vars>v0,angle,r</vars>
+    </Plot>
+  </OutStreams>
+
+</Simulation>

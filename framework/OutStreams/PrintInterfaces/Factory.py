@@ -15,16 +15,13 @@
   Created on April 1, 2021
 
   @author: talbpaul
-  historically designed and architected by @alfoa
 """
 
 from EntityFactoryBase import EntityFactory
 
 # Entities
-from .OutStreamEntity import OutStreamEntity
-from .PlotEntity import Plot
-from .PrintEntity import Print
+from .PrintInterface import PrintInterface
+from .FilePrint import FilePrint
 
-factory = EntityFactory('OutStreams')
-factory.registerType('Print', Print)
-factory.registerType('Plot', Plot)
+factory = EntityFactory('Print')
+factory.registerType('FilePrint', FilePrint)
