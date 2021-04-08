@@ -97,7 +97,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
     """
     return self.metadataKeys, self.metadataParams
 
-  def addMetaKeys(self, args, params=None):
+  def addMetaKeys(self,args, params={}):
     """
       Adds keywords to a list of expected metadata keys.
       @ In, args, list(str), keywords to register
@@ -105,8 +105,6 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
         values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
-    if params is None:
-      params = {}
     if any(not mathUtils.isAString(a) for a in args):
       self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
     self.metadataKeys = self.metadataKeys.union(set(args))
@@ -228,26 +226,6 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
     for key in tempDict.keys():
       self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
 
-  def provideExpectedMetaKeys(self):
-    """
-      Provides the registered list of metadata keys for this entity.
-      @ In, None
-      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and indexes/dimensions corresponding to expected keys
-    """
-    return self.metadataKeys, self.metadataParams
-
-  def addMetaKeys(self,args, params={}):
-    """
-      Adds keywords to a list of expected metadata keys.
-      @ In, args, list(str), keywords to register
-      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
-        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
-      @ Out, None
-    """
-    if any(not mathUtils.isAString(a) for a in args):
-      self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
-    self.metadataKeys = self.metadataKeys.union(set(args))
-    self.metadataParams.update(params)
 
   def _formatSolutionExportVariableNames(self, acceptable):
     """

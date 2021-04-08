@@ -352,7 +352,10 @@ except ImportError as e:
     __QtAvailable = False
 
 if __QtAvailable:
-  class QTopologicalDecomposition(TopologicalDecomposition, qtc.QObject):
+  class mQTopologicalDecomposition(type(TopologicalDecomposition), type(qtc.QObject)):
+    pass
+
+  class QTopologicalDecomposition(TopologicalDecomposition, qtc.QObject, metaclass=mQTopologicalDecomposition):
     """
       TopologicalDecomposition class - Computes an approximated hierarchical
       Morse-Smale decomposition from an input point cloud consisting of an

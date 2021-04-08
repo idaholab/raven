@@ -903,7 +903,10 @@ except ImportError as e:
     __QtAvailable = False
 
 if __QtAvailable:
-  class QDataMining(DataMining, qtc.QObject):
+  class mQDataMining(type(DataMining), type(qtc.QObject)):
+    pass
+
+  class QDataMining(DataMining, qtc.QObject, metaclass=mQDataMining):
     """
       DataMining class - Computes a hierarchical clustering from an input point
       cloud consisting of an arbitrary number of input parameters
