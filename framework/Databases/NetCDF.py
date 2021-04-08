@@ -46,13 +46,13 @@ class NetCDF(DateBase):
                        with xarray DataSets used in RAVEN DataObjects."""
     return spec
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
       @ In, runInfoDict, dict, info from RunInfo block
       @ Out, None
     """
-    DateBase.__init__(self, runInfoDict)
+    super().__init__()
     self.printTag = 'DATABASE-NetCDF'  # For printing verbosity labels
     self._format = 'netcdf4'  # writing format for disk
     self._extension = '.nc'

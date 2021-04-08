@@ -82,13 +82,13 @@ class HybridModel(HybridModelBase):
     """
     pass
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    HybridModelBase.__init__(self,runInfoDict)
+    super().__init__()
     self.modelInstance         = None                # instance of given model
     self.targetEvaluationInstance = None             # Instance of data object used to store the inputs and outputs of HybridModel
     self.tempTargetEvaluation     = None             # Instance of data object that are used to store the training set

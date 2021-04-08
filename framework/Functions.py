@@ -28,7 +28,7 @@ from __future__ import division, print_function, absolute_import
 
 #Internal Modules------------------------------------------------------------------------------------
 from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseType
+from BaseClasses import BaseEntity, InputDataUser
 from utils import utils, InputData, InputTypes
 from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ class FunctionCollection(InputData.ParameterInput):
 
 FunctionCollection.createClass("Functions")
 
-class External(BaseType):
+class External(BaseEntity, InputDataUser):
   """
     This class is the base class for different wrappers for external functions
     providing the tools to solve F(x)=0 where at least one of the components of
@@ -57,30 +57,41 @@ class External(BaseType):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(External, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addParam("file", InputTypes.StringType, True)
     inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringListType))
     return inputSpecification
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
-    self.workingDir                      = runInfoDict['WorkingDir']
-    self.__functionFile                  = ''                                # function file name
-    self.__actionDictionary              = {}                                # action dictionary
+    super().__init__()
+    self.workingDir = None                # working directory
+    self.__functionFile = ''              # function file name
+    self.__actionDictionary = {}          # action dictionary
+    self.__inputVariables = []            # list of variables' names' given in input (xml)
+    self.__inputFromWhat = {}             # dictionary of input data type
     # dictionary of implemented actions
-    self.__actionImplemented             = {'residuumSign':False,'supportBoundingTest':False,'residuum':False,'gradient':False}
-    self.__inputVariables                = []                                # list of variables' names' given in input (xml)
-    self.__inputFromWhat                 = {}                                # dictionary of input data type
-    self.__inputFromWhat['dict']         = self.__inputFromDict
-    #self.__inputFromWhat['Data']         = self.__inputFromData
-    self.printTag                        = 'FUNCTIONS'
+    self.__actionImplemented = {'residuumSign': False,
+                                'supportBoundingTest': False,
+                                'residuum': False,
+                                'gradient':False}
+    self.__inputFromWhat['dict'] = self.__inputFromDict
+    self.printTag  = 'FUNCTIONS'
 
-  def _handleInput(self, paramInput):
+  def applyRunInfo(self, runInfo):
+    """
+      Use RunInfo
+      @ In, runInfo, dict, run info
+      @ Out, None
+    """
+    super().applyRunInfo(runInfo)
+    self.workingDir = runInfo['WorkingDir']
+
+  def _handleInput(self, paramInput, **kwargs):
     """
       Method to handle the External Function parameter input.
       @ In, paramInput, InputData.ParameterInput, the already parsed input.

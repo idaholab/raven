@@ -44,7 +44,7 @@ class SyntheticHistory(supervisedLearning):
                a variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new
                signals based on training signal sets. """)
     for typ in TSA.factory.knownTypes():
-      c = TSA.factory.returnClass(typ, None) # TODO no message handler for second argument
+      c = TSA.factory.returnClass(typ) # TODO no message handler for second argument
       specs.addSub(c.getInputSpecification())
     return specs
 
@@ -79,7 +79,7 @@ class SyntheticHistory(supervisedLearning):
     self.pivotParameterID = inp.findFirst('pivotParameter').value # TODO does a base class do this?
     for sub in inp.subparts:
       if sub.name in TSA.factory.knownTypes():
-        algo = TSA.factory.returnInstance(sub.name, self)
+        algo = TSA.factory.returnInstance(sub.name)
         self.algoSettings[algo] = algo.handleInput(sub)
         self.tsaAlgorithms.append(algo)
     if self.pivotParameterID not in self.target:

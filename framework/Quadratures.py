@@ -24,25 +24,19 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import numpy as np
 import scipy.special.orthogonal as quads
 import scipy.fftpack as fftpack
-import scipy.misc as misc
 import itertools
-import collections #.OrderedDict as collections.OrderedDict
-import operator #.operator.itemgetter as operator.itemgetter
-import inspect
+import collections
+import operator
 #External Modules End-----------------------------------------------------------------
 
 #Internal Modules
 from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseType
-from JobHandler import JobHandler
-import MessageHandler
-from utils import utils
+from BaseClasses import MessageUser
 from Decorators.Parallelization import Parallel
-from utils import importerUtils as im
 #Internal Modules End-----------------------------------------------------------------
 
 
-class SparseGrid(MessageHandler.MessageUser):
+class SparseGrid(MessageUser):
   """
     Base class to produce sparse-grid multiple-dimension quadrature.
   """
@@ -52,6 +46,7 @@ class SparseGrid(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
+    super().__init__()
     self.type           = 'BaseSparseQuad'
     self.printTag       = 'BaseSparseQuad'
     self.c              = []                                                      # array of coefficient terms for component tensor grid entries
@@ -63,9 +58,8 @@ class SparseGrid(MessageHandler.MessageUser):
     self.varNames       = []                                                      # array of names, in order of distDict.keys()
     self.N              = None                                                    # dimensionality of input space
     self.SG             = None                                                    # dict{ (point,point,point): weight}
-    self.messageHandler = None                                                    # message handler
 
-  def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
+  def initialize(self, varNames, indexSet, distDict, quadDict, handler):
     """
       Initializes sparse quad to be functional. At the end of this method, all points and weights should be set.
       @ In, varNames, list, the ordered list of grid dimension names
@@ -73,7 +67,6 @@ class SparseGrid(MessageHandler.MessageUser):
       @ In, distDict, dict{varName,Distribution object}, distributions
       @ In, quadDict, dict{varName,Quadrature object}, quadratures
       @ In, handler, JobHandler, parallel processing tool
-      @ In, msgHandler, MessageHandler, message handler global instance
       @ Out, None
     """
     self.origIndexSet   = indexSet
@@ -83,7 +76,6 @@ class SparseGrid(MessageHandler.MessageUser):
     self.varNames       = varNames
     self.N              = len(self.varNames)
     self.SG             = collections.OrderedDict() #keys on points, values on weights
-    self.messageHandler = msgHandler
     #add methods to construct grid here
 
   ##### OVERWRITTEN BUILTINS #####
@@ -389,7 +381,7 @@ class TensorGrid(SparseGrid):
     self.type     = 'TensorGrid'
     self.printTag = 'TensorGrid'
 
-  def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
+  def initialize(self, varNames, indexSet, distDict, quadDict, handler):
     """
       Initializes sparse quad to be functional.
       @ In, varNames, list, the ordered list of grid dimension names
@@ -397,10 +389,9 @@ class TensorGrid(SparseGrid):
       @ In, distDict, dict{varName,Distribution object}, distributions
       @ In, quadDict, dict{varName,Quadrature object}, quadratures
       @ In, handler, JobHandler, parallel processing tool
-      @ In, msgHandler, MessageHandler, message handler global instance
       @ Out, None
     """
-    SparseGrid.initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler)
+    SparseGrid.initialize(self, varNames, indexSet, distDict, quadDict, handler)
     self.type           = 'BaseSparseQuad'
     self.printTag       = 'BaseSparseQuad'
     #find largest polynomial in each dimension
@@ -432,7 +423,7 @@ class SmolyakSparseGrid(SparseGrid):
     self.type     = 'SmolyakSparseGrid'
     self.printTag = 'SmolyakSparseGrid'
 
-  def initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler):
+  def initialize(self, varNames, indexSet, distDict, quadDict, handler):
     """
       Initializes sparse quad to be functional.
       @ In, varNames, list, the ordered list of grid dimension names
@@ -440,10 +431,9 @@ class SmolyakSparseGrid(SparseGrid):
       @ In, distDict, dict{varName,Distribution object}, distributions
       @ In, quadDict, dict{varName,Quadrature object}, quadratures
       @ In, handler, JobHandler, parallel processing tool
-      @ In, msgHandler, MessageHandler, message handler global instance
       @ Out, None
     """
-    SparseGrid.initialize(self, varNames, indexSet, distDict, quadDict, handler, msgHandler)
+    SparseGrid.initialize(self, varNames, indexSet, distDict, quadDict, handler)
     #we know how this ends if it's tensor product index set
     if indexSet.type=='Tensor Product':
       self.c=[1]
@@ -567,7 +557,7 @@ class SmolyakSparseGrid(SparseGrid):
 #
 #
 #
-class QuadratureSet(MessageHandler.MessageUser):
+class QuadratureSet(MessageUser):
   """
     Base class to produce standard quadrature points and weights.
      Points and weights are obtained as
@@ -612,14 +602,13 @@ class QuadratureSet(MessageHandler.MessageUser):
     """
     return not self.__eq__(other)
 
-  def initialize(self,distr,msgHandler):
+  def initialize(self, distr):
     """
       Initializes specific settings for quadratures.  Must be overwritten.
       @ In, distr, Distribution object, distro represented by this quad
-      @ In, msgHandler, MessageHandler, message handler global instance
       @ Out, None
     """
-    self.messageHandler = msgHandler
+    pass
 
   def quadRule(self,i):
     """
@@ -634,14 +623,13 @@ class Legendre(QuadratureSet):
   """
     Legendre quadrature
   """
-  def initialize(self,distr,msgHandler):
+  def initialize(self, distr):
     """
       Initializes specific settings for quadratures.
       @ In, distr, Distribution object, distro represented by this quad
-      @ In, msgHandler, MessageHandler, message handler global instance
       @ Out, None
     """
-    QuadratureSet.initialize(self,distr,msgHandler)
+    QuadratureSet.initialize(self, distr)
     self.rule   = quads.p_roots
     self.params = []
     self.pointRule = GaussQuadRule
@@ -650,14 +638,13 @@ class Hermite(QuadratureSet):
   """
     Hermite quadrature
   """
-  def initialize(self,distr,msgHandler):
+  def initialize(self, distr):
     """
       Initializes specific settings for quadratures.
       @ In, distr, Distribution object, distro represented by this quad
-      @ In, msgHandler, MessageHandler, message handler global instance
       @ Out, None
     """
-    QuadratureSet.initialize(self,distr,msgHandler)
+    QuadratureSet.initialize(self, distr)
     self.rule   = quads.he_roots
     self.params = []
     self.pointRule = GaussQuadRule
@@ -666,14 +653,13 @@ class Laguerre(QuadratureSet):
   """
     Laguerre quadrature
   """
-  def initialize(self,distr,msgHandler):
+  def initialize(self, distr):
     """
       Initializes specific settings for quadratures.
       @ In, distr, Distribution object, distro represented by this quad
-      @ In, msgHandler, MessageHandler, message handler global instance
       @ Out, None
     """
-    QuadratureSet.initialize(self,distr,msgHandler)
+    QuadratureSet.initialize(self, distr)
     self.rule   = quads.la_roots
     self.pointRule = GaussQuadRule
     if distr.type=='Gamma':
@@ -685,14 +671,13 @@ class Jacobi(QuadratureSet):
   """
     Jacobi quadrature
   """
-  def initialize(self,distr,msgHandler):
+  def initialize(self, distr):
     """
       Initializes specific settings for quadratures.
       @ In, distr, Distribution object, distro represented by this quad
-      @ In, msgHandler, MessageHandler, message handler global instance
       @ Out, None
     """
-    QuadratureSet.initialize(self,distr,msgHandler)
+    QuadratureSet.initialize(self, distr)
     self.rule   = quads.j_roots
     self.pointRule = GaussQuadRule
     if distr.type=='Beta':
@@ -708,14 +693,13 @@ class ClenshawCurtis(QuadratureSet):
   """
     ClenshawCurtis quadrature
   """
-  def initialize(self,distr,msgHandler):
+  def initialize(self, distr):
     """
       Initializes specific settings for quadratures.
       @ In, distr, Distribution object, distro represented by this quad
-      @ In, msgHandler, MessageHandler, message handler global instance
       @ Out, None
     """
-    QuadratureSet.initialize(self,distr,msgHandler)
+    QuadratureSet.initialize(self, distr)
     self.rule = self.cc_roots
     self.params = []
     self.quadRule = CCQuadRule
@@ -802,13 +786,12 @@ class QuadFactory(EntityFactory):
   """
     Specific factory for this module
   """
-  def returnInstance(self, Type, caller, **kwargs):
+  def returnInstance(self, Type, **kwargs):
     """
       Returns an instance pointer from this module.
       @ In, Type, string, requested object
-      @ In, caller, object, requesting object
       @ In, kwargs, dict, additional keyword arguments to constructor
-      @ Out, __interFaceDict, instance, instance of the object
+      @ Out, returnInstance, instance, instance of the object
     """
     # some modification necessary to distinguish CDF on Legendre versus CDF on ClenshawCurtis
     if Type=='CDF':
@@ -816,7 +799,7 @@ class QuadFactory(EntityFactory):
         return self._registeredTypes['CDFLegendre']()
       elif kwargs['Subtype']=='ClenshawCurtis':
         return self._registeredTypes['CDFClenshawCurtis']()
-    return self.returnClass(Type, caller)()
+    return self.returnClass(Type)()
 
 factory = QuadFactory('QuadratureSet')
 factory.registerAllSubtypes(QuadratureSet)

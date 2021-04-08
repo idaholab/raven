@@ -68,7 +68,7 @@ class CustomSampler(ForwardSampler):
       @ In, None
       @ Out, None
     """
-    ForwardSampler.__init__(self)
+    super().__init__()
     self.pointsToSample = {}
     self.infoFromCustom = {}
     self.nameInSource = {} # dictionary to map the variable's sampled name to the name it has in Source

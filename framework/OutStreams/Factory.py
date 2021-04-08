@@ -12,21 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on April 5, 2016
-  @author: maljdp
-  extracted from alfoa (11/14/2013) OutStreamManager.py
+  Created on April 1, 2021
+
+  @author: talbpaul
+  historically designed and architected by @alfoa
 """
 
 from EntityFactoryBase import EntityFactory
 
-from utils import utils
+# Entities
+from .OutStreamEntity import OutStreamEntity
+from .PlotEntity import Plot
+from .PrintEntity import Print
 
-from .OutStreamBase import OutStreamBase
-from .FilePrint import FilePrint
-from .GeneralPlot import GeneralPlot
-# from .DataMining import DataMining
-# from .VDCComparison import VDCComparison
-
-factory = EntityFactory('OutStreamBase')
-factory.registerType('Print', FilePrint)
-factory.registerType('Plot', GeneralPlot)
+factory = EntityFactory('OutStreams')
+factory.registerType('Print', Print)
+factory.registerType('Plot', Plot)

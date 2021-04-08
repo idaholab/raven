@@ -16,21 +16,11 @@ Created on Jan 29, 2018
 
 @author: Congjian Wang
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
-#External Modules---------------------------------------------------------------
 import copy
-import xarray as xr
 import numpy as np
-#External Modules End-----------------------------------------------------------
 
-#Internal Modules---------------------------------------------------------------
-from BaseClasses import BaseType
 from utils import InputData, InputTypes, utils
 from .PostProcessor import PostProcessor
-import MessageHandler
-import Files
-#Internal Modules End-----------------------------------------------------------
 
 class DataClassifier(PostProcessor):
   """
@@ -63,13 +53,13 @@ class DataClassifier(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.printTag   = 'POSTPROCESSOR DataClassifier'
     self.mapping    = {}  # dictionary for mapping input space between different DataObjects {'variableName':'externalFunctionName'}
     self.funcDict   = {}  # Contains the function to be used {'variableName':externalFunctionInstance}

@@ -31,7 +31,7 @@ import Driver
 
 from Optimizers.gradients import factory # returnInstance
 
-fd = factory.returnInstance('FiniteDifference', 'tester')
+fd = factory.returnInstance('FiniteDifference')
 
 #
 #

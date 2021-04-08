@@ -38,13 +38,13 @@ class HDF5(DateBase):
   """
   #####################
   # __magic__
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
       @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
       @ Out, None
     """
-    DateBase.__init__(self,runInfoDict)
+    super().__init__()
     self.subtype = None
     self.type = 'HDF5'
     self._metavars = []
@@ -77,8 +77,8 @@ class HDF5(DateBase):
       @ Out, None
     """
     self.__dict__.update(newstate)
-    self.exist    = True
-    self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist)
+    self.exist = True
+    self.database = h5Data(self.name, self.databaseDir, self.filename, self.exist)
 
   def _handleInput(self, paramInput):
     """
@@ -107,7 +107,7 @@ class HDF5(DateBase):
       @ Out, None
     """
     super(HDF5, self).initializeDatabase()
-    self.database = h5Data(self.name,self.databaseDir,self.messageHandler,self.filename,self.exist,self.variables)
+    self.database = h5Data(self.name, self.databaseDir, self.filename, self.exist, self.variables)
 
   def saveDataToFile(self, source):
     """

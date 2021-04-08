@@ -26,7 +26,6 @@ import sys, os
 from scipy import stats
 import pickle as pk
 import numpy as np
-import copy
 import pandas as pd
 
 # find location of crow, message handler
@@ -48,7 +47,6 @@ mh.initialize({'verbosity':'debug', 'callerLength':10, 'tagLength':10})
 from Models import ROM
 
 # find location of ARMA
-#sys.path.append(os.path.join(frameworkDir,'SupervisedLearning'))
 from SupervisedLearning import ARMA
 
 print('Module undergoing testing:')
@@ -277,8 +275,7 @@ def createARMAXml(targets, pivot, p, q, fourier=None):
 
 def createFromXML(xml):
   inputSpec = ROM.getInputSpecification()
-  rom = ROM({})
-  rom.messageHandler = mh
+  rom = ROM()
   rom._readMoreXML(xml)
   arma = rom.supervisedEngine.supervisedContainer[0]
   return rom, arma

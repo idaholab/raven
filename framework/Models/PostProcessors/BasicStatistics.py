@@ -119,13 +119,13 @@ class BasicStatistics(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.parameters = {}  # parameters dictionary (they are basically stored into a dictionary identified by tag "targets"
     self.acceptedCalcParam = self.scalarVals + self.vectorVals
     self.what = self.acceptedCalcParam  # what needs to be computed... default...all
