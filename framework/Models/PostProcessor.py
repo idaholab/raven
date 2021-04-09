@@ -45,6 +45,7 @@ class PostProcessor(Model):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
+    spec.setStrictMode(False)
     validTypes = list(interfaceFactory.knownTypes())
     typeEnum = InputTypes.makeEnumType('PostProcessor', 'PostProcessorType', validTypes)
     for name in validTypes:
@@ -124,7 +125,7 @@ class PostProcessor(Model):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    super()._readMoreXML(xmlNode)
+    Model._readMoreXML(self, xmlNode)
     self._pp._readMoreXML(xmlNode)
 
   def _handleInput(self, paramInput):
@@ -136,7 +137,6 @@ class PostProcessor(Model):
     super()._handleInput(paramInput)
     reqType = paramInput.parameterValues['subType']
     self._pp = interfaceFactory.returnInstance(reqType)
-    # self._pp._handleInput(paramInput)
 
   def whatDoINeed(self):
     """
@@ -144,7 +144,8 @@ class PostProcessor(Model):
       It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
       be initialize.
       @ In, None
-      @ Out, needDict, dict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
+      @ Out, needDict, dict, dictionary of objects needed (class:tuple(object type{if None,
+        Simulation does not check the type}, object name))
     """
     needDict = super().whatDoINeed()
     needDictInterface = self._pp.whatDoINeed()
@@ -154,9 +155,10 @@ class PostProcessor(Model):
   def generateAssembler(self, initDict):
     """
       This method is used mainly by the Simulation class at the Step construction stage.
-      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
-      It is an abstract method -> It must be implemented in the derived class!
-      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+      It is used for sending to the instanciated class, which is implementing the method,
+      the objects that have been requested through "whatDoINeed" method
+      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):
+        {specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
       @ Out, None
     """
     super().generateAssembler(initDict)
@@ -235,3 +237,20 @@ class PostProcessor(Model):
               self.interface.printTag, 'This is not allowed! Please use different DataObjet as output')
 
     self._pp.collectOutput(finishedJob, output)
+
+  def provideExpectedMetaKeys(self):
+     """
+       Overrides the base class method to assure child postprocessor is also polled for its keys.
+       @ In, None
+       @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and the indexes related to expected keys
+     """
+     # get keys as per base class
+     metaKeys,metaParams = super().provideExpectedMetaKeys()
+     # add postprocessor keys
+     try:
+       keys, params = self._pp.provideExpectedMetaKeys()
+       metaKeys = metaKeys.union(keys)
+       metaParams.update(params)
+     except AttributeError:
+       pass # either "interface" has no method for returning meta keys, or "interface" is not established yet.
+     return metaKeys, metaParams

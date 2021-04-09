@@ -81,7 +81,7 @@ class LimitSurfaceIntegral(PostProcessorInterface):
       @ Out, None
     """
     super().__init__()
-    from Models import factory as modelsFactory # delay import to allow definition
+    from Models.PostProcessors import factory as ppFactory # delay import to allow definition
     self.variableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
     self.target = None  # target that defines the f(x1,x2,...,xn)
     self.tolerance = 0.0001  # integration tolerance
@@ -93,7 +93,7 @@ class LimitSurfaceIntegral(PostProcessorInterface):
     self.functionS = None # evaluation classifier for the integration
     self.errorModel = None # classifier used for the error estimation
     self.computationPrefix = None # output prefix for the storage of the probability and, if requested, bounding error
-    self.stat = modelsFactory.returnInstance('BasicStatistics')  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
+    self.stat = ppFactory.returnInstance('BasicStatistics')  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue'] # expected value calculation
     self.addAssemblerObject('distribution', InputData.Quantity.zero_to_infinity) # distributions are optional
     self.printTag = 'POSTPROCESSOR INTEGRAL' # print tag
