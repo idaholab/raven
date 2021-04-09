@@ -126,17 +126,8 @@ class PostProcessor(Model):
       @ Out, None
     """
     Model._readMoreXML(self, xmlNode)
+    self._pp = interfaceFactory.returnInstance(self.subType)
     self._pp._readMoreXML(xmlNode)
-
-  def _handleInput(self, paramInput):
-    """
-      Function to handle the common parts of the model parameter input.
-      @ In, paramInput, InputData.ParameterInput, the already parsed input.
-      @ Out, None
-    """
-    super()._handleInput(paramInput)
-    reqType = paramInput.parameterValues['subType']
-    self._pp = interfaceFactory.returnInstance(reqType)
 
   def whatDoINeed(self):
     """
