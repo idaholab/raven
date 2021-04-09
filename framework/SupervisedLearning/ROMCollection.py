@@ -676,7 +676,7 @@ class Clusters(Segments):
     classifier = self._assembledObjects.get('Classifier', [[None]*4])[0][3]
     if classifier is not None:
       # Try using the pp directly, not just the uSVE
-      classifier = classifier.unSupervisedEngine
+      classifier = classifier._pp.unSupervisedEngine
     else:
       self.raiseAnError(IOError, 'Clustering was requested, but no <Classifier> provided!')
     self._divisionClassifier = classifier

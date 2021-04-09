@@ -45,7 +45,6 @@ class PostProcessor(Model):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    spec.setStrictMode(False)
     validTypes = list(interfaceFactory.knownTypes())
     typeEnum = InputTypes.makeEnumType('PostProcessor', 'PostProcessorType', validTypes)
     for name in validTypes:
