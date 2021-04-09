@@ -117,6 +117,16 @@ class PostProcessor(Model):
     self.printTag = 'POSTPROCESSOR MODEL'
     self._pp = None
 
+  def _readMoreXML(self,xmlNode):
+    """
+      Function to read the portion of the xml input that belongs to this specialized class
+      and initialize some stuff based on the inputs got
+      @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
+      @ Out, None
+    """
+    super()._readMoreXML(xmlNode)
+    self._pp._readMoreXML(xmlNode)
+
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the model parameter input.
@@ -125,8 +135,32 @@ class PostProcessor(Model):
     """
     super()._handleInput(paramInput)
     reqType = paramInput.parameterValues['subType']
-    self._pp = interfaceFactory.returnInstance (reqType)
-    self._pp._handleInput(paramInput)
+    self._pp = interfaceFactory.returnInstance(reqType)
+    # self._pp._handleInput(paramInput)
+
+  def whatDoINeed(self):
+    """
+      This method is used mainly by the Simulation class at the Step construction stage.
+      It is used for inquiring the class, which is implementing the method, about the kind of objects the class needs to
+      be initialize.
+      @ In, None
+      @ Out, needDict, dict, dictionary of objects needed (class:tuple(object type{if None, Simulation does not check the type}, object name))
+    """
+    needDict = super().whatDoINeed()
+    needDictInterface = self._pp.whatDoINeed()
+    needDict.update(needDictInterface)
+    return needDict
+
+  def generateAssembler(self, initDict):
+    """
+      This method is used mainly by the Simulation class at the Step construction stage.
+      It is used for sending to the instanciated class, which is implementing the method, the objects that have been requested through "whatDoINeed" method
+      It is an abstract method -> It must be implemented in the derived class!
+      @ In, initDict, dict, dictionary ({'mainClassName(e.g., Databases):{specializedObjectName(e.g.,DatabaseForSystemCodeNamedWolf):ObjectInstance}'})
+      @ Out, None
+    """
+    super().generateAssembler(initDict)
+    self._pp.generateAssembler(initDict)
 
   def initialize(self, runInfo, inputs, initDict=None):
     """

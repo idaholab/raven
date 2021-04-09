@@ -20,8 +20,9 @@ from abc import ABCMeta, abstractmethod
 from utils import mathUtils
 from utils.utils import metaclass_insert
 from BaseClasses import BaseType
+from BaseClasses import Assembler
 
-class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
+class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
   """
     Archetype for "interface" classes, including implementations/strategies/algorithms to execute
     the intention of BaseEntity types. For example, SupervisedLearning Engines are an Interface
@@ -156,7 +157,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
       @ Out, None
     """
-    pass
+    super()._readMoreXML(xmlNode)
 
   def _handleInput(self, paramInput):
     """

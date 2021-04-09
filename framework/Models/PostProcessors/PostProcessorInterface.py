@@ -43,6 +43,7 @@ class PostProcessorInterface(BaseInterface):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
+    spec.addParam("subType", InputTypes.StringType, True)
     return spec
 
   def __init__(self):
@@ -99,7 +100,7 @@ class PostProcessorInterface(BaseInterface):
     """
     pass
 
-  def collectOutput(self,finishedJob,output,options=None):
+  def collectOutput(self,finishedJob, output, options=None):
     """
       Method that collects the outputs from the "run" method of the PostProcessor
       @ In, finishedJob, InternalRunner object, instance of the run just finished
