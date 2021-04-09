@@ -192,7 +192,6 @@ class AcceleratedCFD(CodeInterfaceBase):
       raise IOError("Dynamic Event Tree-based samplers not supported by AccelerateCFD interface yet!")
     currentInputsToPerturb = self.findInps(currentInputFiles,"input")
     originalInputs         = self.findInps(oriInputFiles,"input")
-    print(currentInputsToPerturb)
     parser = GenericParser.GenericParser(currentInputsToPerturb)
     parser.modifyInternalDictionary(**Kwargs)
     parser.writeNewInput(currentInputsToPerturb,originalInputs)

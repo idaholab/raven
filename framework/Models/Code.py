@@ -874,46 +874,64 @@ class Code(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, None
     """
-    prefix = kwargs.get("prefix")
-    uniqueHandler = kwargs.get("uniqueHandler",'any')
+    
+    nRuns = 1
+    batchMode =  kwargs.get("batchMode", False)
+    if batchMode:
+      nRuns = kwargs["batchInfo"]['nRuns']
 
-    ## These two are part of the current metadata, so they will be added before
-    ## the job is started, so that they will be captured in the metadata and match
-    ## the current behavior of the system. If these are not desired, then this
-    ## code can be moved to later.  -- DPM 4/12/17
-    kwargs['executable'] = self.executable
-    kwargs['outfile'] = None
+    for i in range(nRuns):
+      if batchMode:
+        kw =  kwargs['batchInfo']['batchRealizations'][i]
+      else:
+        kw = kwargs
 
-    #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
-    #  objects.  However, this might require some updating of many CodeInterfaces``````           1  Interfaces as well.
-    for index, inputFile in enumerate(myInput):
-      if inputFile.getExt() in self.code.getInputExtension():
-        kwargs['outfile'] = 'out~'+myInput[index].getBase()
-        break
-    if kwargs['outfile'] is None:
-      self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
-                                + self.subType +': ' + ' '.join(self.code.getInputExtension()))
+      prefix = kw.get("prefix")
+      uniqueHandler = kw.get("uniqueHandler",'any')
 
-    ## These kwargs are updated by createNewInput, so the job either should not
-    ## have access to the metadata, or it needs to be updated from within the
-    ## evaluateSample function, which currently is not possible since that
-    ## function does not know about the job instance.
-    metadata = copy.copy(kwargs)
 
-    ## These variables should not be part of the metadata, so add them after
-    ## we copy this dictionary (Caught this when running an ensemble model)
-    ## -- DPM 4/11/17
-    nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
-    kwargs['logfileBuffer'     ] = jobHandler.runInfoDict['logfileBuffer']
-    kwargs['precommand'        ] = jobHandler.runInfoDict['precommand']
-    kwargs['postcommand'       ] = jobHandler.runInfoDict['postcommand']
-    kwargs['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']
-    kwargs['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
-    kwargs['NumMPI'            ] = jobHandler.runInfoDict.get('NumMPI',1)
-    kwargs['numberNodes'       ] = len(nodesList)
-    ## This may look a little weird, but due to how the parallel python library
-    ## works, we are unable to pass a member function as a job because the
-    ## pp library loses track of what self is, so instead we call it from the
-    ## class and pass self in as the first parameter
-    jobHandler.addJob((self, myInput, samplerType, kwargs), self.__class__.evaluateSample, prefix, metadata=metadata, uniqueHandler=uniqueHandler)
-    self.raiseAMessage('job "' + str(prefix) + '" submitted!')
+      ## These two are part of the current metadata, so they will be added before
+      ## the job is started, so that they will be captured in the metadata and match
+      ## the current behavior of the system. If these are not desired, then this
+      ## code can be moved to later.  -- DPM 4/12/17
+      kw['executable'] = self.executable
+      kw['outfile'] = None      
+      
+      #TODO FIXME I don't think the extensions are the right way to classify files anymore, with the new Files
+      #  objects.  However, this might require some updating of many CodeInterfaces``````           1  Interfaces as well.
+      for index, inputFile in enumerate(myInput):
+        if inputFile.getExt() in self.code.getInputExtension():
+          kw['outfile'] = 'out~'+myInput[index].getBase()
+          break
+      if kw['outfile'] is None:
+        self.raiseAnError(IOError,'None of the input files has one of the extensions requested by code '
+                                  + self.subType +': ' + ' '.join(self.code.getInputExtension()))      
+
+      ## These kw are updated by createNewInput, so the job either should not
+      ## have access to the metadata, or it needs to be updated from within the
+      ## evaluateSample function, which currently is not possible since that
+      ## function does not know about the job instance.
+      metadata = copy.copy(kw)
+      
+      ## These variables should not be part of the metadata, so add them after
+      ## we copy this dictionary (Caught this when running an ensemble model)
+      ## -- DPM 4/11/17
+      nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
+      kw['logfileBuffer'     ] = jobHandler.runInfoDict['logfileBuffer']
+      kw['precommand'        ] = jobHandler.runInfoDict['precommand']
+      kw['postcommand'       ] = jobHandler.runInfoDict['postcommand']
+      kw['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']
+      kw['deleteOutExtension'] = jobHandler.runInfoDict['deleteOutExtension']
+      kw['NumMPI'            ] = jobHandler.runInfoDict.get('NumMPI',1)
+      kw['numberNodes'       ] = len(nodesList)
+      
+      ## This may look a little weird, but due to how the parallel python library
+      ## works, we are unable to pass a member function as a job because the
+      ## pp library loses track of what self is, so instead we call it from the
+      ## class and pass self in as the first parameter
+      jobHandler.addJob((self, myInput, samplerType, kw), self.__class__.evaluateSample, prefix, metadata=metadata,
+                        uniqueHandler=uniqueHandler, groupInfo={'id': kwargs['batchInfo']['batchId'], 'size': nRuns} if batchMode else None)
+      if nRuns == 1:
+        self.raiseAMessage('job "' + str(prefix) + '" submitted!')
+      else:
+        self.raiseAMessage('job "' + str(i+1) + '" in batch "'+str(prefix) + '" submitted!')

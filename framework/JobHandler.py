@@ -600,7 +600,7 @@ class JobHandler(BaseType):
       ## check if batches are ready to be returned
       for groupId in list(self.__batching.keys()):
         if len(self.__batching[groupId]['finished']) >  self.__batching[groupId]['size']:
-           self.raiseAnError(RuntimeError,'The batching system got corrupted. Open an issue in RAVEN github!')
+          self.raiseAnError(RuntimeError,'The batching system got corrupted. Open an issue in RAVEN github!')
         if removeFinished:
           if len(self.__batching[groupId]['finished']) ==  self.__batching[groupId]['size']:
             doneBatch = self.__batching.pop(groupId)
