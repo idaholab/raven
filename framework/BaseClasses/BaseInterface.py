@@ -140,16 +140,6 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
 
-  def initialize(self, *args, **kwargs):
-     """
-       provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _handleInput
-       that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
-       Set up this interface for a particular activity
-       @ In, args, list, positional arguments
-       @ In, kwargs, dict, keyword arguments
-     """
-     pass
-
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
