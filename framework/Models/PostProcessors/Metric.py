@@ -240,7 +240,7 @@ class Metric(PostProcessorInterface):
     elif len(self.features) != len(self.targets):
       self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
 
-  def collectOutput(self,finishedJob, output):
+  def collectOutput(self, finishedJob, output, options=None):
     """
       Function to place all of the computed data into the output object, (Files or DataObjects)
       @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor

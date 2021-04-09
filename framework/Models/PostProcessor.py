@@ -234,4 +234,4 @@ class PostProcessor(Model):
       self.raiseAnError(IOError, 'DataObject',output.name,'is used as both input and output of', \
               self.interface.printTag, 'This is not allowed! Please use different DataObjet as output')
 
-    self._pp.collectOutput(finishedJob, output, options)
+    self._pp.collectOutput(finishedJob, output)

@@ -43,6 +43,8 @@ class PostProcessorInterface(BaseInterface):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
+    spec.setStrictMode(False)
+    # spec.strictNode = False
     spec.addParam("subType", InputTypes.StringType, True)
     return spec
 
