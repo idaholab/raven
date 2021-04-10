@@ -29,21 +29,22 @@ import itertools
 
 #Internal Modules------------------------------------------------------------------------------------
 from EntityFactoryBase import EntityFactory
-import MessageHandler
+from BaseClasses import MessageUser
 #Internal Modules End--------------------------------------------------------------------------------
 
-class IndexSet(MessageHandler.MessageUser):
+class IndexSet(MessageUser):
   """
     In stochastic collocation for generalised polynomial chaos, the Index Set
     is a set of all combinations of polynomial orders needed to represent the
     original model to a "level" L (maxPolyOrder).
   """
-  def __init__(self,messageHandler=None):
+  def __init__(self):
     """
       Constructor.
-      @ In, messageHandler, MessageHandler object, optional, global message handling instance
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     self.type          = 'IndexSet' #type of index set (Tensor Product, Total Degree, Hyperbolic Cross)
     self.printTag      = 'IndexSet' #type of index set (Tensor Product, Total Degree, Hyperbolic Cross)
     self.maxOrds       = None #maximum requested polynomial order requested for each distribution
@@ -51,7 +52,6 @@ class IndexSet(MessageHandler.MessageUser):
     self.maxPolyOrder  = None #integer, maximum order polynomial to use in any one dimension -> misleading! Relative order for anisotropic case
     self.polyOrderList = []   #array of lists containing all the polynomial orders needed for each dimension
     self.impWeights    = []   #array of scalars for assigning importance weights to each dimension
-    self.messageHandler=messageHandler
 
   def __len__(self):
     """

@@ -433,6 +433,12 @@ then
   fi
 fi
 
+# Right before library installation, install ExamplePlugin
+echo Installing ExamplePlugin...
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+${parent_path}/install_plugins.py -s ${parent_path}/../plugins/ExamplePlugin
+
+
 ## install mode
 if [[ $ECE_MODE == 2 ]];
 then

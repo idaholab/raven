@@ -199,9 +199,15 @@ class KerasClassifier(supervisedLearning):
       # Apply multiplicative 1-centered Gaussian noise. As it is a regularization layer, it is only active at training time.
       self.availNoise['gaussiandropout'] = tf.keras.layers.GaussianDropout
 
+    super().__init__(**kwargs)
 
-    supervisedLearning.__init__(self, **kwargs)
-
+  def readInitDict(self, initDict):
+    """
+      Reads in the initialization dict to initialize this instance
+      @ In, initDict, dict, keywords passed to constructor
+      @ Out, None
+    """
+    super().readInitDict(initDict)
     # parameter dictionary at the initial stage
     self.initDict = copy.deepcopy(self.initOptionDict)
     self.printTag = 'KerasClassifier'

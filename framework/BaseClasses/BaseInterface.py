@@ -15,71 +15,116 @@
 Created on Mar 16, 2013
 @author: crisr
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-#External Modules------------------------------------------------------------------------------------
-import inspect
-import sys
-#External Modules End--------------------------------------------------------------------------------
+from abc import ABCMeta, abstractmethod
 
-#Internal Modules------------------------------------------------------------------------------------
-from utils import InputData, InputTypes, mathUtils
-import MessageHandler
-#Internal Modules End--------------------------------------------------------------------------------
+from utils import mathUtils
+from utils.utils import metaclass_insert
+from BaseClasses import BaseType
 
-class BaseType(MessageHandler.MessageUser):
+class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
   """
-    this is the base class for each general type used by the simulation
+    Archetype for "interface" classes, including implementations/strategies/algorithms to execute
+    the intention of BaseEntity types. For example, SupervisedLearning Engines are an Interface
+    to the Models.ROM class. Base interfaces define APIs for adding new algorithm classes.
   """
-
-  @classmethod
-  def getInputSpecification(cls):
-    """
-      Method to get a reference to a class that specifies the input data for
-      class cls.
-      @ In, cls, the class for which we are retrieving the specification
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for
-        specifying input of cls.
-    """
-    inputSpecification = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.RavenBase)
-    inputSpecification.addParam("name", InputTypes.StringType, True, descr='User-defined name to designate this entity in the RAVEN input file.')
-
-    return inputSpecification
-
-  @classmethod
-  def getSolutionExportVariableNames(cls):
-    """
-      Compiles a list of acceptable SolutionExport variable options.
-      @ In, None
-      @ Out, vars, dict, {varName: manual description} for each solution export option
-    """
-    return {}
-
+  ################################
+  # Core API (confirmed)
   def __init__(self):
+    """
+      Construct.
+      @ In, None
+      @ Out, None
+    """
+    super().__init__()
     self.name             = ''                                                          # name of this istance (alias)
     self.type             = type(self).__name__                                         # specific type within this class
     self.verbosity        = None                                                        # verbosity level (see message handler)
     self.globalAttributes = {}                                                          # this is a dictionary that contains parameters that are set at the level of the base classes defining the types
-    self._knownAttribute  = []                                                          # this is a list of strings representing the allowed attribute in the xml input for the class
-    self._knownAttribute += ['name','verbosity']                                        # attributes that are known
     self.printTag         = 'BaseType'                                                  # the tag that refers to this class in all the specific printing
-    self.messageHandler   = None                                                        # message handling object
     self.variableGroups   = {}                                                          # the variables this class needs to be aware of
     self.metadataKeys     = set()                                                       # list of registered metadata keys to expect from this entity
     self.metadataParams   = {}                                                          # dictionary of registered metadata keys with repect to their indexes
 
-  def readXML(self,xmlNode,messageHandler,variableGroups={},globalAttributes=None):
+  def handleInput(self, paramInput, variableGroups=None, globalAttributes=None):
     """
-      provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _readMoreXML
+      provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _handleInput
       that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
       verbosity (xml attribute)
-      @ In, xmlNode, ET.Element, input xml
-      @ In, messageHandler, MessageHandler object, message handler
+      @ In, paramInput, utils.InputData.parameterInput, input data from xml
       @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
       @ In, globalAttributes, dict{str:object}, optional, global attributes
       @ Out, None
     """
-    self.setMessageHandler(messageHandler)
-    self.variableGroups = variableGroups
+    self.variableGroups = variableGroups if variableGroups is not None else {}
+    if 'name' in paramInput.parameterValues:
+      self.name = paramInput.parameterValues['name']
+    else:
+      self.raiseAnError(IOError, 'not found name for a '+self.__class__.__name__)
+    self.type = paramInput.getName()
+    if self.globalAttributes is not None:
+      self.globalAttributes = globalAttributes
+    if 'verbosity' in paramInput.parameterValues:
+      self.verbosity = paramInput.parameterValues['verbosity'].lower()
+      self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
+    self._handleInput(paramInput)
+    self.raiseADebug('------Reading Completed for:')
+    self.printMe()
+
+  def initialize(self, *args, **kwargs):
+    """
+      Set up this interface for a particular activity
+      @ In, args, list, positional arguments
+      @ In, kwargs, dict, keyword arguments
+    """
+    pass
+
+  @abstractmethod
+  def run(self, *args, **kwargs):
+    """
+      Main method to "do what you do".
+      @ In, args, list, positional arguments
+      @ In, kwargs, dict, keyword arguments
+    """
+
+  ################################
+  # Utility API
+  def provideExpectedMetaKeys(self):
+    """
+      Provides the registered list of metadata keys for this entity.
+      @ In, None
+      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and
+                                           indexes/dimensions corresponding to expected keys
+    """
+    return self.metadataKeys, self.metadataParams
+
+  def addMetaKeys(self, args, params=None):
+    """
+      Adds keywords to a list of expected metadata keys.
+      @ In, args, list(str), keywords to register
+      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
+        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
+      @ Out, None
+    """
+    if params is None:
+      params = {}
+    if any(not mathUtils.isAString(a) for a in args):
+      self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
+    self.metadataKeys = self.metadataKeys.union(set(args))
+    self.metadataParams.update(params)
+
+  ################################
+  # API (legacy) - these should go away as we convert existing systems
+  def readXML(self, xmlNode, variableGroups=None, globalAttributes=None):
+    """
+      provide a basic reading capability from the xml input file for what is common to all types in
+      the simulation than calls _readMoreXML that needs to be overloaded and used as API. Each type
+      supported by the simulation should have: name (xml attribute), type (xml tag),
+      verbosity (xml attribute)
+      @ In, xmlNode, ET.Element, input xml
+      @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
+      @ In, globalAttributes, dict{str:object}, optional, global attributes
+      @ Out, None
+    """
     if 'name' in xmlNode.attrib.keys():
       self.name = xmlNode.attrib['name']
     else:
@@ -93,33 +138,6 @@ class BaseType(MessageHandler.MessageUser):
       self.verbosity = verbLocal if verbLocal is not None else verbGlobal
       self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
     self._readMoreXML(xmlNode)
-    self.raiseADebug('------Reading Completed for:')
-    self.printMe()
-
-  def handleInput(self, paramInput, messageHandler, variableGroups={}, globalAttributes=None):
-    """
-      provide a basic reading capability from the xml input file for what is common to all types in the simulation than calls _handleInput
-      that needs to be overloaded and used as API. Each type supported by the simulation should have: name (xml attribute), type (xml tag),
-      verbosity (xml attribute)
-      @ In, paramInput, InputParameter, input data from xml
-      @ In, messageHandler, MessageHandler object, message handler
-      @ In, variableGroups, dict{str:VariableGroup}, optional, variable groups container
-      @ In, globalAttributes, dict{str:object}, optional, global attributes
-      @ Out, None
-    """
-    self.setMessageHandler(messageHandler)
-    self.variableGroups = variableGroups
-    if 'name' in paramInput.parameterValues:
-      self.name = paramInput.parameterValues['name']
-    else:
-      self.raiseAnError(IOError,'not found name for a '+self.__class__.__name__)
-    self.type = paramInput.getName()
-    if self.globalAttributes is not None:
-      self.globalAttributes = globalAttributes
-    if 'verbosity' in paramInput.parameterValues:
-      self.verbosity = paramInput.parameterValues['verbosity'].lower()
-      self.raiseADebug('Set verbosity for '+str(self)+' to '+str(self.verbosity))
-    self._handleInput(paramInput)
     self.raiseADebug('------Reading Completed for:')
     self.printMe()
 
@@ -141,18 +159,8 @@ class BaseType(MessageHandler.MessageUser):
     """
     pass
 
-  def setMessageHandler(self,handler):
-    """
-      Function to set up the link to the the common Message Handler
-      @ In, handler, MessageHandler object, message handler
-      @ Out, None
-    """
-    if not isinstance(handler,MessageHandler.MessageHandler):
-      e=IOError('Attempted to set the message handler for '+str(self)+' to '+str(handler))
-      print('\nERROR! Setting MessageHandler in BaseClass,',e,'\n')
-      sys.exit(1)
-    self.messageHandler = handler
-
+  ################################
+  # undecided; are these still useful?
   def whoAreYou(self):
     """
       This is a generic interface that will return the type and name of any class that inherits this base class plus all the inherited classes

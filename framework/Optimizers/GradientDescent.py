@@ -101,7 +101,7 @@ class GradientDescent(RavenSampled):
     specs.addSub(grad)
     ## get specs for each gradient subclass, and add them to this class's options
     for option in gradFactory.knownTypes():
-      subSpecs = gradFactory.returnClass(option, cls).getInputSpecification()
+      subSpecs = gradFactory.returnClass(option).getInputSpecification()
       grad.addSub(subSpecs)
 
     # step sizing options
@@ -115,7 +115,7 @@ class GradientDescent(RavenSampled):
     ## TODO
     ## get specs for each stepManipulator subclass, and add them to this class's options
     for option in stepFactory.knownTypes():
-      subSpecs = stepFactory.returnClass(option, cls).getInputSpecification()
+      subSpecs = stepFactory.returnClass(option).getInputSpecification()
       step.addSub(subSpecs)
 
     # acceptance conditions
@@ -130,7 +130,7 @@ class GradientDescent(RavenSampled):
     ## TODO
     ## get specs for each acceptanceCondition subclass, and add them to this class's options
     for option in acceptFactory.knownTypes():
-      subSpecs = acceptFactory.returnClass(option, cls).getInputSpecification()
+      subSpecs = acceptFactory.returnClass(option).getInputSpecification()
       accept.addSub(subSpecs)
 
     # convergence
@@ -179,9 +179,9 @@ class GradientDescent(RavenSampled):
     # # -> but really should only include active ones, not all of them. This seems like it should work
     # #    when the InputData can scan forward to determine which entities are actually used.
     for grad in gradFactory.knownTypes():
-      new.update(gradFactory.returnClass(grad, cls).getSolutionExportVariableNames())
+      new.update(gradFactory.returnClass(grad).getSolutionExportVariableNames())
     for step in stepFactory.knownTypes():
-      new.update(stepFactory.returnClass(step, cls).getSolutionExportVariableNames())
+      new.update(stepFactory.returnClass(step).getSolutionExportVariableNames())
     ok.update(new)
     return ok
 
@@ -231,7 +231,7 @@ class GradientDescent(RavenSampled):
       self.raiseAnError('The <gradient> node requires exactly one gradient strategy! Choose from: ', gradFactory.knownTypes())
     gradNode = next(iter(gradParentNode.subparts))
     gradType = gradNode.getName()
-    self._gradientInstance = gradFactory.returnInstance(gradType, self)
+    self._gradientInstance = gradFactory.returnInstance(gradType)
     self._gradientInstance.handleInput(gradNode)
 
     # stepping strategy
@@ -240,7 +240,7 @@ class GradientDescent(RavenSampled):
       self.raiseAnError('The <stepNode> node requires exactly one stepping strategy! Choose from: ', stepFactory.knownTypes())
     stepNode = next(iter(stepNode.subparts))
     stepType = stepNode.getName()
-    self._stepInstance = stepFactory.returnInstance(stepType, self)
+    self._stepInstance = stepFactory.returnInstance(stepType)
     self._stepInstance.handleInput(stepNode)
 
     # acceptance strategy
@@ -250,11 +250,11 @@ class GradientDescent(RavenSampled):
         self.raiseAnError('The <acceptance> node requires exactly one acceptance strategy! Choose from: ', acceptFactory.knownTypes())
       acceptNode = next(iter(acceptNode.subparts))
       acceptType = acceptNode.getName()
-      self._acceptInstance = acceptFactory.returnInstance(acceptType, self)
+      self._acceptInstance = acceptFactory.returnInstance(acceptType)
       self._acceptInstance.handleInput(acceptNode)
     else:
       # default to strict mode acceptance
-      acceptNode = acceptFactory.returnInstance('Strict', self)
+      acceptNode = acceptFactory.returnInstance('Strict')
 
     # convergence options
     convNode = paramInput.findFirst('convergence')

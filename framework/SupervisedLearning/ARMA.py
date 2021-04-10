@@ -116,7 +116,7 @@ class ARMA(supervisedLearning):
     else:
       self.seed = int(self.seed)
 
-    self.normEngine = Distributions.factory.returnInstance('Normal', self)
+    self.normEngine = Distributions.factory.returnInstance('Normal')
     self.normEngine.mean = 0.0
     self.normEngine.sigma = 1.0
     self.normEngine.upperBoundUsed = False
@@ -1057,7 +1057,6 @@ class ARMA(supervisedLearning):
     dist.rank = dim
     dist.mu = means
     dist.covariance = np.ravel(cov)
-    dist.messageHandler = self.messageHandler
     dist.initializeDistribution()
     return dist
 

@@ -68,22 +68,21 @@ factory.registerAllSubtypes(Model, alias=renaming)
 
 # #here the class methods are called to fill the information about the usage of the classes
 for className in factory.knownTypes():
-  classType = factory.returnClass(className, None)
+  classType = factory.returnClass(className)
   classType.generateValidateDict()
   classType.specializeValidateDict()
 
 factory.registerType('External', ExternalPostProcessor)
 
-def validate(className,role,what,caller):
+def validate(className, role, what):
   """
     This is the general interface for the validation of a model usage
     @ In, className, string, the name of the class
     @ In, role, string, the role assumed in the Step
     @ In, what, string, type of object
-    @ In, caller, instance, the instance of the caller
     @ Out, None
   """
   if className in factory.knownTypes():
-    return factory.returnClass(className, caller).localValidateMethod(role, what)
+    return factory.returnClass(className).localValidateMethod(role, what)
   else:
     caller.raiseAnError(IOError, 'The model "{}" is not registered for class "{}"'.format(className, factory.name))

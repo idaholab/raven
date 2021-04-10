@@ -22,6 +22,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import copy
 import itertools
 import pickle as pk
+
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -1853,7 +1854,7 @@ class DataSet(DataObject):
     # datasets can have them because we don't have a 2d+ CSV storage strategy yet
     else:
       nullOK = True
-    loader = CsvLoader.CsvLoader(self.messageHandler)
+    loader = CsvLoader.CsvLoader()
     df = loader.loadCsvFile(fname, nullOK=nullOK)
     return df
 
@@ -2205,6 +2206,8 @@ class DataSet(DataObject):
       path = [ending['prefix']]
       while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
+        if ending is None:
+          break
         path.append(ending['prefix'])
       # sort it in order by progression
       path.reverse()

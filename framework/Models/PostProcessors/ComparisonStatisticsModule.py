@@ -321,13 +321,13 @@ class ComparisonStatistics(PostProcessor):
       self.dataPulls = []
       self.referenceData = {}
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.dataDict = {}  # Dictionary of all the input data, keyed by the name
     self.compareGroups = []  # List of each of the groups that will be compared
     # self.dataPulls = [] #List of data references that will be used
@@ -487,8 +487,8 @@ class ComparisonStatistics(PostProcessor):
           value = dataStat[key]
           if np.isscalar(value):
             dataPairs.append((key, value))
-        extraCsv = Files.factory.returnInstance('CSV', self)
-        extraCsv.initialize(newFileName,self.messageHandler)
+        extraCsv = Files.factory.returnInstance('CSV')
+        extraCsv.initialize(newFileName)
         extraCsv.open("w")
         extraCsv.write(",".join(['"' + str(x[0]) + '"' for x in dataPairs]))
         extraCsv.write("\n")

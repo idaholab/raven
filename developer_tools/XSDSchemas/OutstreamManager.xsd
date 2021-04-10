@@ -5,8 +5,12 @@
 <!-- *********************************************************************** -->
   <xsd:complexType name="OutStreamData">
     <xsd:sequence>
-      <xsd:element name="Print" type="PrintData" minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="Plot"  type="PlotData"  minOccurs="0" maxOccurs="unbounded"/>
+      <!-- since we have the Entity/Interface set up, we have to validate on subType, which is too much to ask XSD 1.0
+      <xsd:element name="Print" type="PrintData"   minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="Plot"  type="PlotData"    minOccurs="0" maxOccurs="unbounded"/>
+      <xsd:element name="Plot"  type="SamplePlot"  minOccurs="0" maxOccurs="unbounded"/>
+      -->
+      <xsd:any processContents="skip" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
     <xsd:attribute name="verbosity" type="verbosityAttr" default="all"/>
   </xsd:complexType>
@@ -21,6 +25,7 @@
       <xsd:element name="clusterLabel" type="xsd:string" minOccurs="0"/>
     </xsd:all>
     <xsd:attribute name="name"      type="xsd:string" use="required"/>
+    <xsd:attribute name="subType"   type="xsd:string"/>
     <xsd:attribute name="dir"       type="xsd:string" />
     <xsd:attribute name="verbosity" type="verbosityAttr"/>
   </xsd:complexType>
@@ -52,18 +57,30 @@
   </xsd:complexType>
 
   <xsd:complexType name="PlotData">
-    <xsd:all>
-      <xsd:element name="kwargs" type="kwargsType" minOccurs="0"/>
-      <xsd:element name="actions"      type="actionType" />
-      <xsd:element name="plotSettings" type="plotSettingsType" />
+    <xsd:sequence minOccurs="0">
       <xsd:element name="filename"     type="xsd:string" minOccurs="0"/>
-    </xsd:all>
+      <xsd:element name="plotSettings" type="plotSettingsType" />
+      <xsd:element name="actions"      type="actionType" />
+      <xsd:element name="kwargs" type="kwargsType" minOccurs="0"/>
+    </xsd:sequence>
     <xsd:attribute name="name"        type="xsd:string" use="required"/>
+    <xsd:attribute name="subType"     type="xsd:string"/>
     <xsd:attribute name="interactive" type="RavenBool" default="false"/>
     <xsd:attribute name="overwrite"   type="RavenBool" default="false"/>
     <xsd:attribute name="dir"         type="xsd:string" />
     <!-- Does this exist? -->
     <xsd:attribute name="verbosity"   type="xsd:string"/>
+  </xsd:complexType>
+
+  <xsd:complexType name="SamplePlot">
+    <xsd:complexContent>
+      <xsd:extension base="PlotData">
+        <xsd:sequence minOccurs="0">
+          <xsd:element name="source" type='xsd:string' minOccurs="1"/>
+          <xsd:element name="vars" type='xsd:string' minOccurs="1"/>
+        </xsd:sequence>
+      </xsd:extension>
+    </xsd:complexContent>
   </xsd:complexType>
 
   <xsd:simpleType name="toggleType">
