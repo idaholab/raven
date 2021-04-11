@@ -1,0 +1,23 @@
+<DataObjectMetadata name="pp6_out">
+  <DataSet type="Static">
+    <dims>
+      <dss_x2_x1>pivot_parameter</dss_x2_x1>
+      <dss_y2_y1>pivot_parameter</dss_y2_y1>
+      <dss_z2_z1>pivot_parameter</dss_z2_z1>
+      <x2_x1_process_time>pivot_parameter</x2_x1_process_time>
+      <x2_x1_standard_deviation>pivot_parameter</x2_x1_standard_deviation>
+      <x2_x1_total_distance>pivot_parameter</x2_x1_total_distance>
+      <y2_y1_process_time>pivot_parameter</y2_y1_process_time>
+      <y2_y1_standard_deviation>pivot_parameter</y2_y1_standard_deviation>
+      <y2_y1_total_distance>pivot_parameter</y2_y1_total_distance>
+      <z2_z1_process_time>pivot_parameter</z2_z1_process_time>
+      <z2_z1_standard_deviation>pivot_parameter</z2_z1_standard_deviation>
+      <z2_z1_total_distance>pivot_parameter</z2_z1_total_distance>
+    </dims>
+    <general>
+      <outputs>dss_x2_x1,x2_x1_total_distance,x2_x1_process_time,x2_x1_standard_deviation,dss_y2_y1,y2_y1_total_distance,y2_y1_process_time,y2_y1_standard_deviation,dss_z2_z1,z2_z1_total_distance,z2_z1_process_time,z2_z1_standard_deviation</outputs>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>
