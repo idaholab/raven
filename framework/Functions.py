@@ -28,7 +28,7 @@ from __future__ import division, print_function, absolute_import
 
 #Internal Modules------------------------------------------------------------------------------------
 from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseInterface, InputDataUser
+from BaseClasses import BaseEntity, InputDataUser
 from utils import utils, InputData, InputTypes
 from CustomCommandExecuter import execCommand
 #Internal Modules End--------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ class FunctionCollection(InputData.ParameterInput):
 
 FunctionCollection.createClass("Functions")
 
-class External(BaseInterface, InputDataUser):
+class External(BaseEntity, InputDataUser):
   """
     This class is the base class for different wrappers for external functions
     providing the tools to solve F(x)=0 where at least one of the components of

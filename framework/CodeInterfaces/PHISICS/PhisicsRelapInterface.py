@@ -44,6 +44,16 @@ class PhisicsRelap5(CodeInterfaceBase):
     self.Relap5Interface = Relap5()
     self.Relap5Interface.addDefaultExtension()
 
+  def initialize(self, runInfo, oriInputFiles):
+    """
+      Method to initialize the run of a new step
+      @ In, runInfo, dict,  dictionary of the info in the <RunInfo> XML block
+      @ In, oriInputFiles, list, list of the original input files
+      @ Out, None
+    """
+    relapInputs, phisicsInputs= self.tailorRelap5InputFiles(oriInputFiles)
+    self.PhisicsInterface.initialize(runInfo, phisicsInputs)
+    self.Relap5Interface.initialize(runInfo, relapInputs)
 
   def definePhisicsVariables(self):
     """

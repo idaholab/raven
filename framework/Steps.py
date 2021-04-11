@@ -39,7 +39,7 @@ import Files
 from utils import utils
 from utils import InputData, InputTypes
 import Models
-from OutStreams import OutStreamBase
+from OutStreams import OutStreamEntity
 from DataObjects import DataObject
 from Databases import Database
 #Internal Modules End--------------------------------------------------------------------------------
@@ -467,7 +467,7 @@ class SingleRun(Step):
       # if 'Database' in inDictionary['Output'][i].type:
       if isinstance(inDictionary['Output'][i], Database):
         inDictionary['Output'][i].initialize(self.name)
-      elif isinstance(inDictionary['Output'][i], OutStreamBase):
+      elif isinstance(inDictionary['Output'][i], OutStreamEntity):
         inDictionary['Output'][i].initialize(inDictionary)
       self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
     self._registerMetadata(inDictionary)
@@ -500,14 +500,14 @@ class SingleRun(Step):
     ## get an input field in the outputs variable that is not in the inputs
     ## variable defined above? - DPM 4/6/2017
     #empty dictionary corresponds to sampling data in MultiRun
-    model.submit(inputs, None, jobHandler, **{'SampledVars':{'prefix':'None'},'additionalEdits':{}})
+    model.submit(inputs, None, jobHandler, **{'SampledVars':{'prefix':'None'}, 'additionalEdits':{}})
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:
         if finishedJob.getReturnCode() == 0:
           # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
           for output in outputs:
-            if not isinstance(output, OutStreamBase):
+            if not isinstance(output, OutStreamEntity):
               model.collectOutput(finishedJob, output)
             else:
               output.addOutput()
@@ -622,7 +622,7 @@ class MultiRun(SingleRun):
     self._outputDictCollectionLambda = []
     # set up output collection lambdas
     for outIndex, output in enumerate(inDictionary['Output']):
-      if not isinstance(output, OutStreamBase):
+      if not isinstance(output, OutStreamEntity):
         if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name:
           self._outputCollectionLambda.append((lambda x:None, outIndex))
           self._outputDictCollectionLambda.append((lambda x:None, outIndex))
@@ -933,7 +933,7 @@ class IOStep(Step):
     """
     outputs         = []
     for out in inDictionary['Output']:
-      if not isinstance(out, OutStreamBase):
+      if not isinstance(out, OutStreamEntity):
         outputs.append(out)
     return outputs
 
@@ -949,8 +949,8 @@ class IOStep(Step):
     """
     # check if #inputs == #outputs
     # collect the outputs without outstreams
-    outputs         = self.__getOutputs(inDictionary)
-    databases       = set()
+    outputs = self.__getOutputs(inDictionary)
+    databases = set()
     self.actionType = []
     errTemplate = 'In Step "{name}": When the Input is {inp}, this step accepts only {okay} as Outputs, ' +\
                   'but received "{received}" instead!'
@@ -1040,7 +1040,7 @@ class IOStep(Step):
 
     #Initialize all the OutStreams
     for output in inDictionary['Output']:
-      if isinstance(output, OutStreamBase):
+      if isinstance(output, OutStreamEntity):
         output.initialize(inDictionary)
         self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
     # register metadata
@@ -1124,7 +1124,7 @@ class IOStep(Step):
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
 
     for output in inDictionary['Output']:
-      if isinstance(output, OutStreamBase):
+      if isinstance(output, OutStreamEntity):
         output.addOutput()
 
   def _localGetInitParams(self):

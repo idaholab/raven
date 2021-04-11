@@ -1,0 +1,109 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+    <TestInfo>
+      <name>framework/CodeInterfaceTests/RELAP5.RELAP5interfaceHybridDynamicET</name>
+      <author>alfoa</author>
+      <created>2020-11-30</created>
+      <classesTested>Models.Code.RELAP5</classesTested>
+      <description>
+         An example of using the RELAP5 code interface with the Hybrid Dynamic Event Tree approach
+         (aleatory uncertanties and epistemic uncertanties). This test shows how to set up the Dynamic Event Tree for
+         RELAP5 (i.e. usage of trips) and aliases.
+      </description>
+      <revisions>
+        <revision author="alfoa" date="2020-12-01">Added hierarchical dataset</revision>
+      </revisions>
+    </TestInfo>
+    <RunInfo>
+      <WorkingDir>RELAP5interfaceHybridDynamicEventTree</WorkingDir>
+      <Sequence>RELAP_DET,Outfiles</Sequence>
+      <batchSize>1</batchSize>
+    </RunInfo>
+    <Files>
+      <Input name="RELAPtrinp" type="">input.i</Input>
+      <Input name="RELAPrest" type="">restrt_SS</Input>
+    </Files>
+    <Steps>
+      <MultiRun clearRunDir="False" name="RELAP_DET" re-seeding="1">
+        <Input class="Files" type="">RELAPtrinp</Input>
+        <Input class="Files" type="">RELAPrest</Input>
+        <Model class="Models" type="Code">RELAPss</Model>
+        <Sampler class="Samplers" type="DynamicEventTree">DET</Sampler>
+        <Output class="DataObjects" type="PointSet">RELAPout</Output>
+        <Output class="DataObjects" type="PointSet">RELAPout_hier</Output>
+      </MultiRun>
+      <IOStep name="Outfiles" pauseAtEnd="false">
+        <Input class="DataObjects" type="PointSet">RELAPout_hier</Input>
+        <Input class="DataObjects" type="PointSet">RELAPout</Input>
+        <Output class="OutStreams" type="Print">RELAP_out</Output>
+        <Output class="OutStreams" type="Print">RELAPout_hier</Output>
+      </IOStep>
+    </Steps>
+    <Distributions>
+      <Uniform name="endtimedist">
+        <lowerBound>10.0</lowerBound>
+        <upperBound>30.0</upperBound>
+      </Uniform>
+      <Uniform name="endtime2dist">
+        <lowerBound>10.0</lowerBound>
+        <upperBound>42.0</upperBound>
+      </Uniform>
+      <Uniform name="missionTimeDist">
+        <lowerBound>25.</lowerBound>
+        <upperBound>30.</upperBound>
+      </Uniform>
+    </Distributions>
+    <Samplers>
+      <DynamicEventTree name='DET'>
+        <HybridSampler type="MonteCarlo">
+          <samplerInit>
+            <limit>2</limit>
+          </samplerInit>
+          <variable name="missionTime">
+            <distribution>missionTimeDist</distribution>
+          </variable>
+        </HybridSampler>
+        <variable name='endtime'>
+          <distribution>endtimedist</distribution>
+          <grid type='CDF' construction='custom'>0.1 0.3 0.99</grid>
+        </variable>
+        <variable name='endtime2'>
+          <distribution>endtime2dist</distribution>
+          <grid type='CDF' construction='custom'>0.11 0.5 0.99</grid>
+        </variable>
+      </DynamicEventTree>
+    </Samplers>
+
+    <Models>
+      <Code name="RELAPss" subType="Relap5">
+        <executable>
+          relap5.x
+        </executable>
+        <clargs type="text" arg="-r restrt_SS"/>
+        <alias variable="endtime" type="input">414:6</alias>
+        <alias variable="endtime2" type="input">454:6</alias>
+        <alias variable="missionTime" type="input">201:1</alias>
+      </Code>
+    </Models>
+    <DataObjects>
+      <PointSet name="RELAPout">
+        <Input>endtime,endtime2</Input>
+        <Output>cntrlvar_802</Output>
+      </PointSet>
+      <PointSet name="RELAPout_hier" hierarchical="true">
+        <Input>endtime,endtime2</Input>
+        <Output>cntrlvar_802</Output>
+      </PointSet>
+    </DataObjects>
+    <OutStreams>
+      <Print name="RELAP_out">
+        <type>csv</type>
+        <source>RELAPout</source>
+      </Print>
+      <Print name="RELAPout_hier">
+        <type>csv</type>
+        <source>RELAPout_hier</source>
+      </Print>
+    </OutStreams>
+</Simulation>
+
