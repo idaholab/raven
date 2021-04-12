@@ -353,6 +353,9 @@ except ImportError as e:
 
 if __QtAvailable:
   class mQTopologicalDecomposition(type(TopologicalDecomposition), type(qtc.QObject)):
+    """
+      Class used to solve the metaclass conflict
+    """
     pass
 
   class QTopologicalDecomposition(TopologicalDecomposition, qtc.QObject, metaclass=mQTopologicalDecomposition):

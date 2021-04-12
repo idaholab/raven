@@ -904,6 +904,9 @@ except ImportError as e:
 
 if __QtAvailable:
   class mQDataMining(type(DataMining), type(qtc.QObject)):
+    """
+      Class used to solve the metaclass conflict
+    """
     pass
 
   class QDataMining(DataMining, qtc.QObject, metaclass=mQDataMining):
