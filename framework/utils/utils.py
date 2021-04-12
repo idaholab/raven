@@ -1063,3 +1063,14 @@ def orderClusterLabels(originalLables):
       nextUsableLabel += 1
     labels[l] = new
   return labels
+
+def dataarrayToDict(singlePointDataarray):
+  """
+    Converts the point from realization DataSet to a Dictionary
+    @ In, singlePointDataarray, xr.dataarray, the data array containing a single point in the realization
+    @ Out, pointDict, dict, a dictionary containing the realization without the objective function
+  """
+  pointDict={}
+  for var in singlePointDataarray.indexes['Gene']:
+    pointDict[var] = singlePointDataarray.loc[var].data
+  return pointDict

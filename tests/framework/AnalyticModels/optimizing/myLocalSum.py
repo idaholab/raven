@@ -30,6 +30,9 @@ def evaluate(inputs):
     summ += (ind+1) * inputs[var]
   return summ[:]
 
+def constraint(self):
+  return self.x1 + self.x2 - 6
+
 def run(self,Inputs):
   """
     Function to calculate the average of the sampled six variables. This is used to check distribution for large number of samples.
@@ -37,3 +40,6 @@ def run(self,Inputs):
     @ Out, None
   """
   self.ans = evaluate(Inputs)
+
+def constrain(self):
+  return constraint(self)
