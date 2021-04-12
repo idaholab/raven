@@ -30,10 +30,5 @@ from .PDFCommonArea import PDFCommonArea
 from .ScipyMetric import ScipyMetric
 
 from .Factory import factory
-from .DSSv2 import DSSv2
-from .RepresentativityFactor import RepresentativityFactor
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
 
-__all__ = ['DTW','SKL','PairwiseMetric','CDFAreaDifference','PDFCommonArea','ScipyMetric','DSSv2','RepresentativityFactor']
+__all__ = ['DTW','SKL','PairwiseMetric','CDFAreaDifference','PDFCommonArea','ScipyMetric']

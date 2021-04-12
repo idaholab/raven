@@ -33,7 +33,7 @@ from utils import InputData, InputTypes
 import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
-class ValidationGate(PostProcessor):
+class Validation(PostProcessor):
   """
     Validation class. It will apply the specified validation algorithms in
     the models to a dataset, each specified algorithm's output can be loaded to
@@ -211,6 +211,7 @@ class ValidationGate(PostProcessor):
           ###
           ###
           ###
+          pass
       elif child.getName() == 'pivotParameter':
         self.pivotParameter = child.value
     if not hasattr(self, 'pivotParameter'):
