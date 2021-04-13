@@ -14,7 +14,7 @@
 
   <RunInfo>
     <WorkingDir>LSTMRegression</WorkingDir>
-    <Sequence>load</Sequence>
+    <Sequence>load, train_lstm</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -22,16 +22,38 @@
     <Input name="sine_data">sine_data.csv</Input>
   </Files>
 
+  <Models>
+    <ROM name="lstmROM" subType="KerasLSTMRegression">
+      <Features>prev_sum, prev_square</Features>
+      <Target>sum, square</Target>
+      <pivotParameter>index</pivotParameter>
+      <loss>mean_squared_error</loss>
+      <LSTM name="lstm1">
+        <dim_out>32</dim_out>
+      </LSTM>
+      <LSTM name="lstm2">
+        <dim_out>16</dim_out>
+      </LSTM>
+      <Dense name="dense">
+      </Dense>
+      <layer_layout>lstm1, lstm2, dense</layer_layout>
+    </ROM>
+  </Models>
+
   <Steps>
     <IOStep name="load">
       <Input class="Files" type="">sine_data</Input>
       <Output class="DataObjects" type="HistorySet">samples</Output>
     </IOStep>
+    <RomTrainer name="train_lstm">
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Output class="Models" type="ROM">lstmROM</Output>
+    </RomTrainer>
   </Steps>
 
   <DataObjects>
     <HistorySet name="samples">
-      <Input>a,b,c,d,e,f,g</Input>
+      <Input>a,b,c,d,e,f</Input>
       <Output>first,second,sum,square,square_sum,prev_sum,prev_square,prev_square_sum</Output>
       <options>
         <pivotParameter>index</pivotParameter>

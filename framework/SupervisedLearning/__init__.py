@@ -45,5 +45,6 @@ from .KerasClassifier import KerasClassifier
 from .KerasMLPClassifier import KerasMLPClassifier
 from .KerasConvNetClassifier import KerasConvNetClassifier
 from .KerasLSTMClassifier import KerasLSTMClassifier
+from .KerasLSTMRegression import KerasLSTMRegression
 
 from .Factory import factory
