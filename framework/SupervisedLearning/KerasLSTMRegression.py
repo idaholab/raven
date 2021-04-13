@@ -24,10 +24,10 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 import numpy as np
 ######
 #Internal Modules------------------------------------------------------------------------------------
-from .KerasClassifier import KerasClassifier
+from .KerasRegression import KerasRegression
 #Internal Modules End--------------------------------------------------------------------------------
 
-class KerasLSTMRegression(KerasClassifier):
+class KerasLSTMRegression(KerasRegression):
   """
     recurrent neural network using short-term model network (LSTM) classifier
     constructed using Keras API in TensorFlow
@@ -39,7 +39,7 @@ class KerasLSTMRegression(KerasClassifier):
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
       @ Out, None
     """
-    KerasClassifier.__init__(self, **kwargs)
+    KerasRegression.__init__(self, **kwargs)
     self.printTag = 'KerasLSTMRegression'
     self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasRcurrentLayersList']
 
