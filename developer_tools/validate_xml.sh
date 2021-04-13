@@ -2,6 +2,8 @@
 PYTHON_CMD=${PYTHON_CMD:=python}
 SCRIPT_DIRNAME=`dirname $0`
 SCRIPT_DIR=`(cd $SCRIPT_DIRNAME; pwd)`
+# load raven libraries
+. scripts/establish_conda_env.sh --load
 
 $PYTHON_CMD ${SCRIPT_DIR}/validate_xml.py
 
