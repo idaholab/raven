@@ -81,6 +81,7 @@ class PostProcessorInterface(BaseInterface):
       @ In, runInfo, dict, it is the run info from the jobHandler
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
+      @ Out, None
     """
     super().initialize()
     self.inputs = inputs
@@ -98,7 +99,6 @@ class PostProcessorInterface(BaseInterface):
       Possible inputs include: dict, xarray.Dataset, pd.DataFrame
       @ Out, dict, xarray.Dataset, pd.DataFrame --> I think we can avoid collectoutput in the plugin pp
     """
-    pass
 
   def collectOutput(self,finishedJob, output, options=None):
     """

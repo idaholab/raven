@@ -98,7 +98,7 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
     """
     return self.metadataKeys, self.metadataParams
 
-  def addMetaKeys(self,args, params={}):
+  def addMetaKeys(self,args, params=None):
     """
       Adds keywords to a list of expected metadata keys.
       @ In, args, list(str), keywords to register
@@ -106,6 +106,8 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
         values of the dictionary are lists of the corresponding indexes/coordinates of given variable
       @ Out, None
     """
+    if params is None:
+      params = {}
     if any(not mathUtils.isAString(a) for a in args):
       self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
     self.metadataKeys = self.metadataKeys.union(set(args))
