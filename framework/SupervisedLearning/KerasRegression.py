@@ -366,7 +366,7 @@ class KerasRegression(supervisedLearning):
       dropoutRate = layerDict.pop('rate',0.0)
       if layerSize is not None:
         if index == 0:
-          self._ROM.add(layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict))
+          self._ROM.add(layerInstant(layerSize,input_shape=[None,self.featv.shape[-1]], **layerDict))
         else:
           self._ROM.add(layerInstant(layerSize,**layerDict))
       else:
@@ -390,7 +390,8 @@ class KerasRegression(supervisedLearning):
     if layerType not in ['dense']:
       self.raiseAnError(IOError,'The last layer should always be Dense layer, but',layerType,'is provided!')
     layerInstant = self.__class__.availLayer[layerType]
-    self._ROM.add(layerInstant(self.numClasses,**layerDict))
+    #self._ROM.add(tf.keras.layers.TimeDistributed(layerInstant(len(self.targv),**layerDict)))
+    self._ROM.add(layerInstant(len(self.targv),**layerDict))
 
   def train(self,tdict):
     """
@@ -413,15 +414,22 @@ class KerasRegression(supervisedLearning):
     # Another options is to use Keras Function APIs to directly build multi-targets models, two examples:
     # https://keras.io/models/model/
     # https://keras.io/getting-started/functional-api-guide/#multi-input-and-multi-output-models
-    if len(self.target) > 1:
-      self.raiseAnError(IOError, "Only single target is permitted by", self.printTag)
-    if self.target[0] not in names:
-      self.raiseAnError(IOError,'The target', self.target[0], 'is not in the training set')
-    tval = np.asarray(values[names.index(self.target[0])])
+    #if len(self.target) > 1:
+    #  self.raiseAnError(IOError, "Only single target is permitted by", self.printTag)
+    #if self.target[0] not in names:
+    #  self.raiseAnError(IOError,'The target', self.target[0], 'is not in the training set')
+    #tval = np.asarray(values[names.index(self.target[0])])
     # FIXME: a better method may need to be added to process the labels
     # retrieve the most often used label
-    targetValues = stats.mode(tval,axis=len(tval.shape)-1)[0] if len(tval.shape) > 1 else tval
+    #targetValues = stats.mode(tval,axis=len(tval.shape)-1)[0] if len(tval.shape) > 1 else tval
     #targetValues = list(val[-1] if len(tval.shape) > 1 else val for val in tval)
+    targetValues = []
+    for target in self.target:
+      if target in names:
+        targetValues.append(values[names.index(target)])
+      else:
+        self.raiseAnError(IOError,'The target '+target+' is not in the training set')
+
 
     # We need to 'one-hot-encode' our target variable if multi-classes are requested
     # This means that a column will be created for each output category and a binary variable is inputted for
