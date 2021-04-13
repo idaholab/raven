@@ -22,40 +22,28 @@
 """
 
 #External Modules------------------------------------------------------------------------------------
-import numpy as np
-import os
-from collections import OrderedDict
-import itertools
-import copy
+
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import xmlUtils
-from utils import InputData, InputTypes
-import Files
-import Distributions
-import MetricDistributor
-from .PostProcessor import PostProcessor
+#from utils import utils, InputData, InputTypes
+import BaseInterface
 #Internal Modules End--------------------------------------------------------------------------------
 
-class ValidationBase(PostProcessor):
+class ValidationBase(BaseInterface):
   """
     ValidationBase is a base class for validation problems
     It represents the base class for most validation problems
   """
-
   @classmethod
   def getInputSpecification(cls):
     """
-      Method to get a reference to a class that specifies the input data for
-      class cls.
+      Method to get a reference to a class that specifies the input data for class "cls".
       @ In, cls, the class for which we are retrieving the specification
-      @ Out, specs, InputData.ParameterInput, class to use for
-        specifying input of cls.
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
-    specs = super(ValidationBase, cls).getInputSpecification()
-    #specs.addSub(metricInput)
-    return specs
+    spec = super().getInputSpecification()
+    return spec
 
   def __init__(self):
     """
@@ -64,81 +52,23 @@ class ValidationBase(PostProcessor):
       @ Out, None
     """
     super().__init__()
-    self.printTag = 'POSTPROCESSOR ValidationBase'
+    self.printTag = 'ValidationBase'
     self.dynamic        = False # is it time-dependent?
     self.features       = None  # list of feature variables
     self.targets        = None  # list of target variables
-    #self.metricsDict    = {}   # dictionary of metrics that are going to be assembled
     self.pivotParameter = None  # pivot parameter (present if dynamic == True)
-    self.pivotValues    = None  # pivot values (present if dynamic == True)
-    # assembler objects to be requested
-    self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
 
-  def inputToInternal(self, currentInputs):
+  def initialize(self, features, targets, **kwargs):
     """
-      Method to convert an input object into the internal format that is
-      understandable by this pp.
-      @ In, currentInputs, list or DataObject, data object or a list of data objects
-      @ Out, measureList, list of (feature, target), the list of the features and targets to measure the distance between
+      Set up this interface for a particular activity
+      @ In, features, list, list of features
+      @ In, targets, list, list of targets
+      @ In, kwargs, dict, keyword arguments
     """
-    if type(currentInputs) != list:
-      currentInputs = [currentInputs]
-    hasPointSet = False
-    hasHistorySet = False
-    #Check for invalid types
-    for currentInput in currentInputs:
-      inputType = None
-      if hasattr(currentInput, 'type'):
-        inputType = currentInput.type
-
-      if isinstance(currentInput, Files.File):
-        self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
-      elif isinstance(currentInput, Distributions.Distribution):
-        pass #Allowed type
-      elif inputType == 'HDF5':
-        self.raiseAnError(IOError, "Input type '", inputType, "' can not be accepted")
-      elif inputType == 'PointSet':
-        hasPointSet = True
-      elif inputType == 'HistorySet':
-        hasHistorySet = True
-        if self.multiOutput == 'raw_values':
-          self.dynamic = True
-          if self.pivotParameter not in currentInput.getVars('indexes'):
-            self.raiseAnError(IOError, self, 'Pivot parameter', self.pivotParameter,'has not been found in DataObject', currentInput.name)
-          if not currentInput.checkIndexAlignment(indexesToCheck=self.pivotParameter):
-            self.raiseAnError(IOError, "HistorySet", currentInput.name," is not syncronized, please use Interfaced PostProcessor HistorySetSync to pre-process it")
-          pivotValues = currentInput.asDataset()[self.pivotParameter].values
-          if len(self.pivotValues) == 0:
-            self.pivotValues = pivotValues
-          elif set(self.pivotValues) != set(pivotValues):
-            self.raiseAnError(IOError, "Pivot values for pivot parameter",self.pivotParameter, "in provided HistorySets are not the same")
-      else:
-        self.raiseAnError(IOError, "Metric cannot process "+inputType+ " of type "+str(type(currentInput)))
-    if self.multiOutput == 'raw_values' and hasPointSet and hasHistorySet:
-        self.multiOutput = 'mean'
-        self.raiseAWarning("Reset 'multiOutput' to 'mean', since both PointSet and HistorySet are provided as Inputs. Calculation outputs will be aggregated by averaging")
-
-    measureList = []
-
-    for cnt in range(len(self.features)):
-      feature = self.features[cnt]
-      target = self.targets[cnt]
-      featureData =  self.__getMetricSide(feature, currentInputs)
-      targetData = self.__getMetricSide(target, currentInputs)
-      measureList.append((featureData, targetData))
-
-    return measureList
-
-  def initialize(self, runInfo, inputs, initDict) :
-    """
-      Method to initialize the pp.
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-    """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
-    for metricIn in self.assemblerDict['Metric']:
-      self.metricsDict[metricIn[2]] = metricIn[3]
+    super().initialize()
+    self.features, self.targets = features, targets
+    self.pivotParameter = kwargs.get('pivotParameter')
+    self.metrics = kwargs.get('Metric')
 
   def _handleInput(self, paramInput):
     """
@@ -146,99 +76,19 @@ class ValidationBase(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
-    for child in paramInput.subparts:
-      if child.getName() == 'Metric':
-        if 'type' not in child.parameterValues.keys() or 'class' not in child.parameterValues.keys():
-          self.raiseAnError(IOError, 'Tag Metric must have attributes "class" and "type"')
-      elif child.getName() == 'Features':
-        self.features = child.value
-        self.featuresType = child.parameterValues['type']
-      elif child.getName() == 'Targets':
-        self.targets = child.value
-        self.TargetsType = child.parameterValues['type']
-      elif child.getName() == 'weight':
-        self.weight = np.asarray(child.value)
-      elif child.getName() == 'pivotParameter':
-        self.pivotParameter = child.value
-      else:
-        self.raiseAnError(IOError, "Unknown xml node ", child.getName(), " is provided for metric system")
-
-    if not self.features:
-      self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
-    elif len(self.features) != len(self.targets):
-      self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
-
-  def collectOutput(self,finishedJob, output):
+    pass
+    
+  def run(self, datasets, **kwargs):
     """
-      Function to place all of the computed data into the output object, (Files or DataObjects)
-      @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor
-      @ In, output, object, the object where we want to place our computed results
+      Main method to "do what you do".
+      @ In, datasets, tuple, tuple of datasets (data1,data2,etc.) to "validate"
+      @ In, kwargs, dict, keyword arguments
       @ Out, None
     """
-    evaluation = finishedJob.getEvaluation()
-    outputDict = evaluation[1]
-    if output.type in ['PointSet', 'HistorySet']:
-      self.raiseADebug('Adding output in data object named', output.name)
-      rlz = {}
-      for key, val in outputDict.items():
-        newKey = key.replace("|","_")
-        rlz[newKey] = val
-      if self.dynamic:
-        rlz[self.pivotParameter] = np.atleast_1d(self.pivotValues)
-      output.addRealization(rlz)
-      # add metadata
-      xml = self._writeXML(output, outputDict)
-      output._meta['MetricPP'] = xml
-    elif output.type == 'HDF5':
-      self.raiseAnError(IOError, 'Output type', str(output.type), 'is not yet implemented. Skip it')
-    else:
-      self.raiseAnError(IOError, 'Output type ', str(output.type), ' can not be used for postprocessor', self.name)
-
-  def _writeXML(self,output,outputDictionary):
-    """
-      Defines the method for writing the post-processor to the metadata within a data object
-      @ In, output, DataObject, instance to write to
-      @ In, outputDictionary, dict, dictionary stores importance ranking outputs
-      @ Out, xml, xmlUtils.StaticXmlElement instance, written data in XML format
-    """
-    if self.dynamic:
-      outputInstance = xmlUtils.DynamicXmlElement('MetricPostProcessor', pivotParam=self.pivotParameter)
-    else:
-      outputInstance = xmlUtils.StaticXmlElement('MetricPostProcessor')
-    if self.dynamic:
-      for key, values in outputDictionary.items():
-        assert("|" in key)
-        metricName, nodeName = key.split('|')
-        for ts, pivotVal in enumerate(self.pivotValues):
-          if values.shape[0] == 1:
-            outputInstance.addScalar(nodeName, metricName,values[0], pivotVal=pivotVal)
-          else:
-            outputInstance.addScalar(nodeName, metricName,values[ts], pivotVal=pivotVal)
-    else:
-      for key, values in outputDictionary.items():
-        assert("|" in key)
-        metricName, nodeName = key.split('|')
-        if len(list(values)) == 1:
-          outputInstance.addScalar(nodeName, metricName, values[0])
-        else:
-          self.raiseAnError(IOError, "Multiple values are returned from metric '", metricName, "', this is currently not allowed")
-    return outputInstance
-
-  def run(self, inputIn):
-    """
-      This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
-      @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
-      @ Out, outputDict, dict, Dictionary containing the results
-    """
-    measureList = self.inputToInternal(inputIn)
-    outputDict = {}
-    assert(len(self.features) == len(measureList))
-    for metricInstance in self.metricsDict.values():
-      metricEngine = MetricDistributor.factory.returnInstance('MetricDistributor', metricInstance)
-      for cnt in range(len(self.targets)):
-        nodeName = (str(self.targets[cnt]) + '_' + str(self.features[cnt])).replace("|","_")
-        varName = metricInstance.name + '|' + nodeName
-        output = metricEngine.evaluate(measureList[cnt], weights=self.weight, multiOutput=self.multiOutput)
-        outputDict[varName] = np.atleast_1d(output)
-    return outputDict
+    
+    
+    return None
+    
+    
+    
+    

@@ -27,7 +27,8 @@ import xarray as xr
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-import validationAlgorithms
+from .validationAlgorithms import validationAlgorithms
+# import validationAlgorithms
 from utils import utils, mathUtils
 from utils import InputData, InputTypes
 import MetricDistributor
@@ -206,6 +207,7 @@ class Validation(PostProcessor):
     self.initializationOptionDict = {}
     for child in paramInput.subparts:
       if child.getName() == 'ValidationAlgorithm':
+        self._type = typeA = child.parameterValues['type']
         if len(child.parameterValues) > 0:
           ### inquire algorithm and pass metric and pre-processor if any
           ###
