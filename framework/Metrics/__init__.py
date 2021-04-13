@@ -30,5 +30,3 @@ from .PDFCommonArea import PDFCommonArea
 from .ScipyMetric import ScipyMetric
 
 from .Factory import factory
-
-__all__ = ['DTW','SKL','PairwiseMetric','CDFAreaDifference','PDFCommonArea','ScipyMetric']
