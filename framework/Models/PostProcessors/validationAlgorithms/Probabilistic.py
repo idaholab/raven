@@ -15,7 +15,7 @@
   Created on April 04, 2021
 
   @author: alfoa
-  
+
   This class represents a base class for the validation algorithms
   It inherits from the PostProcessor directly
   ##TODO: Recast it once the new PostProcesso API gets in place
@@ -64,8 +64,8 @@ class Probabilistic(ValidationBase):
     self.printTag = 'POSTPROCESSOR ValidationBase'
     self.dynamicType = ['static'] #  for now only static is available
     self.acceptableMetrics = ["CDFAreaDifference", "PDFCommonArea"] #  acceptable metrics
-    self.name = 'Probabilistic' 
-  
+    self.name = 'Probabilistic'
+
 
   def inputToInternal(self, currentInputs):
     """
@@ -130,7 +130,7 @@ class Probabilistic(ValidationBase):
       @ In, kwargs, dict, keyword arguments
     """
     super().initialize(features, targets, **kwargs)
-    
+
 
   def _handleInput(self, paramInput):
     """
@@ -139,11 +139,11 @@ class Probabilistic(ValidationBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-  
+
   def run(self, datasets, **kwargs):
     """
       Main method to "do what you do".
-      @ In, datasets, list, list of datasets (data1,data2,etc.) to used. 
+      @ In, datasets, list, list of datasets (data1,data2,etc.) to used.
       @ In, kwargs, dict, keyword arguments
       @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
     """
@@ -151,7 +151,7 @@ class Probabilistic(ValidationBase):
     outs = {}
     for feat, targ in zip(self.features, self.targets):
       featData = self._getDataFromDatasets(datasets, feat, names)
-      targData = self._getDataFromDatasets(datasets, targ, names) 
+      targData = self._getDataFromDatasets(datasets, targ, names)
       for metric in self.metrics:
         name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.name)
         outs[name] = metric.evaluate(featData, targData)

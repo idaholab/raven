@@ -15,7 +15,7 @@
   Created on April 04, 2021
 
   @author: alfoa
-  
+
   This class represents a base class for the validation algorithms
   It inherits from the PostProcessor directly
   ##TODO: Recast it once the new PostProcesso API gets in place
@@ -76,7 +76,7 @@ class ValidationBase(BaseInterface):
       if not all(accetable):
         notAcceptable = [self.metrics[i].type for i, x in enumerate(accetable) if not x]
         self.raiseAnError(IOError, "The metrics '{}' are not acceptable for validation algorithm {}".format(','.join(notAcceptable), self.name))
-    
+
   def _handleInput(self, paramInput):
     """
       Function to handle the parsed paramInput for this class.
@@ -84,7 +84,7 @@ class ValidationBase(BaseInterface):
       @ Out, None
     """
     pass
-    
+
   def run(self, datasets, **kwargs):
     """
       Main method to "do what you do".
@@ -93,13 +93,13 @@ class ValidationBase(BaseInterface):
       @ Out, None
     """
     return None
-    
+
   ### utility functions
-  
+
   def _getDataFromDatasets(self, datasets, var, names=None):
     """
       Utility function to retrieve the data from datasets
-      @ In, datasets, list, list of datasets (data1,data2,etc.) to search from.  
+      @ In, datasets, list, list of datasets (data1,data2,etc.) to search from.
       @ In, names, list, optional, list of datasets names (data1,data2,etc.). If not present, the search will be done on the full list.
       @ In, var, str, the variable to find (either in fromat dataobject|var or simply var)
       @ Out, data, xarray.DataArray, the retrived data
@@ -112,6 +112,6 @@ class ValidationBase(BaseInterface):
       for ds in datasets:
         if var in ds:
           data = ds[var]
-          break    
+          break
     return data
-    
+

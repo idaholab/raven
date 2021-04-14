@@ -14,9 +14,9 @@
 """
   Factory interface for returning classes and instances from the
   validation algorithms pool.
-  
+
   Created on April 04, 2021
-  
+
   @ author: alfoa
 """
 from EntityFactoryBase import EntityFactory

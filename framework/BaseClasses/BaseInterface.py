@@ -75,6 +75,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
       Set up this interface for a particular activity
       @ In, args, list, positional arguments
       @ In, kwargs, dict, keyword arguments
+      @ Out, None
     """
     pass
 
@@ -84,6 +85,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
       Main method to "do what you do".
       @ In, args, list, positional arguments
       @ In, kwargs, dict, keyword arguments
+      @ Out, None
     """
 
   ################################
@@ -92,8 +94,8 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and
-                                           indexes/dimensions corresponding to expected keys
+      @ Out, (self.metadataKeys, self.metadataParams), tuple, (set(str),dict),
+             expected keys (empty if none) and indexes/dimensions corresponding to expected keys
     """
     return self.metadataKeys, self.metadataParams
 
@@ -177,7 +179,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
     """
       Function to be overloaded to get a dictionary of the name and values of the initial parameters associated with any class
       @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
+      @ Out, getInitParams, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
     """
     return {}
 
@@ -195,7 +197,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
     """
       Function to be overloaded to inject the name and values of the parameters that might change during the simulation
       @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
+      @ Out, getCurrentSetting, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
     """
     return {}
 

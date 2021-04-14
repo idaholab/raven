@@ -17,7 +17,7 @@
   description: Postprocessor named Validation. This postprocessor is aimed to
                to represent a gate for any validation tecniques and processes
 """
-                                                                                
+
 #External Modules---------------------------------------------------------------
 import numpy as np
 import copy
@@ -73,9 +73,6 @@ class Validation(PostProcessor):
     for typ in validationAlgorithms.factory.knownTypes():
       algoInput = validationAlgorithms.factory.returnClass(typ)
       specs.addSub(algoInput.getInputSpecification())
-
-
-
     return specs
 
   def __init__(self):
@@ -86,20 +83,13 @@ class Validation(PostProcessor):
     """
     super().__init__()
     self.printTag = 'POSTPROCESSOR VALIDATION'
-
-    
-    
-    self.solutionExport = None  ## A data object to hold derived info about the algorithm being performed,
-                                ## e.g., cluster centers or a projection matrix for dimensionality reduction methods
-
-    
     self.pivotParameter = None  ## default pivotParameter for HistorySet
     self._type = None           ## the type of library that are used for validation, i.e. DSS
     # add assembly objects (and set up pointers)
     self.PreProcessor = None    ## Instance of PreProcessor, default is None
-    self.metrics = None          ## Instance of Metric, default is None    
+    self.metrics = None          ## Instance of Metric, default is None
     self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
-    self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_infinity)    
+    self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_infinity)
 
   def _localWhatDoINeed(self):
     """
@@ -116,7 +106,7 @@ class Validation(PostProcessor):
       @ Out, None
     """
     self.jobHandler = initDict['internal']['jobHandler']
-   
+
   def initialize(self, runInfo, inputs, initDict):
     """
       Method to initialize the DataMining pp.
@@ -130,7 +120,7 @@ class Validation(PostProcessor):
       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
     if 'Metric' in self.assemblerDict:
       self.metrics = [metric[3] for metric in self.assemblerDict['Metric']]
-    
+
     if len(inputs) > 1:
       # if inputs > 1, check if the | is present to understand where to get the features and target
       notStandard = [k for k in self.features + self.targets if "|" not in k]
@@ -158,21 +148,21 @@ class Validation(PostProcessor):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    
+
     ## FIXME: this should be a type of the node <Algorithm> once we can handel "conditional choice" in InputData:
     ## ******* Replace:
     ##<PostProcessor name="blabla">
     ##  <Validation name="2bla2bla">
-    ##    ...     
+    ##    ...
     ##    <DSS>
     ##
     ##    </DSS>
     ##  </Validation>
-    ##</PostProcessor>    
+    ##</PostProcessor>
     ## ******* with:
     ##<PostProcessor name="blabla">
     ##  <Validation name="2bla2bla">
-    ##    ...     
+    ##    ...
     ##    <Algorithm type="DSS">
     ##
     ##    </Agorithm>
@@ -192,7 +182,7 @@ class Validation(PostProcessor):
     # return algo instance
     self.model = validationAlgorithms.factory.returnInstance(self._type)
     # handle input in the interface instance
-    self.model._handleInput(modelInputPart)    
+    self.model._handleInput(modelInputPart)
     # this loop set the pivot parameter (it could use paramInput.findFirst but we want to show how to add more paramters)
     for child in paramInput.subparts:
       if child.getName() == 'pivotParameter':
@@ -208,16 +198,17 @@ class Validation(PostProcessor):
     elif len(self.features) != len(self.targets):
       self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
 
-  def collectOutput(self, finishedJob, outputObject):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler
         object that is in charge of running this post-processor
-      @ InOut, outputObject, dataObjects, A reference to an object where we want
+      @ In, output, dataObjects, A reference to an object where we want
         to place our computed results
+      @ Out, None
     """
-    if len(outputObject) !=0:
-      self.raiseAnError(IOError,"There is some information already stored in the DataObject",outputObject.name, \
+    if len(output) !=0:
+      self.raiseAnError(IOError,"There is some information already stored in the DataObject",output.name, \
               "the calculations from PostProcessor",self.name, " can not be stored in this DataObject!", \
               "Please provide a new empty DataObject for this PostProcessor!")
     ## When does this actually happen?
@@ -242,7 +233,7 @@ class Validation(PostProcessor):
     # assert
     assert(isinstance(inputIn, list))
     assert(isinstance(inputIn[0], xr.Dataset) or isinstance(inputIn[0], DataObjects.DataSet))
-    
+
     # the input can be either be a list of dataobjects or a list of datasets (xarray)
     datasets = [inp if isinstance(inp, xr.Dataset) else inp.asDataset() for inp in inputIn]
     names = []
@@ -254,12 +245,12 @@ class Validation(PostProcessor):
       if isinstance(inputIn[0], DataObjects.DataSet) and not all([True if inp.type in ['HistorySet', 'DataSet']  else False for inp in inputIn]):
         self.raiseAnError(RuntimeError, "The pivotParameter '{}' has been inputted but PointSets have been used as input of PostProcessor '{}'".format(self.pivotParameter, self.name))
       if not all([True if self.pivotParameter in inp else False for inp in datasets]):
-        self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(self.pivotParameter, self.name))      
-    evaluation ={k: np.asaray(val) for k, val in  self.model.run(datasets, **{'dataobjectNames': names}).items()}
-    
+        self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(self.pivotParameter, self.name))
+    evaluation ={k: np.atleast_1d(val) for k, val in  self.model.run(datasets, **{'dataobjectNames': names}).items()}
+
     if self.pivotParameter:
       if len(datasets[0][self.pivotParameter]) != len(evaluation.values()[0]):
-        self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(datasets[0][self.pivotParameter]), len(evaluation.values()[0])))      
+        self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(datasets[0][self.pivotParameter]), len(evaluation.values()[0])))
       if self.pivotParameter not in evaluation:
-        evaluation[self.pivotParameter] = datasets[0][self.pivotParameter]      
+        evaluation[self.pivotParameter] = datasets[0][self.pivotParameter]
     return evaluation
