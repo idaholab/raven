@@ -27,12 +27,13 @@ import xarray as xr
 
 #Internal Modules---------------------------------------------------------------
 from .PostProcessor import PostProcessor
-from .validationAlgorithms import validationAlgorithms
-# import validationAlgorithms
+from . import validationAlgorithms
 from utils import utils, mathUtils
 from utils import InputData, InputTypes
+import DataObjects
 import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
+
 
 class Validation(PostProcessor):
   """
@@ -71,31 +72,34 @@ class Validation(PostProcessor):
     # registration of validation algorithm
     for typ in validationAlgorithms.factory.knownTypes():
       algoInput = validationAlgorithms.factory.returnClass(typ)
-    specs.addSub(algoInput.getInputSpecification())
+      specs.addSub(algoInput.getInputSpecification())
 
-    specs.addSub(preProcessorInput)
+
 
     return specs
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.printTag = 'POSTPROCESSOR VALIDATION'
 
-    self.addAssemblerObject('Metric', InputData.Quantity.zero_to_one)
-    self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_one)
+    
     
     self.solutionExport = None  ## A data object to hold derived info about the algorithm being performed,
                                 ## e.g., cluster centers or a projection matrix for dimensionality reduction methods
 
-    self.PreProcessor = None    ## Instance of PreProcessor, default is None
-    self.metric = None          ## Instance of Metric, default is None
+    
     self.pivotParameter = None  ## default pivotParameter for HistorySet
     self._type = None           ## the type of library that are used for validation, i.e. DSS
+    # add assembly objects (and set up pointers)
+    self.PreProcessor = None    ## Instance of PreProcessor, default is None
+    self.metrics = None          ## Instance of Metric, default is None    
+    self.addAssemblerObject('Metric', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_infinity)    
 
   def _localWhatDoINeed(self):
     """
@@ -112,76 +116,7 @@ class Validation(PostProcessor):
       @ Out, None
     """
     self.jobHandler = initDict['internal']['jobHandler']
-
-  def inputToInternalForHistorySet(self,currentInput):
-    """
-      Function to convert the input history set into a format that this
-      post-processor can understand
-      @ In, currentInput, object, DataObject of currentInput
-      @ Out, inputDict, dict, an input dictionary that this post-processor can process
-    """
-    dataSet = currentInput.asDataset()
-
-    return inputDict
-
-  def inputToInternalForPointSet(self,currentInput):
-    """
-      Function to convert the input point set into a format that this
-      post-processor can understand
-      @ In, currentInput, object, DataObject of currentInput
-      @ Out, inputDict, dict, an input dictionary that this post-processor can process
-    """
-    ## Get what is available in the data object being operated on
-    ## This is potentially more information than we need at the moment, but
-    ## it will make the code below easier to read and highlights where objects
-    ## are reused more readily
-
-    data = currentInput.asDataset()
-
-  def inputToInternalForPreProcessor(self,currentInput):
-    """
-      Function to convert the received input into a format that this
-      post-processor can understand
-      @ In, currentInput, object, DataObject of currentInput
-      @ Out, inputDict, dict, an input dictionary that this post-processor can process
-    """
-    inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
-
-    return inputDict
-
-  def inputToInternal(self, currentInp):
-    """
-      Function to convert the received input into a format this object can
-      understand
-      @ In, currentInp, list or DataObjects, Some form of data object or list of
-        data objects handed to the post-processor
-      @ Out, inputDict, dict, An input dictionary this object can process
-    """
-
-    if type(currentInp) == list:
-      if len(currentInp) > 1:
-        self.raiseAnError(IOError, "Only one input is allowed for this post-processor: ", self.name)
-      currentInput = currentInp[-1]
-    else:
-      currentInput = currentInp
-
-    if hasattr(currentInput, 'type'):
-      if currentInput.type == 'HistorySet':
-        return self.inputToInternalForHistorySet(currentInput)
-
-      elif currentInput.type == 'PointSet':
-        return self.inputToInternalForPointSet(currentInput)
-
-    elif type(currentInp) == dict:
-      if 'Features' in currentInput.keys():
-        return currentInput
-
-    elif isinstance(currentInp, Files.File):
-      self.raiseAnError(IOError, 'Validation PP: this PP does not support files as input.')
-
-    elif currentInput.type == 'HDF5':
-      self.raiseAnError(IOError, 'Validation PP: this PP does not support HDF5 Objects as input.')
-
+   
   def initialize(self, runInfo, inputs, initDict):
     """
       Method to initialize the DataMining pp.
@@ -190,11 +125,31 @@ class Validation(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     if 'PreProcessor' in self.assemblerDict:
       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
     if 'Metric' in self.assemblerDict:
-      self.metric = self.assemblerDict['Metric'][0][3]
+      self.metrics = [metric[3] for metric in self.assemblerDict['Metric']]
+    
+    if len(inputs) > 1:
+      # if inputs > 1, check if the | is present to understand where to get the features and target
+      notStandard = [k for k in self.features + self.targets if "|" not in k]
+      if notStandard:
+        self.raiseAnError(IOError, "# Input Datasets/DataObjects > 1! features and targets must use the syntax DataObjectName|feature to be usable! Not standard features are: {}!".format(",".join(notStandard)))
+    # now lets check that the variables are in the dataobjects
+    if isinstance(inputs[0], DataObjects.DataSet):
+      do = [inp.name for inp in inputs]
+      if len(inputs) > 1:
+        allFound = [feat.split("|")[0].strip() in do for feat in self.features]
+        allFound += [targ.split("|")[0].strip() in do for targ in self.targets]
+        if not all(allFound):
+          self.raiseAnError(IOError, "Targets and Features are linked to DataObjects that have not been listed as inputs in the Step. Please check input!")
+      # check variables
+      for indx, dobj in enumerate(do):
+        variables = [var.split("|")[-1].strip() for var in (self.features + self.targets) if dobj in var]
+        if not utils.isASubset(variables,inputs[indx].getVars()):
+          self.raiseAnError(IOError, "The variables '{}' not found in input DataObjet '{}'!".format(",".join(list(set(list(inputs[indx].getVars())) - set(variables))), dobj))
+    self.model.initialize(self.features, self.targets, **{'metrics': self.metrics, 'pivotParameter': self.pivotParameter})
 
   def _handleInput(self, paramInput):
     """
@@ -202,28 +157,56 @@ class Validation(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
-
-    self.initializationOptionDict = {}
+    super()._handleInput(paramInput)
+    
+    ## FIXME: this should be a type of the node <Algorithm> once we can handel "conditional choice" in InputData:
+    ## ******* Replace:
+    ##<PostProcessor name="blabla">
+    ##  <Validation name="2bla2bla">
+    ##    ...     
+    ##    <DSS>
+    ##
+    ##    </DSS>
+    ##  </Validation>
+    ##</PostProcessor>    
+    ## ******* with:
+    ##<PostProcessor name="blabla">
+    ##  <Validation name="2bla2bla">
+    ##    ...     
+    ##    <Algorithm type="DSS">
+    ##
+    ##    </Agorithm>
+    ##  </Validation>
+    ##</PostProcessor>
+    # check algorithms
+    valAlgo = validationAlgorithms.factory.knownTypes()
+    foundAll = [paramInput.findFirst(algo) for algo in valAlgo]
+    nNone =  foundAll.count(None)
+    if nNone != len(valAlgo) - 1:
+      msg =  "Only one validation algorithm at the time can be inputted in PostProcessor {}. Got >= 1. Check your input!".format(self.name)  \
+        if nNone != len(valAlgo) else "No validation algorithm has been specified in PostProcessor {}".format(self.name)
+      self.raiseAnError(IOError, msg)
+    # get validation algorithm to apply
+    modelInputPart = utils.first([x for x in foundAll if x is not None])
+    self._type =  modelInputPart.name
+    # return algo instance
+    self.model = validationAlgorithms.factory.returnInstance(self._type)
+    # handle input in the interface instance
+    self.model._handleInput(modelInputPart)    
+    # this loop set the pivot parameter (it could use paramInput.findFirst but we want to show how to add more paramters)
     for child in paramInput.subparts:
-      if child.getName() == 'ValidationAlgorithm':
-        self._type = typeA = child.parameterValues['type']
-        if len(child.parameterValues) > 0:
-          ### inquire algorithm and pass metric and pre-processor if any
-          ###
-          ###
-          ###
-          pass
-      elif child.getName() == 'pivotParameter':
+      if child.getName() == 'pivotParameter':
         self.pivotParameter = child.value
-    if not hasattr(self, 'pivotParameter'):
-      #TODO, if doing time dependent data mining that needs this, an error
-      # should be thrown
-      self.pivotParameter = None
-    if self._type:
-      self.algoValidation = _returnInstance(self._type,**self.initializationOptionDict['ValidationAlgorithm'])
-    else:
-      self.raiseAnError(IOError, 'No Validation Algorithm is supplied!')
+      elif child.getName() == 'Features':
+        self.features = child.value
+      elif child.getName() == 'Targets':
+        self.targets = child.value
+    if 'static' not in self.model.dataType and self.pivotParameter is None:
+      self.raiseAnError(IOError, "The validation algorithm '{}' is a dynamic model ONLY but no <pivotParameter> node has been inputted".format(self._type))
+    if not self.features:
+      self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
+    elif len(self.features) != len(self.targets):
+      self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
 
   def collectOutput(self, finishedJob, outputObject):
     """
@@ -239,98 +222,44 @@ class Validation(PostProcessor):
               "Please provide a new empty DataObject for this PostProcessor!")
     ## When does this actually happen?
     evaluation = finishedJob.getEvaluation()
-    inputObject, validationDict = evaluation
+    _, validationDict = evaluation
 
-    if inputObject.type != outputObject.type:
-      self.raiseAnError(IOError,"The type of output DataObject",outputObject.name,"is not consistent with input",\
-              "DataObject type, i.e. ",outputObject.type,"!=",inputObject.type)
-    rlzs = {}
-    # first create a new dataset from copying input data object
-    dataset = inputObject.asDataset().copy(deep=True)
-    sampleTag = inputObject.sampleTag
-    sampleCoord = dataset[sampleTag].values
-    availVars = dataset.data_vars.keys()
-    # update variable values if the values in the dataset are different from the values in the dataMineDict
-    # dataMineDict stores all the information generated by the datamining algorithm
-    if outputObject.type == 'PointSet':
-      for key,value in dataMineDict['outputs'].items():
-        if key in availVars and not np.array_equal(value,dataset[key].values):
-          newDA = xr.DataArray(value,dims=(sampleTag),coords={sampleTag:sampleCoord})
-          dataset = dataset.drop(key)
-          dataset[key] = newDA
-        elif key not in availVars:
-          newDA = xr.DataArray(value,dims=(sampleTag),coords={sampleTag:sampleCoord})
-          dataset[key] = newDA
-    elif outputObject.type == 'HistorySet':
-      for key,values in dataMineDict['outputs'].items():
-        if key not in availVars:
-          expDict = {}
-          for index, value in enumerate(values):
-            timeLength = len(self.pivotVariable[index])
-            arrayBase = value * np.ones(timeLength)
-            xrArray = xr.DataArray(arrayBase,dims=(self.pivotParameter), coords=[self.pivotVariable[index]])
-            expDict[sampleCoord[index]] = xrArray
-          ds = xr.Dataset(data_vars=expDict)
-          ds = ds.to_array().rename({'variable':sampleTag})
-          dataset[key] = ds
-    else:
-      self.raiseAnError(IOError, 'Unrecognized type for output data object ', outputObject.name, \
-              '! Available type are HistorySet or PointSet!')
-
-    outputObject.load(dataset,style='dataset')
+    self.raiseADebug('Adding output in data object named', output.name)
+    rlz = {}
+    for key, val in validationDict.items():
+      rlz[key] = val
+    output.addRealization(rlz)
+    # add metadata
+    #  in case we want to add specific metdata, we can add the functionality in the evalidation algo base class
 
   def run(self, inputIn):
     """
       This method executes the postprocessor action. In this case it loads the
       results to specified dataObject
-      @ In, inputIn, dict, dictionary of data to process
+      @ In, inputIn, list, dictionary of data to process
       @ Out, outputDict, dict, dictionary containing the post-processed results
     """
-    Input = self.inputToInternal(inputIn)
-    if type(inputIn) == list:
-      currentInput = inputIn[-1]
-    else:
-      currentInput = inputIn
-    evaluation = self.__runValidation(Input)
+    # assert
+    assert(isinstance(inputIn, list))
+    assert(isinstance(inputIn[0], xr.Dataset) or isinstance(inputIn[0], DataObjects.DataSet))
+    
+    # the input can be either be a list of dataobjects or a list of datasets (xarray)
+    datasets = [inp if isinstance(inp, xr.Dataset) else inp.asDataset() for inp in inputIn]
+    names = []
+    if isinstance(inputIn[0], DataObjects.DataSet):
+      names =  [inp.name for inp in inputIn]
+    #  check if pivotParameter
+    if self.pivotParameter:
+      #  in case of dataobjects we check that the dataobject is either an HistorySet or a DataSet
+      if isinstance(inputIn[0], DataObjects.DataSet) and not all([True if inp.type in ['HistorySet', 'DataSet']  else False for inp in inputIn]):
+        self.raiseAnError(RuntimeError, "The pivotParameter '{}' has been inputted but PointSets have been used as input of PostProcessor '{}'".format(self.pivotParameter, self.name))
+      if not all([True if self.pivotParameter in inp else False for inp in datasets]):
+        self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(self.pivotParameter, self.name))      
+    evaluation ={k: np.asaray(val) for k, val in  self.model.run(datasets, **{'dataobjectNames': names}).items()}
+    
+    if self.pivotParameter:
+      if len(datasets[0][self.pivotParameter]) != len(evaluation.values()[0]):
+        self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(datasets[0][self.pivotParameter]), len(evaluation.values()[0])))      
+      if self.pivotParameter not in evaluation:
+        evaluation[self.pivotParameter] = datasets[0][self.pivotParameter]      
     return evaluation
-
-
-  def __runValidation(self, Input):
-    """
-      This method executes the postprocessor action. In this case it loads the
-      results to specified dataObject.  This is for SciKitLearn
-      @ In, Input, dict, dictionary of data to process
-      @ Out, outputDict, dict, dictionary containing the post-processed results
-    """
-
-    return outputDict
-
-
-
-
-__availableValidationAlgorithms = {}
-__availableValidationAlgorithms['DSS'] = DSS
-#__availableValidationAlgorithms['PCM'] = PCM
-#__availableValidationAlgorithms['Representativity'] = Representativity
-
-def _factoryTypes():
-  """
-    Factor of validation algorithms
-  """
-  return list(__availableValidationAlgorithms.keys())
-
-def _returnClass(cls, name):
-  """
-    Return instance of validation algorithms
-  """
-  if name not in _factoryValidationAlgorithms():
-    cls.raiseAnError("{} validation algorithm not available!".format(name))
-  return __availableValidationAlgorithms[name]
-
-def _returnInstance(cls, name, **kwargs):
-  """
-    Return instance of validation algorithms
-  """
-  if name not in _factoryValidationAlgorithms():
-    cls.raiseAnError("{} validation algorithm not available!".format(name))
-  return __availableValidationAlgorithms[name](**kwargs)

@@ -22,10 +22,11 @@
 from EntityFactoryBase import EntityFactory
 
 from .ValidationBase import ValidationBase
+from .Probabilistic import Probabilistic
 #from .DSS import DSS
 #from .PCM import PCM
 #from .Representativity import Representativity
 
-factory = EntityFactory('ValidationAlgorithms')
+factory = EntityFactory('ValidationBase')
 # TODO map lower case to upper case, because of silly ROM namespace problems
 factory.registerAllSubtypes(ValidationBase)

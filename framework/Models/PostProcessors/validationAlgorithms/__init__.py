@@ -18,14 +18,7 @@
   @author: alfoa
 """
 
-from __future__ import absolute_import
-
 # These lines ensure that we do not have to do something like:
-from .ValidationBase import ValidationBase
-
-from .Probabilistic import Probabilistic
-#from .DSS import DSS
-#from .PCM import PCM
-#from .Representativity import Representativity
+#from .ValidationBase import ValidationBase
 
 from .Factory import factory
