@@ -16,24 +16,13 @@ Created on Dec 21, 2017
 
 @author: mandd
 """
-#External Modules---------------------------------------------------------------
-import numpy as np
-import xml.etree.ElementTree as ET
-import copy
-import itertools
-from collections import OrderedDict
-#External Modules End-----------------------------------------------------------
-
 #Internal Modules---------------------------------------------------------------
-from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
-from utils import xmlUtils as xmlU
-from utils import utils
+from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from .FTStructure import FTStructure
-import Files
 #Internal Modules End-----------------------------------------------------------
 
-class FTImporter(PostProcessorInterface):
+class FTImporter(PostProcessorPluginBase):
   """
     This is the base class of the postprocessor that imports Fault-Trees (FTs) into RAVEN as a PointSet
   """
@@ -69,16 +58,6 @@ class FTImporter(PostProcessorInterface):
     ## However, the DataObject.load can not be directly used to collect single realization
     self.outputMultipleRealizations = True
 
-  def initialize(self, runInfo, inputs, initDict) :
-    """
-      Method to initialize the pp.
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-      @ Out, None
-    """
-    super().initialize(runInfo, inputs, initDict)
-
   def _handleInput(self, paramInput):
     """
       Method that handles PostProcessor parameter input block.
@@ -101,14 +80,3 @@ class FTImporter(PostProcessorInterface):
     outputDict = faultTreeModel.returnDict()
     outputDict = {'data': outputDict, 'dims':{}}
     return outputDict
-
-  def collectOutput(self, finishedJob, output, options=None):
-    """
-      Function to place all of the computed data into the output object, (DataObjects)
-      @ In, finishedJob, object, JobHandler object that is in charge of running this PostProcessor
-      @ In, output, object, the object where we want to place our computed results
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
-      @ Out, None
-    """
-    super().collectOutput(finishedJob, output, options=options)
