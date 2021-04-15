@@ -54,9 +54,11 @@ class OptPath(PlotInterface):
     self.source = None      # reference to DataObject source
     self.sourceName = None  # name of DataObject source
     self.vars = None        # variables to plot
-    self.markerMap = {'accepted': 'go',
+    self.markerMap = {'first': 'yo',
+                      'accepted': 'go',
                       'rejected': 'rx',
-                      'rerun': 'c.'}
+                      'rerun': 'c.',
+                      'final': 'mo'}
     self.markers = defaultdict(lambda: 'k.', self.markerMap)
 
   def handleInput(self, spec):
