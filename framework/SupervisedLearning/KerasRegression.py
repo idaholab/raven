@@ -404,45 +404,17 @@ class KerasRegression(supervisedLearning):
     if type(tdict) != dict:
       self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
     names, values  = zip(*tdict.items())
-    # Currently, deep neural networks (DNNs) are only used for classification.
-    # Targets for deep neural network should be labels only (i.e. integers only)
-    # For both static  and time-dependent case, the targetValues are 2D arrays, i.e. [numSamples, numTargets]
-    # For time-dependent case, the time-dependency is removed from the targetValues
-    # Features can be 2D array, i.e. [numSamples, numFeatures], or 3D array,
-    # i.e. [numSamples, numTimeSteps, numFeatures]
-    # TODO: currently we only accept single target, we may extend to multi-targets by looping over targets
-    # Another options is to use Keras Function APIs to directly build multi-targets models, two examples:
-    # https://keras.io/models/model/
-    # https://keras.io/getting-started/functional-api-guide/#multi-input-and-multi-output-models
-    #if len(self.target) > 1:
-    #  self.raiseAnError(IOError, "Only single target is permitted by", self.printTag)
-    #if self.target[0] not in names:
-    #  self.raiseAnError(IOError,'The target', self.target[0], 'is not in the training set')
-    #tval = np.asarray(values[names.index(self.target[0])])
-    # FIXME: a better method may need to be added to process the labels
-    # retrieve the most often used label
-    #targetValues = stats.mode(tval,axis=len(tval.shape)-1)[0] if len(tval.shape) > 1 else tval
-    #targetValues = list(val[-1] if len(tval.shape) > 1 else val for val in tval)
-    targetValues = []
+    # Features must be 3d i.e. [numSamples, numTimeSteps, numFeatures]
+
     for target in self.target:
-      if target in names:
-        targetValues.append(values[names.index(target)])
-      else:
+      if target not in names:
         self.raiseAnError(IOError,'The target '+target+' is not in the training set')
 
-
-    # We need to 'one-hot-encode' our target variable if multi-classes are requested
-    # This means that a column will be created for each output category and a binary variable is inputted for
-    # each category.
-    if self.numClasses > 1 and 'categorical_crossentropy' in self.lossFunction:
-      # Transform the labels (i.e. numerical or non-numerical) to normalized numerical labels
-      targetValues = self.labelEncoder.fit_transform(targetValues.ravel())
-      targetValues = tf.keras.utils.to_categorical(targetValues)
-      if self.numClasses != targetValues.shape[-1]:
-        self.raiseAWarning('The num_classes:',self.numClasses, 'specified by the user is not equal number of classes',
-                           targetValues.shape[-1], ' in the provided data!')
-        self.raiseAWarning('Reset the num_classes to be consistent with the data!')
-        self.numClasses = targetValues.shape[-1]
+    firstTarget = values[names.index(self.target[0])]
+    targetValues = np.zeros((len(firstTarget), len(firstTarget[0]),
+                             len(self.target)))
+    for i, target in enumerate(self.target):
+      targetValues[:, :, i] = values[names.index(target)]
 
     featureValues = []
     featureValuesShape = None
@@ -462,13 +434,7 @@ class KerasRegression(supervisedLearning):
         featureValues.append(fval)
       else:
         self.raiseAnError(IOError,'The feature ',feat,' is not in the training set')
-
-    #FIXME: when we do not support anymore numpy <1.10, remove this IF STATEMENT
-    if int(np.__version__.split('.')[1]) >= 10:
-      featureValues = np.stack(featureValues, axis=-1)
-    else:
-      sl = (slice(None),) * np.asarray(featureValues[0]).ndim + (np.newaxis,)
-      featureValues = np.concatenate([np.asarray(arr)[sl] for arr in featureValues], axis=np.asarray(featureValues[0]).ndim)
+    featureValues = np.stack(featureValues, axis=-1)
 
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
@@ -482,6 +448,10 @@ class KerasRegression(supervisedLearning):
       @ Out, targetVals, array, shape = [n_samples], an array of output target
         associated with the corresponding points in featureVals
     """
+    #Need featureVals to be a numpy array with shape:
+    # (batches, data per batch, input_features)
+    #Need targetVals to be a numpy array with shape:
+    # (batches, data per batch, output_features)
     self.featv = featureVals
     self.targv = targetVals
     # check layers
