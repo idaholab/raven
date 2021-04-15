@@ -22,18 +22,14 @@ warnings.simplefilter('default', DeprecationWarning)
 #External Modules---------------------------------------------------------------
 import pandas as pd
 import numpy as np
-import csv
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessorInterface import PostProcessorInterface
+from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import InputData, InputTypes
-from utils import xmlUtils as xmlU
-from utils import utils
 #Internal Modules End-----------------------------------------------------------
 
-
-class MCSImporter(PostProcessorInterface):
+class MCSImporter(PostProcessorPluginBase):
   """
     This is the base class of the PostProcessor that imports Minimal Cut Sets (MCSs) into RAVEN as a PointSet
   """
@@ -67,16 +63,6 @@ class MCSImporter(PostProcessorInterface):
     inputSpecification.addSub(InputData.parameterInputFactory("expand",       contentType=InputTypes.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("BElistColumn", contentType=InputTypes.StringType))
     return inputSpecification
-
-  def initialize(self, runInfo, inputs, initDict) :
-    """
-      Method to initialize the PostProcessor
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-      @ Out, None
-    """
-    super().initialize(runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -144,17 +130,6 @@ class MCSImporter(PostProcessorInterface):
       counter = counter+1
     mcsPointSet = {'data': mcsPointSet, 'dims': {}}
     return mcsPointSet
-
-  def collectOutput(self, finishedJob, output, options=None):
-    """
-      Function to place all of the computed data into the output object, (DataObjects)
-      @ In, finishedJob, object, JobHandler object that is in charge of running this PostProcessor
-      @ In, output, object, the object where we want to place our computed results
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
-      @ Out, None
-    """
-    super().collectOutput(finishedJob, output, options=options)
 
 def mcsReader(mcsListFile):
   """
