@@ -494,6 +494,55 @@ class KerasRegression(supervisedLearning):
     """
     self.raiseAnError(NotImplementedError,'KerasRegression   : __confidenceLocal__ method must be implemented!')
 
+  def evaluate(self,edict):
+    """
+      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
+      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      the interface with the kernels requires.
+      @ In, edict, dict, evaluation dictionary
+      @ Out, evaluate, dict, {target: evaluated points}
+    """
+    if type(edict) != dict:
+      self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+    names, values  = list(edict.keys()), list(edict.values())
+    for index in range(len(values)):
+      resp = self.checkArrayConsistency(values[index], self.isDynamic())
+      if not resp[0]:
+        self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
+
+    featureValues = []
+    featureValuesShape = None
+    for feat in self.features:
+      if feat in names:
+        fval = values[names.index(feat)]
+        resp = self.checkArrayConsistency(fval, self.isDynamic())
+        if not resp[0]:
+          self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
+        fval = np.asarray(fval)
+        if featureValuesShape is None:
+          featureValuesShape = fval.shape
+        if featureValuesShape != fval.shape:
+          self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are not consistent to other features!')
+        self._localNormalizeData(values,names,feat)
+        fval = (fval - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        featureValues.append(fval)
+      else:
+        self.raiseAnError(IOError,'The feature ',feat,' is not in the training set')
+    featureValues = np.stack(featureValues, axis=-1)
+
+    # construct the evaluation matrix
+    #featureValues = np.zeros(shape=(values[0].size,len(self.features)))
+    #for cnt, feat in enumerate(self.features):
+    #  if feat not in names:
+    #    self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
+    #  else:
+    #    resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
+    #    if not resp[0]:
+    #      self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
+    #    featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
+    return self.__evaluateLocal__(featureValues)
+
+
   def __evaluateLocal__(self,featureVals):
     """
       Perform regression on samples in featureVals.
@@ -506,14 +555,8 @@ class KerasRegression(supervisedLearning):
     with self.graph.as_default():
       tf.keras.backend.set_session(self._session)
       outcome = self._ROM.predict(featureVals)
-    if self.numClasses > 1 and self.lossFunction in ['categorical_crossentropy']:
-      outcome = np.argmax(outcome,axis=1)
-      # Transform labels back to original encoding
-      outcome = self.labelEncoder.inverse_transform(outcome)
-      # TODO, extend to multi-targets, currently we only accept one target
-      prediction[self.target[0]] = outcome
-    else:
-      prediction[self.target[0]] = [round(val[0]) for val in outcome]
+    for i, target in enumerate(self.target):
+      prediction[target] = outcome[:, :, i]
     return prediction
 
   def _preprocessInputs(self,featureVals):
