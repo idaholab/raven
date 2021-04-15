@@ -1717,7 +1717,7 @@ For example,
 
 \subsubsection{OptPath}
 The \xmlString{OptPath} \xmlAttr{subType} shows the path taken during a \xmlNode{MultiRun} using
-a gradient-based \xmlNode{Optimizer} as the sampling strategy. It is generally used to show the progressive
+an \xmlNode{Optimizer} as the sampling strategy. It is generally used to show the progressive
 choices for optimization objective and optimization variable values through successive iterations.
 It reads this information from the \xmlNode{SolutionExport} DataObject in the optimization
 \xmlNode{MultiRun}.
@@ -1725,11 +1725,11 @@ It reads this information from the \xmlNode{SolutionExport} DataObject in the op
 This plotter
 constructs a series of verticle plots whose x-axis is the optimizer iteration and y-axis is a
 particular variable's values evaluated during that iteration. It does not include neighboring points
-used for gradient evaluation, only points that were considered as potential optimal points during
-the gradient descent search.
+used for, e.g., gradient evaluation, only points that were considered as potential optimal points during
+the optimization search.
 
 If the \xmlString{accepted} key value is included in the \xmlNode{SolutionExport} DataObject, this
-plotter will use colors and markers to identify the main types of iterations in a gradient-based
+plotter will use colors and markers to identify the main types of iterations in a
 optimizer:
 \begin{itemize}
   \item \xmlString{accepted}, indicates that the considered potential optimal point was deemed

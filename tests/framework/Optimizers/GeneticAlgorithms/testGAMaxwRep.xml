@@ -36,6 +36,7 @@
       <Input class="DataObjects" type="PointSet">optOut</Input>
       <Output class="OutStreams" type="Print">opt_export</Output>
       <Output class="OutStreams" type="Print">optOut</Output>
+      <Output class="OutStreams" type="Plot">opt_path</Output>
     </IOStep>
   </Steps>
 
@@ -80,7 +81,7 @@
       </GAparams>
 
       <convergence>
-        <objective>-1</objective>
+        <AHDp>0.1</AHDp>
       </convergence>
 
       <variable name="x1">
@@ -133,7 +134,7 @@
       </PointSet>
       <PointSet name="opt_export">
         <Input>trajID</Input>
-        <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,conv_objective</Output>
+        <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
       </PointSet>
     </DataObjects>
 
@@ -147,5 +148,9 @@
         <source>opt_export</source>
         <clusterLabel>trajID</clusterLabel>
       </Print>
+      <Plot name="opt_path" subType="OptPath">
+        <source>opt_export</source>
+        <vars>x1,x2,x3,ans</vars>
+      </Plot>
     </OutStreams>
 </Simulation>
