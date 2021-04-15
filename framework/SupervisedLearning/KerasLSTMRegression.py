@@ -51,9 +51,7 @@ class KerasLSTMRegression(KerasRegression):
     """
     for index, layerName in enumerate(self.layerLayout[:-1]):
       layerType = self.initOptionDict[layerName].get('type').lower()
-      nextLayerName = self.layerLayout[index+1]
-      nextLayerType = self.initOptionDict[nextLayerName].get('type').lower()
-      if layerType in ['lstm'] and nextLayerType in ['lstm']:
+      if layerType in ['lstm']:
         if not self.initOptionDict[layerName].get('return_sequences'):
           self.initOptionDict[layerName]['return_sequences'] = True
           self.raiseAWarning('return_sequences is resetted to True for layer',layerName)

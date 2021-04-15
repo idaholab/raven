@@ -390,8 +390,8 @@ class KerasRegression(supervisedLearning):
     if layerType not in ['dense']:
       self.raiseAnError(IOError,'The last layer should always be Dense layer, but',layerType,'is provided!')
     layerInstant = self.__class__.availLayer[layerType]
-    #self._ROM.add(tf.keras.layers.TimeDistributed(layerInstant(len(self.targv),**layerDict)))
-    self._ROM.add(layerInstant(len(self.targv),**layerDict))
+    self._ROM.add(tf.keras.layers.TimeDistributed(layerInstant(len(self.targv),**layerDict)))
+    #self._ROM.add(layerInstant(len(self.targv),**layerDict))
 
   def train(self,tdict):
     """
