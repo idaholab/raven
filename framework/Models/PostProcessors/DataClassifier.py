@@ -93,7 +93,10 @@ class DataClassifier(PostProcessorInterface):
         func = child.findFirst('Function')
         funcType = func.parameterValues['type']
         funcName = func.value.strip()
-        self.mapping[child.parameterValues['name']] = (funcType, funcName)
+        varName = child.parameterValues['name']
+        if varName in self.mapping.keys():
+          self.raiseAnError(IOError, "The variable {} name is duplicated in the XML input".format(varName))
+        self.mapping[varName] = (funcType, funcName)
       elif child.getName() == 'label':
         self.label = child.value.strip()
 
@@ -110,66 +113,61 @@ class DataClassifier(PostProcessorInterface):
     haveClassifier = False
     haveTarget = False
     for inputObject in currentInput:
-      if isinstance(inputObject, dict):
-        newInput.append(inputObject)
+      if inputObject.type not in ['PointSet', 'HistorySet']:
+        self.raiseAnError(IOError, "The input for this postprocesor", self.name, "is not acceptable! Allowed inputs are 'PointSet' and 'HistorySet'.")
+      if len(inputObject) == 0:
+        self.raiseAnError(IOError, "The input", inputObject.name, "is empty!")
+      inputDataset = inputObject.asDataset()
+      inputParams = inputObject.getVars('input')
+      outputParams = inputObject.getVars('output')
+      dataType = None
+      mappingKeys = self.mapping.keys()
+
+      if set(self.mapping.keys()) == set(inputParams) and self.label in outputParams:
+        dataType = 'classifier'
+        if not haveClassifier:
+          haveClassifier = True
+        else:
+          self.raiseAnError(IOError, "Both input data objects have been already processed! No need to execute this postprocessor", self.name)
+        if inputObject.type != 'PointSet':
+          self.raiseAnError(IOError, "Only PointSet is allowed as classifier, but HistorySet", inputObject.name, "is provided!")
       else:
-        if inputObject.type not in ['PointSet', 'HistorySet']:
-          self.raiseAnError(IOError, "The input for this postprocesor", self.name, "is not acceptable! Allowed inputs are 'PointSet' and 'HistorySet'.")
-        if len(inputObject) == 0:
-          self.raiseAnError(IOError, "The input", inputObject.name, "is empty!")
-        inputDataset = inputObject.asDataset()
-        inputParams = inputObject.getVars('input')
-        outputParams = inputObject.getVars('output')
-        dataType = None
-        mappingKeys = self.mapping.keys()
-        if len(set(mappingKeys)) != len(mappingKeys):
-          dups = set([elem for elem in mappingKeys if mappingKeys.count(elem) > 1])
-          self.raiseAnError(IOError, "The same variable {} name is used multiple times in the XML input".format(dups[0]))
-        if set(self.mapping.keys()) == set(inputParams) and self.label in outputParams:
-          dataType = 'classifier'
-          if not haveClassifier:
-            haveClassifier = True
-          else:
-            self.raiseAnError(IOError, "Both input data objects have been already processed! No need to execute this postprocessor", self.name)
-          if inputObject.type != 'PointSet':
-            self.raiseAnError(IOError, "Only PointSet is allowed as classifier, but HistorySet", inputObject.name, "is provided!")
+        dataType = 'target'
+        newInput[dataType]['data'] = inputObject.asDataset(outType='dict')['data']
+        newInput[dataType]['dims'] = inputObject.getDimensions()
+        if not haveTarget:
+          haveTarget = True
         else:
-          dataType = 'target'
-          newInput[dataType]['data'] = inputObject.asDataset(outType='dict')['data']
-          newInput[dataType]['dims'] = inputObject.getDimensions()
-          if not haveTarget:
-            haveTarget = True
-          else:
-            self.raiseAnError(IOError, "None of the input DataObjects can be used as the reference classifier! Either the label", \
-                    self.label, "is not exist in the output of the DataObjects or the inputs of the DataObjects are not the same as", \
-                    ','.join(self.mapping.keys()))
-        newInput[dataType]['input'] = dict.fromkeys(inputParams)
-        newInput[dataType]['output'] = dict.fromkeys(outputParams)
-        if inputObject.type == 'PointSet':
+          self.raiseAnError(IOError, "None of the input DataObjects can be used as the reference classifier! Either the label", \
+                  self.label, "is not exist in the output of the DataObjects or the inputs of the DataObjects are not the same as", \
+                  ','.join(self.mapping.keys()))
+      newInput[dataType]['input'] = dict.fromkeys(inputParams)
+      newInput[dataType]['output'] = dict.fromkeys(outputParams)
+      if inputObject.type == 'PointSet':
+        for elem in inputParams:
+          newInput[dataType]['input'][elem] = copy.deepcopy(inputDataset[elem].values)
+        for elem in outputParams:
+          newInput[dataType]['output'][elem] = copy.deepcopy(inputDataset[elem].values)
+        newInput[dataType]['type'] = inputObject.type
+        newInput[dataType]['name'] = inputObject.name
+      else:
+        # only extract the last element in each realization for the HistorySet
+        newInput[dataType]['type'] = inputObject.type
+        newInput[dataType]['name'] = inputObject.name
+        numRlzs = len(inputObject)
+        newInput[dataType]['historySizes'] = dict.fromkeys(range(numRlzs))
+        for i in range(numRlzs):
+          rlz = inputObject.realization(index=i)
           for elem in inputParams:
-            newInput[dataType]['input'][elem] = copy.deepcopy(inputDataset[elem].values)
+            if newInput[dataType]['input'][elem] is None:
+              newInput[dataType]['input'][elem] = np.empty(0)
+            newInput[dataType]['input'][elem] = np.append(newInput[dataType]['input'][elem], rlz[elem])
           for elem in outputParams:
-            newInput[dataType]['output'][elem] = copy.deepcopy(inputDataset[elem].values)
-          newInput[dataType]['type'] = inputObject.type
-          newInput[dataType]['name'] = inputObject.name
-        else:
-          # only extract the last element in each realization for the HistorySet
-          newInput[dataType]['type'] = inputObject.type
-          newInput[dataType]['name'] = inputObject.name
-          numRlzs = len(inputObject)
-          newInput[dataType]['historySizes'] = dict.fromkeys(range(numRlzs))
-          for i in range(numRlzs):
-            rlz = inputObject.realization(index=i)
-            for elem in inputParams:
-              if newInput[dataType]['input'][elem] is None:
-                newInput[dataType]['input'][elem] = np.empty(0)
-              newInput[dataType]['input'][elem] = np.append(newInput[dataType]['input'][elem], rlz[elem])
-            for elem in outputParams:
-              if newInput[dataType]['output'][elem] is None:
-                newInput[dataType]['output'][elem] = np.empty(0)
-              newInput[dataType]['output'][elem] = np.append(newInput[dataType]['output'][elem], rlz[elem].values[-1])
-              if newInput[dataType]['historySizes'][i] is None:
-                newInput[dataType]['historySizes'][i] = len(rlz[elem].values)
+            if newInput[dataType]['output'][elem] is None:
+              newInput[dataType]['output'][elem] = np.empty(0)
+            newInput[dataType]['output'][elem] = np.append(newInput[dataType]['output'][elem], rlz[elem].values[-1])
+            if newInput[dataType]['historySizes'][i] is None:
+              newInput[dataType]['historySizes'][i] = len(rlz[elem].values)
 
     return newInput
 

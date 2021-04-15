@@ -68,7 +68,8 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
         inputDs.append(inp)
       elif isinstance(inp, DataObject.DataObject):
         # convert to xarray.Dataset
-        inputDs.append(inp.asDataset())
+        outType = kwargs.get('outType', 'xrDataset')
+        inputDs.append(inp.asDataset(outType=outType))
       elif isinstance(inp, Database):
         self.raiseAnError(IOError, "Database", inp.name, "can not be handled directly by this Post Processor")
       else:
