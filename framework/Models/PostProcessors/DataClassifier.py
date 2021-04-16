@@ -16,13 +16,13 @@ Created on Jan 29, 2018
 
 @author: Congjian Wang
 """
-import copy
+
 import numpy as np
 
 from utils import InputData, InputTypes, utils
-from .PostProcessorInterface import PostProcessorInterface
+from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 
-class DataClassifier(PostProcessorInterface):
+class DataClassifier(PostProcessorPluginBase):
   """
     This Post-Processor performs data classification based on given classifier.
     In order to use this interface post-processor, the users need to provide
@@ -100,124 +100,86 @@ class DataClassifier(PostProcessorInterface):
       elif child.getName() == 'label':
         self.label = child.value.strip()
 
-  def inputToInternal(self, currentInput):
+  def identifyInputs(self, currentInput):
     """
-      Method to convert a list of input objects into the internal format that is
-      understandable by this pp.
-      @ In, currentInput, list, a list of DataObjects
-      @ Out, newInput, list, list of converted data
+      Method to identify the inputs for classifier and target, respectively
+      @ In, currentInput, list, a list of dictionaries
+      @ Out, newInput, dict, dictionary of identified inputs
     """
     if isinstance(currentInput,list) and len(currentInput) != 2:
-      self.raiseAnError(IOError, "Two inputs DataObjects are required for postprocessor", self.name)
+      self.raiseAnError(IOError, "Required two inputs for PostProcessor {}, but got {}".format(self.name, len(currentInput)))
     newInput ={'classifier':{}, 'target':{}}
     haveClassifier = False
     haveTarget = False
-    for inputObject in currentInput:
-      if inputObject.type not in ['PointSet', 'HistorySet']:
+    requiredKeys = list(self.mapping.keys()) + [self.label]
+    for inputDict in currentInput:
+      print(inputDict['type'])
+      if inputDict['type'] not in ['PointSet', 'HistorySet']:
         self.raiseAnError(IOError, "The input for this postprocesor", self.name, "is not acceptable! Allowed inputs are 'PointSet' and 'HistorySet'.")
-      if len(inputObject) == 0:
-        self.raiseAnError(IOError, "The input", inputObject.name, "is empty!")
-      inputDataset = inputObject.asDataset()
-      inputParams = inputObject.getVars('input')
-      outputParams = inputObject.getVars('output')
       dataType = None
-      mappingKeys = self.mapping.keys()
-
-      if set(self.mapping.keys()) == set(inputParams) and self.label in outputParams:
+      if set(requiredKeys).issubset(set(inputDict['data'].keys())):
         dataType = 'classifier'
         if not haveClassifier:
           haveClassifier = True
         else:
           self.raiseAnError(IOError, "Both input data objects have been already processed! No need to execute this postprocessor", self.name)
-        if inputObject.type != 'PointSet':
-          self.raiseAnError(IOError, "Only PointSet is allowed as classifier, but HistorySet", inputObject.name, "is provided!")
+        if inputDict['type'] != 'PointSet':
+          self.raiseAnError(IOError, "Only PointSet is allowed as classifier, but got", inputDict['type'])
       else:
         dataType = 'target'
-        newInput[dataType]['data'] = inputObject.asDataset(outType='dict')['data']
-        newInput[dataType]['dims'] = inputObject.getDimensions()
         if not haveTarget:
           haveTarget = True
         else:
           self.raiseAnError(IOError, "None of the input DataObjects can be used as the reference classifier! Either the label", \
                   self.label, "is not exist in the output of the DataObjects or the inputs of the DataObjects are not the same as", \
                   ','.join(self.mapping.keys()))
-      newInput[dataType]['input'] = dict.fromkeys(inputParams)
-      newInput[dataType]['output'] = dict.fromkeys(outputParams)
-      if inputObject.type == 'PointSet':
-        for elem in inputParams:
-          newInput[dataType]['input'][elem] = copy.deepcopy(inputDataset[elem].values)
-        for elem in outputParams:
-          newInput[dataType]['output'][elem] = copy.deepcopy(inputDataset[elem].values)
-        newInput[dataType]['type'] = inputObject.type
-        newInput[dataType]['name'] = inputObject.name
-      else:
-        # only extract the last element in each realization for the HistorySet
-        newInput[dataType]['type'] = inputObject.type
-        newInput[dataType]['name'] = inputObject.name
-        numRlzs = len(inputObject)
-        newInput[dataType]['historySizes'] = dict.fromkeys(range(numRlzs))
-        for i in range(numRlzs):
-          rlz = inputObject.realization(index=i)
-          for elem in inputParams:
-            if newInput[dataType]['input'][elem] is None:
-              newInput[dataType]['input'][elem] = np.empty(0)
-            newInput[dataType]['input'][elem] = np.append(newInput[dataType]['input'][elem], rlz[elem])
-          for elem in outputParams:
-            if newInput[dataType]['output'][elem] is None:
-              newInput[dataType]['output'][elem] = np.empty(0)
-            newInput[dataType]['output'][elem] = np.append(newInput[dataType]['output'][elem], rlz[elem].values[-1])
-            if newInput[dataType]['historySizes'][i] is None:
-              newInput[dataType]['historySizes'][i] = len(rlz[elem].values)
-
+      newInput[dataType] = inputDict
     return newInput
 
   def run(self, inputIn):
     """
       This method executes the postprocessor action.
-      @ In,  inputIn, list, list of DataObjects
+      @ In,  inputIn, list, list of input dictionaries
       @ Out, outputDict, dict, dictionary of outputs
     """
-    inputDict = self.inputToInternal(inputIn)
+    inputDict = self.identifyInputs(inputIn)
     targetDict = inputDict['target']
     classifierDict = inputDict['classifier']
     outputDict = {}
     outputDict.update(inputDict['target']['data'])
     outputType = targetDict['type']
-    numRlz = utils.first(targetDict['input'].values()).size
+    dimsDict = targetDict['dims']
+    numRlz = utils.first(targetDict['data'].values()).size
     outputDict[self.label] = []
     for i in range(numRlz):
       tempTargDict = {}
-      for param, vals in targetDict['input'].items():
-        tempTargDict[param] = vals[i]
-      for param, vals in targetDict['output'].items():
+      for param, vals in targetDict['data'].items():
         tempTargDict[param] = vals[i]
       tempClfList = []
       labelIndex = None
-      for key, values in classifierDict['input'].items():
+      for key in self.mapping.keys():
         calcVal = self.funcDict[key].evaluate("evaluate", tempTargDict)
+        values = classifierDict['data'][key]
         inds, = np.where(np.asarray(values) == calcVal)
         if labelIndex is None:
           labelIndex = set(inds)
         else:
           labelIndex = labelIndex & set(inds)
       if len(labelIndex) != 1:
-        self.raiseAnError(IOError, "The parameters", ",".join(tempTargDict.keys()), "with values", ",".join([str(el) for el in tempTargDict.values()]), "could not be put in any class!")
-      label = classifierDict['output'][self.label][list(labelIndex)[0]]
+        self.raiseAnError(IOError, "The parameters", ",".join(tempTargDict.keys()), "with values", ",".join([str(el) for el in tempTargDict.values()]), "could not be classified!")
+      label = classifierDict['data'][self.label][list(labelIndex)[0]]
       if outputType == 'PointSet':
         outputDict[self.label].append(label)
       else:
-        outputDict[self.label].append(np.asarray([label]*targetDict['historySizes'][i]))
+        historySize = 1
+        for var in targetDict['data'].keys():
+          dims = dimsDict[var]
+          if len(dims) !=0:
+            historySize = len(targetDict['data'][var][i])
+            if self.label not in dimsDict:
+              dimsDict[self.label] = dims
+            break
+        outputDict[self.label].append(np.asarray([label]*historySize))
     outputDict[self.label] = np.asarray(outputDict[self.label])
-    outputDict = {'data': outputDict, 'dims':inputDict['target']['dims']}
+    outputDict = {'data': outputDict, 'dims':targetDict['dims']}
     return outputDict
-
-  def collectOutput(self, finishedJob, output, options=None):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
-      @ In, output, dataObjects, The object where we want to place our computed results
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
-      @ Out, None
-    """
-    super().collectOutput(finishedJob, output, options=options)

@@ -67,8 +67,9 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
       if isinstance(inp, Files.File):
         inputDs.append(inp)
       elif isinstance(inp, DataObject.DataObject):
-        # convert to xarray.Dataset
-        outType = kwargs.get('outType', 'xrDataset')
+        # Current accept two types: 1) 'dict', 2) 'xrDataset'
+        # Set default to 'dict', this is consistent with current post-processors
+        outType = kwargs.get('outType', 'dict')
         inputDs.append(inp.asDataset(outType=outType))
       elif isinstance(inp, Database):
         self.raiseAnError(IOError, "Database", inp.name, "can not be handled directly by this Post Processor")

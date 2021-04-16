@@ -175,6 +175,8 @@ class PostProcessor(Model):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, myInput, list, the inputs (list) to start from to generate the new one
     """
+    if 'createNewInput' in dir(self._pp):
+      myInput = self._pp.createNewInput(myInput,samplerType,**kwargs)
     return myInput
 
   @Parallel()
