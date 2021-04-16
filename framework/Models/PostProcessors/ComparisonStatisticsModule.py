@@ -16,7 +16,6 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import math
@@ -81,24 +80,13 @@ def _getGraphs(functions, fZStats = False):
   if len(means) < 2:
     return
 
-  cdfAreaDifference = integrate.romberg(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh)
-
-  def firstMomentSimpson(f, a, b):
-    """
-      Compute the first simpson method
-      @ In, f, method, the function f(x)
-      @ In, a, float, lower bound
-      @ In, b, float, upper bound
-      @ In, n, int, the number of discretizations
-      @ Out, firstMomentSimpson, float, the moment
-    """
-    return integrate.romberg(lambda x:x*f(x), a, b)
+  cdfAreaDifference = integrate.quad(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,limit=1000)[0]
 
   #print a bunch of comparison statistics
-  pdfCommonArea = integrate.romberg(lambda x:min(pdfs[0](x),pdfs[1](x)),
-                            lowLow,highHigh)
+  pdfCommonArea = integrate.quad(lambda x:min(pdfs[0](x),pdfs[1](x)),
+                            lowLow,highHigh,limit=1000)[0]
   for i in range(len(pdfs)):
-    pdfArea = integrate.romberg(pdfs[i],lowLow,highHigh)
+    pdfArea = integrate.quad(pdfs[i],lowLow,highHigh,limit=1000)[0]
     retDict['pdf_area_'+names[i]] = pdfArea
     dataStats[i]["pdf_area"] = pdfArea
   retDict['cdf_area_difference'] = cdfAreaDifference
@@ -108,11 +96,11 @@ def _getGraphs(functions, fZStats = False):
   if fZStats:
     def fZ(z):
       """
-        Compute f(z) with a simpson rule
+        Compute f(z) with a quad rule
         @ In, z, float, the coordinate
         @ Out, fZ, the f(z)
       """
-      return integrate.romberg(lambda x: pdfs[0](x)*pdfs[1](x-z), lowLow, highHigh)
+      return integrate.quad(lambda x: pdfs[0](x)*pdfs[1](x-z), lowLow, highHigh,limit=1000)[0]
 
     midZ = means[0]-means[1]
     lowZ = midZ - 3.0*max(stdDevs[0],stdDevs[1])
@@ -126,9 +114,9 @@ def _getGraphs(functions, fZStats = False):
       fZTable[0].append(z)
       fZTable[1].append(fZ(z))
     retDict["f_z_table"] = fZTable
-    sumFunctionDiff = integrate.romberg(fZ, lowZ, highZ)
-    firstMomentFunctionDiff = firstMomentSimpson(fZ, lowZ,highZ)
-    varianceFunctionDiff = integrate.romberg(lambda x:((x-firstMomentFunctionDiff)**2)*fZ(x),lowZ,highZ)
+    sumFunctionDiff = integrate.quad(fZ, lowZ, highZ,limit=1000)[0]
+    firstMomentFunctionDiff = integrate.quad(lambda x:x*fZ(x), lowZ, highZ,limit=1000)[0]
+    varianceFunctionDiff = integrate.quad(lambda x:((x-firstMomentFunctionDiff)**2)*fZ(x),lowZ,highZ,limit=1000)[0]
     retDict['sum_function_diff'] = sumFunctionDiff
     retDict['first_moment_function_diff'] = firstMomentFunctionDiff
     retDict['variance_function_diff'] = varianceFunctionDiff
