@@ -540,7 +540,10 @@ class KerasRegression(supervisedLearning):
     #    if not resp[0]:
     #      self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
     #    featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
-    return self.__evaluateLocal__(featureValues)
+    result = self.__evaluateLocal__(featureValues)
+    pivotParameter = self.initDict['pivotParameter']
+    result[pivotParameter] = edict[pivotParameter]
+    return result
 
 
   def __evaluateLocal__(self,featureVals):

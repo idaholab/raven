@@ -14,12 +14,13 @@
 
   <RunInfo>
     <WorkingDir>LSTMRegression</WorkingDir>
-    <Sequence>load, train_lstm, test_lstm</Sequence>
+    <Sequence>load, train_lstm, load2, test_lstm</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
   <Files>
     <Input name="sine_data">sine_data.csv</Input>
+    <Input name="sine_data_prev">sine_data_prev.csv</Input>
   </Files>
 
   <Models>
@@ -48,21 +49,41 @@
     </EnsembleModel> -->
   </Models>
 
+  <Samplers>
+    <CustomSampler name="hs_sample">
+      <Source class="DataObjects" type="HistorySet">samples</Source>
+      <variable name="a" />
+      <variable name="b" />
+      <variable name="c" />
+      <variable name="d" />
+      <variable name="e" />
+      <variable name="f" />
+      <variable name="prev_sum" />
+      <variable name="prev_square" />
+      <variable name="prev_square_sum" />
+    </CustomSampler>
+  </Samplers>
+
   <Steps>
     <IOStep name="load">
       <Input class="Files" type="">sine_data</Input>
       <Output class="DataObjects" type="HistorySet">samples</Output>
     </IOStep>
+    <IOStep name="load2">
+      <Input class="Files" type="">sine_data_prev</Input>
+      <Output class="DataObjects" type="HistorySet">prev_samples</Output>
+    </IOStep>
     <RomTrainer name="train_lstm">
       <Input class="DataObjects" type="HistorySet">samples</Input>
       <Output class="Models" type="ROM">lstmROM</Output>
     </RomTrainer>
-    <SingleRun name="test_lstm">
-      <Input class="DataObjects" type="HistorySet">samples</Input>
+    <MultiRun name="test_lstm">
+      <Input class="DataObjects" type="HistorySet">prev_samples</Input>
       <Model class="Models" type="ROM">lstmROM</Model>
+      <Sampler class="Samplers" type="CustomSampler">hs_sample</Sampler>
       <Output class="DataObjects" type="HistorySet">resampled</Output>
       <Output class="OutStreams" type="Print">out_resampled</Output>
-      </SingleRun>
+    </MultiRun>
       <!-- <MultiRun name="test_lstm">
       <Input class="DataObjects" type="HistorySet">samples</Input>
       <Model class="Models" type="ROM">lstmROM</Model>
@@ -86,9 +107,9 @@
         <pivotParameter>index</pivotParameter>
       </options>
     </HistorySet>
-    <HistorySet name="inputHolder">
+    <HistorySet name="prev_samples">
       <Input>a,b,c,d,e,f</Input>
-      <Output>sum,square,prev_sum,prev_square,prev_square_sum</Output>
+      <Output>prev_sum,prev_square,prev_square_sum</Output>
       <options>
         <pivotParameter>index</pivotParameter>
       </options>
