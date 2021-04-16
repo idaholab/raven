@@ -542,7 +542,14 @@ class KerasRegression(supervisedLearning):
     #    featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     result = self.__evaluateLocal__(featureValues)
     pivotParameter = self.initDict['pivotParameter']
-    result[pivotParameter] = edict[pivotParameter]
+    if type(edict[pivotParameter]) == type([]):
+      #XXX this should not be needed since sampler should just provide the numpy array.
+      #Currently the CustomSampler provides all the pivot parameter values instead of the current one.
+      self.raiseAWarning("Adjusting pivotParameter because incorrect type provided")
+      result[pivotParameter] = edict[pivotParameter][0]
+    else:
+      result[pivotParameter] = edict[pivotParameter]
+    #breakpoint()
     return result
 
 
@@ -559,7 +566,7 @@ class KerasRegression(supervisedLearning):
       tf.keras.backend.set_session(self._session)
       outcome = self._ROM.predict(featureVals)
     for i, target in enumerate(self.target):
-      prediction[target] = outcome[:, :, i]
+      prediction[target] = outcome[0, :, i]
     return prediction
 
   def _preprocessInputs(self,featureVals):
