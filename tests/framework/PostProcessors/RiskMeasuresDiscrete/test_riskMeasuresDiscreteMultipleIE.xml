@@ -9,13 +9,13 @@
       Tests of the four risk importance measures for multiple IEs: Risk Achievement Worth (RAW), Risk Reduction Worth (RRW), Birnbaum (B) and Fussell-Vesely (FV)
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>RiskMeasuresDiscreteMultipleIE</WorkingDir>
     <Sequence>Run1,Run2,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  
+
   <Models>
     <ExternalModel name='model1' subType='' ModuleToLoad='model1'>
       <variables>Astatus,Bstatus,Cstatus,outcome</variables>
@@ -23,7 +23,7 @@
     <ExternalModel name='model2' subType='' ModuleToLoad='model2'>
       <variables>Bstatus,Cstatus,Dstatus,outcome</variables>
     </ExternalModel>
-    <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
+    <PostProcessor name="riskMeasuresDiscrete" subType="RiskMeasuresDiscrete">
       <method>riskMeasuresDiscrete</method>
       <measures>B,FV,RAW,RRW</measures>
       <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Astatus</variable>
@@ -33,7 +33,7 @@
       <target   values='0.9,1.1'>outcome</target>
       <data     freq='0.01'>outRun1</data>
       <data     freq='0.02'>outRun2</data>
-    </PostProcessor>   
+    </PostProcessor>
   </Models>
 
   <Distributions>
@@ -110,7 +110,7 @@
       <source>outPPS</source>
     </Print>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder1">
       <Input>Astatus,Bstatus,Cstatus</Input>
@@ -132,5 +132,5 @@
       <Output>Astatus_FV, Bstatus_FV, Cstatus_FV, Dstatus_FV, Astatus_RAW, Bstatus_RAW, Cstatus_RAW, Dstatus_RAW, Astatus_RRW, Bstatus_RRW, Cstatus_RRW, Dstatus_RRW</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>

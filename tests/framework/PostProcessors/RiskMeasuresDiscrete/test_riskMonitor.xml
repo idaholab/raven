@@ -6,26 +6,26 @@
     <created>2017-02-23</created>
     <classesTested>InterfacedPostProcessor</classesTested>
     <description>
-      Tests of the four risk importance measures for time dependent data: Risk Achievement Worth (RAW), 
+      Tests of the four risk importance measures for time dependent data: Risk Achievement Worth (RAW),
       Risk Reduction Worth (RRW), Birnbaum (B) and Fussell-Vesely (FV)
     </description>
   </TestInfo>
-  
+
   <Files>
     <Input name="testPrintHistorySet_dump" type="">testPrintHistorySet_dump.csv</Input>
   </Files>
-  
+
   <RunInfo>
     <WorkingDir>RiskMeasuresTimeDep</WorkingDir>
     <Sequence>LoadHS,Run1,PP,plot</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-  
+
   <Models>
     <ExternalModel name='model1' subType='' ModuleToLoad='../RiskMeasuresDiscreteMultipleIE/model1'>
       <variables>Astatus,Bstatus,Cstatus,outcome</variables>
     </ExternalModel>
-    <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
+    <PostProcessor name="riskMeasuresDiscrete" subType="RiskMeasuresDiscrete">
       <method>riskMeasuresDiscrete</method>
       <measures>B,FV,RAW,RRW,R0</measures>
       <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Astatus</variable>
@@ -34,7 +34,7 @@
       <target   values='0.9,1.1'>outcome</target>
       <data     freq='1.0'>outRun1</data>
       <temporalID>time</temporalID>
-    </PostProcessor>   
+    </PostProcessor>
   </Models>
 
   <Distributions>
@@ -233,7 +233,7 @@
       </actions>
     </Plot>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder1">
       <Input>Astatus,Bstatus,Cstatus</Input>
@@ -261,10 +261,10 @@
       <Input>x0</Input>
       <Output>time , R0   ,
               Astatus_FV  , Bstatus_FV  , Cstatus_FV  ,
-              Astatus_RAW , Bstatus_RAW , Cstatus_RAW , 
+              Astatus_RAW , Bstatus_RAW , Cstatus_RAW ,
               Astatus_RRW , Bstatus_RRW , Cstatus_RRW  </Output>
     </HistorySet>
 
   </DataObjects>
-  
+
 </Simulation>

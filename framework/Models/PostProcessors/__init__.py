@@ -40,6 +40,7 @@ from .RealizationAverager import RealizationAverager
 from .ParetoFrontierPostProcessor import ParetoFrontier
 from .MCSimporter import MCSImporter
 from .EconomicRatio import EconomicRatio
+from .RiskMeasuresDiscrete import RiskMeasuresDiscrete
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.
 additionalModules = []

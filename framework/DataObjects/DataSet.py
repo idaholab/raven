@@ -1219,6 +1219,11 @@ class DataSet(DataObject):
     dataDict['dims']     = self.getDimensions()
     dataDict['metadata'] = self.getMeta(general=True)
     dataDict['type'] = self.type
+    dataDict['inpVars'] = self.getVars('input')
+    dataDict['outVars'] = self.getVars('output')
+    dataDict['numberRealization'] = self.size
+    dataDict['name'] = self.name
+    dataDict['metaKeys'] = self.getVars('meta')
     # main data
     if self.type == "PointSet":
       ## initialize with np arrays of objects
