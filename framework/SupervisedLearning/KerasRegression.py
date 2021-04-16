@@ -414,7 +414,8 @@ class KerasRegression(supervisedLearning):
     targetValues = np.zeros((len(firstTarget), len(firstTarget[0]),
                              len(self.target)))
     for i, target in enumerate(self.target):
-      targetValues[:, :, i] = values[names.index(target)]
+      self._localNormalizeData(values, names, target)
+      targetValues[:, :, i] = self._scaleToNormal(values[names.index(target)], target)
 
     featureValues = []
     featureValuesShape = None
@@ -430,7 +431,7 @@ class KerasRegression(supervisedLearning):
         if featureValuesShape != fval.shape:
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are not consistent to other features!')
         self._localNormalizeData(values,names,feat)
-        fval = (fval - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        fval = self._scaleToNormal(fval, feat)
         featureValues.append(fval)
       else:
         self.raiseAnError(IOError,'The feature ',feat,' is not in the training set')
@@ -524,7 +525,7 @@ class KerasRegression(supervisedLearning):
         if featureValuesShape != fval.shape:
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are not consistent to other features!')
         self._localNormalizeData(values,names,feat)
-        fval = (fval - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        fval = self._scaleToNormal(fval, feat)
         featureValues.append(fval)
       else:
         self.raiseAnError(IOError,'The feature ',feat,' is not in the training set')
@@ -566,7 +567,7 @@ class KerasRegression(supervisedLearning):
       tf.keras.backend.set_session(self._session)
       outcome = self._ROM.predict(featureVals)
     for i, target in enumerate(self.target):
-      prediction[target] = outcome[0, :, i]
+      prediction[target] = self._invertScaleToNormal(outcome[0, :, i], target)
     return prediction
 
   def _preprocessInputs(self,featureVals):
@@ -608,6 +609,27 @@ class KerasRegression(supervisedLearning):
     """
     params = self._ROM.get_config()
     return params
+
+  def _scaleToNormal(self, values, feat):
+    """
+      Method to normalize based on previously calculated values
+      @ In, values, np.array, array to be normalized
+      @ In, feat, string, feature name
+      @ Out, scaled, np.array, normalized array
+    """
+    mu,sigma = self.muAndSigmaFeatures[feat]
+    return (values - mu)/sigma
+
+  def _invertScaleToNormal(self, values, feat):
+    """
+      Method to unnormalize based on previously calculated values
+      @ In, values, np.array, array to be normalized
+      @ In, feat, string, feature name
+      @ Out, scaled, np.array, normalized array
+    """
+    mu,sigma = self.muAndSigmaFeatures[feat]
+    return values*sigma + mu
+
 
   def _localNormalizeData(self,values,names,feat):
     """
