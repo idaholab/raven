@@ -14,7 +14,7 @@
 
   <RunInfo>
     <WorkingDir>LSTMRegression</WorkingDir>
-    <Sequence>load, train_lstm</Sequence>
+    <Sequence>load, train_lstm, test_lstm</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -38,6 +38,14 @@
       </Dense>
       <layer_layout>lstm1, lstm2, dense</layer_layout>
     </ROM>
+    <!--
+    <EnsembleModel name="ensembleModel" subType="">
+      <Model class="Models" type="ROM">
+        lstmROM
+        <Input class="DataObjects" type="HistorySet">inputHolder</Input>
+        <TargetEvaluation class="DataObjects" type="HistorySet">outputHolder</TargetEvaluation>
+      </Model>
+    </EnsembleModel> -->
   </Models>
 
   <Steps>
@@ -49,6 +57,18 @@
       <Input class="DataObjects" type="HistorySet">samples</Input>
       <Output class="Models" type="ROM">lstmROM</Output>
     </RomTrainer>
+    <SingleRun name="test_lstm">
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Model class="Models" type="ROM">lstmROM</Model>
+      <Output class="DataObjects" type="HistorySet">resampled</Output>
+      <Output class="OutStreams" type="Print">out_resampled</Output>
+      </SingleRun>
+      <!-- <MultiRun name="test_lstm">
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Model class="Models" type="ROM">lstmROM</Model>
+      <Output class="DataObjects" type="HistorySet">resampled</Output>
+      <Output class="OutStreams" type="Print">out_resampled</Output>
+    </MultiRun> -->
   </Steps>
 
   <DataObjects>
@@ -59,5 +79,35 @@
         <pivotParameter>index</pivotParameter>
       </options>
     </HistorySet>
+    <HistorySet name="resampled">
+      <Input>a,b,c,d,e,f</Input>
+      <Output>sum,square,prev_sum,prev_square,prev_square_sum</Output>
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="inputHolder">
+      <Input>a,b,c,d,e,f</Input>
+      <Output>sum,square,prev_sum,prev_square,prev_square_sum</Output>
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="outputHolder">
+      <Input>a,b,c,d,e,f</Input>
+      <Output>sum,square,prev_sum,prev_square,prev_square_sum</Output>
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+    </HistorySet>
+
   </DataObjects>
+
+  <OutStreams>
+    <Print name="out_resampled">
+      <type>csv</type>
+      <source>resampled</source>
+    </Print>
+  </OutStreams>
+
 </Simulation>
