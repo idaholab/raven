@@ -21,14 +21,13 @@
   </Files>
 
   <Models>
-    <!--
     <PostProcessor name="delayPP" subType="InterfacedPostProcessor">
       <method>HistorySetDelay</method>
       <pivotParameter>index</pivotParameter>
       <delay original="first" new="first_d1" steps="-1" default="0.0"/>
       <delay original="first" new="first_d4" steps="-4" default="0.0"/>
       <delay original="second" new="second_d1" steps="-1" default="3.14159"/>
-    </PostProcessor>-->
+    </PostProcessor>
   </Models>
 
   <Steps>
@@ -36,13 +35,12 @@
       <Input class="Files" type="">sine_data</Input>
       <Output class="DataObjects" type="HistorySet">samples</Output>
     </IOStep>
-    <!--
     <PostProcess name="delay">
       <Input class="DataObjects" type="HistorySet">samples</Input>
       <Model class="Models" type="PostProcessor">delayPP</Model>
       <Output class="DataObjects" type="HistorySet">delayed_samples</Output>
       <Output class="OutStreams" type="Print">delayed_samples_dump</Output>
-    </PostProcess> -->
+    </PostProcess>
   </Steps>
 
   <OutStreams>
