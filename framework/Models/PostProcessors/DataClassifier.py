@@ -166,7 +166,7 @@ class DataClassifier(PostProcessorPluginBase):
         else:
           labelIndex = labelIndex & set(inds)
       if len(labelIndex) != 1:
-        self.raiseAnError(IOError, "The parameters", ",".join(tempTargDict.keys()), "with values", ",".join([str(el) for el in tempTargDict.values()]), "could not be classified!")
+        self.raiseAnError(IOError, "The parameters", ",".join(tempTargDict.keys()), "with values", ",".join([str(el) for el in tempTargDict.values()]), "could not be categorized!")
       label = classifierDict['data'][self.label][list(labelIndex)[0]]
       if outputType == 'PointSet':
         outputDict[self.label].append(label)
