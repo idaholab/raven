@@ -108,5 +108,10 @@
     input  = 'test_historySetSampling_and_sync.xml'
     csv    = 'historySetSampling_and_sync/out_synced_and_reduced_1.csv'
   [../]
+  [./HistorySetDelay]
+    type   = 'RavenFramework'
+    input  = 'test_historySetDelay.xml'
+    csv    = 'HistorySetDelay/delayed_samples_dump_0.csv HistorySetDelay/delayed_samples_dump_1.csv'
+  [../]
 
 []
