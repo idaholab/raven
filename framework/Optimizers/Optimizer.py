@@ -281,6 +281,9 @@ class Optimizer(AdaptiveSampler):
       @ In, solutionExport, DataObject, optional, a PointSet to hold the solution
       @ Out, None
     """
+    if solutionExport is None:
+      self.raiseAnError(IOError, 'Optimizers require a SolutionExport DataObject. Please add a <SolutionExport> node in the Step!')
+
     AdaptiveSampler.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
     # functional constraints
     for entry in self.assemblerDict.get('Constraint', []):
