@@ -117,6 +117,7 @@ def tellPluginAboutRaven(loc):
   # check for config file; load up a root element either way
   configFile = os.path.join(loc, ravenConfigName)
   if os.path.isfile(configFile):
+    print(configFile)
     root, _ = xmlUtils.loadToTree(configFile)
   else:
     root = xmlUtils.newNode('RavenConfig')
@@ -125,8 +126,13 @@ def tellPluginAboutRaven(loc):
   if ravenLoc is None:
     ravenLoc = xmlUtils.newNode('FrameworkLocation')
     root.append(ravenLoc)
-  ravenLoc.text = os.path.abspath(os.path.expanduser(frameworkDir))
-  xmlUtils.toFile(configFile, root)
+  location = os.path.abspath(os.path.expanduser(frameworkDir))
+  if ravenLoc.text.strip() != location:
+    # we write only in case the location is either different or the file
+    # is not present (so, only one processor in case of RAVENrunningRAVEN
+    # will write the file if not present)
+    ravenLoc.text = os.path.abspath(os.path.expanduser(frameworkDir))
+    xmlUtils.toFile(configFile, root)
   return ravenLoc.text
 
 def loadPluginTree():
@@ -137,6 +143,7 @@ def loadPluginTree():
     @ Out, root, xml.etree.ElementTree.Element, root of plugin info tree
   """
   # load sources
+  print(pluginTreeFile)
   if os.path.isfile(pluginTreeFile):
     root, _ = xmlUtils.loadToTree(pluginTreeFile)
   else:
