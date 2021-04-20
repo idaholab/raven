@@ -12,7 +12,7 @@
   
   <RunInfo>
     <WorkingDir>HistorySetDelay</WorkingDir>
-    <Sequence>load</Sequence>
+    <Sequence>load, delay</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
 
@@ -23,10 +23,10 @@
   <Models>
     <PostProcessor name="delayPP" subType="InterfacedPostProcessor">
       <method>HistorySetDelay</method>
-      <pivotParameter>index</pivotParameter>
       <delay original="first" new="first_d1" steps="-1" default="0.0"/>
       <delay original="first" new="first_d4" steps="-4" default="0.0"/>
       <delay original="second" new="second_d1" steps="-1" default="3.14159"/>
+      <delay original="second" new="second_f2" steps="2" default="6.28319"/>
     </PostProcessor>
   </Models>
 
@@ -60,7 +60,7 @@
     </HistorySet>
     <HistorySet name="delayed_samples">
       <Input>a,b,c,d,e,f</Input>
-      <Output>first,second,first_d1,first_d4,second_d1</Output>
+      <Output>first,second,first_d1,first_d4,second_d1,second_f2</Output>
       <options>
         <pivotParameter>index</pivotParameter>
       </options>
