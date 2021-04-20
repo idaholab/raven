@@ -21,6 +21,7 @@ from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
 from .Fourier import Fourier
 from .ARMA import ARMA
 from .Wavelet import Wavelet
+from .AutoCorrelation import AutoCorrelation
 from .PolynomialRegression import PolynomialRegression
 
 factory = EntityFactory('TimeSeriesAnalyzer')
