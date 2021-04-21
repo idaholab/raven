@@ -213,13 +213,11 @@ class DataClassifier(PostProcessorInterface):
     outputDict = {'data': outputDict, 'dims':inputDict['target']['dims']}
     return outputDict
 
-  def collectOutput(self, finishedJob, output, options=None):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
       @ In, output, dataObjects, The object where we want to place our computed results
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    super().collectOutput(finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output)

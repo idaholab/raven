@@ -145,7 +145,7 @@ class MCSImporter(PostProcessorInterface):
     mcsPointSet = {'data': mcsPointSet, 'dims': {}}
     return mcsPointSet
 
-  def collectOutput(self, finishedJob, output, options=None):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object, (DataObjects)
       @ In, finishedJob, object, JobHandler object that is in charge of running this PostProcessor
@@ -154,7 +154,7 @@ class MCSImporter(PostProcessorInterface):
         dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    super().collectOutput(finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output)
 
 def mcsReader(mcsListFile):
   """

@@ -100,13 +100,11 @@ class PostProcessorInterface(BaseInterface):
       @ Out, dict, xarray.Dataset, pd.DataFrame --> I think we can avoid collectoutput in the plugin pp
     """
 
-  def collectOutput(self,finishedJob, output, options=None):
+  def collectOutput(self,finishedJob, output):
     """
       Method that collects the outputs from the "run" method of the PostProcessor
       @ In, finishedJob, InternalRunner object, instance of the run just finished
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     if output.type not in self.validDataType:
@@ -125,7 +123,6 @@ class PostProcessorInterface(BaseInterface):
           dims = outputRealization['dims']
         else:
           dims = {}
-        print(outputRealization.keys())
         output.load(outputRealization['data'], style='dict', dims=dims)
       else:
         output.addRealization(outputRealization)
