@@ -299,18 +299,22 @@ class DataSet(DataObject):
     """
       Casts this dataObject as dictionary or an xr.Dataset depending on outType.
       @ In, outType, str, optional, type of output object (xr.Dataset or dictionary).
-      @ Out, xr.Dataset or dictionary.  If dictionary, a copy is returned; if dataset, then a reference is returned.
+      @ Out, data, xr.Dataset or dictionary.  If dictionary, a copy is returned; if dataset, then a reference is returned.
     """
+    data = None
     if outType == 'xrDataset':
       # return reference to the xArray
-      return self._convertToXrDataset()
+      data = self._convertToXrDataset()
     elif outType=='dict':
       # return a dict (copy of data, no link to original)
-      return self._convertToDict()
+      data = self._convertToDict()
     else:
       # raise an error
       self.raiseAnError(ValueError, 'DataObject method "asDataset" has been called with wrong '
                                     'type: ' +str(outType) + '. Allowed values are: xrDataset, dict.')
+    if data is None:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
+    return data
 
   def checkIndexAlignment(self,indexesToCheck=None):
     """
