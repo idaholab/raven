@@ -5,11 +5,13 @@ This is to implement a delay or lagged parameters in a HistorySet
 
 import copy
 import numpy as np
+import xarray as xr
 
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 from utils import InputData, InputTypes
+from .PostProcessor import PostProcessor
 
-class HistorySetDelay(PostProcessorInterfaceBase):
+class HistorySetDelay(PostProcessor):
   """
   Class to get lagged or delayed data out of a history set.
   """
@@ -24,7 +26,7 @@ class HistorySetDelay(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
-    inputSpecification.setCheckClass(CheckInterfacePP("HistorySetDelay"))
+    #inputSpecification.setCheckClass(CheckInterfacePP("HistorySetDelay"))
     delayClass = InputData.parameterInputFactory("delay", InputTypes.StringType,
                                                  descr="Adds a delay variable")
     delayClass.addParam("original", InputTypes.StringType, True,
@@ -39,13 +41,15 @@ class HistorySetDelay(PostProcessorInterfaceBase):
     inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
     return inputSpecification
 
-  def initialize(self):
+  def initialize(self, runInfo, inputs, initDict):
     """
       Method to initialize the HistorySetDelay
     """
-    PostProcessorInterfaceBase.initialize(self)
-    self.inputFormat = 'HistorySet'
-    self.outputFormat = 'HistorySet'
+    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    self.validDataType = ['HistorySet']
+    #self.inputFormat = 'HistorySet'
+    #self.outputFormat = 'HistorySet'
+    #self.outputMultipleRealizations = True
 
   def _handleInput(self, paramInput):
     """
@@ -71,21 +75,27 @@ class HistorySetDelay(PostProcessorInterfaceBase):
       self.raiseAnError(IOError, 'HistorySetDelay Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
 
     inputDic = inputDic[0]
-    outputDic = copy.deepcopy(inputDic)
+    newHistorySet = copy.deepcopy(inputDic)
     for delay in self.delays:
       original, new, steps, default = delay
-      orig_data = inputDic['data'][original]
+      orig_data = inputDic._data[original]
       new_data = np.empty(orig_data.shape, orig_data.dtype)
-      for i, array in enumerate(orig_data):
-        new_data[i] = np.empty(array.shape)
-        new_data[i].fill(default)
-        if steps < 0:
-          new_data[i][-steps:] = array[:steps]
-        elif steps > 0:
-          new_data[i][:-steps] = array[steps:]
-        else:
-          # steps is 0, so just copy array
-          new_data[i][:] = array[:]
-        outputDic['data'][new] = new_data
-      outputDic['outVars'].append(new)
-    return outputDic
+      new_data.fill(default)
+      if steps < 0:
+          new_data[:,-steps:] = orig_data[:,:steps]
+      elif steps > 0:
+        new_data[:,:-steps] = orig_data[:,steps:]
+      else:
+        # steps is 0, so just copy array
+        new_data[:,:] = orig_data[:,:]
+      #XXX How do we add this to the history set?
+      #newHistorySet.addVariable(new, xr.DataArray(new_data, dims=orig_data.dims), 'output')
+      #newHistorySet.addRealization({new:new_data})
+      #import pdb; pdb.set_trace()
+      #newHistorySet._data[new] = (orig_data.dims, new_data)
+    #XXX How do we return this history set?
+    #outDict = newHistorySet._convertToDict()
+    #import pdb; pdb.set_trace()
+    #return {"output":newHistorySet}
+    #return outDict
+    return

@@ -42,6 +42,7 @@ from .PostProcessors import ImportanceRank
 from .PostProcessors import CrossValidation
 from .PostProcessors import LimitSurfaceIntegral
 from .PostProcessors import FastFourierTransform
+from .PostProcessors import HistorySetDelay
 from .PostProcessors.ExternalPostProcessor import ExternalPostProcessor
 from .PostProcessors import InterfacedPostProcessor
 from .PostProcessors.TopologicalDecomposition import TopologicalDecomposition
