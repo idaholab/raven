@@ -41,15 +41,22 @@ class HistorySetDelay(PostProcessor):
     inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
     return inputSpecification
 
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    super().__init__()
+    self.validDataType = ['HistorySet']       #only available output is HistorySet
+    self.outputMultipleRealizations = True    #this PP will return a full set of realization
+    self.printTag = 'PostProcessor HistorySetDelay'
+
   def initialize(self, runInfo, inputs, initDict):
     """
       Method to initialize the HistorySetDelay
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
-    self.validDataType = ['HistorySet']
-    #self.inputFormat = 'HistorySet'
-    #self.outputFormat = 'HistorySet'
-    #self.outputMultipleRealizations = True
+    super().initialize(runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -69,33 +76,23 @@ class HistorySetDelay(PostProcessor):
     """
       Method to post-process the dataObjects
       @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
-      @ Out, outputDic, dict, output dictionary
+      @ Out, data, xarray.DataSet, output dataset
     """
     if len(inputDic)>1:
       self.raiseAnError(IOError, 'HistorySetDelay Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
 
-    inputDic = inputDic[0]
-    newHistorySet = copy.deepcopy(inputDic)
+    data = inputDic[0].asDataset()
     for delay in self.delays:
       original, new, steps, default = delay
-      orig_data = inputDic._data[original]
-      new_data = np.empty(orig_data.shape, orig_data.dtype)
-      new_data.fill(default)
+      coords = {key: data[original][key] for key in data[original].dims}
+      orig_data = data[original].values
+      new_data = copy.copy(orig_data)
+      new_data[:, :] = default
       if steps < 0:
-          new_data[:,-steps:] = orig_data[:,:steps]
+        new_data[:,-steps:] = orig_data[:,:steps]
       elif steps > 0:
         new_data[:,:-steps] = orig_data[:,steps:]
-      else:
-        # steps is 0, so just copy array
-        new_data[:,:] = orig_data[:,:]
-      #XXX How do we add this to the history set?
-      #newHistorySet.addVariable(new, xr.DataArray(new_data, dims=orig_data.dims), 'output')
-      #newHistorySet.addRealization({new:new_data})
-      #import pdb; pdb.set_trace()
-      #newHistorySet._data[new] = (orig_data.dims, new_data)
-    #XXX How do we return this history set?
-    #outDict = newHistorySet._convertToDict()
-    #import pdb; pdb.set_trace()
-    #return {"output":newHistorySet}
-    #return outDict
-    return
+      # else:
+      # steps is 0, so just keep the copy
+      data[new] = xr.DataArray(data=new_data, coords=coords, dims=coords.keys())
+    return data
