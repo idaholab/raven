@@ -98,6 +98,12 @@ class PostProcessor(Model):
     cls.validateDict['Output' ][1]['type'        ] = ['Plot','Print']
     cls.validateDict['Output' ][1]['required'    ] = False
     cls.validateDict['Output' ][1]['multiplicity'] = 'n'
+    ## Currently only used by ComparisonStatistics, we may not allow this option
+    cls.validateDict['Output'].append(cls.testDict.copy())
+    cls.validateDict['Output' ][-1]['class'       ] = 'Files'
+    cls.validateDict['Output' ][-1]['type'        ] = ['']
+    cls.validateDict['Output' ][-1]['required'    ] = False
+    cls.validateDict['Output' ][-1]['multiplicity'] = 'n'
 
   def __init__(self ):
     """
