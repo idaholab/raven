@@ -19,7 +19,7 @@
     <NumMPI>4</NumMPI>
     <mode>mpi<runQSUB/></mode>
     <expectedTime>0:10:0</expectedTime>
-    <clusterParameters>-P nst -j oe</clusterParameters>
+    <clusterParameters>-P ops_gen -j oe</clusterParameters>
     <internalParallel>False</internalParallel>
   </RunInfo>
 

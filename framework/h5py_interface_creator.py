@@ -16,30 +16,18 @@ Created on Mar 25, 2013
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
 from datetime import datetime
-#End compatibility block for Python 3----------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
 import h5py  as h5
 import numpy as np
 import os
 import copy
-try:
-  import cPickle as pk
-except ImportError:
-  import pickle as pk
+import pickle as pk
 import string
 import difflib
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
 from utils import utils, mathUtils
-import MessageHandler
-import Files
-#Internal Modules End--------------------------------------------------------------------------------
+from BaseClasses import InputDataUser, MessageUser
 
 def _dumps(val):
   """
@@ -72,21 +60,21 @@ def _loads(val):
 #  *************************
 #
 
-class hdf5Database(MessageHandler.MessageUser):
+class hdf5Database(InputDataUser, MessageUser):
   """
     class to create a h5py (hdf5) database
   """
-  def __init__(self,name, databaseDir, messageHandler, filename, exist, variables = None):
+  def __init__(self,name, databaseDir, filename, exist, variables=None):
     """
       Constructor
       @ In, name, string, name of this database
       @ In, databaseDir, string, database directory (full path)
-      @ In, messageHandler, MessageHandler, global message handler
       @ In, filename, string, the database filename
       @ In, exist, bool, does it exist?
       @ In, variables, list, the user wants to store just some specific variables (default =None => all variables are stored)
       @ Out, None
     """
+    super().__init__()
     # database name (i.e. arbitrary name).
     # It is the database name that has been found in the xml input
     self.name       = name
@@ -100,7 +88,6 @@ class hdf5Database(MessageHandler.MessageUser):
     #self._metavars = []
     # specialize printTag (THIS IS THE CORRECT WAY TO DO THIS)
     self.printTag = 'DATABASE HDF5'
-    self.messageHandler = messageHandler
     # does it exist?
     self.fileExist = exist
     # .H5 file name (to be created or read)
@@ -133,8 +120,6 @@ class hdf5Database(MessageHandler.MessageUser):
       self.firstRootGroup = True
     else:
       # self.h5FileW is the HDF5 object. Open the database in "write only" mode
-      if os.path.exists(self.filenameAndPath):
-        os.remove(self.filenameAndPath)
       self.h5FileW = self.openDatabaseW(self.filenameAndPath,'w')
       # Add the root as first group
       self.allGroupPaths.append(b"/")
@@ -503,17 +488,19 @@ class hdf5Database(MessageHandler.MessageUser):
 
     return workingList
 
-  def __getListOfParentGroups(self, grp, backGroups = []):
+  def __getListOfParentGroups(self, grp, backGroups = None):
     """
       Method to get the list of groups from the deepest to the root, given a certain group
       @ In, grp, h5py.Group, istance of the starting group
       @ InOut, backGroups, list, list of group instances (from the deepest to the root)
     """
+    backGroups = [] if backGroups is None else backGroups
     if grp.parent and grp.parent != grp:
       parentGroup = grp.parent
       if not parentGroup.attrs.get("rootname",False):
         backGroups.append(parentGroup)
         self.__getListOfParentGroups(parentGroup, backGroups)
+    backGroups = list(set(backGroups))
     return backGroups
 
   def __getNewDataFromGroup(self, group, name):

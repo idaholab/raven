@@ -102,13 +102,13 @@ class Code(Model):
     cls.validateDict['Input'  ][0]['required'    ] = False
     cls.validateDict['Input'  ][0]['multiplicity'] = 'n'
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Model.__init__(self,runInfoDict)
+    super().__init__()
     self.executable = ''         # name of the executable (abs path)
     self.preExec = None          # name of the pre-executable, if any
     self.oriInputFiles = []      # list of the original input files (abs path)
@@ -116,12 +116,20 @@ class Code(Model):
     self.outFileRoot = ''        # root to be used to generate the sequence of output files
     self.currentInputFiles = []  # list of the modified (possibly) input files (abs path)
     self.codeFlags = None        # flags that need to be passed into code interfaces(if present)
-    self.printTag = 'CODE MODEL'
-    self.createWorkingDir = True
+    self.printTag = 'CODE MODEL' # label
+    self.createWorkingDir = True # whether to create the requested working dir
     self.foundExecutable = True  # True indicates the executable is found, otherwise not found
     self.foundPreExec = True     # True indicates the pre-executable is found, otherwise not found
     self.maxWallTime = None      # If set, this indicates the maximum CPU time a job can take.
-    self._ravenWorkingDir = runInfoDict['WorkingDir']
+    self._ravenWorkingDir = None # RAVEN's working dir
+
+  def applyRunInfo(self, runInfo):
+    """
+      Take information from the RunInfo
+      @ In, runInfo, dict, RunInfo info
+      @ Out, None
+    """
+    self._ravenWorkingDir = runInfo['WorkingDir']
 
   def _readMoreXML(self,xmlNode):
     """
@@ -246,7 +254,7 @@ class Code(Model):
       else:
         self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
-    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType, self)
+    self.code = Code.CodeInterfaces.factory.returnInstance(self.subType)
     self.code.readMoreXML(xmlNode, self._ravenWorkingDir) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
@@ -311,6 +319,8 @@ class Code(Model):
       if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
         os.makedirs(subSubDirectory)
       ##########################################################################
+      if not os.path.exists(inputFile.getAbsFile()):
+        self.raiseAnError(ValueError, 'The input file '+inputFile.getFilename()+' does not exist in directory: '+inputFile.getPath())
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
       self.oriInputFiles[-1].setPath(subSubDirectory)
@@ -376,6 +386,7 @@ class Code(Model):
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
 
     kwargs['subDirectory'] = subDirectory
+    kwargs['alias'] = self.alias
 
     if 'SampledVars' in kwargs.keys():
       sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
@@ -617,9 +628,9 @@ class Code(Model):
       if outputFile and isStr and not ravenCase:
         outFile = Files.CSV()
         ## Should we be adding the file extension here?
-        outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
+        outFile.initialize(outputFile+'.csv', path=metaData['subDirectory'])
 
-        csvLoader = CsvLoader.CsvLoader(self.messageHandler)
+        csvLoader = CsvLoader.CsvLoader()
         # does this CodeInterface have sufficiently intense (or limited) CSV files that
         #   it needs to assume floats and use numpy, or can we use pandas?
         loadUtility = self.code.getCsvLoadUtil()

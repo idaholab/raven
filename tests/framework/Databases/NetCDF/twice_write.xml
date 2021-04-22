@@ -1,0 +1,105 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Databases/NetCDF.TwiceWrite</name>
+    <author>talbpaul</author>
+    <created>2021-03-09</created>
+    <classesTested>Databases.NetCDF</classesTested>
+    <description>
+      Test using NetCDF as a writable database format, and then adding to it.
+      Given two methods of writing to the database, ``sampling'' (one realization at a time) and
+      ``io'' (via IOStep), check that all possible combinations come out the same: sample-sample,
+      sample-io, io-sample, and io-io.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>TwiceWrite</WorkingDir>
+    <Sequence>sample1,write1,sample2,write2</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample1">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">nd_model</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">nd_data1</Output>
+      <Output class="Databases" type="NetCDF">sample_io</Output>
+      <Output class="Databases" type="NetCDF">sample_sample</Output>
+    </MultiRun>
+    <MultiRun name="sample2" re-seeding="314">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">nd_model</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="DataSet">nd_data2</Output>
+      <Output class="Databases" type="NetCDF">io_sample</Output>
+      <Output class="Databases" type="NetCDF">sample_sample</Output>
+    </MultiRun>
+    <IOStep name="write1">
+      <Input class="DataObjects" type="DataSet">nd_data1</Input>
+      <Input class="DataObjects" type="DataSet">nd_data1</Input>
+      <Output class="Databases" type="NetCDF">io_io</Output>
+      <Output class="Databases" type="NetCDF">io_sample</Output>
+    </IOStep>
+    <IOStep name="write2">
+      <Input class="DataObjects" type="DataSet">nd_data2</Input>
+      <Input class="DataObjects" type="DataSet">nd_data2</Input>
+      <Output class="Databases" type="NetCDF">sample_io</Output>
+      <Output class="Databases" type="NetCDF">io_io</Output>
+    </IOStep>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <DataSet name='nd_data1'>
+      <Input>a,b,c</Input>
+      <Output>d,e,f</Output>
+      <Index var="x">e,f</Index>
+      <Index var="y">f</Index>
+    </DataSet>
+    <DataSet name='nd_data2'>
+      <Input>a,b,c</Input>
+      <Output>d,e,f</Output>
+      <Index var="x">e,f</Index>
+      <Index var="y">f</Index>
+    </DataSet>
+  </DataObjects>
+
+  <Databases>
+    <NetCDF name="io_io" readMode="overwrite" directory=''/>
+    <NetCDF name="io_sample" readMode="overwrite" directory=''/>
+    <NetCDF name="sample_io" readMode="overwrite" directory=''/>
+    <NetCDF name="sample_sample" readMode="overwrite" directory=''/>
+  </Databases>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/nd_data" name="nd_model" subType="">
+      <variables>a,b,c,x,y,d,e,f</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="zeroToOne">
+      <lowerBound>0.0</lowerBound>
+      <upperBound>1.0</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>3</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <variable name="a">
+        <distribution>zeroToOne</distribution>
+      </variable>
+      <variable name="b">
+        <distribution>zeroToOne</distribution>
+      </variable>
+      <variable name="c">
+        <distribution>zeroToOne</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+</Simulation>

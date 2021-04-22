@@ -35,10 +35,10 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, mathUtils, xmlUtils
-import MessageHandler
+from BaseClasses import MessageUser
 #Internal Modules End--------------------------------------------------------------------------------
 
-class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.MessageUser):
+class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
   """
     This is the general interface to any supervisedLearning learning method.
     Essentially it contains a train method and an evaluate method
@@ -74,22 +74,40 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         return(False, ' The array must be 1-d. Got shape: '+str(np.asarray(arrayIn).shape))
     return (True,'')
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, **initDict):
     """
       A constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, initDict, dict, an arbitrary list of kwargs
       @ Out, None
     """
+    super().__init__()
     self.printTag = 'Supervised'
-    self.messageHandler = messageHandler
-    self._dynamicHandling = False
-    self._assembledObjects = None           # objects assembled by the ROM Model, passed through.
-    self.numThreads = kwargs.pop('NumThreads', None)
-    self.metadataKeys = set() # keys that can be passed to DataObject as meta information
-    self.metadataParams = {}  # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
+    self.features = None           # "inputs" to this model
+    self.target = None             # "outputs" of this model
+    self.amITrained = False
+    self._dynamicHandling = False  # time-like dependence in the model?
+    self._assembledObjects = None  # objects assembled by the ROM Model, passed through.
+    self.numThreads = None         # threading for run
+    self.initOptionDict = None     # construction variables
+    self.verbosity = None          # printing verbosity
+    self.kerasROMDict = None       # dictionary for ROM builded by Keras
+    #average value and sigma are used for normalization of the feature data
+    #a dictionary where for each feature a tuple (average value, sigma)
+    #these need to be declared in the child classes!!!!
+    self.muAndSigmaFeatures = {}   # normalization parameters
+    self.metadataKeys = set()      # keys that can be passed to DataObject as meta information
+    self.metadataParams = {}       # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
+    self.readInitDict(initDict)
+
+  def readInitDict(self, initDict):
+    """
+      Reads in the initialization dict to initialize this instance
+      @ In, initDict, dict, keywords passed to constructor
+      @ Out, None
+    """
     #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
-    self.initOptionDict = {} if kwargs is None else kwargs
+    self.numThreads = initDict.pop('NumThreads', None)
+    self.initOptionDict = {} if initDict is None else initDict
     if 'Features' not in self.initOptionDict.keys():
       self.raiseAnError(IOError,'Feature names not provided')
     if 'Target' not in self.initOptionDict.keys():
@@ -98,14 +116,9 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     self.target = self.initOptionDict.pop('Target')
     self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
     for target in self.target:
-      if target in self.features: #self.features.count(target) > 0:
-        self.raiseAnError(IOError,'The target "'+target+'" is also in the features!')
-    #average value and sigma are used for normalization of the feature data
-    #a dictionary where for each feature a tuple (average value, sigma)
-    self.muAndSigmaFeatures = {}
-    #these need to be declared in the child classes!!!!
-    self.amITrained = False
-    self.kerasROMDict = self.initOptionDict.pop('KerasROMDict', None) # dictionary for ROM builded by Keras
+      if target in self.features:
+        self.raiseAnError(IOError, f'The target "{target}" is also in the features!')
+    self.kerasROMDict = self.initOptionDict.pop('KerasROMDict', None)
 
   def __getstate__(self):
     """
@@ -160,7 +173,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
     """
     return self.metadataKeys, self.metadataParams
 
-  def initialize(self,idict):
+  def initialize(self, idict):
     """
       Initialization method
       @ In, idict, dict, dictionary of initialization parameters
@@ -280,6 +293,18 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
         featureValues[:,cnt] = values[names.index(feat)]
     return self.__confidenceLocal__(featureValues)
 
+  # compatibility with BaseInterface requires having a "run" method
+  # TODO during SVL rework, "run" should probably replace "evaluate", maybe?
+  def run(self, edict):
+    """
+      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
+      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      the interface with the kernels requires.
+      @ In, edict, dict, evaluation dictionary
+      @ Out, evaluate, dict, {target: evaluated points}
+    """
+    return self.evaluate(edict)
+
   def evaluate(self,edict):
     """
       Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
@@ -391,9 +416,6 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta),MessageHandler.Mess
       @ In, params, dict, parameters to set (dependent on ROM)
       @ Out, None
     """
-    newMH = params.pop('messageHandler', None)
-    if newMH:
-      self.messageHandler = newMH
     # reseeding is common to many
     seed = params.pop('seed', None)
     if seed:

@@ -29,9 +29,9 @@ import Driver
 #add_path_recursively(os.path.join(ravenPath, 'contrib', 'pp3'))
 #find_crow(ravenPath)
 
-from Optimizers.gradients import returnInstance
+from Optimizers.gradients import factory # returnInstance
 
-fd = returnInstance('FiniteDifference', 'tester')
+fd = factory.returnInstance('FiniteDifference')
 
 #
 #

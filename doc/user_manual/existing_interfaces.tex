@@ -190,6 +190,9 @@ block should contain the absolute or relative (with respect to the current worki
 directory) path to the RAVEN framework script (\textbf{raven\_framework}).
 \\ In addition to the attributes and xml nodes reported above, the RAVEN accepts the following XML nodes (required and optional):
 \begin{itemize} % nodes for code
+  \item  \xmlNode{outputDatabase}, \xmlDesc{string, required parameter}
+    will specify the \xmlNode{Database} that will be loaded as outputs of the INNER RAVEN. If this node
+    is not specifed, \xmlNode{outputExportOutStreams} may be used instead.
   \item  \xmlNode{outputExportOutStreams}, \xmlDesc{comma separated list,
     required parameter} will specify the  \xmlNode{OutStreams} that will be loaded as outputs of the SLAVE RAVEN.
     Maximum two  \xmlNode{OutStreams} can be listed here (1 for PointSet and/or 1 for HistorySet).
@@ -671,6 +674,51 @@ The distribution that this variable is following is a Triangular distribution
 We are sampling this variable beginning from 0.0 in 10 \textit{equal} steps of
 2880.
 %
+In case of Dynamic Event Tree-based sampling, the input is very similar to the other
+sampling strategies with the only ``limitation'' that the sampled variables
+directly linked to the Dynamic Event Tree must be part of a RELAP5 trip.
+In case, other variables must be sampled, they are considered ``epistemic'' variables and
+should be sampled using the Hybrid Dynamic Event Tree approach.
+
+
+For example, the Dynamic Event Tree sampling and the  Hybrid Dynamic Event Tree sampling would look
+like the following:
+
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
+<Samplers verbosity='debug'>
+  <DynamicEventTree name='DET'>
+    <variable name='414:6'>
+      <distribution>endtimedist</distribution>
+      <grid type='CDF' construction='custom'>0.1 0.3 0.99</grid>
+    </variable>
+    <variable name='454:6'>
+      <distribution>endtime2dist</distribution>
+      <grid type='CDF' construction='custom'>0.11 0.5 0.99</grid>
+    </variable>
+  </DynamicEventTree>
+
+  <DynamicEventTree name='HDET'>
+    <HybridSampler type="MonteCarlo">
+      <!-- in here we specify the epistemic like variables -->
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="200:1">
+        <distribution>missionTimeDist</distribution>
+      </variable>
+    </HybridSampler>
+    <variable name='414:6'>
+      <distribution>endtimedist</distribution>
+      <grid type='CDF' construction='custom'>0.1 0.3 0.99</grid>
+    </variable>
+    <variable name='454:6'>
+      <distribution>endtime2dist</distribution>
+      <grid type='CDF' construction='custom'>0.11 0.5 0.99</grid>
+    </variable>
+  </DynamicEventTree>
+</Samplers>
+\end{lstlisting}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
 For a RELAP interface, the \xmlNode{MultiRun} step type will most likely be
@@ -1003,7 +1051,7 @@ the variable name in the Sampler input block needs to be named as follows:
 ...
 \end{lstlisting}
 %
-In case some variables in external (\texttt{Generic} input files) need to be perturbed, 
+In case some variables in external (\texttt{Generic} input files) need to be perturbed,
 the wildcard approach can be used (for those variables):
 \begin{lstlisting}[style=XML]
 ...
@@ -4884,4 +4932,3 @@ following listing:
 \end{lstlisting}
 
 Note that the path to \texttt{runner.py} may need to be added to the PATH variable via a command like: \verb'PATH="$PATH:$HOME/.local/bin"'
-
