@@ -22,14 +22,14 @@ import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils
 from utils import InputData, InputTypes
 from utils import frontUtils
 import Runners
 #Internal Modules End-----------------------------------------------------------
 
-class ParetoFrontier(PostProcessor):
+class ParetoFrontier(PostProcessorInterface):
   """
     This postprocessor selects the points that lie on the Pareto frontier
     The postprocessor acts only on PointSet and return a subset of such PointSet
@@ -58,7 +58,7 @@ class ParetoFrontier(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(ParetoFrontier, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
 
     objDataType = InputTypes.makeEnumType("objective", "objectiveType", ['min','max'])
 
@@ -136,13 +136,11 @@ class ParetoFrontier(PostProcessor):
     paretoFrontierDict = {'data':paretoFrontierDict, 'dims':{}}
     return paretoFrontierDict
 
-  def collectOutput(self, finishedJob, output, options=None):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
       @ In, output, dataObjects, The object where we want to place our computed results
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    PostProcessor.collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output)
