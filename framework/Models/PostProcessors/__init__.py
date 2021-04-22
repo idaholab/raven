@@ -11,27 +11,5 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-  The Models module for building, running, and simulating things in RAVEN.
-
-  Created on May 9, 2017
-  @author: maljdp
-"""
-
-## These lines ensure that we do not have to do something like:
-## 'from Models.Model import Model' outside
-## of this submodule
-from .Model import Model
-from .Dummy import Dummy
-from .ROM import ROM
-from .ExternalModel import ExternalModel
-from .Code import Code
-from .EnsembleModel import EnsembleModel
-from .HybridModels import HybridModel
-from .HybridModels import LogicalModel
-from .PostProcessor import PostProcessor
-
-## [ Add new class here ]
 
 from .Factory import factory
-from .Factory import validate

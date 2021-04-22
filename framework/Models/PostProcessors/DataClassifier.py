@@ -20,9 +20,9 @@ import copy
 import numpy as np
 
 from utils import InputData, InputTypes, utils
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 
-class DataClassifier(PostProcessor):
+class DataClassifier(PostProcessorInterface):
   """
     This Post-Processor performs data classification based on given classifier.
     In order to use this interface post-processor, the users need to provide
@@ -40,7 +40,7 @@ class DataClassifier(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(DataClassifier, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     VariableInput = InputData.parameterInputFactory("variable", contentType=InputTypes.StringType)
     VariableInput.addParam("name", InputTypes.StringType, True)
     FunctionInput = InputData.parameterInputFactory("Function", contentType=InputTypes.StringType)
@@ -77,7 +77,7 @@ class DataClassifier(PostProcessor):
       @ In, initDict, dict, optional, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     for key, val in self.mapping.items():
      self.funcDict[key] = self.retrieveObjectFromAssemblerDict('Function',val[1])
 
@@ -87,7 +87,7 @@ class DataClassifier(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'variable':
         func = child.findFirst('Function')
@@ -213,13 +213,11 @@ class DataClassifier(PostProcessor):
     outputDict = {'data': outputDict, 'dims':inputDict['target']['dims']}
     return outputDict
 
-  def collectOutput(self, finishedJob, output, options=None):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
       @ In, output, dataObjects, The object where we want to place our computed results
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    PostProcessor.collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output)

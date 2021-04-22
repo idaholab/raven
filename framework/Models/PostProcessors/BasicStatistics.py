@@ -29,14 +29,14 @@ import xarray as xr
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils
 from utils import InputData, InputTypes
 from utils import mathUtils
 import Files
 #Internal Modules End-----------------------------------------------------------
 
-class BasicStatistics(PostProcessor):
+class BasicStatistics(PostProcessorInterface):
   """
     BasicStatistics filter class. It computes all the most popular statistics
   """
@@ -80,7 +80,7 @@ class BasicStatistics(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(BasicStatistics, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
 
     for scalar in cls.scalarVals:
       scalarSpecification = InputData.parameterInputFactory(scalar, contentType=InputTypes.StringListType)
@@ -261,7 +261,7 @@ class BasicStatistics(PostProcessor):
 
     #for backward compatibility, compile the full list of parameters used in Basic Statistics calculations
     self.parameters['targets'] = list(self.allUsedParams)
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     inputObj = inputs[-1] if type(inputs) == list else inputs
     if inputObj.type == 'HistorySet':
       self.dynamic = True
@@ -1300,13 +1300,11 @@ class BasicStatistics(PostProcessor):
     outputSet = self.__runLocal(inputData)
     return outputSet
 
-  def collectOutput(self, finishedJob, output, options=None):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
       @ In, output, dataObjects, The object where we want to place our computed results
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    PostProcessor.collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output)

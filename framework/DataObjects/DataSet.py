@@ -2174,8 +2174,6 @@ class DataSet(DataObject):
   #    np.savetxt(outFile,data,header=header,fmt=types)
   #  # format data?
 
-
-
   ### HIERARCHICAL STUFF ###
   def _constructHierPaths(self):
     """

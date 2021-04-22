@@ -20,8 +20,9 @@ from abc import ABCMeta, abstractmethod
 from utils import mathUtils
 from utils.utils import metaclass_insert
 from BaseClasses import BaseType
+from BaseClasses import Assembler
 
-class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
+class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
   """
     Archetype for "interface" classes, including implementations/strategies/algorithms to execute
     the intention of BaseEntity types. For example, SupervisedLearning Engines are an Interface
@@ -99,7 +100,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
     """
     return self.metadataKeys, self.metadataParams
 
-  def addMetaKeys(self, args, params=None):
+  def addMetaKeys(self,args, params=None):
     """
       Adds keywords to a list of expected metadata keys.
       @ In, args, list(str), keywords to register
@@ -150,7 +151,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
       @ Out, None
     """
-    pass
+    super()._readMoreXML(xmlNode)
 
   def _handleInput(self, paramInput):
     """
@@ -220,26 +221,6 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
     for key in tempDict.keys():
       self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
 
-  def provideExpectedMetaKeys(self):
-    """
-      Provides the registered list of metadata keys for this entity.
-      @ In, None
-      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and indexes/dimensions corresponding to expected keys
-    """
-    return self.metadataKeys, self.metadataParams
-
-  def addMetaKeys(self,args, params={}):
-    """
-      Adds keywords to a list of expected metadata keys.
-      @ In, args, list(str), keywords to register
-      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
-        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
-      @ Out, None
-    """
-    if any(not mathUtils.isAString(a) for a in args):
-      self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
-    self.metadataKeys = self.metadataKeys.union(set(args))
-    self.metadataParams.update(params)
 
   def _formatSolutionExportVariableNames(self, acceptable):
     """
