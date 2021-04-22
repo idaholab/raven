@@ -17,8 +17,6 @@ Created on Nov 1, 2017
 @author: dan maljovec, mandd
 """
 
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 import xml.etree.ElementTree as ET
@@ -26,7 +24,7 @@ import copy
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
 from utils import xmlUtils as xmlU
 from utils import utils
@@ -35,7 +33,7 @@ from .ETStructure import ETStructure
 #Internal Modules End-----------------------------------------------------------
 
 
-class ETImporter(PostProcessor):
+class ETImporter(PostProcessorInterface):
   """
     This is the base class of the PostProcessor that imports Event-Trees (ETs) into RAVEN as a PointSet
   """
@@ -68,7 +66,7 @@ class ETImporter(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(ETImporter, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("fileFormat", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("expand"    , contentType=InputTypes.BoolType))
     return inputSpecification
@@ -81,7 +79,7 @@ class ETImporter(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -89,7 +87,7 @@ class ETImporter(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     fileFormat = paramInput.findFirst('fileFormat')
     self.fileFormat = fileFormat.value
     if self.fileFormat not in self.allowedFormats:
@@ -109,13 +107,11 @@ class ETImporter(PostProcessor):
     outputDict = {'data': outputDict, 'dims':{}}
     return outputDict
 
-  def collectOutput(self, finishedJob, output, options=None):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object, (DataObjects)
       @ In, finishedJob, object, JobHandler object that is in charge of running this PostProcessor
       @ In, output, object, the object where we want to place our computed results
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    PostProcessor.collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output)
