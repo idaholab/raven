@@ -312,8 +312,6 @@ class DataSet(DataObject):
       # raise an error
       self.raiseAnError(ValueError, 'DataObject method "asDataset" has been called with wrong '
                                     'type: ' +str(outType) + '. Allowed values are: xrDataset, dict.')
-    if data is None:
-      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     return data
 
   def checkIndexAlignment(self,indexesToCheck=None):
@@ -335,6 +333,8 @@ class DataSet(DataObject):
         self.raiseAnError('Unrecognized input to checkIndexAlignment!  Expected list, string, or None, but got "{}"'.format(type(indexesToCheck)))
     # check the alignment of each index by checking for NaN values in each slice
     data = self.asDataset()
+    if data is None:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     for index in indexesToCheck:
       # check that index is indeed an index
       assert(index in self.indexes)
@@ -458,6 +458,8 @@ class DataSet(DataObject):
     # For faster access, consider using data.asDataset()['varName'] for one variable, or
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
+    if isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     if mathUtils.isAString(var):
       val = self._data[var]
       #format as scalar
@@ -1222,6 +1224,8 @@ class DataSet(DataObject):
     # supporting data
     dataDict['dims']     = self.getDimensions()
     dataDict['metadata'] = self.getMeta(general=True)
+    if isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     # main data
     if self.type == "PointSet":
       ## initialize with np arrays of objects
@@ -2188,6 +2192,8 @@ class DataSet(DataObject):
       @ Out, results, list(xr.Dataset), dataset containing only the path information
     """
     # TODO can we do this without collapsing? Should we?
+    if isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     data = self.asDataset()
     paths = self._generateHierPaths()
     results = [None] * len(paths)
