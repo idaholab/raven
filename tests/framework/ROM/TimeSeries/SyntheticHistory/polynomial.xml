@@ -1,0 +1,89 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <RunInfo>
+    <WorkingDir>Wavelet</WorkingDir>
+    <Sequence>read, train, print, sample</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="infile">../TrainingData/regression_A.csv</Input>
+  </Files>
+
+  <Steps>
+    <IOStep name="read">
+      <Input class="Files" type="">infile</Input>
+      <Output class="DataObjects" type="HistorySet">indata</Output>
+    </IOStep>
+    <RomTrainer name="train">
+      <Input class="DataObjects" type="HistorySet">indata</Input>
+      <Output class="Models" type="ROM">synth</Output>
+    </RomTrainer>
+    <IOStep name="print">
+      <Input class="Models" type="ROM">synth</Input>
+      <Output class="DataObjects" type="DataSet">romMeta</Output>
+      <Output class="OutStreams" type="Print">romMeta</Output>
+    </IOStep>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">synth</Model>
+      <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+      <Output class="OutStreams" type="Print">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="placeholder"/>
+    <HistorySet name="indata">
+      <Input>scaling</Input>
+      <Output>y</Output>
+      <options>
+        <pivotParameter>x</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="samples">
+      <Input>scaling</Input>
+      <Output>y</Output>
+      <options>
+        <pivotParameter>x</pivotParameter>
+      </options>
+    </HistorySet>
+    <DataSet name="romMeta"/>
+  </DataObjects>
+
+  <Models>
+    <ROM name="synth" subType="SyntheticHistory">
+      <Target>y, x</Target>
+      <Features>scaling</Features>
+      <pivotParameter>x</pivotParameter>
+      <PolynomialRegression target="y">
+        <degree>2</degree>
+      </PolynomialRegression>
+    </ROM>
+  </Models>
+
+  <Samplers>
+    <MonteCarlo name="mc">
+      <samplerInit>
+        <limit>1</limit>
+        <initialSeed>42</initialSeed>
+      </samplerInit>
+      <constant name="scaling">1.0</constant>
+    </MonteCarlo>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="samples">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+    <Print name="romMeta">
+      <type>csv</type>
+      <source>romMeta</source>
+    </Print>
+  </OutStreams>
+
+  
+
+</Simulation>
