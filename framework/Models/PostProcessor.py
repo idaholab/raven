@@ -71,13 +71,7 @@ class PostProcessor(Model):
     """
     cls.validateDict.pop('Sampler', None)
     cls.validateDict.pop('Optimizer', None)
-    #the possible inputs
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][-1]['class'       ] = 'Databases'
-    cls.validateDict['Input'  ][-1]['type'        ] = ['HDF5']
-    cls.validateDict['Input'  ][-1]['required'    ] = False
-    cls.validateDict['Input'  ][-1]['multiplicity'] = 'n'
-    ## datasets
+    ## Possible Input Datasets
     dataObjects = cls.validateDict['Input'][0]
     dataObjects['type'].append('DataSet')
     # Cross validations will accept Model.ROM
@@ -93,17 +87,17 @@ class PostProcessor(Model):
     cls.validateDict['Input'  ][-1]['required'    ] = False
     cls.validateDict['Input'  ][-1]['multiplicity'] = 'n'
     #the possible outputs
+    cls.validateDict['Output'] = []
     cls.validateDict['Output'].append(cls.testDict.copy())
-    cls.validateDict['Output' ][-1]['class'       ] = 'Files'
-    cls.validateDict['Output' ][-1]['type'        ] = ['']
-    cls.validateDict['Output' ][-1]['required'    ] = False
-    cls.validateDict['Output' ][-1]['multiplicity'] = 'n'
-    # The possible functions
-    cls.validateDict['Function'] = [cls.testDict.copy()]
-    cls.validateDict['Function'  ][0]['class'       ] = 'Functions'
-    cls.validateDict['Function'  ][0]['type'        ] = ['External','Internal']
-    cls.validateDict['Function'  ][0]['required'    ] = False
-    cls.validateDict['Function'  ][0]['multiplicity'] = 1
+    cls.validateDict['Output' ][0]['class'       ] = 'DataObjects'
+    cls.validateDict['Output' ][0]['type'        ] = ['PointSet','HistorySet','DataSet']
+    cls.validateDict['Output' ][0]['required'    ] = True
+    cls.validateDict['Output' ][0]['multiplicity'] = 'n'
+    cls.validateDict['Output'].append(cls.testDict.copy())
+    cls.validateDict['Output' ][1]['class'       ] = 'OutStreams'
+    cls.validateDict['Output' ][1]['type'        ] = ['Plot','Print']
+    cls.validateDict['Output' ][1]['required'    ] = False
+    cls.validateDict['Output' ][1]['multiplicity'] = 'n'
 
   def __init__(self ):
     """
