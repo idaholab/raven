@@ -458,7 +458,7 @@ class DataSet(DataObject):
     # For faster access, consider using data.asDataset()['varName'] for one variable, or
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
-    if isEmpty:
+    if self.isEmpty:
       self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     if mathUtils.isAString(var):
       val = self._data[var]
@@ -2192,7 +2192,7 @@ class DataSet(DataObject):
       @ Out, results, list(xr.Dataset), dataset containing only the path information
     """
     # TODO can we do this without collapsing? Should we?
-    if isEmpty:
+    if self.isEmpty:
       self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     data = self.asDataset()
     paths = self._generateHierPaths()
