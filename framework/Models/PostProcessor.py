@@ -124,7 +124,7 @@ class PostProcessor(Model):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    Model._readMoreXML(self, xmlNode)
+    super()._readMoreXML(xmlNode)
     self._pp = interfaceFactory.returnInstance(self.subType)
     self._pp._readMoreXML(xmlNode)
 
@@ -165,12 +165,12 @@ class PostProcessor(Model):
     self._pp.initialize(runInfo, inputs, initDict)
     self.inputCheckInfo = [(inp.name, inp.type) for inp in inputs]
 
-  def createNewInput(self,myInput,samplerType,**kwargs):
+  def createNewInput(self, myInput, samplerType, **kwargs):
     """
       This function will return a new input to be submitted to the postprocesor.
       (Not used but required by model base class)
       @ In, myInput, list, the inputs (list) to start from to generate the new one
-      @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+      @ In, samplerType, string, passing through (consistent with base class but not used)
       @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, myInput, list, the inputs (list) to start from to generate the new one
@@ -185,7 +185,7 @@ class PostProcessor(Model):
         This will evaluate an individual sample on this model. Note, parameters
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
-        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In, samplerType, string, passing through (consistent with base class but not used)
         @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
         @ Out, returnValue, tuple, This will hold two pieces of information,
@@ -193,7 +193,7 @@ class PostProcessor(Model):
           the second item will be the output of this model given the specified
           inputs
     """
-    ppInput = self.createNewInput(myInput,samplerType, **kwargs)
+    ppInput = self.createNewInput(myInput, samplerType, **kwargs)
     if ppInput is not None and len(ppInput) == 0:
       ppInput = None
     returnValue = (ppInput, self._pp.run(ppInput))
@@ -205,7 +205,7 @@ class PostProcessor(Model):
         specified jobHandler. Note, some parameters are needed by createNewInput
         and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
-        @ In, samplerType, string, is the type of sampler that is calling to generate a new input
+        @ In, samplerType, string, passing through (consistent with base class but not used)
         @ In,  jobHandler, JobHandler instance, the global job handler instance
         @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
@@ -214,13 +214,11 @@ class PostProcessor(Model):
     kwargs['forceThreads'] = True
     super().submit(myInput, samplerType, jobHandler,**kwargs)
 
-  def collectOutput(self, finishedJob, output, options=None):
+  def collectOutput(self, finishedJob, output):
     """
       Method that collects the outputs from the "run" method of the PostProcessor
       @ In, finishedJob, InternalRunner object, instance of the run just finished
       @ In, output, "DataObjects" object, output where the results of the calculation needs to be stored
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
     outputCheckInfo = (output.name, output.type)
@@ -239,10 +237,7 @@ class PostProcessor(Model):
      # get keys as per base class
      metaKeys,metaParams = super().provideExpectedMetaKeys()
      # add postprocessor keys
-     try:
-       keys, params = self._pp.provideExpectedMetaKeys()
-       metaKeys = metaKeys.union(keys)
-       metaParams.update(params)
-     except AttributeError:
-       pass # either "interface" has no method for returning meta keys, or "interface" is not established yet.
+     keys, params = self._pp.provideExpectedMetaKeys()
+     metaKeys = metaKeys.union(keys)
+     metaParams.update(params)
      return metaKeys, metaParams
