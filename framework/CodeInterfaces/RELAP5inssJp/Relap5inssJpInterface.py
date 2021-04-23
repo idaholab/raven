@@ -43,6 +43,7 @@ class Relap5inssJp(Relap5):
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
     import RELAPparser
+    self.det = samplerType.endswith('EventTree')
     found = False
     foundModelPar = False
     modelParIndex = 0
@@ -60,7 +61,7 @@ class Relap5inssJp(Relap5):
     if not found:
       raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
     parser = RELAPparser.RELAPparser(currentInputFiles[indexInputDeck].getAbsFile())
-    modifDict = self.pointSamplerForRELAP5(**Kwargs) if not samplerType.endswith('EventTree') else self.DynamicEventTreeForRELAP5(**Kwargs)
+    modifDict = self.pointSamplerForRELAP5(**Kwargs) if not self.det else self.DynamicEventTreeForRELAP5(**Kwargs)
     parser.modifyOrAdd(modifDict,True)
     parser.printInput(currentInputFiles[indexInputDeck])
     # check and modify modelpar.inp file

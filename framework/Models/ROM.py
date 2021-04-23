@@ -60,10 +60,26 @@ class ROM(Dummy):
 
     IndexSetInputType = InputTypes.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
     CriterionInputType = InputTypes.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
-
-    # general
+    ###########
+    # general #
+    ###########
     inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
     inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
+
+    ######################
+    # dynamically loaded #
+    ######################
+    for typ in SupervisedLearning.factory.knownTypes():
+      obj = SupervisedLearning.factory.returnClass(typ)
+      if hasattr(obj, 'getInputSpecifications'):
+        subspecs = obj.getInputSpecifications()
+        print('Known:', typ)
+        print(subspecs)
+        inputSpecification.mergeSub(subspecs)
+
+    ####################
+    # manually entered #
+    ####################
     # segmenting and clustering
     segment = InputData.parameterInputFactory("Segment", strictMode=True)
     segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
@@ -78,6 +94,8 @@ class ROM(Dummy):
     segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
     ## clusterFeatures
     segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
+    ## max cycles (for Interpolated ROMCollection)
+    segment.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType))
     ## classifier
     clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType)
     clsfr.addParam('class', InputTypes.StringType, True)
@@ -90,8 +108,10 @@ class ROM(Dummy):
     segment.addSub(metric)
     segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType))
     inputSpecification.addSub(segment)
+    ##### END ROMCollection
     # pickledROM
     inputSpecification.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum))
+    inputSpecification.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType)) # for Interpolated ROMCollection
     # unsorted
     inputSpecification.addSub(InputData.parameterInputFactory("persistence", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("gradient", contentType=InputTypes.StringType))
@@ -208,6 +228,7 @@ class ROM(Dummy):
     inputSpecification.addSub(InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputTypes.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputTypes.FloatListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("nyquistScalar", contentType=InputTypes.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputTypes.BoolType))
     ### ARMA zero filter
     zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputTypes.StringType)
@@ -241,7 +262,6 @@ class ROM(Dummy):
     window.addParam('width', InputTypes.FloatType, True)
     peaks.addSub(window)
     peaks.addSub(nbin)
-
     peaks.addParam('threshold', InputTypes.FloatType)
     peaks.addParam('target', InputTypes.StringType)
     peaks.addParam('period', InputTypes.FloatType)
@@ -1168,18 +1188,18 @@ class ROM(Dummy):
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['PointSet', 'HistorySet', 'DataSet']
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Dummy.__init__(self,runInfoDict)
-    self.initializationOptionDict = {'NumThreads': runInfoDict.get('NumThreads', 1)}         # ROM initialization options
-    self.amITrained               = False      # boolean flag, is the ROM trained?
-    self.supervisedEngine         = None       # dict of ROM instances (== number of targets => keys are the targets)
-    self.printTag = 'ROM MODEL'
-    self.cvInstance               = None             # Instance of provided cross validation
+    super().__init__()
+    self.initializationOptionDict = {}    # ROM initialization options
+    self.amITrained = False               # boolean flag, is the ROM trained?
+    self.supervisedEngine = None          # dict of ROM instances (== number of targets => keys are the targets)
+    self.printTag = 'ROM MODEL'           # label
+    self.cvInstance = None                # Instance of provided cross validation
     # Dictionary of Keras Neural Network Core layers
     self.kerasDict = {}
 
@@ -1292,6 +1312,14 @@ class ROM(Dummy):
     # since we pop this out during saving state, initialize it here
     self.assemblerDict = {}
 
+  def applyRunInfo(self, runInfo):
+    """
+      Take information from the RunInfo
+      @ In, runInfo, dict, RunInfo info
+      @ Out, None
+    """
+    self.initializationOptionDict['NumThreads'] = runInfo.get('NumThreads', 1)
+
   def _readMoreXML(self,xmlNode):
     """
       Function to read the portion of the xml input that belongs to this specialized class
@@ -1354,7 +1382,7 @@ class ROM(Dummy):
       @ In, initializationOptions, dict, the initialization options
       @ Out, None
     """
-    self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
+    self.supervisedEngine = LearningGate.factory.returnInstance('SupervisedGate', self.subType, **initializationOptions)
 
   def reset(self):
     """
@@ -1385,6 +1413,21 @@ class ROM(Dummy):
     paramDict = self.supervisedEngine.getInitParams()
     return paramDict
 
+  def provideExpectedMetaKeys(self):
+    """
+      Overrides the base class method to assure child engine is also polled for its keys.
+      @ In, None
+      @ Out, metaKeys, set(str), names of meta variables being provided
+      @ Out, metaParams, dict, the independent indexes related to expected keys
+    """
+    # load own keys and params
+    metaKeys, metaParams = Dummy.provideExpectedMetaKeys(self)
+    # add from engine
+    keys, params = self.supervisedEngine.provideExpectedMetaKeys()
+    metaKeys = metaKeys.union(keys)
+    metaParams.update(params)
+    return metaKeys, metaParams
+
   def train(self,trainingSet):
     """
       This function train the ROM
@@ -1396,7 +1439,6 @@ class ROM(Dummy):
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
-      self.supervisedEngine.messageHandler = self.messageHandler
     else:
       # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
       if type(trainingSet).__name__ != 'dict' and trainingSet.type == 'HistorySet':
@@ -1406,8 +1448,6 @@ class ROM(Dummy):
                   "The time-dependent ROM requires all the histories are synchonized!")
       self.trainingSet = copy.copy(self._inputToInternal(trainingSet))
       self._replaceVariablesNamesWithAliasSystem(self.trainingSet, 'inout', False)
-      # grab assembled stuff and pass it through
-      ## TODO this should be changed when the SupervisedLearning objects themselves can use the Assembler
       self.supervisedEngine.train(self.trainingSet, self.assemblerDict)
       self.amITrained = self.supervisedEngine.amITrained
 
@@ -1506,10 +1546,10 @@ class ROM(Dummy):
       # reset the ROM before perform cross validation
       cvMetrics = {}
       self.reset()
-      outputMetrics = self.cvInstance.interface.run([self, trainingSet])
+      outputMetrics = self.cvInstance._pp.run([self, trainingSet])
       exploredTargets = []
       for cvKey, metricValues in outputMetrics.items():
-        info = self.cvInstance.interface._returnCharacteristicsOfCvGivenOutputName(cvKey)
+        info = self.cvInstance._pp._returnCharacteristicsOfCvGivenOutputName(cvKey)
         if info['targetName'] in exploredTargets:
           self.raiseAnError(IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name, "' for ROM '", rom.name,  "'!")
         exploredTargets.append(info['targetName'])
@@ -1523,7 +1563,7 @@ class ROM(Dummy):
       @ Out, None
     """
     useCV = True
-    initDict =  self.cvInstance.interface.initializationOptionDict
+    initDict =  self.cvInstance._pp.initializationOptionDict
     if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
       if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
         useCV = False

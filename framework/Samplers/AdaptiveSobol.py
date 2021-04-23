@@ -18,12 +18,6 @@
   @author: alfoa
   supercedes Samplers.py from talbpw
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
-import sys
 import copy
 import numpy as np
 from operator import mul,itemgetter
@@ -31,9 +25,7 @@ from collections import OrderedDict
 from functools import reduce
 import xml.etree.ElementTree as ET
 import itertools
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
 from .Sobol import Sobol
 from .AdaptiveSparseGrid import AdaptiveSparseGrid
 from utils import utils
@@ -43,8 +35,6 @@ import SupervisedLearning
 import Quadratures
 import IndexSets
 import Models
-import MessageHandler
-#Internal Modules End--------------------------------------------------------------------------------
 
 class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
   """
@@ -535,7 +525,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #set up HDMRRom for training
     self._finalizeROM()
 
-  def _finalizeROM(self,rom=None,include=[]):
+  def _finalizeROM(self, rom=None, include=[]):
     """
       Delivers necessary structures to the HDMRRom object
       @ In, rom, HDMRRom object, optional, rom to finalize before training, defaults to target rom
@@ -559,7 +549,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
         del initDict['ROMs'][subset]
     rom.supervisedEngine.supervisedContainer[0].initialize(initDict)
 
-  def _finalizeSubset(self,subset):
+  def _finalizeSubset(self, subset):
     """
       On completion, finalizes the subset by initializing the associated ROM.
       @ In, subset, tuple(str), subset to finalize
@@ -576,7 +566,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #store rom in dedicated use set
     self.useSet[subset] = self.romShell[subset].supervisedEngine.supervisedContainer[0]
 
-  def _generateSubsets(self,subset):
+  def _generateSubsets(self, subset):
     """
       Returns a list of the possible subset combinations available, and estimates their impact
       @ In, subset, tuple(str), the leading subset to add more subsets from
@@ -693,14 +683,14 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #if not, we have nothing to run.
     return False
 
-  def _makeCutDataObject(self,subset):
+  def _makeCutDataObject(self, subset):
     """
       Creates a new PointSet dataobject for a cut subset
       @ In, subset, tuple(str), the subset to make the object for
       @ Out, dataObject, DataObject object, data object with cut points
     """
     #create a new data ojbect
-    dataObject = DataObjects.returnInstance('PointSet',self)
+    dataObject = DataObjects.factory.returnInstance('PointSet')
     dataObject.type ='PointSet'
     #write xml to set up data object
     #  -> name it the amalgamation of the subset parts
@@ -712,16 +702,16 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     out.text = ','.join(self.targets)
     node.append(out)
     #initialize the data object
-    dataObject.readXML(node,self.messageHandler)
+    dataObject.readXML(node)
     return dataObject
 
-  def _makeSubsetRom(self,subset):
+  def _makeSubsetRom(self, subset):
     """
       Constructs a ROM for the given subset (but doesn't train it!).
       @ In, subset, tuple(string), subset for cut plane
       @ Out, None
     """
-    from .Factory import returnInstance
+    from .Factory import factory
     verbosity = self.subVerbosity #sets verbosity of created RAVEN objects
     SVL = self.ROM.supervisedEngine.supervisedContainer[0] #an example SVL for most parameters
     #replicate "normal" construction of the ROM
@@ -739,12 +729,12 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
       polyDict[c] = self.polyDict[c]
       imptDict[c] = self.importanceDict[c]
     #instantiate an adaptive index set for this ROM
-    iSet = IndexSets.returnInstance('AdaptiveSet',self)
+    iSet = IndexSets.factory.returnInstance('AdaptiveSet')
     iSet.initialize(subset,imptDict,self.maxPolyOrder,full=True)
     iSet.verbosity=verbosity
     #instantiate a sparse grid quadrature
-    self.SQs[subset] = Quadratures.returnInstance(self.sparseGridType,self)
-    self.SQs[subset].initialize(subset,iSet,distDict,quadDict,self.jobHandler,self.messageHandler)
+    self.SQs[subset] = Quadratures.factory.returnInstance(self.sparseGridType)
+    self.SQs[subset].initialize(subset,iSet,distDict,quadDict,self.jobHandler)
     #instantiate the SVLs.  Note that we need to call both __init__ and initialize with dictionaries.
     #for target in self.targets:
     initDict = {'IndexSet'       : iSet.type,
@@ -752,20 +742,18 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
                 'Interpolation'  : SVL.itpDict,
                 'Features'       : list(subset),
                 'Target'         : self.targets}
-    self.ROMs[subset] = SupervisedLearning.returnInstance('GaussPolynomialRom',self,**initDict)
+    self.ROMs[subset] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom', **initDict)
     initializeDict = {'SG'       : self.SQs[subset],
                       'dists'    : distDict,
                       'quads'    : quadDict,
                       'polys'    : polyDict,
                       'iSet'     : iSet}
     self.ROMs[subset].initialize(initializeDict)
-    self.ROMs[subset].messageHandler = self.messageHandler
     self.ROMs[subset].verbosity = verbosity
     #instantiate the shell ROM that contains the SVLs
     #   NOTE: the shell is only needed so we can call the train method with a data object.
-    self.romShell[subset] = Models.returnInstance('ROM',{},self)
+    self.romShell[subset] = Models.factory.returnInstance('ROM')
     self.romShell[subset].subType = 'GaussPolynomialRom'
-    self.romShell[subset].messageHandler = self.messageHandler
     self.romShell[subset].verbosity = verbosity
     self.romShell[subset].initializationOptionDict['Target']= self.targets
     self.romShell[subset].initializationOptionDict['Features']= list(subset)
@@ -775,8 +763,7 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     #coordinate SVLs
     self.romShell[subset].supervisedEngine.supervisedContainer = [self.ROMs[subset]]
     #instantiate the adaptive sparse grid sampler for this rom
-    samp = returnInstance('AdaptiveSparseGrid',self)
-    samp.messageHandler = self.messageHandler
+    samp = factory.returnInstance('AdaptiveSparseGrid')
     samp.verbosity      = verbosity
     samp.doInParallel   = self.doInParallel #TODO can't be set by user.
     samp.jobHandler     = self.jobHandler

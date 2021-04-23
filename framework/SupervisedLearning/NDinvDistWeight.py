@@ -37,14 +37,13 @@ class NDinvDistWeight(NDinterpolatorRom):
     their training data points?
   """
   ROMtype         = 'NDinvDistWeight'
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    NDinterpolatorRom.__init__(self,messageHandler,**kwargs)
+    NDinterpolatorRom.__init__(self, **kwargs)
     self.printTag = 'ND-INVERSEWEIGHT ROM'
     if not 'p' in self.initOptionDict.keys():
       self.raiseAnError(IOError,'the <p> parameter must be provided in order to use NDinvDistWeigth as ROM!!!!')

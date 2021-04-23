@@ -22,6 +22,7 @@ from __future__ import division, print_function, unicode_literals, absolute_impo
 #End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+import copy
 from collections import deque, defaultdict
 import numpy as np
 
@@ -30,16 +31,13 @@ import numpy as np
 #Internal Modules------------------------------------------------------------------------------------
 from utils import InputData, InputTypes, mathUtils
 from .RavenSampled import RavenSampled
-from .gradients import knownTypes as gradKnownTypes
-from .gradients import returnInstance as gradReturnInstance
-from .gradients import returnClass as gradReturnClass
-from .stepManipulators import knownTypes as stepKnownTypes
-from .stepManipulators import returnInstance as stepReturnInstance
-from .stepManipulators import returnClass as stepReturnClass
+
+from .gradients import factory as gradFactory
+from .stepManipulators import factory as stepFactory
+from .acceptanceConditions import factory as acceptFactory
+
 from .stepManipulators import NoConstraintResolutionFound, NoMoreStepsNeeded
-from .acceptanceConditions import knownTypes as acceptKnownTypes
-from .acceptanceConditions import returnInstance as acceptReturnInstance
-from .acceptanceConditions import returnClass as acceptReturnClass
+
 #Internal Modules End--------------------------------------------------------------------------------
 
 class GradientDescent(RavenSampled):
@@ -102,8 +100,8 @@ class GradientDescent(RavenSampled):
               below may be selected for this Optimizer.""")
     specs.addSub(grad)
     ## get specs for each gradient subclass, and add them to this class's options
-    for option in gradKnownTypes():
-      subSpecs = gradReturnClass(option, cls).getInputSpecification()
+    for option in gradFactory.knownTypes():
+      subSpecs = gradFactory.returnClass(option).getInputSpecification()
       grad.addSub(subSpecs)
 
     # step sizing options
@@ -116,8 +114,8 @@ class GradientDescent(RavenSampled):
     ## common options to all stepManipulator descenders
     ## TODO
     ## get specs for each stepManipulator subclass, and add them to this class's options
-    for option in stepKnownTypes():
-      subSpecs = stepReturnClass(option, cls).getInputSpecification()
+    for option in stepFactory.knownTypes():
+      subSpecs = stepFactory.returnClass(option).getInputSpecification()
       step.addSub(subSpecs)
 
     # acceptance conditions
@@ -131,8 +129,8 @@ class GradientDescent(RavenSampled):
     ## common options to all acceptanceCondition descenders
     ## TODO
     ## get specs for each acceptanceCondition subclass, and add them to this class's options
-    for option in acceptKnownTypes():
-      subSpecs = acceptReturnClass(option, cls).getInputSpecification()
+    for option in acceptFactory.knownTypes():
+      subSpecs = acceptFactory.returnClass(option).getInputSpecification()
       accept.addSub(subSpecs)
 
     # convergence
@@ -180,10 +178,10 @@ class GradientDescent(RavenSampled):
     # TODO need to include StepManipulators and GradientApproximators solution export entries as well!
     # # -> but really should only include active ones, not all of them. This seems like it should work
     # #    when the InputData can scan forward to determine which entities are actually used.
-    for grad in gradKnownTypes():
-      new.update(gradReturnClass(grad, cls).getSolutionExportVariableNames())
-    for step in stepKnownTypes():
-      new.update(stepReturnClass(step, cls).getSolutionExportVariableNames())
+    for grad in gradFactory.knownTypes():
+      new.update(gradFactory.returnClass(grad).getSolutionExportVariableNames())
+    for step in stepFactory.knownTypes():
+      new.update(stepFactory.returnClass(step).getSolutionExportVariableNames())
     ok.update(new)
     return ok
 
@@ -201,7 +199,6 @@ class GradientDescent(RavenSampled):
     self._gradientInstance = None  # instance of GradientApproximater
     self._stepInstance = None      # instance of StepManipulator
     self._acceptInstance = None    # instance of AcceptanceCondition
-    self._gradProximity = 0.01     # TODO user input, the proximity for gradient evaluations
     # history trackers, by traj, are deques (-1 is most recent)
     self._gradHistory = {}         # gradients
     self._stepHistory = {}         # {'magnitude': size, 'versor': direction, 'info': dict} for step
@@ -231,33 +228,33 @@ class GradientDescent(RavenSampled):
     # grad strategy
     gradParentNode = paramInput.findFirst('gradient')
     if len(gradParentNode.subparts) != 1:
-      self.raiseAnError('The <gradient> node requires exactly one gradient strategy! Choose from: ', gradKnownTypes())
+      self.raiseAnError('The <gradient> node requires exactly one gradient strategy! Choose from: ', gradFactory.knownTypes())
     gradNode = next(iter(gradParentNode.subparts))
     gradType = gradNode.getName()
-    self._gradientInstance = gradReturnInstance(gradType, self)
+    self._gradientInstance = gradFactory.returnInstance(gradType)
     self._gradientInstance.handleInput(gradNode)
 
     # stepping strategy
     stepNode = paramInput.findFirst('stepSize')
     if len(stepNode.subparts) != 1:
-      self.raiseAnError('The <stepNode> node requires exactly one stepping strategy! Choose from: ', stepKnownTypes())
+      self.raiseAnError('The <stepNode> node requires exactly one stepping strategy! Choose from: ', stepFactory.knownTypes())
     stepNode = next(iter(stepNode.subparts))
     stepType = stepNode.getName()
-    self._stepInstance = stepReturnInstance(stepType, self)
+    self._stepInstance = stepFactory.returnInstance(stepType)
     self._stepInstance.handleInput(stepNode)
 
     # acceptance strategy
     acceptNode = paramInput.findFirst('acceptance')
     if acceptNode:
       if len(acceptNode.subparts) != 1:
-        self.raiseAnError('The <acceptance> node requires exactly one acceptance strategy! Choose from: ', acceptKnownTypes())
+        self.raiseAnError('The <acceptance> node requires exactly one acceptance strategy! Choose from: ', acceptFactory.knownTypes())
       acceptNode = next(iter(acceptNode.subparts))
       acceptType = acceptNode.getName()
-      self._acceptInstance = acceptReturnInstance(acceptType, self)
+      self._acceptInstance = acceptFactory.returnInstance(acceptType)
       self._acceptInstance.handleInput(acceptNode)
     else:
       # default to strict mode acceptance
-      acceptNode = acceptReturnInstance('Strict', self)
+      acceptNode = acceptFactory.returnInstance('Strict')
 
     # convergence options
     convNode = paramInput.findFirst('convergence')
@@ -290,7 +287,7 @@ class GradientDescent(RavenSampled):
       @ Out, None
     """
     RavenSampled.initialize(self, externalSeeding=externalSeeding, solutionExport=solutionExport)
-    self._gradientInstance.initialize(self.toBeSampled, self._gradProximity)
+    self._gradientInstance.initialize(self.toBeSampled)
     self._stepInstance.initialize(self.toBeSampled, persistence=self._requiredPersistence)
     self._acceptInstance.initialize()
     # if single trajectory, turn off follower termination
@@ -500,7 +497,7 @@ class GradientDescent(RavenSampled):
       suggested, modStepSize, info = self._stepInstance.fixConstraintViolations(suggested, previous, info)
       denormed = self.denormalizeData(suggested)
       self.raiseADebug(' ... suggested norm step {:1.2e}, new opt {}'.format(modStepSize, denormed))
-      passFuncs = self._checkFunctionalConstraints(denormed)
+      passFuncs = self._checkFunctionalConstraints(denormed) and self._checkBoundaryConstraints(denormed)
       tries -= 1
       if tries == 0:
         self.raiseAnError(NotImplementedError, 'No acceptable point findable! Now what?')
@@ -526,7 +523,13 @@ class GradientDescent(RavenSampled):
     self._submitRun(opt, traj, step, 'opt')
     # GRAD POINTS
     # collect grad points
-    gradPoints, gradInfos = self._gradientInstance.chooseEvaluationPoints(opt, stepSize)
+    # HACK FIXME TODO adding constraints too
+    ## boundary is distribution dict of bounds
+    ## constraint functions is list of functions to call "evaluate" on
+    ## inputs is dictionary of other stuff that constraints might need to be evaluated
+    ## TODO we really should pass the checkFunctionalConstraints and check/applyBoundaryConstraints instead!!
+    constraints = {'boundary': self.distDict, 'functional': self._constraintFunctions, 'inputs': copy.deepcopy(self.constants), 'normalize': self.normalizeData, 'denormalize': self.denormalizeData}
+    gradPoints, gradInfos = self._gradientInstance.chooseEvaluationPoints(opt, stepSize, constraints=constraints)
     for i, grad in enumerate(gradPoints):
       self._submitRun(grad, traj, step, 'grad_{}'.format(i), moreInfo=gradInfos[i])
 

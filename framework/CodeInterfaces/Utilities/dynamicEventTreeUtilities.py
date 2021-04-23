@@ -39,17 +39,17 @@ def writeXmlForDET(filename,trigger,listDict,stopInfo):
   #  associated_pb = 'CDF' in case multibranch needs to be performed
   #  stopInfo {'end_time': end simulation   time (already stopped), 'end_ts': end time step}
   root=ET.Element('Branch_info')
-  root.set("end_time",stopInfo['end_time'])
+  root.set("end_time",str(stopInfo['end_time']))
   if "end_ts" in stopInfo.keys():
-    root.set("end_ts",stopInfo['end_ts'])
+    root.set("end_ts",str(stopInfo['end_ts']))
   triggerNode=ET.SubElement(root,"Distribution_trigger")
   triggerNode.set("name",trigger)
   for varInfo in listDict:
     var=ET.SubElement(triggerNode,'Variable')
     var.text=varInfo['name']
     var.set('type',varInfo['type'])
-    var.set('old_value',varInfo['old_value'])
-    var.set('actual_value',varInfo['new_value'])
+    var.set('old_value',str(varInfo['old_value']))
+    var.set('actual_value',str(varInfo['new_value']))
     if 'associated_pb' in varInfo.keys():
       var.set('probability',str(varInfo['associated_pb']))
   fileObject = open(filename,'w')

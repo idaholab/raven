@@ -58,9 +58,9 @@ outerInput.parseNode(parser.getroot(), errors)
 
 print(errors)
 
-checkAnswer('Required parameter required_string not in inner', errors[0])
-checkAnswer('no_such_element not in attributes and strict mode on in inner', errors[1])
-checkAnswer('Unrecognized input: "no_such_sub"! Allowed: "[\'sub_1\', \'sub_2\', \'sub_3\', \'sub_bool\']", tried "set()"', errors[2])
+checkAnswer('outer.inner: Required attribute "required_string" not in "inner"', errors[0])
+checkAnswer('outer.inner: "no_such_element" not in node attributes and strict mode on in "inner"', errors[1])
+checkAnswer('outer.ordered: Unrecognized input node "no_such_sub"! Allowed: [sub_1, sub_2, sub_3, sub_bool], tried []', errors[2])
 
 print("passes",passFails[0],"fails",passFails[1])
 sys.exit(passFails[1])

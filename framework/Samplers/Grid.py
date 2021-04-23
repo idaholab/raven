@@ -79,13 +79,13 @@ class Grid(ForwardSampler):
     @ In, None
     @ Out, None
     """
-    ForwardSampler.__init__(self)
+    super().__init__()
     self.printTag = 'SAMPLER GRID'
-    self.axisName             = []           # the name of each axis (variable)
-    self.gridInfo             = {}           # {'name of the variable':Type}  --> Type: CDF/Value
-    self.externalgGridCoord   = False        # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
-    self.gridCoordinate       = []           # current grid coordinates
-    self.gridEntity           = GridEntities.returnInstance('GridEntity',self)
+    self.axisName = []                 # the name of each axis (variable)
+    self.gridInfo = {}                 # {'name of the variable':Type}  --> Type: CDF/Value
+    self.externalgGridCoord = False    # boolean attribute. True if the coordinate list has been filled by external source (see factorial sampler)
+    self.gridCoordinate = []           # current grid coordinates
+    self.gridEntity = None
 
   def localInputAndChecks(self,xmlNode, paramInput):
     """
@@ -94,12 +94,13 @@ class Grid(ForwardSampler):
       @ In, paramInput, InputData.ParameterInput, the parsed parameters
       @ Out, None
     """
+    self.gridEntity = GridEntities.factory.returnInstance('GridEntity')
     #TODO remove using xmlNode
     if 'limit' in paramInput.parameterValues:
       self.raiseAnError(IOError,'limit is not used in Grid sampler')
     self.limit = 1
     ##FIXME: THIS READ MORE XML MUST BE CONVERTED IN THE INPUTPARAMETER COLLECTOR!!!!!!!
-    self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable","Distribution"],messageHandler=self.messageHandler, dimTagsPrefix={"Distribution":"<distribution>"})
+    self.gridEntity._readMoreXml(xmlNode,dimensionTags=["variable","Distribution"], dimTagsPrefix={"Distribution":"<distribution>"})
     grdInfo = self.gridEntity.returnParameter("gridInfo")
     for axis, value in grdInfo.items():
       self.gridInfo[axis] = value[0]
@@ -244,7 +245,7 @@ class Grid(ForwardSampler):
               midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
               gridWeight = self.distDict[varName].cdf(midPlusValue) - self.distDict[varName].cdf(midMinusValue)
             if coordinatesMinusOne[varName] == -sys.maxsize:
-              midPlusValue   = (self.values[key]+coordinatesPlusOne[varName])/2.0
+              midPlusValue = (self.values[key]+coordinatesPlusOne[varName])/2.0
               gridWeight = self.distDict[varName].cdf(midPlusValue) - 0.0
             if coordinatesPlusOne[varName] == sys.maxsize:
               midMinusValue  = (self.values[key]+coordinatesMinusOne[varName])/2.0
