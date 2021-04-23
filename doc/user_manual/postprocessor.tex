@@ -19,8 +19,9 @@ Currently, the following types are available in RAVEN:
   \item \textbf{LimitSurfaceIntegral}
   \item \textbf{External}
   \item \textbf{TopologicalDecomposition}
-  \item \textbf{RavenOutput}
+  %\item \textbf{RavenOutput}
   \item \textbf{DataMining}
+  \item \textbf{RiskMeasureDiscrete}
   \item \textbf{Metric}
   \item \textbf{CrossValidation}
   \item \textbf{DataClassifier}
@@ -1096,6 +1097,9 @@ The following is a list of acceptable sub-nodes:
 %TO BE MOVED TO STEP ``IOSTEP''
 %
 
+%%%%% Risk Measures Discrete PP %%%%%%%%%%
+\input{PostProcessors/DiscreteRiskMeasures.tex}
+
 %%%%% PP External %%%%%%%
 \input{PostProcessors/InterfacedPostProcessors.tex}
 
@@ -1103,8 +1107,10 @@ The following is a list of acceptable sub-nodes:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%% RavenOutput PP   %%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-\input{PostProcessors/RavenOutput.tex}
+% FIXME: I think this is not valid anymore. We do not support the RavenOutput PP anymore.
+% In addition, all the related tests are disabled. It seems to me we should remove all
+% related files and tests (wangc - 4/23/2021)
+%\input{PostProcessors/RavenOutput.tex}
 
 
 %%%%%%%%%%%%%% ParetoFrontier PP %%%%%%%%%%%%%%%%%%%
