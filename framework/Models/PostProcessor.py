@@ -91,7 +91,7 @@ class PostProcessor(Model):
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][0]['class'       ] = 'DataObjects'
     cls.validateDict['Output' ][0]['type'        ] = ['PointSet','HistorySet','DataSet']
-    cls.validateDict['Output' ][0]['required'    ] = True
+    cls.validateDict['Output' ][0]['required'    ] = False
     cls.validateDict['Output' ][0]['multiplicity'] = 'n'
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][1]['class'       ] = 'OutStreams'

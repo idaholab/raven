@@ -81,10 +81,13 @@ class MCSImporter(PostProcessorPluginBase):
   def run(self, inputs):
     """
       This method executes the PostProcessor action.
-      @ In,  inputs, list, list of file objects
-      @ Out, None
+      @ In,  inputIn, dict, dictionary contains the input data and input files, i.e.,
+          {'Data':[DataObjects.asDataset('dict')], 'Files':[FileObject]}, only 'Files'
+          will be used by this PostProcessor
+      @ Out, mcsPointSet, dict, dictionary of outputs, i.e.,
+          {'data':dict of realizations, 'dim':{}}
     """
-
+    inputs = inputIn['Files']
     mcsFileFound = False
     beFileFound  = False
 
