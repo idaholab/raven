@@ -78,7 +78,7 @@ class MCSImporter(PostProcessorPluginBase):
       beListColumn = paramInput.findFirst('BElistColumn')
       self.beListColumn = beListColumn.value
 
-  def run(self, inputs):
+  def run(self, inputIn):
     """
       This method executes the PostProcessor action.
       @ In,  inputIn, dict, dictionary contains the input data and input files, i.e.,
