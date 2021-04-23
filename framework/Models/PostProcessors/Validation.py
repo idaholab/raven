@@ -26,7 +26,7 @@ import xarray as xr
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from . import validationAlgorithms
 from utils import utils, mathUtils
 from utils import InputData, InputTypes
@@ -35,7 +35,7 @@ import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
 
-class Validation(PostProcessor):
+class Validation(PostProcessorInterface):
   """
     Validation class. It will apply the specified validation algorithms in
     the models to a dataset, each specified algorithm's output can be loaded to
