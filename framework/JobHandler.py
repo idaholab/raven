@@ -212,10 +212,9 @@ class JobHandler(BaseType):
           servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword)
           if self.rayInstanciatedOutside:
             # update the python path and working dir
-            # self.__updateListeningSockets(localHostName)
             # update head node paths
             olderPath = os.environ["PYTHONPATH"].split(os.pathsep) if "PYTHONPATH" in os.environ else []
-            os.environ["PYTHONPATH"] = os.pathsep.join(list(set(olderPath+sys.path)))
+            os.environ["PYTHONPATH"] = os.pathsep.join(set(olderPath+sys.path))
           # add names in runInfo
           self.runInfoDict['remoteNodes'] = servers
           ## initialize ray server with nProcs
