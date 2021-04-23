@@ -74,13 +74,16 @@ class ETImporter(PostProcessorPluginBase):
     expand = paramInput.findFirst('expand')
     self.expand = expand.value
 
-  def run(self, inputs):
+  def run(self, inputIn):
     """
       This method executes the PostProcessor action.
-      @ In, inputs, list, list of file objects
-      @ Out, outputDict, dict, dictionary of outputs
+      @ In,  inputIn, dict, dictionary contains the input data and input files, i.e.,
+          {'Data':[DataObjects.asDataset('dict')], 'Files':[FileObject]}, only 'Files'
+          will be used by this PostProcessor
+      @ Out, outputDict, dict, dictionary of outputs, i.e.,
+          {'data':dict of realizations, 'dim':{varName:independent dimensions that the variable depends on}}
     """
-    eventTreeModel = ETStructure(self.expand, inputs)
+    eventTreeModel = ETStructure(self.expand, inputIn['Files'])
     outputDict, variables = eventTreeModel.returnDict()
     outputDict = {'data': outputDict, 'dims':{}}
     return outputDict

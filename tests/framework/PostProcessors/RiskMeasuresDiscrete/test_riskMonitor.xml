@@ -9,6 +9,13 @@
       Tests of the four risk importance measures for time dependent data: Risk Achievement Worth (RAW),
       Risk Reduction Worth (RRW), Birnbaum (B) and Fussell-Vesely (FV)
     </description>
+    <revisions>
+      <revision author="wangc" date="2021-04-22">
+        Move 'RiskMeasuresDiscrete' from InterfacedPostProcessor to Plugin-Type PostProcessor.
+        The subType of this PostProcessor will be changed to 'RiskMeasuresDiscrete',
+        and the 'method' node under this PostProcessor is no longer needed.
+      </revision>
+    </revisions>
   </TestInfo>
 
   <Files>
@@ -26,7 +33,6 @@
       <variables>Astatus,Bstatus,Cstatus,outcome</variables>
     </ExternalModel>
     <PostProcessor name="riskMeasuresDiscrete" subType="RiskMeasuresDiscrete">
-      <method>riskMeasuresDiscrete</method>
       <measures>B,FV,RAW,RRW,R0</measures>
       <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Astatus</variable>
       <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Bstatus</variable>

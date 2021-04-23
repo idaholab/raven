@@ -55,8 +55,6 @@ class RiskMeasuresDiscrete(PostProcessorPluginBase):
     dataSub.addParam("freq", InputTypes.FloatType)
     inputSpecification.addSub(dataSub)
     inputSpecification.addSubSimple("temporalID", InputTypes.StringType)
-    #Should method be in super class?
-    inputSpecification.addSubSimple("method", contentType=InputTypes.StringType)
     return inputSpecification
 
   def __init__(self):
@@ -160,17 +158,17 @@ class RiskMeasuresDiscrete(PostProcessorPluginBase):
       elif child.getName() == 'temporalID':
         self.temporalID = child.value
 
-      elif child.getName() !='method':
-        self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
-                          ' : XML node ' + str(child) + ' is not recognized')
-
-  def run(self,inputDic):
+  def run(self,inputIn):
     """
      This method perform the actual calculation of the risk measures
-     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
-     @ Out, outputDic, dict, dictionary which contains the risk measures
+      @ In,  inputIn, dict, dictionary contains the input data and input files, i.e.,
+          {'Data':[DataObjects.asDataset('dict')], 'Files':[FileObject]}, only 'Data'
+          will be used by this PostProcessor
+      @ Out, outputDic, dict, dictionary which contains the risk measures, i.e.,
+          {'data':dict of realizations, 'dim':{varName:independent dimensions that the variable depends on}}
     """
     # Check how many HistorySets (checkHSs) have been provided
+    inputDic = inputIn['Data']
     checkHSs=0
     for inp in inputDic:
       if inp['type'] == 'HistorySet':

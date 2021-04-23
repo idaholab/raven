@@ -100,20 +100,26 @@ class DataClassifier(PostProcessorPluginBase):
       elif child.getName() == 'label':
         self.label = child.value.strip()
 
-  def identifyInputs(self, currentInput):
+  def identifyInputs(self, inputData):
     """
-      Method to identify the inputs for classifier and target, respectively
-      @ In, currentInput, list, a list of dictionaries
-      @ Out, newInput, dict, dictionary of identified inputs
+      Method to identify the type (i.e., 'classifier' or 'target') of input data.
+      If the input data contains 'label' and required 'variables' (provided by XML input file),
+      the input data will assign type 'classifier', otherwise 'target'
+      Please check 'PluginsBaseClasses.PostProcessorPluginBase' for the detailed descriptions
+      about 'inputData' and the output 'newInput'.
+      @ In, inputData, dict, dictionary contains the input data and input files, i.e.,
+          {'Data':[DataObjects.asDataset('dict')], 'Files':[FileObject]}
+      @ Out, newInput, dict, dictionary of identified inputs, i.e.,
+          {'classifier':DataObjects.asDataset('dict'), 'target':DataObjects.asDataset('dict')}
     """
-    if isinstance(currentInput,list) and len(currentInput) != 2:
+    currentInput = inputData['Data']
+    if len(currentInput) != 2:
       self.raiseAnError(IOError, "Required two inputs for PostProcessor {}, but got {}".format(self.name, len(currentInput)))
     newInput ={'classifier':{}, 'target':{}}
     haveClassifier = False
     haveTarget = False
     requiredKeys = list(self.mapping.keys()) + [self.label]
     for inputDict in currentInput:
-      print(inputDict['type'])
       if inputDict['type'] not in ['PointSet', 'HistorySet']:
         self.raiseAnError(IOError, "The input for this postprocesor", self.name, "is not acceptable! Allowed inputs are 'PointSet' and 'HistorySet'.")
       dataType = None
@@ -139,8 +145,11 @@ class DataClassifier(PostProcessorPluginBase):
   def run(self, inputIn):
     """
       This method executes the postprocessor action.
-      @ In,  inputIn, list, list of input dictionaries
-      @ Out, outputDict, dict, dictionary of outputs
+      @ In,  inputIn, dict, dictionary contains the input data and input files, i.e.,
+          {'Data':[DataObjects.asDataset('dict')], 'Files':[FileObject]}, only 'Data'
+          will be used by this PostProcessor
+      @ Out, outputDict, dict, dictionary of outputs, i.e.,
+          {'data':dict of realizations, 'dim':{varName:independent dimensions that the variable depends on}}
     """
     inputDict = self.identifyInputs(inputIn)
     targetDict = inputDict['target']

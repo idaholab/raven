@@ -171,12 +171,13 @@ class PostProcessor(Model):
       (Not used but required by model base class)
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, passing through (consistent with base class but not used)
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, **kwargs, dict, is a dictionary that contains the information passed by "Step".
+          Currently not used by PostProcessor. It can be useful by Step to control the input
+          and output of the PostProcessor, as well as other control options for the PostProcessor
       @ Out, myInput, list, the inputs (list) to start from to generate the new one
     """
-    if 'createNewInput' in dir(self._pp):
-      myInput = self._pp.createNewInput(myInput,samplerType,**kwargs)
+    if 'createPostProcessorInput' in dir(self._pp):
+      myInput = self._pp.createPostProcessorInput(myInput, **kwargs)
     return myInput
 
   @Parallel()
@@ -186,8 +187,9 @@ class PostProcessor(Model):
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, passing through (consistent with base class but not used)
-        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ In, **kwargs, dict, is a dictionary that contains the information passed by "Step".
+            Currently not used by PostProcessor. It can be useful by Step to control the input
+            and output of the PostProcessor, as well as other control options for the PostProcessor
         @ Out, returnValue, tuple, This will hold two pieces of information,
           the first item will be the input data used to generate this sample,
           the second item will be the output of this model given the specified
@@ -199,7 +201,7 @@ class PostProcessor(Model):
     returnValue = (ppInput, self._pp.run(ppInput))
     return returnValue
 
-  def submit(self,myInput,samplerType,jobHandler,**kwargs):
+  def submit(self, myInput, samplerType, jobHandler, **kwargs):
     """
         This will submit an individual sample to be evaluated by this model to a
         specified jobHandler. Note, some parameters are needed by createNewInput
@@ -207,12 +209,13 @@ class PostProcessor(Model):
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, passing through (consistent with base class but not used)
         @ In,  jobHandler, JobHandler instance, the global job handler instance
-        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ In, **kwargs, dict, is a dictionary that contains the information passed by "Step".
+            Currently not used by PostProcessor. It can be useful by Step to control the input
+            and output of the PostProcessor, as well as other control options for the PostProcessor
         @ Out, None
     """
     kwargs['forceThreads'] = True
-    super().submit(myInput, samplerType, jobHandler,**kwargs)
+    super().submit(myInput, samplerType, jobHandler, **kwargs)
 
   def collectOutput(self, finishedJob, output):
     """

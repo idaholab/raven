@@ -17,15 +17,10 @@ Created on March 10, 2021
 @author: wangc
 """
 
-#External Modules---------------------------------------------------------------
-import abc
-#External Modules End-----------------------------------------------------------
-
 #Internal Modules---------------------------------------------------------------
 import Files
 from utils import InputData, InputTypes
 from DataObjects import DataObject
-from Databases import Database
 from .PluginBase import PluginBase
 from Models.PostProcessors.PostProcessorInterface import PostProcessorInterface
 #Internal Modules End-----------------------------------------------------------
@@ -35,48 +30,9 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
     This class represents a specialized class from which each PostProcessor plugins must inherit from
   """
   # List containing the methods that need to be checked in order to assess the
-  # validity of a certain plugin. This list needs to be populated by the derived class
+  # validity of a certain plugin.
   _methodsToCheck = ['getInputSpecification', '_handleInput', 'run']
   entityType = 'PostProcessor'
-
-  ##################################################
-  # Methods for Internal Use
-  ##################################################
-  def createNewInput(self,inputObjs,samplerType,**kwargs):
-    """
-      This function is used to convert internal DataObjects to user-friendly format of data.
-      The output from this function will be directly passed to the "run" method.
-      @ In, inputObjs, list, list of DataObjects
-      @ In, samplerType, string, is the type of sampler that is calling to generate a new input.
-          Not used for PostProcessor, and "None" is used during "Step" "PostProcess" handling
-      @ In, **kwargs, dict, is a dictionary that contains the information coming from the sampler,
-          a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}.
-          Not used for PostProcessor, and {'SampledVars':{'prefix':'None'}, 'additionalEdits':{}}
-          is used during "Step" "PostProcess" handling
-      @ Out, inputDs, list, list of data set that will be directly used by the "PostProcessor.run" method.
-    """
-    #### TODO: This method probably need to move to PostProcessor Base Class when we have converted
-    #### all internal PostProcessors to use Dataset
-
-    ## Type 1: DataObjects => Dataset
-    ## Type 2: File => File
-    ## Type 3: HDF5 => ?
-    assert type(inputObjs) == list
-    inputDs = []
-    for inp in inputObjs:
-      if isinstance(inp, Files.File):
-        inputDs.append(inp)
-      elif isinstance(inp, DataObject.DataObject):
-        # Current accept two types: 1) 'dict', 2) 'xrDataset'
-        # Set default to 'dict', this is consistent with current post-processors
-        outType = kwargs.get('outType', 'dict')
-        inputDs.append(inp.asDataset(outType=outType))
-      elif isinstance(inp, Database):
-        self.raiseAnError(IOError, "Database", inp.name, "can not be handled directly by this Post Processor")
-      else:
-        self.raiseAnError(IOError, "Unknown input is found", str(inp))
-    return inputDs
-
 
   ##################################################
   # Plugin APIs
@@ -100,6 +56,26 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
       @ Out, None
     """
     super().__init__()
+    self._inputDataType = 'dict' # Current accept two types: 1) 'dict', 2) 'xrDataset'
+                                 # Set default to 'dict', this is consistent with current post-processors
+
+  def setInputDataType(self, dataType='dict'):
+    """
+      Method to set the input data type that will be passed to "run" method
+      @ In, dataType, str, the data type to which the internal DataObjects will be converted
+      @ Out, None
+    """
+    if dataType not in ['dict', 'xrDataset']:
+      self.raiseAnError(IOError, 'The dataType "{}" is not supported, please consider using "dict" or "xrDataset"'.format(dataType))
+    self._inputDataType = dataType
+
+  def getInputDataType(self):
+    """
+      Method to retrieve the input data type to which the internal DataObjects will be converted
+      @ In, None
+      @ Out, _inputDataType, str, the data type, i.e., 'dict', 'xrDataset'
+    """
+    return self._inputDataType
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -125,5 +101,35 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
   #   """
   #     This method executes the postprocessor action.
   #     @ In,  inputDs, list, list of Datasets
-  #     @ Out, outputDs, dict, xarray.Dataset, pd.DataFrame
+  #     @ Out, outputDs, dict, xarray.Dataset
   #   """
+
+    ##################################################
+    # Methods for Internal Use
+    ##################################################
+
+  def createPostProcessorInput(self, inputObjs, **kwargs):
+    """
+      This function is used to convert internal DataObjects to user-friendly format of data.
+      The output from this function will be directly passed to the "run" method.
+      @ In, inputObjs, list, list of DataObjects
+      @ In, **kwargs, dict, is a dictionary that contains the information passed by "Step".
+          Currently not used by PostProcessor. It can be useful by Step to control the input
+          and output of the PostProcessor, as well as other control options for the PostProcessor
+      @ Out, inputDict, list, list of data set that will be directly used by the "PostProcessor.run" method.
+    """
+    #### TODO: This method probably need to move to PostProcessor Base Class when we have converted
+    #### all internal PostProcessors to use Dataset
+    ## Type 1: DataObjects => Dataset or Dict
+    ## Type 2: File => File
+    assert type(inputObjs) == list
+    inputDict = {'Data':[], 'Files':[]}
+    for inp in inputObjs:
+      if isinstance(inp, Files.File):
+        inputDict['Files'].append(inp)
+      elif isinstance(inp, DataObject.DataObject):
+        dataType = self.getInputDataType()
+        inputDict['Data'].append(inp.asDataset(outType=dataType))
+      else:
+        self.raiseAnError(IOError, "Unknown input is found", str(inp))
+    return inputDict

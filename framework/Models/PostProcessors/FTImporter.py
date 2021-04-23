@@ -70,13 +70,16 @@ class FTImporter(PostProcessorPluginBase):
     topEventID = paramInput.findFirst('topEventID')
     self.topEventID = topEventID.value
 
-  def run(self, inputs):
+  def run(self, inputIn):
     """
       This method executes the postprocessor action.
-      @ In,  inputs, list, list of file objects
-      @ Out, outputDict, dict, dict containing the processed FT
+      @ In,  inputIn, dict, dictionary contains the input data and input files, i.e.,
+          {'Data':[DataObjects.asDataset('dict')], 'Files':[FileObject]}, only 'Files'
+          will be used by this PostProcessor
+      @ Out, outputDict, dict, dictionary of outputs, i.e.,
+          {'data':dict of realizations, 'dim':{varName:independent dimensions that the variable depends on}}
     """
-    faultTreeModel = FTStructure(inputs, self.topEventID)
+    faultTreeModel = FTStructure(inputIn['Files'], self.topEventID)
     outputDict = faultTreeModel.returnDict()
     outputDict = {'data': outputDict, 'dims':{}}
     return outputDict
