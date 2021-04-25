@@ -1156,6 +1156,9 @@ class BasicStatistics(PostProcessorInterface):
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
     outputSet = xr.Dataset(data_vars=calculations)
 
+    # if nan are present, we replace them with 0.0
+    #outputSet.interpolate_na(method="zero")
+
     if self.outputDataset:
       # Add 'RAVEN_sample_ID' to output dataset for consistence
       if 'RAVEN_sample_ID' not in outputSet.sizes.keys():
