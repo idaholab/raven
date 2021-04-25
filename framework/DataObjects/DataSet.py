@@ -1224,7 +1224,7 @@ class DataSet(DataObject):
     # supporting data
     dataDict['dims']     = self.getDimensions()
     dataDict['metadata'] = self.getMeta(general=True)
-    if isEmpty:
+    if self.isEmpty:
       self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     # main data
     if self.type == "PointSet":
@@ -1518,6 +1518,9 @@ class DataSet(DataObject):
 
   def _fromXarrayDataset(self,dataset):
     """
+      Loads data from an xarray dataset
+      @ In, dataset, xarray.Dataset, the data set containg the data
+      @ Out, None
     """
     if not self.isEmpty:
       self.raiseAnError(IOError, 'DataObject', self.name.strip(),'is not empty!')
