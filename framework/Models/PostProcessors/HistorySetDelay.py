@@ -1,5 +1,21 @@
-
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """
+Created on 2021-April-19
+
+@author: cogljj
+
 This is to implement a delay or lagged parameters in a HistorySet
 """
 
@@ -13,7 +29,7 @@ from .PostProcessorInterface import PostProcessorInterface
 
 class HistorySetDelay(PostProcessorInterface):
   """
-  Class to get lagged or delayed data out of a history set.
+    Class to get lagged or delayed data out of a history set.
   """
 
   @classmethod
@@ -28,15 +44,18 @@ class HistorySetDelay(PostProcessorInterface):
     inputSpecification = super().getInputSpecification()
     #inputSpecification.setCheckClass(CheckInterfacePP("HistorySetDelay"))
     delayClass = InputData.parameterInputFactory("delay", InputTypes.StringType,
-                                                 descr="Adds a delay variable")
+                                                 descr="Adds a delay variable that"
+                                                 +" is a copy of an existing variable"
+                                                 +" but offset along the pivot parameter.")
     delayClass.addParam("original", InputTypes.StringType, True,
-                        descr="Original variable name")
+                        descr="Original variable name to copy data from")
     delayClass.addParam("new", InputTypes.StringType, True,
-                        descr="New (delayed) variable name")
+                        descr="New (delayed) variable name to create data in")
     delayClass.addParam("steps", InputTypes.IntegerType, True,
-                        descr="Steps to offset (-1 is previous step)")
+                        descr="Steps to offset (-1 is previous step) the new variable")
     delayClass.addParam("default", InputTypes.FloatType, True,
-                        descr="Default value to use for unavailable steps")
+                        descr="Default value to use for unavailable steps where"
+                        +" the offset would go outside existing data.")
     inputSpecification.addSub(delayClass, InputData.Quantity.one_to_infinity)
     inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
     return inputSpecification
@@ -51,12 +70,6 @@ class HistorySetDelay(PostProcessorInterface):
     self.validDataType = ['HistorySet']       #only available output is HistorySet
     self.outputMultipleRealizations = True    #this PP will return a full set of realization
     self.printTag = 'PostProcessor HistorySetDelay'
-
-  def initialize(self, runInfo, inputs, initDict):
-    """
-      Method to initialize the HistorySetDelay
-    """
-    super().initialize(runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """

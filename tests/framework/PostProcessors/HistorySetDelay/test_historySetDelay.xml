@@ -1,12 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-    <name>framework/PostProcessors/InterfacedPostProcessor/HistorySetDelay</name>
+    <name>framework/Models/PostProcessors/HistorySetDelay</name>
     <author>cogljj</author>
     <created>2021-04-19</created>
     <classesTested>InterfacedPostProcessor</classesTested>
     <description>
-      Tests of the HistorySetDelay interfaced post-processor
+      Tests of the HistorySetDelay interfaced post-processor by loading
+      in a set of sine waves and delaying some of them.
+      The output is the input, but with some parameters lagged and
+      one speed up.
     </description>
   </TestInfo>
   
