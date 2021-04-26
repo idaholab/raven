@@ -1154,10 +1154,10 @@ class BasicStatistics(PostProcessorInterface):
     for metric, ds in calculations.items():
       if metric in self.scalarVals + self.steVals +['equivalentSamples'] and metric !='samples':
         calculations[metric] = ds.to_array().rename({'variable':'targets'})
-    outputSet = xr.Dataset(data_vars=calculations)
+    outputSet = xr.Dataset(data_vars=calculations).fillna(0)
 
     # if nan are present, we replace them with 0.0
-    #outputSet.interpolate_na(method="zero")
+    # outputSet = outputSet.fillna(0)
 
     if self.outputDataset:
       # Add 'RAVEN_sample_ID' to output dataset for consistence
