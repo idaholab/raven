@@ -197,7 +197,11 @@ class BasicStatistics(PostProcessorInterface):
 
     # extract all required data from input DataObjects, an input dataset is constructed
     dataSet = currentInput.asDataset()
-    inputDataset = dataSet[self.parameters['targets']]
+    try:
+      inputDataset = dataSet[self.parameters['targets']]
+    except KeyError:
+      missing = [var for var in self.parameters['targets'] if var not in dataSet]
+      self.raiseAnError(KeyError, "Variables: '{}' missing from dataset '{}'!".format(", ".join(missing),currentInput.name))
     self.sampleTag = currentInput.sampleTag
 
     if currentInput.type == 'HistorySet':
