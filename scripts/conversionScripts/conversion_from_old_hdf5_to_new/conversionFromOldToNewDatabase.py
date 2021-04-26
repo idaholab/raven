@@ -37,7 +37,7 @@ if __name__=='__main__':
     raise IOError('ERROR: File not found:',oldDataBase)
   os.path.dirname(oldDataBase)
   oldDatabase = OldHDF5Database("old_database", os.path.dirname(oldDataBase),os.path.basename(oldDataBase))
-  newDatabase = hdf5Database("new_database", os.path.dirname(newDataBase), mh, os.path.basename(newDataBase), False)
+  newDatabase = hdf5Database("new_database", os.path.dirname(newDataBase), os.path.basename(newDataBase), False)
   historyNames = oldDatabase.retrieveAllHistoryNames()
 
   for hist in historyNames:
@@ -45,7 +45,15 @@ if __name__=='__main__':
     # retrieve old data
     histData = oldDatabase.retrieveHistory(hist, filterHist='whole')
     # construct rlz dictionary
-    rlz = dict(zip(histData[1]['inputSpaceHeaders'],histData[1]['inputSpaceValues']))
+    if 'inputSpaceValues' in histData[1]:
+      inputValues = histData[1]['inputSpaceValues']
+    else:
+      valDict = histData[1]['metadata'][0]['SampledVars']
+      try:
+        inputValues = [valDict[key] for key in histData[1]['inputSpaceHeaders']]
+      except:
+        inputValues = [valDict[key.decode('UTF-8')] for key in histData[1]['inputSpaceHeaders']]
+    rlz = dict(zip(histData[1]['inputSpaceHeaders'],inputValues))
     for varIndex,outputKey in enumerate(histData[1]['outputSpaceHeaders']):
       rlz[outputKey] = histData[0][:,varIndex]
     metadata = histData[1]['metadata'][-1]
