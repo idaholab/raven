@@ -12,20 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  The Metrics module includes the different type of metrics
-  to measure distance among RAVEN dataobjects
+  Factory interface for returning classes and instances from the
+  validation algorithms pool.
+
+  Created on April 04, 2021
+
+  @ author: alfoa
 """
+from EntityFactoryBase import EntityFactory
 
-## These lines ensure that we do not have to do something like:
-## 'from OutStreamManagers.OutStreamPlot import OutStreamPlot' outside
-## of this submodule
-from .Metric import Metric
-from .DTW import DTW
-from .SklMetric import SKL
-from .PairwiseMetric import PairwiseMetric
-from .CDFAreaDifference import CDFAreaDifference
-from .PDFCommonArea import PDFCommonArea
-#from .RACDistance import RACDistance
-from .ScipyMetric import ScipyMetric
+from .ValidationBase import ValidationBase
+from .Probabilistic import Probabilistic
+#from .DSS import DSS
+#from .PCM import PCM
+#from .Representativity import Representativity
 
-from .Factory import factory
+factory = EntityFactory('ValidationBase')
+# TODO map lower case to upper case, because of silly ROM namespace problems
+factory.registerAllSubtypes(ValidationBase)

@@ -16,8 +16,6 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function, absolute_import
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import time
@@ -25,13 +23,13 @@ import sys
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
 import Files
 #Internal Modules End-----------------------------------------------------------
 
 
-class TopologicalDecomposition(PostProcessor):
+class TopologicalDecomposition(PostProcessorInterface):
   """
     TopologicalDecomposition class - Computes an approximated hierarchical
     Morse-Smale decomposition from an input point cloud consisting of an
@@ -48,7 +46,7 @@ class TopologicalDecomposition(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(TopologicalDecomposition, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
 
     TDGraphInput = InputData.parameterInputFactory("graph", contentType=InputTypes.StringType)
     inputSpecification.addSub(TDGraphInput)
@@ -144,7 +142,7 @@ class TopologicalDecomposition(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       if child.getName() == "graph":
         self.graph = child.value.lower()
@@ -355,6 +353,9 @@ except ImportError as e:
 
 if __QtAvailable:
   class mQTopologicalDecomposition(type(TopologicalDecomposition), type(qtc.QObject)):
+    """
+      Class used to solve the metaclass conflict
+    """
     pass
 
   class QTopologicalDecomposition(TopologicalDecomposition, qtc.QObject, metaclass=mQTopologicalDecomposition):

@@ -16,19 +16,17 @@ Created on July 2, 2019
 
 @author: talbpw
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils
 from utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
-class RealizationAverager(PostProcessor):
+class RealizationAverager(PostProcessorInterface):
   """
     Does the average of multiple realizations along the RAVEN_sampleID dimension
     ONLY, leaving the other dimensions as they are.
@@ -66,7 +64,7 @@ class RealizationAverager(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       tag = child.getName()
       if tag == 'target':
@@ -104,13 +102,11 @@ class RealizationAverager(PostProcessor):
     averaged['RAVEN_sample_ID'] = [0]
     return averaged
 
-  def collectOutput(self, finishedJob, output, options=None):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object
       @ In, finishedJob, JobHandler External or Internal instance, A JobHandler object that is in charge of running this post-processor
       @ In, output, dataObjects, The object where we want to place our computed results
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    PostProcessor.collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output)

@@ -9,9 +9,9 @@ import xarray as xr
 
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 from utils import InputData, InputTypes
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 
-class HistorySetDelay(PostProcessor):
+class HistorySetDelay(PostProcessorInterface):
   """
   Class to get lagged or delayed data out of a history set.
   """

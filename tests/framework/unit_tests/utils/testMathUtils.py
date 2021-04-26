@@ -16,11 +16,6 @@
   It cannot be considered part of the active code but of the regression test system
 """
 
-#For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
 import os,sys
 import numpy as np
 import xml.etree.ElementTree as ET
@@ -144,18 +139,6 @@ for test in tests:
 
 ### check "createInterp"
 # TODO
-
-### check "simpson"
-def f(x):
-  """
-    Simple squaring function.
-    @ In, x, float, value
-    @ Out, f, float, square value
-  """
-  return x*x
-
-simp = mathUtils.simpson(f,-1,1,5)
-checkAnswer('simpson',simp,0.677333333333,1e-5)
 
 ### check "getGraphs"
 # TODO I don't know what this does.  Documentation is poor.
