@@ -87,11 +87,12 @@ class HistorySetDelay(PostProcessor):
       coords = {key: data[original][key] for key in data[original].dims}
       orig_data = data[original].values
       new_data = copy.copy(orig_data)
-      new_data[:, :] = default
       if steps < 0:
-        new_data[:,-steps:] = orig_data[:,:steps]
+        new_data[:, :-steps] = default
+        new_data[:, -steps:] = orig_data[:,:steps]
       elif steps > 0:
-        new_data[:,:-steps] = orig_data[:,steps:]
+        new_data[:, -steps:] = default
+        new_data[:, :-steps] = orig_data[:,steps:]
       # else:
       # steps is 0, so just keep the copy
       data[new] = xr.DataArray(data=new_data, coords=coords, dims=coords.keys())
