@@ -1,0 +1,7 @@
+[Tests]
+  [./HistorySetDelay]
+    type   = 'RavenFramework'
+    input  = 'test_historySetDelay.xml'
+    csv    = 'HistorySetDelay/delayed_samples_dump_0.csv HistorySetDelay/delayed_samples_dump_1.csv'
+  [../]
+[]
