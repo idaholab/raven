@@ -515,12 +515,12 @@ class JobHandler(BaseType):
       #  #print("XXXXXX PYTHON ENVIROMENT NEW: "+previousPath+pathSeparator.join(sys.path))
       #  functionToRun.options(override_environment_variables={"PYTHONPATH":previousPath+pathSeparator.join(sys.path)})
 
-      internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
-                                                    arguments, functionToRun.remote if _rayAvail else functionToRun.original_function,
-                                                    identifier, metadata,
-                                                    uniqueHandler,
-                                                    profile=self.__profileJobs)
-
+      internalJob = Runners.factory.returnInstance('DistributedMemoryRunner', arguments,
+                                                   functionToRun.remote if _rayAvail else functionToRun.original_function,
+                                                   identifier=identifier,
+                                                   metadata=metadata,
+                                                   uniqueHandler=uniqueHandler,
+                                                   profile=self.__profileJobs)
     # set the client info
     internalJob.clientRunner = clientQueue
     #  set the groupping id if present
