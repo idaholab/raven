@@ -23,7 +23,6 @@ import copy
 import numpy as np
 import xarray as xr
 
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 from utils import InputData, InputTypes
 from .PostProcessorInterface import PostProcessorInterface
 
@@ -42,8 +41,7 @@ class HistorySetDelay(PostProcessorInterface):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
-    #inputSpecification.setCheckClass(CheckInterfacePP("HistorySetDelay"))
-    delayClass = InputData.parameterInputFactory("delay", InputTypes.StringType,
+    delayClass = InputData.parameterInputFactory("delay", contentType=InputTypes.StringType,
                                                  descr="Adds a delay variable that"
                                                  +" is a copy of an existing variable"
                                                  +" but offset along the pivot parameter.")
@@ -67,6 +65,7 @@ class HistorySetDelay(PostProcessorInterface):
       @ Out, None
     """
     super().__init__()
+    self.delays = [] # list of delay variables (original, new, steps, default)
     self.validDataType = ['HistorySet']       #only available output is HistorySet
     self.outputMultipleRealizations = True    #this PP will return a full set of realization
     self.printTag = 'PostProcessor HistorySetDelay'
@@ -77,7 +76,6 @@ class HistorySetDelay(PostProcessorInterface):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    self.delays = []
     for child in paramInput.subparts:
       if child.getName() == 'delay':
         self.delays.append((child.parameterValues['original'],
@@ -88,7 +86,7 @@ class HistorySetDelay(PostProcessorInterface):
   def run(self,inputDic):
     """
       Method to post-process the dataObjects
-      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+      @ In, inputDic, list, list of DataObjects
       @ Out, data, xarray.DataSet, output dataset
     """
     if len(inputDic)>1:
