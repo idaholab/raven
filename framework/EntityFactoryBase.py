@@ -19,6 +19,7 @@ Created March 15, 2020
 
 from BaseClasses import MessageUser
 from BaseClasses import InputDataUser
+import PluginManager
 from utils import utils
 
 class EntityFactory(MessageUser):
@@ -39,15 +40,7 @@ class EntityFactory(MessageUser):
     self.needsRunInfo = needsRunInfo                 # whether entity needs run info
     self.returnInputParameter = returnInputParameter # use xml or inputParams
     self._registeredTypes = {}                       # registered types for this entity
-    self._pluginFactory = None                       # plugin factory, if any; provided by Simulation
-
-  def registerPluginFactory(self, factory):
-    """
-      Creates link to plugin factory
-      @ In, factory, module, PluginFactory
-      @ Out, None
-    """
-    self._pluginFactory = factory
+    self._pluginFactory = PluginManager              # plugin factory, if any; provided by Simulation
 
   def registerType(self, name, obj):
     """
@@ -100,12 +93,9 @@ class EntityFactory(MessageUser):
     # is this from an unloaded plugin?
     # return class from known types
     try:
-      try: # DEBUGG
-        return self._registeredTypes[Type]
-      except TypeError as e:
-        print(f'DEBUGG FAILED on {self.name}.{Type} from {caller}')
-        raise e
+      return self._registeredTypes[Type]
     except KeyError:
+      # is this a request from an unloaded plugin?
       # otherwise, error
       msg = f'"{self.name}" module does not recognize type "{Type}"; '
       msg += f'known types are: {self.knownTypes()}'

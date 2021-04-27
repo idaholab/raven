@@ -1,4 +1,4 @@
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <TestInfo>
     <name>plugins/ExamplePlugin.TestPluginExample</name>
     <author>alfoa</author>
@@ -33,8 +33,8 @@
       <outputVariable>Xi</outputVariable>
       <monotonicVariable>monotonicVariable</monotonicVariable>
       <startMonotonicVariableValue>0.0</startMonotonicVariableValue>
-      <endMonotonicVariableValue>1e6</endMonotonicVariableValue>
-      <numberCalculationPoints>100000</numberCalculationPoints>
+      <endMonotonicVariableValue>1e2</endMonotonicVariableValue>
+      <numberCalculationPoints>100</numberCalculationPoints>
     </ExternalModel>
   </Models>
 
@@ -48,7 +48,7 @@
   <Samplers>
     <MonteCarlo name="test_MC">
       <samplerInit>
-        <limit>2</limit>
+        <limit>100</limit>
       </samplerInit>
       <variable name="c">
           <distribution>one</distribution>
@@ -79,6 +79,7 @@
     <IOStep name="printTOfile">
      <Input          class="DataObjects"   type="PointSet">sumOfExponentialOutput</Input>
      <Output         class="OutStreams"    type="Print">dumpSumOfExpOutput</Output>
+     <Output         class="OutStreams"    type="Plot">pluginPlot</Output>
     </IOStep>
   </Steps>
 
@@ -88,5 +89,9 @@
       <source>sumOfExponentialOutput</source>
       <what>input,output</what>
     </Print>
+    <Plot name="pluginPlot" subType="ExamplePlugin.Correlation">
+      <source>sumOfExponentialOutput</source>
+      <variables>c,Xi</variables>
+    </Plot>
   </OutStreams>
 </Simulation>

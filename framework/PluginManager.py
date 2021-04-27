@@ -22,19 +22,13 @@ comment: Superseding the ModelPluginFactory, this factory collects the entities 
 from __future__ import absolute_import
 import os
 import sys
-import types
-import pprint
 import inspect
-import warnings
 import importlib
 from collections import defaultdict
 
-from PluginsBaseClasses import PluginBase
+from PluginBaseClasses import PluginBase
 from utils import xmlUtils
 
-
-# Design Note: This module is meant to be loaded BEFORE any other entities are loaded!
-#              It is critical that factories can inquire the plugin list to populate their modules.
 
 ## custom errors
 class PluginError(RuntimeError):
@@ -132,7 +126,10 @@ def loadEntities(name, plugin):
           if not candidate.isAValidPlugin():
             raise PluginError('Invalid plugin entity: "{}" from plugin "{}"'.format(candidateName, name))
           registerName = '{}.{}'.format(name, candidateName)
+          # register locally # TODO need?
           _pluginEntities[candidate.entityType][registerName] = candidate
+          # register with corresponding factory
+          candidate.getInterfaceFactory().registerType(registerName, candidate)
           print(' ... registered "{}" as a "{}" RAVEN entity.'.format(registerName, candidate.entityType))
 
 def getEntities(entityType=None):

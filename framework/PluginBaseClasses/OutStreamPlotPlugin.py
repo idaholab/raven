@@ -19,17 +19,17 @@ Created on April 2, 2021
 """
 from utils import InputData, InputTypes
 
-from OutStreams.PlotInterfaces import PlotInterface
+from OutStreams.PlotInterfaces import PlotInterface, factory
 from .PluginBase import PluginBase
 
 class PlotPlugin(PluginBase, PlotInterface):
   """
     Defines a specialized class from which plugin plots may inherit.
   """
+  _interfaceFactory = factory
   # List containing the methods that need to be checked in order to assess the
   # validity of a certain plugin. This list needs to be populated by the derived class
   _methodsToCheck = ['run']
-  entityType = 'OutStreams'
 
   #####################
   # API
@@ -59,7 +59,7 @@ class PlotPlugin(PluginBase, PlotInterface):
       @ In, spec, InputData.ParameterInput, input information
       @ Out, None
     """
-    super().handleInput()
+    super().handleInput(spec)
 
   def run(self):
     """
