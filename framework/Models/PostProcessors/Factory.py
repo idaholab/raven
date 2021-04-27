@@ -40,6 +40,7 @@ from .ParetoFrontierPostProcessor import ParetoFrontier
 from .MCSimporter import MCSImporter
 from .EconomicRatio import EconomicRatio
 from .RiskMeasuresDiscrete import RiskMeasuresDiscrete
+from .Validation import Validation
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.
 try:
