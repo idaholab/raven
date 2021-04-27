@@ -53,7 +53,8 @@
  [./RELAP5interfaceTestAliasAndMetadataTransfer]
   type = 'RavenFramework'
   input = 'test_relap5_code_interface_operator.xml'
-  output = 'RELAP5interfaceTestOperator/testDummyStep/1/typpwr2.i RELAP5interfaceTestOperator/testDummyStep/2/typpwr2.i'
+  output = 'RELAP5interfaceTestOperator/testDummyStep/1/typpwr2.i'
+  text = 'RELAP5interfaceTestOperator/testDummyStep/2/typpwr2.i'
   test_interface_only = True
  [../]
 
