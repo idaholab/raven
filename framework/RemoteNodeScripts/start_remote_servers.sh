@@ -1,41 +1,37 @@
 #!/bin/bash
+# Copyright 2017 Battelle Energy Alliance, LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Created on Feb 16, 2013
+#
+# @author: alfoa
+#
 
+# DESCRIPTION:
+# This script is in charge for instanciating ray servers in remote nodes
 # USES:
-# --load - just finds and sources the conda environment (default)
-# --install - find (create if not found) and update the environment, then load it
-# OTHER OPTIONS:
-# --optional - if updating, install optional libraries as well as base ones
-
-# ENVIRONMENT VARIABLES
-# location of conda definitions: CONDA_DEFS (defaults if not set based on OS)
-# name for raven libraries: RAVEN_LIBS_NAME (defaults to raven_libraries if not set)
+# --remote-node-address - Remote node address (ssh into)
+# --address - Head node address
+# --redis-password - Specify the password for redis (head node password)
+# --num-cpus - Number of cpus available/to use in this node
+# --num-gpus - Number of gpus available/to use in this node
+# --remote-bash-profile - The bash profile to source before executing the tunneling commands
+# --python-path - The PYTHONPATH enviroment variable
+# --working-dir - The workind directory
+# --help - Displays the info above and exits
 
 ECE_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-function establish_OS ()
-{
-	case $OSTYPE in
-		"linux")
-			OSOPTION="--os linux"
-			;;
-		"linux-gnu")
-			OSOPTION="--os linux"
-			;;
-		"darwin"*)
-			OSOPTION="--os mac"
-			;;
-		"msys"*)
-			OSOPTION="--os windows"
-			;;
-		"cygwin"*)
-			OSOPTION="--os windows"
-			;;
-		*)
-			echo Unknown OS: $OSTYPE\; ignoring.
-			OSOPTION=""
-			;;
-	esac
-}
 
 function display_usage()
 {
