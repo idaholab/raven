@@ -126,7 +126,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
                                                 'AdaptiveSobol',
                                                 'EnsembleForward',
                                                 'CustomSampler',
-                                                'AdaptiveMonteCarlo']
+                                                'AdaptiveMonteCarlo',
+                                                'Umbrella',
+                                                'Importance']
   validateDict['Optimizer'].append(testDict.copy())
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False

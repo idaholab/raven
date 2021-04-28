@@ -45,6 +45,9 @@ from Samplers.AdaptiveMonteCarlo import AdaptiveMonteCarlo
 from Samplers.DynamicEventTree import DynamicEventTree
 from Samplers.AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
 ## [ Add new class here ]
+from Samplers.Umbrella import Umbrella
+from Samplers.Importance import Importance
+
 ################################################################################
 ## Alternatively, to fully automate this file:
 # from Samplers import *
@@ -72,6 +75,9 @@ __interFaceDict['AdaptiveSparseGrid'      ] = AdaptiveSparseGrid
 __interFaceDict['DynamicEventTree'        ] = DynamicEventTree
 __interFaceDict['AdaptiveDynamicEventTree'] = AdaptiveDynamicEventTree
 __interFaceDict['AdaptiveMonteCarlo'      ] = AdaptiveMonteCarlo
+__interFaceDict['Umbrella'         ] = Umbrella
+__interFaceDict['Importance'         ] = Importance
+
 
 def knownTypes():
   """
