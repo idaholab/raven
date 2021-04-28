@@ -97,7 +97,7 @@ class HS2PS(PostProcessorPluginBase):
     """
     This method performs the actual transformation of the data object from history set to point set
       @ In, inputIn, list, list of datasets which contains the data inside the input DataObjects
-      @ Out, output, xarray.Dataset, output dataset
+      @ Out, outDataset, xarray.Dataset, output dataset
     """
     inpVars, outVars, data = inputIn['Data'][0]
     if self.features == 'all':
