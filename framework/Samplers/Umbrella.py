@@ -70,24 +70,8 @@ class Umbrella(ForwardSampler):
     samplerInitInput.addSub(rhoInput)
     targetDistribution = InputData.parameterInputFactory("distribution")
     samplerInitInput.addSub(targetDistribution)
-    print("samplerInitInput", samplerInitInput)
-
-    # initialSeedInput = InputData.parameterInputFactory("initialSeed", contentType=InputTypes.IntegerType)
-    # samplerInitInput.addSub(initialSeedInput)
-    # distInitInput = InputData.parameterInputFactory("distInit", contentType=InputTypes.StringType)
-    # distSubInput = InputData.parameterInputFactory("distribution")
-    # distSubInput.addParam("name", InputTypes.StringType)
-    # distSubInput.addSub(InputData.parameterInputFactory("initialGridDisc", contentType=InputTypes.IntegerType))
-    # distSubInput.addSub(InputData.parameterInputFactory("tolerance", contentType=InputTypes.FloatType))
-
-    # distInitInput.addSub(distSubInput)
-    # samplerInitInput.addSub(distInitInput)
     samplingTypeInput = InputData.parameterInputFactory("samplingType", contentType=InputTypes.StringType)
     samplerInitInput.addSub(samplingTypeInput)
-    # reseedEachIterationInput = InputData.parameterInputFactory("reseedEachIteration", contentType=InputTypes.StringType)
-    # samplerInitInput.addSub(reseedEachIterationInput)
-
-
     inputSpecification.addSub(samplerInitInput)
 
     return inputSpecification
@@ -230,6 +214,7 @@ class Umbrella(ForwardSampler):
     return vertices
 
   def multivariate_umbrella_sample(self, n, w, p, k, mean, Pearsons_Rho_Matrix, vertWeights):
+
     dimension = 2
     # n_tails = 2 ** dimension
     # tail_wts = (1 - w) / n_tails
@@ -293,7 +278,6 @@ class Umbrella(ForwardSampler):
     for i in range(0, self.dimension):
       sample = self.univ_gamma_tail_sample(sample_size)
       multi_sample[:, i] = sample
-    print('before error', sample_size, vertWeights)
     vertex_sample = self.rdiscrete(sample_size, vertWeights['w'])
     new_sample = multi_sample
 
@@ -310,22 +294,14 @@ class Umbrella(ForwardSampler):
     target_sample_size = len(disc_sample[disc_sample == 1])
     tail_sample_size = sample_size - target_sample_size
     tail_sample = self.multi_gamma_tail_sample(tail_sample_size, vertWeights)
-
     target_sample = np.random.multivariate_normal([0,0], [[1, 0.5],[0.5, 1]], size=target_sample_size)
-    # print(self.distDict['target'])
-    # target_sample = self.distDict['target'].rvs()
-    # print("target_sample", target_sample)
-
     vert_target = np.zeros(shape=target_sample_size)
     
     target_sample = pd.DataFrame(
       {'vert': vert_target, 'new_sample_x1': target_sample[:, 0], 'new_sample_x2': target_sample[:, 1], 'tail_flag': 0})
-    # target_sample =data.frame('vert' = vert_target, target_sample)
     umbrella_sample = target_sample.append(tail_sample)
-    # umbrella_sample =rbind(target_sample, tail_sample)
     samples = umbrella_sample[['new_sample_x1', 'new_sample_x2']]
     x_points = samples.to_numpy()
-    # x_points =as.matrix(umbrella_sample[, -1])
     umb_pdf_values = self.multivariate_umbrella_pdf(x_points, vertWeights)
     mv_norm = multivariate_normal([0,0], [[1, 0.5],[0.5, 1]])
     target_pdf = mv_norm.pdf(x_points)
@@ -348,20 +324,13 @@ class Umbrella(ForwardSampler):
       @ Out, None
     """
 
-    print("self dis", self.distDict)
-
-    # Pearsons_Rho_Matrix = np.ones(shape=(2, 2)) * self.rho
-    # for i in range(self.dimension):
-    #   Pearsons_Rho_Matrix[i, i] = 1
     vertices = self.Construct_Corner_Points(self.dimension)
     n_vertices = len(vertices)
     verticesWeights = np.ones(n_vertices) / n_vertices
     verticesWeights = dict({"vert": vertices, "w": verticesWeights})
-    # # vertices_weights_not_equal = dict({'vert': vertices, "w": np.array([0.5, 0.5 / 3, 0.5 / 3, 0.5 / 3])})
-    #
     sigma_k = scipy.optimize.root(partial(self.get_std, self.modeLocation), 1, tol=0.0000001)['x'][0]
     self.tail_prob = self.tail_prob_gamma(self.modeLocation, sigma_k)
-    sample_size = 100
+    sample_size = 10
     umbrellaSample = self.multi_umbrella_sample(sample_size,
                                              verticesWeights)
 
@@ -373,36 +342,12 @@ class Umbrella(ForwardSampler):
     # self.values['x2'] = np.atleast_2d(umbrellaSample[['x1', 'x2']])
     #
     #
-    # # self.inputInfo['SampledVars']['x1'] = umbrellaSample['x1']
+    self.inputInfo['SampledVars']['x1'] = umbrellaSample['x1'].to_numpy()
     # # self.inputInfo['SampledVars']['x2'] = umbrellaSample['x2']
     # #
-    # self.inputInfo['ProbabilityWeight'] = 1.0
-    # self.inputInfo['ProbabilityWeight-x1'] =  umbrellaSample['weights'].to_numpy()
+    self.inputInfo['ProbabilityWeight'] = 1.0
+    self.inputInfo['ProbabilityWeight-x1'] =  umbrellaSample['weights'].to_numpy()
     # self.inputInfo['ProbabilityWeight-x2'] = umbrellaSample['weights'].to_numpy()
-    # self.inputInfo['PointProbability'] = umbrellaSample['weights'].to_numpy()
-    # self.inputInfo['SamplerType'] = 'Umbrella'
-    # print(self.inputInfo)
-
-    ##### Importance Sampling ###########
-    # n_bins = 1
-    # m_per_bin = 1
-    # print("self...", self)
-    # print("myInput", myInput)
-    # print("model", model)
-    # print("distDict in Umbrella", self.distDict)
-    #
-    # strat_U_bounds, strat_U_sample = self.stratified_uniform_sample(m_per_bin * n_bins, 1)
-    # importanceSample = self.distDict['importance'].ppf(strat_U_sample[0])
-    # print("importanceSample", importanceSample)
-    # # imp_sample_df = self.importance_sample(importanceSample)
-    #
-    # importanceWeight = self.distDict['target'].pdf(
-    #   importanceSample) / self.distDict['importance'].pdf(importanceSample)
-    # print("importance_weights", importanceWeight)
-    # self.inputInfo['SampledVars']['importance'] = importanceSample
-    # self.inputInfo['ProbabilityWeight'] = 1.0
-    # self.inputInfo['ProbabilityWeight-target'] = self.distDict['target'].pdf(importanceSample)
-    # self.inputInfo['ProbabilityWeight-importance'] = importanceWeight
-    # self.inputInfo['PointProbability'] = importanceWeight
-    # self.inputInfo['SamplerType'] = 'Umbrella'
-    # print(self.inputInfo)
+    self.inputInfo['PointProbability'] =1.0
+    self.inputInfo['SamplerType'] = 'Umbrella'
+    print(self.inputInfo)

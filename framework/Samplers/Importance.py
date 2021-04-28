@@ -130,15 +130,11 @@ class Importance(ForwardSampler):
     m_per_bin = 1
 
     uSample = np.random.uniform(0, 1, 1)
-    print("uSample", uSample)
-    # strat_U_bounds, strat_U_sample = self.stratified_uniform_sample(m_per_bin * n_bins, 1)
     importanceSample = self.distDict['importance'].ppf(uSample[0])
-    print("importanceSample", importanceSample)
-    # imp_sample_df = self.importance_sample(importanceSample)
 
     importanceWeight = self.distDict['target'].pdf(
       importanceSample) / self.distDict['importance'].pdf(importanceSample)
-    print("importance_weights", importanceWeight)
+
     self.inputInfo['SampledVars']['sample'] = importanceSample
     self.inputInfo['ProbabilityWeight'] = 1.0
     self.inputInfo['ProbabilityWeight-target'] = self.distDict['target'].pdf(importanceSample)

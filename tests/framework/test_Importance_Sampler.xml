@@ -55,10 +55,7 @@
   <DataObjects>
     <PointSet name="dummyIN">
       <Input>sample</Input>
-      <Output>OutputPlaceHolder</Output>
     </PointSet>
-
-  <DataObjects>
     <PointSet name="outSet">
       <Input>sample</Input>
       <Output>ProbabilityWeight-target</Output>
