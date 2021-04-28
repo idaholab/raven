@@ -129,7 +129,10 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
         inputDict['Files'].append(inp)
       elif isinstance(inp, DataObject.DataObject):
         dataType = self.getInputDataType()
-        inputDict['Data'].append(inp.asDataset(outType=dataType))
+        data = inp.asDataset(outType=dataType)
+        inpVars = inp.getVars('input')
+        outVars = inp.getVars('output')
+        inputDict['Data'].append((inpVars, outVars, data))
       else:
         self.raiseAnError(IOError, "Unknown input is found", str(inp))
     return inputDict
