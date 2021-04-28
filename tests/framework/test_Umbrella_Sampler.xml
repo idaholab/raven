@@ -1,0 +1,143 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="silent">
+  <TestInfo>
+    <name>framework.testUmbrella</name>
+    <author>Tanaya</author>
+    <created>2021-03-02</created>
+    <classesTested>Samplers.Umbrella</classesTested>
+    <description>
+       This test is aimed to check the capability in RAVEN to employ a Umbrella sampling strategy. Since the goal of the test is to testify
+       that the Umbrella sampling strategy is functional, a Dummy model is used.
+    </description>
+    <requirements>R-F-1</requirements>
+
+  </TestInfo>
+  <RunInfo>
+    <WorkingDir>UmbrellaTest</WorkingDir>
+<!--    <Sequence>Sampler1,Sampler2,Sampler3,Sampler4,Sampler5</Sequence>-->
+    <Sequence>Sampler1</Sequence>
+
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Models>
+    <Dummy name="MyDummy" subType=""/>
+  </Models>
+
+  <Distributions>
+<!--    <Normal name="Target">-->
+<!--      <mean>0</mean>-->
+<!--      <sigma>1</sigma>-->
+<!--    </Normal>-->
+
+    <MultivariateNormal method="pca" name="Target">
+      <transformation>
+        <rank>2</rank>
+      </transformation>
+      <mu>0 0</mu>
+      <covariance type="abs">
+            1.0       0.5
+            0.5       1.0
+        </covariance>
+    </MultivariateNormal>
+
+<!--    <Normal name="Importance">-->
+<!--      <mean>-1</mean>-->
+<!--      <sigma>1</sigma>-->
+<!--    </Normal>-->
+  </Distributions>
+
+  <Samplers>
+    <Umbrella name="IS">
+      <samplerInit>
+        <dimensions>2</dimensions>
+        <limit>1</limit>
+        <modeLocation>3</modeLocation>
+        <tailProbability>0.6</tailProbability>
+        <rho>0.5</rho>
+        <weightTarget>0.5</weightTarget>
+<!--        <target>-->
+<!--           <distribution>Target</distribution>-->
+<!--        </target>-->
+      </samplerInit>
+
+      <variable name="x1">
+        <distribution>x1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>x2</distribution>
+      </variable>
+    </Umbrella>
+  </Samplers>
+
+  <DataObjects>
+    <PointSet name="outSet">
+      <Input>x1, x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="dummyIN">
+      <Input>x1, x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+  </DataObjects>
+
+  <OutStreams>
+    <Print name="outSet_dump">
+      <type>csv</type>
+      <source>outSet</source>
+      <what>input,output</what>
+    </Print>
+  </OutStreams>
+
+  <Steps>
+    <MultiRun name="Sampler1">
+      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+      <Model class="Models" type="Dummy">MyDummy</Model>
+      <Sampler class="Samplers" type="Umbrella">IS</Sampler>
+      <Output class="DataObjects" type="PointSet">outSet</Output>
+      <Output class="Databases" type="HDF5">test_RandomTest1_db</Output>
+      <Output class="OutStreams" type="Print">outSet_dump</Output>
+    </MultiRun>
+<!--    <MultiRun name="Sampler2" re-seeding="continue">-->
+<!--      <Input class="DataObjects" type="PointSet">dummyIN</Input>-->
+<!--      <Model class="Models" type="Dummy">MyDummy</Model>-->
+<!--      <Sampler class="Samplers" type="MonteCarlo">MC2</Sampler>-->
+<!--      <Output class="DataObjects" type="PointSet">outSet</Output>-->
+<!--      <Output class="Databases" type="HDF5">test_RandomTest2_db</Output>-->
+<!--      <Output class="OutStreams" type="Print">outSet_dump</Output>-->
+<!--    </MultiRun>-->
+<!--    <MultiRun name="Sampler3">-->
+<!--      <Input class="DataObjects" type="PointSet">dummyIN</Input>-->
+<!--      <Model class="Models" type="Dummy">MyDummy</Model>-->
+<!--      <Sampler class="Samplers" type="MonteCarlo">MC3</Sampler>-->
+<!--      <Output class="DataObjects" type="PointSet">outSet</Output>-->
+<!--      <Output class="Databases" type="HDF5">test_RandomTest3_db</Output>-->
+<!--      <Output class="OutStreams" type="Print">outSet_dump</Output>-->
+<!--    </MultiRun>-->
+<!--    <MultiRun name="Sampler4" re-seeding="continue">-->
+<!--      <Input class="DataObjects" type="PointSet">dummyIN</Input>-->
+<!--      <Model class="Models" type="Dummy">MyDummy</Model>-->
+<!--      <Sampler class="Samplers" type="MonteCarlo">MC4</Sampler>-->
+<!--      <Output class="DataObjects" type="PointSet">outSet</Output>-->
+<!--      <Output class="Databases" type="HDF5">test_RandomTest4_db</Output>-->
+<!--      <Output class="OutStreams" type="Print">outSet_dump</Output>-->
+<!--    </MultiRun>-->
+<!--    <MultiRun name="Sampler5" re-seeding="continue">-->
+<!--      <Input class="DataObjects" type="PointSet">dummyIN</Input>-->
+<!--      <Model class="Models" type="Dummy">MyDummy</Model>-->
+<!--      <Sampler class="Samplers" type="MonteCarlo">MC5</Sampler>-->
+<!--      <Output class="DataObjects" type="PointSet">outSet</Output>-->
+<!--      <Output class="Databases" type="HDF5">test_RandomTest5_db</Output>-->
+<!--      <Output class="OutStreams" type="Print">outSet_dump</Output>-->
+<!--    </MultiRun>-->
+  </Steps>
+
+  <Databases>
+    <HDF5 name="test_RandomTest1_db" readMode="overwrite"/>
+<!--    <HDF5 name="test_RandomTest2_db" readMode="overwrite"/>-->
+<!--    <HDF5 name="test_RandomTest3_db" readMode="overwrite"/>-->
+<!--    <HDF5 name="test_RandomTest4_db" readMode="overwrite"/>-->
+<!--    <HDF5 name="test_RandomTest5_db" readMode="overwrite"/>-->
+  </Databases>
+
+</Simulation>
