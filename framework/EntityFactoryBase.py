@@ -36,7 +36,7 @@ class EntityFactory(MessageUser):
       @ Out, None
     """
     super().__init__()
-    self.name = None                                 # name of entity, e.g. Sampler
+    self.name = name                                 # name of entity, e.g. Sampler
     self.needsRunInfo = needsRunInfo                 # whether entity needs run info
     self.returnInputParameter = returnInputParameter # use xml or inputParams
     self._registeredTypes = {}                       # registered types for this entity
@@ -96,10 +96,14 @@ class EntityFactory(MessageUser):
       return self._registeredTypes[Type]
     except KeyError:
       # is this a request from an unloaded plugin?
-      # otherwise, error
-      msg = f'"{self.name}" module does not recognize type "{Type}"; '
-      msg += f'known types are: {self.knownTypes()}'
-      self.raiseAnError(NameError, msg)
+      obj = self._checkInUnloadedPlugin(Type)
+      if obj is None:
+        # otherwise, error
+        msg = f'"{self.name}" module does not recognize type "{Type}"; '
+        msg += f'known types are: {self.knownTypes()}'
+        self.raiseAnError(NameError, msg)
+      else:
+        return obj
 
   def returnInstance(self, Type, **kwargs):
     """
@@ -125,13 +129,17 @@ class EntityFactory(MessageUser):
 
   #############
   # UTILITIES
-  # NOTE: FUTURE, load plugins
-  # def _checkPluginLoaded(self, typeName):
-  #   """
-  #     Checks if the requested entity is from a plugin (has '.' in type name), and if so loads plugin if it isn't already
-  #     @ In, typeName, str, name of entity to check (e.g. MonteCarlo or MyPlugin.MySampler)
-  #     @ Out, None
-  #   """
-  #   if self._pluginFactory is not None and '.' in typeName:
-  #     pluginName, remainder = typeName.split('.', maxsplit=1)
-  #     new = self._pluginFactory.finishLoadPlugin(pluginName)
+  def _checkInUnloadedPlugin(self, typeName):
+    """
+      Checks if the requested entity is from a plugin (has '.' in type name), and if so loads plugin if it isn't already
+      @ In, typeName, str, name of entity to check (e.g. MonteCarlo or MyPlugin.MySampler)
+      @ Out, None
+    """
+    found = False
+    if self._pluginFactory is not None and '.' in typeName:
+      pluginName, remainder = typeName.split('.', maxsplit=1)
+      loadedNew = self._pluginFactory.finishLoadPlugin(pluginName)
+      if not loadedNew:
+        return None
+      else:
+        return self._registeredTypes.get(typeName, None)

@@ -35,25 +35,49 @@ class Plot(OutStreamEntity):
     Handler for Plot implementations
   """
   @classmethod
-  def getInputSpecification(cls):
+  def getInputSpecification(cls, xml=None):
     """
       Method to get a reference to a class that specifies the input data for class "cls".
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
-    spec = super().getInputSpecification()
-    okTypes = list(interfaceFactory.knownTypes())
-    okEnum = InputTypes.makeEnumType('OutStreamPlot', 'OutStreamPlotType', okTypes)
-    spec.addParam('subType', required=False, param_type=okEnum, descr=r"""Type of OutStream Plot to generate.""")
-    # TODO add specs depending on the one chosen, not all of them!
-    # FIXME the GeneralPlot has a vast need for converting to input specs. Until then,
-    #       we cannot strictly check anything related to it.
-    spec.strictMode = False
-    for name in okTypes:
-      plotter = interfaceFactory.returnClass(name)
-      subSpecs = plotter.getInputSpecification()
-      spec.mergeSub(subSpecs)
+    spec = super().getInputSpecification() # TODO add xml arg when generalizing
+    if xml is None:
+      # generic definition; collect all known options
+      # this is used for e.g. documentation
+      okTypes = list(interfaceFactory.knownTypes())
+      okEnum = InputTypes.makeEnumType('OutStreamPlot', 'OutStreamPlotType', okTypes)
+      spec.addParam('subType', required=False, param_type=okEnum, descr=r"""Type of OutStream Plot to generate.""")
+      # TODO add specs depending on the one chosen, not all of them!
+      # FIXME the GeneralPlot has a vast need for converting to input specs. Until then,
+      #       we cannot strictly check anything related to it.
+      spec.strictMode = False
+      for name in okTypes:
+        plotter = interfaceFactory.returnClass(name)
+        subSpecs = plotter.getInputSpecification()
+        spec.mergeSub(subSpecs)
+    else:
+      # this is used when the subType has already been specified
+      # e.g. when reading an XML file
+      itfName = xml.attrib.get('subType', 'GeneralPlot')
+      itf = interfaceFactory.returnClass(itfName)
+      spec.addParam('subType', required=False, param_type=InputTypes.StringType)
+      itfSpecs = itf.getInputSpecification()
+      spec.mergeSub(itfSpecs)
     return spec
+
+  def parseXML(self, xml):
+    """
+      Parse XML into input parameters
+      Overloaded to pass XML to getInputSpecifications
+      -> this should be commonly done among Entities, probably.
+      @ In, xml, xml.etree.ElementTree.Element, XML element node
+      @ Out, InputData.ParameterInput, the parsed input
+    """
+    paramInput = self.getInputSpecification(xml=xml)()
+    paramInput.parseNode(xml)
+    return paramInput
+
 
   def __init__(self):
     """
