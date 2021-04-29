@@ -135,7 +135,6 @@ class EntityFactory(MessageUser):
       @ In, typeName, str, name of entity to check (e.g. MonteCarlo or MyPlugin.MySampler)
       @ Out, None
     """
-    found = False
     if self._pluginFactory is not None and '.' in typeName:
       pluginName, remainder = typeName.split('.', maxsplit=1)
       loadedNew = self._pluginFactory.finishLoadPlugin(pluginName)
