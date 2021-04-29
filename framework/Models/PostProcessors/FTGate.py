@@ -16,9 +16,6 @@ Created on April 30, 2018
 
 @author: mandd
 """
-
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #Internal Modules---------------------------------------------------------------
 import MessageHandler
 from utils import utils
@@ -274,4 +271,3 @@ def cardinalityGate(argumentValues,l,h):
   else:
     outcome = 0
   return outcome
-

@@ -299,18 +299,20 @@ class DataSet(DataObject):
     """
       Casts this dataObject as dictionary or an xr.Dataset depending on outType.
       @ In, outType, str, optional, type of output object (xr.Dataset or dictionary).
-      @ Out, xr.Dataset or dictionary.  If dictionary, a copy is returned; if dataset, then a reference is returned.
+      @ Out, data, xr.Dataset or dictionary.  If dictionary, a copy is returned; if dataset, then a reference is returned.
     """
+    data = None
     if outType == 'xrDataset':
       # return reference to the xArray
-      return self._convertToXrDataset()
+      data = self._convertToXrDataset()
     elif outType=='dict':
       # return a dict (copy of data, no link to original)
-      return self._convertToDict()
+      data = self._convertToDict()
     else:
       # raise an error
       self.raiseAnError(ValueError, 'DataObject method "asDataset" has been called with wrong '
                                     'type: ' +str(outType) + '. Allowed values are: xrDataset, dict.')
+    return data
 
   def checkIndexAlignment(self,indexesToCheck=None):
     """
@@ -331,6 +333,8 @@ class DataSet(DataObject):
         self.raiseAnError('Unrecognized input to checkIndexAlignment!  Expected list, string, or None, but got "{}"'.format(type(indexesToCheck)))
     # check the alignment of each index by checking for NaN values in each slice
     data = self.asDataset()
+    if data is None:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     for index in indexesToCheck:
       # check that index is indeed an index
       assert(index in self.indexes)
@@ -454,6 +458,8 @@ class DataSet(DataObject):
     # For faster access, consider using data.asDataset()['varName'] for one variable, or
     #                                   data.asDataset()[ ('var1','var2','var3') ] for multiple.
     self.asDataset()
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     if mathUtils.isAString(var):
       val = self._data[var]
       #format as scalar
@@ -1218,6 +1224,8 @@ class DataSet(DataObject):
     # supporting data
     dataDict['dims']     = self.getDimensions()
     dataDict['metadata'] = self.getMeta(general=True)
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     # main data
     if self.type == "PointSet":
       ## initialize with np arrays of objects
@@ -1510,6 +1518,9 @@ class DataSet(DataObject):
 
   def _fromXarrayDataset(self,dataset):
     """
+      Loads data from an xarray dataset
+      @ In, dataset, xarray.Dataset, the data set containg the data
+      @ Out, None
     """
     if not self.isEmpty:
       self.raiseAnError(IOError, 'DataObject', self.name.strip(),'is not empty!')
@@ -2174,8 +2185,6 @@ class DataSet(DataObject):
   #    np.savetxt(outFile,data,header=header,fmt=types)
   #  # format data?
 
-
-
   ### HIERARCHICAL STUFF ###
   def _constructHierPaths(self):
     """
@@ -2184,6 +2193,8 @@ class DataSet(DataObject):
       @ Out, results, list(xr.Dataset), dataset containing only the path information
     """
     # TODO can we do this without collapsing? Should we?
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     data = self.asDataset()
     paths = self._generateHierPaths()
     results = [None] * len(paths)
@@ -2206,6 +2217,8 @@ class DataSet(DataObject):
       path = [ending['prefix']]
       while ending['RAVEN_parentID'] != "None" and not pd.isnull(ending['RAVEN_parentID']):
         _,ending = self.realization(matchDict={'prefix':ending['RAVEN_parentID']})
+        if ending is None:
+          break
         path.append(ending['prefix'])
       # sort it in order by progression
       path.reverse()

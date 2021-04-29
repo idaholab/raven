@@ -23,6 +23,7 @@ import copy
 import relapdata
 import shutil
 import re
+from collections import defaultdict
 from math import *
 from CodeInterfaceBaseClass import CodeInterfaceBase
 import RELAPparser
@@ -40,14 +41,11 @@ class Relap5(CodeInterfaceBase):
       @ In, oriInputFiles, list, list of the original input files
       @ Out, None
     """
-    found = False
-    for index, inputFile in enumerate(oriInputFiles):
-      if inputFile.getExt() in self.getInputExtension():
-        found = True
-        break
-    if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    self.tripControlVariables = {}
+    self.detVars = [] # in case of DET
+    index = self._findInputFileIndex(oriInputFiles)
     parser = RELAPparser.RELAPparser(oriInputFiles[index].getAbsFile())
+    self.numberOfDecks = parser.maxNumberOfDecks
     cards = []
     for operator in self.operators:
       cards += operator['cards']
@@ -55,6 +53,21 @@ class Relap5(CodeInterfaceBase):
       cardValues = parser.retrieveCardValues(list(set(cards)))
       for cnt in range(len(self.operators)):
         self.operators[cnt]['cardsValues'] = {card:cardValues[card] for card in self.operators[cnt]['cards']}
+
+  def _findInputFileIndex(self, currentInputFiles):
+    """
+      Find input file index
+      @ In, currentInputFiles, list, list of current input files to search from
+      @ Out, index, int, the index of the relap input
+    """
+    found = False
+    for index, inputFile in enumerate(currentInputFiles):
+      if inputFile.getExt() in self.getInputExtension():
+        found = True
+        break
+    if not found:
+      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
+    return index
 
   def _readMoreXML(self,xmlNode):
     """
@@ -65,6 +78,7 @@ class Relap5(CodeInterfaceBase):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None.
     """
+    self.inputAliases = {}
     self.outputDeck = -1 # default is the last deck!
     self.operators  = []
     for child in xmlNode:
@@ -83,7 +97,8 @@ class Relap5(CodeInterfaceBase):
         cards = child.find("cards")
         expression = child.find("expression")
         if cards is None or expression is None:
-          raise IOError('ERROR in "RELAP5 Code Interface": <' +'cards' if cards is None else 'expression'+  '> node must be inputted within the <operator> XML node' )
+          raise IOError('ERROR in "RELAP5 Code Interface": <' +'cards' if cards is None else 'expression'
+                        +  '> node must be inputted within the <operator> XML node' )
         operator['cards'] = [self._convertVariablNameInInfo(card.strip()) for card in cards.text.split(",")]
 
         expression = expression.text.strip()
@@ -125,12 +140,43 @@ class Relap5(CodeInterfaceBase):
       addflags = clargs['text']
     else:
       addflags = ''
-    #commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o' + ' -r ' + outputfile  + '.r' + addflags
     commandToRun = executable + ' -i ' + inputFiles[index].getFilename() + ' -o ' + outputfile  + '.o ' +  addflags
     commandToRun = commandToRun.replace("\n"," ")
     commandToRun  = re.sub("\s\s+" , " ", commandToRun )
     returnCommand = [('parallel',commandToRun)], outputfile
     return returnCommand
+
+  def _returnAliasedVariable(self, var, fromCodeToRaven = True):
+    """
+      Return the alias for variable in
+      @ In, var, str, the variable the alias should return for
+      @ Out, aliasVar, str, the aliased variable if found
+    """
+    aliasVar = var
+    if len(self.inputAliases):
+      for ravenVar, codeVar in self.inputAliases.items():
+        if fromCodeToRaven:
+          if codeVar.strip().startswith(var.strip()):
+            aliasVar = ravenVar
+            break
+        else:
+          if ravenVar.strip().startswith(var.strip()):
+            aliasVar = codeVar
+            break
+    return aliasVar
+
+  def _writeBranchInfo(self, filename, endTime, endTimeStep, tripVariable):
+    """
+      Method to write the branchInfo
+      @ In, filename, str, the file name
+      @ In, endTime, float, the end time
+      @ In, endTimeStep, float, the end time step
+      @ In, tripVariable, str, the variable that caused the stop of the simulation (trip)
+      @ Out, None
+    """
+    import dynamicEventTreeUtilities as detUtils
+    tripVar = self._returnAliasedVariable(tripVariable)
+    detUtils.writeXmlForDET(filename,tripVar,[],{'end_time': endTime, 'end_ts': endTimeStep})
 
   def finalizeCodeOutput(self,command,output,workingDir):
     """
@@ -144,9 +190,34 @@ class Relap5(CodeInterfaceBase):
     outputobj=relapdata.relapdata(os.path.join(workingDir,output+'.o'),self.outputDeck)
     if outputobj.hasAtLeastMinorData():
       response = outputobj.returnData()
+      if self.det:
+        prefix = workingDir.split(os.path.sep)[-1]
+        # check end time
+        endTime = response['time'][-1]
+        endTimeStep = len(response['time'])
+        #check the variable that caused the trip (if any)
+        tripVariable = None
+        foundTrip = False
+        for var in self.detVars:
+          if foundTrip:
+            break
+          splitted =  var.split(":")
+          tripName =  splitted[len(splitted)-2].strip()
+          for deckNum in self.tripControlVariables[prefix]:
+            if tripName in self.tripControlVariables[prefix][deckNum].values():
+              for cntrVar, trip in self.tripControlVariables[prefix][deckNum].items():
+                if response["cntrlvar_"+cntrVar][-1] != response["cntrlvar_"+cntrVar][-2]:
+                  # the trip went off
+                  tripVariable = trip
+                  foundTrip = True
+                  break
+        if tripVariable is not None:
+          filename = os.path.join(workingDir,output+"_actual_branch_info.xml")
+          self._writeBranchInfo(filename, endTime, endTimeStep, tripVariable)
       return response
     else:
-      raise IOError('Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o' + ' does not contain any minor edits. It might be crashed!')
+      raise IOError('Relap5 output file '+ command.split('-o')[0].split('-i')[-1].strip()+'.o'
+                    + ' does not contain any minor edits. It might be crashed!')
 
   def checkForOutputFailure(self,output,workingDir):
     """
@@ -187,11 +258,50 @@ class Relap5(CodeInterfaceBase):
         expression = expression.replace(var,str(Kwargs['SampledVars'][var]))
       expr = copy.copy(expression)
       for card in operator['cards']:
-        expr = expr.replace("%card%",operator['cardsValues'][card])
+        expr = copy.copy(expression).replace("%card%",operator['cardsValues'][card])
         try:
           Kwargs['SampledVars'][card] = eval(expr)
         except Exception as e:
           raise IOError('ERROR in "RELAP5 Code Interface": inputted <expression> is not valid! Exception:'+str(e) )
+
+  def __copyRestartFile(self, sourcePath, currentPath, restartFileName = None):
+    """
+      Copy restart file
+      @ In, sourcePath, str, the source path where the restart is at
+      @ In, currentPath, str, the current location (where the restart will be copied)
+      @ In, restartFileName, str, optional, the restart file name if present (otherwise try to find one to copy in sourcePath)
+      @ Out, None
+    """
+    # search for restrt file
+    rstrtFile = None
+    rstFileName = restartFileName if restartFileName is not None else 'restrt'
+    for fileToCheck in os.listdir(sourcePath):
+      if rstFileName in fileToCheck.strip() or fileToCheck.strip().endswith(".r"):
+        rstrtFile = fileToCheck
+        break
+    if rstrtFile is None:
+      raise IOError("no restart file has been found!" + rstFileName + " not found!")
+    sourceFile = os.path.join(sourcePath, rstrtFile)
+    try:
+      shutil.copy(sourceFile, currentPath)
+    except:
+      raise IOError('not able to copy restart file from "'+sourceFile+'" to "'+currentPath+'"')
+
+  def __transferMetadata(self, metadataToTransfer, currentPath):
+    """
+      Method to tranfer metadata if present
+      @ In, metadataToTransfer, dict, the metadata to transfer
+      @ In currentPath, str, the current working path
+      @ Out, None
+    """
+    if metadataToTransfer is not None:
+      sourceID = metadataToTransfer.get("sourceID",None)
+      if sourceID is not None:
+        # search for restrt file
+        sourcePath = os.path.join(currentPath,"../",sourceID)
+        self.__copyRestartFile(sourcePath, currentPath)
+      else:
+        raise IOError('the only metadtaToTransfer that is available in RELAP5 is "sourceID". Got instad: '+', '.join(metadataToTransfer.keys()))
 
   def createNewInput(self,currentInputFiles,oriInputFiles,samplerType,**Kwargs):
     """
@@ -203,46 +313,51 @@ class Relap5(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    self._samplersDictionary                = {}
-    if 'dynamiceventtree' in str(samplerType).lower():
-      self._samplersDictionary[samplerType] = self.DynamicEventTreeForRELAP5
+    self._samplersDictionary = {}
+    self.det = 'dynamiceventtree' in str(samplerType).lower()
+    if self.det:
+      self.tripControlVariables[Kwargs['prefix']] = None
+    # find input file index
+    index = self._findInputFileIndex(currentInputFiles)
+    # instanciate the parser
+    parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile(), self.det)
+    if self.det:
+      self.inputAliases = Kwargs.get('alias').get('input')
+      self._samplersDictionary[samplerType] = self.dynamicEventTreeForRELAP5
+      self.detVars   = Kwargs.get('DETVariables')
+      if not self.detVars:
+        raise IOError('ERROR in "RELAP5 Code Interface": NO DET variables with DET sampler!!!')
+      # check if the DET variables are part of a trip
+      # the aleatory (DET variables) are only allowed in TRIPs since
+      # we cannot assume how to create trips based on DET variables
+      trips = parser.getTrips()
+      varTrips, logTrips = trips.values()
+      notTrips = []
+      for var in self.detVars:
+        splitted = var.split(":")
+        if splitted[len(splitted)-2] not in varTrips and var not in logTrips:
+          notTrips.append(var)
+      if len(notTrips):
+        raise IOError ('For Dynamic Event Tree-based approaches with RELAP5, \n'
+                       +'the DET variables must be part of a Trip. The variables \n"'
+                       +', '.join(notTrips)+'" are not part of Trips. Consider to sample \nthem with the'
+                       +' HybridDynamicEventTree approach (treat them \nas epistemic uncertanties)!' )
     else:
       self._samplersDictionary[samplerType] = self.pointSamplerForRELAP5
     if len(self.operators) > 0:
       self._evaluateOperators(**Kwargs)
-    found = False
-    for index, inputFile in enumerate(currentInputFiles):
-      if inputFile.getExt() in self.getInputExtension():
-        found = True
-        break
-    if not found:
-      raise IOError('None of the input files has one of the following extensions: ' + ' '.join(self.getInputExtension()))
-    parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile())
-    metadataToTransfer = Kwargs.get("metadataToTransfer",None)
-    if metadataToTransfer is not None:
-      sourceID = metadataToTransfer.get("sourceID",None)
-      if sourceID is not None:
-        # search for restrt file
-        sourcePath = os.path.join(currentInputFiles[index].getPath(),"../",sourceID)
-        rstrtFile = None
-        for fileToCheck in os.listdir(sourcePath):
-          if fileToCheck.strip() == 'restrt' or fileToCheck.strip().endswith(".r"):
-            rstrtFile = fileToCheck
-        if rstrtFile is None:
-          raise IOError("metadataToTransfer|sourceID has been provided but no restart file has been found!")
-        sourceFile = os.path.join(sourcePath, rstrtFile)
-        try:
-          shutil.copy(sourceFile, currentInputFiles[index].getPath())
-        except:
-          raise IOError('not able to copy restart file from "'+sourceFile+'" to "'+currentInputFiles[index].getPath()+'"')
-      else:
-        raise IOError('the only metadtaToTransfer that is available in RELAP5 is "sourceID". Got instad: '+', '.join(metadataToTransfer.keys()))
+
+    # transfer metadata
+    self.__transferMetadata(Kwargs.get("metadataToTransfer",None), currentInputFiles[index].getPath())
 
     if 'None' not in str(samplerType):
+      Kwargs['currentPath'] = currentInputFiles[index].getPath()
       modifDict = self._samplersDictionary[samplerType](**Kwargs)
       parser.modifyOrAdd(modifDict,True)
 
     parser.printInput(currentInputFiles[index])
+    if self.det:
+      self.tripControlVariables[Kwargs['prefix']] = parser.additionalControlVariables
     return currentInputFiles
 
   def _convertVariablNameInInfo(self, variableName):
@@ -252,7 +367,6 @@ class Relap5(CodeInterfaceBase):
     """
     if type(variableName).__name__ == 'tuple':
       return variableName
-
     key = variableName.split(':')
     multiDeck = key[0].split("|")
     card, deck, word = key[0], 1, (key[-1] if len(key) >1 else 0)
@@ -267,9 +381,7 @@ class Relap5(CodeInterfaceBase):
       word = int(word)
     except ValueError:
       raise IOError("RELAP5 interface: word number is not an integer (first word followed by '|' symbol). Got "+str(word))
-
     return (deck, card, word)
-
 
   def pointSamplerForRELAP5(self,**Kwargs):
     """
@@ -277,9 +389,8 @@ class Relap5(CodeInterfaceBase):
       in order to change the input file based on the information present in the Kwargs dictionary.
       This is specific for Point samplers (Grid, Stratified, Monte Carlo, etc.).
       @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
-      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
+      @ Out, modifDict, dict,  dictionary used by the parser to change the input file
     """
-    listDict = []
     modifDict = {}
     deckList = {1:{}}
     deckActivated = False
@@ -298,161 +409,49 @@ class Relap5(CodeInterfaceBase):
         if deckActivated:
           raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
     modifDict['decks']=deckList
-    listDict.append(modifDict)
-    return listDict
+    return modifDict
 
-  def DynamicEventTreeForRELAP5(self,**Kwargs):
+  def dynamicEventTreeForRELAP5(self,**Kwargs):
     """
       This method is used to create a list of dictionaries that can be interpreted by the input Parser
       in order to change the input file based on the information present in the Kwargs dictionary.
       This is specific for DET-based samplers.
       @ In, **Kwargs, dict, kwared dictionary containing the values of the parameters to be changed
-      @ Out, listDict, list, list of dictionaries used by the parser to change the input file
+      @ Out, modifDict, dict,  dictionary used by the parser to change the input file
     """
-    listDict =[]
-    deckList={1:{}}   #  List of decks with the cards to be modified in RELAP5 Input File
+    modifDict = {}
+    deckList = {1:{}}
     deckActivated = False
-    # Check the initiator distributions and add the next threshold
-    if 'initiator_distribution' in Kwargs.keys():
-      for i in range(len(Kwargs['initiator_distribution'])):
-        modifDict = {}
-        modifDict['name'] = ['Distributions',Kwargs['initiator_distribution'][i]]
-        modifDict['ProbabilityThreshold'] = Kwargs['PbThreshold'][i]
-        listDict.append(modifDict)
-        del modifDict
-    # add the initial time for this new branch calculation
-    if 'startTime' in Kwargs.keys():
-      if Kwargs['startTime'] != 'Initial':
-        modifDict = {}
-        st_time = Kwargs['startTime']
-        modifDict['name'] = ['Executioner']
-        modifDict['startTime'] = st_time
-        listDict.append(modifDict)
-        del modifDict
-    # create the restart file name root from the parent branch calculation
-    # in order to restart the calc from the last point in time
-    if 'end_ts' in Kwargs.keys():
-      #if Kwargs['end_ts'] != 0 or Kwargs['end_ts'] == 0:
-      if str(Kwargs['startTime']) != 'Initial':
-        modifDict = {}
-        #restart_parent = Kwargs['RAVEN_parentID']+'~restart.r'
-        #new_restart = Kwargs['prefix']+'~restart.r'
-        #shutil.copyfile(restart_parent,new_restart)
-        modifDict['name'] = ['Executioner']
-        #modifDict['restart_file_base'] = new_restart
-        #print('CODE INTERFACE: Restart file name base is "' + new_restart + '"')
-        listDict.append(modifDict)
-        del modifDict
-    # max simulation time (if present)
-    if 'end_time' in Kwargs.keys():
-      modifDict = {}
-      end_time = Kwargs['end_time']
-      modifDict['name'] = ['Executioner']
-      modifDict['end_time'] = end_time
-      listDict.append(modifDict)
-      del modifDict
-
-    modifDict = {}
-    modifDict['name'] = ['Output']
-    modifDict['num_restart_files'] = 1
-    listDict.append(modifDict)
-    del modifDict
-    # in this way we erase the whole block in order to neglect eventual older info
-    # remember this "command" must be added before giving the info for refilling the block
-    modifDict = {}
-    modifDict['name'] = ['RestartInitialize']
-    modifDict['erase_block'] = True
-    listDict.append(modifDict)
-
-    del modifDict
-    # check and add the variables that have been changed by a distribution trigger
-    # add them into the RestartInitialize block
-    if 'branch_changed_param' in Kwargs.keys():
-      if Kwargs['branch_changed_param'][0] not in ('None',b'None'):
-        for i in range(len(Kwargs['branch_changed_param'])):
-          modifDict = {}
-          modifDict['name'] = ['RestartInitialize',Kwargs['branch_changed_param'][i]]
-          modifDict['value'] = Kwargs['branch_changed_param_value'][i]
-          listDict.append(modifDict)
-          del modifDict
-    modifDict={}
+    if self.det:
+      modifDict['happenedEvent'] = Kwargs['happenedEvent']
+      modifDict['excludeTrips'] = None
+      modifDict['DETvariables'] = self.detVars
+      parentID = Kwargs.get("RAVEN_parentID", "none")
+      if parentID.lower() != "none":
+        Kwargs['SampledVars']['1|100:1'] = 'restart'
+        Kwargs['SampledVars']['1|103:1'] = '-1'
+        # now we can copy the restart file
+        sourcePath = os.path.join(Kwargs['currentPath'],"..",parentID)
+        self.__copyRestartFile(sourcePath, Kwargs['currentPath'])
+        # now we can check if the event happened and if so, remove the variable fro the det variable list
+        if modifDict['happenedEvent']:
+          modifDict['excludeTrips'] = defaultdict(list)
+          for var in Kwargs['happenedEventVarHistory']:
+            aliased = self._returnAliasedVariable(var, False)
+            deck, card, _ = self._convertVariablNameInInfo(aliased)
+            modifDict['excludeTrips'][deck].append(card)
     for keys in Kwargs['SampledVars']:
-      key = keys.split(':')
-      deck = None
-      multiDeck = key[0].split("|")
-      if len(multiDeck) > 1:
-        card = multiDeck[1]
-        deck = multiDeck[0]
-        try:
-          deck = int(deck)
-        except:
-          raise IOError("RELAP5 interface: activated multi-deck/case approach but the deck number is not an integer (first word followed by '|' symbol). Got "+str(deck))
-        deckActivated = True
-        if deck not in deckList.keys():
-          deckList[deck] = {}
+      deck, card, word = self._convertVariablNameInInfo(keys)
+      deckActivated = deck > 1
+      if deck not in deckList:
+        deckList[deck] = {}
+      if card not in deckList[deck]:
+        deckList[deck][card] = [{'position':word,'value':Kwargs['SampledVars'][keys]}]
       else:
-        deck = 1
-        card = key[0]
-      if len(key) > 1:
-
-        if Kwargs['startTime'] != 'Initial':
-          if card not in deckList[deck].keys():
-            deckList[deck][card] = [{'position':int(key[1]),'value':float(Kwargs['SampledVars'][keys])}]
-          else:
-            deckList[deck][card].append({'position':int(key[1]),'value':float(Kwargs['SampledVars'][keys])})
-        else:
-          if card not in deckList[deck].keys():
-            deckList[deck][card] = [{'position':int(key[1]),'value':Kwargs['SampledVars'][keys]}]
-          else:
-            deckList[deck][card].append({'position':int(key[1]),'value':Kwargs['SampledVars'][keys]})
-      else:
-        if Kwargs['startTime'] != 'Initial':
-          if card not in deckList[deck].keys():
-            deckList[deck][card]=[{'position':0,'value':float(Kwargs['SampledVars'][keys])}]
-          else:
-            deckList[deck][card].append({'position':0,'value':float(Kwargs['SampledVars'][keys])})
-        else:
-          if card not in deckList[deck].keys():
-            deckList[deck][card]=[{'position':0,'value':float(Kwargs['SampledVars'][keys])}]
-          else:
-            deckList[deck][card].append({'position':0,'value':float(Kwargs['SampledVars'][keys])})
+        deckList[deck][card].append({'position':word,'value':Kwargs['SampledVars'][keys]})
       if deck is None:
         # check if other variables have been defined with a deck ID, in case...error out
         if deckActivated:
           raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
     modifDict['decks']=deckList
-    if 'aux_vars' in Kwargs.keys():
-      for keys in Kwargs['aux_vars']:
-        deck = None
-        key = keys.split(':')
-        multiDeck = key[0].split("|")
-        if len(multiDeck) > 1:
-          card = multiDeck[1]
-          deck = multiDeck[0]
-          try:
-            deck = int(deck)
-          except:
-            raise IOError("RELAP5 interface: activated multi-deck/case approach but the deck number is not an integer (first word followed by '|' symbol). Got "+str(deck))
-          deckActivated = True
-          if deck not in deckList.keys():
-            deckList[deck] = {}
-        else:
-          card = key[0]
-        if len(key) > 1:
-          if card not in deckList[deck].keys():
-            deckList[deck][card]=[{'position':int(key[1]),'value':Kwargs['aux_vars'][keys]}]
-          else:
-            deckList[deck][card].append({'position':int(key[1]),'value':Kwargs['aux_vars'][keys]})
-        else:
-          if card not in deckList[deck].keys():
-            deckList[deck][card]=[{'position':0,'value':Kwargs['aux_vars'][keys]}]
-          else:
-            deckList[deck][card].append({'position':0,'value':Kwargs['aux_vars'][keys]})
-        if deck is None:
-          # check if other variables have been defined with a deck ID, in case...error out
-          if deckActivated:
-            raise IOError("If the multi-deck/case approach gets activated, all the variables need to provide a DECK ID. E.g. deckNumber|card|word ! Wrong variable is "+card)
-        modifDict['cards']=deckList
-    listDict.append(modifDict)
-    del modifDict
-    return listDict
+    return modifDict

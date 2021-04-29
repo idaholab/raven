@@ -16,7 +16,6 @@ Created on August 30, 2017
 
 @author: wangc
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import os
@@ -25,8 +24,7 @@ from collections import OrderedDict
 import copy
 #External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils
 from utils import InputData, InputTypes
 import Files
@@ -34,7 +32,7 @@ import Models
 import CrossValidations
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CrossValidation(PostProcessor):
+class CrossValidation(PostProcessorInterface):
   """
     Cross Validation  class.
   """
@@ -108,7 +106,7 @@ class CrossValidation(PostProcessor):
       @ In, inputs, list, list of inputs
       @ In, initDict, dict, dictionary with initialization options
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
 
     for metricIn in self.assemblerDict['Metric']:
       if metricIn[2] in self.metricsDict.keys():
@@ -124,7 +122,7 @@ class CrossValidation(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     self.initializationOptionDict = {}
     scoreList = ['maximum', 'average', 'median']
     cvNode = paramInput.findFirst('SciKitLearn')
