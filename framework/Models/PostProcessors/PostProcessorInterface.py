@@ -21,6 +21,7 @@ Created on April 6, 2021
 import copy
 import abc
 import os
+from xarray import Dataset as ds
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -119,11 +120,15 @@ class PostProcessorInterface(BaseInterface):
         self.raiseAnError(IOError, "DataSet output is required, but the provided type of DataObject is", output.type)
       self.raiseADebug('Dumping output in data object named ' + output.name)
       if self.outputMultipleRealizations:
-        if 'dims' in outputRealization:
-          dims = outputRealization['dims']
+        if isinstance(outputRealization, ds):
+          #  it is a dataset
+          output.load(outputRealization, style='dataset')
         else:
-          dims = {}
-        output.load(outputRealization['data'], style='dict', dims=dims)
+          if 'dims' in outputRealization:
+            dims = outputRealization['dims']
+          else:
+            dims = {}
+          output.load(outputRealization['data'], style='dict', dims=dims)
       else:
         output.addRealization(outputRealization)
     elif output.type in ['DataSet']:
