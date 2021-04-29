@@ -38,7 +38,8 @@ class Plot(OutStreamEntity):
   def getInputSpecification(cls, xml=None):
     """
       Method to get a reference to a class that specifies the input data for class "cls".
-      @ In, cls, the class for which we are retrieving the specification
+      @ In, xml, xml.etree.ElementTree.Element, optional, if given then only get specs for
+          corresponding subType requested by the node
       @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
     """
     spec = super().getInputSpecification() # TODO add xml arg when generalizing

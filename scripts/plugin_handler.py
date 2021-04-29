@@ -108,15 +108,6 @@ def updatePluginXML(root, name, location):
     match.find('location').text = location
   return match
 
-def getValidInterfaces(name, loc):
-  """
-    Obtain a listing of valid interface objects in the plugin.
-    @ In, name, str, name of the plugin
-    @ In, loc, str, location of the plugin
-    @ Out, TODO
-  """
-
-
 def tellPluginAboutRaven(loc):
   """
     Informs plugin about raven framework location

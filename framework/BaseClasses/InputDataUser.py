@@ -23,10 +23,10 @@ class InputDataUser(object):
     Inheriting from this class grants access to methods used by the InputData.
   """
   @classmethod
-  def getInputSpecification(cls, xml=None):
+  def getInputSpecification(cls):
     """
       Method to get a reference to a class that specifies the input data for class "cls".
-      @ In, kwargs, dict, keyword arguments used for specific implementations
+      @ In, None
       @ Out, spec, InputData.ParameterInput, class to use for specifying the input of cls.
     """
     spec = InputData.parameterInputFactory(cls.__name__, ordered=False, baseNode=InputData.RavenBase)
