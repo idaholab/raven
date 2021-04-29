@@ -105,7 +105,6 @@ class Correlation(PlotPlugin):
         else:
           # ax.axes.xaxis.set_ticklabels([])
           ax.set_xlabel('')
-    plt.show()
     fName = os.path.abspath(f'{self.name}.png')
     plt.savefig(fName)
     self.raiseAMessage(f'Saved figure to "{fName}"')
