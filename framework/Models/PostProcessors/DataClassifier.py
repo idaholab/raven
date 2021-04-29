@@ -119,7 +119,8 @@ class DataClassifier(PostProcessorPluginBase):
     haveClassifier = False
     haveTarget = False
     requiredKeys = list(self.mapping.keys()) + [self.label]
-    for inputDict in currentInput:
+    for inputTuple in currentInput:
+      _, _, inputDict = inputTuple
       if inputDict['type'] not in ['PointSet', 'HistorySet']:
         self.raiseAnError(IOError, "The input for this postprocesor", self.name, "is not acceptable! Allowed inputs are 'PointSet' and 'HistorySet'.")
       dataType = None

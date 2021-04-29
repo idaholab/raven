@@ -58,6 +58,15 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
     super().__init__()
     self._inputDataType = 'dict' # Current accept two types: 1) 'dict', 2) 'xrDataset'
                                  # Set default to 'dict', this is consistent with current post-processors
+    self._keepInputMeta = False  # Meta keys from input data objects will be added to output data objects
+
+  def keepInputMeta(self, keep=False):
+    """
+      Method to set the status of "self._keepInputMeta"
+      @ In, keep, bool, If True, the meta keys from input data objects will be added to output data objects
+      @ Out, None
+    """
+    self._keepInputMeta = keep
 
   def setInputDataType(self, dataType='dict'):
     """
@@ -86,10 +95,12 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
     super().initialize(runInfo, inputs, initDict)
-    ## add meta keys from input data objects
-    for inputObj in inputs:
-      metaKeys = inputObj.getVars('meta')
-      self.addMetaKeys(metaKeys)
+    if self._keepInputMeta:
+      ## add meta keys from input data objects
+      for inputObj in inputs:
+        if isinstance(inputObj, DataObject.DataObject):
+          metaKeys = inputObj.getVars('meta')
+          self.addMetaKeys(metaKeys)
 
   def _handleInput(self, paramInput):
     """

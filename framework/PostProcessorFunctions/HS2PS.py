@@ -63,6 +63,7 @@ class HS2PS(PostProcessorPluginBase):
     self.pivotParameter = None
     self.features = 'all'
     self.setInputDataType('xrDataset')
+    self.keepInputMeta(True)
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
