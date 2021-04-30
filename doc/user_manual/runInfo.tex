@@ -170,6 +170,20 @@ If this flag is set to:
  \end{itemize}
 \end{itemize}
 %
+  This XML node might contain contain the following attribute:
+  \vspace{-5mm}
+  \begin{itemize}
+    \itemsep0em
+    \item \xmlAttr{dashboard}, \xmlDesc{optional bool attribute}, this
+    attribute enable or disable the RAY Dashboard support. By default, 
+    it is disabled.
+    \default{False}
+    %
+  \end{itemize}
+  %
+  \ifthenelse{\equal{#1}{}}{}{\default{#1}}
+
+%
 \default{False}
 
 
