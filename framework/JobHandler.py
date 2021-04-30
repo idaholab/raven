@@ -328,6 +328,9 @@ class JobHandler(BaseType):
           address, redisPassword = line.strip()[ix:].replace("ray start","").strip().split()
           address = address.split("=")[-1].replace("'","")
           redisPassword = redisPassword.split("=")[-1].replace("'","")
+          address_arg, address = address.replace("'","").split("=")
+          if address_arg.strip() != "--address":
+            self.raiseAWarning("Unexpected ray start:" + line)
           break
     return address, redisPassword
 
