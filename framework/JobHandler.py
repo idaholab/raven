@@ -179,6 +179,8 @@ class JobHandler(BaseType):
       @ Out, None
     """
     if self.runInfoDict['internalParallel']:
+      ## dashboard?
+      db=self.runInfoDict['includeDashboard']
       ## Check if the list of unique nodes is present and, in case, initialize the
       servers = None
       sys.path.append(self.runInfoDict['WorkingDir'])
@@ -209,7 +211,7 @@ class JobHandler(BaseType):
             self.raiseADebug("Head host IP      :", address)
             self.raiseADebug("Head redis pass   :", redisPassword)
           ## Get servers and run ray remote listener
-          servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword)
+          servers = self.runInfoDict['remoteNodes'] if self.rayInstanciatedOutside else self.__runRemoteListeningSockets(address, localHostName, redisPassword, db)
           if self.rayInstanciatedOutside:
             # update the python path and working dir
             # update head node paths
@@ -218,13 +220,13 @@ class JobHandler(BaseType):
           # add names in runInfo
           self.runInfoDict['remoteNodes'] = servers
           ## initialize ray server with nProcs
-          self.rayServer = ray.init(address=address, _redis_password=redisPassword,log_to_driver=False) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
+          self.rayServer = ray.init(address=address, _redis_password=redisPassword,log_to_driver=False,include_dashboard=db) if _rayAvail else pp.Server(ncpus=int(nProcsHead))
           self.raiseADebug("NODES IN THE CLUSTER : ", str(ray.nodes()))
         else:
           self.raiseADebug("Executing RAY in the cluster but with a single node configuration")
-          self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False)
+          self.rayServer = ray.init(num_cpus=nProcsHead,log_to_driver=False,include_dashboard=db)
       else:
-        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed'])) if _rayAvail else \
+        self.rayServer = ray.init(num_cpus=int(self.runInfoDict['totalNumCoresUsed']),include_dashboard=db) if _rayAvail else \
                            pp.Server(ncpus=int(self.runInfoDict['totalNumCoresUsed']))
       if _rayAvail:
         self.raiseADebug("Head node IP address: ", self.rayServer['node_ip_address'])
@@ -374,6 +376,8 @@ class JobHandler(BaseType):
     """
       Method to activate the remote sockets for parallel python
       @ In, address, string, the head node redis address
+      @ In, localHostName, string, the local host name
+      @ In, redisPassword, string, the head node redis password
       @ Out, servers, list, list containing the nodes in which the remote sockets have been activated
     """
     ## Get the local machine name and the remote nodes one
