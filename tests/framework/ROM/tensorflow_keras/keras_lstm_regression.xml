@@ -29,6 +29,7 @@
       <Target>sum, square</Target>
       <pivotParameter>index</pivotParameter>
       <loss>mean_squared_error</loss>
+      <random_seed>1986</random_seed>
       <LSTM name="lstm1">
         <dim_out>32</dim_out>
       </LSTM>
