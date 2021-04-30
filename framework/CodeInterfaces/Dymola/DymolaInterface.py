@@ -101,8 +101,10 @@ import csv
 import re
 import copy
 import numpy
+import pandas as pd
 
 from CodeInterfaceBaseClass import CodeInterfaceBase
+from utils import mathUtils
 
 class Dymola(CodeInterfaceBase):
   """
@@ -302,6 +304,9 @@ class Dymola(CodeInterfaceBase):
 
     # Set the parameters.
     for name, value in varDict.items():
+      # skip in the special key for the index mapper
+      if name == '_indexMap':
+        continue
       namere = re.escape(name) # Escape the dots, square brackets, etc.
       for pattern in patterns:
         text, n = re.subn(pattern % namere, r'\g<1>%s\2' % value, text, 1,
@@ -440,18 +445,26 @@ class Dymola(CodeInterfaceBase):
 
       # Create an array of trajectories, which are to be written to CSV file.
       varTrajectories = numpy.matrix.transpose(numpy.concatenate((timeStepsArray,Data1Array,timeSeriesData2), axis=0))
-
-      # Define the name of the CSV file.
-      sourceFileName = os.path.join(workingDir, output)         # The source file comes in without extension on it
-      print('sourcefilename:',sourceFileName)
-      destFileName = sourceFileName.replace('rawout~', 'out~')  # When write the CSV file, change rawout~ to out~
-      destFileName += '.csv' # Add the file extension .csv
-
-      # Write the CSV file.
-      with open(destFileName,"w") as csvFile:
-        resultsWriter = csv.writer(csvFile, lineterminator=str(u'\n'), delimiter=str(u','), quotechar=str(u'"'))
-        resultsWriter.writerows(varNames)
-        resultsWriter.writerows(varTrajectories)
+      # create output response dictionary
+      t = pd.Series(varTrajectories[:,0])
+      m = t.duplicated()
+      if len(t[m]):
+        # duplicated values
+        tIndex = None
+        iIndex = 1
+        for i in range(len(t[m])):
+          index = t[m].index[i]
+          if tIndex is None:
+            tIndex = t[index]
+          else:
+            if mathUtils.compareFloats(tIndex, t[index], tol=1.0E-15):
+              iIndex += 1
+            else:
+              iIndex = 1
+              tIndex = t[index]
+          t[index] = t[index] + numpy.finfo(float).eps*t[index]*iIndex
+        varTrajectories[:,0] = t.to_numpy()
+      response = {var:varTrajectories[:,i] for (i, var) in enumerate(varNames[0])}
     else:
       raise Exception('File structure not supported!')
     #release memory
@@ -465,4 +478,4 @@ class Dymola(CodeInterfaceBase):
     del Data1Array
     del timeSeriesData1
     del timeSeriesData2
-    return os.path.splitext(destFileName)[0]   # Return the name without the .csv on it as RAVEN will add it later.
+    return response

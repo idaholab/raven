@@ -20,9 +20,10 @@ sys.path.append(frameworkDir)
 sys.path.append(os.path.join(frameworkDir,'utils'))
 
 import MessageHandler
+from BaseClasses import MessageUser
 
 #establish a basic message user
-user = MessageHandler.MessageUser()
+user = MessageUser()
 user.printTag = 'MessageUser'
 user.messageHandler = MessageHandler.MessageHandler()
 user.messageHandler.initialize({'verbosity':'all'})

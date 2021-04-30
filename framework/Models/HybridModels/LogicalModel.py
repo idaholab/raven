@@ -61,18 +61,18 @@ class LogicalModel(HybridModelBase):
     """
     pass
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    HybridModelBase.__init__(self,runInfoDict)
-    self.printTag              = 'LogicalModel MODEL' # print tag
+    super().__init__()
+    self.printTag = 'LogicalModel MODEL' # print tag
     # Function object that is used to control the execution of models
-    self.controlFunction       = None
+    self.controlFunction = None
     # assembler objects to be requested
-    self.addAssemblerObject('ControlFunction','1')
+    self.addAssemblerObject('ControlFunction', InputData.Quantity.one)
 
   def localInputAndChecks(self, xmlNode):
     """

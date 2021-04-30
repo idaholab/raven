@@ -273,7 +273,8 @@ Note that if the optional nodes in the block \xmlNode{options} are not inputted,
 The RAVEN framework provides the capability to store and retrieve data to/from
 an external database.
 %
-Currently RAVEN has support for only a database type called \textbf{HDF5}.
+Currently RAVEN has support for \textbf{netCDF4} and \textbf{HDF5} formats.
+NetCDF shares native format with RAVEN's DataObjects, but HDF5 is also included for convenience.
 %
 This database, depending on the data format it is receiving, will organize
 itself in a ``parallel'' or ``hierarchical'' fashion.
@@ -287,13 +288,61 @@ The Database objects are defined within the main XML block called
   ...
   <Databases>
     ...
-    <HDF5 name="aDatabaseName1" readMode="overwrite"/>
+    <NetCDF name="aDatabaseName1" readMode="overwrite"/>
     <HDF5 name="aDatabaseName2" readMode="overwrite"/>
     ...
   </Databases>
   ...
 </Simulation>
 \end{lstlisting}
+The specifications for these two formats are listed below.
+
+\subsection{NetCDF}
+The specifications of each Database of type NetCDF needs to be defined within the
+XML block \xmlNode{NetCDF}, that recognizes the following attributes:
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \xmlAttr{name}, \xmlDesc{required string attribute}, a user-defined
+  identifier of this object.
+  %
+  \nb As with other objects, this is name can be used to reference this specific
+  entity from other input blocks in the XML.
+  \item \xmlAttr{readMode}, \xmlDesc{required string attribute}, defines whether an existing database should
+    be read when loaded (\xmlString{read}) or overwritten (\xmlString{overwrite}).
+    \nb if in \xmlString{read} mode and the database is not found, RAVEN will read in
+    the data as empty and raise a warning, NOT an error.
+  %
+  \item \xmlAttr{directory}, \xmlDesc{optional string attribute}, this attribute
+  can be used to specify a particular directory path where the database will be
+  created or read from.  If an absolute path is given, RAVEN will respect it; otherwise,
+  the path will be assumed to be relative to the \xmlNode{WorkingDir} from the \xmlNode{RunInfo} block.
+  RAVEN recognizes path expansion tools such as tildes (\emph{user dir}), single dots (\emph{current dir}),
+  and double dots (\emph{parent dir}).
+  %
+  \default{workingDir/DatabaseStorage}.  The \xmlNode{workingDir} is
+   the one defined within the \xmlNode{RunInfo} XML block (see Section~\ref{sec:RunInfo}).
+  \item \xmlAttr{filename}, \xmlDesc{optional string attribute}, specifies the
+  filename of the database that will be created in the \xmlAttr{directory}.
+  %
+  \nb When this attribute is not specified, the newer database filename will be
+  named \texttt{name.nc}, where \textit{name} corresponds to the \xmlAttr{name}
+  attribute of this object.
+  %
+  \default{None}
+\end{itemize}
+
+Example:
+\begin{lstlisting}[style=XML,morekeywords={directory,filename}]
+<Databases>
+  <NetCDF name="name1" directory=''path_to_a_dir'' readMode='overwrite'/>
+  <HDF5 name="name2" filename=''Name2.nc'' readMode='read'/>
+</Databases>
+\end{lstlisting}
+
+
+
+\subsection{HDF5}
 The specifications of each Database of type HDF5 needs to be defined within the
 XML block \xmlNode{HDF5}, that recognizes the following attributes:
 \vspace{-5mm}

@@ -15,8 +15,6 @@
 Created on December 1st, 2015
 
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 #External Modules------------------------------------------------------------------------------------
 import abc
 import os
@@ -26,7 +24,7 @@ import numpy as np
 #Internal Modules------------------------------------------------------------------------------------
 from utils.cached_ndarray import c1darray
 from utils import utils, InputData
-import MessageHandler
+from BaseClasses import MessageUser
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -72,7 +70,7 @@ class CheckInterfacePP(InputData.CheckClass):
     """
     return self.__reason
 
-class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),MessageHandler.MessageUser):
+class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object), MessageUser):
   """
     This class is the base interfaced post-processor class
     It contains the three methods that need to be implemented:
@@ -97,15 +95,14 @@ class PostProcessorInterfaceBase(utils.metaclass_insert(abc.ABCMeta,object),Mess
 
     return inputSpecification
 
-  def __init__(self, messageHandler):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
       @ Out, None
     """
+    super().__init__()
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
-    self.messageHandler = messageHandler
 
     self.transformationSettings = {}   # this dictionary is used to store all the setting required to back transform the data into its original format
                                        # it gets filled in the run method and used in the inverse method

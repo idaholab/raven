@@ -16,26 +16,19 @@ Created on Feb 16, 2013
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
-#External Modules------------------------------------------------------------------------------------
 import sys
 import copy
 import abc
 import json
 import itertools
 import numpy as np
-#External Modules End--------------------------------------------------------------------------------
+from BaseClasses.InputDataUser import InputDataUser
 
-#Internal Modules------------------------------------------------------------------------------------
 from utils import utils,randomUtils,InputData, InputTypes
-from BaseClasses import BaseType
-from Assembler import Assembler
-#Internal Modules End--------------------------------------------------------------------------------
+from BaseClasses import BaseEntity, Assembler
 
-class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
+class Sampler(utils.metaclass_insert(abc.ABCMeta, BaseEntity), Assembler, InputDataUser):
   """
     This is the base class for samplers
     Samplers own the sampling strategy (Type) and they generate the input values using the associate distribution.
@@ -51,7 +44,7 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(Sampler, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     # FIXME the DET HybridSampler doesn't use the "name" param for the samples it creates,
     #      so we can't require the name yet
     # -> it's also in the base class ...
@@ -202,8 +195,9 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
       @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
-    Assembler.__init__(self)
+    super().__init__()
+    self.batch                         = 1                         # determines the size of each sampling batch to run
+    self.onlySampleAfterCollecting     = True                     # if True, then no new samples unless collection has occurred
     self.ableToHandelFailedRuns        = False                     # is this sampler able to handle failed runs?
     self.counter                       = 0                         # Counter of the samples performed (better the input generated!!!). It is reset by calling the function self.initialize
     self.auxcnt                        = 0                         # Aux counter of samples performed (for its usage check initialize method)
@@ -240,8 +234,8 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     self.distributions2variablesMapping = {}                       # for each variable 'distName' , the following informations are included: 'distName': [{'var1': 1}, {'var2': 2}]} where for each var it is indicated the var dimension
     self.NDSamplingParams               = {}                       # this dictionary contains a dictionary for each ND distribution (key). This latter dictionary contains the initialization parameters of the ND inverseCDF ('initialGridDisc' and 'tolerance')
     ######
-    self.addAssemblerObject('Restart' ,'-n',True)
-    self.addAssemblerObject('ConstantSource' ,'-n',True)
+    self.addAssemblerObject('Restart', InputData.Quantity.zero_to_infinity)
+    self.addAssemblerObject('ConstantSource', InputData.Quantity.zero_to_infinity)
 
     #used for PCA analysis
     self.variablesTransformationDict    = {}                       # for each variable 'modelName', the following informations are included: {'modelName': {latentVariables:[latentVar1, latentVar2, ...], manifestVariables:[manifestVar1,manifestVar2,...]}}
@@ -310,9 +304,10 @@ class Sampler(utils.metaclass_insert(abc.ABCMeta,BaseType),Assembler):
     Assembler._readMoreXML(self,xmlNode)
     paramInput = self._readMoreXMLbase(xmlNode)
     self.localInputAndChecks(xmlNode, paramInput)
-    if not self.toBeSampled and self.type != 'MonteCarlo':
-      self.raiseAnError(IOError, '<{t}> sampler named "{n}" requires at least one sampled <variable>!'
-                                 .format(n=self.name, t=self.type))
+    if self.type not in ['MonteCarlo', 'Metropolis']:
+      if not self.toBeSampled:
+        self.raiseAnError(IOError, '<{t}> sampler named "{n}" requires at least one sampled <variable>!'
+                                   .format(n=self.name, t=self.type))
 
   def _readMoreXMLbase(self,xmlNode):
     """

@@ -316,10 +316,7 @@ if [ -z $PYTHON_COMMAND ];
 then
     # check the RC file first
     PYTHON_COMMAND=$(read_ravenrc "PYTHON_COMMAND")
-    local_py_command=python3
-    if ! python_com="$(type -p python3)" || [[ -z $python_com ]]; then
-      local_py_command=python
-    fi
+    local_py_command=python
     #If not found through the RC file, will be empty string, so default python
     PYTHON_COMMAND=${PYTHON_COMMAND:=$local_py_command}
 fi
@@ -431,10 +428,16 @@ then
   # if it doesn't exist, make some noise.
   else
     echo ${INSTALL_MANAGER} environment ${RAVEN_LIBS_NAME} not found!
-    echo Please run "raven/establish_conda_env.sh" with argument "--install" "--installation-manager $INSTALL_MANAGER".
+    echo Please run "raven/scripts/establish_conda_env.sh" with argument "--install" "--installation-manager $INSTALL_MANAGER".
     exit 1
   fi
 fi
+
+# Right before library installation, install ExamplePlugin
+echo Installing ExamplePlugin...
+parent_path=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+${parent_path}/install_plugins.py -s ${parent_path}/../plugins/ExamplePlugin
+
 
 ## install mode
 if [[ $ECE_MODE == 2 ]];
@@ -450,6 +453,8 @@ then
       then
         conda deactivate
         conda remove -n ${RAVEN_LIBS_NAME} --all -y
+        #Activate base to get python back
+        conda activate
       else
         rm -rf ${PIP_ENV_LOCATION}
       fi
@@ -470,5 +475,15 @@ fi
 
 # activate environment and write settings if successful
 activate_env
+
+if [ -z "$RAVEN_SIGNATURE" ];
+then
+    RAVEN_SIGNATURE=$(read_ravenrc "RAVEN_SIGNATURE")
+fi
+if [ ! -z "$RAVEN_SIGNATURE" ];
+then
+    if [[ $ECE_VERBOSE == 0 ]]; then echo "... Using '$RAVEN_SIGNATURE' for signing ..."; fi
+    export RAVEN_SIGNATURE
+fi
 
 if [[ $ECE_VERBOSE == 0 ]]; then echo  ... done!; fi

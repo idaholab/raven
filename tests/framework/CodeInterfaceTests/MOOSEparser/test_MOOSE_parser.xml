@@ -68,7 +68,7 @@
   </Models>
 
   <Steps>
-    <MultiRun name='parser_moose'>
+    <MultiRun name='parser_moose' clearRunDir="False">
       <Input class='Files' type=''>mam_input</Input>
       <Model class='Models' type='Code'>nope</Model>
       <Sampler class='Samplers' type='Grid'>graph_x</Sampler>

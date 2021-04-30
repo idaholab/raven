@@ -71,6 +71,8 @@ parser.add_argument('--re', dest='test_re_raw', default='.*',
                     help='Only tests with this regular expression inside will be run')
 parser.add_argument('-l', dest='load_average', type=float, default=-1.0,
                     help='wait until load average is below the number before starting a new test')
+parser.add_argument('-t', action='store_true',
+                    help='argument added by civet recipes but unused in rook')
 parser.add_argument('--heavy', action='store_true',
                     help='Run only heavy tests')
 parser.add_argument('--no-color', action='store_true',
@@ -290,11 +292,15 @@ def process_result(index, _input_data, output_data):
     print(output_data.message)
     okaycolor = Colors.fail
   number_done = sum(results.values())
+  if results["fail"] > 0:
+    done = "{0}F{1}".format(number_done,results["fail"])
+  else:
+    done = number_done
   print(' '.join(["({done}/{togo})",
                   "{statcolor}{status:7s}{normcolor}"
                   "({timecolor}{time}{normcolor})"
                   "{namecolor}{test}{normcolor}"])
-        .format(done=number_done,
+        .format(done=done,
                 togo=len(function_list),
                 statcolor=okaycolor,
                 normcolor=Colors.norm,

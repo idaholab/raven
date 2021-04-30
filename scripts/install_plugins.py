@@ -45,8 +45,7 @@ args = parser.parse_args()
 
 # -> manually add to install list for "all"
 # ExamplePlugin should always stay here.
-# PRAPlugin can be moved once it is in a separate repository.
-manualAddedPlugins = ['PRAplugin', 'ExamplePlugin']
+manualAddedPlugins = ['ExamplePlugin']
 # END TEMPORARY FIXME
 
 if __name__ == '__main__':

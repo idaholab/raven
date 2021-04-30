@@ -15,6 +15,20 @@
  Created on March 30, 2020
  @author: alfoa
 """
+import builtins
 
-__all__ = ['Parallelization']
+# line_profiler decorator, @Decorators.timingProfile
+## if using kernprof, use "profile" builtin; otherwise, passthrough.
+try:
+  builtins.profile
+  timingProfile = builtins.profile
+except (AttributeError, ImportError):
+  print('Unable to load "timingProfile" decorator; replacing with passthrough ...')
+  timingProfile = lambda f: f
 
+# memory_profiler decorator, @Decorators.memoryProfile
+try:
+  from memory_profiler import profile as memoryProfile
+except (AttributeError, ImportError):
+  print('Unable to load "memoryProfile" decorator; replacing with passthrough ...')
+  memoryProfile = lambda f: f

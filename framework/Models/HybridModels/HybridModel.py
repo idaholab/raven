@@ -82,13 +82,13 @@ class HybridModel(HybridModelBase):
     """
     pass
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    HybridModelBase.__init__(self,runInfoDict)
+    super().__init__()
     self.modelInstance         = None                # instance of given model
     self.targetEvaluationInstance = None             # Instance of data object used to store the inputs and outputs of HybridModel
     self.tempTargetEvaluation     = None             # Instance of data object that are used to store the training set
@@ -109,8 +109,8 @@ class HybridModel(HybridModelBase):
     self.crowdingDistance      = None
     self.metricCategories      = {'find_min':['explained_variance_score', 'r2_score'], 'find_max':['median_absolute_error', 'mean_squared_error', 'mean_absolute_error']}
     # assembler objects to be requested
-    self.addAssemblerObject('ROM','n')
-    self.addAssemblerObject('TargetEvaluation','1')
+    self.addAssemblerObject('ROM', InputData.Quantity.one_to_infinity)
+    self.addAssemblerObject('TargetEvaluation', InputData.Quantity.one)
 
   def localInputAndChecks(self,xmlNode):
     """

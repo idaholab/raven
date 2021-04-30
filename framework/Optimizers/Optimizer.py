@@ -174,9 +174,9 @@ class Optimizer(AdaptiveSampler):
     self._impConstraintFunctions = [] # list of implicit constraint functions
     # __private
     # additional methods
-    self.addAssemblerObject('Constraint', '-1')      # Explicit (input-based) constraints
-    self.addAssemblerObject('ImplicitConstraint', '-1')      # Implicit constraints
-    self.addAssemblerObject('Sampler', '-1')          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
+    self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_one)      # Explicit (input-based) constraints
+    self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_one)      # Implicit constraints
+    self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
     # register adaptive sample identification criteria
     self.registerIdentifier('traj') # the trajectory of interest
@@ -400,7 +400,7 @@ class Optimizer(AdaptiveSampler):
                                    .format(v=sampled, i=self._initSampler.name, s=self.name))
     self._initSampler.initialize(externalSeeding)
     # initialize points
-    numTraj = len(self._initialValues)
+    numTraj = len(self._initialValues) if self._initialValues else None
     ## if there are already-initialized variables (i.e. not sampled, but given), then check num samples
     if numTraj:
       if numTraj != self._initSampler.limit:
@@ -442,7 +442,8 @@ class Optimizer(AdaptiveSampler):
       @ In, value, float, opt value obtained
       @ Out, None
     """
-    self._activeTraj.remove(traj)
+    if traj in self._activeTraj:
+      self._activeTraj.remove(traj)
     info = {'reason': reason, 'value': value}
     assert action in ['converge', 'cancel']
     if action == 'converge':

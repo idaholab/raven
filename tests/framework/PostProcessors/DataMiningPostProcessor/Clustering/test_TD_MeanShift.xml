@@ -102,7 +102,7 @@
       <KDD lib="SciKitLearn">
         <SKLtype>cluster|MeanShift</SKLtype>
         <Features>output</Features>
-        <bandwidth>9</bandwidth>
+        <bandwidth>20</bandwidth>
       </KDD>
     </PostProcessor>
     <PostProcessor name="dataPreProc" subType="InterfacedPostProcessor">
