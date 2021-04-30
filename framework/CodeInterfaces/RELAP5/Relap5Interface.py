@@ -204,7 +204,12 @@ class Relap5(CodeInterfaceBase):
           splitted =  var.split(":")
           tripName =  splitted[len(splitted)-2].strip()
           for deckNum in self.tripControlVariables[prefix]:
-            if tripName in self.tripControlVariables[prefix][deckNum].values():
+            tripSplit = tripName.split("|") 
+            if len(tripSplit) > 1:
+              tripDeck, tripName = int(tripSplit[0]), tripSplit[-1] 
+            else:
+              tripDeck, tripName = 1, tripSplit[-1]
+            if tripDeck == deckNum and tripName in self.tripControlVariables[prefix][deckNum].values():
               for cntrVar, trip in self.tripControlVariables[prefix][deckNum].items():
                 if response["cntrlvar_"+cntrVar][-1] != response["cntrlvar_"+cntrVar][-2]:
                   # the trip went off
@@ -333,9 +338,11 @@ class Relap5(CodeInterfaceBase):
       trips = parser.getTrips()
       varTrips, logTrips = trips.values()
       notTrips = []
+      print(varTrips)
+      print(logTrips)
       for var in self.detVars:
         splitted = var.split(":")
-        if splitted[len(splitted)-2] not in varTrips and var not in logTrips:
+        if splitted[len(splitted)-2].split("|")[-1] not in varTrips and var not in logTrips:
           notTrips.append(var)
       if len(notTrips):
         raise IOError ('For Dynamic Event Tree-based approaches with RELAP5, \n'

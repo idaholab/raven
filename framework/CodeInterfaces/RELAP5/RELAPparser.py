@@ -132,7 +132,7 @@ class RELAPparser():
       for cnt, trip in enumerate(monitoredTrips[deckNum]):
         controlVar = availableControlVars.pop()
         controlledControlVars[trip] = controlVar
-        self.deckLines[deckNum].append("205"+controlVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " r_"+str(trip)+" tripunit 1.0 0.0 0 \n")
+        self.deckLines[deckNum].append("205"+controlVar.strip()+"0".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " r_"+str(trip).lstrip("0")+" tripunit 1.0 0.0 0 \n")
         self.additionalControlVariables[deckNum][controlVar.strip()] = trip
         self.deckLines[deckNum].append("205"+controlVar.strip()+"1".zfill(2 if self.controlVarType[deckNum] == 1 else 1 ) + " " + str(list(monitoredTrips[deckNum])[cnt])+" \n")
       # to fix. the following can handle only 50 trips
