@@ -14,7 +14,7 @@
     <description>
         This test is aimed to show how to use the mechanics of the Validation Post-Processor. For semplicity,
         this test is using the attenuation model (analytical) and simple Probabilistic Validation metrics.
-        The output name convention is ``feature name''\underscore``target name''\underscore``metric name''=.
+        The output name convention is ``feature name''\_``target name''\_``metric name''.
     </description>
     <revisions>
       <revision author="alfoa" date="2021-04-11">Added Modification for new PP API</revision>
