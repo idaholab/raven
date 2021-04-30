@@ -16,15 +16,15 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import math
 import copy
+from scipy import integrate
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils
 from utils import mathUtils
 from utils import InputData, InputTypes
@@ -80,24 +80,13 @@ def _getGraphs(functions, fZStats = False):
   if len(means) < 2:
     return
 
-  cdfAreaDifference = mathUtils.simpson(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,integrationSegments)
-
-  def firstMomentSimpson(f, a, b, n):
-    """
-      Compute the first simpson method
-      @ In, f, method, the function f(x)
-      @ In, a, float, lower bound
-      @ In, b, float, upper bound
-      @ In, n, int, the number of discretizations
-      @ Out, firstMomentSimpson, float, the moment
-    """
-    return mathUtils.simpson(lambda x:x*f(x), a, b, n)
+  cdfAreaDifference = integrate.quad(lambda x:abs(cdfs[1](x)-cdfs[0](x)),lowLow,highHigh,limit=1000)[0]
 
   #print a bunch of comparison statistics
-  pdfCommonArea = mathUtils.simpson(lambda x:min(pdfs[0](x),pdfs[1](x)),
-                            lowLow,highHigh,integrationSegments)
+  pdfCommonArea = integrate.quad(lambda x:min(pdfs[0](x),pdfs[1](x)),
+                            lowLow,highHigh,limit=1000)[0]
   for i in range(len(pdfs)):
-    pdfArea = mathUtils.simpson(pdfs[i],lowLow,highHigh,integrationSegments)
+    pdfArea = integrate.quad(pdfs[i],lowLow,highHigh,limit=1000)[0]
     retDict['pdf_area_'+names[i]] = pdfArea
     dataStats[i]["pdf_area"] = pdfArea
   retDict['cdf_area_difference'] = cdfAreaDifference
@@ -107,11 +96,11 @@ def _getGraphs(functions, fZStats = False):
   if fZStats:
     def fZ(z):
       """
-        Compute f(z) with a simpson rule
+        Compute f(z) with a quad rule
         @ In, z, float, the coordinate
         @ Out, fZ, the f(z)
       """
-      return mathUtils.simpson(lambda x: pdfs[0](x)*pdfs[1](x-z), lowLow, highHigh, 1000)
+      return integrate.quad(lambda x: pdfs[0](x)*pdfs[1](x-z), lowLow, highHigh,limit=1000)[0]
 
     midZ = means[0]-means[1]
     lowZ = midZ - 3.0*max(stdDevs[0],stdDevs[1])
@@ -125,9 +114,9 @@ def _getGraphs(functions, fZStats = False):
       fZTable[0].append(z)
       fZTable[1].append(fZ(z))
     retDict["f_z_table"] = fZTable
-    sumFunctionDiff = mathUtils.simpson(fZ, lowZ, highZ, 1000)
-    firstMomentFunctionDiff = firstMomentSimpson(fZ, lowZ,highZ, 1000)
-    varianceFunctionDiff = mathUtils.simpson(lambda x:((x-firstMomentFunctionDiff)**2)*fZ(x),lowZ,highZ, 1000)
+    sumFunctionDiff = integrate.quad(fZ, lowZ, highZ,limit=1000)[0]
+    firstMomentFunctionDiff = integrate.quad(lambda x:x*fZ(x), lowZ, highZ,limit=1000)[0]
+    varianceFunctionDiff = integrate.quad(lambda x:((x-firstMomentFunctionDiff)**2)*fZ(x),lowZ,highZ,limit=1000)[0]
     retDict['sum_function_diff'] = sumFunctionDiff
     retDict['first_moment_function_diff'] = firstMomentFunctionDiff
     retDict['variance_function_diff'] = varianceFunctionDiff
@@ -258,7 +247,7 @@ def _getPDFandCDFfromData(dataName, data, csv, methodInfo, interpolation,
   return dataStats, cdfFunc, pdfFunc
 
 
-class ComparisonStatistics(PostProcessor):
+class ComparisonStatistics(PostProcessorInterface):
   """
     ComparisonStatistics is to calculate statistics that compare
     two different codes or code to experimental data.
@@ -355,7 +344,7 @@ class ComparisonStatistics(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -363,7 +352,7 @@ class ComparisonStatistics(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for outer in paramInput.subparts:
       if outer.getName() == 'compare':
         compareGroup = ComparisonStatistics.CompareGroup()
