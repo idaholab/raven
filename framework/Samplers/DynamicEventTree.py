@@ -257,7 +257,6 @@ class DynamicEventTree(Grid):
     endInfo['parentNode'] = parentNode
     # get the branchedLevel dictionary
     branchedLevel = {}
-    print(self.epistemicVariables)
     for distk, distpb in zip(endInfo['parentNode'].get('SampledVarsPb').keys(),endInfo['parentNode'].get('SampledVarsPb').values()):
       if distk not in list(self.epistemicVariables.keys())+list(self.constants.keys()):
         branchedLevel[distk] = utils.first(np.atleast_1d(np.asarray(self.branchProbabilities[distk]) == distpb).nonzero())[-1]

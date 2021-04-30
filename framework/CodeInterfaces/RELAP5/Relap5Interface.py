@@ -213,9 +213,10 @@ class Relap5(CodeInterfaceBase):
               for cntrVar, trip in self.tripControlVariables[prefix][deckNum].items():
                 if response["cntrlvar_"+cntrVar][-1] != response["cntrlvar_"+cntrVar][-2]:
                   # the trip went off
-                  tripVariable = trip
-                  foundTrip = True
-                  break
+                  if trip in var:
+                    tripVariable = var
+                    foundTrip = True
+                    break
         if tripVariable is not None:
           filename = os.path.join(workingDir,output+"_actual_branch_info.xml")
           self._writeBranchInfo(filename, endTime, endTimeStep, tripVariable)
