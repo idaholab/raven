@@ -1226,6 +1226,20 @@ In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are avai
         \item \textbf{min}, compute the minimum of each variable along each single history
          \item \textbf{max}, compute the maximum of each variable along each single history
          \item \textbf{average}, compute the average of each variable along each single history
+         \item \textbf{all}, join together all of the each variable in
+           the history, and make the pivotParameter a regular
+           parameter.  Unlike the min and max operators, this keeps
+           all the data, just organized differently. This operator
+           does this by propogating the other input parameters for
+           each item of the pivotParameter.
+           Table~\ref{operator_all_switch_before} shows an example
+           HistorySet with input parameter x, pivot parameter t, and
+           output parameter b and then
+           Table~\ref{operator_all_switch_after} shows the resulting
+           PointSet with input parameters x and t, and output
+           parameter b. Note that which parameters are input and which
+           are output in the resulting PointSet depends on the
+           DataObject specification.
        \end{itemize}
         \nb This node can be inputted only if \xmlNode{pivotValue} and \xmlNode{row} are not present
      \item \xmlNode{pivotValue}, \xmlDesc{float, optional field}, the value of the pivotParameter with respect to the other outputs need to be extracted.
@@ -1279,6 +1293,32 @@ This example will show how the XML input block would look like:
   ...
 </Simulation>
 \end{lstlisting}
+
+\begin{table}[!hbtp]
+  \caption{Starting HistorySet for operator all}
+  \label{operator_all_switch_before}
+\begin{tabular}{l|l|l}
+  x & t & b \\
+  \hline
+  5.0 &  &  \\
+  \hline
+  & 1.0 & 6.0 \\
+  \hline
+  & 2.0 & 7.0 \\
+\end{tabular}
+\end{table}
+
+\begin{table}[!hbtp]
+  \caption{Resulting PointSet after operator all}
+  \label{operator_all_switch_after}
+\begin{tabular}{l|l|l}
+  x & t & b \\
+  \hline
+  5.0 & 1.0 & 6.0  \\
+  \hline
+  5.0 & 2.0 & 7.0 \\
+\end{tabular}
+\end{table}
 
 \paragraph{Method: HistorySetSampling}
 This Post-Processor performs the conversion from HistorySet to HistorySet
@@ -1433,6 +1473,68 @@ time$=0.245$ for $y$, and the value of $z$ at $x=4.0$ for $z$.
 </Simulation>
 \end{lstlisting}
 
+\paragraph{Method: HistorySetDelay}
+
+This Post-Processor allows history sets to add delayed or lagged
+variables. It copies a variable, but with a delay. For example, if
+there a variable price that is set hourly, than new variable called
+price\_prev\_hour could be set by using a delay of -1 as seen in the
+listing below.  This can be useful for training a ROM or other data
+analysis.
+
+In the \xmlNode{PostProcessor} input block, one or more of the following XML sub-nodes are required:
+
+\begin{itemize}
+\item \xmlNode{delay}, \xmlDesc{empty}, a delay node with the following required parameters:
+  \begin{itemize}
+  \item \xmlAttr{original}, \xmlDesc{string, required field}, the variable to start with
+  \item \xmlAttr{new}, \xmlDesc{string, required field}, the new variable to create
+  \item \xmlAttr{steps}, \xmlDesc{integer, required field}, the delay (if negative) or steps into the future (if positive) to use for the new variable (so -1 gives the previous, 1 gives the next)
+  \item \xmlAttr{default}, \xmlDesc{float, required field}, the value to use for cases where there is no previous or next value (such as the beginning when a negative delay is used, or the end when the delay is positive).
+  \end{itemize}
+\end{itemize}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="delayPP" subType="HistorySetDelay">
+      <delay original="price" new="price_prev_hour" steps="-1" default="0.0"/>
+      <delay original="price" new="price_prev_day" steps="-24" default="0.0"/>
+      <delay original="price" new="price_prev_week" steps="-168" default="-1.0"/>
+    </PostProcessor>
+  </Models>
+  ...
+  <Steps>
+    ...
+    <PostProcess name="delay">
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Model class="Models" type="PostProcessor">delayPP</Model>
+      <Output class="DataObjects" type="HistorySet">delayed_samples</Output>
+    </PostProcess>
+    ...
+  </Steps>
+  ...
+  <DataObjects>
+    <HistorySet name="samples">
+      <Input>demand</Input>
+      <Output>price</Output>
+      <options>
+        <pivotParameter>hour</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="delayed_samples">
+      <Input>demand</Input>
+      <Output>price,price_prev_hour,price_prev_day,price_prev_week</Output>
+      <options>
+        <pivotParameter>hour</pivotParameter>
+      </options>
+    </HistorySet>
+    ...
+  </DataObjects>
+</Simulation>
+\end{lstlisting}
 
 \paragraph{Method: HS2PS}
 
@@ -1823,41 +1925,28 @@ The resulting PointSet has \emph{time} as an input and \emph{first} as an output
 
 \subsubsection{ParetoFrontier}
 \label{ParetoFrontierPP}
-The \textbf{ParetoFrontier} post-processor is designed to identify the points lying on the Pareto Frontier in a cost-value space.
-This post-processor receives as input a \textbf{DataObject} (a PointSet only) which contains all data points in the cost-value space and it 
+The \textbf{ParetoFrontier} post-processor is designed to identify the points lying on the Pareto Frontier in a multi-dimensional trade-space.
+This post-processor receives as input a \textbf{DataObject} (a PointSet only) which contains all data points in the trade-space space and it 
 returns the subset of points lying in the Pareto Frontier as a PointSet.
 
 It is here assumed that each data point of the input PointSet is a realization of the system under consideration for a 
-specific configuration to which corresponds a cost and a value.
+specific configuration to which corresponds several objective variables (e.g., cost and value).
 
 %
 \ppType{ParetoFrontier}{ParetoFrontier}
 %
 \begin{itemize}
-  \item  \xmlNode{costID},\xmlDesc{string, required parameter}, ID of the input PointSet variable that is considered the cost variable. 
+  \item   \xmlNode{objective},\xmlDesc{string, required parameter}, ID of the objective variable that represents a dimension of the trade-space space. 
           The \xmlNode{costID} requires one identifying attribute:
           \begin{itemize}
-            \item \xmlAttr{inv}, \xmlDesc{boolean, required field}, False if costID represents a cost, True if costID represents a saving
-          \end{itemize}
-  \item  \xmlNode{valueID},\xmlDesc{string, required parameter}, ID of the input PointSet variable that is considered the value variable
-          The \xmlNode{valueID} requires one identifying attribute:
-          \begin{itemize}
-            \item \xmlAttr{inv}, \xmlDesc{boolean, required field}, False if valueID represents a value, True if valueID represents a loss of value
-          \end{itemize}
-  \item  \xmlNode{costLimit},\xmlDesc{float, optional parameter}, maximum value of the cost variable to be considered in the pareto frontier
-          The \xmlNode{costLimit} requires one identifying attribute:
-          \begin{itemize}
-            \item \xmlAttr{type}, \xmlDesc{string, required field}, this attribute can be either ``lower" or ``upper'', it indicates if the limit is an upper or lower limit
-          \end{itemize}
-  \item  \xmlNode{valueLimit},\xmlDesc{float, optional parameter}, minimum value of the value variable to be considered in the pareto frontier
-          The \xmlNode{valueLimit} requires one identifying attribute:
-          \begin{itemize}
-            \item \xmlAttr{type}, \xmlDesc{string, required field}, this attribute can be either ``lower" or ``upper'', it indicates if the limit is an upper or lower limit
+            \item \xmlAttr{goal}, \xmlDesc{string, required field}, Goal of the objective variable characteristic: minimzation (min) or maximization (max)
+            \item \xmlAttr{upperLimit}, \xmlDesc{string, optional field}, Desired upper limit of the objective variable for the points in the Pareto frontier
+            \item \xmlAttr{lowerLimit}, \xmlDesc{string, optional field}, Desired lower limit of the objective variable for the points in the Pareto frontier
           \end{itemize}
 \end{itemize}
 
 The following is an example where a set of realizations (the ``candidates'' PointSet) has been generated by changing two parameters 
-(var1 and var2) which produced two output variables (cost and value).
+(var1 and var2) which produced two output variables: cost (which it is desired to be minimized) and value (which it is desired to be maximized).
 The \textbf{ParetoFrontier} post-processor takes the ``candidates'' PointSet and populates a Point similar in structure 
 (the ``paretoPoints'' PointSet).
 
@@ -1865,8 +1954,8 @@ The \textbf{ParetoFrontier} post-processor takes the ``candidates'' PointSet and
 \begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=ParetoFrontier input example (no expand)., label=lst:ParetoFrontier_PP_InputExample]
   <Models>
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
-      <costID>cost</costID>
-      <valueID>value</valueID>
+      <objective goal='min' upperLimit='0.5'>cost</objective>
+      <objective goal='max' lowerLimit='0.5'>value</objective>
     </PostProcessor>   
   </Models>
 
@@ -1890,7 +1979,7 @@ The \textbf{ParetoFrontier} post-processor takes the ``candidates'' PointSet and
   </DataObjects>
 \end{lstlisting}
 
-\nb it is possible to specify upper and lower limits for the cost and value variable respectively.
+\nb it is possible to specify both upper and lower limits for each objective variable.
 When one or both of these limits are specified, then the pareto frontier is filtered such that all pareto frontier points that
 satisfy those limits are preserved.
 

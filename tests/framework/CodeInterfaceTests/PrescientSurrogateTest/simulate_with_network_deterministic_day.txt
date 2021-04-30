@@ -1,0 +1,27 @@
+command/exec simulator.py
+--data-directory=deterministic_with_network_scenarios_day
+--simulate-out-of-sample 
+--run-sced-with-persistent-forecast-errors 
+--model-directory=..|..|prescient|models|tight
+--output-directory=deterministic_with_network_simulation_output_day
+--run-deterministic-ruc 
+--start-date=07-10-2020
+--num-days=1 
+--sced-horizon=4
+--traceback 
+--random-seed=10 
+--output-sced-initial-conditions 
+--output-sced-demands 
+--output-sced-solutions 
+--output-ruc-initial-conditions 
+--output-ruc-solutions 
+--output-ruc-dispatches 
+--output-solver-logs
+--ruc-mipgap=0.01 
+--symbolic-solver-labels 
+--reserve-factor=0.0 
+--deterministic-ruc-solver=cbc
+--sced-solver=cbc
+--compute-market-settlements=True
+--day-ahead-pricing=LMP
+

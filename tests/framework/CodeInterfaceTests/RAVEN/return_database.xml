@@ -1,0 +1,91 @@
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/CodeInterfaceTests/RAVEN.ReturnDatabase</name>
+    <author>talbpaul</author>
+    <created>2020-03-04</created>
+    <classesTested>Models.Code.RAVEN</classesTested>
+    <description>
+      Tests returning a NetCDF database instead of a set of dataobject CSVs.
+    </description>
+    <analytic>
+      Each sample in this test converges towards the analytic solutions discussed in the "changing lower, upper bounds" section of
+      the "attenuate" analytic model documentation.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>ReturnDatabase</WorkingDir>
+    <Sequence>sample,print</Sequence>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="Files" type="raven">inner_input</Input>
+      <Model class="Models" type="Code">raven</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="DataSet">outer_samples</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="DataSet">outer_samples</Input>
+      <Output class="Databases" type="NetCDF">outer_samples</Output>
+    </IOStep>
+  </Steps>
+
+  <Databases>
+    <NetCDF name="outer_samples" readMode="overwrite"/>
+  </Databases>
+
+  <Files>
+    <Input name="inner_input" type="raven" >inner_sample.xml</Input>
+  </Files>
+
+  <Models>
+    <Code name="raven" subType="RAVEN">
+        <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
+        <outputDatabase>inner_samples</outputDatabase>
+        <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:dist|lowerBound</alias>
+        <alias variable="innerUpperBound" type="input">Distributions|Uniform@name:dist|upperBound</alias>
+    </Code>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dist_lower">
+      <lowerBound>0</lowerBound>
+      <upperBound>0.49999</upperBound>
+    </Uniform>
+    <Uniform name="dist_upper">
+      <lowerBound>0.50001</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="innerLowerBound">
+        <distribution>dist_lower</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+      </variable>
+      <variable name="innerUpperBound">
+        <distribution>dist_upper</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="outer_out">
+      <type>csv</type>
+      <source>outer_samples</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <DataSet name="outer_samples">
+      <Input>innerLowerBound,innerUpperBound</Input>
+      <Output>a, b, c, d, e, f</Output>
+      <Index var="x">e, f</Index>
+      <Index var="y">f</Index>
+    </DataSet>
+  </DataObjects>
+
+</Simulation>

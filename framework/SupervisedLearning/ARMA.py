@@ -61,15 +61,13 @@ class ARMA(supervisedLearning):
                           }
 
   ### INHERITED METHODS ###
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler: a MessageHandler object in charge of raising errors,
-                           and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     self.printTag = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
     # training storage
@@ -80,6 +78,7 @@ class ARMA(supervisedLearning):
     self.fourierResults    = {} # dictionary of Fourier results, by target
     # training parameters
     self.fourierParams     = {} # dict of Fourier training params, by target (if requested, otherwise not present)
+    self.nyquistScalar     = kwargs.get('nyquistScalar', 1)
     self.P                 = kwargs.get('P', 3) # autoregressive lag
     self.Q                 = kwargs.get('Q', 3) # moving average lag
     self.segments          = kwargs.get('segments', 1)
@@ -117,7 +116,7 @@ class ARMA(supervisedLearning):
     else:
       self.seed = int(self.seed)
 
-    self.normEngine = Distributions.returnInstance('Normal',self)
+    self.normEngine = Distributions.factory.returnInstance('Normal')
     self.normEngine.mean = 0.0
     self.normEngine.sigma = 1.0
     self.normEngine.upperBoundUsed = False
@@ -728,7 +727,6 @@ class ARMA(supervisedLearning):
                                                     burnin = 2*max(self.P,self.Q)) # @alfoa, 2020
     return hist
 
-
   def _generateFourierSignal(self, pivots, periods):
     """
       Generate fourier signal as specified by the input file
@@ -897,7 +895,7 @@ class ARMA(supervisedLearning):
     if masks is not None:
       data = data[masks]
     import statsmodels.api
-    results =  statsmodels.tsa.arima_model.ARMA(data, order = (self.P, self.Q)).fit(disp = False)
+    results = statsmodels.tsa.arima_model.ARMA(data, order = (self.P, self.Q)).fit(disp = False)
     return results
 
   def _trainCDF(self, data, binOps=None):
@@ -1059,7 +1057,6 @@ class ARMA(supervisedLearning):
     dist.rank = dim
     dist.mu = means
     dist.covariance = np.ravel(cov)
-    dist.messageHandler = self.messageHandler
     dist.initializeDistribution()
     return dist
 
@@ -1826,8 +1823,8 @@ class ARMA(supervisedLearning):
           # NOTE: assuming training on only one history!
           targetVals = trainingDict[target][0]
           periods = np.asarray(self.fourierParams[target])
-          full = periods[periods > delta]
-          segment[target] = periods[np.logical_not(periods > delta)]
+          full = periods[periods > (delta*self.nyquistScalar)]
+          segment[target] = periods[np.logical_not(periods > (delta*self.nyquistScalar))]
           if len(full):
             # train Fourier on longer periods
             self.fourierResults[target] = self._trainFourier(pivotValues, full, targetVals, target=target)
@@ -2041,6 +2038,8 @@ class ARMA(supervisedLearning):
           # TODO can we do this all at once with a vector operation? -> you betcha
           evaluation[target][:, localPicker] += mySig
         else:
+          # if last segment is shorter than other clusters, just keep the part of the evaluation
+          #     that makes sense? I guess? What about the "truncated" case above? - talbpaul 2020-10
           evaluation[target][localPicker] += sig
     return evaluation
 

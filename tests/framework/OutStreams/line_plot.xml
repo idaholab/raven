@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity = 'debug'>
-    
+
   <TestInfo>
     <name>framework/OutStreams.line</name>
     <author>wangc</author>
@@ -33,7 +33,7 @@
       <Output  class="OutStreams"   type="Plot"           >to_plot</Output>
     </IOStep>
   </Steps>
-  
+
   <Models>
     <ExternalModel ModuleToLoad="../../AnalyticModels/projectile.py" name="projectile" subType="">
       <variables>v0,angle,r,x,y,t,var1,timeOption</variables>
@@ -91,6 +91,7 @@
 
   <OutStreams>
     <Plot  name="to_plot">
+      <filename>test_filename</filename>
       <plotSettings>
         <plot>
           <type>line</type>

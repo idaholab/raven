@@ -23,10 +23,8 @@ import xml.dom.minidom
 import os
 import shutil
 import copy
-import numpy as np
 from collections import OrderedDict
 from utils import utils, xmlUtils, mathUtils
-import MessageHandler # to give VariableGroups a messageHandler and handle messages
 
 class RAVENparser():
   """
@@ -41,6 +39,7 @@ class RAVENparser():
     self.printTag  = 'RAVEN_PARSER' # print tag
     self.inputFile = inputFile      # input file name
     self.outStreamsNames = {}       # {'outStreamName':[DataObjectName,DataObjectType]}
+    self.databases = {}             # {name: full rel path to file with filename}
     self.varGroups = {}             # variable groups, names and values
     if not os.path.exists(inputFile):
       raise IOError(self.printTag+' ERROR: Not found RAVEN input file')
@@ -57,12 +56,7 @@ class RAVENparser():
     # get the NAMES of the variable groups
     variableGroupNode = self.tree.find('VariableGroups')
     if variableGroupNode is not None:
-      # make a messageHandler and messageUsesr to handle variable group creation
-      ## if made generally available to this parser, this can be relocated and used generally
-      messageHandler = MessageHandler.MessageHandler()
-      messageHandler.initialize({'verbosity':'quiet'})
-      messageUser = MessageHandler.MessageUser()
-      self.varGroups = mathUtils.readVariableGroups(variableGroupNode,messageHandler,messageUser)
+      self.varGroups = mathUtils.readVariableGroups(variableGroupNode)
 
     # do some sanity checks
     sequence = [step.strip() for step in self.tree.find('.//RunInfo/Sequence').text.split(",")]
@@ -74,6 +68,7 @@ class RAVENparser():
         raise IOError(self.printTag+' ERROR: Only one level of RAVEN runs are allowed (Not a chain of RAVEN runs). Found a <Code> of subType RAVEN!')
     # find steps and check if there are active outstreams (Print)
     foundOutStreams = False
+    foundDatabases = False
     for step in self.tree.find('.//Steps'):
       if step.attrib['name'] in sequence:
         for role in step:
@@ -82,7 +77,7 @@ class RAVENparser():
             if mainClass == 'OutStreams' and subType == 'Print':
               outStream = self.tree.find('.//OutStreams/Print[@name="'+role.text.strip()+ '"]'+'/source')
               if outStream is None:
-                raise IOError(self.printTag+' ERROR: The OutStream of type "Print" named "'+role.text.strip()+'" has not been found!')
+                continue # can have an outstream in inner but still use database return
               dataObjectType = None
               linkedDataObjectPointSet = self.tree.find('.//DataObjects/PointSet[@name="'+outStream.text.strip()+ '"]')
               if linkedDataObjectPointSet is None:
@@ -97,8 +92,21 @@ class RAVENparser():
                 dataObjectType, xmlNode = "PointSet", linkedDataObjectPointSet
               self.outStreamsNames[role.text.strip()] = [outStream.text.strip(),dataObjectType,xmlNode]
               foundOutStreams = True
-    if not foundOutStreams:
-      raise IOError(self.printTag+' ERROR: at least one <OutStreams> of type "Print" needs to be inputted in the active Steps!!')
+            elif mainClass == 'Databases' and subType == 'NetCDF':
+              rName = role.text.strip()
+              db = self.tree.find(f'.//Databases/NetCDF[@name="{rName}"]')
+              if db is None:
+                continue # can have a database in inner but still use outsream return
+              if db.attrib['readMode'] == 'overwrite':
+                dirs = db.attrib.get('directory', 'DatabaseStorage')
+                name = db.attrib.get('filename', db.attrib['name']+'.nc')
+                full = os.path.join(dirs, name)
+                self.databases[rName] = full
+                foundDatabases = True
+
+    if not foundOutStreams and not foundDatabases:
+      raise IOError(self.printTag+' ERROR: No <OutStreams><Print> or <Databases><NetCDF readMode="overwrite"> found in the active <Steps> of inner RAVEN!')
+
     # Now we grep the paths of all the inputs the SLAVE RAVEN contains in the workind directory.
     self.workingDir = self.tree.find('.//RunInfo/WorkingDir').text.strip()
     # Find the Files
@@ -168,13 +176,13 @@ class RAVENparser():
     # make the paths absolute
     return slaveFiles
 
-  def returnOutstreamsNamesAnType(self):
+  def returnOutputs(self):
     """
       Method to return the Outstreams names and linked DataObject name
       @ In, None
       @ Out, outStreamsNames, dict, the dictionary of outstreams of type print {'outStreamName':[DataObjectName,DataObjectType]}
     """
-    return self.outStreamsNames
+    return self.outStreamsNames, self.databases
 
   def returnVarGroups(self):
     """

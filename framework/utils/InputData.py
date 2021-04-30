@@ -301,6 +301,20 @@ class ParameterInput(object):
                quantity)
 
   @classmethod
+  def mergeSub(cls, sub):
+    """
+      Adds all the subs and params of the indicated node to this node.
+      @ In, sub, subclass of ParameterInput, the subnode to merge in
+      @ Out, None
+    """
+    for name, param in sub.parameters.items():
+      # directly add param from dict rather than split dict into addParam args
+      # TODO warn of overwrite?
+      cls.parameters[name] = param
+    for subsub in sub.subs:
+      cls.addSub(subsub)
+
+  @classmethod
   def removeSub(cls, sub):
     """
       Removes a subnode from this class.
@@ -354,19 +368,24 @@ class ParameterInput(object):
     """
     cls.contentType = contentType
 
-  def parseNode(self, node, errorList=None):
+  def parseNode(self, node, errorList=None, parentList=None):
     """
       Parses the xml node and puts the results in self.parameterValues and
       self.subparts and self.value
       @ In, node, xml.etree.ElementTree.Element, The node to parse.
       @ In, errorList, list, if not None, put errors in errorList instead of throwing IOError.
+      @ In, parentList, list, list of names of nodes above this one in the heirarchy, allowing
+            better error printing.
       @ Out, None
     """
+    if parentList is None:
+      parentList = [self.name]
     def handleError(s):
       """
         Handles the error, either by throwing IOError or adding to the errorlist
         @ In, s, string, string describing error.
       """
+      s = f'{".".join(parentList)}: ' + s
       # TODO give the offending XML! Use has no idea where they went wrong.
       if errorList == None:
         raise IOError(s)
@@ -377,9 +396,9 @@ class ParameterInput(object):
     if node.tag != self.name:
       #should this be an error or a warning? Or even that?
       #handleError('XML node "{}" != param spec name "{}"'.format(node.tag,self.name))
-      print('InputData: Using param spec "{}" to read XML node "{}.'.format(self.name,node.tag))
+      print(f'InputData: Using param spec "{self.name}" to read XML node "{node.tag}.')
     if self._checkCanRead is not None and not self.__class__._checkCanRead.check(node):
-      handleError("CheckCanRead failed for "+node.tag+"Reason: "+self.__class__._checkCanRead.failCheckReason(node))
+      handleError(f'CheckCanRead failed for "{node.tag}; Reason: {self.__class__._checkCanRead.failCheckReason(node)}')
 
     # check content type
     if self.contentType:
@@ -396,12 +415,12 @@ class ParameterInput(object):
         param_type = self.parameters[parameter]["type"]
         self.parameterValues[parameter] = param_type.convert(node.attrib[parameter])
       elif self.parameters[parameter]["required"]:
-        handleError("Required parameter " + parameter + " not in " + node.tag)
+        handleError(f'Required attribute "{parameter}" not in "{node.tag}"')
     # if strict, force parameter checking
     if self.strictMode:
       for parameter in node.attrib:
         if not parameter in self.parameters:
-          handleError(parameter + " not in attributes and strict mode on in "+node.tag)
+          handleError(f'"{parameter}" not in node attributes and strict mode on in "{node.tag}"')
 
     # handle ordering of subnodes
     if self.subOrder is not None:
@@ -420,14 +439,14 @@ class ParameterInput(object):
           foundSubs += 1
         elif sub._checkCanRead.check(child):
           subInstance = sub()
-          foundSub += 1
+          foundSubs += 1
       if foundSubs > 0:
         subNames.add(childName)
-        subInstance.parseNode(child, errorList)
+        subInstance.parseNode(child, errorList, parentList + [childName])
         self.subparts.append(subInstance)
       elif self.strictMode:
         allowed = [s.getName() for s in subs]
-        handleError(f'Unrecognized input: "{childName}"! Allowed: "{allowed}", tried "{subsSet}"')
+        handleError(f'Unrecognized input node "{childName}"! Allowed: [{", ".join(allowed)}], tried [{", ".join(subsSet)}]')
     if self.strictMode:
       nodeNames = set([child.tag for child in node])
       if nodeNames != subNames:
@@ -674,8 +693,9 @@ class RavenBase(ParameterInput):
     This can be used as a base class for things that inherit from BaseType
   """
 RavenBase.createClass("RavenBase", baseNode=None)
+RavenBase.addParam("name", param_type=InputTypes.StringType, required=True, descr='User-defined name to designate this entity in the RAVEN input file.')
 verbs = InputTypes.makeEnumType('verbosity', 'verbosityType', ['silent', 'quiet', 'all', 'debug'])
-RavenBase.addParam("verbosity", param_type=verbs, descr='Desired verbosity of messages coming from this entity') #XXX should be enumeration
+RavenBase.addParam("verbosity", param_type=verbs, descr='Desired verbosity of messages coming from this entity')
 
 
 #
