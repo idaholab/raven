@@ -12,20 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  The Metrics module includes the different type of metrics
-  to measure distance among RAVEN dataobjects
+  The Validation module includes algorithms for deploying validation method in RAVEN.
+
+  Created on April, 2021
+  @author: alfoa
 """
 
-## These lines ensure that we do not have to do something like:
-## 'from OutStreamManagers.OutStreamPlot import OutStreamPlot' outside
-## of this submodule
-from .Metric import Metric
-from .DTW import DTW
-from .SklMetric import SKL
-from .PairwiseMetric import PairwiseMetric
-from .CDFAreaDifference import CDFAreaDifference
-from .PDFCommonArea import PDFCommonArea
-#from .RACDistance import RACDistance
-from .ScipyMetric import ScipyMetric
+# These lines ensure that we do not have to do something like:
+#from .ValidationBase import ValidationBase
 
 from .Factory import factory
