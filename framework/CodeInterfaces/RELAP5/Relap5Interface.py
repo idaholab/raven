@@ -319,7 +319,6 @@ class Relap5(CodeInterfaceBase):
              where RAVEN stores the variables that got sampled (e.g. Kwargs['SampledVars'] => {'var1':10,'var2':40})
       @ Out, newInputFiles, list, list of newer input files, list of the new input files (modified and not)
     """
-    self._samplersDictionary = {}
     self.det = 'dynamiceventtree' in str(samplerType).lower()
     if self.det:
       self.tripControlVariables[Kwargs['prefix']] = None
@@ -329,7 +328,6 @@ class Relap5(CodeInterfaceBase):
     parser = RELAPparser.RELAPparser(currentInputFiles[index].getAbsFile(), self.det)
     if self.det:
       self.inputAliases = Kwargs.get('alias').get('input')
-      self._samplersDictionary[samplerType] = self.dynamicEventTreeForRELAP5
       self.detVars   = Kwargs.get('DETVariables')
       if not self.detVars:
         raise IOError('ERROR in "RELAP5 Code Interface": NO DET variables with DET sampler!!!')
@@ -339,8 +337,6 @@ class Relap5(CodeInterfaceBase):
       trips = parser.getTrips()
       varTrips, logTrips = trips.values()
       notTrips = []
-      print(varTrips)
-      print(logTrips)
       for var in self.detVars:
         splitted = var.split(":")
         if splitted[len(splitted)-2].split("|")[-1] not in varTrips and var not in logTrips:
@@ -350,8 +346,6 @@ class Relap5(CodeInterfaceBase):
                        +'the DET variables must be part of a Trip. The variables \n"'
                        +', '.join(notTrips)+'" are not part of Trips. Consider to sample \nthem with the'
                        +' HybridDynamicEventTree approach (treat them \nas epistemic uncertanties)!' )
-    else:
-      self._samplersDictionary[samplerType] = self.pointSamplerForRELAP5
     if len(self.operators) > 0:
       self._evaluateOperators(**Kwargs)
 
@@ -360,7 +354,7 @@ class Relap5(CodeInterfaceBase):
 
     if 'None' not in str(samplerType):
       Kwargs['currentPath'] = currentInputFiles[index].getPath()
-      modifDict = self._samplersDictionary[samplerType](**Kwargs)
+      modifDict = self.dynamicEventTreeForRELAP5(**Kwargs) if self.det else self.pointSamplerForRELAP5(**Kwargs)
       parser.modifyOrAdd(modifDict,True)
 
     parser.printInput(currentInputFiles[index])
