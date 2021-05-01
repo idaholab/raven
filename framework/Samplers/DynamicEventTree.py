@@ -262,6 +262,9 @@ class DynamicEventTree(Grid):
         branchedLevel[distk] = utils.first(np.atleast_1d(np.asarray(self.branchProbabilities[distk]) == distpb).nonzero())[-1]
     if not branchedLevel:
       self.raiseAnError(RuntimeError,'branchedLevel of node '+jobObject.identifier+'not found!')
+    if endInfo['branchDist'] not in branchedLevel:
+      self.raiseAnError(RuntimeError,'<Distribution_trigger> (aka variable) "{}"  in job "{}" not found in the DET set of variables. Available variables are "{}". Problem with the alias?'.format(endInfo['branchDist'],jobObject.identifier, ','.join(branchedLevel.keys())))
+
     # Loop of the parameters that have been changed after a trigger gets activated
     if 'None' not in endInfo['branchChangedParams']:
       for key in endInfo['branchChangedParams']:

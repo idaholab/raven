@@ -204,9 +204,9 @@ class Relap5(CodeInterfaceBase):
           splitted =  var.split(":")
           tripName =  splitted[len(splitted)-2].strip()
           for deckNum in self.tripControlVariables[prefix]:
-            tripSplit = tripName.split("|") 
+            tripSplit = tripName.split("|")
             if len(tripSplit) > 1:
-              tripDeck, tripName = int(tripSplit[0]), tripSplit[-1] 
+              tripDeck, tripName = int(tripSplit[0]), tripSplit[-1]
             else:
               tripDeck, tripName = 1, tripSplit[-1]
             if tripDeck == deckNum and tripName in self.tripControlVariables[prefix][deckNum].values():
