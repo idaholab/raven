@@ -290,7 +290,7 @@ class Umbrella(ForwardSampler):
 
   def multi_umbrella_sample(self, sample_size, vertWeights):
     pmf = [self.weightTarget, 1 - self.weightTarget]
-    disc_sample = self.rdiscrete(sample_size, pmf)
+    disc_sample = self.rdiscrete(self.limit, pmf)
     target_sample_size = len(disc_sample[disc_sample == 1])
     tail_sample_size = sample_size - target_sample_size
     tail_sample = self.multi_gamma_tail_sample(tail_sample_size, vertWeights)

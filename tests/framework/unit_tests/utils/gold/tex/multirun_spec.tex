@@ -8,10 +8,10 @@
 
   The \xmlNode{MultiRun} node recognizes the following parameters:
     \begin{itemize}
-      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
-        Desired verbosity of messages coming from this entity
       \item \xmlAttr{name}: \xmlDesc{string, required}, 
         User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
       \item \xmlAttr{sleepTime}: \xmlDesc{float, optional}, 
         Determines the wait time between successive iterations within this step, in seconds.
       \item \xmlAttr{re-seeding}: \xmlDesc{string, optional}, 
@@ -25,6 +25,11 @@
         -- no description yet --
       \item \xmlAttr{repeatFailureRuns}: \xmlDesc{string, optional}, 
         -- no description yet --
+      \item \xmlAttr{clearRunDir}: \xmlDesc{[True, Yes, 1, False, No, 0, t, y, 1, f, n, 0], optional}, 
+        indicates whether the run directory should be cleared (removed) before beginning
+        the Step calculation. The run directory has the same name as the Step and is located
+        within the WorkingDir. Note this directory is only used for Steps with certain Models,
+        such as Code.               \default{True}
   \end{itemize}
 
   The \xmlNode{MultiRun} node recognizes the following subnodes:

@@ -33,7 +33,7 @@
   </Models>
 
   <Steps>
-    <SingleRun name="testDummyStep_Single">
+    <SingleRun name="testDummyStep_Single" clearRunDir="False">
       <Input class="Files" type="">cobra_input</Input>
       <Input class="Files" type="">paramInput</Input>
       <Model class="Models" type="Code">MyCobraTF</Model>

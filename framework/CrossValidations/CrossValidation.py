@@ -16,33 +16,25 @@ Created on September 2017
 
 @author: wangc
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
-import numpy as np
 import abc
-#External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-import MessageHandler
+from BaseClasses import MessageUser
 from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CrossValidation(utils.metaclass_insert(abc.ABCMeta), MessageHandler.MessageUser):
+class CrossValidation(utils.metaclass_insert(abc.ABCMeta), MessageUser):
   """
     Cross validation methods used to validate models
   """
 
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       This is the basic method initialize the cross validation object
-      @ In, messageHandler, object, Message handler object
       @ In, kwargs, dict, arguments for the Pairwise metric
       @ Out, none
     """
-    self.messageHandler = messageHandler
+    super().__init__()
     self.printTag = 'Cross Validation'
     if kwargs != None:
       self.initOptionDict = kwargs

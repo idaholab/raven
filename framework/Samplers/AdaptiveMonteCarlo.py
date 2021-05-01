@@ -18,31 +18,21 @@
   @author: ZHOUJ2
 
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
-from collections import OrderedDict
 import numpy as np
-import sys
 
-#External Modules End--------------------------------------------------------------------------------
-
-from PostProcessors import BasicStatistics
+from Models.PostProcessors import factory as ppFactory
+from utils import InputData, InputTypes
 from .AdaptiveSampler import AdaptiveSampler
 from .MonteCarlo import MonteCarlo
-import Distributions
-from utils import InputData, InputTypes
-#Internal Modules End--------------------------------------------------------------------------------
 
 
 class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
   """
     A sampler that will adaptively locate the limit surface of a given problem
   """
-  statScVals = BasicStatistics.scalarVals
-  statErVals = BasicStatistics.steVals
+  bS = ppFactory.returnClass('BasicStatistics')
+  statScVals = bS.scalarVals
+  statErVals = bS.steVals
   usableStats = []
   for errMetric in statErVals:
     metric, _ = errMetric.split('_')
@@ -171,7 +161,7 @@ class AdaptiveMonteCarlo(AdaptiveSampler, MonteCarlo):
       @ Out, None
     """
     self.converged = False
-    self.basicStatPP = BasicStatistics(self.messageHandler) # TODO should use factory!
+    self.basicStatPP = ppFactory.returnInstance('BasicStatistics')
     # check if solutionExport is actually a "DataObjects" type "PointSet"
     if self._solutionExport.type != "PointSet":
       self.raiseAnError(IOError,'solutionExport type is not a PointSet. Got '+ self._solutionExport.type +'!')

@@ -12,7 +12,7 @@
       <revision author="alfoa" date="2020-01-31">Created test</revision>
     </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>MooseExample18OnlyGenericFile</WorkingDir>
     <Sequence>myMC</Sequence>
@@ -56,7 +56,7 @@
       <variable name="p3.0">
         <distribution>power3</distribution>
       </variable>
-      
+
     </MonteCarlo>
   </Samplers>
 
@@ -72,7 +72,7 @@
   </DataObjects>
 
   <Steps>
-    <MultiRun name="myMC">
+    <MultiRun name="myMC" clearRunDir="False">
       <Input class="Files" type="">ex18.i</Input>
       <Input class="Files" type="">a_mesh_file.e</Input>
       <Input class="Files" type="Generic">generic_external_file.csv</Input>

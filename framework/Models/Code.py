@@ -28,6 +28,7 @@ import platform
 import shlex
 import time
 import numpy as np
+import pandas as pd
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -101,13 +102,13 @@ class Code(Model):
     cls.validateDict['Input'  ][0]['required'    ] = False
     cls.validateDict['Input'  ][0]['multiplicity'] = 'n'
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Model.__init__(self,runInfoDict)
+    super().__init__()
     self.executable = ''         # name of the executable (abs path)
     self.preExec = None          # name of the pre-executable, if any
     self.oriInputFiles = []      # list of the original input files (abs path)
@@ -115,12 +116,20 @@ class Code(Model):
     self.outFileRoot = ''        # root to be used to generate the sequence of output files
     self.currentInputFiles = []  # list of the modified (possibly) input files (abs path)
     self.codeFlags = None        # flags that need to be passed into code interfaces(if present)
-    self.printTag = 'CODE MODEL'
-    self.createWorkingDir = True
+    self.printTag = 'CODE MODEL' # label
+    self.createWorkingDir = True # whether to create the requested working dir
     self.foundExecutable = True  # True indicates the executable is found, otherwise not found
     self.foundPreExec = True     # True indicates the pre-executable is found, otherwise not found
     self.maxWallTime = None      # If set, this indicates the maximum CPU time a job can take.
-    self._ravenWorkingDir = runInfoDict['WorkingDir']
+    self._ravenWorkingDir = None # RAVEN's working dir
+
+  def applyRunInfo(self, runInfo):
+    """
+      Take information from the RunInfo
+      @ In, runInfo, dict, RunInfo info
+      @ Out, None
+    """
+    self._ravenWorkingDir = runInfo['WorkingDir']
 
   def _readMoreXML(self,xmlNode):
     """
@@ -245,7 +254,7 @@ class Code(Model):
       else:
         self.foundPreExec = False
         self.raiseAMessage('not found preexec '+self.preExec,'ExceptedError')
-    self.code = Code.CodeInterfaces.returnCodeInterface(self.subType, self)
+    self.code = Code.CodeInterfaces.factory.returnInstance(self.subType)
     self.code.readMoreXML(xmlNode, self._ravenWorkingDir) #TODO figure out how to handle this with InputData
     self.code.setInputExtension(list(a[0].strip('.') for b in (c for c in self.clargs['input'].values()) for a in b))
     self.code.addInputExtension(list(a.strip('.') for b in (c for c in self.fargs ['input'].values()) for a in b))
@@ -308,8 +317,10 @@ class Code(Model):
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
       if inputFile.subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
-        os.mkdir(subSubDirectory)
+        os.makedirs(subSubDirectory)
       ##########################################################################
+      if not os.path.exists(inputFile.getAbsFile()):
+        self.raiseAnError(ValueError, 'The input file '+inputFile.getFilename()+' does not exist in directory: '+inputFile.getPath())
       shutil.copy(inputFile.getAbsFile(),subSubDirectory)
       self.oriInputFiles.append(copy.deepcopy(inputFile))
       self.oriInputFiles[-1].setPath(subSubDirectory)
@@ -369,12 +380,13 @@ class Code(Model):
       ## this could change, so we will leave this code here.
       ## -- DPM 8/2/17
       if newInputSet[index].subDirectory.strip() != "" and not os.path.exists(subSubDirectory):
-        os.mkdir(subSubDirectory)
+        os.makedirs(subSubDirectory)
       ##########################################################################
       newInputSet[index].setPath(subSubDirectory)
       shutil.copy(self.oriInputFiles[index].getAbsFile(),subSubDirectory)
 
     kwargs['subDirectory'] = subDirectory
+    kwargs['alias'] = self.alias
 
     if 'SampledVars' in kwargs.keys():
       sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
@@ -488,7 +500,7 @@ class Code(Model):
 
     precommand = kwargs['precommand']
     postcommand = kwargs['postcommand']
-    bufferSize = kwargs['bufferSize']
+    bufferSize = kwargs['logfileBuffer']
     fileExtensionsToDelete = kwargs['deleteOutExtension']
     deleteSuccessfulLogFiles = kwargs['delSucLogFiles']
 
@@ -550,6 +562,7 @@ class Code(Model):
         localenv[key]=str(value)
     elif not self.code.getRunOnShell():
       command = self._expandCommand(command)
+    self.raiseADebug(f'shell execution command: "{command}"')
     ## reset python path
     localenv.pop('PYTHONPATH',None)
     ## This code should be evaluated by the job handler, so it is fine to wait
@@ -590,40 +603,45 @@ class Code(Model):
     ## My guess is that every code interface implements this given that the code
     ## below always adds .csv to the filename and the standard output file does
     ## not have an extension. - (DPM 4/6/2017)
-    outputFile = codeLogFile
+    outputFile, isStr = codeLogFile, True
     if 'finalizeCodeOutput' in dir(self.code) and returnCode == 0:
-      finalCodeOutputFile = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
+      finalCodeOutput = self.code.finalizeCodeOutput(command, codeLogFile, metaData['subDirectory'])
       ## Special case for RAVEN interface --ALFOA 09/17/17
-      ravenCase = False
-      if type(finalCodeOutputFile).__name__ == 'dict':
-        ravenCase = True
-      if ravenCase and self.code.__class__.__name__ != 'RAVEN':
-        self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be a str containing the new output file root!')
-      if finalCodeOutputFile and not ravenCase:
-        outputFile = finalCodeOutputFile
+      ravenCase = type(finalCodeOutput).__name__ == 'dict' and self.code.__class__.__name__ == 'RAVEN'
+      # check return of finalizecode output
+      if finalCodeOutput is not None:
+        isDict = isinstance(finalCodeOutput,dict)
+        isStr = isinstance(finalCodeOutput,str)
+        if not isDict and not isStr:
+          self.raiseAnError(RuntimeError, 'The return argument from "finalizeCodeOutput" must be either a str' +
+                                          'containing the new output file root or a dict of data!')
+      if finalCodeOutput and not ravenCase:
+        if not isDict:
+          outputFile = finalCodeOutput
+        else:
+          returnDict = finalCodeOutput
 
     ## If the run was successful
     if returnCode == 0:
-      returnDict = {}
       ## This may be a tautology at this point --DPM 4/12/17
       ## Special case for RAVEN interface. Added ravenCase flag --ALFOA 09/17/17
-      if outputFile is not None and not ravenCase:
+      if outputFile and isStr and not ravenCase:
         outFile = Files.CSV()
         ## Should we be adding the file extension here?
-        outFile.initialize(outputFile+'.csv',self.messageHandler,path=metaData['subDirectory'])
+        outFile.initialize(outputFile+'.csv', path=metaData['subDirectory'])
 
-        csvLoader = CsvLoader.CsvLoader(self.messageHandler)
-        csvData = csvLoader.loadCsvFile(outFile)
-        if np.isnan(csvData).all():
-          self.raiseAnError(IOError, 'The data collected from', outputFile+'.csv', 'only contain "NAN"')
-        headers = csvLoader.getAllFieldNames()
+        csvLoader = CsvLoader.CsvLoader()
+        # does this CodeInterface have sufficiently intense (or limited) CSV files that
+        #   it needs to assume floats and use numpy, or can we use pandas?
+        loadUtility = self.code.getCsvLoadUtil()
+        csvData = csvLoader.loadCsvFile(outFile.getAbsFile(), nullOK=False, utility=loadUtility)
+        returnDict = csvLoader.toRealization(csvData)
 
-        ## Numpy by default iterates over rows, thus we transpose the data and
-        ## zip it with the headers in order to do store it very cleanly into a
-        ## dictionary.
-        for header,data in zip(headers, csvData.T):
-          returnDict[header] = data
       if not ravenCase:
+        # check if the csv needs to be printed
+        if self.code.getIfWriteCsv():
+          csvFileName = os.path.join(metaData['subDirectory'],outputFile+'.csv')
+          pd.DataFrame.from_dict(returnDict).to_csv(path_or_buf=csvFileName,index=False)
         self._replaceVariablesNamesWithAliasSystem(returnDict, 'inout', True)
         returnDict.update(kwargs)
         returnValue = (kwargs['SampledVars'],returnDict)
@@ -634,14 +652,14 @@ class Code(Model):
         #  -> in addition, we have to fix the probability weights.
         ## get the number of realizations
         ### we already checked consistency in the CodeInterface, so just get the length of the first data object
-        numRlz = len(utils.first(finalCodeOutputFile.values()))
+        numRlz = len(utils.first(finalCodeOutput.values()))
         ## set up the return container
         exportDict = {'RAVEN_isBatch':True,'realizations':[]}
         ## set up each realization
         for n in range(numRlz):
           rlz = {}
           ## collect the results from INNER, both point set and history set
-          for dataObj in finalCodeOutputFile.values():
+          for dataObj in finalCodeOutput.values():
             # TODO FIXME check for overwriting data.  For now just replace data if it's duplicate!
             new = dict((var,np.atleast_1d(val)) for var,val in dataObj.realization(index=n,unpackXArray=True).items())
             rlz.update( new )
@@ -685,12 +703,17 @@ class Code(Model):
       return exportDict
 
     else:
+      self.raiseAMessage("*"*50)
       self.raiseAMessage(" Process Failed "+str(command)+" returnCode "+str(returnCode))
       absOutputFile = os.path.join(sampleDirectory,outputFile)
       if os.path.exists(absOutputFile):
-        self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
+        if getattr(self.code, 'printFailedRuns', True):
+          self.raiseAMessage(repr(open(absOutputFile,"r").read()).replace("\\n","\n"))
+        else:
+          self.raiseAMessage(f'Ouput is in "{os.path.abspath(absOutputFile)}"')
       else:
         self.raiseAMessage(" No output " + absOutputFile)
+      self.raiseAMessage("*"*50)
 
       ## If you made it here, then the run must have failed
       return None
@@ -885,7 +908,7 @@ class Code(Model):
     ## we copy this dictionary (Caught this when running an ensemble model)
     ## -- DPM 4/11/17
     nodesList                    = jobHandler.runInfoDict.get('Nodes',[])
-    kwargs['bufferSize'        ] = jobHandler.runInfoDict['logfileBuffer']
+    kwargs['logfileBuffer'     ] = jobHandler.runInfoDict['logfileBuffer']
     kwargs['precommand'        ] = jobHandler.runInfoDict['precommand']
     kwargs['postcommand'       ] = jobHandler.runInfoDict['postcommand']
     kwargs['delSucLogFiles'    ] = jobHandler.runInfoDict['delSucLogFiles']

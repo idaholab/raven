@@ -2,7 +2,6 @@
   <DataSet type="Static">
     <general>
       <inputs>x0,y0,z0</inputs>
-      <pointwise_meta>ProbabilityWeight</pointwise_meta>
       <outputs>time,x02,y02,z02,x01,y01,z01,x,y,z</outputs>
       <sampleTag>RAVEN_sample_ID</sampleTag>
     </general>

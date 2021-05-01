@@ -73,7 +73,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="sample">
+    <MultiRun name="sample" clearRunDir="False">
       <Input class="Files" type="">macro</Input>
       <Input class="Files" type="">demo</Input>
       <Model class="Models" type="Code">saphire</Model>

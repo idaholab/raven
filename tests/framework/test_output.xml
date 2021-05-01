@@ -96,7 +96,7 @@
       <type>csv</type>
       <source>PointSets</source>
     </Print>
-    <Plot  name="test" overwrite="false" verbosity="debug">
+    <Plot name="testPlot" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -684,7 +684,7 @@
       <Output class="OutStreams" type="Print">test</Output>
       <Output class="OutStreams" type="Print">fullprint_Pointset</Output>
       <Output class="OutStreams" type="Plot">2DHistoryPlot2</Output>
-      <Output class="OutStreams" type="Plot">test</Output>
+      <Output class="OutStreams" type="Plot">testPlot</Output>
       <Output class="OutStreams" type="Plot">plot2</Output>
       <Output class="OutStreams" type="Plot">plot3</Output>
       <Output class="OutStreams" type="Plot">plot4</Output>

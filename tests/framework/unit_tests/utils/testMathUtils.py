@@ -16,23 +16,17 @@
   It cannot be considered part of the active code but of the regression test system
 """
 
-#For future compatibility with Python 3
-from __future__ import division, print_function, unicode_literals, absolute_import
-import warnings
-warnings.simplefilter('default',DeprecationWarning)
-
 import os,sys
 import numpy as np
 import xml.etree.ElementTree as ET
 frameworkDir = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])),os.pardir,os.pardir,os.pardir,os.pardir,'framework'))
 sys.path.append(frameworkDir)
+
 from utils import mathUtils
 
-from MessageHandler import MessageHandler
-mh = MessageHandler()
-mh.initialize({})
-
 print (mathUtils)
+mh = getMessageHandler()
+mh.verbosity = 'debug'
 
 results = {"pass":0,"fail":0}
 
@@ -145,18 +139,6 @@ for test in tests:
 
 ### check "createInterp"
 # TODO
-
-### check "simpson"
-def f(x):
-  """
-    Simple squaring function.
-    @ In, x, float, value
-    @ Out, f, float, square value
-  """
-  return x*x
-
-simp = mathUtils.simpson(f,-1,1,5)
-checkAnswer('simpson',simp,0.677333333333,1e-5)
 
 ### check "getGraphs"
 # TODO I don't know what this does.  Documentation is poor.
@@ -454,7 +436,7 @@ example = """<VariableGroups>
   <Group name="symmrev">d,%a</Group>
 </VariableGroups>"""
 node = ET.fromstring(example)
-groups = mathUtils.readVariableGroups(node,mh,None)
+groups = mathUtils.readVariableGroups(node)
 
 # test contents
 def testVarGroup(groups,g,right):

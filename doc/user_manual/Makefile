@@ -6,7 +6,7 @@ introduction.tex raven_user_manual.tex model.tex runInfo.tex libraries.tex DataM
 Installation/clone.tex Installation/conda.tex Installation/linux.tex Installation/macosx.tex Installation/main.tex \
 Installation/overview.tex Installation/windows.tex advanced_users_templates.tex
 LATEX_FLAGS=-interaction=nonstopmode
-LIB_FILES = ../../scripts/library_handler.py ../../dependencies.ini
+LIB_FILES = ../../scripts/library_handler.py ../../dependencies.xml
 
 all: raven_user_manual.pdf
 
