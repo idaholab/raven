@@ -76,8 +76,8 @@ class Correlation(PlotPlugin):
       @ In, None
       @ Out, None
     """
-    N = len(self._vars)
-    fig, axes = plt.subplots(N, N, tight_layout=True)
+    n = len(self._vars)
+    fig, axes = plt.subplots(n, n, tight_layout=True)
     data = self._source.asDataset()
     for v1, var1 in enumerate(self._vars):
       var1Data = data[var1].values
@@ -86,8 +86,6 @@ class Correlation(PlotPlugin):
         if var1 == var2:
           counts, edges = np.histogram(var1Data, bins=self._numBins)
           ax.step(0.5 * (edges[:-1] + edges[1:]), counts, '.-', where='mid')
-          #ax.set_xlim(edges[0], edges[-1])
-          #counts, bins, _ = plt.hist(var1Data, bins=10) #self._numBins)
           ax.set_xlabel(var1)
           ax.set_ylabel(var1)
         else:
@@ -98,12 +96,10 @@ class Correlation(PlotPlugin):
         if v1 == 0:
           ax.set_ylabel(var2)
         else:
-          # ax.axes.yaxis.set_ticklabels([])
           ax.set_ylabel('')
-        if v2 == N - 1:
+        if v2 == n - 1:
           ax.set_xlabel(var1)
         else:
-          # ax.axes.xaxis.set_ticklabels([])
           ax.set_xlabel('')
     fName = os.path.abspath(f'{self.name}.png')
     plt.savefig(fName)

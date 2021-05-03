@@ -133,7 +133,7 @@ class EntityFactory(MessageUser):
     """
       Checks if the requested entity is from a plugin (has '.' in type name), and if so loads plugin if it isn't already
       @ In, typeName, str, name of entity to check (e.g. MonteCarlo or MyPlugin.MySampler)
-      @ Out, None
+      @ Out, _checkInUnloadedPlugin, object, requested object if found or None if not.
     """
     if self._pluginFactory is not None and '.' in typeName:
       pluginName, remainder = typeName.split('.', maxsplit=1)
