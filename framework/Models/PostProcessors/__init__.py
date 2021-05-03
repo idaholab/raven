@@ -13,7 +13,10 @@
 # limitations under the License.
 
 """
-  Module definition for postprocessor interfaces.
+  The PostProcessor module for processing dataObjetcs in RAVEN.
+
+  Created on April 29, 2021
+  @author: alfoa
 """
 
 from .Factory import factory

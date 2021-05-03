@@ -77,7 +77,7 @@ class RELAPparser():
         self.presentStopTrip[self.maxNumberOfDecks] = copy.deepcopy(pStop)
         pStop = None
         prevDeckLineNum = lineNum + 1
-      elif line.strip().startswith("600"):
+      elif line.strip().startswith("600 "):
         pStop = [el.strip() for el in line.strip()[3:].split()]
         lines[lineNum] = "*"
 

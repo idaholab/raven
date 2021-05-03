@@ -151,3 +151,14 @@ class Plot(OutStreamEntity):
     paramDict = super().getInitParams()
     paramDict.update(self._plotter.getInitParams())
     return paramDict
+
+  ################
+  # Plot Interactive
+  def endInstructions(self, instructionString):
+    """
+      Method to execute instructions at end of a step (this is applied when an
+      interactive mode is activated)
+      @ In, instructionString, string, the instruction to execute
+      @ Out, None
+    """
+    self._plotter.endInstructions(instructionString)
