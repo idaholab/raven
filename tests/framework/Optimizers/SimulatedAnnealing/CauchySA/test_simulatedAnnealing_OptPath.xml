@@ -1,16 +1,16 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity="all">
   <TestInfo>
-    <name>framework/Optimizers.Basic</name>
-    <author>talbpaul</author>
-    <created>2020-01-29</created>
-    <classesTested>Optimizer</classesTested>
+    <name>framework/Optimizers/SimulatedAnnealing.CauchySA</name>
+    <author>MohammadAbdo</author>
+    <created>2020-02-11</created>
+    <classesTested>SimulatedAnnealing</classesTested>
     <description>
-      This is the most basic test of the Optimizer. It employs finite difference for the gradient
-      estimation, gradient history for the step determination, and strict improvement acceptance. It
-      converges only on the number of samples taken with a single trajectory on the Beale function. It
-      also demonstrates typical outstream options for optimization. It also tests passing through
-      constants and functions.
+      This test assesses the Simulated Annealing algorithm using Boltzmann cooling schedule on the Beale function.
+      The nominal dimensionality of the problem is 2, i.e., variables are x, y.
+      The objective variable is ans.
+      The global minimum is at: ans(3,0.5) = 0.0
+      Parameter range is $-4.5 \leq x,y \leq 4.5$.
     </description>
     <analytic>
       This test uses Beale's function, which is documented in the analytic tests documentation under
@@ -19,15 +19,15 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>Basic</WorkingDir>
+    <WorkingDir>.</WorkingDir>
     <Sequence>optimize, print</Sequence>
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
+    <MultiRun name="optimize"><!--re-seeding="032877" 120504,,120504,080510-->
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">beale</Model>
-      <Optimizer class="Optimizers" type="SPSA">opter</Optimizer>
+      <Optimizer class="Optimizers" type="SimulatedAnnealing">simOpt</Optimizer>
       <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
       <Output class="DataObjects" type="PointSet">optOut</Output>
       <Output class="OutStreams" type="Print">opt_export</Output>
@@ -48,63 +48,52 @@
     </Uniform>
   </Distributions>
 
-  <Functions>
-    <External file="var_func.py" name="var_func">
-      <variables>x,y,const</variables>
-    </External>
-  </Functions>
-
   <Optimizers>
-    <GradientDescent name="opter">
-      <objective>ans</objective>
+    <SimulatedAnnealing name="simOpt">
+      <samplerInit>
+        <limit>20</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>min</type>
+      </samplerInit>
+      <convergence>
+        <objective>-1</objective>
+        <temperature>1e-4</temperature>
+        <persistence>1</persistence>
+      </convergence>
+      <coolingSchedule>
+        <cauchy>
+          <d>5.0</d>
+        </cauchy>
+      </coolingSchedule>
       <variable name="x">
         <distribution>beale_dist</distribution>
-        <initial>-2</initial>
+        <initial>-2.0</initial>
       </variable>
       <variable name="y">
         <distribution>beale_dist</distribution>
-        <initial>-2</initial>
+        <initial>-2.0</initial>
       </variable>
-      <variable name="func">
-        <function>var_func</function>
-      </variable>
+      <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <samplerInit>
-        <limit>100</limit>
-        <initialSeed>42</initialSeed>
-        <writeSteps>every</writeSteps>
-      </samplerInit>
-      <gradient>
-        <FiniteDifference/>
-      </gradient>
-      <stepSize>
-        <GradientHistory>
-          <growthFactor>1.25</growthFactor>
-          <shrinkFactor>1.5</shrinkFactor>
-        </GradientHistory>
-      </stepSize>
-      <acceptance>
-        <Strict/>
-      </acceptance>
-      <constant name='const'>3.14</constant>
-    </GradientDescent>
+    </SimulatedAnnealing>
   </Optimizers>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
+    <ExternalModel ModuleToLoad="../../../../framework/AnalyticModels/optimizing/beale" name="beale" subType="">
       <variables>x,y,ans</variables>
     </ExternalModel>
   </Models>
 
   <DataObjects>
-    <PointSet name="dummyIN"/>
+    <PointSet name="placeholder"/>
     <PointSet name="optOut">
-      <Input>x,y,func,const</Input>
+      <Input>x,y</Input>
       <Output>ans</Output>
     </PointSet>
     <PointSet name="opt_export">
       <Input>trajID</Input>
-      <Output>x,y,func,const,ans,stepSize,iteration,accepted,conv_gradient</Output>
+      <Output>x,y,ans,iteration,amp_x,amp_y,delta_x,delta_y,fraction,Temp,accepted,conv_objective,conv_samePoint,conv_temperature</Output>
     </PointSet>
   </DataObjects>
 
@@ -120,8 +109,7 @@
     </Print>
     <Plot name="opt_path" subType="OptPath">
       <source>opt_export</source>
-      <vars>x,y,func,const,ans</vars>
+      <vars>x,y,ans</vars>
     </Plot>
   </OutStreams>
-
 </Simulation>

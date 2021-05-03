@@ -30,13 +30,6 @@ sys.path.pop()
 
 from utils.InputData import wrapText
 
-from MessageHandler import MessageHandler, MessageUser
-# message handler
-mh = MessageHandler()
-mu = MessageUser()
-mu.messageHandler = mh
-
-
 def insertSolnExport(tex, obj):
   """
     Inserts solution export blurb into tex.
@@ -232,8 +225,8 @@ msg = ''
 optDescr = wrapText(Optimizers.Optimizer.userManualDescription(), '  ')
 msg += optDescr
 # write all known types
-for name in Optimizers.knownTypes():
-  obj = Optimizers.returnClass(name, mu)
+for name in Optimizers.factory.knownTypes():
+  obj = Optimizers.factory.returnClass(name)
   specs = obj.getInputSpecification()
   tex = specs.generateLatex()
   tex = insertSolnExport(tex, obj)
@@ -243,3 +236,5 @@ for name in Optimizers.knownTypes():
 fName = os.path.abspath(os.path.join(os.path.dirname(__file__), 'optimizer.tex'))
 with open(fName, 'w') as f:
   f.writelines(msg)
+
+print(f'\nSuccessfully wrote "{fName}"')

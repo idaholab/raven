@@ -1714,3 +1714,53 @@ For example,
   </OutStreams>
 </Simulations>
 \end{lstlisting}
+
+\subsubsection{OptPath}
+The \xmlString{OptPath} \xmlAttr{subType} shows the path taken during a \xmlNode{MultiRun} using
+an \xmlNode{Optimizer} as the sampling strategy. It is generally used to show the progressive
+choices for optimization objective and optimization variable values through successive iterations.
+It reads this information from the \xmlNode{SolutionExport} DataObject in the optimization
+\xmlNode{MultiRun}.
+
+This plotter
+constructs a series of verticle plots whose x-axis is the optimizer iteration and y-axis is a
+particular variable's values evaluated during that iteration. It does not include neighboring points
+used for, e.g., gradient evaluation, only points that were considered as potential optimal points during
+the optimization search.
+
+If the \xmlString{accepted} key value is included in the \xmlNode{SolutionExport} DataObject, this
+plotter will use colors and markers to identify the main types of iterations in a
+optimizer:
+\begin{itemize}
+  \item \xmlString{accepted}, indicates that the considered potential optimal point was deemed
+        sufficiently improved over the previously accepted point;
+  \item \xmlString{rejected}, indicates that the considered potential optimal point was NOT deemed
+        sufficiently improved and was rejected by the sampling strategy;
+  \item \xmlString{rerun}, indicates that the optimizer elected to re-run a previously-considered
+        point in hopes of improving the search algorithm.
+\end{itemize}
+See \ref{sec:Optimizers} for more details on the optimization algorithms.
+
+
+The \xmlString{SamplePlot} \xmlAttr{subType} requires the following nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{required, string}, selects which DataObject should be used
+      to take data for plotting. This DataObject must be listed in the Step in which this
+      OutStream is used, and is usually the result of as \xmlNode{MultiRun} step.
+  \item \xmlNode{vars}, \xmlDesc{required, comma-separated strings}, identifies which variables should
+      be plotted as a function of sample number. These variables must be included in the \xmlNode{source}
+      DataObject.
+\end{itemize}
+
+For example,
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <OutStreams>
+    <Plot name="myOpt" subType="OptPath">
+      <source>solutionExportFromStep</source>
+      <vars>x, y, ans, accepted</vars>
+    </Plot>
+  </OutStreams>
+</Simulations>
+\end{lstlisting}

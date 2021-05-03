@@ -32,10 +32,10 @@
 
   The \xmlNode{GradientDescent} node recognizes the following parameters:
     \begin{itemize}
-      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
-        Desired verbosity of messages coming from this entity
       \item \xmlAttr{name}: \xmlDesc{string, required}, 
         User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
   \end{itemize}
 
   The \xmlNode{GradientDescent} node recognizes the following subnodes:
@@ -163,6 +163,16 @@
           \nabla^{(x)}f \approx \frac{f(x+\alpha, y, z) - f(x, y, z)}{\alpha},
           \end{equation*}         and so on for $ \nabla^{(y)}f$ and $\nabla^{(z)}f$.
 
+          The \xmlNode{FiniteDifference} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{gradDistanceScalar}: \xmlDesc{float}, 
+              a scalar for the distance away from an optimal point candidate in the optimization
+              search at which points should be evaluated to estimate the local gradient. This scalar
+              is a         multiplier for the step size used to reach this optimal point candidate
+              from the previous         optimal point, so this scalar should generally be a small
+              percent. \default{0.01}
+          \end{itemize}
+
         \item \xmlNode{CentralDifference}:
           if node is present, indicates that gradient approximation should be performed
           using Central Difference approximation. Central difference makes use of pairs of
@@ -177,6 +187,16 @@
           as         \begin{equation*}           \nabla^{(x)}f \approx \frac{f(x+\alpha, y, z) -
           f(x-\alpha, y, z)}{2\alpha},         \end{equation*}         and so on for $
           \nabla^{(y)}f$ and $\nabla^{(z)}f$.
+
+          The \xmlNode{CentralDifference} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{gradDistanceScalar}: \xmlDesc{float}, 
+              a scalar for the distance away from an optimal point candidate in the optimization
+              search at which points should be evaluated to estimate the local gradient. This scalar
+              is a         multiplier for the step size used to reach this optimal point candidate
+              from the previous         optimal point, so this scalar should generally be a small
+              percent. \default{0.01}
+          \end{itemize}
 
         \item \xmlNode{SPSA}:
           if node is present, indicates that gradient approximation should be performed
@@ -193,6 +213,16 @@
           z)}{\epsilon^{(x)}},         \end{equation*}         and so on for $ \nabla^{(y)}f$ and
           $\nabla^{(z)}f$. This approximation is much less robust         than FiniteDifference or
           CentralDifference, but has the benefit of being dimension agnostic.
+
+          The \xmlNode{SPSA} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{gradDistanceScalar}: \xmlDesc{float}, 
+              a scalar for the distance away from an optimal point candidate in the optimization
+              search at which points should be evaluated to estimate the local gradient. This scalar
+              is a         multiplier for the step size used to reach this optimal point candidate
+              from the previous         optimal point, so this scalar should generally be a small
+              percent. \default{0.01}
+          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{stepSize}:
@@ -217,6 +247,17 @@
 
           The \xmlNode{GradientHistory} node recognizes the following subnodes:
           \begin{itemize}
+            \item \xmlNode{initialStepScale}: \xmlDesc{float}, 
+              specifies the scale of the initial step in the optimization, in percent of the
+              size of the problem. The size of the problem is defined as the hyperdiagonal of the
+              input space, composed of the input variables. A value of 1 indicates the first step
+              can reach from the lowest value of all inputs to the highest point of all inputs,
+              which is too large for all problems with more than one optimization variable. In
+              general this               should be smaller as the number of optimization variables
+              increases, but large enough               that the first step is meaningful for the
+              problem. This scaling factor should always               be less than $1/\sqrt{N}$,
+              where $N$ is the number of optimization variables. \default{0.05}
+
             \item \xmlNode{growthFactor}: \xmlDesc{float}, 
               specifies the rate at which the step size should grow if the gradient continues in
               same direction through multiple iterative steps. For example, a growth factor of 2
@@ -235,6 +276,20 @@
 
         \item \xmlNode{ConjugateGradient}:
           Base class for Step Manipulation algorithms in the GradientDescent Optimizer.
+
+          The \xmlNode{ConjugateGradient} node recognizes the following subnodes:
+          \begin{itemize}
+            \item \xmlNode{initialStepScale}: \xmlDesc{float}, 
+              specifies the scale of the initial step in the optimization, in percent of the
+              size of the problem. The size of the problem is defined as the hyperdiagonal of the
+              input space, composed of the input variables. A value of 1 indicates the first step
+              can reach from the lowest value of all inputs to the highest point of all inputs,
+              which is too large for all problems with more than one optimization variable. In
+              general this               should be smaller as the number of optimization variables
+              increases, but large enough               that the first step is meaningful for the
+              problem. This scaling factor should always               be less than $1/\sqrt{N}$,
+              where $N$ is the number of optimization variables. \default{0.05}
+          \end{itemize}
       \end{itemize}
 
     \item \xmlNode{acceptance}:
@@ -497,10 +552,10 @@ Gradient Descent Example:
 
   The \xmlNode{SimulatedAnnealing} node recognizes the following parameters:
     \begin{itemize}
-      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
-        Desired verbosity of messages coming from this entity
       \item \xmlAttr{name}: \xmlDesc{string, required}, 
         User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
   \end{itemize}
 
   The \xmlNode{SimulatedAnnealing} node recognizes the following subnodes:
@@ -867,11 +922,12 @@ Simulated Annealing Example:
 \subsection{GeneticAlgorithm}
   The \xmlNode{GeneticAlgorithm} optimizer is a metaheuristic approach
   to perform a global search in large design spaces. The methodology rose
-  from the process of natural selection, and like others in the large class of the evolutionary
-  algorithms, it utilizes genetic operations such as selection, crossover, and mutations to avoid
-  being stuck in local minima and hence facilitates                             finding the global
-  minima. More information can be found in:                             Holland, John H. "Genetic
-  algorithms." Scientific american 267.1 (1992): 66-73.
+  from the process of natural selection, and like others in the large class
+  of the evolutionary algorithms, it utilizes genetic operations such as
+  selection, crossover, and mutations to avoid being stuck in local minima
+  and hence facilitates finding the global minima. More information can
+  be found in:                             Holland, John H. "Genetic algorithms." Scientific
+  American 267.1 (1992): 66-73.
 \vspace{7pt} \\When used as part of a \xmlNode{MultiRun} step, this entity provides
         additional information through the \xmlNode{SolutionExport} DataObject. The
         following variables can be requested within the \xmlNode{SolutionExport}:
@@ -879,21 +935,23 @@ Simulated Annealing Example:
           \item \texttt{trajID}: integer identifier for different optimization starting locations and paths
              \item \texttt{iteration}: integer identifying which iteration (or step, or generation) a trajectory is on
              \item \texttt{accepted}: string acceptance status of the potential optimal point (algorithm dependent)
-             \item \texttt{rejectReason}: discription of reject reason, `noImprovement' means rejected the new optimization point for no improvement from last point, `implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
+             \item \texttt{rejectReason}: discription of reject reason, 'noImprovement' means rejected the new optimization point for no improvement from last point, 'implicitConstraintsViolation' means rejected by implicit constraints violation, return None if the point is accepted
              \item \texttt{\{VAR\}}: any variable from the \xmlNode{TargetEvaluation} input or output; gives the value of that variable at the optimal candidate for this iteration.
              \item \texttt{conv\_\{CONV\}}: status of each given convergence criteria
              \item \texttt{fitness}: fitness of the current chromosome
              \item \texttt{age}: age of current chromosome
              \item \texttt{batchId}: Id of the batch to whom the chromosome belongs
+             \item \texttt{AHDp}: p-Average Hausdorff Distance between populations
+             \item \texttt{AHD}: Hausdorff Distance between populations
            
          \end{itemize}
 
   The \xmlNode{GeneticAlgorithm} node recognizes the following parameters:
     \begin{itemize}
-      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
-        Desired verbosity of messages coming from this entity
       \item \xmlAttr{name}: \xmlDesc{string, required}, 
         User-defined name to designate this entity in the RAVEN input file.
+      \item \xmlAttr{verbosity}: \xmlDesc{[silent, quiet, all, debug], optional}, 
+        Desired verbosity of messages coming from this entity
   \end{itemize}
 
   The \xmlNode{GeneticAlgorithm} node recognizes the following subnodes:
@@ -1033,8 +1091,8 @@ Simulated Annealing Example:
           The number of chromosomes in each population.
 
         \item \xmlNode{parentSelection}: \xmlDesc{string}, 
-          A node containing the criterion based on which the parents are selected. This can be
-          a fitness proportionate selection such as:                   a.
+          A node containing the criterion based on which the parents are selected. This can be a
+          fitness proportional selection such as:                   a.
           \textbf{\textit{rouletteWheel}},                   b.
           \textbf{\textit{stochasticUniversalSampling}},                   c.
           \textbf{\textit{Tournament}},                   d. \textbf{\textit{Rank}}, or
@@ -1046,7 +1104,7 @@ Simulated Annealing Example:
           The \xmlNode{reproduction} node recognizes the following parameters:
             \begin{itemize}
               \item \xmlAttr{nParents}: \xmlDesc{integer, required}, 
-                -- no description yet --
+                number of parents to be considered in the reproduction phase
           \end{itemize}
 
           The \xmlNode{reproduction} node recognizes the following subnodes:
@@ -1060,7 +1118,7 @@ Simulated Annealing Example:
               The \xmlNode{crossover} node recognizes the following parameters:
                 \begin{itemize}
                   \item \xmlAttr{type}: \xmlDesc{string, required}, 
-                    -- no description yet --
+                    type of crossover operation to be used (e.g., OnePoint, MultiPoint, or Uniform)
               \end{itemize}
 
               The \xmlNode{crossover} node recognizes the following subnodes:
@@ -1069,8 +1127,8 @@ Simulated Annealing Example:
                   point/gene(s) at which crossover will occur.
 
                 \item \xmlNode{crossoverProb}: \xmlDesc{float}, 
-                  The probability governing the crossover occurance, i.e., the probability that if
-                  exceeded crossover will ocur.
+                  The probability governing the crossover step, i.e., the probability that if
+                  exceeded crossover will occur.
               \end{itemize}
 
             \item \xmlNode{mutation}: \xmlDesc{string}, 
@@ -1081,7 +1139,7 @@ Simulated Annealing Example:
               The \xmlNode{mutation} node recognizes the following parameters:
                 \begin{itemize}
                   \item \xmlAttr{type}: \xmlDesc{string, required}, 
-                    -- no description yet --
+                    type of mutation operation to be used (e.g., bit, swap, or scramble)
               \end{itemize}
 
               The \xmlNode{mutation} node recognizes the following subnodes:
@@ -1090,13 +1148,13 @@ Simulated Annealing Example:
                   locations at which mutation will occur.
 
                 \item \xmlNode{mutationProb}: \xmlDesc{float}, 
-                  The probability governing the mutation occurance, i.e., the probability that if
-                  exceeded mutation will ocur.
+                  The probability governing the mutation step, i.e., the probability that if
+                  exceeded mutation will occur.
               \end{itemize}
           \end{itemize}
 
         \item \xmlNode{survivorSelection}: \xmlDesc{string}, 
-          a subnode containing the implemented servivor selection mechanisms.                   This
+          a subnode containing the implemented survivor selection mechanisms.                   This
           includes: a.    ageBased, or                                  b.    fitnessBased.
 
         \item \xmlNode{fitness}: \xmlDesc{string}, 
@@ -1129,8 +1187,15 @@ Simulated Annealing Example:
         \item \xmlNode{objective}: \xmlDesc{float}, 
           provides the desired value for the convergence criterion of the objective function
           ($\epsilon^{obj}$). In essence this is solving the inverse problem of finding the design
-          variable at a given objective value, i.e., convergence is reached when: $$ Objevtive =
-          \epsilon^{obj}$$.                        \default{1e-6}, if no criteria specified
+          variable                         at a given objective value, i.e., convergence is reached
+          when: $$ Objective = \epsilon^{obj}$$.                        \default{1e-6}, if no
+          criteria specified
+
+        \item \xmlNode{AHDp}: \xmlDesc{float}, 
+          provides the desired value for the Average Hausdorff Distance between populations
+
+        \item \xmlNode{AHD}: \xmlDesc{float}, 
+          provides the desired value for the Hausdorff Distance between populations
 
         \item \xmlNode{persistence}: \xmlDesc{integer}, 
           provides the number of consecutive times convergence should be reached before a trajectory
