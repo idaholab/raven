@@ -93,71 +93,35 @@ class KerasClassifier(KerasBase):
     os.remove(KerasClassifier.tempModelFile)
     self.__dict__.update(d)
 
-  def _checkLayers(self):
+  def _getFirstHiddenLayer(self, layerInstant, layerSize, layerDict):
     """
-      Method used to check layers setups for KERAS model
-      @ In, None
-      @ Out, None
+      Creates the first hidden layer
+      @ In, layerInstant, layer type
+      @ In, layerSize, int, nodes in layer
+      @ In, layerDict, dict, layer details
+      @ Out, layer, new layer
     """
-    pass
+    return layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict)
 
-  def _addHiddenLayers(self):
+  def _getLastLayer(self, layerInstant, layerDict):
     """
-      Method used to add hidden layers for KERAS model
-      @ In, None
-      @ Out, None
+      Creates the last layer
+      @ In, layerInstant, layer type
+      @ In, layerSize, int, nodes in layer
+      @ In, layerDict, dict, layer details
+      @ Out, layer, new layer
     """
-    # start to build the ROM
-    self._ROM = tf.keras.models.Sequential()
-    # loop over layers
-    for index, layerName in enumerate(self.layerLayout[:-1]):
-      layerDict = copy.deepcopy(self.initOptionDict[layerName])
-      layerType = layerDict.pop('type').lower()
-      if layerType not in self.allowedLayers:
-        self.raiseAnError(IOError,'Layers',layerName,'with type',layerType,'is not allowed in',self.printTag)
-      layerSize = layerDict.pop('dim_out',None)
-      layerInstant = self.__class__.availLayer[layerType]
-      dropoutRate = layerDict.pop('rate',0.0)
-      if layerSize is not None:
-        if index == 0:
-          self._ROM.add(layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict))
-        else:
-          self._ROM.add(layerInstant(layerSize,**layerDict))
-      else:
-        if layerType == 'dropout':
-          self._ROM.add(layerInstant(dropoutRate))
-        else:
-          self._ROM.add(layerInstant(**layerDict))
+    return layerInstant(self.numClasses,**layerDict)
 
-  def _addOutputLayers(self):
+  def _getTrainingTargetValues(self, names, values):
     """
-      Method used to add last output layers for KERAS model
-      @ In, None
-      @ Out, None
+      Gets the target values to train with, which differs depending
+      on if this is a regression or classifier.
+      @ In, names, list of names
+      @ In, values, list of values
+      @ Out, targetValues, list of catagorized target values
     """
-    layerName = self.layerLayout[-1]
-    layerDict = self.initOptionDict.pop(layerName)
-    layerType = layerDict.pop('type').lower()
-    layerSize = layerDict.pop('dim_out',None)
-    if layerSize is not None and layerSize != self.numClasses:
-      self.raiseAWarning('The "dim_out" of last output layer: ', layerName, 'will be resetted to values provided in "num_classes", i.e.', self.numClasses)
-    if layerType not in ['dense']:
-      self.raiseAnError(IOError,'The last layer should always be Dense layer, but',layerType,'is provided!')
-    layerInstant = self.__class__.availLayer[layerType]
-    self._ROM.add(layerInstant(self.numClasses,**layerDict))
-
-  def train(self,tdict):
-    """
-      Method to perform the training of the deep neural network algorithm
-      NB.the KerasClassifier object is committed to convert the dictionary that is passed (in), into the local format
-      the interface with the kernels requires. So far the base class will do the translation into numpy
-      @ In, tdict, dict, training dictionary
-      @ Out, None
-    """
-    if type(tdict) != dict:
-      self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
-    names, values  = zip(*tdict.items())
-    # Currently, deep neural networks (DNNs) are only used for classification.
+        # Currently, deep neural networks (DNNs) are only used for classification.
     # Targets for deep neural network should be labels only (i.e. integers only)
     # For both static  and time-dependent case, the targetValues are 2D arrays, i.e. [numSamples, numTargets]
     # For time-dependent case, the time-dependency is removed from the targetValues
@@ -189,29 +153,7 @@ class KerasClassifier(KerasBase):
                            targetValues.shape[-1], ' in the provided data!')
         self.raiseAWarning('Reset the num_classes to be consistent with the data!')
         self.numClasses = targetValues.shape[-1]
-
-    featureValues = []
-    featureValuesShape = None
-    for feat in self.features:
-      if feat in names:
-        fval = values[names.index(feat)]
-        resp = self.checkArrayConsistency(fval, self.isDynamic())
-        if not resp[0]:
-          self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-        fval = np.asarray(fval)
-        if featureValuesShape is None:
-          featureValuesShape = fval.shape
-        if featureValuesShape != fval.shape:
-          self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are not consistent to other features!')
-        self._localNormalizeData(values,names,feat)
-        fval = self._scaleToNormal(fval, feat)
-        featureValues.append(fval)
-      else:
-        self.raiseAnError(IOError,'The feature ',feat,' is not in the training set')
-    featureValues = np.stack(featureValues, axis=-1)
-
-    self.__trainLocal__(featureValues,targetValues)
-    self.amITrained = True
+    return targetValues
 
   def __trainLocal__(self,featureVals,targetVals):
     """

@@ -356,6 +356,96 @@ class KerasBase(supervisedLearning):
     writeTo.addScalar('Loss',"Training",' '.join([str(elm) for elm in self._romHistory.history['loss']]))
     writeTo.addScalar('Loss',"Testing",' '.join([str(elm) for elm in self._romHistory.history['val_loss']]))
 
+  def train(self,tdict):
+    """
+      Method to perform the training of the deep neural network algorithm
+      NB.the KerasBase object is committed to convert the dictionary that is passed (in), into the local format
+      the interface with the kernels requires. So far the base class will do the translation into numpy
+      @ In, tdict, dict, training dictionary
+      @ Out, None
+    """
+    if type(tdict) != dict:
+      self.raiseAnError(TypeError,'In method "train", the training set needs to be provided through a dictionary. Type of the in-object is ' + str(type(tdict)))
+    names, values  = zip(*tdict.items())
+    targetValues = self._getTrainingTargetValues(names, values)
+
+    featureValues = []
+    featureValuesShape = None
+    for feat in self.features:
+      if feat in names:
+        fval = values[names.index(feat)]
+        resp = self.checkArrayConsistency(fval, self.isDynamic())
+        if not resp[0]:
+          self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
+        fval = np.asarray(fval)
+        if featureValuesShape is None:
+          featureValuesShape = fval.shape
+        if featureValuesShape != fval.shape:
+          self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are not consistent to other features!')
+        self._localNormalizeData(values,names,feat)
+        fval = self._scaleToNormal(fval, feat)
+        featureValues.append(fval)
+      else:
+        self.raiseAnError(IOError,'The feature ',feat,' is not in the training set')
+    featureValues = np.stack(featureValues, axis=-1)
+
+    self.__trainLocal__(featureValues,targetValues)
+    self.amITrained = True
+
+
+  def _checkLayers(self):
+    """
+      Method used to check layers setups for KERAS model
+      @ In, None
+      @ Out, None
+    """
+    pass
+
+  def _addHiddenLayers(self):
+    """
+      Method used to add hidden layers for KERAS model
+      @ In, None
+      @ Out, None
+    """
+    # start to build the ROM
+    self._ROM = tf.keras.models.Sequential()
+    # loop over layers
+    for index, layerName in enumerate(self.layerLayout[:-1]):
+      layerDict = copy.deepcopy(self.initOptionDict[layerName])
+      layerType = layerDict.pop('type').lower()
+      if layerType not in self.allowedLayers:
+        self.raiseAnError(IOError,'Layers',layerName,'with type',layerType,'is not allowed in',self.printTag)
+      layerSize = layerDict.pop('dim_out',None)
+      layerInstant = self.__class__.availLayer[layerType]
+      dropoutRate = layerDict.pop('rate',0.0)
+      if layerSize is not None:
+        if index == 0:
+          self._ROM.add(self._getFirstHiddenLayer(layerInstant, layerSize, layerDict))
+        else:
+          self._ROM.add(layerInstant(layerSize,**layerDict))
+      else:
+        if layerType == 'dropout':
+          self._ROM.add(layerInstant(dropoutRate))
+        else:
+          self._ROM.add(layerInstant(**layerDict))
+
+  def _addOutputLayers(self):
+    """
+      Method used to add last output layers for KERAS model
+      @ In, None
+      @ Out, None
+    """
+    layerName = self.layerLayout[-1]
+    layerDict = self.initOptionDict.pop(layerName)
+    layerType = layerDict.pop('type').lower()
+    layerSize = layerDict.pop('dim_out',None)
+    if layerSize is not None and layerSize != self.numClasses:
+      self.raiseAWarning('The "dim_out" of last output layer: ', layerName, 'will be resetted to values provided in "num_classes", i.e.', self.numClasses)
+    if layerType not in ['dense']:
+      self.raiseAnError(IOError,'The last layer should always be Dense layer, but',layerType,'is provided!')
+    layerInstant = self.__class__.availLayer[layerType]
+    self._ROM.add(self._getLastLayer(layerInstant, layerDict))
+
   def __confidenceLocal__(self,featureVals):
     """
       This should return an estimation of the quality of the prediction.
