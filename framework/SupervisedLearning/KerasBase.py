@@ -439,3 +439,23 @@ class KerasBase(supervisedLearning):
       self.muAndSigmaFeatures[feat] = (0.0,1.0)
     else:
       super()._localNormalizeData(values,names,feat)
+
+  def _scaleToNormal(self, values, feat):
+    """
+      Method to normalize based on previously calculated values
+      @ In, values, np.array, array to be normalized
+      @ In, feat, string, feature name
+      @ Out, scaled, np.array, normalized array
+    """
+    mu,sigma = self.muAndSigmaFeatures[feat]
+    return (values - mu)/sigma
+
+  def _invertScaleToNormal(self, values, feat):
+    """
+      Method to unnormalize based on previously calculated values
+      @ In, values, np.array, array to be normalized
+      @ In, feat, string, feature name
+      @ Out, scaled, np.array, normalized array
+    """
+    mu,sigma = self.muAndSigmaFeatures[feat]
+    return values*sigma + mu

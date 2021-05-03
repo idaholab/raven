@@ -331,24 +331,4 @@ class KerasRegression(KerasBase):
     params = self._ROM.get_config()
     return params
 
-  def _scaleToNormal(self, values, feat):
-    """
-      Method to normalize based on previously calculated values
-      @ In, values, np.array, array to be normalized
-      @ In, feat, string, feature name
-      @ Out, scaled, np.array, normalized array
-    """
-    mu,sigma = self.muAndSigmaFeatures[feat]
-    return (values - mu)/sigma
-
-  def _invertScaleToNormal(self, values, feat):
-    """
-      Method to unnormalize based on previously calculated values
-      @ In, values, np.array, array to be normalized
-      @ In, feat, string, feature name
-      @ Out, scaled, np.array, normalized array
-    """
-    mu,sigma = self.muAndSigmaFeatures[feat]
-    return values*sigma + mu
-
 

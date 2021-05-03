@@ -204,17 +204,11 @@ class KerasClassifier(KerasBase):
         if featureValuesShape != fval.shape:
           self.raiseAnError(IOError,'In training set, the number of values provided for feature '+feat+' are not consistent to other features!')
         self._localNormalizeData(values,names,feat)
-        fval = (fval - self.muAndSigmaFeatures[feat][0])/self.muAndSigmaFeatures[feat][1]
+        fval = self._scaleToNormal(fval, feat)
         featureValues.append(fval)
       else:
         self.raiseAnError(IOError,'The feature ',feat,' is not in the training set')
-
-    #FIXME: when we do not support anymore numpy <1.10, remove this IF STATEMENT
-    if int(np.__version__.split('.')[1]) >= 10:
-      featureValues = np.stack(featureValues, axis=-1)
-    else:
-      sl = (slice(None),) * np.asarray(featureValues[0]).ndim + (np.newaxis,)
-      featureValues = np.concatenate([np.asarray(arr)[sl] for arr in featureValues], axis=np.asarray(featureValues[0]).ndim)
+    featureValues = np.stack(featureValues, axis=-1)
 
     self.__trainLocal__(featureValues,targetValues)
     self.amITrained = True
