@@ -446,6 +446,35 @@ class KerasBase(supervisedLearning):
     layerInstant = self.__class__.availLayer[layerType]
     self._ROM.add(self._getLastLayer(layerInstant, layerDict))
 
+  def __trainLocal__(self,featureVals,targetVals):
+    """
+      Perform training on samples in featureVals with responses y.
+      For an one-class model, +1 or -1 is returned.
+      @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
+        an array of input feature or shape=[numSamples, numTimeSteps, numFeatures]
+      @ Out, targetVals, array, shape = [n_samples], an array of output target
+        associated with the corresponding points in featureVals
+    """
+    #Need featureVals to be a numpy array with shape:
+    # (batches, data per batch, input_features)
+    #Need targetVals to be a numpy array with shape for Regressions:
+    # (batches, data per batch, output_features)
+    self.featv = featureVals
+    self.targv = targetVals
+    # check layers
+    self._checkLayers()
+    # hidden layers
+    self._addHiddenLayers()
+    #output layer
+    self._addOutputLayers()
+    self._ROM.compile(loss=self.lossFunction, optimizer=self.optimizer, metrics=self.metrics)
+    self._ROM._make_predict_function() # have to initialize before threading
+    self._romHistory = self._ROM.fit(featureVals, targetVals, epochs=self.epochs, batch_size=self.batchSize, validation_split=self.validationSplit)
+    # The following requires pydot-ng and graphviz to be installed (See the manual)
+    # https://github.com/keras-team/keras/issues/3210
+    if self.plotModel:
+      tf.keras.utils.plot_model(self._ROM,to_file=self.plotModelFilename,show_shapes=True)
+
   def __confidenceLocal__(self,featureVals):
     """
       This should return an estimation of the quality of the prediction.
@@ -484,6 +513,38 @@ class KerasBase(supervisedLearning):
       @ Out, featureVals, numpy.array, predicted values
     """
     return featureVals
+
+  def __resetLocal__(self):
+    """
+      Reset ROM. After this method the ROM should be described only by the initial parameter settings
+      @ In, None
+      @ Out, None
+    """
+    self._initGraph()
+    self._ROM = None
+    self.featv = None
+    self.targv = None
+
+  def __returnInitialParametersLocal__(self):
+    """
+      Returns a dictionary with the parameters and their initial values
+      @ In, None
+      @ Out, params, dict,  dictionary of parameter names and initial values
+    """
+    params = self.initDict
+    return params
+
+  def __returnCurrentSettingLocal__(self):
+    """
+      Returns a dictionary with the parameters and their current values
+      The model can be reinstantiated from its config via:
+      config = model.get_config()
+      self._ROM = tf.keras.models.Sequential.from_config(config)
+      @ In, None
+      @ Out, params, dict, dictionary of parameter names and current values
+    """
+    params = self._ROM.get_config()
+    return params
 
   def __resetLocal__(self):
     """

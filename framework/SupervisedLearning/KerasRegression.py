@@ -61,38 +61,6 @@ class KerasRegression(KerasBase):
     super().readInitDict(initDict)
     self.printTag = 'KerasRegression'
 
-  def __getstate__(self):
-    """
-      This function return the state of the ROM
-      @ In, None
-      @ Out, state, dict, it contains all the information needed by the ROM to be initialized
-    """
-    state = supervisedLearning.__getstate__(self)
-    tf.keras.models.save_model(self._ROM, KerasRegression.tempModelFile)
-    # another method to save the TensorFlow model
-    # self._ROM.save(KerasRegression.tempModelFile)
-    with open(KerasRegression.tempModelFile, "rb") as f:
-      serialModelData = f.read()
-    state[KerasRegression.modelAttr] = serialModelData
-    os.remove(KerasRegression.tempModelFile)
-    del state["_ROM"]
-    state['initOptionDict'].pop('paramInput',None)
-    return state
-
-  def __setstate__(self, d):
-    """
-      Initialize the ROM with the data contained in newstate
-      @ In, d, dict, it contains all the information needed by the ROM to be initialized
-      @ Out, None
-    """
-    with open(KerasRegression.tempModelFile, "wb") as f:
-      f.write(d[KerasRegression.modelAttr])
-    del d[KerasRegression.modelAttr]
-    tf.keras.backend.set_session(self._session)
-    self._ROM = tf.keras.models.load_model(KerasRegression.tempModelFile)
-    os.remove(KerasRegression.tempModelFile)
-    self.__dict__.update(d)
-
   def _getFirstHiddenLayer(self, layerInstant, layerSize, layerDict):
     """
       Creates the first hidden layer
@@ -135,34 +103,6 @@ class KerasRegression(KerasBase):
       targetValues[:, :, i] = self._scaleToNormal(values[names.index(target)], target)
     return targetValues
 
-  def __trainLocal__(self,featureVals,targetVals):
-    """
-      Perform training on samples in featureVals with responses y.
-      For an one-class model, +1 or -1 is returned.
-      @ In, featureVals, {array-like, sparse matrix}, shape=[n_samples, n_features],
-        an array of input feature or shape=[numSamples, numTimeSteps, numFeatures]
-      @ Out, targetVals, array, shape = [n_samples], an array of output target
-        associated with the corresponding points in featureVals
-    """
-    #Need featureVals to be a numpy array with shape:
-    # (batches, data per batch, input_features)
-    #Need targetVals to be a numpy array with shape:
-    # (batches, data per batch, output_features)
-    self.featv = featureVals
-    self.targv = targetVals
-    # check layers
-    self._checkLayers()
-    # hidden layers
-    self._addHiddenLayers()
-    #output layer
-    self._addOutputLayers()
-    self._ROM.compile(loss=self.lossFunction, optimizer=self.optimizer, metrics=self.metrics)
-    self._ROM._make_predict_function() # have to initialize before threading
-    self._romHistory = self._ROM.fit(featureVals, targetVals, epochs=self.epochs, batch_size=self.batchSize, validation_split=self.validationSplit)
-    # The following requires pydot-ng and graphviz to be installed (See the manual)
-    # https://github.com/keras-team/keras/issues/3210
-    if self.plotModel:
-      tf.keras.utils.plot_model(self._ROM,to_file=self.plotModelFilename,show_shapes=True)
 
   def __confidenceLocal__(self,featureVals):
     """
@@ -247,36 +187,4 @@ class KerasRegression(KerasBase):
     for i, target in enumerate(self.target):
       prediction[target] = self._invertScaleToNormal(outcome[0, :, i], target)
     return prediction
-
-  def __resetLocal__(self):
-    """
-      Reset ROM. After this method the ROM should be described only by the initial parameter settings
-      @ In, None
-      @ Out, None
-    """
-    self._initGraph()
-    self._ROM = None
-    self.featv = None
-    self.targv = None
-
-  def __returnInitialParametersLocal__(self):
-    """
-      Returns a dictionary with the parameters and their initial values
-      @ In, None
-      @ Out, params, dict,  dictionary of parameter names and initial values
-    """
-    params = self.initDict
-    return params
-
-  def __returnCurrentSettingLocal__(self):
-    """
-      Returns a dictionary with the parameters and their current values
-      The model can be reinstantiated from its config via:
-      config = model.get_config()
-      self._ROM = tf.keras.models.Sequential.from_config(config)
-      @ In, None
-      @ Out, params, dict, dictionary of parameter names and current values
-    """
-    params = self._ROM.get_config()
-    return params
 
