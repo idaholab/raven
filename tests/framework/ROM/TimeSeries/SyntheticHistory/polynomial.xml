@@ -1,5 +1,15 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+ <TestInfo>
+    <name>framework/ROM/TimeSeries/SyntheticHistory.PolynomialRegression</name>
+    <author>rinelson456</author>
+    <created>2021-04-19</created>
+    <classesTested>SupervisedLearning.SyntheticHistory,TSA.PolynomialRegression</classesTested>
+    <description>
+      Tests the SyntheticHistory ROM using only the PolynomialRegression TimeSeriesAnalyzer algorithm.
+    </description>
+  </TestInfo> 
+
   <RunInfo>
     <WorkingDir>Wavelet</WorkingDir>
     <Sequence>read, train, print, sample</Sequence>

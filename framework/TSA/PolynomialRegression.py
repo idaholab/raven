@@ -36,7 +36,7 @@ class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
         specifying input of cls.
     """
     specs = super(PolynomialRegression, cls).getInputSpecification()
-    specs.name = 'regression'
+    specs.name = 'PolynomialRegression'
     specs.description = """TimeSeriesAnalysis algorithm for fitting data of degree one or greater."""
     specs.addSub(InputData.parameterInputFactory('degree', contentType=InputTypes.IntegerType,
                                                  descr="Specifies the degree polynomial to fit the data with."))
@@ -53,7 +53,7 @@ class PolynomialRegression(TimeSeriesGenerator, TimeSeriesCharacterizer):
       @ Out, None
     """
     # general infrastructure
-    super().__init__(self, *args, **kwargs)
+    super().__init__(*args, **kwargs)
 
   def handleInput(self, spec):
     """

@@ -55,12 +55,12 @@
 
   <Models>
     <ROM name="synth" subType="SyntheticHistory">
-      <Target>signal1, signal2, seconds</Target>
+      <Target>acf, cofint, seconds</Target>
       <Features>scaling</Features>
       <pivotParameter>seconds</pivotParameter>
-      <AutoCorrelation target="signal1, signal2">
+      <AutoCorrelation target="acf, cofint">
         <nlags>2</nlags>
-        <alpha>3</alpha>
+        <confidence>3</confidence>
       </AutoCorrelation>
     </ROM>
   </Models>
@@ -80,14 +80,14 @@
     <PointSet name="placeholder"/>
     <HistorySet name="indata">
       <Input>scaling</Input>
-      <Output>signal1, signal2</Output>
+      <Output>acf, cofint</Output>
       <options>
         <pivotParameter>seconds</pivotParameter>
       </options>
     </HistorySet>
     <HistorySet name="samples">
       <Input>scaling</Input>
-      <Output>signal1, signal2</Output>
+      <Output>acf, cofint</Output>
       <options>
         <pivotParameter>seconds</pivotParameter>
       </options>

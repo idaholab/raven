@@ -17,11 +17,11 @@
 import numpy as np
 
 from utils import InputData, InputTypes, xmlUtils
-from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
+from .TimeSeriesAnalyzer import  TimeSeriesCharacterizer
 
 
 # utility methods
-class AutoCorrelation(TimeSeriesGenerator , TimeSeriesCharacterizer):
+class AutoCorrelation( TimeSeriesCharacterizer):
   """
     Perform AutoCorrelation Transformation on time-dependent data.
   """
@@ -34,16 +34,17 @@ class AutoCorrelation(TimeSeriesGenerator , TimeSeriesCharacterizer):
     """
     specs = super(AutoCorrelation, cls).getInputSpecification()
     specs.name = 'AutoCorrelation'
-    specs.description = """AutoCorrelation TimeSeriesAnalysis algorithm."""
+    specs.description = """AutoCorrelation TimeSeriesAnalysis algorithm that characterizes the correlation of a signal. 
+                           It is essentially the similarity between observations as a function of the time lag between them."""
     specs.addSub(InputData.parameterInputFactory(
       'nlags',
       contentType=InputTypes.IntegerType,
       descr=""" Number of lags to return autocorrelation for. """
     ))
     specs.addSub(InputData.parameterInputFactory(
-      'alpha',
+      'confidence',
       contentType=InputTypes.FloatType,
-      descr=""" If a number is given, the confidence intervals for the given level are returned. For instance if alpha=.05, 
+      descr=""" If a number is given, the confidence intervals for the given level are returned. For instance if confidence=.05, 
       95 % confidence intervals are returned where the standard deviation is computed according to Bartlett”s formula. """
     ))
     return specs
@@ -57,7 +58,7 @@ class AutoCorrelation(TimeSeriesGenerator , TimeSeriesCharacterizer):
       @ Out, None
     """
     # general infrastructure
-    super().__init__(self, *args, **kwargs)
+    super().__init__( *args, **kwargs)
 
 
   def handleInput(self, spec):
@@ -68,7 +69,7 @@ class AutoCorrelation(TimeSeriesGenerator , TimeSeriesCharacterizer):
     """
     settings = super().handleInput(spec)
     settings['nlags'] = spec.findFirst('nlags').value
-    settings['alpha'] = spec.findFirst('alpha').value
+    settings['confidence'] = spec.findFirst('confidence').value
     return settings
 
 
@@ -83,7 +84,6 @@ class AutoCorrelation(TimeSeriesGenerator , TimeSeriesCharacterizer):
       @ In, settings, dict, additional settings specific to this algorithm
       @ Out, params, dict, characteristic parameters
     """
-    # TODO extend to continuous wavelet transform
     try:
       import statsmodels.tsa.stattools as sm
     except ModuleNotFoundError:
@@ -96,20 +96,14 @@ class AutoCorrelation(TimeSeriesGenerator , TimeSeriesCharacterizer):
     ## time-dependent series is independent, uniquely indexed and
     ## sorted in time.
     nlags = settings['nlags']
-    alpha = settings['alpha']
+    alpha = settings['confidence']
     params = {target: {'results': {}} for target in targets}
 
     for i, target in enumerate(targets):
       results = params[target]['results']
-      results['signal1'], results['signal2'] = sm.acf(signal[:, i], nlags=nlags, alpha=alpha)
+      results['acf'], results['confint'] = sm.acf(signal[:, i], nlags=nlags, alpha=alpha)
 
     return params
-
-
-
-  def generate(self, params, pivot, settings):
-    signal = 0
-    return signal
 
 
   def writeXML(self, writeTo, params):
@@ -119,8 +113,8 @@ class AutoCorrelation(TimeSeriesGenerator , TimeSeriesCharacterizer):
       @ In, params, dict, trained parameters as from self.characterize
       @ Out, None
     """
-    for target, info in params.items():
-      base = xmlUtils.newNode(target)
-      writeTo.append(base)
-      for name, value in info['results'].items():
-        base.append(xmlUtils.newNode(name, text=','.join([str(v) for v in value])))
+    # for target, info in params.items():
+    #   base = xmlUtils.newNode(target)
+    #   writeTo.append(base)
+    #   for name, value in info['results'].items():
+    #     base.append(xmlUtils.newNode(name, text=','.join([str(v) for v in value])))
