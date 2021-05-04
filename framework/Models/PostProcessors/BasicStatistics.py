@@ -1061,7 +1061,8 @@ class BasicStatistics(PostProcessorInterface):
         @ In, desired, list(str), list of parameters to extract from covariance matrix
         @ Out, reducedCov, xarray.DataArray, reduced covariance matrix
       """
-      reducedCov = calculations['covariance'].sel(**{'targets':desired,'features':desired})
+      if self.pivotParameter in desired:
+        self.raiseAnError(RuntimeError, 'The pivotParameter "{}" is among the parameters requested for performing statistics. Please remove!'.format(self.pivotParameter))
       return reducedCov
     #
     # pearson matrix
