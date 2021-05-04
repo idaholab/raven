@@ -327,7 +327,7 @@ class CrossValidation(PostProcessorInterface):
           scoreDict[varName] = np.atleast_1d(np.mean(np.atleast_1d(metricValues)))
       return scoreDict
 
-  def collectOutput(self,finishedJob, output):
+  def collectOutput(self,finishedJob, output, options=None):
     """
       Function to place all of the computed data into the output object, i.e. Files
       @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor

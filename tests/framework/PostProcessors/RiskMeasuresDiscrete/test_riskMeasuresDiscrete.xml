@@ -8,8 +8,15 @@
     <description>
       Tests of the four risk importance measures: Risk Achievement Worth (RAW), Risk Reduction Worth (RRW), Birnbaum (B) and Fussell-Vesely (FV)
     </description>
+    <revisions>
+      <revision author="wangc" date="2021-04-22">
+        Move 'RiskMeasuresDiscrete' from InterfacedPostProcessor to Plugin-Type PostProcessor.
+        The subType of this PostProcessor will be changed to 'RiskMeasuresDiscrete',
+        and the 'method' node under this PostProcessor is no longer needed.
+      </revision>
+    </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>RiskMeasuresDiscrete</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
@@ -19,21 +26,20 @@
   <Files>
     <Input name="lorentzAttractor.py" type="">lorentzAttractor.py</Input>
   </Files>
-  
+
   <Models>
     <ExternalModel name='PythonModuleReduced' subType='' ModuleToLoad='modelTHreduced'>
       <variables>pump1Time,pump2Time,valveTime,Tmax,outcome,pump1State,pump2State,valveState,failureTime</variables>
     </ExternalModel>
-    <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
-      <method>riskMeasuresDiscrete</method>
+    <PostProcessor name="riskMeasuresDiscrete" subType="RiskMeasuresDiscrete">
       <measures>B,FV,RAW,RRW</measures>
       <variable R0values='0,240' R1values='1441,2880'>pump1Time</variable>
       <variable R0values='0,240' R1values='1441,2880'>pump2Time</variable>
       <variable R0values='0,240' R1values='1441,2880'>valveTime</variable>
       <target   values='1400,14000'>Tmax</target>
-    </PostProcessor>   
+    </PostProcessor>
   </Models>
-  
+
   <Distributions>
     <Exponential name='valveTime_distExp'>
       <lambda>0.00069444</lambda>
@@ -84,7 +90,7 @@
       <source>outPPS</source>
     </Print>
   </OutStreams>
-  
+
   <DataObjects>
     <PointSet name="inputPlaceHolder">
       <Input>pump1Time,pump2Time,valveTime</Input>
@@ -101,5 +107,5 @@
               pump1Time_RRW , pump2Time_RRW , valveTime_RRW</Output>
     </PointSet>
   </DataObjects>
-  
+
 </Simulation>
