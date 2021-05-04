@@ -1063,6 +1063,7 @@ class BasicStatistics(PostProcessorInterface):
       """
       if self.pivotParameter in desired:
         self.raiseAnError(RuntimeError, 'The pivotParameter "{}" is among the parameters requested for performing statistics. Please remove!'.format(self.pivotParameter))
+      reducedCov = calculations['covariance'].sel(**{'targets':desired,'features':desired})
       return reducedCov
     #
     # pearson matrix
@@ -1102,14 +1103,14 @@ class BasicStatistics(PostProcessorInterface):
         pivotCoords = dataSet.coords[self.pivotParameter].values
         ds = None
         for label, group in dataSet.groupby(self.pivotParameter):
-          spearmanMatrix = sc.stats.spearmanr(group.to_array())
-          da = xr.DataArray(spearmanMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+          spearmanMatrix = sc.stats.spearmanr(group.to_array().T)
+          da = xr.DataArray(spearmanMatrix[0], dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
           ds = da if ds is None else xr.concat([ds,da], dim=self.pivotParameter)
         ds.coords[self.pivotParameter] = pivotCoords
         calculations[metric] = ds
       else:
         spearmanMatrix,_ = sc.stats.spearmanr(dataSet[params].to_array().T)
-        da = xr.DataArray(spearmanMatrix, dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
+        da = xr.DataArray(spearmanMatrix[0], dims=('targets','features'), coords={'targets':targCoords,'features':targCoords})
         calculations[metric] = da
     #
     # VarianceDependentSensitivity matrix
