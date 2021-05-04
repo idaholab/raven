@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on Dec. 20, 2018
+  Created on Apr. 13, 2021
 
-  @author: wangc
+  @author: cogljj
   module for recurrent neural network using short-term model network (LSTM)
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 ######
@@ -29,7 +26,7 @@ from .KerasRegression import KerasRegression
 
 class KerasLSTMRegression(KerasRegression):
   """
-    recurrent neural network using short-term model network (LSTM) classifier
+    recurrent neural network using short-term model network (LSTM) regression
     constructed using Keras API in TensorFlow
   """
 

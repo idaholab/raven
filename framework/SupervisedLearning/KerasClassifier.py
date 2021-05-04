@@ -17,9 +17,6 @@
   base class for tensorflow and keras used for deep neural network
   i.e. Multi-layer perceptron classifier, CNN, LSTM
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import copy
@@ -64,20 +61,20 @@ class KerasClassifier(KerasBase):
   def _getFirstHiddenLayer(self, layerInstant, layerSize, layerDict):
     """
       Creates the first hidden layer
-      @ In, layerInstant, layer type
+      @ In, layerInstant, class, layer type from tensorflow.python.keras.layers
       @ In, layerSize, int, nodes in layer
       @ In, layerDict, dict, layer details
-      @ Out, layer, new layer
+      @ Out, layer, tensorflow.python.keras.layers, new layer
     """
     return layerInstant(layerSize,input_shape=self.featv.shape[1:], **layerDict)
 
   def _getLastLayer(self, layerInstant, layerDict):
     """
       Creates the last layer
-      @ In, layerInstant, layer type
+      @ In, layerInstant, class, layer type from tensorflow.python.keras.layers
       @ In, layerSize, int, nodes in layer
       @ In, layerDict, dict, layer details
-      @ Out, layer, new layer
+      @ Out, layer, tensorflow.python.keras.layers, new layer
     """
     return layerInstant(self.numClasses,**layerDict)
 
@@ -87,7 +84,7 @@ class KerasClassifier(KerasBase):
       on if this is a regression or classifier.
       @ In, names, list of names
       @ In, values, list of values
-      @ Out, targetValues, list of catagorized target values
+      @ Out, targetValues, list, list of catagorized target values
     """
         # Currently, deep neural networks (DNNs) are only used for classification.
     # Targets for deep neural network should be labels only (i.e. integers only)

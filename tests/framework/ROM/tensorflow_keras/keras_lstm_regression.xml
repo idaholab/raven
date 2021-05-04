@@ -8,7 +8,7 @@
     </revisions>
     <classesTested>KerasLSTMRegression</classesTested>
     <description>
-      Test the Keras LSTM Regression.
+      Test the Keras LSTM Regression using a simple sum of sine waves.
     </description>
   </TestInfo>
 
@@ -40,14 +40,6 @@
       </Dense>
       <layer_layout>lstm1, lstm2, dense</layer_layout>
     </ROM>
-    <!--
-    <EnsembleModel name="ensembleModel" subType="">
-      <Model class="Models" type="ROM">
-        lstmROM
-        <Input class="DataObjects" type="HistorySet">inputHolder</Input>
-        <TargetEvaluation class="DataObjects" type="HistorySet">outputHolder</TargetEvaluation>
-      </Model>
-    </EnsembleModel> -->
   </Models>
 
   <Samplers>
@@ -85,12 +77,6 @@
       <Output class="DataObjects" type="HistorySet">resampled</Output>
       <Output class="OutStreams" type="Print">out_resampled</Output>
     </MultiRun>
-      <!-- <MultiRun name="test_lstm">
-      <Input class="DataObjects" type="HistorySet">samples</Input>
-      <Model class="Models" type="ROM">lstmROM</Model>
-      <Output class="DataObjects" type="HistorySet">resampled</Output>
-      <Output class="OutStreams" type="Print">out_resampled</Output>
-    </MultiRun> -->
   </Steps>
 
   <DataObjects>
@@ -115,14 +101,6 @@
         <pivotParameter>index</pivotParameter>
       </options>
     </HistorySet>
-    <HistorySet name="outputHolder">
-      <Input>a,b,c,d,e,f</Input>
-      <Output>sum,square,prev_sum,prev_square,prev_square_sum</Output>
-      <options>
-        <pivotParameter>index</pivotParameter>
-      </options>
-    </HistorySet>
-
   </DataObjects>
 
   <OutStreams>

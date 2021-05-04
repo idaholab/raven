@@ -13,13 +13,10 @@
 # limitations under the License.
 """
   Created on Dec. 20, 2018
-  @author: wangc
+  @author: wangc and cogljj
   base class for tensorflow and keras used for deep neural network
   i.e. Multi-layer perceptron classifier, CNN, LSTM
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import copy
