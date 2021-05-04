@@ -290,7 +290,7 @@ class Umbrella(ForwardSampler):
 
   def multi_umbrella_sample(self, sample_size, vertWeights):
     pmf = [self.weightTarget, 1 - self.weightTarget]
-    disc_sample = self.rdiscrete(self.limit, pmf)
+    disc_sample = self.rdiscrete(sample_size, pmf)
     target_sample_size = len(disc_sample[disc_sample == 1])
     tail_sample_size = sample_size - target_sample_size
     tail_sample = self.multi_gamma_tail_sample(tail_sample_size, vertWeights)
@@ -330,7 +330,7 @@ class Umbrella(ForwardSampler):
     verticesWeights = dict({"vert": vertices, "w": verticesWeights})
     sigma_k = scipy.optimize.root(partial(self.get_std, self.modeLocation), 1, tol=0.0000001)['x'][0]
     self.tail_prob = self.tail_prob_gamma(self.modeLocation, sigma_k)
-    sample_size = 10
+    sample_size = 30
     umbrellaSample = self.multi_umbrella_sample(sample_size,
                                              verticesWeights)
 
