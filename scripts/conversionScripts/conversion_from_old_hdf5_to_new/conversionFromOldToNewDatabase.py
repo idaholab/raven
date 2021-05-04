@@ -53,9 +53,16 @@ if __name__=='__main__':
         inputValues = [valDict[key] for key in histData[1]['inputSpaceHeaders']]
       except:
         inputValues = [valDict[key.decode('UTF-8')] for key in histData[1]['inputSpaceHeaders']]
-    rlz = dict(zip(histData[1]['inputSpaceHeaders'],inputValues))
+    try:
+      iHeaders = [key.decode('UTF-8') for key in histData[1]['inputSpaceHeaders']]
+    except AttributeError:
+      iHeaders = histData[1]['inputSpaceHeaders']
+    rlz = dict(zip(iHeaders,inputValues))
     for varIndex,outputKey in enumerate(histData[1]['outputSpaceHeaders']):
-      rlz[outputKey] = histData[0][:,varIndex]
+      try:
+        rlz[outputKey.decode('UTF-8')] = histData[0][:,varIndex]
+      except AttributeError:
+        rlz[outputKey] = histData[0][:,varIndex]
     metadata = histData[1]['metadata'][-1]
     rlz.update(metadata)
     if 'SampledVarsPb' in metadata:
