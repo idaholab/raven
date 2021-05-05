@@ -166,6 +166,7 @@ class relapdata:
     count  = 0
     minorDict = None
     timeList = []
+    totTs = 0
     for i in range(len(lines)):
       if re.match('^1 time',lines[i]):
         count=count+1
@@ -173,13 +174,20 @@ class relapdata:
         timeBlock = tempdict.pop('1 time_(sec)')
         if (count==1):
           minorDict=tempdict
+          totTs = len(timeBlock)
           timeList.append(timeBlock)
         else:
           if set(timeBlock) != set(timeList[-1]):
             timeList.append(timeBlock)
+            totTs += len(timeBlock)
           for k in tempdict.keys():
             if k in minorDict.keys():
-              minorDict[k].extend(tempdict.get(k))
+              values = tempdict.get(k)
+              totLen = len(minorDict[k]) + len(values)
+              if totLen == totTs:
+                minorDict[k].extend(tempdict.get(k))
+              else:
+                print('RELAP5 Interface: WARNING: Redondant variable "{}". Keep it only one!'.format(k))
             else:
               minorDict[k] =  tempdict[k]
     timeBlock = []
