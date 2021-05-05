@@ -77,7 +77,7 @@ class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
       @ Out, None
     """
     # general infrastructure
-    super().__init__(self, *args, **kwargs)
+    super().__init__(*args, **kwargs)
 
 
   def handleInput(self, spec):

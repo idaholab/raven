@@ -54,6 +54,7 @@ class TimeSeriesAnalyzer(utils.metaclass_insert(abc.ABCMeta, object)):
     """
       Method to get a reference to a class that specifies the input data for class cls.
 
+      @ In, None
       @ Out, specs, InputData.ParameterInput, class to use for specifying input of cls.
     """
     specs = InputData.parameterInputFactory(cls.__name__, ordered=False, strictMode=True)

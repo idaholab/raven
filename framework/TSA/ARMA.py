@@ -76,7 +76,7 @@ class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
       @ Out, None
     """
     # general infrastructure
-    super().__init__(self, *args, **kwargs)
+    super().__init__(*args, **kwargs)
     self._minBins = 20 # this feels arbitrary; used for empirical distr. of data
 
   def handleInput(self, spec):
