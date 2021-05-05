@@ -35,6 +35,8 @@ from Samplers.Sobol import Sobol
 from Samplers.SparseGridCollocation import SparseGridCollocation
 from Samplers.EnsembleForward import EnsembleForward
 from Samplers.CustomSampler import CustomSampler
+from Samplers.Importance import Importance
+from Samplers.Umbrella import Umbrella
 
 # Adaptive samplers
 from Samplers.AdaptiveSampler import AdaptiveSampler
@@ -69,3 +71,6 @@ factory.registerType('AdaptiveDynamicEventTree', AdaptiveDynamicEventTree)
 factory.registerType('AdaptiveMonteCarlo'      , AdaptiveMonteCarlo)
 factory.registerType('Metropolis'              , Metropolis)
 factory.registerType('AdaptiveMetropolis'      , AdaptiveMetropolis)
+factory.registerType('Importance'      , Importance)
+factory.registerType('Umbrella'      , Umbrella)
+

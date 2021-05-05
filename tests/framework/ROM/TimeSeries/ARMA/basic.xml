@@ -74,8 +74,11 @@
       <Features>scaling</Features>
       <pivotParameter>Time</pivotParameter>
       <outTruncation domain="positive">Speed</outTruncation>
-      <Fourier>604800, 302400, 86400, 43200</Fourier>
-      <P>2</P>
+		<!--<Fourier>604800, 86400, 43200, 3600, 1800</Fourier>-->
+      <Fourier>2678400, 1339200,  892800,  669600, 535680,  446400</Fourier>	
+	  <!--<Fourier>604800, 302400, 86400, 43200, 720</Fourier>-->
+
+		<P>2</P>
       <Q>1</Q>
     </ROM>
   </Models>

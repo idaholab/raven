@@ -123,7 +123,9 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
                                                 'CustomSampler',
                                                 'AdaptiveMonteCarlo',
                                                 'Metropolis',
-                                                'AdaptiveMetropolis']
+                                                'AdaptiveMetropolis',
+                                                'Umbrella',
+                                                'Importance']
   validateDict['Optimizer'].append(testDict.copy())
   validateDict['Optimizer'][0]['class'       ] ='Optimizers'
   validateDict['Optimizer'][0]['required'    ] = False
