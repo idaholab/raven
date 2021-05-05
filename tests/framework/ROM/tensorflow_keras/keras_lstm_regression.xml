@@ -9,6 +9,8 @@
     <classesTested>KerasLSTMRegression</classesTested>
     <description>
       Test the Keras LSTM Regression using a simple sum of sine waves.
+      The data was generated in the spreadsheet LSTMRegression/sine_data.ods
+      Note that a real LSTM would need more training data.
     </description>
   </TestInfo>
 
@@ -29,6 +31,7 @@
       <Target>sum, square</Target>
       <pivotParameter>index</pivotParameter>
       <loss>mean_squared_error</loss>
+      <epochs>5</epochs>
       <random_seed>1986</random_seed>
       <LSTM name="lstm1">
         <dim_out>32</dim_out>
