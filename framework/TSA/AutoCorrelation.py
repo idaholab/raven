@@ -34,7 +34,7 @@ class AutoCorrelation(TimeSeriesCharacterizer):
     """
     specs = super(AutoCorrelation, cls).getInputSpecification()
     specs.name = 'AutoCorrelation'
-    specs.description = """AutoCorrelation TimeSeriesAnalysis algorithm that characterizes the correlation of a signal. 
+    specs.description = """AutoCorrelation TimeSeriesAnalysis algorithm that characterizes the correlation of a signal.
                            It is essentially the similarity between observations as a function of the time lag between them."""
     specs.addSub(InputData.parameterInputFactory(
       'nlags',
