@@ -21,9 +21,9 @@ from .TimeSeriesAnalyzer import  TimeSeriesCharacterizer
 
 
 # utility methods
-class AutoCorrelation( TimeSeriesCharacterizer):
+class AutoCorrelation(TimeSeriesCharacterizer):
   """
-    Perform AutoCorrelation Transformation on time-dependent data.
+    Perform AutoCorrelation analysis on time-dependent data.
   """
 
   @classmethod
@@ -39,13 +39,13 @@ class AutoCorrelation( TimeSeriesCharacterizer):
     specs.addSub(InputData.parameterInputFactory(
       'nlags',
       contentType=InputTypes.IntegerType,
-      descr=""" Number of lags to return autocorrelation for. """
+      descr="""Number of lags to return autocorrelation for."""
     ))
     specs.addSub(InputData.parameterInputFactory(
       'confidence',
       contentType=InputTypes.FloatType,
-      descr=""" If a number is given, the confidence intervals for the given level are returned. For instance if confidence=.05, 
-      95 % confidence intervals are returned where the standard deviation is computed according to Bartlett”s formula. """
+      descr="""If a number is given, the confidence intervals for the given level are returned. For instance if confidence=.05,
+      95 % confidence intervals are returned where the standard deviation is computed according to Bartlett”s formula."""
     ))
     return specs
 
@@ -75,8 +75,7 @@ class AutoCorrelation( TimeSeriesCharacterizer):
 
   def characterize(self, signal, pivot, targets, settings):
     """
-      This function utilizes the Discrete Wavelet Transform to
-      characterize a time-dependent series of data.
+      This function characterizes a signal using autocorrelation.
 
       @ In, signal, np.ndarray, time series with dims [time, target]
       @ In, pivot, np.1darray, time-like parameter values
@@ -90,11 +89,6 @@ class AutoCorrelation( TimeSeriesCharacterizer):
       print("This RAVEN TSA Module requires the statsmodels.tsa.stattools library to be installed in the current python environment")
       raise ModuleNotFoundError
 
-
-    ## The pivot input parameter isn't used explicity in the
-    ## transformation as it assumed/required that each element in the
-    ## time-dependent series is independent, uniquely indexed and
-    ## sorted in time.
     nlags = settings['nlags']
     alpha = settings['confidence']
     params = {target: {'results': {}} for target in targets}
@@ -104,17 +98,3 @@ class AutoCorrelation( TimeSeriesCharacterizer):
       results['acf'], results['confint'] = sm.acf(signal[:, i], nlags=nlags, alpha=alpha)
 
     return params
-
-
-  def writeXML(self, writeTo, params):
-    """
-      Allows the engine to put whatever it wants into an XML to print to file.
-      @ In, writeTo, xmlUtils.StaticXmlElement, entity to write to
-      @ In, params, dict, trained parameters as from self.characterize
-      @ Out, None
-    """
-    # for target, info in params.items():
-    #   base = xmlUtils.newNode(target)
-    #   writeTo.append(base)
-    #   for name, value in info['results'].items():
-    #     base.append(xmlUtils.newNode(name, text=','.join([str(v) for v in value])))
