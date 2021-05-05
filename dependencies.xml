@@ -38,7 +38,7 @@ Note all install methods after "main" take
     <xarray>0.16</xarray>
     <netcdf4>1.5</netcdf4>
     <matplotlib>3.2</matplotlib>
-    <statsmodels>0.12</statsmodels>
+    <statsmodels/>
     <cloudpickle>1.6</cloudpickle>
     <tensorflow>1.15</tensorflow>
     <python skip_check='True'>3</python>

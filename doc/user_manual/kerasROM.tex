@@ -816,7 +816,7 @@ the following layers:
 \end{lstlisting}
 
 %%%%% ROM Model - KerasLSTMClassifier  %%%%%%%
-\paragraph{KerasLSTMClassifier}
+\paragraph{KerasLSTMClassifier and KerasLSTMRegression}
 \label{KerasClassifier}
 
 Long Short Term Memory networks (LSTM) are a special kind of recurrent neural network, capable
@@ -825,10 +825,14 @@ are now widely used. LSTMs are explicity designed to avoid the long-term depende
 information for long periods of time is practically their default behavior, not something that they
 struggle to learn.
 
-\zNormalizationPerformed{KerasLSTMClassifier}
+LSTM's can be used for either classification (with
+\xmlString{KerasLSTMClassifier}) or prediction of values (with
+\xmlString{KerasLSTMRegression}).
+
+\zNormalizationPerformed{KerasLSTMClassifier \textup{and} KerasLSTMRegression}
 
 In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
-be \xmlString{KerasLSTMClassifier} (see the example below). This model can be initialized with
+be \xmlString{KerasLSTMClassifier} or \xmlString{KerasLSTMRegression} (see the examples below). This model can be initialized with
 the following layers:
 
 \begin{itemize}
@@ -864,7 +868,7 @@ the following layers:
     \end{itemize}
 \end{itemize}
 
-\textbf{Example:}
+\textbf{KerasLSTMClassifier Example:}
 \begin{lstlisting}[style=XML,morekeywords={name,subType}]
 <Simulation>
   ...
@@ -902,6 +906,34 @@ the following layers:
           <activation>softmax</activation>
       </Dense>
       <layer_layout>lstm1,lstm2,dropout,dense</layer_layout>
+    </ROM>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+\textbf{KerasLSTMRegression Example:}
+\begin{lstlisting}[style=XML,morekeywords={name,subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <ROM name="lstmROM" subType="KerasLSTMRegression">
+      <Features>prev_sum, prev_square, prev_square_sum</Features>
+      <Target>sum, square</Target>
+      <pivotParameter>index</pivotParameter>
+      <loss>mean_squared_error</loss>
+      <LSTM name="lstm1">
+        <dim_out>32</dim_out>
+      </LSTM>
+      <LSTM name="lstm2">
+        <dim_out>16</dim_out>
+      </LSTM>
+      <Dense name="dense">
+      </Dense>
+      <layer_layout>lstm1, lstm2, dense</layer_layout>
+
     </ROM>
     ...
   </Models>

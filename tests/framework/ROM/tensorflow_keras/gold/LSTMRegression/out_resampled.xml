@@ -1,0 +1,18 @@
+<DataObjectMetadata name="resampled">
+  <DataSet type="Static">
+    <dims>
+      <prev_square>index</prev_square>
+      <prev_square_sum>index</prev_square_sum>
+      <prev_sum>index</prev_sum>
+      <square>index</square>
+      <sum>index</sum>
+    </dims>
+    <general>
+      <inputs>a,b,c,d,e,f</inputs>
+      <outputs>sum,square,prev_sum,prev_square,prev_square_sum</outputs>
+      <pointwise_meta>PointProbability,ProbabilityWeight,ProbabilityWeight-a,ProbabilityWeight-b,ProbabilityWeight-c,ProbabilityWeight-d,ProbabilityWeight-e,ProbabilityWeight-f,ProbabilityWeight-prev_square,ProbabilityWeight-prev_square_sum,ProbabilityWeight-prev_sum,prefix</pointwise_meta>
+      <sampleTag>RAVEN_sample_ID</sampleTag>
+    </general>
+  </DataSet>
+  
+</DataObjectMetadata>

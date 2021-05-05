@@ -43,6 +43,7 @@ from .KerasClassifier import KerasClassifier
 from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
 from SupervisedLearning.KerasConvNetClassifier import KerasConvNetClassifier
 from SupervisedLearning.KerasLSTMClassifier import KerasLSTMClassifier
+from SupervisedLearning.KerasLSTMRegression import KerasLSTMRegression
 from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters
 
 ################################################################################
@@ -66,3 +67,4 @@ factory.registerType('Interpolated'          , Interpolated)
 factory.registerType('KerasMLPClassifier'    , KerasMLPClassifier)
 factory.registerType('KerasConvNetClassifier', KerasConvNetClassifier)
 factory.registerType('KerasLSTMClassifier'   , KerasLSTMClassifier)
+factory.registerType('KerasLSTMRegression'   , KerasLSTMRegression)

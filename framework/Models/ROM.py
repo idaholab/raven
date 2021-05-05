@@ -1281,7 +1281,7 @@ class ROM(Dummy):
 
     self.kerasLayersList = functools.reduce(lambda x,y: x+y, list(self.kerasDict.values()))
 
-    self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier']
+    self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier', 'KerasLSTMRegression']
     # for Clustered ROM
     self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
