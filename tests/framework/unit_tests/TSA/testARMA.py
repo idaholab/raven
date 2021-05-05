@@ -282,6 +282,9 @@ checkFloat('Simple ARMA variance', 0.9532563046953576, check['var'], tol=1e-3)
 # #ax.plot(pivot, res, '.:')
 # plt.show()
 
+checkTrue("arma can generate", arma.canGenerate())
+checkTrue("arma can characterize", arma.canCharacterize())
+
 # predict
 np.random.seed(42) # forces MLE in statsmodels to be deterministic
 new = arma.generate(params, pivot, settings)[:, 0]

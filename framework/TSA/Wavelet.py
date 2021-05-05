@@ -17,11 +17,11 @@
 import numpy as np
 
 from utils import InputData, InputTypes, xmlUtils
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
 
 # utility methods
-class Wavelet(TimeSeriesAnalyzer):
+class Wavelet(TimeSeriesGenerator, TimeSeriesCharacterizer):
   """
     Perform Discrete Wavelet Transformation on time-dependent data.
   """
@@ -77,7 +77,7 @@ class Wavelet(TimeSeriesAnalyzer):
       @ Out, None
     """
     # general infrastructure
-    TimeSeriesAnalyzer.__init__(self, *args, **kwargs)
+    super().__init__(*args, **kwargs)
 
 
   def handleInput(self, spec):
@@ -86,7 +86,7 @@ class Wavelet(TimeSeriesAnalyzer):
       @ In, spec, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
-    settings = TimeSeriesAnalyzer.handleInput(self, spec)
+    settings = super().handleInput(spec)
     settings['family'] = spec.findFirst('family').value
     return settings
 

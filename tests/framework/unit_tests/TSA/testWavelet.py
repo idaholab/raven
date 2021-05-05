@@ -243,11 +243,16 @@ settings = transform.setDefaults(settings)
 params = transform.characterize(signals, pivot, targets, settings)
 check = params['A']['results']
 
+checkTrue("wavelet can generate", transform.canGenerate())
+checkTrue("wavelet can characterize", transform.canCharacterize())
+
 for real_a, pred_a in zip(true_a, check['coeff_a']):
   checkFloat(titles[0], real_a, pred_a, tol=1e-8)
 
 for real_d, pred_d in zip(true_d, check['coeff_d']):
   checkFloat(titles[1], real_d, pred_d, tol=1e-8)
+
+print(results)
 
 sys.exit(results["fail"])
 """
