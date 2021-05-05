@@ -48,6 +48,7 @@ class KerasRegression(KerasBase):
       @ Out, None
     """
     super().__init__(**kwargs)
+    self.printTag = 'KerasRegression'
 
   def readInitDict(self, initDict):
     """
@@ -56,7 +57,6 @@ class KerasRegression(KerasBase):
       @ Out, None
     """
     super().readInitDict(initDict)
-    self.printTag = 'KerasRegression'
 
   def _getFirstHiddenLayer(self, layerInstant, layerSize, layerDict):
     """
@@ -84,7 +84,7 @@ class KerasRegression(KerasBase):
       on if this is a regression or classifier.
       @ In, names, list of names
       @ In, values, list of values
-      @ Out, targetValues, numpy.ndarray of shape numSamples, numTimesteps, numFeatures
+      @ Out, targetValues, numpy.ndarray of shape (numSamples, numTimesteps, numFeatures)
     """
     # Features must be 3d i.e. [numSamples, numTimeSteps, numFeatures]
 
@@ -126,6 +126,7 @@ class KerasRegression(KerasBase):
       if not resp[0]:
         self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
 
+    # construct the evaluation matrix
     featureValues = []
     featureValuesShape = None
     for feat in self.features:
@@ -146,16 +147,6 @@ class KerasRegression(KerasBase):
         self.raiseAnError(IOError,'The feature ',feat,' is not in the training set')
     featureValues = np.stack(featureValues, axis=-1)
 
-    # construct the evaluation matrix
-    #featureValues = np.zeros(shape=(values[0].size,len(self.features)))
-    #for cnt, feat in enumerate(self.features):
-    #  if feat not in names:
-    #    self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
-    #  else:
-    #    resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
-    #    if not resp[0]:
-    #      self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-    #    featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     result = self.__evaluateLocal__(featureValues)
     pivotParameter = self.initDict['pivotParameter']
     if type(edict[pivotParameter]) == type([]):
@@ -165,7 +156,6 @@ class KerasRegression(KerasBase):
       result[pivotParameter] = edict[pivotParameter][0]
     else:
       result[pivotParameter] = edict[pivotParameter]
-    #breakpoint()
     return result
 
 

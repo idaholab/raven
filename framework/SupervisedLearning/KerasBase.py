@@ -197,6 +197,7 @@ class KerasBase(supervisedLearning):
       self.availNoise['gaussiandropout'] = tf.keras.layers.GaussianDropout
 
     super().__init__(**kwargs)
+    self.printTag = 'KerasBase'
 
   def readInitDict(self, initDict):
     """
@@ -207,7 +208,6 @@ class KerasBase(supervisedLearning):
     super().readInitDict(initDict)
     # parameter dictionary at the initial stage
     self.initDict = copy.deepcopy(self.initOptionDict)
-    self.printTag = 'KerasBase'
     # This ROM is able to manage the time-series on its own. No need for special treatment outside
     self._dynamicHandling = True
     # Basic Layers

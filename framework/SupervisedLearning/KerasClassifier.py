@@ -48,6 +48,7 @@ class KerasClassifier(KerasBase):
       @ Out, None
     """
     super().__init__(**kwargs)
+    self.printTag = 'KerasClassifier'
 
   def readInitDict(self, initDict):
     """
@@ -56,7 +57,6 @@ class KerasClassifier(KerasBase):
       @ Out, None
     """
     super().readInitDict(initDict)
-    self.printTag = 'KerasClassifier'
 
   def _getFirstHiddenLayer(self, layerInstant, layerSize, layerDict):
     """
@@ -86,8 +86,8 @@ class KerasClassifier(KerasBase):
       @ In, values, list of values
       @ Out, targetValues, list, list of catagorized target values
     """
-        # Currently, deep neural networks (DNNs) are only used for classification.
-    # Targets for deep neural network should be labels only (i.e. integers only)
+    # This class uses deep neural networks (DNNs) for classification.
+    # Targets for Classifier deep neural network should be labels only (i.e. integers only)
     # For both static  and time-dependent case, the targetValues are 2D arrays, i.e. [numSamples, numTargets]
     # For time-dependent case, the time-dependency is removed from the targetValues
     # Features can be 2D array, i.e. [numSamples, numFeatures], or 3D array,
