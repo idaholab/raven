@@ -75,9 +75,9 @@ class HS2PS(PostProcessorPluginBase):
     """
     super().initialize(runInfo, inputs, initDict)
     if len(inputs)>1:
-      self.raiseAnError(IOError, 'HS2PS Post-Processor', self.name, 'accepts only one dataObject')
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one dataObject')
     if inputs[0].type != 'HistorySet':
-      self.raiseAnError(IOError, 'HS2PS Post-Processor', self.name, 'accepts only HistorySet dataObject, but got "{}"'.format(inputs[0].type))
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only HistorySet dataObject, but got "{}"'.format(inputs[0].type))
 
   def _handleInput(self, paramInput):
     """
@@ -97,7 +97,9 @@ class HS2PS(PostProcessorPluginBase):
   def run(self,inputIn):
     """
     This method performs the actual transformation of the data object from history set to point set
-      @ In, inputIn, list, list of datasets which contains the data inside the input DataObjects
+      @ In, inputIn, dict, dictionary of data.
+          inputIn = {'Data':listData, 'Files':listOfFiles},
+          listData has the following format: (listOfInputVars, listOfOutVars, xr.Dataset)
       @ Out, outDataset, xarray.Dataset, output dataset
     """
     inpVars, outVars, data = inputIn['Data'][0]
@@ -113,4 +115,24 @@ class HS2PS(PostProcessorPluginBase):
     convertedFeat = xr.DataArray(featData, dims=('RAVEN_sample_ID', 'outVars'), coords={'RAVEN_sample_ID':data['RAVEN_sample_ID'], 'outVars':varNames})
     convertedFeatDataset = convertedFeat.to_dataset(dim='outVars')
     outDataset = xr.merge([outDataset, convertedFeatDataset])
+    ## self.transformationSettings is used by _inverse method when doing DataMining
+    self.transformationSettings['vars'] = copy.deepcopy(self.features)
+    self.transformationSettings['timeLength'] = data[self.pivotParameter].size
+    self.transformationSettings['timeAxis'] = data[self.pivotParameter][0]
+    self.transformationSettings['dimID'] = list(outDataset.keys())
     return outDataset
+
+  def _inverse(self,inputDic):
+    """
+     This method is aimed to return the inverse of the action of this PostProcessor
+     @ In, inputDic, dict, dictionary which contains the transformed data of this PP
+     @ Out, data, dict, the dictionary containing the inverse of the data (the orginal space)
+    """
+    data = {}
+    for hist in inputDic.keys():
+      data[hist]= {}
+      tempData = inputDic[hist].reshape((len(self.transformationSettings['vars']),self.transformationSettings['timeLength']))
+      for index,var in enumerate(self.transformationSettings['vars']):
+        data[hist][var] = tempData[index,:]
+      data[hist][self.pivotParameter] = self.transformationSettings['timeAxis']
+    return data

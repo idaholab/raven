@@ -131,7 +131,21 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
       @ In, **kwargs, dict, is a dictionary that contains the information passed by "Step".
           Currently not used by PostProcessor. It can be useful by Step to control the input
           and output of the PostProcessor, as well as other control options for the PostProcessor
-      @ Out, inputDict, list, list of data set that will be directly used by the "PostProcessor.run" method.
+      @ Out, inputDict, dict, dictionary of data that will be directly used by the "PostProcessor.run" method.
+          inputDict = {'Data':listData, 'Files':listOfFiles},
+          listData has the following format if 'xrDataset' is passed to self.setInputDataType('xrDataset')
+          (listOfInputVars, listOfOutVars, xr.Dataset)
+          Otherwise listData has the following format: (listOfInputVars, listOfOutVars, DataDict) with
+          DataDict is a dictionary that has the format
+              dataDict['dims']     = dict {varName:independentDimensions}
+              dataDict['metadata'] = dict {metaVarName:metaVarValue}
+              dataDict['type'] = str TypeOfDataObject
+              dataDict['inpVars'] = list of input variables
+              dataDict['outVars'] = list of output variables
+              dataDict['numberRealization'] = int SizeOfDataObject
+              dataDict['name'] = str DataObjectName
+              dataDict['metaKeys'] = list of meta variables
+              dataDict['data'] = dict {varName: varValue(1-D or 2-D numpy array)}
     """
     #### TODO: This method probably need to move to PostProcessor Base Class when we have converted
     #### all internal PostProcessors to use Dataset
