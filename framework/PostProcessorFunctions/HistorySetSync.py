@@ -79,13 +79,20 @@ class HistorySetSync(PostProcessorPluginBase):
     if inputs[0].type != 'HistorySet':
       self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only HistorySet dataObject, but got "{}"'.format(inputs[0].type))
 
+  def setParams(self, numberOfSamples, pivotParameter, extension, syncMethod):
+    """
+    """
+    self.numberOfSamples = numberOfSamples
+    self.pivotParameter = pivotParameter
+    self.extension = extension
+    self.syncMethod = syncMethod
+
   def _handleInput(self, paramInput):
     """
       Function to handle the parameter input.
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
     for child in paramInput.subparts:
       if child.getName() == 'numberOfSamples':
         self.numberOfSamples = child.value
