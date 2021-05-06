@@ -113,7 +113,7 @@ class ExternalModel(Dummy):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
-    
+
     modelVariableValues = {}
     if 'createNewInput' in dir(self.sim):
       if 'SampledVars' in kwargs.keys():
@@ -237,7 +237,7 @@ class ExternalModel(Dummy):
     for key in Input.keys():
       if key in self.modelVariableType.keys() or key in additionalKeys:
         InputDict[key] = Input[key]
-    
+
     if 'current_time' in Input:
       self.sim.runStep(externalSelf, InputDict)
     else:
@@ -366,7 +366,7 @@ class ExternalModel(Dummy):
         """
         author = "RAVEN team"
         description = "RAVEN{}-based Python-driven simulator"
-    
+
         def __init__(self, **kwargs):
             """
               The configuration file here represents the surrogate model that needs to be loaded
@@ -409,18 +409,18 @@ class ExternalModel(Dummy):
                 self.model = pickle.load(open(self.model_path, mode='rb'))
                 self.initialized = True
             request = dict()
-            
+
             for var in self.inputVariables:
                 request[var] = self.__dict__[var]
             request['current_time'] = current_time
             request['step_size'] = step_size
-            
+
             outs, instSelf = self.model._externalRun(request, dict.from_keys(self.inputVariables))
             for var in outs:
                 self.__dict__[var] = outs[var]
             return True
     '''
-    
+
     em = "ExternalModel"
     ik = ",".join(['"{}"'.format(k) for k in self.inputKeys])
     rp = __file__
