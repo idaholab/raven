@@ -61,12 +61,12 @@ class HStoPSOperator(PostProcessorPluginBase):
       @ Out, None
     """
     super().__init__()
-    self.outputFormat = 'PointSet'
     self.pivotParameter = 'time' #pivotParameter identify the ID of the temporal variabl
     self.settings       = {'operationType':None,'operationValue':None,'pivotStrategy':'nearest'}
     self.setInputDataType('dict')
     self.keepInputMeta(True)
     self.outputMultipleRealizations = True # True indicate multiple realizations are returned
+    self.validDataType = ['PointSet'] # The list of accepted types of DataObject
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -127,7 +127,7 @@ class HStoPSOperator(PostProcessorPluginBase):
     _, _, inputDict = inputIn['Data'][0]
     outputDic = {'data': {}}
     outputDic['dims'] = {}
-    numSamples = inputDict['numberRealization']
+    numSamples = inputDict['numberRealizations']
 
     # generate the input part and metadata of the output dictionary
     outputDic['data'].update(inputDict['data'])
