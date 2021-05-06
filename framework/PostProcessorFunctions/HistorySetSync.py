@@ -115,7 +115,7 @@ class HistorySetSync(PostProcessorPluginBase):
   def run(self,inputIn):
     """
       Method to post-process the dataObjects
-      @ In, inputDic, dict, dictionaries which contains the data inside the input DataObjects
+      @ In, inputIn, dict, dictionaries which contains the data inside the input DataObjects
         inputIn = {'Data':listData, 'Files':listOfFiles},
         listData has the following format: (listOfInputVars, listOfOutVars, DataDict) with
         DataDict is a dictionary that has the format
