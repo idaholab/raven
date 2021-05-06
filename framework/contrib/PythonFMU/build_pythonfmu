@@ -1,4 +1,11 @@
 #!/bin/bash
+# This script is aimed to check and build
+# PythonFMU RAVEN compatible
+# With this script we can support all the OSs
+# we support in RAVEN
+# @author, Andrea Alfonsi
+# @date, 05/05/2021
+
 
 # fail if anything here fails
 set -e
