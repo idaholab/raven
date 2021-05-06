@@ -273,6 +273,8 @@ class MSR(NDinterpolatorRom):
       weights = None
 
     if self.knn <= 0:
+      if not len(self.X):
+        return
       self.knn = self.X.shape[0]
 
     names = [_toStr(name) for name in self.features + self.target]
