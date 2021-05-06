@@ -7,6 +7,8 @@ RAVEN_BUILD_DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # source read ravenrc script
 RAVEN_RC_SCRIPT=$RAVEN_BUILD_DIR/scripts/read_ravenrc.sh
 RAVEN_RC_SCRIPT="${RAVEN_RC_SCRIPT//\\//}"
+PYTHON_FMU_DIR="$RAVEN_BUILD_DIR/framework/contrib/PythonFMU"
+PYTHON_FMU_DIR="${PYTHON_FMU_DIR//\\//}"
 source $RAVEN_RC_SCRIPT
 
 echo Making RAVEN ...
@@ -107,6 +109,8 @@ fi
 
 (cd $RAVEN_BUILD_DIR && ${PYTHON_COMMAND} ./setup.py build_ext build install --install-platlib=./framework/contrib/AMSC)
 
+(cd $PYTHON_FMU_DIR && ./build_pythonfmu)
+
 if [ ! -z "$RAVEN_SIGNATURE" ];
 then
     #This is to allow the code to be signed on mac os computers.
@@ -118,4 +122,5 @@ then
     (cd $CROW_DIR/install/crow_modules && pwd && codesign -s "$RAVEN_SIGNATURE" -v *.so)
     (cd $RAVEN_BUILD_DIR/framework/contrib/AMSC && pwd && codesign -s "$RAVEN_SIGNATURE" -v *.so)
 fi
+
 echo ... done!

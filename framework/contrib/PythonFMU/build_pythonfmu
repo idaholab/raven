@@ -6,7 +6,8 @@
 # @author, Andrea Alfonsi
 # @date, 05/05/2021
 
-
+# establish conda
+../../../scripts/establish_conda_env.sh --load
 # fail if anything here fails
 set -e
 echo "start PythonFMU (RAVEN compatible) installation ..."
@@ -72,6 +73,7 @@ else
 fi
 
 echo "** Installing RAVEN compatible PythonFMU library *"
-pip install . --use-feature=in-tree-build >$(tty)
-
+# FIXME: uncomment when new version of pip is installed by RAVEN
+#pip install . --use-feature=in-tree-build >$(tty)
+pip install . >$(tty)
 echo "... done!"
