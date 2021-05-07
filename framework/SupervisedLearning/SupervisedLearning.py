@@ -293,6 +293,18 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
         featureValues[:,cnt] = values[names.index(feat)]
     return self.__confidenceLocal__(featureValues)
 
+  # compatibility with BaseInterface requires having a "run" method
+  # TODO during SVL rework, "run" should probably replace "evaluate", maybe?
+  def run(self, edict):
+    """
+      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
+      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      the interface with the kernels requires.
+      @ In, edict, dict, evaluation dictionary
+      @ Out, evaluate, dict, {target: evaluated points}
+    """
+    return self.evaluate(edict)
+
   def evaluate(self,edict):
     """
       Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm

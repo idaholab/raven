@@ -53,7 +53,8 @@
  [./RELAP5interfaceTestAliasAndMetadataTransfer]
   type = 'RavenFramework'
   input = 'test_relap5_code_interface_operator.xml'
-  output = 'RELAP5interfaceTestOperator/testDummyStep/1/typpwr2.i RELAP5interfaceTestOperator/testDummyStep/2/typpwr2.i'
+  output = 'RELAP5interfaceTestOperator/testDummyStep/1/typpwr2.i'
+  text = 'RELAP5interfaceTestOperator/testDummyStep/2/typpwr2.i'
   test_interface_only = True
  [../]
 
@@ -67,7 +68,21 @@
    rel_err = 0.0001
  [../]
 
+ [./RELAP5interfaceDynamicET]
+  type = 'RavenFramework'
+  input = 'test_relap5_code_interface_dynamic_event_tree.xml'
+  csv = 'RELAP5interfaceDynamicEventTree/RELAP_out.csv RELAP5interfaceDynamicEventTree/RELAPout_hier.csv'
+  text = 'RELAP5interfaceDynamicEventTree/RELAP_DET/DET_1-2-1-2/input.i RELAP5interfaceDynamicEventTree/RELAP_DET/DET_1-1/input.i'
+  test_interface_only = True
+ [../]
 
+ [./RELAP5interfaceHybridDynamicET]
+  type = 'RavenFramework'
+  input = 'test_relap5_code_interface_hybrid_dynamic_event_tree.xml'
+  csv = 'RELAP5interfaceHybridDynamicEventTree/RELAP_out.csv RELAP5interfaceHybridDynamicEventTree/RELAPout_hier.csv'
+  text = 'RELAP5interfaceHybridDynamicEventTree/RELAP_DET/DET_1-2-1-2/input.i RELAP5interfaceHybridDynamicEventTree/RELAP_DET/DET_2-2-1-2/input.i'
+  test_interface_only = True
+ [../]
 
 
 []

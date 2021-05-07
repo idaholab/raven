@@ -18,10 +18,10 @@ Created on Jul 18 2016
 """
 import abc
 
-from BaseClasses import BaseInterface
+from BaseClasses import BaseEntity
 from utils import utils
 
-class Metric(utils.metaclass_insert(abc.ABCMeta, BaseInterface)):
+class Metric(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
   """
     This is the general interface to any RAVEN metric object.
     It contains an initialize, a _readMoreXML, and an evaluation (i.e., distance) methods
