@@ -1,4 +1,4 @@
-<Simulation verbosity="silent">
+<Simulation verbosity="debug">
   <TestInfo>
     <name>plugins/ExamplePlugin.TestPluginExample</name>
     <author>alfoa</author>
@@ -22,6 +22,31 @@
     <Sequence>MCrun,printTOfile</Sequence>
   </RunInfo>
 
+  <Steps>
+    <MultiRun name="MCrun">
+      <Input          class="DataObjects"   type="PointSet">sumOfExponentialInput</Input>
+      <Model          class="Models"        type="ExternalModel">sum_exp</Model>
+      <Sampler        class="Samplers"      type="MonteCarlo">test_MC</Sampler>
+      <Output         class="DataObjects"   type="PointSet">sumOfExponentialOutput</Output>
+    </MultiRun>
+    <IOStep name="printTOfile">
+     <Input          class="DataObjects"   type="PointSet">sumOfExponentialOutput</Input>
+     <Output         class="OutStreams"    type="Print">dumpSumOfExpOutput</Output>
+     <Output         class="OutStreams"    type="Plot">pluginPlot</Output>
+    </IOStep>
+  </Steps>
+
+  <OutStreams>
+    <Print name="dumpSumOfExpOutput">
+      <type>csv</type>
+      <source>sumOfExponentialOutput</source>
+      <what>input,output</what>
+    </Print>
+    <Plot name="pluginPlot" subType="ExamplePlugin.Correlation">
+      <source>sumOfExponentialOutput</source>
+      <variables>c,Xi</variables>
+    </Plot>
+  </OutStreams>
 
   <Models>
     <ExternalModel name="sum_exp" subType="ExamplePlugin.SumOfExponential">
@@ -33,8 +58,8 @@
       <outputVariable>Xi</outputVariable>
       <monotonicVariable>monotonicVariable</monotonicVariable>
       <startMonotonicVariableValue>0.0</startMonotonicVariableValue>
-      <endMonotonicVariableValue>1e6</endMonotonicVariableValue>
-      <numberCalculationPoints>100000</numberCalculationPoints>
+      <endMonotonicVariableValue>1e2</endMonotonicVariableValue>
+      <numberCalculationPoints>100</numberCalculationPoints>
     </ExternalModel>
   </Models>
 
@@ -48,7 +73,7 @@
   <Samplers>
     <MonteCarlo name="test_MC">
       <samplerInit>
-        <limit>2</limit>
+        <limit>100</limit>
       </samplerInit>
       <variable name="c">
           <distribution>one</distribution>
@@ -69,24 +94,4 @@
     </PointSet>
   </DataObjects>
 
-  <Steps>
-    <MultiRun name="MCrun">
-      <Input          class="DataObjects"   type="PointSet">sumOfExponentialInput</Input>
-      <Model          class="Models"        type="ExternalModel">sum_exp</Model>
-      <Sampler        class="Samplers"      type="MonteCarlo">test_MC</Sampler>
-      <Output         class="DataObjects"   type="PointSet">sumOfExponentialOutput</Output>
-    </MultiRun>
-    <IOStep name="printTOfile">
-     <Input          class="DataObjects"   type="PointSet">sumOfExponentialOutput</Input>
-     <Output         class="OutStreams"    type="Print">dumpSumOfExpOutput</Output>
-    </IOStep>
-  </Steps>
-
-  <OutStreams>
-    <Print name="dumpSumOfExpOutput">
-      <type>csv</type>
-      <source>sumOfExponentialOutput</source>
-      <what>input,output</what>
-    </Print>
-  </OutStreams>
 </Simulation>

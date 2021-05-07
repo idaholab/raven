@@ -25,12 +25,23 @@ from __future__ import division, print_function , unicode_literals, absolute_imp
 from .PluginBase import PluginBase
 #Internal Modules End-----------------------------------------------------------
 
+class DummyFactory:
+  """ passthrough until ExternalModels work like other plugins """
+  def registerType(self, *args):
+    """
+      dummy
+      @ In, args, list, arguments
+      @ Out, None
+    """
+    pass
+
 class ExternalModelPluginBase(PluginBase):
   """
     This class represents a specialized class from which each ExternalModel plugins must inherit from
   """
   # List containing the methods that need to be checked in order to assess the
   # validity of a certain plugin. This list needs to be populated by the derived class
+  _interfaceFactory = DummyFactory()
   _methodsToCheck = ['run','initialize']
   entityType = 'ExternalModel' # should this just be Model?
 
@@ -41,4 +52,6 @@ class ExternalModelPluginBase(PluginBase):
       @ Out, None
     """
     PluginBase.__init__(self)
+    # FIXME the ExternalModelPluginBase acts strangely compared to most classes, since it was the
+    # first one we tried. It should be modified to work like the others.
 

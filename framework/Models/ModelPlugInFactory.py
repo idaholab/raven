@@ -33,7 +33,7 @@ from collections import defaultdict
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
-import PluginFactory
+import PluginManager
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -63,7 +63,7 @@ def _registerAllPlugins():
     @ Out, None
   """
   for baseType, baseName in __basePluginClasses.items():
-    plugins = PluginFactory.getEntities(baseType)
+    plugins = PluginManager.getEntities(baseType)
     registerSubtypes(baseType, plugins)
 
 _registerAllPlugins()
@@ -84,7 +84,7 @@ def loadPlugin(Type, subType):
     @ Out, None
   """
   name = subType.split(".")[0]
-  PluginFactory.finishLoadPlugin(name)
+  PluginManager.finishLoadPlugin(name)
   _registerAllPlugins()
 
 def returnPlugin(Type,subType,caller):
