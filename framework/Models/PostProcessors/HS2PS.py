@@ -62,6 +62,7 @@ class HS2PS(PostProcessorPluginBase):
     self.outputMultipleRealizations = True
     self.pivotParameter = None
     self.features = 'all'
+    self.transformationSettings = {}
     self.setInputDataType('xrDataset')
     self.keepInputMeta(True)
 

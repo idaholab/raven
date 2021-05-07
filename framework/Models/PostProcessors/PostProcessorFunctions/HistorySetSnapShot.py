@@ -22,7 +22,8 @@ import copy
 import importlib
 
 from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
-import HistorySetSync as HSS
+# import HistorySetSync as HSS
+from Models.PostProcessors import Factory as interfaceFactory
 from utils import InputData, InputTypes
 
 class HistorySetSnapShot(PostProcessorPluginBase):
@@ -103,8 +104,8 @@ class HistorySetSnapShot(PostProcessorPluginBase):
       if self.extension is None:
         self.raiseAnError(IOError,'When using "timeSlice" an "extension" method must be specified for synchronizing!')
       #perform sync
-      PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
-      self.HSsyncPP = PostProcessorInterfaces.factory.returnInstance('HistorySetSync')
+      # PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
+      self.HSsyncPP = interfaceFactory.factory.returnInstance('HistorySetSync')
       self.HSsyncPP.setParams(self.numberOfSamples,self.pivotParameter,self.extension,syncMethod='grid')
       self.HSsyncPP.initialize(runInfo, inputs, initDict)
 

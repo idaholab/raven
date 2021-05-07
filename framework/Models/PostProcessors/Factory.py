@@ -31,7 +31,6 @@ from .CrossValidation import CrossValidation
 from .LimitSurfaceIntegral import LimitSurfaceIntegral
 from .FastFourierTransform import FastFourierTransform
 from .ExternalPostProcessor import ExternalPostProcessor
-from .InterfacedPostProcessor import InterfacedPostProcessor
 from .TopologicalDecomposition import TopologicalDecomposition
 from .DataClassifier import DataClassifier
 from .ComparisonStatisticsModule import ComparisonStatistics
@@ -43,6 +42,16 @@ from .RiskMeasuresDiscrete import RiskMeasuresDiscrete
 from .Validation import Validation
 from .HistorySetDelay import HistorySetDelay
 from .HS2PS import HS2PS
+
+### PostProcessorFunctions (orig: InterfacedPostProcessor)
+from .PostProcessorFunctions.HStoPSOperator import HStoPSOperator
+from .PostProcessorFunctions.HistorySetSampling import HistorySetSampling
+from .PostProcessorFunctions.HistorySetSnapShot import HistorySetSnapShot
+from .PostProcessorFunctions.HistorySetSync import HistorySetSync
+from .PostProcessorFunctions.TypicalHistoryFromHistorySet import TypicalHistoryFromHistorySet
+from .PostProcessorFunctions.dataObjectLabelFilter import dataObjectLabelFilter
+from .PostProcessorFunctions.testInterfacedPP import testInterfacedPP
+from .PostProcessorFunctions.testInterfacedPP_PointSet import testInterfacedPP_PointSet
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.
 try:

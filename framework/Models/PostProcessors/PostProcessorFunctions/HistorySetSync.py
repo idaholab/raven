@@ -25,7 +25,6 @@ import numpy as np
 from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import InputData, InputTypes
 
-
 class HistorySetSync(PostProcessorPluginBase):
   """
     This Post-Processor performs the conversion from HistorySet to HistorySet
