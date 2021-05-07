@@ -123,12 +123,10 @@
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="filter0" subType="dataObjectLabelFilter">
-      <dataType>HistorySet</dataType>
       <label>KMeans1Labels</label>
       <clusterIDs>0</clusterIDs>
     </PostProcessor>
     <PostProcessor name="filter1" subType="dataObjectLabelFilter">
-      <dataType>HistorySet</dataType>
       <label>KMeans1Labels</label>
       <clusterIDs>1</clusterIDs>
     </PostProcessor>
