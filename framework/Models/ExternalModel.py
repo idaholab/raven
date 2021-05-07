@@ -294,7 +294,8 @@ class ExternalModel(Dummy):
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     # collect results from model run
-    result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
+    #result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
+    result,instSelf = self._externalRun(inRun,)
     evalIndexMap = result.get('_indexMap', [{}])[0]
     # build realization
     ## do it in this order to make sure only the right variables are overwritten
@@ -415,7 +416,7 @@ class ExternalModel(Dummy):
             request['current_time'] = current_time
             request['step_size'] = step_size
 
-            outs, instSelf = self.model._externalRun(request, dict.from_keys(self.inputVariables))
+            outs, instSelf = self.model._externalRun(request)
             for var in outs:
                 self.__dict__[var] = outs[var]
             return True
