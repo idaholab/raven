@@ -1,0 +1,94 @@
+\subsubsection{HistorySetSnapShot}
+\label{HistorySetSnapShot}
+
+This Post-Processor performs a conversion from HistorySet to PointSet.
+The conversion is made so that each history $H$ is converted to a single point $P$.
+There are several methods that can be employed to choose the single point from the history:
+\begin{itemize}
+  \item min: Take a time slice when the \xmlNode{pivotVar} is at its smallest value,
+  \item max: Take a time slice when the \xmlNode{pivotVar} is at its largest value,
+  \item average: Take a time slice when the \xmlNode{pivotVar} is at its time-weighted average value,
+  \item value: Take a time slice when the \xmlNode{pivotVar} \emph{first passes} its specified value,
+  \item timeSlice: Take a time slice index from the sampled time instance space.
+\end{itemize}
+To demonstrate the timeSlice, assume that each history H is a dict of n output variables $x_1=[...],
+x_n=[...]$, then the resulting point P is at time instant index t: $P=[x_1[t],...,x_n[t]]$.
+
+Choosing one the these methods for the \xmlNode{type} node will take a time slice for all the variables in the
+output space based on the provided parameters.  Alternatively, a \xmlString{mixed} type can be used, in which
+each output variable can use a different time slice parameter.  In other words, you can take the max of one
+variable while taking the minimum of another, etc.
+
+\ppType{HistorySetSnapShot}{HistorySetSnapShot}
+
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independent of the \xmlAttr{subType} specified:
+
+\begin{itemize}
+  \item \xmlNode{type}, \xmlDesc{string, required field}, type of operation: \xmlString{min}, \xmlString{max},
+                        \xmlString{average}, \xmlString{value}, \xmlString{timeSlice}, or \xmlString{mixed}
+   \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, name of the temporal variable.  Required for the
+     \xmlString{average} and \xmlString{timeSlice} methods.
+\end{itemize}
+
+If a \xmlString{timeSlice} type is in use, the following nodes also are required:
+\begin{itemize}
+   \item \xmlNode{timeInstant}, \xmlDesc{integer, required field}, required and only used in the
+     \xmlString{timeSlice} type.  Location of the time slice (integer index)
+   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, required field}, number of samples
+\end{itemize}
+
+If instead a \xmlString{min}, \xmlString{max}, \xmlString{average}, or \xmlString{value} is used, the following nodes
+are also required:
+\begin{itemize}
+   \item \xmlNode{pivotVar}, \xmlDesc{string, required field},  Name of the chosen indexing variable (the
+         variable whose min, max, average, or value is used to determine the time slice)
+       \item \xmlNode{pivotVal}, \xmlDesc{float, optional field},  required for \xmlString{value} type, the value for the chosen variable
+\end{itemize}
+
+Lastly, if a \xmlString{mixed} approach is used, the following nodes apply:
+\begin{itemize}
+  \item \xmlNode{max}, \xmlDesc{string, optional field}, the names of variables whose output should be their
+    own maximum value within the history.
+  \item \xmlNode{min}, \xmlDesc{string, optional field}, the names of variables whose output should be their
+    own minimum value within the history.
+  \item \xmlNode{average}, \xmlDesc{string, optional field}, the names of variables whose output should be their
+    own average value within the history. Note that a \xmlNode{pivotParameter} node is required to perform averages.
+  \item \xmlNode{value}, \xmlDesc{string, optional field}, the names of variables whose output should be taken
+    at a time slice determined by another variable.  As with the non-mixed \xmlString{value} type, the first
+    time the \xmlAttr{pivotVar} crosses the specified \xmlAttr{pivotVal} will be the time slice taken.
+    This node requires two attributes, if used:
+    \begin{itemize}
+      \item \xmlAttr{pivotVar}, \xmlDesc{string, required field}, the name of the variable on which the time
+        slice will be performed.  That is, if we want the value of $y$ when $t=0.245$,
+        this attribute would be \xmlString{t}.
+      \item \xmlAttr{pivotVal}, \xmlDesc{float, required field}, the value of the \xmlAttr{pivotVar} on which the time
+        slice will be performed.  That is, if we want the value of $y$ when $t=0.245$,
+        this attribute would be \xmlString{0.245}.
+    \end{itemize}
+  Note that all the outputs of the \xmlNode{DataObject} output of this postprocessor must be listed under one
+  of the \xmlString{mixed} node types in order for values to be returned.
+\end{itemize}
+
+\textbf{Example (mixed):}
+This example will output the average value of $x$ for $x$, the value of $y$ at
+time$=0.245$ for $y$, and the value of $z$ at $x=4.0$ for $z$.
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="mampp2" subType="HistorySetSnapShot">
+      <type>mixed</type>
+      <average>x</average>
+      <value pivotVar="time" pivotVal="0.245">y</value>
+      <value pivotVar="x" pivotVal="4.0">z</value>
+      <pivotParameter>time</pivotParameter>
+      <extension>zeroed</extension>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}

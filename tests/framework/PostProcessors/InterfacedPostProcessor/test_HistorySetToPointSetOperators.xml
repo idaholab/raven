@@ -11,7 +11,7 @@
       1) row-based projection, 2) pivot-value-based projection and 3) operator-based projection (max, min, average)
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>HStoPSoperators</WorkingDir>
     <Sequence>
@@ -33,50 +33,41 @@
     <ExternalModel ModuleToLoad="lorentzAttractor" name="simple_model" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
-    <PostProcessor name="HStoPSoperatorRows" subType="InterfacedPostProcessor">
-      <method>HStoPSOperator</method>
+    <PostProcessor name="HStoPSoperatorRows" subType="HStoPSOperator">
       <row>-1</row>
     </PostProcessor>
-    <PostProcessor name="HStoPSoperatorPivotValuesNearest" subType="InterfacedPostProcessor">
-        <method>HStoPSOperator</method>
+    <PostProcessor name="HStoPSoperatorPivotValuesNearest" subType="HStoPSOperator">
         <pivotParameter>time</pivotParameter>
         <pivotValue>0.3</pivotValue>
     </PostProcessor>
-    <PostProcessor name="HStoPSoperatorPivotValuesInterpolate" subType="InterfacedPostProcessor">
-        <method>HStoPSOperator</method>
+    <PostProcessor name="HStoPSoperatorPivotValuesInterpolate" subType="HStoPSOperator">
         <pivotParameter>time</pivotParameter>
         <pivotValue>0.3</pivotValue>
         <pivotStrategy>interpolate</pivotStrategy>
     </PostProcessor>
-    <PostProcessor name="HStoPSoperatorPivotValuesNearestFloor" subType="InterfacedPostProcessor">
-        <method>HStoPSOperator</method>
+    <PostProcessor name="HStoPSoperatorPivotValuesNearestFloor" subType="HStoPSOperator">
         <pivotParameter>time</pivotParameter>
         <pivotValue>0.3</pivotValue>
         <pivotStrategy>floor</pivotStrategy>
     </PostProcessor>
-    <PostProcessor name="HStoPSoperatorPivotValuesNearestCeling" subType="InterfacedPostProcessor">
-        <method>HStoPSOperator</method>
+    <PostProcessor name="HStoPSoperatorPivotValuesNearestCeling" subType="HStoPSOperator">
         <pivotParameter>time</pivotParameter>
         <pivotValue>0.3</pivotValue>
         <pivotStrategy>ceiling</pivotStrategy>
     </PostProcessor>
-    <PostProcessor name="HStoPSoperatorOperatorMax" subType="InterfacedPostProcessor">
-        <method>HStoPSOperator</method>
+    <PostProcessor name="HStoPSoperatorOperatorMax" subType="HStoPSOperator">
         <pivotParameter>time</pivotParameter>
         <operator>max</operator>
     </PostProcessor>
-    <PostProcessor name="HStoPSoperatorOperatorMin" subType="InterfacedPostProcessor">
-        <method>HStoPSOperator</method>
+    <PostProcessor name="HStoPSoperatorOperatorMin" subType="HStoPSOperator">
         <pivotParameter>time</pivotParameter>
         <operator>min</operator>
     </PostProcessor>
-    <PostProcessor name="HStoPSoperatorOperatorAverage" subType="InterfacedPostProcessor">
-        <method>HStoPSOperator</method>
+    <PostProcessor name="HStoPSoperatorOperatorAverage" subType="HStoPSOperator">
         <pivotParameter>time</pivotParameter>
         <operator>average</operator>
     </PostProcessor>
-    <PostProcessor name="HStoPSoperatorOperatorAll" subType="InterfacedPostProcessor">
-        <method>HStoPSOperator</method>
+    <PostProcessor name="HStoPSoperatorOperatorAll" subType="HStoPSOperator">
         <pivotParameter>time</pivotParameter>
         <operator>all</operator>
     </PostProcessor>
@@ -142,7 +133,7 @@
       <Input>x0,y0,z0</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-    
+
     <PointSet name="out_PP_HStoPSRows">
       <Input>x0,y0,z0</Input>
       <Output>x,y,z</Output>
@@ -179,13 +170,13 @@
         <Input>x0,y0,z0,time</Input>
         <Output>x,y,z</Output>
     </PointSet>
-    
+
     <HistorySet name="outMC">
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
   </DataObjects>
-  
+
   <Steps>
       <!-- create data-->
       <MultiRun name="CreateData" >

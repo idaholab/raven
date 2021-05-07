@@ -25,8 +25,7 @@
   </Files>
 
   <Models>
-    <PostProcessor name="TypicalHistory" subType="InterfacedPostProcessor">
-      <method>TypicalHistoryFromHistorySet</method>
+    <PostProcessor name="TypicalHistory" subType="TypicalHistoryFromHistorySet">
       <subseqLen>3600</subseqLen>
       <outputLen>21600</outputLen>
       <pivotParameter>Time</pivotParameter>

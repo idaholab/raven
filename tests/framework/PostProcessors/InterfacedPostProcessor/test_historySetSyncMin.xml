@@ -84,8 +84,7 @@
       <clargs arg="-o" type="output"/>
       <prepend>python</prepend>
     </Code>
-    <PostProcessor name="syncer" subType="InterfacedPostProcessor">
-      <method>HistorySetSync</method>
+    <PostProcessor name="syncer" subType="HistorySetSync">
       <syncMethod>min</syncMethod>
       <pivotParameter>t</pivotParameter>
       <extension>extended</extension>

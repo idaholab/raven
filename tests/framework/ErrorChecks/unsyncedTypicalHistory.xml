@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-    
   <TestInfo>
     <name>framework/ErrorChecks.unsyncedTypicalHistory</name>
     <author>maljovec</author>
@@ -14,6 +13,7 @@
     </description>
     <revisions>
       <revision author="alfoa" date="2018-05-15">Adding this test description.</revision>
+      <revision author="wangc" date="2020-05-07">Convert InterfacedPostProcessor: subType will be replaced with the text from method node, and method node will be removed</revision>
     </revisions>
   </TestInfo>
 
@@ -27,8 +27,7 @@
   </Files>
 
   <Models>
-   <PostProcessor name = 'TypicalHistory' subType = 'InterfacedPostProcessor'>
-      <method>TypicalHistoryFromHistorySet</method>
+    <PostProcessor name="TypicalHistory" subType="TypicalHistoryFromHistorySet">
       <subseqLen>3600</subseqLen>
       <outputLen>32400</outputLen>
       <pivotParameter>seconds</pivotParameter>
@@ -53,14 +52,15 @@
   </DataObjects>
 
   <Steps>
-    <IOStep name='readData'>
-      <Input  class='Files'       type=''          >rawDataFile</Input>
-      <Output class='DataObjects' type='HistorySet'>data</Output>
+    <IOStep name="readData">
+      <Input class="Files" type="">rawDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">data</Output>
     </IOStep>
-    <PostProcess name='prepData'>
-      <Input  class='DataObjects' type='HistorySet'   >data</Input>
-      <Model  class='Models'      type='PostProcessor'>TypicalHistory</Model>
-      <Output class='DataObjects' type='HistorySet'   >typicalData</Output>
+    <PostProcess name="prepData">
+      <Input class="DataObjects" type="HistorySet">data</Input>
+      <Model class="Models" type="PostProcessor">TypicalHistory</Model>
+      <Output class="DataObjects" type="HistorySet">typicalData</Output>
     </PostProcess>
   </Steps>
+
 </Simulation>

@@ -1,0 +1,32 @@
+\subsubsection{HistorySetSync}
+\label{HistorySetSync}
+
+This Post-Processor performs the conversion from HistorySet to HistorySet
+The conversion is made so that all histories are synchronized in time.
+It can be used to allow the histories to be sampled at the same time instant.
+
+There are two possible synchronization methods, specified through the \xmlNode{syncMethod} node.  If the
+\xmlNode{syncMethod} is \xmlString{grid}, a \xmlNode{numberOfSamples} node is specified,
+which yields an equally-spaced grid of time points. The output values for these points will be linearly derived
+using nearest sampled time points, and the new HistorySet will contain only the new grid points.
+
+The other methods are used by specifying \xmlNode{syncMethod} as \xmlString{all}, \xmlString{min}, or
+\xmlString{max}.  For \xmlString{all}, the postprocessor will iterate through the
+existing histories, collect all the time points used in any of them, and use these as the new grid on which to
+establish histories, retaining all the exact original values and interpolating linearly where necessary.
+In the event of \xmlString{min} or \xmlString{max}, the postprocessor will find the smallest or largest time
+history, respectively, and use those time values as nodes to interpolate between.
+
+\ppType{HistorySetSync}{HistorySetSync}
+
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independent of the \xmlAttr{subType} specified:
+
+\begin{itemize}
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, ID of the temporal variable
+   \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
+   \item \xmlNode{syncMethod}, \xmlDesc{string, required field}, synchronization strategy to employ (see
+     description above).  Options are \xmlString{grid}, \xmlString{all}, \xmlString{max}, \xmlString{min}.
+   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, required if \xmlNode{syncMethod} is
+     \xmlString{grid}, number of new time samples
+\end{itemize}

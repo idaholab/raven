@@ -9,7 +9,7 @@
       Tests of the HistorySetSync interfaced post-processor
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>HistorySetSync</WorkingDir>
     <Sequence>FirstMRun,PP1,plot1,PP2,plot2</Sequence>
@@ -56,15 +56,13 @@
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
-    <PostProcessor name="historySamplingPP1" subType="InterfacedPostProcessor">
-      <method>HistorySetSync</method>
+    <PostProcessor name="historySamplingPP1" subType="HistorySetSync">
       <numberOfSamples>20</numberOfSamples>
       <pivotParameter>time</pivotParameter>
       <extension>zeroed</extension>
       <syncMethod>grid</syncMethod>
     </PostProcessor>
-    <PostProcessor name="historySamplingPP2" subType="InterfacedPostProcessor">
-      <method>HistorySetSync</method>
+    <PostProcessor name="historySamplingPP2" subType="HistorySetSync">
       <syncMethod>grid</syncMethod>
       <numberOfSamples>20</numberOfSamples>
       <pivotParameter>time</pivotParameter>

@@ -13,7 +13,7 @@
       <revision author="alfoa" date="2019-10-08">Created test to show how to perform the sync</revision>
     </revisions>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>historySetSampling_and_sync</WorkingDir>
     <Sequence>FirstMRun,PP1,sync1</Sequence>
@@ -45,15 +45,13 @@
     <ExternalModel ModuleToLoad="../historySampling/lorentzAttractor" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
-    <PostProcessor name="historySamplingPP_uniform" subType="InterfacedPostProcessor">
-      <method>HistorySetSampling</method>
+    <PostProcessor name="historySamplingPP_uniform" subType="HistorySetSampling">
       <samplingType>uniform</samplingType>
       <numberOfSamples>10</numberOfSamples>
       <pivotParameter>time</pivotParameter>
       <interpolation>cubic</interpolation>
     </PostProcessor>
-    <PostProcessor name="hs_sync" subType="InterfacedPostProcessor">
-      <method>HistorySetSync</method>
+    <PostProcessor name="hs_sync" subType="HistorySetSync">
       <syncMethod>all</syncMethod>
       <pivotParameter>time</pivotParameter>
       <extension>extended</extension>

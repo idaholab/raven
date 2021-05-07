@@ -32,8 +32,7 @@
       </executable>
     </Code>
 
-    <PostProcessor name="syncronizeHistorySet" subType="InterfacedPostProcessor">
-        <method>HistorySetSync</method>
+    <PostProcessor name="syncronizeHistorySet" subType="HistorySetSync">
         <syncMethod>all</syncMethod>
         <pivotParameter>time</pivotParameter>
         <extension>extended</extension>

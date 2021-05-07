@@ -1,0 +1,19 @@
+\subsubsection{dataObjectLabelFilter}
+\label{dataObjectLabelFilter}
+
+This Post-Processor allows to filter the portion of a dataObject, either PointSet or HistorySet, with a given clustering label.
+A clustering algorithm associates a unique cluster label to each element of the dataObject (PointSet or HistorySet).
+This cluster label is a natural number ranging from $0$ (or $1$ depending on the algorithm) to $N$ where $N$ is the number of obtained clusters.
+Recall that some clustering algorithms (e.g., K-Means) receive $N$ as input while others (e.g., Mean-Shift) determine $N$ after clustering has been performed.
+Thus, this Post-Processor is naturally employed after a data-mining clustering techniques has been performed on a dataObject so that each clusters
+can be analyzed separately.
+
+\ppType{dataObjectLabelFilter}{dataObjectLabelFilter}
+
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independently of the \xmlAttr{subType} specified:
+
+\begin{itemize}
+   \item \xmlNode{label}, \xmlDesc{string, required field}, name of the clustering label
+   \item \xmlNode{clusterIDs}, \xmlDesc{integers, required field}, ID of the selected clusters. Note that more than one ID can be provided as input
+\end{itemize}

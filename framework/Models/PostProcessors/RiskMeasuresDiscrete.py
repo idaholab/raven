@@ -171,8 +171,9 @@ class RiskMeasuresDiscrete(PostProcessorPluginBase):
     inputDic = inputIn['Data']
     checkHSs=0
     for inp in inputDic:
-      if inp['type'] == 'HistorySet':
-        timeDepData = copy.deepcopy(inp)
+      _, _, inpDs = inp
+      if inpDs['type'] == 'HistorySet':
+        timeDepData = copy.deepcopy(inpDs)
         inputDic.remove(inp)
         checkHSs +=1
 
@@ -207,7 +208,7 @@ class RiskMeasuresDiscrete(PostProcessorPluginBase):
 
     # replicate metadata
     # add meta variables back
-    for key in inputDic[-1]['metaKeys']:
+    for key in inputDic[-1][-1]['metaKeys']:
       outputDic['data'][key] = np.asanyarray(1.0)
 
     return outputDic
@@ -234,7 +235,8 @@ class RiskMeasuresDiscrete(PostProcessorPluginBase):
       r1Low  = self.variables[variable]['R1low']
       r1High = self.variables[variable]['R1high']
 
-      for inp in inputDic:
+      for inpInfo in inputDic:
+        _, _, inp = inpInfo
         ## Get everything out of the inputDic at the outset, the hope is to have no string literals on the interior
         ## of this function.
         if componentConfig is None:

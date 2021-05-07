@@ -1,0 +1,35 @@
+\subsubsection{HistorySetSampling}
+\label{HistorySetSampling}
+
+This Post-Processor performs the conversion from HistorySet to HistorySet
+The conversion is made so that each history H is re-sampled accordingly  to a
+specific sampling strategy.
+It can be used to reduce the amount of space required by the HistorySet.
+
+\ppType{HistorySetSampling}{HistorySetSampling}
+
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
+independent of the \xmlAttr{subType} specified:
+
+\begin{itemize}
+   \item \xmlNode{samplingType}, \xmlDesc{string, required field}, specifies the type of sampling method to be used:
+   \begin{itemize}
+     \item uniform: the set of \xmlNode{numberOfSamples} samples are uniformly distributed along the time axis
+     \item firstDerivative: the set of \xmlNode{numberOfSamples} samples are distributed along the time axis in regions with
+                            higher first order derivative
+     \item secondDerivative: the set of \xmlNode{numberOfSamples} samples are distributed along the time axis in regions with
+                             higher second order derivative
+     \item filteredFirstDerivative: samples are located where the first derivative is greater than the specified \xmlNode{tolerance} value
+                                    (hence, the number of samples can vary from history to history)
+     \item filteredSecondDerivative: samples are located where the second derivative is greater than the specified \xmlNode{tolerance} value
+                                     (hence, the number of samples can vary from history to history)
+   \end{itemize}
+   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, number of samples (required only for the following sampling
+                                             types: uniform, firstDerivative secondDerivative)
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, ID of the temporal variable
+   \item \xmlNode{interpolation}, \xmlDesc{string, optional field}, type of interpolation to be employed for the history reconstruction
+                                           (required only for the following sampling types: uniform, firstDerivative secondDerivative).
+                                           Valid types of interpolation to specified: linear, nearest, zero, slinear, quadratic, cubic, intervalAverage
+   \item \xmlNode{tolerance}, \xmlDesc{string, optional field}, tolerance level (required only for the following sampling types:
+                                       filteredFirstDerivative or filteredSecondDerivative)
+\end{itemize}
