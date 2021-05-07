@@ -40,10 +40,10 @@ from .MCSimporter import MCSImporter
 from .EconomicRatio import EconomicRatio
 from .RiskMeasuresDiscrete import RiskMeasuresDiscrete
 from .Validation import Validation
-from .HistorySetDelay import HistorySetDelay
-from .HS2PS import HS2PS
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)
+from .PostProcessorFunctions.HistorySetDelay import HistorySetDelay
+from .PostProcessorFunctions.HS2PS import HS2PS
 from .PostProcessorFunctions.HStoPSOperator import HStoPSOperator
 from .PostProcessorFunctions.HistorySetSampling import HistorySetSampling
 from .PostProcessorFunctions.HistorySetSnapShot import HistorySetSnapShot
