@@ -15,16 +15,13 @@
 Created on December 1, 2015
 
 '''
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import copy
-import itertools
 import numpy as np
 
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
+from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import InputData, InputTypes
 
-class testInterfacedPP(PostProcessorInterfaceBase):
+class testInterfacedPP(PostProcessorPluginBase):
   """ This class represents the most basic interfaced post-processor
       This class inherits form the base class PostProcessorInterfaceBase and it contains the three methods that need to be implemented:
       - initialize
@@ -40,40 +37,51 @@ class testInterfacedPP(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
-    inputSpecification.setCheckClass(CheckInterfacePP("testInterfacedPP"))
     inputSpecification.addSubSimple("xmlNodeExample", InputTypes.StringType)
-    inputSpecification.addSubSimple("method", InputTypes.StringType)
     return inputSpecification
 
-  def initialize(self):
+  def __init__(self):
     """
-     Method to initialize the Interfaced Post-processor
-     @ In, None,
-     @ Out, None,
+      Constructor
+      @ In, None
+      @ Out, None
     """
-    PostProcessorInterfaceBase.initialize(self)
-    self.inputFormat  = 'HistorySet'
-    self.outputFormat = 'HistorySet'
+    super().__init__()
+    self.setInputDataType('dict')
+    self.keepInputMeta(True)
+    self.outputMultipleRealizations = True # True indicate multiple realizations are returned
+    self.validDataType = ['HistorySet'] # The list of accepted types of DataObject
 
-  def run(self,inputDic):
+  def initialize(self, runInfo, inputs, initDict=None):
+    """
+      Method to initialize the DataClassifier post-processor.
+      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+      @ In, inputs, list, list of inputs
+      @ In, initDict, dict, optional, dictionary with initialization options
+      @ Out, None
+    """
+    super().initialize(runInfo, inputs, initDict)
+    if len(inputs)>1:
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one dataObject')
+    if inputs[0].type != 'HistorySet':
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only HistorySet dataObject, but got "{}"'.format(inputs[0].type))
+
+  def run(self,inputIn):
     """
      This method is transparent: it passes the inputDic directly as output
-     @ In, inputDic, dict, dictionary which contains the data inside the input DataObject
-     @ Out, inputDic, dict, same inputDic dictionary
+     @ In, inputIn, dict, dictionary which contains the data inside the input DataObject
+     @ Out, outputDict, dict, the output dictionary, passing through HistorySet info
     """
-    if len(inputDic)>1:
-      self.raiseAnError(IOError, 'testInterfacedPP_PointSet Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
-    else:
-      inputDict = inputDic[0]
-      outputDict = {'data':{}}
-      outputDict['dims'] = copy.deepcopy(inputDict['dims'])
-      for key in inputDict['data'].keys():
-        outputDict['data'][key] = copy.deepcopy(inputDict['data'][key])
+    _, _, inputDict = inputIn['Data'][0]
+    outputDict = {'data':{}}
+    outputDict['dims'] = copy.deepcopy(inputDict['dims'])
+    for key in inputDict['data'].keys():
+      outputDict['data'][key] = copy.deepcopy(inputDict['data'][key])
 
-      # add meta variables back
-      for key in inputDict['metaKeys']:
-        outputDict['data'][key] = inputDict['data'][key]
-      return outputDict
+    # add meta variables back
+    for key in inputDict['metaKeys']:
+      outputDict['data'][key] = inputDict['data'][key]
+    return outputDict
 
   def _handleInput(self, paramInput):
     """
@@ -81,7 +89,6 @@ class testInterfacedPP(PostProcessorInterfaceBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
     for child in paramInput.subparts:
       if child.getName() == 'xmlNodeExample':
         self.xmlNodeExample = child.value

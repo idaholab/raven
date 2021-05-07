@@ -9,7 +9,7 @@
       Test of the interfaced post-processor interface to deal with pointSet
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>interfacedPostProcessor_PointSet</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
@@ -40,8 +40,7 @@
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
-    <PostProcessor name="interfacedPP1" subType="InterfacedPostProcessor">
-      <method>testInterfacedPP_PointSet</method>
+    <PostProcessor name="interfacedPP1" subType="testInterfacedPP_PointSet">
       <xmlNodeExample>9</xmlNodeExample>
     </PostProcessor>
   </Models>
