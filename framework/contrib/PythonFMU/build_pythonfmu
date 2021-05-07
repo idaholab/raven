@@ -10,7 +10,7 @@
 ../../../scripts/establish_conda_env.sh --load
 # fail if anything here fails
 set -e
-echo "start PythonFMU (RAVEN compatible) installation ..."
+echo "start PythonFMU (RAVEN compatible) installation ......"
 # firstly lets check if the resources/binaries folders are empty or not
 # (some binaries are released with the code). At least for the current
 # operating system. Supporter are Win64, linux64, darwin64
@@ -58,8 +58,10 @@ then
   cd build
 
   echo "***** MAKING BINARIES *"
-  cmake .. -DCMAKE_BUILD_TYPE=Release >$(tty)
-  cmake --build . >$(tty)
+  OUTPUT=$(cmake .. -DCMAKE_BUILD_TYPE=Release)
+  echo "${OUTPUT}"
+  OUTPUT=$(cmake --build .)
+  echo "${OUTPUT}"
   echo "***** MAKING BINARIES SUCCEDED*"
   cd ../../../
 fi
@@ -75,5 +77,6 @@ fi
 echo "** Installing RAVEN compatible PythonFMU library *"
 # FIXME: uncomment when new version of pip is installed by RAVEN
 #pip install . --use-feature=in-tree-build >$(tty)
-pip install . >$(tty)
-echo "... done!"
+OUTPUT=$(pip install .)
+echo "${OUTPUT}"
+echo "...... PythonFMU (RAVEN compatible) installation done!"
