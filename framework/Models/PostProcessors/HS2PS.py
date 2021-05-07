@@ -63,7 +63,9 @@ class HS2PS(PostProcessorPluginBase):
     self.pivotParameter = None
     self.features = 'all'
     self.transformationSettings = {}
-    self.setInputDataType('xrDataset')
+    ## dataset option
+    # self.setInputDataType('xrDataset')
+    self.setInputDataType('dict')
     self.keepInputMeta(True)
 
   def initialize(self, runInfo, inputs, initDict=None):
@@ -98,30 +100,91 @@ class HS2PS(PostProcessorPluginBase):
   def run(self,inputIn):
     """
     This method performs the actual transformation of the data object from history set to point set
-      @ In, inputIn, dict, dictionary of data.
-          inputIn = {'Data':listData, 'Files':listOfFiles},
-          listData has the following format: (listOfInputVars, listOfOutVars, xr.Dataset)
-      @ Out, outDataset, xarray.Dataset, output dataset
+      @ In, inputIn, dict, dictionaries which contains the data inside the input DataObjects
+        inputIn = {'Data':listData, 'Files':listOfFiles},
+        listData has the following format: (listOfInputVars, listOfOutVars, DataDict) with
+        DataDict is a dictionary that has the format
+            dataDict['dims']     = dict {varName:independentDimensions}
+            dataDict['metadata'] = dict {metaVarName:metaVarValue}
+            dataDict['type'] = str TypeOfDataObject
+            dataDict['inpVars'] = list of input variables
+            dataDict['outVars'] = list of output variables
+            dataDict['numberRealization'] = int SizeOfDataObject
+            dataDict['name'] = str DataObjectName
+            dataDict['metaKeys'] = list of meta variables
+            dataDict['data'] = dict {varName: varValue(1-D or 2-D numpy array)}
+      @ Out, outputDic, dict, output dictionary contains the converted PointSet data
     """
-    inpVars, outVars, data = inputIn['Data'][0]
+    #### convert to use Dataset, the following has been tested. However, this changes
+    #### will cause the failure of DataMining since interfacePP is used by DataMining
+    #### for pre-processing data. When we convert all interfacePP to use Dataset, we can
+    #### use the following code, and eventually remove the dict option
+    #      @ In, inputIn, dict, dictionary of data.
+    #          inputIn = {'Data':listData, 'Files':listOfFiles},
+    #          listData has the following format: (listOfInputVars, listOfOutVars, xr.Dataset)
+    #      @ Out, outDataset, xarray.Dataset, output dataset
+    # inpVars, outVars, data = inputIn['Data'][0]
+    # if self.features == 'all':
+    #   self.features = outVars
+    # outDataset = data.drop_dims(self.pivotParameter)
+    # featDataset = data[self.features]
+    # if featDataset[self.features[-1]].isnull().sum() > 0:
+    #   self.raiseAnError(IOError, 'Found misalignment in provided DataObject!')
+    # numRlz = data.dims['RAVEN_sample_ID']
+    # featData = featDataset.to_array().values.transpose(1, 0, 2).reshape(numRlz, -1)
+    # varNames = [str(i) for i in range(featData.shape[-1])]
+    # convertedFeat = xr.DataArray(featData, dims=('RAVEN_sample_ID', 'outVars'), coords={'RAVEN_sample_ID':data['RAVEN_sample_ID'], 'outVars':varNames})
+    # convertedFeatDataset = convertedFeat.to_dataset(dim='outVars')
+    # outDataset = xr.merge([outDataset, convertedFeatDataset])
+    # ## self.transformationSettings is used by _inverse method when doing DataMining
+    # self.transformationSettings['vars'] = copy.deepcopy(self.features)
+    # self.transformationSettings['timeLength'] = data[self.pivotParameter].size
+    # self.transformationSettings['timeAxis'] = data[self.pivotParameter][0]
+    # self.transformationSettings['dimID'] = list(outDataset.keys())
+    # return outDataset
+    #########
+
+
+    inpVars, outVars, inputDict = inputIn['Data'][0]
+    outputDic = {'data': {}}
+    outputDic['dims'] = {}
+    numSamples = inputDict['numberRealizations']
+
+    # generate the input part of the output dictionary
+    for inputVar in inputDict['inpVars']:
+     outputDic['data'][inputVar] = inputDict['data'][inputVar]
+
+    # generate the output part of the output dictionary
     if self.features == 'all':
-      self.features = outVars
-    outDataset = data.drop_dims(self.pivotParameter)
-    featDataset = data[self.features]
-    if featDataset[self.features[-1]].isnull().sum() > 0:
-      self.raiseAnError(IOError, 'Found misalignment in provided DataObject!')
-    numRlz = data.dims['RAVEN_sample_ID']
-    featData = featDataset.to_array().values.transpose(1, 0, 2).reshape(numRlz, -1)
-    varNames = [str(i) for i in range(featData.shape[-1])]
-    convertedFeat = xr.DataArray(featData, dims=('RAVEN_sample_ID', 'outVars'), coords={'RAVEN_sample_ID':data['RAVEN_sample_ID'], 'outVars':varNames})
-    convertedFeatDataset = convertedFeat.to_dataset(dim='outVars')
-    outDataset = xr.merge([outDataset, convertedFeatDataset])
-    ## self.transformationSettings is used by _inverse method when doing DataMining
+     self.features = inputDict['outVars']
+
+    historyLength = len(inputDict['data'][self.features[0]][0])
+    numVariables = historyLength*len(self.features)
+    for history in inputDict['data'][self.features[0]]:
+     if len(history) != historyLength:
+       self.raiseAnError(IOError, 'HS2PS Interfaced Post-Processor ' + str(self.name) + ' : one or more histories in the historySet have different time scale')
+
+    tempDict = {}
+    matrix = np.zeros((numSamples,numVariables))
+    for i in range(numSamples):
+     temp = np.empty(0)
+     for feature in self.features:
+       temp=np.append(temp,inputDict['data'][feature][i])
+     matrix[i,:]=temp
+
+    for key in range(numVariables):
+     outputDic['data'][str(key)] = np.empty(0)
+     outputDic['data'][str(key)] = matrix[:,key]
+     outputDic['dims'][str(key)] = []
+    # add meta variables back
+    for key in inputDict['metaKeys']:
+     outputDic['data'][key] = inputDict['data'][key]
+
     self.transformationSettings['vars'] = copy.deepcopy(self.features)
-    self.transformationSettings['timeLength'] = data[self.pivotParameter].size
-    self.transformationSettings['timeAxis'] = data[self.pivotParameter][0]
-    self.transformationSettings['dimID'] = list(outDataset.keys())
-    return outDataset
+    self.transformationSettings['timeLength'] = historyLength
+    self.transformationSettings['timeAxis'] = inputDict['data'][self.pivotParameter][0]
+    self.transformationSettings['dimID'] = outputDic['data'].keys()
+    return outputDic
 
   def _inverse(self,inputDic):
     """
