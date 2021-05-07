@@ -230,6 +230,7 @@ class Simulation(MessageUser):
     self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threads by number of mpi)
     self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
     self.runInfoDict['internalParallel'  ] = False        # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
+    self.runInfoDict['includeDashboard'  ] = False        # in case of internalParalle True, instanciate the RAY dashboard (https://docs.ray.io/en/master/ray-dashboard.html)? Default: False
     self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
     self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded
     self.runInfoDict['totalNumCoresUsed' ] = 1            # total number of cores used by driver
@@ -567,6 +568,8 @@ class Simulation(MessageUser):
           self.raiseAnError(IOError, 'RunInfo.WorkingDir is empty! Use "." to signify "work here" or specify a directory.')
         if '~' in tempName:
           tempName = os.path.expanduser(tempName)
+        xmlDirectory = os.path.dirname(os.path.abspath(xmlFilename))
+        self.runInfoDict['InputDir'] = xmlDirectory
         if os.path.isabs(tempName):
           self.runInfoDict['WorkingDir'] = tempName
         elif "runRelative" in element.attrib:
@@ -614,6 +617,8 @@ class Simulation(MessageUser):
         self.runInfoDict['NumMPI'            ] = int(element.text)
       elif element.tag == 'internalParallel':
         self.runInfoDict['internalParallel'  ] = utils.interpretBoolean(element.text)
+        dashboard = element.attrib.get("dashboard",'False')
+        self.runInfoDict['includeDashboard'  ] = utils.interpretBoolean(dashboard)
       elif element.tag == 'batchSize':
         self.runInfoDict['batchSize'         ] = int(element.text)
       elif element.tag.lower() == 'maxqueuesize':
@@ -626,6 +631,14 @@ class Simulation(MessageUser):
         self.runInfoDict['postcommand'       ] = element.text
       elif element.tag == 'deleteOutExtension':
         self.runInfoDict['deleteOutExtension'] = element.text.strip().split(',')
+      elif element.tag == 'headNode':
+        self.runInfoDict['headNode'] = element.text.strip()
+      elif element.tag == 'redisPassword':
+        self.runInfoDict['redisPassword'] = element.text.strip()
+      elif element.tag == 'remoteNodes':
+        self.runInfoDict['remoteNodes'] = [el.strip() for el in element.text.strip().split(',')]
+      elif element.tag == 'PYTHONPATH':
+        self.runInfoDict['UPDATE_PYTHONPATH'] = element.text.strip()
       elif element.tag == 'delSucLogFiles'    :
         if utils.stringIsTrue(element.text):
           self.runInfoDict['delSucLogFiles'    ] = True
@@ -713,6 +726,8 @@ class Simulation(MessageUser):
       subprocess.call(args=remoteRunCommand["args"],
                       cwd=remoteRunCommand.get("cwd", None),
                       env=remoteRunCommand.get("env", None))
+      self.raiseADebug('Submitted in queue! Shutting down Jobhandler!')
+      self.jobHandler.shutdown()
       return
     #loop over the steps of the simulation
     for stepName in self.stepSequenceList:

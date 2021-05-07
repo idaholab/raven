@@ -16,10 +16,6 @@ Created on Mar 5, 2013
 
 @author: alfoa, cogljj, crisr
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import sys
 import gc
