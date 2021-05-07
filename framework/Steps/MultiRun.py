@@ -12,38 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Module containing the different type of step allowed
-Step is called by simulation
+  MultiRun module
+  This module contains the Step that is aimed to be employed when
+  either Sampling or Optimization analyses are requested
+  results of a RAVEN (or not) analysis.
+  Created on May 6, 2021
+  @author: alfoa
+  supercedes Steps.py from alfoa (2/16/2013)
 """
 #External Modules------------------------------------------------------------------------------------
-import atexit
 import time
-import abc
-import os
-import sys
-import pickle
 import copy
-import numpy as np
-#import pickle as cloudpickle
-import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseEntity, InputDataUser
-import Files
-from utils import utils
-from utils import InputData, InputTypes
+from .SingleRun import SingleRun
 import Models
-from OutStreams import OutStreamBase
-from DataObjects import DataObject
-from Databases import Database
+from utils import utils
+from OutStreams import OutStreamEntity
 #Internal Modules End--------------------------------------------------------------------------------
 
 
 class MultiRun(SingleRun):
   """
-    this class implements one step of the simulation pattern' where several runs are needed
+    This class implements one step of the simulation pattern' where several runs are needed
   """
   def __init__(self):
     """
@@ -109,7 +101,7 @@ class MultiRun(SingleRun):
     self._outputDictCollectionLambda = []
     # set up output collection lambdas
     for outIndex, output in enumerate(inDictionary['Output']):
-      if not isinstance(output, OutStreamBase):
+      if not isinstance(output, OutStreamEntity):
         if 'SolutionExport' in inDictionary.keys() and output.name == inDictionary['SolutionExport'].name:
           self._outputCollectionLambda.append((lambda x:None, outIndex))
           self._outputDictCollectionLambda.append((lambda x:None, outIndex))

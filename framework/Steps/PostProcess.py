@@ -12,32 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Module containing the different type of step allowed
-Step is called by simulation
+  PostProcess module
+  This module contains the step that is aimed to PostProcess the
+  results of a RAVEN (or not) analysis.
+  Created on May 6, 2021
+  @author: alfoa
+  supercedes Steps.py from alfoa (2/16/2013)
 """
 #External Modules------------------------------------------------------------------------------------
-import atexit
-import time
-import abc
-import os
-import sys
-import pickle
-import copy
-import numpy as np
-#import pickle as cloudpickle
-import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseEntity, InputDataUser
-import Files
-from utils import utils
-from utils import InputData, InputTypes
-import Models
-from OutStreams import OutStreamBase
-from DataObjects import DataObject
-from Databases import Database
+from .SingleRun import SingleRun
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PostProcess(SingleRun):

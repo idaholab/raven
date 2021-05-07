@@ -12,31 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Module containing the different type of step allowed
-Step is called by simulation
+  SingleRun module
+  This module contains the step that is aimed to evaluate a Model just
+  once (e.g. single code run, PostProcessing, etc.)
+  Created on May 6, 2021
+  @author: alfoa
+  supercedes Steps.py from alfoa (2/16/2013)
 """
 #External Modules------------------------------------------------------------------------------------
 import atexit
 import time
-import abc
 import os
-import sys
-import pickle
 import copy
-import numpy as np
-#import pickle as cloudpickle
-import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseEntity, InputDataUser
-import Files
-from utils import utils
-from utils import InputData, InputTypes
 import Models
-from OutStreams import OutStreamBase
-from DataObjects import DataObject
+from .Step import Step
+from utils import utils
+from OutStreams import OutStreamEntity
 from Databases import Database
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -164,7 +158,7 @@ class SingleRun(Step):
       # if 'Database' in inDictionary['Output'][i].type:
       if isinstance(inDictionary['Output'][i], Database):
         inDictionary['Output'][i].initialize(self.name)
-      elif isinstance(inDictionary['Output'][i], OutStreamBase):
+      elif isinstance(inDictionary['Output'][i], OutStreamEntity):
         inDictionary['Output'][i].initialize(inDictionary)
       self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(inDictionary['Output'][i].type,inDictionary['Output'][i].name))
     self._registerMetadata(inDictionary)
@@ -204,7 +198,7 @@ class SingleRun(Step):
         if finishedJob.getReturnCode() == 0:
           # if the return code is > 0 => means the system code crashed... we do not want to make the statistics poor => we discard this run
           for output in outputs:
-            if not isinstance(output, OutStreamBase):
+            if not isinstance(output, OutStreamEntity):
               model.collectOutput(finishedJob, output)
             else:
               output.addOutput()

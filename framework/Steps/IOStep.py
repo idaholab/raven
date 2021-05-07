@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Module containing the different type of step allowed
-Step is called by simulation
+  IOStep module
+  This module contains the Step that is aimed to be perform
+  IO processes
+  Created on May 6, 2021
+  @author: alfoa
+  supercedes Steps.py from alfoa (2/16/2013)
 """
 #External Modules------------------------------------------------------------------------------------
 import atexit
@@ -24,18 +28,18 @@ import sys
 import pickle
 import copy
 import numpy as np
-#import pickle as cloudpickle
 import cloudpickle
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseEntity, InputDataUser
 import Files
+import Models
+from .Step import Step
 from utils import utils
 from utils import InputData, InputTypes
-import Models
-from OutStreams import OutStreamBase
+from EntityFactoryBase import EntityFactory
+from BaseClasses import BaseEntity, InputDataUser
+from OutStreams import OutStreamEntity
 from DataObjects import DataObject
 from Databases import Database
 #Internal Modules End--------------------------------------------------------------------------------
@@ -63,7 +67,7 @@ class IOStep(Step):
     """
     outputs         = []
     for out in inDictionary['Output']:
-      if not isinstance(out, OutStreamBase):
+      if not isinstance(out, OutStreamEntity):
         outputs.append(out)
     return outputs
 
@@ -170,7 +174,7 @@ class IOStep(Step):
 
     #Initialize all the OutStreams
     for output in inDictionary['Output']:
-      if isinstance(output, OutStreamBase):
+      if isinstance(output, OutStreamEntity):
         output.initialize(inDictionary)
         self.raiseADebug('for the role Output the item of class {0:15} and name {1:15} has been initialized'.format(output.type,output.name))
     # register metadata
@@ -257,7 +261,7 @@ class IOStep(Step):
         self.raiseAnError(IOError,"Unknown action type "+self.actionType[i])
 
     for output in inDictionary['Output']:
-      if isinstance(output, OutStreamBase):
+      if isinstance(output, OutStreamEntity):
         output.addOutput()
 
   def _localGetInitParams(self):

@@ -12,42 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  The Samplers module includes the different type of Sampling strategy available in RAVEN
+  The Steps module includes the different type of Steps available in RAVEN
 
-  Created on May 21, 2016
+  Created on May 6, 2021
   @author: alfoa
-  supercedes Samplers.py from alfoa (2/16/2013)
+  supercedes Steps.py from alfoa (2/16/2013)
 """
-
-from __future__ import absolute_import
-
-# These lines ensure that we do not have to do something like:
-# 'from Samplers.Sampler import Sampler' outside of this submodule
-from .Sampler import Sampler
-# Forward Samplers
-from .ForwardSampler        import ForwardSampler
-from .MonteCarlo            import MonteCarlo
-from .Grid                  import Grid
-from .Stratified            import Stratified
-from .FactorialDesign       import FactorialDesign
-from .ResponseSurfaceDesign import ResponseSurfaceDesign
-from .Sobol                 import Sobol
-from .SparseGridCollocation import SparseGridCollocation
-from .EnsembleForward       import EnsembleForward
-from .CustomSampler         import CustomSampler
-
-# Adaptive Samplers
-from .AdaptiveSampler      import AdaptiveSampler
-from .LimitSurfaceSearch   import LimitSurfaceSearch
-from .AdaptiveSobol        import AdaptiveSobol
-from .AdaptiveSparseGrid   import AdaptiveSparseGrid
-from .AdaptiveMonteCarlo   import AdaptiveMonteCarlo
-# Dynamic Event Tree-based Samplers
-from .DynamicEventTree         import DynamicEventTree
-from .AdaptiveDynamicEventTree import AdaptiveDynamicEventTree
-
-# MCMC Samplers
-from .MCMC import Metropolis
-from .MCMC import AdaptiveMetropolis
-
+# import Factory
 from .Factory import factory
