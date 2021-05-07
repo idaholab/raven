@@ -81,7 +81,7 @@ class ExternalModel(Dummy):
     self.printTag = 'EXTERNAL MODEL'  # label
     self.initExtSelf = utils.Object() # initial externalizable object
     self.workingDir = None            # RAVEN working dir
-
+    self.pickled = False #  is this model pickled?
   def applyRunInfo(self, runInfo):
     """
       Take information from the RunInfo
@@ -113,10 +113,12 @@ class ExternalModel(Dummy):
            a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
       @ Out, ([(inputDict)],copy.deepcopy(kwargs)), tuple, return the new input in a tuple form
     """
+
     modelVariableValues = {}
     if 'createNewInput' in dir(self.sim):
       if 'SampledVars' in kwargs.keys():
         sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
+      self.inputKeys = sampledVars.keys()
       extCreateNewInput = self.sim.createNewInput(self.initExtSelf,myInput,samplerType,**kwargs)
       if extCreateNewInput is None:
         self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
@@ -151,7 +153,9 @@ class ExternalModel(Dummy):
       self.ModuleToLoad = paramInput.parameterValues['ModuleToLoad']
       moduleToLoadString, self.ModuleToLoad = utils.identifyIfExternalModelExists(self, self.ModuleToLoad, self.workingDir)
       # load the external module and point it to self.sim
-      self.sim = utils.importFromPath(moduleToLoadString, self.messageHandler.getDesiredVerbosity(self)>1)
+      self.sim = utils.importFromPath(moduleToLoadString,self.messageHandler.getDesiredVerbosity(self)>1)
+    elif paramInput.parameterValues['subType'].strip() == 'pickledModel':
+      self.pickled = True
     ## NOTE we implicitly assume not having ModuleToLoad means you're a plugin or a known type.
     elif paramInput.parameterValues['subType'].strip() is not None:
       ExternalModel.plugins.loadPlugin("ExternalModel",paramInput.parameterValues['subType'])
@@ -164,30 +168,38 @@ class ExternalModel(Dummy):
       self.sim = ExternalModel.plugins.returnPlugin("ExternalModel",paramInput.parameterValues['subType'],self)
     else:
       self.raiseAnError(IOError,'"ModuleToLoad" attribute or "subType" not provided for Model "ExternalModel" named "'+self.name+'"!')
+    if not self.pickled:
+      # check if there are variables and, in case, load them
+      for child in paramInput.subparts:
+        if child.getName() =='variable':
+          self.raiseAnError(IOError,'"variable" node included but has been depreciated!  Please list variables in a "variables" node instead.  Remove this message by Dec 2016.')
+        elif child.getName() == 'variables':
+          if len(child.parameterValues) > 0:
+            self.raiseAnError(IOError,'the block '+child.getName()+' named '+child.value+' should not have attributes!!!!!')
+          for var in child.value.split(','):
+            var = var.strip()
+            self.modelVariableType[var] = None
+      # adjust model-aware variables based on aliases
+      self._replaceVariablesNamesWithAliasSystem(self.modelVariableType,'inout')
+      self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
+      # check if there are other information that the external module wants to load
+      #TODO this needs to be converted to work with paramInput
+      if '_readMoreXML' in dir(self.sim):
+        self.sim._readMoreXML(self.initExtSelf,xmlNode)
 
-    # check if there are variables and, in case, load them
-    for child in paramInput.subparts:
-      if child.getName() =='variable':
-        self.raiseAnError(IOError,'"variable" node included but has been depreciated!  Please list variables in a "variables" node instead.  Remove this message by Dec 2016.')
-      elif child.getName() == 'variables':
-        if len(child.parameterValues) > 0:
-          self.raiseAnError(IOError,'the block '+child.getName()+' named '+child.value+' should not have attributes!!!!!')
-        for var in child.value.split(','):
-          var = var.strip()
-          self.modelVariableType[var] = None
-    # adjust model-aware variables based on aliases
-    self._replaceVariablesNamesWithAliasSystem(self.modelVariableType,'inout')
-    self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
-    # check if there are other information that the external module wants to load
-    #TODO this needs to be converted to work with paramInput
-    if '_readMoreXML' in dir(self.sim):
-      self.sim._readMoreXML(self.initExtSelf,xmlNode)
+  def evaluate(self, request: dict):
+    """
+      When the ExternalModel is used directly without need of having the sampler passing in the new values evaluate instead of run should be used
+      @ In, request, dict, feature coordinates (request)
+      @ Out, outputEvaluation, dict, the dict containing the outputs for each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
+    """
+    outputEvaluation, _ = self._externalRun(request)
+    return outputEvaluation
 
-  def _externalRun(self, Input, modelVariables):
+  def _externalRun(self, Input):
     """
       Method that performs the actual run of the imported external model (separated from run method for parallelization purposes)
-      @ In, Input, list, list of the inputs needed for running the model
-      @ In, modelVariables, dict, the dictionary containing all the External Model variables
+      @ In, Input, dict, list of the inputs needed for running the model
       @ Out, (outcomes,self), tuple, tuple containing the dictionary of the results (pos 0) and the self (pos 1)
     """
     externalSelf        = utils.Object()
@@ -210,7 +222,7 @@ class ExternalModel(Dummy):
     if '_indexMap' in Input.keys():
       additionalKeys.append('_indexMap')
     for key in Input.keys():
-      if key in modelVariables.keys() or key in additionalKeys:
+      if key in additionalKeys:
         modelVariableValues[key] = copy.copy(Input[key])
     for key in list(self.modelVariableType.keys()) + additionalKeys:
       # add the variable as a member of "self"
@@ -226,7 +238,10 @@ class ExternalModel(Dummy):
       if key in self.modelVariableType.keys() or key in additionalKeys:
         InputDict[key] = Input[key]
 
-    self.sim.run(externalSelf, InputDict)
+    if 'current_time' in Input:
+      self.sim.runStep(externalSelf, InputDict)
+    else:
+      self.sim.run(externalSelf, InputDict)
 
     for key in self.modelVariableType:
       try:
@@ -279,7 +294,8 @@ class ExternalModel(Dummy):
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     # collect results from model run
-    result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
+    #result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
+    result,instSelf = self._externalRun(inRun,)
     evalIndexMap = result.get('_indexMap', [{}])[0]
     # build realization
     ## do it in this order to make sure only the right variables are overwritten
@@ -319,3 +335,97 @@ class ExternalModel(Dummy):
           self.raiseAnError(Exception,"the time series size needs to be the same for the output space in a HistorySet! Variable:"+key+". Size in the HistorySet="+str(outputSize)+".Size outputed="+str(outputSize))
 
     Dummy.collectOutput(self, finishedJob, output, options)
+
+  def exportAsFMU(self, fileo, keepModule=False):
+    """
+      Method to export this ExternalModel as FMI/FMU
+      @ In, fileo, str or FileObject, fmu file name
+      @ In, keepModule, bool, optional, should we keep the module after
+                       the creation of the FMU or we delete it?
+      @ Out, None
+    """
+    indent = " "*8
+    ink, outk = self.inputKeys, list(set(list(self.modelVariableType.keys())) - set(self.inputKeys))
+    inpReg = ""
+    outReg = ""
+    for var in ink:
+      inpReg+= "{}self.{} = 0\n".format(indent,var)
+      inpReg+= '{}self.register_variable(Real("{}", causality=Fmi2Causality.input))\n'.format(indent,var)
+    for var in outk:
+      outReg+= "{}self.{} = 0\n".format(indent,var)
+      outReg+= '{}self.register_variable(Real("{}", causality=Fmi2Causality.input))\n'.format(indent,var)
+
+    template = r'''
+    from pythonfmu import Fmi2Causality, Fmi2Slave, Fmi2Variability,  Boolean, Integer, Real, String
+    import os
+    import sys
+    import numpy as np
+    import pickle
+    class RAVEN{}Slave(Fmi2Slave):
+        """
+         RAVEN{}-based Python-driven simulator
+        """
+        author = "RAVEN team"
+        description = "RAVEN{}-based Python-driven simulator"
+
+        def __init__(self, **kwargs):
+            """
+              The configuration file here represents the surrogate model that needs to be loaded
+            """
+            super().__init__(**kwargs)
+            self.inputVariables = [{}]
+            # set path to raven and the serialized model
+            self.raven_path = "{}"
+            # model_path is by default the path to this model that is exported as FMU (serialized)
+            self.model_path = "{}"
+            # add raven to the system path
+            sys.path.append(self.raven_path)
+            # register raven and model path as tunable variables
+            self.register_variable(String("raven_path", causality=Fmi2Causality.parameter, variability=Fmi2Variability.tunable))
+            self.register_variable(String("model_path", causality=Fmi2Causality.parameter, variability=Fmi2Variability.tunable))
+            # the model needs to be initialized with the raven path
+            # this flag activates the initialization at the begin of the solve
+            self.initialized = False
+            # register input variables
+            {}
+            # register output variables
+            {}
+
+        def do_step(self, current_time, step_size):
+            if not self.initialized:
+                sys.path.append(self.raven_path)
+                # find the RAVEN framework
+                if os.path.dirname(self.raven_path).endswith("framework"):
+                    # we import the Driver to load the RAVEN enviroment for the un-picklin
+                    try:
+                        import Driver
+                    except RuntimeError as ae:
+                        # we try to add the framework directory
+                        raise RuntimeError("Importing or RAVEN failed with error:" +str(ae))
+                else:
+                    # we import the Driver to load the RAVEN enviroment for the un-pickling
+                    sys.path.append(os.path.join(self.raven_path,"framework"))
+                    import Driver
+                # de-serialize the model
+                self.model = pickle.load(open(self.model_path, mode='rb'))
+                self.initialized = True
+            request = dict()
+
+            for var in self.inputVariables:
+                request[var] = self.__dict__[var]
+            request['current_time'] = current_time
+            request['step_size'] = step_size
+
+            outs, instSelf = self.model._externalRun(request)
+            for var in outs:
+                self.__dict__[var] = outs[var]
+            return True
+    '''
+
+    em = "ExternalModel"
+    ik = ",".join(['"{}"'.format(k) for k in self.inputKeys])
+    rp = __file__
+    mp = self.workingDir
+    tempModule = template.format(em,em,em,ik,rp,mp,inpReg,outReg)
+    with open(fileo,"w") as tempO:
+      tempO.write(tempModule)

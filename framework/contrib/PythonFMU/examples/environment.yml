@@ -1,0 +1,4 @@
+channels:
+  - conda-forge
+dependencies:
+  - sympy>=1.0
