@@ -1,0 +1,116 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework.Models.External.serialize_ext_model</name>
+    <author>alfoa</author>
+    <created>2020-09-26</created>
+    <classesTested>Models.ExternalModel</classesTested>
+    <description>
+      This test is used to exercise the ability or RAVEN to
+      serialize (pickle) the external model class and re-use it in
+      the framework.
+    </description>
+    <analytic>
+      This test uses the analytic model ''attenuate``, which is documented in the analytical test documentation.
+      Additionally, values of the ''from`` variables are exactly determined because they are set in the extmod methods:
+      \begin{itemize}
+        \item fromReadMoreXML: pi         (3.14159)
+        \item fromInit       : sqrt(pi)   (1.77245)
+        \item fromCNISelf    : pi/2       (1.57080)
+        \item fromCNIDict    : 2*sqrt(pi) (3.54491)
+      \end{itemize}
+      The exit strength ''ans`` is analytic with results as follows (Note that for testing purposes, the model always adds
+      0.05 to \texttt{y2} before calculating the exit strength):
+      \begin{itemize}
+        \item \texttt{y1}, \texttt{y2}, \texttt{ans}
+        \item 0.0, 0.0, 0.97531
+        \item 0.0, 1.0, 0.59156
+        \item 1.0, 0.0, 0.59156
+        \item 1.0, 1.0, 0.35880
+      \end{itemize}
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>SerializeWrkd</WorkingDir>
+    <Sequence>extSerialization,extSerielizedLoading,sample2,print</Sequence>
+  </RunInfo>
+  <Files>
+    <Input name="attenuatepk" type="">attenuate_pk</Input>
+    <Input name="attenuate_pk2.fmu" type="">attenuate_pk2.fmu</Input>
+  </Files>
+  <Steps>
+    <MultiRun name="sample">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">attenuate</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">samples</Input>
+      <Output class="OutStreams" type="Print">samples_out</Output>
+    </IOStep>
+    <IOStep name="extSerialization">
+      <Input class="Models" type="ExternalModel">attenuate</Input>
+      <Output class="Files" type="">attenuate_pk2.fmu</Output>
+    </IOStep>
+    <IOStep name="extSerielizedLoading">
+      <Input class="Models" type="ExternalModel">attenuate2</Input>
+      <Output class="Files" type="">attenuatepk2</Output>
+    </IOStep>
+    <MultiRun name="sample2">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">attenuate2</Model>
+      <Sampler class="Samplers" type="Grid">grid</Sampler>
+      <Output class="DataObjects" type="PointSet">samples</Output>
+    </MultiRun>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../AllMethods/attenuate" name="attenuate" subType="">
+      <variables>y1,y2,ans,fromInit,fromReadMoreXML,fromCNISelf,fromCNIDict</variables>
+      <moreXMLInfo>
+        <valueForXML>3.14159</valueForXML>
+      </moreXMLInfo>
+    </ExternalModel>
+    <ExternalModel name="attenuate2" subType="pickledModel"/>
+  </Models>
+
+  <Distributions>
+    <Uniform name="dist">
+      <lowerBound>0</lowerBound>
+      <upperBound>1</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="grid">
+      <variable name="y1">
+        <distribution>dist</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+      </variable>
+      <variable name="y2">
+        <distribution>dist</distribution>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Print name="samples_out">
+      <type>csv</type>
+      <source>samples</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <PointSet name="placeholder">
+      <Input>y1,y2</Input>
+    </PointSet>
+    <PointSet name="samples">
+      <Input>y1,y2</Input>
+      <Output>ans,fromInit,fromReadMoreXML,fromCNISelf,fromCNIDict</Output>
+    </PointSet>
+  </DataObjects>
+
+</Simulation>

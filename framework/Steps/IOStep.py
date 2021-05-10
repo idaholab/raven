@@ -213,11 +213,32 @@ class IOStep(Step):
         #check the ROM is trained first
         if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
-        fileobj = outputs[i]
-        fileobj.open(mode='wb+')
+        if "fmu" in outputs[i].getExt():
+          fmu = True
+          pickledFile = ".".join(outputs[i].getAbsFile().split(".")[0:-1])
+        else:
+          fmu = False
+          pickledFile = outputs[i].getAbsFile()
+          
+        #fileobj = outputs[i]
+        #fileobj.open(mode='wb+')
+        #cloudpickle.dump(inDictionary['Input'][i],fileobj)
+        #fileobj.flush()
+        #fileobj.close()
+        
+        fileobj = open(pickledFile,mode="wb+")
+        #fileobj.open(mode='wb+')
         cloudpickle.dump(inDictionary['Input'][i],fileobj)
         fileobj.flush()
         fileobj.close()
+        if fmu:
+          fileobj = outputs[i]
+          fileobj.open(mode='wb+')
+          inDictionary['Input'][i].exportAsFMU(fileobj, keepModule=True)
+          fileobj.flush()
+          fileobj.close()
+        
+        
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
         ## unpickle the ROM
