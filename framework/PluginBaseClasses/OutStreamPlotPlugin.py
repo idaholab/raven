@@ -17,9 +17,6 @@ Provides API and utilities for extending the OutStream Plot with custom plotting
 Created on April 2, 2021
 @author: talbpaul
 """
-from abc import abstractmethod, abstractclassmethod
-
-from utils import InputData, InputTypes
 
 from OutStreams.PlotInterfaces import PlotInterface, factory
 from .PluginBase import PluginBase
@@ -43,28 +40,3 @@ class PlotPlugin(PluginBase, PlotInterface):
     specs = super(PlotPlugin, cls).getInputSpecification()
     specs.description = r"""Base class for OutStream Plot plugins"""
     return specs
-
-  def __init__(self):
-    """
-      Constructor
-      @ In, None
-      @ Out, None
-    """
-    super().__init__()
-
-  def handleInput(self, spec):
-    """
-      Reads in data from the input file
-      @ In, spec, InputData.ParameterInput, input information
-      @ Out, None
-    """
-    super().handleInput(spec)
-
-  @abstractmethod
-  def run(self):
-    """
-      Main run method.
-      @ In, sources, list(DataObject.DataSet), DataSets containing source data
-      @ In, figures, dict, matplotlib.pyplot.figure, figure on which to plot
-      @ Out, None
-    """

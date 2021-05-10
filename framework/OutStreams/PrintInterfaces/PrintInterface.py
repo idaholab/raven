@@ -17,6 +17,7 @@ Created on April 2, 2021
 @author: talbpaul
 """
 
+from abc import abstractmethod
 from OutStreams import OutStreamInterface
 
 class PrintInterface(OutStreamInterface):
@@ -59,11 +60,10 @@ class PrintInterface(OutStreamInterface):
     """
     super().initialize(stepEntities)
 
+  @abstractmethod
   def run(self):
     """
       Main run method.
       @ In, None
       @ Out, None
     """
-    pass
-
