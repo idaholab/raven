@@ -21,7 +21,7 @@ import matplotlib
 
 from utils import utils, InputTypes
 from .OutStreamEntity import OutStreamEntity
-from .PlotInterfaces import factory as interfaceFactory
+from .PlotInterfaces import factory as PlotFactory
 
 # initialize display settings
 display = utils.displayAvailable()
@@ -34,38 +34,9 @@ class Plot(OutStreamEntity):
   """
     Handler for Plot implementations
   """
-  @classmethod
-  def getInputSpecification(cls, xml=None):
-    """
-      Method to get a reference to a class that specifies the input data for class "cls".
-      @ In, xml, xml.etree.ElementTree.Element, optional, if given then only get specs for
-          corresponding subType requested by the node
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
-    """
-    spec = super().getInputSpecification() # TODO add xml arg when generalizing
-    if xml is None:
-      # generic definition; collect all known options
-      # this is used for e.g. documentation
-      okTypes = list(interfaceFactory.knownTypes())
-      okEnum = InputTypes.makeEnumType('OutStreamPlot', 'OutStreamPlotType', okTypes)
-      spec.addParam('subType', required=False, param_type=okEnum, descr=r"""Type of OutStream Plot to generate.""")
-      # TODO add specs depending on the one chosen, not all of them!
-      # FIXME the GeneralPlot has a vast need for converting to input specs. Until then,
-      #       we cannot strictly check anything related to it.
-      spec.strictMode = False
-      for name in okTypes:
-        plotter = interfaceFactory.returnClass(name)
-        subSpecs = plotter.getInputSpecification()
-        spec.mergeSub(subSpecs)
-    else:
-      # this is used when the subType has already been specified
-      # e.g. when reading an XML file
-      itfName = xml.attrib.get('subType', 'GeneralPlot')
-      itf = interfaceFactory.returnClass(itfName)
-      spec.addParam('subType', required=False, param_type=InputTypes.StringType)
-      itfSpecs = itf.getInputSpecification()
-      spec.mergeSub(itfSpecs)
-    return spec
+  interfaceFactory = PlotFactory
+  defaultInterface = 'GeneralPlot'
+  strictInput = False # GeneralPlot is not checked yet
 
   def parseXML(self, xml):
     """
@@ -78,7 +49,6 @@ class Plot(OutStreamEntity):
     paramInput = self.getInputSpecification(xml=xml)()
     paramInput.parseNode(xml)
     return paramInput
-
 
   def __init__(self):
     """
@@ -99,7 +69,7 @@ class Plot(OutStreamEntity):
     # TODO remove this when GeneralPlot conforms to inputParams
     subType = xml.attrib.get('subType', 'GeneralPlot').strip()
     if subType == 'GeneralPlot':
-      self._plotter = interfaceFactory.returnInstance(subType)
+      self._plotter = self.interfaceFactory.returnInstance(subType)
       self._plotter.handleInput(xml)
     else:
       spec = self.parseXML(xml)
@@ -114,7 +84,7 @@ class Plot(OutStreamEntity):
     super()._handleInput(spec)
     # we specialized out the GeneralPlot in _readMoreXML, so here we have a real inputParams user
     reqType = spec.parameterValues['subType']
-    self._plotter = interfaceFactory.returnInstance(reqType)
+    self._plotter = self.interfaceFactory.returnInstance(reqType)
     self._plotter.handleInput(spec)
 
   def initialize(self, stepEntities):

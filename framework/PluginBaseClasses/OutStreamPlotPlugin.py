@@ -17,6 +17,8 @@ Provides API and utilities for extending the OutStream Plot with custom plotting
 Created on April 2, 2021
 @author: talbpaul
 """
+from abc import abstractmethod, abstractclassmethod
+
 from utils import InputData, InputTypes
 
 from OutStreams.PlotInterfaces import PlotInterface, factory
@@ -27,9 +29,6 @@ class PlotPlugin(PluginBase, PlotInterface):
     Defines a specialized class from which plugin plots may inherit.
   """
   _interfaceFactory = factory
-  # List containing the methods that need to be checked in order to assess the
-  # validity of a certain plugin. This list needs to be populated by the derived class
-  _methodsToCheck = ['run']
 
   #####################
   # API
@@ -61,6 +60,7 @@ class PlotPlugin(PluginBase, PlotInterface):
     """
     super().handleInput(spec)
 
+  @abstractmethod
   def run(self):
     """
       Main run method.
@@ -68,8 +68,3 @@ class PlotPlugin(PluginBase, PlotInterface):
       @ In, figures, dict, matplotlib.pyplot.figure, figure on which to plot
       @ Out, None
     """
-    pass
-
-  #####################
-  # RAVEN Utilities
-  #
