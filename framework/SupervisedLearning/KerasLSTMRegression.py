@@ -59,6 +59,7 @@ class KerasLSTMRegression(KerasRegression):
       @ In, featureVals, numpy.array, i.e. [shapeFeatureValue,numFeatures], values of features
       @ Out, featureVals, numpy.array, predicted values
     """
+    #NOTE This is the same as the _preprocessInputs in KerasLSTMCLassifier
     shape = featureVals.shape
     if len(shape) == 2:
       featureVals = np.reshape(featureVals,(1, shape[0], shape[1]))
