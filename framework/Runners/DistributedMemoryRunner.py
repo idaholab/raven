@@ -43,28 +43,14 @@ class DistributedMemoryRunner(InternalRunner):
     Class for running internal objects in distributed memory fashion using
     ppserver
   """
-  def __init__(self, messageHandler, args, functionToRun,
-                    identifier=None, metadata=None,
-                    uniqueHandler = "any", profile = False):
+  def __init__(self, args, functionToRun, **kwargs):
     """
       Init method
-      @ In, messageHandler, MessageHandler object, the global RAVEN message
-        handler object
       @ In, args, list, this is a list of arguments that will be passed as
         function parameters into whatever method is stored in functionToRun.
         e.g., functionToRun(*args)
       @ In, functionToRun, method or function, function that needs to be run
-      @ In, identifier, string, optional, id of this job
-      @ In, metadata, dict, optional, dictionary of metadata associated with
-        this run
-      @ In, forceUseThreads, bool, optional, flag that, if True, is going to
-        force the usage of multi-threading even if parallel python is activated
-      @ In, uniqueHandler, string, optional, it is a special keyword attached to
-        this runner. For example, if present, to retrieve this runner using the
-        method jobHandler.getFinished, the uniqueHandler needs to be provided.
-        If uniqueHandler == 'any', every "client" can get this runner
-      @ In, profile, bool, optional, if True then timing statements are printed
-        during deconstruction.
+      @ In, kwargs, dict, additional arguments to base class
       @ Out, None
     """
     ## First, allow the base class to handle the commonalities
@@ -72,7 +58,7 @@ class DistributedMemoryRunner(InternalRunner):
     ##   code into internal models
     if not im.isLibAvail("ray"):
       self.__ppserver, args = args[0], args[1:]
-    super(DistributedMemoryRunner, self).__init__(messageHandler, args, functionToRun, identifier, metadata, uniqueHandler,profile)
+    super().__init__(args, functionToRun, **kwargs)
 
   def isDone(self):
     """

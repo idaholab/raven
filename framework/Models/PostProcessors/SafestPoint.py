@@ -16,8 +16,6 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import xarray
@@ -26,14 +24,13 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from .BasicStatistics import BasicStatistics
 from utils import InputData, InputTypes
 from utils.RAVENiterators import ravenArrayIterator
-import DataObjects
 #Internal Modules End--------------------------------------------------------------------------------
 
-class SafestPoint(PostProcessor):
+class SafestPoint(PostProcessorInterface):
   """
     It searches for the probability-weighted safest point inside the space of the system controllable variables
   """
@@ -73,13 +70,15 @@ class SafestPoint(PostProcessor):
 
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, runInfoDict, dict, run info
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
+    # delay loading for import order
+    from Models.PostProcessors import factory
     self.controllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each controllable variable.
     self.nonControllableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each non-controllable variable.
     self.controllableGrid = {}  # dictionary created upon the .xml input file reading. It stores the grid type ('value' or 'CDF'), the number of steps and the step length for each controllale variable.
@@ -88,7 +87,7 @@ class SafestPoint(PostProcessor):
     self.controllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the controllable space (self.controllableSpace)
     self.nonControllableOrd = []  # list containing the controllable variables' names in the same order as they appear inside the non-controllable space (self.nonControllableSpace)
     self.surfPointsMatrix = None  # 2D-matrix containing the coordinates of the points belonging to the failure boundary (coordinates are derived from both the controllable and non-controllable space)
-    self.stat = BasicStatistics(runInfoDict)  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
+    self.stat = factory.returnInstance('BasicStatistics')  # instantiation of the 'BasicStatistics' processor, which is used to compute the expected value of the safest point through the coordinates and probability values collected in the 'run' function
     self.outputName = "Probability"
     self.addAssemblerObject('Distribution', InputData.Quantity.one_to_infinity)
     self.addMetaKeys(["ProbabilityWeight"])
@@ -100,7 +99,7 @@ class SafestPoint(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'outputName':
         self.outputName = child.value
@@ -157,7 +156,6 @@ class SafestPoint(PostProcessor):
     self.inputToInternal(inputs)
     #FIXME this is quite invasive use of the basic statistics; a more standardized construction would be nice
     #we set the toDo here, since at this point we know the targets for the basic statistics
-    self.stat.messageHandler = self.messageHandler
     self.stat.toDo = {'expectedValue':[{'targets':set(self.controllableOrd), 'prefix':"controllable"}]} #don't set directly, just set up the toDo for basicStats
     self.stat.initialize(runInfo, inputs, initDict)
     self.raiseADebug('GRID INFO:')

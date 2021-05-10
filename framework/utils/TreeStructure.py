@@ -25,7 +25,7 @@ from utils import xmlUtils
 
 #message handler
 import os, sys
-import MessageHandler
+from BaseClasses import MessageUser
 
 ##################
 # MODULE METHODS #
@@ -430,34 +430,31 @@ class InputNode:
     """
     return self.children
 
-class HierarchicalNode(MessageHandler.MessageUser):
+class HierarchicalNode(MessageUser):
   """
     The Node class. It represents the base for each TreeStructure construction
     These Nodes are particularly for heirarchal structures.
   """
   #TODO the common elements between this and InputNode should be abstracted to a Node class.
-  def __init__(self, messageHandler, name, valuesIn={}, text=''):
+  def __init__(self, name, valuesIn={}, text='', **kwargs):
     """
       Initialize Tree,
-      @ In, messageHandler, MessageHandler instance, the message handler to use
       @ In, name, string, is the node name
       @ In, valuesIn, dict, optional, is a dictionary of values
       @ In, text, string, optional, the node's text, as <name>text</name>
     """
+    super().__init__(**kwargs)
     #check message handler is first object
     values         = valuesIn.copy()
     self.name      = name
     self.type      = 'Node'
     self.printTag  = 'Node:<'+self.name+'>'
-    if type(messageHandler) != MessageHandler.MessageHandler:
-      raise(IOError,'Tried to initialize '+self.type+' without a message handler!  Was given: '+str(messageHandler))
     self.values    = values
     self.text      = text
     self._branches = []
     self.parentname= None
     self.parent    = None
     self.depth     = 0
-    self.messageHandler = messageHandler
     self.iterCounter = 0
 
   def __eq__(self,other):
@@ -830,24 +827,21 @@ class InputTree:
 
 
 
-class HierarchicalTree(MessageHandler.MessageUser):
+class HierarchicalTree(MessageUser):
   """
     The class that realizes a hierarchal Tree Structure
   """
   #TODO the common elements between HierarchicalTree and InputTree should be extracted to a Tree class.
-  def __init__(self, messageHandler, node=None):
+  def __init__(self, node=None):
     """
       Constructor
-      @ In, messageHandler, MessageHandler instance, the message handler to use
       @ In, node, Node, optional, the rootnode
       @ Out, None
     """
+    super().__init__()
     if not hasattr(self,"type"):
       self.type = 'NodeTree'
     self.printTag  = self.type+'<'+str(node)+'>'
-    if type(messageHandler) != MessageHandler.MessageHandler:
-      raise(IOError,'Tried to initialize NodeTree without a message handler!  Was given: '+str(messageHandler))
-    self.messageHandler = messageHandler
     self._rootnode = node
     if node:
       node.parentname='root'
@@ -987,10 +981,15 @@ class MetadataTree(HierarchicalTree):
     RAVEN Output type of Files object.
   """
   #TODO change to inherit from InputTree or base Tree
-  def __init__(self,messageHandler,rootName):
+  def __init__(self, rootName):
+    """
+      Construct.
+      @ In, rootName, str, name of root
+      @ Out, None
+    """
     self.pivotParam = None
-    node = HierarchicalNode(messageHandler,rootName, valuesIn={'dynamic':str(self.dynamic)})
-    HierarchicalTree.__init__(self,messageHandler,node)
+    node = HierarchicalNode(rootName, valuesIn={'dynamic':str(self.dynamic)})
+    HierarchicalTree.__init__(self, node)
 
   def __repr__(self):
     """
@@ -1015,7 +1014,7 @@ class MetadataTree(HierarchicalTree):
       root = self.getrootnode()
     #FIXME it's possible the user could provide illegal characters here.  What are illegal characters for us?
     targ = self._findTarget(root,target,pivotVal)
-    targ.appendBranch(HierarchicalNode(self.messageHandler,name,text=value))
+    targ.appendBranch(HierarchicalNode(name, text=value))
 
   def _findTarget(self,root,target,pivotVal=None):
     """
@@ -1027,7 +1026,7 @@ class MetadataTree(HierarchicalTree):
     """
     tNode = root.findBranch(target)
     if tNode is None:
-      tNode = HierarchicalNode(self.messageHandler,target)
+      tNode = HierarchicalNode(target)
       root.appendBranch(tNode)
     return tNode
 
@@ -1039,7 +1038,7 @@ class StaticMetadataTree(MetadataTree):
     such as that produced by postprocessor models.  Two types of tree exist: dynamic and static.  See
     RAVEN Output type of Files object.
   """
-  def __init__(self,messageHandler,rootName):
+  def __init__(self, rootName):
     """
       Constructor.
       @ In, node, Node object, optional, root of tree if provided
@@ -1047,7 +1046,7 @@ class StaticMetadataTree(MetadataTree):
     """
     self.dynamic = False
     self.type = 'StaticMetadataTree'
-    MetadataTree.__init__(self,messageHandler,rootName)
+    MetadataTree.__init__(self, rootName)
 
 
 
@@ -1058,15 +1057,16 @@ class DynamicMetadataTree(MetadataTree):
     such as that produced by postprocessor models.  Two types of tree exist: dynamic and static.  See
     RAVEN Output type of Files object.
   """
-  def __init__(self,messageHandler,rootName,pivotParam):
+  def __init__(self, rootName, pivotParam):
     """
       Constructor.
-      @ In, node, Node object, optional, root of tree if provided
+      @ In, rootName, str, root of tree if provided
+      @ In, pivotParam, str, pivot variable
       @ Out, None
     """
     self.dynamic = True
     self.type = 'DynamicMetadataTree'
-    MetadataTree.__init__(self,messageHandler,rootName)
+    MetadataTree.__init__(self, rootName)
     self.pivotParam = pivotParam
 
   def _findTarget(self,root,target,pivotVal):
@@ -1082,7 +1082,7 @@ class DynamicMetadataTree(MetadataTree):
     tNode = MetadataTree._findTarget(self,pNode,target)
     return tNode
 
-  def _findPivot(self,root,pivotVal,tol=1e-10):
+  def _findPivot(self, root, pivotVal, tol=1e-10):
     """
       Finds the node with the desired pivotValue to the given tolerance
       @ In, root, Node instance, the node to search under
@@ -1106,7 +1106,7 @@ class DynamicMetadataTree(MetadataTree):
         break
     #if not found, make it!
     if not found:
-      pivotNode = HierarchicalNode(self.messageHandler,self.pivotParam,valuesIn={'value':pivotVal})
+      pivotNode = HierarchicalNode(self.pivotParam, valuesIn={'value':pivotVal})
       root.appendBranch(pivotNode)
     return pivotNode
 

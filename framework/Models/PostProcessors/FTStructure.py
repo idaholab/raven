@@ -16,23 +16,13 @@ Created on April 30, 2018
 
 @author: mandd
 """
-
-from __future__ import division, print_function , unicode_literals, absolute_import
-
-#Internal Modules---------------------------------------------------------------
-import MessageHandler
-from utils import utils
-from .FTGate import FTGate
-from utils import xmlUtils as xmlU
-#Internal Modules End-----------------------------------------------------------
-
-#External Modules---------------------------------------------------------------
 import numpy as np
 import xml.etree.ElementTree as ET
 import copy
 import itertools
-from collections import OrderedDict
-#External Modules End-----------------------------------------------------------
+
+from .FTGate import FTGate
+from utils import xmlUtils as xmlU
 
 class FTStructure(object):
   """

@@ -16,20 +16,12 @@ Created on Jul 18 2016
 
 @author: mandd, wangc
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 import abc
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseType
+from BaseClasses import BaseEntity
 from utils import utils
-#Internal Modules End--------------------------------------------------------------------------------
 
-class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
+class Metric(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
   """
     This is the general interface to any RAVEN metric object.
     It contains an initialize, a _readMoreXML, and an evaluation (i.e., distance) methods
@@ -54,7 +46,7 @@ class Metric(utils.metaclass_insert(abc.ABCMeta,BaseType)):
       @ In, none
       @ Out, none
     """
-    BaseType.__init__(self)
+    super().__init__()
     self.type = self.__class__.__name__
     self.name = self.__class__.__name__
     # If True the metric needs to be able to handle (value,probability) where value and probability are lists

@@ -15,34 +15,23 @@
 Created on Mar 7, 2013
 @author: crisr
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#from __builtin__ import None
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 import sys
 import numpy as np
 import scipy
 from math import gamma
 import os
 import operator
-from collections import OrderedDict
 import csv
 from scipy.interpolate import UnivariateSpline
 from numpy import linalg as LA
 import copy
 import math as math
 
-#External Modules End--------------------------------------------------------------------------------
-
-#Internal Modules------------------------------------------------------------------------------------
 from EntityFactoryBase import EntityFactory
-from BaseClasses import BaseType
+from BaseClasses import BaseEntity, InputDataUser
 from utils import utils
 from utils.randomUtils import random
 from utils import randomUtils
-#from utils.randomUtils import randomPermutation
 distribution1D = utils.findCrowModule('distribution1D')
 from utils import mathUtils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
@@ -91,7 +80,7 @@ class DistributionsCollection(InputData.ParameterInput):
 DistributionsCollection.createClass("Distributions")
 
 
-class Distribution(BaseType):
+class Distribution(BaseEntity, InputDataUser):
   """
     A general class containing the distributions
   """
@@ -105,10 +94,9 @@ class Distribution(BaseType):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(Distribution, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory('upperBound', contentType=InputTypes.FloatType))
     inputSpecification.addSub(InputData.parameterInputFactory('lowerBound', contentType=InputTypes.FloatType))
-
     return inputSpecification
 
   def __init__(self):
@@ -117,7 +105,7 @@ class Distribution(BaseType):
       @ In, None
       @ Out, None
     """
-    BaseType.__init__(self)
+    super().__init__()
     self.upperBoundUsed       = False  # True if the distribution is right truncated
     self.lowerBoundUsed       = False  # True if the distribution is left truncated
     self.hasInfiniteBound     = False  # True if the untruncated distribution has bounds of +- system max
@@ -166,7 +154,6 @@ class Distribution(BaseType):
     self.__adjustmentType = pdict.pop('adjustmentType'  )
     self.dimensionality   = pdict.pop('dimensionality'  )
     self.type             = pdict.pop('type'            )
-    self.messageHandler   = pdict.pop('messageHandler'  )
     self._localSetState(pdict)
     self.initializeDistribution()
 
@@ -230,7 +217,6 @@ class Distribution(BaseType):
     paramDict['lowerBound'      ] = self.lowerBound
     paramDict['adjustmentType'  ] = self.__adjustmentType
     paramDict['dimensionality'  ] = self.dimensionality
-    paramDict['messageHandler'  ] = self.messageHandler
     return paramDict
 
   def rvsWithinCDFbounds(self,lowerBound,upperBound):
@@ -401,7 +387,7 @@ class BoostDistribution(Distribution):
       @ In, None
       @ Out, None
     """
-    Distribution.__init__(self)
+    super().__init__()
     self.dimensionality  = 1
     self.distType        = 'Continuous'
 
@@ -528,13 +514,13 @@ class Uniform(BoostDistribution):
     Uniform univariate distribution
   """
 
-  def __init__(self, lowerBound = None, upperBound = None):
+  def __init__(self, lowerBound=None, upperBound=None):
     """
       Constructor
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.range = 0.0
     self.type = 'Uniform'
     self.distType = 'Continuous'
@@ -661,7 +647,7 @@ class Normal(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.mean  = mean
     self.sigma = sigma
     self.hasInfiniteBound = True
@@ -817,7 +803,7 @@ class Gamma(BoostDistribution):
       @ In, beta, float, 1/scale or the inverse scale parameter
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.low = low
     self.alpha = alpha
     self.beta = beta
@@ -973,7 +959,7 @@ class Beta(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.low = 0.0
     self.high = 1.0
     self.alpha = 0.0
@@ -1148,7 +1134,7 @@ class Triangular(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.apex = 0.0   # peak location
     self.min  = None  # domain lower boundary
     self.max  = None  # domain upper boundary
@@ -1264,7 +1250,7 @@ class Poisson(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.mu  = 0.0
     self.type = 'Poisson'
     self.hasInfiniteBound = True
@@ -1359,7 +1345,7 @@ class Binomial(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.n       = 0.0
     self.p       = 0.0
     self.type     = 'Binomial'
@@ -1460,7 +1446,7 @@ class Bernoulli(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.p        = 0.0
     self.type     = 'Bernoulli'
     self.distType = 'Discrete'
@@ -1553,7 +1539,7 @@ class Geometric(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.p        = 0.0
     self.type     = 'Geometric'
     self.distType = 'Discrete'
@@ -1619,7 +1605,6 @@ class Geometric(BoostDistribution):
 
 DistributionsCollection.addSub(Geometric.getInputSpecification())
 
-
 class Categorical(Distribution):
   """
     Class for the categorical distribution also called " generalized Bernoulli distribution"
@@ -1653,7 +1638,7 @@ class Categorical(Distribution):
       @ In, None
       @ Out, none
     """
-    Distribution.__init__(self)
+    super().__init__()
     self.mapping        = {}
     self.values         = set()
     self.type           = 'Categorical'
@@ -1829,7 +1814,7 @@ class UniformDiscrete(Distribution):
       @ In, None
       @ Out, none
     """
-    Distribution.__init__(self)
+    super().__init__()
     self.type           = 'UniformDiscrete'
     self.dimensionality = 1
     self.distType       = 'Discrete'
@@ -2021,7 +2006,7 @@ class MarkovCategorical(Categorical):
       @ In, None
       @ Out, none
     """
-    Categorical.__init__(self)
+    super().__init__()
     self.dimensionality = 1
     self.distType       = 'Discrete'
     self.type           = 'MarkovCategorical'
@@ -2138,7 +2123,7 @@ class Logistic(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Logistic'
@@ -2248,7 +2233,7 @@ class Laplace(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.location  = 0.0
     self.scale = 1.0
     self.type = 'Laplace'
@@ -2351,7 +2336,7 @@ class Exponential(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.lambdaVar = 1.0
     self.low        = 0.0
     self.type = 'Exponential'
@@ -2490,7 +2475,7 @@ class LogNormal(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.mean = 1.0
     self.sigma = 1.0
     self.low = 0.0
@@ -2607,7 +2592,7 @@ class Weibull(BoostDistribution):
       @ In, None
       @ Out, None
     """
-    BoostDistribution.__init__(self)
+    super().__init__()
     self.lambdaVar = 1.0
     self.k = 1.0
     self.type = 'Weibull'
@@ -2726,7 +2711,7 @@ class Custom1D(Distribution):
       @ In, None
       @ Out, None
     """
-    Distribution.__init__(self)
+    super().__init__()
     self.dataFilename    = None
     self.functionType    = None
     self.type            = 'Custom1D'
@@ -2877,8 +2862,8 @@ class LogUniform(Distribution):
       @ In, None
       @ Out, None
     """
-    Distribution.__init__(self)
-    self.base       = None
+    super().__init__()
+    self.base = None
 
   def initializeDistribution(self):
     """
@@ -2982,7 +2967,7 @@ class NDimensionalDistributions(Distribution):
       @ In, None
       @ Out, None
     """
-    Distribution.__init__(self)
+    super().__init__()
     self.dataFilename = None
     self.functionType = None
     self.type = 'NDimensionalDistributions'
@@ -3100,8 +3085,8 @@ class NDInverseWeight(NDimensionalDistributions):
       @ In, None
       @ Out, None
     """
-    NDimensionalDistributions.__init__(self)
-    self.p  = None
+    super().__init__()
+    self.p = None
     self.type = 'NDInverseWeight'
 
   def _handleInput(self, paramInput):
@@ -3299,7 +3284,7 @@ class NDCartesianSpline(NDimensionalDistributions):
       @ In, None
       @ Out, None
     """
-    NDimensionalDistributions.__init__(self)
+    super().__init__()
     self.type = 'NDCartesianSpline'
 
   def _handleInput(self, paramInput):
@@ -3501,7 +3486,7 @@ class MultivariateNormal(NDimensionalDistributions):
       @ In, None
       @ Out, None
     """
-    NDimensionalDistributions.__init__(self)
+    super().__init__()
     self.type = 'MultivariateNormal'
     self.distType = 'Continuous'
     self.mu  = None

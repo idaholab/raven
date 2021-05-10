@@ -16,41 +16,13 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
-#External Modules------------------------------------------------------------------------------------
-import numpy as np
-from scipy import spatial, interpolate
-import os
-from glob import glob
-import copy
-import math
-from collections import OrderedDict, defaultdict
-import time
 import importlib
-import abc
-import six
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
-from utils import utils
-from utils import mathUtils
-from utils import xmlUtils
-from utils.RAVENiterators import ravenArrayIterator
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData
-import DataObjects
-from Assembler import Assembler
-import LearningGate
-import MessageHandler
-import GridEntities
-import Files
-import Models
-import unSupervisedLearning
 from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
-#Internal Modules End--------------------------------------------------------------------------------
 
-class InterfacedPostProcessor(PostProcessor):
+class InterfacedPostProcessor(PostProcessorInterface):
   """
     This class allows to interface a general-purpose post-processor created ad-hoc by the user.
     While the ExternalPostProcessor is designed for analysis-dependent cases, the InterfacedPostProcessor is designed more generic cases
@@ -71,19 +43,16 @@ class InterfacedPostProcessor(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(RavenOutput, cls).getInputSpecification()
-
-    ## TODO: Fill this in with the appropriate tags
-
+    inputSpecification = super().getInputSpecification()
     return inputSpecification
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.methodToRun = None
     ## Currently, we have used both DataObject.addRealization and DataObject.load to
     ## collect the PostProcessor returned outputs. DataObject.addRealization is used to
@@ -99,7 +68,7 @@ class InterfacedPostProcessor(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
 
     inputObj = inputs[-1] if type(inputs) == list else inputs
     metaKeys = inputObj.getVars('meta')
@@ -120,7 +89,7 @@ class InterfacedPostProcessor(PostProcessor):
     paramInput = InputData.parseFromList(xmlNode, interfaceClasses)
 
     self.methodToRun = paramInput.getName()
-    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.factory.returnInstance(self.methodToRun, self, messageHandler=self.messageHandler)
+    self.postProcessor = InterfacedPostProcessor.PostProcessorInterfaces.factory.returnInstance(self.methodToRun)
     if not isinstance(self.postProcessor,PostProcessorInterfaceBase):
       self.raiseAnError(IOError, 'InterfacedPostProcessor Post-Processor '+ self.name +
                         ' : not correctly coded; it must inherit the PostProcessorInterfaceBase class')
@@ -204,13 +173,11 @@ class InterfacedPostProcessor(PostProcessor):
       form = self.postProcessor.outputFormat
     return form
 
-  def collectOutput(self, finishedJob, output, options=None):
+  def collectOutput(self, finishedJob, output):
     """
       Function to place all of the computed data into the output object, (DataObjects)
       @ In, finishedJob, object, JobHandler object that is in charge of running this PostProcessor
       @ In, output, object, the object where we want to place our computed results
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
       @ Out, None
     """
-    PostProcessor.collectOutput(self, finishedJob, output, options=options)
+    super().collectOutput(finishedJob, output)

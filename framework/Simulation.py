@@ -14,25 +14,17 @@
 """
 Module that contains the driver for the whole the simulation flow (Simulation Class)
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
-#External Modules------------------------------------------------------------------------------------
 import xml.etree.ElementTree as ET
 import os,subprocess
-import math
 import sys
 import io
 import string
 import datetime
 import numpy as np
 import threading
-#External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-import MessageHandler
-# NOTE: always import plugin factory first, before other Entities!
+import MessageHandler # this needs to happen early to instantiate message handler
+from BaseClasses import MessageUser
 import PluginFactory
 import Steps
 import DataObjects
@@ -46,34 +38,32 @@ import Databases
 import Functions
 import OutStreams
 from JobHandler import JobHandler
-import VariableGroups
 from utils import utils, TreeStructure, xmlUtils, mathUtils
 import Decorators
 from Application import __QtAvailable
 from Interaction import Interaction
 if __QtAvailable:
   from Application import InteractiveApplication
-#Internal Modules End--------------------------------------------------------------------------------
 
 # Load up plugins!
 # -> only available on specially-marked base types
 Models.Model.loadFromPlugins()
 
 #----------------------------------------------------------------------------------------------------
-class SimulationMode(MessageHandler.MessageUser):
+class SimulationMode(MessageUser):
   """
     SimulationMode allows changes to the how the simulation
     runs are done.  modifySimulation lets the mode change runInfoDict
     and other parameters.  remoteRunCommand lets a command to run RAVEN
     remotely be specified.
   """
-  def __init__(self,messageHandler):
+  def __init__(self, *args):
     """
       Constructor
-      @ In, messageHandler, instance, instance of the MessageHandler class
+      @ In, args, list, unused positional arguments
       @ Out, None
     """
-    self.messageHandler = messageHandler
+    super().__init__()
     self.printTag = 'SIMULATION MODE'
 
   def remoteRunCommand(self, runInfoDict):
@@ -156,7 +146,7 @@ def splitCommand(s):
 #
 #
 #-----------------------------------------------------------------------------------------------------
-class Simulation(MessageHandler.MessageUser):
+class Simulation(MessageUser):
   """
     This is a class that contain all the object needed to run the simulation
     Usage:
@@ -177,7 +167,7 @@ class Simulation(MessageHandler.MessageUser):
      of the base class of the module: <MyModule>=<myClass>+'s'.
      The base class of the module is by convention named as the new type of simulation component <myClass>.
      The module should contain a set of classes named <myType> that are child of the base class <myClass>.
-     The module should possess a function <MyModule>.factory.returnInstance('<myType>',caller) that returns a pointer to the class <myType>.
+     The module should possess a function <MyModule>.factory.returnInstance('<myType>') that returns a pointer to the class <myType>.
     Add in Simulation.__init__ the following
      self.<myClass>Dict = {}
      self.entityModules['<myClass>'] = <MyModule>
@@ -201,7 +191,7 @@ class Simulation(MessageHandler.MessageUser):
     Using the attribute in the xml node <MyType> type discouraged to avoid confusion
   """
 
-  def __init__(self,frameworkDir,verbosity='all',interactive=Interaction.No):
+  def __init__(self, frameworkDir, verbosity='all', interactive=Interaction.No):
     """
       Constructor
       @ In, frameworkDir, string, absolute path to framework directory
@@ -210,15 +200,14 @@ class Simulation(MessageHandler.MessageUser):
         an interactive UI or to run to completion without human interaction
       @ Out, None
     """
+    super().__init__()
     self.FIXME          = False
     #set the numpy print threshold to avoid ellipses in array truncation
     np.set_printoptions(threshold=np.inf)
-    #establish message handling: the error, warning, message, and debug print handler
-    self.messageHandler = MessageHandler.MessageHandler()
-    self.verbosity      = verbosity
-    callerLength        = 25
-    tagLength           = 15
-    suppressErrs        = False
+    self.verbosity = verbosity
+    callerLength = 25
+    tagLength = 15
+    suppressErrs = False
     self.messageHandler.initialize({'verbosity':self.verbosity,
                                     'callerLength':callerLength,
                                     'tagLength':tagLength,
@@ -323,14 +312,14 @@ class Simulation(MessageHandler.MessageUser):
     ## Interaction.No will evaluate to true here and correctly make the
     ## interactive app.
     if interactive:
-      self.app = InteractiveApplication([],self.messageHandler, interactive)
+      self.app = InteractiveApplication([], interactive)
     else:
       self.app = None
 
     #the handler of the runs within each step
-    self.jobHandler    = JobHandler()
+    self.jobHandler = JobHandler()
     #handle the setting of how the jobHandler act
-    self.__modeHandler = SimulationMode(self.messageHandler)
+    self.__modeHandler = SimulationMode(self)
     self.printTag = 'SIMULATION'
     self.raiseAMessage('Simulation started at',readtime,verbosity='silent')
 
@@ -420,7 +409,7 @@ class Simulation(MessageHandler.MessageUser):
     varGroupNode = xmlNode.find('VariableGroups')
     # init, read XML for variable groups
     if varGroupNode is not None:
-      varGroups = mathUtils.readVariableGroups(varGroupNode,self.messageHandler,self)
+      varGroups = mathUtils.readVariableGroups(varGroupNode)
     else:
       varGroups={}
     # read other nodes
@@ -429,23 +418,26 @@ class Simulation(MessageHandler.MessageUser):
         continue #we did these before the for loop
       xmlUtils.replaceVariableGroups(child, varGroups)
       if child.tag in self.entities:
+        className = child.tag
+        # we already took care of RunInfo block
+        if className in ['RunInfo']:
+          continue
         self.raiseADebug('-'*2+' Reading the block: {0:15}'.format(str(child.tag))+2*'-')
-        Class = child.tag
         if len(child.attrib) == 0:
           globalAttributes = {}
         else:
           globalAttributes = child.attrib
-        if Class not in ['RunInfo'] and self.entityModules[Class].factory.returnInputParameter:
-          paramInput = self.entityModules[Class].returnInputParameter()
+        if self.entityModules[className].factory.returnInputParameter:
+          paramInput = self.entityModules[className].returnInputParameter()
           paramInput.parseNode(child)
           for childChild in paramInput.subparts:
             childName = childChild.getName()
-            if "name" not in childChild.parameterValues:
-              self.raiseAnError(IOError,'not found name attribute for '+childName +' in '+Class)
-            name = childChild.parameterValues["name"]
-            self.entities[Class][name] = self.entityModules[Class].factory.returnInstance(childName, self, runInfo=self.runInfoDict)
-            self.entities[Class][name].handleInput(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
-        elif Class != 'RunInfo':
+            entity = self.entityModules[className].factory.returnInstance(childName)
+            entity.applyRunInfo(self.runInfoDict)
+            entity.handleInput(childChild, globalAttributes=globalAttributes)
+            name = entity.name
+            self.entities[className][name] = entity
+        else:
           for childChild in child:
             subType = childChild.tag
             if 'name' in childChild.attrib.keys():
@@ -453,17 +445,15 @@ class Simulation(MessageHandler.MessageUser):
               self.raiseADebug('Reading type '+str(childChild.tag)+' with name '+name)
               #place the instance in the proper dictionary (self.entities[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
-              if name not in self.entities[Class]:
-                # postprocessors use subType, so specialize here
-                if childChild.tag == 'PostProcessor':
-                  self.entities[Class][name] = self.entityModules[Class].factory.returnInstance(childChild.attrib['subType'], self, runInfo=self.runInfoDict)
-                else:
-                  self.entities[Class][name] = self.entityModules[Class].factory.returnInstance(childChild.tag, self, runInfo=self.runInfoDict)
+              if name not in self.entities[className]:
+                entity = self.entityModules[className].factory.returnInstance(childChild.tag)
               else:
-                self.raiseAnError(IOError,'Redundant naming in the input for class '+Class+' and name '+name)
-              self.entities[Class][name].readXML(childChild, self.messageHandler, varGroups, globalAttributes=globalAttributes)
+                self.raiseAnError(IOError,'Redundant naming in the input for class '+className+' and name '+name)
+              entity.applyRunInfo(self.runInfoDict)
+              entity.readXML(childChild, varGroups, globalAttributes=globalAttributes)
+              self.entities[className][name] = entity
             else:
-              self.raiseAnError(IOError,'not found name attribute for one "{}": {}'.format(Class,subType))
+              self.raiseAnError(IOError,'not found name attribute for one "{}": {}'.format(className,subType))
       else:
         #tag not in entities, check if it's a documentation tag
         if child.tag not in ['TestInfo']:
@@ -511,7 +501,8 @@ class Simulation(MessageHandler.MessageUser):
     for key in newRunInfo:
       #Copy in all the new keys
       self.runInfoDict[key] = newRunInfo[key]
-    self.jobHandler.initialize(self.runInfoDict,self.messageHandler)
+    self.jobHandler.applyRunInfo(self.runInfoDict)
+    self.jobHandler.initialize()
     # only print the dictionaries when the verbosity is set to debug
     #if self.verbosity == 'debug': self.printDicts()
     for stepName, stepInstance in self.stepsDict.items():
@@ -648,7 +639,7 @@ class Simulation(MessageHandler.MessageUser):
         self.runInfoDict['mode'] = element.text.strip().lower()
         #parallel environment
         if self.runInfoDict['mode'] in self.__modeHandlerDict:
-          self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self.messageHandler)
+          self.__modeHandler = self.__modeHandlerDict[self.runInfoDict['mode']](self)
           self.__modeHandler.XMLread(element)
         else:
           self.raiseAnError(IOError,"Unknown mode "+self.runInfoDict['mode'])
@@ -764,7 +755,7 @@ class Simulation(MessageHandler.MessageUser):
     self.messageHandler.printWarnings()
     # implicitly, the job finished successfully if we got here.
     self.writeStatusFile()
-    self.raiseAMessage('Run complete!',forcePrint=True)
+    self.raiseAMessage('Run complete!', forcePrint=True)
 
   def generateAllAssemblers(self, objectInstance):
     """

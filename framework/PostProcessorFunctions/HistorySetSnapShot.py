@@ -157,7 +157,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
         self.raiseAnError(IOError,'When using "timeSlice" an "extension" method must be specified for synchronizing!')
       #perform sync
       PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
-      self.HSsyncPP = PostProcessorInterfaces.factory.returnInstance('HistorySetSync', self)
+      self.HSsyncPP = PostProcessorInterfaces.factory.returnInstance('HistorySetSync')
       self.HSsyncPP.initialize(self.numberOfSamples,self.pivotParameter,self.extension,syncMethod='grid')
 
   def run(self,inputDic, pivotVal=None):

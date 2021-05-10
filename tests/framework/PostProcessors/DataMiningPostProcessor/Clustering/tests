@@ -51,9 +51,9 @@
   [./time_dep_clustering_filtered]
     type   = 'RavenFramework'
     input  = 'test_TD_KMeans_Filtered.xml'
-    UnorderedCsv = 'time_dep_clustering_filtered/print0_0.csv time_dep_clustering_filtered/print0_1.csv time_dep_clustering_filtered/print0_2.csv time_dep_clustering_filtered/print0_3.csv time_dep_clustering_filtered/print0_4.csv time_dep_clustering_filtered/print1_0.csv time_dep_clustering_filtered/print1_1.csv time_dep_clustering_filtered/print1_2.csv time_dep_clustering_filtered/print1_3.csv time_dep_clustering_filtered/print1_4.csv time_dep_clustering_filtered/print2_0.csv time_dep_clustering_filtered/print2_1.csv'
+    UnorderedCsv = 'time_dep_clustering_filtered/print0_0.csv time_dep_clustering_filtered/print0_1.csv time_dep_clustering_filtered/print0_2.csv time_dep_clustering_filtered/print0_3.csv time_dep_clustering_filtered/print0_4.csv time_dep_clustering_filtered/print1_0.csv time_dep_clustering_filtered/print1_1.csv time_dep_clustering_filtered/print1_2.csv time_dep_clustering_filtered/print2_0.csv time_dep_clustering_filtered/print2_1.csv'
     output = 'time_dep_clustering_filtered/1-Clustered_HS_line.png'
-    skip = 'Cluster order inconsistent (Windows)'
+    skip_if_OS = windows
   [../]
   [./VariationalGMM]
     type   = 'RavenFramework'
@@ -72,7 +72,7 @@
     input  = 'test_TD_MeanShift.xml'
     UnorderedCsv = 'time_dep_meanshift/print0_0.csv time_dep_meanshift/print0_1.csv time_dep_meanshift/print0_2.csv time_dep_meanshift/print1_0.csv time_dep_meanshift/print1_1.csv'
     output = 'time_dep_meanshift/1-Clustered_HS_line.png time_dep_meanshift/1-Cluster_0_line.png time_dep_meanshift/1-Cluster_1_line.png time_dep_meanshift/1-hist0x_histogram.png time_dep_meanshift/1-hist0y_histogram.png time_dep_meanshift/1-hist0z_histogram.png time_dep_meanshift/1-plot5_histogram.png time_dep_meanshift/1-plot7_histogram.png'
-    skip = 'Cluster order inconsistent (Windows)'
+    skip_if_OS = windows
   [../]
   [./time_dep_hierarchicalScipy_DTW]
     type   = 'RavenFramework'

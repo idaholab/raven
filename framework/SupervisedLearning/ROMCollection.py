@@ -676,7 +676,7 @@ class Clusters(Segments):
     classifier = self._assembledObjects.get('Classifier', [[None]*4])[0][3]
     if classifier is not None:
       # Try using the pp directly, not just the uSVE
-      classifier = classifier.unSupervisedEngine
+      classifier = classifier._pp.unSupervisedEngine
     else:
       self.raiseAnError(IOError, 'Clustering was requested, but no <Classifier> provided!')
     self._divisionClassifier = classifier
@@ -1231,15 +1231,10 @@ class Interpolated(supervisedLearning):
     if maxCycles is not None:
       self._maxCycles = maxCycles
       self.raiseAMessage(f'Truncating macro parameter "{self._macroParameter}" to "{self._maxCycles}" successive step{"s" if self._maxCycles > 1 else ""}.')
-    mh = params.get('messageHandler', None)
-    if mh:
-      self.messageHandler = mh
-      for step, collection in self._macroSteps.items():
-        collection.messageHandler = mh
-        # deepcopy is necessary because clusterEvalMode has to be popped out in collection
-        collection.setAdditionalParams(copy.deepcopy(params))
-      self._macroTemplate.messageHandler = mh
-      self._macroTemplate.setAdditionalParams(params)
+    for step, collection in self._macroSteps.items():
+      # deepcopy is necessary because clusterEvalMode has to be popped out in collection
+      collection.setAdditionalParams(copy.deepcopy(params))
+    self._macroTemplate.setAdditionalParams(params)
     return super().setAdditionalParams(params)
 
   def setAssembledObjects(self, *args, **kwargs):

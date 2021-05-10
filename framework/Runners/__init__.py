@@ -30,3 +30,5 @@ from .SharedMemoryRunner import SharedMemoryRunner
 from .DistributedMemoryRunner import DistributedMemoryRunner
 from .PassthroughRunner import PassthroughRunner
 from .Error import Error
+
+from .Factory import factory

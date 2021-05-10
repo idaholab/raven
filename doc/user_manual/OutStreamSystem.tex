@@ -81,13 +81,27 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The PRA and UQ framework provides the capabilities to visualize and dump out the
-data that are generated, imported (from a system code) and post-processed during
-the analysis.
+The RAVEN framework provides the capabilities to visualize and print out the
+data generated, imported, and post-processed during RAVEN workflows.
 %
 These capabilities are contained in the ``OutStream'' system.
 %
-Actually, two different OutStream types are available:
+OutStream capabilities can be broadly classified into specific categories:
+\vspace{-5mm}
+\begin{itemize}
+  \itemsep0em
+  \item \xmlNode{Print}, which allows data in memory to be saved to disk;
+  \item \xmlNode{Plot}, which allows plotting data according to a variety of strategies.
+  %
+\end{itemize}
+\vspace{-5mm}
+Default implementations exist for \xmlNode{Print} and \xmlNode{Plot}, described in
+Sections \ref{sec:printing} and \ref{sec:plotting}. Other plotting strategies are described in section
+``Specific Plots'' [\ref{sec:outstreams.subplots}] below.
+
+\subsection{Defaults}
+ %%%%%%%%%%%%%% OLD $$$$$$$$$$$$$$$$$$
+Actually, two different default OutStream types are available:
 \vspace{-5mm}
 \begin{itemize}
   \itemsep0em
@@ -138,7 +152,7 @@ in the following sections.
 % PRINTING SYSTEM
 %
 %%%%%%%%%
-\subsection{Printing system \label{sec:printing}}
+\subsection{Default Printing system \label{sec:printing}}
 The Printing system has been created in order to let the user dump the data,
 contained in the internal data objects (see Section~\ref{sec:DataObjects}), out
 at anytime during the calculation.
@@ -177,9 +191,9 @@ available attributes:
   entity from other input blocks in the XML.
   %
   \item \xmlAttr{dir}, \xmlDesc{optional string attribute}, is a user-defined
-  directory in which the data are going to be streamed (i.e. printed). The 
+  directory in which the data are going to be streamed (i.e. printed). The
   directory can be either inputted with an relative (with respect the \xmlNode{workingDir} specified
-  in the   \xmlNode{RunInfo} XML node)  or absolute path 
+  in the   \xmlNode{RunInfo} XML node)  or absolute path
   %
   \default{\xmlNode{workingDir}}
   %
@@ -316,7 +330,7 @@ Examples:
 % PLOTTING SYSTEM
 %
 %%%%%%%%%
-\subsection{Plotting system \label{sec:plotting}}
+\subsection{Default Plotting system \label{sec:plotting}}
 The Plotting system provides all the capabilities to visualize the analysis
 outcomes, in real-time or as a post-processing stage.
 %
@@ -372,9 +386,9 @@ In addition, the Plot block accepts the following attributes:
   \default{False}
   %
     \item \xmlAttr{dir}, \xmlDesc{optional string attribute}, is a user-defined
-  directory in which the data are going to be streamed (i.e. printed). The 
+  directory in which the data are going to be streamed (i.e. printed). The
   directory can be either inputted with an relative (with respect the \xmlNode{workingDir} specified
-  in the   \xmlNode{RunInfo} XML node)  or absolute path 
+  in the   \xmlNode{RunInfo} XML node)  or absolute path
   %
   \default{\xmlNode{workingDir}}
   %
@@ -968,7 +982,7 @@ Independent of the plot type, some keywords are mandatory:
 \begin{itemize}
   \item \xmlNode{type}, \xmlDesc{string, required parameter}, the plot type (for
   example, line, scatter, wireframe, etc.).
-  \item \xmlNode{x}, \xmlDesc{string, required parameter}, specifies the DataObject parameter to be plotted as the x coordinate.   
+  \item \xmlNode{x}, \xmlDesc{string, required parameter}, specifies the DataObject parameter to be plotted as the x coordinate.
 	This parameter must be described in a specific manner, see Section \ref{subpara:plotVariables} below for details.
   \item \xmlNode{y}, \xmlDesc{string, required parameter}, specifies the DataObject parameter to be plotted as the y coordinate.
 	This parameter must be described in a specific manner, see Section \ref{subpara:plotVariables} below for details.
@@ -999,8 +1013,8 @@ Under the \xmlNode{plot} sub-block other optional keywords can be specified, suc
         the second integer represents the number of nodes that this subplot occupies, i.e. in the example above the
         first subplot occupies a single node at the zero node in y direction.
   \end{itemize}
-  \item \xmlNode{colorMap}, \xmlDesc{string, optional parameter}, specifies a DataObject parameter whose value will be used 
-	to vary the color of plotted points.  This parameter must be described in a specific manner, see Section \ref{subpara:plotVariables} 
+  \item \xmlNode{colorMap}, \xmlDesc{string, optional parameter}, specifies a DataObject parameter whose value will be used
+	to vary the color of plotted points.  This parameter must be described in a specific manner, see Section \ref{subpara:plotVariables}
 	below for details.
  \end{itemize}
 
@@ -1011,7 +1025,7 @@ As already mentioned, the Plot system accepts as input for the visual parameters
 Considering the structure of "DataObjects", the parameters are specified as three values separated by the
 vertical bar character ('\texttt{|}') as follows:
 \\* \\* \centerline{\texttt{DataObject Name|Parameter Type|Parameter Name}}
-\\ \\  Where: 
+\\ \\  Where:
 \begin{center}
 \begin{tabular}{ll}
 Value & Description \\ \hline
@@ -1023,7 +1037,7 @@ Value & Description \\ \hline
 \multicolumn{1}{|l|}{\texttt{Parameter Name}} & \multicolumn{1}{l|}{The name of the parameter in the DataObject to plot} \\ \hline
 \end{tabular}
 \end{center}
-\textbf{Note:}  If the \texttt{Parameter Name} part of the variable specification itself contains the vertical bar character (`\texttt{|}`) used to separate 
+\textbf{Note:}  If the \texttt{Parameter Name} part of the variable specification itself contains the vertical bar character (`\texttt{|}`) used to separate
 the three values, it must be enclosed in parenthesis to be interpreted properly.  For example:
 \\* \\* \centerline{\texttt{DataObject Name|Parameter Type|(parameter|name)}}
 
@@ -1649,4 +1663,54 @@ additional to the coordinate inputs \xmlNode{x},  \xmlNode{y}, or \xmlNode{z} de
     </plotSettings>
   </Plot>
 </OutStreams>
+\end{lstlisting}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Specific Plotting Strategies
+\subsection{Specific Plots \label{sec:outstreams.subplots}}
+For convenience, RAVEN offers tailored plotting strategies that apply in specific circumstances.
+They are not as flexible as the default plotting system, but may offer a quick method to view
+data with minimal input required. These are described in the following subsection.
+
+Specific plotting strategies are requested using the \xmlNode{Plot} node attribute \xmlAttr{subType}.
+For example,
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <OutStreams>
+    <Plot name="mySamples" subType="PlottingStrategyName">
+      ...
+    </Plot>
+  </OutStreams>
+</Simulations>
+\end{lstlisting}
+
+\subsubsection{SamplePlot}
+The \xmlString{SamplePlot} \xmlAttr{subType} is a very simple plotting tool meant for quickly
+viewing the results of sampling, or as a basis for adding new plotting strategies. This plotter
+constructs a series of verticle plots whose x-axis is the sample ID and y-axis is a particular
+variables' values.
+
+The \xmlString{SamplePlot} \xmlAttr{subType} requires the following nodes:
+\begin{itemize}
+  \item \xmlNode{source}, \xmlDesc{required, string}, selects which DataObject should be used
+      to take data for plotting. This DataObject must be listed in the Step in which this
+      OutStream is used, and is usually the result of as \xmlNode{MultiRun} step.
+  \item \xmlNode{vars}, \xmlDesc{required, comma-separated strings}, identifies which variables should
+      be plotted as a function of sample number. These variables must be included in the \xmlNode{source}
+      DataObject.
+\end{itemize}
+
+For example,
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <OutStreams>
+    <Plot name="mySamples" subType="SamplePlot">
+      <source>dataObjectFromStep</source>
+      <vars>a, b, x, y</vars>
+    </Plot>
+  </OutStreams>
+</Simulations>
 \end{lstlisting}

@@ -16,33 +16,31 @@ Created on July 10, 2013
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 import copy
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes, utils
 import Files
 #Internal Modules End-----------------------------------------------------------
 
-class ExternalPostProcessor(PostProcessor):
+class ExternalPostProcessor(PostProcessorInterface):
   """
     ExternalPostProcessor class. It will apply an arbitrary python function to
     a dataset and append each specified function's output to the output data
     object, thus the function should produce a scalar value per row of data. I
     have no idea what happens if the function produces multiple outputs.
   """
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None, dict, run info
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.methodsToRun = []              # A list of strings specifying what
                                         # methods the user wants to compute from
                                         # the external interfaces
@@ -139,7 +137,7 @@ class ExternalPostProcessor(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     for key in self.assemblerDict.keys():
       if 'Function' in key:
         for val in self.assemblerDict[key]:
@@ -162,7 +160,7 @@ class ExternalPostProcessor(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       if child.getName() == 'method':
         methods = child.value.split(',')
