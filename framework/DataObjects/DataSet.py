@@ -1218,14 +1218,20 @@ class DataSet(DataObject):
       @ In, None
       @ Out, asDataset, xr.Dataset or dict, data in requested format
     """
+    if self.isEmpty:
+      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
     self.raiseAWarning('DataObject._convertToDict can be a slow operation and should be avoided where possible!')
     # container for all necessary information
     dataDict = {}
     # supporting data
     dataDict['dims']     = self.getDimensions()
     dataDict['metadata'] = self.getMeta(general=True)
-    if self.isEmpty:
-      self.raiseAnError(ValueError, 'DataObject named "{}" is empty!'.format(self.name))
+    dataDict['type'] = self.type
+    dataDict['inpVars'] = self.getVars('input')
+    dataDict['outVars'] = self.getVars('output')
+    dataDict['numberRealization'] = self.size
+    dataDict['name'] = self.name
+    dataDict['metaKeys'] = self.getVars('meta')
     # main data
     if self.type == "PointSet":
       ## initialize with np arrays of objects

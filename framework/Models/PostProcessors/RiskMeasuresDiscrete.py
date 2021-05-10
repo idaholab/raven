@@ -16,19 +16,15 @@ Created on November 2016
 
 @author: mandd
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import copy
 #External Modules End--------------------------------------------------------------------------------
 
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 from utils import InputData, InputTypes
+from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 
-class riskMeasuresDiscrete(PostProcessorInterfaceBase):
+class RiskMeasuresDiscrete(PostProcessorPluginBase):
   """
     This class implements the four basic risk-importance measures
     This class inherits form the base class PostProcessorInterfaceBase and it contains three methods:
@@ -36,6 +32,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       - run
   """
   _availableMeasures = set(['B','FV','RAW','RRW','R0'])
+
   @classmethod
   def getInputSpecification(cls):
     """
@@ -46,7 +43,6 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
-    inputSpecification.setCheckClass(CheckInterfacePP("riskMeasuresDiscrete"))
     inputSpecification.addSubSimple("measures", InputTypes.StringListType)
     variableSub = InputData.parameterInputFactory("variable", contentType=InputTypes.StringType)
     variableSub.addParam("R0values", InputTypes.FloatListType)
@@ -59,10 +55,23 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     dataSub.addParam("freq", InputTypes.FloatType)
     inputSpecification.addSub(dataSub)
     inputSpecification.addSubSimple("temporalID", InputTypes.StringType)
-    #Should method be in super class?
-    inputSpecification.addSubSimple("method", contentType=InputTypes.StringType)
     return inputSpecification
 
+  def __init__(self):
+    """
+      Constructor
+      @ In, None
+      @ Out, None
+    """
+    super().__init__()
+    self.validDataType = ['PointSet','HistorySet'] # The list of accepted types of DataObject
+    ## Currently, we have used both DataObject.addRealization and DataObject.load to
+    ## collect the PostProcessor returned outputs. DataObject.addRealization is used to
+    ## collect single realization, while DataObject.load is used to collect multiple realizations
+    ## However, the DataObject.load can not be directly used to collect single realization
+    ## One possible solution is all postpocessors return a list of realizations, and we only
+    ## use addRealization method to add the collections into the DataObjects
+    self.outputMultipleRealizations = True
 
   def availableMeasures(cls):
     """
@@ -71,28 +80,17 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
     """
     return cls._availableMeasures
 
-  def initialize(self):
-    """
-      Method to initialize the Interfaced Post-processor
-      @ In, None
-      @ Out, None
-    """
-    PostProcessorInterfaceBase.initialize(self)
-    self.inputFormat  = 'PointSet|HistorySet'
-    self.outputFormat = 'PointSet'
-
   def _handleInput(self, paramInput):
     """
       Function to handle the parameter input.
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
+    super()._handleInput(paramInput)
     self.variables = {}
     self.target    = {}
     self.IEData = {}
     self.temporalID = None
-
     for child in paramInput.subparts:
       if child.getName() == 'measures':
         self.measures = set(child.value)
@@ -114,7 +112,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
             val1 = values[0]
             val2 = values[1]
           except:
-            self.raiseAnError(IOError,' Wrong R0values associated to riskMeasuresDiscrete Post-Processor')
+            self.raiseAnError(IOError,' Wrong R0values associated to RiskMeasuresDiscrete Post-Processor')
           self.variables[variableID]['R0low']  = min(val1,val2)
           self.variables[variableID]['R0high'] = max(val1,val2)
         else:
@@ -129,7 +127,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
             val1 = values[0]
             val2 = values[1]
           except:
-            self.raiseAnError(IOError,' Wrong R1values associated to riskMeasuresDiscrete Post-Processor')
+            self.raiseAnError(IOError,' Wrong R1values associated to RiskMeasuresDiscrete Post-Processor')
           self.variables[variableID]['R1low']  = min(val1,val2)
           self.variables[variableID]['R1high'] = max(val1,val2)
         else:
@@ -147,7 +145,7 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
             val1 = values[0]
             val2 = values[1]
           except:
-            self.raiseAnError(IOError,' Wrong target values associated to riskMeasuresDiscrete Post-Processor')
+            self.raiseAnError(IOError,' Wrong target values associated to RiskMeasuresDiscrete Post-Processor')
           self.target['low']  = min(val1,val2)
           self.target['high'] = max(val1,val2)
         else:
@@ -160,17 +158,17 @@ class riskMeasuresDiscrete(PostProcessorInterfaceBase):
       elif child.getName() == 'temporalID':
         self.temporalID = child.value
 
-      elif child.getName() !='method':
-        self.raiseAnError(IOError, 'RiskMeasuresDiscrete Interfaced Post-Processor ' + str(self.name) +
-                          ' : XML node ' + str(child) + ' is not recognized')
-
-  def run(self,inputDic):
+  def run(self,inputIn):
     """
      This method perform the actual calculation of the risk measures
-     @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
-     @ Out, outputDic, dict, dictionary which contains the risk measures
+      @ In,  inputIn, dict, dictionary contains the input data and input files, i.e.,
+          {'Data':[DataObjects.asDataset('dict')], 'Files':[FileObject]}, only 'Data'
+          will be used by this PostProcessor
+      @ Out, outputDic, dict, dictionary which contains the risk measures, i.e.,
+          {'data':dict of realizations, 'dim':{varName:independent dimensions that the variable depends on}}
     """
     # Check how many HistorySets (checkHSs) have been provided
+    inputDic = inputIn['Data']
     checkHSs=0
     for inp in inputDic:
       if inp['type'] == 'HistorySet':
