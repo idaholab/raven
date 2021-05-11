@@ -25,7 +25,6 @@ import threading
 
 import MessageHandler # this needs to happen early to instantiate message handler
 from BaseClasses import MessageUser
-import PluginFactory
 import Steps
 import DataObjects
 import Files
@@ -285,12 +284,6 @@ class Simulation(MessageUser):
     self.entityModules['Files'            ] = Files
     self.entityModules['Metrics'          ] = Metrics
     self.entityModules['OutStreams'       ] = OutStreams
-    # register plugins
-    # -> only don't actually load them, because we want to lazy load if at all possible
-    # -> instead, we just provide the pointer to the plugins dicts
-    for name, module in self.entityModules.items():
-      if hasattr(module, 'setPluginFactory'):
-        module.setPluginFactory(PluginFactory)
 
     #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.entities = {}

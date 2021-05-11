@@ -22,7 +22,7 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 from utils import InputData, InputTypes
-from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 
 class RiskMeasuresDiscrete(PostProcessorPluginBase):
   """

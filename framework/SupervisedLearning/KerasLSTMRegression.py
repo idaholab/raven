@@ -12,24 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-  Created on Dec. 20, 2018
+  Created on Apr. 13, 2021
 
-  @author: wangc
+  @author: cogljj
   module for recurrent neural network using short-term model network (LSTM)
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 ######
 #Internal Modules------------------------------------------------------------------------------------
-from .KerasClassifier import KerasClassifier
+from .KerasRegression import KerasRegression
 #Internal Modules End--------------------------------------------------------------------------------
 
-class KerasLSTMClassifier(KerasClassifier):
+class KerasLSTMRegression(KerasRegression):
   """
-    recurrent neural network using short-term model network (LSTM) classifier
+    recurrent neural network using short-term model network (LSTM) regression
     constructed using Keras API in TensorFlow
   """
 
@@ -39,8 +36,8 @@ class KerasLSTMClassifier(KerasClassifier):
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
       @ Out, None
     """
-    KerasClassifier.__init__(self, **kwargs)
-    self.printTag = 'KerasLSTMClassifier'
+    KerasRegression.__init__(self, **kwargs)
+    self.printTag = 'KerasLSTMRegression'
     self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasRcurrentLayersList']
 
   def _checkLayers(self):
@@ -51,9 +48,7 @@ class KerasLSTMClassifier(KerasClassifier):
     """
     for index, layerName in enumerate(self.layerLayout[:-1]):
       layerType = self.initOptionDict[layerName].get('type').lower()
-      nextLayerName = self.layerLayout[index+1]
-      nextLayerType = self.initOptionDict[nextLayerName].get('type').lower()
-      if layerType in ['lstm'] and nextLayerType in ['lstm']:
+      if layerType in ['lstm']:
         if not self.initOptionDict[layerName].get('return_sequences'):
           self.initOptionDict[layerName]['return_sequences'] = True
           self.raiseAWarning('return_sequences is resetted to True for layer',layerName)
@@ -64,7 +59,7 @@ class KerasLSTMClassifier(KerasClassifier):
       @ In, featureVals, numpy.array, i.e. [shapeFeatureValue,numFeatures], values of features
       @ Out, featureVals, numpy.array, predicted values
     """
-    #NOTE This is the same as the _preprocessInputs in KerasLSTMRegression
+    #NOTE This is the same as the _preprocessInputs in KerasLSTMCLassifier
     shape = featureVals.shape
     if len(shape) == 2:
       featureVals = np.reshape(featureVals,(1, shape[0], shape[1]))

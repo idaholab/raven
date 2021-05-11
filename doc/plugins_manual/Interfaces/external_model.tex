@@ -1,4 +1,4 @@
-\section{Advanced Users: How to create a RAVEN ExternalModel plugin}
+\section{ExternalModel plugins}
 \label{sec:newExternalModelPlugin}
 \begin{figure}
 \centering
@@ -7,7 +7,7 @@
 \label{fig:pluginsLocation}
 \end{figure}
 The procedure of adding a plugin for the ExternalModel is a straightforward  process.
-The addition of a plugin does not require modifying RAVEN itself. 
+The addition of a plugin does not require modifying RAVEN itself.
 Instead, the developer creates a new Python module that is going to be embedded
  in RAVEN at run-time (no need to introduce  hard-coded statements).
  This plugin needs to be placed in a folder (whatever name) located in (see figure~\ref{fig:pluginsLocation}):
@@ -24,7 +24,7 @@ an official supported plugin in RAVEN (by the submodule system), he needs to che
 the raven wiki under the ``contribution'' section).
 
 At the initialization stage, RAVEN imports all the Plugins that are contained in this directory and performs some preliminary cross-checks.
-\\It is important to notice that the name of class in the Plugin module is the one the user needs to specify when the new plugin  
+\\It is important to notice that the name of class in the Plugin module is the one the user needs to specify when the new plugin
 needs to be used. For example, if the Plugin module contains the class 	``NewPlugin'', the \textit{subType} in the \xmlNode{ExternalModel} block will be 	``NewPlugin'':
 \begin{lstlisting}[language=python]
   class NewPlugin(ExternalModelPluginBase):
@@ -44,7 +44,7 @@ In the following sub-sections, a step-by-step procedure for creating a new Exter
 
 \subsection{ExternalModel Plugin Input}
 \label{subsec:externalModelPluginInput}
-When a new ExternalModel plugin is developed, its RAVEN input is almost identical 
+When a new ExternalModel plugin is developed, its RAVEN input is almost identical
 to the general ExternalModel entity (see \ref{subsec:models_externalModel}).
 The specifications of an ExternalModel Plugin must be defined within the XML block
 \xmlNode{ExternalModel}.
@@ -61,7 +61,7 @@ This XML node needs to contain the attributes:
   this specific entity from other input blocks in the XML.
   \item \xmlAttr{subType}, \xmlDesc{required string attribute}, must be equal to the
   name of the new plugin the user wants to use (e.g. $NewPlugin$).
-  \nb In case a plugin is requested (through the  \xmlAttr{subType} attribute) the 
+  \nb In case a plugin is requested (through the  \xmlAttr{subType} attribute) the
   attribute \xmlAttr{ModuleToLoad} must not be inputted.
   %
 \end{itemize}
@@ -73,7 +73,7 @@ in the \xmlNode{ExternalModel} input block.
 %
 The user needs to input, within this block, only the variables that RAVEN needs
 to be aware of (i.e. the variables are going to directly be used by the Plugin)
-and not the local variables that the ExternalModel Plugin developer does not want to, 
+and not the local variables that the ExternalModel Plugin developer does not want to,
 for example, store in a RAVEN internal object.
 %
 These variables are specified within a \xmlNode{variables} block:
@@ -87,10 +87,8 @@ These variables are specified within a \xmlNode{variables} block:
   %
 \end{itemize}
 
-In addition, if the user wants to use the alias system, the following XML block can be inputted:
-\begin{itemize}
-  \item \aliasSystemDescription{ExternalModel}
-\end{itemize}
+In addition, if the user wants to use the alias system, the following XML block can be used as
+described in the RAVEN user manual under Models.
 
 When the Plugin variables are defined, at run time, RAVEN initializes
 them and tracks their values during the simulation.
@@ -110,7 +108,7 @@ As already mentioned, RAVEN imports all the ``ExternalModel Plugins'' at run-tim
 In order to make RAVEN
 able to drive a newer ExternalModel plugin, the developer needs to code a Python class
 containing few methods (with strict syntax) that are called by RAVEN during the simulation.
-\\ Every new ``ExternalModel Plugin'' must inherit from a RAVEN base class named 
+\\ Every new ``ExternalModel Plugin'' must inherit from a RAVEN base class named
 $ExternalModelPluginBase$:
 \begin{lstlisting}[language=python]
   class NewPlugin(ExternalModelPluginBase):
@@ -147,7 +145,7 @@ In this function, the plugin developer needs to implement the algorithm that RAV
 execute.
 %
 The \texttt{\textbf{run}} method is generally called after having inquired the
-``createNewInput'' method (either the internal RAVEN one or the one implemented by 
+``createNewInput'' method (either the internal RAVEN one or the one implemented by
 the plugin developer).
 %
 The only two attributes this method is going to receive are a Python list of inputs
@@ -222,12 +220,12 @@ def createNewInput(self, container, inputs,samplerType,**Kwargs):
 def _readMoreXML(self, container, xmlNode)
 \end{lstlisting}
 As already mentioned, the \textbf{\_readMoreXML} method can be implemented by the
-ExternalModel Plugin developer if the XML input that belongs to this ExternalModel 
+ExternalModel Plugin developer if the XML input that belongs to this ExternalModel
 plugin needs to be extended to contain other information.
 %
 The read information needs to be stored in the ``self-like'' object ``container''
- in order to be available to all the other methods (e.g. if the developer needs to add a 
- couple of newer XML nodes with information needed by the algorithm implemented in 
+ in order to be available to all the other methods (e.g. if the developer needs to add a
+ couple of newer XML nodes with information needed by the algorithm implemented in
  the ``run'' method).
 %
 If this method is implemented in the \textbf{ExternalModel}, RAVEN is going to
@@ -248,7 +246,7 @@ Example XML:
        <variables>sigma,rho,outcome</variables>
        <!--
           here we define other XML nodes RAVEN does not read automatically.
-          We need to implement, in the external model Plugin class the _readMoreXML 
+          We need to implement, in the external model Plugin class the _readMoreXML
           method
         -->
         <newNodeWeNeedToRead>
