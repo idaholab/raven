@@ -219,13 +219,13 @@ class IOStep(Step):
         else:
           fmu = False
           pickledFile = outputs[i].getAbsFile()
-          
+
         #fileobj = outputs[i]
         #fileobj.open(mode='wb+')
         #cloudpickle.dump(inDictionary['Input'][i],fileobj)
         #fileobj.flush()
         #fileobj.close()
-        
+
         fileobj = open(pickledFile,mode="wb+")
         #fileobj.open(mode='wb+')
         cloudpickle.dump(inDictionary['Input'][i],fileobj)
@@ -237,8 +237,8 @@ class IOStep(Step):
           inDictionary['Input'][i].exportAsFMU(fileobj, keepModule=True)
           fileobj.flush()
           fileobj.close()
-        
-        
+
+
       elif self.actionType[i] == 'FILES-ROM':
         #inDictionary['Input'][i] is a Files, outputs[i] is ROM
         ## unpickle the ROM

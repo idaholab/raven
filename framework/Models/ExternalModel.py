@@ -48,8 +48,9 @@ class ExternalModel(Dummy):
     inputSpecification = super(ExternalModel, cls).getInputSpecification()
     inputSpecification.setStrictMode(False) #External models can allow new elements
     inputSpecification.addParam("ModuleToLoad", InputTypes.StringType, False)
-    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringType))
-
+    inputSpecification.addSub(InputData.parameterInputFactory("variables", contentType=InputTypes.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("inputs", contentType=InputTypes.StringListType))
+    inputSpecification.addSub(InputData.parameterInputFactory("outputs", contentType=InputTypes.StringListType))
     return inputSpecification
 
   @classmethod
@@ -118,7 +119,6 @@ class ExternalModel(Dummy):
     if 'createNewInput' in dir(self.sim):
       if 'SampledVars' in kwargs.keys():
         sampledVars = self._replaceVariablesNamesWithAliasSystem(kwargs['SampledVars'],'input',False)
-      self.inputKeys = sampledVars.keys()
       extCreateNewInput = self.sim.createNewInput(self.initExtSelf,myInput,samplerType,**kwargs)
       if extCreateNewInput is None:
         self.raiseAnError(AttributeError,'in external Model '+self.ModuleToLoad+' the method createNewInput must return something. Got: None')
@@ -171,17 +171,28 @@ class ExternalModel(Dummy):
     if not self.pickled:
       # check if there are variables and, in case, load them
       for child in paramInput.subparts:
-        if child.getName() =='variable':
-          self.raiseAnError(IOError,'"variable" node included but has been depreciated!  Please list variables in a "variables" node instead.  Remove this message by Dec 2016.')
-        elif child.getName() == 'variables':
+        if child.getName() == 'variables':
+          self.raiseAWarning(DeprecationWarning ,'"variables" node inputted but has been depreciated!  Please list variables in the "inputs" and "outputs" nodes instead.  This Warning will result in an error in RAVEN 3.0!')
           if len(child.parameterValues) > 0:
             self.raiseAnError(IOError,'the block '+child.getName()+' named '+child.value+' should not have attributes!!!!!')
-          for var in child.value.split(','):
-            var = var.strip()
-            self.modelVariableType[var] = None
+          self.modelVariableType = dict.fromkeys(child.value)
+        elif child.getName() == 'inputs':
+          self.inputVars = child.value
+        elif child.getName() == 'outputs':
+          self.outputVars = child.value
+
+      if not self.modelVariableType:
+        if not self.inputVars or not self.outputVars:
+          self.raiseAnError(IOError, "<inputs> and <outputs> nodes must be specified in the ExternalModel input specifications!")
+        self.modelVariableType = dict.fromkeys(self.inputVars+self.outputVars)
       # adjust model-aware variables based on aliases
       self._replaceVariablesNamesWithAliasSystem(self.modelVariableType,'inout')
       self.listOfRavenAwareVars.extend(self.modelVariableType.keys())
+      if self.inputVars:
+        self._replaceVariablesNamesWithAliasSystem(self.inputVars,'input')
+      if self.outputVars:
+        self._replaceVariablesNamesWithAliasSystem(self.outputVars,'output')
+
       # check if there are other information that the external module wants to load
       #TODO this needs to be converted to work with paramInput
       if '_readMoreXML' in dir(self.sim):
@@ -344,8 +355,10 @@ class ExternalModel(Dummy):
                        the creation of the FMU or we delete it?
       @ Out, None
     """
+    if not self.inputVars or not self.outputVars:
+      self.raiseAnError(RuntimeError, "Nodes <inputs> and <outputs> are required for exporting FMI/FMU of external models!")
     indent = " "*8
-    ink, outk = self.inputKeys, list(set(list(self.modelVariableType.keys())) - set(self.inputKeys))
+    ink, outk = self.inputVars, self.outputVars
     inpReg = ""
     outReg = ""
     for var in ink:
@@ -423,9 +436,12 @@ class ExternalModel(Dummy):
     '''
 
     em = "ExternalModel"
-    ik = ",".join(['"{}"'.format(k) for k in self.inputKeys])
+    ik = ",".join(['"{}"'.format(k) for k in self.inputVars])
     rp = __file__
     mp = self.workingDir
     tempModule = template.format(em,em,em,ik,rp,mp,inpReg,outReg)
-    with open(fileo,"w") as tempO:
-      tempO.write(tempModule)
+    if not fileo.isOpen():
+      fileo.open("w")
+    fileo.write(tempModule)
+   # with open(fileo,"w") as tempO:
+   #   tempO.write(tempModule)

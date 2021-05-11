@@ -429,7 +429,8 @@ class File(BaseEntity):
     """
     if not self.isOpen():
       self.open('a' if not overwrite else 'w')
-    self.__file.write(string)
+    line = string.encode() if isinstance(string, str) else string
+    self.__file.write(line)
 
   def writelines(self,string,overwrite=False):
     """
