@@ -20,7 +20,7 @@ import numpy as np
 from scipy import interpolate
 import copy
 
-from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import InputData, InputTypes
 
 class dataObjectLabelFilter(PostProcessorPluginBase):

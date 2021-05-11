@@ -23,7 +23,7 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 

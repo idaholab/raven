@@ -18,7 +18,7 @@ Created on December 1, 2015
 import copy
 import numpy as np
 
-from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import InputData, InputTypes
 
 class testInterfacedPP(PostProcessorPluginBase):

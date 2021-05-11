@@ -20,7 +20,7 @@ import copy
 from collections import defaultdict
 from functools import partial
 
-from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import mathUtils, utils, InputData, InputTypes
 
 class TypicalHistoryFromHistorySet(PostProcessorPluginBase):

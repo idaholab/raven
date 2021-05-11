@@ -22,7 +22,7 @@ import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
-from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import InputData, InputTypes
 
 class HistorySetSync(PostProcessorPluginBase):

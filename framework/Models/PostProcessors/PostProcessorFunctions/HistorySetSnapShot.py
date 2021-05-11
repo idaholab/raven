@@ -21,7 +21,7 @@ from scipy import interpolate
 import copy
 import importlib
 
-from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 # import HistorySetSync as HSS
 from Models.PostProcessors import Factory as interfaceFactory
 from utils import InputData, InputTypes

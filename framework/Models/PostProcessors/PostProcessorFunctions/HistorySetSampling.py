@@ -22,7 +22,7 @@ from scipy import interpolate
 from scipy import integrate
 import copy
 
-from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import InputData, InputTypes
 
 class HistorySetSampling(PostProcessorPluginBase):

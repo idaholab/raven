@@ -24,7 +24,7 @@ import numpy as np
 import xarray as xr
 
 from utils import InputData, InputTypes
-from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 
 class HistorySetDelay(PostProcessorPluginBase):
   """

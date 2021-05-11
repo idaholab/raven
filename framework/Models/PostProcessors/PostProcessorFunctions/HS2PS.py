@@ -21,7 +21,7 @@ import xarray as xr
 
 #Internal Modules---------------------------------------------------------------
 from utils import InputData, InputTypes
-from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 #Internal Modules End-----------------------------------------------------------
 
 class HS2PS(PostProcessorPluginBase):
