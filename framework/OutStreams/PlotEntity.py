@@ -38,18 +38,6 @@ class Plot(OutStreamEntity):
   defaultInterface = 'GeneralPlot'
   strictInput = False # GeneralPlot is not checked yet
 
-  def parseXML(self, xml):
-    """
-      Parse XML into input parameters
-      Overloaded to pass XML to getInputSpecifications
-      -> this should be commonly done among Entities, probably.
-      @ In, xml, xml.etree.ElementTree.Element, XML element node
-      @ Out, InputData.ParameterInput, the parsed input
-    """
-    paramInput = self.getInputSpecification(xml=xml)()
-    paramInput.parseNode(xml)
-    return paramInput
-
   def __init__(self):
     """
       Init of Base class
