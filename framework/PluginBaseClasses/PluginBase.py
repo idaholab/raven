@@ -16,13 +16,6 @@ Created on November 6, 2017
 
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
-#External Modules---------------------------------------------------------------
-#External Modules End-----------------------------------------------------------
-
-#Internal Modules---------------------------------------------------------------
-#Internal Modules End-----------------------------------------------------------
 
 class PluginBase(object):
   """
@@ -30,15 +23,18 @@ class PluginBase(object):
   """
   # List containing the methods that need to be checked in order to assess the
   # validity of a certain plugin. This list needs to be populated by the derived class
+  _interfaceFactory = None # set in each class, is the factory for the related interface module
   _methodsToCheck = []
   entityType = None  # the RAVEN entity fulfilled by this object
 
-  def __init__(self):
+  @classmethod
+  def getInterfaceFactory(cls):
     """
-      Constructor
+      Provide factory for corresponding factory for the interface related to the plugin object.
       @ In, None
-      @ Out, None
+      @ Out, EntityFactoryBase, factory object for interface factory where this hsould be registered.
     """
+    return cls._interfaceFactory
 
   @classmethod
   def isAValidPlugin(cls):

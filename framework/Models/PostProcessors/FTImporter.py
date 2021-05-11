@@ -18,7 +18,7 @@ Created on Dec 21, 2017
 """
 #Internal Modules---------------------------------------------------------------
 from utils import InputData, InputTypes
-from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from .FTStructure import FTStructure
 #Internal Modules End-----------------------------------------------------------
 

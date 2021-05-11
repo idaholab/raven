@@ -19,9 +19,9 @@ Created on Nov 14, 2013
 from abc import abstractmethod, ABCMeta
 
 from utils.utils import metaclass_insert
-from BaseClasses import BaseEntity
+from BaseClasses import PluginReadyEntity
 
-class OutStreamEntity(metaclass_insert(ABCMeta, BaseEntity)):
+class OutStreamEntity(metaclass_insert(ABCMeta, PluginReadyEntity)):
   """
     OUTSTREAM CLASS
     This class is a general base class for outstream action classes
@@ -29,15 +29,6 @@ class OutStreamEntity(metaclass_insert(ABCMeta, BaseEntity)):
   """
   ###################
   # API
-  @classmethod
-  def getInputSpecification(cls):
-    """
-      Method to get a reference to a class that specifies the input data for class "cls".
-      @ In, cls, the class for which we are retrieving the specification
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
-    """
-    spec = super().getInputSpecification()
-    return spec
 
   def __init__(self):
     """
