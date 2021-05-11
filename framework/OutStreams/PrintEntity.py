@@ -19,33 +19,15 @@ Created on April 2, 2021
 
 from utils import InputTypes
 from .OutStreamEntity import OutStreamEntity
-from .PrintInterfaces import factory as interfaceFactory
+from .PrintInterfaces import factory as PrintFactory
 
 
 class Print(OutStreamEntity):
   """
     Handler for Plot implementations
   """
-  @classmethod
-  def getInputSpecification(cls):
-    """
-      Method to get a reference to a class that specifies the input data for class "cls".
-      @ In, cls, the class for which we are retrieving the specification
-      @ Out, inputSpecification, InputData.ParameterInput, class to use for specifying the input of cls.
-    """
-    spec = super().getInputSpecification()
-    okTypes = list(interfaceFactory.knownTypes())
-    okEnum = InputTypes.makeEnumType('OutStreamPrint', 'OutStreamPrintType', okTypes)
-    spec.addParam('subType', required=False, param_type=okEnum, descr=r"""Type of OutStream Print to generate.""")
-    # TODO add specs depending on the one chosen, not all of them!
-    # FIXME the GeneralPlot has a vast need for converting to input specs. Until then,
-    #       we cannot strictly check anything related to it.
-    spec.strictMode = False
-    for name in okTypes:
-      printer = interfaceFactory.returnClass(name)
-      subSpecs = printer.getInputSpecification()
-      spec.mergeSub(subSpecs)
-    return spec
+  interfaceFactory = PrintFactory
+  defaultInterface = 'FilePrint'
 
   def __init__(self):
     """
@@ -74,7 +56,7 @@ class Print(OutStreamEntity):
     """
     super()._handleInput(spec)
     reqType = spec.parameterValues.get('subType', 'FilePrint')
-    self._printer = interfaceFactory.returnInstance(reqType)
+    self._printer = self.interfaceFactory.returnInstance(reqType)
     self._printer.handleInput(spec)
 
   def initialize(self, stepEntities):

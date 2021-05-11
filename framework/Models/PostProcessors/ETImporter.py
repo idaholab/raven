@@ -18,7 +18,7 @@ Created on Nov 1, 2017
 """
 #Internal Modules---------------------------------------------------------------
 from utils import InputData, InputTypes
-from PluginsBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from .ETStructure import ETStructure
 #Internal Modules End-----------------------------------------------------------
 
