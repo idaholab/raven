@@ -15,21 +15,18 @@
 Created on October 28, 2015
 
 """
-
-from __future__ import division, print_function, unicode_literals, absolute_import
-
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
-
 import os
 import numpy as np
 from scipy import interpolate
 import copy
 import importlib
 
-import HistorySetSync as HSS
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+# import HistorySetSync as HSS
+from Models.PostProcessors import Factory as interfaceFactory
 from utils import InputData, InputTypes
 
-class HistorySetSnapShot(PostProcessorInterfaceBase):
+class HistorySetSnapShot(PostProcessorPluginBase):
   """
     This Post-Processor performs the conversion from HistorySet to PointSet
     The conversion is made so that each history H is converted to a single point P.
@@ -48,7 +45,6 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
-    inputSpecification.setCheckClass(CheckInterfacePP("HistorySetSnapShot"))
     HSSSTypeType = InputTypes.makeEnumType("HSSSType", "HSSSTypeType", ['min','max','average','value','timeSlice','mixed'])
     inputSpecification.addSub(InputData.parameterInputFactory("type", contentType=HSSSTypeType))
     inputSpecification.addSub(InputData.parameterInputFactory("numberOfSamples", contentType=InputTypes.IntegerType))
@@ -65,32 +61,53 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
     valueSub.addParam("pivotVar", InputTypes.StringType)
     valueSub.addParam("pivotVal", InputTypes.StringType)
     inputSpecification.addSub(valueSub)
-    #Should method be in super class?
-    inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
     return inputSpecification
 
-  def initialize(self):
+  def __init__(self):
     """
-      Method to initialize the Interfaced Post-processor
-      @ In, None,
-      @ Out, None,
+      Constructor
+      @ In, None
+      @ Out, None
     """
-
-    PostProcessorInterfaceBase.initialize(self)
-    self.inputFormat  = 'HistorySet'
-    self.outputFormat = 'PointSet'
-
+    super().__init__()
+    self.setInputDataType('dict')
+    self.keepInputMeta(True)
+    self.outputMultipleRealizations = True # True indicate multiple realizations are returned
+    self.validDataType = ['PointSet'] # The list of accepted types of DataObject
     self.type            = None
-    self.pivotParameter  = None
+    self.pivotParameter  = None #pivotParameter identify the ID of the temporal variabl
     self.pivotVar        = None
     self.pivotVal        = None
     self.timeInstant     = None
-
     self.numberOfSamples = None
-    self.pivotParameter  = None
     self.interpolation   = None
-
     self.classifiers = {} #for "mixed" mode
+
+  def initialize(self, runInfo, inputs, initDict=None):
+    """
+      Method to initialize the DataClassifier post-processor.
+      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+      @ In, inputs, list, list of inputs
+      @ In, initDict, dict, optional, dictionary with initialization options
+      @ Out, None
+    """
+    super().initialize(runInfo, inputs, initDict)
+    if len(inputs)>1:
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one dataObject')
+    if inputs[0].type != 'HistorySet':
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only HistorySet dataObject, but got "{}"'.format(inputs[0].type))
+    #sync if needed
+    if self.type == 'timeSlice':
+      #for syncing, need numberOfSamples, extension
+      if self.numberOfSamples is None:
+        self.raiseIOError(IOError,'When using "timeSlice" a "numberOfSamples" must be specified for synchronizing!')
+      if self.extension is None:
+        self.raiseAnError(IOError,'When using "timeSlice" an "extension" method must be specified for synchronizing!')
+      #perform sync
+      # PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
+      self.HSsyncPP = interfaceFactory.factory.returnInstance('HistorySetSync')
+      self.HSsyncPP.setParams(self.numberOfSamples,self.pivotParameter,self.extension,syncMethod='grid')
+      self.HSsyncPP.initialize(runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -98,7 +115,6 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
     for child in paramInput.subparts:
       tag = child.getName()
       if tag =='type':
@@ -140,7 +156,7 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
             self.classifiers[tag].append( (entry,depVar,float(depVal)) )
         elif tag != 'method':
           self.raiseAnError(IOError,'Unrecognized node for HistorySetSnapShot in "mixed" mode:',tag)
-      elif tag !='method':
+      else:
         self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child.tag) + ' is not recognized')
 
     needspivotParameter = ['average','timeSlice']
@@ -148,77 +164,74 @@ class HistorySetSnapShot(PostProcessorInterfaceBase):
       if self.pivotParameter is None:
         self.raiseAnError(IOError,'"pivotParameter" is required for',needspivotParameter,'but not provided!')
 
-    #sync if needed
-    if self.type == 'timeSlice':
-      #for syncing, need numberOfSamples, extension
-      if self.numberOfSamples is None:
-        self.raiseIOError(IOError,'When using "timeSlice" a "numberOfSamples" must be specified for synchronizing!')
-      if self.extension is None:
-        self.raiseAnError(IOError,'When using "timeSlice" an "extension" method must be specified for synchronizing!')
-      #perform sync
-      PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
-      self.HSsyncPP = PostProcessorInterfaces.factory.returnInstance('HistorySetSync')
-      self.HSsyncPP.initialize(self.numberOfSamples,self.pivotParameter,self.extension,syncMethod='grid')
-
-  def run(self,inputDic, pivotVal=None):
+  def run(self,inputIn, pivotVal=None):
     """
       Method to post-process the dataObjects
-      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+      @ In, inputIn, dict, dictionaries which contains the data inside the input DataObjects
+        inputIn = {'Data':listData, 'Files':listOfFiles},
+        listData has the following format: (listOfInputVars, listOfOutVars, DataDict) with
+        DataDict is a dictionary that has the format
+            dataDict['dims']     = dict {varName:independentDimensions}
+            dataDict['metadata'] = dict {metaVarName:metaVarValue}
+            dataDict['type'] = str TypeOfDataObject
+            dataDict['inpVars'] = list of input variables
+            dataDict['outVars'] = list of output variables
+            dataDict['numberRealization'] = int SizeOfDataObject
+            dataDict['name'] = str DataObjectName
+            dataDict['metaKeys'] = list of meta variables
+            dataDict['data'] = dict {varName: varValue(1-D or 2-D numpy array)}
       @ In, pivotVal,  float, value associated to the variable considered (default None)
       @ Out, outputPSDic, dict, output dictionary
     """
-    if len(inputDic)>1:
-      self.raiseAnError(IOError, 'HistorySetSnapShot Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
-    else:
-      inputDic = inputDic[0]
-      #for timeSlice we call historySetWindow
-      if self.type == 'timeSlice':
-        outputHSDic = self.HSsyncPP.run([inputDic])
-        outDict = historySetWindow(outputHSDic,self.timeInstant,inputDic['inpVars'],inputDic['outVars'],inputDic['numberRealizations'],self.pivotParameter)
-        for key in inputDic['metaKeys']:
-          outDict['data'][key] = inputDic['data'][key]
-        return outDict
+    _, _, inputDic = inputIn['Data'][0]
+    #for timeSlice we call historySetWindow
+    if self.type == 'timeSlice':
+      outputHSDic = self.HSsyncPP.run(inputIn)
+      outDict = historySetWindow(outputHSDic,self.timeInstant,inputDic['inpVars'],inputDic['outVars'],inputDic['numberRealizations'],self.pivotParameter)
+      for key in inputDic['metaKeys']:
+        outDict['data'][key] = inputDic['data'][key]
+      return outDict
 
-      #for other non-mixed methods we call historySnapShot
-      elif self.type != 'mixed':
-        outputPSDic = historySnapShot(inputDic,self.pivotVar,self.type,self.pivotVal,self.pivotParameter)
-        return outputPSDic
-      #   mixed is more complicated: we pull out values by method instead of a single slice type
-      #   We use the same methods to get slices, then pick out only the requested variables
-      else:
-        #establish the output dict
-        outDict = {'data':{}}
-        #replicate input space
-        for var in inputDic['inpVars']:
-          outDict['data'][var]  = inputDic['data'][var]
-        # replicate metadata
-        # add meta variables back
-        for key in inputDic['metaKeys']:
-          outDict['data'][key] = inputDic['data'][key]
-        outDict['dims'] = {key:[] for key in inputDic['dims'].keys()}
-        #loop over the methods requested to fill output space
-        for method,entries in self.classifiers.items():
-          #min, max take no special effort
-          if method in ['min','max']:
-            for var in entries:
-              getDict = historySnapShot(inputDic,var,method)
-              outDict['data'][var] = getDict['data'][var]
-          #average requires the pivotParameter
-          elif method == 'average':
-            for var in entries:
-              getDict = historySnapShot(inputDic,var,method,tempID=self.pivotParameter,pivotVal=self.pivotParameter)
-              outDict['data'][var] = getDict['data'][var]
-          #timeSlice requires the time value
-          #functionality removed for now until we recall why it's desirable
-          #elif method == 'timeSlice':
-          #  for var,time in entries:
-          #    getDict = historySetWindow(inputDic,time,self.pivotParameter)
-          #value requires the dependent variable and value
-          elif method == 'value':
-            for var,depVar,depVal in entries:
-              getDict = historySnapShot(inputDic,depVar,method,pivotVal=depVal)
-              outDict['data'][var] = getDict['data'][var]
-        return outDict
+    #for other non-mixed methods we call historySnapShot
+    elif self.type != 'mixed':
+      outputPSDic = historySnapShot(inputDic,self.pivotVar,self.type,self.pivotVal,self.pivotParameter)
+      return outputPSDic
+    #   mixed is more complicated: we pull out values by method instead of a single slice type
+    #   We use the same methods to get slices, then pick out only the requested variables
+    else:
+      #establish the output dict
+      outDict = {'data':{}}
+      #replicate input space
+      for var in inputDic['inpVars']:
+        outDict['data'][var]  = inputDic['data'][var]
+      # replicate metadata
+      # add meta variables back
+      for key in inputDic['metaKeys']:
+        outDict['data'][key] = inputDic['data'][key]
+      outDict['dims'] = {key:[] for key in inputDic['dims'].keys()}
+      #loop over the methods requested to fill output space
+      for method,entries in self.classifiers.items():
+        #min, max take no special effort
+        if method in ['min','max']:
+          for var in entries:
+            getDict = historySnapShot(inputDic,var,method)
+            outDict['data'][var] = getDict['data'][var]
+        #average requires the pivotParameter
+        elif method == 'average':
+          for var in entries:
+            getDict = historySnapShot(inputDic,var,method,tempID=self.pivotParameter,pivotVal=self.pivotParameter)
+            outDict['data'][var] = getDict['data'][var]
+        #timeSlice requires the time value
+        #functionality removed for now until we recall why it's desirable
+        #elif method == 'timeSlice':
+        #  for var,time in entries:
+        #    getDict = historySetWindow(inputDic,time,self.pivotParameter)
+        #value requires the dependent variable and value
+        elif method == 'value':
+          for var,depVar,depVal in entries:
+            getDict = historySnapShot(inputDic,depVar,method,pivotVal=depVal)
+            outDict['data'][var] = getDict['data'][var]
+      return outDict
 
 def historySnapShot(inputDic, pivotVar, snapShotType, pivotVal=None, tempID = None):
   """
@@ -287,8 +300,6 @@ def historySetWindow(inputDic,timeStepID,inpVars,outVars,N,pivotParameter):
   """
   outputDic={'data':{}}
   outputDic['dims'] = {key:[] for key in inputDic['dims'].keys()}
-  #outputDic['dims'][pivotParameter]=[]
-
   for var in inpVars:
     outputDic['data'][var] = inputDic['data'][var]
 

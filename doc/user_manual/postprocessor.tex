@@ -19,7 +19,6 @@ Currently, the following types are available in RAVEN:
   \item \textbf{LimitSurfaceIntegral}
   \item \textbf{External}
   \item \textbf{TopologicalDecomposition}
-  %\item \textbf{RavenOutput}
   \item \textbf{DataMining}
   \item \textbf{RiskMeasureDiscrete}
   \item \textbf{Metric}
@@ -1086,35 +1085,6 @@ The following is a list of acceptable sub-nodes:
 
 %%%%% PP DataMining %%%%%%%
 \input{PostProcessors/DataMining.tex}
-
-%%%%% PP PrintCSV %%%%%%%
-%\paragraph{PrintCSV}
-%\label{PrintCSV}
-%TO BE MOVED TO STEP ``IOSTEP''
-%%%%% PP LoadCsvIntoInternalObject %%%%%%%
-%\paragraph{LoadCsvIntoInternalObject}
-%\label{LoadCsvIntoInternalObject}
-%TO BE MOVED TO STEP ``IOSTEP''
-%
-
-%%%%% Risk Measures Discrete PP %%%%%%%%%%
-\input{PostProcessors/DiscreteRiskMeasures.tex}
-
-%%%%% HistorySetDelay %%%%%%
-\input{PostProcessors/HistorySetDelay.tex}
-
-%%%%% PP External %%%%%%%
-\input{PostProcessors/InterfacedPostProcessors.tex}
-
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% RavenOutput PP   %%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% FIXME: I think this is not valid anymore. We do not support the RavenOutput PP anymore.
-% In addition, all the related tests are disabled. It seems to me we should remove all
-% related files and tests (wangc - 4/23/2021)
-%\input{PostProcessors/RavenOutput.tex}
-
 
 %%%%%%%%%%%%%% ParetoFrontier PP %%%%%%%%%%%%%%%%%%%
 
@@ -2218,3 +2188,35 @@ The \xmlNode{SampleSelector} postprocessor can  act on any \xmlNode{DataObjects}
 
 %%%%% PP EconomicRatio %%%%%%%
 \input{EconomicRatio.tex}
+
+%%%%% Risk Measures Discrete PP %%%%%%%%%%
+\input{PostProcessors/DiscreteRiskMeasures.tex}
+
+%%%%% HistorySetDelay %%%%%%
+\input{PostProcessors/HistorySetDelay.tex}
+
+%%%%% HStoPSOperator %%%%%%
+\input{PostProcessors/HStoPSOperator.tex}
+
+%%%%% HistorySetSampling %%%%%%
+\input{PostProcessors/HistorySetSampling.tex}
+
+%%%%% HistorySetSync %%%%%%
+\input{PostProcessors/HistorySetSync.tex}
+
+%%%%% HistorySetSnapShot %%%%%%
+\input{PostProcessors/HistorySetSnapShot.tex}
+
+%%%%% HS2PS %%%%%%
+\input{PostProcessors/HS2PS.tex}
+
+%%%%% TypicalHistoryFromHistorySet %%%%%%
+\input{PostProcessors/TypicalHistoryFromHistorySet.tex}
+
+%%%%% dataObjectLabelFilter %%%%%%
+\input{PostProcessors/dataObjectLabelFilter.tex}
+
+%%%%%%%%%%%%%% InterfacedPostProcessors %%%%%%%%%%%%%%%%
+% To be replaced by the PostProcessor Plugin
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\input{PostProcessors/InterfacedPostProcessors.tex}

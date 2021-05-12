@@ -1229,7 +1229,7 @@ class DataSet(DataObject):
     dataDict['type'] = self.type
     dataDict['inpVars'] = self.getVars('input')
     dataDict['outVars'] = self.getVars('output')
-    dataDict['numberRealization'] = self.size
+    dataDict['numberRealizations'] = self.size
     dataDict['name'] = self.name
     dataDict['metaKeys'] = self.getVars('meta')
     # main data

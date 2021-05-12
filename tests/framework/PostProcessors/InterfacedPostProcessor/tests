@@ -63,7 +63,6 @@
     type   = 'RavenFramework'
     input  = 'test_HS2PS.xml'
     csv    = 'HS2PS/PrintPPPointSet_dump.csv'
-    output = 'HS2PS/PrintPPPointSet_dump.xml'
   [../]
   [./interfacedPostProcessor_PointSet]
     type   = 'RavenFramework'

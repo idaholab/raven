@@ -16,20 +16,16 @@ Created on October 28, 2015
 
 @author: mandd
 """
-
-from __future__ import division, print_function, unicode_literals, absolute_import
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
-
-
 import os
 import numpy as np
 from scipy import interpolate
 from scipy import integrate
 import copy
 
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import InputData, InputTypes
 
-class HistorySetSampling(PostProcessorInterfaceBase):
+class HistorySetSampling(PostProcessorPluginBase):
   """
    This Post-Processor performs the conversion from HistorySet to HistorySet
    The conversion is made so that each history H is re-sampled accordingly to a specific sampling strategy.
@@ -45,7 +41,6 @@ class HistorySetSampling(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
-    inputSpecification.setCheckClass(CheckInterfacePP("HistorySetSampling"))
     HSSamplingType = InputTypes.makeEnumType("HSSampling", "HSSamplingType", ['uniform','firstDerivative','secondDerivative','filteredFirstDerivative','filteredSecondDerivative'])
     inputSpecification.addSub(InputData.parameterInputFactory("samplingType", contentType=HSSamplingType))
     inputSpecification.addSub(InputData.parameterInputFactory("numberOfSamples", contentType=InputTypes.IntegerType))
@@ -53,27 +48,38 @@ class HistorySetSampling(PostProcessorInterfaceBase):
     inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
     HSInterpolationType = InputTypes.makeEnumType("HSInterpolation", "HSInterpolationType", ['linear', 'nearest', 'zero', 'slinear', 'quadratic', 'cubic', 'intervalAverage'])
     inputSpecification.addSub(InputData.parameterInputFactory("interpolation", contentType=HSInterpolationType))
-    #Should method be in super class?
-    inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
     return inputSpecification
 
-  def initialize(self):
+  def __init__(self):
     """
-     Method to initialize the Interfaced Post-processor
-     @ In, None,
-     @ Out, None,
-
+      Constructor
+      @ In, None
+      @ Out, None
     """
-
-    PostProcessorInterfaceBase.initialize(self)
-    self.inputFormat  = 'HistorySet'
-    self.outputFormat = 'HistorySet'
-
+    super().__init__()
+    self.pivotParameter = None #pivotParameter identify the ID of the temporal variabl
+    self.setInputDataType('dict')
+    self.keepInputMeta(True)
+    self.outputMultipleRealizations = True # True indicate multiple realizations are returned
+    self.validDataType = ['HistorySet'] # The list of accepted types of DataObject
     self.samplingType    = None
     self.numberOfSamples = None
     self.tolerance       = None
-    self.pivotParameter  = None
     self.interpolation   = None
+
+  def initialize(self, runInfo, inputs, initDict=None):
+    """
+      Method to initialize the DataClassifier post-processor.
+      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+      @ In, inputs, list, list of inputs
+      @ In, initDict, dict, optional, dictionary with initialization options
+      @ Out, None
+    """
+    super().initialize(runInfo, inputs, initDict)
+    if len(inputs)>1:
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one dataObject')
+    if inputs[0].type != 'HistorySet':
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only HistorySet dataObject, but got "{}"'.format(inputs[0].type))
 
   def _handleInput(self, paramInput):
     """
@@ -81,7 +87,6 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
     for child in paramInput.subparts:
       if child.getName() == 'samplingType':
         self.samplingType = child.value
@@ -93,7 +98,7 @@ class HistorySetSampling(PostProcessorInterfaceBase):
         self.pivotParameter = child.value
       elif child.getName() == 'interpolation':
         self.interpolation = child.value
-      elif child.getName() !='method':
+      else:
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
     if self.pivotParameter is None:
@@ -106,19 +111,25 @@ class HistorySetSampling(PostProcessorInterfaceBase):
       if self.tolerance is  None or self.tolerance < 0.0:
         self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' : tolerance is not specified or less than 0')
 
-
-  def run(self,inputDic):
+  def run(self,inputIn):
     """
       Method to post-process the dataObjects
-      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+      @ In, inputIn, dict, dictionaries which contains the data inside the input DataObjects
+        inputIn = {'Data':listData, 'Files':listOfFiles},
+        listData has the following format: (listOfInputVars, listOfOutVars, DataDict) with
+        DataDict is a dictionary that has the format
+            dataDict['dims']     = dict {varName:independentDimensions}
+            dataDict['metadata'] = dict {metaVarName:metaVarValue}
+            dataDict['type'] = str TypeOfDataObject
+            dataDict['inpVars'] = list of input variables
+            dataDict['outVars'] = list of output variables
+            dataDict['numberRealization'] = int SizeOfDataObject
+            dataDict['name'] = str DataObjectName
+            dataDict['metaKeys'] = list of meta variables
+            dataDict['data'] = dict {varName: varValue(1-D or 2-D numpy array)}
       @ Out, outputDic, dict, dictionary of resampled histories
     """
-    # check that we only have one data object
-    if len(inputDic)>1:
-      self.raiseAnError(IOError, 'HistorySetSampling Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
-
-    # grab the first (and only) data object
-    inputDic = inputDic[0]
+    _, _, inputDic = inputIn['Data'][0]
     outputDic={'data':{}}
     # load up the input data into the output
     for var in inputDic['inpVars']:
