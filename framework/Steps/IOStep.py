@@ -219,24 +219,29 @@ class IOStep(Step):
         else:
           fmu = False
           pickledFile = outputs[i].getAbsFile()
-
+        
         #fileobj = outputs[i]
         #fileobj.open(mode='wb+')
         #cloudpickle.dump(inDictionary['Input'][i],fileobj)
         #fileobj.flush()
         #fileobj.close()
-
+        
         fileobj = open(pickledFile,mode="wb+")
         #fileobj.open(mode='wb+')
         cloudpickle.dump(inDictionary['Input'][i],fileobj)
         fileobj.flush()
         fileobj.close()
+        
         if fmu:
-          fileobj = outputs[i]
-          fileobj.open(mode='wb+')
-          inDictionary['Input'][i].exportAsFMU(fileobj, keepModule=True)
-          fileobj.flush()
-          fileobj.close()
+          from utils.fmuExporter import FMUexporter
+          fdir = inDictionary['jobHandler'].runInfoDict['FrameworkDir']
+          fmuexec = FMUexporter(**{'model': inDictionary['Input'][i],'executeMethod': 'evaluate', 'workingDir': outputs[i].getPath(), 'frameworkDir': fdir, 'keepModule': True})
+          fmuexec.buildFMU(outputs[i].getAbsFile())
+          # fileobj = outputs[i]
+          # fileobj.open(mode='wb+')
+          # inDictionary['Input'][i].exportAsFMU(fileobj, keepModule=True)
+          # fileobj.flush()
+          # fileobj.close()
 
 
       elif self.actionType[i] == 'FILES-ROM':

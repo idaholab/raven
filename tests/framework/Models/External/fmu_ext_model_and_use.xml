@@ -32,7 +32,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>SerializeWrkd</WorkingDir>
+    <WorkingDir>/Users/alfoa/projects/raven_github/raven/tests/framework/Models/External/SerializeWrkd</WorkingDir>
     <Sequence>extSerialization,extSerielizedLoading,sample2,print</Sequence>
   </RunInfo>
   <Files>
@@ -56,11 +56,11 @@
     </IOStep>
     <IOStep name="extSerielizedLoading">
       <Input class="Models" type="ExternalModel">attenuate2</Input>
-      <Output class="Files" type="">attenuatepk2</Output>
+      <Output class="Files" type="">attenuatepk</Output>
     </IOStep>
     <MultiRun name="sample2">
       <Input class="DataObjects" type="PointSet">placeholder</Input>
-      <Model class="Models" type="ExternalModel">attenuate2</Model>
+      <Model class="Models" type="ExternalModel">attenuate</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">samples</Output>
     </MultiRun>
@@ -69,6 +69,8 @@
   <Models>
     <ExternalModel ModuleToLoad="../AllMethods/attenuate" name="attenuate" subType="">
       <variables>y1,y2,ans,fromInit,fromReadMoreXML,fromCNISelf,fromCNIDict</variables>
+      <inputs>y1,y2</inputs>
+      <outputs>ans</outputs>
       <moreXMLInfo>
         <valueForXML>3.14159</valueForXML>
       </moreXMLInfo>

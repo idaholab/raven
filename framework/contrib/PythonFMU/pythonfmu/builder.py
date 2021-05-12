@@ -66,6 +66,7 @@ class FmuBuilder:
         dest: FilePath = ".",
         project_files: Iterable[FilePath] = set(),
         documentation_folder: Optional[FilePath] = None,
+        file_name: Optional[FilePath] = None,
         **options,
     ) -> Path:
         script_file = Path(script_file)
@@ -122,7 +123,10 @@ class FmuBuilder:
                 temp_dir.absolute() / script_file.name, module_name
             )
 
-            dest_file = dest / f"{model_identifier}.fmu"
+            if file_name is None:
+                dest_file = dest / f"{model_identifier}.fmu"
+            else:
+                dest_file = dest / file_name
 
             type_node = xml.find("CoSimulation")
             option_names = [opt.name for opt in FMI2_MODEL_OPTIONS]

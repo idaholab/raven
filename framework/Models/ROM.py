@@ -1363,7 +1363,10 @@ class ROM(Dummy):
     self.initializationOptionDict['paramInput'] = paramInput
     self._initializeSupervisedGate(**self.initializationOptionDict)
     #the ROM is instanced and initialized
-
+    #  set input and output var lists (needed for FMI/FMU export)
+    self._setVariableList('input', self.initializationOptionDict['Features'])
+    self._setVariableList('output', self.initializationOptionDict['Target'])
+    
   def initialize(self,runInfo,inputs,initDict=None):
     """
       Method to initialize this class

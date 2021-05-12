@@ -202,10 +202,13 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     #if alias are defined in the input it defines a mapping between the variable names in the framework and the one for the generation of the input
     #self.alias[framework variable name] = [input code name]. For Example, for a MooseBasedApp, the alias would be self.alias['internal_variable_name'] = 'Material|Fuel|thermal_conductivity'
     self.alias    = {'input':{},'output':{}}
+    # optional specification of the input, output, aux  variables  (needed in case of FMI/FMU export)
+    self.__vars   = {'input': [],'output': [], 'aux': []}
     self.subType  = ''
     self.runQueue = []
     self.printTag = 'MODEL'
     self.createWorkingDir = False
+    
 
   def _readMoreXML(self,xmlNode):
     """
@@ -246,7 +249,31 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     # read local information
     self.localInputAndChecks(xmlNode)
     #################
-
+  
+  def _setVariableList(self, type, vars):
+    """
+      Method to set the variable list (input,output,aux)
+      @ In, type, str, one of "input", "output", "aux"
+      @ In, vars, list, the list of variables
+      @ Out, None
+    """
+    assert(type in  self.__vars)
+    self.__vars[type].extend(vars)
+    self.__vars[type] = list(set(self.__vars[type]))
+    # alias system
+    if type in 'aux': return
+    self._replaceVariablesNamesWithAliasSystem(self.__vars[type],type)    
+    
+  def _getVariableList(self, type):
+    """
+      Method to get the variable list (input,output,aux)
+      @ In, type, str, one of "input", "output", "aux"
+      @ Out, vars, list, the list of variables 
+    """
+    assert(type in  self.__vars)
+    vars = self.__vars[type]
+    return vars
+  
   def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """
       Method to convert kwargs Sampled vars with the alias system
