@@ -15,10 +15,6 @@
 Created on October 28, 2015
 
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import os
 import copy
@@ -26,11 +22,10 @@ import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import InputData, InputTypes
 
-
-class HistorySetSync(PostProcessorInterfaceBase):
+class HistorySetSync(PostProcessorPluginBase):
   """
     This Post-Processor performs the conversion from HistorySet to HistorySet
     The conversion is made so that all histories are syncronized in time.
@@ -46,33 +41,50 @@ class HistorySetSync(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
-    inputSpecification.setCheckClass(CheckInterfacePP("HistorySetSync"))
     inputSpecification.addSub(InputData.parameterInputFactory("numberOfSamples", contentType=InputTypes.IntegerType))
     HSSSyncType = InputTypes.makeEnumType("HSSSync", "HSSSyncType", ['all','grid','max','min'])
     inputSpecification.addSub(InputData.parameterInputFactory("syncMethod", contentType=HSSSyncType))
     inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("extension", contentType=InputTypes.StringType))
-    #Should method be in super class?
-    inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
     return inputSpecification
 
-  def initialize(self, numberOfSamples=None, pivotParameter=None, extension=None, syncMethod=None):
+  def __init__(self):
     """
-      Method to initialize the Interfaced Post-processor
-      @ In, numberOfSamples, int, (default None)
-      @ In, pivotParameter, str, ID of the pivot paramter (e.g., time)
-      @ In, extension, type of extension to be employed
-      @ In, syncMethod, type of syncrhonization method
-      @ Out, None,
+      Constructor
+      @ In, None
+      @ Out, None
     """
-    PostProcessorInterfaceBase.initialize(self)
-    self.inputFormat  = 'HistorySet'
-    self.outputFormat = 'HistorySet'
+    super().__init__()
+    self.pivotParameter = 'time' #pivotParameter identify the ID of the temporal variabl
+    self.setInputDataType('dict')
+    self.keepInputMeta(True)
+    self.outputMultipleRealizations = True # True indicate multiple realizations are returned
+    self.validDataType = ['HistorySet'] # The list of accepted types of DataObject
+    self.numberOfSamples = None
+    self.extension       = None
+    self.syncMethod      = None
 
+  def initialize(self, runInfo, inputs, initDict=None):
+    """
+      Method to initialize the DataClassifier post-processor.
+      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+      @ In, inputs, list, list of inputs
+      @ In, initDict, dict, optional, dictionary with initialization options
+      @ Out, None
+    """
+    super().initialize(runInfo, inputs, initDict)
+    if len(inputs)>1:
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one dataObject')
+    if inputs[0].type != 'HistorySet':
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only HistorySet dataObject, but got "{}"'.format(inputs[0].type))
+
+  def setParams(self, numberOfSamples, pivotParameter, extension, syncMethod):
+    """
+    """
     self.numberOfSamples = numberOfSamples
-    self.pivotParameter  = pivotParameter
-    self.extension       = extension
-    self.syncMethod      = syncMethod
+    self.pivotParameter = pivotParameter
+    self.extension = extension
+    self.syncMethod = syncMethod
 
   def _handleInput(self, paramInput):
     """
@@ -80,7 +92,6 @@ class HistorySetSync(PostProcessorInterfaceBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
     for child in paramInput.subparts:
       if child.getName() == 'numberOfSamples':
         self.numberOfSamples = child.value
@@ -90,7 +101,7 @@ class HistorySetSync(PostProcessorInterfaceBase):
         self.pivotParameter = child.value
       elif child.getName() == 'extension':
         self.extension = child.value
-      elif child.getName() !='method':
+      else:
         self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : XML node ' + str(child) + ' is not recognized')
 
     if self.syncMethod == 'grid' and not isinstance(self.numberOfSamples, int):
@@ -100,66 +111,75 @@ class HistorySetSync(PostProcessorInterfaceBase):
     if self.extension is None or not (self.extension == 'zeroed' or self.extension == 'extended'):
       self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' : extension type is not correctly specified (either not specified or not one of its possible allowed values: zeroed or extended)')
 
-  def run(self,inputDic):
+  def run(self,inputIn):
     """
       Method to post-process the dataObjects
-      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+      @ In, inputIn, dict, dictionaries which contains the data inside the input DataObjects
+        inputIn = {'Data':listData, 'Files':listOfFiles},
+        listData has the following format: (listOfInputVars, listOfOutVars, DataDict) with
+        DataDict is a dictionary that has the format
+            dataDict['dims']     = dict {varName:independentDimensions}
+            dataDict['metadata'] = dict {metaVarName:metaVarValue}
+            dataDict['type'] = str TypeOfDataObject
+            dataDict['inpVars'] = list of input variables
+            dataDict['outVars'] = list of output variables
+            dataDict['numberRealization'] = int SizeOfDataObject
+            dataDict['name'] = str DataObjectName
+            dataDict['metaKeys'] = list of meta variables
+            dataDict['data'] = dict {varName: varValue(1-D or 2-D numpy array)}
       @ Out, outputPSDic, dict, output dictionary
     """
-    if len(inputDic)>1:
-      self.raiseAnError(IOError, 'HistorySetSync Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
-    else:
-      inputDic = inputDic[0]
-      outputDic={}
+    _, _, inputDic = inputIn['Data'][0]
+    outputDic={}
 
-      newTime = []
-      if self.syncMethod == 'grid':
-        maxEndTime = []
-        minInitTime = []
-        for hist in inputDic['data'][self.pivotParameter]:
-          maxEndTime.append(hist[-1])
-          minInitTime.append(hist[0])
-        maxTime = max(maxEndTime)
-        minTime = min(minInitTime)
-        newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
-      elif self.syncMethod == 'all':
-        times = []
-        for hist in inputDic['data'][self.pivotParameter]:
-            times.extend(hist)
-        times = list(set(times))
-        times.sort()
-        newTime = np.array(times)
-      elif self.syncMethod in ['min','max']:
-        notableHist   = None   #set on first iteration
-        notableLength = None   #set on first iteration
+    newTime = []
+    if self.syncMethod == 'grid':
+      maxEndTime = []
+      minInitTime = []
+      for hist in inputDic['data'][self.pivotParameter]:
+        maxEndTime.append(hist[-1])
+        minInitTime.append(hist[0])
+      maxTime = max(maxEndTime)
+      minTime = min(minInitTime)
+      newTime = np.linspace(minTime,maxTime,self.numberOfSamples)
+    elif self.syncMethod == 'all':
+      times = []
+      for hist in inputDic['data'][self.pivotParameter]:
+          times.extend(hist)
+      times = list(set(times))
+      times.sort()
+      newTime = np.array(times)
+    elif self.syncMethod in ['min','max']:
+      notableHist   = None   #set on first iteration
+      notableLength = None   #set on first iteration
 
-        for h,elem in np.ndenumerate(inputDic['data'][self.pivotParameter]):
-          l=len(elem)
-          if (h[0] == 0) or (self.syncMethod == 'max' and l > notableLength) or (self.syncMethod == 'min' and l < notableLength):
-            notableHist = inputDic['data'][self.pivotParameter][h[0]]
-            notableLength = l
-        newTime = np.array(notableHist)
+      for h,elem in np.ndenumerate(inputDic['data'][self.pivotParameter]):
+        l=len(elem)
+        if (h[0] == 0) or (self.syncMethod == 'max' and l > notableLength) or (self.syncMethod == 'min' and l < notableLength):
+          notableHist = inputDic['data'][self.pivotParameter][h[0]]
+          notableLength = l
+      newTime = np.array(notableHist)
 
-      outputDic['data']={}
+    outputDic['data']={}
+    for var in inputDic['outVars']:
+      outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
+    outputDic['data'][self.pivotParameter] = np.zeros(inputDic['numberRealizations'], dtype=object)
+
+    for var in inputDic['inpVars']:
+      outputDic['data'][var] = copy.deepcopy(inputDic['data'][var])
+
+    for rlz in range(inputDic['numberRealizations']):
+      outputDic['data'][self.pivotParameter][rlz] = newTime
       for var in inputDic['outVars']:
-        outputDic['data'][var] = np.zeros(inputDic['numberRealizations'], dtype=object)
-      outputDic['data'][self.pivotParameter] = np.zeros(inputDic['numberRealizations'], dtype=object)
+        oldTime = inputDic['data'][self.pivotParameter][rlz]
+        outputDic['data'][var][rlz] = self.resampleHist(inputDic['data'][var][rlz], oldTime, newTime)
 
-      for var in inputDic['inpVars']:
-        outputDic['data'][var] = copy.deepcopy(inputDic['data'][var])
+    # add meta variables back
+    for key in inputDic['metaKeys']:
+      outputDic['data'][key] = inputDic['data'][key]
+    outputDic['dims'] = copy.deepcopy(inputDic['dims'])
 
-      for rlz in range(inputDic['numberRealizations']):
-        outputDic['data'][self.pivotParameter][rlz] = newTime
-        for var in inputDic['outVars']:
-          oldTime = inputDic['data'][self.pivotParameter][rlz]
-          outputDic['data'][var][rlz] = self.resampleHist(inputDic['data'][var][rlz], oldTime, newTime)
-
-      # add meta variables back
-      for key in inputDic['metaKeys']:
-        outputDic['data'][key] = inputDic['data'][key]
-      outputDic['dims'] = copy.deepcopy(inputDic['dims'])
-
-      return outputDic
+    return outputDic
 
   def resampleHist(self, variable, oldTime, newTime):
     """

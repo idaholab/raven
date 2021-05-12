@@ -15,16 +15,15 @@
   Created on Feb 17, 2016
 
 '''
-from __future__ import division, print_function, unicode_literals, absolute_import
-
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase, CheckInterfacePP
 import numpy as np
 import copy
 from collections import defaultdict
 from functools import partial
+
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import mathUtils, utils, InputData, InputTypes
 
-class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
+class TypicalHistoryFromHistorySet(PostProcessorPluginBase):
   """
     This class forms a typical history from a history set
     The methodology can be found at:
@@ -41,27 +40,38 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
-    inputSpecification.setCheckClass(CheckInterfacePP("TypicalHistoryFromHistorySet"))
     inputSpecification.addSub(InputData.parameterInputFactory("subseqLen", contentType=InputTypes.IntegerListType))
     inputSpecification.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType))
     inputSpecification.addSub(InputData.parameterInputFactory("outputLen", contentType=InputTypes.FloatType))
-    #Should method be in super class?
-    inputSpecification.addSub(InputData.parameterInputFactory("method", contentType=InputTypes.StringType))
     return inputSpecification
 
-  def initialize(self):
+  def __init__(self):
     """
-      Method to initialize the Interfaced Post-processor
-      @ In, None,
-      @ Out, None,
+      Constructor
+      @ In, None
+      @ Out, None
     """
-    PostProcessorInterfaceBase.initialize(self)
-    self.inputFormat  = 'HistorySet'
-    self.outputFormat = 'HistorySet'
-    #if not hasattr(self, 'pivotParameter'):
-    #  self.pivotParameter = 'Time' #FIXME this assumes the ARMA model!  Dangerous assumption.
-    if not hasattr(self, 'outputLen'):
-      self.outputLen = None
+    super().__init__()
+    self.setInputDataType('dict')
+    self.keepInputMeta(True)
+    self.outputMultipleRealizations = True # True indicate multiple realizations are returned
+    self.validDataType = ['HistorySet'] # The list of accepted types of DataObject
+    self.pivotParameter = 'time' #FIXME this assumes the ARMA model!  Dangerous assumption.
+    self.outputLen = None
+
+  def initialize(self, runInfo, inputs, initDict=None):
+    """
+      Method to initialize the DataClassifier post-processor.
+      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
+      @ In, inputs, list, list of inputs
+      @ In, initDict, dict, optional, dictionary with initialization options
+      @ Out, None
+    """
+    super().initialize(runInfo, inputs, initDict)
+    if len(inputs)>1:
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only one dataObject')
+    if inputs[0].type != 'HistorySet':
+      self.raiseAnError(IOError, 'Post-Processor', self.name, 'accepts only HistorySet dataObject, but got "{}"'.format(inputs[0].type))
 
   def _handleInput(self, paramInput):
     """
@@ -69,7 +79,6 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-
     self.name = paramInput.parameterValues['name']
     for child in paramInput.subparts:
       if child.getName() == 'subseqLen':
@@ -78,11 +87,9 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
         self.pivotParameter = child.value
       elif child.getName() == 'outputLen':
         self.outputLen = child.value
-
     # checks
     if not hasattr(self, 'pivotParameter'):
       self.raiseAnError(IOError,'"pivotParameter" was not specified for "{}" PostProcessor!'.format(self.name))
-
 
   def retrieveHistory(self,dictIn,N):
     """
@@ -96,18 +103,17 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       outputDict[var]=dictIn[var][N]
     return outputDict
 
-  def run(self,inputDic):
+  def run(self,inputIn):
     """
-      @ In, inputDic, list, list of dictionaries which contains the data inside the input DataObjects
+      @ In, inputIn, dict, dictionaries which contains the data inside the input DataObjects
       @ Out, outputDic, dict, dictionary which contains the data to be collected by output DataObject
     """
-    if len(inputDic)>1:
-      self.raiseAnError(IOError, self.__class__.__name__ + ' Interfaced Post-Processor ' + str(self.name) + ' accepts only one dataObject')
+    inpVars, outVars, inputDic = inputIn['Data'][0]
+    numSamples = inputDic['numberRealizations']
+    inputDict = inputDic['data']
 
-    #get actual data
-    inputDict = inputDic[0]['data']
     #identify features
-    self.features = inputDic[0]['outVars']
+    self.features = outVars
     #don't keep the pivot parameter in the feature space
     if self.pivotParameter in self.features:
       self.features.remove(self.pivotParameter)
@@ -119,7 +125,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     ## Check if data is synchronized
     referenceHistory = 0
     referenceTimeAxis = inputDict[self.pivotParameter][referenceHistory]
-    for hist in range(inputDic[0]['numberRealizations']):
+    for hist in range(numSamples):
       if str(inputDict[self.pivotParameter][hist]) != str(referenceTimeAxis):
         errorMessage = '{} Interfaced Post-Processor "{}": one or more histories in the historySet have different time scales (e.g., reference points: {} and {})'.format(self.__class__.__name__, self.name,referenceHistory, hist)
         self.raiseAnError(IOError, errorMessage)
@@ -128,7 +134,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
     #data dictionaries have form {historyNumber:{VarName:[data], VarName:[data]}}
     reshapedData = {}
     newHistoryCounter = 0 #new history tracking labels
-    for historyNumber in range(inputDic[0]['numberRealizations']):
+    for historyNumber in range(numSamples):
       #array of the pivot values provided in the history
       pivotValues = np.asarray(inputDict[self.pivotParameter][historyNumber])
       #if the desired output pivot value length is (equal to or) longer than the provided history ...
@@ -269,7 +275,7 @@ class TypicalHistoryFromHistorySet(PostProcessorInterfaceBase):
       outputDict['data'][var] = np.zeros(1, dtype=object)
       outputDict['data'][var][0] = typicalData[var]
     # preserve input data
-    for var in inputDic[0]['inpVars']:
+    for var in inputDic['inpVars']:
       outputDict['data'][var] = np.zeros(1, dtype=object)
       outputDict['data'][var][0] = inputDict[var][0]
     outputDict['dims']={}
