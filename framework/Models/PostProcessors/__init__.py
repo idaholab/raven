@@ -19,4 +19,5 @@
   @author: alfoa
 """
 
+from .PostProcessorInterface import PostProcessorInterface
 from .Factory import factory

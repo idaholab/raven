@@ -27,7 +27,7 @@ import Runners
 from Models import Model
 from Decorators.Parallelization import Parallel
 from utils import utils, InputTypes
-from .PostProcessors.Factory import factory as interfaceFactory
+from .PostProcessors import factory as interfaceFactory
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PostProcessor(Model):
@@ -44,17 +44,6 @@ class PostProcessor(Model):
       @ Out, spec, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    ### TODO: Remove
-    # spec = super().getInputSpecification()
-    # validTypes = list(interfaceFactory.knownTypes())
-    # typeEnum = InputTypes.makeEnumType('PostProcessor', 'PostProcessorType', validTypes)
-    # for name in validTypes:
-    #   pp = interfaceFactory.returnClass(name)
-    #   subSpec = pp.getInputSpecification()
-    #   spec.mergeSub(subSpec)
-    ###################
-    # Only load input specs when the postprocesor presents in the input xml file
-    # self.subType is asigned by super()._readMoreXML(xmlNode)
     spec = super().getInputSpecification()
     validClass = interfaceFactory.returnClass(self.subType)
     spec.addParam('subType', required=True, param_type=InputTypes.StringType)
