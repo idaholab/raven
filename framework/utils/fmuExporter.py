@@ -185,37 +185,3 @@ class {classname}(Fmi2Slave):
     if not self.keepModule:
       self._temp.cleanup()
     return  built
-
-
-
-#def create_command_parser(parser: argparse.ArgumentParser):
-
-  #parser.add_argument(
-      #"-f",
-        #"--file",
-        #dest="csv_file",
-        #help="Path to the CSV file.",
-        #required=True
-    #)
-
-  #parser.add_argument(
-      #"-d", "--dest", dest="dest", help="Where to save the FMU.", default="."
-    #)
-
-  #parser.add_argument(
-      #"--doc",
-        #dest="documentation_folder",
-        #help="Documentation folder to include in the FMU.",
-        #default=None
-    #)
-
-  #for option in FMI2_MODEL_OPTIONS:
-    #action = "store_false" if option.value else "store_true"
-    #parser.add_argument(
-          #f"--{option.cli}",
-            #dest=option.name,
-            #help=f"If given, {option.name}={action[6:]}",
-            #action=action
-        #)
-
- #CsvFmuBuilder.build_FMU
