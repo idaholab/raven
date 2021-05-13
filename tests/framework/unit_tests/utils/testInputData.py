@@ -29,10 +29,10 @@ results = {'pass':0, 'fail':0}
 # load libraries for all of RAVEN
 import Driver
 # test MultiRun Step
-import Steps
+from Steps import MultiRun
 
 # write tex
-stepSpec = Steps.MultiRun.getInputSpecification()()
+stepSpec = MultiRun.MultiRun.getInputSpecification()()
 tex = stepSpec.generateLatex()
 fName = 'example_multirun_spec.tex'
 with open(fName, 'w') as f:
