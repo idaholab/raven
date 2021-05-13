@@ -47,7 +47,7 @@ def swapMutator(offSprings, distDict, **kwargs):
   else:
     loc1 = kwargs['locs'][0]
     loc2 = kwargs['locs'][1]
-  
+
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
                           dims=['chromosome','Gene'],
@@ -86,27 +86,27 @@ def scrambleMutator(offSprings, distDict, **kwargs):
       l = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None)
       locs.append(l)
     locs = list(set(locs))
-  
+
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
                           dims=['chromosome','Gene'],
                           coords={'chromosome': np.arange(np.shape(offSprings)[0]),
                                   'Gene':kwargs['variables']})
-  
+
   for i in range(np.shape(offSprings)[0]):
     for j in range(np.shape(offSprings)[1]):
       children[i,j] = distDict[offSprings[i].coords['Gene'].values[j]].cdf(float(offSprings[i,j].values))
-      
+
   for i in range(np.shape(offSprings)[0]):
     children[i] = copy.deepcopy(offSprings[i])
     for ind,element in enumerate(locs):
       if randomUtils.random(dim=1,samples=1)< kwargs['mutationProb']:
         children[i,locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(offSprings.data[i,locs[0]:locs[-1]+1]),None)
-  
+
   for i in range(np.shape(offSprings)[0]):
     for j in range(np.shape(offSprings)[1]):
       children[i,j] = distDict[offSprings.coords['Gene'].values[j]].ppf(children[i,j])
-        
+
   return children
 
 def bitFlipMutator(offSprings,**kwargs):
@@ -170,11 +170,11 @@ def inversionMutator(offSprings, distDict, **kwargs):
         locU=loc2
       ##############
       # select sequence to be mirrored and mirror it
-      seq=child.values[locL:locU+1]   
+      seq=child.values[locL:locU+1]
       for elem in seq:
         elem = distDict[child.coords['Gene'].values[elem]].cdf(float(child[elem].values))
-      
-      mirrSeq = seq[::-1]    
+
+      mirrSeq = seq[::-1]
       for elem in mirrSeq:
         elem = distDict[child.coords['Gene'].values[elem]].ppf(elem)
       ##############
