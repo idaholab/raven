@@ -17,11 +17,9 @@ Factory for generating the instances of the  Models Module
 
 from EntityFactoryBase import EntityFactory
 from .PostProcessorInterface import PostProcessorInterface
-from .FTImporter import FTImporter
 from .BasicStatistics import BasicStatistics
 from .LimitSurface import LimitSurface
 from .Metric import Metric
-from .ETImporter import ETImporter
 from .DataMining import DataMining
 from .SafestPoint import SafestPoint
 from .ValueDuration import ValueDuration
@@ -32,14 +30,16 @@ from .LimitSurfaceIntegral import LimitSurfaceIntegral
 from .FastFourierTransform import FastFourierTransform
 from .ExternalPostProcessor import ExternalPostProcessor
 from .TopologicalDecomposition import TopologicalDecomposition
-from .DataClassifier import DataClassifier
 from .ComparisonStatisticsModule import ComparisonStatistics
 from .RealizationAverager import RealizationAverager
 from .ParetoFrontierPostProcessor import ParetoFrontier
-from .MCSimporter import MCSImporter
 from .EconomicRatio import EconomicRatio
-from .RiskMeasuresDiscrete import RiskMeasuresDiscrete
 from .Validation import Validation
+# from .FTImporter import FTImporter
+# from .ETImporter import ETImporter
+# from .DataClassifier import DataClassifier
+# from .MCSimporter import MCSImporter
+# from .RiskMeasuresDiscrete import RiskMeasuresDiscrete
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)
 from .PostProcessorFunctions.HistorySetDelay import HistorySetDelay

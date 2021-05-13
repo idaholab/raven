@@ -92,6 +92,9 @@ class EntityFactory(MessageUser):
     """
     # is this from an unloaded plugin?
     # return class from known types
+    if '.' in Type:
+      obj = self._checkInUnloadedPlugin(Type)
+      return obj
     try:
       return self._registeredTypes[Type]
     except KeyError:

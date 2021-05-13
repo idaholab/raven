@@ -23,9 +23,11 @@ from utils import InputData, InputTypes
 from DataObjects import DataObject
 from .PluginBase import PluginBase
 from Models.PostProcessors import PostProcessorInterface
+# delay loading for import order, align with PluginBase class
+# from Models.PostProcessors import factory
 #Internal Modules End-----------------------------------------------------------
 
-class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
+class PostProcessorPluginBase(PluginBase, PostProcessorInterface):
   """
     This class represents a specialized class from which each PostProcessor plugins must inherit from
   """
@@ -34,6 +36,7 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
   _methodsToCheck = ['getInputSpecification', '_handleInput', 'run']
   entityType = 'PostProcessor'
 
+  # _interfaceFactory = factory
   ##################################################
   # Plugin APIs
   ##################################################
@@ -56,9 +59,7 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
       @ Out, None
     """
     super().__init__()
-    # delay loading for import order, align with PluginBase class
-    from Models.PostProcessors import factory
-    _interfaceFactory = factory
+
     self._inputDataType = 'dict' # Current accept two types: 1) 'dict', 2) 'xrDataset'
                                  # Set default to 'dict', this is consistent with current post-processors
     self._keepInputMeta = False  # Meta keys from input data objects will be added to output data objects

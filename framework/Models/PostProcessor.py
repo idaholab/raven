@@ -45,6 +45,8 @@ class PostProcessor(Model):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
+    # delay loading for import order
+    # from .PostProcessors import factory as interfaceFactory
     validClass = interfaceFactory.returnClass(self.subType)
     spec.addParam('subType', required=True, param_type=InputTypes.StringType)
     validSpec = validClass.getInputSpecification()
