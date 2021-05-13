@@ -225,7 +225,7 @@ class ExternalModel(Dummy):
     """
     if self.pickled and not self.constructed:
       self.raiseAnError(IOError, 'The <pickledModel> "{}" has not been de-serialized (IOStep)!'.format(self.name))
-  
+
     externalSelf        = utils.Object()
     # self.sim=__import__(self.ModuleToLoad)
     modelVariableValues = {}

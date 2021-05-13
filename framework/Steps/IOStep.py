@@ -121,7 +121,10 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i], Models.ROM) or isinstance(inDictionary['Input'][i], Models.ExternalModel):
         # ... file
         if isinstance(outputs[i],Files.File):
-          self.actionType.append('ROM-FILES')
+          if 'FMU' in outputs[i].getExt().upper():
+            self.actionType.append('MODEL-FMU')
+          else:
+            self.actionType.append('MODEL-FILES')
         # ... data object
         elif isinstance(outputs[i], DataObject.DataObject):
           self.actionType.append('ROM-dataObjects')
@@ -135,7 +138,7 @@ class IOStep(Step):
       elif isinstance(inDictionary['Input'][i],Files.File):
         # ... ROM
         if isinstance(outputs[i],Models.ROM) or isinstance(outputs[i],Models.ExternalModel):
-          self.actionType.append('FILES-ROM')
+          self.actionType.append('FILES-MODEL')
         # ... dataobject
         elif isinstance(outputs[i],DataObject.DataObject):
           self.actionType.append('FILES-dataObjects')
@@ -143,7 +146,7 @@ class IOStep(Step):
         else:
           self.raiseAnError(IOError,errTemplate.format(name = self.name,
                                                        inp = 'Files',
-                                                       okay = 'ROM',
+                                                       okay = 'MODEL',
                                                        received = inDictionary['Output'][i].type))
       # from anything else to anything else
       else:
@@ -194,7 +197,6 @@ class IOStep(Step):
       elif self.actionType[i] == 'dataObjects-Database':
         #inDictionary['Input'][i] is a dataObjects, outputs[i] is Database
         outputs[i].saveDataToFile(inDictionary['Input'][i])
-
       elif self.actionType[i] == 'ROM-dataObjects':
         #inDictionary['Input'][i] is a ROM, outputs[i] is dataObject
         ## print information from the ROM to the data set or associated XML.
@@ -207,45 +209,28 @@ class IOStep(Step):
         # get pointwise data (to place in main section of data object)
         romModel.writePointwiseData(outputs[i])
 
-      elif self.actionType[i] == 'ROM-FILES':
+      elif self.actionType[i] == 'MODEL-FILES':
         #inDictionary['Input'][i] is a ROM, outputs[i] is Files
         ## pickle the ROM
         #check the ROM is trained first
         if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
-        if "fmu" in outputs[i].getExt():
-          fmu = True
-          pickledFile = ".".join(outputs[i].getAbsFile().split(".")[0:-1])
-        else:
-          fmu = False
-          pickledFile = outputs[i].getAbsFile()
-        
-        #fileobj = outputs[i]
-        #fileobj.open(mode='wb+')
-        #cloudpickle.dump(inDictionary['Input'][i],fileobj)
-        #fileobj.flush()
-        #fileobj.close()
-        
-        fileobj = open(pickledFile,mode="wb+")
-        #fileobj.open(mode='wb+')
-        cloudpickle.dump(inDictionary['Input'][i],fileobj)
+        fileobj = open(outputs[i].getAbsFile(),mode="wb+")
+        cloudpickle.dump(inDictionary['Input'][i], fileobj)
         fileobj.flush()
         fileobj.close()
-        
-        if fmu:
-          from utils.fmuExporter import FMUexporter
-          fdir = inDictionary['jobHandler'].runInfoDict['FrameworkDir']
-          fmuexec = FMUexporter(**{'model': inDictionary['Input'][i],'executeMethod': 'evaluate', 'workingDir': outputs[i].getPath(), 'frameworkDir': fdir, 'keepModule': True})
-          fmuexec.buildFMU(outputs[i].getAbsFile())
-          # fileobj = outputs[i]
-          # fileobj.open(mode='wb+')
-          # inDictionary['Input'][i].exportAsFMU(fileobj, keepModule=True)
-          # fileobj.flush()
-          # fileobj.close()
+      elif self.actionType[i] == 'MODEL-FMU':
+        #check the ROM is trained first (if ExternalModel no check it is performed)
+        if isinstance(inDictionary['Input'][i],Models.ROM) and not inDictionary['Input'][i].amITrained:
+          self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
+        self.raiseAMessage('Exporting Model "{}" as FMU named "{}"'.format(inDictionary['Input'][i].name, outputs[i].name))
+        from utils.fmuExporter import FMUexporter
+        fdir = inDictionary['jobHandler'].runInfoDict['FrameworkDir']
+        fmuexec = FMUexporter(**{'model': inDictionary['Input'][i],'executeMethod': 'evaluate', 'workingDir': outputs[i].getPath(), 'frameworkDir': fdir, 'keepModule': True})
+        fmuexec.buildFMU(outputs[i].getAbsFile())
 
-
-      elif self.actionType[i] == 'FILES-ROM':
-        #inDictionary['Input'][i] is a Files, outputs[i] is ROM
+      elif self.actionType[i] == 'FILES-MODEL':
+        #inDictionary['Input'][i] is a Files, outputs[i] is ROM or ExternalModel
         ## unpickle the ROM
         fileobj = inDictionary['Input'][i]
         unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))

@@ -54,7 +54,7 @@ class FMUexporter(MessageUser):
     self.workingDir = self._options.pop("workingDir", None)
     if self.workingDir is None and self.keepModule:
       self.raiseAnError(IOError, "No workingDir has been provided for FMU exporter!")
-      
+
     self.model = self._options.pop("model", None)
     if self.model is None:
       self.raiseAnError(IOError, "No model has been provided for FMU exporter!")
@@ -76,13 +76,13 @@ class FMUexporter(MessageUser):
     if not self.inputVars or not self.outVars:
       self.raiseAnError(IOError, "Model {} is not exportable as FMU since no info about inputs/outputs are available!".format(self.model.name))
     self.indexReturnDict = self._options.pop("indexReturnDict", None)
-    if self.indexReturnDict is None:    
+    if self.indexReturnDict is None:
       self.raiseAMessage("No indexReturnDict has been provided for FMU exporter! Default to 0!")
       self.indexReturnDict = 0
     self.frameworkDir = self._options.pop("frameworkDir")
     if self.frameworkDir is None:
       self.raiseAnError(IOError, "No frameworkDir has been provided for FMU exporter!")
-    
+
   def createModelHandler(self):
     """
       This create a temporary file that represents the model to export
@@ -93,7 +93,7 @@ class FMUexporter(MessageUser):
     filename = self.model.name + ".pk"
     # inputVars = ['{}'.format(el) for el in self.inputVars]
     # outVars = ['{}'.format(el) for el in self.outVars]
-    
+
     return f"""
 import sys
 import pickle
@@ -105,7 +105,7 @@ class {classname}(Fmi2Slave):
   #
   author = "Andrea Alfonsi"
   description = "RAVEN Model-based Python-driven simulator"
-  
+
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
     self.inputVariables = {self.inputVars}
@@ -154,10 +154,10 @@ class {classname}(Fmi2Slave):
       request[var] = self.__dict__[var]
     request['current_time'] = current_time
     request['step_size'] = step_size
-    
+
     return_var = self.model.{self.executeMethod}(request)
     outs = return_var if isinstance(return_var,dict) else return_var[{self.indexReturnDict}]
-    
+
     for var in outs:
        self.__dict__[var] = outs[var]
     return True
@@ -171,16 +171,16 @@ class {classname}(Fmi2Slave):
     """
     if not os.path.exists(self.serializedModel):
       self.raiseAnError(ValueError, "No such file {}".format(self.serializedModel))
-    
+
     self._options["dest"] = os.path.dirname(dest)
     self._options["file_name"] = os.path.basename(dest)
     self._options["project_files"] = {self.serializedModel}
-    
+
     scriptFile = Path(self._temp) / (self.model.name + "_RAVENfmu.py")
     with open(scriptFile, "+w") as f:
       f.write(self.createModelHandler())
-    self._options["script_file"] = scriptFile  
-    
+    self._options["script_file"] = scriptFile
+
     built = FmuBuilder.build_FMU(**self._options)
     if not self.keepModule:
       self._temp.cleanup()

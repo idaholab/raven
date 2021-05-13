@@ -9,6 +9,11 @@
   input = 'serialize_ext_model_and_use.xml'
   csv = 'SerializeWrkd/samples_out.csv'
  [../]
+ [./fmu_ext_model]
+  type = 'RavenFramework'
+  input = 'fmu_ext_model_and_use.xml'
+  output = 'SerializeWrkd/attenuate_pk2.fmu'
+ [../]
 []
 
 

@@ -208,7 +208,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     self.runQueue = []
     self.printTag = 'MODEL'
     self.createWorkingDir = False
-    
+
 
   def _readMoreXML(self,xmlNode):
     """
@@ -249,7 +249,7 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     # read local information
     self.localInputAndChecks(xmlNode)
     #################
-  
+
   def _setVariableList(self, type, vars):
     """
       Method to set the variable list (input,output,aux)
@@ -262,18 +262,18 @@ class Model(utils.metaclass_insert(abc.ABCMeta, BaseEntity, Assembler, InputData
     self.__vars[type] = list(set(self.__vars[type]))
     # alias system
     if type in 'aux': return
-    self._replaceVariablesNamesWithAliasSystem(self.__vars[type],type)    
-    
+    self._replaceVariablesNamesWithAliasSystem(self.__vars[type],type)
+
   def _getVariableList(self, type):
     """
       Method to get the variable list (input,output,aux)
       @ In, type, str, one of "input", "output", "aux"
-      @ Out, vars, list, the list of variables 
+      @ Out, vars, list, the list of variables
     """
     assert(type in  self.__vars)
     vars = self.__vars[type]
     return vars
-  
+
   def _replaceVariablesNamesWithAliasSystem(self, sampledVars, aliasType='input', fromModelToFramework=False):
     """
       Method to convert kwargs Sampled vars with the alias system
