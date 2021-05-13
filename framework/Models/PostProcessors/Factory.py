@@ -38,14 +38,14 @@ from .EconomicRatio import EconomicRatio
 from .Validation import Validation
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)
-# from .PostProcessorFunctions.HistorySetDelay import HistorySetDelay
-# from .PostProcessorFunctions.HS2PS import HS2PS
-# from .PostProcessorFunctions.HStoPSOperator import HStoPSOperator
-# from .PostProcessorFunctions.HistorySetSampling import HistorySetSampling
-# from .PostProcessorFunctions.HistorySetSnapShot import HistorySetSnapShot
-# from .PostProcessorFunctions.HistorySetSync import HistorySetSync
-# from .PostProcessorFunctions.TypicalHistoryFromHistorySet import TypicalHistoryFromHistorySet
-# from .PostProcessorFunctions.dataObjectLabelFilter import dataObjectLabelFilter
+from .HistorySetDelay import HistorySetDelay
+from .HS2PS import HS2PS
+from .HStoPSOperator import HStoPSOperator
+from .HistorySetSampling import HistorySetSampling
+from .HistorySetSnapShot import HistorySetSnapShot
+from .HistorySetSync import HistorySetSync
+from .TypicalHistoryFromHistorySet import TypicalHistoryFromHistorySet
+from .dataObjectLabelFilter import dataObjectLabelFilter
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.
 try:
