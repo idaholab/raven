@@ -962,7 +962,7 @@ class DataSet(DataObject):
       return False
     for var, value in rlz.items():
       #if not isinstance(value,(float,int,unicode,str,np.ndarray)): TODO someday be more flexible with entries?
-      if not isinstance(value, np.ndarray):
+      if not isinstance(value, (np.ndarray, xr.DataArray)):
         self.raiseAWarning('Variable "{}" is not an acceptable type: "{}"'.format(var, type(value)))
         return False
       # check if index-dependent variables have matching shapes

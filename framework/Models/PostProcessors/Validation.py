@@ -119,7 +119,8 @@ class Validation(PostProcessorInterface):
     if 'PreProcessor' in self.assemblerDict:
       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
     if 'Metric' in self.assemblerDict:
-      self.metrics = [metric[3] for metric in self.assemblerDict['Metric']]
+      metrics = [metric[3] for metric in self.assemblerDict['Metric']]
+      self.metrics = [MetricDistributor.factory.returnInstance('MetricDistributor', metric) for metric in metrics]
 
     if len(inputs) > 1:
       # if inputs > 1, check if the | is present to understand where to get the features and target
@@ -233,24 +234,29 @@ class Validation(PostProcessorInterface):
     # assert
     assert(isinstance(inputIn, list))
     assert(isinstance(inputIn[0], xr.Dataset) or isinstance(inputIn[0], DataObjects.DataSet))
-
     # the input can be either be a list of dataobjects or a list of datasets (xarray)
     datasets = [inp if isinstance(inp, xr.Dataset) else inp.asDataset() for inp in inputIn]
     names = []
+    pivotParameter = self.pivotParameter
     if isinstance(inputIn[0], DataObjects.DataSet):
       names =  [inp.name for inp in inputIn]
+      if len(inputIn[0].indexes) and self.pivotParameter is None:
+        if 'dynamic' not in self.model.dataType:
+          self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn[0].name))
+        else:
+          pivotParameter = inputIn[0].indexes[0]
     #  check if pivotParameter
-    if self.pivotParameter:
+    if pivotParameter:
       #  in case of dataobjects we check that the dataobject is either an HistorySet or a DataSet
       if isinstance(inputIn[0], DataObjects.DataSet) and not all([True if inp.type in ['HistorySet', 'DataSet']  else False for inp in inputIn]):
-        self.raiseAnError(RuntimeError, "The pivotParameter '{}' has been inputted but PointSets have been used as input of PostProcessor '{}'".format(self.pivotParameter, self.name))
-      if not all([True if self.pivotParameter in inp else False for inp in datasets]):
-        self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(self.pivotParameter, self.name))
+        self.raiseAnError(RuntimeError, "The pivotParameter '{}' has been inputted but PointSets have been used as input of PostProcessor '{}'".format(pivotParameter, self.name))
+      if not all([True if pivotParameter in inp else False for inp in datasets]):
+        self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(pivotParameter, self.name))
     evaluation ={k: np.atleast_1d(val) for k, val in  self.model.run(datasets, **{'dataobjectNames': names}).items()}
 
-    if self.pivotParameter:
-      if len(datasets[0][self.pivotParameter]) != len(evaluation.values()[0]):
+    if pivotParameter:
+      if len(datasets[0][pivotParameter]) != len(list(evaluation.values())[0]):
         self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(datasets[0][self.pivotParameter]), len(evaluation.values()[0])))
-      if self.pivotParameter not in evaluation:
-        evaluation[self.pivotParameter] = datasets[0][self.pivotParameter]
+      if pivotParameter not in evaluation:
+        evaluation[pivotParameter] = datasets[0][pivotParameter]
     return evaluation
