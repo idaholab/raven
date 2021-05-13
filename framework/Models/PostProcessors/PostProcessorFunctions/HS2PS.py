@@ -21,10 +21,10 @@ import xarray as xr
 
 #Internal Modules---------------------------------------------------------------
 from utils import InputData, InputTypes
-from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 #Internal Modules End-----------------------------------------------------------
 
-class HS2PS(PostProcessorPluginBase):
+class HS2PS(PostProcessorReadyInterface):
   """
    This Post-Processor performs the conversion from HistorySet to PointSet
    The conversion is made so that each history H is converted to a single point P.

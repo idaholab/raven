@@ -22,10 +22,10 @@ from scipy import interpolate
 from scipy import integrate
 import copy
 
-from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from utils import InputData, InputTypes
 
-class HistorySetSampling(PostProcessorPluginBase):
+class HistorySetSampling(PostProcessorReadyInterface):
   """
    This Post-Processor performs the conversion from HistorySet to HistorySet
    The conversion is made so that each history H is re-sampled accordingly to a specific sampling strategy.

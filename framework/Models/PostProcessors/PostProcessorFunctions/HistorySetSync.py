@@ -22,10 +22,10 @@ import itertools
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
-from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from utils import InputData, InputTypes
 
-class HistorySetSync(PostProcessorPluginBase):
+class HistorySetSync(PostProcessorReadyInterface):
   """
     This Post-Processor performs the conversion from HistorySet to HistorySet
     The conversion is made so that all histories are syncronized in time.

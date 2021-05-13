@@ -24,9 +24,9 @@ import numpy as np
 import xarray as xr
 
 from utils import InputData, InputTypes
-from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 
-class HistorySetDelay(PostProcessorPluginBase):
+class HistorySetDelay(PostProcessorReadyInterface):
   """
     Class to get lagged or delayed data out of a history set.
   """

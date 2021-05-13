@@ -21,12 +21,12 @@ from scipy import interpolate
 import copy
 import importlib
 
-from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 # import HistorySetSync as HSS
 from Models.PostProcessors import Factory as interfaceFactory
 from utils import InputData, InputTypes
 
-class HistorySetSnapShot(PostProcessorPluginBase):
+class HistorySetSnapShot(PostProcessorReadyInterface):
   """
     This Post-Processor performs the conversion from HistorySet to PointSet
     The conversion is made so that each history H is converted to a single point P.

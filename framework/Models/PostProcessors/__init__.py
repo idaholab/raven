@@ -20,4 +20,5 @@
 """
 
 from .PostProcessorInterface import PostProcessorInterface
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from .Factory import factory

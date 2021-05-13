@@ -20,10 +20,10 @@ import numpy as np
 from scipy import interpolate
 import copy
 
-from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from utils import InputData, InputTypes
 
-class dataObjectLabelFilter(PostProcessorPluginBase):
+class dataObjectLabelFilter(PostProcessorReadyInterface):
   """
    This Post-Processor filters out the points or histories accordingly to a chosen clustering label
   """

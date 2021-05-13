@@ -23,12 +23,12 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
 
-class HStoPSOperator(PostProcessorPluginBase):
+class HStoPSOperator(PostProcessorReadyInterface):
   """
    This Post-Processor performs the conversion from HistorySet to PointSet
    The conversion is performed based on any of the following operations:

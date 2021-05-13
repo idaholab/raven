@@ -17,6 +17,7 @@ Factory for generating the instances of the  Models Module
 
 from EntityFactoryBase import EntityFactory
 from .PostProcessorInterface import PostProcessorInterface
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from .BasicStatistics import BasicStatistics
 from .LimitSurface import LimitSurface
 from .Metric import Metric

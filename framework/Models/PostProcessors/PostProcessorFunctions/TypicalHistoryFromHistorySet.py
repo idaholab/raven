@@ -20,10 +20,10 @@ import copy
 from collections import defaultdict
 from functools import partial
 
-from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from utils import mathUtils, utils, InputData, InputTypes
 
-class TypicalHistoryFromHistorySet(PostProcessorPluginBase):
+class TypicalHistoryFromHistorySet(PostProcessorReadyInterface):
   """
     This class forms a typical history from a history set
     The methodology can be found at:
