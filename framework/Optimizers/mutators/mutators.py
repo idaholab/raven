@@ -40,8 +40,6 @@ def swapMutator(offSprings, distDict, **kwargs):
           variables, list, variables names.
     @ Out, children, xr.DataArray, the mutated chromosome, i.e., the child.
   """
-  print(distDict)
-  print(offSprings)
   if kwargs['locs'] == None:
     locs = list(set(randomUtils.randomChoice(list(np.arange(offSprings.data.shape[1])),size=2,replace=False)))
     loc1 = locs[0]
@@ -64,9 +62,7 @@ def swapMutator(offSprings, distDict, **kwargs):
       cdf2 = distDict[offSprings.coords['Gene'].values[loc2]].cdf(float(offSprings[i,loc2].values))
       children[i,loc1] = distDict[offSprings.coords['Gene'].values[loc1]].ppf(cdf2)
       children[i,loc2] = distDict[offSprings.coords['Gene'].values[loc2]].ppf(cdf1)
-      
-      #children[i,loc1] = offSprings[i,loc2]
-      #children[i,loc2] = offSprings[i,loc1]
+
   return children
 
 # @profile
