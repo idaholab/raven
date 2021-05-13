@@ -45,8 +45,6 @@ from .Validation import Validation
 # from .PostProcessorFunctions.HistorySetSync import HistorySetSync
 # from .PostProcessorFunctions.TypicalHistoryFromHistorySet import TypicalHistoryFromHistorySet
 # from .PostProcessorFunctions.dataObjectLabelFilter import dataObjectLabelFilter
-# from .PostProcessorFunctions.testInterfacedPP import testInterfacedPP
-# from .PostProcessorFunctions.testInterfacedPP_PointSet import testInterfacedPP_PointSet
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.
 try:
