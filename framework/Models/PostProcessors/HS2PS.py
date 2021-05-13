@@ -26,11 +26,12 @@ from .PostProcessorReadyInterface import PostProcessorReadyInterface
 
 class HS2PS(PostProcessorReadyInterface):
   """
-   This Post-Processor performs the conversion from HistorySet to PointSet
-   The conversion is made so that each history H is converted to a single point P.
-   Assume that each history H is a dict of n output variables x_1=[...],x_n=[...], then the resulting point P is as follows; P=[x_1,...,x_n]
-   Note!!!! Here it is assumed that all histories have been sync so that they have the same length, start point and end point.
-            If you are not sure, do a pre-processing the the original history set
+    This Post-Processor performs the conversion from HistorySet to PointSet
+    The conversion is made so that each history H is converted to a single point P.
+    Assume that each history H is a dict of n output variables x_1=[...],x_n=[...],
+    then the resulting point P is as follows; P=[x_1,...,x_n]
+    Note!!!! Here it is assumed that all histories have been sync so that they have the same length,
+    start point and end point. If you are not sure, do a pre-processing the the original history set
   """
   @classmethod
   def getInputSpecification(cls):
@@ -99,7 +100,7 @@ class HS2PS(PostProcessorReadyInterface):
 
   def run(self,inputIn):
     """
-    This method performs the actual transformation of the data object from history set to point set
+      This method performs the actual transformation of the data object from history set to point set
       @ In, inputIn, dict, dictionaries which contains the data inside the input DataObjects
         inputIn = {'Data':listData, 'Files':listOfFiles},
         listData has the following format: (listOfInputVars, listOfOutVars, DataDict) with
@@ -144,7 +145,6 @@ class HS2PS(PostProcessorReadyInterface):
     # return outDataset
     #########
 
-
     inpVars, outVars, inputDict = inputIn['Data'][0]
     outputDic = {'data': {}}
     outputDic['dims'] = {}
@@ -188,9 +188,9 @@ class HS2PS(PostProcessorReadyInterface):
 
   def _inverse(self,inputDic):
     """
-     This method is aimed to return the inverse of the action of this PostProcessor
-     @ In, inputDic, dict, dictionary which contains the transformed data of this PP
-     @ Out, data, dict, the dictionary containing the inverse of the data (the orginal space)
+      This method is aimed to return the inverse of the action of this PostProcessor
+      @ In, inputDic, dict, dictionary which contains the transformed data of this PP
+      @ Out, data, dict, the dictionary containing the inverse of the data (the orginal space)
     """
     data = {}
     for hist in inputDic.keys():
