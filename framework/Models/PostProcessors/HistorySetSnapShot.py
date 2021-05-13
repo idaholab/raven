@@ -102,7 +102,6 @@ class HistorySetSnapShot(PostProcessorReadyInterface):
       if self.extension is None:
         self.raiseAnError(IOError,'When using "timeSlice" an "extension" method must be specified for synchronizing!')
       #perform sync
-      # PostProcessorInterfaces = importlib.import_module("PostProcessorInterfaces")
       # Delayed import, import HistorySetSync as HSS
       from .Factory import factory as interfaceFactory
       self.HSsyncPP = interfaceFactory.returnInstance('HistorySetSync')

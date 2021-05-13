@@ -26,10 +26,10 @@ from Models.PostProcessors import PostProcessorInterface
 
 class PostProcessorReadyInterface(PostProcessorInterface):
   """
-    This class represents a specialized class from which each PostProcessor plugins must inherit from
-    #### TODO: This method probably need to move to PostProcessor Base Class when we have converted
-    #### all internal PostProcessors to use Dataset
-
+    This class represents a specialized class from which each new PostProcessor must inherit from
+    It is a temporary class for the transition of PostProcessor to use Dataset as in and out operations
+    When all PostProcessors are converted to use this class as parent class. This class will be
+    merged with "PostProcessorInterface" class to form the new base class for all PostProcessors
   """
   @classmethod
   def getInputSpecification(cls):
