@@ -1749,10 +1749,10 @@ class Categorical(Distribution):
       @ Out, element[0], float/string, requested inverse cdf
     """
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
-    cumulative=0.0
+    comulative=0.0
     for element in sortedMapping:
       cumulative += element[1]
-      if cumulative >= x - np.finfo(float).eps:
+      if comulative >= x - np.finfo(float).eps:
         return float(element[0])
 
   def rvs(self):
