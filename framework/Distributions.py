@@ -1752,7 +1752,7 @@ class Categorical(Distribution):
     cumulative=0.0
     for element in sortedMapping:
       cumulative += element[1]
-      if cumulative >= x:
+      if cumulative >= x - np.finfo(float).eps:
         return float(element[0])
 
   def rvs(self):
