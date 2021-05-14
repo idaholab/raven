@@ -1664,16 +1664,6 @@ class Categorical(Distribution):
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
     self.initializeDistribution()
 
-  def initializeFromDict(self, inputDict):
-    """
-      Function that initializes the distribution provided a dictionary
-      @ In, inputDict, dict, dictionary containing the np.arrays for state and outcome
-      @ Out, None
-    """
-    for idx, val in enumerate(inputDict['state']):
-      self.mapping[val] = inputDict['outcome'][idx]
-      self.values.add(val)
-
   def getInitParams(self):
     """
       Function to get the initial values of the input parameters that belong to
