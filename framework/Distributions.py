@@ -1754,6 +1754,7 @@ class Categorical(Distribution):
     cumulative=0.0
     for element in sortedMapping:
       cumulative += element[1]
+      #if comulative >= x - np.finfo(float).eps:
       if cumulative >= (x*self.totPsum):
         return float(element[0])
 
