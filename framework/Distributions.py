@@ -1696,6 +1696,8 @@ class Categorical(Distribution):
     for idx, val in enumerate(inputDict['xAxis']):
       self.mapping[val] = inputDict['pAxis'][idx]
       self.values.add(val)
+    
+    self.initializeDistribution()
 
   def initializeDistribution(self):
     """
@@ -1703,14 +1705,14 @@ class Categorical(Distribution):
       @ In, None
       @ Out, None
     """
-    totPsum = 0.0
+    self.totPsum = 0.0
     for element in self.mapping:
       if self.mapping[element] < 0:
         self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
-      totPsum += self.mapping[element]
-    if not mathUtils.compareFloats(totPsum,1.0):
+      self.totPsum += self.mapping[element]
+    if not mathUtils.compareFloats(self.totPsum,1.0):
       self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
-                         repr(totPsum), ', not 1.0!', 'Please re-normalize it to 1!')
+                         repr(self.totPsum), ', not 1.0!', 'Please re-normalize it to 1!')
     self.lowerBound = min(self.mapping.keys())
     self.upperBound = max(self.mapping.keys())
 
@@ -1749,10 +1751,10 @@ class Categorical(Distribution):
       @ Out, element[0], float/string, requested inverse cdf
     """
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
-    comulative=0.0
+    cumulative=0.0
     for element in sortedMapping:
       cumulative += element[1]
-      if comulative >= x - np.finfo(float).eps:
+      if cumulative >= (x*self.totPsum):
         return float(element[0])
 
   def rvs(self):
