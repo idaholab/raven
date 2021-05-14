@@ -117,11 +117,11 @@ class ValidationBase(BaseInterface):
           dat = ds[var]
           break
     if 'ProbabilityWeight-{}'.format(feat) in datasets[names.index(do)]:
-      pw = datasets[doindex]['ProbabilityWeight-{}'.format(feat)]
+      pw = datasets[doindex]['ProbabilityWeight-{}'.format(feat)].values
     elif 'ProbabilityWeight' in datasets[names.index(do)]:
-      pw = datasets[doindex]['ProbabilityWeight']
+      pw = datasets[doindex]['ProbabilityWeight'].values
     dim = len(dat.shape)
-    # (numRealizations,  numHistorySteps)
+    # (numRealizations,  numHistorySteps) for MetricDistributor
     dat = dat.values
     if dim == 1:
       #  the following reshaping does not require a copy

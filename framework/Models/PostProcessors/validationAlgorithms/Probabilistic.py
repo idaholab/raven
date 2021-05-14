@@ -147,6 +147,8 @@ class Probabilistic(ValidationBase):
     for feat, targ in zip(self.features, self.targets):
       featData = self._getDataFromDatasets(datasets, feat, names)
       targData = self._getDataFromDatasets(datasets, targ, names)
+      # featData = (featData[0], None)
+      # targData = (targData[0], None)
       for metric in self.metrics:
         name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
         outs[name] = metric.evaluate((featData, targData), multiOutput='raw_values')
