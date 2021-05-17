@@ -26,11 +26,6 @@ import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-#from utils import xmlUtils
-#from utils import InputData, InputTypes
-#import Files
-#import Distributions
-#import MetricDistributor
 from utils import utils
 from .ValidationBase import ValidationBase
 #Internal Modules End--------------------------------------------------------------------------------
@@ -62,7 +57,7 @@ class Probabilistic(ValidationBase):
     """
     super().__init__()
     self.printTag = 'POSTPROCESSOR ValidationBase'
-    self.dynamicType = ['static'] #  for now only static is available
+    self.dynamicType = ['static','dynamic'] #  for now only static is available
     self.acceptableMetrics = ["CDFAreaDifference", "PDFCommonArea"] #  acceptable metrics
     self.name = 'Probabilistic'
 
@@ -152,25 +147,10 @@ class Probabilistic(ValidationBase):
     for feat, targ in zip(self.features, self.targets):
       featData = self._getDataFromDatasets(datasets, feat, names)
       targData = self._getDataFromDatasets(datasets, targ, names)
+      # featData = (featData[0], None)
+      # targData = (targData[0], None)
       for metric in self.metrics:
-        name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.name)
-        outs[name] = metric.evaluate(featData, targData)
+        name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
+        outs[name] = metric.evaluate((featData, targData), multiOutput='raw_values')
     return outs
 
-  #def run(self, inputIn):
-  #  """
-  #    This method executes the postprocessor action. In this case, it computes all the requested statistical FOMs
-  #    @ In,  inputIn, object, object contained the data to process. (inputToInternal output)
-  #    @ Out, outputDict, dict, Dictionary containing the results
-  #  """
-  #  measureList = self.inputToInternal(inputIn)
-  #  outputDict = {}
-  #  assert(len(self.features) == len(measureList))
-  #  for metricInstance in self.metricsDict.values():
-  #    metricEngine = MetricDistributor.factory.returnInstance('MetricDistributor', metricInstance)
-  #    for cnt in range(len(self.targets)):
-  #      nodeName = (str(self.targets[cnt]) + '_' + str(self.features[cnt])).replace("|","_")
-  #      varName = metricInstance.name + '|' + nodeName
-  #      output = metricEngine.evaluate(measureList[cnt], weights=self.weight, multiOutput=self.multiOutput)
-  #      outputDict[varName] = np.atleast_1d(output)
-  #  return outputDict

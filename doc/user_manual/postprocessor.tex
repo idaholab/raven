@@ -30,6 +30,7 @@ Currently, the following types are available in RAVEN:
   \item \textbf{ParetoFrontier}
   \item \textbf{MCSImporter}
   \item \textbf{EconomicRatio}
+  \item \textbf{Validation}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
@@ -2184,6 +2185,98 @@ The \xmlNode{SampleSelector} postprocessor can  act on any \xmlNode{DataObjects}
   </Models>
  ...
 </Simulation>
+\end{lstlisting}
+
+%%%%% PP Validation %%%%%%%
+\subsubsection{Validation}
+\label{subsubsec:Validation}
+
+The \xmlNode{Validation} post-processor represents a gate 
+for applying a different range of algorithms to validate (e.g. compare)
+dataset and/or models (e.g. Distributions). 
+The post-processor is in charge of deploying a common infrastructure
+for the user of  \textbf{Validation} problems. 
+Several algorithms are avaialable within this post-processor:
+\begin{itemize}
+  \item  \textbf{Probabilistic}, for Static and Time-dependent data
+  % \item  \textbf{DSS}
+  % \item  \textbf{Representativity}
+  % \item  \textbf{PCM}
+\end{itemize}
+%
+
+The \textbf{Validation} post-processor makes use of the \textbf{Metric} system (See Chapter \ref{sec:Metrics}) to, in conjucntion with the specific algorithm chosen from the list above,
+to report validation scores for both static and time-dependent data.
+Indeed, Both \textbf{PointSet} and \textbf{HistorySet} can be accepted by this post-processor (depending on which algorithm is chosen).
+If the name of given variable to be compared is unique, it can be used directly, otherwise the variable can be specified
+with $DataObjectName|InputOrOutput|VariableName$ nomenclature.
+
+%
+\ppType{Validation}{Validation}
+%
+\begin{itemize}
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features.
+  \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
+     targets. \nb Each target is paired with a feature listed in xml node \xmlNode{Features}. In this case, the
+    number of targets should be equal to the number of features.
+    \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
+    \textbf{Metrics} entity. In this xml-node, the following xml attributes need to be specified:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this metric (e.g. Metrics)
+      \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Metric (e.g. SKL, Minkowski)
+    \end{itemize}
+    The choice of the available metrics depends on the specific validation algorithm that is chosen (see table \ref{tab:validationAlgorithms})
+\end{itemize}
+
+In addition to the nodes above, the user must choose a validation algorithm:
+\begin{itemize}
+  \item \xmlNode{Probabilistic}, \xmlDesc{XML node, optional field}, specify that the validation needs to be performed 
+  using the Probabilistic metrics: \textbf{CDFAreaDifference} (see \ref{subsubsec:metric_CDFAreaDifference})  or \textbf{PDFCommonArea} (see \ref{subsubsec:metric_PDFCommonArea}) 
+  This xml-node accepts the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{ name}, \xmlDesc{required string attribute}, the  user defined name of the validation algorithm used as prefix for the output results.
+    \end{itemize}
+  %\item \xmlNode{DSS}, \xmlDesc{XML node, optional field}, specify that the validation needs to be performed via DSS.  
+  %This xml-node accepts the following attribute:
+  %  \begin{itemize}
+  %    \item \xmlAttr{ name}, \xmlDesc{required string attribute}, the  user defined name of the validation algorithm used as prefix for the output results.
+  %  \end{itemize}
+  %  The following subnodes must be inputted:
+  %   \begin{itemize}
+  %     \item \xmlNode{myNode}, \xmlDesc{comma separated string, required field}, DESCRIPTION
+  %  \end{itemize}
+\end{itemize}
+
+\begin{table}[]
+\caption{Validation Algorithms and respective available metrics and DataObjects}
+\label{tab:validationAlgorithms}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Validation Algorithm} & \textbf{DataObject}                                            & \textbf{Available Metrics}                                                   \\ \hline
+Probabilistic                 & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet\end{tabular} & \begin{tabular}[c]{@{}c@{}}CDFAreaDifference\\ \\ PDFCommonArea\end{tabular} \\ \hline
+DSS                           & HistorySet                                                     & Not Available Yet                                                            \\ \hline
+\end{tabular}
+\end{table}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="pp1" subType="Validation">
+      <Features>outputDataMC1|ans</Features>
+      <Targets>outputDataMC2|ans2</Targets>
+      <Metric class="Metrics" type="CDFAreaDifference">cdf_diff</Metric>
+      <Metric class="Metrics" type="PDFCommonArea">pdf_area</Metric>
+      <Probabilistic name="myProbMetric">
+         <!--  the Probabilistic Validation does  not -->
+      </Probabilistic>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
 \end{lstlisting}
 
 %%%%% PP EconomicRatio %%%%%%%
