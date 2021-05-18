@@ -17,11 +17,10 @@ Factory for generating the instances of the  Models Module
 
 from EntityFactoryBase import EntityFactory
 from .PostProcessorInterface import PostProcessorInterface
-from .FTImporter import FTImporter
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 from .BasicStatistics import BasicStatistics
 from .LimitSurface import LimitSurface
 from .Metric import Metric
-from .ETImporter import ETImporter
 from .DataMining import DataMining
 from .SafestPoint import SafestPoint
 from .ValueDuration import ValueDuration
@@ -32,26 +31,21 @@ from .LimitSurfaceIntegral import LimitSurfaceIntegral
 from .FastFourierTransform import FastFourierTransform
 from .ExternalPostProcessor import ExternalPostProcessor
 from .TopologicalDecomposition import TopologicalDecomposition
-from .DataClassifier import DataClassifier
 from .ComparisonStatisticsModule import ComparisonStatistics
 from .RealizationAverager import RealizationAverager
 from .ParetoFrontierPostProcessor import ParetoFrontier
-from .MCSimporter import MCSImporter
 from .EconomicRatio import EconomicRatio
-from .RiskMeasuresDiscrete import RiskMeasuresDiscrete
 from .Validation import Validation
 
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)
-from .PostProcessorFunctions.HistorySetDelay import HistorySetDelay
-from .PostProcessorFunctions.HS2PS import HS2PS
-from .PostProcessorFunctions.HStoPSOperator import HStoPSOperator
-from .PostProcessorFunctions.HistorySetSampling import HistorySetSampling
-from .PostProcessorFunctions.HistorySetSnapShot import HistorySetSnapShot
-from .PostProcessorFunctions.HistorySetSync import HistorySetSync
-from .PostProcessorFunctions.TypicalHistoryFromHistorySet import TypicalHistoryFromHistorySet
-from .PostProcessorFunctions.dataObjectLabelFilter import dataObjectLabelFilter
-from .PostProcessorFunctions.testInterfacedPP import testInterfacedPP
-from .PostProcessorFunctions.testInterfacedPP_PointSet import testInterfacedPP_PointSet
+from .HistorySetDelay import HistorySetDelay
+from .HS2PS import HS2PS
+from .HStoPSOperator import HStoPSOperator
+from .HistorySetSampling import HistorySetSampling
+from .HistorySetSnapShot import HistorySetSnapShot
+from .HistorySetSync import HistorySetSync
+from .TypicalHistoryFromHistorySet import TypicalHistoryFromHistorySet
+from .dataObjectLabelFilter import dataObjectLabelFilter
 ## These utilize the optional prequisite library PySide, so don't error if they
 ## do not import appropriately.
 try:
