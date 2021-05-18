@@ -15,7 +15,7 @@ import os
 import sys
 
 import numpy as np
-import dill as pk
+import cloudpickle as pk
 
 # add romLoader to path
 here = os.path.abspath(os.path.dirname(__file__))
