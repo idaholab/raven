@@ -1,0 +1,87 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>ProbabilisticTimeDep</WorkingDir>
+    <Sequence>load, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/Validation.test_validation_gate_probabilistic_time_dep</name>
+    <author>alfoa</author>
+    <created>2021-05-10</created>
+    <classesTested>PostProcessors.Validation</classesTested>
+    <description>
+        This test is aimed to show how to use the mechanics of the Validation Post-Processor for time
+        dependent data. For semplicity, this test is using precomputed data (sin functions) and the simple Probabilistic Validation metrics.
+        The output name convention is ``feature name''\_``target name''\_``metric name''.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2021-05-11">Added Time dependendent capability</revision>
+    </revisions>
+  </TestInfo>
+
+  <Metrics>
+    <CDFAreaDifference name="cdf_diff"/>
+    <PDFCommonArea name="pdf_area"/>
+  </Metrics>
+
+  <Files>
+    <Input name="histset">./data/history.csv</Input>
+  </Files>
+  
+  <Models>
+    <PostProcessor name="pp1" subType="Validation">
+      <Features>simulation|ans</Features>
+      <Targets>experiment|ans2</Targets>
+      <Metric class="Metrics" type="CDFAreaDifference">cdf_diff</Metric>
+      <Metric class="Metrics" type="PDFCommonArea">pdf_area</Metric>
+      <Probabilistic name="myProbMetric">
+         <!--  the Probabilistic Validation does  not have specific inputs in here -->
+      </Probabilistic>
+    </PostProcessor>
+  </Models>
+  
+  <Steps>
+    <IOStep  name="load">
+      <Input class="Files" type="">histset</Input>
+      <Input class="Files" type="">histset</Input>
+      <Output class="DataObjects" type="HistorySet">simulation</Output>
+      <Output class="DataObjects" type="HistorySet">experiment</Output>
+    </IOStep>
+    <PostProcess name="PP1">
+      <Input  class="DataObjects" type="HistorySet">simulation</Input>
+      <Input  class="DataObjects" type="HistorySet">experiment</Input>
+      <Model  class="Models"      type="PostProcessor">pp1</Model>
+      <Output class="DataObjects" type="PointSet">pp1_metric</Output>
+      <Output class="OutStreams"  type="Print">pp1_metric_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <HistorySet name="simulation">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </HistorySet>
+    <HistorySet name="experiment">
+      <Input>x1,x2</Input>
+      <Output>ans2</Output>
+    </HistorySet>
+    <HistorySet name="pp1_metric">
+      <Input>InputPlaceHolder</Input>
+      <Output>pp1_vars</Output>
+    </HistorySet>
+  </DataObjects>
+
+  <VariableGroups>
+    <Group name="pp1_vars">ans_ans2_cdf_diff,ans_ans2_pdf_area</Group>
+  </VariableGroups>
+
+  <OutStreams>
+    <Print name="pp1_metric_dump">
+      <type>csv</type>
+      <source>pp1_metric</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

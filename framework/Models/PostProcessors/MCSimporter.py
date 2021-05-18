@@ -16,26 +16,20 @@ Created on Nov 1, 2019
 
 @author: mandd
 """
-
-from __future__ import division, print_function , unicode_literals, absolute_import
 import warnings
 warnings.simplefilter('default', DeprecationWarning)
 
 #External Modules---------------------------------------------------------------
 import pandas as pd
 import numpy as np
-import csv
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from PluginBaseClasses.PostProcessorPluginBase import PostProcessorPluginBase
 from utils import InputData, InputTypes
-from utils import xmlUtils as xmlU
-from utils import utils
 #Internal Modules End-----------------------------------------------------------
 
-
-class MCSImporter(PostProcessor):
+class MCSImporter(PostProcessorPluginBase):
   """
     This is the base class of the PostProcessor that imports Minimal Cut Sets (MCSs) into RAVEN as a PointSet
   """
@@ -65,20 +59,10 @@ class MCSImporter(PostProcessor):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(MCSImporter, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("expand",       contentType=InputTypes.BoolType))
     inputSpecification.addSub(InputData.parameterInputFactory("BElistColumn", contentType=InputTypes.StringType))
     return inputSpecification
-
-  def initialize(self, runInfo, inputs, initDict) :
-    """
-      Method to initialize the PostProcessor
-      @ In, runInfo, dict, dictionary of run info (e.g. working dir, etc)
-      @ In, inputs, list, list of inputs
-      @ In, initDict, dict, dictionary with initialization options
-      @ Out, None
-    """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
 
   def _handleInput(self, paramInput):
     """
@@ -86,7 +70,7 @@ class MCSImporter(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     expand = paramInput.findFirst('expand')
     self.expand = expand.value
 
@@ -94,13 +78,16 @@ class MCSImporter(PostProcessor):
       beListColumn = paramInput.findFirst('BElistColumn')
       self.beListColumn = beListColumn.value
 
-  def run(self, inputs):
+  def run(self, inputIn):
     """
       This method executes the PostProcessor action.
-      @ In,  inputs, list, list of file objects
-      @ Out, None
+      @ In,  inputIn, dict, dictionary contains the input data and input files, i.e.,
+          {'Data':[DataObjects.asDataset('dict')], 'Files':[FileObject]}, only 'Files'
+          will be used by this PostProcessor
+      @ Out, mcsPointSet, dict, dictionary of outputs, i.e.,
+          {'data':dict of realizations, 'dim':{}}
     """
-
+    inputs = inputIn['Files']
     mcsFileFound = False
     beFileFound  = False
 
@@ -146,17 +133,6 @@ class MCSImporter(PostProcessor):
       counter = counter+1
     mcsPointSet = {'data': mcsPointSet, 'dims': {}}
     return mcsPointSet
-
-  def collectOutput(self, finishedJob, output, options=None):
-    """
-      Function to place all of the computed data into the output object, (DataObjects)
-      @ In, finishedJob, object, JobHandler object that is in charge of running this PostProcessor
-      @ In, output, object, the object where we want to place our computed results
-      @ In, options, dict, optional, not used in PostProcessor.
-        dictionary of options that can be passed in when the collect of the output is performed by another model (e.g. EnsembleModel)
-      @ Out, None
-    """
-    PostProcessor.collectOutput(self, finishedJob, output, options=options)
 
 def mcsReader(mcsListFile):
   """

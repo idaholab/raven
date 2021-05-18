@@ -67,7 +67,7 @@
   type = 'RavenFramework'
   input = 'test_Dymola_code_interface_timedep.xml'
   output = 'DMInterfaceTestTimedep/testDummyStep/BouncingBall++2/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++3/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++4/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++2/addinp.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++3/addinp.txt'
-  csv = 'DMInterfaceTestTimedep/testDummyStep/BouncingBall++1/rawout~dsin.csv DMInterfaceTestTimedep/testDummyStep/BouncingBall++5/rawout~dsin.csv'
+  csv = 'DMInterfaceTestTimedep/DB_BouncingBallDump.csv'
   text = 'DMInterfaceTestTimedep/testDummyStep/BouncingBall++1/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++1/addinp.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++5/dsin.txt DMInterfaceTestTimedep/testDummyStep/BouncingBall++5/addinp.txt'
   test_interface_only = True
 [../]
@@ -105,55 +105,6 @@
    input = 'test_generic_interface_custom_out_file.xml'
    output = 'GenericInterfaceIOCustomOutput/samples.xml'
    csv = 'GenericInterfaceIOCustomOutput/samples.csv'
- [../]
-
- [./MAAP5interfaceForwardSampling]
-   type = 'RavenFramework'
-   input = 'test_maap5_code_interface_forward.xml'
-   output = 'MAAP5_Forward_test/2-plotWWBBN_line.png MAAP5_Forward_test/3-plotWWBBN_line.png MAAP5_Forward_test/test_dataobject.csv MAAP5_Forward_test/test_dataobject.xml'
-   csv = 'MAAP5_Forward_test/test_dataobject_2.csv'
-   test_interface_only = True
-   rel_err = 0.0001
- [../]
- [./MAAP5interfaceDETSampling]
-   type = 'RavenFramework'
-   input = 'test_maap5_code_interface_det.xml'
-   output = 'MAAP5_DET_test/2-plotAFW_line.png MAAP5_DET_test/3-plotAFW_line.png MAAP5_DET_test/test_dataobject.csv MAAP5_DET_test/test_dataobject.xml'
-   csv = 'MAAP5_DET_test/test_dataobject_3.csv'
-   test_interface_only = True
-   rel_err = 0.0001
- [../]
- [./MAAP5interfaceHybridDETSampling]
-   type = 'RavenFramework'
-   input = 'test_maap5_code_interface_hybrid_det.xml'
-   output = 'MAAP5_HybridDET_test/test_dataobject.csv MAAP5_HybridDET_test/test_dataobject.xml'
-   csv = 'MAAP5_HybridDET_test/test_dataobject_3.csv'
-   test_interface_only = True
-   rel_err = 0.0001
- [../]
- [./MAAP5interfaceADETSampling]
-   type = 'RavenFramework'
-   input = 'test_maap5_code_interface_adaptive_det.xml'
-   UnorderedCsv = 'MAAP5_adaptiveDET_test/limitSurfDump.csv'
-   test_interface_only = True
-   skip = 'Missing file needed to run'
-   rel_err = 0.0001
- [../]
- [./MAAP5interfaceAHDETSampling]
-   type = 'RavenFramework'
-   input = 'test_maap5_code_interface_adaptive_hybrid_det.xml'
-   UnorderedCsv = 'MAAP5_adaptiveHybridDET_test/limitSurfDump.csv'
-   test_interface_only = True
-   rel_err = 0.0001
- [../]
- [./MAAP5interfaceDETSamplingMultiBranch]
-   type = 'RavenFramework'
-   input = 'test_maap5_code_interface_det_multibranch.xml'
-   output = 'MAAP5MultibranchTest/6-plotWWBBN_line.png MAAP5MultibranchTest/test_dataobject_7.csv'
-   UnorderedCsv = 'MAAP5MultibranchTest/test_dataobject.csv'
-   UnorderedXml = 'MAAP5MultibranchTest/test_dataobject.xml'
-   test_interface_only = True
-   rel_err = 0.0001
  [../]
 
  [./melcorInterfaceForwardSamplingNoExe]

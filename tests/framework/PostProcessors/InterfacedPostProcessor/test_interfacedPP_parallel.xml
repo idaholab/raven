@@ -9,7 +9,7 @@
       Test of the interfaced post-processor interface performed in parallel
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>interfacedPostProcessorParallel</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
@@ -42,8 +42,7 @@
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
-    <PostProcessor name="interfacedPP1" subType="InterfacedPostProcessor">
-      <method>testInterfacedPP</method>
+    <PostProcessor name="interfacedPP1" subType="testInterfacedPP">
       <xmlNodeExample>9</xmlNodeExample>
     </PostProcessor>
   </Models>
