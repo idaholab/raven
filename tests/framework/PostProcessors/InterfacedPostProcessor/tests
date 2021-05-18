@@ -1,16 +1,4 @@
 [Tests]
-  [./interfacedPostProcessor]
-    type   = 'RavenFramework'
-    input  = 'test_interfacedPP.xml'
-    csv    = 'interfacedPostProcessor/PrintPPHistorySet_dump_0.csv'
-    output = 'interfacedPostProcessor/PrintPPHistorySet_dump.xml'
-  [../]
-  [./interfacedPostProcessorParallel]
-    type   = 'RavenFramework'
-    input  = 'test_interfacedPP_parallel.xml'
-    csv    = 'interfacedPostProcessorParallel/PrintPPHistorySet_dump_0.csv'
-    output = 'interfacedPostProcessorParallel/PrintPPHistorySet_dump.xml'
-  [../]
   [./historySampling]
     type   = 'RavenFramework'
     input  = 'test_historySetSamplingIPP.xml'
@@ -64,12 +52,6 @@
     input  = 'test_HS2PS.xml'
     csv    = 'HS2PS/PrintPPPointSet_dump.csv'
   [../]
-  [./interfacedPostProcessor_PointSet]
-    type   = 'RavenFramework'
-    input  = 'test_interfacedPP_pointset.xml'
-    csv    = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.csv'
-    output = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.xml'
-  [../]
   [./typicalHistoryFromHS]
     type   = 'RavenFramework'
     input  = 'test_typicalHistoryFromHS.xml'
@@ -92,5 +74,4 @@
     input  = 'test_historySetSampling_and_sync.xml'
     csv    = 'historySetSampling_and_sync/out_synced_and_reduced_1.csv'
   [../]
-
 []
