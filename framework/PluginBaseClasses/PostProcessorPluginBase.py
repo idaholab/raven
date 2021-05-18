@@ -22,10 +22,11 @@ import Files
 from utils import InputData, InputTypes
 from DataObjects import DataObject
 from .PluginBase import PluginBase
-from Models.PostProcessors.PostProcessorInterface import PostProcessorInterface
+from Models.PostProcessors import PostProcessorReadyInterface
+from Models.PostProcessors import factory
 #Internal Modules End-----------------------------------------------------------
 
-class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
+class PostProcessorPluginBase(PluginBase, PostProcessorReadyInterface):
   """
     This class represents a specialized class from which each PostProcessor plugins must inherit from
   """
@@ -33,7 +34,7 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
   # validity of a certain plugin.
   _methodsToCheck = ['getInputSpecification', '_handleInput', 'run']
   entityType = 'PostProcessor'
-
+  _interfaceFactory = factory
   ##################################################
   # Plugin APIs
   ##################################################
@@ -56,35 +57,9 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
       @ Out, None
     """
     super().__init__()
-    self._inputDataType = 'dict' # Current accept two types: 1) 'dict', 2) 'xrDataset'
-                                 # Set default to 'dict', this is consistent with current post-processors
-    self._keepInputMeta = False  # Meta keys from input data objects will be added to output data objects
-
-  def keepInputMeta(self, keep=False):
-    """
-      Method to set the status of "self._keepInputMeta"
-      @ In, keep, bool, If True, the meta keys from input data objects will be added to output data objects
-      @ Out, None
-    """
-    self._keepInputMeta = keep
-
-  def setInputDataType(self, dataType='dict'):
-    """
-      Method to set the input data type that will be passed to "run" method
-      @ In, dataType, str, the data type to which the internal DataObjects will be converted
-      @ Out, None
-    """
-    if dataType not in ['dict', 'xrDataset']:
-      self.raiseAnError(IOError, 'The dataType "{}" is not supported, please consider using "dict" or "xrDataset"'.format(dataType))
-    self._inputDataType = dataType
-
-  def getInputDataType(self):
-    """
-      Method to retrieve the input data type to which the internal DataObjects will be converted
-      @ In, None
-      @ Out, _inputDataType, str, the data type, i.e., 'dict', 'xrDataset'
-    """
-    return self._inputDataType
+    self.setInputDataType('dict') # Current accept two types: 1) 'dict', 2) 'xrDataset'
+                                  # Set default to 'dict', this is consistent with current post-processors
+    self.keepInputMeta(True)      # Meta keys from input data objects will be added to output data objects
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -95,12 +70,6 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
     super().initialize(runInfo, inputs, initDict)
-    if self._keepInputMeta:
-      ## add meta keys from input data objects
-      for inputObj in inputs:
-        if isinstance(inputObj, DataObject.DataObject):
-          metaKeys = inputObj.getVars('meta')
-          self.addMetaKeys(metaKeys)
 
   def _handleInput(self, paramInput):
     """
@@ -118,50 +87,3 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
   #     @ In,  inputDs, list, list of Datasets
   #     @ Out, outputDs, dict, xarray.Dataset
   #   """
-
-    ##################################################
-    # Methods for Internal Use
-    ##################################################
-
-  def createPostProcessorInput(self, inputObjs, **kwargs):
-    """
-      This function is used to convert internal DataObjects to user-friendly format of data.
-      The output from this function will be directly passed to the "run" method.
-      @ In, inputObjs, list, list of DataObjects
-      @ In, **kwargs, dict, is a dictionary that contains the information passed by "Step".
-          Currently not used by PostProcessor. It can be useful by Step to control the input
-          and output of the PostProcessor, as well as other control options for the PostProcessor
-      @ Out, inputDict, dict, dictionary of data that will be directly used by the "PostProcessor.run" method.
-          inputDict = {'Data':listData, 'Files':listOfFiles},
-          listData has the following format if 'xrDataset' is passed to self.setInputDataType('xrDataset')
-          (listOfInputVars, listOfOutVars, xr.Dataset)
-          Otherwise listData has the following format: (listOfInputVars, listOfOutVars, DataDict) with
-          DataDict is a dictionary that has the format
-              dataDict['dims']     = dict {varName:independentDimensions}
-              dataDict['metadata'] = dict {metaVarName:metaVarValue}
-              dataDict['type'] = str TypeOfDataObject
-              dataDict['inpVars'] = list of input variables
-              dataDict['outVars'] = list of output variables
-              dataDict['numberRealization'] = int SizeOfDataObject
-              dataDict['name'] = str DataObjectName
-              dataDict['metaKeys'] = list of meta variables
-              dataDict['data'] = dict {varName: varValue(1-D or 2-D numpy array)}
-    """
-    #### TODO: This method probably need to move to PostProcessor Base Class when we have converted
-    #### all internal PostProcessors to use Dataset
-    ## Type 1: DataObjects => Dataset or Dict
-    ## Type 2: File => File
-    assert type(inputObjs) == list
-    inputDict = {'Data':[], 'Files':[]}
-    for inp in inputObjs:
-      if isinstance(inp, Files.File):
-        inputDict['Files'].append(inp)
-      elif isinstance(inp, DataObject.DataObject):
-        dataType = self.getInputDataType()
-        data = inp.asDataset(outType=dataType)
-        inpVars = inp.getVars('input')
-        outVars = inp.getVars('output')
-        inputDict['Data'].append((inpVars, outVars, data))
-      else:
-        self.raiseAnError(IOError, "Unknown input is found", str(inp))
-    return inputDict
