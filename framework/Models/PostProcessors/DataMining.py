@@ -15,7 +15,6 @@
 Created on July 10, 2013
 @author: alfoa
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
 #External Modules---------------------------------------------------------------
 import numpy as np
 import copy
@@ -24,7 +23,7 @@ import xarray as xr
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils, mathUtils
 from utils import InputData, InputTypes
 import Files
@@ -32,7 +31,7 @@ import unSupervisedLearning
 import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
-class DataMining(PostProcessor):
+class DataMining(PostProcessorInterface):
   """
     DataMiningPostProcessor class. It will apply the specified KDD algorithms in
     the models to a dataset, each specified algorithm's output can be loaded to
@@ -321,18 +320,18 @@ class DataMining(PostProcessor):
       @ Out, inputDict, dict, an input dictionary that this post-processor can process
     """
     inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
-    if self.PreProcessor.interface.returnFormat('output') not in ['PointSet']:
+    if not set(self.PreProcessor._pp.validDataType).issubset(set(['PointSet'])):
       self.raiseAnError(IOError, 'DataMining PP: this PP is employing a pre-processor PP which does not generates a PointSet.')
 
-    tempData = self.PreProcessor.interface.inputToInternal([currentInput])
-    preProcessedData = self.PreProcessor.interface.run(tempData)
+    tempData = self.PreProcessor._pp.createPostProcessorInput([currentInput])
+    preProcessedData = self.PreProcessor._pp.run(tempData)
 
     if self.initializationOptionDict['KDD']['Features'] == 'input':
       featureList = currentInput.getVars('input')
     elif self.initializationOptionDict['KDD']['Features'] == 'output':
       dataList = preProcessedData['data'].keys()
-      # FIXME: this fix is due to the changes in the data structure of interface pp
-      toRemove = ['prefix', 'ProbabilityWeight'] + currentInput.getVars('input')
+      # FIXME: this fix is due to the changes in the data structure of © pp
+      toRemove = currentInput.getVars('input') + currentInput.getVars('meta')
       featureList = [elem for elem in dataList if elem not in toRemove]
     else:
       featureList = [feature.strip() for feature in self.initializationOptionDict['KDD']['Features'].split(',')]
@@ -383,12 +382,12 @@ class DataMining(PostProcessor):
       @ In, initDict, dict, dictionary with initialization options
       @ Out, None
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
     if "SolutionExport" in initDict:
       self.solutionExport = initDict["SolutionExport"]
     if "PreProcessor" in self.assemblerDict:
       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
-      if not '_inverse' in dir(self.PreProcessor.interface):
+      if not '_inverse' in dir(self.PreProcessor._pp):
         self.raiseAnError(IOError, 'PostProcessor ' + self.name + ' is using a pre-processor where the method inverse has not implemented')
     if 'Metric' in self.assemblerDict:
       self.metric = self.assemblerDict['Metric'][0][3]
@@ -399,7 +398,7 @@ class DataMining(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     ## By default, we want to name the 'labels' by the name of this
     ## postprocessor, but that name is not available before processing the XML
     ## At this point, we have that information
@@ -593,6 +592,7 @@ class DataMining(PostProcessor):
       for i in range(reducedDimensionality):
         newColumnName = self.labelFeature + str(i + 1)
         outputDict['outputs'][newColumnName] =  transformedData[:, i]
+
     if self.solutionExport is not None:
       if 'cluster' == self.unSupervisedEngine.getDataMiningType():
         solutionExportDict = self.unSupervisedEngine.metaDict
@@ -620,7 +620,7 @@ class DataMining(PostProcessor):
             rlzDims = {}
             for index,center in zip(indices,centers):
               tempDict[index] = center
-            centers = self.PreProcessor.interface._inverse(tempDict)
+            centers = self.PreProcessor._pp._inverse(tempDict)
             rlzs[self.labelFeature] = np.atleast_1d(indices)
             rlzDims[self.labelFeature] = []
             if self.solutionExport.type == 'PointSet':
@@ -905,6 +905,9 @@ except ImportError as e:
 
 if __QtAvailable:
   class mQDataMining(type(DataMining), type(qtc.QObject)):
+    """
+      Class used to solve the metaclass conflict
+    """
     pass
 
   class QDataMining(DataMining, qtc.QObject, metaclass=mQDataMining):

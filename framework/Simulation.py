@@ -25,7 +25,6 @@ import threading
 
 import MessageHandler # this needs to happen early to instantiate message handler
 from BaseClasses import MessageUser
-import PluginFactory
 import Steps
 import DataObjects
 import Files
@@ -285,12 +284,6 @@ class Simulation(MessageUser):
     self.entityModules['Files'            ] = Files
     self.entityModules['Metrics'          ] = Metrics
     self.entityModules['OutStreams'       ] = OutStreams
-    # register plugins
-    # -> only don't actually load them, because we want to lazy load if at all possible
-    # -> instead, we just provide the pointer to the plugins dicts
-    for name, module in self.entityModules.items():
-      if hasattr(module, 'setPluginFactory'):
-        module.setPluginFactory(PluginFactory)
 
     #Mapping between an entity type and the dictionary containing the instances for the simulation
     self.entities = {}
@@ -446,11 +439,7 @@ class Simulation(MessageUser):
               #place the instance in the proper dictionary (self.entities[Type]) under his name as key,
               #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
               if name not in self.entities[className]:
-                # postprocessors use subType, so specialize here
-                if childChild.tag == 'PostProcessor':
-                  entity = self.entityModules[className].factory.returnInstance(childChild.attrib['subType'])
-                else:
-                  entity = self.entityModules[className].factory.returnInstance(childChild.tag)
+                entity = self.entityModules[className].factory.returnInstance(childChild.tag)
               else:
                 self.raiseAnError(IOError,'Redundant naming in the input for class '+className+' and name '+name)
               entity.applyRunInfo(self.runInfoDict)

@@ -320,8 +320,7 @@ class Step(utils.metaclass_insert(abc.ABCMeta, BaseEntity, InputDataUser)):
     """
     if self.pauseEndStep:
       for i in range(len(inDictionary['Output'])):
-        #if type(inDictionary['Output'][i]).__name__ not in ['str','bytes','unicode']:
-        if inDictionary['Output'][i].type in ['OutStreamPlot']:
+        if inDictionary['Output'][i].type in ['Plot']:
           inDictionary['Output'][i].endInstructions('interactive')
 
   def takeAstep(self,inDictionary):
@@ -500,7 +499,7 @@ class SingleRun(Step):
     ## get an input field in the outputs variable that is not in the inputs
     ## variable defined above? - DPM 4/6/2017
     #empty dictionary corresponds to sampling data in MultiRun
-    model.submit(inputs, None, jobHandler, **{'SampledVars':{'prefix':'None'},'additionalEdits':{}})
+    model.submit(inputs, None, jobHandler, **{'SampledVars':{'prefix':'None'}, 'additionalEdits':{}})
     while True:
       finishedJobs = jobHandler.getFinished()
       for finishedJob in finishedJobs:

@@ -1,0 +1,72 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/PostProcessors/HistorySetDelay/HistorySetDelay</name>
+    <author>cogljj</author>
+    <created>2021-04-19</created>
+    <classesTested>HistorySetDelay</classesTested>
+    <description>
+      Tests of the HistorySetDelay interfaced post-processor by loading
+      in a set of sine waves and delaying some of them.
+      The output is the input, but with some parameters lagged and
+      one speed up.
+    </description>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>HistorySetDelay</WorkingDir>
+    <Sequence>load, delay</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Files>
+    <Input name="sine_data">sine_data.csv</Input>
+  </Files>
+
+  <Models>
+    <PostProcessor name="delayPP" subType="HistorySetDelay">
+      <delay original="first" new="first_d1" steps="-1" default="0.0"/>
+      <delay original="first" new="first_d4" steps="-4" default="0.0"/>
+      <delay original="second" new="second_d1" steps="-1" default="3.14159"/>
+      <delay original="second" new="second_f2" steps="2" default="6.28319"/>
+    </PostProcessor>
+  </Models>
+
+  <Steps>
+    <IOStep name="load">
+      <Input class="Files" type="">sine_data</Input>
+      <Output class="DataObjects" type="HistorySet">samples</Output>
+    </IOStep>
+    <PostProcess name="delay">
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Model class="Models" type="PostProcessor">delayPP</Model>
+      <Output class="DataObjects" type="HistorySet">delayed_samples</Output>
+      <Output class="OutStreams" type="Print">delayed_samples_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <OutStreams>
+    <Print name="delayed_samples_dump">
+      <type>csv</type>
+      <source>delayed_samples</source>
+    </Print>
+  </OutStreams>
+
+  <DataObjects>
+    <HistorySet name="samples">
+      <Input>a,b,c,d,e,f</Input>
+      <Output>first,second</Output>
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="delayed_samples">
+      <Input>a,b,c,d,e,f</Input>
+      <Output>first,second,first_d1,first_d4,second_d1,second_f2</Output>
+      <options>
+        <pivotParameter>index</pivotParameter>
+      </options>
+    </HistorySet>
+  </DataObjects>
+
+</Simulation>

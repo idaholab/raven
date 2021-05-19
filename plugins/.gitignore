@@ -2,6 +2,7 @@ ExamplePlugin/tests/ravenRunningRavenPlugin/DatabaseStorage/
 ExamplePlugin/tests/ravenRunningRavenPlugin/FirstMRun/
 ExamplePlugin/tests/ravenRunningRavenPlugin/testPointSet_dump.xml
 ExamplePlugin/tests/simpleTest/
+ExamplePlugin/.ravenconfig.xml
 PRAplugin/tests/ETmodel/Print_sim_PS.xml
 PRAplugin/tests/ETmodelTD/Print_sim_PS.xml
 PRAplugin/tests/FTmodel/Print_sim_PS.xml

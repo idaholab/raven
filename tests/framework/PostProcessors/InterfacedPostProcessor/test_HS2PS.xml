@@ -9,7 +9,7 @@
       Tests of the HS2PS interfaced post-processor
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>HS2PS</WorkingDir>
     <Sequence>FirstMRun,PP</Sequence>
@@ -40,8 +40,7 @@
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
-    <PostProcessor name="HS2PS" subType="InterfacedPostProcessor">
-      <method>HS2PS</method>
+    <PostProcessor name="HS2PS" subType="HS2PS">
       <pivotParameter>time</pivotParameter>
     </PostProcessor>
   </Models>

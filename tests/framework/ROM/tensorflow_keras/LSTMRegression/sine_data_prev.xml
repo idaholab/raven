@@ -1,0 +1,8 @@
+<DataObjectMetadata name="samples">
+  <DataSet type="Static">
+    <general>
+      <inputs>a,b,c,d,e,f,g</inputs>
+      <outputs>index,prev_sum,prev_square,prev_square_sum</outputs>
+    </general>
+  </DataSet>
+</DataObjectMetadata>

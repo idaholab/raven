@@ -207,7 +207,6 @@ class unSupervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
 
     ## End Error-handling
     ############################################################################
-
     if metric is None:
       self.normValues = np.zeros(shape = (realizationCount, featureCount))
       for cnt, feat in enumerate(self.features):
@@ -595,6 +594,7 @@ class SciKitLearn(unSupervisedLearning):
           numClusters = self.Method.n_clusters
         else:
           numClusters = len(set(self.Method.labels_))
+
 
         centers = np.zeros([numClusters,len(self.features)])
         counter = np.zeros(numClusters)

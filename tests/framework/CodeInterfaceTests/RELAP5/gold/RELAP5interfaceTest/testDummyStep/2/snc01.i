@@ -2029,4 +2029,7 @@ $   space independent reactor kinetics data
 390050000  2   1.0
 390050010  rktpow 0 0.5 0
 390050020  rktpow 0 0.5 0
+* the line below has been added just to test that there
+* are not issues with the radiation cards
+60000000 1
 .
