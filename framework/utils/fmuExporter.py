@@ -97,6 +97,7 @@ class FMUexporter(MessageUser):
     return f"""
 import sys
 import pickle
+import os
 from pythonfmu.fmi2slave import Fmi2Type, Fmi2Slave, Fmi2Causality, Fmi2Variability, Integer, Real, Boolean, String
 
 class {classname}(Fmi2Slave):
@@ -117,7 +118,9 @@ class {classname}(Fmi2Slave):
     # this flag activates the initialization at the begin of the solve
     self.initialized = False
     # register raven_path variables if needed to be changed
-    self.register_variable(String("raven_path", causality=Fmi2Causality.parameter, variability=Fmi2Variability.tunable))
+    self.register_variable(String("raven_path", causality=Fmi2Causality.input))
+    #self.register_variable(String("raven_path", causality=Fmi2Causality.parameter, variability=Fmi2Variability.tunable))
+    #self.register_variable(String("raven_path", causality=Fmi2Causality.parameter))
     # register input variables
     for var in self.inputVariables:
       # set var
