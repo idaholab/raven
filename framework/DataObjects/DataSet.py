@@ -1805,11 +1805,11 @@ class DataSet(DataObject):
       @ In, fileName, str, name of file without extension
       @ Out, varList, list(str), list of variables
     """
-    with open(fileName+'.csv','r') as f:
-      line = f.readline()
-      if line.startswith('\ufeff'):
-        line = line[1:]
-      provided = list(s.strip() for s in line.split(','))
+    # utf-8-sig is commongly used by Excel when writing CSV files as of this writing (2021).
+    # the BOM for this (first character in file) is \ufeff, causing the first var to be unrecognized
+    # if the encoding isn't right.
+    with open(fileName+'.csv', 'r', encoding='utf-8-sig') as f:
+      provided = list(s.strip() for s in f.readline().split(','))
     return provided
 
   def _loadCsvMeta(self,fileName):
