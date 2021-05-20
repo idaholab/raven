@@ -1806,7 +1806,10 @@ class DataSet(DataObject):
       @ Out, varList, list(str), list of variables
     """
     with open(fileName+'.csv','r') as f:
-      provided = list(s.strip() for s in f.readline().split(','))
+      line = f.readline()
+      if line.startswith('\ufeff'):
+        line = line[1:]
+      provided = list(s.strip() for s in line.split(','))
     return provided
 
   def _loadCsvMeta(self,fileName):
