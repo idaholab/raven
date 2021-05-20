@@ -5,11 +5,12 @@
 # we support in RAVEN
 # @author, Andrea Alfonsi
 # @date, 05/05/2021
-
-# establish conda
-../../../scripts/establish_conda_env.sh --load
 # fail if anything here fails
 set -e
+
+# establish conda
+source ../../../scripts/establish_conda_env.sh --load
+#../../../scripts/establish_conda_env.sh --load
 echo "start PythonFMU (RAVEN compatible) installation ......"
 # firstly lets check if the resources/binaries folders are empty or not
 # (some binaries are released with the code). At least for the current
