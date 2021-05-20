@@ -162,13 +162,13 @@ class DataSet(DataObject):
       ## TODO check structure?
       self._meta[tag] = node
 
-  def addRealization(self, rlz):
+  def addRealization(self, rlzIn):
     """
       Adds a "row" (or "sample") to this data object.
       This is the method to add data to this data object.
       Note that rlz can include many more variables than this data object actually wants.
       Before actually adding the realization, data is formatted for this data object.
-      @ In, rlz, dict, {var:val} format where
+      @ In, rlzIn, dict, {var:val} format where
                          "var" is the variable name as a string,
                          "val" is a np.ndarray of values.
       @ Out, None
@@ -198,15 +198,15 @@ class DataSet(DataObject):
     #  Yours truly, talbpw, May 2019
     #########
     # protect against back-changing realization
-    rlz = copy.deepcopy(rlz)
+    # rlz = copy.deepcopy(rlz)
     # if index map was included, remove that now before checking variables
-    indexMap = rlz.pop('_indexMap', None)
+    indexMap = rlzIn.get('_indexMap', None)
     if indexMap is not None:
       # keep only those parts of the indexMap that correspond to variables we care about.
       indexMap = dict((key, val) for key, val in indexMap[0].items() if key in self.getVars()) # [0] because everything is nested in a list by now, it seems
     # clean out entries that aren't desired
     try:
-      rlz = dict((var, rlz[var]) for var in self.getVars() + self.indexes)
+      rlz = dict((var, rlzIn[var]) for var in self.getVars() + self.indexes)
     except KeyError as e:
       self.raiseAWarning('Variables provided:',rlz.keys())
       self.raiseAnError(KeyError,'Provided realization does not have all requisite values for object "{}": "{}"'.format(self.name,e.args[0]))
