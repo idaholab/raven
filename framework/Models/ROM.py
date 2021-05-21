@@ -1336,6 +1336,11 @@ class ROM(Dummy):
       if child.getName() == 'CV':
         self.cvInstance = child.value.strip()
         continue
+      #set input and output var lists (needed for FMI/FMU export)
+      if child.getName() == 'Features':
+        self._setVariableList('input', child.value)
+      elif child.getName() == 'Target':
+        self._setVariableList('output', child.value)
       if len(child.parameterValues) > 0 and child.getName().lower() not in self.kerasLayersList:
         if child.getName() == 'alias':
           continue
@@ -1363,9 +1368,6 @@ class ROM(Dummy):
     self.initializationOptionDict['paramInput'] = paramInput
     self._initializeSupervisedGate(**self.initializationOptionDict)
     #the ROM is instanced and initialized
-    #  set input and output var lists (needed for FMI/FMU export)
-    self._setVariableList('input', self.initializationOptionDict['Features'])
-    self._setVariableList('output', self.initializationOptionDict['Target'])
 
   def initialize(self,runInfo,inputs,initDict=None):
     """

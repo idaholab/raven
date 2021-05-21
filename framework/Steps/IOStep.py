@@ -251,17 +251,8 @@ class IOStep(Step):
           self.raiseAnError(RuntimeError,'Pickled object in "%s" is not a ROM.  Exiting ...' %str(fileobj))
         if isinstance(unpickledObj,Models.ROM) and not unpickledObj.amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
-        if isinstance(unpickledObj,Models.ROM):
-          # save reseeding parameters from pickledROM
-          loadSettings = outputs[i].initializationOptionDict
-          # train the ROM from the unpickled object
-          outputs[i].train(unpickledObj)
-          # reseed as requested
-          loadSettings['messageHandler'] = self.messageHandler
-          outputs[i].setAdditionalParams(loadSettings)
-        else:
-          print(outputs[i].constructed)
-          outputs[i].copyModel(unpickledObj)
+        # copy model (same for any internal model (Dummy model derived classes)
+        outputs[i].copyModel(unpickledObj)
       elif self.actionType[i] == 'FILES-dataObjects':
         #inDictionary['Input'][i] is a Files, outputs[i] is PointSet
         ## load a CSV from file

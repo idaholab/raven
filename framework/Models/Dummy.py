@@ -46,7 +46,7 @@ class Dummy(Model):
     self.admittedData = self.__class__.validateDict['Input' ][0]['type'] #the list of admitted data is saved also here for run time checks
     #the following variable are reset at each call of the initialize method
     self.printTag = 'DUMMY MODEL'
-     
+
   @classmethod
   def specializeValidateDict(cls):
     """
@@ -59,7 +59,7 @@ class Dummy(Model):
     cls.validateDict['Input' ][0]['required'    ] = True
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['PointSet','DataSet']
-  
+
   def copyModel(self, obj):
     """
       This method is aimed to copy the "obj" model in this instance
@@ -70,7 +70,7 @@ class Dummy(Model):
     if obj.type != self.type:
       self.raiseAnError(IOError,'Only objects of the same type can be copied! {} != {} !'.format(obj.type, self.type))
     self.__dict__.update(obj.__dict__)
-    
+
   def _manipulateInput(self,dataIn):
     """
       Method that is aimed to manipulate the input in order to return a common input understandable by this class
