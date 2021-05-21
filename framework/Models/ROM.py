@@ -1431,6 +1431,19 @@ class ROM(Dummy):
     metaParams.update(params)
     return metaKeys, metaParams
 
+  def copyModel(self, obj):
+    """
+      This method is aimed to copy the "obj" model in this instance
+      It is generally used for unpickling objects (models)
+      @ In, obj, instance, the instance of the object to copy from
+      @ Out, None
+    """
+    # save reseeding parameters from pickledROM
+    loadSettings = obj.initializationOptionDict
+    # train the ROM from the unpickled object
+    self.train(obj)
+    self.setAdditionalParams(loadSettings)
+
   def train(self,trainingSet):
     """
       This function train the ROM

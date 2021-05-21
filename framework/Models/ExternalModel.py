@@ -85,16 +85,14 @@ class ExternalModel(Dummy):
     self.pickled = False              # is this model pickled?
     self.constructed = True           # is this model constructed?
 
-
-  def __setstate__(self, d):
+  def copyModel(self, obj):
     """
-      Method for unserializing.
-      @ In, d, dict, things to unserialize
+      This method is aimed to copy the "obj" model in this instance
+      It is generally used for unpickling objects (models)
+      @ In, obj, instance, the instance of the object to copy from
       @ Out, None
     """
-    # default setstate behavior
-    self.__dict__ = d
-    # since we pop this out during saving state, initialize it here
+    super().copyModel(obj)
     self.constructed = True
 
   def applyRunInfo(self, runInfo):
