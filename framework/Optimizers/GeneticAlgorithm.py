@@ -436,7 +436,7 @@ class GeneticAlgorithm(RavenSampled):
 
       # 3 @ n: Mutation
       # perform random directly on childrenCoordinates
-      childrenMutated = self._mutationInstance(offSprings=childrenXover,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+      childrenMutated = self._mutationInstance(offSprings=childrenXover, distDict = self.distDict,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
 
       # 4 @ n: repair/replacement
       # repair should only happen if multiple genes in a single chromosome have the same values (),
@@ -465,7 +465,7 @@ class GeneticAlgorithm(RavenSampled):
               repeated.append(j)
         repeated = list(set(repeated))
         if repeated:
-          newChildren = self._mutationInstance(offSprings=children[repeated,:],locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+          newChildren = self._mutationInstance(offSprings=children[repeated,:], distDict = self.distDict, locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
           children.data[repeated,:] = newChildren.data
         else:
           flag = False
