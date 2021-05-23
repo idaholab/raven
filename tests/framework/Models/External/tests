@@ -14,6 +14,13 @@
   input = 'fmu_ext_model_and_use.xml'
   output = 'SerializeWrkd/attenuate_pk2.fmu'
  [../]
+ [./loadFMU]
+  type = 'RavenPython'
+  input = 'testMathUtils.py'
+  text = 'attenuate_pk2.txt'
+  prereq = fmu_ext_model
+  required_libraries = 'fmpy'
+ [../] 
 []
 
 

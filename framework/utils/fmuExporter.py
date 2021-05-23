@@ -21,6 +21,7 @@ import tempfile
 from pathlib import Path
 from typing import Union
 import cloudpickle
+import pickle
 import os
 #  pythonfmu (this links to the one in framework/contrib)
 from pythonfmu.fmi2slave import FMI2_MODEL_OPTIONS
@@ -67,7 +68,7 @@ class FMUexporter(MessageUser):
     self.serializedModel = Path(self._temp) / (self.model.name + ".pk")
     # picklefile in temp directory
     with open(self.serializedModel, mode="wb+") as pk:
-      cloudpickle.dump(self.model, pk)
+      cloudpickle.dump(self.model, pk, protocol=pickle.HIGHEST_PROTOCOL)
     self.executeMethod = self._options.pop("executeMethod", None)
     if self.executeMethod is None:
       self.raiseAnError(IOError, "No executeMethod has been provided for FMU exporter!")
