@@ -1441,7 +1441,7 @@ class ROM(Dummy):
       @ Out, None
     """
     # save reseeding parameters from pickledROM
-    loadSettings = obj.initializationOptionDict
+    loadSettings = self.initializationOptionDict
     # train the ROM from the unpickled object
     self.train(obj)
     self.setAdditionalParams(loadSettings)
