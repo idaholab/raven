@@ -1686,7 +1686,7 @@ class Categorical(Distribution):
     for idx, val in enumerate(inputDict['xAxis']):
       self.mapping[val] = inputDict['pAxis'][idx]
       self.values.add(val)
-    
+
     self.initializeDistribution()
 
   def initializeDistribution(self):
