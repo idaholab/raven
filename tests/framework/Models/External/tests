@@ -16,8 +16,8 @@
  [../]
  [./loadFMU]
   type = 'RavenPython'
-  input = 'testMathUtils.py'
-  text = 'attenuate_pk2.txt'
+  input = 'load_and_run_fmu.py'
+  Output = 'SerializeWrkd/attenuate_pk2.txt'
   prereq = fmu_ext_model
   required_libraries = 'fmpy'
  [../] 
