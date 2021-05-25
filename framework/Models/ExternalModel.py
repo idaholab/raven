@@ -111,7 +111,6 @@ class ExternalModel(Dummy):
       @ In, inputs, list, it is a list containing whatever is passed with an input role in the step
       @ In, initDict, dict, optional, dictionary of all objects available in the step is using this model
     """
-    # self.sim=__import__(self.ModuleToLoad)
     for key in self.modelVariableType.keys():
       self.modelVariableType[key] = None
     if 'initialize' in dir(self.sim):
@@ -316,7 +315,6 @@ class ExternalModel(Dummy):
     Input = self.createNewInput(myInput, samplerType, **kwargs)
     inRun = copy.copy(self._manipulateInput(Input[0][0]))
     # collect results from model run
-    #result,instSelf = self._externalRun(inRun,Input[1],) #entry [1] is the external model object; it doesn't appear to be needed
     result,instSelf = self._externalRun(inRun,)
     evalIndexMap = result.get('_indexMap', [{}])[0]
     # build realization

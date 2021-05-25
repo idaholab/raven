@@ -151,9 +151,10 @@ class IOStep(Step):
       # from anything else to anything else
       else:
         self.raiseAnError(IOError,
-                          'In Step "{name}": This step accepts only {okay} as Input. Received "{received}" instead!'
+                          'In Step "{name}": This step accepts only {okay} as Input. Received "{input_name}" of type "{received}" instead!'
                           .format(name = self.name,
                                   okay = 'Database, DataObjects, ROM, or Files',
+                                  input_name = inDictionary['Input'][i].name,
                                   received = inDictionary['Input'][i].type))
     # check actionType for fromDirectory
     if self.fromDirectory and len(self.actionType) == 0:
@@ -236,18 +237,18 @@ class IOStep(Step):
         fileobj = inDictionary['Input'][i]
         unpickledObj = pickle.load(open(fileobj.getAbsFile(),'rb+'))
         if not isinstance(unpickledObj,Models.ROM) and not isinstance(unpickledObj,Models.ExternalModel):
-        ## DEBUGG
-        # the following will iteratively check the size of objects being unpickled
-        # this is quite useful for finding memory crashes due to parallelism
-        # so I'm leaving it here for reference
-        # print('CHECKING SIZE OF', unpickledObj)
-        # target = unpickledObj# .supervisedEngine.supervisedContainer[0]._macroSteps[2025]._roms[0]
-        # print('CHECKING SIZES')
-        # from utils.Debugging import checkSizesWalk
-        # checkSizesWalk(target, 1, str(type(target)), tol=2e4)
-        # print('*'*80)
-        # crashme
-        ## /DEBUGG
+          ## DEBUGG
+          # the following will iteratively check the size of objects being unpickled
+          # this is quite useful for finding memory crashes due to parallelism
+          # so I'm leaving it here for reference
+          # print('CHECKING SIZE OF', unpickledObj)
+          # target = unpickledObj# .supervisedEngine.supervisedContainer[0]._macroSteps[2025]._roms[0]
+          # print('CHECKING SIZES')
+          # from utils.Debugging import checkSizesWalk
+          # checkSizesWalk(target, 1, str(type(target)), tol=2e4)
+          # print('*'*80)
+          # crashme
+          ## /DEBUGG
           self.raiseAnError(RuntimeError,'Pickled object in "%s" is not a ROM.  Exiting ...' %str(fileobj))
         if isinstance(unpickledObj,Models.ROM) and not unpickledObj.amITrained:
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %unpickledObj.name)
