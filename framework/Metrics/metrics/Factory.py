@@ -17,9 +17,8 @@ Created on Jul 18 2016
 @author: mandd
 """
 from EntityFactoryBase import EntityFactory
-from utils import utils
 
-from .Metric import Metric
+from .MetricInterface import MetricInterface
 from .DTW import DTW
 from .SklMetric import SKL
 from .PairwiseMetric import PairwiseMetric
@@ -27,5 +26,6 @@ from .CDFAreaDifference import CDFAreaDifference
 from .PDFCommonArea import PDFCommonArea
 from .ScipyMetric import ScipyMetric
 
-factory = EntityFactory('Metric')
-factory.registerAllSubtypes(Metric)
+factory = EntityFactory('Metrics')
+factory.registerAllSubtypes(MetricInterface)
+print('')

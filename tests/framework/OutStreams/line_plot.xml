@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity = 'debug'>
-
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework/OutStreams.line</name>
     <author>wangc</author>
@@ -23,14 +22,14 @@
 
   <Steps>
     <MultiRun name="generate_data">
-      <Input   class="DataObjects"  type="PointSet"       >placeholder</Input>
-      <Model   class="Models"       type="ExternalModel"  >projectile</Model>
-      <Sampler class="Samplers"     type="MonteCarlo"     >my_mc</Sampler>
-      <Output  class="DataObjects"  type="HistorySet"     >results</Output>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers" type="MonteCarlo">my_mc</Sampler>
+      <Output class="DataObjects" type="HistorySet">results</Output>
     </MultiRun>
     <IOStep name="plot">
-      <Input   class="DataObjects"  type="HistorySet"     >results</Input>
-      <Output  class="OutStreams"   type="Plot"           >to_plot</Output>
+      <Input class="DataObjects" type="HistorySet">results</Input>
+      <Output class="OutStreams" type="Plot">to_plot</Output>
     </IOStep>
   </Steps>
 
@@ -90,7 +89,7 @@
   </DataObjects>
 
   <OutStreams>
-    <Plot  name="to_plot">
+    <Plot name="to_plot">
       <filename>test_filename</filename>
       <plotSettings>
         <plot>

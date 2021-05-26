@@ -42,9 +42,9 @@ class MetricDistributor(utils.metaclass_insert(abc.ABCMeta,BaseType), MessageUse
       @ Out, None
     """
     super().__init__()
-    self.printTag                = 'MetricDistributor'
+    self.printTag = 'MetricDistributor'
     # instance of given Metric
-    self.estimator                = estimator
+    self.estimator = estimator
     # True if the instance of given metric, i.e. 'estimator', can handle time-dependent data, else False
     self.canHandleDynamicData = self.estimator.isDynamic()
     # True if the instance of given metric, i.e. 'estimator', can handle pairwise data, else False

@@ -25,10 +25,10 @@
 
   <Models>
     <PostProcessor name="delayPP" subType="HistorySetDelay">
-      <delay original="first" new="first_d1" steps="-1" default="0.0"/>
-      <delay original="first" new="first_d4" steps="-4" default="0.0"/>
-      <delay original="second" new="second_d1" steps="-1" default="3.14159"/>
-      <delay original="second" new="second_f2" steps="2" default="6.28319"/>
+      <delay default="0.0" new="first_d1" original="first" steps="-1"/>
+      <delay default="0.0" new="first_d4" original="first" steps="-4"/>
+      <delay default="3.14159" new="second_d1" original="second" steps="-1"/>
+      <delay default="6.28319" new="second_f2" original="second" steps="2"/>
     </PostProcessor>
   </Models>
 

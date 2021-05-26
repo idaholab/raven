@@ -13,19 +13,22 @@
       <revision author="wangc" date="2018-12-13">
           In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
           the pointwise metadata, and will be printed out in the output csv files by default.
-          In this case, the time dependent standard errors will be printed out. 
+          In this case, the time dependent standard errors will be printed out.
       </revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>basicStatisticsTimeDependent</WorkingDir>
     <Sequence>FirstMRun,timeDepBasicStatPP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <Files>
-      <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
-      <Input name="samples.csv" type="">samples.csv</Input>
+    <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
+    <Input name="samples.csv" type="">samples.csv</Input>
   </Files>
+
   <Models>
     <ExternalModel ModuleToLoad="basicStatisticsExternalModelTest" name="PythonModule" subType="">
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
@@ -89,9 +92,9 @@
       <Input>x0,y0,z0</Input>
       <Output>time,x,y,z</Output>
     </HistorySet>
-    <DataSet name='basicStatSet'>
-        <Output>
-            variance, 
+    <DataSet name="basicStatSet">
+      <Output>
+            variance,
             covariance,
             percentile,
             pearson,
@@ -103,8 +106,8 @@
             samples,
             median
         </Output>
-        <Index var='time'>
-            variance, 
+      <Index var="time">
+            variance,
             covariance,
             percentile,
             pearson,
@@ -116,8 +119,8 @@
             median,
             samples
         </Index>
-        <Index var='targets'>
-            variance, 
+      <Index var="targets">
+            variance,
             covariance,
             percentile,
             pearson,
@@ -129,11 +132,11 @@
             samples,
             median
         </Index>
-        <Index var='features'>
+      <Index var="features">
             covariance,
             pearson
         </Index>
-        <Index var='percent'>percentile</Index>
+      <Index var="percent">percentile</Index>
     </DataSet>
   </DataObjects>
 

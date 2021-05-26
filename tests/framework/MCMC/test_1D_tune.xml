@@ -104,17 +104,14 @@
       <Input>xin</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-
     <PointSet name="outSet">
       <Input>xin</Input>
       <Output>zout</Output>
     </PointSet>
-
     <PointSet name="out_export">
       <Input>traceID</Input>
       <Output>xin, LogPosterior, AcceptRate, zout</Output>
     </PointSet>
-
     <PointSet name="posterior_basicStat">
       <Output>mean_xin, sigma_xin</Output>
     </PointSet>

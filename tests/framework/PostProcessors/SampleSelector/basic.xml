@@ -18,7 +18,7 @@
       SampleSelector postprocessor is called several times, testing each of the selection methods.
     </description>
     <revisions>
-      <revision date="2018-11-06" author="talbpaul">added index selection method to test</revision>
+      <revision author="talbpaul" date="2018-11-06">added index selection method to test</revision>
     </revisions>
   </TestInfo>
 
@@ -35,10 +35,9 @@
       <criterion> max </criterion>
     </PostProcessor>
     <PostProcessor name="PPindex" subType="SampleSelector" verbosity="debug">
-      <criterion value='3'> index </criterion>
+      <criterion value="3"> index </criterion>
     </PostProcessor>
   </Models>
-
 
   <Distributions>
     <Normal name="x0_distrib">

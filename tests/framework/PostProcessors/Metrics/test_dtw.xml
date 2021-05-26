@@ -9,7 +9,7 @@
       This test checks the Metric PostProcessor with DTW metric
     </description>
     <revisions>
-      <revision author='talbpaul' date='2019-01-09'>no writing directly to files from postprocessors</revision>
+      <revision author="talbpaul" date="2019-01-09">no writing directly to files from postprocessors</revision>
     </revisions>
   </TestInfo>
 
@@ -29,20 +29,20 @@
     <PostProcessor name="pp1" subType="Metric">
       <Features type="variable">x1,y1,z1</Features>
       <Targets type="variable">x2,y2,z2</Targets>
-      <Metric class="Metrics" type="DTW">dtwI</Metric>
-      <Metric class="Metrics" type="DTW">dtwII</Metric>
+      <Metric class="Metrics" type="Metric">dtwI</Metric>
+      <Metric class="Metrics" type="Metric">dtwII</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-      <DTW name="dtwI">
-          <order>0</order>
-          <localDistance>euclidean</localDistance>
-      </DTW>
-      <DTW name="dtwII">
-          <order>1</order>
-          <localDistance>euclidean</localDistance>
-      </DTW>
+    <Metric name="dtwI" subType="DTW">
+      <order>0</order>
+      <localDistance>euclidean</localDistance>
+    </Metric>
+    <Metric name="dtwII" subType="DTW">
+      <order>1</order>
+      <localDistance>euclidean</localDistance>
+    </Metric>
   </Metrics>
 
   <DataObjects>
@@ -51,7 +51,7 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="pp1_out">
-        <Output>
+      <Output>
             dtwI_x2_x1,
             dtwI_y2_y1,
             dtwI_z2_z1,
@@ -112,16 +112,16 @@
 
   <Steps>
     <MultiRun name="mcRun1" re-seeding="20021986">
-      <Input     class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
-      <Model     class="Models"           type="ExternalModel"  >PythonModule1</Model>
-      <Sampler   class="Samplers"         type="MonteCarlo"     >MC_external</Sampler>
-      <Output    class="DataObjects"      type="HistorySet"     >outMC1</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule1</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">outMC1</Output>
     </MultiRun>
     <MultiRun name="mcRun2" re-seeding="13010405">
-      <Input     class="DataObjects"      type="PointSet"       >inputPlaceHolder</Input>
-      <Model     class="Models"           type="ExternalModel"  >PythonModule2</Model>
-      <Sampler   class="Samplers"         type="MonteCarlo"     >MC_external</Sampler>
-      <Output    class="DataObjects"      type="HistorySet"     >outMC2</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule2</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="HistorySet">outMC2</Output>
     </MultiRun>
     <PostProcess name="PP1">
       <Input class="DataObjects" type="HistorySet">outMC1</Input>

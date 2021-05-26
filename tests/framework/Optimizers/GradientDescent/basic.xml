@@ -41,7 +41,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='beale_dist'>
+    <Uniform name="beale_dist">
       <lowerBound>-4.5</lowerBound>
       <upperBound>4.5</upperBound>
     </Uniform>
@@ -85,7 +85,7 @@
       <acceptance>
         <Strict/>
       </acceptance>
-      <constant name='const'>3.14</constant>
+      <constant name="const">3.14</constant>
     </GradientDescent>
   </Optimizers>
 

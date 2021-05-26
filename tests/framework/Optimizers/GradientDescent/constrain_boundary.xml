@@ -36,7 +36,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='slant_dist'>
+    <Uniform name="slant_dist">
       <lowerBound>0</lowerBound>
       <upperBound>1</upperBound>
     </Uniform>

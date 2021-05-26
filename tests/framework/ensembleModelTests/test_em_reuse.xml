@@ -10,6 +10,7 @@
        This test is aimed to fix the bug reported in issue #859.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>checkReusability</WorkingDir>
     <Sequence>mrun1,mrun1,dumpResults</Sequence>
@@ -51,36 +52,35 @@
     <ExternalModel ModuleToLoad="../Models/rho" name="Rho" subType="">
       <variables>D, I</variables>
     </ExternalModel>
-
     <EnsembleModel name="testConfig" subType="">
       <Model class="Models" type="ExternalModel">
         Alpha
-        <Input   class="DataObjects" type="PointSet"      >inputAlpha</Input>
+        <Input class="DataObjects" type="PointSet">inputAlpha</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataAlpha</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         Beta
-        <Input   class="DataObjects" type="PointSet"      >inputBeta</Input>
+        <Input class="DataObjects" type="PointSet">inputBeta</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataBeta</TargetEvaluation>
       </Model>
       <Model class="Models" type="ExternalModel">
         Delta
-        <Input   class="DataObjects" type="PointSet"      >inputDelta</Input>
+        <Input class="DataObjects" type="PointSet">inputDelta</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataDelta</TargetEvaluation>
       </Model>
-      <Model class="Models"  type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
         Gamma
-        <Input   class="DataObjects" type="PointSet"      >inputGamma</Input>
+        <Input class="DataObjects" type="PointSet">inputGamma</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataGamma</TargetEvaluation>
       </Model>
-      <Model class="Models"  type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
         Epsilon
-        <Input   class="DataObjects" type="PointSet"      >inputEpsilon</Input>
+        <Input class="DataObjects" type="PointSet">inputEpsilon</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataEpsilon</TargetEvaluation>
       </Model>
-      <Model class="Models"  type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
         Rho
-        <Input   class="DataObjects" type="PointSet"      >inputRho</Input>
+        <Input class="DataObjects" type="PointSet">inputRho</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">dataRho</TargetEvaluation>
       </Model>
     </EnsembleModel>
@@ -105,18 +105,17 @@
 
   <Steps>
     <MultiRun name="mrun1" re-seeding="200286">
-      <Input   class="DataObjects" type="PointSet"      >inputAlpha</Input>
-      <Input   class="DataObjects" type="PointSet"      >inputBeta</Input>
-      <Input   class="DataObjects" type="PointSet"      >inputGamma</Input>
-      <Input   class="DataObjects" type="PointSet"      >inputDelta</Input>
-      <Model   class="Models"      type="EnsembleModel" >testConfig</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"    >MC1</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >metaModelData</Output>
+      <Input class="DataObjects" type="PointSet">inputAlpha</Input>
+      <Input class="DataObjects" type="PointSet">inputBeta</Input>
+      <Input class="DataObjects" type="PointSet">inputGamma</Input>
+      <Input class="DataObjects" type="PointSet">inputDelta</Input>
+      <Model class="Models" type="EnsembleModel">testConfig</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC1</Sampler>
+      <Output class="DataObjects" type="PointSet">metaModelData</Output>
     </MultiRun>
-
     <IOStep name="dumpResults">
-      <Input  class="DataObjects"  type="PointSet"      >metaModelData</Input>
-      <Output class="OutStreams"   type="Print"          >printData</Output>
+      <Input class="DataObjects" type="PointSet">metaModelData</Input>
+      <Output class="OutStreams" type="Print">printData</Output>
     </IOStep>
   </Steps>
 
@@ -153,7 +152,6 @@
       <Input>D</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-
     <PointSet name="dataAlpha">
       <Input>A,B</Input>
       <Output>C</Output>

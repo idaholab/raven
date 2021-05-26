@@ -20,6 +20,7 @@
     </revisions>
     <requirements>R-IS-8</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>InternalParallelScikit</WorkingDir>
     <Sequence>step1,step2,step3,step4</Sequence>

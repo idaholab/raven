@@ -50,8 +50,8 @@
     <PostProcessor name="mampp2" subType="HistorySetSnapShot">
       <type>mixed</type>
       <average>x</average>
-      <value pivotVar="time" pivotVal="0.245">y</value>
-      <value pivotVar="x" pivotVal="4.0">z</value>
+      <value pivotVal="0.245" pivotVar="time">y</value>
+      <value pivotVal="4.0" pivotVar="x">z</value>
       <pivotParameter>time</pivotParameter>
       <extension>zeroed</extension>
       <numberOfSamples>5</numberOfSamples>

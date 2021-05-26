@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-
   <TestInfo>
     <name>framework/DataObjects.load_print_large_num_vars</name>
     <author>wangc</author>
@@ -10,11 +9,11 @@
         Test to check the performance of load and print of DataSet
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <WorkingDir>originalModelCSV</WorkingDir>
     <Sequence>
-        load, PP, print 
+        load, PP, print
     </Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -74,4 +73,5 @@
       <source>timeDepBasicStat_basicStatPP</source>
     </Print>
   </OutStreams>
+
 </Simulation>

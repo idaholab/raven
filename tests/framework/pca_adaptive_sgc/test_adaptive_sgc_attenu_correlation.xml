@@ -9,7 +9,7 @@
       Tests use of the PCA method for adaptive sparse grids on exponential decay models with nonzero covariance.
     </description>
     <revisions>
-      <revision author='talbpaul' date='2019-01-08'>moving from ROM-file to ROM-dataobject</revision>
+      <revision author="talbpaul" date="2019-01-08">moving from ROM-file to ROM-dataobject</revision>
     </revisions>
   </TestInfo>
 

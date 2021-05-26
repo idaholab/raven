@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors/ValueDuration.Basic</name>
@@ -51,8 +52,8 @@
           <x>durations|Output|counts_Speed</x>
           <y>durations|Output|bins_Speed</y>
         </plot>
-          <xlabel>Number Exceeding Value</xlabel>
-          <ylabel>Value</ylabel>
+        <xlabel>Number Exceeding Value</xlabel>
+        <ylabel>Value</ylabel>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -75,4 +76,5 @@
       </options>
     </HistorySet>
   </DataObjects>
+
 </Simulation>

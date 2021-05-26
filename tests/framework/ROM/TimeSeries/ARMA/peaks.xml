@@ -41,7 +41,6 @@
       <Input class="DataObjects" type="HistorySet">synData</Input>
       <Output class="OutStreams" type="Print">synthetic</Output>
     </IOStep>
-
   </Steps>
 
   <Files>
@@ -70,11 +69,10 @@
         <subspace pivotLength="120" shift="first">Time</subspace>
       </Segment>
       <preserveInputCDF>True</preserveInputCDF>
-      <Peaks target='Signal' threshold='2' period='24'>
-        <window width='4' >-2,3</window>
-        <window width='5' >12,16</window>
+      <Peaks period="24" target="Signal" threshold="2">
+        <window width="4">-2,3</window>
+        <window width="5">12,16</window>
       </Peaks>
-
     </ROM>
   </Models>
 
@@ -83,13 +81,11 @@
       <type>csv</type>
       <source>romMeta</source>
     </Print>
-
     <Print name="synthetic">
       <type>csv</type>
       <source>synData</source>
       <what>input, output</what>
     </Print>
-
   </OutStreams>
 
   <DataObjects>

@@ -5,6 +5,7 @@
     <batchSize>1</batchSize>
     <Sequence>sample,print</Sequence>
   </RunInfo>
+
   <TestInfo>
     <name>framework/pca_sparseGrid/attenuCorrelationMC</name>
     <author>wangc</author>
@@ -15,7 +16,7 @@
       using correlated multivariate normal distributions.
     </description>
     <analytic>
-      This test is analytic in mean and variance using the "attenuation" analytic model
+      This test is analytic in mean and variance using the &quot;attenuation&quot; analytic model
       documented in the analytic tests.
     </analytic>
   </TestInfo>

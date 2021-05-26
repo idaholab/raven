@@ -15,61 +15,67 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
-	<RunInfo>
-		<WorkingDir>plot</WorkingDir>
-		<Sequence>SampleAModel</Sequence>
-		<batchSize>1</batchSize>
-	</RunInfo>
-	<Steps>
-		<MultiRun name="SampleAModel" pauseAtEnd="False">
-			<Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-			<Model class="Models" type="ExternalModel">PythonModule</Model>
-			<Sampler class="Samplers" type="Grid">Grid_function</Sampler>
-			<Output class="DataObjects" type="PointSet">outGRID</Output>
-			<Output class="OutStreams" type="Plot">plotResponse</Output>
-		</MultiRun>
-	</Steps>
-	<Models>
-		<ExternalModel name="PythonModule" subType="" ModuleToLoad="interactiveModel">
-			<variables>x1,x2,y</variables>
-		</ExternalModel>
-	</Models>
-	<Distributions>
-		<Uniform name="uniform">
-			<upperBound>2</upperBound>
-			<lowerBound>0</lowerBound>
-		</Uniform>
-	</Distributions>
-	<Samplers>
-		<Grid name="Grid_function">
-			<variable name="x1">
-				<distribution>uniform</distribution>
-				<grid type="value" construction="equal" steps="2">0 2</grid>
-			</variable>
-			<variable name="x2">
-				<distribution>uniform</distribution>
-				<grid type="value" construction="equal" steps="2">0 2</grid>
-			</variable>
-		</Grid>
-	</Samplers>
-	<OutStreams>
-	 <Plot name="plotResponse"   overwrite="False">
-		<plotSettings>
-		  <plot>
-			<type>scatter</type>
-			<x>outGRID|Input|x1</x>
-			<y>outGRID|Input|x2</y>
-			<z>outGRID|Output|y</z>
-			<colorMap>outGRID|Output|y</colorMap>
-            <range>
+
+  <RunInfo>
+    <WorkingDir>plot</WorkingDir>
+    <Sequence>SampleAModel</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="SampleAModel" pauseAtEnd="False">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="Grid">Grid_function</Sampler>
+      <Output class="DataObjects" type="PointSet">outGRID</Output>
+      <Output class="OutStreams" type="Plot">plotResponse</Output>
+    </MultiRun>
+  </Steps>
+
+  <Models>
+    <ExternalModel ModuleToLoad="interactiveModel" name="PythonModule" subType="">
+      <variables>x1,x2,y</variables>
+    </ExternalModel>
+  </Models>
+
+  <Distributions>
+    <Uniform name="uniform">
+      <upperBound>2</upperBound>
+      <lowerBound>0</lowerBound>
+    </Uniform>
+  </Distributions>
+
+  <Samplers>
+    <Grid name="Grid_function">
+      <variable name="x1">
+        <distribution>uniform</distribution>
+        <grid construction="equal" steps="2" type="value">0 2</grid>
+      </variable>
+      <variable name="x2">
+        <distribution>uniform</distribution>
+        <grid construction="equal" steps="2" type="value">0 2</grid>
+      </variable>
+    </Grid>
+  </Samplers>
+
+  <OutStreams>
+    <Plot name="plotResponse" overwrite="False">
+      <plotSettings>
+        <plot>
+          <type>scatter</type>
+          <x>outGRID|Input|x1</x>
+          <y>outGRID|Input|x2</y>
+          <z>outGRID|Output|y</z>
+          <colorMap>outGRID|Output|y</colorMap>
+          <range>
             <xmin>0.0</xmin>
             <xmax>2.0</xmax>
             <ymin>0.0</ymin>
             <ymax>2.0</ymax>
             <zmin>0.0</zmin>
             <zmax>6.0</zmax>
-            </range>
-          </plot>
+          </range>
+        </plot>
         <xlabel>x1</xlabel>
         <ylabel>x2</ylabel>
         <zlabel>y</zlabel>

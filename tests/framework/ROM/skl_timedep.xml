@@ -1,4 +1,5 @@
-<Simulation verbosity='debug'>
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
   <TestInfo>
     <name>framework.ROM.SKL_time</name>
     <author>talbpaul</author>
@@ -71,7 +72,7 @@
   </DataObjects>
 
   <Models>
-    <ExternalModel name="projectile" ModuleToLoad="projectile" subType="">
+    <ExternalModel ModuleToLoad="projectile" name="projectile" subType="">
       <variables>v0,y0,ang,x,y,time</variables>
     </ExternalModel>
     <ROM name="knn" subType="SciKitLearn">
@@ -97,7 +98,7 @@
     <Grid name="grid">
       <variable name="v0">
         <distribution>v0_dist</distribution>
-        <grid construction='equal' type='CDF' steps='2'>0 1</grid>
+        <grid construction="equal" steps="2" type="CDF">0 1</grid>
       </variable>
       <constant name="y0">0</constant>
       <constant name="ang">45</constant>
@@ -125,4 +126,5 @@
       <type>csv</type>
     </Print>
   </OutStreams>
+
 </Simulation>

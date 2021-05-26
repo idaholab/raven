@@ -17,9 +17,9 @@
       of SingleRun.
     </description>
   </TestInfo>
-  
+
   <Files>
-      <Input name="referenceInput.xml" type="input">
+    <Input name="referenceInput.xml" type="input">
           ../commonFiles/referenceInput.xml
       </Input>
   </Files>
@@ -46,14 +46,15 @@
 
   <DataObjects>
     <HistorySet name="history">
-        <Input>InputPlaceHolder</Input>
-        <Output>A,B,C,D,time</Output>
+      <Input>InputPlaceHolder</Input>
+      <Output>A,B,C,D,time</Output>
     </HistorySet>
   </DataObjects>
+
   <OutStreams>
     <Print name="print_history">
-        <type>csv</type>
-        <source>history</source>
+      <type>csv</type>
+      <source>history</source>
     </Print>
   </OutStreams>
 

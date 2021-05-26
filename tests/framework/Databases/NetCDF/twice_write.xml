@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Databases/NetCDF.TwiceWrite</name>
@@ -50,13 +51,13 @@
 
   <DataObjects>
     <PointSet name="placeholder"/>
-    <DataSet name='nd_data1'>
+    <DataSet name="nd_data1">
       <Input>a,b,c</Input>
       <Output>d,e,f</Output>
       <Index var="x">e,f</Index>
       <Index var="y">f</Index>
     </DataSet>
-    <DataSet name='nd_data2'>
+    <DataSet name="nd_data2">
       <Input>a,b,c</Input>
       <Output>d,e,f</Output>
       <Index var="x">e,f</Index>
@@ -65,10 +66,10 @@
   </DataObjects>
 
   <Databases>
-    <NetCDF name="io_io" readMode="overwrite" directory=''/>
-    <NetCDF name="io_sample" readMode="overwrite" directory=''/>
-    <NetCDF name="sample_io" readMode="overwrite" directory=''/>
-    <NetCDF name="sample_sample" readMode="overwrite" directory=''/>
+    <NetCDF directory="" name="io_io" readMode="overwrite"/>
+    <NetCDF directory="" name="io_sample" readMode="overwrite"/>
+    <NetCDF directory="" name="sample_io" readMode="overwrite"/>
+    <NetCDF directory="" name="sample_sample" readMode="overwrite"/>
   </Databases>
 
   <Models>

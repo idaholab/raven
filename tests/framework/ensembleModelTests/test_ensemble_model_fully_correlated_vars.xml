@@ -12,6 +12,7 @@
       <revision author="alfoa" date="2017-12-07">Added the test</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <JobName>ensembleModelFullyCorrVars</JobName>
     <Sequence>

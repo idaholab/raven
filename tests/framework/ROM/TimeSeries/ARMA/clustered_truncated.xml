@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/ARMA.ClusteredTruncated</name>
@@ -5,8 +6,8 @@
     <created>2018-11-20</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-      Tests the mechanics of clusterering the "time" subspace of the ARMA ROM.
-      Resulting histories are represented in the "truncated" format, where each
+      Tests the mechanics of clusterering the &quot;time&quot; subspace of the ARMA ROM.
+      Resulting histories are represented in the &quot;truncated&quot; format, where each
       cluster is placed sequentially one after another.
     </description>
   </TestInfo>
@@ -71,9 +72,9 @@
       <Q>0</Q>
       <Fourier>100, 5, 3</Fourier>
       <preserveInputCDF>True</preserveInputCDF>
-      <Segment grouping='cluster'>
-        <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
-        <subspace divisions='10'>Time</subspace>
+      <Segment grouping="cluster">
+        <Classifier class="Models" type="PostProcessor">classifier</Classifier>
+        <subspace divisions="10">Time</subspace>
         <clusterFeatures>fourier</clusterFeatures>
         <evalMode>truncated</evalMode>
       </Segment>
@@ -88,7 +89,7 @@
   </Models>
 
   <Samplers>
-    <MonteCarlo name='mc'>
+    <MonteCarlo name="mc">
       <samplerInit>
         <limit>3</limit>
       </samplerInit>
@@ -106,4 +107,5 @@
       <source>synthetic</source>
     </Print>
   </OutStreams>
+
 </Simulation>

@@ -21,20 +21,20 @@
   </Files>
 
   <Steps>
-    <IOStep name='readIn' pauseAtEnd = 'True'>
-      <Input    class = 'Files'             type = ''              >windTypDataFile</Input>
-      <Output   class = 'DataObjects'       type = 'HistorySet'       >windTypData</Output>
-	</IOStep>
-	<PostProcess name="pp">
-      <Input   class="DataObjects"  type="HistorySet"    >windTypData</Input>
-      <Model   class="Models"       type="PostProcessor" >historySamplingPP</Model>
-      <Output  class="DataObjects"  type="HistorySet"    >windTypDataResampled</Output>
-      <Output  class="OutStreams"   type="Print"         >dump_interval_average</Output>
+    <IOStep name="readIn" pauseAtEnd="True">
+      <Input class="Files" type="">windTypDataFile</Input>
+      <Output class="DataObjects" type="HistorySet">windTypData</Output>
+    </IOStep>
+    <PostProcess name="pp">
+      <Input class="DataObjects" type="HistorySet">windTypData</Input>
+      <Model class="Models" type="PostProcessor">historySamplingPP</Model>
+      <Output class="DataObjects" type="HistorySet">windTypDataResampled</Output>
+      <Output class="OutStreams" type="Print">dump_interval_average</Output>
     </PostProcess>
     <IOStep name="plot">
-      <Input   class="DataObjects"  type="HistorySet"    >windTypData</Input>
-      <Input   class="DataObjects"  type="HistorySet"    >windTypDataResampled</Input>
-      <Output  class="OutStreams"   type="Plot"          >plot_interval_average</Output>
+      <Input class="DataObjects" type="HistorySet">windTypData</Input>
+      <Input class="DataObjects" type="HistorySet">windTypDataResampled</Input>
+      <Output class="OutStreams" type="Plot">plot_interval_average</Output>
     </IOStep>
   </Steps>
 
@@ -52,7 +52,7 @@
       <type>csv</type>
       <source>windTypDataResampled</source>
     </Print>
-    <Plot  name="plot_interval_average" overwrite="False">
+    <Plot name="plot_interval_average" overwrite="False">
       <plotSettings>
         <plot>
           <type>line</type>
@@ -78,17 +78,17 @@
 
   <DataObjects>
     <HistorySet name="windTypData">
-       <Input>x</Input>
+      <Input>x</Input>
       <Output>Time,Speed</Output>
       <options>
         <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
-	<HistorySet name="windTypDataResampled">
+    <HistorySet name="windTypDataResampled">
       <Input>x</Input>
       <Output>Time,Speed</Output>
       <options>
-	<pivotParameter>Time</pivotParameter>
+        <pivotParameter>Time</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>

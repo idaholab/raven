@@ -7,7 +7,7 @@
     <classesTested>Models.ROM</classesTested>
     <description>
       Test the capability of multilayer perceptron classifier (mlpc) using TensorFlow/Keras
-      The train (row 1-728) and test (row 729-768) data are generated from  "Pima Indians Diabetes Database".
+      The train (row 1-728) and test (row 729-768) data are generated from  &quot;Pima Indians Diabetes Database&quot;.
       CustomSampler is used to convert the csv format data into PointSet, and it is also used to test the trained
       mlpc with the test data. (https://www.kaggle.com/kumargh/pimaindiansdiabetescsv)
     </description>
@@ -113,21 +113,21 @@
       <validation_split>0.25</validation_split>
       <random_seed>1986</random_seed>
       <Dense name="layer1">
-          <activation>relu</activation>
-          <dim_out>12</dim_out>
+        <activation>relu</activation>
+        <dim_out>12</dim_out>
       </Dense>
       <Dropout name="dropout1">
-          <rate>0.2</rate>
+        <rate>0.2</rate>
       </Dropout>
       <Dense name="layer2">
-          <activation>relu</activation>
-          <dim_out>8</dim_out>
+        <activation>relu</activation>
+        <dim_out>8</dim_out>
       </Dense>
       <Dropout name="dropout2">
-          <rate>0.2</rate>
+        <rate>0.2</rate>
       </Dropout>
       <Dense name="outLayer">
-          <activation>sigmoid</activation>
+        <activation>sigmoid</activation>
       </Dense>
       <optimizerSetting>
         <beta_1>0.9</beta_1>
@@ -153,4 +153,5 @@
       <source>rom_stats</source>
     </Print>
   </OutStreams>
+
 </Simulation>

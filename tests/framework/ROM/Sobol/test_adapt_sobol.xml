@@ -13,7 +13,7 @@
       section of the analytic tests manual.
     </analytic>
     <revisions>
-      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+      <revision author="talbpaul" date="2018-12-20">moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
     </revisions>
   </TestInfo>
 

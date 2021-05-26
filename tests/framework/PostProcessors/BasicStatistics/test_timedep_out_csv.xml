@@ -21,7 +21,7 @@
           In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
           the pointwise metadata, and will be printed out in the output csv files by default.
           In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
-          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
       </revision>
     </revisions>
   </TestInfo>
@@ -185,60 +185,61 @@
       </actions>
     </Plot>
     <!--
-    <Plot name="myPlot">
-      <plotSettings>
-        <plot>
-          <type>scatter</type>
-          <x>Out|Input|X1</x>
-          <y>Out|Input|X2</y>
-          <z>Out|Output|Y1</z>
-          <colorMap>Out|Output|Y2</colorMap>
-        </plot>
-        <xlabel>X1</xlabel>
-        <ylabel>X2</ylabel>
-        <zlabel>Y2</zlabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <title>
-          <text>My Plot </text>
-        </title>
-      </actions>
-    </Plot>
-    <Plot name="myPlotTime1">
-      <plotSettings>
-        <plot>
-          <type>scatter</type>
-          <x>OutTime|Output|time</x>
-          <y>OutTime|Output|T1</y>
-        </plot>
-        <xlabel>Time</xlabel>
-        <ylabel>T1</ylabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <title>
-          <text>My Plot Time</text>
-        </title>
-      </actions>
-    </Plot>
-    <Plot name="myPlotTime2">
-      <plotSettings>
-        <plot>
-          <type>scatter</type>
-          <x>OutTime|Output|time</x>
-          <y>OutTime|Output|T2</y>
-        </plot>
-        <xlabel>Time</xlabel>
-        <ylabel>T2</ylabel>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <title>
-          <text>My Plot Time</text>
-        </title>
-      </actions>
-    </Plot> -->
+      <Plot name="myPlot">
+        <plotSettings>
+          <plot>
+            <type>scatter</type>
+            <x>Out|Input|X1</x>
+            <y>Out|Input|X2</y>
+            <z>Out|Output|Y1</z>
+            <colorMap>Out|Output|Y2</colorMap>
+          </plot>
+          <xlabel>X1</xlabel>
+          <ylabel>X2</ylabel>
+          <zlabel>Y2</zlabel>
+        </plotSettings>
+        <actions>
+          <how>png</how>
+          <title>
+            <text>My Plot </text>
+          </title>
+        </actions>
+      </Plot>
+      <Plot name="myPlotTime1">
+        <plotSettings>
+          <plot>
+            <type>scatter</type>
+            <x>OutTime|Output|time</x>
+            <y>OutTime|Output|T1</y>
+          </plot>
+          <xlabel>Time</xlabel>
+          <ylabel>T1</ylabel>
+        </plotSettings>
+        <actions>
+          <how>png</how>
+          <title>
+            <text>My Plot Time</text>
+          </title>
+        </actions>
+      </Plot>
+      <Plot name="myPlotTime2">
+        <plotSettings>
+          <plot>
+            <type>scatter</type>
+            <x>OutTime|Output|time</x>
+            <y>OutTime|Output|T2</y>
+          </plot>
+          <xlabel>Time</xlabel>
+          <ylabel>T2</ylabel>
+        </plotSettings>
+        <actions>
+          <how>png</how>
+          <title>
+            <text>My Plot Time</text>
+          </title>
+        </actions>
+      </Plot>
+    -->
   </OutStreams>
 
   <VariableGroups>

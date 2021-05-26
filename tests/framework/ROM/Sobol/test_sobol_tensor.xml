@@ -9,7 +9,7 @@
       This test checks the operation of the sampler and model, using the tensor sparse grid.
     </description>
     <revisions>
-      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+      <revision author="talbpaul" date="2018-12-20">moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
     </revisions>
   </TestInfo>
 

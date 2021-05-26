@@ -91,12 +91,10 @@
       <Input>xin</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-
     <PointSet name="outSet">
       <Input>xin</Input>
       <Output>zout</Output>
     </PointSet>
-
     <PointSet name="out_export">
       <Input>traceID</Input>
       <Output>xin, LogPosterior, AcceptRate, zout</Output>

@@ -107,7 +107,7 @@
     <DataSet name="rommeta"/>
   </DataObjects>
 
-<OutStreams>
+  <OutStreams>
     <Print name="rommeta">
       <type>csv</type>
       <source>rommeta</source>
@@ -116,6 +116,6 @@
       <type>csv</type>
       <source>signals</source>
     </Print>
-</OutStreams>
+  </OutStreams>
 
 </Simulation>

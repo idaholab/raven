@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors/FastFourierTransform.Basic</name>
@@ -7,11 +8,10 @@
     <description>
       Tests the basic functionality of the FastFourierTransform postprocessor to
       create a frequency-amplitude Fourier analysis of a signal.
-
       The signals are created using Basic/dataGenerator.py, and use analytic Fourier-based signals.
       The first realization uses periods of 4, 8 and 20, and in the second realization the periods
-      are 3.333, 13, and 50. At the corresponding periods (in the "fft_*csv" files, under "signal_fft_period"),
-      there should be a peak in the "signal_fft_amplitude" values.
+      are 3.333, 13, and 50. At the corresponding periods (in the &quot;fft_*csv&quot; files, under &quot;signal_fft_period&quot;),
+      there should be a peak in the &quot;signal_fft_amplitude&quot; values.
     </description>
   </TestInfo>
 
@@ -65,4 +65,5 @@
       </options>
     </HistorySet>
   </DataObjects>
+
 </Simulation>

@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/PolyExponential.PolyExpNearest</name>
@@ -103,7 +103,7 @@
   </Steps>
 
   <OutStreams>
-    <Print name="outputPolyNearest" dir="outputPoly">
+    <Print dir="outputPoly" name="outputPolyNearest">
       <type>csv</type>
       <source>synDataPolyExp</source>
     </Print>

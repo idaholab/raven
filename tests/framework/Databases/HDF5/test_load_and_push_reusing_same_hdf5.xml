@@ -16,6 +16,7 @@
     </revisions>
     <requirements>R-F-6</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>GridTestSameHDF5</WorkingDir>
     <Sequence>test_extract,GridRestarted,test_push</Sequence>
@@ -67,8 +68,8 @@
         <grid construction="equal" steps="1" type="value">3.5 4.0</grid>
       </variable>
       <variable name="TestOnePoint">
-          <distribution>DistTri1</distribution>
-          <grid construction="custom" type="CDF">0.5</grid>
+        <distribution>DistTri1</distribution>
+        <grid construction="custom" type="CDF">0.5</grid>
       </variable>
     </Grid>
   </Samplers>
@@ -99,14 +100,14 @@
       <Output class="OutStreams" type="Print">outGridAverage_dump</Output>
     </IOStep>
     <IOStep name="test_push">
-        <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
-        <Output class="DataObjects" type="PointSet">reloadedPointSet</Output>
-        <Output class="OutStreams" type="Print">reloadedPointSet_dump</Output>
+      <Input class="Databases" type="HDF5">test_DummyModel_db</Input>
+      <Output class="DataObjects" type="PointSet">reloadedPointSet</Output>
+      <Output class="OutStreams" type="Print">reloadedPointSet_dump</Output>
     </IOStep>
   </Steps>
 
   <Databases>
-    <HDF5 name="test_DummyModel_db" directory="../GridTest/DatabaseStorage" readMode="read"/>
+    <HDF5 directory="../GridTest/DatabaseStorage" name="test_DummyModel_db" readMode="read"/>
   </Databases>
 
   <OutStreams>
@@ -126,7 +127,7 @@
       <type>csv</type>
       <source>outGridAverage</source>
     </Print>
-     <Print name="outGridMaxFromHDF5_dump">
+    <Print name="outGridMaxFromHDF5_dump">
       <type>csv</type>
       <source>outGridMaxFromHDF5</source>
     </Print>
@@ -139,10 +140,9 @@
       <source>outGridAverageFromHDF5</source>
     </Print>
     <Print name="reloadedPointSet_dump">
-        <type>csv</type>
-        <source>reloadedPointSet</source>
+      <type>csv</type>
+      <source>reloadedPointSet</source>
     </Print>
-
   </OutStreams>
 
   <DataObjects>
@@ -193,11 +193,11 @@
       </options>
     </PointSet>
     <PointSet name="reloadedPointSet">
-        <Input>VarGauss1,VarGauss2,VarTri1</Input>
-        <Output>OutputPlaceHolder</Output>
-        <options>
-            <operator>average</operator>
-        </options>
+      <Input>VarGauss1,VarGauss2,VarTri1</Input>
+      <Output>OutputPlaceHolder</Output>
+      <options>
+        <operator>average</operator>
+      </options>
     </PointSet>
   </DataObjects>
 

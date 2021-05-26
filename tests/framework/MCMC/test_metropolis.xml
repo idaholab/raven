@@ -54,7 +54,9 @@
         <distribution>normal</distribution>
         <initial>0</initial>
         <proposal class="Distributions" type="Normal">normal</proposal>
-        <!-- <proposal>normal</proposal> -->
+        <!--
+          <proposal>normal</proposal>
+        -->
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
     </Metropolis>
@@ -74,7 +76,9 @@
         <distribution>normal</distribution>
         <initial>0</initial>
         <proposal class="Distributions" type="Normal">normal</proposal>
-        <!-- <proposal>normal</proposal> -->
+        <!--
+          <proposal>normal</proposal>
+        -->
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">solnsRestart</TargetEvaluation>
       <Restart class="DataObjects" type="PointSet">outSet</Restart>
@@ -136,22 +140,18 @@
       <Input>xin, yin</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-
     <PointSet name="outSet">
       <Input>xin, yin</Input>
       <Output>zout</Output>
     </PointSet>
-
     <PointSet name="out_export">
       <Input>traceID</Input>
       <Output>xin, yin</Output>
     </PointSet>
-
     <PointSet name="solnsRestart">
       <Input>xin, yin</Input>
       <Output>zout</Output>
     </PointSet>
-
     <PointSet name="exportRestart">
       <Input>traceID</Input>
       <Output>xin, yin</Output>

@@ -18,36 +18,37 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="sample" re-seeding="2286" >
-      <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
-      <Model          class="Models"      type="ExternalModel"    >Kbase</Model>
-      <Sampler        class="Samplers"    type="MonteCarlo"       >MC</Sampler>
-      <Output         class="DataObjects" type="PointSet"         >MCOut</Output>
+    <MultiRun name="sample" re-seeding="2286">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">Kbase</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="DataObjects" type="PointSet">MCOut</Output>
     </MultiRun>
     <IOStep name="MCprint">
-      <Input          class="DataObjects" type="PointSet"         >MCOut</Input>
-      <Output         class="OutStreams"  type="Print"            >PrintMCOut</Output>
+      <Input class="DataObjects" type="PointSet">MCOut</Input>
+      <Output class="OutStreams" type="Print">PrintMCOut</Output>
     </IOStep>
     <MultiRun name="opt" re-seeding="2286">
-      <Input          class="DataObjects" type="PointSet"         >placeholder</Input>
-      <Model          class="Models"      type="ExternalModel"    >Kbase</Model>
-      <Optimizer      class="Optimizers"  type="GeneticAlgorithm" >GAoptimizer</Optimizer>
-      <SolutionExport class="DataObjects" type="PointSet"         >opt_export</SolutionExport>
-      <Output         class="DataObjects" type="PointSet"         >optOut</Output>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">Kbase</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAoptimizer</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
     </MultiRun>
     <IOStep name="print">
-      <Input  class="DataObjects"  type="PointSet"  >optOut</Input>
-      <Output class="OutStreams"   type="Print"     >PrintOptOut</Output>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">PrintOptOut</Output>
     </IOStep>
     <IOStep name="printExport">
-      <Input  class="DataObjects"  type="PointSet"  >opt_export</Input>
-      <Output class="OutStreams"   type="Print"     >PrintOptOut_export</Output>
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Output class="OutStreams" type="Print">PrintOptOut_export</Output>
     </IOStep>
   </Steps>
 
   <Distributions>
     <UniformDiscrete name="unif_dist_wRepl">
-      <lowerBound>0</lowerBound>   <!-- 0 implies not chosen -->
+      <lowerBound>0</lowerBound>
+      <!-- 0 implies not chosen -->
       <upperBound>1</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
@@ -60,7 +61,6 @@
         <initialSeed>42</initialSeed>
         <writeSteps>final</writeSteps>
       </samplerInit>
-
       <GAparams>
         <populationSize>14</populationSize>
         <reproduction nParents="6">
@@ -78,11 +78,9 @@
         <parentSelection>rouletteWheel</parentSelection>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
-
       <convergence>
         <objective>-1</objective>
       </convergence>
-
       <variable name="proj1">
         <distribution>unif_dist_wRepl</distribution>
         <initial>0,0,0,0,1,0,0,0,0,1,0,0,0,0</initial>
@@ -123,7 +121,6 @@
         <distribution>unif_dist_wRepl</distribution>
         <initial>1,0,0,0,0,1,0,0,0,0,1,0,0,0</initial>
       </variable>
-
       <objective>planValue</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     </GeneticAlgorithm>

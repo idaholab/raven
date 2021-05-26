@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/PolyExponential.PolyExpSpline</name>
@@ -103,7 +103,7 @@
   </Steps>
 
   <OutStreams>
-    <Print name="outputPolySpline" dir="outputPoly">
+    <Print dir="outputPoly" name="outputPolySpline">
       <type>csv</type>
       <source>synDataPolyExp</source>
     </Print>

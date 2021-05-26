@@ -10,10 +10,10 @@
     </description>
     <analytic>
       This test is analytic in the variance, Sobol sensitivities, and mean of the response.  These parameters
-      are documented in the analytic tests documentation under "Second-Order ANOVA of Second-Order Cut-HDMR Expansion of Sudret".
+      are documented in the analytic tests documentation under &quot;Second-Order ANOVA of Second-Order Cut-HDMR Expansion of Sudret&quot;.
     </analytic>
     <revisions>
-      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+      <revision author="talbpaul" date="2018-12-20">moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
     </revisions>
   </TestInfo>
 

@@ -5,6 +5,7 @@
     <Sequence>FirstMRun,timeDepBasicStatPP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics/timeDependent</name>
     <author>alfoa</author>
@@ -19,14 +20,16 @@
           In PR #882, the standard errors on statistics moments are implemented, these quantities are stored in
           the pointwise metadata, and will be printed out in the output csv files by default.
           In order to avoid regolding this test, the optional node 'what' with text values 'input, output' is added.
-          In this case, only the user requested variables as specified in the DataObjects are printed out. 
+          In this case, only the user requested variables as specified in the DataObjects are printed out.
       </revision>
     </revisions>
   </TestInfo>
+
   <Files>
-      <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
-      <Input name="samples.csv" type="">samples.csv</Input>
+    <Input name="basicStatisticsExternalModelTest.py" type="">basicStatisticsExternalModelTest.py</Input>
+    <Input name="samples.csv" type="">samples.csv</Input>
   </Files>
+
   <Models>
     <ExternalModel ModuleToLoad="basicStatisticsExternalModelTest" name="PythonModule" subType="">
       <variables>x,y,z,time,x0,x01,x02,y0,y02,y01,z0,z02,z01</variables>
@@ -91,7 +94,7 @@
       <Output>time,x,y,z</Output>
     </HistorySet>
     <HistorySet name="basicStatHistory">
-        <Output>
+      <Output>
             var_x0,var_y0,var_z0,var_x,var_y,var_z,
             mean_x0, mean_y0, mean_z0, mean_x, mean_y, mean_z,
             sigma_x0, sigma_y0, sigma_z0, sigma_x, sigma_y, sigma_z,
@@ -115,9 +118,9 @@
             pearson_x0_y, pearson_y0_y, pearson_z0_y, pearson_x_y, pearson_y_y, pearson_z_y,
             pearson_x0_z, pearson_y0_z, pearson_z0_z, pearson_x_z, pearson_y_z, pearson_z_z
         </Output>
-        <options>
-            <pivotParameter>time</pivotParameter>
-        </options>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 

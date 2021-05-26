@@ -18,10 +18,10 @@ Created on Jul 18 2016
 """
 import abc
 
-from BaseClasses import BaseEntity
+from BaseClasses import BaseInterface
 from utils import utils
 
-class Metric(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
+class MetricInterface(utils.metaclass_insert(abc.ABCMeta, BaseInterface)):
   """
     This is the general interface to any RAVEN metric object.
     It contains an initialize, a _readMoreXML, and an evaluation (i.e., distance) methods
@@ -36,8 +36,8 @@ class Metric(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(Metric, cls).getInputSpecification()
-
+    inputSpecification = super().getInputSpecification()
+    inputSpecification.name = cls.__name__
     return inputSpecification
 
   def __init__(self):
@@ -48,15 +48,14 @@ class Metric(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
     """
     super().__init__()
     self.type = self.__class__.__name__
-    self.name = self.__class__.__name__
     # If True the metric needs to be able to handle (value,probability) where value and probability are lists
-    self.acceptsProbability  = False
+    self.acceptsProbability = False
     # If True the metric needs to be able to handle a passed in Distribution
     self.acceptsDistribution = False
     # If True the metric needs to be able to handle dynamic data
-    self._dynamicHandling    = False
+    self._dynamicHandling = False
     # If True the metric needs to be able to handle pairwise data
-    self._pairwiseHandling   = False
+    self._pairwiseHandling = False
 
   def initialize(self, inputDict):
     """
@@ -66,16 +65,17 @@ class Metric(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
     """
     pass
 
-  def _readMoreXML(self, xmlNode):
+  def handleInput(self, spec):
     """
-      Method that reads the portion of the xml input that belongs to this specialized class
+      Method that reads the portion of input that belongs to this specialized class
       and initialize internal parameters
-      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ In, spec, InputData.parameterInput, input specs
       @ Out, None
     """
-    self._localReadMoreXML(xmlNode)
+    super().handleInput(spec)
 
-  def evaluate(self, x, y, weights = None, axis = 0, **kwargs):
+  @abc.abstractmethod
+  def run(self, x, y, weights=None, axis=0, **kwargs):
     """
       This method compute the metric between x and y
       @ In, x, numpy.ndarray or instance of Distributions.Distribution, array containing data of x,
@@ -90,9 +90,6 @@ class Metric(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
       @ In, kwargs, dict, dictionary of parameters characteristic of each metric
       @ Out, value, float or numpy.array, metric results between x and y
     """
-    value = self.__evaluateLocal__(x, y, weights=weights, axis = 0, **kwargs)
-
-    return value
 
   def isDynamic(self):
     """
@@ -111,20 +108,3 @@ class Metric(utils.metaclass_insert(abc.ABCMeta, BaseEntity)):
       @ Out, isPairwise, bool, True if the metric is able to handle pairwise data, False otherwise
     """
     return self._pairwiseHandling
-
-  @abc.abstractmethod
-  def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
-    """
-      This method compute the metric between x and y
-      @ In, x, numpy.ndarray or instance of Distributions.Distribution, array containing data of x,
-        or given distribution.
-      @ In, y, numpy.ndarray, or instance of Distributions.Distribution, array containing data of y,
-        or given distribution.
-      @ In, weights, numpy.ndarray, optional,  an array of weights associated with x
-      @ In, axis, integer, optional, axis along which a metric is performed, default is 0,
-        i.e. the metric will performed along the first dimension (the "rows").
-        If metric postprocessor is used, the first dimension is the RAVEN_sample_ID,
-        and the second dimension is the pivotParameter if HistorySet is provided.
-      @ In, kwargs, dict, dictionary of parameters characteristic of each metric
-      @ Out, value, float or numpy.array, metric results between x and y
-    """

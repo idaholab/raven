@@ -35,11 +35,11 @@
   <Optimizers>
     <GradientDescent name="opter">
       <objective>ans</objective>
-      <variable name='x'>
+      <variable name="x">
         <distribution>beale_domain</distribution>
         <initial>-2,-2,2,2</initial>
       </variable>
-      <variable name='y'>
+      <variable name="y">
         <distribution>beale_domain</distribution>
         <initial>-2,2,-2,2</initial>
       </variable>
@@ -68,7 +68,7 @@
   </Optimizers>
 
   <Distributions>
-    <Uniform name='beale_domain'>
+    <Uniform name="beale_domain">
       <lowerBound>-4.5</lowerBound>
       <upperBound>4.5</upperBound>
     </Uniform>

@@ -6,7 +6,7 @@
     <created>2020-06-05</created>
     <classesTested>Distributions.UniformDiscrete</classesTested>
     <description>
-       This test checks the capability of RAVEN to use UniformDiscrete distribution when the 
+       This test checks the capability of RAVEN to use UniformDiscrete distribution when the
        support is float and not integer.
     </description>
   </TestInfo>
@@ -19,14 +19,14 @@
 
   <Steps>
     <MultiRun name="MCrun">
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSet_MC</Output>
     </MultiRun>
     <IOStep name="OutStreams" pauseAtEnd="false">
-      <Input   class="DataObjects" type="PointSet"      >PointSet_MC</Input>
-      <Output  class="OutStreams"  type="Print"         >MC_dumpWOreplecFloat</Output>
+      <Input class="DataObjects" type="PointSet">PointSet_MC</Input>
+      <Output class="OutStreams" type="Print">MC_dumpWOreplecFloat</Output>
     </IOStep>
   </Steps>
 

@@ -10,7 +10,7 @@
        This means that the alias system has been used and this test is aimed to show how to use it in these kinds of situations.
     </description>
   </TestInfo>
-  
+
   <RunInfo>
     <JobName>testEnsembleModelWith2CodesAndAlias</JobName>
     <Sequence>
@@ -34,21 +34,21 @@
       <clargs arg="" extension=".xml" type="input"/>
       <clargs arg=" " extension=".csv" type="output"/>
       <prepend>python</prepend>
-      <alias variable="AtestModel1"           type="output">A</alias>
-      <alias variable="BtestModel1"           type="output">B</alias>
+      <alias type="output" variable="AtestModel1">A</alias>
+      <alias type="output" variable="BtestModel1">B</alias>
     </Code>
     <Code name="testModel2" subType="GenericCode">
-        <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
-        <clargs arg="python" type="prepend"/>
-        <clargs arg="" extension=".xml" type="input"/>
-        <clargs arg=" " extension=".csv" type="output"/>
-        <prepend>python</prepend>
-        <alias variable="AtestModel1"           type="input">init-A</alias>
-        <alias variable="BtestModel1"           type="input">init-B</alias>
-        <alias variable="AtestModel2"           type="output">A</alias>
-        <alias variable="BtestModel2"           type="output">B</alias>
-        <alias variable="CtestModel2"           type="output">C</alias>
-        <alias variable="DtestModel2"           type="output">D</alias>
+      <executable>../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
+      <clargs arg="python" type="prepend"/>
+      <clargs arg="" extension=".xml" type="input"/>
+      <clargs arg=" " extension=".csv" type="output"/>
+      <prepend>python</prepend>
+      <alias type="input" variable="AtestModel1">init-A</alias>
+      <alias type="input" variable="BtestModel1">init-B</alias>
+      <alias type="output" variable="AtestModel2">A</alias>
+      <alias type="output" variable="BtestModel2">B</alias>
+      <alias type="output" variable="CtestModel2">C</alias>
+      <alias type="output" variable="DtestModel2">D</alias>
     </Code>
     <EnsembleModel name="codeAndExtModel" subType="">
       <Model class="Models" type="Code">
@@ -104,8 +104,8 @@
       <Output class="DataObjects" type="PointSet">finalResponses</Output>
     </MultiRun>
     <IOStep name="dumpResults">
-        <Input class="DataObjects" type="PointSet">finalResponses</Input>
-        <Output class="OutStreams" type="Print">printFinalResults</Output>
+      <Input class="DataObjects" type="PointSet">finalResponses</Input>
+      <Output class="OutStreams" type="Print">printFinalResults</Output>
     </IOStep>
   </Steps>
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="all">
+<Simulation verbosity="debug">
   <RunInfo>
     <WorkingDir>Probabilistic</WorkingDir>
     <Sequence>mcRun, PP1</Sequence>
@@ -28,20 +28,20 @@
     <PostProcessor name="pp1" subType="Validation">
       <Features>outputDataMC1|ans</Features>
       <Targets>outputDataMC2|ans2</Targets>
-      <!-- <Metric class="Metrics" type="RACDistance">fz_expected</Metric> -->
-      <Metric class="Metrics" type="CDFAreaDifference">cdf_diff</Metric>
-      <Metric class="Metrics" type="PDFCommonArea">pdf_area</Metric>
+      <!--
+        <Metric class="Metrics" type="RACDistance">fz_expected</Metric>
+      -->
+      <Metric class="Metrics" type="Metric">cdf_diff</Metric>
+      <Metric class="Metrics" type="Metric">pdf_area</Metric>
       <Probabilistic name="myProbMetric">
-         <!--  the Probabilistic Validation does  not -->
-          
+        <!--  the Probabilistic Validation does  not -->
       </Probabilistic>
-      
     </PostProcessor>
   </Models>
 
   <Metrics>
-    <CDFAreaDifference name="cdf_diff"/>
-    <PDFCommonArea name="pdf_area"/>
+    <Metric name="cdf_diff" subType="CDFAreaDifference"/>
+    <Metric name="pdf_area" subType="PDFCommonArea"/>
   </Metrics>
 
   <Distributions>

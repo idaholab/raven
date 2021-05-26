@@ -30,7 +30,7 @@
       <Model class="Models" type="ExternalModel">testFunction</Model>
       <Sampler class="Samplers" type="LimitSurfaceSearch">adaptiveSearch</Sampler>
       <SolutionExport class="DataObjects" type="PointSet">limitSurface</SolutionExport>
-      <Output class="DataObjects" type="PointSet">sampledPoints</Output>     
+      <Output class="DataObjects" type="PointSet">sampledPoints</Output>
     </MultiRun>
     <IOStep name="adaptdump" pauseAtEnd="true">
       <Input class="DataObjects" type="PointSet">sampledPoints</Input>

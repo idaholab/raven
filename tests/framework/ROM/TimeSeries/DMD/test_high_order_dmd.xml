@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/DMD.HighOrderDMD</name>
@@ -103,7 +103,7 @@
   </Steps>
 
   <OutStreams>
-    <Print name="outputDMDHighOrder" dir="outputDMD">
+    <Print dir="outputDMD" name="outputDMDHighOrder">
       <type>csv</type>
       <source>synDataDMD</source>
     </Print>

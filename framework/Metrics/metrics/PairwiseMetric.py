@@ -29,12 +29,12 @@ import scipy.spatial.distance as spatialDistance
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Metric import Metric
+from .MetricInterface import MetricInterface
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class PairwiseMetric(Metric):
+class PairwiseMetric(MetricInterface):
   """
     Scikit-learn pairwise metrics
   """
@@ -49,12 +49,11 @@ class PairwiseMetric(Metric):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(PairwiseMetric, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("metricType",contentType=InputTypes.StringType),quantity=InputData.Quantity.one)
     inputSpecification.addSub(InputData.parameterInputFactory("degree",contentType=InputTypes.IntegerType),quantity=InputData.Quantity.zero_to_one)
     inputSpecification.addSub(InputData.parameterInputFactory("gamma",contentType=InputTypes.FloatType),quantity=InputData.Quantity.zero_to_one)
     inputSpecification.addSub(InputData.parameterInputFactory("coef0",contentType=InputTypes.IntegerType),quantity=InputData.Quantity.zero_to_one)
-
     return inputSpecification
 
   def __init__(self):
@@ -63,7 +62,7 @@ class PairwiseMetric(Metric):
       @ In, None
       @ Out, None
     """
-    Metric.__init__(self)
+    super().__init__()
     if len(self.availMetrics) == 0:
       import sklearn
       import sklearn.metrics.pairwise
@@ -104,16 +103,14 @@ class PairwiseMetric(Metric):
     # True indicates the metric needs to be able to handle pairwise data
     self._pairwiseHandling = True
 
-  def _localReadMoreXML(self,xmlNode):
+  def handleInput(self, paramInput):
     """
       Method that reads the portion of the xml input that belongs to this specialized class
       and initializes internal parameters
-      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ In, paramInput, InputData.parameterInput, input specs
       @ Out, None
     """
     self.distParams = {}
-    paramInput = PairwiseMetric.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
     for child in paramInput.subparts:
       if child.getName() == "metricType":
         self.metricType = list(elem.strip() for elem in child.value.split('|'))
@@ -125,7 +122,7 @@ class PairwiseMetric(Metric):
     if self.metricType[0] not in self.__class__.availMetrics.keys() or self.metricType[1] not in self.__class__.availMetrics[self.metricType[0]].keys():
       self.raiseAnError(IOError, "Metric '", self.name, "' with metricType '", self.metricType[0], "|", self.metricType[1], "' is not valid!")
 
-  def __evaluateLocal__(self, x, y = None, axis = 0, weights =None, **kwargs):
+  def run(self, x, y=None, axis=0, weights=None, **kwargs):
     """
       This method computes difference between two points x and y based on given metric
       @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided,

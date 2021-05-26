@@ -5,6 +5,7 @@
     <batchSize>1</batchSize>
     <Sequence>sample,PP</Sequence>
   </RunInfo>
+
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics.sensitivityOnly</name>
     <author>alfoa</author>
@@ -14,7 +15,7 @@
       This test checks the sensitivities only calculated by basic statistics PP
     </description>
     <revisions>
-        <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
+      <revision author="wangc" date="2017-12-05">convert test to use the new dataobjects</revision>
     </revisions>
   </TestInfo>
 
@@ -28,7 +29,7 @@
       <Output>ans</Output>
     </PointSet>
     <PointSet name="basicStat">
-        <Output>
+      <Output>
             sen_ans_x1, sen_x1_x1, sen_x2_x1, sen_x3_x1, sen_x4_x1, sen_x5_x1,
             sen_ans_x2, sen_x1_x2, sen_x2_x2, sen_x3_x2, sen_x4_x2, sen_x5_x2,
             sen_ans_x3, sen_x1_x3, sen_x2_x3, sen_x3_x3, sen_x4_x3, sen_x5_x3,

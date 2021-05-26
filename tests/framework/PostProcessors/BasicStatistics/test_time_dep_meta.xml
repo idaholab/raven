@@ -1,6 +1,5 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
-
   <TestInfo>
     <name>framework/PostProcessors/BasicStatistics.timeDepMeta</name>
     <author>wangc</author>
@@ -97,6 +96,7 @@
       var_REP_P_a
     </Group>
   </VariableGroups>
+
   <Models>
     <PostProcessor name="SensPost_1" subType="BasicStatistics" verbosity="debug">
       <pivotParameter>Time_aligned</pivotParameter>
@@ -135,13 +135,11 @@
       <Input class="Files" type="csv">myinputfile</Input>
       <Output class="DataObjects" type="HiostorySet">SET_SensPost_aligned</Output>
     </IOStep>
-
     <PostProcess name="SensPost_1">
       <Input class="DataObjects" type="HistorySet">SET_SensPost_aligned</Input>
       <Model class="Models" type="PostProcessor">SensPost_1</Model>
       <Output class="DataObjects" type="HistorySet">SET_Back_to_MASTER</Output>
     </PostProcess>
-
     <IOStep name="Back_to_MASTER">
       <Input class="DataObjects" type="HistorySet">SET_Back_to_MASTER</Input>
       <Output class="OutStreams" type="Print">Back_to_MASTER</Output>
@@ -154,4 +152,5 @@
       <source>SET_Back_to_MASTER</source>
     </Print>
   </OutStreams>
+
 </Simulation>

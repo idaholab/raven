@@ -30,7 +30,7 @@
   </Files>
 
   <Steps>
-    <MultiRun name="sim_py_MC" clearRunDir="False">
+    <MultiRun clearRunDir="False" name="sim_py_MC">
       <Input class="Files" type="">input.py</Input>
       <Model class="Models" type="Code">py_script</Model>
       <Sampler class="Samplers" type="MonteCarlo">5factMC</Sampler>

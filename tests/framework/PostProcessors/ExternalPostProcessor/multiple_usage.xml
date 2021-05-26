@@ -11,7 +11,7 @@
       processor on multiple data objects does not cause naming issues.
     </description>
     <revisions>
-        <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 

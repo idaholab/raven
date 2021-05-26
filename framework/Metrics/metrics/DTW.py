@@ -16,10 +16,6 @@ Created on August 20 2016
 
 @author: mandd
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import copy
@@ -27,11 +23,11 @@ import scipy.spatial.distance as spatialDistance
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Metric import Metric
+from .MetricInterface import MetricInterface
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class DTW(Metric):
+class DTW(MetricInterface):
   """
     Dynamic Time Warping Metric
     Class for measuring similarity between two variables X and Y, i.e. two temporal sequences
@@ -46,11 +42,10 @@ class DTW(Metric):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(DTW, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     orderInputType = InputTypes.makeEnumType("order","orderType",["0","1"])
     inputSpecification.addSub(InputData.parameterInputFactory("order",contentType=orderInputType),quantity=InputData.Quantity.one)
     inputSpecification.addSub(InputData.parameterInputFactory("localDistance",contentType=InputTypes.StringType),quantity=InputData.Quantity.one)
-
     return inputSpecification
 
   def __init__(self):
@@ -59,33 +54,31 @@ class DTW(Metric):
       @ In, None
       @ Out, None
     """
-    Metric.__init__(self)
+    super().__init__()
     # order of DTW calculation, 0 specifices a classical DTW, and 1 specifies derivative DTW
-    self.order            = None
+    self.order = None
     # the ID of distance function to be employed to determine the local distance evaluation of two time series
     # Available options are provided by scipy pairwise distances, i.e. cityblock, cosine, euclidean, manhattan.
-    self.localDistance    = None
+    self.localDistance = None
     # True indicates the metric needs to be able to handle dynamic data
     self._dynamicHandling = True
     # True indicates the metric needs to be able to handle pairwise data
     self._pairwiseHandling = True
 
-  def _localReadMoreXML(self, xmlNode):
+  def handleInput(self, paramInput):
     """
       Method that reads the portion of the xml input that belongs to this specialized class
       and initialize internal parameters
-      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ In, paramInput, InputData.parameterInput, input spec
       @ Out, None
     """
-    paramInput = DTW.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
     for child in paramInput.subparts:
       if child.getName() == "order":
         self.order = int(child.value)
       elif child.getName() == "localDistance":
         self.localDistance = child.value
 
-  def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
+  def run(self, x, y, weights=None, axis=0, **kwargs):
     """
       This method computes DTW distance between two inputs x and y based on given metric
       @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided,

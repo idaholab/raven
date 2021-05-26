@@ -97,7 +97,7 @@
   </DataObjects>
 
   <VariableGroups>
-      <Group name="analyticalTest_vars">
+    <Group name="analyticalTest_vars">
                  sen_u1_u0,
                  sen_v1_v0,
                  sen_w1_w0,

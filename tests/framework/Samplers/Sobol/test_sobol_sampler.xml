@@ -5,6 +5,7 @@
     <Sequence>make,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/Samplers/Sobol/Sobol</name>
     <author>talbpaul</author>

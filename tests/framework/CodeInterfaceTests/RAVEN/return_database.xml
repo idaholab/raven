@@ -1,3 +1,4 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/CodeInterfaceTests/RAVEN.ReturnDatabase</name>
@@ -8,8 +9,8 @@
       Tests returning a NetCDF database instead of a set of dataobject CSVs.
     </description>
     <analytic>
-      Each sample in this test converges towards the analytic solutions discussed in the "changing lower, upper bounds" section of
-      the "attenuate" analytic model documentation.
+      Each sample in this test converges towards the analytic solutions discussed in the &quot;changing lower, upper bounds&quot; section of
+      the &quot;attenuate&quot; analytic model documentation.
     </analytic>
   </TestInfo>
 
@@ -36,15 +37,15 @@
   </Databases>
 
   <Files>
-    <Input name="inner_input" type="raven" >inner_sample.xml</Input>
+    <Input name="inner_input" type="raven">inner_sample.xml</Input>
   </Files>
 
   <Models>
     <Code name="raven" subType="RAVEN">
-        <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
-        <outputDatabase>inner_samples</outputDatabase>
-        <alias variable="innerLowerBound" type="input">Distributions|Uniform@name:dist|lowerBound</alias>
-        <alias variable="innerUpperBound" type="input">Distributions|Uniform@name:dist|upperBound</alias>
+      <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
+      <outputDatabase>inner_samples</outputDatabase>
+      <alias type="input" variable="innerLowerBound">Distributions|Uniform@name:dist|lowerBound</alias>
+      <alias type="input" variable="innerUpperBound">Distributions|Uniform@name:dist|upperBound</alias>
     </Code>
   </Models>
 
@@ -63,11 +64,11 @@
     <Grid name="grid">
       <variable name="innerLowerBound">
         <distribution>dist_lower</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+        <grid construction="equal" steps="1" type="CDF">0 1</grid>
       </variable>
       <variable name="innerUpperBound">
         <distribution>dist_upper</distribution>
-        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
+        <grid construction="equal" steps="1" type="CDF">0 1</grid>
       </variable>
     </Grid>
   </Samplers>

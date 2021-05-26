@@ -10,11 +10,11 @@
       using correlated multivariate normal distributions.
     </description>
     <analytic>
-      This test is analytic in mean and variance using the "attenuation" analytic model
+      This test is analytic in mean and variance using the &quot;attenuation&quot; analytic model
       documented in the analytic tests.
     </analytic>
     <revisions>
-      <revision author='talbpaul' date='2019-01-09'>moving from ROM-files to ROM-dataobject</revision>
+      <revision author="talbpaul" date="2019-01-09">moving from ROM-files to ROM-dataobject</revision>
     </revisions>
   </TestInfo>
 

@@ -17,27 +17,27 @@
   </RunInfo>
 
   <Files>
-    <Input name='analytical' type=''>analytical.csv</Input>
+    <Input name="analytical" type="">analytical.csv</Input>
   </Files>
 
   <Steps>
-    <MultiRun  name="MCrun">
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
+    <MultiRun name="MCrun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSet_MC</Output>
     </MultiRun>
     <IOStep name="importAnalytical">
-      <Input   class='Files'       type=''              >analytical</Input>
-      <Output  class="DataObjects" type="PointSet"      >PointSet_Analytical</Output>
+      <Input class="Files" type="">analytical</Input>
+      <Output class="DataObjects" type="PointSet">PointSet_Analytical</Output>
     </IOStep>
     <IOStep name="OutStreams">
-      <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
-      <Input  class="DataObjects"  type="PointSet"      >PointSet_Analytical</Input>
-      <Output class="OutStreams"   type="Print"         >MC_dump</Output>
-      <Output class="OutStreams"   type="Plot"          >histogramX</Output>
-      <Output class="OutStreams"   type="Plot"          >histogramY</Output>
-      <Output class="OutStreams"   type="Plot"          >lineAnalytical</Output>
+      <Input class="DataObjects" type="PointSet">PointSet_MC</Input>
+      <Input class="DataObjects" type="PointSet">PointSet_Analytical</Input>
+      <Output class="OutStreams" type="Print">MC_dump</Output>
+      <Output class="OutStreams" type="Plot">histogramX</Output>
+      <Output class="OutStreams" type="Plot">histogramY</Output>
+      <Output class="OutStreams" type="Plot">lineAnalytical</Output>
     </IOStep>
   </Steps>
 
@@ -71,9 +71,9 @@
     <Print name="MC_dump">
       <type>csv</type>
       <source>PointSet_MC</source>
-       <what>input,output</what>
+      <what>input,output</what>
     </Print>
-   <Plot name='histogramX' overwrite='false' verbosity='debug'>
+    <Plot name="histogramX" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -88,7 +88,7 @@
         <how>png</how>
       </actions>
     </Plot>
-   <Plot name='histogramY' overwrite='false' verbosity='debug'>
+    <Plot name="histogramY" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -103,7 +103,7 @@
         <how>png</how>
       </actions>
     </Plot>
-   <Plot name='lineAnalytical' overwrite='false' verbosity='debug'>
+    <Plot name="lineAnalytical" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>line</type>

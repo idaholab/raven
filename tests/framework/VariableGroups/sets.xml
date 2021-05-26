@@ -5,6 +5,7 @@
     <Sequence>sample,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/VariableGroups/SetOperations</name>
     <author>talbpaul</author>
@@ -13,10 +14,8 @@
     <description>
       Tests complex VariableGroup construction using plus, minus, intersect, and symmetric difference
       operations. Uses these constructs in the DataObjects.
-
       To test correct operation, check the headers of the output data objects for the right variable lists,
       both the names themeselves and the order of the columns.
-
       Additional unit tests for VariableGroups are in the raven/tests/framework/unit_tests/utils/testXmlUtils.py file.
     </description>
     <revisions>
@@ -26,8 +25,8 @@
   </TestInfo>
 
   <VariableGroups>
-    <Group name="x_odd"  >x1,x3,x5</Group>
-    <Group name="x_even" >x2,x4,x6</Group>
+    <Group name="x_odd">x1,x3,x5</Group>
+    <Group name="x_even">x2,x4,x6</Group>
     <Group name="x_first">x1,x2,x3</Group>
     <Group name="y_group">y1,y2</Group>
     <Group name="add_remove">x_first, -x1, + x4, +x5</Group>
@@ -35,7 +34,9 @@
     <Group name="complement">x_odd, -x_first</Group>
     <Group name="intersect">x_even, ^x_first</Group>
     <Group name="sym_diff">x_odd, % x_first</Group>
-    <Group name="empty"> <!-- comment --></Group>
+    <Group name="empty">
+      <!-- comment -->
+    </Group>
     <Group name="emptier"/>
   </VariableGroups>
 

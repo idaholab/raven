@@ -6,6 +6,7 @@
     <Sequence>sample,train,validateModel,validateROM,rom_stats,output_print,output_plot</Sequence>
     <batchSize>3</batchSize>
   </RunInfo>
+
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/SparseGrid</name>
     <author>talbpw</author>
@@ -16,12 +17,12 @@
       using the SparseGrid sampler, and constructing a corresponding ROM.
     </description>
     <revisions>
-      <revision date="2019-05-08" author="burlip">modified file to replace the Analyticalbateman example with the projectile example</revision>
+      <revision author="burlip" date="2019-05-08">modified file to replace the Analyticalbateman example with the projectile example</revision>
     </revisions>
   </TestInfo>
 
   <Models>
-    <ExternalModel subType="" name="projectile" ModuleToLoad="../../AnalyticModels/projectile.py">
+    <ExternalModel ModuleToLoad="../../AnalyticModels/projectile.py" name="projectile" subType="">
       <variables>x,y,v0,angle,r,t,timeOption</variables>
     </ExternalModel>
     <ROM name="rom" subType="GaussPolynomialRom">
@@ -106,7 +107,7 @@
       </Input>
       <Output>x,y,r,t</Output>
       <options>
-      <pivotParameter> t </pivotParameter>
+        <pivotParameter> t </pivotParameter>
       </options>
     </HistorySet>
     <DataSet name="rom_stats"/>
@@ -114,8 +115,8 @@
 
   <Steps>
     <MultiRun name="sample">
-      <Input  class="DataObjects" type="PointSet" >inputPlaceholder</Input>
-      <Model  class="Models"       type="ExternalModel">projectile</Model>
+      <Input class="DataObjects" type="PointSet">inputPlaceholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
       <Sampler class="Samplers" type="SparseGridCollocation">SG</Sampler>
       <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
@@ -124,8 +125,8 @@
       <Output class="Models" type="ROM">rom</Output>
     </RomTrainer>
     <MultiRun name="validateModel">
-      <Input  class="DataObjects" type="PointSet" >inputPlaceholder</Input>
-      <Model  class="Models"       type="ExternalModel">projectile</Model>
+      <Input class="DataObjects" type="PointSet">inputPlaceholder</Input>
+      <Model class="Models" type="ExternalModel">projectile</Model>
       <Sampler class="Samplers" type="MonteCarlo">mc</Sampler>
       <Output class="DataObjects" type="PointSet">samplesModel</Output>
     </MultiRun>
@@ -177,7 +178,7 @@
       <source>rom_stats</source>
     </Print>
     <Plot name="historyPlot" overwrite="false" verbosity="debug">
-        <plotSettings>
+      <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
           <type>scatter</type>
@@ -207,45 +208,45 @@
           <xlabel>angle</xlabel>
           <ylabel>range</ylabel>
         </plot>
-        </plotSettings>
-        <actions>
-            <how>png</how>
-            <title>
-                <text> </text>
-            </title>
-        </actions>
+      </plotSettings>
+      <actions>
+        <how>png</how>
+        <title>
+          <text> </text>
+        </title>
+      </actions>
     </Plot>
     <Plot name="samplesModelPlot3D" overwrite="false" verbosity="debug">
       <plotSettings>
         <gridSpace>2 1</gridSpace>
-             <plot>
-                <type>scatter</type>
-                <x>samplesModel|Input|v0</x>
-                <y>samplesModel|Input|angle</y>
-                <z>samplesModel|Output|r</z>
-                <c>blue</c>
-                <gridLocation>
-                  <x>0</x>
-                  <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>angle</ylabel>
-                <zlabel>range</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samplesModel|Input|v0</x>
-                <y>samplesModel|Input|angle</y>
-                <z>samplesModel|Output|t</z>
-                <c>orange</c>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>angle</ylabel>
-                <zlabel>time</zlabel>
-            </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesModel|Input|v0</x>
+          <y>samplesModel|Input|angle</y>
+          <z>samplesModel|Output|r</z>
+          <c>blue</c>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>range</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesModel|Input|v0</x>
+          <y>samplesModel|Input|angle</y>
+          <z>samplesModel|Output|t</z>
+          <c>orange</c>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>time</zlabel>
+        </plot>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -257,34 +258,34 @@
     <Plot name="samplesROMPlot3D" overwrite="false" verbosity="debug">
       <plotSettings>
         <gridSpace>2 1</gridSpace>
-             <plot>
-                <type>scatter</type>
-                <x>samplesROM|Input|v0</x>
-                <y>samplesROM|Input|angle</y>
-                <z>samplesROM|Output|r</z>
-                <c>blue</c>
-                <gridLocation>
-                  <x>0</x>
-                  <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>angle</ylabel>
-                <zlabel>range</zlabel>
-            </plot>
-            <plot>
-                <type>scatter</type>
-                <x>samplesROM|Input|v0</x>
-                <y>samplesROM|Input|angle</y>
-                <z>samplesROM|Output|t</z>
-                <c>orange</c>
-                <gridLocation>
-                    <x>1</x>
-                    <y>0</y>
-                </gridLocation>
-                <xlabel>velocity</xlabel>
-                <ylabel>angle</ylabel>
-                <zlabel>time</zlabel>
-            </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesROM|Input|v0</x>
+          <y>samplesROM|Input|angle</y>
+          <z>samplesROM|Output|r</z>
+          <c>blue</c>
+          <gridLocation>
+            <x>0</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>range</zlabel>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>samplesROM|Input|v0</x>
+          <y>samplesROM|Input|angle</y>
+          <z>samplesROM|Output|t</z>
+          <c>orange</c>
+          <gridLocation>
+            <x>1</x>
+            <y>0</y>
+          </gridLocation>
+          <xlabel>velocity</xlabel>
+          <ylabel>angle</ylabel>
+          <zlabel>time</zlabel>
+        </plot>
       </plotSettings>
       <actions>
         <how>png</how>
@@ -294,4 +295,5 @@
       </actions>
     </Plot>
   </OutStreams>
+
 </Simulation>

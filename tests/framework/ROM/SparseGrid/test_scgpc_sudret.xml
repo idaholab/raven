@@ -10,10 +10,10 @@
     </description>
     <analytic>
       dumprom.xml has analytic mean and variance, documented in the analytic tests documentation under
-      "Global Sobol Sensitivity: Sudret".
+      &quot;Global Sobol Sensitivity: Sudret&quot;.
     </analytic>
     <revisions>
-      <revision author='talbpaul' date='2018-12-20'>moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
+      <revision author="talbpaul" date="2018-12-20">moved ROM metadata writing from direct-to-file to direct-to-dataobject</revision>
     </revisions>
   </TestInfo>
 

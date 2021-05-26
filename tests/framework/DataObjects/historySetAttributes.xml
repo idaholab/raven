@@ -6,7 +6,7 @@
     <created>2018-02-01</created>
     <classesTested>DataObjects.HistorySet, Models.ExternalModel</classesTested>
     <description>
-       Test to check the functionalities of DataObjects preprocess the data applying simple 
+       Test to check the functionalities of DataObjects preprocess the data applying simple
        operator (e.g. max value, average, min value, etc.), in the $options$ XML node.
        In this case it tests the attributes for HistorySet.
     </description>
@@ -16,7 +16,6 @@
   <ExternalXML node="Models" xmlToLoad="DataobjectsAttributes/Model.xml"/>
   <ExternalXML node="Distributions" xmlToLoad="DataobjectsAttributes/Distributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="DataobjectsAttributes/Sampler.xml"/>
-
   <Steps>
     <MultiRun name="TestDataObjectAttributes">
       <Input class="DataObjects" type="PointSet">inputHolder</Input>
@@ -33,5 +32,4 @@
 
   <ExternalXML node="OutStreams" xmlToLoad="DataobjectsAttributes/OutStreams.xml"/>
   <ExternalXML node="DataObjects" xmlToLoad="DataobjectsAttributes/DataObjects.xml"/>
-
 </Simulation>

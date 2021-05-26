@@ -19,10 +19,10 @@
   </TestInfo>
 
   <Files>
-      <Input name="referenceInput.xml" type="input">
+    <Input name="referenceInput.xml" type="input">
           ../commonFiles/referenceInput_generic_CI.xml
       </Input>
-      <Input name="rom_inv" type="">inverseRom.pk</Input>
+    <Input name="rom_inv" type="">inverseRom.pk</Input>
   </Files>
 
   <Models>
@@ -40,22 +40,22 @@
   </Models>
 
   <Distributions>
-      <Uniform name="sigma">
-          <lowerBound>1</lowerBound>
-          <upperBound>10</upperBound>
-      </Uniform>
-      <Uniform name="decayConstant">
-          <lowerBound>0.000000005</lowerBound>
-          <upperBound>0.000000010</upperBound>
-      </Uniform>
+    <Uniform name="sigma">
+      <lowerBound>1</lowerBound>
+      <upperBound>10</upperBound>
+    </Uniform>
+    <Uniform name="decayConstant">
+      <lowerBound>0.000000005</lowerBound>
+      <upperBound>0.000000010</upperBound>
+    </Uniform>
   </Distributions>
 
   <Samplers>
     <MonteCarlo name="monteCarlo">
       <samplerInit>
-          <limit>10</limit>
-          <reseedEachIteration>True</reseedEachIteration>
-          <initialSeed>130168</initialSeed>
+        <limit>10</limit>
+        <reseedEachIteration>True</reseedEachIteration>
+        <initialSeed>130168</initialSeed>
       </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>
@@ -68,32 +68,32 @@
 
   <Steps>
     <MultiRun name="sample">
-      <Input 	class="Files" 			 type="input">referenceInput.xml</Input>
-      <Model 	class="Models" 			 type="Code">testModel</Model>
-      <Sampler 	class="Samplers" 		 type="MonteCarlo">monteCarlo</Sampler>
-      <Output 	class="DataObjects" 	 type="HistorySet">histories</Output>
+      <Input class="Files" type="input">referenceInput.xml</Input>
+      <Model class="Models" type="Code">testModel</Model>
+      <Sampler class="Samplers" type="MonteCarlo">monteCarlo</Sampler>
+      <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
     <RomTrainer name="trainROM">
       <Input class="DataObjects" type="HistorySet">histories</Input>
       <Output class="Models" type="ROM">rom</Output>
     </RomTrainer>
     <IOStep name="dumpROM">
-        <Input class="Models" type="ROM">rom</Input>
-        <Output class="Files" type="">rom_inv</Output>
+      <Input class="Models" type="ROM">rom</Input>
+      <Output class="Files" type="">rom_inv</Output>
     </IOStep>
     <IOStep name="writeHistories" pauseAtEnd="True">
-        <Input class="DataObjects" type="HistorySet">histories</Input>
-        <Output 	class="OutStreams" type="Print">histories</Output>
+      <Input class="DataObjects" type="HistorySet">histories</Input>
+      <Output class="OutStreams" type="Print">histories</Output>
     </IOStep>
   </Steps>
 
   <DataObjects>
     <HistorySet name="histories">
-        <Input>sigma-A,decay-A</Input>
-        <Output>A,B,C,D,time</Output>
-        <options>
-            <pivotParameter>time</pivotParameter>
-        </options>
+      <Input>sigma-A,decay-A</Input>
+      <Output>A,B,C,D,time</Output>
+      <options>
+        <pivotParameter>time</pivotParameter>
+      </options>
     </HistorySet>
   </DataObjects>
 
@@ -103,4 +103,5 @@
       <source>histories</source>
     </Print>
   </OutStreams>
+
 </Simulation>

@@ -17,29 +17,29 @@
   </RunInfo>
 
   <Files>
-    <Input name="transitionFile"   type="">transition.csv</Input>
+    <Input name="transitionFile" type="">transition.csv</Input>
   </Files>
 
   <Steps>
-    <MultiRun  name="MCrun">
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
+    <MultiRun name="MCrun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSet_MC</Output>
     </MultiRun>
-    <MultiRun  name="GridRun">
-      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
-      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
-      <Sampler class="Samplers"    type="MonteCarlo"    >Grid</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >PointSet_Grid</Output>
+    <MultiRun name="GridRun">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
+      <Model class="Models" type="ExternalModel">PythonModule</Model>
+      <Sampler class="Samplers" type="MonteCarlo">Grid</Sampler>
+      <Output class="DataObjects" type="PointSet">PointSet_Grid</Output>
     </MultiRun>
     <IOStep name="OutStreams" pauseAtEnd="false">
-      <Input  class="DataObjects"  type="PointSet"      >PointSet_MC</Input>
-      <Input  class="DataObjects"  type="PointSet"      >PointSet_Grid</Input>
-      <Output class="OutStreams"   type="Print"         >MC_dump</Output>
-      <Output class="OutStreams"   type="Print"         >Grid_dump</Output>
-      <Output class="OutStreams"   type="Plot"          >plotXMC</Output>
-      <Output class="OutStreams"   type="Plot"          >plotYMC</Output>
+      <Input class="DataObjects" type="PointSet">PointSet_MC</Input>
+      <Input class="DataObjects" type="PointSet">PointSet_Grid</Input>
+      <Output class="OutStreams" type="Print">MC_dump</Output>
+      <Output class="OutStreams" type="Print">Grid_dump</Output>
+      <Output class="OutStreams" type="Plot">plotXMC</Output>
+      <Output class="OutStreams" type="Plot">plotYMC</Output>
     </IOStep>
   </Steps>
 
@@ -51,14 +51,14 @@
 
   <Distributions>
     <MarkovCategorical name="x_dist">
-        <transition>
+      <transition>
             -1.1   0.8   0.7
             0.8    -1.4  0.2
             0.3    0.6   -0.9
         </transition>
-        <state outcome='1' index='1'/>
-        <state outcome='2' index='2'/>
-        <state outcome='4' index='3'/>
+      <state index="1" outcome="1"/>
+      <state index="2" outcome="2"/>
+      <state index="3" outcome="4"/>
     </MarkovCategorical>
   </Distributions>
 
@@ -91,7 +91,7 @@
       <source>PointSet_Grid</source>
       <what>input,output</what>
     </Print>
-    <Plot  name="plotXMC" overwrite="false" verbosity="debug">
+    <Plot name="plotXMC" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>
@@ -104,7 +104,7 @@
         <how>pdf</how>
       </actions>
     </Plot>
-    <Plot  name="plotYMC" overwrite="false" verbosity="debug">
+    <Plot name="plotYMC" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>histogram</type>

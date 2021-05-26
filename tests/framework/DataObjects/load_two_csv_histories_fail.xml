@@ -6,10 +6,11 @@
     <created>2018-01-23</created>
     <classesTested>DataObjects.HistorySet</classesTested>
     <description>
-      The input variable "b" is missing in the second history set, replaced by "e", so
+      The input variable &quot;b&quot; is missing in the second history set, replaced by &quot;e&quot;, so
       the result dataobject fails to construct.  This test checks the error received.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>csv</WorkingDir>
     <Sequence>in,out</Sequence>

@@ -36,7 +36,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='dist'>
+    <Uniform name="dist">
       <lowerBound>-1</lowerBound>
       <upperBound>1</upperBound>
     </Uniform>
@@ -76,8 +76,8 @@
         <persistence>3</persistence>
         <stepSize>1e-4</stepSize>
       </convergence>
-      <Constraint class='Functions' type='External'>goal</Constraint>
-      <ImplicitConstraint class='Functions' type='External'>goalimp</ImplicitConstraint>
+      <Constraint class="Functions" type="External">goal</Constraint>
+      <ImplicitConstraint class="Functions" type="External">goalimp</ImplicitConstraint>
     </GradientDescent>
   </Optimizers>
 

@@ -10,7 +10,7 @@
         i.e. test the scaling factor for constant samples as mentioned in issue #690
     </description>
     <revisions>
-        <revision author="alfoa" date="2018-10-01">This Test is now a requirement test.</revision>
+      <revision author="alfoa" date="2018-10-01">This Test is now a requirement test.</revision>
     </revisions>
     <requirements>R-F-4</requirements>
   </TestInfo>
@@ -76,8 +76,8 @@
 
   <Models>
     <Dummy name="MyDummy" subType=""/>
-    <!-- The "coarsemod" model will output a reponse of 1.0, while "finemod" gives 2.0.
-         This allows the test to distinguish which samples originated in "coarse" and which in "fine".-->
+    <!-- The &quot;coarsemod&quot; model will output a reponse of 1.0, while &quot;finemod&quot; gives 2.0.
+         This allows the test to distinguish which samples originated in &quot;coarse&quot; and which in &quot;fine&quot;.-->
     <ExternalModel ModuleToLoad="../coarse" name="coarsemod" subType="">
       <variables>x1,x2,ans</variables>
     </ExternalModel>

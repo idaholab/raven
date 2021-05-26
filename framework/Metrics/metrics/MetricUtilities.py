@@ -17,9 +17,6 @@ Created on September 18, 2017
 @author: Joshua J. Cogliati
 """
 
-
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import math

@@ -8,9 +8,9 @@
     <description>
       Tests use of the PCA method for adaptive sparse grids on polynomial models.
     </description>
-    <analytic>"Tensor Polynomial (First-Order) with Multivariate Normal Distribution"</analytic>
+    <analytic>&quot;Tensor Polynomial (First-Order) with Multivariate Normal Distribution&quot;</analytic>
     <revisions>
-      <revision author='talbpaul' date='2019-01-09'>moving from ROM-file to ROM-dataobject</revision>
+      <revision author="talbpaul" date="2019-01-09">moving from ROM-file to ROM-dataobject</revision>
     </revisions>
   </TestInfo>
 

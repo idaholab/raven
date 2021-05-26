@@ -15,6 +15,7 @@
       <revision author="alfoa" date="2017-01-21">Adding this test description.</revision>
     </revisions>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>plot</WorkingDir>
     <Sequence>sample,plot</Sequence>
@@ -26,7 +27,7 @@
   <ExternalXML node="Distributions" xmlToLoad="sharedDistributions.xml"/>
   <ExternalXML node="Samplers" xmlToLoad="sharedSamplers.xml"/>
   <OutStreams>
-    <Plot  name="test" overwrite="false">
+    <Plot name="test" overwrite="false">
       <plotSettings>
         <plot>
           <type>scatter</type>

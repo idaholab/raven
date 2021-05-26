@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
-      <name>framework/Optimizers/ConvergeGradient.InitSampler</name>
+    <name>framework/Optimizers/ConvergeGradient.InitSampler</name>
     <author>talbpaul</author>
     <created>2020-02-10</created>
     <classesTested>Optimizer</classesTested>
@@ -37,7 +37,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name='beale_dist'>
+    <Uniform name="beale_dist">
       <lowerBound>-4.5</lowerBound>
       <upperBound>4.5</upperBound>
     </Uniform>
@@ -47,7 +47,7 @@
     <Grid name="grid">
       <variable name="x">
         <distribution>beale_dist</distribution>
-        <grid construction='equal' steps='1' type='CDF'>0.25 0.75</grid>
+        <grid construction="equal" steps="1" type="CDF">0.25 0.75</grid>
       </variable>
       <!-- TODO add function, const for testing -->
     </Grid>
@@ -84,7 +84,7 @@
       <convergence>
         <gradient>1e0</gradient>
         <persistence>2</persistence>
-        <terminateFollowers proximity='5e-1'>True</terminateFollowers>
+        <terminateFollowers proximity="5e-1">True</terminateFollowers>
       </convergence>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
     </GradientDescent>

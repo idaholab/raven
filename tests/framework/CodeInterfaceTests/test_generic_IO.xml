@@ -16,6 +16,7 @@
     </revisions>
     <requirements>R-IS-2</requirements>
   </TestInfo>
+
   <RunInfo>
     <JobName>testGenericCodeInterface</JobName>
     <Sequence>sample</Sequence>
@@ -63,7 +64,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun name="sample" clearRunDir="False">
+    <MultiRun clearRunDir="False" name="sample">
       <Input class="Files" type="">gen.one</Input>
       <Input class="Files" type="">gen.two</Input>
       <Model class="Models" type="Code">poly</Model>

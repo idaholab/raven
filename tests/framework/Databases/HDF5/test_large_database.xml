@@ -6,7 +6,7 @@
     <author>@alfoa</author>
     <created>2019-03-01</created>
     <revisions>
-        <revision author="alfoa" date="2019-03-01">Added test for testing new way to handle group names</revision>
+      <revision author="alfoa" date="2019-03-01">Added test for testing new way to handle group names</revision>
     </revisions>
     <classesTested>Databases.HDF5</classesTested>
     <description>
@@ -84,16 +84,18 @@
       <Model class="Models" type="ExternalModel">TwoStep</Model>
       <Sampler class="Samplers" type="MonteCarlo">RAVEN7500</Sampler>
       <Output class="DataObjects" type="PointSet">ps</Output>
-      <!-- <Output class="Databases" type="HDF5">testLargeDatabase</Output> -->
-    </MultiRun>
-    <IOStep name="push" >
-        <Input class="DataObjects" type="PointSet">ps</Input>
+      <!--
         <Output class="Databases" type="HDF5">testLargeDatabase</Output>
+      -->
+    </MultiRun>
+    <IOStep name="push">
+      <Input class="DataObjects" type="PointSet">ps</Input>
+      <Output class="Databases" type="HDF5">testLargeDatabase</Output>
     </IOStep>
-    <IOStep name="dump" >
-        <Input class="Databases" type="HDF5">testLargeDatabase</Input>
-        <Output class="DataObjects" type="PointSet">ps2</Output>
-        <Output class="OutStreams" type="Print">ps2_dump</Output>
+    <IOStep name="dump">
+      <Input class="Databases" type="HDF5">testLargeDatabase</Input>
+      <Output class="DataObjects" type="PointSet">ps2</Output>
+      <Output class="OutStreams" type="Print">ps2_dump</Output>
     </IOStep>
   </Steps>
 
@@ -113,10 +115,9 @@
       <Output>out1,out2</Output>
     </PointSet>
     <PointSet name="ps2">
-        <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
-        <Output>out1,out2</Output>
+      <Input>Gauss1,auxBackupTimeDist,Gauss2,CladFailureDist</Input>
+      <Output>out1,out2</Output>
     </PointSet>
-
   </DataObjects>
 
   <!-- OutStreams. Print object (dataobject dumping) -->

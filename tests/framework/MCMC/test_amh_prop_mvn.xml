@@ -54,12 +54,12 @@
       <variable name="xin">
         <distribution>normal</distribution>
         <initial>2</initial>
-        <proposal class="Distributions" type="MultivariateNormal" dim="1">mvn</proposal>
+        <proposal class="Distributions" dim="1" type="MultivariateNormal">mvn</proposal>
       </variable>
       <variable name="yin">
         <distribution>normal</distribution>
         <initial>2</initial>
-        <proposal class="Distributions" type="MultivariateNormal" dim="2">mvn</proposal>
+        <proposal class="Distributions" dim="2" type="MultivariateNormal">mvn</proposal>
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
     </AdaptiveMetropolis>
@@ -99,15 +99,14 @@
       <Input>xin, yin</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
-
     <PointSet name="outSet">
       <Input>xin, yin</Input>
       <Output>zout</Output>
     </PointSet>
-
     <PointSet name="out_export">
       <Input>traceID</Input>
       <Output>xin, yin, LogPosterior, AcceptRate</Output>
     </PointSet>
   </DataObjects>
+
 </Simulation>

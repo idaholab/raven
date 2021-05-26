@@ -10,6 +10,7 @@
        history set without destroying the information from each other.
     </description>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>csv</WorkingDir>
     <Sequence>in,out</Sequence>

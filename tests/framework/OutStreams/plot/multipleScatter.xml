@@ -14,33 +14,34 @@
     <WorkingDir>.</WorkingDir>
     <Sequence>sample,train,validate_rom,validate_model,output</Sequence>
   </RunInfo>
+
   <Steps>
     <MultiRun name="sample">
-      <Input   class="DataObjects" type="PointSet"     >placeholder</Input>
-      <Model   class="Models"      type="ExternalModel">wave</Model>
-      <Sampler class="Samplers"    type="SparseGridCollocation">sparse_grid</Sampler>
-      <Output  class="DataObjects" type="PointSet"     >training</Output>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">wave</Model>
+      <Sampler class="Samplers" type="SparseGridCollocation">sparse_grid</Sampler>
+      <Output class="DataObjects" type="PointSet">training</Output>
     </MultiRun>
     <RomTrainer name="train">
-      <Input  class="DataObjects" type="PointSet"     >training</Input>
-      <Output class="Models"      type="ROM"          >rom</Output>
+      <Input class="DataObjects" type="PointSet">training</Input>
+      <Output class="Models" type="ROM">rom</Output>
     </RomTrainer>
     <MultiRun name="validate_rom">
-      <Input   class="DataObjects" type="PointSet" >placeholder</Input>
-      <Model   class="Models"      type="ROM"      >rom</Model>
-      <Sampler class="Samplers"    type="Grid"     >validation_grid</Sampler>
-      <Output  class="DataObjects" type="PointSet" >rom_results</Output>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ROM">rom</Model>
+      <Sampler class="Samplers" type="Grid">validation_grid</Sampler>
+      <Output class="DataObjects" type="PointSet">rom_results</Output>
     </MultiRun>
     <MultiRun name="validate_model">
-      <Input   class="DataObjects" type="PointSet"      >placeholder</Input>
-      <Model   class="Models"      type="ExternalModel" >wave</Model>
-      <Sampler class="Samplers"    type="Grid"          >validation_grid</Sampler>
-      <Output  class="DataObjects" type="PointSet"      >model_results</Output>
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">wave</Model>
+      <Sampler class="Samplers" type="Grid">validation_grid</Sampler>
+      <Output class="DataObjects" type="PointSet">model_results</Output>
     </MultiRun>
     <IOStep name="output" pauseAtEnd="True">
-      <Input  class="DataObjects" type="PointSet" >model_results</Input>
-      <Input  class="DataObjects" type="PointSet" >rom_results</Input>
-      <Output class="OutStreams"  type="Plot"     >plot_both</Output>
+      <Input class="DataObjects" type="PointSet">model_results</Input>
+      <Input class="DataObjects" type="PointSet">rom_results</Input>
+      <Output class="OutStreams" type="Plot">plot_both</Output>
     </IOStep>
   </Steps>
 
@@ -73,7 +74,6 @@
       <IndexSet>TotalDegree</IndexSet>
       <PolynomialOrder>2</PolynomialOrder>
     </ROM>
-
     <ExternalModel ModuleToLoad="wave" name="wave" subType="">
       <variables>A,k,mag</variables>
     </ExternalModel>
@@ -83,15 +83,14 @@
     <Grid name="validation_grid">
       <variable name="A">
         <distribution>A</distribution>
-        <grid type="CDF" construction="equal" steps="9">0 1</grid>
+        <grid construction="equal" steps="9" type="CDF">0 1</grid>
       </variable>
       <variable name="k">
         <distribution>k</distribution>
-        <grid type="CDF" construction="equal" steps="9">0 1</grid>
+        <grid construction="equal" steps="9" type="CDF">0 1</grid>
       </variable>
     </Grid>
-
-    <SparseGridCollocation name='sparse_grid'>
+    <SparseGridCollocation name="sparse_grid">
       <variable name="A">
         <distribution>A</distribution>
       </variable>
@@ -126,7 +125,9 @@
       </plotSettings>
       <actions>
         <how>png</how>
-        <title><text>ROM Validation</text></title>
+        <title>
+          <text>ROM Validation</text>
+        </title>
       </actions>
     </Plot>
     <Plot name="plot_model">
@@ -141,41 +142,46 @@
       </plotSettings>
       <actions>
         <how>png</how>
-        <title><text>Model Validation</text></title>
+        <title>
+          <text>Model Validation</text>
+        </title>
       </actions>
     </Plot>
     <Plot name="plot_both" overwrite="false">
       <plotSettings>
-         <plot>
-            <type>scatter</type>
-            <x>model_results|Input|A</x>
-            <y>model_results|Input|k</y>
-            <z>model_results|Output|mag</z>
-            <c>black</c>
-            <!-- For now, the label tag needs to be put under the kwarguments tag -->
-            <kwargs>
-               <label>Model</label>
-            </kwargs>
-         </plot>
-         <plot>
-            <type>scatter</type>
-            <x>rom_results|Input|A</x>
-            <y>rom_results|Input|k</y>
-            <z>rom_results|Output|mag</z>
-            <c>red</c>
-            <kwargs>
-               <label>ROM</label>
-            </kwargs>
-         </plot>
-         <legend>
-            <loc>best</loc>
-            <ncol>2</ncol>
-         </legend>
+        <plot>
+          <type>scatter</type>
+          <x>model_results|Input|A</x>
+          <y>model_results|Input|k</y>
+          <z>model_results|Output|mag</z>
+          <c>black</c>
+          <!-- For now, the label tag needs to be put under the kwarguments tag -->
+          <kwargs>
+            <label>Model</label>
+          </kwargs>
+        </plot>
+        <plot>
+          <type>scatter</type>
+          <x>rom_results|Input|A</x>
+          <y>rom_results|Input|k</y>
+          <z>rom_results|Output|mag</z>
+          <c>red</c>
+          <kwargs>
+            <label>ROM</label>
+          </kwargs>
+        </plot>
+        <legend>
+          <loc>best</loc>
+          <ncol>2</ncol>
+        </legend>
       </plotSettings>
       <actions>
         <how>png</how>
-        <title><text>How the ROM does</text></title>
+        <title>
+          <text>How the ROM does</text>
+        </title>
       </actions>
     </Plot>
   </OutStreams>
+
 </Simulation>

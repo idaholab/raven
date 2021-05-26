@@ -23,12 +23,11 @@
     </revisions>
   </TestInfo>
 
-
   <Models>
     <ExternalModel ModuleToLoad="../../../AnalyticModels/projectile.py" name="projectile" subType="">
       <variables>v0,angle,r,t,x,y,timeOption</variables>
     </ExternalModel>
-    <PostProcessor name="statisticalAnalysis" subType="BasicStatistics" verbosity ='debug'>
+    <PostProcessor name="statisticalAnalysis" subType="BasicStatistics" verbosity="debug">
       <skewness prefix="skew">r,t</skewness>
       <variationCoefficient prefix="vc">r,t</variationCoefficient>
       <percentile prefix="percentile">r,t</percentile>
@@ -120,12 +119,12 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <PointSet name="statisticalAnalysis_basicStatPP">
-        <Output>statisticalAnalysis_vars</Output>
+      <Output>statisticalAnalysis_vars</Output>
     </PointSet>
     <HistorySet name="histories">
       <Input>v0,angle</Input>
       <Output>x,y,t</Output>
-      <options> 
+      <options>
         <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
