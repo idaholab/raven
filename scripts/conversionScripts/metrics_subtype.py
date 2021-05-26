@@ -15,8 +15,8 @@ import xml.etree.ElementTree as ET
 
 def convert(tree,fileName=None):
   """
-    Converts input files to be compatible with merge request #785:
-      Where ARMA exists, removes <Pmax>, <Pmin>, <Qmax>, and <Qmin>, and adds <P> and <Q>
+    Converts input files to be compatible with merge request #1573:
+    Change Metrics to use subType formula
     @ In, tree, xml.etree.ElementTree.ElementTree object, the contents of a RAVEN input file
     @ In, fileName, the name for the raven input file
     @Out, tree, xml.etree.ElementTree.ElementTree object, the modified RAVEN input file
