@@ -20,6 +20,22 @@
   max_time = 120
   rel_err = 0.0001
  [../]
+ [./interfacedPostProcessor]
+   type   = 'RavenFramework'
+   input  = 'test_interfacedPP.xml'
+   csv    = 'interfacedPostProcessor/PrintPPHistorySet_dump_0.csv'
+   output = 'interfacedPostProcessor/PrintPPHistorySet_dump.xml'
+ [../]
+ [./interfacedPostProcessorParallel]
+   type   = 'RavenFramework'
+   input  = 'test_interfacedPP_parallel.xml'
+   csv    = 'interfacedPostProcessorParallel/PrintPPHistorySet_dump_0.csv'
+   output = 'interfacedPostProcessorParallel/PrintPPHistorySet_dump.xml'
+ [../]
+ [./interfacedPostProcessor_PointSet]
+   type   = 'RavenFramework'
+   input  = 'test_interfacedPP_pointset.xml'
+   csv    = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.csv'
+   output = 'interfacedPostProcessor_PointSet/PrintPPPointSetSet_dump.xml'
+ [../]
 []
-
-

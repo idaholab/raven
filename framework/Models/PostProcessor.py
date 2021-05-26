@@ -27,14 +27,14 @@ import Runners
 from Models import Model
 from Decorators.Parallelization import Parallel
 from utils import utils, InputTypes
-from .PostProcessors import factory as interfaceFactory
+from .PostProcessors import factory
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PostProcessor(Model):
   """
     PostProcessor is an Action System. All the models here, take an input and perform an action
   """
-
+  interfaceFactory = factory
   @classmethod
   def getInputSpecification(cls):
     """
@@ -45,12 +45,10 @@ class PostProcessor(Model):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    validTypes = list(interfaceFactory.knownTypes())
-    typeEnum = InputTypes.makeEnumType('PostProcessor', 'PostProcessorType', validTypes)
-    for name in validTypes:
-      pp = interfaceFactory.returnClass(name)
-      subSpec = pp.getInputSpecification()
-      spec.mergeSub(subSpec)
+    validClass = interfaceFactory.returnClass(self.subType)
+    spec.addParam('subType', required=True, param_type=InputTypes.StringType)
+    validSpec = validClass.getInputSpecification()
+    spec.mergeSub(validSpec)
     return spec
 
   @classmethod
@@ -125,7 +123,7 @@ class PostProcessor(Model):
       @ Out, None
     """
     super()._readMoreXML(xmlNode)
-    self._pp = interfaceFactory.returnInstance(self.subType)
+    self._pp = self.interfaceFactory.returnInstance(self.subType)
     self._pp._readMoreXML(xmlNode)
 
   def whatDoINeed(self):

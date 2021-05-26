@@ -22,10 +22,11 @@ import Files
 from utils import InputData, InputTypes
 from DataObjects import DataObject
 from .PluginBase import PluginBase
-from Models.PostProcessors.PostProcessorInterface import PostProcessorInterface
+from Models.PostProcessors import PostProcessorReadyInterface
+from Models.PostProcessors import factory
 #Internal Modules End-----------------------------------------------------------
 
-class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
+class PostProcessorPluginBase(PluginBase, PostProcessorReadyInterface):
   """
     This class represents a specialized class from which each PostProcessor plugins must inherit from
   """
@@ -33,7 +34,7 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
   # validity of a certain plugin.
   _methodsToCheck = ['getInputSpecification', '_handleInput', 'run']
   entityType = 'PostProcessor'
-
+  _interfaceFactory = factory
   ##################################################
   # Plugin APIs
   ##################################################
@@ -56,26 +57,9 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
       @ Out, None
     """
     super().__init__()
-    self._inputDataType = 'dict' # Current accept two types: 1) 'dict', 2) 'xrDataset'
-                                 # Set default to 'dict', this is consistent with current post-processors
-
-  def setInputDataType(self, dataType='dict'):
-    """
-      Method to set the input data type that will be passed to "run" method
-      @ In, dataType, str, the data type to which the internal DataObjects will be converted
-      @ Out, None
-    """
-    if dataType not in ['dict', 'xrDataset']:
-      self.raiseAnError(IOError, 'The dataType "{}" is not supported, please consider using "dict" or "xrDataset"'.format(dataType))
-    self._inputDataType = dataType
-
-  def getInputDataType(self):
-    """
-      Method to retrieve the input data type to which the internal DataObjects will be converted
-      @ In, None
-      @ Out, _inputDataType, str, the data type, i.e., 'dict', 'xrDataset'
-    """
-    return self._inputDataType
+    self.setInputDataType('dict') # Current accept two types: 1) 'dict', 2) 'xrDataset'
+                                  # Set default to 'dict', this is consistent with current post-processors
+    self.keepInputMeta(True)      # Meta keys from input data objects will be added to output data objects
 
   def initialize(self, runInfo, inputs, initDict=None):
     """
@@ -103,33 +87,3 @@ class PostProcessorPluginBase(PostProcessorInterface, PluginBase):
   #     @ In,  inputDs, list, list of Datasets
   #     @ Out, outputDs, dict, xarray.Dataset
   #   """
-
-    ##################################################
-    # Methods for Internal Use
-    ##################################################
-
-  def createPostProcessorInput(self, inputObjs, **kwargs):
-    """
-      This function is used to convert internal DataObjects to user-friendly format of data.
-      The output from this function will be directly passed to the "run" method.
-      @ In, inputObjs, list, list of DataObjects
-      @ In, **kwargs, dict, is a dictionary that contains the information passed by "Step".
-          Currently not used by PostProcessor. It can be useful by Step to control the input
-          and output of the PostProcessor, as well as other control options for the PostProcessor
-      @ Out, inputDict, list, list of data set that will be directly used by the "PostProcessor.run" method.
-    """
-    #### TODO: This method probably need to move to PostProcessor Base Class when we have converted
-    #### all internal PostProcessors to use Dataset
-    ## Type 1: DataObjects => Dataset or Dict
-    ## Type 2: File => File
-    assert type(inputObjs) == list
-    inputDict = {'Data':[], 'Files':[]}
-    for inp in inputObjs:
-      if isinstance(inp, Files.File):
-        inputDict['Files'].append(inp)
-      elif isinstance(inp, DataObject.DataObject):
-        dataType = self.getInputDataType()
-        inputDict['Data'].append(inp.asDataset(outType=dataType))
-      else:
-        self.raiseAnError(IOError, "Unknown input is found", str(inp))
-    return inputDict

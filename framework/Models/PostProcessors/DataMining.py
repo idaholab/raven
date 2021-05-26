@@ -320,17 +320,17 @@ class DataMining(PostProcessorInterface):
       @ Out, inputDict, dict, an input dictionary that this post-processor can process
     """
     inputDict = {'Features': {}, 'parameters': {}, 'Labels': {}, 'metadata': {}}
-    if self.PreProcessor._pp.returnFormat('output') not in ['PointSet']:
+    if not set(self.PreProcessor._pp.validDataType).issubset(set(['PointSet'])):
       self.raiseAnError(IOError, 'DataMining PP: this PP is employing a pre-processor PP which does not generates a PointSet.')
 
-    tempData = self.PreProcessor._pp.inputToInternal([currentInput])
+    tempData = self.PreProcessor._pp.createPostProcessorInput([currentInput])
     preProcessedData = self.PreProcessor._pp.run(tempData)
 
     if self.initializationOptionDict['KDD']['Features'] == 'input':
       featureList = currentInput.getVars('input')
     elif self.initializationOptionDict['KDD']['Features'] == 'output':
       dataList = preProcessedData['data'].keys()
-      # FIXME: this fix is due to the changes in the data structure of interface pp
+      # FIXME: this fix is due to the changes in the data structure of © pp
       toRemove = currentInput.getVars('input') + currentInput.getVars('meta')
       featureList = [elem for elem in dataList if elem not in toRemove]
     else:
@@ -387,7 +387,7 @@ class DataMining(PostProcessorInterface):
       self.solutionExport = initDict["SolutionExport"]
     if "PreProcessor" in self.assemblerDict:
       self.PreProcessor = self.assemblerDict['PreProcessor'][0][3]
-      if not '_inverse' in dir(self.PreProcessor._pp.postProcessor):
+      if not '_inverse' in dir(self.PreProcessor._pp):
         self.raiseAnError(IOError, 'PostProcessor ' + self.name + ' is using a pre-processor where the method inverse has not implemented')
     if 'Metric' in self.assemblerDict:
       self.metric = self.assemblerDict['Metric'][0][3]
@@ -620,7 +620,7 @@ class DataMining(PostProcessorInterface):
             rlzDims = {}
             for index,center in zip(indices,centers):
               tempDict[index] = center
-            centers = self.PreProcessor._pp.postProcessor._inverse(tempDict)
+            centers = self.PreProcessor._pp._inverse(tempDict)
             rlzs[self.labelFeature] = np.atleast_1d(indices)
             rlzDims[self.labelFeature] = []
             if self.solutionExport.type == 'PointSet':

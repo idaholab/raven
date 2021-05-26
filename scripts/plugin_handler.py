@@ -125,8 +125,10 @@ def tellPluginAboutRaven(loc):
   if ravenLoc is None:
     ravenLoc = xmlUtils.newNode('FrameworkLocation')
     root.append(ravenLoc)
-  ravenLoc.text = os.path.abspath(os.path.expanduser(frameworkDir))
-  xmlUtils.toFile(configFile, root)
+  ravenFrameworkLoc = os.path.abspath(os.path.expanduser(frameworkDir))
+  if ravenLoc.text != ravenFrameworkLoc:
+    ravenLoc.text = ravenFrameworkLoc
+    xmlUtils.toFile(configFile, root)
   return ravenLoc.text
 
 def loadPluginTree():
