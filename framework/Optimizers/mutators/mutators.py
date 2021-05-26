@@ -28,7 +28,7 @@ from operator import itemgetter
 from utils import utils, randomUtils
 import copy
 
-def swapMutator(offSprings,**kwargs):
+def swapMutator(offSprings, distDict, **kwargs):
   """
     This method performs the swap mutator. For each child, two genes are sampled and switched
     E.g.:
@@ -47,6 +47,7 @@ def swapMutator(offSprings,**kwargs):
   else:
     loc1 = kwargs['locs'][0]
     loc2 = kwargs['locs'][1]
+
   # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
                           dims=['chromosome','Gene'],
@@ -56,12 +57,16 @@ def swapMutator(offSprings,**kwargs):
     children[i] = copy.deepcopy(offSprings[i])
     ## TODO What happens if loc1 or 2 is out of range?! should we raise an error?
     if randomUtils.random(dim=1,samples=1)<=kwargs['mutationProb']:
-      children[i,loc1] = offSprings[i,loc2]
-      children[i,loc2] = offSprings[i,loc1]
+      # convert loc1 and loc2 in terms on cdf values
+      cdf1 = distDict[offSprings.coords['Gene'].values[loc1]].cdf(float(offSprings[i,loc1].values))
+      cdf2 = distDict[offSprings.coords['Gene'].values[loc2]].cdf(float(offSprings[i,loc2].values))
+      children[i,loc1] = distDict[offSprings.coords['Gene'].values[loc1]].ppf(cdf2)
+      children[i,loc2] = distDict[offSprings.coords['Gene'].values[loc2]].ppf(cdf1)
+
   return children
 
 # @profile
-def scrambleMutator(offSprings,**kwargs):
+def scrambleMutator(offSprings, distDict, **kwargs):
   """
     This method performs the scramble mutator. For each child, a subset of genes is chosen
     and their values are shuffled randomly.
@@ -81,18 +86,27 @@ def scrambleMutator(offSprings,**kwargs):
       l = randomUtils.randomIntegers(0,offSprings.sizes['Gene']-1,None)
       locs.append(l)
     locs = list(set(locs))
-  nMutable = len(locs)
-    # initializing children
+
+  # initializing children
   children = xr.DataArray(np.zeros((np.shape(offSprings))),
                           dims=['chromosome','Gene'],
                           coords={'chromosome': np.arange(np.shape(offSprings)[0]),
                                   'Gene':kwargs['variables']})
+
+  for i in range(np.shape(offSprings)[0]):
+    for j in range(np.shape(offSprings)[1]):
+      children[i,j] = distDict[offSprings[i].coords['Gene'].values[j]].cdf(float(offSprings[i,j].values))
+
   for i in range(np.shape(offSprings)[0]):
     children[i] = copy.deepcopy(offSprings[i])
-    new = list(itemgetter(*locs)(offSprings[i].values))
     for ind,element in enumerate(locs):
       if randomUtils.random(dim=1,samples=1)< kwargs['mutationProb']:
         children[i,locs[0]:locs[-1]+1] = randomUtils.randomPermutation(list(offSprings.data[i,locs[0]:locs[-1]+1]),None)
+
+  for i in range(np.shape(offSprings)[0]):
+    for j in range(np.shape(offSprings)[1]):
+      children[i,j] = distDict[offSprings.coords['Gene'].values[j]].ppf(children[i,j])
+
   return children
 
 def bitFlipMutator(offSprings,**kwargs):
@@ -127,7 +141,7 @@ def bitFlipMutator(offSprings,**kwargs):
 
   return offSprings
 
-def inversionMutator(offSprings,**kwargs):
+def inversionMutator(offSprings, distDict, **kwargs):
   """
     This method is designed mirror a sequence of genes in each chromosome with probability = mutationProb.
     The sequence of genes to be mirrored is completely random.
@@ -157,7 +171,12 @@ def inversionMutator(offSprings,**kwargs):
       ##############
       # select sequence to be mirrored and mirror it
       seq=child.values[locL:locU+1]
+      for elem in seq:
+        elem = distDict[child.coords['Gene'].values[elem]].cdf(float(child[elem].values))
+
       mirrSeq = seq[::-1]
+      for elem in mirrSeq:
+        elem = distDict[child.coords['Gene'].values[elem]].ppf(elem)
       ##############
       # insert mirrored sequence into child
       child.values[locL:locU+1]=mirrSeq

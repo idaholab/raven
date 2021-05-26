@@ -1281,7 +1281,7 @@ class ROM(Dummy):
 
     self.kerasLayersList = functools.reduce(lambda x,y: x+y, list(self.kerasDict.values()))
 
-    self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier']
+    self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier', 'KerasLSTMRegression']
     # for Clustered ROM
     self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
@@ -1546,10 +1546,10 @@ class ROM(Dummy):
       # reset the ROM before perform cross validation
       cvMetrics = {}
       self.reset()
-      outputMetrics = self.cvInstance.run([self, trainingSet])
+      outputMetrics = self.cvInstance._pp.run([self, trainingSet])
       exploredTargets = []
       for cvKey, metricValues in outputMetrics.items():
-        info = self.cvInstance._returnCharacteristicsOfCvGivenOutputName(cvKey)
+        info = self.cvInstance._pp._returnCharacteristicsOfCvGivenOutputName(cvKey)
         if info['targetName'] in exploredTargets:
           self.raiseAnError(IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name, "' for ROM '", rom.name,  "'!")
         exploredTargets.append(info['targetName'])
@@ -1563,7 +1563,7 @@ class ROM(Dummy):
       @ Out, None
     """
     useCV = True
-    initDict =  self.cvInstance.initializationOptionDict
+    initDict =  self.cvInstance._pp.initializationOptionDict
     if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
       if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
         useCV = False

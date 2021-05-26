@@ -67,10 +67,14 @@ def _getPDFandCDFfromWeightedData(data, weights, numBins, uniformBins, interpola
     @ In, interpolation, str, "linear" or "quadratic", depending on which interpolation is used
     @ Out, (dataStats, cdfFunc, pdfFunc), tuple, dataStats is dictionary with things like "mean" and "stdev", cdfFunction is a function that returns the CDF value and pdfFunc is a function that returns the PDF value.
   """
+  # normalize weights
+  weightSum = sum(weights)
+  if not math.isclose(weightSum, 1.0):
+    weights = weights / weightSum
+  weightSum = sum(weights)
   # Sort the data
   sortedData = list(zip(data, weights))
   sortedData.sort() #Sort the data.
-  weightSum = sum(weights)
   value = 0 #Read only
   weight = 1 #Read only
   # Find data range
@@ -211,8 +215,6 @@ def _getCDFAreaDifference(data1, data2):
   stats1, cdf1, pdf1 =_convertToCommonFormat(data1)
   stats2, cdf2, pdf2 =_convertToCommonFormat(data2)
   low, high = _getBounds(stats1, stats2)
-  #for some earlier tests, simpson was more reliable, but much slower
-  #return mathUtils.simpson(lambda x:abs(cdf1(x)-cdf2(x)),low,high,100000)
   return scipy.integrate.quad(lambda x:abs(cdf1(x)-cdf2(x)),low,high,limit=1000)[0]
 
 def _getPDFCommonArea(data1, data2):
@@ -226,7 +228,5 @@ def _getPDFCommonArea(data1, data2):
   stats1, cdf1, pdf1 =_convertToCommonFormat(data1)
   stats2, cdf2, pdf2 =_convertToCommonFormat(data2)
   low, high = _getBounds(stats1, stats2)
-  #for some earlier tests, simpson was more reliable, but much slower
-  #return mathUtils.simpson(lambda x:min(pdf1(x),pdf2(x)),low,high,100000)
   return scipy.integrate.quad(lambda x:min(pdf1(x),pdf2(x)),low,high,limit=1000)[0]
 

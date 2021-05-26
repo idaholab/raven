@@ -674,6 +674,51 @@ The distribution that this variable is following is a Triangular distribution
 We are sampling this variable beginning from 0.0 in 10 \textit{equal} steps of
 2880.
 %
+In case of Dynamic Event Tree-based sampling, the input is very similar to the other
+sampling strategies with the only ``limitation'' that the sampled variables
+directly linked to the Dynamic Event Tree must be part of a RELAP5 trip.
+In case, other variables must be sampled, they are considered ``epistemic'' variables and
+should be sampled using the Hybrid Dynamic Event Tree approach.
+
+
+For example, the Dynamic Event Tree sampling and the  Hybrid Dynamic Event Tree sampling would look
+like the following:
+
+\begin{lstlisting}[style=XML,morekeywords={name,type,construction,lowerBound,steps,limit,initialSeed}]
+<Samplers verbosity='debug'>
+  <DynamicEventTree name='DET'>
+    <variable name='414:6'>
+      <distribution>endtimedist</distribution>
+      <grid type='CDF' construction='custom'>0.1 0.3 0.99</grid>
+    </variable>
+    <variable name='454:6'>
+      <distribution>endtime2dist</distribution>
+      <grid type='CDF' construction='custom'>0.11 0.5 0.99</grid>
+    </variable>
+  </DynamicEventTree>
+
+  <DynamicEventTree name='HDET'>
+    <HybridSampler type="MonteCarlo">
+      <!-- in here we specify the epistemic like variables -->
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="200:1">
+        <distribution>missionTimeDist</distribution>
+      </variable>
+    </HybridSampler>
+    <variable name='414:6'>
+      <distribution>endtimedist</distribution>
+      <grid type='CDF' construction='custom'>0.1 0.3 0.99</grid>
+    </variable>
+    <variable name='454:6'>
+      <distribution>endtime2dist</distribution>
+      <grid type='CDF' construction='custom'>0.11 0.5 0.99</grid>
+    </variable>
+  </DynamicEventTree>
+</Samplers>
+\end{lstlisting}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
 For a RELAP interface, the \xmlNode{MultiRun} step type will most likely be
@@ -4934,6 +4979,11 @@ The  path to the AccelerateCFD executable must be included.
   <Models>
     <Code name="myAccelerateCFD" subType="AccelerateCFD">
       <executable>./romRun</executable>
+      <outputLocations>
+          <coordinates>
+           (0.0,0.0,0.0) (1.0,1.0,1.0) (min,min,min) (max,max,max) (middle,middle,middle)
+          </coordinates>
+      </outputLocations>
     </Code>
   </Models>
 \end{lstlisting}
@@ -4962,10 +5012,11 @@ their possible inputs, please see the chapter about Distributions (see~\ref{sec:
 Uniform distribution:
 \begin{lstlisting}[style=XML]
   <Distributions>
-    <Uniform name="uni">
-        <lowerBound>0.1</lowerBound>
-        <upperBound>0.2</upperBound>
-    </Uniform>
+    <UniformDiscrete name='uni'>
+      <lowerBound>10</lowerBound>
+      <upperBound>30</upperBound>
+      <strategy>withoutReplacement</strategy>
+    </UniformDiscrete>
   </Distributions>
 \end{lstlisting}
 %
@@ -4973,8 +5024,7 @@ Uniform distribution:
 \subsubsection{Samplers}
 The \xmlNode{Samplers} block defines the variables to be sampled. After defining a sampling scheme, the variables to be sampled and
 their distributions are identified in the \xmlNode{variable} blocks.
-The \xmlAttr{name} must be formatted according to the Neutrino parameter name, which for the particle size is
-'ParticleSize'.
+The \xmlAttr{name} must be formatted according to the AccelerateCFD parameter name (in the XML input file)
 An example of a \xmlNode{Samplers} block is given below:
 \begin{lstlisting}[style=XML]
  <Samplers>
@@ -4982,7 +5032,7 @@ An example of a \xmlNode{Samplers} block is given below:
       <samplerInit>
         <limit>5</limit>
       </samplerInit>
-      <variable name='ParticleSize'>
+      <variable name='velMods'>
         <distribution>uni</distribution>
       </variable>
     </MonteCarlo>
@@ -4991,32 +5041,74 @@ An example of a \xmlNode{Samplers} block is given below:
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Steps}
-In this section, the \xmlNode{MultiRun} will be used. As shown in the following, a Neutrino
-input file is listed in \xmlNode{Files} and is linked here using \xmlNode{Input}, the \xmlNode{Model}
+In this section, the \xmlNode{MultiRun} will be used. As shown in the following, the AccelerateCFD
+input files are listed in \xmlNode{Files} and are linked here using \xmlNode{Input}, the \xmlNode{Model}
 and \xmlNode{Sampler} defined in previous sections will be used in this \xmlNode{MultiRun}. The
 outputs will be saved in the \textbf{DataObject} 'resultPointSet'.
 
 \begin{lstlisting}[style=XML]
   <Steps>
     <MultiRun name="run">
-      <Input class="Files" type="">neutrinoInput</Input>
-      <Model class="Models" type="Code">neutrinoCode</Model>
-      <Sampler class="Samplers" type="MonteCarlo">myMC</Sampler>
-      <Output class="DataObjects" type="PointSet">resultPointSet</Output>
+      <Input   class="Files"       type="input">podInputs.xml</Input>
+      <Input   class="Files"       type="mesh-x">Cx</Input>
+      <Input   class="Files"       type="mesh-y">Cy</Input>
+      <Input   class="Files"       type="mesh-x">Cz</Input>
+      <Model   class="Models"      type="Code">AcceleratedCFDCode</Model>
+      <Sampler class="Samplers"    type="MonteCarlo">myMC</Sampler>
+      <Output  class="Databases"   type="HDF5">DataAcceleratedCFD</Output>
+      <Output  class="DataObjects" type="HistorySet">AcceleratedCFDHistorySet</Output>
+      <Output  class="DataObjects" type="PointSet">AcceleratedCFDPointSet</Output>
     </MultiRun>
   </Steps>
 \end{lstlisting}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Output File Conversion}
-The Neutrino measurement field output is a CSV output. However, labels must be added to the Neutrino output
-and it must be moved for RAVEN. These are both done in the Neutrino interface. The labels that are added to the
-output file are 'time' and 'result'. These labels would be used in the \xmlNode{DataObjects} specification.
-If different labels are wanted, they would need to be changed directly in the Neutrino interface.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Additional Information}
-The Neutrino interface is used to alter the particle size by modifying the Neutrino input file. The Neutrino interface
-searches for the default SPH solver parameter name: '\texttt{NIISphSolver\_1}'. If the SPH solver name is changed in the
-Neutrino input file, the Neutrino interface must also be changed. Similarly, the Neutrino interface searches for the
-output in the default Measurement field name: '\texttt{MeasurementField\_1}'. Again, this would need to modified in the interface
+The AccelerateCFD software produces CFD-grade results (velocity and scalar fields). The interface
+is will extract the rusults and deploy them as int he following format:
+\begin{itemize}
+  \item $variableName-coordinates-axis$. For example: $volVectorField-0\_0\_0\_0\_0\_0-x$ or $volVectorField-min_min_min-x$
+\end{itemize}
+For example, the following example $DataObject$:
+\begin{lstlisting}[style=XML]
+<DataObjects>
+  <PointSet name="AcceleratedCFDPointSet">
+    <Input>velMods,scalMods</Input>
+    <Output>time,volVectorField-0_0_0_0_0_0-x,
+    volVectorField-0_0_0_0_0_0-y,
+    volVectorField-0_0_0_0_0_0-z,
+    volVectorField-1_0_1_0_1_0-x,
+    volVectorField-1_0_1_0_1_0-y,
+    volVectorField-1_0_1_0_1_0-z,
+    volVectorField-min_min_min-x,
+    volVectorField-min_min_min-y,
+    volVectorField-min_min_min-z,
+    volVectorField-max_max_max-x,
+    volVectorField-max_max_max-y,
+    volVectorField-max_max_max-z,
+    volVectorField-middle_middle_middle-x,
+    volVectorField-middle_middle_middle-y,
+    volVectorField-middle_middle_middle-z
+    </Output>
+  </PointSet>
+  <HistorySet name="AcceleratedCFDHistorySet">
+    <Input>velMods,scalMods</Input>
+    <Output>time,volVectorField-0_0_0_0_0_0-x,
+    volVectorField-0_0_0_0_0_0-y,
+    volVectorField-0_0_0_0_0_0-z,
+    volVectorField-1_0_1_0_1_0-x,
+    volVectorField-1_0_1_0_1_0-y,
+    volVectorField-1_0_1_0_1_0-z,
+    volVectorField-min_min_min-x,
+    volVectorField-min_min_min-y,
+    volVectorField-min_min_min-z,
+    volVectorField-max_max_max-x,
+    volVectorField-max_max_max-y,
+    volVectorField-max_max_max-z,
+    volVectorField-middle_middle_middle-x,
+    volVectorField-middle_middle_middle-y,
+    volVectorField-middle_middle_middle-z
+    </Output>
+  </HistorySet>
+</DataObjects>
+\end{lstlisting}

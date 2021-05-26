@@ -14,6 +14,7 @@
         As reported in issue #805, RAVEN will not allow input DataObject of PostProcessor to be output DataObject,
         the output data object will be renamed, and the variable name of labels will be explicitly defined.
       </revision>
+      <revision author="wangc" date="2020-05-07">Convert InterfacedPostProcessor: subType will be replaced with the text from method node, and method node will be removed</revision>
     </revisions>
   </TestInfo>
 
@@ -36,15 +37,11 @@
         <linkage>ward</linkage>
       </KDD>
     </PostProcessor>
-    <PostProcessor name="filter0" subType="InterfacedPostProcessor">
-      <method>dataObjectLabelFilter</method>
-      <dataType>HistorySet</dataType>
+    <PostProcessor name="filter0" subType="dataObjectLabelFilter">
       <label>labels</label>
       <clusterIDs>0</clusterIDs>
     </PostProcessor>
-    <PostProcessor name="filter1" subType="InterfacedPostProcessor">
-      <method>dataObjectLabelFilter</method>
-      <dataType>HistorySet</dataType>
+    <PostProcessor name="filter1" subType="dataObjectLabelFilter">
       <label>labels</label>
       <clusterIDs>1</clusterIDs>
     </PostProcessor>

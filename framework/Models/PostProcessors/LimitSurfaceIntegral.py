@@ -20,12 +20,12 @@ import numpy as np
 import xarray
 import math
 
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import InputData, InputTypes
 import LearningGate
 
 
-class LimitSurfaceIntegral(PostProcessor):
+class LimitSurfaceIntegral(PostProcessorInterface):
   """
     This post-processor computes the n-dimensional integral of a Limit Surface
   """
@@ -40,7 +40,7 @@ class LimitSurfaceIntegral(PostProcessor):
         specifying input of cls.
     """
     ## This will replace the lines above
-    inputSpecification = super(LimitSurfaceIntegral, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
 
     LSIVariableInput = InputData.parameterInputFactory("variable")
     LSIVariableInput.addParam("name", InputTypes.StringType)
@@ -81,7 +81,7 @@ class LimitSurfaceIntegral(PostProcessor):
       @ Out, None
     """
     super().__init__()
-    from Models import factory as modelsFactory # delay import to allow definition
+    from Models.PostProcessors import factory as ppFactory # delay import to allow definition
     self.variableDist = {}  # dictionary created upon the .xml input file reading. It stores the distributions for each variable.
     self.target = None  # target that defines the f(x1,x2,...,xn)
     self.tolerance = 0.0001  # integration tolerance
@@ -93,7 +93,7 @@ class LimitSurfaceIntegral(PostProcessor):
     self.functionS = None # evaluation classifier for the integration
     self.errorModel = None # classifier used for the error estimation
     self.computationPrefix = None # output prefix for the storage of the probability and, if requested, bounding error
-    self.stat = modelsFactory.returnInstance('BasicStatistics')  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
+    self.stat = ppFactory.returnInstance('BasicStatistics')  # instantiation of the 'BasicStatistics' processor, which is used to compute the pb given montecarlo evaluations
     self.stat.what = ['expectedValue'] # expected value calculation
     self.addAssemblerObject('distribution', InputData.Quantity.zero_to_infinity) # distributions are optional
     self.printTag = 'POSTPROCESSOR INTEGRAL' # print tag
@@ -104,7 +104,7 @@ class LimitSurfaceIntegral(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       varName = None
       if child.getName() == 'variable':
