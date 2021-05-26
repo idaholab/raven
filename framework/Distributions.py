@@ -1644,6 +1644,7 @@ class Categorical(Distribution):
     self.type           = 'Categorical'
     self.dimensionality = 1
     self.distType       = 'Discrete'
+    self.totPsum        = 0.0
 
   def _handleInput(self, paramInput):
     """
@@ -1695,7 +1696,6 @@ class Categorical(Distribution):
       @ In, None
       @ Out, None
     """
-    self.totPsum = 0.0
     for element in self.mapping:
       if self.mapping[element] < 0:
         self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
