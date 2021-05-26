@@ -1663,7 +1663,6 @@ class Categorical(Distribution):
           self.values.add(float(outcome))
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
-    self.initializeDistribution()
 
   def getInitParams(self):
     """
@@ -1688,14 +1687,13 @@ class Categorical(Distribution):
       self.mapping[val] = inputDict['pAxis'][idx]
       self.values.add(val)
 
-    self.initializeDistribution()
-
   def initializeDistribution(self):
     """
       Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
       @ In, None
       @ Out, None
     """
+    print('here1')
     for element in self.mapping:
       if self.mapping[element] < 0:
         self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
