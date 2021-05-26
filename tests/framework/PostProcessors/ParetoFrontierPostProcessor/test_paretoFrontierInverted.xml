@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors/ParetoFrontierPostProcessor.ParetoFrontierInverted</name>
@@ -9,34 +8,34 @@
       This post-processor identifies the points lying on the Pareto Frontier in a cost-value space with data types inverted
     </description>
   </TestInfo>
-
+  
   <Files>
     <Input name="data" type="">dataInverted.csv</Input>
   </Files>
-
+  
   <RunInfo>
     <WorkingDir>ParetoFrontier</WorkingDir>
     <Sequence>LoadPS,PP</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
+  
   <Models>
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
-      <objective goal="max">out2</objective>
-      <objective goal="min">out1</objective>
-    </PostProcessor>
+      <objective goal='max'>out2</objective>
+      <objective goal='min'>out1</objective>
+    </PostProcessor>   
   </Models>
 
   <Steps>
-    <IOStep name="LoadPS">
-      <Input class="Files" type="">data</Input>
-      <Output class="DataObjects" type="PointSet">candidates</Output>
+    <IOStep      name='LoadPS'>
+      <Input     class='Files'        type=''                >data</Input>
+      <Output    class='DataObjects'  type='PointSet'        >candidates</Output>
     </IOStep>
     <PostProcess name="PP">
-      <Input class="DataObjects" type="PointSet">candidates</Input>
-      <Model class="Models" type="PostProcessor">paretoPP</Model>
-      <Output class="DataObjects" type="PointSet">paretoPoints</Output>
-      <Output class="OutStreams" type="Print">PrintParetoInverted</Output>
+      <Input     class="DataObjects"  type="PointSet"        >candidates</Input>
+      <Model     class="Models"       type="PostProcessor"   >paretoPP</Model>
+      <Output    class="DataObjects"  type="PointSet"        >paretoPoints</Output>
+      <Output    class="OutStreams"   type="Print"           >PrintParetoInverted</Output>
     </PostProcess>
   </Steps>
 
@@ -46,7 +45,7 @@
       <source>paretoPoints</source>
     </Print>
   </OutStreams>
-
+  
   <DataObjects>
     <PointSet name="candidates">
       <Input>var1,var2</Input>
@@ -57,5 +56,5 @@
       <Output>out1,out2</Output>
     </PointSet>
   </DataObjects>
-
+  
 </Simulation>

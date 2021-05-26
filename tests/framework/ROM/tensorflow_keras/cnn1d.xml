@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity='debug'>
   <TestInfo>
     <name>framework/Samplers/ROM/tensorflow_keras.tf_cnn1d</name>
     <author>wangc</author>
@@ -12,7 +12,7 @@
       in order to generate time-dependent input for CNN models.
     </description>
   </TestInfo>
-
+  
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <NumThreads>1</NumThreads>
@@ -91,7 +91,7 @@
     </ROM>
     <EnsembleModel name="ensembleModel" subType="">
       <Model class="Models" type="ExternalModel">
-        learnAlphabet
+        learnAlphabet      
         <Input class="DataObjects" type="PointSet">inputHolder</Input>
         <TargetEvaluation class="DataObjects" type="HistorySet">learnAlphabetDS</TargetEvaluation>
       </Model>
@@ -102,7 +102,7 @@
       </Model>
     </EnsembleModel>
   </Models>
-
+  
   <Samplers>
     <MonteCarlo name="mcSampler">
       <samplerInit>
@@ -125,7 +125,7 @@
       <constant name="seqLength">8</constant>
     </MonteCarlo>
   </Samplers>
-
+  
   <Steps>
     <MultiRun name="sample" sleepTime="1e-5">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
@@ -209,7 +209,7 @@
       <Input>x</Input>
       <Output>y</Output>
       <Index var="time">x</Index>
-    </DataSet>
+    </DataSet> 
   </DataObjects>
 
   <OutStreams>
@@ -220,5 +220,4 @@
       <what>input,output</what>
     </Print>
   </OutStreams>
-
 </Simulation>

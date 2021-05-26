@@ -16,7 +16,6 @@
       <revision author="talbpaul" date="2018-03-26">Nested ExternalXML nodes in OutStream</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>ExternalXMLTest</WorkingDir>
     <Sequence>CustomSampler</Sequence>
@@ -38,7 +37,7 @@
   </DataObjects>
 
   <OutStreams>
-    <ExternalXML node="Print" xmlToLoad="ExternalXMLTest/external_print.xml"/>
+    <ExternalXML node='Print' xmlToLoad='ExternalXMLTest/external_print.xml'/>
   </OutStreams>
 
   <Steps>

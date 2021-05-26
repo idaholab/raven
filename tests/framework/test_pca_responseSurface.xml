@@ -5,7 +5,6 @@
     <Sequence>BoxBehnkenRespDesignStep,CentralCompositeRespDesignStep</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pcaResponseSurface</name>
     <author>wangc</author>

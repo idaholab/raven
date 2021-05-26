@@ -5,7 +5,6 @@
     <Sequence>sample,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/VariableGroups/ExternalNodes</name>
     <author>talbpaul</author>

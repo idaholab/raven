@@ -8,6 +8,7 @@
     <description>
        An example exercising supervised sklearn methods, specifically
        the naiveBayes|MultinomialNB model is tested here.
+
        Note, all of the tests in SKLearn operate on a 2D input domain with
        the goal of fitting a paraboloid function. The input dimensions are
        of largely different scales and one dimension is off-centered from
@@ -23,7 +24,6 @@
       <revision author="wangc" date="2018-08-08">change the grid values that will within the bounds of distribution</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>

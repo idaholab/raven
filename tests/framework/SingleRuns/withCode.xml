@@ -1,11 +1,9 @@
-<?xml version="1.0" ?>
 <Simulation color="True" verbosity="debug">
   <RunInfo>
     <WorkingDir>run</WorkingDir>
     <Sequence>sample</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/SingleRuns/codeModel</name>
     <author>talbpw</author>
@@ -49,16 +47,15 @@
       <Output>r</Output>
     </PointSet>
   </DataObjects>
-
+  
   <Databases>
-    <HDF5 name="testDBwithSingleRun" readMode="overwrite"/>
+      <HDF5 name="testDBwithSingleRun" readMode="overwrite"/>
   </Databases>
-
+  
   <OutStreams>
     <Print name="sample">
       <type>csv</type>
       <source>sample</source>
     </Print>
   </OutStreams>
-
 </Simulation>

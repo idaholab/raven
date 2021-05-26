@@ -6,11 +6,11 @@
     <created>2017-06-30</created>
     <classesTested>Optimizer</classesTested>
     <description>
-      Provides a user case of the &quot;constraints&quot; function in action for the user guide.
+      Provides a user case of the "constraints" function in action for the user guide.
     </description>
     <revisions>
       <revision author="talbpaul" date="2020-08-21">Optimizer rework compatability</revision>
-      <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
+        <revision author="alfoa" date="2019-03-07">Modified syntax in Functions as for issue #934</revision>
     </revisions>
   </TestInfo>
 
@@ -34,7 +34,7 @@
   </Steps>
 
   <Functions>
-    <External file="./constraint" name="constraint">
+    <External file='./constraint' name='constraint'>
       <variables>x,y</variables>
     </External>
   </Functions>
@@ -42,11 +42,11 @@
   <Optimizers>
     <GradientDescent name="opter">
       <objective>ans</objective>
-      <variable name="x">
+      <variable name='x'>
         <distribution>beale_domain</distribution>
         <initial>0</initial>
       </variable>
-      <variable name="y">
+      <variable name='y'>
         <distribution>beale_domain</distribution>
         <initial>0</initial>
       </variable>
@@ -73,7 +73,7 @@
   </Optimizers>
 
   <Distributions>
-    <Uniform name="beale_domain">
+    <Uniform name='beale_domain'>
       <lowerBound>-4.5</lowerBound>
       <upperBound>4.5</upperBound>
     </Uniform>

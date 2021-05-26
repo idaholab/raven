@@ -10,11 +10,11 @@
       using uncorrelated multivariate normal distributions.
     </description>
     <analytic>
-      This test is analytic in mean and variance using the &quot;tensor polynomial&quot; analytic model
+      This test is analytic in mean and variance using the "tensor polynomial" analytic model
       documented in the analytic tests.
     </analytic>
     <revisions>
-      <revision author="talbpaul" date="2019-01-09">moving from ROM-file to ROM-dataobject</revision>
+      <revision author='talbpaul' date='2019-01-09'>moving from ROM-file to ROM-dataobject</revision>
     </revisions>
   </TestInfo>
 

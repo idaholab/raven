@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ensembleModelTests.indexInputOutput</name>
@@ -24,7 +23,7 @@
     </MultiRun>
     <IOStep name="print" pauseAtEnd="True">
       <Input class="DataObjects" type="HistorySet">step_out</Input>
-      <Output class="OutStreams" type="Print">step_out</Output>
+      <Output class="OutStreams"  type="Print">step_out</Output>
     </IOStep>
   </Steps>
 

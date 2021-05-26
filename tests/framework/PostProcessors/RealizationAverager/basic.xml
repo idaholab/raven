@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation color="True" verbosity="debug">
+<Simulation verbosity="debug" color="True">
   <TestInfo>
     <name>framework/PostProcessors/RealizationAverager.Basic</name>
     <author>talbpw</author>

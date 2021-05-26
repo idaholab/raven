@@ -11,7 +11,7 @@
        probability. That is, if the total probability weight of a partition is
        too small, then that partition will be merged into a neighboring
        partition given the normal rules of persistence simplification. Note,
-       that all of the &quot;persistence&quot; tests will use the Schwefel function for
+       that all of the "persistence" tests will use the Schwefel function for
        testing.
     </description>
     <revisions>
@@ -24,7 +24,6 @@
       <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>

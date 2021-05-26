@@ -8,12 +8,12 @@
     <description>
        Example of usage of the Logical Model capability in RAVEN
        This test is intended to check the functionality of Logical Model
-       with three external models &quot;sum&quot;, &quot;minus&quot; and &quot;multiply&quot;.
-       A control function &quot;control&quot; is required to select the external
+       with three external models "sum", "minus" and "multiply".
+       A control function "control" is required to select the external
        model to run based on the values of input variables x and y.
-       If x &gt; 0 and y &gt; 1, the model &quot;sum&quot; will be selected. if x &gt; 0
-       and y is less than or equal 1, the model &quot;multiply&quot; will be selected. In other
-       conditions, the model &quot;minus&quot; will be selected.
+       If x > 0 and y > 1, the model "sum" will be selected. if x > 0
+       and y is less than or equal 1, the model "multiply" will be selected. In other
+       conditions, the model "minus" will be selected.
     </description>
   </TestInfo>
 
@@ -39,12 +39,15 @@
     <ExternalModel ModuleToLoad="sum" name="sum" subType="">
       <variables>x, y, z</variables>
     </ExternalModel>
+
     <ExternalModel ModuleToLoad="minus" name="minus" subType="">
       <variables>x, y, z</variables>
     </ExternalModel>
+
     <ExternalModel ModuleToLoad="multiply" name="multiply" subType="">
       <variables>x, y, z</variables>
     </ExternalModel>
+
     <LogicalModel name="logical" subType="">
       <Model class="Models" type="ExternalModel">sum</Model>
       <Model class="Models" type="ExternalModel">minus</Model>

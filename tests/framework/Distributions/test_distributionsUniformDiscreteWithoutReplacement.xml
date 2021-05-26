@@ -18,14 +18,14 @@
 
   <Steps>
     <MultiRun name="MCrun">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MC</Sampler>
-      <Output class="DataObjects" type="PointSet">PointSet_MC</Output>
+      <Input   class="DataObjects" type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"      type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"    type="MonteCarlo"    >MC</Sampler>
+      <Output  class="DataObjects" type="PointSet"      >PointSet_MC</Output>
     </MultiRun>
     <IOStep name="OutStreams" pauseAtEnd="false">
-      <Input class="DataObjects" type="PointSet">PointSet_MC</Input>
-      <Output class="OutStreams" type="Print">MC_dumpWOreplec</Output>
+      <Input   class="DataObjects" type="PointSet"      >PointSet_MC</Input>
+      <Output  class="OutStreams"  type="Print"         >MC_dumpWOreplec</Output>
     </IOStep>
   </Steps>
 

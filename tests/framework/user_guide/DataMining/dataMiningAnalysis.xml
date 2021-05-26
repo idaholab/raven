@@ -1,12 +1,10 @@
-<?xml version="1.0" ?>
-<Simulation color="True" verbosity="debug">
+<Simulation verbosity="debug" color="True">
   <RunInfo>
     <JobName>dataMiningAnalysis</JobName>
     <WorkingDir>dataMiningAnalysis</WorkingDir>
     <Sequence>sampleMC,kmeans,pca</Sequence>
     <batchSize>3</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/user_guide/DataMining/dataMiningAnalysis</name>
     <author>talbpw</author>
@@ -96,11 +94,12 @@
     <HistorySet name="histories">
       <Input>v0,angle</Input>
       <Output>x,y,t</Output>
-      <options>
+      <options> 
         <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>
+
 
   <Steps>
     <MultiRun name="sampleMC">
@@ -128,60 +127,59 @@
 
   <OutStreams>
     <Print name="samplesDump">
-      <type>csv</type>
-      <source>kmeansSamples</source>
-      <what>input,output,metadata|klabels</what>
+        <type>csv</type>
+        <source>kmeansSamples</source>
+        <what>input,output,metadata|klabels</what>
     </Print>
     <Plot name="PlotKMeans1" overwrite="false">
-      <plotSettings>
-        <gridSpace>2 1</gridSpace>
-        <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
-          <clusterLabels>kmeansSamples|Output|klabels</clusterLabels>
-          <noClusters>3</noClusters>
-          <x>kmeansSamples|Input|angle</x>
-          <y>kmeansSamples|Output|r</y>
-          <xlabel>angle</xlabel>
-          <ylabel>range</ylabel>
-          <gridLocation>
-            <x>0</x>
-            <y>0</y>
-          </gridLocation>
-          <range>
-            <xmin>0</xmin>
-            <xmax>100</xmax>
-            <ymin>0</ymin>
-            <ymax>200</ymax>
-          </range>
-        </plot>
-        <plot>
-          <type>dataMining</type>
-          <SKLtype>cluster</SKLtype>
-          <clusterLabels>kmeansSamples|Output|klabels</clusterLabels>
-          <noClusters>3</noClusters>
-          <x>kmeansSamples|Input|v0</x>
-          <y>kmeansSamples|Output|r</y>
-          <xlabel>velocity</xlabel>
-          <ylabel>range</ylabel>
-          <gridLocation>
-            <x>1</x>
-            <y>0</y>
-          </gridLocation>
-          <range>
-            <xmin>0</xmin>
-            <xmax>60</xmax>
-            <ymin>0</ymin>
-            <ymax>200</ymax>
-          </range>
-        </plot>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <title>
-          <text> </text>
-        </title>
-      </actions>
+<plotSettings>
+            <gridSpace>2 1</gridSpace>
+            <plot>
+                <type>dataMining</type>
+                <SKLtype>cluster</SKLtype>
+                <clusterLabels>kmeansSamples|Output|klabels</clusterLabels>
+                <noClusters>3</noClusters>
+                <x>kmeansSamples|Input|angle</x>
+                <y>kmeansSamples|Output|r</y>
+                <xlabel>angle</xlabel>
+                <ylabel>range</ylabel>
+                <gridLocation>
+                    <x>0</x>
+                    <y>0</y>
+                </gridLocation>
+                <range>
+                  <xmin>0</xmin>
+                  <xmax>100</xmax>
+                  <ymin>0</ymin>
+                  <ymax>200</ymax>
+                </range>
+            </plot>            <plot>
+                <type>dataMining</type>
+                <SKLtype>cluster</SKLtype>
+                <clusterLabels>kmeansSamples|Output|klabels</clusterLabels>
+                <noClusters>3</noClusters>
+                <x>kmeansSamples|Input|v0</x>
+                <y>kmeansSamples|Output|r</y>
+                <xlabel>velocity</xlabel>
+                <ylabel>range</ylabel>
+                <gridLocation>
+                    <x>1</x>
+                    <y>0</y>
+                </gridLocation>
+                <range>
+                  <xmin>0</xmin>
+                  <xmax>60</xmax>
+                  <ymin>0</ymin>
+                  <ymax>200</ymax>
+                </range>
+            </plot>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
     </Plot>
     <Plot name="PlotLabels" overwrite="false">
       <plotSettings>
@@ -196,22 +194,22 @@
           <xlabel>velocity</xlabel>
           <ylabel>angle</ylabel>
           <zlabel>range</zlabel>
-          <range>
-            <xmin>0</xmin>
-            <xmax>60</xmax>
-            <ymin>0</ymin>
-            <ymax>100</ymax>
-            <zmin>0</zmin>
-            <zmax>200</zmax>
-          </range>
+                <range>
+                  <xmin>0</xmin>
+                  <xmax>60</xmax>
+                  <ymin>0</ymin>
+                  <ymax>100</ymax>
+                  <zmin>0</zmin>
+                  <zmax>200</zmax>
+                </range>
         </plot>
       </plotSettings>
-      <actions>
-        <how>png</how>
-        <title>
-          <text> </text>
-        </title>
-      </actions>
+        <actions>
+          <how>png</how>
+          <title>
+            <text> </text>
+          </title>
+        </actions>
     </Plot>
     <Plot name="PlotPCA1" overwrite="false">
       <plotSettings>
@@ -224,12 +222,12 @@
           <y>pcaSamples|Output|PCA1Dimension2</y>
         </plot>
       </plotSettings>
-      <actions>
-        <how>png</how>
-        <title>
-          <text> </text>
-        </title>
-      </actions>
+        <actions>
+          <how>png</how>
+          <title>
+            <text> </text>
+          </title>
+        </actions>
     </Plot>
   </OutStreams>
 

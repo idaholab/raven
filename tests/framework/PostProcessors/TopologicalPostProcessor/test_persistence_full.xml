@@ -8,7 +8,7 @@
     <description>
        A simple example of the approximate Morse-Smale complex (AMSC) interface
        where no persistence simplification will be done. Note, that all of the
-       &quot;persistence&quot; tests will use the Schwefel function for testing.
+       "persistence" tests will use the Schwefel function for testing.
     </description>
     <revisions>
       <revision author="cogljj" date="2015-09-29">Modifying external modules to use relative to working directory.</revision>
@@ -20,7 +20,6 @@
       <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>

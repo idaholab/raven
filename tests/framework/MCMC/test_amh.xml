@@ -90,14 +90,15 @@
       <Input>xin, yin</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+
     <PointSet name="outSet">
       <Input>xin, yin</Input>
       <Output>zout</Output>
     </PointSet>
+
     <PointSet name="out_export">
       <Input>traceID</Input>
       <Output>xin, yin, LogPosterior, AcceptRate</Output>
     </PointSet>
   </DataObjects>
-
 </Simulation>

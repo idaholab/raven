@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity='debug'>
   <TestInfo>
     <name>framework/PostProcessors/TopologicalPostProcessor.topology_simple</name>
     <author>maljdan</author>
@@ -22,7 +22,6 @@
       <revision author="maljdan" date="2017-01-17">Adding test description.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>data</WorkingDir>
     <Sequence>

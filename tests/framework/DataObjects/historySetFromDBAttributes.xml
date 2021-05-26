@@ -13,6 +13,7 @@
   </TestInfo>
 
   <ExternalXML node="RunInfo" xmlToLoad="DataobjectsAttributes/RunInfo.xml"/>
+
   <Steps>
     <IOStep name="TestDataObjectAttributes">
       <Input class="Databases" type="HDF5">testGridRavenDatabase</Input>
@@ -27,4 +28,5 @@
   <ExternalXML node="Databases" xmlToLoad="DataobjectsAttributes/Database.xml"/>
   <ExternalXML node="OutStreams" xmlToLoad="DataobjectsAttributes/OutStreams.xml"/>
   <ExternalXML node="DataObjects" xmlToLoad="DataobjectsAttributes/DataObjects.xml"/>
+
 </Simulation>

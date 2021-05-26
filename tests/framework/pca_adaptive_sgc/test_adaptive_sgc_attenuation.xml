@@ -10,7 +10,7 @@
     </description>
     <analytic>Attenuation with Multivariate Normal Distribution</analytic>
     <revisions>
-      <revision author="talbpaul" date="2019-01-09">moving rom ROM-file to ROM-dataobject</revision>
+      <revision author='talbpaul' date='2019-01-09'>moving rom ROM-file to ROM-dataobject</revision>
     </revisions>
   </TestInfo>
 

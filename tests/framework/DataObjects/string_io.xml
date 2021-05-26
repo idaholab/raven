@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+
   <TestInfo>
     <name>framework/DataObjects.StringIO</name>
     <author>talbpaul</author>
@@ -18,7 +19,7 @@
   <Steps>
     <MultiRun name="sample">
       <Input class="Files" type="">template</Input>
-      <Model class="Models" type="Code">code</Model>
+      <Model class='Models' type='Code'>code</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">ps</Output>
       <Output class="DataObjects" type="HistorySet">hs</Output>
@@ -46,7 +47,7 @@
     <DataSet name="ds">
       <Input>x0</Input>
       <Output>ss,fs,st,ft</Output>
-      <Index var="time">ss,fs,st,ft</Index>
+      <Index var='time'>ss,fs,st,ft</Index>
     </DataSet>
   </DataObjects>
 
@@ -55,23 +56,23 @@
   </Files>
 
   <Samplers>
-    <Grid name="grid">
-      <variable name="x0">
+    <Grid name='grid'>
+      <variable name='x0'>
         <distribution>dist</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.1 0.9</grid>
+        <grid construction='equal' steps='1' type='CDF'>0.1 0.9</grid>
       </variable>
     </Grid>
   </Samplers>
 
   <Distributions>
-    <Uniform name="dist">
+    <Uniform name='dist'>
       <lowerBound>0</lowerBound>
       <upperBound>1</upperBound>
     </Uniform>
   </Distributions>
 
   <Models>
-    <Code name="code" subType="GenericCode">
+    <Code name="code" subType='GenericCode'>
       <executable>StringIO/makes_strings.py</executable>
       <clargs arg="python" type="prepend"/>
       <clargs arg="-i" extension=".i" type="input"/>
@@ -93,5 +94,4 @@
       <source>ds</source>
     </Print>
   </OutStreams>
-
 </Simulation>

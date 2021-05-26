@@ -35,7 +35,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name="dist">
+    <Uniform name='dist'>
       <lowerBound>-1</lowerBound>
       <upperBound>1</upperBound>
     </Uniform>
@@ -69,7 +69,7 @@
       </variable>
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <Constraint class="Functions" type="External">goal</Constraint>
+            <Constraint class='Functions' type='External'>goal</Constraint>
     </SimulatedAnnealing>
   </Optimizers>
 

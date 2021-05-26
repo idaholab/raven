@@ -107,7 +107,7 @@
       <Input>x0,y0</Input>
       <Output>t,x,y,r</Output>
       <options>
-        <pivotParameter>t</pivotParameter>
+          <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
     <DataSet name="rom_stats"/>

@@ -20,23 +20,24 @@
     <batchSize>1</batchSize>
   </RunInfo>
 
+
   <Steps>
     <MultiRun name="FirstMRun" pauseAtEnd="True">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder</Input>
-      <Model class="Models" type="ExternalModel">PythonModule</Model>
-      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="PointSet">outMC</Output>
+      <Input   class="DataObjects"  type="PointSet"      >inputPlaceHolder</Input>
+      <Model   class="Models"       type="ExternalModel" >PythonModule</Model>
+      <Sampler class="Samplers"     type="MonteCarlo"    >MC_external</Sampler>
+      <Output  class="DataObjects"  type="PointSet"      >outMC</Output>
     </MultiRun>
     <PostProcess name="PP1">
-      <Input class="DataObjects" type="HistorySet">outMC</Input>
-      <Model class="Models" type="PostProcessor">historySamplingPP_uniform</Model>
-      <Output class="DataObjects" type="HistorySet">outMC_PP1</Output>
+      <Input   class="DataObjects"  type="HistorySet"    >outMC</Input>
+      <Model   class="Models"       type="PostProcessor" >historySamplingPP_uniform</Model>
+      <Output  class="DataObjects"  type="HistorySet"    >outMC_PP1</Output>
     </PostProcess>
     <PostProcess name="sync1">
-      <Input class="DataObjects" type="HistorySet">outMC_PP1</Input>
-      <Model class="Models" type="PostProcessor">hs_sync</Model>
-      <Output class="DataObjects" type="HistorySet">outMC_synced</Output>
-      <Output class="OutStreams" type="Print">out_synced_and_reduced</Output>
+        <Input   class="DataObjects"  type="HistorySet"    >outMC_PP1</Input>
+        <Model   class="Models"       type="PostProcessor" >hs_sync</Model>
+        <Output  class="DataObjects"  type="HistorySet"    >outMC_synced</Output>
+        <Output  class="OutStreams"   type="Print"         >out_synced_and_reduced</Output>
     </PostProcess>
   </Steps>
 

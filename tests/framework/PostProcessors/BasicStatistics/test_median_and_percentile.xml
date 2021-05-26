@@ -6,9 +6,9 @@
     <created>2020-10-08</created>
     <classesTested>PostProcessors.BasicStatistics</classesTested>
     <description>
-      This requirements test checks median calcuation and the percentile calcuation. This test use CustomSampler
-      to read a pre-genrated data and use BasicStatistic PostProcessor to output the median and the percentile
-      for some variables. In median calculations, RAVEN will gives a 50 percentile. The interpolation method to use
+      This requirements test checks median calcuation and the percentile calcuation. This test use CustomSampler 
+      to read a pre-genrated data and use BasicStatistic PostProcessor to output the median and the percentile 
+      for some variables. In median calculations, RAVEN will gives a 50 percentile. The interpolation method to use 
       when the desired percentile lies between two data points $i, j$: RAVEN will return the midpoint: $(i + j) / 2$.
     </description>
   </TestInfo>
@@ -28,12 +28,13 @@
     <PostProcessor name="median" subType="BasicStatistics" verbosity="debug">
       <median prefix="median">x0,y0,z0,x01,y01,z02,x,y,z</median>
       <percentile prefix="percentile">x0,z02</percentile>
-      <percentile percent="40" prefix="percentile2">x0</percentile>
+      <percentile prefix="percentile2" percent='40'>x0</percentile>
     </PostProcessor>
   </Models>
 
+
   <Distributions>
-    <Uniform name="x0_distrib">
+    <Uniform name='x0_distrib'>
       <lowerBound>0</lowerBound>
       <upperBound>10</upperBound>
     </Uniform>
@@ -53,13 +54,13 @@
       <variable name="z01"/>
       <variable name="x02"/>
       <variable name="y02"/>
-      <variable name="z02"/>
+      <variable name="z02"/>                  
       <variable name="time"/>
     </CustomSampler>
   </Samplers>
 
   <Steps>
-    <MultiRun name="sample">
+      <MultiRun name="sample">
       <Input class="DataObjects" type="PointSet">dummyIN</Input>
       <Model class="Models" type="Dummy">MyDummy</Model>
       <Sampler class="Samplers" type="CustomSampler">custom</Sampler>
@@ -117,5 +118,4 @@
                  median_x,
                  median_z</Group>
   </VariableGroups>
-
 </Simulation>

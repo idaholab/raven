@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Databases/NetCDF.Sample</name>

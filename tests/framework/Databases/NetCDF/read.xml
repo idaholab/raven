@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Databases/NetCDF.Read</name>
@@ -47,7 +46,7 @@
         <pivotParameter>x</pivotParameter>
       </options>
     </HistorySet>
-    <DataSet name="nd_data">
+    <DataSet name='nd_data'>
       <Input>c</Input>
       <Output>f</Output>
       <Index var="x">f</Index>
@@ -56,9 +55,9 @@
   </DataObjects>
 
   <Databases>
-    <NetCDF directory="../Write/DatabaseStorage" name="0d" readMode="read"/>
-    <NetCDF directory="../Write/DatabaseStorage" name="1d" readMode="read"/>
-    <NetCDF directory="../Write/DatabaseStorage" name="nd" readMode="read"/>
+    <NetCDF name="0d" directory="../Write/DatabaseStorage" readMode="read"/>
+    <NetCDF name="1d" directory="../Write/DatabaseStorage" readMode="read"/>
+    <NetCDF name="nd" directory="../Write/DatabaseStorage" readMode="read"/>
   </Databases>
 
   <OutStreams>
@@ -75,5 +74,4 @@
       <source>nd_data</source>
     </Print>
   </OutStreams>
-
 </Simulation>

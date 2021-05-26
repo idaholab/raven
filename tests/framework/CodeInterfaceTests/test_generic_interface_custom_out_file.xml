@@ -18,7 +18,6 @@
     </revisions>
     <requirements>R-IS-6</requirements>
   </TestInfo>
-
   <RunInfo>
     <JobName>GenericInterfaceIOCustomOutput</JobName>
     <Sequence>sample</Sequence>
@@ -67,7 +66,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun clearRunDir="False" name="sample">
+    <MultiRun name="sample" clearRunDir="False">
       <Input class="Files" type="">gen.one</Input>
       <Input class="Files" type="">gen.two</Input>
       <Model class="Models" type="Code">poly</Model>

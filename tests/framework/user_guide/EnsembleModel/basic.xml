@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/user_guide/Simple</name>
@@ -103,23 +102,23 @@
     <Grid name="grid">
       <variable name="y0">
         <distribution>y0_dist</distribution>
-        <grid construction="equal" steps="1" type="CDF">0 1</grid>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
       </variable>
       <variable name="ang">
         <distribution>ang_dist</distribution>
-        <grid construction="equal" steps="1" type="CDF">0 1</grid>
+        <grid type='CDF' construction='equal' steps='1'>0 1</grid>
       </variable>
       <variable name="v0">
         <distribution>v0_dist</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
+        <grid type='CDF' construction='equal' steps='1'>0.01 0.99</grid>
       </variable>
       <variable name="m">
         <distribution>m_dist</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
+        <grid type='CDF' construction='equal' steps='1'>0.01 0.99</grid>
       </variable>
       <variable name="r">
         <distribution>r_dist</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.01 0.99</grid>
+        <grid type='CDF' construction='equal' steps='1'>0.01 0.99</grid>
       </variable>
     </Grid>
   </Samplers>

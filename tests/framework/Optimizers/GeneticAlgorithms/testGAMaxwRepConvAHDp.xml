@@ -40,12 +40,12 @@
   </Steps>
 
   <Distributions>
-    <UniformDiscrete name="uniform_dist_Repl_1">
+    <UniformDiscrete name='uniform_dist_Repl_1'>
       <lowerBound>1</lowerBound>
       <upperBound>6</upperBound>
       <strategy>withReplacement</strategy>
     </UniformDiscrete>
-    <UniformDiscrete name="uniform_dist_woRepl_1">
+        <UniformDiscrete name='uniform_dist_woRepl_1'>
       <lowerBound>1</lowerBound>
       <upperBound>6</upperBound>
       <strategy>withOutReplacement</strategy>
@@ -60,6 +60,7 @@
         <writeSteps>every</writeSteps>
         <type>max</type>
       </samplerInit>
+
       <GAparams>
         <populationSize>10</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
@@ -77,21 +78,26 @@
         </fitness>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
+
       <convergence>
         <AHDp>0.0</AHDp>
       </convergence>
+
       <variable name="x1">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
+
       <variable name="x2">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
+
       <variable name="x3">
         <distribution>uniform_dist_Repl_1</distribution>
       </variable>
+
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-      <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </GeneticAlgorithm>
   </Optimizers>
 
@@ -113,34 +119,33 @@
     </MonteCarlo>
   </Samplers>
 
-  <Models>
-    <ExternalModel ModuleToLoad="../../../AnalyticModels/optimizing/myLocalSum.py" name="myLocalSum" subType="">
-      <variables>x1,x2,x3,ans</variables>
-    </ExternalModel>
-  </Models>
+    <Models>
+      <ExternalModel ModuleToLoad="../../../AnalyticModels/optimizing/myLocalSum.py" name="myLocalSum" subType="">
+        <variables>x1,x2,x3,ans</variables>
+      </ExternalModel>
+    </Models>
 
-  <DataObjects>
-    <PointSet name="placeholder"/>
-    <PointSet name="optOut">
-      <Input>x1,x2,x3</Input>
-      <Output>ans</Output>
-    </PointSet>
-    <PointSet name="opt_export">
-      <Input>trajID</Input>
-      <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
-    </PointSet>
-  </DataObjects>
+    <DataObjects>
+      <PointSet name="placeholder"/>
+      <PointSet name="optOut">
+        <Input>x1,x2,x3</Input>
+        <Output>ans</Output>
+      </PointSet>
+      <PointSet name="opt_export">
+        <Input>trajID</Input>
+        <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
+      </PointSet>
+    </DataObjects>
 
-  <OutStreams>
-    <Print name="optOut">
-      <type>csv</type>
-      <source>optOut</source>
-    </Print>
-    <Print name="opt_export">
-      <type>csv</type>
-      <source>opt_export</source>
-      <clusterLabel>trajID</clusterLabel>
-    </Print>
-  </OutStreams>
-
+    <OutStreams>
+      <Print name="optOut">
+        <type>csv</type>
+        <source>optOut</source>
+      </Print>
+      <Print name="opt_export">
+        <type>csv</type>
+        <source>opt_export</source>
+        <clusterLabel>trajID</clusterLabel>
+      </Print>
+    </OutStreams>
 </Simulation>

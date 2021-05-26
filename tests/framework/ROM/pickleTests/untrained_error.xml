@@ -1,11 +1,10 @@
 <?xml version="1.0" ?>
-<Simulation verbosity="all">
+<Simulation verbosity='all'>
   <RunInfo>
     <WorkingDir>UntrainedError</WorkingDir>
     <Sequence>make,pkDump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/ROM/pickleTests/loadUntrainedError</name>
     <author>talbpaul</author>

@@ -5,7 +5,6 @@
     <Sequence>FirstMRun,Dump</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/pca_rom/oneDim</name>
     <author>wangc</author>

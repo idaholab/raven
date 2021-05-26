@@ -69,7 +69,7 @@
       <variable name="y"/>
       <variable name="t"/>
       <variable name="ans"/>
-      <constant name="const">3.14</constant>
+      <constant name='const'>3.14</constant>
     </CustomSampler>
   </Samplers>
 

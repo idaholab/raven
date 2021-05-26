@@ -10,9 +10,9 @@
       This test is intended to check the functionality of Logical Model
       with the generic code system. Two simple python codes are used in this test.
       One is an exponential function of input variables x and y, the other one is
-      a polynomial function of input variables x and y. A control function &quot;control&quot;
+      a polynomial function of input variables x and y. A control function "control"
       utilizes the input values of x and y to determine which code to run. If
-      x &gt; 0.5 and y &gt; 1.5, the polynomial model 'poly' will be executed, otherwise
+      x > 0.5 and y > 1.5, the polynomial model 'poly' will be executed, otherwise
       the exponential model 'exp' will be executed.
     </description>
   </TestInfo>

@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Databases/NetCDF.Write</name>
@@ -50,7 +49,7 @@
         <pivotParameter>x</pivotParameter>
       </options>
     </HistorySet>
-    <DataSet name="nd_data">
+    <DataSet name='nd_data'>
       <Input>c</Input>
       <Output>f</Output>
       <Index var="x">f</Index>

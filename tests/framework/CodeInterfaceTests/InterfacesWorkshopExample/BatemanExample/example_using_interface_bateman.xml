@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug">
+
   <TestInfo>
     <name>framework/CodeInterfaceTests/InterfacesWorkshopExample/BatemanExample.bateman</name>
     <author>alfoa</author>
@@ -8,6 +9,7 @@
     <description>Testing the functionality of the Bateman Example interface. It demonstrates typical usage
     of the MultiRun with Monte Carlo sampler.</description>
   </TestInfo>
+  
 
   <RunInfo>
     <JobName>BatemanExample</JobName>
@@ -16,8 +18,9 @@
     <batchSize>1</batchSize>
   </RunInfo>
 
+
   <Files>
-    <Input name="referenceInput.xml" type="input">
+      <Input name="referenceInput.xml" type="input">
           ../../../../user_guide/ravenTutorial/commonFiles/referenceInput.xml
       </Input>
   </Files>
@@ -25,23 +28,22 @@
   <Models>
     <Code name="testModel" subType="BatemanSimple">
       <executable>../../../user_guide/physicalCode/analyticalbateman/AnalyticalDplMain.py</executable>
-      <alias type="input" variable="sigma-A">nuclides|A|sigma</alias>
+      <alias variable="sigma-A"    type="input">nuclides|A|sigma</alias>
     </Code>
   </Models>
-
   <Distributions>
-    <Uniform name="sigma">
-      <lowerBound>1</lowerBound>
-      <upperBound>10</upperBound>
-    </Uniform>
+      <Uniform name="sigma">
+          <lowerBound>1</lowerBound>
+          <upperBound>10</upperBound>
+      </Uniform>
   </Distributions>
 
   <Samplers>
     <MonteCarlo name="monteCarlo">
       <samplerInit>
-        <limit>2</limit>
-        <reseedEachIteration>True</reseedEachIteration>
-        <initialSeed>0</initialSeed>
+          <limit>2</limit>
+          <reseedEachIteration>True</reseedEachIteration>
+          <initialSeed>0</initialSeed>
       </samplerInit>
       <variable name="sigma-A">
         <distribution>sigma</distribution>
@@ -51,11 +53,11 @@
 
   <Steps>
     <MultiRun name="sample">
-      <Input class="Files" type="input">referenceInput.xml</Input>
-      <Model class="Models" type="Code">testModel</Model>
-      <Sampler class="Samplers" type="MonteCarlo">monteCarlo</Sampler>
-      <Output class="DataObjects" type="PointSet">samples</Output>
-      <Output class="OutStreams" type="Plot">samplesPlot_A</Output>
+      <Input 	class="Files" 			 type="input">referenceInput.xml</Input>
+      <Model 	class="Models" 			 type="Code">testModel</Model>
+      <Sampler 	class="Samplers" 		 type="MonteCarlo">monteCarlo</Sampler>
+      <Output 	class="DataObjects" 	 type="PointSet">samples</Output>
+      <Output   class="OutStreams"       type="Plot">samplesPlot_A</Output>
     </MultiRun>
   </Steps>
 
@@ -68,16 +70,14 @@
 
   <OutStreams>
     <Plot name="samplesPlot_A" overwrite="true" verbosity="debug">
-      <plotSettings>
-        <plot>
-          <type>scatter</type>
-          <x>samples|Input|sigma-A</x>
-          <y>samples|Output|A</y>
-        </plot>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-      </actions>
+        <plotSettings>
+            <plot>
+                <type>scatter</type>
+                <x>samples|Input|sigma-A</x>
+                <y>samples|Output|A</y>
+            </plot>
+        </plotSettings>
+        <actions> <how>png</how> </actions>
     </Plot>
   </OutStreams>
 

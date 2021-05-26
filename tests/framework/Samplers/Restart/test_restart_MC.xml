@@ -1,11 +1,10 @@
 <?xml version="1.0" ?>
-<Simulation profile="jobs" verbosity="debug">
+<Simulation verbosity="debug" profile="jobs">
   <RunInfo>
     <WorkingDir>mc</WorkingDir>
     <Sequence>makeCoarse,makeRestart,makeFine,print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/Samplers/Restart.MC</name>
     <author>talbpaul</author>
@@ -14,11 +13,11 @@
     <description>
       Tests restarting a Monte Carlo sampling from restart.  \texttt{makeCoarse} samples initial data, then \texttt{makeRestart}
       makes additional samples, restarting from the first set of samples.  \texttt{makeFine} does all the samples without restart
-      for comparison.  The model for &quot;coarse&quot; always returns a value of 1, while the model for &quot;restart&quot; returns a value of 2, so
+      for comparison.  The model for "coarse" always returns a value of 1, while the model for "restart" returns a value of 2, so
       you can tell which samples came from which sampling strategy.
     </description>
     <revisions>
-      <revision author="alfoa" date="2018-10-01">This Test is now a requirement test.</revision>
+        <revision author="alfoa" date="2018-10-01">This Test is now a requirement test.</revision>
     </revisions>
     <requirements>R-F-4</requirements>
   </TestInfo>

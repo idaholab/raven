@@ -6,7 +6,6 @@
     <WorkingDir>RunDir/Grid</WorkingDir>
     <batchSize>2</batchSize>
   </RunInfo>
-
   <TestInfo>
     <name>framework/user_guide/ForwardSamplingStrategies/Grid</name>
     <author>talbpw</author>
@@ -17,12 +16,13 @@
       of the Grid sampler to sample a Code model.
     </description>
     <revisions>
-      <revision author="burlip" date="2019-05-08">modified file to replace the Analyticalbateman example with the projectile example</revision>
+      <revision date="2019-05-08" author="burlip">modified file to replace the Analyticalbateman example with the projectile example</revision>
     </revisions>
   </TestInfo>
 
+
   <Models>
-    <ExternalModel ModuleToLoad="../../AnalyticModels/projectile.py" name="projectile" subType="">
+    <ExternalModel subType="" name="projectile" ModuleToLoad="../../AnalyticModels/projectile.py">
       <variables>x,y,v0,angle,r,t,timeOption</variables>
     </ExternalModel>
   </Models>
@@ -58,19 +58,19 @@
 
   <Steps>
     <MultiRun name="sample">
-      <Input class="DataObjects" type="PointSet">dummyIN</Input>
-      <Model class="Models" type="ExternalModel">projectile</Model>
+      <Input  class="DataObjects" type="PointSet" >dummyIN</Input>
+      <Model  class="Models"       type="ExternalModel">projectile</Model>
       <Sampler class="Samplers" type="Grid">grid</Sampler>
       <Output class="DataObjects" type="PointSet">samples</Output>
       <Output class="DataObjects" type="HistorySet">histories</Output>
     </MultiRun>
     <IOStep name="writeHistories" pauseAtEnd="True">
-      <Input class="DataObjects" type="HistorySet">histories</Input>
-      <Input class="DataObjects" type="PointSet">samples</Input>
-      <Output class="OutStreams" type="Plot">samplesPlot3D</Output>
-      <Output class="OutStreams" type="Plot">historyPlot</Output>
-      <Output class="OutStreams" type="Print">samples</Output>
-      <Output class="OutStreams" type="Print">histories</Output>
+        <Input class="DataObjects" type="HistorySet">histories</Input>
+        <Input class="DataObjects" type="PointSet">samples</Input>
+        <Output 	class="OutStreams" type="Plot">samplesPlot3D</Output>
+        <Output 	class="OutStreams" type="Plot">historyPlot</Output>
+        <Output 	class="OutStreams" type="Print">samples</Output>
+        <Output 	class="OutStreams" type="Print">histories</Output>
     </IOStep>
   </Steps>
 
@@ -84,25 +84,25 @@
       <Output>OutputPlaceHolder</Output>
     </PointSet>
     <HistorySet name="histories">
-      <Input>v0,angle</Input>
-      <Output>x,y,r,t</Output>
-      <options>
+        <Input>v0,angle</Input>
+        <Output>x,y,r,t</Output>
+        <options>
         <pivotParameter> t </pivotParameter>
-      </options>
+        </options>
     </HistorySet>
   </DataObjects>
 
-  <OutStreams>
+<OutStreams>
     <Print name="samples">
-      <type>csv</type>
-      <source>samples</source>
+        <type>csv</type>
+        <source>samples</source>
     </Print>
     <Print name="histories">
-      <type>csv</type>
-      <source>histories</source>
+        <type>csv</type>
+        <source>histories</source>
     </Print>
     <Plot name="historyPlot" overwrite="false" verbosity="debug">
-      <plotSettings>
+        <plotSettings>
         <gridSpace>2 1</gridSpace>
         <plot>
           <type>scatter</type>
@@ -132,53 +132,53 @@
           <xlabel>angle</xlabel>
           <ylabel>range</ylabel>
         </plot>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <title>
-          <text> </text>
-        </title>
-      </actions>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
     </Plot>
     <Plot name="samplesPlot3D" overwrite="false" verbosity="debug">
-      <plotSettings>
-        <gridSpace>2 1</gridSpace>
-        <plot>
-          <type>scatter</type>
-          <x>samples|Input|v0</x>
-          <y>samples|Input|angle</y>
-          <z>samples|Output|r</z>
-          <c>blue</c>
-          <gridLocation>
-            <x>0</x>
-            <y>0</y>
-          </gridLocation>
-          <xlabel>velocity</xlabel>
-          <ylabel>angle</ylabel>
-          <zlabel>range</zlabel>
-        </plot>
-        <plot>
-          <type>scatter</type>
-          <x>samples|Input|v0</x>
-          <y>samples|Input|angle</y>
-          <z>samples|Output|t</z>
-          <c>orange</c>
-          <gridLocation>
-            <x>1</x>
-            <y>0</y>
-          </gridLocation>
-          <xlabel>velocity</xlabel>
-          <ylabel>angle</ylabel>
-          <zlabel>time</zlabel>
-        </plot>
-      </plotSettings>
-      <actions>
-        <how>png</how>
-        <title>
-          <text> </text>
-        </title>
-      </actions>
+        <plotSettings>
+            <gridSpace>2 1</gridSpace>
+             <plot>
+                <type>scatter</type>
+                <x>samples|Input|v0</x>
+                <y>samples|Input|angle</y>
+                <z>samples|Output|r</z>
+                <c>blue</c>
+                <gridLocation>
+                  <x>0</x>
+                  <y>0</y>
+                </gridLocation>
+                <xlabel>velocity</xlabel>
+                <ylabel>angle</ylabel>
+                <zlabel>range</zlabel>
+            </plot>
+            <plot>
+                <type>scatter</type>
+                <x>samples|Input|v0</x>
+                <y>samples|Input|angle</y>
+                <z>samples|Output|t</z>
+                <c>orange</c>
+                <gridLocation>
+                    <x>1</x>
+                    <y>0</y>
+                </gridLocation>
+                <xlabel>velocity</xlabel>
+                <ylabel>angle</ylabel>
+                <zlabel>time</zlabel>
+            </plot>
+        </plotSettings>
+        <actions>
+            <how>png</how>
+            <title>
+                <text> </text>
+            </title>
+        </actions>
     </Plot>
-  </OutStreams>
+</OutStreams>
 
 </Simulation>

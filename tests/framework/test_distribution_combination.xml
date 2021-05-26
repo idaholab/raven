@@ -21,7 +21,6 @@
       <revision author="alfoa" date="2017-12-20">Added seed and added additional ND distribution.</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>dists_vars/</WorkingDir>
     <Sequence>FirstMRun</Sequence>
@@ -54,8 +53,8 @@
       <workingDir>dists_vars</workingDir>
     </NDCartesianSpline>
     <NDCartesianSpline name="ND_CartesianSpline_P2">
-      <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
-      <workingDir>dists_vars</workingDir>
+        <dataFilename type="PDF">2DgaussianCartesianPDF.txt</dataFilename>
+        <workingDir>dists_vars</workingDir>
     </NDCartesianSpline>
   </Distributions>
 

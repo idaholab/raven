@@ -50,8 +50,8 @@
       <sigma>0.01</sigma>
     </Normal>
     <Uniform name="x2_dst">
-      <lowerBound>-1</lowerBound>
-      <upperBound>1</upperBound>
+        <lowerBound>-1</lowerBound>
+        <upperBound>1</upperBound>
     </Uniform>
   </Distributions>
 
@@ -81,6 +81,7 @@
     <ExternalModel ModuleToLoad="adaptive_test_model" name="testFunction" subType="">
       <variables>x1,x2,y1,y2</variables>
     </ExternalModel>
+
   </Models>
 
   <OutStreams>

@@ -10,11 +10,11 @@
       using correlated multivariate normal distributions.
     </description>
     <analytic>
-      This test is analytic in mean and variance using the &quot;attenuation&quot; and &quot;tensor polynomial&quot; analytic models
+      This test is analytic in mean and variance using the "attenuation" and "tensor polynomial" analytic models
       documented in the analytic tests.
     </analytic>
     <revisions>
-      <revision author="talbpaul" date="2019-01-09">moving from ROM-file to ROM-dataobject</revision>
+      <revision author='talbpaul' date='2019-01-09'>moving from ROM-file to ROM-dataobject</revision>
     </revisions>
   </TestInfo>
 
@@ -99,7 +99,7 @@
       <Sampler class="Samplers" type="Sobol">sobol</Sampler>
       <Output class="DataObjects" type="PointSet">SobolSet</Output>
     </MultiRun>
-    <IOStep name="rom_stats">
+    <IOStep name='rom_stats'>
       <Input class="Models" type="ROM">rom</Input>
       <Output class="DataObjects" type="DataSet">rom_stats</Output>
     </IOStep>

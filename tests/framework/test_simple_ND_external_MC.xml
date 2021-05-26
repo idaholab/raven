@@ -6,8 +6,8 @@
     <created>2015-03-04</created>
     <classesTested>Distributions.NDInverseWeight, Distributions.NDCartesianSpline, Samplers.MonteCarlo</classesTested>
     <description>
-       This test is aimed to check the capability of RAVEN to handle ND (custom) probability density functions (distributions), when
-       a MonteCarlo sampling strategy is performed.
+       This test is aimed to check the capability of RAVEN to handle ND (custom) probability density functions (distributions), when 
+       a MonteCarlo sampling strategy is performed.     
     </description>
     <revisions>
       <revision author="mandd" date="2015-04-17">conversion to Database and DataObjects</revision>
@@ -18,7 +18,6 @@
     </revisions>
     <requirements>R-RE-2</requirements>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>ND_test_MC</WorkingDir>
     <Sequence>FirstMRun</Sequence>

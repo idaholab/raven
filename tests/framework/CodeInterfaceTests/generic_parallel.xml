@@ -6,7 +6,7 @@
     <created>2017-08-24</created>
     <classesTested>Models.Code.GenericCode, Files</classesTested>
     <description>
-        Tests using &quot;Files&quot; in an internalParallel run (which tests pickling and unpickling them).
+        Tests using "Files" in an internalParallel run (which tests pickling and unpickling them).
         This test is also a requirement test where we test the capability of RAVEN to dispatch
         multiple parallel jobs based on user-defined information (batchSize)
     </description>
@@ -15,7 +15,6 @@
     </revisions>
     <requirements>R-F-2</requirements>
   </TestInfo>
-
   <RunInfo>
     <Sequence>sample</Sequence>
     <WorkingDir>GenericInterfaceParallel</WorkingDir>
@@ -65,7 +64,7 @@
   </Samplers>
 
   <Steps>
-    <MultiRun clearRunDir="False" name="sample">
+    <MultiRun name="sample" clearRunDir="False">
       <Input class="Files" type="">inp.two</Input>
       <Input class="Files" type="">one.xml</Input>
       <Input class="Files" type="">mesh</Input>

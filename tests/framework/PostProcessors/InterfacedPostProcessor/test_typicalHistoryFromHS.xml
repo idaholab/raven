@@ -1,4 +1,4 @@
-<?xml version="1.0" ?>
+<?xml version="1.0"?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/PostProcessors/InterfacedPostProcessor/TypicalHistoryFromHS</name>
@@ -101,5 +101,4 @@
       </options>
     </HistorySet>
   </DataObjects>
-
 </Simulation>

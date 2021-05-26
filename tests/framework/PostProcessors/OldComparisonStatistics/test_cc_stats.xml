@@ -10,10 +10,9 @@
       and PointSet to distribution.
     </description>
     <revisions>
-      <revision author="alfoa" date="2017-10-17">Removed support for PointSet output for ComparisonStatisticsModule</revision>
+        <revision author="alfoa" date="2017-10-17">Removed support for PointSet output for ComparisonStatisticsModule</revision>
     </revisions>
   </TestInfo>
-
   <RunInfo>
     <WorkingDir>test_cc_stats</WorkingDir>
     <Sequence>test_read_in,test_stats_step</Sequence>
@@ -105,7 +104,7 @@
 
   <DataObjects>
     <PointSet name="fullprint_Pointset">
-      <Output>normal1,normal2,uniform1,uniform2p</Output>
+          <Output>normal1,normal2,uniform1,uniform2p</Output>
     </PointSet>
     <PointSet name="out_data">
       <Input>DummyIn</Input>

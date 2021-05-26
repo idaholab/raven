@@ -88,7 +88,7 @@
   </Models>
 
   <Functions>
-    <!--External file=&quot;limitSurface_integral/goalFunctionTest&quot; name=&quot;goalFunctionForLimitSurface&quot;-->
+    <!--External file="limitSurface_integral/goalFunctionTest" name="goalFunctionForLimitSurface"-->
     <External file="goalFunctionTest" name="goalFunctionForLimitSurface">
       <variables>z</variables>
     </External>

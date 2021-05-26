@@ -9,7 +9,7 @@
       This analytic test checks that the time-dependent HDMRRom performs the same as the model it's representing.
     </description>
     <analytic>
-      This test uses &quot;projectile.py&quot; as documented in the analytic tests document, and makes several evaluations
+      This test uses "projectile.py" as documented in the analytic tests document, and makes several evaluations
       of position based on time.
     </analytic>
     <revisions>
@@ -112,14 +112,14 @@
       <Input>x0,y0</Input>
       <Output>t,x,y,r</Output>
       <options>
-        <pivotParameter>t</pivotParameter>
+          <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
     <HistorySet name="modelSamples">
       <Input>x0,y0</Input>
       <Output>t,x,y,r</Output>
       <options>
-        <pivotParameter>t</pivotParameter>
+          <pivotParameter>t</pivotParameter>
       </options>
     </HistorySet>
   </DataObjects>

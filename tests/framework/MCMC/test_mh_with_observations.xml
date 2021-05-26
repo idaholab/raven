@@ -54,11 +54,7 @@
       </samplerInit>
       <likelihood log="True">pout</likelihood>
       <variable name="rho">
-        <!--
-           instead to use
-          <distribution>normal</distribution>
-          , use a user defined function
-        -->
+        <!-- instead to use <distribution>normal</distribution>, use a user defined function -->
         <probabilityFunction class="Functions" type="External">prior</probabilityFunction>
         <!-- in this case, initial are required parameter -->
         <initial>0</initial>
@@ -113,14 +109,17 @@
       <Input>rho</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+
     <PointSet name="outSet">
       <Input>rho</Input>
       <Output>pout</Output>
     </PointSet>
+
     <PointSet name="out_export">
       <Input>traceID</Input>
       <Output>rho</Output>
     </PointSet>
+
     <PointSet name="posterior_basicStat">
       <Output>mean_rho, sigma_rho</Output>
     </PointSet>

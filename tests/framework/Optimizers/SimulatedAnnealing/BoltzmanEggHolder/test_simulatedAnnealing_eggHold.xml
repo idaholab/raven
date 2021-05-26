@@ -25,8 +25,7 @@
   </RunInfo>
 
   <Steps>
-    <MultiRun name="optimize">
-      <!--re-seeding=&quot;032877&quot; 120504,,120504,080510-->
+    <MultiRun name="optimize"><!--re-seeding="032877" 120504,,120504,080510-->
       <Input class="DataObjects" type="PointSet">placeholder</Input>
       <Model class="Models" type="ExternalModel">eggHolder</Model>
       <Optimizer class="Optimizers" type="SimulatedAnnealing">simOpt</Optimizer>
@@ -43,7 +42,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name="eggHolder_dist">
+    <Uniform name='eggHolder_dist'>
       <lowerBound>-512</lowerBound>
       <upperBound>512</upperBound>
     </Uniform>
@@ -109,5 +108,4 @@
       <clusterLabel>trajID</clusterLabel>
     </Print>
   </OutStreams>
-
 </Simulation>

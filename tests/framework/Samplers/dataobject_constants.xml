@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/Samplers.DataObjectConstants</name>
@@ -56,10 +55,10 @@
   </DataObjects>
 
   <Models>
-    <ExternalModel ModuleToLoad="premodel.py" name="premodel" subType="">
+    <ExternalModel name="premodel" subType="" ModuleToLoad="premodel.py">
       <variables>a,b,A,B</variables>
     </ExternalModel>
-    <ExternalModel ModuleToLoad="model.py" name="model" subType="">
+    <ExternalModel name="model" subType="" ModuleToLoad="model.py">
       <variables>x,z,C,D</variables>
     </ExternalModel>
   </Models>
@@ -75,20 +74,20 @@
     <Grid name="pregrid">
       <variable name="a">
         <distribution>dist</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.1 0.9</grid>
+        <grid construction="equal" type="CDF" steps="1">0.1 0.9</grid>
       </variable>
       <variable name="b">
         <distribution>dist</distribution>
-        <grid construction="equal" steps="1" type="CDF">0.1 0.9</grid>
+        <grid construction="equal" type="CDF" steps="1">0.1 0.9</grid>
       </variable>
     </Grid>
     <Grid name="grid">
       <variable name="x">
         <distribution>dist</distribution>
-        <grid construction="equal" steps="2" type="CDF">0.1 0.9</grid>
+        <grid construction="equal" type="CDF" steps="2">0.1 0.9</grid>
       </variable>
-      <constant index="0" name="C" source="presamples">A</constant>
-      <constant index="1" name="D" source="presamples">B</constant>
+      <constant name="C" source="presamples" index="0">A</constant>
+      <constant name="D" source="presamples" index="1">B</constant>
       <ConstantSource class="DataObjects" type="PointSet">presamples</ConstantSource>
       <ConstantSource class="DataObjects" type="PointSet">presamples</ConstantSource>
     </Grid>

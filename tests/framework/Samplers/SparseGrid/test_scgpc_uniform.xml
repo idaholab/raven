@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <Simulation color="true" verbosity="debug">
   <TestInfo>
     <name>framework/Samplers/SparseGrid/uniform</name>

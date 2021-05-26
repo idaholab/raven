@@ -37,7 +37,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name="beale_dist">
+    <Uniform name='beale_dist'>
       <lowerBound>-4.5</lowerBound>
       <upperBound>4.5</upperBound>
     </Uniform>

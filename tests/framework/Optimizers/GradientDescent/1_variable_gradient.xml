@@ -55,7 +55,7 @@
   </Steps>
 
   <Distributions>
-    <Uniform name="beale_dist">
+    <Uniform name='beale_dist'>
       <lowerBound>-4.5</lowerBound>
       <upperBound>4.5</upperBound>
     </Uniform>
@@ -86,7 +86,7 @@
       <acceptance>
         <Strict/>
       </acceptance>
-      <constant name="y">0.5</constant>
+      <constant name='y'>0.5</constant>
     </GradientDescent>
     <GradientDescent name="opter_cd">
       <objective>ans</objective>
@@ -112,7 +112,7 @@
       <acceptance>
         <Strict/>
       </acceptance>
-      <constant name="y">0.5</constant>
+      <constant name='y'>0.5</constant>
     </GradientDescent>
     <GradientDescent name="opter_spsa">
       <objective>ans</objective>
@@ -138,7 +138,7 @@
       <acceptance>
         <Strict/>
       </acceptance>
-      <constant name="y">0.5</constant>
+      <constant name='y'>0.5</constant>
     </GradientDescent>
   </Optimizers>
 

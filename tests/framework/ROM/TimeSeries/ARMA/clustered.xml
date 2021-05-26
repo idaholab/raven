@@ -1,4 +1,3 @@
-<?xml version="1.0" ?>
 <Simulation verbosity="debug">
   <TestInfo>
     <name>framework/ROM/TimeSeries/ARMA.Clustered</name>
@@ -6,10 +5,10 @@
     <created>2018-11-20</created>
     <classesTested>SupervisedLearning.ARMA</classesTested>
     <description>
-      Tests the mechanics of clusterering the &quot;time&quot; subspace of the ARMA ROM.
+      Tests the mechanics of clusterering the "time" subspace of the ARMA ROM.
     </description>
     <revisions>
-      <revision author="talbpaul" date="2020-01-18">added sampling, clarified to clustered representation</revision>
+      <revision author='talbpaul' date='2020-01-18'>added sampling, clarified to clustered representation</revision>
     </revisions>
   </TestInfo>
 
@@ -60,9 +59,7 @@
     <DataSet name="synthetic">
       <Input>Signal</Input>
       <Index var="Time">Signal</Index>
-      <!--
-        <Index var="_ROM_cluster">cluster_multiplicity</Index>
-      -->
+      <!-- <Index var="_ROM_cluster">cluster_multiplicity</Index> -->
     </DataSet>
     <DataSet name="romMeta"/>
   </DataObjects>
@@ -76,12 +73,10 @@
       <Q>0</Q>
       <Fourier>100, 5, 3</Fourier>
       <preserveInputCDF>True</preserveInputCDF>
-      <Segment grouping="cluster">
-        <Classifier class="Models" type="PostProcessor">classifier</Classifier>
-        <subspace divisions="10" shift="first">Time</subspace>
-        <!--
-          <evalMode>clustered</evalMode>
-        -->
+      <Segment grouping='cluster'>
+        <Classifier class='Models' type='PostProcessor'>classifier</Classifier>
+        <subspace divisions='10' shift='first' >Time</subspace>
+        <!-- <evalMode>clustered</evalMode> -->
       </Segment>
     </ROM>
     <PostProcessor name="classifier" subType="DataMining">
@@ -93,7 +88,7 @@
   </Models>
 
   <Samplers>
-    <MonteCarlo name="mc">
+    <MonteCarlo name='mc'>
       <samplerInit>
         <limit>2</limit>
       </samplerInit>
@@ -111,5 +106,4 @@
       <source>synthetic</source>
     </Print>
   </OutStreams>
-
 </Simulation>

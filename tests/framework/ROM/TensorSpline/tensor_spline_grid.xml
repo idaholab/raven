@@ -14,7 +14,7 @@
       <revision author="alfoa" date="2018-04-12">Created test and added description</revision>
     </revisions>
   </TestInfo>
-
+  
   <RunInfo>
     <WorkingDir>gridSpline</WorkingDir>
     <Sequence>
@@ -44,50 +44,50 @@
       <upperBound>10</upperBound>
     </Uniform>
   </Distributions>
-
+  
   <Samplers>
-    <Grid name="GridTest">
-      <variable name="x0">
-        <distribution>x0_d</distribution>
-        <grid construction="equal" steps="4" type="CDF">0.1 0.9</grid>
-      </variable>
-      <variable name="y0">
-        <distribution>y0_d</distribution>
-        <grid construction="equal" steps="4" type="CDF">0.1 0.9</grid>
-      </variable>
-    </Grid>
-    <Grid name="GridTestRefined">
-      <variable name="x0">
-        <distribution>x0_d</distribution>
-        <grid construction="equal" steps="8" type="CDF">0.1 0.9</grid>
-      </variable>
-      <variable name="y0">
-        <distribution>y0_d</distribution>
-        <grid construction="equal" steps="8" type="CDF">0.1 0.9</grid>
-      </variable>
-    </Grid>
+      <Grid name="GridTest">
+          <variable name="x0">
+              <distribution>x0_d</distribution>
+              <grid construction="equal" steps="4" type="CDF">0.1 0.9</grid>
+          </variable>
+          <variable name="y0">
+              <distribution>y0_d</distribution>
+              <grid construction="equal" steps="4" type="CDF">0.1 0.9</grid>
+          </variable>
+      </Grid>
+      <Grid name="GridTestRefined">
+          <variable name="x0">
+              <distribution>x0_d</distribution>
+              <grid construction="equal" steps="8" type="CDF">0.1 0.9</grid>
+          </variable>
+          <variable name="y0">
+              <distribution>y0_d</distribution>
+              <grid construction="equal" steps="8" type="CDF">0.1 0.9</grid>
+          </variable>
+      </Grid>
   </Samplers>
 
   <Steps>
     <MultiRun name="sampleModel" verbosity="debug">
-      <Input class="DataObjects" type="PointSet">inputHolder</Input>
-      <Model class="Models" type="ExternalModel">projectile</Model>
-      <Sampler class="Samplers" type="Grid">GridTest</Sampler>
-      <Output class="DataObjects" type="PointSet">outputSampleModel</Output>
+      <Input   class="DataObjects" type="PointSet"     >inputHolder</Input>
+      <Model   class="Models"      type="ExternalModel">projectile</Model>
+      <Sampler class="Samplers"    type="Grid"         >GridTest</Sampler>
+      <Output  class="DataObjects" type="PointSet"     >outputSampleModel</Output>
     </MultiRun>
     <RomTrainer name="trainSpline">
-      <Input class="DataObjects" type="PointSet">outputSampleModel</Input>
-      <Output class="Models" type="ROM">modelUnderTest</Output>
+      <Input   class="DataObjects" type="PointSet"     >outputSampleModel</Input>
+      <Output  class="Models"      type="ROM"          >modelUnderTest</Output>
     </RomTrainer>
     <MultiRun name="sampleROM">
-      <Input class="DataObjects" type="PointSet">inputHolder</Input>
-      <Model class="Models" type="ROM">modelUnderTest</Model>
-      <Sampler class="Samplers" type="Grid">GridTestRefined</Sampler>
-      <Output class="DataObjects" type="PointSet">outputSpline</Output>
-      <Output class="OutStreams" type="Print">outputSpline_dump</Output>
+      <Input   class="DataObjects" type="PointSet"     >inputHolder</Input>
+      <Model   class="Models"      type="ROM"          >modelUnderTest</Model>
+      <Sampler class="Samplers"    type="Grid"         >GridTestRefined</Sampler>
+      <Output  class="DataObjects" type="PointSet"     >outputSpline</Output>
+      <Output  class="OutStreams"  type="Print"        >outputSpline_dump</Output>
     </MultiRun>
   </Steps>
-
+  
   <OutStreams>
     <!-- A csv file containing the output of the example -->
     <Print name="outputSpline_dump">
@@ -111,5 +111,4 @@
       <Output>y</Output>
     </PointSet>
   </DataObjects>
-
 </Simulation>

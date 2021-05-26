@@ -16,7 +16,6 @@
       <revision author="talbpaul" date="2018-04-04">added awful.variable+name for hard-testing input alias</revision>
     </revisions>
   </TestInfo>
-
   <!-- RUNINFO -->
   <RunInfo>
     <WorkingDir>externalModel</WorkingDir>
@@ -50,10 +49,10 @@
   <Models>
     <ExternalModel ModuleToLoad="lorentzAttractor" name="PythonModule" subType="">
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
-      <alias type="input" variable="x0">awful.variable+name</alias>
-      <alias type="input" variable="y0">@another|awful name</alias>
-      <alias type="output" variable="x">firstOut</alias>
-      <alias type="output" variable="y">secondOut</alias>
+      <alias variable="x0" type="input">awful.variable+name</alias>
+      <alias variable="y0" type="input">@another|awful name</alias>
+      <alias variable="x"  type="output">firstOut</alias>
+      <alias variable="y"  type="output">secondOut</alias>
     </ExternalModel>
   </Models>
 
@@ -109,17 +108,16 @@
       <what>input,output</what>
     </Print>
     <Print name="testPrintHistorySetFromHDF5_dump">
-      <type>csv</type>
-      <source>testPrintHistorySetFromHDF5</source>
-      <what>input,output</what>
+        <type>csv</type>
+        <source>testPrintHistorySetFromHDF5</source>
+        <what>input,output</what>
     </Print>
     <Print name="testPointSetFromHDF5_dump">
-      <type>csv</type>
-      <source>testPointSetFromHDF5</source>
-      <what>input,output</what>
+        <type>csv</type>
+        <source>testPointSetFromHDF5</source>
+        <what>input,output</what>
     </Print>
   </OutStreams>
-
   <!-- DATA OBJECTS -->
   <DataObjects>
     <PointSet name="inputPlaceHolder">
@@ -131,16 +129,16 @@
       <Output>y,x,z,time</Output>
     </PointSet>
     <PointSet name="testPointSetFromHDF5">
-      <Input>y0,x0,z0</Input>
-      <Output>y,x,z,time</Output>
+        <Input>y0,x0,z0</Input>
+        <Output>y,x,z,time</Output>
     </PointSet>
     <HistorySet name="testPrintHistorySet">
-      <Input>y0,x0,z0</Input>
-      <Output>y,x,z,time</Output>
+        <Input>y0,x0,z0</Input>
+        <Output>y,x,z,time</Output>
     </HistorySet>
     <HistorySet name="testPrintHistorySetFromHDF5">
-      <Input>y0,x0,z0</Input>
-      <Output>y,x,z,time</Output>
+        <Input>y0,x0,z0</Input>
+        <Output>y,x,z,time</Output>
     </HistorySet>
   </DataObjects>
 

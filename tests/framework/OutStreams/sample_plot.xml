@@ -1,5 +1,5 @@
-<?xml version="1.0" ?>
-<Simulation verbosity="debug">
+<Simulation verbosity = 'debug'>
+
   <TestInfo>
     <name>framework/OutStreams.SamplePlot</name>
     <author>talbpaul</author>

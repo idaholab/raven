@@ -71,52 +71,52 @@
       <variable name="x1">
         <distribution>uniform</distribution>
         <initial>-3</initial>
-        <proposal class="Distributions" dim="1" type="MultivariateNormal">mvn</proposal>
+        <proposal class="Distributions" type="MultivariateNormal" dim="1">mvn</proposal>
       </variable>
       <variable name="x2">
         <distribution>uniform</distribution>
         <initial>4</initial>
-        <proposal class="Distributions" dim="2" type="MultivariateNormal">mvn</proposal>
+        <proposal class="Distributions" type="MultivariateNormal" dim="2">mvn</proposal>
       </variable>
       <variable name="x3">
         <distribution>uniform</distribution>
         <initial>0.2</initial>
-        <proposal class="Distributions" dim="3" type="MultivariateNormal">mvn</proposal>
+        <proposal class="Distributions" type="MultivariateNormal" dim="3">mvn</proposal>
       </variable>
       <variable name="x4">
         <distribution>uniform</distribution>
         <initial>-5.</initial>
-        <proposal class="Distributions" dim="4" type="MultivariateNormal">mvn</proposal>
+        <proposal class="Distributions" type="MultivariateNormal" dim="4">mvn</proposal>
       </variable>
       <variable name="x5">
         <distribution>uniform</distribution>
         <initial>-2.</initial>
-        <proposal class="Distributions" dim="5" type="MultivariateNormal">mvn</proposal>
+        <proposal class="Distributions" type="MultivariateNormal" dim="5">mvn</proposal>
       </variable>
       <variable name="x6">
         <distribution>uniform</distribution>
         <initial>0.6</initial>
-        <proposal class="Distributions" dim="6" type="MultivariateNormal">mvn</proposal>
+        <proposal class="Distributions" type="MultivariateNormal" dim="6">mvn</proposal>
       </variable>
       <variable name="x7">
         <distribution>uniform</distribution>
         <initial>-0.2</initial>
-        <proposal class="Distributions" dim="7" type="MultivariateNormal">mvn</proposal>
+        <proposal class="Distributions" type="MultivariateNormal" dim="7">mvn</proposal>
       </variable>
       <variable name="x8">
         <distribution>uniform</distribution>
         <initial>6.</initial>
-        <proposal class="Distributions" dim="8" type="MultivariateNormal">mvn</proposal>
+        <proposal class="Distributions" type="MultivariateNormal" dim="8">mvn</proposal>
       </variable>
       <variable name="x9">
         <distribution>uniform</distribution>
         <initial>7.7</initial>
-        <proposal class="Distributions" dim="9" type="MultivariateNormal">mvn</proposal>
+        <proposal class="Distributions" type="MultivariateNormal" dim="9">mvn</proposal>
       </variable>
       <variable name="x10">
         <distribution>uniform</distribution>
         <initial>6.8</initial>
-        <proposal class="Distributions" dim="10" type="MultivariateNormal">mvn</proposal>
+        <proposal class="Distributions" type="MultivariateNormal" dim="10">mvn</proposal>
       </variable>
       <TargetEvaluation class="DataObjects" type="PointSet">outSet</TargetEvaluation>
     </AdaptiveMetropolis>
@@ -167,10 +167,12 @@
       <Input>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10</Input>
       <Output>OutputPlaceHolder</Output>
     </PointSet>
+
     <PointSet name="outSet">
       <Input>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10</Input>
       <Output>zout</Output>
     </PointSet>
+
     <PointSet name="out_export">
       <Input>traceID</Input>
       <Output>x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, zout, AcceptRate</Output>
