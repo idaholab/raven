@@ -1607,15 +1607,14 @@ DistributionsCollection.addSub(Geometric.getInputSpecification())
 
 class Categorical(Distribution):
   """
-    Class for the categorical distribution also called " generalized Bernoulli distribution"
+    Class for the categorical distribution also called "generalized Bernoulli distribution"
     Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
   """
 
   @classmethod
   def getInputSpecification(cls):
     """
-      Method to get a reference to a class that specifies the input data for
-      class cls.
+      Method to get a reference to a class that specifies the input data for class cls.
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
@@ -1663,6 +1662,7 @@ class Categorical(Distribution):
           self.values.add(float(outcome))
       else:
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
+    self.initializeDistribution()
 
   def getInitParams(self):
     """
@@ -1693,7 +1693,7 @@ class Categorical(Distribution):
       @ In, None
       @ Out, None
     """
-    print('here1')
+    self.totPsum = 0
     for element in self.mapping:
       if self.mapping[element] < 0:
         self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
