@@ -48,7 +48,6 @@ class Importance(ForwardSampler):
         specifying input of cls.
     """
     inputSpecification = super(Importance, cls).getInputSpecification()
-    ImportanceInput = InputData.parameterInputFactory("Importance", contentType=InputTypes.StringType)
     samplerInitInput = InputData.parameterInputFactory("samplerInit")
     limit = InputData.parameterInputFactory("limit", contentType=InputTypes.IntegerType)
     samplerInitInput.addSub(limit)
@@ -80,42 +79,11 @@ class Importance(ForwardSampler):
       @ Out, None
     """
     ForwardSampler.readSamplerInit(self,xmlNode)
-    # if paramInput.findFirst('samplerInit') != None:
-    #   if self.limit is None:
-    #     self.raiseAnError(IOError,self,'Umbrella sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
-    #   if paramInput.findFirst('samplerInit').findFirst('samplingType')!= None:
-    #     self.samplingType = paramInput.findFirst('samplerInit').findFirst('samplingType').value
-    #     if self.samplingType not in ['uniform']:
-    #       self.raiseAnError(IOError,self,'Umbrella sampler '+self.name+': specified type of samplingType is not recognized. Allowed type is: uniform')
-    #   else:
-    #     self.samplingType = None
-    # else:
-    #   self.raiseAnError(IOError,self,'Umbrella sampler '+self.name+' needs the samplerInit block')
-
-  def stratified_uniform_sample(self, m_per_bin, n_bins):
-    """
-    function to generate a uniform stratified sample
-    :param m_per_bin:
-    :param n_bins:
-    :return:
-    """
-    print("In importance sampling")
-    n = n_bins
-    m = m_per_bin
-    samples = []
-    bounds = [num / n for num in range(0, n + 1)]
-
-    for i in range(0, n):
-      LB = bounds[i]
-      UB = bounds[i + 1]
-      print("IN IMPORTANCE SAMPLING!!!!!!")
-      print(LB, UB)
-      bin_sample = np.random.uniform(LB, UB, m)
-
-      samples[(i * m + 1):((i + 1) * m)] = bin_sample
-      print(samples)
-    return bounds[1:], samples
-
+    if paramInput.findFirst('samplerInit') != None:
+      if self.limit is None:
+        self.raiseAnError(IOError,self,'Importance sampler '+self.name+' needs the limit block (number of samples) in the samplerInit block')
+    else:
+      self.raiseAnError(IOError,self,'Importance sampler '+self.name+' needs the samplerInit block')
 
   def localGenerateInput(self, model, myInput):
     """
@@ -126,19 +94,17 @@ class Importance(ForwardSampler):
       @ In, myInput, list, a list of the original needed inputs for the model (e.g. list of files, etc.)
       @ Out, None
     """
-    n_bins = 1
-    m_per_bin = 1
 
-    uSample = np.random.uniform(0, 1, 1)
-    importanceSample = self.distDict['importance'].ppf(uSample[0])
+    uSample = self.distDict['uniform'].rvs()
+    importanceSample = self.distDict['importance'].ppf(uSample)
 
     importanceWeight = self.distDict['target'].pdf(
       importanceSample) / self.distDict['importance'].pdf(importanceSample)
 
     self.inputInfo['SampledVars']['sample'] = importanceSample
     self.inputInfo['ProbabilityWeight'] = 1.0
+    self.inputInfo['ProbabilityWeight-uniform'] = 1.0
     self.inputInfo['ProbabilityWeight-target'] = self.distDict['target'].pdf(importanceSample)
     self.inputInfo['ProbabilityWeight-importance'] = importanceWeight
     self.inputInfo['PointProbability'] = importanceWeight
     self.inputInfo['SamplerType'] = 'Importance'
-    # print(self.inputInfo)

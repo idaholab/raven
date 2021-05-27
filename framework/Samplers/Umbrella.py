@@ -117,26 +117,6 @@ class Umbrella(ForwardSampler):
     # else:
     #   self.raiseAnError(IOError,self,'Umbrella sampler '+self.name+' needs the samplerInit block')
 
-  def stratified_uniform_sample(self, m_per_bin, n_bins):
-    """
-    function to generate a uniform stratified sample
-    :param m_per_bin:
-    :param n_bins:
-    :return:
-    """
-    n = n_bins
-    m = m_per_bin
-    samples = []
-    bounds = [num / n for num in range(0, n + 1)]
-
-    for i in range(0, n):
-      LB = bounds[i]
-      UB = bounds[i + 1]
-      bin_sample = np.random.uniform(LB, UB, m)
-
-      samples[(i * m + 1):((i + 1) * m)] = bin_sample
-
-    return bounds[1:], samples
 
   def get_std(self, k, sigma):
     ## TODO parameterized tail probability
@@ -184,7 +164,7 @@ class Umbrella(ForwardSampler):
 
       for k in range(n_vertices):
         vertex = vertWeights['vert'][k]
-        x_vertex = the_x - vertex 
+        x_vertex = the_x - vertex
         x_vertex = x_vertex * vertex
         marg_values = scipy.stats.gamma.pdf(x_vertex, scale=1 / self.tail_prob ['beta'], a=self.tail_prob ['alpha'])
         prod_values = reduce(operator.mul, marg_values, 1)
@@ -296,7 +276,7 @@ class Umbrella(ForwardSampler):
     tail_sample = self.multi_gamma_tail_sample(tail_sample_size, vertWeights)
     target_sample = np.random.multivariate_normal([0,0], [[1, 0.5],[0.5, 1]], size=target_sample_size)
     vert_target = np.zeros(shape=target_sample_size)
-    
+
     target_sample = pd.DataFrame(
       {'vert': vert_target, 'new_sample_x1': target_sample[:, 0], 'new_sample_x2': target_sample[:, 1], 'tail_flag': 0})
     umbrella_sample = target_sample.append(tail_sample)
@@ -307,7 +287,7 @@ class Umbrella(ForwardSampler):
     target_pdf = mv_norm.pdf(x_points)
     # Evaluating the importance weights
     imp_weights = target_pdf / umb_pdf_values[2]
-   
+
     umbrella_samples = pd.DataFrame(
       {'vert': umbrella_sample['vert'].to_numpy(), 'weights': imp_weights.to_numpy(), 'x1': x_points[:, 0],
        'x2': x_points[:, 1], 'tail_flag': umbrella_sample['tail_flag'].to_numpy()})
