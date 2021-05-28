@@ -98,23 +98,6 @@ def createInterp(x, y, lowFill, highFill, kind='linear'):
         return highFill
   return myInterp
 
-def simpson(f, a, b, n):
-  """
-    Simpson integration rule
-    @ In, f, instance, the function to integrate
-    @ In, a, float, lower bound
-    @ In, b, float, upper bound
-    @ In, n, int, number of integration steps
-    @ Out, sumVar, float, integral
-  """
-  h = (b - a) / float(n)
-  y = np.zeros(n+1)
-  x = np.zeros(n+1)
-  for i in range(0, n+1):
-    x[i] = a + i*h
-    y[i] = f(x[i])
-  return integrate.simps(y, x)
-
 def countBins(sortedData, binBoundaries):
   """
     This method counts the number of data items in the sorted_data

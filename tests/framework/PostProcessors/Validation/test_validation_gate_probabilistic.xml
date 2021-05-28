@@ -1,0 +1,119 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="all">
+  <RunInfo>
+    <WorkingDir>Probabilistic</WorkingDir>
+    <Sequence>mcRun, PP1</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <TestInfo>
+    <name>framework/PostProcessors/Validation/test_validation_gate_probabilistic</name>
+    <author>alfoa</author>
+    <created>2021-04-10</created>
+    <classesTested>PostProcessors.Validation</classesTested>
+    <description>
+        This test is aimed to show how to use the mechanics of the Validation Post-Processor. For semplicity,
+        this test is using the attenuation model (analytical) and simple Probabilistic Validation metrics.
+        The output name convention is ``feature name''\_``target name''\_``metric name''.
+    </description>
+    <revisions>
+      <revision author="alfoa" date="2021-04-11">Added Modification for new PP API</revision>
+    </revisions>
+  </TestInfo>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
+      <variables>x1,x2,ans,ans2</variables>
+    </ExternalModel>
+    <PostProcessor name="pp1" subType="Validation">
+      <Features>outputDataMC1|ans</Features>
+      <Targets>outputDataMC2|ans2</Targets>
+      <!-- <Metric class="Metrics" type="RACDistance">fz_expected</Metric> -->
+      <Metric class="Metrics" type="CDFAreaDifference">cdf_diff</Metric>
+      <Metric class="Metrics" type="PDFCommonArea">pdf_area</Metric>
+      <Probabilistic name="myProbMetric">
+         <!--  the Probabilistic Validation does  not -->
+          
+      </Probabilistic>
+      
+    </PostProcessor>
+  </Models>
+
+  <Metrics>
+    <CDFAreaDifference name="cdf_diff"/>
+    <PDFCommonArea name="pdf_area"/>
+  </Metrics>
+
+  <Distributions>
+    <Normal name="dist1">
+      <mean>1</mean>
+      <sigma>0.5</sigma>
+    </Normal>
+    <Normal name="dist2">
+      <mean>-1</mean>
+      <sigma>1</sigma>
+    </Normal>
+  </Distributions>
+
+  <Samplers>
+    <MonteCarlo name="MC_external">
+      <samplerInit>
+        <limit>10</limit>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>dist1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>dist2</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Steps>
+    <MultiRun name="mcRun" re-seeding="20021986">
+      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">poly</Model>
+      <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
+      <Output class="DataObjects" type="PointSet">outputDataMC1</Output>
+      <Output class="DataObjects" type="PointSet">outputDataMC2</Output>
+    </MultiRun>
+    <PostProcess name="PP1">
+      <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
+      <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
+      <Model class="Models" type="PostProcessor">pp1</Model>
+      <Output class="DataObjects" type="PointSet">pp1_metric</Output>
+      <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
+    </PostProcess>
+  </Steps>
+
+  <DataObjects>
+    <PointSet name="inputPlaceHolder2">
+      <Input>x1,x2</Input>
+      <Output>OutputPlaceHolder</Output>
+    </PointSet>
+    <PointSet name="outputDataMC1">
+      <Input>x1,x2</Input>
+      <Output>ans</Output>
+    </PointSet>
+    <PointSet name="outputDataMC2">
+      <Input>x1,x2</Input>
+      <Output>ans2</Output>
+    </PointSet>
+    <PointSet name="pp1_metric">
+      <Input>InputPlaceHolder</Input>
+      <Output>pp1_vars</Output>
+    </PointSet>
+  </DataObjects>
+
+  <VariableGroups>
+    <Group name="pp1_vars">ans_ans2_cdf_diff,ans_ans2_pdf_area</Group>
+  </VariableGroups>
+
+  <OutStreams>
+    <Print name="pp1_metric_dump">
+      <type>csv</type>
+      <source>pp1_metric</source>
+    </Print>
+  </OutStreams>
+
+</Simulation>

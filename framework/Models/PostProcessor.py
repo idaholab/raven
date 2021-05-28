@@ -27,14 +27,14 @@ import Runners
 from Models import Model
 from Decorators.Parallelization import Parallel
 from utils import utils, InputTypes
-from .PostProcessors import factory as interfaceFactory
+from .PostProcessors import factory
 #Internal Modules End--------------------------------------------------------------------------------
 
 class PostProcessor(Model):
   """
     PostProcessor is an Action System. All the models here, take an input and perform an action
   """
-
+  interfaceFactory = factory
   @classmethod
   def getInputSpecification(cls):
     """
@@ -45,12 +45,10 @@ class PostProcessor(Model):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    validTypes = list(interfaceFactory.knownTypes())
-    typeEnum = InputTypes.makeEnumType('PostProcessor', 'PostProcessorType', validTypes)
-    for name in validTypes:
-      pp = interfaceFactory.returnClass(name)
-      subSpec = pp.getInputSpecification()
-      spec.mergeSub(subSpec)
+    validClass = interfaceFactory.returnClass(self.subType)
+    spec.addParam('subType', required=True, param_type=InputTypes.StringType)
+    validSpec = validClass.getInputSpecification()
+    spec.mergeSub(validSpec)
     return spec
 
   @classmethod
@@ -71,13 +69,7 @@ class PostProcessor(Model):
     """
     cls.validateDict.pop('Sampler', None)
     cls.validateDict.pop('Optimizer', None)
-    #the possible inputs
-    cls.validateDict['Input'].append(cls.testDict.copy())
-    cls.validateDict['Input'  ][-1]['class'       ] = 'Databases'
-    cls.validateDict['Input'  ][-1]['type'        ] = ['HDF5']
-    cls.validateDict['Input'  ][-1]['required'    ] = False
-    cls.validateDict['Input'  ][-1]['multiplicity'] = 'n'
-    ## datasets
+    ## Possible Input Datasets
     dataObjects = cls.validateDict['Input'][0]
     dataObjects['type'].append('DataSet')
     # Cross validations will accept Model.ROM
@@ -93,19 +85,25 @@ class PostProcessor(Model):
     cls.validateDict['Input'  ][-1]['required'    ] = False
     cls.validateDict['Input'  ][-1]['multiplicity'] = 'n'
     #the possible outputs
+    cls.validateDict['Output'] = []
+    cls.validateDict['Output'].append(cls.testDict.copy())
+    cls.validateDict['Output' ][0]['class'       ] = 'DataObjects'
+    cls.validateDict['Output' ][0]['type'        ] = ['PointSet','HistorySet','DataSet']
+    cls.validateDict['Output' ][0]['required'    ] = False
+    cls.validateDict['Output' ][0]['multiplicity'] = 'n'
+    cls.validateDict['Output'].append(cls.testDict.copy())
+    cls.validateDict['Output' ][1]['class'       ] = 'OutStreams'
+    cls.validateDict['Output' ][1]['type'        ] = ['Plot','Print']
+    cls.validateDict['Output' ][1]['required'    ] = False
+    cls.validateDict['Output' ][1]['multiplicity'] = 'n'
+    ## Currently only used by ComparisonStatistics, we may not allow this option
     cls.validateDict['Output'].append(cls.testDict.copy())
     cls.validateDict['Output' ][-1]['class'       ] = 'Files'
     cls.validateDict['Output' ][-1]['type'        ] = ['']
     cls.validateDict['Output' ][-1]['required'    ] = False
     cls.validateDict['Output' ][-1]['multiplicity'] = 'n'
-    # The possible functions
-    cls.validateDict['Function'] = [cls.testDict.copy()]
-    cls.validateDict['Function'  ][0]['class'       ] = 'Functions'
-    cls.validateDict['Function'  ][0]['type'        ] = ['External','Internal']
-    cls.validateDict['Function'  ][0]['required'    ] = False
-    cls.validateDict['Function'  ][0]['multiplicity'] = 1
 
-  def __init__(self):
+  def __init__(self ):
     """
       Constructor
       @ In, None
@@ -125,7 +123,7 @@ class PostProcessor(Model):
       @ Out, None
     """
     super()._readMoreXML(xmlNode)
-    self._pp = interfaceFactory.returnInstance(self.subType)
+    self._pp = self.interfaceFactory.returnInstance(self.subType)
     self._pp._readMoreXML(xmlNode)
 
   def whatDoINeed(self):
@@ -171,10 +169,13 @@ class PostProcessor(Model):
       (Not used but required by model base class)
       @ In, myInput, list, the inputs (list) to start from to generate the new one
       @ In, samplerType, string, passing through (consistent with base class but not used)
-      @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+      @ In, **kwargs, dict, is a dictionary that contains the information passed by "Step".
+          Currently not used by PostProcessor. It can be useful by Step to control the input
+          and output of the PostProcessor, as well as other control options for the PostProcessor
       @ Out, myInput, list, the inputs (list) to start from to generate the new one
     """
+    if 'createPostProcessorInput' in dir(self._pp):
+      myInput = self._pp.createPostProcessorInput(myInput, **kwargs)
     return myInput
 
   @Parallel()
@@ -184,8 +185,9 @@ class PostProcessor(Model):
         are needed by createNewInput and thus descriptions are copied from there.
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, passing through (consistent with base class but not used)
-        @ In, kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ In, **kwargs, dict, is a dictionary that contains the information passed by "Step".
+            Currently not used by PostProcessor. It can be useful by Step to control the input
+            and output of the PostProcessor, as well as other control options for the PostProcessor
         @ Out, returnValue, tuple, This will hold two pieces of information,
           the first item will be the input data used to generate this sample,
           the second item will be the output of this model given the specified
@@ -197,7 +199,7 @@ class PostProcessor(Model):
     returnValue = (ppInput, self._pp.run(ppInput))
     return returnValue
 
-  def submit(self,myInput,samplerType,jobHandler,**kwargs):
+  def submit(self, myInput, samplerType, jobHandler, **kwargs):
     """
         This will submit an individual sample to be evaluated by this model to a
         specified jobHandler. Note, some parameters are needed by createNewInput
@@ -205,12 +207,13 @@ class PostProcessor(Model):
         @ In, myInput, list, the inputs (list) to start from to generate the new one
         @ In, samplerType, string, passing through (consistent with base class but not used)
         @ In,  jobHandler, JobHandler instance, the global job handler instance
-        @ In, **kwargs, dict,  is a dictionary that contains the information coming from the sampler,
-           a mandatory key is the sampledVars'that contains a dictionary {'name variable':value}
+        @ In, **kwargs, dict, is a dictionary that contains the information passed by "Step".
+            Currently not used by PostProcessor. It can be useful by Step to control the input
+            and output of the PostProcessor, as well as other control options for the PostProcessor
         @ Out, None
     """
     kwargs['forceThreads'] = True
-    super().submit(myInput, samplerType, jobHandler,**kwargs)
+    super().submit(myInput, samplerType, jobHandler, **kwargs)
 
   def collectOutput(self, finishedJob, output):
     """

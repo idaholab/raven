@@ -17,6 +17,7 @@ Created on April 1, 2021
 @author: talbpaul
 """
 
+from abc import abstractmethod
 from OutStreams import OutStreamInterface
 
 class PlotInterface(OutStreamInterface):
@@ -60,6 +61,7 @@ class PlotInterface(OutStreamInterface):
     """
     super().initialize(stepEntities)
 
+  @abstractmethod
   def run(self):
     """
       Main run method.
@@ -69,7 +71,6 @@ class PlotInterface(OutStreamInterface):
       @ In, None
       @ Out, None
     """
-    pass
 
   ##################
   # Utility

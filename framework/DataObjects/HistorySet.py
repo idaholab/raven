@@ -128,7 +128,7 @@ class HistorySet(DataSet):
     for var in deps:
       indexMap[var] = [pivot]
     rlz['_indexMap'] = np.atleast_1d(indexMap)
-    
+
     uniqueIndexes  = np.unique(rlz[self.indexes[0]], return_index=True)[-1]
     unSize = len(uniqueIndexes)
     indSize = len(rlz[self.indexes[0]])

@@ -130,4 +130,4 @@ class OutStreamInterface(BaseInterface):
           self.sourceData.append(inDict['SolutionExport'])
           foundData = True
       if not foundData:
-        self.raiseAnError(IOError, 'the DataObject "{data}" was not found among the "<Input>" nodes for this step!'.format(data = self.sourceName[agrosindex]))
+        self.raiseAnError(IOError, 'the DataObject "{data}" was not found among the "<Input>" nodes for this step!'.format(data = self.sourceName[outIndex]))

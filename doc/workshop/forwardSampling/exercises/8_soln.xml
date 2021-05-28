@@ -28,8 +28,7 @@
     <ExternalModel ModuleToLoad="../../../ExternalModels/projectile.py" name="projectile" subType="">
       <variables>v0,y0,angle,x,y,timeOption,t</variables>
     </ExternalModel>
-    <PostProcessor name="syncer" subType="InterfacedPostProcessor">
-      <method>HistorySetSync</method>
+    <PostProcessor name="syncer" subType="HistorySetSync">
       <pivotParameter>t</pivotParameter>
       <extension>zeroed</extension>
       <syncMethod>grid</syncMethod>
