@@ -49,9 +49,20 @@ class MetricEntity(utils.metaclass_insert(abc.ABCMeta, PluginReadyEntity)):
   #
   @property
   def acceptsProbability(self):
+    """
+      Tell whether this Metric accepts probability. Apparently unused currently.
+      @ In, None
+      @ Out, acceptsProbability, bool, determiner.
+    """
     return self._metric.acceptsProbability if self._metric is not None else False
+
   @property
   def acceptsDistribution(self):
+    """
+      Tell whether this Metric accepts distributions. Apparently unused currently.
+      @ In, None
+      @ Out, acceptsDistribution, bool, determiner.
+    """
     return self._metric.acceptsDistribution if self._metric is not None else False
 
   #######################
