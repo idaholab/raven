@@ -28,4 +28,3 @@ from .ScipyMetric import ScipyMetric
 
 factory = EntityFactory('Metrics')
 factory.registerAllSubtypes(MetricInterface)
-print('')

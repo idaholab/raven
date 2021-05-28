@@ -70,7 +70,7 @@ class ValidationBase(BaseInterface):
     if self.acceptableMetrics:
       acceptable = [True if metric.estimator.isInstanceString(self.acceptableMetrics) else False for metric in self.metrics]
       if not all(acceptable):
-        notAcceptable = [self.metrics[i].estimator.type for i, x in enumerate(acceptable) if not x]
+        notAcceptable = [self.metrics[i].estimator.interfaceKind for i, x in enumerate(acceptable) if not x]
         self.raiseAnError(IOError,
             "The metrics '{}' are not acceptable for validation algorithm: '{}'".format(', '.join(notAcceptable), self.name))
 

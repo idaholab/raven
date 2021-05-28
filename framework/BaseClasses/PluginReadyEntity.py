@@ -102,3 +102,12 @@ class PluginReadyEntity(BaseEntity):
     """
     viable = tuple([self.interfaceFactory.returnClass(check) for check in np.atleast_1d(toCheck)])
     return isinstance(self._getInterface(), viable)
+
+  @property
+  def interfaceKind(self):
+    """
+      Provide the "type" of the interface for this Entity.
+      @ In, None
+      @ Out, interfaceType, str, name of type for this Entity's Interface
+    """
+    return self._getInterface().__class__.__name__
