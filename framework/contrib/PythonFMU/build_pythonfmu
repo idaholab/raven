@@ -7,7 +7,6 @@
 # @date, 05/05/2021
 # fail if anything here fails
 set -e
-
 # establish conda
 source ../../../scripts/establish_conda_env.sh --load
 #../../../scripts/establish_conda_env.sh --load
