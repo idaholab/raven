@@ -1686,6 +1686,9 @@ class Categorical(Distribution):
     for idx, val in enumerate(inputDict['xAxis']):
       self.mapping[val] = inputDict['pAxis'][idx]
       self.values.add(val)
+    localSum = sum(self.mapping.values())
+    for key in self.mapping.keys():
+      self.mapping[key] = self.mapping[key]/localSum
 
   def initializeDistribution(self):
     """
@@ -1693,9 +1696,9 @@ class Categorical(Distribution):
       @ In, None
       @ Out, None
     """
-    self.totPsum = 0
+    self.totPsum = 0.0
     for element in self.mapping:
-      if self.mapping[element] < 0:
+      if self.mapping[element] < 0.0:
         self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
       self.totPsum += self.mapping[element]
     if not mathUtils.compareFloats(self.totPsum,1.0):
@@ -1711,7 +1714,7 @@ class Categorical(Distribution):
       @ Out, pdfValue, float, requested pdf
     """
     if x in self.values:
-      pdfValue =  self.mapping[x]
+      pdfValue = self.mapping[x]
     else:
       self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
     return pdfValue
@@ -1742,7 +1745,7 @@ class Categorical(Distribution):
     cumulative=0.0
     for element in sortedMapping:
       cumulative += element[1]
-      if cumulative >= x: #(x - len(self.values)*np.finfo(float).eps):
+      if cumulative >= (x - len(self.values)*np.finfo(float).eps):
         return float(element[0])
 
   def rvs(self):
