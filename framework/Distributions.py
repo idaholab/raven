@@ -1742,7 +1742,7 @@ class Categorical(Distribution):
     cumulative=0.0
     for element in sortedMapping:
       cumulative += element[1]
-      if cumulative >= (x - len(self.values)*np.finfo(float).eps):
+      if cumulative >= x: #(x - len(self.values)*np.finfo(float).eps):
         return float(element[0])
 
   def rvs(self):
@@ -1861,7 +1861,8 @@ class UniformDiscrete(Distribution):
     else:
       self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
 
-    self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
+    self.pdfArray = 1.0/self.xArray.size * np.ones(self.xArray.size)
+    self.pdfArray = self.pdfArray/np.sum(self.pdfArray)
     paramsDict={}
     paramsDict['xAxis'] = self.xArray
     paramsDict['pAxis'] = self.pdfArray
