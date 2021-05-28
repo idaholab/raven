@@ -21,7 +21,7 @@
   </Distributions>
 
   <Metrics>
-    <Metric name="m1" subType="Metric">
+    <Metric name="m1" subType="SKL">
       <metricType>regression|mean_absolute_error</metricType>
     </Metric>
   </Metrics>
