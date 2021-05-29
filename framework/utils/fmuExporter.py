@@ -113,9 +113,9 @@ class {classname}(Fmi2Slave):
     self.inputVariables = {self.inputVars}
     self.outputVariables = {self.outVars}
     # set path to raven and the serialized model
-    self.raven_path = "{self.frameworkDir}"
+    self.raven_path = r"{self.frameworkDir}"
     # model_path is by default the path to this model that is exported as FMU (serialized). It is stored in the resource folder
-    self.model_path = self.resources + '/' + "{filename}"
+    self.model_path = self.resources + os.path.sep + "{filename}"
     # this flag activates the initialization at the begin of the solve
     self.initialized = False
     # register raven_path variables if needed to be changed
