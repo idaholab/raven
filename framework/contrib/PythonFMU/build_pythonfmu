@@ -58,10 +58,22 @@ then
   cd build
 
   echo "***** MAKING BINARIES *"
-  OUTPUT=$(cmake .. -DCMAKE_BUILD_TYPE=Release)
-  echo "${OUTPUT}"
-  OUTPUT=$(cmake --build .)
-  echo "${OUTPUT}"
+  if [[ "$OSTYPE" == "win64" ]]; then
+    OUTPUT=$(cmake .. -DCMAKE_BUILD_TYPE=Release -A x64)
+    echo "${OUTPUT}"
+    OUTPUT=$(cmake --build . --config Release)
+    echo "${OUTPUT}"
+  elif [[ "$OSTYPE" == "msys" ]]; then
+    OUTPUT=$(cmake .. -DCMAKE_BUILD_TYPE=Release -A x64)
+    echo "${OUTPUT}"
+    OUTPUT=$(cmake --build . --config Release)
+    echo "${OUTPUT}"
+  else
+    OUTPUT=$(cmake .. -DCMAKE_BUILD_TYPE=Release)
+    echo "${OUTPUT}"
+    OUTPUT=$(cmake --build .)
+    echo "${OUTPUT}"
+  fi
   echo "***** MAKING BINARIES SUCCEDED*"
   cd ../../../
 fi
