@@ -1643,7 +1643,6 @@ class Categorical(Distribution):
     self.type           = 'Categorical'
     self.dimensionality = 1
     self.distType       = 'Discrete'
-    self.totPsum        = 0.0
 
   def _handleInput(self, paramInput):
     """
@@ -1683,29 +1682,44 @@ class Categorical(Distribution):
       @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
       @ Out, None
     """
-    for idx, val in enumerate(inputDict['xAxis']):
-      self.mapping[val] = inputDict['pAxis'][idx]
+    for idx, val in enumerate(inputDict['outcome']):
+      self.mapping[val] = inputDict['state'][idx]
       self.values.add(val)
-    localSum = sum(self.mapping.values())
-    for key in self.mapping.keys():
-      self.mapping[key] = self.mapping[key]/localSum
+    
+    self.checkDistParams()
 
   def initializeDistribution(self):
     """
-      Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
+      Function that initializes the distribution 
       @ In, None
       @ Out, None
     """
-    self.totPsum = 0.0
-    for element in self.mapping:
-      if self.mapping[element] < 0.0:
-        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
-      self.totPsum += self.mapping[element]
-    if not mathUtils.compareFloats(self.totPsum,1.0):
-      self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
-                         repr(self.totPsum), ', not 1.0!', 'Please re-normalize it to 1!')
+    self.checkDistParams()
+    
     self.lowerBound = min(self.mapping.keys())
     self.upperBound = max(self.mapping.keys())
+  
+  def checkDistParams(self):
+    """
+      Function that checks that the sum of all state probabilities is equal to 1 and perform pdf value normalization
+      @ In, None
+      @ Out, None
+    """
+    # check all probability values are between 0.0 and 1.0
+    for element in self.mapping:
+      if self.mapping[element] < 0.0:
+        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities') 
+      if self.mapping[element] > 1.0:
+        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with probabilities greater than 1') 
+    
+    localSum = sum(self.mapping.values())
+    if not mathUtils.compareFloats(localSum,1.0):
+      self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
+                         repr(localSum), ', not 1.0!', 'Please re-normalize it to 1!') 
+    
+    # Probability values normalization
+    for key in self.mapping.keys():
+      self.mapping[key] = self.mapping[key]/localSum   
 
   def pdf(self,x):
     """
@@ -1726,6 +1740,8 @@ class Categorical(Distribution):
       @ Out, cumulative, float, requested cdf
     """
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
+    if x == sortedMapping[-1][0]:
+      return 1.0
     if x in self.values:
       cumulative=0.0
       for element in sortedMapping:
@@ -1745,7 +1761,7 @@ class Categorical(Distribution):
     cumulative=0.0
     for element in sortedMapping:
       cumulative += element[1]
-      if cumulative >= (x - len(self.values)*np.finfo(float).eps):
+      if cumulative >= x:
         return float(element[0])
 
   def rvs(self):
@@ -1863,12 +1879,12 @@ class UniformDiscrete(Distribution):
       self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
     else:
       self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
-
+    
+    # Here the actual calculation of discrete distribution parameters is performed  
     self.pdfArray = 1.0/self.xArray.size * np.ones(self.xArray.size)
-    self.pdfArray = self.pdfArray/np.sum(self.pdfArray)
     paramsDict={}
-    paramsDict['xAxis'] = self.xArray
-    paramsDict['pAxis'] = self.pdfArray
+    paramsDict['outcome'] = self.xArray
+    paramsDict['state'] = self.pdfArray
 
     self.categoricalDist = Categorical()
     self.categoricalDist.initializeFromDict(paramsDict)
@@ -1884,7 +1900,7 @@ class UniformDiscrete(Distribution):
     self.strategy = inputDict['strategy']
     self.categoricalDist = Categorical()
     self.categoricalDist.initializeFromDict(inputDict)
-    initialPerm = randomUtils.randomPermutation(inputDict['xAxis'].tolist(),self)
+    initialPerm = randomUtils.randomPermutation(inputDict['outcome'].tolist(),self)
     self.pot = np.asarray(initialPerm)
 
   def pdf(self,x):
@@ -1943,8 +1959,8 @@ class UniformDiscrete(Distribution):
 
     self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
     paramsDict={}
-    paramsDict['xAxis'] = self.xArray
-    paramsDict['pAxis'] = self.pdfArray
+    paramsDict['outcome'] = self.xArray
+    paramsDict['state'] = self.pdfArray
     paramsDict['strategy'] = self.strategy
 
     self.tempUniformDiscrete = UniformDiscrete()
