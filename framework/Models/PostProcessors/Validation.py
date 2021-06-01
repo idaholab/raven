@@ -214,13 +214,12 @@ class Validation(PostProcessorInterface):
               "Please provide a new empty DataObject for this PostProcessor!")
     ## When does this actually happen?
     evaluation = finishedJob.getEvaluation()
-    _, validationDict = evaluation
+    realizations = evaluation[1]
 
     self.raiseADebug('Adding output in data object named', output.name)
     rlz = {}
-    for key, val in validationDict.items():
-      rlz[key] = val
-    output.addRealization(rlz)
+    for rlz in realizations:
+      output.addRealization(rlz)
     # add metadata
     #  in case we want to add specific metdata, we can add the functionality in the evalidation algo base class
 
@@ -250,13 +249,14 @@ class Validation(PostProcessorInterface):
       #  in case of dataobjects we check that the dataobject is either an HistorySet or a DataSet
       if isinstance(inputIn[0], DataObjects.DataSet) and not all([True if inp.type in ['HistorySet', 'DataSet']  else False for inp in inputIn]):
         self.raiseAnError(RuntimeError, "The pivotParameter '{}' has been inputted but PointSets have been used as input of PostProcessor '{}'".format(pivotParameter, self.name))
-      if not all([True if pivotParameter in inp else False for inp in datasets]):
-        self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(pivotParameter, self.name))
-    evaluation ={k: np.atleast_1d(val) for k, val in  self.model.run(datasets, **{'dataobjectNames': names}).items()}
+    evaluation = self.model.run(datasets)
+    if not isinstance(evaluation, list):
+      self.raiseAnError(IOError,"The data type in evaluation is not list")
 
     if pivotParameter:
-      if len(datasets[0][pivotParameter]) != len(list(evaluation.values())[0]):
+      if len(datasets[0][pivotParameter]) != len(list(evaluation[0].values())[0]):
         self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(datasets[0][self.pivotParameter]), len(evaluation.values()[0])))
-      if pivotParameter not in evaluation:
-        evaluation[pivotParameter] = datasets[0][pivotParameter]
+      if not all([True if pivotParameter in inp else False for inp in evaluation]):
+        for inp in evaluation:
+          inp[pivotParameter] = datasets[0][pivotParameter]
     return evaluation
