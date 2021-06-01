@@ -1685,20 +1685,20 @@ class Categorical(Distribution):
     for idx, val in enumerate(inputDict['outcome']):
       self.mapping[val] = inputDict['state'][idx]
       self.values.add(val)
-    
+
     self.checkDistParams()
 
   def initializeDistribution(self):
     """
-      Function that initializes the distribution 
+      Function that initializes the distribution
       @ In, None
       @ Out, None
     """
     self.checkDistParams()
-    
+
     self.lowerBound = min(self.mapping.keys())
     self.upperBound = max(self.mapping.keys())
-  
+
   def checkDistParams(self):
     """
       Function that checks that the sum of all state probabilities is equal to 1 and perform pdf value normalization
@@ -1708,18 +1708,18 @@ class Categorical(Distribution):
     # check all probability values are between 0.0 and 1.0
     for element in self.mapping:
       if self.mapping[element] < 0.0:
-        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities') 
+        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
       if self.mapping[element] > 1.0:
-        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with probabilities greater than 1') 
-    
+        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with probabilities greater than 1')
+
     localSum = sum(self.mapping.values())
     if not mathUtils.compareFloats(localSum,1.0):
       self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
-                         repr(localSum), ', not 1.0!', 'Please re-normalize it to 1!') 
-    
+                         repr(localSum), ', not 1.0!', 'Please re-normalize it to 1!')
+
     # Probability values normalization
     for key in self.mapping.keys():
-      self.mapping[key] = self.mapping[key]/localSum   
+      self.mapping[key] = self.mapping[key]/localSum
 
   def pdf(self,x):
     """
@@ -1879,8 +1879,8 @@ class UniformDiscrete(Distribution):
       self.xArray   = np.arange(self.lowerBound,self.upperBound+1)
     else:
       self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
-    
-    # Here the actual calculation of discrete distribution parameters is performed  
+
+    # Here the actual calculation of discrete distribution parameters is performed
     self.pdfArray = 1.0/self.xArray.size * np.ones(self.xArray.size)
     paramsDict={}
     paramsDict['outcome'] = self.xArray
