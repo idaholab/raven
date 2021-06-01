@@ -144,13 +144,16 @@ class Probabilistic(ValidationBase):
     """
     names = kwargs.get('dataobjectNames')
     outs = {}
+    realizations = []
     for feat, targ in zip(self.features, self.targets):
+      nameFeat = feat.split("|")
+      nameTarg = targ.split("|")
+      names = [nameFeat[0],nameTarg[0]]
       featData = self._getDataFromDatasets(datasets, feat, names)
       targData = self._getDataFromDatasets(datasets, targ, names)
-      # featData = (featData[0], None)
-      # targData = (targData[0], None)
       for metric in self.metrics:
         name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
         outs[name] = metric.evaluate((featData, targData), multiOutput='raw_values')
-    return outs
+    realizations.append(outs)
+    return realizations
 
