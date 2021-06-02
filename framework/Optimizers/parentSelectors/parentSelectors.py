@@ -24,7 +24,6 @@
 
 import numpy as np
 import xarray as xr
-import copy
 from utils import randomUtils
 
 # For mandd: to be updated with RAVEN official tools

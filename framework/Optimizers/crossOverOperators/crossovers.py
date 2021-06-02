@@ -22,9 +22,7 @@
 
 import numpy as np
 import xarray as xr
-import copy
 from utils import randomUtils
-from copy import deepcopy
 from scipy.special import comb
 from itertools import combinations
 

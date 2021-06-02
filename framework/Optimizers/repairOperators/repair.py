@@ -21,7 +21,6 @@
 """
 
 import numpy as np
-import copy
 
 # @profile
 def replacementRepair(offSprings,**kwargs):
