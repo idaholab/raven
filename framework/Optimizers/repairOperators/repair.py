@@ -34,7 +34,7 @@ def replacementRepair(offSprings,**kwargs):
     @ Out, children, np.array, children resulting from the crossover. Shape is nParents x len(chromosome) i.e, number of Genes/Vars
   """
   nChildren,nGenes = np.shape(offSprings)
-  children = copy.deepcopy(offSprings)
+  children = offSprings
   # read distribution info
   distInfo = kwargs['distInfo']
 
