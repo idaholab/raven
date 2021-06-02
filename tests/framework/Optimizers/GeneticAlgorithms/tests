@@ -53,6 +53,17 @@
       zero_threshold = 1e-5
     [../]
   [../]
+  
+  [./MaxwReplacementDiffDist]
+    type = 'RavenFramework'
+    input = 'testGAMaxwRepDifferentDist.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'MaxwReplacementDiffDist/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
 
   [./MaxwReplacementConvAHDp]
     type = 'RavenFramework'
@@ -71,6 +82,17 @@
     [./data]
       type = OrderedCSV
       output = 'MaxwoReplacement/opt_export_0.csv'
+      rel_err = 1e-3
+      zero_threshold = 1e-5
+    [../]
+  [../]
+  
+  [./MaxwoReplacementDiffDist]
+    type = 'RavenFramework'
+    input = 'testGAMaxwoRepDifferentDist.xml'
+    [./data]
+      type = OrderedCSV
+      output = 'MaxwoReplacementDiffDist/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
