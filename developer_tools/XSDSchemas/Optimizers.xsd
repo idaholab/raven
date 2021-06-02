@@ -196,6 +196,7 @@
      <xsd:complexType name="mutationType">
       <xsd:all>
         <xsd:element name="mutationProb"   type="xsd:float" />
+        <xsd:element name="locs"           type="xsd:string" minOccurs="0" maxOccurs="1"/>
       </xsd:all>
       <xsd:attribute name="type" type="xsd:string" />
     </xsd:complexType>

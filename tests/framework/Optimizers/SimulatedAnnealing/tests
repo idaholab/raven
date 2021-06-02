@@ -13,6 +13,8 @@
   [./ExponentialEggHolder]
     type = 'RavenFramework'
     input = 'ExponentialEggHolder/test_simulatedAnnealing_eggHold.xml'
+    heavy = true
+    max_time = 1500
     [./data]
       type = OrderedCSV
       output = 'ExponentialEggHolder/opt_export_0.csv'

@@ -62,7 +62,6 @@ def swapMutator(offSprings, distDict, **kwargs):
       cdf2 = distDict[offSprings.coords['Gene'].values[loc2]].cdf(float(offSprings[i,loc2].values))
       children[i,loc1] = distDict[offSprings.coords['Gene'].values[loc1]].ppf(cdf2)
       children[i,loc2] = distDict[offSprings.coords['Gene'].values[loc2]].ppf(cdf1)
-
   return children
 
 # @profile
