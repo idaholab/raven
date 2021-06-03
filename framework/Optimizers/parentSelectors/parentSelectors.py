@@ -24,7 +24,6 @@
 
 import numpy as np
 import xarray as xr
-import copy
 from utils import randomUtils
 
 # For mandd: to be updated with RAVEN official tools
@@ -42,8 +41,8 @@ def rouletteWheel(population,**kwargs):
     @ Out, selectedParents, xr.DataArray, selected parents, i.e. np.shape(selectedParents) = nParents x nGenes.
   """
   # Arguments
-  pop = copy.deepcopy(population)
-  fitness = copy.deepcopy(kwargs['fitness'])
+  pop = population
+  fitness = kwargs['fitness']
   nParents= kwargs['nParents']
   # if nparents = population size then do nothing (whole population are parents)
   if nParents == pop.shape[0]:
@@ -84,9 +83,9 @@ def tournamentSelection(population,**kwargs):
           variables, list, variable names
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
-  fitness = copy.deepcopy(kwargs['fitness'])
+  fitness = kwargs['fitness']
   nParents= kwargs['nParents']
-  pop = copy.deepcopy(population)
+  pop = population
 
   popSize = population.values.shape[0]
 
@@ -124,8 +123,8 @@ def rankSelection(population,**kwargs):
           nParents, int, number of required parents.
     @ Out, newPopulation, xr.DataArray, selected parents,
   """
-  fitness = copy.deepcopy(kwargs['fitness'])
-  pop = copy.deepcopy(population)
+  fitness = kwargs['fitness']
+  pop = population
 
   index = np.arange(0,pop.shape[0])
   rank = np.arange(0,pop.shape[0])
