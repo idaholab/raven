@@ -84,7 +84,8 @@ from the normalized weight.
 
 In RAVEN, lots of metrics are interfaces directly coupled with metrics available within \textbf{Scipy} and
 \textbf{SciKit-Learn}. In this case, the algorithm for the metrics is choosen by the subnode \xmlNode{metricType}
-under the parent node \xmlAttr{SKL} (metric from SciKit-Learn) or \xmlAttr{ScipyMetric} (metric from Scipy). For
+under the parent node with \xmlAttr{subType} of either \xmlString{SKL} (metric from SciKit-Learn) or
+\xmlString{ScipyMetric} (metric from Scipy). For
 example, \xmlNode{metricType}\xmlString{paired\_distance|euclidean}\xmlNode{/metricType}.
 
 In the following sub-sections, the input requirements for all of the metrics are presented in the following sections.
