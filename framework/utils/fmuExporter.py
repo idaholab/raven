@@ -115,7 +115,9 @@ class {classname}(Fmi2Slave):
     # set path to raven and the serialized model
     self.raven_path = r"{self.frameworkDir}"
     # model_path is by default the path to this model that is exported as FMU (serialized). It is stored in the resource folder
-    self.model_path = self.resources + os.path.sep + "{filename}"
+    self.model_path = self.resources + "/" + "{filename}"
+    #os.path.sep
+    sys.path.append(self.model_path)
     # this flag activates the initialization at the begin of the solve
     self.initialized = False
     # register raven_path variables if needed to be changed
@@ -147,6 +149,7 @@ class {classname}(Fmi2Slave):
         sys.path.append(os.path.join(self.raven_path,"framework"))
         import Driver
       # de-serialize the model
+      print(self.model_path)
       self.model = pickle.load(open(self.model_path, mode='rb'))
       self.initialized = True
 
