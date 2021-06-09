@@ -37,7 +37,7 @@ class KerasConvNetClassifier(KerasClassifier):
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
       @ Out, None
     """
-    KerasClassifier.__init__(self, **kwargs)
+    super().__init__(**kwargs)
     self.printTag = 'KerasConvNetClassifier'
     self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasConvNetLayersList'] + self.kerasROMDict['kerasPoolingLayersList']
 

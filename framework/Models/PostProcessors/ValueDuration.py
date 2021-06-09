@@ -16,19 +16,17 @@ Created on August 28, 2018
 
 @author: talbpaul
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils
 from utils import InputData, InputTypes
 #Internal Modules End-----------------------------------------------------------
 
-class ValueDuration(PostProcessor):
+class ValueDuration(PostProcessorInterface):
   """
     Constructs a load duration curve.
     x-axis is time spent above a particular variable's value,
@@ -53,13 +51,13 @@ class ValueDuration(PostProcessor):
                                                   contentType=InputTypes.IntegerType))
     return inSpec
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.dynamic = True # from base class, indicates time-dependence is handled internally
     self.numBins = None # integer number of bins to use in creating the duration curve. TODO default?
     self.targets = None # list of strings, variables to apply postprocessor to
@@ -70,7 +68,7 @@ class ValueDuration(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       tag = child.getName()
       if tag == 'target':

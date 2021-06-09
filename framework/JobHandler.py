@@ -16,29 +16,19 @@
 Created on Mar 5, 2013
 @author: alfoa, cogljj, crisr
 """
-#for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
-
-#External Modules---------------------------------------------------------------
 import time
 import collections
-import subprocess
 import os
 import copy
 import sys
-import abc
 import threading
 from random import randint
 import socket
 import time
-#External Modules End-----------------------------------------------------------
 
-#Internal Modules---------------------------------------------------------------
 from utils import importerUtils as im
 from utils import utils
 from BaseClasses import BaseType
-import MessageHandler
 import Runners
 import Models
 # for internal parallel
@@ -54,7 +44,7 @@ else:
 ## FIXME: Finished jobs can bog down the queue waiting for other objects to take
 ## them away. Can we shove them onto a different list and free up the job queue?
 
-class JobHandler(MessageHandler.MessageUser):
+class JobHandler(BaseType):
   """
     JobHandler class. This handles the execution of any job in the RAVEN
     framework
@@ -65,17 +55,18 @@ class JobHandler(MessageHandler.MessageUser):
       @ In, None
       @ Out, None
     """
+    super().__init__()
     ## Print tag of this object
-    self.printTag         = 'Job Handler'
+    self.printTag = 'Job Handler'
     ## Container of the running info (RunInfo block in the input file)
-    self.runInfoDict      = {}
+    self.runInfoDict = {}
     ## Is Ray Initialized?
     self.isRayInitialized = False
     ## Variable containing the info about the RAY parallel server. If None, multi-threading is used
     self.rayServer = None
 
     ## Sleep time for collecting/inquiring/submitting new jobs
-    self.sleepTime  = 1e-4 #0.005
+    self.sleepTime = 1e-4 #0.005
 
     ## Is the execution completed? When True, the JobHandler is shut down
     self.completed = False
@@ -123,21 +114,26 @@ class JobHandler(MessageHandler.MessageUser):
     ## Dict containing info about batching
     self.__batching = collections.defaultdict()
 
-  def initialize(self, runInfoDict, messageHandler):
+  def applyRunInfo(self, runInfo):
     """
-      Method to initialize the JobHandler
-      @ In, runInfoDict, dict, dictionary of run info settings
-      @ In, messageHandler, MessageHandler object, instance of the global RAVEN
-        message handler
+      Allows access to the RunInfo data
+      @ In, runInfo, dict, info from RunInfo
       @ Out, None
     """
-    self.runInfoDict = runInfoDict
-    self.messageHandler = messageHandler
+    self.runInfoDict = runInfo
+
+
+  def initialize(self):
+    """
+      Method to initialize the JobHandler
+      @ In, None
+      @ Out, None
+    """
     # set the maximum queue size (number of jobs to queue past the running number)
-    self.maxQueueSize = runInfoDict['maxQueueSize']
+    self.maxQueueSize = self.runInfoDict['maxQueueSize']
     # defaults to None; if None, then use batchSize instead
     if self.maxQueueSize is None:
-      self.maxQueueSize = runInfoDict['batchSize']
+      self.maxQueueSize = self.runInfoDict['batchSize']
     # if requested max size less than 1, we can't do that, so take 1 instead
     if self.maxQueueSize < 1:
       self.raiseAWarning('maxQueueSize was set to be less than 1!  Setting to 1...')
@@ -327,18 +323,20 @@ class JobHandler(MessageHandler.MessageUser):
     assert "original_function" in dir(functionToRun), "to parallelize a function, it must be" \
            " decorated with RAVEN Parallel decorator"
     if self.rayServer is None or forceUseThreads:
-      internalJob = Runners.SharedMemoryRunner(self.messageHandler, args,
-                                               functionToRun.original_function,
-                                               identifier, metadata,
-                                               uniqueHandler,
-                                               profile=self.__profileJobs)
+      internalJob = Runners.factory.returnInstance('SharedMemoryRunner', args,
+                                                   functionToRun.original_function,
+                                                   identifier=identifier,
+                                                   metadata=metadata,
+                                                   uniqueHandler=uniqueHandler,
+                                                   profile=self.__profileJobs)
     else:
       arguments = args  if _rayAvail else  tuple([self.rayServer] + list(args))
-      internalJob = Runners.DistributedMemoryRunner(self.messageHandler,
-                                                    arguments, functionToRun.remote if _rayAvail else functionToRun.original_function,
-                                                    identifier, metadata,
-                                                    uniqueHandler,
-                                                    profile=self.__profileJobs)
+      internalJob = Runners.factory.returnInstance('DistributedMemoryRunner', arguments,
+                                                   functionToRun.remote if _rayAvail else functionToRun.original_function,
+                                                   identifier=identifier,
+                                                   metadata=metadata,
+                                                   uniqueHandler=uniqueHandler,
+                                                   profile=self.__profileJobs)
 
     # set the client info
     internalJob.clientRunner = clientQueue
@@ -411,7 +409,10 @@ class JobHandler(MessageHandler.MessageUser):
       @ Out, None
     """
     # create a placeholder runner
-    run = Runners.PassthroughRunner(self.messageHandler, data, metadata=metadata, uniqueHandler=uniqueHandler, profile=profile)
+    run = Runners.factory.returnInstance('PassthroughRunner', data, None,
+                                         metadata=metadata,
+                                         uniqueHandler=uniqueHandler,
+                                         profile=profile)
     # place it on the finished queue
     with self.__queueLock:
       self.__finished.append(run)

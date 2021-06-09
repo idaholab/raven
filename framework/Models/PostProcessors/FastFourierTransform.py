@@ -16,18 +16,16 @@ Created on September 11, 2018
 
 @author: talbpaul
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
-
 #External Modules---------------------------------------------------------------
 import numpy as np
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
 from utils import InputData, InputTypes
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 #Internal Modules End-----------------------------------------------------------
 
-class FastFourierTransform(PostProcessor):
+class FastFourierTransform(PostProcessorInterface):
   """
     Constructs fast-fourier transform data for a history
     Outputs are "frequency" for each index and "amplitude" for each target
@@ -49,13 +47,13 @@ class FastFourierTransform(PostProcessor):
                                                   strictMode=True))
     return inSpec
 
-  def __init__(self, runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, messageHandler, MessageHandler, message handler object
+      @ In, None
       @ Out, None
     """
-    PostProcessor.__init__(self, runInfoDict)
+    super().__init__()
     self.dynamic = True # from base class, indicates time-dependence is handled internally
     self.targets = None # list of strings, variables to apply postprocessor to
     self.indices = None # dict of {string:string}, key is target and value is index (independent monotonic var)
@@ -66,7 +64,7 @@ class FastFourierTransform(PostProcessor):
       @ In, paramInput, ParameterInput, the already-parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     for child in paramInput.subparts:
       tag = child.getName()
       if tag == 'target':

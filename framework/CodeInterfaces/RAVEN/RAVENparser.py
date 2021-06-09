@@ -25,7 +25,6 @@ import shutil
 import copy
 from collections import OrderedDict
 from utils import utils, xmlUtils, mathUtils
-import MessageHandler # to give VariableGroups a messageHandler and handle messages
 
 class RAVENparser():
   """
@@ -57,12 +56,7 @@ class RAVENparser():
     # get the NAMES of the variable groups
     variableGroupNode = self.tree.find('VariableGroups')
     if variableGroupNode is not None:
-      # make a messageHandler and messageUsesr to handle variable group creation
-      ## if made generally available to this parser, this can be relocated and used generally
-      messageHandler = MessageHandler.MessageHandler()
-      messageHandler.initialize({'verbosity':'quiet'})
-      messageUser = MessageHandler.MessageUser()
-      self.varGroups = mathUtils.readVariableGroups(variableGroupNode,messageHandler,messageUser)
+      self.varGroups = mathUtils.readVariableGroups(variableGroupNode)
 
     # do some sanity checks
     sequence = [step.strip() for step in self.tree.find('.//RunInfo/Sequence').text.split(",")]

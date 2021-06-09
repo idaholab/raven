@@ -34,7 +34,7 @@ class Wavelet(TimeSeriesAnalyzer):
     """
     specs = super(Wavelet, cls).getInputSpecification()
     specs.name = 'wavelet'
-    specs.descriiption = """Discrete Wavelet TimeSeriesAnalysis algorithm."""
+    specs.description = """Discrete Wavelet TimeSeriesAnalysis algorithm."""
     specs.addSub(InputData.parameterInputFactory(
       'family',
       contentType=InputTypes.StringType,

@@ -1,0 +1,103 @@
+\subsubsection{HStoPSOperator}
+\label{HStoPSOperator}
+
+This Post-Processor performs the conversion from HistorySet to PointSet performing a projection of the output space.
+\ppType{HStoPSOperator}{HStoPSOperator}
+In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are available:
+
+\begin{itemize}
+   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable. Default is ``time''.
+   \nb Used just in case the  \xmlNode{pivotValue}-based operation  is requested
+    \item \xmlNode{operator}, \xmlDesc{string, optional field}, the operation to perform on the output space:
+      \begin{itemize}
+        \item \textbf{min}, compute the minimum of each variable along each single history
+         \item \textbf{max}, compute the maximum of each variable along each single history
+         \item \textbf{average}, compute the average of each variable along each single history
+         \item \textbf{all}, join together all of the each variable in
+           the history, and make the pivotParameter a regular
+           parameter.  Unlike the min and max operators, this keeps
+           all the data, just organized differently. This operator
+           does this by propagating the other input parameters for
+           each item of the pivotParameter.
+           Table~\ref{operator_all_switch_before} shows an example
+           HistorySet with input parameter x, pivot parameter t, and
+           output parameter b and then
+           Table~\ref{operator_all_switch_after} shows the resulting
+           PointSet with input parameters x and t, and output
+           parameter b. Note that which parameters are input and which
+           are output in the resulting PointSet depends on the
+           DataObject specification.
+       \end{itemize}
+        \nb This node can be inputted only if \xmlNode{pivotValue} and \xmlNode{row} are not present
+     \item \xmlNode{pivotValue}, \xmlDesc{float, optional field}, the value of the pivotParameter with respect to the other outputs need to be extracted.
+       \nb This node can be inputted only if \xmlNode{operator} and \xmlNode{row} are not present
+     \item \xmlNode{pivotStrategy}, \xmlDesc{string, optional field}, The strategy to use for the pivotValue:
+       \begin{itemize}
+        \item \textbf{nearest}, find the value that is the nearest with respect the \xmlNode{pivotValue}
+        \item \textbf{floor}, find the value that is the nearest with respect to the \xmlNode{pivotValue} but less then the  \xmlNode{pivotValue}
+        \item \textbf{celing}, find the value that is the nearest with respect to the \xmlNode{pivotValue} but greater then the  \xmlNode{pivotValue}
+        \item \textbf{interpolate}, if the exact  \xmlNode{pivotValue}  can not be found, interpolate using a linear approach
+       \end{itemize}
+
+       \nb Valid just in case \xmlNode{pivotValue} is present
+     \item \xmlNode{row}, \xmlDesc{int, optional field}, the row index at which the outputs need to be extracted.
+       \nb This node can be inputted only if \xmlNode{operator} and \xmlNode{pivotValue} are not present
+\end{itemize}
+
+This example will show how the XML input block would look like:
+
+\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="HStoPSperatorRows" subType="HStoPSOperator">
+      <row>-1</row>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorPivotValues" subType="HStoPSOperator">
+        <pivotParameter>time</pivotParameter>
+        <pivotValue>0.3</pivotValue>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorMax" subType="HStoPSOperator">
+        <pivotParameter>time</pivotParameter>
+        <operator>max</operator>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorMin" subType="HStoPSOperator">
+        <pivotParameter>time</pivotParameter>
+        <operator>min</operator>
+    </PostProcessor>
+    <PostProcessor name="HStoPSoperatorOperatorAverage" subType="HStoPSOperator">
+        <pivotParameter>time</pivotParameter>
+        <operator>average</operator>
+    </PostProcessor>
+    ...
+  </Models>
+  ...
+</Simulation>
+\end{lstlisting}
+
+\begin{table}[!hbtp]
+  \caption{Starting HistorySet for operator all}
+  \label{operator_all_switch_before}
+\begin{tabular}{l|l|l}
+  x & t & b \\
+  \hline
+  5.0 &  &  \\
+  \hline
+  & 1.0 & 6.0 \\
+  \hline
+  & 2.0 & 7.0 \\
+\end{tabular}
+\end{table}
+
+\begin{table}[!hbtp]
+  \caption{Resulting PointSet after operator all}
+  \label{operator_all_switch_after}
+\begin{tabular}{l|l|l}
+  x & t & b \\
+  \hline
+  5.0 & 1.0 & 6.0  \\
+  \hline
+  5.0 & 2.0 & 7.0 \\
+\end{tabular}
+\end{table}

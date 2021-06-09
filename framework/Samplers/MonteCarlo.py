@@ -79,7 +79,7 @@ class MonteCarlo(ForwardSampler):
       @ In, None
       @ Out, None
     """
-    ForwardSampler.__init__(self)
+    super().__init__()
     self.printTag = 'SAMPLER MONTECARLO'
     self.samplingType = None
     self.limit = None

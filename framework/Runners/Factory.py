@@ -21,9 +21,26 @@ from EntityFactoryBase import EntityFactory
 ################################################################################
 from utils import utils
 from .Runner import Runner
-from .ExternalRunner import ExternalRunner
+from .DistributedMemoryRunner import DistributedMemoryRunner
 from .InternalRunner import InternalRunner
-from .InternalThreadedRunner import InternalThreadedRunner
+from .PassthroughRunner import PassthroughRunner
+from .SharedMemoryRunner import SharedMemoryRunner
 
-factory = EntityFactory('Runner')
+class RunnerFactory(EntityFactory):
+  """ Specific implementation for runners """
+  def returnInstance(self, Type, funcArgs, func, **kwargs):
+    """
+      Returns an instance pointer from this module.
+      @ In, Type, string, requested object
+      @ In, caller, object, requesting object
+      @ In, funcArgs, list, arguments to be passed as func(*funcArgs)
+      @ In, func, method or function, function that needs to be run
+      @ In, kwargs, dict, additional keyword arguments to constructor
+      @ Out, returnInstance, instance, instance of the object
+    """
+    cls = self.returnClass(Type)
+    instance = cls(funcArgs, func, **kwargs)
+    return instance
+
+factory = RunnerFactory('Runner')
 factory.registerAllSubtypes(Runner)
