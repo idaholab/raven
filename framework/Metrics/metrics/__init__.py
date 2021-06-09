@@ -11,15 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os,sys
+"""
+  The Metrics module includes the different type of metrics
+  to measure distance among RAVEN dataobjects
+"""
+from .MetricInterface import MetricInterface
 
-pathToGCT = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))),'developer_tools')
-sys.path.append(pathToGCT)
-import get_coverage_tests as gct
-
-testsInfo = gct.getRegressionTests()
-for folder, tests in testsInfo.items():
-  for test in tests:
-    t = os.path.join(folder, test)
-    print('Removing ',t+'.bak')
-    os.system('rm %s.bak' %t)
+from .Factory import factory

@@ -59,7 +59,7 @@
       <variables>sigma,rho,beta,x,y,z,time,x0,y0,z0</variables>
     </ExternalModel>
     <PostProcessor name="agglomerative" subType="DataMining" verbosity="quiet">
-      <Metric class="Metrics" type="DTW">example</Metric>
+      <Metric class="Metrics" type="Metric">example</Metric>
       <KDD labelFeature="labels" lib="SciKitLearn">
         <Features>output</Features>
         <SKLtype>cluster|Agglomerative</SKLtype>
@@ -221,10 +221,10 @@
   </OutStreams>
 
   <Metrics>
-    <DTW name="example">
+    <Metric name="example" subType="DTW">
       <order>0</order>
       <localDistance>euclidean</localDistance>
-    </DTW>
+    </Metric>
   </Metrics>
 
 </Simulation>

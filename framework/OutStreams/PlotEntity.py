@@ -75,6 +75,14 @@ class Plot(OutStreamEntity):
     self._plotter = self.interfaceFactory.returnInstance(reqType)
     self._plotter.handleInput(spec)
 
+  def _getInterface(self):
+    """
+      Return the interface associated with this entity.
+      @ In, None
+      @ Out, _getInterface, object, interface object
+    """
+    return self._plotter
+
   def initialize(self, stepEntities):
     """
       Initialize the OutStream. Initialize interfaces and pass references to sources.

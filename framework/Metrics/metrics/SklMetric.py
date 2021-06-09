@@ -16,9 +16,6 @@ Created on August 20 2016
 
 @author: mandd
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -27,12 +24,11 @@ from utils import utils
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Metric import Metric
+from .MetricInterface import MetricInterface
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-
-class SKL(Metric):
+class SKL(MetricInterface):
   """
     Scikit-learn metrics
   """
@@ -47,10 +43,9 @@ class SKL(Metric):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(SKL, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("metricType",contentType=InputTypes.StringType),quantity=InputData.Quantity.one)
     inputSpecification.addSub(InputData.parameterInputFactory("sample_weight",contentType=InputTypes.FloatListType),quantity=InputData.Quantity.zero_to_one)
-
     return inputSpecification
 
   def __init__(self):
@@ -59,8 +54,7 @@ class SKL(Metric):
       @ In, None
       @ Out, None
     """
-    Metric.__init__(self)
-
+    super().__init__()
     if len(self.availMetrics) == 0:
       import sklearn
       import sklearn.metrics
@@ -83,23 +77,20 @@ class SKL(Metric):
       # TODO: add more metrics here
       # metric from scipy.spatial.distance, for example mahalanobis, minkowski
 
-
     # The type of given metric, None or List of two elements, first element should be in availMetrics.keys()
     # and sencond element should be in availMetrics.values()[firstElement].keys()
     self.metricType = None
     # True indicates the metric needs to be able to handle dynamic data
     self._dynamicHandling = True
 
-  def _localReadMoreXML(self,xmlNode):
+  def handleInput(self, paramInput):
     """
       Method that reads the portion of the xml input that belongs to this specialized class
       and initializes internal parameters
-      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ In, paramInput, InputData.parameterInput, input specs
       @ Out, None
     """
     self.distParams = {}
-    paramInput = SKL.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
     for child in paramInput.subparts:
       if child.getName() == "metricType":
         self.metricType = list(elem.strip() for elem in child.value.split('|'))
@@ -111,7 +102,7 @@ class SKL(Metric):
     if self.metricType[0] not in self.__class__.availMetrics.keys() or self.metricType[1] not in self.__class__.availMetrics[self.metricType[0]].keys():
       self.raiseAnError(IOError, "Metric '", self.name, "' with metricType '", self.metricType[0], "|", self.metricType[1], "' is not valid!")
 
-  def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
+  def run(self, x, y, weights=None, axis=0, **kwargs):
     """
       This method computes difference between two points x and y based on given metric
       @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided,
@@ -136,7 +127,7 @@ class SKL(Metric):
     # However, the inputs of paired metric, i.e. x, y should convert the shape to
     # (n_outputs, n_samples), and the outputs will have the shape (n_outputs).
     #######################################################################################
-    assert(isinstance(x,np.ndarray))
+    assert(isinstance(x,np.ndarray)) # NOTE these assertions will not show up for non-debug runs!
     assert(isinstance(y,np.ndarray))
     assert(x.shape == y.shape), "Input data x, y should have the same shape"
     if weights is not None and self.metricType[0] == 'regression' and 'sample_weight' not in self.distParams.keys():

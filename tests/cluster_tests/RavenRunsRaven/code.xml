@@ -1,5 +1,5 @@
+<?xml version="1.0" ?>
 <Simulation verbosity="debug">
-
   <TestInfo>
     <name>cluster_tests/RavenRunsRaven.Code</name>
     <author>talbpaul</author>
@@ -17,7 +17,10 @@
     <Sequence>sample, print</Sequence>
     <batchSize>2</batchSize>
     <NumMPI>4</NumMPI>
-    <mode>mpi<runQSUB/></mode>
+    <mode>
+      mpi
+      <runQSUB/>
+    </mode>
     <expectedTime>0:10:0</expectedTime>
     <clusterParameters>-P ops_gen -j oe</clusterParameters>
     <internalParallel>False</internalParallel>
@@ -44,15 +47,15 @@
   </DataObjects>
 
   <Files>
-    <Input name="rrr_inner" type="raven" >inner.xml</Input>
+    <Input name="rrr_inner" type="raven">inner.xml</Input>
   </Files>
 
   <Models>
     <Code name="rrr" subType="RAVEN">
       <executable>%FRAMEWORK_DIR%/../raven_framework</executable>
       <outputExportOutStreams>inner_out</outputExportOutStreams>
-      <alias variable="a" type="input">Samplers|MonteCarlo|constant@name:a</alias>
-      <alias variable="b" type="input">Samplers|MonteCarlo|constant@name:b</alias>
+      <alias type="input" variable="a">Samplers|MonteCarlo|constant@name:a</alias>
+      <alias type="input" variable="b">Samplers|MonteCarlo|constant@name:b</alias>
     </Code>
   </Models>
 

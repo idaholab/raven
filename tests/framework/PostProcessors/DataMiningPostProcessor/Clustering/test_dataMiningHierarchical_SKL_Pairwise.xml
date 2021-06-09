@@ -28,24 +28,24 @@
   </Files>
 
   <Metrics>
-    <PairwiseMetric name="euclidean">
+    <Metric name="euclidean" subType="PairwiseMetric">
       <metricType>pairwise|euclidean</metricType>
-    </PairwiseMetric>
-    <PairwiseMetric name="rbf">
+    </Metric>
+    <Metric name="rbf" subType="PairwiseMetric">
       <metricType>kernel|rbf</metricType>
       <gamma>0.5</gamma>
-    </PairwiseMetric>
-    <PairwiseMetric name="polynomial">
+    </Metric>
+    <Metric name="polynomial" subType="PairwiseMetric">
       <metricType>kernel|polynomial</metricType>
       <gamma>1.0</gamma>
       <degree>2</degree>
       <coef0>1</coef0>
-    </PairwiseMetric>
+    </Metric>
   </Metrics>
 
   <Models>
     <PostProcessor name="hierarchical_1" subType="DataMining" verbosity="quiet">
-      <Metric class="Metrics" type="PairwiseMetric">euclidean</Metric>
+      <Metric class="Metrics" type="Metric">euclidean</Metric>
       <KDD labelFeature="labels" lib="Scipy">
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
@@ -62,7 +62,7 @@
       </KDD>
     </PostProcessor>
     <PostProcessor name="hierarchical_2" subType="DataMining" verbosity="quiet">
-      <Metric class="Metrics" type="PairwiseMetric">rbf</Metric>
+      <Metric class="Metrics" type="Metric">rbf</Metric>
       <KDD labelFeature="labels" lib="Scipy">
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
@@ -79,7 +79,7 @@
       </KDD>
     </PostProcessor>
     <PostProcessor name="hierarchical_3" subType="DataMining" verbosity="quiet">
-      <Metric class="Metrics" type="PairwiseMetric">polynomial</Metric>
+      <Metric class="Metrics" type="Metric">polynomial</Metric>
       <KDD labelFeature="labels" lib="Scipy">
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>
@@ -96,7 +96,7 @@
       </KDD>
     </PostProcessor>
     <PostProcessor name="hierarchical_4" subType="DataMining" verbosity="quiet">
-      <Metric class="Metrics" type="PairwiseMetric">mahalanobis</Metric>
+      <Metric class="Metrics" type="Metric">mahalanobis</Metric>
       <KDD labelFeature="labels" lib="Scipy">
         <Features>x1,x2</Features>
         <SCIPYtype>cluster|Hierarchical</SCIPYtype>

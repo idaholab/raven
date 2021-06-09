@@ -16,24 +16,19 @@ Created on Feb. 16 2018
 
 @author: wangc
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import math
 import scipy
 import numpy as np
-import ast
 import scipy.spatial.distance as spatialDistance
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Metric import Metric
+from .MetricInterface import MetricInterface
 from utils import utils, InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class ScipyMetric(Metric):
+class ScipyMetric(MetricInterface):
   """
     ScipyMetric metrics which can be employed for both pointSets and historySets
   """
@@ -65,11 +60,10 @@ class ScipyMetric(Metric):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(ScipyMetric, cls).getInputSpecification()
+    inputSpecification = super().getInputSpecification()
     inputSpecification.addSub(InputData.parameterInputFactory("metricType",contentType=InputTypes.StringType),quantity=InputData.Quantity.one)
     inputSpecification.addSub(InputData.parameterInputFactory("w",contentType=InputTypes.FloatListType),quantity=InputData.Quantity.zero_to_one)
     inputSpecification.addSub(InputData.parameterInputFactory("p",contentType=InputTypes.FloatType),quantity=InputData.Quantity.zero_to_one)
-
     return inputSpecification
 
   def __init__(self):
@@ -78,21 +72,19 @@ class ScipyMetric(Metric):
       @ In, None
       @ Out, None
     """
-    Metric.__init__(self)
+    super().__init__()
     # The type of given metric, None or List of two elements, first element should be in availMetrics.keys()
     # and sencond element should be in availMetrics.values()[firstElement].keys()
     self.metricType = None
 
-  def _localReadMoreXML(self,xmlNode):
+  def handleInput(self, paramInput):
     """
       Method that reads the portion of the xml input that belongs to this specialized class
       and initialize internal parameters
-      @ In, xmlNode, xml.etree.Element, Xml element node
+      @ In, paramInput, InputData.parameterInput, input specs
       @ Out, None
     """
     self.distParams = {}
-    paramInput = ScipyMetric.getInputSpecification()()
-    paramInput.parseNode(xmlNode)
     for child in paramInput.subparts:
       if child.getName() == "metricType":
         self.metricType = list(elem.strip() for elem in child.value.split('|'))
@@ -104,7 +96,7 @@ class ScipyMetric(Metric):
     if self.metricType[0] not in self.__class__.availMetrics.keys() or self.metricType[1] not in self.__class__.availMetrics[self.metricType[0]].keys():
       self.raiseAnError(IOError, "Metric '", self.name, "' with metricType '", self.metricType[0], "|", self.metricType[1], "' is not valid!")
 
-  def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
+  def run(self, x, y, weights=None, axis=0, **kwargs):
     """
       This method computes difference between two points x and y based on given metric
       @ In, x, 1-D numpy.ndarray, array containing data of x.

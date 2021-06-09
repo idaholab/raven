@@ -126,6 +126,14 @@ class PostProcessor(Model):
     self._pp = self.interfaceFactory.returnInstance(self.subType)
     self._pp._readMoreXML(xmlNode)
 
+  def _getInterface(self):
+    """
+      Return the interface associated with this entity.
+      @ In, None
+      @ Out, _getInterface, object, interface object
+    """
+    return self._pp
+
   def whatDoINeed(self):
     """
       This method is used mainly by the Simulation class at the Step construction stage.
