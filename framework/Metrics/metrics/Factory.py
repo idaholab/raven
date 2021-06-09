@@ -11,15 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os,sys
+"""
+Created on Jul 18 2016
 
-pathToGCT = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))),'developer_tools')
-sys.path.append(pathToGCT)
-import get_coverage_tests as gct
+@author: mandd
+"""
+from EntityFactoryBase import EntityFactory
 
-testsInfo = gct.getRegressionTests()
-for folder, tests in testsInfo.items():
-  for test in tests:
-    t = os.path.join(folder, test)
-    print('Removing ',t+'.bak')
-    os.system('rm %s.bak' %t)
+from .MetricInterface import MetricInterface
+from .DTW import DTW
+from .SklMetric import SKL
+from .PairwiseMetric import PairwiseMetric
+from .CDFAreaDifference import CDFAreaDifference
+from .PDFCommonArea import PDFCommonArea
+from .ScipyMetric import ScipyMetric
+
+factory = EntityFactory('Metrics')
+factory.registerAllSubtypes(MetricInterface)

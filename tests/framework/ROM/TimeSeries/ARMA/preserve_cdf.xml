@@ -13,7 +13,7 @@
       repeated 10 times for comparison to the sample ValueDuration curves.
     </description>
     <revisions>
-      <revision author='talbpaul' date='2019-01-22'>created</revision>
+      <revision author="talbpaul" date="2019-01-22">created</revision>
     </revisions>
   </TestInfo>
 
@@ -118,7 +118,6 @@
         <pivotParameter>bins_Signal</pivotParameter>
       </options>
     </HistorySet>
-
     <DataSet name="rom"/>
   </DataObjects>
 
@@ -140,14 +139,14 @@
       <Features type="variable">counts_Signal</Features>
       <Targets type="variable">counts_Gold</Targets>
       <pivotParameter>bins_Signal</pivotParameter>
-      <Metric class="Metrics" type="SKL">metric</Metric>
+      <Metric class="Metrics" type="Metric">metric</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-    <SKL name="metric">
+    <Metric name="metric" subType="SKL">
       <metricType>regression|mean_squared_error</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <OutStreams>
