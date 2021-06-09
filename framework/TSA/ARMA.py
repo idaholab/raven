@@ -25,11 +25,11 @@ from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, impor
 statsmodels = importerUtils.importModuleLazy('statsmodels', globals())
 
 import Distributions
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
 
 # utility methods
-class ARMA(TimeSeriesAnalyzer):
+class ARMA(TimeSeriesGenerator, TimeSeriesCharacterizer):
   r"""
     AutoRegressive Moving Average time series analyzer algorithm
   """
@@ -76,7 +76,7 @@ class ARMA(TimeSeriesAnalyzer):
       @ Out, None
     """
     # general infrastructure
-    TimeSeriesAnalyzer.__init__(self, *args, **kwargs)
+    super().__init__(*args, **kwargs)
     self._minBins = 20 # this feels arbitrary; used for empirical distr. of data
 
   def handleInput(self, spec):
@@ -85,7 +85,7 @@ class ARMA(TimeSeriesAnalyzer):
       @ In, inp, InputData.InputParams, input specifications
       @ Out, settings, dict, initialization settings for this algorithm
     """
-    settings = TimeSeriesAnalyzer.handleInput(self, spec)
+    settings = super().handleInput(spec)
     settings['P'] = spec.findFirst('SignalLag').value
     settings['Q'] = spec.findFirst('NoiseLag').value
     settings['reduce_memory'] = spec.parameterValues.get('reduce_memory', settings['reduce_memory'])
@@ -98,7 +98,7 @@ class ARMA(TimeSeriesAnalyzer):
       @ In, settings, dict, existing settings
       @ Out, settings, dict, modified settings
     """
-    settings = TimeSeriesAnalyzer.setDefaults(self, settings)
+    settings = super().setDefaults(settings)
     if 'gaussianize' not in settings:
       settings['gaussianize'] = True
     if 'engine' not in settings:
