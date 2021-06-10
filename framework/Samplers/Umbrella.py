@@ -294,9 +294,7 @@ class Umbrella(ForwardSampler):
     verticesWeights = np.ones(nvertices) / nvertices
     verticesWeights = dict({"vert": vertices, "w": verticesWeights})
     self.mu = [0] * self.dimension
-    dim = 2
-    rho = 0.5
-    self.covariance = np.ones(shape=(self.dimension, self.dimension)) * rho
+    self.covariance = np.ones(shape=(self.dimension, self.dimension)) * self.rho
     for i in range(self.dimension):
       self.covariance[i, i] = 1
 
