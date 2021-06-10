@@ -208,7 +208,6 @@ class Umbrella(ForwardSampler):
          @ In, vertWeights, weights of the mixture distribution
          @ Out, dataframe, dataframe of samples and associated probability values
     """
-    # w is the weight of the target density (1-w) is distributed over the tails
     mvnorm = multivariate_normal(self.mu, self.covariance)
     targetPDF = mvnorm.pdf(x)
     # target_pdf = self.distDict['target'].pdf(x)
@@ -274,8 +273,7 @@ class Umbrella(ForwardSampler):
     umbrellaPDFValues = self.umbrellaPDF(xpoints, vertWeights)
     mvnorm = multivariate_normal(self.mu, self.covariance)
     targetPDF = mvnorm.pdf(xpoints)
-    # Evaluating the importance weights
-    importanceWeights = targetPDF / umbrellaPDFValues['pdfValues']
+    importanceWeights = targetPDF / umbrellaPDFValues['pdfValues']  # Evaluating the importance weights
     umbrellaSamples['weights'] = importanceWeights
     return umbrellaSamples
 
@@ -306,9 +304,8 @@ class Umbrella(ForwardSampler):
 
     print('umbrellaSample')
     print(umbrellaSample)
-    # self.inputInfo['SampledVars']['x1'] = umbrellaSample['0'].to_numpy()
+    # self.inputInfo['SampledVars']['x1'] = umbrellaSample[0].to_numpy()
     self.inputInfo['ProbabilityWeight'] = 1.0
     self.inputInfo['ProbabilityWeight-x1'] = umbrellaSample['weights'].to_numpy()
     self.inputInfo['PointProbability'] =1.0
     self.inputInfo['SamplerType'] = 'Umbrella'
-    # print(self.inputInfo)
