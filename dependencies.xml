@@ -54,7 +54,7 @@ Note all install methods after "main" take
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
     <ray os="mac,linux" source="pip">1.0</ray>
-    <cmake/>	    
+    <cmake skip_check='True'/>	    
     <pillow optional='True'>6.0</pillow>
     <line_profiler optional='True'/>
     <!-- <ete3 optional='True'/> -->
