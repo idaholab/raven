@@ -70,7 +70,7 @@ class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
       self.name = paramInput.parameterValues['name']
     else:
       self.raiseAnError(IOError, 'not found name for a '+self.__class__.__name__)
-    self.type = paramInput.getName()
+    #self.type = paramInput.getName() -> we set this in __init__, setting it here to the spec type seems sketchy
     if self.globalAttributes is not None:
       self.globalAttributes = globalAttributes
     if 'verbosity' in paramInput.parameterValues:

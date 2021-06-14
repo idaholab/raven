@@ -420,33 +420,28 @@ class Simulation(MessageUser):
           globalAttributes = {}
         else:
           globalAttributes = child.attrib
-        if self.entityModules[className].factory.returnInputParameter:
-          paramInput = self.entityModules[className].returnInputParameter()
+        module = self.entityModules[className]
+        if module.factory.returnInputParameter:
+          paramInput = module.returnInputParameter()
           paramInput.parseNode(child)
           for childChild in paramInput.subparts:
             childName = childChild.getName()
-            entity = self.entityModules[className].factory.returnInstance(childName)
+            entity = module.factory.returnInstance(childName)
             entity.applyRunInfo(self.runInfoDict)
             entity.handleInput(childChild, globalAttributes=globalAttributes)
             name = entity.name
             self.entities[className][name] = entity
         else:
           for childChild in child:
-            subType = childChild.tag
-            if 'name' in childChild.attrib.keys():
-              name = childChild.attrib['name']
-              self.raiseADebug('Reading type '+str(childChild.tag)+' with name '+name)
-              #place the instance in the proper dictionary (self.entities[Type]) under his name as key,
-              #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
-              if name not in self.entities[className]:
-                entity = self.entityModules[className].factory.returnInstance(childChild.tag)
-              else:
-                self.raiseAnError(IOError,'Redundant naming in the input for class '+className+' and name '+name)
-              entity.applyRunInfo(self.runInfoDict)
-              entity.readXML(childChild, varGroups, globalAttributes=globalAttributes)
-              self.entities[className][name] = entity
-            else:
-              self.raiseAnError(IOError,'not found name attribute for one "{}": {}'.format(className,subType))
+            kind, name, entity = module.factory.instanceFromXML(childChild)
+            self.raiseADebug(f'Reading class "{kind}" named "{name}" ...')
+            #place the instance in the proper dictionary (self.entities[Type]) under his name as key,
+            #the type is the general class (sampler, data, etc) while childChild.tag is the sub type
+            if name in self.entities[className]:
+              self.raiseAnError(IOError, f'Two objects of class "{className}" have the same name "{name}"!')
+            self.entities[className][name] = entity
+            entity.applyRunInfo(self.runInfoDict)
+            entity.readXML(childChild, varGroups, globalAttributes=globalAttributes)
       else:
         #tag not in entities, check if it's a documentation tag
         if child.tag not in ['TestInfo']:

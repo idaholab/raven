@@ -243,7 +243,7 @@ class CrossValidation(PostProcessorInterface):
     assert(len(outputName.split("_")) == 3)
     info = {}
     _, info['metricName'], info['targetName']  = outputName.split("_")
-    info['metricType'] = self.metricsDict[info['metricName']].metricType
+    info['metricType'] = self.metricsDict[info['metricName']].getAlgorithmType()
     return info
 
   def __generateTrainTestInputs(self, inputDict, trainIndex, testIndex):
@@ -303,14 +303,18 @@ class CrossValidation(PostProcessorInterface):
       for targetName, targetValue in outputEvaluation.items():
         for metricInstance in self.metricsDict.values():
           metricValue = metricInstance.evaluate(targetValue, testDict[targetName])
-          if hasattr(metricInstance, 'metricType'):
-            if metricInstance.metricType[1] not in self.validMetrics:
-              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType[1], " can not be used, \
-                      the accepted metric types are: ", ",".join(self.validMetrics))
-            metricName = metricInstance.metricType[1]
+          metricType = metricInstance.getAlgorithmType()
+          if metricType is not None:
+            if metricType[1] not in self.validMetrics:
+              self.raiseAnError(IOError,
+                  f'The metric type "{metricType[1]}" cannot be used. ' +
+                  f'Accepted metric types include: {", ".join(self.validMetrics)}.')
+            metricName = metricType[1]
           else:
-            self.raiseAnError(IOError, "The metric: ", metricInstance.name, " can not be used, the accepted metric types are: ", str(self.validMetrics))
-          varName = 'cv' + '_' + metricInstance.name + '_' + targetName
+            self.raiseAnError(IOError,
+                f'The metric named "{metricInstance.name}" is not a valid type. ' +
+                f'Accepted metric types include: {", ".join(self.validMetrics)}.')
+          varName = f'cv_{metricInstance.name}_{targetName}'
           if varName not in outputDict.keys():
             outputDict[varName] = np.array([])
           outputDict[varName] = np.append(outputDict[varName], metricValue)

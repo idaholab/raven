@@ -244,6 +244,9 @@ check = params['A']['model']
 for title, real, pred in zip(coef_titles, okay_coefs, check):
   checkFloat(title, real, check[pred], tol=1e-1)
 
+checkTrue("model can generate", model.canGenerate())
+checkTrue("model can characterize", model.canCharacterize())
+
 ############################
 # Simple w/ Random Noise   #
 ############################

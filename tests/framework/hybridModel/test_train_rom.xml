@@ -32,9 +32,9 @@
   </Distributions>
 
   <Metrics>
-    <SKL name="m1">
+    <Metric name="m1" subType="SKL">
       <metricType>regression|explained_variance_score</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <Models>
@@ -60,7 +60,7 @@
         <shuffle>False</shuffle>
         <scores>average</scores>
       </SciKitLearn>
-      <Metric class="Metrics" type="SKL">m1</Metric>
+      <Metric class="Metrics" type="Metric">m1</Metric>
     </PostProcessor>
     <HybridModel name="hybrid" subType="">
       <Model class="Models" type="ExternalModel">thermalConductivityComputation</Model>

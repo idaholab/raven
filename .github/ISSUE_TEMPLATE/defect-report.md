@@ -3,7 +3,7 @@ name: Defect Report
 about: Report a DEFECT you experienced using the code
 title: "[DEFECT] Title Here"
 labels: defect, priority_normal
-assignees: PaulTalbot-INL, joshua-cogliati-inl, wangcj05, alfoa, mandd
+assignees: PaulTalbot-INL, joshua-cogliati-inl, wangcj05, mandd
 
 ---
 

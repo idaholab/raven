@@ -9,10 +9,11 @@
       Tests using a custom mode with the pbsdsh command.
     </description>
     <revisions>
-        <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
+      <revision author="alfoa" date="2018-10-01">This is a requirement test now.</revision>
     </revisions>
     <requirements>R-IS-7</requirements>
   </TestInfo>
+
   <RunInfo>
     <WorkingDir>.</WorkingDir>
     <Sequence>FirstPRun</Sequence>
@@ -83,7 +84,6 @@
       <Output class="DataObjects" type="HistorySet">stories</Output>
     </MultiRun>
   </Steps>
-
 
   <DataObjects>
     <HistorySet name="stories">
