@@ -26,7 +26,8 @@ import xarray as xr
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessorInterface import PostProcessorInterface
+from .PostProcessorInterface import PostProcessorReadyInterface
+
 from . import validationAlgorithms
 from utils import utils, mathUtils, xmlUtils
 from utils import InputData, InputTypes
@@ -35,7 +36,7 @@ import MetricDistributor
 #Internal Modules End-----------------------------------------------------------
 
 
-class Validation(PostProcessorInterface):
+class Validation(PostProcessorReadyInterface):
   """
     Validation class. It will apply the specified validation algorithms in
     the models to a dataset, each specified algorithm's output can be loaded to
@@ -69,10 +70,7 @@ class Validation(PostProcessorInterface):
     metricInput.addParam("class", InputTypes.StringType)
     metricInput.addParam("type", InputTypes.StringType)
     specs.addSub(metricInput)
-    # registration of validation algorithm
-    for typ in validationAlgorithms.factory.knownTypes():
-      algoInput = validationAlgorithms.factory.returnClass(typ)
-      specs.addSub(algoInput.getInputSpecification())
+
     return specs
 
   def __init__(self):
@@ -98,6 +96,12 @@ class Validation(PostProcessorInterface):
 
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
     self.addAssemblerObject('PreProcessor', InputData.Quantity.zero_to_infinity)
+    ## dataset option
+    # self.setInputDataType('xrDataset')
+    # swith to 'xrDataset' when you are using Dataset as operations
+    self.setInputDataType('dict')
+    # If you want to keep the input meta data, please pass True, otherwise False
+    self.keepInputMeta(False)
 
   def _localWhatDoINeed(self):
     """
@@ -114,6 +118,50 @@ class Validation(PostProcessorInterface):
       @ Out, None
     """
     self.jobHandler = initDict['internal']['jobHandler']
+
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the parsed paramInput for this class.
+      @ In, paramInput, ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+
+    ## FIXME: this should be a type of the node <Algorithm> once we can handel "conditional choice" in InputData:
+    ## ******* Replace:
+    ##<PostProcessor name="blabla">
+    ##  <Validation name="2bla2bla">
+    ##    ...
+    ##    <DSS>
+    ##
+    ##    </DSS>
+    ##  </Validation>
+    ##</PostProcessor>
+    ## ******* with:
+    ##<PostProcessor name="blabla">
+    ##  <Validation name="2bla2bla">
+    ##    ...
+    ##    <Algorithm type="DSS">
+    ##
+    ##    </Agorithm>
+    ##  </Validation>
+    ##</PostProcessor>
+
+    # this loop set the pivot parameter (it could use paramInput.findFirst but we want to show how to add more paramters)
+    for child in paramInput.subparts:
+      if child.getName() == 'pivotParameter':
+        self.pivotParameter = child.value
+      elif child.getName() == 'Features':
+        self.features = child.value
+      elif child.getName() == 'Targets':
+        self.targets = child.value
+    if 'static' not in self.model.dataType and self.pivotParameter is None:
+      self.raiseAnError(IOError, "The validation algorithm '{}' is a dynamic model ONLY but no <pivotParameter> node has been inputted".format(self._type))
+    if not self.features:
+      self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
+    elif len(self.features) != len(self.targets):
+      self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
 
   def initialize(self, runInfo, inputs, initDict):
     """
@@ -148,89 +196,14 @@ class Validation(PostProcessorInterface):
         variables = [var.split("|")[-1].strip() for var in (self.features + self.targets) if dobj in var]
         if not utils.isASubset(variables,inputs[indx].getVars()):
           self.raiseAnError(IOError, "The variables '{}' not found in input DataObjet '{}'!".format(",".join(list(set(list(inputs[indx].getVars())) - set(variables))), dobj))
-    self.model.initialize(self.features, self.targets, **{'metrics': self.metrics, 'pivotParameter': self.pivotParameter})
 
-  def _handleInput(self, paramInput):
-    """
-      Function to handle the parsed paramInput for this class.
-      @ In, paramInput, ParameterInput, the already parsed input.
-      @ Out, None
-    """
-    super()._handleInput(paramInput)
+    if self.acceptableMetrics:
+      acceptable = [True if metric.estimator.isInstanceString(self.acceptableMetrics) else False for metric in self.metrics]
+      if not all(acceptable):
+        notAcceptable = [self.metrics[i].estimator.interfaceKind for i, x in enumerate(acceptable) if not x]
+        self.raiseAnError(IOError,
+            "The metrics '{}' are not acceptable for validation algorithm: '{}'".format(', '.join(notAcceptable), self.name))
 
-    ## FIXME: this should be a type of the node <Algorithm> once we can handel "conditional choice" in InputData:
-    ## ******* Replace:
-    ##<PostProcessor name="blabla">
-    ##  <Validation name="2bla2bla">
-    ##    ...
-    ##    <DSS>
-    ##
-    ##    </DSS>
-    ##  </Validation>
-    ##</PostProcessor>
-    ## ******* with:
-    ##<PostProcessor name="blabla">
-    ##  <Validation name="2bla2bla">
-    ##    ...
-    ##    <Algorithm type="DSS">
-    ##
-    ##    </Agorithm>
-    ##  </Validation>
-    ##</PostProcessor>
-    # check algorithms
-    valAlgo = validationAlgorithms.factory.knownTypes()
-    foundAll = [paramInput.findFirst(algo) for algo in valAlgo]
-    nNone =  foundAll.count(None)
-    if nNone != len(valAlgo) - 1:
-      msg =  "Only one validation algorithm at the time can be inputted in PostProcessor {}. Got >= 1. Check your input!".format(self.name)  \
-        if nNone != len(valAlgo) else "No validation algorithm has been specified in PostProcessor {}".format(self.name)
-      self.raiseAnError(IOError, msg)
-    # get validation algorithm to apply
-    modelInputPart = utils.first([x for x in foundAll if x is not None])
-    self._type =  modelInputPart.name
-    # return algo instance
-    self.model = validationAlgorithms.factory.returnInstance(self._type)
-    # handle input in the interface instance
-    self.model._handleInput(modelInputPart)
-    # this loop set the pivot parameter (it could use paramInput.findFirst but we want to show how to add more paramters)
-    for child in paramInput.subparts:
-      if child.getName() == 'pivotParameter':
-        self.pivotParameter = child.value
-      elif child.getName() == 'Features':
-        self.features = child.value
-      elif child.getName() == 'Targets':
-        self.targets = child.value
-    if 'static' not in self.model.dataType and self.pivotParameter is None:
-      self.raiseAnError(IOError, "The validation algorithm '{}' is a dynamic model ONLY but no <pivotParameter> node has been inputted".format(self._type))
-    if not self.features:
-      self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
-    elif len(self.features) != len(self.targets):
-      self.raiseAnError(IOError, 'The number of variables found in XML node "Features" is not equal the number of variables found in XML node "Targets"')
-
-  def collectOutput(self, finishedJob, output):
-    """
-      Function to place all of the computed data into the output object
-      @ In, finishedJob, JobHandler External or Internal instance, A JobHandler
-        object that is in charge of running this post-processor
-      @ In, output, dataObjects, A reference to an object where we want
-        to place our computed results
-      @ Out, None
-    """
-    if len(output) !=0:
-      self.raiseAnError(IOError,"There is some information already stored in the DataObject",output.name, \
-              "the calculations from PostProcessor",self.name, " can not be stored in this DataObject!", \
-              "Please provide a new empty DataObject for this PostProcessor!")
-    ## When does this actually happen?
-    evaluation = finishedJob.getEvaluation()
-    _, validationDict = evaluation
-
-    self.raiseADebug('Adding output in data object named', output.name)
-    rlz = {}
-    for key, val in validationDict.items():
-      rlz[key] = val
-    output.addRealization(rlz)
-    # add metadata
-    #  in case we want to add specific metdata, we can add the functionality in the evalidation algo base class
 
   def run(self, inputIn):
     """
@@ -268,3 +241,39 @@ class Validation(PostProcessorInterface):
       if pivotParameter not in evaluation:
         evaluation[pivotParameter] = datasets[0][pivotParameter]
     return evaluation
+
+
+  ### utility functions
+
+  def _getDataFromDatasets(self, datasets, var, names=None):
+    """
+      Utility function to retrieve the data from datasets
+      @ In, datasets, list, list of datasets (data1,data2,etc.) to search from.
+      @ In, names, list, optional, list of datasets names (data1,data2,etc.). If not present, the search will be done on the full list.
+      @ In, var, str, the variable to find (either in fromat dataobject|var or simply var)
+      @ Out, data, tuple(numpy.ndarray, xarray.DataArray or None), the retrived data (data, probability weights (None if not present))
+    """
+    data = None
+    pw = None
+    dat = None
+    if "|" in var and names is not None:
+      do, feat =  var.split("|")
+      doindex = names.index(do)
+      dat = datasets[doindex][feat]
+    else:
+      for doindex, ds in enumerate(datasets):
+        if var in ds:
+          dat = ds[var]
+          break
+    if 'ProbabilityWeight-{}'.format(feat) in datasets[names.index(do)]:
+      pw = datasets[doindex]['ProbabilityWeight-{}'.format(feat)].values
+    elif 'ProbabilityWeight' in datasets[names.index(do)]:
+      pw = datasets[doindex]['ProbabilityWeight'].values
+    dim = len(dat.shape)
+    # (numRealizations,  numHistorySteps) for MetricDistributor
+    dat = dat.values
+    if dim == 1:
+      #  the following reshaping does not require a copy
+      dat.shape = (dat.shape[0], 1)
+    data = dat, pw
+    return data
