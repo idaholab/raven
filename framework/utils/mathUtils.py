@@ -25,6 +25,7 @@ import scipy
 from scipy import interpolate, stats, integrate
 import numpy as np
 import six
+from numpy import linalg
 
 from utils.utils import UreturnPrintTag, UreturnPrintPostTag
 from .graphStructure import graphObject
@@ -617,16 +618,16 @@ def computeEigenvaluesAndVectorsFromLowRankOperator(lowOperator, Y, U, s, V, exa
   eigvals  = lowrankEigenvals.astype(complex)
   return eigvals, eigvects
 
-def computeAmplitudeCoefficients(mods, Y, eigs, optmized):
+def computeAmplitudeCoefficients(mods, Y, eigs, optimized):
   """
     @ In, mods, numpy.ndarray, 2D matrix that contains the modes (by column)
     @ In, Y, numpy.ndarray, 2D matrix that contains the input matrix (by column)
     @ In, eigs, numpy.ndarray, 1D array that contains the eigenvalues
-    @ In, optmized, bool, if True  the amplitudes are computed minimizing the error between the mods and all entries (columns) in Y
+    @ In, optimized, bool, if True  the amplitudes are computed minimizing the error between the mods and all entries (columns) in Y
                           if False the amplitudes are computed minimizing the error between the mods and the 1st entry (columns) in Y (faster)
     @ Out, amplitudes, numpy.ndarray, 1D array containing the amplitude coefficients
   """
-  if optmized:
+  if optimized:
     L = np.concatenate([mods.dot(np.diag(eigs**i)) for i in range(Y.shape[1])], axis=0)
     amplitudes = np.linalg.lstsq(L, np.reshape(Y, (-1, ), order='F'))[0]
   else:
@@ -1067,7 +1068,7 @@ def sampleICDF(x, cdfParams):
 
 def interpolateDist(x, y, x0, xf, y0, yf, mask):
   """
-    Interplotes values for samples "x" to get dependent values "y" given bins
+    Interpolates values for samples "x" to get dependent values "y" given bins
     @ In, x, np.array, sampled points (independent var)
     @ In, y, np.array, sampled points (dependent var)
     @ In, x0, np.array, left-nearest neighbor in empirical distribution for each x
@@ -1078,7 +1079,7 @@ def interpolateDist(x, y, x0, xf, y0, yf, mask):
     @ Out, y, np.array, same "y" but with values inserted
   """
   ### handle divide-by-zero problems first, specially
-  # check for where div zero prooblems will occur
+  # check for where div zero problems will occur
   divZeroMask = x0 == xf
   # careful with double masking -> doesn't always do what you think it does
   zMask = [a[divZeroMask] for a in np.where(mask)]
@@ -1091,3 +1092,18 @@ def interpolateDist(x, y, x0, xf, y0, yf, mask):
   okayWhere = [a[okayMask] for a in np.where(mask)]
   y[tuple(okayWhere)] = y0 + dy/dx * frac
   return y
+
+def computeCrowdingDistance(trainSet):
+  """
+    This function will compute the Crowding distance coefficients among the input parameters
+    @ In, trainSet, numpy.array, array contains values of input parameters
+    @ Out, crowdingDist, numpy.array, crowding distances for given input parameters
+  """
+  dim = trainSet.shape[1]
+  distMat = np.zeros((dim, dim))
+  for i in range(dim):
+    for j in range(i):
+      distMat[i,j] = linalg.norm(trainSet[:,i] - trainSet[:,j])
+      distMat[j,i] = distMat[i,j]
+  crowdingDist = np.sum(distMat,axis=1)
+  return crowdingDist
