@@ -1101,9 +1101,11 @@ def computeCrowdingDistance(trainSet):
   """
   dim = trainSet.shape[1]
   distMat = np.zeros((dim, dim))
+
   for i in range(dim):
     for j in range(i):
       distMat[i,j] = linalg.norm(trainSet[:,i] - trainSet[:,j])
       distMat[j,i] = distMat[i,j]
+
   crowdingDist = np.sum(distMat,axis=1)
   return crowdingDist
