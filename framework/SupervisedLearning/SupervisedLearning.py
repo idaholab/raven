@@ -35,10 +35,10 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, mathUtils, xmlUtils
-from BaseClasses import MessageUser
+from BaseClasses import MessageUser, BaseInterface
 #Internal Modules End--------------------------------------------------------------------------------
 
-class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
+class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), BaseInterface, MessageUser):
   """
     This is the general interface to any supervisedLearning learning method.
     Essentially it contains a train method and an evaluate method
@@ -295,26 +295,35 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
 
   # compatibility with BaseInterface requires having a "run" method
   # TODO during SVL rework, "run" should probably replace "evaluate", maybe?
-  def run(self, edict):
+  def run(self, *args, **kwargs):
     """
-      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
-      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
-      the interface with the kernels requires.
+      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning
+      algorithm NB. The supervisedLearning object is committed to convert the dictionary that is passed (in), into the
+      local format the interface with the kernels requires.
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluate, dict, {target: evaluated points}
     """
-    return self.evaluate(edict)
 
-  def evaluate(self,edict):
+  def evaluate(self, edict):
     """
-      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
-      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
-      the interface with the kernels requires.
+      DEPRECATED IN FAVOR OF RUN().
+
+      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning
+      algorithm NB. The supervisedLearning object is committed to convert the dictionary that is passed (in), into the
+      local format the interface with the kernels requires.
+
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluate, dict, {target: evaluated points}
     """
+    self.raiseAWarning(
+      "The 'evaluate' method is deprecated. All future supervisedLearning engines must implement a 'run' method instead",
+      tag="DeprecationWarning"
+    )
     if type(edict) != dict:
-      self.raiseAnError(IOError,'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict)))
+      self.raiseAnError(
+        IOError,
+        'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict))
+      )
     names, values  = list(edict.keys()), list(edict.values())
     for index in range(len(values)):
       resp = self.checkArrayConsistency(values[index], self.isDynamic())
