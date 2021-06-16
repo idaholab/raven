@@ -31,15 +31,12 @@
   </Files>
 
   <Models>
-    <PostProcessor name="pp1" subType="Validation">
+    <PostProcessor name="pp1" subType="Probabilistic">
       <Features>simulation|ans</Features>
       <Targets>experiment|ans2</Targets>
       <pivotParameter>time</pivotParameter>
       <Metric class="Metrics" type="Metric">cdf_diff</Metric>
       <Metric class="Metrics" type="Metric">pdf_area</Metric>
-      <Probabilistic name="myProbMetric">
-        <!--  the Probabilistic Validation does  not have specific inputs in here -->
-      </Probabilistic>
     </PostProcessor>
   </Models>
 
