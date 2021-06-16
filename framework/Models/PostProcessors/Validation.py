@@ -26,7 +26,7 @@ import xarray as xr
 #External Modules End-----------------------------------------------------------
 
 #Internal Modules---------------------------------------------------------------
-from .PostProcessorInterface import PostProcessorReadyInterface
+from .PostProcessorReadyInterface import PostProcessorReadyInterface
 
 from . import validationAlgorithms
 from utils import utils, mathUtils
@@ -156,7 +156,7 @@ class Validation(PostProcessorReadyInterface):
         self.features = child.value
       elif child.getName() == 'Targets':
         self.targets = child.value
-    if 'static' not in self.model.dataType and self.pivotParameter is None:
+    if 'static' not in self.dataType and self.pivotParameter is None:
       self.raiseAnError(IOError, "The validation algorithm '{}' is a dynamic model ONLY but no <pivotParameter> node has been inputted".format(self._type))
     if not self.features:
       self.raiseAnError(IOError, "XML node 'Features' is required but not provided")
