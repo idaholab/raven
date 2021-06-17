@@ -295,6 +295,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), BaseInterface, Mes
 
   # compatibility with BaseInterface requires having a "run" method
   # TODO during SVL rework, "run" should probably replace "evaluate", maybe?
+  @abc.abstractmethod
   def run(self, *args, **kwargs):
     """
       Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning
