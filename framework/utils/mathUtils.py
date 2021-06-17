@@ -149,7 +149,7 @@ def hyperdiagonal(lengths):
   """
     Obtains the length of a diagonal of a hyperrectangle given the lengths of the sides.  Useful for high-dimensional distance scaling.
     @ In, lengths, list(float), lengths of the sides of the ND rectangle
-    @ Out, diag, float, the length of the diagonal between furthest-separated corners of the hypercube
+    @ Out, diag, float, the length of the diagonal between farthest-separated corners of the hypercube
   """
   try:
     return np.sqrt(np.sum(lengths*lengths))
@@ -476,7 +476,6 @@ def NDInArray(findIn,val,tol=1e-12):
   """
   if len(findIn)<1:
     return False,None,None
-  targ = []
   found = False
   for idx,looking in enumerate(findIn):
     num = looking - val
@@ -797,7 +796,7 @@ def toListFromNumpyOrC1array(array):
   if type(array).__name__ == 'ndarray':
     response = array.tolist()
   elif type(array).__name__.split(".")[0] == 'c1darray':
-    response = numpy.asarray(array).tolist()
+    response = np.asarray(array).tolist()
   return response
 
 def toListFromNumpyOrC1arrayIterative(array):
@@ -814,10 +813,10 @@ def toListFromNumpyOrC1arrayIterative(array):
       return None
     tempdict = {}
     for key,value in array.items():
-      tempdict[toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
+      tempdict[np.toBytes(key)] = toListFromNumpyOrC1arrayIterative(value)
     return tempdict
   else:
-    return toBytes(array)
+    return np.toBytes(array)
 
 def sizeMatch(var,sizeToCheck):
   """
@@ -931,7 +930,6 @@ def angleBetweenVectors(a, b):
     @ In, b, np.array, vector of floats
     @ Out, ang, float, angle in degrees
   """
-  nVar = len(a)
   # if either vector is all zeros, then angle between is also
   normA = np.linalg.norm(a)
   normB = np.linalg.norm(b)
@@ -966,7 +964,7 @@ def characterizeCDF(data, binOps=None, minBins=1):
     @ In, minBins, int, minimum bins for empirical CDF
     @ Out, params, dict, essential parameters for CDF
   """
-  # caluclate number of bins
+  # calculate number of bins
   # binOps=Length or value
   nBins, _ = numBinsDraconis(data, low=minBins, binOps=binOps)
   # construct histogram
