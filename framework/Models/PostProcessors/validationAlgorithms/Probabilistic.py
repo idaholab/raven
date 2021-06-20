@@ -23,6 +23,7 @@
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
+import xarray as xr
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -60,6 +61,7 @@ class Probabilistic(Validation):
     self.dynamicType = ['static','dynamic'] #  for now only static is available
     self.acceptableMetrics = ["CDFAreaDifference", "PDFCommonArea"] #  acceptable metrics
     self.name = 'Probabilistic'
+    # self.pivotParameter = None
 
   def _handleInput(self, paramInput):
     """
@@ -68,6 +70,7 @@ class Probabilistic(Validation):
       @ Out, None
     """
     super()._handleInput(paramInput)
+
 
   def run(self, inputIn):
     """
@@ -78,36 +81,65 @@ class Probabilistic(Validation):
     """
     # inpVars, outVars, dataSet = inputIn['Data'][0]
     dataSets = [data for _, _, data in inputIn['Data']]
-
-
-
-    names = []
     pivotParameter = self.pivotParameter
-    if isinstance(inputIn[0], DataObjects.DataSet):
-      names =  [inp.name for inp in inputIn]
-      if len(inputIn[0].indexes) and self.pivotParameter is None:
-        if 'dynamic' not in self.model.dataType:
-          self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn[0].name))
+    # # names = [dataSets[i].attrs['name'] for i in len(dataSets)]
+    # names = ['simulation','experiment']
+    # pivotParameter = self.pivotParameter
+    # outs = {}
+    # for feat, targ in zip(self.features, self.targets):
+    #   featData = self._getDataFromDatasets(dataSets, feat, names)
+    #   targData = self._getDataFromDatasets(dataSets, targ, names)
+    #   for metric in self.metrics:
+    #     name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
+    #     outs[name] = metric.evaluate((featData, targData), multiOutput='raw_values')
+    # return outs
+
+    names=[]
+    if isinstance(inputIn['Data'][0][-1], xr.Dataset):
+      names = [inp[-1].attrs['name'] for inp in inputIn['Data']]
+      if len(inputIn['Data'][0][-1].indexes) and self.pivotParameter is None:
+        if 'dynamic' not in self.dynamicType: #self.model.dataType:
+          self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn['Data'][0][-1].name))
         else:
-          pivotParameter = inputIn[0].indexes[0]
-    #  check if pivotParameter
-    if pivotParameter:
-      #  in case of dataobjects we check that the dataobject is either an HistorySet or a DataSet
-      if isinstance(inputIn[0], DataObjects.DataSet) and not all([True if inp.type in ['HistorySet', 'DataSet']  else False for inp in inputIn]):
-        self.raiseAnError(RuntimeError, "The pivotParameter '{}' has been inputted but PointSets have been used as input of PostProcessor '{}'".format(pivotParameter, self.name))
-      if not all([True if pivotParameter in inp else False for inp in datasets]):
-        self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(pivotParameter, self.name))
-    evaluation ={k: np.atleast_1d(val) for k, val in  self.model.run(datasets, **{'dataobjectNames': names}).items()}
+          pivotParameter = self.pivotParameter
+    # #  check if pivotParameter
+    # if pivotParameter:
+    #   #  in case of dataobjects we check that the dataobject is either an HistorySet or a DataSet
+    #   if isinstance(inputIn['Data'][0][-1], xr.Dataset) and not all([True if inp.type in ['HistorySet', 'DataSet']  else False for inp in inputIn]):
+    #     self.raiseAnError(RuntimeError, "The pivotParameter '{}' has been inputted but PointSets have been used as input of PostProcessor '{}'".format(pivotParameter, self.name))
+    #   if not all([True if pivotParameter in inp else False for inp in dataSets]):
+    #     self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(pivotParameter, self.name))
+    evaluation ={k: np.atleast_1d(val) for k, val in  self._evaluate(dataSets, **{'dataobjectNames': names}).items()}
 
     if pivotParameter:
-      if len(datasets[0][pivotParameter]) != len(list(evaluation.values())[0]):
-        self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(datasets[0][self.pivotParameter]), len(evaluation.values()[0])))
+      if len(dataSets[0][pivotParameter]) != len(list(evaluation.values())[0]):
+        self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(dataSets[0][self.pivotParameter]), len(evaluation.values()[0])))
       if pivotParameter not in evaluation:
-        evaluation[pivotParameter] = datasets[0][pivotParameter]
+        evaluation[pivotParameter] = dataSets[0][pivotParameter]
     return evaluation
 
-  ## merge the following run method with above run method
-  def run(self, datasets, **kwargs):
+  # ## merge the following run method with above run method
+  # def run(self, datasets, **kwargs):
+  #   """
+  #     Main method to "do what you do".
+  #     @ In, datasets, list, list of datasets (data1,data2,etc.) to used.
+  #     @ In, kwargs, dict, keyword arguments
+  #     @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
+  #   """
+  #   names = kwargs.get('dataobjectNames')
+  #   outs = {}
+  #   for feat, targ in zip(self.features, self.targets):
+  #     featData = self._getDataFromDatasets(datasets, feat, names)
+  #     targData = self._getDataFromDatasets(datasets, targ, names)
+  #     # featData = (featData[0], None)
+  #     # targData = (targData[0], None)
+  #     for metric in self.metrics:
+  #       name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
+  #       outs[name] = metric.evaluate((featData, targData), multiOutput='raw_values')
+  #   return outs
+
+  ### utility functions
+  def _evaluate(self, datasets, **kwargs):
     """
       Main method to "do what you do".
       @ In, datasets, list, list of datasets (data1,data2,etc.) to used.
@@ -115,18 +147,15 @@ class Probabilistic(Validation):
       @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
     """
     names = kwargs.get('dataobjectNames')
-    outs = {}
+    outputDict = {}
     for feat, targ in zip(self.features, self.targets):
       featData = self._getDataFromDatasets(datasets, feat, names)
       targData = self._getDataFromDatasets(datasets, targ, names)
-      # featData = (featData[0], None)
-      # targData = (targData[0], None)
       for metric in self.metrics:
         name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.estimator.name)
-        outs[name] = metric.evaluate((featData, targData), multiOutput='raw_values')
-    return outs
+        outputDict[name] = metric.evaluate((featData, targData), multiOutput='raw_values')
+    return outputDict
 
-  ### utility functions
 
   def _getDataFromDatasets(self, datasets, var, names=None):
     """
