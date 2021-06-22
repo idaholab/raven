@@ -23,7 +23,9 @@ from EntityFactoryBase import EntityFactory
 from .PlotInterface import PlotInterface
 from .SamplePlot import SamplePlot
 from .GeneralPlot import GeneralPlot
+from .OptPath import OptPath
 
 factory = EntityFactory('Plot')
 factory.registerType('GeneralPlot', GeneralPlot)
 factory.registerType('SamplePlot', SamplePlot)
+factory.registerType('OptPath', OptPath)
