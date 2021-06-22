@@ -87,7 +87,7 @@ def tournamentSelection(population,**kwargs):
   nParents= kwargs['nParents']
   pop = population
   popSize = population.values.shape[0]
-  
+
   if 'rank' in kwargs:
     rank = kwargs['rank']
     multiObjectiveRanking = True
@@ -100,7 +100,7 @@ def tournamentSelection(population,**kwargs):
     matrixOperation = np.zeros((popSize,2))
     matrixOperation[:,0] = np.transpose(np.arange(popSize))
     matrixOperation[:,1] = np.transpose(fitness.data)
-  
+
   np.random.shuffle(matrixOperation)
 
   selectedParent = xr.DataArray(
@@ -119,16 +119,16 @@ def tournamentSelection(population,**kwargs):
   else: # multi-objective implementation of tournamentSelection
     for i in range(nParents-1):
       if matrixOperation[2*i,2] > matrixOperation[2*i+1,2]:
-        index = int(matrixOperation[i,0])   
+        index = int(matrixOperation[i,0])
       elif matrixOperation[2*i,2] < matrixOperation[2*i+1,2]:
         index = int(matrixOperation[i+1,0])
       else: # same rank case
         if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
-          index = int(matrixOperation[i,0]) 
+          index = int(matrixOperation[i,0])
         else:
-          index = int(matrixOperation[i+1,0]) 
+          index = int(matrixOperation[i+1,0])
       selectedParent[i,:] = pop.values[index,:]
-  
+
   return selectedParent
 
 
