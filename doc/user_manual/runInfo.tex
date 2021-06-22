@@ -60,7 +60,7 @@ the settings of the calculation flow that is being performed through RAVEN:
   \default{mpiexec}
 
   %%%%%% N THREADS
-\item \xmlNode{ThreadCommand}, \xmlDesc{string, optional field}, specifies the command used to set the number of threads.
+\item \xmlNode{threadCommand}, \xmlDesc{string, optional field}, specifies the command used to set the number of threads.
   %
   \default{--n-threads=}
 
@@ -131,7 +131,7 @@ For example, if RAVEN is driving a code named ``FOO,'' and this code has
 multi-threading support, this block is used to specify how many threads each
 instance of FOO should use (e.g. ``\texttt{FOO --n-threads=N}'' where \texttt{N}
  is the number of threads). The command to specify the number of threads can be
-customized via the node \xmlNode{ThreadCommand}.
+customized via the node \xmlNode{threadCommand}.
 %
 \default{1 (or None when the driven code does not have multi-threading
 support)}

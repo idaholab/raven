@@ -222,7 +222,7 @@ class Simulation(MessageUser):
     self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_qsub_command.sh')
     self.runInfoDict['NodeParameter'     ] = '-f'          # the parameter used to specify the files where the nodes are listed
     self.runInfoDict['MPIExec'           ] = 'mpiexec'     # the command used to run mpi commands
-    self.runInfoDict['ThreadCommand'     ] = '--n-threads='# the command used to run multi-threading commands
+    self.runInfoDict['threadCommand'     ] = '--n-threads='# the command used to run multi-threading commands
     self.runInfoDict['WorkingDir'        ] = ''            # the directory where the framework should be running
     self.runInfoDict['TempWorkingDir'    ] = ''            # the temporary directory where a simulation step is run
     self.runInfoDict['NumMPI'            ] = 1             # the number of mpi process by run

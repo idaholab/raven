@@ -110,7 +110,7 @@ class MPISimulationMode(Simulation.SimulationMode):
     newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
     if runInfoDict['NumThreads'] > 1:
       #add number of threads to the post command.
-      newRunInfo['postcommand'] =" {}=%NUM_CPUS% {}".format(runInfoDict["ThreadCommand"],runInfoDict['postcommand'])
+      newRunInfo['postcommand'] =" {}=%NUM_CPUS% {}".format(runInfoDict["threadCommand"],runInfoDict['postcommand'])
 
     self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
     return newRunInfo

@@ -16,7 +16,7 @@
     <batchSize>3</batchSize>
     <clusterParameters>-W block=true</clusterParameters>
     <NumThreads>1</NumThreads>
-    <ThreadCommand>--n-threads=</ThreadCommand>
+    <threadCommand>--n-threads=</threadCommand>
     <mode>
       mpilegacy
       <runQSUB/>
