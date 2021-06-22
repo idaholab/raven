@@ -86,30 +86,49 @@ def tournamentSelection(population,**kwargs):
   fitness = kwargs['fitness']
   nParents= kwargs['nParents']
   pop = population
-
   popSize = population.values.shape[0]
+  
+  if 'rank' in kwargs:
+    rank = kwargs['rank']
+    multiObjectiveRanking = True
+    matrixOperation = np.zeros((popSize,3))
+    matrixOperation[:,0] = np.transpose(np.arange(popSize))
+    matrixOperation[:,1] = np.transpose(fitness.data)
+    matrixOperation[:,2] = np.transpose(rank.data)
+  else:
+    multiObjectiveRanking = False
+    matrixOperation = np.zeros((popSize,2))
+    matrixOperation[:,0] = np.transpose(np.arange(popSize))
+    matrixOperation[:,1] = np.transpose(fitness.data)
+  
+  np.random.shuffle(matrixOperation)
 
   selectedParent = xr.DataArray(
-      np.zeros((nParents,np.shape(pop)[1])),
-      dims=['chromosome','Gene'],
-      coords={'chromosome':np.arange(nParents),
-              'Gene': kwargs['variables']})
+    np.zeros((nParents,np.shape(pop)[1])),
+    dims=['chromosome','Gene'],
+    coords={'chromosome':np.arange(nParents),
+            'Gene': kwargs['variables']})
 
-  if nParents >= popSize/2.0:
-    # generate combination of 2 with replacement
-    selectionList = np.atleast_2d(randomUtils.randomChoice(list(range(0,popSize)), 2*nParents, replace=False))
-  else: # nParents < popSize/2.0
-    # generate combination of 2 without replacement
-    selectionList = np.atleast_2d(randomUtils.randomChoice(list(range(0,popSize)), 2*nParents))
-
-  selectionList = selectionList.reshape(nParents,2)
-
-  for index,pair in enumerate(selectionList):
-    if fitness[pair[0]]>fitness[pair[1]]:
-      selectedParent[index,:] = pop.values[pair[0],:]
-    else: # fitness[pair[1]]>fitness[pair[0]]:
-      selectedParent[index,:] = pop.values[pair[1],:]
-
+  if not multiObjectiveRanking: # single-objective implementation of tournamentSelection
+    for i in range(nParents):
+      if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
+        index = int(matrixOperation[i,0])
+      else:
+        index = int(matrixOperation[i+1,0])
+      selectedParent[i,:] = pop.values[index,:]
+  else: # multi-objective implementation of tournamentSelection
+    for i in range(nParents-1):
+      if matrixOperation[2*i,2] > matrixOperation[2*i+1,2]:
+        index = int(matrixOperation[i,0])   
+      elif matrixOperation[2*i,2] < matrixOperation[2*i+1,2]:
+        index = int(matrixOperation[i+1,0])
+      else: # same rank case
+        if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
+          index = int(matrixOperation[i,0]) 
+        else:
+          index = int(matrixOperation[i+1,0]) 
+      selectedParent[i,:] = pop.values[index,:]
+  
   return selectedParent
 
 
