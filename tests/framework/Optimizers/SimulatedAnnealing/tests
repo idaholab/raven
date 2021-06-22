@@ -60,6 +60,16 @@
     [../]
   [../]
 
+  [./CauchySAPlot]
+    type = 'RavenFramework'
+    input = 'CauchySA/test_simulatedAnnealing_OptPath.xml'
+    prereq = CauchySA # prevents overlap in same folder
+    [./plot]
+      type = Exists
+      output = 'CauchySA/opt_path.png'
+    [../]
+  [../]
+
   [./CauchyEggHolder]
     type = 'RavenFramework'
     input = 'CauchyEggHolder/test_simulatedAnnealing_eggHold.xml'
