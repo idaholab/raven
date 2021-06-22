@@ -215,34 +215,35 @@ class Simulation(MessageUser):
     sys.path.append(os.getcwd())
     #this dictionary contains the general info to run the simulation
     self.runInfoDict = {}
-    self.runInfoDict['DefaultInputFile'  ] = 'test.xml'   #Default input file to use
-    self.runInfoDict['SimulationFiles'   ] = []           #the xml input file
+    self.runInfoDict['DefaultInputFile'  ] = 'test.xml'    #Default input file to use
+    self.runInfoDict['SimulationFiles'   ] = []            #the xml input file
     self.runInfoDict['ScriptDir'         ] = os.path.join(os.path.dirname(frameworkDir),"scripts") # the location of the pbs script interfaces
-    self.runInfoDict['FrameworkDir'      ] = frameworkDir # the directory where the framework is located
+    self.runInfoDict['FrameworkDir'      ] = frameworkDir  # the directory where the framework is located
     self.runInfoDict['RemoteRunCommand'  ] = os.path.join(frameworkDir,'raven_qsub_command.sh')
-    self.runInfoDict['NodeParameter'     ] = '-f'         # the parameter used to specify the files where the nodes are listed
-    self.runInfoDict['MPIExec'           ] = 'mpiexec'    # the command used to run mpi commands
-    self.runInfoDict['WorkingDir'        ] = ''           # the directory where the framework should be running
-    self.runInfoDict['TempWorkingDir'    ] = ''           # the temporary directory where a simulation step is run
-    self.runInfoDict['NumMPI'            ] = 1            # the number of mpi process by run
-    self.runInfoDict['NumThreads'        ] = 1            # Number of Threads by run
-    self.runInfoDict['numProcByRun'      ] = 1            # Total number of core used by one run (number of threads by number of mpi)
-    self.runInfoDict['batchSize'         ] = 1            # number of contemporaneous runs
-    self.runInfoDict['internalParallel'  ] = False        # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
-    self.runInfoDict['ParallelCommand'   ] = ''           # the command that should be used to submit jobs in parallel (mpi)
-    self.runInfoDict['ThreadingCommand'  ] = ''           # the command should be used to submit multi-threaded
-    self.runInfoDict['totalNumCoresUsed' ] = 1            # total number of cores used by driver
-    self.runInfoDict['queueingSoftware'  ] = ''           # queueing software name
-    self.runInfoDict['stepName'          ] = ''           # the name of the step currently running
-    self.runInfoDict['precommand'        ] = ''           # Add to the front of the command that is run
-    self.runInfoDict['postcommand'       ] = ''           # Added after the command that is run.
-    self.runInfoDict['delSucLogFiles'    ] = False        # If a simulation (code run) has not failed, delete the relative log file (if True)
-    self.runInfoDict['deleteOutExtension'] = []           # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
-    self.runInfoDict['mode'              ] = ''           # Running mode.  Curently the only mode supported is mpi but others can be added with custom modes.
-    self.runInfoDict['Nodes'             ] = []           # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
-    self.runInfoDict['expectedTime'      ] = '10:00:00'   # How long the complete input is expected to run.
+    self.runInfoDict['NodeParameter'     ] = '-f'          # the parameter used to specify the files where the nodes are listed
+    self.runInfoDict['MPIExec'           ] = 'mpiexec'     # the command used to run mpi commands
+    self.runInfoDict['ThreadCommand'     ] = '--n-threads='# the command used to run multi-threading commands
+    self.runInfoDict['WorkingDir'        ] = ''            # the directory where the framework should be running
+    self.runInfoDict['TempWorkingDir'    ] = ''            # the temporary directory where a simulation step is run
+    self.runInfoDict['NumMPI'            ] = 1             # the number of mpi process by run
+    self.runInfoDict['NumThreads'        ] = 1             # Number of Threads by run
+    self.runInfoDict['numProcByRun'      ] = 1             # Total number of core used by one run (number of threads by number of mpi)
+    self.runInfoDict['batchSize'         ] = 1             # number of contemporaneous runs
+    self.runInfoDict['internalParallel'  ] = False         # activate internal parallel (parallel python). If True parallel python is used, otherwise multi-threading is used
+    self.runInfoDict['ParallelCommand'   ] = ''            # the command that should be used to submit jobs in parallel (mpi)
+    self.runInfoDict['ThreadingCommand'  ] = ''            # the command should be used to submit multi-threaded
+    self.runInfoDict['totalNumCoresUsed' ] = 1             # total number of cores used by driver
+    self.runInfoDict['queueingSoftware'  ] = ''            # queueing software name
+    self.runInfoDict['stepName'          ] = ''            # the name of the step currently running
+    self.runInfoDict['precommand'        ] = ''            # Add to the front of the command that is run
+    self.runInfoDict['postcommand'       ] = ''            # Added after the command that is run.
+    self.runInfoDict['delSucLogFiles'    ] = False         # If a simulation (code run) has not failed, delete the relative log file (if True)
+    self.runInfoDict['deleteOutExtension'] = []            # If a simulation (code run) has not failed, delete the relative output files with the listed extension (comma separated list, for example: 'e,r,txt')
+    self.runInfoDict['mode'              ] = ''            # Running mode.  Curently the only mode supported is mpi but others can be added with custom modes.
+    self.runInfoDict['Nodes'             ] = []            # List of  node IDs. Filled only in case RAVEN is run in a DMP machine
+    self.runInfoDict['expectedTime'      ] = '10:00:00'    # How long the complete input is expected to run.
     self.runInfoDict['logfileBuffer'     ] = int(io.DEFAULT_BUFFER_SIZE)*50 # logfile buffer size in bytes
-    self.runInfoDict['clusterParameters' ] = []           # Extra parameters to use with the qsub command.
+    self.runInfoDict['clusterParameters' ] = []            # Extra parameters to use with the qsub command.
     self.runInfoDict['maxQueueSize'      ] = None
 
     #Following a set of dictionaries that, in a manner consistent with their names, collect the instance of all objects needed in the simulation
