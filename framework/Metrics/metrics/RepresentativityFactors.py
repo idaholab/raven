@@ -27,11 +27,12 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .Metric import Metric
+from .MetricInterface import MetricInterface
+# from Metrics.metrics import MetricUtilities
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class RepresentativityFactors(Metric):
+class RepresentativityFactors(MetricInterface):
   """
     RepresntativityFactors is the metric class used to quantitatively
     assess the relativeness of a mock experiment to the target plant.
@@ -47,7 +48,7 @@ class RepresentativityFactors(Metric):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(RepresntativityFactors, cls).getInputSpecification()
+    inputSpecification = super(RepresentativityFactors, cls).getInputSpecification()
     actionTypeInput = InputData.parameterInputFactory("actionType", contentType=InputTypes.StringType)
     inputSpecification.addSub(actionTypeInput)
 
@@ -59,7 +60,8 @@ class RepresentativityFactors(Metric):
       @ In, None
       @ Out, None
     """
-    Metric.__init__(self)
+    # Metric.__init__(self)
+    super().__init__()
     # The type of given analysis
     self.actionType                      = None
     # True indicates the metric needs to be able to handle dynamic data
@@ -82,7 +84,7 @@ class RepresentativityFactors(Metric):
       else:
         self.raiseAnError(IOError, "Unknown xml node ", child.getName(), " is provided for metric system")
 
-  def __evaluateLocal__(self, x, y, weights = None, axis = 0, **kwargs):
+  def run(self, x, y, weights = None, axis = 0, **kwargs):
     """
       This method computes DSS distance between two inputs x and y based on given metric
       @ In, x, numpy.ndarray, array containing data of x, if 1D array is provided,
@@ -105,7 +107,7 @@ class RepresentativityFactors(Metric):
     senMeasurables = kwargs['senMeasurables']
     senFOMs = kwargs['senFOMs']
     covParameters = kwargs['covParameters']
-    r = (senFOMs @ covParameters @ senMeasurables.T)/\
-        np.sqrt(senFOMs @ covParameters @ senFOMs.T)/\
-        np.sqrt(senMeasurables @ covParameters @ senMeasurables.T)
+    r = (senFOMs.T @ covParameters @ senMeasurables)/\
+        np.sqrt(senFOMs.T @ covParameters @ senFOMs)/\
+        np.sqrt(senMeasurables.T @ covParameters @ senMeasurables)
     return r

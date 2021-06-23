@@ -23,6 +23,7 @@
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
+import xarray as xr
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -32,11 +33,11 @@ from utils import InputData, InputTypes
 #import Distributions
 #import MetricDistributor
 from utils import utils
-from .ValidationBase import ValidationBase
-from utils.mathUtils import partialDerivative, derivatives
+from ..Validation import Validation
+# from utils.mathUtils import partialDerivative, derivatives
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Representativity(ValidationBase):
+class Representativity(Validation):
   """
     Representativity is a base class for validation problems
     It represents the base class for most validation problems
@@ -51,7 +52,7 @@ class Representativity(ValidationBase):
       @ Out, specs, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(ValidationBase, cls).getInputSpecification()
+    specs = super(Representativity, cls).getInputSpecification()
     parametersInput = InputData.parameterInputFactory("Parameters", contentType=InputTypes.StringListType)
     parametersInput.addParam("type", InputTypes.StringType)
     specs.addSub(parametersInput)
@@ -68,8 +69,8 @@ class Representativity(ValidationBase):
     """
     super().__init__()
     from Models.PostProcessors import factory as ppFactory # delay import to allow definition
-    self.printTag = 'POSTPROCESSOR ValidationBase'
-    self.dynamicType = ['static'] #  for now only static is available
+    self.printTag = 'POSTPROCESSOR Representativity'
+    self.dynamicType = ['static','dynamic'] #  for now only static is available
     self.acceptableMetrics = ["RepresentativityFactors"] #  acceptable metrics
     self.name = 'Represntativity'
     self.stat = ppFactory.returnInstance('BasicStatistics')
@@ -131,18 +132,18 @@ class Representativity(ValidationBase):
 
     # return measureList
 
-  def initialize(self, features, targets, **kwargs):
-    """
-      Set up this interface for a particular activity
-      @ In, features, list, list of features
-      @ In, targets, list, list of targets
-      @ In, kwargs, dict, keyword arguments
-    """
-    super().initialize(features, targets, **kwargs)
-    self.stat.toDo = {'NormalizedSensitivity':[{'targets':set(self.targets), 'prefix':'nsen'}]}
-    # self.stat.toDo = {'NormalizedSensitivity'[{'targets':set([self.targets]), 'prefix':'nsen'}]}
-    fakeRunInfo = {'workingDir':'','stepName':''}
-    self.stat.initialize(fakeRunInfo, self.Parameters, features, **kwargs)
+  # def initialize(self, features, targets, **kwargs):
+  #   """
+  #     Set up this interface for a particular activity
+  #     @ In, features, list, list of features
+  #     @ In, targets, list, list of targets
+  #     @ In, kwargs, dict, keyword arguments
+  #   """
+  #   super().initialize(features, targets, **kwargs)
+  #   self.stat.toDo = {'NormalizedSensitivity':[{'targets':set(self.targets), 'prefix':'nsen'}]}
+  #   # self.stat.toDo = {'NormalizedSensitivity'[{'targets':set([self.targets]), 'prefix':'nsen'}]}
+  #   fakeRunInfo = {'workingDir':'','stepName':''}
+  #   self.stat.initialize(fakeRunInfo, self.Parameters, features, **kwargs)
 
   def _handleInput(self, paramInput):
     """
@@ -157,14 +158,39 @@ class Representativity(ValidationBase):
       elif child.getName() == 'targetParameters':
         self.targetParameters = child.value
 
-  def run(self, datasets, **kwargs):
+  def run(self, inputIn):
+    """
+      This method executes the postprocessor action. In this case it loads the
+      results to specified dataObject
+      @ In, inputIn, list, dictionary of data to process
+      @ Out, outputDict, dict, dictionary containing the post-processed results
+    """
+    dataSets = [data for _, _, data in inputIn['Data']]
+    pivotParameter = self.pivotParameter
+    names=[]
+    if isinstance(inputIn['Data'][0][-1], xr.Dataset):
+      names = [inp[-1].attrs['name'] for inp in inputIn['Data']]
+      if len(inputIn['Data'][0][-1].indexes) and self.pivotParameter is None:
+        if 'dynamic' not in self.dynamicType: #self.model.dataType:
+          self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn['Data'][0][-1].name))
+        else:
+          pivotParameter = self.pivotParameter
+    evaluation ={k: np.atleast_1d(val) for k, val in  self._evaluate(dataSets, **{'dataobjectNames': names}).items()}
+    if pivotParameter:
+      if len(dataSets[0][pivotParameter]) != len(list(evaluation.values())[0]):
+        self.raiseAnError(RuntimeError, "The pivotParameter value '{}' has size '{}' and validation output has size '{}'".format( len(dataSets[0][self.pivotParameter]), len(evaluation.values()[0])))
+      if pivotParameter not in evaluation:
+        evaluation[pivotParameter] = dataSets[0][pivotParameter]
+    return evaluation
+
+  def _evaluate(self, datasets, **kwargs):
     """
       Main method to "do what you do".
       @ In, datasets, list, list of datasets (data1,data2,etc.) to used.
       @ In, kwargs, dict, keyword arguments
       @ Out, outputDict, dict, dictionary containing the results {"feat"_"target"_"metric_name":value}
     """
-    self.stat.run({'targets':{self.target:xarray.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
+    self.stat.run({'targets':{self.target:xr.DataArray(self.functionS.evaluate(tempDict)[self.target])}})[self.computationPrefix +"_"+self.target]
     names = kwargs.get('dataobjectNames')
     outs = {}
     for feat, targ, param, targParam in zip(self.features, self.targets, self.Parameters, self.targetParameters):
@@ -172,11 +198,44 @@ class Representativity(ValidationBase):
       targData = self._getDataFromDatasets(datasets, targ, names)
       Parameters = self._getDataFromDatasets(datasets, param, names)
       targetParameters = self._getDataFromDatasets(datasets, targParam, names)
-      senFOMs = partialDerivative(featData.data,np.atleast_2d(Parameters.data)[0,:],'x1')
-      # senFOMs = np.atleast_2d(Parameters.data)
-      senMeasurables = np.atleast_2d(targetParameters.data)
-      covParameters = senFOMs.T @ senMeasurables
+      # senFOMs = partialDerivative(featData.data,np.atleast_2d(Parameters.data)[0,:],'x1')
+      senFOMs = np.atleast_2d(Parameters[0])#.data
+      senMeasurables = np.atleast_2d(targetParameters[0])
+      covParameters = senFOMs @ senMeasurables.T
       for metric in self.metrics:
         name = "{}_{}_{}".format(feat.split("|")[-1], targ.split("|")[-1], metric.name)
-        outs[name] = metric.evaluate(featData, targData, senFOMs = senFOMs, senMeasurables=senMeasurables, covParameters=covParameters)
+        outs[name] = metric.evaluate((featData, targData), senFOMs = senFOMs, senMeasurables=senMeasurables, covParameters=covParameters)
     return outs
+
+  def _getDataFromDatasets(self, datasets, var, names=None):
+    """
+      Utility function to retrieve the data from datasets
+      @ In, datasets, list, list of datasets (data1,data2,etc.) to search from.
+      @ In, names, list, optional, list of datasets names (data1,data2,etc.). If not present, the search will be done on the full list.
+      @ In, var, str, the variable to find (either in fromat dataobject|var or simply var)
+      @ Out, data, tuple(numpy.ndarray, xarray.DataArray or None), the retrived data (data, probability weights (None if not present))
+    """
+    data = None
+    pw = None
+    dat = None
+    if "|" in var and names is not None:
+      do, feat =  var.split("|")
+      doindex = names.index(do)
+      dat = datasets[doindex][feat]
+    else:
+      for doindex, ds in enumerate(datasets):
+        if var in ds:
+          dat = ds[var]
+          break
+    if 'ProbabilityWeight-{}'.format(feat) in datasets[names.index(do)]:
+      pw = datasets[doindex]['ProbabilityWeight-{}'.format(feat)].values
+    elif 'ProbabilityWeight' in datasets[names.index(do)]:
+      pw = datasets[doindex]['ProbabilityWeight'].values
+    dim = len(dat.shape)
+    # (numRealizations,  numHistorySteps) for MetricDistributor
+    dat = dat.values
+    if dim == 1:
+      #  the following reshaping does not require a copy
+      dat.shape = (dat.shape[0], 1)
+    data = dat, pw
+    return data
