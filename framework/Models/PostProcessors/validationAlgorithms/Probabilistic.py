@@ -94,14 +94,12 @@ class Probabilistic(Validation):
     #     outs[name] = metric.evaluate((featData, targData), multiOutput='raw_values')
     # return outs
 
-    names=[]
-    if isinstance(inputIn['Data'][0][-1], xr.Dataset):
-      names = [inp[-1].attrs['name'] for inp in inputIn['Data']]
-      if len(inputIn['Data'][0][-1].indexes) and self.pivotParameter is None:
-        if 'dynamic' not in self.dynamicType: #self.model.dataType:
-          self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn['Data'][0][-1].name))
-        else:
-          pivotParameter = self.pivotParameter
+    names = [inp[-1].attrs['name'] for inp in inputIn['Data']]
+    if len(inputIn['Data'][0][-1].indexes) and self.pivotParameter is None:
+      if 'dynamic' not in self.dynamicType: #self.model.dataType:
+        self.raiseAnError(IOError, "The validation algorithm '{}' is not a dynamic model but time-dependent data has been inputted in object {}".format(self._type, inputIn['Data'][0][-1].name))
+      # else:
+      #   pivotParameter = self.pivotParameter
     # #  check if pivotParameter
     # if pivotParameter:
     #   #  in case of dataobjects we check that the dataobject is either an HistorySet or a DataSet

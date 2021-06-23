@@ -22,24 +22,29 @@
   </TestInfo>
 
   <Models>
-    <ExternalModel ModuleToLoad="../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
+    <!-- <ExternalModel ModuleToLoad="../../../AnalyticModels/atten_and_poly.py" name="poly" subType="">
       <variables>x1,x2,ans,ans2</variables>
+    </ExternalModel> -->
+    <ExternalModel ModuleToLoad="../../../AnalyticModels/Toy1DSlabReflective.py" name="slab" subType="">
+      <variables>time,phi_0,x,a_tilde,phi</variables>
     </ExternalModel>
-    <PostProcessor name="pp1" subType="Validation">
+    <PostProcessor name="pp1" subType="Representativity">
       <Features>outputDataMC1|ans</Features>
       <Targets>outputDataMC2|ans2</Targets>
-      <Metric class="Metrics" type="RepresentativityFactors">simIndex</Metric>
-      <Derivatives type=??>?</Derivatives>
-      <Representativity name="repPP">
+      <Metric class="Metrics" type="Metric">simIndex</Metric>
+      <!-- <Derivatives type=??>?</Derivatives> -->
+      <Parameters>outputDataMC1|x1,outputDataMC1|x2</Parameters>
+      <targetParameters>outputDataMC2|x1,outputDataMC2|x2</targetParameters>
+      <!-- <Representativity name="repPP">
         <Parameters>outputDataMC1|x1,outputDataMC1|x2</Parameters>
         <targetParameters>outputDataMC2|x1,outputDataMC2|x2</targetParameters>
-      </Representativity>
-
+      </Representativity> -->
     </PostProcessor>
   </Models>
 
   <Metrics>
-    <RepresentativityFactors name="simIndex"/>
+    <Metric name="simIndex" subType="RepresentativityFactors"/>
+    <!-- <RepresentativityFactors name="simIndex"/> -->
   </Metrics>
 
   <Distributions>
@@ -69,43 +74,43 @@
 
   <Steps>
     <MultiRun name="mcRun" re-seeding="20021986">
-      <Input class="DataObjects" type="PointSet">inputPlaceHolder2</Input>
-      <Model class="Models" type="ExternalModel">poly</Model>
+      <Input class="DataObjects" type="HistorySet">inputPlaceHolder2</Input>
+      <Model class="Models" type="ExternalModel">slab</Model>
       <Sampler class="Samplers" type="MonteCarlo">MC_external</Sampler>
-      <Output class="DataObjects" type="PointSet">outputDataMC1</Output>
-      <Output class="DataObjects" type="PointSet">outputDataMC2</Output>
+      <Output class="DataObjects" type="HistorySet">outputDataMC1</Output>
+      <Output class="DataObjects" type="HistorySet">outputDataMC2</Output>
     </MultiRun>
     <PostProcess name="PP1">
-      <Input class="DataObjects" type="PointSet">outputDataMC1</Input>
-      <Input class="DataObjects" type="PointSet">outputDataMC2</Input>
+      <Input class="DataObjects" type="HistorySet">outputDataMC1</Input>
+      <Input class="DataObjects" type="HistorySet">outputDataMC2</Input>
       <Model class="Models" type="PostProcessor">pp1</Model>
-      <Output class="DataObjects" type="PointSet">pp1_metric</Output>
+      <Output class="DataObjects" type="HistorySet">pp1_metric</Output>
       <Output class="OutStreams" type="Print">pp1_metric_dump</Output>
     </PostProcess>
   </Steps>
 
   <DataObjects>
-    <PointSet name="inputPlaceHolder2">
+    <HistorySet name="inputPlaceHolder2">
       <Input>x1,x2</Input>
       <Output>OutputPlaceHolder</Output>
-    </PointSet>
-    <PointSet name="outputDataMC1">
+    </HistorySet>
+    <HistorySet name="outputDataMC1">
       <Input>x1,x2</Input>
       <Output>ans</Output>
-    </PointSet>
-    <PointSet name="outputDataMC2">
+    </HistorySet>
+    <HistorySet name="outputDataMC2">
       <Input>x1,x2</Input>
       <Output>ans2</Output>
-    </PointSet>
-    <PointSet name="pp1_metric">
+    </HistorySet>
+    <HistorySet name="pp1_metric">
       <Input>InputPlaceHolder</Input>
-      <Output>pp1_vars</Output>
-    </PointSet>
+      <!-- <Output>OutputPlaceHolder</Output> -->
+    </HistorySet>
   </DataObjects>
 
-  <VariableGroups>
-    <Group name="pp1_vars">ans_ans2_cdf_diff,ans_ans2_pdf_area</Group>
-  </VariableGroups>
+  <!-- <VariableGroups>
+    <Group name="pp1_vars">ans_ans2_simIndex</Group>
+  </VariableGroups> -->
 
   <OutStreams>
     <Print name="pp1_metric_dump">
