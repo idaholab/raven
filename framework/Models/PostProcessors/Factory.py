@@ -36,9 +36,8 @@ from .RealizationAverager import RealizationAverager
 from .ParetoFrontierPostProcessor import ParetoFrontier
 from .EconomicRatio import EconomicRatio
 from .Validation import Validation
-#from .validationAlgorithms.Probabilistic import Probabilistic
-#from .validationAlgorithms.Representativity import Representativity
-
+from .validationAlgorithms.Probabilistic import Probabilistic
+from .validationAlgorithms.Representativity import Representativity
 ### PostProcessorFunctions (orig: InterfacedPostProcessor)
 from .HistorySetDelay import HistorySetDelay
 from .HS2PS import HS2PS
