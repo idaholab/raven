@@ -52,6 +52,10 @@
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
+    [./plot]
+      type = Exists
+      output = 'MaxwReplacement/opt_path.png'
+    [../]
   [../]
   
   [./MaxwReplacementDiffDist]
@@ -128,7 +132,7 @@
      rel_err = 0.001
     [../]
   [../]
-    
+
   [./GA_knapsackBaseUnifXover]
     type = 'RavenFramework'
     input = 'GA_knapsackBaseUnifXover.xml'
@@ -138,5 +142,5 @@
      rel_err = 0.001
     [../]
   [../]
-  
+
 []
