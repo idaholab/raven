@@ -197,6 +197,16 @@ class PolyExponential(supervisedLearning):
         self.model[target].__class__.__trainLocal__(self.model[target],featureVals,expTermCoeff)
     self.featureVals = featureVals
 
+    def run(self, *args, **kwargs):
+    """
+      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning
+      algorithm NB. The supervisedLearning object is committed to convert the dictionary that is passed (in), into the
+      local format the interface with the kernels requires.
+      @ In, edict, dict, evaluation dictionary
+      @ Out, evaluate, dict, {target: evaluated points}
+    """
+    pass
+
   def __evaluateLocal__(self,featureVals):
     """
       This method is used to inquire the PolyExponential to evaluate (after normalization that in

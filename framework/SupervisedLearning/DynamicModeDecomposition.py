@@ -168,6 +168,16 @@ class DynamicModeDecomposition(supervisedLearning):
     # Default timesteps (even if the time history is not equally spaced in time, we "trick" the dmd to think it).
     self.timeScales = dict.fromkeys( ['training','dmd'],{'t0': 0, 'intervals': ts - 1, 'dt': 1})
 
+  def run(self, *args, **kwargs):
+    """
+      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning
+      algorithm NB. The supervisedLearning object is committed to convert the dictionary that is passed (in), into the
+      local format the interface with the kernels requires.
+      @ In, edict, dict, evaluation dictionary
+      @ Out, evaluate, dict, {target: evaluated points}
+    """
+    pass
+
   def __evaluateLocal__(self,featureVals):
     """
       This method is used to inquire the DMD to evaluate (after normalization that in

@@ -77,6 +77,16 @@ class NDinterpolatorRom(supervisedLearning):
     if self.amITrained:
       self.__trainLocal__(self.featv,self.targv)
 
+  def run(self, *args, **kwargs):
+    """
+      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning
+      algorithm NB. The supervisedLearning object is committed to convert the dictionary that is passed (in), into the
+      local format the interface with the kernels requires.
+      @ In, edict, dict, evaluation dictionary
+      @ Out, evaluate, dict, {target: evaluated points}
+    """
+    pass
+
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on samples in featureVals with responses y.
