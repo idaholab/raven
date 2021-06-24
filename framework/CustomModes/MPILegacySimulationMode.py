@@ -201,6 +201,7 @@ class MPILegacySimulationMode(Simulation.SimulationMode):
     newRunInfo['precommand'] = runInfoDict["MPIExec"]+" "+nodeCommand+" -n "+str(numMPI)+" "+runInfoDict['precommand']
     if(runInfoDict['NumThreads'] > 1):
       #add number of threads to the post command.
+      newRunInfo['threadParameter'] = runInfoDict['threadParameter']
       newRunInfo['postcommand'] =" {} {}".format(newRunInfo['threadParameter'],runInfoDict['postcommand'])
     self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
     return newRunInfo
