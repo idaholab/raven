@@ -78,7 +78,7 @@ function guess_conda_defs ()
 {
 	if [ -z ${CONDA_DEFS} ];
 	then
-      CONDA_DEFS=$(which conda ... | tail -1)
+      CONDA_DEFS=$(which conda | tail -1)
       if [[ "$CONDA_DEFS" != "" ]]; then
         # we found it
         LOCATION_CONDASH="etc/profile.d/conda.sh"
