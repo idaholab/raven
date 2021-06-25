@@ -1470,8 +1470,31 @@ class ROM(Dummy):
       @ In, request, datatype, feature coordinates (request)
       @ Out, outputEvaluation, dict, the dict containing the outputs for each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
     """
-    inputToROM       = self._inputToInternal(request)
-    outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
+    inputToROM = self._inputToInternal(request)
+    if type(inputToROM) != dict:
+      self.raiseAnError(
+        IOError,
+        'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(inputToROM))
+      )
+
+    names, values  = list(inputToROM.keys()), list(inputToROM.values())
+    for index in range(len(values)):
+      resp = self.supervisedEngine.checkArrayConsistency(values[index], self.isDynamic())
+      if not resp[0]:
+        self.raiseAnError(IOError, 'In evaluate request for feature ' + names[index] + ':' + resp[1])
+
+    # construct the evaluation matrix
+    featureValues = np.zeros(shape=(values[0].size, len(self.features)))
+    for cnt, feat in enumerate(self.features):
+      if feat not in names:
+        self.raiseAnError(IOError,'The feature sought ' + feat + ' is not in the evaluate set')
+      else:
+        resp = self.supervisedEngine.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
+        if not resp[0]:
+          self.raiseAnError(IOError,'In training set for feature ' + feat + ':' + resp[1])
+        featureValues[:,cnt] = ((values[names.index(feat)] - self.supervisedEngine.muAndSigmaFeatures[feat][0])) / self.supervisedEngine.muAndSigmaFeatures[feat][1]
+
+    outputEvaluation = self.supervisedEngine.evaluate(featureValues)
     # assure numpy array formatting # TODO can this be done in the supervised engine instead?
     for k,v in outputEvaluation.items():
       outputEvaluation[k] = np.atleast_1d(v)

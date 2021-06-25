@@ -295,7 +295,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), BaseInterface, Mes
 
   # compatibility with BaseInterface requires having a "run" method
   # TODO during SVL rework, "run" should probably replace "evaluate", maybe?
-  @abc.abstractmethod
+  # @abc.abstractmethod
   def run(self, *args, **kwargs):
     """
       Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning
@@ -305,7 +305,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), BaseInterface, Mes
       @ Out, evaluate, dict, {target: evaluated points}
     """
 
-  def evaluate(self, edict):
+  def evaluate(self, featureValues):
     """
       DEPRECATED IN FAVOR OF RUN().
 
@@ -320,26 +320,26 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), BaseInterface, Mes
       "The 'evaluate' method is deprecated. All future supervisedLearning engines must implement a 'run' method instead",
       tag="DeprecationWarning"
     )
-    if type(edict) != dict:
-      self.raiseAnError(
-        IOError,
-        'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict))
-      )
-    names, values  = list(edict.keys()), list(edict.values())
-    for index in range(len(values)):
-      resp = self.checkArrayConsistency(values[index], self.isDynamic())
-      if not resp[0]:
-        self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
-    # construct the evaluation matrix
-    featureValues = np.zeros(shape=(values[0].size,len(self.features)))
-    for cnt, feat in enumerate(self.features):
-      if feat not in names:
-        self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
-      else:
-        resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
-        if not resp[0]:
-          self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
-        featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
+    # if type(edict) != dict:
+    #   self.raiseAnError(
+    #     IOError,
+    #     'method "evaluate". The evaluate request/s need/s to be provided through a dictionary. Type of the in-object is ' + str(type(edict))
+    #   )
+    # names, values  = list(edict.keys()), list(edict.values())
+    # for index in range(len(values)):
+    #   resp = self.checkArrayConsistency(values[index], self.isDynamic())
+    #   if not resp[0]:
+    #     self.raiseAnError(IOError,'In evaluate request for feature '+names[index]+':'+resp[1])
+    # # construct the evaluation matrix
+    # featureValues = np.zeros(shape=(values[0].size,len(self.features)))
+    # for cnt, feat in enumerate(self.features):
+    #   if feat not in names:
+    #     self.raiseAnError(IOError,'The feature sought '+feat+' is not in the evaluate set')
+    #   else:
+    #     resp = self.checkArrayConsistency(values[names.index(feat)], self.isDynamic())
+    #     if not resp[0]:
+    #       self.raiseAnError(IOError,'In training set for feature '+feat+':'+resp[1])
+    #     featureValues[:,cnt] = ((values[names.index(feat)] - self.muAndSigmaFeatures[feat][0]))/self.muAndSigmaFeatures[feat][1]
     return self.__evaluateLocal__(featureValues)
 
   def reset(self):
