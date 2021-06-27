@@ -97,7 +97,6 @@ class Probabilistic(Validation):
     #   if not all([True if pivotParameter in inp else False for inp in dataSets]):
     #     self.raiseAnError(RuntimeError, "The pivotParameter '{}' not found in datasets used as input of PostProcessor '{}'".format(pivotParameter, self.name))
 
-
     evaluation ={k: np.atleast_1d(val) for k, val in  self._evaluate(dataDict, **{'dataobjectNames': names}).items()}
 
     if pivotParameter:
