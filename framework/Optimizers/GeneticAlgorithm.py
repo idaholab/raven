@@ -326,7 +326,6 @@ class GeneticAlgorithm(RavenSampled):
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented,
                                                                                 # if other repair methods are implemented then
-                                                                                # ##TODO: make the repair type a user input
     # Convergence Criterion
     convNode = paramInput.findFirst('convergence')
     if convNode is not None:
@@ -357,7 +356,7 @@ class GeneticAlgorithm(RavenSampled):
     self.batch = self._populationSize*(self.counter==0)+self._nChildren*(self.counter>0)
     if self._populationSize != len(self._initialValues):
       self.raiseAnError(IOError, 'Number of initial values provided for each variable is {}, while the population size is {}'.format(len(self._initialValues),self._populationSize,self._populationSize))
-    for _, init in enumerate(self._initialValues): # TODO: this should be single traj
+    for _, init in enumerate(self._initialValues):
       self._submitRun(init,0,self.getIteration(0)+1)
 
   def initializeTrajectory(self, traj=None):
@@ -410,7 +409,7 @@ class GeneticAlgorithm(RavenSampled):
 
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    population = datasetToDataArray(rlz, list(self.toBeSampled)) # TODO: rename
+    population = datasetToDataArray(rlz, list(self.toBeSampled))
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
     # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
     # and all x's (individuals) in the population
@@ -586,7 +585,7 @@ class GeneticAlgorithm(RavenSampled):
       This is an abstract method for all RavenSampled Optimizer, whereas for GA all children are accepted
       @ In, traj, int, identifier
     """
-    return # TODO: This method is not needed but it was defined as an abstract
+    return
 
   def checkConvergence(self, traj, new, old):
     """

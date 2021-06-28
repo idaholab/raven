@@ -85,7 +85,6 @@ def feasibleFirst(rlz,**kwargs):
   worstObj = max(rlz[objVar].data)
   fitness = []
   for ind in range(len(rlz[objVar].data)):
-    # fit = 0
     if np.all(g.data[ind, :]>=0):
       fit=(rlz[objVar].data[ind])
     else:
