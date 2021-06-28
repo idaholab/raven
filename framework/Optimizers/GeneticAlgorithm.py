@@ -33,6 +33,7 @@ import xarray as xr
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils, randomUtils, InputData, InputTypes
+from utils.gaUtils import dataArrayToDict, datasetToDataArray
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
@@ -215,10 +216,15 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented fitness functions.
-                  This includes: a.    invLinear: $fitness = \frac{1}{a \times obj + b \times penalty}$.
-                                 b.    logistic: $fitness = \frac{1}{1+e^{a \times (obj-b)}}$""")
+                  This includes: a.    invLinear: $fitness = -(a \\times obj + b \\times penalty)$.
+                                 b.    logistic: $fitness = \\frac{1}{1+e^{a \\times (obj-b)}}$.
+                                 c.    feasibleFirst: $fitness = \[ \\begin{cases}
+                                                                      -obj & g_j(x)\\geq 0 \\forall j \\
+                                                                      -obj_{worst} - \\Sigma_{j=1}^{J}<g_j(x)> & otherwise \\
+                                                                    \\end{cases}
+                                                                \]$""")
     fitness.addParam("type", InputTypes.StringType, True,
-                     descr=r"""[invLin, logistic]""")
+                     descr=r"""[invLin, logistic, feasibleFirst]""")
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
         contentType=InputTypes.FloatType,
         printPriority=108,
@@ -315,8 +321,8 @@ class GeneticAlgorithm(RavenSampled):
     # Fitness
     fitnessNode = gaParamsNode.findFirst('fitness')
     self._fitnessType = fitnessNode.parameterValues['type']
-    self._objCoeff = fitnessNode.findFirst('a').value
-    self._penaltyCoeff = fitnessNode.findFirst('b').value
+    self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
+    self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented,
                                                                                 # if other repair methods are implemented then
@@ -404,10 +410,25 @@ class GeneticAlgorithm(RavenSampled):
 
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    fitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff, penalty=None)
+    population = datasetToDataArray(rlz, list(self.toBeSampled)) # TODO: rename
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
+    # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
+    # and all x's (individuals) in the population
+    g0 = np.zeros((np.shape(population)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
+    g = xr.DataArray(g0,
+                     dims=['chromosome','Constraint'],
+                     coords={'chromosome':np.arange(np.shape(population)[0]),
+                             'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
+    for index,individual in enumerate(population):
+      newOpt = individual
+      opt = objectiveVal[index]
+      for constIndex,constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
+        if constraint in self._constraintFunctions:
+          g.data[index, constIndex] = self._handleExplicitConstraints(newOpt,constraint)
+        else:
+          g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt,constraint)
+    fitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff, penalty=None,constraintFunction=g)
     acceptable = 'first' if self.counter==1 else 'accepted'
-    population = self._datasetToDataArray(rlz) # TODO: rename
     self._collectOptPoint(population,fitness,objectiveVal)
     self._resolveNewGeneration(traj, rlz, objectiveVal, fitness, info)
 
@@ -481,21 +502,6 @@ class GeneticAlgorithm(RavenSampled):
           newRlz[var] = float(daChildren.loc[i,var].values)
         self._submitRun(newRlz, traj, self.getIteration(traj))
 
-  def _datasetToDataArray(self,rlzDataset):
-    """
-      Converts the realization DataSet to a DataArray
-      @ In, rlzDataset, xr.dataset, the data set containing the batched realizations
-      @ Out, dataset, xr.dataarray, a data array containing the realization with
-                     dims = ['chromosome','Gene']
-                     chromosomes are named 0,1,2...
-                     Genes are named after variables to be sampled
-    """
-    dataset = xr.DataArray(np.atleast_2d(rlzDataset[list(self.toBeSampled)].to_array().transpose()),
-                              dims=['chromosome','Gene'],
-                              coords={'chromosome': np.arange(rlzDataset[self._objectiveVar].data.size),
-                                      'Gene':list(self.toBeSampled)})
-    return dataset
-
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
       Submits a single run with associated info to the submission queue
@@ -511,7 +517,8 @@ class GeneticAlgorithm(RavenSampled):
     info.update({'traj': traj,
                   'step': step
                 })
-    # NOTE: explicit constraints have been checked before this!
+    # NOTE: Currently, GA treats explicit and implicit constraints similarly
+    # while box constraints (Boundary constraints) are automatically handled via limits of the distribution
     #
     self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
     self._submissionQueue.append((point, info))
@@ -578,23 +585,8 @@ class GeneticAlgorithm(RavenSampled):
     """
       This is an abstract method for all RavenSampled Optimizer, whereas for GA all children are accepted
       @ In, traj, int, identifier
-      @ Out, (acceptable, old, rejectionReason), tuple, tuple which contains the following three items:
-                                                        acceptable, str, acceptability condition for point
-                                                        old, dict, old opt point
-                                                        rejectReason, str, reject reason of opt point, or return None if accepted
     """
-    acceptable = 'accepted'
-    try:
-      old, _ = self._optPointHistory[traj][-1]
-    except IndexError:
-      # if first sample, simply assume it's better!
-      acceptable = 'first'
-      old = None
-    self._acceptHistory[traj].append(acceptable)
-    self.raiseADebug(' ... {a}!'.format(a=acceptable))
-    rejectionReason = None
-
-    return acceptable, old, rejectionReason
+    return # TODO: This method is not needed but it was defined as an abstract
 
   def checkConvergence(self, traj, new, old):
     """
@@ -646,7 +638,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, converged, bool, convergence state
     """
     old = kwargs['old'].data
-    new = self._datasetToDataArray(kwargs['new']).data
+    new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
     if ('p' not in kwargs.keys() or kwargs['p'] == None):
       p = 3
     else:
@@ -670,7 +662,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, converged, bool, convergence state
     """
     old = kwargs['old'].data
-    new = self._datasetToDataArray(kwargs['new']).data
+    new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
     ahd = self._ahd(old,new)
     self.ahd = ahd
     converged = (ahd < self._convergenceCriteria['AHD'])
@@ -768,7 +760,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     # This is not required for the genetic algorithms as it's handled in the probabilistic acceptance criteria
     # But since it is an abstract method it has to exist
-    pass
+    return
 
   def _checkForImprovement(self, new, old):
     """
@@ -779,7 +771,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     # This is not required for the genetic algorithms as it's handled in the probabilistic acceptance criteria
     # But since it is an abstract method it has to exist
-    return True
+    return
 
   def _rejectOptPoint(self, traj, info, old):
     """
@@ -788,17 +780,76 @@ class GeneticAlgorithm(RavenSampled):
       @ In, info, dict, meta information about the opt point
       @ In, old, dict, previous optimal point (to resubmit)
     """
-  pass
+    return
 
-  def _applyFunctionalConstraints(self, suggested, previous):
+  # * * * * * * * * * * * *
+  # Constraint Handling
+  def _handleExplicitConstraints(self, point, constraint):
     """
-      applies functional constraints of variables in "suggested" -> DENORMED point expected!
-      @ In, suggested, dict, potential point to apply constraints to
-      @ In, previous, dict, previous opt point in consideration
-      @ Out, point, dict, adjusted variables
-      @ Out, modded, bool, whether point was modified or not
+      Computes explicit (i.e. input-based) constraints
+      @ In, point, xr.DataArray, the DataArray containing the chromosome (point)
+      @ In, constraint, external function, explicit constraint function
+      @ out, g, float, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x)<0$, then the contraint is violated
     """
-    self.raiseAnError(NotImplementedError, 'Constraint Handling is not implemented yet!')
+    g = self._applyFunctionalConstraints(point, constraint)
+    return g
+
+  def _handleImplicitConstraints(self, point, opt,constraint):
+    """
+      Computes implicit (i.e. output- or output-input-based) constraints
+      @ In, point, xr.DataArray, the DataArray containing the chromosome (point)
+      @ In, opt, float, the objective value at this chromosome (point)
+      @ In, constraint, external function, implicit constraint function
+      @ out, g, float,the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x)<0$, then the contraint is violated
+    """
+    g = self._checkImpFunctionalConstraints(point, opt, constraint)
+    return g
+
+  def _applyFunctionalConstraints(self, point, constraint):
+    """
+      fixes functional constraints of variables in "point" -> DENORMED point expected!
+      @ In, point, xr.DataArray, the dataArray containing potential point to apply constraints to
+      @ In, constraint, external function, constraint function
+      @ out, g, float, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x)<0$, then the contraint is violated
+    """
+    # are we violating functional constraints?
+    g = self._checkFunctionalConstraints(point, constraint)
+    return g
+
+  def _checkFunctionalConstraints(self, point, constraint):
+    """
+      evaluates the provided constraint at the provided point
+      @ In, point, dict, the dictionary containing the chromosome (point)
+      @ In, constraint, external function, explicit constraint function
+      @ out, g, float, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x)<0$, then the contraint is violated
+    """
+    inputs = dataArrayToDict(point)
+    inputs.update(self.constants)
+    g = constraint.evaluate('constrain', inputs)
+    return g
+
+  def _checkImpFunctionalConstraints(self, point, opt, impConstraint):
+    """
+      evaluates the provided implicit constraint at the provided point
+      @ In, point, dict, the dictionary containing the chromosome (point)
+      @ In, opt, dict, the dictionary containing the chromosome (point)
+      @ In, impConstraint, external function, implicit constraint function
+      @ out, g, float, the value g_j(x, objVar) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x, objVar)<0$, then the contraint is violated
+    """
+    inputs = dataArrayToDict(point)
+    inputs.update(self.constants)
+    inputs[self._objectiveVar] = opt
+    g = impConstraint.evaluate('impConstrain', inputs)
+    return g
+
+  # END constraint handling
+  # * * * * * * * * * * * *
+
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """

@@ -20,6 +20,7 @@
 """
 # External Imports
 import numpy as np
+import xarray as xr
 # Internal Imports
 
 # [MANDD] Note: the fitness function are bounded by 2 parameters: a and b
@@ -57,9 +58,45 @@ def invLinear(rlz,**kwargs):
     penalty = kwargs['penalty']
 
   objVar = kwargs['objVar']
-  fitness = 1.0/(a * rlz[objVar] + b * penalty)
+  fitness = -1.0*(a * rlz[objVar] + b * penalty)
   return fitness
 
+def feasibleFirst(rlz,**kwargs):
+  """
+    Efficient Parameter-less Feasible First Penalty Fitness method
+    .. math::
+
+    fitness = \[ \\begin{cases}
+                                                                      -obj & g_j(x)\\geq 0 \\forall j \\
+                                                                      -obj_{worst} - \\Sigma_{j=1}^{J}<g_j(x)> & otherwise \\
+                                                                    \\end{cases}
+                                                                \]
+
+    @ In, rlz, xr.Dataset, containing the evaluation of a certain
+              set of individuals (can be the initial population for the very first iteration,
+              or a population of offsprings)
+    @ In, kwargs, dict, dictionary of parameters for this fitness method:
+          objVar, string, the name of the objective variable
+          'constraintFunction', xr.Dataarray, containing all constraint functions (explicit and implicit) evaluations for the whole population
+    @ Out, fitness, xr.Dataarray, the fitness function of the given objective corresponding to a specific chromosome.
+  """
+  objVar = kwargs['objVar']
+  g = kwargs['constraintFunction']
+  worstObj = max(rlz[objVar].data)
+  fitness = []
+  for ind in range(len(rlz[objVar].data)):
+    # fit = 0
+    if np.all(g.data[ind, :]>=0):
+      fit=(rlz[objVar].data[ind])
+    else:
+      fit = worstObj
+      for constInd,constraint in enumerate(g['Constraint'].data):
+        fit+=(max(0,-1 * g.data[ind, constInd]))
+    fitness.append(-1 * fit)
+  fitness = xr.DataArray(np.array(fitness),
+                          dims=['chromosome'],
+                          coords={'chromosome': np.arange(len(rlz[objVar].data))})
+  return fitness
 
 def logistic(rlz,**kwargs):
   """
@@ -99,6 +136,7 @@ def logistic(rlz,**kwargs):
 __fitness = {}
 __fitness['invLinear'] = invLinear
 __fitness['logistic']  = logistic
+__fitness['feasibleFirst'] = feasibleFirst
 
 
 def returnInstance(cls, name):

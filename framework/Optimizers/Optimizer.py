@@ -174,8 +174,8 @@ class Optimizer(AdaptiveSampler):
     self._impConstraintFunctions = [] # list of implicit constraint functions
     # __private
     # additional methods
-    self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_one)      # Explicit (input-based) constraints
-    self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_one)      # Implicit constraints
+    self.addAssemblerObject('Constraint', InputData.Quantity.zero_to_infinity)      # Explicit (input-based) constraints
+    self.addAssemblerObject('ImplicitConstraint', InputData.Quantity.zero_to_infinity)      # Implicit constraints
     self.addAssemblerObject('Sampler', InputData.Quantity.zero_to_one)          # This Sampler can be used to initialize the optimization initial points (e.g. partially replace the <initial> blocks for some variables)
 
     # register adaptive sample identification criteria
