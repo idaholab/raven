@@ -1,10 +1,10 @@
 [Tests]
   [./MinwReplacement]
     type = 'RavenFramework'
-    input = 'testGAMinwRep.xml'
+    input = 'discrete/unconstrained/testGAMinwRep.xml'
     [./data]
       type = OrderedCSV
-      output = 'MinwReplacement/opt_export_0.csv'
+      output = 'discrete/unconstrained/MinwReplacement/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
@@ -12,10 +12,10 @@
 
   [./MinwReplacementConvAHDp]
     type = 'RavenFramework'
-    input = 'testGAMinwRepConvAHDp.xml'
+    input = 'discrete/unconstrained/testGAMinwRepConvAHDp.xml'
     [./data]
       type = OrderedCSV
-      output = 'MinwReplacementConvAHDp/opt_export_0.csv'
+      output = 'discrete/unconstrained/MinwReplacementConvAHDp/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
@@ -23,10 +23,10 @@
 
   [./MinwoReplacement]
     type = 'RavenFramework'
-    input = 'testGAMinwoRep.xml'
+    input = 'discrete/unconstrained/testGAMinwoRep.xml'
     [./data]
       type = OrderedCSV
-      output = 'MinwoReplacement/opt_export_0.csv'
+      output = 'discrete/unconstrained/MinwoReplacement/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
@@ -34,10 +34,10 @@
 
   [./MinwoReplacementConvAHDp]
     type = 'RavenFramework'
-    input = 'testGAMinwoRepConvAHDp.xml'
+    input = 'discrete/unconstrained/testGAMinwoRepConvAHDp.xml'
     [./data]
       type = OrderedCSV
-      output = 'MinwoReplacementConvAHDp/opt_export_0.csv'
+      output = 'discrete/unconstrained/MinwoReplacementConvAHDp/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
@@ -45,10 +45,10 @@
 
   [./MaxwReplacement]
     type = 'RavenFramework'
-    input = 'testGAMaxwRep.xml'
+    input = 'discrete/unconstrained/testGAMaxwRep.xml'
     [./data]
       type = OrderedCSV
-      output = 'MaxwReplacement/opt_export_0.csv'
+      output = 'discrete/unconstrained/MaxwReplacement/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
@@ -57,13 +57,13 @@
       output = 'MaxwReplacement/opt_path.png'
     [../]
   [../]
-  
+
   [./MaxwReplacementDiffDist]
     type = 'RavenFramework'
-    input = 'testGAMaxwRepDifferentDist.xml'
+    input = 'discrete/unconstrained/testGAMaxwRepDifferentDist.xml'
     [./data]
       type = OrderedCSV
-      output = 'MaxwReplacementDiffDist/opt_export_0.csv'
+      output = 'discrete/unconstrained/MaxwReplacementDiffDist/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
@@ -71,10 +71,10 @@
 
   [./MaxwReplacementConvAHDp]
     type = 'RavenFramework'
-    input = 'testGAMaxwRepConvAHDp.xml'
+    input = 'discrete/unconstrained/testGAMaxwRepConvAHDp.xml'
     [./data]
       type = OrderedCSV
-      output = 'MaxwReplacementConvAHDp/opt_export_0.csv'
+      output = 'discrete/unconstrained/MaxwReplacementConvAHDp/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
@@ -82,21 +82,21 @@
 
   [./MaxwoReplacement]
     type = 'RavenFramework'
-    input = 'testGAMaxwoRep.xml'
+    input = 'discrete/unconstrained/testGAMaxwoRep.xml'
     [./data]
       type = OrderedCSV
-      output = 'MaxwoReplacement/opt_export_0.csv'
+      output = 'discrete/unconstrained/MaxwoReplacement/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
   [../]
-  
+
   [./MaxwoReplacementDiffDist]
     type = 'RavenFramework'
-    input = 'testGAMaxwoRepDifferentDist.xml'
+    input = 'discrete/unconstrained/testGAMaxwoRepDifferentDist.xml'
     [./data]
       type = OrderedCSV
-      output = 'MaxwoReplacementDiffDist/opt_export_0.csv'
+      output = 'discrete/unconstrained/MaxwoReplacementDiffDist/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
@@ -104,43 +104,106 @@
 
   [./MaxwoReplacementConvAHDp]
     type = 'RavenFramework'
-    input = 'testGAMaxwoRepConvAHDp.xml'
+    input = 'discrete/unconstrained/testGAMaxwoRepConvAHDp.xml'
     [./data]
       type = OrderedCSV
-      output = 'MaxwoReplacementConvAHDp/opt_export_0.csv'
+      output = 'discrete/unconstrained/MaxwoReplacementConvAHDp/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
   [../]
 
-  [./GA_discreteIntWithReplacement]
+  [./discreteIntWithReplacement]
     type = 'RavenFramework'
-    input = 'GA_discreteIntWithReplacement.xml'
+    input = 'discrete/unconstrained/GA_discreteIntWithReplacement.xml'
     [./csv]
      type = OrderedCSV
-     output = 'discreteIntWithReplacement/PrintOptOut_export.csv discreteIntWithReplacement/PrintOptOut.csv'
+     output = 'discrete/unconstrained/discreteIntWithReplacement/PrintOptOut_export.csv ./discrete/unconstrained/discreteIntWithReplacement/PrintOptOut.csv'
      rel_err = 0.001
     [../]
   [../]
 
   [./GA_knapsackBase]
     type = 'RavenFramework'
-    input = 'GA_knapsackBase.xml'
+    input = 'discrete/unconstrained/GA_knapsackBase.xml'
     [./csv]
      type = OrderedCSV
-     output = 'simpleKnapsack/PrintOptOut_export.csv  simpleKnapsack/PrintOptOut.csv'
+     output = 'discrete/unconstrained/simpleKnapsack/PrintOptOut_export.csv  ./discrete/unconstrained/simpleKnapsack/PrintOptOut.csv'
      rel_err = 0.001
     [../]
   [../]
 
   [./GA_knapsackBaseUnifXover]
     type = 'RavenFramework'
-    input = 'GA_knapsackBaseUnifXover.xml'
+    input = 'discrete/unconstrained/GA_knapsackBaseUnifXover.xml'
     [./csv]
      type = OrderedCSV
-     output = 'simpleKnapsackUnifXover/PrintOptOut_export.csv  simpleKnapsackUnifXover/PrintOptOut.csv'
+     output = 'discrete/unconstrained/simpleKnapsackUnifXover/PrintOptOut_export.csv  ./discrete/unconstrained/simpleKnapsackUnifXover/PrintOptOut.csv'
      rel_err = 0.001
     [../]
   [../]
 
+  [./MaxwReplacementSphereConstrained]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/testGAMaxwRepSphereConstrained.xml'
+    heavy = true
+    max_time = 2000
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/constrained/MaxwReplacementSphereConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+[./MinwReplacementConstrained]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/testGAMinwRepConstrained.xml'
+    heavy = true
+    max_time = 2000
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/constrained/MinwReplacementConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./mishraBirdConstrained]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGAMishraBirdConstrained.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/mishraBirdConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./rosenbrockDiskConstrained]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGARosenbrockDiskConstrained.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/rosenbrockDiskConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./simionescuConstrained]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGASimionescuConstrained.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/simionescuConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./townsendConstrained]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGATownsendConstrained.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/townsendConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
 []
