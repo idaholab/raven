@@ -449,7 +449,6 @@ class KerasBase(supervisedLearning):
     #output layer
     self._addOutputLayers()
     self._ROM.compile(loss=self.lossFunction, optimizer=self.optimizer, metrics=self.metrics)
-    self._ROM._make_predict_function() # have to initialize before threading
     self._romHistory = self._ROM.fit(featureVals, targetVals, epochs=self.epochs, batch_size=self.batchSize, validation_split=self.validationSplit)
     # The following requires pydot-ng and graphviz to be installed (See the manual)
     # https://github.com/keras-team/keras/issues/3210
