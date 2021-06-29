@@ -479,17 +479,17 @@ if __name__ == "__main__":
     print(path)
   print(Colors.norm)
 
-  csv_report = open("test_report.csv", "w")
-  csv_report.write(",".join(["name", "passed", "group", "time"])+"\n")
-  for result, test_name in zip(output_list, test_name_list):
-    if result is not None:
-      group_name = Tester.get_group_name(result.group)
-      out_line = ",".join([test_name, str(result.group == Tester.group_success),
-                           group_name, str(result.runtime)])
-    else:
-      out_line = ",".join([test_name, str(False), "NO_PREREQ", str(0.0)])
-    csv_report.write(out_line+"\n")
-  csv_report.close()
+  with open("test_report.csv", "w") as csv_report:
+    csv_report.write(",".join(["name", "passed", "group", "time"])+"\n")
+    for result, test_name in zip(output_list, test_name_list):
+      if result is not None:
+        group_name = Tester.get_group_name(result.group)
+        out_line = ",".join([test_name, str(result.group == Tester.group_success),
+                             group_name, str(result.runtime)])
+      else:
+        out_line = ",".join([test_name, str(False), "NO_PREREQ", str(0.0)])
+      csv_report.write(out_line+"\n")
+    csv_report.close()
 
   print("PASSED: {}{}{}".format(Colors.okay, results["pass"], Colors.norm))
   print("SKIPPED: {}{}{}".format(Colors.skip, results["skipped"], Colors.norm))

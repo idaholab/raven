@@ -20,6 +20,8 @@
 from __future__ import division, print_function, unicode_literals, absolute_import
 #End compatibility block for Python 3-------------------------------------------
 
+from EntityFactoryBase import EntityFactory
+
 ################################################################################
 
 from SupervisedLearning.SupervisedLearning import supervisedLearning
@@ -41,73 +43,28 @@ from .KerasClassifier import KerasClassifier
 from SupervisedLearning.KerasMLPClassifier import KerasMLPClassifier
 from SupervisedLearning.KerasConvNetClassifier import KerasConvNetClassifier
 from SupervisedLearning.KerasLSTMClassifier import KerasLSTMClassifier
+from SupervisedLearning.KerasLSTMRegression import KerasLSTMRegression
 from SupervisedLearning.ROMCollection      import Collection, Segments, Clusters
 
 ################################################################################
 
-
-"""
- Interface Dictionary (factory) (private)
-"""
-# This machinery will automatically populate the "knownTypes" given the
-# imports defined above.
-__base = 'supervisedLearning'
-__interfaceDict                           = {}
-__interfaceDict['NDspline'              ] = NDsplineRom
-__interfaceDict['NDinvDistWeight'       ] = NDinvDistWeight
-__interfaceDict['NDsplineRom'           ] = NDsplineRom
-__interfaceDict['SciKitLearn'           ] = SciKitLearn
-__interfaceDict['GaussPolynomialRom'    ] = GaussPolynomialRom
-__interfaceDict['HDMRRom'               ] = HDMRRom
-__interfaceDict['MSR'                   ] = MSR
-__interfaceDict['ARMA'                  ] = ARMA
-__interfaceDict['SyntheticHistory'      ] = SyntheticHistory
-__interfaceDict['pickledROM'            ] = pickledROM
-__interfaceDict['PolyExponential'       ] = PolyExponential
-__interfaceDict['DMD'                   ] = DynamicModeDecomposition
-__interfaceDict['Segments'              ] = Segments
-__interfaceDict['Clusters'              ] = Clusters
-__interfaceDict['Interpolated'          ] = Interpolated
-__interfaceDict['KerasMLPClassifier'    ] = KerasMLPClassifier
-__interfaceDict['KerasConvNetClassifier'] = KerasConvNetClassifier
-__interfaceDict['KerasLSTMClassifier'   ] = KerasLSTMClassifier
-
-def knownTypes():
-  """
-    Returns a list of strings that define the types of instantiable objects for
-    this base factory.
-    @ In, None
-    @ Out, knownTypes, list, the known types
-  """
-  return __interfaceDict.keys()
-
-def returnInstance(Type,caller,**kwargs):
-  """
-    Attempts to create and return an instance of a particular type of object
-    available to this factory.
-    @ In, Type, string, string should be one of the knownTypes.
-    @ In, caller, instance, the object requesting the instance
-                  (used for error/debug messaging).
-    @ In, kwargs, dict, a dicitonary specifying hte keywords and values needed to create the instance
-    @ Out, returnInstance, instance, subclass object constructed with no arguments
-  """
-  try:
-    return __interfaceDict[Type](caller.messageHandler,**kwargs)
-  except KeyError as e:
-    if Type not in __interfaceDict:
-      caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
-    else:
-      raise e
-
-def returnClass(Type,caller):
-  """
-    Attempts to return a particular class type available to this factory.
-    @ In, Type, string, string should be one of the knownTypes.
-    @ In, caller, instance, the object requesting the class
-                  (used for error/debug messaging).
-    @ Out, returnClass, class, reference to the subclass
-  """
-  try:
-    return __interfaceDict[Type]
-  except KeyError:
-    caller.raiseAnError(NameError,__name__+': unknown '+__base+' type '+Type)
+factory = EntityFactory('supervisedLearning')
+factory.registerType('NDspline'              , NDsplineRom)
+factory.registerType('NDinvDistWeight'       , NDinvDistWeight)
+factory.registerType('NDsplineRom'           , NDsplineRom)
+factory.registerType('SciKitLearn'           , SciKitLearn)
+factory.registerType('GaussPolynomialRom'    , GaussPolynomialRom)
+factory.registerType('HDMRRom'               , HDMRRom)
+factory.registerType('MSR'                   , MSR)
+factory.registerType('ARMA'                  , ARMA)
+factory.registerType('SyntheticHistory'      , SyntheticHistory)
+factory.registerType('pickledROM'            , pickledROM)
+factory.registerType('PolyExponential'       , PolyExponential)
+factory.registerType('DMD'                   , DynamicModeDecomposition)
+factory.registerType('Segments'              , Segments)
+factory.registerType('Clusters'              , Clusters)
+factory.registerType('Interpolated'          , Interpolated)
+factory.registerType('KerasMLPClassifier'    , KerasMLPClassifier)
+factory.registerType('KerasConvNetClassifier', KerasConvNetClassifier)
+factory.registerType('KerasLSTMClassifier'   , KerasLSTMClassifier)
+factory.registerType('KerasLSTMRegression'   , KerasLSTMRegression)

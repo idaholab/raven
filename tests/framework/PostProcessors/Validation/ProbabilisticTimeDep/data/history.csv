@@ -1,0 +1,6 @@
+x1,x2,prefix,ProbabilityWeight-x1,ProbabilityWeight-x2,ProbabilityWeight,PointProbability,filename
+0.1,1.15,1,0.1,0.2,0.083333333,1,history_0.csv
+0.2,1.257142857,2,0.2,0.1,0.083333333,1,history_1.csv
+0.4,1.364285714,3,0.4,0.4,0.666666667,1,history_2.csv
+0.2,1.471428571,4,0.2,0.1,0.083333333,1,history_3.csv
+0.1,1.578571429,5,0.1,0.2,0.083333333,1,history_4.csv

@@ -21,11 +21,11 @@ import numpy as np
 import sklearn.linear_model
 
 from utils import InputData, InputTypes, randomUtils, xmlUtils, mathUtils, utils
-from .TimeSeriesAnalyzer import TimeSeriesAnalyzer
+from .TimeSeriesAnalyzer import TimeSeriesGenerator, TimeSeriesCharacterizer
 
 
 # utility methods
-class Fourier(TimeSeriesAnalyzer):
+class Fourier(TimeSeriesGenerator, TimeSeriesCharacterizer):
   """
     Perform Fourier analysis; note this is not Fast Fourier, where all Fourier modes are used to fit a
     signal. Instead, detect the presence of specifically-requested Fourier bases.
@@ -66,28 +66,30 @@ class Fourier(TimeSeriesAnalyzer):
       @ Out, None
     """
     # general infrastructure
-    TimeSeriesAnalyzer.__init__(self, *args, **kwargs)
-    self._periods = None # training Fourier bases
+    super().__init__(*args, **kwargs)
 
   def handleInput(self, spec):
     """
       Reads user inputs into this object.
       @ In, inp, InputData.InputParams, input specifications
-      @ Out, None
+      @ Out, settings, dict, initialization settings for this algorithm
     """
-    TimeSeriesAnalyzer.handleInput(self, spec)
-    self._periods = spec.findFirst('periods').value
+    settings = super().handleInput(spec)
+    settings['periods'] = spec.findFirst('periods').value
+    return settings
 
-  def characterize(self, signal, pivot, targets, simultFit=True):
+  def characterize(self, signal, pivot, targets, settings, simultFit=True):
     """
       Determines the charactistics of the signal based on this algorithm.
       @ In, signal, np.ndarray, time series with dims [time, target]
       @ In, pivot, np.1darray, time-like parameter values
       @ In, targets, list(str), names of targets in same order as signal
+      @ In, settings, dict, additional settings specific to this algorithm
       @ In, simultFit, bool, optional, if False then fit Fourier individually
       @ Out, params, dict, characteristic parameters
     """
-    fourierSignals = self._generateBaseFourier(pivot, self._periods)
+    periods = settings['periods']
+    fourierSignals = self._generateBaseFourier(pivot, periods)
     # fourierSignals dimensions, for each key (base):
     #   0: length of history (aka time)
     #   1: evaluations, in order and flattened:
@@ -133,7 +135,7 @@ class Fourier(TimeSeriesAnalyzer):
       # get coefficient map for A*sin(ft) + B*cos(ft)
       waveCoefMap = collections.defaultdict(dict) # {period: {sin:#, cos:#}}
       for c, coef in enumerate(coeffs):
-        period = self._periods[c//2]
+        period = periods[c//2]
         waveform = 'sin' if c % 2 == 0 else 'cos'
         waveCoefMap[period][waveform] = coef
       # convert to C*sin(ft + s)
@@ -156,12 +158,14 @@ class Fourier(TimeSeriesAnalyzer):
       # END for target in targets
     return params
 
-  def generate(self, params, pivot, randEngine):
+  # getResidual -> use base implementation
+
+  def generate(self, params, pivot, settings):
     """
       Generates a synthetic history from fitted parameters.
       @ In, params, dict, characterization such as otained from self.characterize()
       @ In, pivot, np.array(float), pivot parameter values
-      @ In, randEngine, instance, optional, method to call to get random samples (for example "randEngine(size=6)")
+      @ In, settings, dict, additional settings specific to algorithm
       @ Out, synthetic, np.array(float), synthetic ARMA signal
     """
     synthetic = np.zeros((len(pivot), len(params)))

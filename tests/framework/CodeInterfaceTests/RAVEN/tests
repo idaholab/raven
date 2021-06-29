@@ -29,4 +29,12 @@
    UnorderedCsv = 'ROM/testPointSet_dump.csv'
    rel_err = 0.0001
  [../]
+ [./ReturnDatabase]
+   type = 'RavenFramework'
+   input = 'return_database.xml'
+   [./database]
+     type = 'NetCDF'
+     output = 'ReturnDatabase/DatabaseStorage/outer_samples.nc'
+   [../]
+ [../]
 []

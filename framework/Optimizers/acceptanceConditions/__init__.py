@@ -20,6 +20,4 @@ from __future__ import absolute_import
 from .AcceptanceCondition import AcceptanceCondition
 from .Strict import Strict
 
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
+from .Factory import factory

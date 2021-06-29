@@ -69,8 +69,8 @@ class ROM(Dummy):
     ######################
     # dynamically loaded #
     ######################
-    for typ in SupervisedLearning.knownTypes():
-      obj = SupervisedLearning.returnClass(typ, None) # TODO no message handler available!
+    for typ in SupervisedLearning.factory.knownTypes():
+      obj = SupervisedLearning.factory.returnClass(typ)
       if hasattr(obj, 'getInputSpecifications'):
         subspecs = obj.getInputSpecifications()
         print('Known:', typ)
@@ -1188,18 +1188,18 @@ class ROM(Dummy):
     cls.validateDict['Input' ][0]['multiplicity'] = 1
     cls.validateDict['Output'][0]['type'        ] = ['PointSet', 'HistorySet', 'DataSet']
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Dummy.__init__(self,runInfoDict)
-    self.initializationOptionDict = {'NumThreads': runInfoDict.get('NumThreads', 1)}         # ROM initialization options
-    self.amITrained               = False      # boolean flag, is the ROM trained?
-    self.supervisedEngine         = None       # dict of ROM instances (== number of targets => keys are the targets)
-    self.printTag = 'ROM MODEL'
-    self.cvInstance               = None             # Instance of provided cross validation
+    super().__init__()
+    self.initializationOptionDict = {}    # ROM initialization options
+    self.amITrained = False               # boolean flag, is the ROM trained?
+    self.supervisedEngine = None          # dict of ROM instances (== number of targets => keys are the targets)
+    self.printTag = 'ROM MODEL'           # label
+    self.cvInstance = None                # Instance of provided cross validation
     # Dictionary of Keras Neural Network Core layers
     self.kerasDict = {}
 
@@ -1281,7 +1281,7 @@ class ROM(Dummy):
 
     self.kerasLayersList = functools.reduce(lambda x,y: x+y, list(self.kerasDict.values()))
 
-    self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier']
+    self.kerasROMsList = ['KerasMLPClassifier', 'KerasConvNetClassifier', 'KerasLSTMClassifier', 'KerasLSTMRegression']
     # for Clustered ROM
     self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
@@ -1311,6 +1311,14 @@ class ROM(Dummy):
     self.__dict__ = d
     # since we pop this out during saving state, initialize it here
     self.assemblerDict = {}
+
+  def applyRunInfo(self, runInfo):
+    """
+      Take information from the RunInfo
+      @ In, runInfo, dict, RunInfo info
+      @ Out, None
+    """
+    self.initializationOptionDict['NumThreads'] = runInfo.get('NumThreads', 1)
 
   def _readMoreXML(self,xmlNode):
     """
@@ -1374,7 +1382,7 @@ class ROM(Dummy):
       @ In, initializationOptions, dict, the initialization options
       @ Out, None
     """
-    self.supervisedEngine = LearningGate.returnInstance('SupervisedGate', self.subType, self, **initializationOptions)
+    self.supervisedEngine = LearningGate.factory.returnInstance('SupervisedGate', self.subType, **initializationOptions)
 
   def reset(self):
     """
@@ -1431,7 +1439,6 @@ class ROM(Dummy):
       self.trainingSet              = copy.copy(trainingSet.trainingSet)
       self.amITrained               = copy.deepcopy(trainingSet.amITrained)
       self.supervisedEngine         = copy.deepcopy(trainingSet.supervisedEngine)
-      self.supervisedEngine.messageHandler = self.messageHandler
     else:
       # TODO: The following check may need to be moved to Dummy Class -- wangc 7/30/2018
       if type(trainingSet).__name__ != 'dict' and trainingSet.type == 'HistorySet':
@@ -1539,10 +1546,10 @@ class ROM(Dummy):
       # reset the ROM before perform cross validation
       cvMetrics = {}
       self.reset()
-      outputMetrics = self.cvInstance.interface.run([self, trainingSet])
+      outputMetrics = self.cvInstance._pp.run([self, trainingSet])
       exploredTargets = []
       for cvKey, metricValues in outputMetrics.items():
-        info = self.cvInstance.interface._returnCharacteristicsOfCvGivenOutputName(cvKey)
+        info = self.cvInstance._pp._returnCharacteristicsOfCvGivenOutputName(cvKey)
         if info['targetName'] in exploredTargets:
           self.raiseAnError(IOError, "Multiple metrics are used in cross validation '", self.cvInstance.name, "' for ROM '", rom.name,  "'!")
         exploredTargets.append(info['targetName'])
@@ -1556,7 +1563,7 @@ class ROM(Dummy):
       @ Out, None
     """
     useCV = True
-    initDict =  self.cvInstance.interface.initializationOptionDict
+    initDict =  self.cvInstance._pp.initializationOptionDict
     if 'SciKitLearn' in initDict.keys() and 'n_splits' in initDict['SciKitLearn'].keys():
       if trainingSize < utils.intConversion(initDict['SciKitLearn']['n_splits']):
         useCV = False

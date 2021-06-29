@@ -61,15 +61,13 @@ class ARMA(supervisedLearning):
                           }
 
   ### INHERITED METHODS ###
-  def __init__(self, messageHandler, **kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, messageHandler: a MessageHandler object in charge of raising errors,
-                           and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self, messageHandler, **kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     self.printTag = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
     # training storage
@@ -118,7 +116,7 @@ class ARMA(supervisedLearning):
     else:
       self.seed = int(self.seed)
 
-    self.normEngine = Distributions.returnInstance('Normal',self)
+    self.normEngine = Distributions.factory.returnInstance('Normal')
     self.normEngine.mean = 0.0
     self.normEngine.sigma = 1.0
     self.normEngine.upperBoundUsed = False
@@ -1059,7 +1057,6 @@ class ARMA(supervisedLearning):
     dist.rank = dim
     dist.mu = means
     dist.covariance = np.ravel(cov)
-    dist.messageHandler = self.messageHandler
     dist.initializeDistribution()
     return dist
 

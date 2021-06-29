@@ -64,13 +64,13 @@ class EnsembleModel(Dummy):
     cls.validateDict['Output' ][3]['required'    ] = False
     cls.validateDict['Output' ][3]['multiplicity'] = 'n'
 
-  def __init__(self,runInfoDict):
+  def __init__(self):
     """
       Constructor
-      @ In, runInfoDict, dict, the dictionary containing the runInfo (read in the XML input file)
+      @ In, None
       @ Out, None
     """
-    Dummy.__init__(self,runInfoDict)
+    super().__init__()
     self.modelsDictionary       = {}                    # dictionary of models that are going to be assembled
                                                         # {'modelName':{'Input':[in1,in2,..,inN],'Output':[out1,out2,..,outN],'Instance':Instance}}
     self.modelsInputDictionary  = {}                    # to allow reusability of ensemble modes (similar in construction to self.modelsDictionary)
@@ -460,7 +460,7 @@ class EnsembleModel(Dummy):
     for modelIn in self.modelsDictionary.keys():
       targetEvaluationNames[self.modelsDictionary[modelIn]['TargetEvaluation']] = modelIn
       # collect data
-      newIndexMap = outcomes[modelIn]['response'].pop('_indexMap', None)
+      newIndexMap = outcomes[modelIn]['response'].get('_indexMap', None)
       if newIndexMap:
         joinedIndexMap.update(newIndexMap[0])
       joinedResponse.update(outcomes[modelIn]['response'])

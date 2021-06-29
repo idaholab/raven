@@ -8,4 +8,53 @@
     zero_threshold = 1e-12
   [../]
 
+  [./ARMA]
+    type = 'RavenFramework'
+    input = 'arma.xml'
+    [./csv]
+      type = OrderedCSV
+      output = 'ARMA/samples_0.csv ARMA/samples_1.csv'
+      rel_err = 2.65e-1 # thank you, Windows and Linux diffs
+      zero_threshold = 1e-12
+    [../]
+    [./xml]
+      type = XML
+      output = 'ARMA/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3 # "constant" causes problems, all the rest are more accurate
+    [../]
+  [../]
+
+  [./FourierARMA]
+    type = 'RavenFramework'
+    input = 'fourier_arma.xml'
+    output = 'FourierARMA/plot_samples_0.png FourierARMA/plot_samples_1.png'
+    [./csv]
+      type = OrderedCSV
+      output = 'FourierARMA/samples_0.csv FourierARMA/samples_1.csv'
+      rel_err = 2e-1 # thank you, Windows
+    [../]
+    [./xml]
+      type = XML
+      output = 'FourierARMA/romMeta.xml'
+      rel_err = 1e-2
+      zero_threshold = 1e-3
+    [../]
+  [../]
+
+  [./Wavelet]
+    type = 'RavenFramework'
+    input = 'wavelet.xml'
+    required_libraries = 'pywavelets'
+    [./csv]
+      type = OrderedCSV
+      output = 'Wavelet/samples_0.csv Wavelet/samples_1.csv'
+      rel_err = 2e-1
+    [../]
+    [./xml]
+      type = XML
+      output = 'Wavelet/romMeta.xml'
+      rel_err = 1e-6
+    [../]
+  [../]
 []

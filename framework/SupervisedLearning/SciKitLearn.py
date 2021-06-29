@@ -68,14 +68,13 @@ class SciKitLearn(supervisedLearning):
 
   availImpl                                                 = {}                                                            # dictionary of available ROMs {mainClass:{subtype:(classPointer,Output type (float or int), boolean -> External Z-normalization needed)}
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self, **kwargs):
     """
       A constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
+    supervisedLearning.__init__(self, **kwargs)
     import sklearn
     import sklearn.linear_model
     import sklearn.svm

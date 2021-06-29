@@ -24,6 +24,10 @@
       type = XML
       output = 'Basic/opt_export.xml'
     [../]
+    [./plot]
+      type = Exists
+      output = 'Basic/opt_path.png'
+    [../]
   [../]
 
   [./ConvergeGradient]

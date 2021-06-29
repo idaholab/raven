@@ -14,10 +14,8 @@
 """
 Factory for generating the instances of the  Models Module
 """
-#for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
 
+from EntityFactoryBase import EntityFactory
 from utils import utils
 
 from .Model         import Model
@@ -26,55 +24,28 @@ from .ROM           import ROM
 from .ExternalModel import ExternalModel
 from .Code          import Code
 from .EnsembleModel import EnsembleModel
-from .PostProcessor import PostProcessor
 from .HybridModels  import HybridModel
 from .HybridModels  import LogicalModel
+from .PostProcessor import PostProcessor
 
-__base = 'Model'
-__interFaceDict = {}
+factory = EntityFactory('Model', needsRunInfo=True)
+factory.registerAllSubtypes(Model)
 
-for classObj in utils.getAllSubclasses(eval(__base)):
-  key = classObj.__name__
-  __interFaceDict[key] = classObj
-
-#here the class methods are called to fill the information about the usage of the classes
-for classType in __interFaceDict.values():
+# #here the class methods are called to fill the information about the usage of the classes
+for className in factory.knownTypes():
+  classType = factory.returnClass(className)
   classType.generateValidateDict()
   classType.specializeValidateDict()
 
-def knownTypes():
-  """
-    Return the known types
-    @ In, None
-    @ Out, knownTypes, list, list of known types
-  """
-  return __interFaceDict.keys()
-
-needsRunInfo = True
-
-def returnInstance(Type,runInfoDict,caller):
-  """
-    function used to generate a Model class
-    @ In, Type, string, Model type
-    @ Out, returnInstance, instance, Instance of the Specialized Model class
-  """
-  try:
-    return __interFaceDict[Type](runInfoDict)
-  except KeyError:
-    availableClasses = ','.join(__interFaceDict.keys())
-    caller.raiseAnError(NameError,
-      'Requested {}, i.e. "{}", is not recognized (Available options: {})'.format(__base, Type, availableClasses))
-
-def validate(className,role,what,caller):
+def validate(className, role, what):
   """
     This is the general interface for the validation of a model usage
     @ In, className, string, the name of the class
     @ In, role, string, the role assumed in the Step
     @ In, what, string, type of object
-    @ In, caller, instance, the instance of the caller
     @ Out, None
   """
-  if className in __interFaceDict:
-    return __interFaceDict[className].localValidateMethod(role,what)
+  if className in factory.knownTypes():
+    return factory.returnClass(className).localValidateMethod(role, what)
   else:
-    caller.raiseAnError(IOError, 'The model "{}" is not registered for class "{}"'.format(className, __base))
+    caller.raiseAnError(IOError, 'The model "{}" is not registered for class "{}"'.format(className, factory.name))

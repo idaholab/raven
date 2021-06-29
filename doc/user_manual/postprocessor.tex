@@ -19,17 +19,23 @@ Currently, the following types are available in RAVEN:
   \item \textbf{LimitSurfaceIntegral}
   \item \textbf{External}
   \item \textbf{TopologicalDecomposition}
-  \item \textbf{RavenOutput}
   \item \textbf{DataMining}
+  \item \textbf{HistorySetDelay}
+  \item \textbf{HS2PS}
+  \item \textbf{HStoPSOperator}
+  \item \textbf{HistorySetSampling}
+  \item \textbf{HistorySetSnapShot}
+  \item \textbf{HistorySetSync}
+  \item \textbf{TypicalHistoryFromHistorySet}
+  \item \textbf{dataObjectLabelFilter}
   \item \textbf{Metric}
   \item \textbf{CrossValidation}
-  \item \textbf{DataClassifier}
   \item \textbf{ValueDuration}
   \item \textbf{FastFourierTransform}
   \item \textbf{SampleSelector}
   \item \textbf{ParetoFrontier}
-  \item \textbf{MCSImporter}
   \item \textbf{EconomicRatio}
+  \item \textbf{Validation}
   %\item \textbf{PrintCSV}
   %\item \textbf{LoadCsvIntoInternalObject}
 \end{itemize}
@@ -118,7 +124,7 @@ data objects, depending on the type of statistics the user wants to compute:
   The matrix quantities available for request are:
   \begin{itemize}
     \item \textbf{sensitivity}: matrix of sensitivity coefficients, computed via linear regression method. (\nb The condition number is computed every time this quantity is requsted. If it results
-    to be greater then $30$, a multicollinearity problem exists and the sensitivity coefficients 
+    to be greater then $30$, a multicollinearity problem exists and the sensitivity coefficients
     might be incorrect and a Warning is spooned by the code)
     \item \textbf{covariance}: covariance matrix
     \item \textbf{pearson}: matrix of correlation coefficients
@@ -160,8 +166,8 @@ data objects, depending on the type of statistics the user wants to compute:
   \end{itemize}
   RAVEN will define a variable with name defined as: ``prefix for given \textbf{metric}'' + ``\_ste\_'' + ``parameter name'' to
   store standard error of given \textbf{metric} with respect to given parameter. This information will be stored in the DataObjects,
-  i.e. \textbf{PointSet} and \textbf{HistorySet}, and by default will be printed out in the ``CSV'' output files by the 
-  \textbf{OutStreams}. Option node \xmlNode{what} can be used in the \textbf{OutStreams} to select the information that 
+  i.e. \textbf{PointSet} and \textbf{HistorySet}, and by default will be printed out in the ``CSV'' output files by the
+  \textbf{OutStreams}. Option node \xmlNode{what} can be used in the \textbf{OutStreams} to select the information that
   the users want to print.
   In the case when the users want to store all the calculations results in general \textbf{DataSets}, RAVEN will employ a variable
   with name defined as: ``\textbf{metric}'' + ``\_ste'' to store standard error with respect to all target parameters. An additional
@@ -543,7 +549,7 @@ matrix and the inverse transformation matrix when the PCA reduction is used.
         ``class'' the listed object is from, the only acceptable class for
         this post-processor is \xmlString{Distributions};
       \item \xmlAttr{type}, \xmlDesc{required string attribute}, is the type of distributions,
-        the only acceptable type is \xmlString{MultivariateNormal} 
+        the only acceptable type is \xmlString{MultivariateNormal}
     \end{itemize}
 \end{itemize}
   %
@@ -815,14 +821,14 @@ both boundary sides (-1.0, +1.0).
      \item  \xmlNode{integralType}, \xmlDesc{string, optional field}, specifies the type of integrations that
                 need to be used. Currently only MonteCarlo integration is available
                 \default{MonteCarlo}
-    \item  \xmlNode{computeBounds}, \xmlDesc{bool, optional field}, 
-    activates the computation of the bounding error of the limit 
-    surface integral ( maximum error in the identification of the 
-    limit surface location). If True, the bounding error is stored 
+    \item  \xmlNode{computeBounds}, \xmlDesc{bool, optional field},
+    activates the computation of the bounding error of the limit
+    surface integral ( maximum error in the identification of the
+    limit surface location). If True, the bounding error is stored
     in a variable named as \xmlNode{outputName} appending the suffix
-    ``\_err''. For example, if \xmlNode{outputName} is 
-    ``EventProbability'', the bounding error will be stored as 
-    ``EventProbability\_err'' (this variable name must be listed as 
+    ``\_err''. For example, if \xmlNode{outputName} is
+    ``EventProbability'', the bounding error will be stored as
+    ``EventProbability\_err'' (this variable name must be listed as
     variable in the output DataObject).
                 \default{False}
      \item  \xmlNode{seed}, \xmlDesc{integer, optional field}, specifies the random number generator seed.
@@ -1084,830 +1090,44 @@ The following is a list of acceptable sub-nodes:
 \end{lstlisting}
 
 %%%%% PP DataMining %%%%%%%
-\input{DataMining.tex}
-
-%%%%% PP PrintCSV %%%%%%%
-%\paragraph{PrintCSV}
-%\label{PrintCSV}
-%TO BE MOVED TO STEP ``IOSTEP''
-%%%%% PP LoadCsvIntoInternalObject %%%%%%%
-%\paragraph{LoadCsvIntoInternalObject}
-%\label{LoadCsvIntoInternalObject}
-%TO BE MOVED TO STEP ``IOSTEP''
-%
-
-%%%%% PP External %%%%%%%
-\subsubsection{Interfaced}
-\label{Interfaced}
-The \textbf{Interfaced} post-processor is a Post-Processor that allows the user
-to create its own Post-Processor. While the External Post-Processor (see
-Section~\ref{External} allows the user to create case-dependent
-Post-Processors, with this new class the user can create new general
-purpose Post-Processors.
-%
-
-\ppType{Interfaced}{Interfaced}
-
-\begin{itemize}
-  \item \xmlNode{method}, \xmlDesc{comma separated string, required field},
-  lists the method names of a method that will be computed (each
-  returning a post-processing value). All available methods need to be included
-  in the ``/raven/framework/PostProcessorFunctions/'' folder
-\end{itemize}
-
-\textbf{Example:}
-\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
-<Simulation>
-  ...
-  <Models>
-    ...
-    <PostProcessor name="example" subType='InterfacedPostProcessor'verbosity='debug'>
-       <method>testInterfacedPP</method>
-       <!--Here, the xml nodes required by the chosen method have to be
-       included.
-        -->
-    </PostProcessor>
-    ...
-  </Models>
-  ...
-</Simulation>
-\end{lstlisting}
-
-All the \textbf{Interfaced} post-processors need to be contained in the
-``/raven/framework/PostProcessorFunctions/'' folder. In fact, once the
-\textbf{Interfaced} post-processor is defined in the RAVEN input file, RAVEN
-search that the method of the post-processor is located in such folder.
-
-The class specified in the \textbf{Interfaced} post-processor has to inherit the
-PostProcessorInterfaceBase class and the user must specify this set of
-methods:
-\begin{itemize}
-  \item initialize: in this method, the internal parameters of the
-  post-processor are initialized. Mandatory variables that needs to be
-  specified are the following:
-\begin{itemize}
-  \item self.inputFormat: type of dataObject expected in input
-  \item self.outputFormat: type of dataObject generated in output
-\end{itemize}
-  \item readMoreXML: this method is in charge of reading the PostProcessor xml
-  node, parse it and fill the PostProcessor internal variables.
-  \item run: this method performs the desired computation of the dataObject.
-\end{itemize}
-
-\begin{lstlisting}[language=python]
-from PostProcessorInterfaceBaseClass import PostProcessorInterfaceBase
-class testInterfacedPP(PostProcessorInterfaceBase):
-  def initialize(self)
-  def readMoreXML(self,xmlNode)
-  def run(self,inputDic)
-\end{lstlisting}
-
-\paragraph{Data Format}
-The user is not allowed to modify directly the DataObjects, however the
-content of the DataObjects is available in the form of a python dictionary.
-Both the dictionary give in input and the one generated in the output of the
-PostProcessor are structured as follows:
-
-\begin{lstlisting}[language=python]
-inputDict = {'data':{}, 'metadata':{}}
-\end{lstlisting}
-
-where:
-
-\begin{lstlisting}[language=python]
-inputDict['data'] = {'input':{}, 'output':{}}
-\end{lstlisting}
-
-In the input dictonary, each input variable is listed as a dictionary that
-contains a numpy array with its own values as shown below for a simplified
-example
-
-\begin{lstlisting}[language=python]
-inputDict['data']['input'] = {'inputVar1': array([ 1.,2.,3.]),
-                              'inputVar2': array([4.,5.,6.])}
-\end{lstlisting}
-
-Similarly, if the dataObject is a PointSet then the output dictionary is
-structured as follows:
-
-\begin{lstlisting}[language=python]
-inputDict['data']['output'] = {'outputVar1': array([ .1,.2,.3]),
-                               'outputVar2':array([.4,.5,.6])}
-\end{lstlisting}
-
-Howevers, if the dataObject is a HistorySet then the output dictionary is
-structured as follows:
-
-\begin{lstlisting}[language=python]
-inputDict['data']['output'] = {'hist1': {}, 'hist2':{}}
-\end{lstlisting}
-
-where
-
-\begin{lstlisting}[language=python]
-inputDict['output']['data'][hist1] = {'time': array([ .1,.2,.3]),
-                              'outputVar1':array([ .4,.5,.6])}
-inputDict['output']['data'][hist2] = {'time': array([ .1,.2,.3]),
-                              'outputVar1':array([ .14,.15,.16])}
-\end{lstlisting}
-
-
-\paragraph{Method: HStoPSOperator}
-
-This Post-Processor performs the conversion from HistorySet to PointSet performing a projection of the output space.
-
-In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are available:
-
-\begin{itemize}
-   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable. Default is ``time''.
-   \nb Used just in case the  \xmlNode{pivotValue}-based operation  is requested
-    \item \xmlNode{operator}, \xmlDesc{string, optional field}, the operation to perform on the output space:
-      \begin{itemize}
-        \item \textbf{min}, compute the minimum of each variable along each single history
-         \item \textbf{max}, compute the maximum of each variable along each single history
-         \item \textbf{average}, compute the average of each variable along each single history
-         \item \textbf{all}, join together all of the each variable in
-           the history, and make the pivotParameter a regular
-           parameter.  Unlike the min and max operators, this keeps
-           all the data, just organized differently. This operator
-           does this by propogating the other input parameters for
-           each item of the pivotParameter.
-           Table~\ref{operator_all_switch_before} shows an example
-           HistorySet with input parameter x, pivot parameter t, and
-           output parameter b and then
-           Table~\ref{operator_all_switch_after} shows the resulting
-           PointSet with input parameters x and t, and output
-           parameter b. Note that which parameters are input and which
-           are output in the resulting PointSet depends on the
-           DataObject specification.
-       \end{itemize}
-        \nb This node can be inputted only if \xmlNode{pivotValue} and \xmlNode{row} are not present
-     \item \xmlNode{pivotValue}, \xmlDesc{float, optional field}, the value of the pivotParameter with respect to the other outputs need to be extracted.
-       \nb This node can be inputted only if \xmlNode{operator} and \xmlNode{row} are not present
-     \item \xmlNode{pivotStrategy}, \xmlDesc{string, optional field}, The strategy to use for the pivotValue:
-       \begin{itemize}
-        \item \textbf{nearest}, find the value that is the nearest with respect the \xmlNode{pivotValue}
-        \item \textbf{floor}, find the value that is the nearest with respect to the \xmlNode{pivotValue} but less then the  \xmlNode{pivotValue}
-        \item \textbf{celing}, find the value that is the nearest with respect to the \xmlNode{pivotValue} but greater then the  \xmlNode{pivotValue}
-        \item \textbf{interpolate}, if the exact  \xmlNode{pivotValue}  can not be found, interpolate using a linear approach
-       \end{itemize}
-
-       \nb Valid just in case \xmlNode{pivotValue} is present
-     \item \xmlNode{row}, \xmlDesc{int, optional field}, the row index at which the outputs need to be extracted.
-       \nb This node can be inputted only if \xmlNode{operator} and \xmlNode{pivotValue} are not present
-\end{itemize}
-
-This example will show how the XML input block would look like:
-
-\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
-<Simulation>
-  ...
-  <Models>
-    ...
-    <PostProcessor name="HStoPSperatorRows" subType="InterfacedPostProcessor">
-      <method>HStoPSOperator</method>
-      <row>-1</row>
-    </PostProcessor>
-    <PostProcessor name="HStoPSoperatorPivotValues" subType="InterfacedPostProcessor">
-        <method>HStoPSOperator</method>
-        <pivotParameter>time</pivotParameter>
-        <pivotValue>0.3</pivotValue>
-    </PostProcessor>
-    <PostProcessor name="HStoPSoperatorOperatorMax" subType="InterfacedPostProcessor">
-        <method>HStoPSOperator</method>
-        <pivotParameter>time</pivotParameter>
-        <operator>max</operator>
-    </PostProcessor>
-    <PostProcessor name="HStoPSoperatorOperatorMin" subType="InterfacedPostProcessor">
-        <method>HStoPSOperator</method>
-        <pivotParameter>time</pivotParameter>
-        <operator>min</operator>
-    </PostProcessor>
-    <PostProcessor name="HStoPSoperatorOperatorAverage" subType="InterfacedPostProcessor">
-        <method>HStoPSOperator</method>
-        <pivotParameter>time</pivotParameter>
-        <operator>average</operator>
-    </PostProcessor>
-    ...
-  </Models>
-  ...
-</Simulation>
-\end{lstlisting}
-
-\begin{table}[!hbtp]
-  \caption{Starting HistorySet for operator all}
-  \label{operator_all_switch_before}
-\begin{tabular}{l|l|l}
-  x & t & b \\
-  \hline
-  5.0 &  &  \\
-  \hline
-  & 1.0 & 6.0 \\
-  \hline
-  & 2.0 & 7.0 \\
-\end{tabular}
-\end{table}
-
-\begin{table}[!hbtp]
-  \caption{Resulting PointSet after operator all}
-  \label{operator_all_switch_after}
-\begin{tabular}{l|l|l}
-  x & t & b \\
-  \hline
-  5.0 & 1.0 & 6.0  \\
-  \hline
-  5.0 & 2.0 & 7.0 \\
-\end{tabular}
-\end{table}
-
-\paragraph{Method: HistorySetSampling}
-This Post-Processor performs the conversion from HistorySet to HistorySet
-The conversion is made so that each history H is re-sampled accordingly  to a
-specific sampling strategy.
-It can be used to reduce the amount of space required by the HistorySet.
-
-In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
-independent of the \xmlAttr{subType} specified:
-
-\begin{itemize}
-   \item \xmlNode{samplingType}, \xmlDesc{string, required field}, specifies the type of sampling method to be used:
-   \begin{itemize}
-     \item uniform: the set of \xmlNode{numberOfSamples} samples are uniformly distributed along the time axis
-     \item firstDerivative: the set of \xmlNode{numberOfSamples} samples are distributed along the time axis in regions with 
-                            higher first order derivative
-     \item secondDerivative: the set of \xmlNode{numberOfSamples} samples are distributed along the time axis in regions with 
-                             higher second order derivative
-     \item filteredFirstDerivative: samples are located where the first derivative is greater than the specified \xmlNode{tolerance} value 
-                                    (hence, the number of samples can vary from history to history)
-     \item filteredSecondDerivative: samples are located where the second derivative is greater than the specified \xmlNode{tolerance} value
-                                     (hence, the number of samples can vary from history to history)
-   \end{itemize}                                 
-   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, number of samples (required only for the following sampling 
-                                             types: uniform, firstDerivative secondDerivative)
-   \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, ID of the temporal variable
-   \item \xmlNode{interpolation}, \xmlDesc{string, optional field}, type of interpolation to be employed for the history reconstruction 
-                                           (required only for the following sampling types: uniform, firstDerivative secondDerivative). 
-                                           Valid types of interpolation to specified: linear, nearest, zero, slinear, quadratic, cubic, intervalAverage
-   \item \xmlNode{tolerance}, \xmlDesc{string, optional field}, tolerance level (required only for the following sampling types: 
-                                       filteredFirstDerivative or filteredSecondDerivative)
-\end{itemize}
-
-\paragraph{Method: HistorySetSync}
-This Post-Processor performs the conversion from HistorySet to HistorySet
-The conversion is made so that all histories are synchronized in time.
-It can be used to allow the histories to be sampled at the same time instant.
-
-There are two possible synchronization methods, specified through the \xmlNode{syncMethod} node.  If the
-\xmlNode{syncMethod} is \xmlString{grid}, a \xmlNode{numberOfSamples} node is specified,
-which yields an equally-spaced grid of time points. The output values for these points will be linearly derived
-using nearest sampled time points, and the new HistorySet will contain only the new grid points.
-
-The other methods are used by specifying \xmlNode{syncMethod} as \xmlString{all}, \xmlString{min}, or
-\xmlString{max}.  For \xmlString{all}, the postprocessor will iterate through the
-existing histories, collect all the time points used in any of them, and use these as the new grid on which to
-establish histories, retaining all the exact original values and interpolating linearly where necessary.
-In the event of \xmlString{min} or \xmlString{max}, the postprocessor will find the smallest or largest time
-history, respectively, and use those time values as nodes to interpolate between.
-
-In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
-independent of the \xmlAttr{subType} specified:
-
-\begin{itemize}
-   \item \xmlNode{pivotParameter}, \xmlDesc{string, required field}, ID of the temporal variable
-   \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
-   \item \xmlNode{syncMethod}, \xmlDesc{string, required field}, synchronization strategy to employ (see
-     description above).  Options are \xmlString{grid}, \xmlString{all}, \xmlString{max}, \xmlString{min}.
-   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, optional field}, required if \xmlNode{syncMethod} is
-     \xmlString{grid}, number of new time samples
-\end{itemize}
-
-\paragraph{Method: HistorySetSnapShot}
-This Post-Processor performs a conversion from HistorySet to PointSet.
-The conversion is made so that each history $H$ is converted to a single point $P$.
-There are several methods that can be employed to choose the single point from the history:
-\begin{itemize}
-  \item min: Take a time slice when the \xmlNode{pivotVar} is at its smallest value,
-  \item max: Take a time slice when the \xmlNode{pivotVar} is at its largest value,
-  \item average: Take a time slice when the \xmlNode{pivotVar} is at its time-weighted average value,
-  \item value: Take a time slice when the \xmlNode{pivotVar} \emph{first passes} its specified value,
-  \item timeSlice: Take a time slice index from the sampled time instance space.
-\end{itemize}
-To demonstrate the timeSlice, assume that each history H is a dict of n output variables $x_1=[...],
-x_n=[...]$, then the resulting point P is at time instant index t: $P=[x_1[t],...,x_n[t]]$.
-
-Choosing one the these methods for the \xmlNode{type} node will take a time slice for all the variables in the
-output space based on the provided parameters.  Alternatively, a \xmlString{mixed} type can be used, in which
-each output variable can use a different time slice parameter.  In other words, you can take the max of one
-variable while taking the minimum of another, etc.
-
-In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
-independent of the \xmlAttr{subType} specified:
-
-\begin{itemize}
-  \item \xmlNode{type}, \xmlDesc{string, required field}, type of operation: \xmlString{min}, \xmlString{max},
-                        \xmlString{average}, \xmlString{value}, \xmlString{timeSlice}, or \xmlString{mixed}
-   \item \xmlNode{extension}, \xmlDesc{string, required field}, type of extension when the sync process goes outside the boundaries of the history (zeroed or extended)
-   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, name of the temporal variable.  Required for the
-     \xmlString{average} and \xmlString{timeSlice} methods.
-\end{itemize}
-
-If a \xmlString{timeSlice} type is in use, the following nodes also are required:
-\begin{itemize}
-   \item \xmlNode{timeInstant}, \xmlDesc{integer, required field}, required and only used in the
-     \xmlString{timeSlice} type.  Location of the time slice (integer index)
-   \item \xmlNode{numberOfSamples}, \xmlDesc{integer, required field}, number of samples
-\end{itemize}
-
-If instead a \xmlString{min}, \xmlString{max}, \xmlString{average}, or \xmlString{value} is used, the following nodes
-are also required:
-\begin{itemize}
-   \item \xmlNode{pivotVar}, \xmlDesc{string, required field},  Name of the chosen indexing variable (the
-         variable whose min, max, average, or value is used to determine the time slice)
-       \item \xmlNode{pivotVal}, \xmlDesc{float, optional field},  required for \xmlString{value} type, the value for the chosen variable
-\end{itemize}
-
-Lastly, if a \xmlString{mixed} approach is used, the following nodes apply:
-\begin{itemize}
-  \item \xmlNode{max}, \xmlDesc{string, optional field}, the names of variables whose output should be their
-    own maximum value within the history.
-  \item \xmlNode{min}, \xmlDesc{string, optional field}, the names of variables whose output should be their
-    own minimum value within the history.
-  \item \xmlNode{average}, \xmlDesc{string, optional field}, the names of variables whose output should be their
-    own average value within the history. Note that a \xmlNode{pivotParameter} node is required to perform averages.
-  \item \xmlNode{value}, \xmlDesc{string, optional field}, the names of variables whose output should be taken
-    at a time slice determined by another variable.  As with the non-mixed \xmlString{value} type, the first
-    time the \xmlAttr{pivotVar} crosses the specified \xmlAttr{pivotVal} will be the time slice taken.
-    This node requires two attributes, if used:
-    \begin{itemize}
-      \item \xmlAttr{pivotVar}, \xmlDesc{string, required field}, the name of the variable on which the time
-        slice will be performed.  That is, if we want the value of $y$ when $t=0.245$,
-        this attribute would be \xmlString{t}.
-      \item \xmlAttr{pivotVal}, \xmlDesc{float, required field}, the value of the \xmlAttr{pivotVar} on which the time
-        slice will be performed.  That is, if we want the value of $y$ when $t=0.245$,
-        this attribute would be \xmlString{0.245}.
-    \end{itemize}
-  Note that all the outputs of the \xmlNode{DataObject} output of this postprocessor must be listed under one
-  of the \xmlString{mixed} node types in order for values to be returned.
-\end{itemize}
-
-\textbf{Example (mixed):}
-This example will output the average value of $x$ for $x$, the value of $y$ at
-time$=0.245$ for $y$, and the value of $z$ at $x=4.0$ for $z$.
-\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
-<Simulation>
-  ...
-  <Models>
-    ...
-    <PostProcessor name="mampp2" subType="InterfacedPostProcessor">
-      <method>HistorySetSnapShot</method>
-      <type>mixed</type>
-      <average>x</average>
-      <value pivotVar="time" pivotVal="0.245">y</value>
-      <value pivotVar="x" pivotVal="4.0">z</value>
-      <pivotParameter>time</pivotParameter>
-      <extension>zeroed</extension>
-    </PostProcessor>
-    ...
-  </Models>
-  ...
-</Simulation>
-\end{lstlisting}
-
-
-\paragraph{Method: HS2PS}
-
-This Post-Processor performs a conversion from HistorySet to PointSet.
-The conversion is made so that each history $H$ is converted to a single point $P$.
-Assume that each history $H$ is a dict of $n$ output variables $x_1=[...],x_n=[...]$, then the resulting point $P$ is $P=concat(x_1,...,x_n)$.
-Note: it is here assumed that all histories have been sync so that they have the same length, start point and end point. If you are not sure, do a pre-processing the the original history set.
-
-In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
-independent of the \xmlAttr{subType} specified (min, max, avg and value case):
-
-\begin{itemize}
-   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable (only for avg)
-\end{itemize}
-
-\paragraph{Method: TypicalHistoryFromHistorySet}
-This Post-Processor performs a simplified procedure of \cite{wilcox2008users} to form a ``typical'' time series from multiple time series. The input should be a HistorySet, with each history in the HistorySet synchronized. For HistorySet that is not synchronized, use Post-Processor method \textbf{HistorySetSync}  to synchronize the data before running this method.
-
-Each history in input HistorySet is first converted to multiple histories each has maximum time specified in \xmlNode{outputLen} (see below). Each converted history $H_i$ is divided into a set of subsequences $\{H_i^j\}$, and the division is guided by the \xmlNode{subseqLen} node specified in the input XML. The value of \xmlNode{subseqLen} should be a list of positive numbers that specify the length of each subsequence. If the number of subsequence for each history is more than the number of values given in \xmlNode{subseqLen}, the values in \xmlNode{subseqLen} would be reused.
-
-For each variable $x$, the method first computes the empirical CDF (cumulative density function) by using all the data values of $x$ in the HistorySet. This CDF is termed as long-term CDF for $x$. Then for each subsequence $H_i^j$, the method computes the empirical CDF by using all the data values of $x$ in $H_i^j$. This CDF is termed as subsequential CDF. For the first interval window (i.e., $j=1$), the method computes the Finkelstein-Schafer (FS) statistics \cite{finkelstein1971improved} between the long term CDF and the subsequential CDF of $H_i^1$ for each $i$. The FS statistics is defined as following.
-\begin{align*}
-FS & = \sum_x FS_x\\
-FS_x &= \frac{1}{N}\sum_{n=1}^N\delta_n
-\end{align*}
-where $N$ is the number of value reading in the empirical CDF and $\delta_n$ is the absolute difference between the long term CDF and the subsequential CDF at value $x_n$. The subsequence $H_i^1$ with minimal FS statistics will be selected as the typical subsequence for the interval window $j=1$. Such process repeats for $j=2,3,\dots$ until all subsequences have been processed. Then all the typical subsequences will be concatenated to form a complete history.
-
-In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
-independent of the \xmlAttr{subType} specified:
-
-\begin{itemize}
-   \item \xmlNode{pivotParameter}, \xmlDesc{string, optional field}, ID of the temporal variable
-   \default{Time}
-   \item \xmlNode{subseqLen}, \xmlDesc{integers, required field}, length of the divided subsequence (see above)
-   \item \xmlNode{outputLen}, \xmlDesc{integer, optional field}, maximum value of the temporal variable for the generated typical history
-   \default{Maximum value of the variable with name of \xmlNode{pivotParameter}}
-\end{itemize}
-
-For example, consider history of data collected over three years in one-second increments,
-where the user wants a single \emph{typical year} extracted from the data.
-The user wants this data constructed by combining twelve equal \emph{typical month}
-segments.  In this case, the parameter \xmlNode{outputLen} should be \texttt{31536000} (the number of seconds
-in a year), while the parameter \xmlNode{subseqLen} should be \texttt{2592000} (the number of seconds in a
-month).  Using a value for \xmlNode{subseqLen} that is either much, much smaller than \xmlNode{outputLen} or
-of equal size to \xmlNode{outputLen} might have unexpected results.  In general, we recommend using a
-\xmlNode{subseqLen} that is roughly an order of magnitude smaller than \xmlNode{outputLen}.
-
-\paragraph{Method: dataObjectLabelFilter}
-This Post-Processor allows to filter the portion of a dataObject, either PointSet or HistorySet, with a given clustering label.
-A clustering algorithm associates a unique cluster label to each element of the dataObject (PointSet or HistorySet).
-This cluster label is a natural number ranging from $0$ (or $1$ depending on the algorithm) to $N$ where $N$ is the number of obtained clusters.
-Recall that some clustering algorithms (e.g., K-Means) receive $N$ as input while others (e.g., Mean-Shift) determine $N$ after clustering has been performed.
-Thus, this Post-Processor is naturally employed after a data-mining clustering techniques has been performed on a dataObject so that each clusters
-can be analyzed separately.
-
-In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
-independently of the \xmlAttr{subType} specified:
-
-\begin{itemize}
-   \item \xmlNode{label}, \xmlDesc{string, required field}, name of the clustering label
-   \item \xmlNode{clusterIDs}, \xmlDesc{integers, required field}, ID of the selected clusters. Note that more than one ID can be provided as input
-\end{itemize}
-
-
-\paragraph{Method: Discrete Risk Measures}
-This Post-Processor calculates a series of risk importance measures from a PointSet. This calculation if performed for a set of input parameters given an output target.
-
-The user is required to provide the following information:
-\begin{itemize}
-   \item the set of input variables. For each variable the following need to be specified:
-     \begin{itemize}
-       \item the set of values that imply a reliability value equal to $1$ for the input variable
-       \item the set of values that imply a reliability value equal to $0$ for the input variable
-     \end{itemize}
-   \item the output target variable. For this variable it is needed to specify the values of the output target variable that defines the desired outcome.
-\end{itemize}
-
-The following variables are first determined for each input variable $i$:
-\begin{itemize}
-   \item $R_0$ Probability of the outcome of the output target variable (nominal value)
-   \item $R^{+}_i$ Probability of the outcome of the output target variable if reliability of the input variable is equal to $0$
-   \item $R^{-}_i$ Probability of the outcome of the output target variable if reliability of the input variable is equal to $1$
-\end{itemize}
-
-Available measures are:
-\begin{itemize}
-   \item Risk Achievement Worth (RAW): $RAW = R^{+}_i / R_0 $
-   \item Risk Achievement Worth (RRW): $RRW = R_0 / R^{-}_i$
-   \item Fussell-Vesely (FV): $FV = (R_0 - R^{-}_i) / R_0$
-   \item Birnbaum (B): $B = R^{+}_i - R^{-}_i$
-\end{itemize}
-
-In the \xmlNode{PostProcessor} input block, the following XML sub-nodes are required,
-independent of the \xmlAttr{subType} specified:
-
-\begin{itemize}
-   \item \xmlNode{measures}, \xmlDesc{string, required field}, desired risk importance measures that have to be computed (RRW, RAW, FV, B)
-   \item \xmlNode{variable}, \xmlDesc{string, required field}, ID of the input variable. This node is provided for each input variable. This nodes needs to contain also these attributes:
-     \begin{itemize}
-       \item \xmlAttr{R0values}, \xmlDesc{float, required field}, interval of values (comma separated values) that implies a reliability value equal to $0$ for the input variable
-       \item \xmlAttr{R1values}, \xmlDesc{float, required field}, interval of values (comma separated values) that implies a reliability value equal to $1$ for the input variable
-     \end{itemize}
-   \item \xmlNode{target}, \xmlDesc{string, required field}, ID of the output variable. This nodes needs to contain also the attribute \xmlAttr{values}, \xmlDesc{string, required field}, interval of
-                                                             values of the output target variable that defines the desired outcome
-\end{itemize}
-
-\textbf{Example:}
-This example shows an example where it is desired to calculate all available risk importance measures for two input variables (i.e., pumpTime and valveTime)
-given an output target variable (i.e., Tmax).
-A value of the input variable pumpTime in the interval $[0,240]$ implies a reliability value of the input variable pumpTime equal to $0$.
-A value of the input variable valveTime in the interval $[0,60]$ implies a reliability value of the input variable valveTime equal to $0$.
-A value of the input variables valveTime and pumpTime in the interval $[1441,2880]$ implies a reliability value of the input variables equal to $1$.
-The desired outcome of the output variable Tmax occurs in the interval $[2200,2500]$.
-\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
-<Simulation>
-  ...
-  <Models>
-    ...
-    <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
-      <method>RiskMeasuresDiscrete</method>
-      <measures>B,FV,RAW,RRW</measures>
-      <variable R0values='0,240' R1values='1441,2880'>pumpTime</variable>
-      <variable R0values='0,60'  R1values='1441,2880'>valveTime</variable>
-      <target   values='2200,2500'                  >Tmax</target>
-    </PostProcessor>
-    ...
-  </Models>
-  ...
-</Simulation>
-\end{lstlisting}
-
-This Post-Processor allows the user to consider also multiple datasets (a data set for each initiating event) and calculate the global risk importance measures.
-This can be performed by:
-\begin{itemize}
-  \item Including all datasets in the step
-\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
-<Simulation>
-  ...
-  </Steps>
-    ...
-    <PostProcess name="PP">
-      <Input   class="DataObjects"  type="PointSet"        >outRun1</Input>
-      <Input   class="DataObjects"  type="PointSet"        >outRun2</Input>
-      <Model   class="Models"       type="PostProcessor"   >riskMeasuresDiscrete</Model>
-      <Output  class="DataObjects"  type="PointSet"        >outPPS</Output>
-      <Output  class="OutStreams"   type="Print"           >PrintPPS_dump</Output>
-    </PostProcess>
-  </Steps>
-  ...
-</Simulation>
-\end{lstlisting}
-  \item Adding in the Post-processor the frequency of the initiating event associated to each dataset
-\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
-<Simulation>
-  ...
-  <Models>
-    ...
-    <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
-      <method>riskMeasuresDiscrete</method>
-      <measures>FV,RAW</measures>
-      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Astatus</variable>
-      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Bstatus</variable>
-      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Cstatus</variable>
-      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Dstatus</variable>
-      <target   values='0.9,1.1'>outcome</target>
-      <data     freq='0.01'>outRun1</data>
-      <data     freq='0.02'>outRun2</data>
-    </PostProcessor>
-    ...
-  </Models>
-  ...
-</Simulation>
-\end{lstlisting}
-
-\end{itemize}
-
-This post-processor can be made time dependent if a single HistorySet is provided among the other data objects.
-The HistorySet contains the temporal profiles of a subset of the input variables. This temporal profile can be only
-boolean, i.e., 0 (component offline) or 1 (component online).
-Note that the provided history set must contains a single History; multiple Histories are not allowed.
-When this post-processor is in a dynamic configuration (i.e., time-dependent), the user is required to specify an xml
-node \xmlNode{temporalID} that indicates the ID of the temporal variable.
-For each time instant, this post-processor determines the temporal profiles of the desired risk importance measures.
-Thus, in this case, an HistorySet must be chosen as an output data object.
-An example is shown below:
-\begin{lstlisting}[style=XML,morekeywords={subType,debug,name,class,type}]
-<Simulation>
-  ...
-  <Models>
-    ...
-    <PostProcessor name="riskMeasuresDiscrete" subType="InterfacedPostProcessor">
-      <method>riskMeasuresDiscrete</method>
-      <measures>B,FV,RAW,RRW,R0</measures>
-      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Astatus</variable>
-      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Bstatus</variable>
-      <variable R1values='-0.1,0.1' R0values='0.9,1.1'>Cstatus</variable>
-      <target   values='0.9,1.1'>outcome</target>
-      <data     freq='1.0'>outRun1</data>
-      <temporalID>time</temporalID>
-    </PostProcessor>
-    ...
-  </Models>
-  ...
-  <Steps>
-    ...
-    <PostProcess name="PP">
-      <Input     class="DataObjects"  type="PointSet"        >outRun1</Input>
-      <Input     class="DataObjects"  type="HistorySet"      >timeDepProfiles</Input>
-      <Model     class="Models"       type="PostProcessor"   >riskMeasuresDiscrete</Model>
-      <Output    class="DataObjects"  type="HistorySet"      >outHS</Output>
-      <Output    class="OutStreams"   type="Print"           >PrintHS</Output>
-    </PostProcess>
-    ...
-  </Steps>
-  ...
-</Simulation>
-\end{lstlisting}
-
-%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%% RavenOutput PP   %%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-
-\subsubsection{RavenOutput}
-\label{RavenOutput}
-The \textbf{RavenOutput} post-processor is specifically used
-to gather data from RAVEN output files and generate a PointSet suitable for plotting or other analysis.
-It can do this in two modes: static and dynamic.  In static mode, the
-PostProcessor reads from from several static XML output files produced by RAVEN.  In dynamic mode, the PostProcessor
-reads from a single dynamic XML output file and builds a PointSet where the pivot parameter (e.g. time) is the
-input and the requested values are returned for each of the pivot parameter values (e.g. points in time).  The
-name for the pivot parameter will be taken directly from the XML structure.
-%
-Note: by default the PostProcessor operates in static mode; to read a dynamic file, the \xmlNode{dynamic} node must
-be specified.
-%
-\ppType{RavenOutput}{RavenOutput}
-%
-\begin{itemize}
-  \item \xmlNode{dynamic}, \xmlDesc{string, optional field}, if included will trigger reading a single dynamic
-  file instead of multiple static files, unless the text of this field is \xmlString{false}, in which case it
-  will return to the default (multiple static files).  \default(False)
-  \item \xmlNode{File}, \xmlDesc{XML Node, required field}
-  %
-  For each file to be read by this postprocessor, an entry in the \xmlNode{Files} node must be added, and a
-  \xmlNode{File} node must be added to the postprocessor input block.  The \xmlNode{File} requires two
-  identifying attributes:
-  \begin{itemize}
-    \item \xmlAttr{name}, \xmlDesc{string, required field}, the RAVEN-assigned name of the file,
-    \item \xmlAttr{ID}, \xmlDesc{float, optional field}, the floating point ID that will be unique to this
-      file.  This will appear as an entry in the output \xmlNode{DataObject} and the corresponding column are
-      the values extracted from this file.  If not specified, RAVEN will attempt to find a suitable integer ID
-      to use, and a warning will be raised.
-
-      When defining the \xmlNode{DataObject} that this postprocessor will write to, and when using the static
-      (non-\xmlNode{dynamic}) form of the postprocessor, the \xmlNode{input} space should be given as
-      \xmlString{ID}, and the output variables should be the outputs specified in the postprocessor. See the
-      examples below.  In the data object, the variable values will be keyed on the \xmlString{ID} parameter.
-  \end{itemize}
-  Each value that needs to be extracted from the file needs to be specified by one of the following
-  \xmlNode{output} nodes within the \xmlNode{File} node:
-  \begin{itemize}
-    \item \xmlNode{output}, \xmlDesc{|-separated string, required field},
-           the specification of the output to extract from the file.
-           RAVEN uses \texttt{xpath} as implemented in Python's \texttt{xml.etree} module to specify locations
-           in XML.  For example, to search tags, use a path
-           separated by forward slash characters (``/''), starting under the root; this means the root node should not
-           be included in the path. See the example.  For more details on xpath options available, see
-           \url{https://docs.python.org/2/library/xml.etree.elementtree.html#xpath-support}.
-           %
-           The \xmlNode{output} node requires the following attribute:
-      \begin{itemize}
-        \item \xmlAttr{name}, \xmlDesc{string, required field}, specifies the entry in the Data Object that
-          this value should be stored under.
-      \end{itemize}
-
-  \end{itemize}
-  %
-\end{itemize}
-\textbf{Example (Static):}
-Using an example, let us have two input files, named \emph{in1.xml} and \emph{in2.xml}.  They appear as
-follows.  Note that the name of the variables we want changes slightly between the XML; this is fine.
-
-\textbf{\emph{in1.xml}}
-\begin{lstlisting}[style=XML]
-<BasicStatistics>
-  <ans>
-    <val1>6</val1>
-    <val2>7</val2>
-  </ans>
-</BasicStatistics>
-\end{lstlisting}
-\textbf{\emph{in2.xml}}
-\begin{lstlisting}[style=XML]
-<ROM>
-  <ans>
-    <first>6.1</first>
-    <second>7.1</second>
-  </ans>
-</BasicStatistics>
-\end{lstlisting}
-
-The RAVEN input to extract this information would appear as follows.
-We include an example of defining the \xmlNode{DataObject} that this postprocessor will write out to, for
-further clarity.
-
-\begin{lstlisting}[style=XML]
-<Simulation>
- ...
- <Files>
-   <Input name='in1'>inp1.xml</Input>
-   <Input name='in2'>inp2.xml</Input>
- </Files>
- ...
- <Models>
-   ...
-   <PostProcessor name='pp' subType='RavenOutput'>
-     <File name='in1' ID='1'>
-       <output name='first'>ans/val1</output>
-       <output name='second'>ans/val2</output>
-     </File>
-     <File name='in2' ID='2'>
-       <output name='first'>ans/first</output>
-       <output name='second'>ans/second</output>
-     </File>
-   </PostProcessor>
-   ...
- </Models>
- ...
- <DataObjects>
-   ...
-   <PointSet name='pointSetName'>
-     <input>ID</input>
-     <output>first,second</output>
-   </PointSet>
-   ...
- </DataObjects>
- ...
-</Simulation>
-\end{lstlisting}
-
-\textbf{Example (Dynamic):}
-For a dynamic example, consider this time-evolution of values example.  \emph{inFile.xml} is a RAVEN dynamic
-XML output.
-
-\textbf{\emph{in1.xml}}
-\begin{lstlisting}[style=XML]
-<BasicStatistics type='Dynamic'>
-  <time value='0.0'>
-    <ans>
-      <val1>6</val1>
-      <val2>7</val2>
-    </ans>
-  <\time>
-  <time value='1.0'>
-    <ans>
-      <val1>9</val1>
-      <val2>10</val2>
-    </ans>
-  <\time>
-</BasicStatistics>
-\end{lstlisting}
-The RAVEN input to extract this information would appear as follows:
-\begin{lstlisting}[style=XML]
-<Simulation>
- ...
- <Files>
-   <Input name='inFile'>inFile.xml</Input>
- </Files>
- ...
- <Models>
-   ...
-   <PostProcessor name='pp' subType='RavenOut'>
-     <dynamic>true</dynamic>
-     <File name='inFile'>
-       <output name='first'>ans|val1</output>
-     </File>
-   </PostProcessor>
-   ...
- </Models>
- ...
-</Simulation>
-\end{lstlisting}
-The resulting PointSet has \emph{time} as an input and \emph{first} as an output.
+\input{PostProcessors/DataMining.tex}
 
 %%%%%%%%%%%%%% ParetoFrontier PP %%%%%%%%%%%%%%%%%%%
 
 \subsubsection{ParetoFrontier}
 \label{ParetoFrontierPP}
-The \textbf{ParetoFrontier} post-processor is designed to identify the points lying on the Pareto Frontier in a cost-value space.
-This post-processor receives as input a \textbf{DataObject} (a PointSet only) which contains all data points in the cost-value space and it 
+The \textbf{ParetoFrontier} post-processor is designed to identify the points lying on the Pareto Frontier in a multi-dimensional trade-space.
+This post-processor receives as input a \textbf{DataObject} (a PointSet only) which contains all data points in the trade-space space and it
 returns the subset of points lying in the Pareto Frontier as a PointSet.
 
-It is here assumed that each data point of the input PointSet is a realization of the system under consideration for a 
-specific configuration to which corresponds a cost and a value.
+It is here assumed that each data point of the input PointSet is a realization of the system under consideration for a
+specific configuration to which corresponds several objective variables (e.g., cost and value).
 
 %
 \ppType{ParetoFrontier}{ParetoFrontier}
 %
 \begin{itemize}
-  \item  \xmlNode{costID},\xmlDesc{string, required parameter}, ID of the input PointSet variable that is considered the cost variable. 
+  \item   \xmlNode{objective},\xmlDesc{string, required parameter}, ID of the objective variable that represents a dimension of the trade-space space.
           The \xmlNode{costID} requires one identifying attribute:
           \begin{itemize}
-            \item \xmlAttr{inv}, \xmlDesc{boolean, required field}, False if costID represents a cost, True if costID represents a saving
-          \end{itemize}
-  \item  \xmlNode{valueID},\xmlDesc{string, required parameter}, ID of the input PointSet variable that is considered the value variable
-          The \xmlNode{valueID} requires one identifying attribute:
-          \begin{itemize}
-            \item \xmlAttr{inv}, \xmlDesc{boolean, required field}, False if valueID represents a value, True if valueID represents a loss of value
-          \end{itemize}
-  \item  \xmlNode{costLimit},\xmlDesc{float, optional parameter}, maximum value of the cost variable to be considered in the pareto frontier
-          The \xmlNode{costLimit} requires one identifying attribute:
-          \begin{itemize}
-            \item \xmlAttr{type}, \xmlDesc{string, required field}, this attribute can be either ``lower" or ``upper'', it indicates if the limit is an upper or lower limit
-          \end{itemize}
-  \item  \xmlNode{valueLimit},\xmlDesc{float, optional parameter}, minimum value of the value variable to be considered in the pareto frontier
-          The \xmlNode{valueLimit} requires one identifying attribute:
-          \begin{itemize}
-            \item \xmlAttr{type}, \xmlDesc{string, required field}, this attribute can be either ``lower" or ``upper'', it indicates if the limit is an upper or lower limit
+            \item \xmlAttr{goal}, \xmlDesc{string, required field}, Goal of the objective variable characteristic: minimzation (min) or maximization (max)
+            \item \xmlAttr{upperLimit}, \xmlDesc{string, optional field}, Desired upper limit of the objective variable for the points in the Pareto frontier
+            \item \xmlAttr{lowerLimit}, \xmlDesc{string, optional field}, Desired lower limit of the objective variable for the points in the Pareto frontier
           \end{itemize}
 \end{itemize}
 
-The following is an example where a set of realizations (the ``candidates'' PointSet) has been generated by changing two parameters 
-(var1 and var2) which produced two output variables (cost and value).
-The \textbf{ParetoFrontier} post-processor takes the ``candidates'' PointSet and populates a Point similar in structure 
+The following is an example where a set of realizations (the ``candidates'' PointSet) has been generated by changing two parameters
+(var1 and var2) which produced two output variables: cost (which it is desired to be minimized) and value (which it is desired to be maximized).
+The \textbf{ParetoFrontier} post-processor takes the ``candidates'' PointSet and populates a Point similar in structure
 (the ``paretoPoints'' PointSet).
 
 \textbf{Example:}
 \begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=ParetoFrontier input example (no expand)., label=lst:ParetoFrontier_PP_InputExample]
   <Models>
     <PostProcessor name="paretoPP" subType="ParetoFrontier">
-      <costID>cost</costID>
-      <valueID>value</valueID>
-    </PostProcessor>   
+      <objective goal='min' upperLimit='0.5'>cost</objective>
+      <objective goal='max' lowerLimit='0.5'>value</objective>
+    </PostProcessor>
   </Models>
 
   <Steps>
@@ -1917,7 +1137,7 @@ The \textbf{ParetoFrontier} post-processor takes the ``candidates'' PointSet and
       <Output    class="DataObjects"  type="PointSet"        >paretoPoints</Output>
     </PostProcess>
   </Steps>
-  
+
   <DataObjects>
     <PointSet name="candidates">
       <Input>var1,var2</Input>
@@ -1930,482 +1150,9 @@ The \textbf{ParetoFrontier} post-processor takes the ``candidates'' PointSet and
   </DataObjects>
 \end{lstlisting}
 
-\nb it is possible to specify upper and lower limits for the cost and value variable respectively.
+\nb it is possible to specify both upper and lower limits for each objective variable.
 When one or both of these limits are specified, then the pareto frontier is filtered such that all pareto frontier points that
 satisfy those limits are preserved.
-
-%%%%%%%%%%%%%% MCSImporter PP %%%%%%%%%%%%%%%%%%%
-
-\subsubsection{MCSImporter}
-\label{MCSimporterPP}
-The \textbf{MCSImporter} post-processor has been designed to import Minimal Cut Sets (MCSs) into RAVEN.
-This post-processor reads a csv file which contain the list of MCSs and it save this list as a DataObject 
-(i.e.,  a PointSet).
-The csv file is composed by three columns; the first contains the ID number of the MCS, the second one contains
-the MCS probability value, the third one lists all the Basic Events contained in the MCS.
-An example of csv file is shown in Table~\ref{MCScsv}.
-
-\begin{table}[h]
-    \centering
-    \caption{Example of csv file which contains four MCSs.}
-    \label{MCScsv}
-	\begin{tabular}{c  c  c}
-		\hline
-		ID, & Prob, & MCS, \\
-		\hline
-		1.,  &  1.8E-2, &  D  \\
-		2.,  &  4.0E-3, &  B \\
-		3.,  &  3.0E-4, &  A,C  \\
-		4.,  &  2.1E-5, &  E,C \\
-		\hline
-	\end{tabular}
-\end{table}
-
-The PointSet is structured to include all Basic Event, the MCS ID, the MCS probability, and the outcome of such MCS 
-(always set to 1).
-MCS ID and MCS probability are copied directly from the csv file.
-For each MCS, the Basic Events can have two possible values:
-  \begin{itemize}
-    \item  0: Basic Event is not included in the MCS
-    \item  1: Basic Event is included in the MCS
-  \end{itemize}
-The PointSet generated from the csv file of Table~\ref{MCScsv} is shown in Table~\ref{PointSetMCSExpandFalse}.
-\begin{table}[h]
-    \centering
-    \caption{PointSet generated by RAVEN for the list of MCSs shown in Table~\ref{MCScsv}.}
-    \label{PointSetMCSExpandFalse}
-	\begin{tabular}{c | c | c | c | c | c | c | c }
-		\hline
-		A & B & C & D & E & MCS\_ID & probability & out \\
-		\hline
-		0 & 0 & 0 & 1 & 0 & 1 & 1.8E-2 & 1 \\
-		0 & 1 & 0 & 0 & 0 & 2 & 4.0E-3 & 1 \\
-		1 & 0 & 1 & 0 & 0 & 3 & 3.0E-4 & 1 \\
-		0 & 0 & 1 & 0 & 1 & 4 & 4.0E-3 & 1 \\
-		\hline
-	\end{tabular}
-\end{table}
-
-%
-\ppType{MCSImporter}{MCSImporter}
-%
-\begin{itemize}
-  \item  \xmlNode{expand},\xmlDesc{bool, required parameter}, expand the set of Basic Events by including all PRA Basic Events
-  and not only the once listed in the MCSs
-  \item  \xmlNode{BElistColumn},\xmlDesc{string, optional parameter}, if expand is set to True, then this node contains the 
-  column of the csv file which contains all the PRA Basic Events
-\end{itemize}
-
-\textbf{Example:}
-\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=MCS Importer input example (no expand)., label=lst:MCS_PP_InputExample]
-  <Files>
-    <Input name="MCSlistFile" type="MCSlist">MCSlist.csv</Input>
-  </Files>
-  
-  <Models>
-    <PostProcessor name="MCSImporter" subType="MCSImporter">
-      <expand>False</expand>
-    </PostProcessor>   
-  </Models>
-
-  <Steps>
-    <PostProcess name="import">
-      <Input   class="Files"        type="MCSlist"         >MCSlistFile</Input>
-      <Model   class="Models"       type="PostProcessor"   >MCSImporter</Model>
-      <Output  class="DataObjects"  type="PointSet"        >MCS_PS</Output>
-    </PostProcess>
-  </Steps>
-  
-  <DataObjects>
-    <PointSet name="MCS_PS">
-      <Input>A,B,C,D,E</Input>
-      <Output>MCS_ID,probability,out</Output>
-    </PointSet>
-  </DataObjects>
-\end{lstlisting}
-
-\textbf{Example:}
-\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=MCS Importer input example (expanded)., label=lst:MCS_PP_InputExample]
-  <Files>
-    <Input name="MCSlistFile" type="MCSlist">MCSlist.csv</Input>
-    <Input name="BElistFile"  type="BElist" >BElist.csv</Input>
-  </Files>
-  
-  <Models>
-    <PostProcessor name="MCSImporter" subType="MCSImporter">
-      <expand>False</expand>
-    </PostProcessor>   
-  </Models>
-
-  <Steps>
-    <PostProcess name="import">
-      <Input   class="Files"        type="MCSlist"         >MCSlistFile</Input>
-      <Input   class="Files"        type="BElist"          >BElistFile</Input>
-      <Model   class="Models"       type="PostProcessor"   >MCSimporter</Model>
-      <Output  class="DataObjects"  type="PointSet"        >MCS_PS</Output>
-    </PostProcess>
-  </Steps>
-  
-  <DataObjects>
-    <PointSet name="MCS_PS">
-      <Input>A,B,C,D,E,F,G</Input>
-      <Output>MCS_ID,probability,out</Output>
-    </PointSet>
-  </DataObjects>
-\end{lstlisting}
-
-%%%%%%%%%%%%%% ETImporter PP %%%%%%%%%%%%%%%%%%%
-
-\subsubsection{ETImporter}
-\label{ETImporterPP}
-The \textbf{ETImporter} post-processor has been designed to import Event-Tree (ET) object into
-RAVEN. Since several ET file formats are available, as of now only the OpenPSA format
-(see https://open-psa.github.io/joomla1.5/index.php.html) is supported. As an example,
-the OpenPSA format ET is shown below:
-
-\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=ET in OpenPSA format., label=lst:ETModel]
-<define-event-tree name="eventTree">
-    <define-functional-event name="ACC"/>
-    <define-functional-event name="LPI"/>
-    <define-functional-event name="LPR"/>
-    <define-sequence name="1"/>
-    <define-sequence name="2"/>
-    <define-sequence name="3"/>
-    <define-sequence name="4"/>
-    <initial-state>
-        <fork functional-event="ACC">
-            <path state="0">
-                <fork functional-event="LPI">
-                    <path state="0">
-                        <fork functional-event="LPR">
-                            <path state="0">
-                                <sequence name="1"/>
-                            </path>
-                            <path state="+1">
-                                <sequence name="2"/>
-                            </path>
-                        </fork>
-                    </path>
-                    <path state="+1">
-                        <sequence name="3"/>
-                    </path>
-                </fork>
-            </path>
-            <path state="+1">
-                <sequence name="4"/>
-            </path>
-        </fork>
-    </initial-state>
-</define-event-tree>
-\end{lstlisting}
-
-This is performed by saving the structure of the ET (from file) as a \textbf{PointSet}
-(only \textbf{PointSet} are allowed), since an ET is a static Boolean logic structure. Each realization in the
-\textbf{PointSet} represents a unique accident sequence of the ET, and the \textbf{PointSet} is structured as follows:
-\begin{itemize}
-  \item Input variables of the \textbf{PointSet} are the branching conditions of the ET. The value of each input variable can be:
-  \begin{itemize}
-    \item  0: event did occur (typically upper branch)
-    \item  1: event did not occur (typically lower branch)
-    \item -1: event is not queried (no branching occured)
-  \end{itemize}
-  \item Output variables of the \textbf{PointSet} are the ID of each branch of the ET (i.e., positive integers greater than 0)
-\end{itemize}
-
-\nb that the 0 or 1 values are specified in the \xmlNode{path state="0"} or \xmlNode{path state="1"} nodes in the ET OpenPSA file.
-
-Provided this definition, the ET described in Listing~\ref{lst:ETModel} will be converted to \textbf{PointSet} that is characterized
-by the following variables:
-\begin{itemize}
-	\item Input variables: statusACC, statusLPI, statusLPR
-	\item Output variable: sequence
-\end{itemize}
-and the corresponding \textbf{PointSet} if the \xmlNode{expand} node is set to False is shown in Table~\ref{PointSetETExpandFalse}.
-If \xmlNode{expand} set to True, the corresponding \textbf{PointSet} is shown in Table~\ref{PointSetETExpandTrue}.
-\begin{table}[h]
-    \centering
-    \caption{PointSet generated by RAVEN by employing the ET Importer Post-Processor with \xmlNode{expand}
-             set to False for the ET of Listing~\ref{lst:ETModel}.}
-    \label{PointSetETExpandFalse}
-	\begin{tabular}{c | c | c | c}
-		\hline
-		ACC & LPI & LPR & sequence \\
-		\hline
-		0.  &  0. &  0. & 1. \\
-		0.  &  0. &  1. & 2. \\
-		0.  &  1. & -1. & 3. \\
-		1.  & -1. & -1. & 4. \\
-		\hline
-	\end{tabular}
-\end{table}
-\begin{table}[h]
-    \centering
-    \caption{PointSet generated by RAVEN by employing the ET Importer Post-Processor with \xmlNode{expand}
-             set to True for the ET of Listing~\ref{lst:ETModel}.}
-    \label{PointSetETExpandTrue}
-	\begin{tabular}{c | c | c | c}
-		\hline
-		ACC & LPI & LPR & sequence \\
-		\hline
-		0.  &  0. &  0. & 1. \\
-		0.  &  0. &  1. & 2. \\
-		0.  &  1. &  0. & 3. \\
-		0.  &  1. &  1. & 3. \\
-		1.  &  0. &  0. & 4. \\
-		1.  &  0. &  1. & 4. \\
-		1.  &  1. &  0. & 4. \\
-		1.  &  1. &  1. & 4. \\
-		\hline
-	\end{tabular}
-\end{table}
-
-The ETImporter PP supports also:
-\begin{itemize}
-  \item links to sub-trees
-	      \nb If the ET is split in two or more ETs (and thus one file for each ET), then it is only required to list
-	      all files in the Step. RAVEN automatically detect links among ETs and merge all of them into a single PointSet.
-  \item by-pass branches
-  \item symbolic definition of outcomes: typically outcomes are defined as either 0 (upper branch) or 1 (lower branch). If instead the ET uses the
-    \textbf{success/failure} labels, then they are converted into 0/1 labels
-    \nb If the branching condition is not binary or \textbf{success/failure}, then the ET Importer Post-Processor just follows
-	   the numerical value of the \xmlNode{state} attribute of the \xmlNode{<path>} node in the ET OpenPSA file.
-  \item symbolic/numerical definition of sequences: if the ET contains a symbolic sequence then a .xml file is generated.  This file contains
-        the mapping between the sequences defined in the ET and the numerical IDs created by RAVEN. The file name is the concatenation of the ET name
-        and "\_mapping". As an example the file "eventTree\_mapping.xml" generated by RAVEN:
-        \begin{lstlisting}[style=XML]
-            <map Tree="eventTree">
-              <sequence ID="0">seq_1</sequence>
-              <sequence ID="1">seq_2</sequence>
-              <sequence ID="2">seq_3</sequence>
-              <sequence ID="3">seq_4</sequence>
-            </map>
-        \end{lstlisting}
-        contains the mapping of four sequences defined in the ET (seq\_1,seq\_2,seq\_3,seq\_4) with the IDs generated by RAVEN (0,1,2,3).
-        Note that if the sequences defined in the ET are both numerical and symbolic then they are all mapped.
-  \item The ET can contain a branch that is defined as a separate block in the \xmlNode{define-branch} node and it is
-        replicated in the ET; in such case RAVEN automatically replicate such branch when generating the PointSet.
-\end{itemize}
-The \xmlNode{collect-formula} are not considered since this node is used to connect the Boolean formulae generated by the
-Fault-Trees to the branch (i.e., fork) point.
-
-%
-\ppType{ETImporter}{ETImporter}
-%
-\begin{itemize}
-  \item \xmlNode{fileFormat}, \xmlDesc{string, required field}, specifies the format of the file that contains the ET structure (supported format: OpenPSA).
-  \item  \xmlNode{expand},\xmlDesc{bool, required parameter}, expand the ET branching conditions for all branches even if they are not queried
-\end{itemize}
-
-\textbf{Example:}
-\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=ET Importer input example., label=lst:ET_PP_InputExample]
-  <Files>
-    <Input name="eventTreeTest" type="">eventTree.xml</Input>
-  </Files>
-
-  <Models>
-    ...
-    <PostProcessor name="ETimporter" subType="ETImporter">
-      <fileFormat>OpenPSA</fileFormat>
-      <expand>False</expand>
-    </PostProcessor>
-    ...
-  </Models>
-
-  <Steps>
-    ...
-    <PostProcess name="import">
-      <Input   class="Files"        type=""                >eventTreeTest</Input>
-      <Model   class="Models"       type="PostProcessor"   >ETimporter</Model>
-      <Output  class="DataObjects"  type="PointSet"        >ET_PS</Output>
-    </PostProcess>
-    ...
-  </Steps>
-
-  <DataObjects>
-    ...
-    <PointSet name="ET_PS">
-      <Input>ACC,LPI,LPR</Input>
-      <Output>sequence</Output>
-    </PointSet>
-    ...
-  </DataObjects>
-\end{lstlisting}
-
-
-%%%%%%%%%%%%%% FTImporter PP %%%%%%%%%%%%%%%%%%%
-
-\subsubsection{FTImporter}
-\label{FTImporterPP}
-The \textbf{FTImporter} post-processor has been designed to import Fault-Tree (FT) object into
-RAVEN. Since several FT file formats are available, as of now only the OpenPSA format
-(see https://open-psa.github.io/joomla1.5/index.php.html) is supported. As an example,
-the FT in OpenPSA format is shown in Listing~\ref{lst:FTModel}.
-
-\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=FT in OpenPSA format., label=lst:FTModel]
-<opsa-mef>
-    <define-fault-tree name="FT">
-        <define-gate name="TOP">
-            <or>
-                <gate name="G1"/>
-                <gate name="G2"/>
-                <gate name="G3"/>
-            </or>
-        </define-gate>
-        <define-component name="A">
-            <define-gate name="G1">
-                <and>
-                    <basic-event name="BE1"/>
-                    <basic-event name="BE2"/>
-                </and>
-            </define-gate>
-            <define-gate name="G2">
-                <and>
-                    <basic-event name="BE1"/>
-                    <basic-event name="BE3"/>
-                </and>
-            </define-gate>
-            <define-basic-event name="BE1">
-                <float value="1.2e-3"/>
-            </define-basic-event>
-            <define-component name="B">
-                <define-basic-event name="BE2">
-                    <float value="2.4e-3"/>
-                </define-basic-event>
-                <define-basic-event name="BE3">
-                    <float value="5.2e-3"/>
-                </define-basic-event>
-            </define-component>
-        </define-component>
-        <define-component name="C">
-            <define-gate name="G3">
-                <and>
-                    <basic-event name="BE1"/>
-                    <basic-event name="BE4"/>
-                </and>
-            </define-gate>
-            <define-basic-event name="BE4">
-                <float value="1.6e-3"/>
-            </define-basic-event>
-        </define-component>
-    </define-fault-tree>
-</opsa-mef>
-\end{lstlisting}
-
-This is performed by saving the structure of the FT (from file) as a \textbf{PointSet}
-(only \textbf{PointSet} are allowed).
-
-Each Point in the PointSet represents a unique combination of the basic events.
-The PointSet is structured as follows: input variables are the basic events, output variable is the top event of the FT.
-The value for each input and output variable can have the following values:
-\begin{itemize}
-  \item  0: False
-  \item  1: True
-\end{itemize}
-
-Provided this definition, the FT model of Listing~\ref{lst:FTModel} can be converted to
-\textbf{PointSet} that is characterized by these variables:
-\begin{itemize}
-	\item Input variables: BE1, BE2, BE3, BE4
-	\item Output variable: out
-\end{itemize}
-and it is structured is shown in Table~\ref{PointSetFT}.
-
-\begin{table}[h]
-    \centering
-    \caption{PointSet generated by RAVEN by employing the FT Importer Post-Processor for the FT of Listing~\ref{lst:FTModel}.}
-    \label{PointSetFT}
-	\begin{tabular}{c | c | c | c | c}
-		\hline
-		BE1 & BE2 & BE3 & BE4 & TOP \\
-		\hline
-		 0. &  0. &  0. &  0. &  0. \\
-		 0. &  0. &  0. &  1. &  0. \\
-		 0. &  0. &  1. &  0. &  0. \\
-		 0. &  0. &  1. &  1. &  0. \\
-		 0. &  1. &  0. &  0. &  0. \\
-		 0. &  1. &  0. &  1. &  0. \\
-		 0. &  1. &  1. &  0. &  0. \\
-		 0. &  1. &  1. &  1. &  0. \\
-		 1. &  0. &  0. &  0. &  0. \\
-		 1. &  0. &  0. &  1. &  1. \\
-		 1. &  0. &  1. &  0. &  1. \\
-		 1. &  0. &  1. &  1. &  1. \\
-		 1. &  1. &  0. &  0. &  1. \\
-		 1. &  1. &  0. &  1. &  1. \\
-		 1. &  1. &  1. &  0. &  1. \\
-		 1. &  1. &  1. &  1. &  1. \\
-		\hline
-	\end{tabular}
-\end{table}
-
-%
-\ppType{FTImporter}{FTImporter}
-%
-\begin{itemize}
-  \item \xmlNode{fileFormat}, \xmlDesc{string, required field}, specifies the format of the file that contains the
-    FT structure (supported format: OpenPSA).
-  \item  \xmlNode{topEventID},\xmlDesc{string, required parameter}, the name of the top event of the FT
-\end{itemize}
-
-The example of FTImporter PostProcessor is shown in Listing~\ref{lst:FT_PP_InputExample}
-\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=FT Importer input example., label=lst:FT_PP_InputExample]
-  <Files>
-    <Input name="faultTreeTest" type="">FTimporter_not.xml</Input>
-  </Files>
-
-  <Models>
-    ...
-    <PostProcessor name="FTimporter" subType="FTImporter">
-      <fileFormat>OpenPSA</fileFormat>
-      <topEventID>TOP</topEventID>
-    </PostProcessor>
-    ...
-  </Models>
-
-  <Steps>
-    ...
-    <PostProcess name="import">
-      <Input   class="Files"        type=""                >faultTreeTest</Input>
-      <Model   class="Models"       type="PostProcessor"   >FTimporter</Model>
-      <Output  class="DataObjects"  type="PointSet"        >FT_PS</Output>
-    </PostProcess>
-    ...
-  </Steps>
-
-  <DataObjects>
-    ...
-    <PointSet name="FT_PS">
-      <Input>BE1,BE2,BE3,BE4</Input>
-      <Output>TOP</Output>
-    </PointSet>
-    ...
-  </DataObjects>
-\end{lstlisting}
-
-Important notes and capabilities:
-\begin{itemize}
-	\item If the FT is split in two or more FTs (and thus one file for each FT), then it is only required to list
-	      all files in the Step. RAVEN automatically detect links among FTs and merge all of them into a single PointSet.
-	\item Allowed gates: AND, OR, NOT, ATLEAST, CARDINALITY, IFF, imply, NAND, NOR, XOR
-	\item If an house-event is defined in the FT:
-\begin{lstlisting}[style=XML,morekeywords={anAttribute},caption=FT Importer input example: house-event., label=lst:FT_house event]
-<opsa-mef>
-    <define-fault-tree name="FT">
-        <define-gate name="TOP">
-            <or>
-                <basic-event name="BE1"/>
-                <basic-event name="BE2"/>
-                <house-event name="HE1"/>
-            </or>
-        </define-gate>
-        <define-house-event name="HE1">
-        	<constant value="true"/>
-        </define-house-event>
-    </define-fault-tree>
-</opsa-mef>
-\end{lstlisting}
-           then the HE1 is not part of the PointSet (value is fixed)
-\end{itemize}
 
 %%%%%%%%%%%%%% Metric PP %%%%%%%%%%%%%%%%%%%
 
@@ -2728,118 +1475,6 @@ In addition to this XML node, several others are available:
     pseudo-random number generator state used for shuffling. If not present, use default numpy RNG for shuffling.
 \end{itemize}
 
-
-%%%%%%%%%%%%%% Data Classifier PP %%%%%%%%%%%%%%%%%%%
-
-\subsubsection{DataClassifier}
-\label{DataClassifierPP}
-The \textbf{DataClassifier} post-processor is specifically used to classify the data stored in the DataObjects. It
-accepts two DataObjects, one is used as the classifier which must be a \textbf{PointSet}, the other one,
-i.e. \textbf{PointSet} or \textbf{HistorySet}, is used as the input DataObject to be classified.
-%
-\ppType{DataClassifier}{DataClassifier}
-%
-\begin{itemize}
-  \item \xmlNode{label}, \xmlDesc{string, required field}, the name of the label that are used for the classifier. This
-    label must exist in the DataObject that is used as the classifer. This name will also be used as
-    the label name for the DataObject that is classified.
-  \item \xmlNode{variable}, \xmlDesc{required, xml node}. In this node, the following attribute should be specified:
-    \begin{itemize}
-      \item \xmlAttr{name}, \xmlDesc{required, string attribute}, the variable name, which should be exist in
-        the DataObject that is used as classifier.
-    \end{itemize}
-    and the following sub-node should also be specified:
-    \begin{itemize}
-      \item \xmlNode{Function}, \xmlDesc{string, required field}, this function creates the mapping from input DataObject
-        to the Classifier.
-        \begin{itemize}
-          \item \xmlAttr{class}, \xmlDesc{string, required field}, the class of this function (e.g. Functions)
-          \item \xmlAttr{type}, \xmlDesc{string, required field}, the type of this function (e.g. external)
-        \end{itemize}
-    \end{itemize}
-\end{itemize}
-%
-In order to use this post-processor, the users need to specify two different DataObjects, i.e.
-\begin{lstlisting}[style=XML]
-  <DataObjects>
-    <PointSet name="ET_PS">
-      <Input>ACC, LPI</Input>
-      <Output>sequence</Output>
-    </PointSet>
-    <PointSet name="sim_PS">
-      <Input>ACC_status, LPI_status</Input>
-      <Output>out</Output>
-    </PointSet>
-  </DataObjects>
-\end{lstlisting}
-The first data object ``ET\_PS'' contains the event tree with input variables ``ACC, LPI'' and output label ``sequence''.
-This data object will be used to classify the data in the second data object ``sim\_PS''. The results will be stored in
-the output data object with the same label ``sequence''. Since these two data objects contain different inputs,
-\xmlNode{Functions} will be used to create the maps between the inputs:
-\begin{lstlisting}[style=XML]
-  <Functions>
-    <External file="func_ACC.py" name="func_ACC">
-      <variable>ACC_status</variable>
-    </External>
-    <External file="func_LPI.py" name="func_LPI">
-      <variable>LPI_status</variable>
-    </External>
-  </Functions>
-\end{lstlisting}
-
-The inputs to these functions are the inputs of the data object that will be classified, and the outputs of these functions
-are the inputs of data object that is used as the classifier.
-
-\textbf{Example Python Function for ``func\_ACC.py''}
-\begin{lstlisting}[language=python]
-def evaluate(self):
-  return self.ACC_status
-\end{lstlisting}
-
-\textbf{Example Python Function for ``func\_LPI.py''}
-\begin{lstlisting}[language=python]
-def evaluate(self):
-  return self.LPI_status
-\end{lstlisting}
-
-\nb All the functions that are used to create the maps should be include the ``evaluate'' method.
-
-The \textbf{DataClassifier} post-processor is specifically used to classify the data stored in the DataObjects. It
-accepts two DataObjects, one is used as the classifier which should be always \textbf{PointSet}, the other one, i.e.
-either \textbf{PointSet} or \textbf{HistorySet} is used as the input DataObject to be classified.
-
-The \textbf{DataClassifier} is provided below:
-\begin{lstlisting}[style=XML]
-    <PostProcessor name="ET_Classifier" subType="DataClassifier">
-      <label>sequence</label>
-      <variable name='ACC'>
-        <Function class="Functions" type="External">func_ACC</Function>
-      </variable>
-      <variable name='LPI'>
-        <Function class="Functions" type="External">func_LPI</Function>
-      </variable>
-    </PostProcessor>
-\end{lstlisting}
-The definitions for the XML nodes can be found in the RAVEN user manual. The label ``sequence''
-and the variables ``ACC, LPI'' should be exist in the data object that is used as the classifier,
-while the functions ``func\_ACC, func\_LPI'' are used to map relationships between the input data objects.
-
-The classification can be achieved via the \xmlNode{Steps} as shown below:
-\begin{lstlisting}[style=XML]
-<Simulation>
- ...
-  <Steps>
-    <PostProcess name="classify">
-      <Input   class="DataObjects"  type="PointSet"        >ET_PS</Input>
-      <Input   class="DataObjects"  type="PointSet"        >sim_PS</Input>
-      <Model   class="Models"       type="PostProcessor"   >ET_Classifier</Model>
-      <Output  class="DataObjects"  type="PointSet"        >sim_PS</Output>
-    </PostProcess>
-  </Steps>
- ...
-</Simulation>
-\end{lstlisting}
-
 %%%%%%%%%%%%%% ValueDuration %%%%%%%%%%%%%%%%%%%
 \subsubsection{ValueDuration}
 \label{ValueDurationPP}
@@ -2905,7 +1540,7 @@ single index, and generates three histories per sample per target: an independen
 \begin{itemize}
   \item \xmlNode{target}, \xmlDesc{comma separated strings, required field}, specifies the names of the
     target(s) for which the fast Fourier transform should be calculated.
- \end{itemize}   
+ \end{itemize}
 \textbf{Example:}
 
 \begin{lstlisting}[style=XML]
@@ -2972,5 +1607,126 @@ The \xmlNode{SampleSelector} postprocessor can  act on any \xmlNode{DataObjects}
 </Simulation>
 \end{lstlisting}
 
+%%%%% PP Validation %%%%%%%
+\subsubsection{Validation}
+\label{subsubsec:Validation}
+
+The \xmlNode{Validation} post-processor represents a gate 
+for applying a different range of algorithms to validate (e.g. compare)
+dataset and/or models (e.g. Distributions). 
+The post-processor is in charge of deploying a common infrastructure
+for the user of  \textbf{Validation} problems. 
+Several algorithms are avaialable within this post-processor:
+\begin{itemize}
+  \item  \textbf{Probabilistic}, for Static and Time-dependent data
+  % \item  \textbf{DSS}
+  % \item  \textbf{Representativity}
+  % \item  \textbf{PCM}
+\end{itemize}
+%
+
+The \textbf{Validation} post-processor makes use of the \textbf{Metric} system (See Chapter \ref{sec:Metrics}) to, in conjucntion with the specific algorithm chosen from the list above,
+to report validation scores for both static and time-dependent data.
+Indeed, Both \textbf{PointSet} and \textbf{HistorySet} can be accepted by this post-processor (depending on which algorithm is chosen).
+If the name of given variable to be compared is unique, it can be used directly, otherwise the variable can be specified
+with $DataObjectName|InputOrOutput|VariableName$ nomenclature.
+
+%
+\ppType{Validation}{Validation}
+%
+\begin{itemize}
+  \item \xmlNode{Features}, \xmlDesc{comma separated string, required field}, specifies the names of the features.
+  \item \xmlNode{Targets}, \xmlDesc{comma separated string, required field}, contains a comma separated list of
+     targets. \nb Each target is paired with a feature listed in xml node \xmlNode{Features}. In this case, the
+    number of targets should be equal to the number of features.
+    \item \xmlNode{Metric}, \xmlDesc{string, required field}, specifies the \textbf{Metric} name that is defined via
+    \textbf{Metrics} entity. In this xml-node, the following xml attributes need to be specified:
+    \begin{itemize}
+      \item \xmlAttr{class}, \xmlDesc{required string attribute}, the class of this metric (e.g. Metrics)
+      \item \xmlAttr{type}, \xmlDesc{required string attribute}, the sub-type of this Metric (e.g. SKL, Minkowski)
+    \end{itemize}
+    The choice of the available metrics depends on the specific validation algorithm that is chosen (see table \ref{tab:validationAlgorithms})
+\end{itemize}
+
+In addition to the nodes above, the user must choose a validation algorithm:
+\begin{itemize}
+  \item \xmlNode{Probabilistic}, \xmlDesc{XML node, optional field}, specify that the validation needs to be performed 
+  using the Probabilistic metrics: \textbf{CDFAreaDifference} (see \ref{subsubsec:metric_CDFAreaDifference})  or \textbf{PDFCommonArea} (see \ref{subsubsec:metric_PDFCommonArea}) 
+  This xml-node accepts the following attribute:
+    \begin{itemize}
+      \item \xmlAttr{ name}, \xmlDesc{required string attribute}, the  user defined name of the validation algorithm used as prefix for the output results.
+    \end{itemize}
+  %\item \xmlNode{DSS}, \xmlDesc{XML node, optional field}, specify that the validation needs to be performed via DSS.  
+  %This xml-node accepts the following attribute:
+  %  \begin{itemize}
+  %    \item \xmlAttr{ name}, \xmlDesc{required string attribute}, the  user defined name of the validation algorithm used as prefix for the output results.
+  %  \end{itemize}
+  %  The following subnodes must be inputted:
+  %   \begin{itemize}
+  %     \item \xmlNode{myNode}, \xmlDesc{comma separated string, required field}, DESCRIPTION
+  %  \end{itemize}
+\end{itemize}
+
+\begin{table}[]
+\caption{Validation Algorithms and respective available metrics and DataObjects}
+\label{tab:validationAlgorithms}
+\begin{tabular}{|c|c|c|}
+\hline
+\textbf{Validation Algorithm} & \textbf{DataObject}                                            & \textbf{Available Metrics}                                                   \\ \hline
+Probabilistic                 & \begin{tabular}[c]{@{}c@{}}PointSet \\ HistorySet\end{tabular} & \begin{tabular}[c]{@{}c@{}}CDFAreaDifference\\ \\ PDFCommonArea\end{tabular} \\ \hline
+DSS                           & HistorySet                                                     & Not Available Yet                                                            \\ \hline
+\end{tabular}
+\end{table}
+
+\textbf{Example:}
+\begin{lstlisting}[style=XML,morekeywords={subType}]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="pp1" subType="Validation">
+      <Features>outputDataMC1|ans</Features>
+      <Targets>outputDataMC2|ans2</Targets>
+      <Metric class="Metrics" type="CDFAreaDifference">cdf_diff</Metric>
+      <Metric class="Metrics" type="PDFCommonArea">pdf_area</Metric>
+      <Probabilistic name="myProbMetric">
+         <!--  the Probabilistic Validation does  not -->
+      </Probabilistic>
+    </PostProcessor>
+    ...
+  <Models>
+  ...
+<Simulation>
+\end{lstlisting}
+
 %%%%% PP EconomicRatio %%%%%%%
 \input{EconomicRatio.tex}
+
+%%%%% HistorySetDelay %%%%%%
+\input{PostProcessors/HistorySetDelay.tex}
+
+%%%%% HStoPSOperator %%%%%%
+\input{PostProcessors/HStoPSOperator.tex}
+
+%%%%% HistorySetSampling %%%%%%
+\input{PostProcessors/HistorySetSampling.tex}
+
+%%%%% HistorySetSync %%%%%%
+\input{PostProcessors/HistorySetSync.tex}
+
+%%%%% HistorySetSnapShot %%%%%%
+\input{PostProcessors/HistorySetSnapShot.tex}
+
+%%%%% HS2PS %%%%%%
+\input{PostProcessors/HS2PS.tex}
+
+%%%%% TypicalHistoryFromHistorySet %%%%%%
+\input{PostProcessors/TypicalHistoryFromHistorySet.tex}
+
+%%%%% dataObjectLabelFilter %%%%%%
+\input{PostProcessors/dataObjectLabelFilter.tex}
+
+%%%%%%%%%%%%%% InterfacedPostProcessors %%%%%%%%%%%%%%%%
+% To be replaced by the PostProcessor Plugin
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\input{PostProcessors/InterfacedPostProcessors.tex}
