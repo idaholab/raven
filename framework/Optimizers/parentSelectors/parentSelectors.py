@@ -89,6 +89,7 @@ def tournamentSelection(population,**kwargs):
   popSize = population.values.shape[0]
 
   if 'rank' in kwargs:
+    # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to
     rank = kwargs['rank']
     multiObjectiveRanking = True
     matrixOperation = np.zeros((popSize,3))
