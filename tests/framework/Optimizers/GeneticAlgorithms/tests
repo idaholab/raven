@@ -54,7 +54,7 @@
     [../]
     [./plot]
       type = Exists
-      output = 'MaxwReplacement/opt_path.png'
+      output = 'discrete/unconstrained/MaxwReplacement/opt_path.png'
     [../]
   [../]
 
