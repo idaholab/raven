@@ -152,6 +152,27 @@ indexes2D = frontUtils.nonDominatedFrontier(test2D, returnMask=False, minMask=np
 answerIndexes = np.array([0, 16, 34, 47, 49])
 checkArray('2D nonDominatedFrontier MinMask with indexes', indexes2D.tolist(), answerIndexes.tolist())
 
+testCDarray = np.array([[12, 0],
+                       [11.5, 0.5],
+                       [11, 1],
+                       [10.8, 1.2],
+                       [10.5, 1.5],
+                       [10.3, 1.8],
+                       [9.5, 2],
+                       [9, 2.5],
+                       [7, 3],
+                       [5, 4],
+                       [2.5, 6],
+                       [2, 10],
+                       [1.5, 11],
+                       [1, 11.5],
+                       [0.8, 11.7],
+                       [0, 12]])
+
+rankCDsingleFornt = np.ones(16)
+indexes_CD_2D = frontUtils.crowdingDistance(rank=rankCDsingleFornt, popSize=16, objectives=testCDarray)
+answerIndexes_CD_2D = np.array([2.,0.16666667,0.11666667,0.08333333,0.09166667,0.125,0.16666667,0.29166667,0.45833333,0.625,0.75,0.5,0.20833333,0.11666667,0.125,2.])
+checkArray('2D crowding distance', indexes_CD_2D.tolist(), answerIndexes_CD_2D.tolist())
 
 
 print(results)
