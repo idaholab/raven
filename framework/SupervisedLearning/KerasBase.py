@@ -227,13 +227,7 @@ class KerasBase(supervisedLearning):
     self._ROM = None
     # the training/testing history of ROM
     self._romHistory = None
-    self._sessionConf = None
     randomSeed = self.initOptionDict.pop('random_seed',None)
-    # Force TensorFlow to use single thread when reproducible results are requested
-    # Multiple threads are a potential source of non-reproducible results.
-    # For further details, see: https://stackoverflow.com/questions/42022950/
-    self._sessionConf = tf.ConfigProto(intra_op_parallelism_threads=self.numThreads,
-                                  inter_op_parallelism_threads=self.numThreads)
     # Set the seed for random number generation to obtain reproducible results
     # https://keras.io/getting-started/faq/#how-can-i-obtain-reproducible-results-using-keras-during-development
     if randomSeed is not None:
@@ -243,18 +237,11 @@ class KerasBase(supervisedLearning):
       # The below is necessary for starting core Python generated random numbers
       # in a well-defined state.
       rn.seed(randomSeed)
-      # The below tf.set_random_seed() will make random number generation
+      # The below tf.random.set_seed() will make random number generation
       # in the TensorFlow backend have a well-defined initial state.
       # For further details, see:
-      # https://www.tensorflow.org/api_docs/python/tf/set_random_seed
-      tf.set_random_seed(randomSeed)
-    self._session = tf.Session(graph=tf.get_default_graph(), config=self._sessionConf)
-    # Base on issue https://github.com/tensorflow/tensorflow/issues/28287
-    # The problem is that tensorflow graphs and sessions are not thread safe. So by default
-    # a new session (which) does not contain any previously loaded weights, models, and so on)
-    # is created for each thread, i.e. for each request. By saving the session that contains all
-    # the models and setting it to be used by keras in each thread.
-    tf.keras.backend.set_session(self._session)
+      # https://www.tensorflow.org/api_docs/python/tf/random/set_seed
+      tf.random.set_seed(randomSeed)
 
     modelName = self.initOptionDict.pop('name','')
     # number of classes for classifier
@@ -300,9 +287,7 @@ class KerasBase(supervisedLearning):
       @ In, None
       @ Out, None
     """
-    # This is needed to solve the thread issue in self._ROM.predict()
-    # https://github.com/fchollet/keras/issues/2397#issuecomment-306687500
-    self.graph = tf.get_default_graph()
+    pass
 
   def __getstate__(self):
     """
@@ -311,7 +296,7 @@ class KerasBase(supervisedLearning):
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
     state = supervisedLearning.__getstate__(self)
-    tf.keras.models.save_model(self._ROM, KerasBase.tempModelFile)
+    tf.keras.models.save_model(self._ROM, KerasBase.tempModelFile, save_format='h5')
     # another method to save the TensorFlow model
     # self._ROM.save(KerasBase.tempModelFile)
     with open(KerasBase.tempModelFile, "rb") as f:
@@ -331,7 +316,6 @@ class KerasBase(supervisedLearning):
     with open(KerasBase.tempModelFile, "wb") as f:
       f.write(d[KerasBase.modelAttr])
     del d[KerasBase.modelAttr]
-    tf.keras.backend.set_session(self._session)
     self._ROM = tf.keras.models.load_model(KerasBase.tempModelFile)
     os.remove(KerasBase.tempModelFile)
     self.__dict__.update(d)
@@ -348,8 +332,8 @@ class KerasBase(supervisedLearning):
     if not self.amITrained:
       self.raiseAnError(RuntimeError, 'ROM is not yet trained! Cannot write to DataObject.')
     root = writeTo.getRoot()
-    writeTo.addScalar('Accuracy',"Training",' '.join([str(elm) for elm in self._romHistory.history['acc']]))
-    writeTo.addScalar('Accuracy',"Testing",' '.join([str(elm) for elm in self._romHistory.history['val_acc']]))
+    writeTo.addScalar('Accuracy',"Training",' '.join([str(elm) for elm in self._romHistory.history['accuracy']]))
+    writeTo.addScalar('Accuracy',"Testing",' '.join([str(elm) for elm in self._romHistory.history['val_accuracy']]))
     writeTo.addScalar('Loss',"Training",' '.join([str(elm) for elm in self._romHistory.history['loss']]))
     writeTo.addScalar('Loss',"Testing",' '.join([str(elm) for elm in self._romHistory.history['val_loss']]))
 
@@ -465,7 +449,6 @@ class KerasBase(supervisedLearning):
     #output layer
     self._addOutputLayers()
     self._ROM.compile(loss=self.lossFunction, optimizer=self.optimizer, metrics=self.metrics)
-    self._ROM._make_predict_function() # have to initialize before threading
     self._romHistory = self._ROM.fit(featureVals, targetVals, epochs=self.epochs, batch_size=self.batchSize, validation_split=self.validationSplit)
     # The following requires pydot-ng and graphviz to be installed (See the manual)
     # https://github.com/keras-team/keras/issues/3210
@@ -490,9 +473,7 @@ class KerasBase(supervisedLearning):
     """
     featureVals = self._preprocessInputs(featureVals)
     prediction = {}
-    with self.graph.as_default():
-      tf.keras.backend.set_session(self._session)
-      outcome = self._ROM.predict(featureVals)
+    outcome = self._ROM.predict(featureVals)
     if self.numClasses > 1 and self.lossFunction in ['categorical_crossentropy']:
       outcome = np.argmax(outcome,axis=1)
       # Transform labels back to original encoding
