@@ -17,7 +17,7 @@
   @author: alfoa
   RadiusNeighborsRegressor
   Regressor implementing a vote among neighbors within a given radius
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
@@ -36,20 +36,19 @@ class RadiusNeighborsClassifier(SciktLearnBase):
     Regressor implementing a vote among neighbors within a given radius
   """
   info = {'problemtype':'regression', 'normalize':True}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.svm
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
     self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.neighbors.RadiusNeighborsRegressor)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -69,7 +68,7 @@ class RadiusNeighborsClassifier(SciktLearnBase):
                          It implements learning based on the number of neighbors within a fixed radius
                          $r$ of each training point, where $r$ is a floating-point value specified by the
                          user.
-                         
+
                             """
     # penalty
     specs.addSub(InputData.parameterInputFactory("radius", contentType=InputTypes.FloatType,
@@ -111,13 +110,9 @@ class RadiusNeighborsClassifier(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['radius', 'weights', 'algorithm',
                                                                'leaf_size', 'p','metric'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

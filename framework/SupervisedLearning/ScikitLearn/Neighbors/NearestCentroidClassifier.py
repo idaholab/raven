@@ -16,7 +16,7 @@
 
   @author: alfoa
   Nearest Centroid Classifier
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
@@ -34,20 +34,19 @@ class NearestCentroidClassifier(SciktLearnBase):
     Nearest Centroid Classifier
   """
   info = {'problemtype':'classification', 'normalize':True}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.svm
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
     self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.neighbors.NearestCentroid)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -88,12 +87,8 @@ class NearestCentroidClassifier(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['shrink_threshold', 'metric'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

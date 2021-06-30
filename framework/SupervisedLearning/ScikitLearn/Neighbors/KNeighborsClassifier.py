@@ -17,7 +17,7 @@
   @author: alfoa
   KNeighborsClassifier
   Classifier implementing the k-nearest neighbors vote.
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
@@ -36,20 +36,19 @@ class KNeighborsClassifier(SciktLearnBase):
     Classifier implementing the k-nearest neighbors vote.
   """
   info = {'problemtype':'classification', 'normalize':True}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.svm
     import sklearn.multioutput
     # we wrap the model with the multi output classifier (for multitarget)
     self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.neighbors.KNeighborsClassifier)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -110,13 +109,9 @@ class KNeighborsClassifier(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['n_neighbors', 'weights', 'algorithm',
                                                                'leaf_size', 'p','metric'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-
