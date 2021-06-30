@@ -16,13 +16,12 @@
 
   @author: alfoa
   Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-from numpy import finfo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -35,20 +34,19 @@ class MultiTaskLasso(SciktLearnBase):
     Multi-task Lasso model
   """
   info = {'problemtype':'regression', 'normalize':False}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.linear_model
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.MultiTaskLasso)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -72,11 +70,11 @@ class MultiTaskLasso(SciktLearnBase):
                                                  descr=r"""Constant that multiplies the L1 term. Defaults to 1.0.
                                                  $alpha = 0$ is equivalent to an ordinary least square, solved by
                                                  the LinearRegression object. For numerical reasons, using $alpha = 0$
-                                                 with the Lasso object is not advised.""", default=1.0)
+                                                 with the Lasso object is not advised.""", default=1.0))
     specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
                                                  descr=r"""The tolerance for the optimization: if the updates are smaller
                                                  than tol, the optimization code checks the dual gap for optimality and
-                                                 continues until it is smaller than tol..""", default=1.e-4)
+                                                 continues until it is smaller than tol..""", default=1.e-4))
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,
                                                   the data is assumed to be already centered.""", default=True))
@@ -88,7 +86,7 @@ class MultiTaskLasso(SciktLearnBase):
                                                  descr=r"""The maximum number of iterations.""", default=1000))
     specs.addSub(InputData.parameterInputFactory("selection", contentType=InputTypes.makeEnumType("selection", "selectionType",['cyclic', 'random']),
                                                  descr=r"""If set to ``random'', a random coefficient is updated every iteration
-                                                 rather than looping over features sequentially by default. This (setting to `random'')
+                                                 rather than looping over features sequentially by default. This setting
                                                  often leads to significantly faster convergence especially when tol is higher than $1e-4$""", default='cyclic'))
 
     return specs
@@ -99,13 +97,9 @@ class MultiTaskLasso(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['alpha','tol', 'fit_intercept',
                                                                'normalize','max_iter','selection'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

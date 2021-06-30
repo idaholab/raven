@@ -16,7 +16,7 @@
 
   @author: alfoa
   Elasting Net Regressor
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
@@ -34,20 +34,19 @@ class ElasticNet(SciktLearnBase):
     Linear Elastic Net regression
   """
   info = {'problemtype':'regression', 'normalize':False}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.linear_model
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.ElasticNet)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -84,7 +83,7 @@ class ElasticNet(SciktLearnBase):
                                                   the data is assumed to be already centered.""", default=True))
     specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
-                                                 For sparse input this option is always True to preserve sparsity.""", default=False)
+                                                 For sparse input this option is always True to preserve sparsity.""", default=False))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""The maximum number of iterations.""", default=1000))
     specs.addSub(InputData.parameterInputFactory("positive", contentType=InputTypes.BoolType,
@@ -106,14 +105,10 @@ class ElasticNet(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['tol', 'alpha','l1_ratio',
                                                                'precompute', 'fit_intercept',
                                                                'max_iter', 'normalize','selection','positive'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

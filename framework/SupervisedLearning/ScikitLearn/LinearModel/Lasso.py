@@ -16,13 +16,12 @@
 
   @author: alfoa
   Linear Model trained with L1 prior as regularizer model
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-from numpy import finfo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -35,20 +34,19 @@ class Lasso(SciktLearnBase):
     Lasso model
   """
   info = {'problemtype':'regression', 'normalize':False}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.linear_model
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.Lasso)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -72,17 +70,17 @@ class Lasso(SciktLearnBase):
                                                  descr=r"""Constant that multiplies the L1 term. Defaults to 1.0.
                                                  $alpha = 0$ is equivalent to an ordinary least square, solved by
                                                  the LinearRegression object. For numerical reasons, using $alpha = 0$
-                                                 with the Lasso object is not advised.""", default=1.0)
+                                                 with the Lasso object is not advised.""", default=1.0))
     specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
                                                  descr=r"""The tolerance for the optimization: if the updates are smaller
                                                  than tol, the optimization code checks the dual gap for optimality and
-                                                 continues until it is smaller than tol..""", default=1.e-4)
+                                                 continues until it is smaller than tol..""", default=1.e-4))
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether the intercept should be estimated or not. If False,
                                                   the data is assumed to be already centered.""", default=True))
     specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
-                                                 For sparse input this option is always True to preserve sparsity.""", default=False)
+                                                 For sparse input this option is always True to preserve sparsity.""", default=False))
     specs.addSub(InputData.parameterInputFactory("normalize", contentType=InputTypes.BoolType,
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
@@ -90,7 +88,7 @@ class Lasso(SciktLearnBase):
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""The maximum number of iterations.""", default=1000))
     specs.addSub(InputData.parameterInputFactory("positive", contentType=InputTypes.BoolType,
-                                                 descr=r"""When set to True, forces the coefficients to be positive.""", default=False)
+                                                 descr=r"""When set to True, forces the coefficients to be positive.""", default=False))
     specs.addSub(InputData.parameterInputFactory("selection", contentType=InputTypes.makeEnumType("selection", "selectionType",['cyclic', 'random']),
                                                  descr=r"""If set to ``random'', a random coefficient is updated every iteration
                                                  rather than looping over features sequentially by default. This (setting to `random'')
@@ -104,13 +102,9 @@ class Lasso(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['alpha','tol', 'fit_intercept', 'precompute',
                                                                'normalize','max_iter','positive','selection'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

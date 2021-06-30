@@ -16,7 +16,7 @@
 
   @author: alfoa
   Bayesian ARD regression
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
@@ -34,12 +34,11 @@ class ARDRegression(SciktLearnBase):
     Bayesian ARD regression
   """
   info = {'problemtype':'regression', 'normalize':False}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
     import sklearn
@@ -47,7 +46,6 @@ class ARDRegression(SciktLearnBase):
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.ARDRegression)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -103,14 +101,10 @@ class ARDRegression(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['tol', 'alpha_1','alpha_2','lambda_1','lambda_2',
                                                                'compute_score', 'threshold_lambda', 'fit_intercept',
                                                                'n_iter', 'normalize'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

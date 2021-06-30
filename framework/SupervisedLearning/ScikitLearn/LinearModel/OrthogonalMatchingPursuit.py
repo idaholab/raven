@@ -16,13 +16,12 @@
 
   @author: alfoa
   Orthogonal Matching Pursuit model (OMP).
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-from numpy import finfo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -35,20 +34,19 @@ class OrthogonalMatchingPursuit(SciktLearnBase):
     Orthogonal Matching Pursuit model (OMP).
   """
   info = {'problemtype':'regression', 'normalize':False}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.linear_model
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.OrthogonalMatchingPursuit)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -84,7 +82,7 @@ class OrthogonalMatchingPursuit(SciktLearnBase):
                                                  dividing by the l2-norm.""", default=True))
     specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether to use a precomputed Gram and Xy matrix to speed up calculations.
-                                                 Improves performance when n\_targets or n\_samples is very large. """, default='auto')
+                                                 Improves performance when n\_targets or n\_samples is very large. """, default='auto'))
     return specs
 
   def _handleInput(self, paramInput):
@@ -93,12 +91,8 @@ class OrthogonalMatchingPursuit(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['fit_intercept','normalize','precompute','tol','n_nonzero_coefs'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

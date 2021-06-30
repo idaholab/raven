@@ -16,7 +16,7 @@
 
   @author: alfoa
   Ridge Regressor with cross-validation
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
@@ -34,20 +34,19 @@ class RidgeCV(SciktLearnBase):
    Ridge Regressor with cross-validation
   """
   info = {'problemtype':'regression 'normalize':False}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.linear_model
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.linear_model.RidgeCV()
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -91,7 +90,7 @@ class RidgeCV(SciktLearnBase):
                                                   is used for all targets.""", default=False))
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
-                                                 It specifies the number of folds..""", default=5)
+                                                 It specifies the number of folds..""", default=5))
     return specs
 
   def _handleInput(self, paramInput):
@@ -100,13 +99,9 @@ class RidgeCV(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['gcv_mode','fit_intercept','tol',
                                                                'normalize','alpha_per_target','cv'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

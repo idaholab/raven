@@ -16,7 +16,7 @@
 
   @author: alfoa
   Linear Logistic Regression
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
@@ -34,20 +34,19 @@ class LogisticRegression(SciktLearnBase):
     Linear Logistic Regression
   """
   info = {'problemtype':'regression', 'normalize':True}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.linear_model
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.LogisticRegression)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -59,7 +58,7 @@ class LogisticRegression(SciktLearnBase):
         specifying input of cls.
     """
     specs = super(LogisticRegression, cls).getInputSpecification()
-    specs.description = r"""The \xmlNode{LogisticRegression}  is 
+    specs.description = r"""The \xmlNode{LogisticRegression}  is
                             a logit, MaxEnt classifier.
                             In the multiclass case, the training algorithm uses the one-vs-rest (OvR) scheme
                             if the ``multi_class'' option is set to ``ovr'', and uses the cross-entropy loss if the
@@ -80,7 +79,7 @@ class LogisticRegression(SciktLearnBase):
                                                  Prefer dual=False when $n_samples > n_features$.""", default=True))
     specs.addSub(InputData.parameterInputFactory('C', contentType=InputTypes.FloatType,
                                                  descr=r"""Regularization parameter. The strength of the regularization is inversely
-                                                 proportional to C.Must be strictly positive.""", default=1.0))    
+                                                 proportional to C.Must be strictly positive.""", default=1.0))
     specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
                                                  descr=r"""Tolerance for stopping criterion""", default=1e-4))
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
@@ -104,12 +103,12 @@ class LogisticRegression(SciktLearnBase):
                                                    \\item ``liblinear'' does not support setting penalty=``none''
                                                  \\end{itemize}""", default='lbfgs'))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
-                                                 descr=r"""Hard limit on iterations within solver.``-1'' for no limit""", default=-1))   
+                                                 descr=r"""Hard limit on iterations within solver.``-1'' for no limit""", default=-1))
     specs.addSub(InputData.parameterInputFactory("multi_class", contentType=InputTypes.makeEnumType("multiClass", "multiClassType",['auto','ovr', 'multinomial']),
                                                  descr=r"""If the option chosen is ``ovr'', then a binary problem is fit for each label. For ``multinomial''
                                                  the loss minimised is the multinomial loss fit across the entire probability distribution, even when the
                                                  data is binary. ``multinomial' is unavailable when solver=``liblinear''. ``auto'' selects ``ovr'' if the data is
-                                                 binary, or if solver=``liblinear'', and otherwise selects ``multinomial''.""", default='auto'))    
+                                                 binary, or if solver=``liblinear'', and otherwise selects ``multinomial''.""", default='auto'))
     specs.addSub(InputData.parameterInputFactory("l1_ratio", contentType=InputTypes.FloatType,
                                                  descr=r"""The Elastic-Net mixing parameter, with $0 <= l1_ratio <= 1$. Only used if penalty=``elasticnet''.
                                                  Setting $l1_ratio=0$ is equivalent to using penalty=``l2'', while setting $l1_ratio=1$ is equivalent to using
@@ -122,13 +121,9 @@ class LogisticRegression(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['C', 'dual', 'penalty', 'l1_ratio', 'tol', 'fit_intercept',
                                                                'solver','intercept_scaling',  'max_iter', 'multi_class'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

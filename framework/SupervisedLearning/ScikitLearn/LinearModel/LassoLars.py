@@ -16,13 +16,12 @@
 
   @author: alfoa
   Lasso model fit with Least Angle Regression a.k.a. Lars
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-from numpy import finfo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -35,20 +34,19 @@ class LassoLars(SciktLearnBase):
     Lasso model fit with Least Angle Regression
   """
   info = {'problemtype':'regression', 'normalize':False}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.linear_model
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.LassoLars)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -81,7 +79,7 @@ class LassoLars(SciktLearnBase):
                                                  dividing by the l2-norm.""", default=False))
     specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
-                                                 For sparse input this option is always True to preserve sparsity.""", default='auto')
+                                                 For sparse input this option is always True to preserve sparsity.""", default='auto'))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""The maximum number of iterations.""", default=500))
     specs.addSub(InputData.parameterInputFactory("eps", contentType=InputTypes.FloatType,
@@ -103,13 +101,9 @@ class LassoLars(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['alpha','fit_intercept', 'normalize', 'precompute',
                                                                'max_iter','eps','positive','jitter'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

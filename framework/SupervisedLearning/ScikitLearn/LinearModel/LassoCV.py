@@ -16,13 +16,12 @@
 
   @author: alfoa
   Lasso linear model with iterative fitting along a regularization path
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-from numpy import finfo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -35,20 +34,19 @@ class LassoCV(SciktLearnBase):
     Lasso linear model with iterative fitting along a regularization path
   """
   info = {'problemtype':'regression', 'normalize':False}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.linear_model
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.LassoCV)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -84,18 +82,18 @@ class LassoCV(SciktLearnBase):
                                                  dividing by the l2-norm.""", default=False))
     specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
-                                                 For sparse input this option is always True to preserve sparsity.""", default='auto')
+                                                 For sparse input this option is always True to preserve sparsity.""", default='auto'))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""The maximum number of iterations.""", default=1000))
     specs.addSub(InputData.parameterInputFactory("positive", contentType=InputTypes.BoolType,
-                                                 descr=r"""When set to True, forces the coefficients to be positive.""", default=False)
+                                                 descr=r"""When set to True, forces the coefficients to be positive.""", default=False))
     specs.addSub(InputData.parameterInputFactory("selection", contentType=InputTypes.makeEnumType("selection", "selectionType",['cyclic', 'random']),
                                                  descr=r"""If set to ``random'', a random coefficient is updated every iteration
                                                  rather than looping over features sequentially by default. This (setting to `random'')
                                                  often leads to significantly faster convergence especially when tol is higher than $1e-4$""", default='cyclic'))
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
-                                                 It specifies the number of folds..""", default=5)
+                                                 It specifies the number of folds..""", default=5))
     return specs
 
   def _handleInput(self, paramInput):
@@ -104,13 +102,9 @@ class LassoCV(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['tol','eps', 'n_alphas', 'fit_intercept','normalize',
                                                                'precompute','max_iter','positive','selection','cv'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

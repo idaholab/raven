@@ -16,7 +16,7 @@
 
   @author: alfoa
   Support Vector Regression
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 from utils.importerUtils import importModuleLazy
@@ -28,24 +28,23 @@ import ast
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from ..SupervisedLearning import supervisedLearning
+from ..SupervisedLearning import SupervisedLearning
 from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
-class SciktLearnBase(supervisedLearning):
+class SciktLearnBase(SupervisedLearning):
   """
     Base Class for Scikitlearn-based surrogate models (classifiers and regressors)
   """
   info = {'datatype':None, 'normalize':None}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
-    supervisedLearning.__init__(self,messageHandler,**kwargs)
+    super().__init__()
     self.uniqueVals = None
     self.settings = None
 
@@ -130,7 +129,4 @@ class SciktLearnBase(supervisedLearning):
     if not self.model.info['normalize']:
       self.muAndSigmaFeatures[feat] = (0.0,1.0)
     else:
-      super(SciktLearnBase, self)._localNormalizeData(values,names,feat)
-
-
-
+      super()._localNormalizeData(values,names,feat)

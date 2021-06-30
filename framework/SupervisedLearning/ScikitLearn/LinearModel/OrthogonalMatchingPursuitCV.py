@@ -16,13 +16,12 @@
 
   @author: alfoa
   Cross-validated Orthogonal Matching Pursuit model (OMP).
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-from numpy import finfo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -35,20 +34,19 @@ class OrthogonalMatchingPursuitCV(SciktLearnBase):
     Cross-validated Orthogonal Matching Pursuit model (OMP).
   """
   info = {'problemtype':'regression', 'normalize':False}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.linear_model
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.OrthogonalMatchingPursuitCV)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -84,7 +82,7 @@ class OrthogonalMatchingPursuitCV(SciktLearnBase):
                                                  features to include. $10%$ of n\_features but at least 5 if available.""", default=None))
     specs.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.IntegerType,
                                                  descr=r"""Determines the cross-validation splitting strategy.
-                                                 It specifies the number of folds..""", default=5)
+                                                 It specifies the number of folds..""", default=5))
     return specs
 
   def _handleInput(self, paramInput):
@@ -93,12 +91,8 @@ class OrthogonalMatchingPursuitCV(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['fit_intercept','normalize','max_iter','cv'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-
