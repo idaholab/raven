@@ -86,29 +86,55 @@ def tournamentSelection(population,**kwargs):
   fitness = kwargs['fitness']
   nParents= kwargs['nParents']
   pop = population
-
   popSize = population.values.shape[0]
 
+  if 'rank' in kwargs:
+    # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to
+    rank = kwargs['rank']
+    multiObjectiveRanking = True
+    matrixOperationRaw = np.zeros((popSize,3))
+    matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
+    matrixOperationRaw[:,1] = np.transpose(fitness.data)
+    matrixOperationRaw[:,2] = np.transpose(rank.data)
+    matrixOperation = np.zeros((popSize,3))
+  else:
+    multiObjectiveRanking = False
+    matrixOperationRaw = np.zeros((popSize,2))
+    matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
+    matrixOperationRaw[:,1] = np.transpose(fitness.data)
+    matrixOperation = np.zeros((popSize,2))
+
+  indexes = list(np.arange(popSize))
+  indexesShuffled = randomUtils.randomChoice(indexes, size = popSize, replace = False, engine = None)
+
+  for idx, val in enumerate(indexesShuffled):
+    matrixOperation[idx,:] = matrixOperationRaw[val,:]
+
   selectedParent = xr.DataArray(
-      np.zeros((nParents,np.shape(pop)[1])),
-      dims=['chromosome','Gene'],
-      coords={'chromosome':np.arange(nParents),
-              'Gene': kwargs['variables']})
+    np.zeros((nParents,np.shape(pop)[1])),
+    dims=['chromosome','Gene'],
+    coords={'chromosome':np.arange(nParents),
+            'Gene': kwargs['variables']})
 
-  if nParents >= popSize/2.0:
-    # generate combination of 2 with replacement
-    selectionList = np.atleast_2d(randomUtils.randomChoice(list(range(0,popSize)), 2*nParents, replace=False))
-  else: # nParents < popSize/2.0
-    # generate combination of 2 without replacement
-    selectionList = np.atleast_2d(randomUtils.randomChoice(list(range(0,popSize)), 2*nParents))
-
-  selectionList = selectionList.reshape(nParents,2)
-
-  for index,pair in enumerate(selectionList):
-    if fitness[pair[0]]>fitness[pair[1]]:
-      selectedParent[index,:] = pop.values[pair[0],:]
-    else: # fitness[pair[1]]>fitness[pair[0]]:
-      selectedParent[index,:] = pop.values[pair[1],:]
+  if not multiObjectiveRanking: # single-objective implementation of tournamentSelection
+    for i in range(nParents):
+      if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
+        index = int(matrixOperation[i,0])
+      else:
+        index = int(matrixOperation[i+1,0])
+      selectedParent[i,:] = pop.values[index,:]
+  else: # multi-objective implementation of tournamentSelection
+    for i in range(nParents-1):
+      if matrixOperation[2*i,2] > matrixOperation[2*i+1,2]:
+        index = int(matrixOperation[i,0])
+      elif matrixOperation[2*i,2] < matrixOperation[2*i+1,2]:
+        index = int(matrixOperation[i+1,0])
+      else: # same rank case
+        if matrixOperation[2*i,1] > matrixOperation[2*i+1,1]:
+          index = int(matrixOperation[i,0])
+        else:
+          index = int(matrixOperation[i+1,0])
+      selectedParent[i,:] = pop.values[index,:]
 
   return selectedParent
 
