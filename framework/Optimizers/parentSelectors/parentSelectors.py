@@ -103,13 +103,13 @@ def tournamentSelection(population,**kwargs):
     matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
     matrixOperationRaw[:,1] = np.transpose(fitness.data)
     matrixOperation = np.zeros((popSize,2))
-  
+
   indexes = list(np.arange(popSize))
   indexesShuffled = randomUtils.randomChoice(indexes, size = popSize, replace = False, engine = None)
 
   for idx, val in enumerate(indexesShuffled):
     matrixOperation[idx,:] = matrixOperationRaw[val,:]
-  
+
   selectedParent = xr.DataArray(
     np.zeros((nParents,np.shape(pop)[1])),
     dims=['chromosome','Gene'],
