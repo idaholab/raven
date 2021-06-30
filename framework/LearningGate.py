@@ -75,7 +75,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseInterface),
     # check if pivotParameter is specified and in case store it
     self.pivotParameterId = self.initializationOptions.get("pivotParameter", 'time')
     # return instance of the ROMclass
-    modelInstance = SupervisedLearning.factory.returnInstance(ROMclass, **self.initializationOptions)
+    modelInstance = SupervisedLearning.factory.returnInstance(ROMclass)
     # check if the model can autonomously handle the time-dependency
     # (if not and time-dep data are passed in, a list of ROMs are constructed)
     self.canHandleDynamicData = modelInstance.isDynamic()
@@ -96,7 +96,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseInterface),
       # determine type of segment to load -> limited by InputData to specific options
       segType = segSpecs.parameterValues.get('grouping', 'segment')
       self.initializationOptions['modelInstance'] = modelInstance
-      SVL = SupervisedLearning.factory.returnInstance(nameToClass[segType], **self.initializationOptions)
+      SVL = SupervisedLearning.factory.returnInstance(nameToClass[segType])
       self.supervisedContainer = [SVL]
 
   def __getstate__(self):
@@ -105,11 +105,6 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseInterface),
       @ In, None
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
-    # clear input specs, as they should all be read in by now
-    ## this isn't a great implementation; we should make paramInput picklable instead!
-    self.initializationOptions.pop('paramInput', None)
-    for eng in self.supervisedContainer:
-      eng.initOptionDict.pop('paramInput',None)
     # capture what is normally pickled
     state = self.__dict__.copy()
     if not self.amITrained:
@@ -126,7 +121,7 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseInterface),
     self.__dict__.update(newstate)
     if not newstate['amITrained']:
       # NOTE this will fail if the ROM requires the paramInput spec! Fortunately, you shouldn't pickle untrained.
-      modelInstance = SupervisedLearning.factory.returnInstance(self.ROMclass, **self.initializationOptions)
+      modelInstance = SupervisedLearning.factory.returnInstance(self.ROMclass)
       self.supervisedContainer  = [modelInstance]
 
   def setAdditionalParams(self, params):
