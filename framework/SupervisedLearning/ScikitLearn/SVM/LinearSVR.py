@@ -16,7 +16,7 @@
 
   @author: alfoa
   Linear Support Vector Classifier
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
@@ -34,20 +34,19 @@ class LinearSVR(SciktLearnBase):
     Linear Support Vector Regressor
   """
   info = {'problemtype':'regression', 'normalize':True}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.svm
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.svm.LinearSVR)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -59,14 +58,14 @@ class LinearSVR(SciktLearnBase):
         specifying input of cls.
     """
     specs = super(LinearSVR, cls).getInputSpecification()
-    specs.description = r"""The \xmlNode{LinearSVR} \textit{Linear Support Vector Regressor} is 
+    specs.description = r"""The \xmlNode{LinearSVR} \textit{Linear Support Vector Regressor} is
                             similar to SVR with parameter kernel=’linear’, but implemented in terms of liblinear rather than libsvm,
                             so it has more flexibility in the choice of penalties and loss functions and should scale better to large numbers of samples.
                             This class supports both dense and sparse input.
                             """
     specs.addSub(InputData.parameterInputFactory('epsilon', contentType=InputTypes.FloatType,
                                                  descr=r"""Epsilon parameter in the epsilon-insensitive loss function. The value of
-                                                 this parameter depends on the scale of the target variable y. If unsure, set $epsilon=0.$""", default=0.0))        
+                                                 this parameter depends on the scale of the target variable y. If unsure, set $epsilon=0.$""", default=0.0))
     specs.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.makeEnumType("loss", "lossType",['epsilon_insensitive’','squared_epsilon_insensitive']),
                                                  descr=r"""Specifies the loss function. The epsilon-insensitive loss (standard SVR)
                                                  is the L1 loss, while the squared epsilon-insensitive loss (``squared_epsilon_insensitive'') is the L2 loss.""",
@@ -87,7 +86,7 @@ class LinearSVR(SciktLearnBase):
                                                  descr=r"""Select the algorithm to either solve the dual or primal optimization problem.
                                                  Prefer dual=False when $n_samples > n_features$.""", default=True))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
-                                                 descr=r"""Hard limit on iterations within solver.``-1'' for no limit""", default=-1))  
+                                                 descr=r"""Hard limit on iterations within solver.``-1'' for no limit""", default=-1))
     return specs
 
   def _handleInput(self, paramInput):
@@ -96,13 +95,9 @@ class LinearSVR(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['epsilon', 'dual', 'loss', 'tol', 'fit_intercept',
                                                                'intercept_scaling',  'max_iter'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

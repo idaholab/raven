@@ -16,7 +16,7 @@
 
   @author: alfoa
   Linear Support Vector Classifier
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
@@ -34,20 +34,19 @@ class LinearSVC(SciktLearnBase):
     Linear Support Vector Classifier
   """
   info = {'problemtype':'classification', 'normalize':True}
-  
+
   def __init__(self,messageHandler,**kwargs):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.svm
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.svm.LinearSVC)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -59,7 +58,7 @@ class LinearSVC(SciktLearnBase):
         specifying input of cls.
     """
     specs = super(LinearSVC, cls).getInputSpecification()
-    specs.description = r"""The \xmlNode{LinearSVC} \textit{Linear Support Vector Classification} is 
+    specs.description = r"""The \xmlNode{LinearSVC} \textit{Linear Support Vector Classification} is
                             similar to SVC with parameter kernel=’linear’, but implemented in terms of liblinear rather than libsvm,
                             so it has more flexibility in the choice of penalties and loss functions and should scale better to large numbers of samples.
                             This class supports both dense and sparse input and the multiclass support is handled according to a one-vs-the-rest scheme.
@@ -77,7 +76,7 @@ class LinearSVC(SciktLearnBase):
     specs.addSub(InputData.parameterInputFactory('C', contentType=InputTypes.FloatType,
                                                  descr=r"""Regularization parameter. The strength of the regularization is inversely
                                                           proportional to C.
-                                                           Must be strictly positive. The penalty is a squared l2 penalty..""", default=1.0))    
+                                                           Must be strictly positive. The penalty is a squared l2 penalty..""", default=1.0))
     specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
                                                  descr=r"""Tolerance for stopping criterion""", default=1e-4))
     specs.addSub(InputData.parameterInputFactory("multi_class", contentType=InputTypes.makeEnumType("multi_class", "multiclassType",['crammer_singer','ovr']),
@@ -85,7 +84,7 @@ class LinearSVC(SciktLearnBase):
                                                  $n_classes$ one-vs-rest classifiers, while ``crammer_singer'' optimizes a joint objective over all classes.
                                                  While crammer_singer is interesting from a theoretical perspective as it is consistent, it is seldom used
                                                  in practice as it rarely leads to better accuracy and is more expensive to compute. If ``crammer_singer''
-                                                 is chosen, the options loss, penalty and dual will be ignored.""", default='ovr'))  
+                                                 is chosen, the options loss, penalty and dual will be ignored.""", default='ovr'))
     specs.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether to calculate the intercept for this model. If set to false, no
                                                  intercept will be used in calculations (i.e. data is expected to be already centered).""", default=True))
@@ -97,7 +96,7 @@ class LinearSVC(SciktLearnBase):
                                                  To lessen the effect of regularization on synthetic feature weight (and therefore on the intercept)
                                                  $intercept_scaling$ has to be increased.""", default=1.))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
-                                                 descr=r"""Hard limit on iterations within solver.``-1'' for no limit""", default=-1))  
+                                                 descr=r"""Hard limit on iterations within solver.``-1'' for no limit""", default=-1))
     return specs
 
   def _handleInput(self, paramInput):
@@ -106,13 +105,9 @@ class LinearSVC(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['C', 'dual', 'penalty', 'loss', 'tol', 'fit_intercept',
                                                                'intercept_scaling',  'max_iter', 'multi_class'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

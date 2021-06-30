@@ -16,7 +16,7 @@
 
   @author: alfoa
   Nu Support Vector Classifier
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
@@ -34,20 +34,19 @@ class NuSVC(SciktLearnBase):
     Support Vector Classifier
   """
   info = {'problemtype':'classification', 'normalize':True}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.svm
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.svm.NuSVC)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -66,7 +65,7 @@ class NuSVC(SciktLearnBase):
                             """
     specs.addSub(InputData.parameterInputFactory('nu', contentType=InputTypes.FloatType,
                                                  descr=r"""An upper bound on the fraction of margin errors and
-                                                 a lower bound of the fraction of support vectors. Should be in the interval $(0, 1]$.""", default=0.5))     
+                                                 a lower bound of the fraction of support vectors. Should be in the interval $(0, 1]$.""", default=0.5))
     specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['linear','poly',
                                                                                                                        'rbf','sigmoid']),
                                                  descr=r"""Specifies the kernel type to be used in the algorithm. It must be one of
@@ -101,7 +100,7 @@ class NuSVC(SciktLearnBase):
                                                  descr=r"""if true, decision_function_shape='ovr', and number of $classes > 2$, predict will
                                                  break ties according to the confidence values of decision_function; otherwise the first class among
                                                  the tied classes is returned. Please note that breaking ties comes at a relatively high computational
-                                                 cost compared to a simple predict.""", default=False))    
+                                                 cost compared to a simple predict.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -110,14 +109,10 @@ class NuSVC(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['nu', 'kernel', 'degree', 'gamma', 'coef0',
-                                                             'tol', 'cache_size', 'epsilon', 'shrinking', 'max_iter', 
+                                                             'tol', 'cache_size', 'epsilon', 'shrinking', 'max_iter',
                                                              'decision_function_shape', 'break_ties'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

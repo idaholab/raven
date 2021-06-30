@@ -16,7 +16,7 @@
 
   @author: alfoa
   Nu Support Vector Classifier
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
@@ -34,20 +34,19 @@ class NuSVR(SciktLearnBase):
     Nu Support Vector Classifier
   """
   info = {'problemtype':'regression', 'normalize':True}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.svm
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.svm.NuSVR)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -66,11 +65,11 @@ class NuSVR(SciktLearnBase):
                             """
     specs.addSub(InputData.parameterInputFactory('nu', contentType=InputTypes.FloatType,
                                                  descr=r"""An upper bound on the fraction of margin errors and
-                                                 a lower bound of the fraction of support vectors. Should be in the interval $(0, 1]$.""", default=0.5))   
+                                                 a lower bound of the fraction of support vectors. Should be in the interval $(0, 1]$.""", default=0.5))
     specs.addSub(InputData.parameterInputFactory('C', contentType=InputTypes.FloatType,
                                                  descr=r"""Regularization parameter. The strength of the regularization is inversely
                                                           proportional to C.
-                                                          Must be strictly positive. The penalty is a squared l2 penalty.""", default=1.0))    
+                                                          Must be strictly positive. The penalty is a squared l2 penalty.""", default=1.0))
     specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['linear','poly',
                                                                                                                        'rbf','sigmoid']),
                                                  descr=r"""Specifies the kernel type to be used in the algorithm. It must be one of
@@ -99,13 +98,9 @@ class NuSVR(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['nu','C', 'kernel', 'degree', 'gamma', 'coef0',
                                                              'tol', 'cache_size', 'shrinking', 'max_iter'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-

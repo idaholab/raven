@@ -16,7 +16,7 @@
 
   @author: alfoa
   Support Vector Regression
-  
+
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
 from utils.importerUtils import importModuleLazy
@@ -38,20 +38,19 @@ class SVR(SciktLearnBase):
     Support Vector Regressor
   """
   info = {'problemtype':'regression', 'normalize':True}
-  
-  def __init__(self,messageHandler,**kwargs):
+
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.svm
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.svm.SVR)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -73,7 +72,7 @@ class SVR(SciktLearnBase):
     specs.addSub(InputData.parameterInputFactory('C', contentType=InputTypes.FloatType,
                                                  descr=r"""Regularization parameter. The strength of the regularization is inversely
                                                           proportional to C.
-                                                           Must be strictly positive. The penalty is a squared l2 penalty..""", default=1.0))    
+                                                           Must be strictly positive. The penalty is a squared l2 penalty..""", default=1.0))
     specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.makeEnumType("kernel", "kernelType",['linear','poly',
                                                                                                                        'rbf','sigmoid']),
                                                  descr=r"""Specifies the kernel type to be used in the algorithm. It must be one of
@@ -107,13 +106,9 @@ class SVR(SciktLearnBase):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['C', 'kernel', 'degree', 'gamma', 'coef0',
                                                              'tol', 'cache_size', 'epsilon', 'shrinking', 'max_iter'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
-
-
-
-
