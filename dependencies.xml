@@ -40,7 +40,7 @@ Note all install methods after "main" take
     <matplotlib>3.2</matplotlib>
     <statsmodels/>
     <cloudpickle>1.6</cloudpickle>
-    <tensorflow>1.15</tensorflow>
+    <tensorflow>2.0</tensorflow>
     <python skip_check='True'>3</python>
     <hdf5 skip_check='True'/>
     <swig skip_check='True'/>

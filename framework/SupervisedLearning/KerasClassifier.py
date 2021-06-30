@@ -139,9 +139,7 @@ class KerasClassifier(KerasBase):
     """
     featureVals = self._preprocessInputs(featureVals)
     prediction = {}
-    with self.graph.as_default():
-      tf.keras.backend.set_session(self._session)
-      outcome = self._ROM.predict(featureVals)
+    outcome = self._ROM.predict(featureVals)
     if self.numClasses > 1 and self.lossFunction in ['categorical_crossentropy']:
       outcome = np.argmax(outcome,axis=1)
       # Transform labels back to original encoding
