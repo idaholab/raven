@@ -66,38 +66,35 @@ class LinearDiscriminantAnalysisClassifier(SciktLearnBase):
     The fitted model can also be used to reduce the dimensionality of the input by projecting it to the most discriminative
     directions, using the transform method.
     """
-    # penalty
-    specs.addSub(InputData.parameterInputFactory("n_neighbors", contentType=InputTypes.IntegerType,
-                                                 descr=r"""Number of neighbors to use by default for kneighbors queries.""", default=5))
-    specs.addSub(InputData.parameterInputFactory("weights", contentType=InputTypes.makeEnumType("weight", "weightType",['uniform','distance']),
-                                                 descr=r"""weight function used in prediction. If ``uniform'', all points in each neighborhood
-                                                 are weighted equally. If ``distance'' weight points by the inverse of their distance. in this
-                                                 case,closer neighbors of a query point will have a greater influence than neighbors which are
-                                                 further away. """, default='uniform'))
-    specs.addSub(InputData.parameterInputFactory("algorithm", contentType=InputTypes.makeEnumType("algorithm", "algorithmType",['auto','ball_tree','kd_tree','brute']),
-                                                 descr=r"""Algorithm used to compute the nearest neighbors """, default='auto'))
-    specs.addSub(InputData.parameterInputFactory("leaf_size", contentType=InputTypes.IntegerType,
-                                                 descr=r"""Leaf size passed to BallTree or KDTree. This can affect the speed of the construction
-                                                 and query, as well as the memory required to store the tree. The optimal value depends on the
-                                                 nature of the problem.""", default=30))
-    specs.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.IntegerType,
-                                                 descr=r"""Power parameter for the Minkowski metric. When $p = 1$, this is equivalent to using
-                                                 manhattan\_distance (l1), and euclidean\_distance (l2) for $p = 2$. For arbitrary $p$, minkowski\_distance
-                                                 (l\_p) is used.""", default=2))
-    specs.addSub(InputData.parameterInputFactory("metric", contentType=InputTypes.makeEnumType("metric", "metricType",['uniform','distance']),
-                                                 descr=r"""the distance metric to use for the tree. The default metric is minkowski, and with
-                                                 $p=2$ is equivalent to the standard Euclidean metric.
-                                                 The available metrics are:
+    specs.addSub(InputData.parameterInputFactory("solver", contentType=InputTypes.StringType,
+                                                 descr=r"""Solver to use, possible values:
                                                  \\begin{itemize}
-                                                   \\item minkowski: $sum(|x - y|^p)^(1/p)$
-                                                   \\item euclidean: $sqrt(sum((x - y)^2))$
-                                                   \\item manhattan: $sum(|x - y|)$
-                                                   \\item chebyshev: $max(|x - y|)$
-                                                   \\item hamming: $N\_unequal(x, y) / N\_tot$
-                                                   \\item canberra: $sum(|x - y| / (|x| + |y|))$
-                                                   \\item braycurtis: $sum(|x - y|) / (sum(|x|) + sum(|y|))$
+                                                   \\item svd: Singular value decomposition (default). Does not compute the covariance matrix,
+                                                               therefore this solver is recommended for data with a large number of features.
+                                                   \\item lsqr: Least squares solution. Can be combined with shrinkage or custom covariance estimator.
+                                                   \\item eigen: Eigenvalue decomposition. Can be combined with shrinkage or custom covariance estimator.
                                                  \\end{itemize}
-                                                 """, default='minkowski'))
+                                                 """, default='svd'))
+    specs.addSub(InputData.parameterInputFactory("Shrinkage", contentType=InputTypes.FloatOrStringType,
+                                                 descr=r"""Shrinkage parameter, possible values: 1) None: no shrinkage (default),
+                                                 2) `auto': automatic shrinkage using the Ledoit-Wolf lemma,
+                                                 3) float between 0 an d1: fixed shrinkage parameter.
+                                                 This should be left to None if covariance_estimator is used. Note that shrinkage works
+                                                 only with `lsqr' and `eigen' solvers.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("priors", contentType=InputTypes.FloatListType,
+                                                 descr=r"""The class prior probabilities. By default, the class proportions are inferred from the training data.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("n_components", contentType=InputTypes.IntegerType,
+                                                 descr=r"""Number of components (<= min(n\_classes - 1, n\_features)) for dimensionality reduction.
+                                                 If None, will be set to min(n\_classes - 1, n\_features). This parameter only affects the transform
+                                                 method.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("store_covariance", contentType=InputTypes.BoolType,
+                                                 descr=r"""If True, explicitely compute the weighted within-class covariance matrix when solver
+                                                 is `svd'. The matrix is always computed and stored for the other solvers.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.FloatType,
+                                                 descr=r"""Absolute threshold for a singular value of X to be considered significant, used to estimate the rank of X.
+                                                 Dimensions whose singular values are non-significant are discarded. Only used if solver is `svd'.""", default=1.0e-4))
+    specs.addSub(InputData.parameterInputFactory("covariance_estimator", contentType=InputTypes.IntegerType,
+                                                 descr=r"""covariance estimator (not supported)""", default=None))
     return specs
 
   def _handleInput(self, paramInput):
@@ -107,8 +104,8 @@ class LinearDiscriminantAnalysisClassifier(SciktLearnBase):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    settings, notFound = paramInput.findNodesAndExtractValues(['n_neighbors', 'weights', 'algorithm',
-                                                               'leaf_size', 'p','metric'])
+    settings, notFound = paramInput.findNodesAndExtractValues(['solver', 'Shrinkage', 'priors',
+                                                               'n_components', 'store_covariance','tol', 'covariance_estimator'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)

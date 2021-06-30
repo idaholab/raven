@@ -89,7 +89,7 @@ class SciKitLearn(supervisedLearning):
     if len(self.availImpl) == 0:
       self.availImpl['lda']                                          = {}                                                            #Linear Discriminant Analysis
       self.availImpl['qda']                                          = {}                                                            #Quadratic Discriminant Analysis
-      self.availImpl['lda']['LDA'                                  ] = (sklearn.discriminant_analysis.LinearDiscriminantAnalysis            , 'int'    , False) #Linear Discriminant Analysis (LDA)
+      # self.availImpl['lda']['LDA'                                  ] = (sklearn.discriminant_analysis.LinearDiscriminantAnalysis            , 'int'    , False) #Linear Discriminant Analysis (LDA)
       self.availImpl['qda']['QDA'                                  ] = (sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis         , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
       #self.availImpl['linear_model']                                 = {}                                                            #Generalized Linear Models
       #self.availImpl['linear_model']['ARDRegression'               ] = (sklearn.linear_model.ARDRegression               , 'float'  , False) #Bayesian ARD regression.
@@ -335,4 +335,3 @@ class SciKitLearn(supervisedLearning):
       self.muAndSigmaFeatures[feat] = (0.0,1.0)
     else:
       super(SciKitLearn, self)._localNormalizeData(values,names,feat)
-

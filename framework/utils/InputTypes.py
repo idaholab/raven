@@ -211,6 +211,38 @@ class FloatOrIntType(InputType):
     return 'float or integer'
 
 FloatOrIntType.createClass("float_or_int", "xsd:string")
+#
+#
+#
+#
+class FloatOrStringType(InputType):
+  """
+    A type for floating point or string data.
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to a float or int.
+      @ In, value, string, the value to convert
+      @ Out, val, float or string, the converted value
+    """
+    try:
+      val = float(value)
+      return val
+    except ValueError:
+      return val
+
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return 'float or string'
+
+FloatOrStringType.createClass("float_or_string", "xsd:string")
 
 #
 #
