@@ -23,9 +23,6 @@
   where we try to understand the underlying model by a set of labeled sample
   a sample is composed by (feature,label) that is easy translated in (input,output)
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import abc
@@ -35,21 +32,40 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils, mathUtils, xmlUtils
-from BaseClasses import MessageUser
+from utils import InputTypes, InputData
+from BaseClasses import BaseInterface
 #Internal Modules End--------------------------------------------------------------------------------
 
-class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
+class SupervisedLearning(BaseInterface):
   """
-    This is the general interface to any supervisedLearning learning method.
+    This is the general interface to any SupervisedLearning learning method.
     Essentially it contains a train method and an evaluate method
   """
-  returnType       = ''    # this describe the type of information generated the possibility are 'boolean', 'integer', 'float'
-  qualityEstType   = []    # this describe the type of estimator returned known type are 'distance', 'probability'. The values are returned by the self.__confidenceLocal__(Features)
-  ROMtype          = ''    # the broad class of the interpolator
-  ROMtimeDependent = False # is this ROM able to treat time-like (any monotonic variable) explicitly in its formulation?
+  returnType       = ''    # this describe the type of information generated the possibility are
+                           # 'boolean', 'integer', 'float'
+  qualityEstType   = []    # this describe the type of estimator returned known type are 'distance', 'probability'.
+                           # The values are returned by the self.__confidenceLocal__(Features)
+  romType          = ''    # the broad class of the interpolator
+  romTimeDependent = False # is this ROM able to treat time-like (any monotonic variable) explicitly in its formulation?
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    spec = super().getInputSpecification()
+    spec.addParam("subType", InputTypes.StringType, True)
+    spec.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
+    spec.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
+    spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType))
+    return spec
 
   @staticmethod
-  def checkArrayConsistency(arrayIn,isDynamic=False):
+  def checkArrayConsistency(arrayIn, isDynamic=False):
     """
       This method checks the consistency of the in-array
       @ In, arrayIn, object,  It should be an array
@@ -62,7 +78,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
     if type(arrayIn).__name__ == 'list':
       if isDynamic:
         for cnt, elementArray in enumerate(arrayIn):
-          resp = supervisedLearning.checkArrayConsistency(elementArray)
+          resp = SupervisedLearning.checkArrayConsistency(elementArray)
           if not resp[0]:
             return (False,' The element number '+str(cnt)+' is not a consistent array. Error: '+resp[1])
       else:
@@ -74,51 +90,49 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
         return(False, ' The array must be 1-d. Got shape: '+str(np.asarray(arrayIn).shape))
     return (True,'')
 
-  def __init__(self, **initDict):
+  def __init__(self):
     """
       A constructor that will appropriately initialize a supervised learning object
-      @ In, initDict, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
     super().__init__()
-    self.printTag = 'Supervised'
+    self.printTag = 'SupervisedLearning'
     self.features = None           # "inputs" to this model
     self.target = None             # "outputs" of this model
-    self.amITrained = False
+    self.amITrained = False        # "True" if the ROM is alread trained
     self._dynamicHandling = False  # time-like dependence in the model?
     self._assembledObjects = None  # objects assembled by the ROM Model, passed through.
-    self.numThreads = None         # threading for run
-    self.initOptionDict = None     # construction variables
-    self.verbosity = None          # printing verbosity
-    self.kerasROMDict = None       # dictionary for ROM builded by Keras
     #average value and sigma are used for normalization of the feature data
     #a dictionary where for each feature a tuple (average value, sigma)
     #these need to be declared in the child classes!!!!
     self.muAndSigmaFeatures = {}   # normalization parameters
     self.metadataKeys = set()      # keys that can be passed to DataObject as meta information
     self.metadataParams = {}       # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
-    self.readInitDict(initDict)
 
-  def readInitDict(self, initDict):
+    # TODO: Remove
+    self.initOptionDict = None     # construction variables
+    self.kerasROMDict = None       # dictionary for ROM builded by Keras
+    self.numThreads = None         # threading for run
+    self.verbosity = None          # printing verbosity
+    ## ToDO: move to KerasROM
+    # self.kerasROMDict = self.initOptionDict.pop('KerasROMDict', None)
+
+
+  def _handleInput(self, paramInput):
     """
-      Reads in the initialization dict to initialize this instance
-      @ In, initDict, dict, keywords passed to constructor
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
-    #booleanFlag that controls the normalization procedure. If true, the normalization is performed. Default = True
-    self.numThreads = initDict.pop('NumThreads', None)
-    self.initOptionDict = {} if initDict is None else initDict
-    if 'Features' not in self.initOptionDict.keys():
-      self.raiseAnError(IOError,'Feature names not provided')
-    if 'Target' not in self.initOptionDict.keys():
-      self.raiseAnError(IOError,'Target name not provided')
-    self.features = self.initOptionDict.pop('Features')
-    self.target = self.initOptionDict.pop('Target')
-    self.verbosity = self.initOptionDict['verbosity'] if 'verbosity' in self.initOptionDict else None
-    for target in self.target:
-      if target in self.features:
-        self.raiseAnError(IOError, f'The target "{target}" is also in the features!')
-    self.kerasROMDict = self.initOptionDict.pop('KerasROMDict', None)
+    super()._handleInput(paramInput)
+    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target'])
+    assert(not notFound)
+    self.features = nodes['Features']
+    self.target = nodes['Target']
+    dups = set(self.target).intersection(set(self.features))
+    if len(dups) != 0
+      self.raiseAnError(IOError, 'The target(s) "{}" is/are also among the given features!'.format(', '.join(dups)))
 
   def __getstate__(self):
     """
@@ -127,11 +141,6 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
     state = copy.copy(self.__dict__)
-    state['initOptionDict'].pop('paramInput', None)
-    ## capture what is normally pickled
-    if not self.amITrained:
-      supervisedEngineObj = state.pop("supervisedContainer", None)
-      del supervisedEngineObj
     return state
 
   def __setstate__(self, d):
@@ -142,45 +151,16 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
     """
     self.__dict__.update(d)
 
-  def addMetaKeys(self, args, params=None):
-    """
-      Adds keywords to a list of expected metadata keys.
-      @ In, args, list(str), keywords to register
-      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
-        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
-      @ Out, None
-    """
-    if params is None:
-      params = {}
-    self.metadataKeys = self.metadataKeys.union(set(args))
-    self.metadataParams.update(params)
+  # TODO: remove, seems not needed
+  # def initialize(self, idict):
+  #   """
+  #     Initialization method
+  #     @ In, idict, dict, dictionary of initialization parameters
+  #     @ Out, None
+  #   """
+  #   pass #Overloaded by (at least) GaussPolynomialRom
 
-  def removeMetaKeys(self, args):
-    """
-      Removes keywords to a list of expected metadata keys.
-      @ In, args, list(str), keywords to de-register
-      @ Out, None
-    """
-    self.metadataKeys = self.metadataKeys - set(args)
-    for arg in set(args):
-      self.metadataParams.pop(arg, None)
-
-  def provideExpectedMetaKeys(self):
-    """
-      Provides the registered list of metadata keys for this entity.
-      @ In, None
-      @ Out, meta,tuple, (list(str),dict), expected keys (empty if none) and expected indexes related to expected keys
-    """
-    return self.metadataKeys, self.metadataParams
-
-  def initialize(self, idict):
-    """
-      Initialization method
-      @ In, idict, dict, dictionary of initialization parameters
-      @ Out, None
-    """
-    pass #Overloaded by (at least) GaussPolynomialRom
-
+  ## TODO: we may not need the set and read AssembleObjects
   def setAssembledObjects(self, assembledObjects):
     """
       Allows providing entities from the Assembler to be used in supervised learning algorithms.
@@ -200,8 +180,8 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
 
   def train(self, tdict, indexMap=None):
     """
-      Method to perform the training of the supervisedLearning algorithm
-      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      Method to perform the training of the SupervisedLearning algorithm
+      NB.the SupervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires. So far the base class will do the translation into numpy
       @ In, tdict, dict, training dictionary
       @ In, indexMap, dict, mapping of variables to their dependent indices, if any
@@ -268,7 +248,7 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
     """
     self.muAndSigmaFeatures[feat] = mathUtils.normalizationFactors(values[names.index(feat)])
 
-  def confidence(self,edict):
+  def confidence(self, edict):
     """
       This call is used to get an estimate of the confidence in the prediction.
       The base class self.confidence will translate a dictionary into numpy array, then call the local confidence
@@ -297,8 +277,8 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
   # TODO during SVL rework, "run" should probably replace "evaluate", maybe?
   def run(self, edict):
     """
-      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
-      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      Method to perform the evaluation of a point or a set of points through the previous trained SupervisedLearning algorithm
+      NB.the SupervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires.
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluate, dict, {target: evaluated points}
@@ -307,8 +287,8 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
 
   def evaluate(self,edict):
     """
-      Method to perform the evaluation of a point or a set of points through the previous trained supervisedLearning algorithm
-      NB.the supervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
+      Method to perform the evaluation of a point or a set of points through the previous trained SupervisedLearning algorithm
+      NB.the SupervisedLearning object is committed to convert the dictionary that is passed (in), into the local format
       the interface with the kernels requires.
       @ In, edict, dict, evaluation dictionary
       @ Out, evaluate, dict, {target: evaluated points}
@@ -345,8 +325,8 @@ class supervisedLearning(utils.metaclass_insert(abc.ABCMeta), MessageUser):
       @ In, None
       @ Out, iniParDict, dict, initial parameter dictionary
     """
-    iniParDict = dict(list(self.initOptionDict.items()) + list({'returnType':self.__class__.returnType,'qualityEstType':self.__class__.qualityEstType,'Features':self.features,
-                                             'Target':self.target,'returnType':self.__class__.returnType}.items()) + list(self.__returnInitialParametersLocal__().items()))
+    iniParDict = dict(list({'returnType':self.__class__.returnType,'qualityEstType':self.__class__.qualityEstType,'Features':self.features,
+                      'Target':self.target,'returnType':self.__class__.returnType}.items()) + list(self.__returnInitialParametersLocal__().items()))
     return iniParDict
 
   def returnCurrentSetting(self):
