@@ -37,19 +37,18 @@ class GaussianProcessRegressor(SciktLearnBase):
   """
   info = {'problemtype':'regression', 'normalize':False}
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
-      @ In, messageHandler, MessageHandler object, it is in charge of raising errors, and printing messages
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     import sklearn
     import sklearn.gaussian_process
     import sklearn.multioutput
     # we wrap the model with the multi output regressor (for multitarget)
     self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.gaussian_process.GaussianProcessRegressor)
-    SciktLearnBase.__init__(messageHandler,**kwargs)
 
   @classmethod
   def getInputSpecification(cls):
@@ -96,16 +95,16 @@ class GaussianProcessRegressor(SciktLearnBase):
                                                  not inputable. The following kernels are avaialable:
                                                  \\begin{itemize}
                                                    \item Constant, Constant kernel: $k(x_1, x_2) = constant\_value \;\forall\; x_1, x_2$.
-                                                   
+
                                                    \item DotProduct, it is non-stationary and can be obtained from linear regression by putting $N(0, 1)$ priors on the coefficients of $x_d (d = 1, . . . , D)$
                                                                      and a prior of $N(0, \sigma_0^2)$ on the bias. The DotProduct kernel is invariant to a rotation of the coordinates about the origin, but not translations.
                                                                      It is parameterized by a parameter sigma\_0 $\sigma$ which controls the inhomogenity of the kernel.
-                                                                     
+
                                                    \item ExpSineSquared, it allows one to model functions which repeat themselves exactly. It is parameterized by a length scale parameter $l>0$ and a periodicity parameter $p>0$.
                                                                          The kernel is given by $k(x_i, x_j) = \text{exp}\left(-\frac{ 2\sin^2(\pi d(x_i, x_j)/p) }{ l^ 2} \right)$ where $d(\\cdot,\\cdot)$ is the Euclidean distance.
-                                                   
+
                                                    \item Exponentiation, it takes one base kernel and a scalar parameter $p$ and combines them via $k_{exp}(X, Y) = k(X, Y) ^p$.
-                                                   
+
                                                    \item Matern, is a generalization of the RBF. It has an additional parameter $\nu$ which controls the smoothness of the resulting function. The smaller $\nu$,
                                                                  the less smooth the approximated function is. As $\nu\rightarrow\infty$, the kernel becomes equivalent to the RBF kernel. When $\nu = 1/2$, the Matérn kernel becomes
                                                                  identical to the absolute exponential kernel. Important intermediate values are $\nu = 1.5$ (once differentiable functions) and $\nu = 2.5$ (twice differentiable functions).
@@ -140,7 +139,7 @@ class GaussianProcessRegressor(SciktLearnBase):
                                                                             $d(\cdot,\cdot)$ is the Euclidean distance.
 
                                                  \\end{itemize}""", default='Constant'))
-                                                 
+
 
     specs.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType,
                                                  descr=r"""Value added to the diagonal of the kernel matrix during fitting. This can prevent a potential numerical issue during fitting, by ensuring that the calculated
@@ -156,7 +155,7 @@ class GaussianProcessRegressor(SciktLearnBase):
     specs.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.IntegerType,
                                               descr=r"""Seed for the internal random number generator""", default=0))
     return specs
-  
+
   def pickKernel(self, name):
     """
       This method is used to pick a kernel from the iternal factory
@@ -195,14 +194,15 @@ class GaussianProcessRegressor(SciktLearnBase):
       kernel = sklearn.gaussian_process.kernels.RBF()
     elif name.lower() == 'rationalquadratic':
       kernel = sklearn.gaussian_process.kernels.RationalQuadratic()
-      
+    return kernel
+
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the distribution parameter input.
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    super(SciktLearnBase, self)._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['kernel', 'alpha', 'n_restarts_optimizer',
                                                                'normalize_y', 'random_state'])
     # notFound must be empty
@@ -210,7 +210,3 @@ class GaussianProcessRegressor(SciktLearnBase):
     # special treatment for kenel
     settings['kernel'] = self.pickKernel(settings['kernel'])
     self.initializeModel(settings)
-
-
-
-
