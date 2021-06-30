@@ -92,18 +92,24 @@ def tournamentSelection(population,**kwargs):
     # the key rank is used in multi-objective optimization where rank identifies which front the point belongs to
     rank = kwargs['rank']
     multiObjectiveRanking = True
+    matrixOperationRaw = np.zeros((popSize,3))
+    matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
+    matrixOperationRaw[:,1] = np.transpose(fitness.data)
+    matrixOperationRaw[:,2] = np.transpose(rank.data)
     matrixOperation = np.zeros((popSize,3))
-    matrixOperation[:,0] = np.transpose(np.arange(popSize))
-    matrixOperation[:,1] = np.transpose(fitness.data)
-    matrixOperation[:,2] = np.transpose(rank.data)
   else:
     multiObjectiveRanking = False
+    matrixOperationRaw = np.zeros((popSize,2))
+    matrixOperationRaw[:,0] = np.transpose(np.arange(popSize))
+    matrixOperationRaw[:,1] = np.transpose(fitness.data)
     matrixOperation = np.zeros((popSize,2))
-    matrixOperation[:,0] = np.transpose(np.arange(popSize))
-    matrixOperation[:,1] = np.transpose(fitness.data)
+  
+  indexes = list(np.arange(popSize))
+  indexesShuffled = randomUtils.randomChoice(indexes, size = popSize, replace = False, engine = None)
 
-  np.random.shuffle(matrixOperation)
-
+  for idx, val in enumerate(indexesShuffled):
+    matrixOperation[idx,:] = matrixOperationRaw[val,:]
+  
   selectedParent = xr.DataArray(
     np.zeros((nParents,np.shape(pop)[1])),
     dims=['chromosome','Gene'],
