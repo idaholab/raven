@@ -21,7 +21,8 @@
 # These lines ensure that we do not have to do something like:
 # 'from Samplers.Sampler import Sampler' outside of this submodule
 from .LinearDiscriminantAnalysis import LinearDiscriminantAnalysis
-from .QuadraticDiscriminantAnalysis import QuadraticDiscriminantAnalysis
+### TODO: add QuadraticDiscriminantAnalysis
+# from .QuadraticDiscriminantAnalysis import QuadraticDiscriminantAnalysis
 # Factory methods
 from .Factory import knownTypes
 from .Factory import returnInstance
