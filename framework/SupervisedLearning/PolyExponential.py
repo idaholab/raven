@@ -18,21 +18,18 @@
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Base subclass definition for PolyExponential ROM (transferred from alfoa in SupervisedLearning)
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from SupervisedLearning import supervisedLearning
+from SupervisedLearning import SupervisedLearning
 from SupervisedLearning import NDsplineRom
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class PolyExponential(supervisedLearning):
+class PolyExponential(SupervisedLearning):
   """
     This surrogate is aimed to construct a time-dep surrogate based on a polynomial sum of exponentials
     The surrogate will have the form:
@@ -43,30 +40,92 @@ class PolyExponential(supervisedLearning):
       P_i(X) is a polynomial of rank M function of the parametric space X
       Q_i(X) is a polynomial of rank M function of the parametric space X
   """
-  def __init__(self, **kwargs):
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    spec = super().getInputSpecification()
+    specs.description = r"""The \xmlNode{PolyExponential} contains a single ROM type, aimed to construct a
+    time-dependent (or any other monotonic variable) surrogate model based on polynomial sum of exponential term.
+    This surrogate have the form:
+    \begin{equation}
+      SM(X,z) = \sum_{i=1}^{N} P_{i}(X) \times \exp ( - Q_{i}(X) \times z )
+    \end{equation}
+    where:
+    \begin{itemize}
+      \item $\mathbf{z}$ is the independent  monotonic variable (e.g. time)
+      \item $\mathbf{X}$  is the vector of the other independent (parametric) variables  (Features)
+      \item $\mathbf{P_{i}}(X)$ is a polynomial of rank M function of the parametric space X
+      \item  $\mathbf{Q_{i}}(X)$ is a polynomial of rank M function of the parametric space X
+      \item  $\mathbf{N}$ is the number of requested exponential terms.
+    \end{itemize}
+    It is crucial to notice that this model is quite suitable for FOMs whose drivers are characterized by an exponential-like behavior.
+    In addition, it is important to notice that the exponential terms' coefficients are computed running a genetic-algorithm optimization
+    problem, which is quite slow in case of increasing number of ``numberExpTerms''.
+    %
+    In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+    \xmlAttr{subType} needs to be set equal to \xmlString{PolyExponential}."""
+
+    spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType,
+                                                descr=r"""defines the pivot variable (e.g., time) that represents the
+                                                independent monotonic variable""", default='time'))
+    spec.addSub(InputData.parameterInputFactory('numberExpTerms',contentType=InputTypes.IntegerType,
+                                                descr=r"""the number of exponential terms to be used ($N$ above)""", default=3))
+    spec.addSub(InputData.parameterInputFactory('coeffRegressor',contentType=InputTypes.StringType,
+                                                descr=r"""defines which regressor to use for interpolating the
+                                                exponential coefficient. Available are ``spline'',``poly'' and ``nearest''.""",
+                                                default='spline'))
+    spec.addSub(InputData.parameterInputFactory('polyOrder',contentType=InputTypes.IntegerType,
+                                                descr=r"""the polynomial order to be used for interpolating the exponential
+                                                coefficients. Only valid in case of  \xmlNode{coeffRegressor} set to ``poly''.""", default=3))
+    spec.addSub(InputData.parameterInputFactory('tol',contentType=InputTypes.FloatType,
+                                                descr=r"""relative tolerance of the optimization problem (differential evolution optimizer)""",
+                                                default=1e-3))
+    spec.addSub(InputData.parameterInputFactory('maxNumberIter',contentType=InputTypes.IntegerType,
+                                                descr=r"""maximum number of iterations (generations) for the
+                                                optimization problem  (differential evolution optimizer)""", default=5000))
+    return spec
+
+  def __init__(self):
     """
       PolyExponential constructor
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
     """
 
-    supervisedLearning.__init__(self, **kwargs)
+    super().__init__()
     self.availCoeffRegressors               = ['nearest','poly','spline']                   # avail coeff regressors
     self.printTag                           = 'PolyExponential'                             # Print tag
-    self.pivotParameterID                   = kwargs.get("pivotParameter","time")           # Pivot parameter ID
     self._dynamicHandling                   = True                                          # This ROM is able to manage the time-series on its own
     self.polyExpParams                      = {}                                            # poly exponential options' container
-    self.polyExpParams['expTerms']          = int(kwargs.get('numberExpTerms',3))           # the number of exponential terms
-    self.polyExpParams['coeffRegressor']    = kwargs.get('coeffRegressor','spline').lower() # which regressor to use for interpolating the coefficient
-    self.polyExpParams['polyOrder']         = int(kwargs.get('polyOrder',3))                # the polynomial order
-    self.polyExpParams['tol']               = float(kwargs.get('tol',0.001))                # optimization tolerance
-    self.polyExpParams['maxNumberIter']     = int(kwargs.get('maxNumberIter',5000))         # maximum number of iterations in optimization
     self.aij                                = None                                          # a_ij coefficients of the exponential terms {'target1':ndarray(nsamples, self.polyExpParams['expTerms']),'target2',ndarray,etc}
     self.bij                                = None                                          # b_ij coefficients of the exponent of the exponential terms {'target1':ndarray(nsamples, self.polyExpParams['expTerms']),'target2',ndarray,etc}
     self.model                              = None                                          # the surrogate model itself {'target1':model,'target2':model, etc.}
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    settings, notFound = paramInput.findNodesAndExtractValues(['pivotParameter','numberExpTerms', 'coeffRegressor',
+                                                               'polyOrder','tol','maxNumberIter'])
+    # notFound must be empty
+    assert(not notFound)
+    self.pivotParameterID                   = settings.get("pivotParameter")           # Pivot parameter ID
+    self.polyExpParams['expTerms']          = settings.get('numberExpTerms')         # the number of exponential terms
+    self.polyExpParams['coeffRegressor']    = settings.get('coeffRegressor') # which regressor to use for interpolating the coefficient
+    self.polyExpParams['polyOrder']         = settings.get('polyOrder')                # the polynomial order
+    self.polyExpParams['tol']               = settings.get('tol')                # optimization tolerance
+    self.polyExpParams['maxNumberIter']     = settings.get('maxNumberIter')         # maximum number of iterations in optimization
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
-
 
   def _localNormalizeData(self,values,names,feat):
     """
@@ -331,4 +390,3 @@ class PolyExponential(supervisedLearning):
       @ Out, self.polyExpParams, dict, the dict of the SM settings
     """
     return self.polyExpParams
-

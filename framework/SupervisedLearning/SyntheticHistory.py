@@ -23,9 +23,9 @@ import numpy as np
 from utils import InputData, xmlUtils
 import TSA
 
-from .SupervisedLearning import supervisedLearning
+from .SupervisedLearning import SupervisedLearning
 
-class SyntheticHistory(supervisedLearning):
+class SyntheticHistory(SupervisedLearning):
   """
     Leverage TSA algorithms to train then generate synthetic signals.
   """
@@ -39,24 +39,25 @@ class SyntheticHistory(supervisedLearning):
       @ In, None
       @ Out, spec, InputData.ParameterInput, class for specifying input template
     """
-    specs = InputData.parameterInputFactory('SyntheticHistory', strictMode=True,
-        descr=r"""A ROM for characterizing and generating synthetic histories. This ROM makes use of
-               a variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new
-               signals based on training signal sets. """)
+    spec = super().getInputSpecification()
+    # specs = InputData.parameterInputFactory('SyntheticHistory', strictMode=True,
+    #     descr=r"""A ROM for characterizing and generating synthetic histories. This ROM makes use of
+    #            a variety of TimeSeriesAnalysis (TSA) algorithms to characterize and generate new
+    #            signals based on training signal sets. """)
     for typ in TSA.factory.knownTypes():
       c = TSA.factory.returnClass(typ) # TODO no message handler for second argument
       specs.addSub(c.getInputSpecification())
     return specs
 
   ### INHERITED METHODS ###
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
                            and printing messages
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self, **kwargs)
+    supervisedLearning.__init__(self)
     self.printTag = 'SyntheticHistoryROM'
     self._dynamicHandling = True # This ROM is able to manage the time-series on its own.
     # training storage
@@ -67,16 +68,14 @@ class SyntheticHistory(supervisedLearning):
     self.pivotParameterID = None      # string name for time-like pivot parameter
     self.pivotParameterValues = None  # In here we store the values of the pivot parameter (e.g. Time)
 
-    inputSpecs = kwargs['paramInput']
-    self.readInputSpecs(inputSpecs)
-
-  def readInputSpecs(self, inp):
+  def _handleInput(self, paramInput):
     """
-      Reads in the inputs from the user
-      @ In, inp, InputData.InputParams, input specifications
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
       @ Out, None
     """
-    self.pivotParameterID = inp.findFirst('pivotParameter').value # TODO does a base class do this?
+    super()._handleInput(paramInput)
+    self.pivotParameterID = paramInput.findFirst('pivotParameter').value # TODO does a base class do this?
     foundTSAType = False
     for sub in inp.subparts:
       if sub.name in TSA.factory.knownTypes():

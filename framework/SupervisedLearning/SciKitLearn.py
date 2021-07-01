@@ -155,10 +155,10 @@ class SciKitLearn(supervisedLearning):
       #self.availImpl['GaussianProcess']['GaussianProcess'          ] = (sklearn.gaussian_process.GaussianProcessRegressor         , 'float' ,  False)
       # Neural network models (supervised)
       # To be removed when the supported minimum version of sklearn is moved to 0.18
-      if int(sklearn.__version__.split(".")[1]) > 17:
-        self.availImpl['neural_network'] = {}
-        self.availImpl['neural_network']['MLPClassifier'              ] = (sklearn.neural_network.MLPClassifier             , 'int'   ,  True)  # Multi-layer perceptron classifier.
-        self.availImpl['neural_network']['MLPRegressor'               ] = (sklearn.neural_network.MLPRegressor              , 'float' ,  True)  # Multi-layer perceptron regressor.
+      # if int(sklearn.__version__.split(".")[1]) > 17:
+      #   self.availImpl['neural_network'] = {}
+      #   self.availImpl['neural_network']['MLPClassifier'              ] = (sklearn.neural_network.MLPClassifier             , 'int'   ,  True)  # Multi-layer perceptron classifier.
+      #   self.availImpl['neural_network']['MLPRegressor'               ] = (sklearn.neural_network.MLPRegressor              , 'float' ,  True)  # Multi-layer perceptron regressor.
 
       #test if a method to estimate the probability of the prediction is available
       self.__class__.qualityEstTypeDict = {}

@@ -18,7 +18,6 @@
   Container to handle ROMs that are made of many sub-roms
 """
 # standard libraries
-from __future__ import division, print_function, absolute_import
 import copy
 import warnings
 from collections import defaultdict, OrderedDict
@@ -31,26 +30,24 @@ import pandas as pd
 from scipy.interpolate import interp1d
 # internal libraries
 from utils import utils, mathUtils, xmlUtils, randomUtils
-from .SupervisedLearning import supervisedLearning
+from .SupervisedLearning import SupervisedLearning
 # import pickle as pk # TODO remove me!
 import os
-
-
 #
 #
 #
 #
-class Collection(supervisedLearning):
+class Collection(SupervisedLearning):
   """
     A container that handles collections of ROMs in a particular way.
   """
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       Constructor.
       @ In, kwargs, dict, options and initialization settings (from XML)
       @ Out, None
     """
-    supervisedLearning.__init__(self, **kwargs)
+    super().__init__()
     self.printTag = 'ROM Collection'              # message printing appearance
     self._romName = kwargs.get('name', 'unnamed') # name of the requested ROM
     self._templateROM = kwargs['modelInstance']   # example of a ROM that will be used in this grouping, set by setTemplateROM
@@ -69,7 +66,7 @@ class Collection(supervisedLearning):
     ## nope = ['_divisionClassifier', '_assembledObjects']
     nope = ['_assembledObjects']
     # base class
-    d = supervisedLearning.__getstate__(self)
+    d = SupervisedLearning.__getstate__(self)
     # additional
     for n in nope:
       d.pop(n, None)
@@ -158,13 +155,13 @@ class Segments(Collection):
   ########################
   # CONSTRUCTION METHODS #
   ########################
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       Constructor.
       @ In, kwargs, dict, options and initialization settings (from XML)
       @ Out, None
     """
-    Collection.__init__(self, **kwargs)
+    super().__init__()
     self.printTag = 'Segmented ROM'
     self._divisionInstructions = {}    # which parameters are clustered, and how, and how much?
     self._divisionMetrics = None       # requested metrics to apply; if None, implies everything we know about
@@ -176,9 +173,16 @@ class Segments(Collection):
     ## see design note for Clusters
     self._romGlobalAdjustments = None  # global ROM settings, provided by the templateROM before clustering
 
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
     # set up segmentation
     # get input specifications from inputParams
-    inputSpecs = kwargs['paramInput'].findFirst('Segment')
+    inputSpecs = paramInput.findFirst('Segment')
     # initialize settings
     divisionMode = {}
     for node in inputSpecs.subparts:
@@ -618,13 +622,13 @@ class Clusters(Segments):
     finalizeGlovalRomSegmentEvaluation on the templateROM.
   """
   ## Constructors ##
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       Constructor.
       @ In, kwargs, dict, options and initialization settings (from XML)
       @ Out, None
     """
-    Segments.__init__(self, **kwargs)
+    super().__init__()
     self.printTag = 'Clustered ROM'
     self._divisionClassifier = None      # Classifier to cluster subdomain ROMs
     self._metricClassifiers = None       # Metrics for clustering subdomain ROMs
@@ -637,7 +641,14 @@ class Clusters(Segments):
     if not self._templateROM.isClusterable():
       self.raiseAnError(NotImplementedError, 'Requested ROM "{}" does not yet have methods for clustering!'.format(self._romName))
 
-    segmentNode = kwargs['paramInput'].findFirst('Segment')
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    segmentNode = paramInput.findFirst('Segment')
     # evaluation mode
     evalModeNode = segmentNode.findFirst('evalMode')
     if evalModeNode is not None:
@@ -1194,20 +1205,28 @@ class Clusters(Segments):
 #
 #
 #
-class Interpolated(supervisedLearning):
+class Interpolated(SupervisedLearning):
   """ In addition to clusters for each history, interpolates between histories. """
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       Constructor.
       @ In, kwargs, dict, initialization options
       @ Out, None
     """
-    supervisedLearning.__init__(self, **kwargs)
+    super().__init__()
     self.printTag = 'Interp. Cluster ROM'
     self._maxCycles = None # maximum number of cycles to run (default no limit)
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
     # notation: "pivotParameter" is for micro-steps (e.g. within-year, with a Clusters ROM representing each year)
     #           "macroParameter" is for macro-steps (e.g. from year to year)
-    inputSpecs = kwargs['paramInput'].findFirst('Segment')
+    inputSpecs = paramInput.findFirst('Segment')
     try:
       self._macroParameter = inputSpecs.findFirst('macroParameter').value # pivot parameter for macro steps (e.g. years)
     except AttributeError:
