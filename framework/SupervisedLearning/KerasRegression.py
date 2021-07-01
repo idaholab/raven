@@ -41,6 +41,24 @@ class KerasRegression(KerasBase):
   """
   ROMType = 'KerasRegression'
 
+  info = {'problemtype':'regression', 'normalize':True}
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.description = r"""The \xmlNode{}
+                        """
+    specs.addSub(InputData.parameterInputFactory("", contentType=InputTypes.Type,
+                                                 descr=r"""""", default=))
+    return specs
+
   def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a keras deep neural network object
@@ -172,4 +190,3 @@ class KerasRegression(KerasBase):
     for i, target in enumerate(self.target):
       prediction[target] = self._invertScaleToNormal(outcome[0, :, i], target)
     return prediction
-

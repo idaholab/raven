@@ -62,6 +62,24 @@ class KerasBase(supervisedLearning):
   tempModelFile = "a_temporary_file_for_storing_a_keras_model.h5"
   modelAttr = "the_model_all_serialized_and_turned_into_an_hdf5_file_and_stuff"
 
+  info = {'problemtype':'regression', 'normalize':True}
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.description = r"""The \xmlNode{}
+                        """
+    specs.addSub(InputData.parameterInputFactory("", contentType=InputTypes.Type,
+                                                 descr=r"""""", default=))
+    return specs
+
   def __init__(self, **kwargs):
     """
       A constructor that will appropriately intialize a keras deep neural network object

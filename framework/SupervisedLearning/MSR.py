@@ -18,9 +18,6 @@
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Specific ROM implementation for MSR (Morse-Smale Regression) Rom
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -32,18 +29,7 @@ sklearn = utils.importerUtils.importModuleLazy("sklearn", globals())
 
 #Internal Modules------------------------------------------------------------------------------------
 from .NDinterpolatorRom import NDinterpolatorRom
-from .SupervisedLearning import supervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
-
-def _toStr(s):
-  """
-    Removes unicode from strings in Python 2 so amsc can use it.
-    @ In, s, unicode or str, String to convert to plain str
-    @ Out, s, str, Converted str
-  """
-  if sys.version_info.major > 2:
-    return s
-  return s.encode('ascii')
 
 class MSR(NDinterpolatorRom):
   """
@@ -51,14 +37,125 @@ class MSR(NDinterpolatorRom):
     from an input point cloud consisting of an arbitrary number of input
     parameters and one or more response values per input point
   """
-  def __init__(self, **kwargs):
+
+  info = {'problemtype':'regression', 'normalize':True}
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.description = r"""The \xmlNode{MSR} contains a class of ROMs that perform a topological
+                            decomposition of the data into approximately monotonic regions and fits weighted
+                            linear patches to the identified monotonic regions of the input space. Query
+                            points have estimated probabilities that they belong to each cluster. These
+                            probabilities can eitehr be used to give a smooth, weighted prediction based on
+                            the associated linear models, or a hard classification to a particular local
+                            linear model which is then used for prediction. Currently, the probability
+                            prediction can be done using kernel density estimation (KDE) or through a
+                            one-versus-one support vector machine (SVM).
+                            In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+                            be \xmlString{MSR}
+                        """
+    specs.addSub(InputData.parameterInputFactory("persistence", contentType=InputTypes.StringType,
+                                                 descr=r"""specifies how
+                                                 to define the hierarchical simplification by assigning a value to each local
+                                                 minimum and maximum according to the one of the strategy options below:
+                                                 \begin{itemize}
+                                                   \item \texttt{difference} - The function value difference between the
+                                                   extremum and its closest-valued neighboring saddle.
+                                                   \item \texttt{probability} - The probability integral computed as the
+                                                   sum of the probability of each point in a cluster divided by the count of
+                                                   the cluster.
+                                                   \item \texttt{count} - The count of points that flow to or from the
+                                                   extremum.
+                                                   % \item \xmlString{area} - The area enclosed by the manifold that flows to
+                                                   % or from the extremum.
+                                                 \end{itemize}""", default='difference'))
+    specs.addSub(InputData.parameterInputFactory("gradient", contentType=InputTypes.StringType,
+                                                 descr=r"""specifies the
+                                                 method used for estimating the gradient, available options are:
+                                                 \begin{itemize}
+                                                   \item \texttt{steepest}
+                                                   %\item \texttt{maxflow} \textit{(disabled)}
+                                                 \end{itemize}""", default='steepest'))
+    specs.addSub(InputData.parameterInputFactory("simplification", contentType=InputTypes.FloatType,
+                                                 descr=r"""specifies the
+                                                 amount of noise reduction to apply before returning labels.""", default=0))
+    specs.addSub(InputData.parameterInputFactory("graph", contentType=InputTypes.StringType,
+                                                 descr=r"""specifies the type
+                                                 of neighborhood graph used in the algorithm, available options are:
+                                                 \begin{itemize}
+                                                   \item \texttt{beta skeleton}
+                                                   \item \texttt{relaxed beta skeleton}
+                                                   \item \texttt{approximate knn}
+                                                   %\item \texttt{delaunay} \textit{(disabled)}
+                                                 \end{itemize}""", default='beta skeleton'))
+    specs.addSub(InputData.parameterInputFactory("beta", contentType=InputTypes.FloatType,
+                                                 descr=r"""in range: $(0, 2])$. It is
+                                                 only used when the \xmlNode{graph} is set to \texttt{beta skeleton} or
+                                                 \texttt{relaxed beta skeleton}.""", default=1.0))
+    specs.addSub(InputData.parameterInputFactory("knn", contentType=InputTypes.IntegerType,
+                                                 descr=r"""is the number of
+                                                 neighbors when using the \texttt{approximate knn} for the \xmlNode{graph}
+                                                 sub-node and used to speed up the computation of other graphs by using the
+                                                 approximate knn graph as a starting point for pruning. -1 means use a fully
+                                                 connected graph.""", default=-1))
+    specs.addSub(InputData.parameterInputFactory("weighted", contentType=InputTypes.BoolType,
+                                                 descr=r"""a flag that specifies
+                                                 whether the regression models should be probability weighted.""", default=False))
+    specs.addSub(InputData.parameterInputFactory("partitionPredictor", contentType=InputTypes.StringType,
+                                                 descr=r"""a flag that
+                                                 specifies how the predictions for query point classification should be
+                                                 performed. Available options are:
+                                                 \begin{itemize}
+                                                   \item \texttt{kde}
+                                                   \item \texttt{svm}
+                                                 \end{itemize}""", default='kde'))
+    specs.addSub(InputData.parameterInputFactory("smooth", contentType=InputTypes.StringType,
+                                                 descr=r"""if this node is present, the ROM will blend the
+                                                 estimates of all of the local linear models weighted by the probability the
+                                                 query point is classified as belonging to that partition of the input space.""", default=None))
+    specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.StringType,
+                                                 descr=r"""this option is only
+                                                 used when the \xmlNode{partitionPredictor} is set to \texttt{kde} and
+                                                 specifies the type of kernel to use in the kernel density estimation.
+                                                 Available options are:
+                                                 \begin{itemize}
+                                                   \item \texttt{uniform}
+                                                   \item \texttt{triangular}
+                                                   \item \texttt{gaussian}
+                                                   \item \texttt{epanechnikov}
+                                                   \item \texttt{biweight} or \texttt{quartic}
+                                                   \item \texttt{triweight}
+                                                   \item \texttt{tricube}
+                                                   \item \texttt{cosine}
+                                                   \item \texttt{logistic}
+                                                   \item \texttt{silverman}
+                                                   \item \texttt{exponential}
+                                                 \end{itemize}""", default='gaussian'))
+    specs.addSub(InputData.parameterInputFactory("bandwidth", contentType=InputTypes.FloatOrStringType,
+                                                 descr=r"""this
+                                                 option is only used when the \xmlNode{partitionPredictor} is set to
+                                                 \texttt{kde} and specifies the scale of the fall-off. A higher bandwidth
+                                                 implies a smooother blending. If set to \texttt{variable}, then the bandwidth
+                                                 will be set to the distance of the $k$-nearest neighbor of the query point
+                                                 where $k$ is set by the \xmlNode{knn} parameter.""", default=1.0))
+    return specs
+
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
     self.printTag = 'MSR ROM'
-    supervisedLearning.__init__(self, **kwargs)
+    super().__init__(self)
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
     self.acceptedPersistenceParam = ['difference','probability','count','area']
@@ -105,11 +202,24 @@ class MSR(NDinterpolatorRom):
                                           #  kde approach
     self.bandwidth = 1.                   # The bandwidth for the kde approach
 
-    # Read everything in first, and then do error checking as some parameters
-    # will not matter, but we can still throw a warning message that they may
-    # want to clean up there input file. In some cases, we will have to do
-    # value checking in place since the type cast can fail.
-    for key,val in kwargs.items():
+  # Read everything in first, and then do error checking as some parameters
+  # will not matter, but we can still throw a warning message that they may
+  # want to clean up there input file. In some cases, we will have to do
+  # value checking in place since the type cast can fail.
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    nodes, notFound = paramInput.findNodesAndExtractValues(['persistence', 'gradient', 'simplification', 'graph',
+                                                            'beta', 'knn', 'weighted','partitionPredictor',
+                                                            'smooth', 'kernel', 'bandwidth'])
+    self.graph = nodes.get('graph')
+    self.gradient = nodes.get('gradient')
+
+    for key,val in nodes.items():
       if key.lower() == 'graph':
         self.graph = _toStr(val.strip()).lower()
       elif key.lower() == "gradient":

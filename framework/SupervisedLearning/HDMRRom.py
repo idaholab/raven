@@ -18,9 +18,6 @@
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Specific ROM implementation for HDMRRom
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -35,6 +32,24 @@ class HDMRRom(GaussPolynomialRom):
   """
     High-Dimention Model Reduction reduced order model.  Constructs model based on subsets of the input space.
   """
+  info = {'problemtype':'regression', 'normalize':True}
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.description = r"""The \xmlNode{}
+                        """
+    specs.addSub(InputData.parameterInputFactory("", contentType=InputTypes.Type,
+                                                 descr=r"""""", default=))
+    return specs
+
   def __confidenceLocal__(self,featureVals):
     """
       This should return an estimation of the quality of the prediction.
@@ -362,4 +377,3 @@ class HDMRRom(GaussPolynomialRom):
     for subset,value in self.partialVariances[target].items():
       self.sdx[target][subset] = value / totVar
     return self.sdx[target],self.partialVariances[target]
-

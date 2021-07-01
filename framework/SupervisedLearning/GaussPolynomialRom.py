@@ -18,10 +18,6 @@
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Class implementation for the GaussPolynomialRom
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 from numpy import average
 import sys
 
@@ -32,15 +28,34 @@ from scipy import spatial
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .SupervisedLearning import supervisedLearning
+from .SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 
 
-class GaussPolynomialRom(supervisedLearning):
+class GaussPolynomialRom(SupervisedLearning):
   """
     Gauss Polynomial Rom Class
   """
+
+  info = {'problemtype':'regression', 'normalize':True}
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.description = r"""The \xmlNode{}
+                        """
+    specs.addSub(InputData.parameterInputFactory("", contentType=InputTypes.Type,
+                                                 descr=r"""""", default=))
+    return specs
+
   def __confidenceLocal__(self,featureVals):
     """
       This should return an estimation of the quality of the prediction.
