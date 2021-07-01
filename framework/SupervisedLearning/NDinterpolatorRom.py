@@ -18,9 +18,6 @@
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Specific ROM implementation for NDinterpolatorRom
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
@@ -29,22 +26,21 @@ import numpy as np
 #Internal Modules------------------------------------------------------------------------------------
 from utils import utils
 interpolationND = utils.findCrowModule("interpolationND")
-from .SupervisedLearning import supervisedLearning
+from .SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-
-class NDinterpolatorRom(supervisedLearning):
+class NDinterpolatorRom(SupervisedLearning):
   """
   A Reduced Order Model for interpolating N-dimensional data
   """
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ In, None
       @ Out, None
     """
-    supervisedLearning.__init__(self, **kwargs)
+    super().__init__()
     self.interpolator = []    # pointer to the C++ (crow) interpolator (list of targets)
     self.featv        = None  # list of feature variables
     self.targv        = None  # list of target variables

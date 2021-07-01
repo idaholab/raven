@@ -18,10 +18,6 @@
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Specific ROM implementation for NDsplineRom
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import math
 import copy
@@ -40,13 +36,42 @@ class NDsplineRom(NDinterpolatorRom):
     An N-dimensional Spline model
   """
   ROMtype         = 'NDsplineRom'
-  def __init__(self, **kwargs):
+  info = {'problemtype':'regression', 'normalize':True}
+
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, specs, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    specs = super().getInputSpecification()
+    specs.description = r"""\xmlNode{NDspline} is a ROM based on an $N$-dimensional
+                            spline interpolation/extrapolation scheme.
+                            In spline interpolation, the regressor is a special type of piece-wise
+                            polynomial called tensor spline.
+                            The interpolation error can be made small even when using low degree polynomials
+                            for the spline.
+                            Spline interpolation avoids the problem of Runge's phenomenon, in which
+                            oscillation can occur between points when interpolating using higher degree
+                            polynomials.
+                            In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+                            be \xmlString{NDspline}
+                            No further XML sub-nodes are required.
+                            \nb This ROM type must be trained from a regular Cartesian grid.
+                            Thus, it can only be trained from the outcomes of a grid sampling strategy.
+                        """
+    return specs
+
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, kwargs, dict, an arbitrary list of kwargs
+      @ In, None
       @ Out, None
     """
-    NDinterpolatorRom.__init__(self, **kwargs)
+    super().__init__(self)
     self.printTag = 'ND-SPLINE ROM'
     for _ in range(len(self.target)):
       self.interpolator.append(interpolationND.NDSpline())
@@ -102,5 +127,3 @@ class NDsplineRom(NDinterpolatorRom):
     """
     for index in range(len(self.target)):
       self.interpolator[index].reset()
-
-
