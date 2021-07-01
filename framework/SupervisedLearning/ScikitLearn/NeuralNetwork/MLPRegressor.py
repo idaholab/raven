@@ -15,7 +15,7 @@
   Created on Jun 30, 2021
 
   @author: wangc
-   Multi-layer Perceptron classifier.
+   Multi-layer Perceptron regressor.
 
 """
 #Internal Modules (Lazy Importer)--------------------------------------------------------------------
@@ -29,11 +29,11 @@ from .ScikitLearnBase import SciktLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class MLPClassifier(SciktLearnBase):
+class MLPRegressor(SciktLearnBase):
   """
-    Multi-layer Perceptron Classifier
+    Multi-layer Perceptron regressor.
   """
-  info = {'problemtype':'classification', 'normalize':True}
+  info = {'problemtype':'regression', 'normalize':True}
 
   def __init__(self):
     """
@@ -44,9 +44,7 @@ class MLPClassifier(SciktLearnBase):
     super().__init__()
     import sklearn
     import sklearn.neural_network
-    import sklearn.multioutput
-    # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.neural_network.MLPClassifier)
+    self.model = sklearn.neural_network.MLPRegressor
 
   @classmethod
   def getInputSpecification(cls):
@@ -58,9 +56,8 @@ class MLPClassifier(SciktLearnBase):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \\xmlNode{MLPClassifier} implements a multi-layer perceptron algorithm that trains using \textbf{Backpropagation}
+    specs.description = r"""The \\xmlNode{MLPRegressor} implements a multi-layer perceptron algorithm that trains using \textbf{Backpropagation}
                             More precisely, it trains using some form of gradient descent and the gradients are calculated using Backpropagation.
-                            For classification, it minimizes the Cross-Entropy loss function, and it supports multi-class classification.
                         """
     specs.addSub(InputData.parameterInputFactory("hidden_layer_sizes", contentType=InputTypes.IntegerTupleType,
                                                  descr=r"""The ith element represents the number of neurons in the ith hidden layer.
