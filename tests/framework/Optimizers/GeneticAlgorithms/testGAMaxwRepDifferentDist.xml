@@ -1,0 +1,157 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug">
+  <TestInfo>
+    <name>framework/Optimizers/GA/MaxwReplacement</name>
+    <author>MohammadAbdo</author>
+    <created>2021-05-13</created>
+    <classesTested>GeneticAlgorithm</classesTested>
+    <description>
+      This test assesses the Genetic algorithm using on the myLocalSum function.
+      The nominal dimensionality of the problem is 5.
+      The objective variable is ans.
+    </description>
+    <analytic>
+      This test uses myLocalSum's function, which is documented in the analytic tests documentation under
+      the Optimizer functions section.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>MaxwReplacementDiffDist</WorkingDir>
+    <Sequence>optimize, print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" re-seeding="2286">
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">myLocalSum</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <UniformDiscrete name='uniform_dist_Repl_1'>
+      <lowerBound>1</lowerBound>
+      <upperBound>6</upperBound>
+      <strategy>withReplacement</strategy>
+    </UniformDiscrete>
+    <UniformDiscrete name='uniform_dist_Repl_2'>
+      <lowerBound>7</lowerBound>
+      <upperBound>10</upperBound>
+      <strategy>withReplacement</strategy>
+    </UniformDiscrete>
+        <UniformDiscrete name='uniform_dist_woRepl_1'>
+      <lowerBound>1</lowerBound>
+      <upperBound>6</upperBound>
+      <strategy>withoutReplacement</strategy>
+    </UniformDiscrete>
+  </Distributions>
+
+  <Optimizers>
+    <GeneticAlgorithm name="GAopt">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+        <type>max</type>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>10</populationSize>
+        <parentSelection>rouletteWheel</parentSelection>
+        <reproduction nParents="5">
+          <crossover type="onePointCrossover">
+            <crossoverProb>0.8</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator">
+            <mutationProb>0.9</mutationProb>
+            <locs>0,2</locs>
+          </mutation>
+        </reproduction>
+        <fitness type="invLinear">
+          <a>2.0</a>
+          <b>1.0</b>
+        </fitness>
+        <survivorSelection>fitnessBased</survivorSelection>
+      </GAparams>
+
+      <convergence>
+        <objective>-1</objective>
+      </convergence>
+
+      <variable name="x1">
+        <distribution>uniform_dist_Repl_1</distribution>
+      </variable>
+
+      <variable name="x2">
+        <distribution>uniform_dist_Repl_1</distribution>
+      </variable>
+
+      <variable name="x3">
+        <distribution>uniform_dist_Repl_2</distribution>
+      </variable>
+
+      <objective>ans</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+    <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    </GeneticAlgorithm>
+  </Optimizers>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>10</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <variable name="x1">
+        <distribution>uniform_dist_Repl_1</distribution>
+      </variable>
+      <variable name="x2">
+        <distribution>uniform_dist_Repl_1</distribution>
+      </variable>
+      <variable name="x3">
+        <distribution>uniform_dist_Repl_2</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+    <Models>
+      <ExternalModel ModuleToLoad="../../../AnalyticModels/optimizing/myLocalSum.py" name="myLocalSum" subType="">
+        <variables>x1,x2,x3,ans</variables>
+      </ExternalModel>
+    </Models>
+
+    <DataObjects>
+      <PointSet name="placeholder"/>
+      <PointSet name="optOut">
+        <Input>x1,x2,x3</Input>
+        <Output>ans</Output>
+      </PointSet>
+      <PointSet name="opt_export">
+        <Input>trajID</Input>
+        <Output>x1,x2,x3,ans,age,batchId,fitness,iteration,accepted,conv_objective</Output>
+      </PointSet>
+    </DataObjects>
+
+    <OutStreams>
+      <Print name="optOut">
+        <type>csv</type>
+        <source>optOut</source>
+      </Print>
+      <Print name="opt_export">
+        <type>csv</type>
+        <source>opt_export</source>
+        <clusterLabel>trajID</clusterLabel>
+      </Print>
+    </OutStreams>
+</Simulation>

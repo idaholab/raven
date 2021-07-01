@@ -3,7 +3,8 @@ name: Feature request
 about: Suggest a new capability or addition you would like to see
 title: "[TASK] Title here"
 labels: priority_minor, task
-assignees: alfoa
+assignees: PaulTalbot-INL, joshua-cogliati-inl, wangcj05, mandd
+
 
 ---
 

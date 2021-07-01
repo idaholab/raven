@@ -258,7 +258,7 @@ class Relap5(CodeInterfaceBase):
         expression = expression.replace(var,str(Kwargs['SampledVars'][var]))
       expr = copy.copy(expression)
       for card in operator['cards']:
-        expr = expr.replace("%card%",operator['cardsValues'][card])
+        expr = copy.copy(expression).replace("%card%",operator['cardsValues'][card])
         try:
           Kwargs['SampledVars'][card] = eval(expr)
         except Exception as e:

@@ -24,7 +24,6 @@
 
 import numpy as np
 import xarray as xr
-import copy
 
 # @profile
 def ageBased(newRlz,**kwargs):
@@ -57,9 +56,9 @@ def ageBased(newRlz,**kwargs):
   # sort population, popFitness according to age
   sortedAge,sortedPopulation,sortedFitness = zip(*[[x,y,z] for x,y,z in sorted(zip(popAge,population,popFitness),key=lambda x: (x[0], -x[2]))])# if equal age then use descending fitness
   sortedAge,sortedPopulation,sortedFitness = list(sortedAge),np.atleast_1d(list(sortedPopulation)),np.atleast_1d(list(sortedFitness))
-  newPopulation = copy.deepcopy(sortedPopulation)
-  newFitness    = copy.deepcopy(sortedFitness)
-  newAge = list(map(lambda x:x+1, copy.deepcopy(sortedAge)))
+  newPopulation = sortedPopulation
+  newFitness    = sortedFitness
+  newAge = list(map(lambda x:x+1, sortedAge))
   newPopulation[-1:-np.shape(offSprings)[0]-1:-1] = offSprings
   newFitness[-1:-np.shape(offSprings)[0]-1:-1] = offSpringsFitness
   newAge[-1:-np.shape(offSprings)[0]-1:-1] = [0]*np.shape(offSprings)[0]
@@ -102,9 +101,9 @@ def fitnessBased(newRlz,**kwargs):
   population = np.atleast_2d(kwargs['population'].data)
   popFitness = np.atleast_1d(kwargs['fitness'].data)
 
-  newPopulation = copy.deepcopy(population)
-  newFitness = copy.deepcopy(popFitness)
-  newAge = list(map(lambda x:x+1, copy.deepcopy(popAge)))
+  newPopulation = population
+  newFitness = popFitness
+  newAge = list(map(lambda x:x+1, popAge))
   newPopulationMerged = np.concatenate([newPopulation,offSprings])
   newFitness = np.concatenate([newFitness,offSpringsFitness])
   newAge.extend([0]*len(offSpringsFitness))

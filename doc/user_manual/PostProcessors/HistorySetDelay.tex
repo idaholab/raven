@@ -1,0 +1,65 @@
+\subsubsection{HistorySetDelay}
+\label{HistorySetDelay}
+
+This Post-Processor allows history sets to add delayed or lagged
+variables. It copies a variable, but with a delay. For example, if
+there a variable price that is set hourly, than new variable called
+price\_prev\_hour could be set by using a delay of -1 as seen in the
+listing below.  This can be useful for training a ROM or other data
+analysis.
+
+\ppType{HistorySetDelay}{HistorySetDelay}
+
+In the \xmlNode{PostProcessor} input block, one or more of the following XML sub-nodes are required:
+
+\begin{itemize}
+\item \xmlNode{delay}, \xmlDesc{empty}, a delay node with the following required parameters:
+  \begin{itemize}
+  \item \xmlAttr{original}, \xmlDesc{string, required field}, the variable to start with
+  \item \xmlAttr{new}, \xmlDesc{string, required field}, the new variable to create
+  \item \xmlAttr{steps}, \xmlDesc{integer, required field}, the delay (if negative) or steps into the future (if positive) to use for the new variable (so -1 gives the previous, 1 gives the next)
+  \item \xmlAttr{default}, \xmlDesc{float, required field}, the value to use for cases where there is no previous or next value (such as the beginning when a negative delay is used, or the end when the delay is positive).
+  \end{itemize}
+\end{itemize}
+
+\begin{lstlisting}[style=XML]
+<Simulation>
+  ...
+  <Models>
+    ...
+    <PostProcessor name="delayPP" subType="HistorySetDelay">
+      <delay original="price" new="price_prev_hour" steps="-1" default="0.0"/>
+      <delay original="price" new="price_prev_day" steps="-24" default="0.0"/>
+      <delay original="price" new="price_prev_week" steps="-168" default="-1.0"/>
+    </PostProcessor>
+  </Models>
+  ...
+  <Steps>
+    ...
+    <PostProcess name="delay">
+      <Input class="DataObjects" type="HistorySet">samples</Input>
+      <Model class="Models" type="PostProcessor">delayPP</Model>
+      <Output class="DataObjects" type="HistorySet">delayed_samples</Output>
+    </PostProcess>
+    ...
+  </Steps>
+  ...
+  <DataObjects>
+    <HistorySet name="samples">
+      <Input>demand</Input>
+      <Output>price</Output>
+      <options>
+        <pivotParameter>hour</pivotParameter>
+      </options>
+    </HistorySet>
+    <HistorySet name="delayed_samples">
+      <Input>demand</Input>
+      <Output>price,price_prev_hour,price_prev_day,price_prev_week</Output>
+      <options>
+        <pivotParameter>hour</pivotParameter>
+      </options>
+    </HistorySet>
+    ...
+  </DataObjects>
+</Simulation>
+\end{lstlisting}

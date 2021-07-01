@@ -16,7 +16,6 @@ Created on August 30, 2017
 
 @author: wangc
 """
-from __future__ import division, print_function , unicode_literals, absolute_import
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 import os
@@ -25,8 +24,7 @@ from collections import OrderedDict
 import copy
 #External Modules End--------------------------------------------------------------------------------
 
-#Internal Modules------------------------------------------------------------------------------------
-from .PostProcessor import PostProcessor
+from .PostProcessorInterface import PostProcessorInterface
 from utils import utils
 from utils import InputData, InputTypes
 import Files
@@ -34,7 +32,7 @@ import Models
 import CrossValidations
 #Internal Modules End--------------------------------------------------------------------------------
 
-class CrossValidation(PostProcessor):
+class CrossValidation(PostProcessorInterface):
   """
     Cross Validation  class.
   """
@@ -108,7 +106,7 @@ class CrossValidation(PostProcessor):
       @ In, inputs, list, list of inputs
       @ In, initDict, dict, dictionary with initialization options
     """
-    PostProcessor.initialize(self, runInfo, inputs, initDict)
+    super().initialize(runInfo, inputs, initDict)
 
     for metricIn in self.assemblerDict['Metric']:
       if metricIn[2] in self.metricsDict.keys():
@@ -124,7 +122,7 @@ class CrossValidation(PostProcessor):
       @ In, paramInput, ParameterInput, the already parsed input.
       @ Out, None
     """
-    PostProcessor._handleInput(self, paramInput)
+    super()._handleInput(paramInput)
     self.initializationOptionDict = {}
     scoreList = ['maximum', 'average', 'median']
     cvNode = paramInput.findFirst('SciKitLearn')
@@ -245,7 +243,7 @@ class CrossValidation(PostProcessor):
     assert(len(outputName.split("_")) == 3)
     info = {}
     _, info['metricName'], info['targetName']  = outputName.split("_")
-    info['metricType'] = self.metricsDict[info['metricName']].metricType
+    info['metricType'] = self.metricsDict[info['metricName']].getAlgorithmType()
     return info
 
   def __generateTrainTestInputs(self, inputDict, trainIndex, testIndex):
@@ -305,14 +303,18 @@ class CrossValidation(PostProcessor):
       for targetName, targetValue in outputEvaluation.items():
         for metricInstance in self.metricsDict.values():
           metricValue = metricInstance.evaluate(targetValue, testDict[targetName])
-          if hasattr(metricInstance, 'metricType'):
-            if metricInstance.metricType[1] not in self.validMetrics:
-              self.raiseAnError(IOError, "The metric type: ", metricInstance.metricType[1], " can not be used, \
-                      the accepted metric types are: ", ",".join(self.validMetrics))
-            metricName = metricInstance.metricType[1]
+          metricType = metricInstance.getAlgorithmType()
+          if metricType is not None:
+            if metricType[1] not in self.validMetrics:
+              self.raiseAnError(IOError,
+                  f'The metric type "{metricType[1]}" cannot be used. ' +
+                  f'Accepted metric types include: {", ".join(self.validMetrics)}.')
+            metricName = metricType[1]
           else:
-            self.raiseAnError(IOError, "The metric: ", metricInstance.name, " can not be used, the accepted metric types are: ", str(self.validMetrics))
-          varName = 'cv' + '_' + metricInstance.name + '_' + targetName
+            self.raiseAnError(IOError,
+                f'The metric named "{metricInstance.name}" is not a valid type. ' +
+                f'Accepted metric types include: {", ".join(self.validMetrics)}.')
+          varName = f'cv_{metricInstance.name}_{targetName}'
           if varName not in outputDict.keys():
             outputDict[varName] = np.array([])
           outputDict[varName] = np.append(outputDict[varName], metricValue)
@@ -329,7 +331,7 @@ class CrossValidation(PostProcessor):
           scoreDict[varName] = np.atleast_1d(np.mean(np.atleast_1d(metricValues)))
       return scoreDict
 
-  def collectOutput(self,finishedJob, output):
+  def collectOutput(self,finishedJob, output, options=None):
     """
       Function to place all of the computed data into the output object, i.e. Files
       @ In, finishedJob, object, JobHandler object that is in charge of running this postprocessor

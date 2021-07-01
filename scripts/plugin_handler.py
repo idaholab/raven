@@ -126,12 +126,12 @@ def tellPluginAboutRaven(loc):
   if ravenLoc is None:
     ravenLoc = xmlUtils.newNode('FrameworkLocation')
     root.append(ravenLoc)
-  location = os.path.abspath(os.path.expanduser(frameworkDir))
-  if ravenLoc.text.strip() != location:
+  ravenFrameworkLoc = os.path.abspath(os.path.expanduser(frameworkDir))
+  if ravenLoc.text != ravenFrameworkLoc:
     # we write only in case the location is either different or the file
     # is not present (so, only one processor in case of RAVENrunningRAVEN
-    # will write the file if not present)
-    ravenLoc.text = os.path.abspath(os.path.expanduser(frameworkDir))
+    # will write the file if not present
+    ravenLoc.text = ravenFrameworkLoc
     xmlUtils.toFile(configFile, root)
   return ravenLoc.text
 

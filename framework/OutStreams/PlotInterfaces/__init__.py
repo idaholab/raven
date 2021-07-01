@@ -20,5 +20,6 @@
 from .PlotInterface import PlotInterface
 from .SamplePlot import SamplePlot
 from .GeneralPlot import GeneralPlot as Plot
+from .OptPath import OptPath
 
 from .Factory import factory

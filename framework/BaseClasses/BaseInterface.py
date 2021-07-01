@@ -20,12 +20,22 @@ from abc import ABCMeta, abstractmethod
 from utils import mathUtils
 from utils.utils import metaclass_insert
 from BaseClasses import BaseType
+from BaseClasses import Assembler
 
-class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
+class BaseInterface(metaclass_insert(ABCMeta, Assembler, BaseType)):
   """
     Archetype for "interface" classes, including implementations/strategies/algorithms to execute
     the intention of BaseEntity types. For example, SupervisedLearning Engines are an Interface
     to the Models.ROM class. Base interfaces define APIs for adding new algorithm classes.
+
+    Entities in RAVEN request a specific Interface via the subType input attribute. Generally,
+    <Entity name="myName" subType="requestedInterface">
+      ...
+    </Entity>
+    such as
+    <Plot name="my_line" subType="GeneralPlot">
+      ...
+    </Plot>
   """
   ################################
   # Core API (confirmed)
@@ -60,7 +70,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
       self.name = paramInput.parameterValues['name']
     else:
       self.raiseAnError(IOError, 'not found name for a '+self.__class__.__name__)
-    self.type = paramInput.getName()
+    #self.type = paramInput.getName() -> we set this in __init__, setting it here to the spec type seems sketchy
     if self.globalAttributes is not None:
       self.globalAttributes = globalAttributes
     if 'verbosity' in paramInput.parameterValues:
@@ -75,6 +85,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
       Set up this interface for a particular activity
       @ In, args, list, positional arguments
       @ In, kwargs, dict, keyword arguments
+      @ Out, None
     """
     pass
 
@@ -84,6 +95,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
       Main method to "do what you do".
       @ In, args, list, positional arguments
       @ In, kwargs, dict, keyword arguments
+      @ Out, None
     """
 
   ################################
@@ -92,12 +104,12 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
     """
       Provides the registered list of metadata keys for this entity.
       @ In, None
-      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and
-                                           indexes/dimensions corresponding to expected keys
+      @ Out, (self.metadataKeys, self.metadataParams), tuple, (set(str),dict),
+             expected keys (empty if none) and indexes/dimensions corresponding to expected keys
     """
     return self.metadataKeys, self.metadataParams
 
-  def addMetaKeys(self, args, params=None):
+  def addMetaKeys(self,args, params=None):
     """
       Adds keywords to a list of expected metadata keys.
       @ In, args, list(str), keywords to register
@@ -148,7 +160,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
       @ In, xmlNode, xml.etree.ElementTree.Element, XML element node that represents the portion of the input that belongs to this class
       @ Out, None
     """
-    pass
+    super()._readMoreXML(xmlNode)
 
   def _handleInput(self, paramInput):
     """
@@ -177,7 +189,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
     """
       Function to be overloaded to get a dictionary of the name and values of the initial parameters associated with any class
       @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
+      @ Out, getInitParams, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
     """
     return {}
 
@@ -195,7 +207,7 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
     """
       Function to be overloaded to inject the name and values of the parameters that might change during the simulation
       @ In, None
-      @ Out, paramDict, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
+      @ Out, getCurrentSetting, dict, dictionary containing the parameter names as keys and each parameter's initial value as the dictionary values
     """
     return {}
 
@@ -217,27 +229,6 @@ class BaseInterface(metaclass_insert(ABCMeta, BaseType)):
     self.raiseADebug('       Current Setting:')
     for key in tempDict.keys():
       self.raiseADebug('       {0:15}: {1}'.format(key,str(tempDict[key])))
-
-  def provideExpectedMetaKeys(self):
-    """
-      Provides the registered list of metadata keys for this entity.
-      @ In, None
-      @ Out, meta, tuple, (set(str),dict), expected keys (empty if none) and indexes/dimensions corresponding to expected keys
-    """
-    return self.metadataKeys, self.metadataParams
-
-  def addMetaKeys(self,args, params={}):
-    """
-      Adds keywords to a list of expected metadata keys.
-      @ In, args, list(str), keywords to register
-      @ In, params, dict, optional, {key:[indexes]}, keys of the dictionary are the variable names,
-        values of the dictionary are lists of the corresponding indexes/coordinates of given variable
-      @ Out, None
-    """
-    if any(not mathUtils.isAString(a) for a in args):
-      self.raiseAnError('Arguments to addMetaKeys were not all strings:',args)
-    self.metadataKeys = self.metadataKeys.union(set(args))
-    self.metadataParams.update(params)
 
   def _formatSolutionExportVariableNames(self, acceptable):
     """
