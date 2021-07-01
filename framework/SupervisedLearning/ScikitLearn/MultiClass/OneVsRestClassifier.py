@@ -57,11 +57,13 @@ class OneVsRestClassifier(SciktLearnBase):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{Lars} (\textit{Least Angle Regression model})
-                        is a regression algorithm for high-dimensional data.
-                        The LARS algorithm provides a means of producing an estimate of which variables
-                        to include, as well as their coefficients, when a response variable is
-                        determined by a linear combination of a subset of potential covariates.
+    specs.description = r"""The \xmlNode{OneVsRestClassifier} (\textit{One-vs-the-rest (OvR) multiclass strategy})
+                        Also known as one-vs-all, this strategy consists in fitting one classifier per class. For each
+                        classifier, the class is fitted against all the other classes. In addition to its computational
+                        efficiency (only n\_classes classifiers are needed), one advantage of this approach is its
+                        interpretability. Since each class is represented by one and one classifier only, it is
+                        possible to gain knowledge about the class by inspecting its corresponding classifier.
+                        This is the most commonly used strategy for multiclass classification and is a fair default choice.
                         """
     estimatorInput = InputData.parameterInputFactory("estimator", contentType=InputTypes.StringType,
                                                  descr=r"""An estimator object implementing fit and one of

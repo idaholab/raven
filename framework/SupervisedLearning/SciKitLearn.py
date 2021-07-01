@@ -90,7 +90,7 @@ class SciKitLearn(supervisedLearning):
       self.availImpl['lda']                                          = {}                                                            #Linear Discriminant Analysis
       self.availImpl['qda']                                          = {}                                                            #Quadratic Discriminant Analysis
       # self.availImpl['lda']['LDA'                                  ] = (sklearn.discriminant_analysis.LinearDiscriminantAnalysis            , 'int'    , False) #Linear Discriminant Analysis (LDA)
-      self.availImpl['qda']['QDA'                                  ] = (sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis         , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
+      # self.availImpl['qda']['QDA'                                  ] = (sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis         , 'int'    , False) #Quadratic Discriminant Analysis (QDA)
       #self.availImpl['linear_model']                                 = {}                                                            #Generalized Linear Models
       #self.availImpl['linear_model']['ARDRegression'               ] = (sklearn.linear_model.ARDRegression               , 'float'  , False) #Bayesian ARD regression.
       #self.availImpl['linear_model']['BayesianRidge'               ] = (sklearn.linear_model.BayesianRidge               , 'float'  , False) #Bayesian ridge regression
@@ -125,10 +125,11 @@ class SciKitLearn(supervisedLearning):
       #self.availImpl['svm']['NuSVC'                                ] = (sklearn.svm.NuSVC                                , 'bool'   , True ) #Nu Support vector classifier
       #self.availImpl['svm']['SVR'                                  ] = (sklearn.svm.SVR                                  , 'float'  , True ) #Support vector regressor
 
-      self.availImpl['multiClass']                                   = {} #Multiclass and multilabel classification
-      self.availImpl['multiClass']['OneVsRestClassifier'           ] = (sklearn.multiclass.OneVsRestClassifier           , 'int'   ,  False) # One-vs-the-rest (OvR) multiclass/multilabel strategy
-      self.availImpl['multiClass']['OneVsOneClassifier'            ] = (sklearn.multiclass.OneVsOneClassifier            , 'int'   ,  False) # One-vs-one multiclass strategy
-      self.availImpl['multiClass']['OutputCodeClassifier'          ] = (sklearn.multiclass.OutputCodeClassifier          , 'int'   ,  False) # (Error-Correcting) Output-Code multiclass strategy
+      # TODO: Added, but need to handle estimator correctly
+      # self.availImpl['multiClass']                                   = {} #Multiclass and multilabel classification
+      # self.availImpl['multiClass']['OneVsRestClassifier'           ] = (sklearn.multiclass.OneVsRestClassifier           , 'int'   ,  False) # One-vs-the-rest (OvR) multiclass/multilabel strategy
+      # self.availImpl['multiClass']['OneVsOneClassifier'            ] = (sklearn.multiclass.OneVsOneClassifier            , 'int'   ,  False) # One-vs-one multiclass strategy
+      # self.availImpl['multiClass']['OutputCodeClassifier'          ] = (sklearn.multiclass.OutputCodeClassifier          , 'int'   ,  False) # (Error-Correcting) Output-Code multiclass strategy
 
       #self.availImpl['naiveBayes']                                   = {}
       #self.availImpl['naiveBayes']['GaussianNB'                    ] = (sklearn.naive_bayes.GaussianNB                   , 'float' ,  True )

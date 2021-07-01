@@ -57,11 +57,9 @@ class OneVsOneClassifier(SciktLearnBase):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{Lars} (\textit{Least Angle Regression model})
-                        is a regression algorithm for high-dimensional data.
-                        The LARS algorithm provides a means of producing an estimate of which variables
-                        to include, as well as their coefficients, when a response variable is
-                        determined by a linear combination of a subset of potential covariates.
+    specs.description = r"""The \xmlNode{OneVsOneClassifier} (\textit{One-vs-one multiclass strategy})
+                        This strategy consists in fitting one classifier per class pair. At prediction time, the class
+                        which received the most votes is selected.
                         """
     estimatorInput = InputData.parameterInputFactory("estimator", contentType=InputTypes.StringType,
                                                  descr=r"""An estimator object implementing fit and one of

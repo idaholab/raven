@@ -57,11 +57,14 @@ class OutputCodeClassifier(SciktLearnBase):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{Lars} (\textit{Least Angle Regression model})
-                        is a regression algorithm for high-dimensional data.
-                        The LARS algorithm provides a means of producing an estimate of which variables
-                        to include, as well as their coefficients, when a response variable is
-                        determined by a linear combination of a subset of potential covariates.
+    specs.description = r"""The \xmlNode{OutputCodeClassifier} (\textit{(Error-Correcting) Output-Code multiclass strategy})
+                        Output-code based strategies consist in representing each class with a binary code (an array of
+                        0s and 1s). At fitting time, one binary classifier per bit in the code book is fitted. At
+                        prediction time, the classifiers are used to project new points in the class space and the class
+                        closest to the points is chosen. The main advantage of these strategies is that the number of
+                        classifiers used can be controlled by the user, either for compressing the model
+                        (0 < code\_size < 1) or for making the model more robust to errors (code\_size > 1). See the
+                        documentation for more details.
                         """
     estimatorInput = InputData.parameterInputFactory("estimator", contentType=InputTypes.StringType,
                                                  descr=r"""An estimator object implementing fit and one of
