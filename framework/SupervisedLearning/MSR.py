@@ -117,10 +117,10 @@ class MSR(NDinterpolatorRom):
                                                    \item \texttt{kde}
                                                    \item \texttt{svm}
                                                  \end{itemize}""", default='kde'))
-    specs.addSub(InputData.parameterInputFactory("smooth", contentType=InputTypes.StringType,
+    specs.addSub(InputData.parameterInputFactory("smooth", contentType=InputTypes.BoolType,
                                                  descr=r"""if this node is present, the ROM will blend the
                                                  estimates of all of the local linear models weighted by the probability the
-                                                 query point is classified as belonging to that partition of the input space.""", default=None))
+                                                 query point is classified as belonging to that partition of the input space.""", default=False))
     specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.StringType,
                                                  descr=r"""this option is only
                                                  used when the \xmlNode{partitionPredictor} is set to \texttt{kde} and
@@ -166,6 +166,9 @@ class MSR(NDinterpolatorRom):
                                 'biweight', 'quartic', 'triweight', 'tricube',
                                 'gaussian', 'cosine', 'logistic', 'silverman',
                                 'exponential']
+    self.X      = []
+    self.Y      = []
+    self.kdTree = None
     self.__amsc = []                      # AMSC object
     # Some sensible default arguments
     self.gradient = 'steepest'            # Gradient estimate methodology
@@ -218,74 +221,24 @@ class MSR(NDinterpolatorRom):
                                                             'smooth', 'kernel', 'bandwidth'])
     self.graph = nodes.get('graph')
     self.gradient = nodes.get('gradient')
+    self.beta = nodes.get('beta')
+    self.knn = nodes.get('knn')
+    self.simplification = nodes.get('simplification')
+    self.bandwidth = nodes.get('bandwidth')
+    self.persistence = nodes.get('persistence')
+    self.partitionPredictor = nodes.get('partitionPredictor')
+    self.kernel = nodes.get('kernel')
+    self.blending = nodes.get('smooth')
 
-    for key,val in nodes.items():
-      if key.lower() == 'graph':
-        self.graph = _toStr(val.strip()).lower()
-      elif key.lower() == "gradient":
-        self.gradient = _toStr(val.strip()).lower()
-      elif key.lower() == "beta":
-        try:
-          self.beta = float(val)
-        except ValueError:
-          # If the user has specified a graph, use it, otherwise be sure to use
-          #  the default when checking whether this is a warning or an error
-          if 'graph' in kwargs:
-            graph = _toStr(kwargs['graph'].strip()).lower()
-          else:
-            graph = self.graph
-          if graph.endswith('beta skeleton'):
-            self.raiseAnError(IOError, 'Requested invalid beta value:',
-                              val, '(Allowable range: (0,2])')
-          else:
-            self.raiseAWarning('Requested invalid beta value:', self.beta,
-                               '(Allowable range: (0,2]), however beta is',
-                               'ignored when using the', graph,
-                               'graph structure.')
-      elif key.lower() == 'knn':
-        try:
-          self.knn = int(val)
-        except ValueError:
-          self.raiseAnError(IOError, 'Requested invalid knn value:',
-                            val, '(Should be an integer value, knn <= 0 implies'
-                            ,'use of the fully connected point set)')
-      elif key.lower() == 'simplification':
-        try:
-          self.simplification = float(val)
-        except ValueError:
-          self.raiseAnError(IOError, 'Requested invalid simplification level:',
-                            val, '(should be a floating point value)')
-      elif key.lower() == 'bandwidth':
-        if val == 'variable' or val == 'auto':
-          self.bandwidth = val
-        else:
-          try:
-            self.bandwidth = float(val)
-          except ValueError:
-            # If the user has specified a strategy, use it, otherwise be sure to
-            #  use the default when checking whether this is a warning or an error
-            if 'partitionPredictor' in kwargs:
-              partPredictor = _toStr(kwargs['partitionPredictor'].strip()).lower()
-            else:
-              partPredictor = self.partitionPredictor
-            if partPredictor == 'kde':
-              self.raiseAnError(IOError, 'Requested invalid bandwidth value:',
-                                val,'(should be a positive floating point value)')
-            else:
-              self.raiseAWarning('Requested invalid bandwidth value:',val,
-                                 '(bandwidth > 0 or \"variable\"). However, it is ignored when',
-                                 'using the', partPredictor, 'partition',
-                                 'predictor')
-      elif key.lower() == 'persistence':
-        self.persistence = _toStr(val.strip()).lower()
-      elif key.lower() == 'partitionpredictor':
-        self.partitionPredictor = _toStr(val.strip()).lower()
-      elif key.lower() == 'smooth':
-        self.blending = True
-      elif key.lower() == "kernel":
-        self.kernel = val
+    if type(self.bandwidth) is float and self.bandwidth <= 0:
+      if self.partitionPredictor == 'kde':
+        self.raiseAnError(IOError, 'Requested invalid bandwidth value:',
+                          self.bandwidth,'(should be a positive floating point value)')
       else:
-        pass
+        self.raiseAWarning('Requested invalid bandwidth value:',self.bandwidth,
+                           '(bandwidth > 0 or \"variable\"). However, it is ignored when',
+                           'using the', self.partitionPredictor, 'partition',
+                           'predictor')
 
     # Morse-Smale specific error handling
     if self.graph not in self.acceptedGraphParam:
@@ -313,16 +266,6 @@ class MSR(NDinterpolatorRom):
       self.raiseAnError(IOError, 'Requested unknown partition predictor:'
                         '\"'+repr(self.partitionPredictor)+'\"','(Available options:',
                         self.acceptedPredictorParam,')')
-    if self.bandwidth <= 0:
-      if self.partitionPredictor == 'kde':
-        self.raiseAnError(IOError, 'Requested invalid bandwidth value:',
-                          self.bandwidth, '(bandwidth > 0)')
-      else:
-        self.raiseAWarning(IOError, 'Requested invalid bandwidth value:',
-                          self.bandwidth, '(bandwidth > 0). However, it is',
-                          'ignored when using the', self.partitionPredictor,
-                          'partition predictor')
-
     if self.kernel not in self.acceptedKernelParam:
       if self.partitionPredictor == 'kde':
         self.raiseAnError(IOError, 'Requested unknown kernel:',
@@ -333,7 +276,6 @@ class MSR(NDinterpolatorRom):
                            '(Available options:', self.acceptedKernelParam,
                            '), however the kernel is ignored when using the',
                            self.partitionPredictor,'partition predictor.')
-    self.__resetLocal__()
 
   def __getstate__(self):
     """
@@ -385,7 +327,7 @@ class MSR(NDinterpolatorRom):
     if self.knn <= 0:
       self.knn = self.X.shape[0]
 
-    names = [_toStr(name) for name in self.features + self.target]
+    names = [name for name in self.features + self.target]
     # Data is already normalized, so ignore this parameter
     ### Comment replicated from the post-processor version, not sure what it
     ### means (DM)
@@ -685,7 +627,6 @@ class MSR(NDinterpolatorRom):
             maxWeights[wx > maxWeights] = wx
           returnDict[target] = predictions
       return returnDict
-
 
   def __resetLocal__(self):
     """
