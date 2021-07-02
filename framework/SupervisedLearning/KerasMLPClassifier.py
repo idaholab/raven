@@ -43,12 +43,12 @@ class KerasMLPClassifier(KerasClassifier):
                                                  descr=r"""""", default=))
     return specs
 
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ In, None
       @ Out, None
     """
-    KerasClassifier.__init__(self, **kwargs)
+    super().__init__()
     self.printTag = 'KerasMLPClassifier'
     self.allowedLayers = self.basicLayers

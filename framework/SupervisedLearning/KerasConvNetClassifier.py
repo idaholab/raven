@@ -48,13 +48,13 @@ class KerasConvNetClassifier(KerasClassifier):
                                                  descr=r"""""", default=))
     return specs
 
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ In, None
       @ Out, None
     """
-    super().__init__(**kwargs)
+    super().__init__()
     self.printTag = 'KerasConvNetClassifier'
     self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasConvNetLayersList'] + self.kerasROMDict['kerasPoolingLayersList']
 

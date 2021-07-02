@@ -47,13 +47,13 @@ class KerasLSTMRegression(KerasRegression):
                                                  descr=r"""""", default=))
     return specs
 
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
       @ In, kwargs, dict, an arbitrary dictionary of keywords and values
       @ Out, None
     """
-    KerasRegression.__init__(self, **kwargs)
+    super().__init__()
     self.printTag = 'KerasLSTMRegression'
     self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasRcurrentLayersList']
 

@@ -88,13 +88,13 @@ class GaussPolynomialRom(SupervisedLearning):
     """
     pass
 
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       A constructor that will appropriately intialize a supervised learning object
       @ In, kwargs, dict, an arbitrary list of kwargs
       @ Out, None
     """
-    supervisedLearning.__init__(self, **kwargs)
+    super().__init__()
     self.initialized   = False #only True once self.initialize has been called
     self.interpolator  = None #FIXME what's this?
     self.printTag      = 'GAUSSgpcROM('+'-'.join(self.target)+')'

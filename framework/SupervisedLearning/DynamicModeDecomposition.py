@@ -19,9 +19,6 @@
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
   Base subclass definition for DynamicModeDecomposition ROM (transferred from alfoa in SupervisedLearning)
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
 import sys
@@ -31,11 +28,11 @@ from scipy import spatial
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils
-from SupervisedLearning import supervisedLearning
+from SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class DynamicModeDecomposition(supervisedLearning):
+class DynamicModeDecomposition(SupervisedLearning):
   """
     This surrogate is aimed to construct a "time-dep" surrogate based on
     Dynamic Mode Decomposition method.
@@ -61,12 +58,13 @@ class DynamicModeDecomposition(supervisedLearning):
                                                  descr=r"""""", default=))
     return specs
 
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       DMD constructor
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ In, None
+      @ Out, None
     """
-    supervisedLearning.__init__(self, **kwargs)
+    super().__init__(self)
     self.availDmdAlgorithms          = ['dmd','hodmd']                      # available dmd types: basic dmd and high order dmd
     self.dmdParams                   = {}                                   # dmd settings container
     self.printTag                    = 'DMD'                                # print tag

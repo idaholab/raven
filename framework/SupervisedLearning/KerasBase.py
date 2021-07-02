@@ -31,10 +31,10 @@ tf = utils.importerUtils.importModuleLazyRenamed("tf", globals(), "tensorflow")
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .SupervisedLearning import supervisedLearning
+from .SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
-class KerasBase(supervisedLearning):
+class KerasBase(SupervisedLearning):
   """
     Multi-layer perceptron base class constructed using Keras API in TensorFlow
   """
@@ -80,12 +80,13 @@ class KerasBase(supervisedLearning):
                                                  descr=r"""""", default=))
     return specs
 
-  def __init__(self, **kwargs):
+  def __init__(self):
     """
       A constructor that will appropriately intialize a keras deep neural network object
-      @ In, kwargs, dict, an arbitrary dictionary of keywords and values
+      @ In, None
       @ Out, None
     """
+    super().__init__()
     if len(self.availOptimizer) == 0:
       # stochastic gradient descent optimizer, includes support for momentum,learning rate decay, and Nesterov momentum
       self.availOptimizer['sgd'] = tf.keras.optimizers.SGD
