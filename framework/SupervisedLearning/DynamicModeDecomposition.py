@@ -52,10 +52,45 @@ class DynamicModeDecomposition(SupervisedLearning):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{}
+    specs.description = r"""The \xmlString{DMD} ROM aimed to construct a time-dependent (or any other monotonic
+                        variable) surrogate model based on Dynamic Mode Decomposition
+                        This surrogate is aimed to perform a ``dimensionality reduction regression'', where, given time
+                        series (or any monotonic-dependent variable) of data, a set of modes each of which is associated
+                        with a fixed oscillation frequency and decay/growth rate is computed
+                        in order to represent the data-set.
+                        In order to use this Reduced Order Model, the \xmlNode{ROM} attribute
+                        \xmlAttr{subType} needs to be set equal to \xmlString{DMD}
                         """
-    specs.addSub(InputData.parameterInputFactory("", contentType=InputTypes.Type,
-                                                 descr=r"""""", default=))
+    specs.addSub(InputData.parameterInputFactory("dmdType", contentType=InputTypes.makeEnumType("dmd", "dmdType", ["dmd", "hodmd"]),
+                                                 descr=r"""the type of Dynamic Mode Decomposition to apply.Available are:
+                                                  \begin{itemize}
+                                                    \item \textit{dmd}, for classical DMD
+                                                    \item \textit{hodmd}, for high order DMD.
+                                                  \end{itemize}""", default="dmd"))
+    specs.addSub(InputData.parameterInputFactory("pivotParameter", contentType=InputTypes.StringType,
+                                                 descr=r"""defines the pivot variable (e.g., time) that represents the
+                                                 independent monotonic variable""", default="time"))
+    specs.addSub(InputData.parameterInputFactory("rankSVD", contentType=InputTypes.IntegerType,
+                                                 descr=r"""defines the truncation rank to be used for the SVD.
+                                                 Available options are:
+                                                 \begin{itemize}
+                                                 \item \textit{-1}, no truncation is performed
+                                                 \item \textit{0}, optimal rank is internally computed
+                                                 \item \textit{>1}, this rank is going to be used for the truncation
+                                               \end{itemize}""", default=-1))
+    specs.addSub(InputData.parameterInputFactory("energyRankSVD", contentType=InputTypes.FloatType,
+                                                 descr=r"""energy level ($0.0 < float < 1.0$) used to compute the rank such
+                                                   as computed rank is the number of the biggest singular values needed to reach the energy identified by
+                                                   \xmlNode{energyRankSVD}. This node has always priority over  \xmlNode{rankSVD}""", default=None))
+    specs.addSub(InputData.parameterInputFactory("rankTLSQ", contentType=InputTypes.IntegerType,
+                                                 descr=r"""$int > 0$ that defines the truncation rank to be used for the total
+                                                  least square problem. If not inputted, no truncation is applied""", default=None))
+    specs.addSub(InputData.parameterInputFactory("exactModes", contentType=InputTypes.BoolType,
+                                                 descr=r"""True if the exact modes need to be computed (eigenvalues and
+                                                 eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).""", default=True))
+    specs.addSub(InputData.parameterInputFactory("optimized", contentType=InputTypes.FloatType,
+                                                 descr=r"""True if the amplitudes need to be computed minimizing the error
+                                                  between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=True))
     return specs
 
   def __init__(self):
@@ -65,17 +100,9 @@ class DynamicModeDecomposition(SupervisedLearning):
       @ Out, None
     """
     super().__init__(self)
-    self.availDmdAlgorithms          = ['dmd','hodmd']                      # available dmd types: basic dmd and high order dmd
     self.dmdParams                   = {}                                   # dmd settings container
     self.printTag                    = 'DMD'                                # print tag
-    self.pivotParameterID            = kwargs.get("pivotParameter","time")  # pivot parameter
     self._dynamicHandling            = True                                 # This ROM is able to manage the time-series on its own. No need for special treatment outside
-    self.dmdParams['rankSVD'       ] = kwargs.get('rankSVD',None)           # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
-    self.dmdParams['energyRankSVD' ] = kwargs.get('energyRankSVD',None)     #  0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by "energyRankSVD"
-    self.dmdParams['rankTLSQ'      ] = kwargs.get('rankTLSQ',None)          # truncation rank for total least square
-    self.dmdParams['exactModes'    ] = kwargs.get('exactModes',True)        # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
-    self.dmdParams['optimized'     ] = kwargs.get('optimized',False)        # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
-    self.dmdParams['dmdType'       ] = kwargs.get('dmdType','dmd')          # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
     # variables filled up in the training stages
     self._amplitudes                 = {}                                   # {'target1': vector of amplitudes,'target2':vector of amplitudes, etc.}
     self._eigs                       = {}                                   # {'target1': vector of eigenvalues,'target2':vector of eigenvalues, etc.}
@@ -85,11 +112,28 @@ class DynamicModeDecomposition(SupervisedLearning):
     self.KDTreeFinder                = None                                 # kdtree weighting model
     self.timeScales                  = {}                                   # time-scales (training and dmd). {'training' and 'dmd':{t0:float,'dt':float,'intervals':int}}
 
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    settings, notFound = paramInput.findNodesAndExtractValues(['pivotParameter','rankSVD', 'energyRankSVD',
+                                                               'rankTLSQ','exactModes','optimized', 'dmdType'])
+    # notFound must be empty
+    assert(not notFound)
+    self.pivotParameterID            = settings.get("pivotParameter","time")  # pivot parameter
+    self.dmdParams['rankSVD'       ] = settings.get('rankSVD',None)           # -1 no truncation, 0 optimal rank is computed, >1 truncation rank
+    self.dmdParams['energyRankSVD' ] = settings.get('energyRankSVD',None)     #  0.0 < float < 1.0, computed rank is the number of the biggest sv needed to reach the energy identified by "energyRankSVD"
+    self.dmdParams['rankTLSQ'      ] = settings.get('rankTLSQ',None)          # truncation rank for total least square
+    self.dmdParams['exactModes'    ] = settings.get('exactModes',True)        # True if the exact modes need to be computed (eigs and eigvs), otherwise the projected ones (using the left-singular matrix)
+    self.dmdParams['optimized'     ] = settings.get('optimized',False)        # amplitudes computed minimizing the error between the mods and all the timesteps (True) or 1st timestep only (False)
+    self.dmdParams['dmdType'       ] = settings.get('dmdType','dmd')          # the dmd type to be applied. Currently we support dmd and hdmd (high order dmd)
+
     # some checks
     if self.dmdParams['rankSVD'] is not None and self.dmdParams['energyRankSVD'] is not None:
       self.raiseAWarning('Both "rankSVD" and "energyRankSVD" have been inputted. "energyRankSVD" is predominant and will be used!')
-    if self.dmdParams['dmdType'] not in self.availDmdAlgorithms:
-      self.raiseAnError(IOError,'dmdType(s) available are "'+', '.join(self.availDmdAlgorithms)+'"!')
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")

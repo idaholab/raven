@@ -73,7 +73,7 @@ class ARMA(SupervisedLearning):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{ARMA} ROM is based on an autoregressive moving average time series model with
+    specs.description = r"""The \xmlString{ARMA} ROM is based on an autoregressive moving average time series model with
                         Fourier signal processing, sometimes referred to as a FARMA.
                         ARMA is a type of time dependent model that characterizes the autocorrelation between time series data. The mathematic description of ARMA is given as
                         \begin{equation*}
@@ -250,7 +250,7 @@ class ARMA(SupervisedLearning):
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self)
+    super().__init__()
     self.printTag = 'ARMA'
     self._dynamicHandling  = True # This ROM is able to manage the time-series on its own.
     # training storage
