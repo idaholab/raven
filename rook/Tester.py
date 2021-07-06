@@ -184,7 +184,7 @@ class Differ:
       @ In, test_dir, string, path to test directory
       @ Out, None
     """
-    self.__name = name
+    #self.__name = name
     self.__test_dir = test_dir
     valid_params = self.get_valid_params()
     self.specs = valid_params.get_filled_dict(params)
@@ -374,7 +374,7 @@ class Tester:
       @ In, params, dictionary, the parameters for this class to use.
       @ Out, None
     """
-    self.__name = name
+    #self.__name = name
     valid_params = self.get_valid_params()
     self.specs = valid_params.get_filled_dict(params)
     self.results = TestResult()
