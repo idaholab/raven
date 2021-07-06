@@ -44,10 +44,70 @@ class HDMRRom(GaussPolynomialRom):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{}
-                        """
-    specs.addSub(InputData.parameterInputFactory("", contentType=InputTypes.Type,
-                                                 descr=r"""""", default=))
+    specs.description = r"""The \xmlString{HDMRRom} is based on a Sobol decomposition scheme.
+                        In Sobol decomposition, also known as high-density model reduction (HDMR, specifically Cut-HDMR),
+                        a model is approximated as as the sum of increasing-complexity interactions.  At its lowest level (order 1), it treats the function as a sum of the reference case plus a functional of each input dimesion separately.  At order 2, it adds functionals to consider the pairing of each dimension with each other dimension.  The benefit to this approach is considering several functions of small input cardinality instead of a single function with large input cardinality.  This allows reduced order models like generalized polynomial chaos (see \ref{subsubsec:GaussPolynomialRom}) to approximate the functionals accurately with few computations runs.
+                        %
+                        In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+                        be \xmlString{HDMRRom}.
+                        %
+                        The HDMRRom is dependent on specific sampling; thus, this ROM cannot be trained unless a
+                        Sobol or similar Sampler specifies this ROM in its input and is sampled in a MultiRun step.
+                        %
+                        \nb This ROM type must be trained from a Sobol decomposition training set.
+                        %
+                        Thus, it can only be trained from the outcomes of a Sobol sampler.
+                        Also, this ROM must be referenced in the Sobol sampler in order to
+                        accurately produce the necessary sparse grid points to train this ROM.
+                        Experience has shown order 2 Sobol decompositions to include the great majority of
+                          uncertainty in most models.
+
+                        \zNormalizationNotPerformed{HDMRRom}
+
+                        \textbf{Example:}
+                        {\footnotesize
+                        \begin{lstlisting}[style=XML,morekeywords={name,subType}]
+                          <Samplers>
+                            ...
+                            <Sobol name="mySobol" parallel="0">
+                              <variable name="x1">
+                                <distribution>myDist1</distribution>
+                              </variable>
+                              <variable name="x2">
+                                <distribution>myDist2</distribution>
+                              </variable>
+                              <ROM class = 'Models' type = 'ROM' >myHDMR</ROM>
+                            </Sobol>
+                            ...
+                          </Samplers>
+                          ...
+                          <Models>
+                            ...
+                            <ROM name='myHDMR' subType='HDMRRom'>
+                              <Target>ans</Target>
+                              <Features>x1,x2</Features>
+                              <SobolOrder>2</SobolOrder>
+                              <IndexSet>TotalDegree</IndexSet>
+                              <PolynomialOrder>4</PolynomialOrder>
+                              <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+                              <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
+                            </ROM>
+                            ...
+                          </Models>
+                        \end{lstlisting}
+                        }
+
+                        When Printing this ROM via an OutStream (see \ref{sec:printing}), the available metrics are:
+                        \begin{itemize}
+                          \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
+                          \item \xmlString{variance}, the ANOVA-calculated variance of the ROM output within the input space it
+                            was trained.
+                          \item \xmlString{samples}, the number of distinct model runs required to construct the ROM,
+                          \item \xmlString{indices}, the Sobol sensitivity indices (in percent), Sobol total indices, and partial variances.
+                        \end{itemize}"""
+    specs.addSub(InputData.parameterInputFactory("SobolOrder", contentType=InputTypes.IntegerType,
+                                                 descr=r"""indicates the maximum cardinality of the input space used in the subset functionals.  For example, order 1
+                                                 includes only functionals of each independent dimension separately, while order 2 considers pair-wise interactions."""))
     return specs
 
   def __confidenceLocal__(self,featureVals):
@@ -80,7 +140,7 @@ class HDMRRom(GaussPolynomialRom):
       @ In, None
       @ Out, None
     """
-    GaussPolynomialRom.__init__(self, **kwargs)
+    super().__init__(self)
     self.initialized   = False #true only when self.initialize has been called
     self.printTag      = 'HDMR_ROM('+'-'.join(self.target)+')'
     self.sobolOrder    = None #depth of HDMR/Sobol expansion
@@ -91,9 +151,17 @@ class HDMRRom(GaussPolynomialRom):
     self.anova         = None #converted true ANOVA terms, stores coefficients not polynomials
     self.partialVariances = None #partial variance contributions
 
-    for key,val in kwargs.items():
-      if key=='SobolOrder':
-        self.sobolOrder = int(val)
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    settings, notFound = paramInput.findNodesAndExtractValues(['SobolOrder'])
+    # notFound must be empty
+    assert(not notFound)
+    self.sobolOrder = settings.get('SobolOrder')
 
   def writeXML(self, writeTo, requests = None, skip = None):
     """
