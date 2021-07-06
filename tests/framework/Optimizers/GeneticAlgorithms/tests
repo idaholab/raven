@@ -155,14 +155,14 @@
     [../]
   [../]
 
-[./MinwReplacementConstrained]
+  [./MaxwReplacementSphereConstrainedInvLin]
     type = 'RavenFramework'
-    input = 'discrete/constrained/testGAMinwRepConstrained.xml'
+    input = 'discrete/constrained/testGAMaxwRepSphereConstrainedInvLin.xml'
     heavy = true
     max_time = 2000
     [./csv]
      type = OrderedCSV
-     output = 'discrete/constrained/MinwReplacementConstrained/opt_export_0.csv'
+     output = 'discrete/constrained/MaxwReplacementSphereConstrainedInvLin/opt_export_0.csv'
      rel_err = 0.001
     [../]
   [../]
@@ -177,12 +177,32 @@
     [../]
   [../]
 
+  [./mishraBirdConstrainedInvLin]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGAMishraBirdConstrainedInvLin.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/mishraBirdConstrainedInvLin/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
   [./rosenbrockDiskConstrained]
     type = 'RavenFramework'
     input = 'continuous/constrained/testGARosenbrockDiskConstrained.xml'
     [./csv]
      type = OrderedCSV
      output = 'continuous/constrained/rosenbrockDiskConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./rosenbrockDiskConstrainedInvLin]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGARosenbrockDiskConstrainedInvLin.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/rosenbrockDiskConstrainedInvLin/opt_export_0.csv'
      rel_err = 0.001
     [../]
   [../]
@@ -197,12 +217,32 @@
     [../]
   [../]
 
+  [./simionescuConstrainedInvLin]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGASimionescuConstrainedInvLin.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/simionescuConstrainedInvLin/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
   [./townsendConstrained]
     type = 'RavenFramework'
     input = 'continuous/constrained/testGATownsendConstrained.xml'
     [./csv]
      type = OrderedCSV
      output = 'continuous/constrained/townsendConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+  [./townsendConstrainedInvLin]
+    type = 'RavenFramework'
+    input = 'continuous/constrained/testGATownsendConstrainedInvLin.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'continuous/constrained/townsendConstrainedInvLin/opt_export_0.csv'
      rel_err = 0.001
     [../]
   [../]

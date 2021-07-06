@@ -321,11 +321,17 @@ class GeneticAlgorithm(RavenSampled):
     # Fitness
     fitnessNode = gaParamsNode.findFirst('fitness')
     self._fitnessType = fitnessNode.parameterValues['type']
+
+    # Check if the fitness requested is among the constrained optimization fitnesses
+    # Currently, only InvLin and feasibleFirst Fitnesses deal with constrained optimization
+    ## TODO: @mandd, please explore the possibility to conver the logistic fitness into a constrained optimization fitness.
+    if 'Constraint' in self.assemblerObjects.keys() and self._fitnessType not in ['invLinear','feasibleFirst']:
+      self.raiseAnError(IOError, 'Currently constrained Genetic Algorithms only support invLinear and feasibleFirst fitnesses, whereas provided fitness is {}'.format(self._fitnessType))
     self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
     self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
-    self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented,
-                                                                                # if other repair methods are implemented then
+    self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented.
+
     # Convergence Criterion
     convNode = paramInput.findFirst('convergence')
     if convNode is not None:
@@ -418,6 +424,10 @@ class GeneticAlgorithm(RavenSampled):
                      dims=['chromosome','Constraint'],
                      coords={'chromosome':np.arange(np.shape(population)[0]),
                              'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
+    ## FIXME The constraint handling is following the structure of the RavenSampled.py,
+    #        there are many utility functions that can be simplified and/or merged with
+    #        _check, _handle, and _apply, for explicit and implicit constraints.
+    #        This can be simpliefied in the near future in GradientDescent, SimulatedAnnealing, and here in GA
     for index,individual in enumerate(population):
       newOpt = individual
       opt = objectiveVal[index]
@@ -426,7 +436,7 @@ class GeneticAlgorithm(RavenSampled):
           g.data[index, constIndex] = self._handleExplicitConstraints(newOpt,constraint)
         else:
           g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt,constraint)
-    fitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff, penalty=None,constraintFunction=g)
+    fitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff,constraintFunction=g,type=self._minMax)
     acceptable = 'first' if self.counter==1 else 'accepted'
     self._collectOptPoint(population,fitness,objectiveVal)
     self._resolveNewGeneration(traj, rlz, objectiveVal, fitness, info)
@@ -574,7 +584,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     optPoints,fit,obj = zip(*[[x,y,z] for x,y,z in sorted(zip(np.atleast_2d(population.data),np.atleast_1d(fitness.data),objectiveVal),reverse=True,key=lambda x: (x[1]))])
     point = dict((var,float(optPoints[0][i])) for i,var in enumerate(self.toBeSampled.keys()))
-    if (self.counter>1 and obj[0] < self.bestObjective) or self.counter == 1:
+    if (self.counter>1 and obj[0] <= self.bestObjective and fit[0]>=self.bestFitness) or self.counter == 1:
       self.bestPoint = point
       self.bestFitness = fit[0]
       self.bestObjective = obj[0]

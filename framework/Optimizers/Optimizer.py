@@ -115,7 +115,7 @@ class Optimizer(AdaptiveSampler):
               the input space of the Model. From a practical point of view, this XML node must contain
               the name of a function defined in the \xmlNode{Functions} block (see Section~\ref{sec:functions}).
               This external function must contain a method called ``constrain'', which returns True for
-              inputs satisfying the explicit constraints and False otherwise.""")
+              inputs satisfying the explicit constraints and False otherwise. \nb Currently this accepts any number of constraints from the user.""")
     ConstraintInput.addParam("class", InputTypes.StringType, True,
         descr=r"""RAVEN class for this source. Options include \xmlString{Functions}. """)
     ConstraintInput.addParam("type", InputTypes.StringType, True,
