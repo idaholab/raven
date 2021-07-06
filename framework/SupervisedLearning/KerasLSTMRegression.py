@@ -43,8 +43,6 @@ class KerasLSTMRegression(KerasRegression):
     specs = super().getInputSpecification()
     specs.description = r"""The \xmlNode{}
                         """
-    specs.addSub(InputData.parameterInputFactory("", contentType=InputTypes.Type,
-                                                 descr=r"""""", default=))
     return specs
 
   def __init__(self):

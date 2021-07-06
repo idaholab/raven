@@ -54,8 +54,6 @@ class KerasClassifier(KerasBase):
     specs = super().getInputSpecification()
     specs.description = r"""The \xmlNode{}
                         """
-    specs.addSub(InputData.parameterInputFactory("", contentType=InputTypes.Type,
-                                                 descr=r"""""", default=))
     return specs
 
   def __init__(self):
@@ -66,14 +64,6 @@ class KerasClassifier(KerasBase):
     """
     super().__init__()
     self.printTag = 'KerasClassifier'
-
-  def readInitDict(self, initDict):
-    """
-      Reads in the initialization dict to initialize this instance
-      @ In, initDict, dict, keywords passed to constructor
-      @ Out, None
-    """
-    super().readInitDict(initDict)
 
   def _getFirstHiddenLayer(self, layerInstant, layerSize, layerDict):
     """
