@@ -16,10 +16,6 @@
   @author: talbpaul
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
 """
-#for future compatibility with Python 3-----------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3-------------------------------------------
-
 from EntityFactoryBase import EntityFactory
 
 ################################################################################

@@ -181,6 +181,8 @@ class GaussPolynomialRom(SupervisedLearning):
                   result in increased resolution for this dimension at the cost of resolution in lower-weighted
                   dimensions.  The algorithm normalizes weights at run-time.\default{1}.""")
     specs.addSub(interpolationParam)
+    specs.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType, default='time'))
+
     return specs
 
   def __confidenceLocal__(self,featureVals):

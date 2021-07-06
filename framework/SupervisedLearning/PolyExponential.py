@@ -76,7 +76,8 @@ class PolyExponential(SupervisedLearning):
                                                 independent monotonic variable""", default='time'))
     spec.addSub(InputData.parameterInputFactory('numberExpTerms',contentType=InputTypes.IntegerType,
                                                 descr=r"""the number of exponential terms to be used ($N$ above)""", default=3))
-    spec.addSub(InputData.parameterInputFactory('coeffRegressor',contentType=InputTypes.StringType,
+    coeffRegressorEnumType = InputTypes.makeEnumType("coeffRegressor","coeffRegressorType",["poly","spline","nearest"])
+    spec.addSub(InputData.parameterInputFactory('coeffRegressor',contentType=coeffRegressorEnumType,
                                                 descr=r"""defines which regressor to use for interpolating the
                                                 exponential coefficient. Available are ``spline'',``poly'' and ``nearest''.""",
                                                 default='spline'))

@@ -14,10 +14,6 @@
 """
 Module where the base class and the specialization of different type of Model are
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
-
 #External Modules------------------------------------------------------------------------------------
 import copy
 import inspect
@@ -58,8 +54,7 @@ class ROM(Dummy):
     """
     inputSpecification = super(ROM, cls).getInputSpecification()
 
-    IndexSetInputType = InputTypes.makeEnumType("indexSet","indexSetType",["TensorProduct","TotalDegree","HyperbolicCross","Custom"])
-    CriterionInputType = InputTypes.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
+    # CriterionInputType = InputTypes.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
     ###########
     # general #
     ###########
@@ -112,130 +107,6 @@ class ROM(Dummy):
     # pickledROM
     inputSpecification.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum))
     inputSpecification.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType)) # for Interpolated ROMCollection
-    # unsorted
-    inputSpecification.addSub(InputData.parameterInputFactory("persistence", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("gradient", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("simplification", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("graph", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("knn", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("partitionPredictor", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("smooth", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("bandwidth", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("p", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SKLtype", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_iter", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_iter_no_change", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("tol", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha_1", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha_2", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("lambda_1", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("lambda_2", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("compute_score", contentType=InputTypes.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("threshold_lambda", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("fit_intercept", contentType=InputTypes.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("normalize", contentType=InputTypes.StringType))  #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("l1_ratio", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("warm_start", contentType=InputTypes.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("positive", contentType=InputTypes.StringType)) #bool?
-    inputSpecification.addSub(InputData.parameterInputFactory("eps", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_alphas", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_nonzero_coefs", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("fit_path", contentType=InputTypes.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("max_n_alphas", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("criterion", contentType=CriterionInputType))
-    inputSpecification.addSub(InputData.parameterInputFactory("penalty", contentType=InputTypes.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("dual", contentType=InputTypes.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("C", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("intercept_scaling", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("class_weight", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("random_state", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("cv", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("shuffle", contentType=InputTypes.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("loss", contentType=InputTypes.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("epsilon", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("eta0", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("solver", contentType=InputTypes.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("alphas", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("scoring", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("gcv_mode", contentType=InputTypes.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("store_cv_values", contentType=InputTypes.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("learning_rate", contentType=InputTypes.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("power_t", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("multi_class", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("degree", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("gamma", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("coef0", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("probability", contentType=InputTypes.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("shrinking", contentType=InputTypes.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("cache_size", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("nu", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("code_size", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("fit_prior", contentType=InputTypes.StringType)) #bool
-    inputSpecification.addSub(InputData.parameterInputFactory("class_prior", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("binarize", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_neighbors", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("weights", contentType=InputTypes.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("algorithm", contentType=InputTypes.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("leaf_size", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("metric", contentType=InputTypes.StringType)) #enum?
-    inputSpecification.addSub(InputData.parameterInputFactory("radius", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("outlier_label", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("shrink_threshold", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("priors", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reg_param", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("splitter", contentType=InputTypes.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("max_features", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("max_depth", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("min_samples_split", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("min_samples_leaf", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("max_leaf_nodes", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("regr", contentType=InputTypes.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("corr", contentType=InputTypes.StringType)) #enum?
-    inputSpecification.addSub(InputData.parameterInputFactory("beta0", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("storage_mode", contentType=InputTypes.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("theta0", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("thetaL", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("thetaU", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("nugget", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("optimizer", contentType=InputTypes.StringType)) #enum
-    inputSpecification.addSub(InputData.parameterInputFactory("random_start", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("alpha", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("n_restarts_optimizer", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("normalize_y", contentType=InputTypes.StringType))
-    # GaussPolynomialROM and HDMRRom
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexPoints", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("IndexSet",contentType=IndexSetInputType))
-    inputSpecification.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("PolynomialOrder", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SobolOrder", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("SparseGrid", contentType=InputTypes.StringType))
-    InterpolationInput = InputData.parameterInputFactory('Interpolation', contentType=InputTypes.StringType)
-    InterpolationInput.addParam("quad", InputTypes.StringType, False)
-    InterpolationInput.addParam("poly", InputTypes.StringType, False)
-    InterpolationInput.addParam("weight", InputTypes.FloatType, False)
-    inputSpecification.addSub(InterpolationInput)
-
-    # PolyExp
-    inputSpecification.addSub(InputData.parameterInputFactory("maxNumberExpTerms", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("numberExpTerms", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("maxPolyOrder", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("polyOrder", contentType=InputTypes.IntegerType))
-    coeffRegressorEnumType = InputTypes.makeEnumType("coeffRegressor","coeffRegressorType",["poly","spline","nearest"])
-    inputSpecification.addSub(InputData.parameterInputFactory("coeffRegressor", contentType=coeffRegressorEnumType))
-    # DMD
-    inputSpecification.addSub(InputData.parameterInputFactory("rankSVD", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("energyRankSVD", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("rankTLSQ", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("exactModes", contentType=InputTypes.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("optimized", contentType=InputTypes.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("dmdType", contentType=InputTypes.StringType))
 
     return inputSpecification
 
