@@ -466,6 +466,39 @@ IntegerTupleType.createClass("integer_list", "xsd:string")
 #
 #
 #
+class IntegerTupleListType(InputType):
+  """
+    A type for integer tuple list "(1, 2), (3, 4), (5, 6)" -> [(1,2), (3,4), (5,6)]
+  """
+
+  @classmethod
+  def convert(cls, value):
+    """
+      Converts value from string to an integer tuple.
+      @ In, value, string, the value to convert
+      @ Out, convertedValue, list of integer tuples, the converted value
+    """
+    convertedValue = []
+    val = value.replace(' ', '').replace('\n', '').strip('()')
+    val = val.split('),(')
+    for s in val:
+      convertedValue.append(tuple(int(x) for x in s.split(",")))
+    return convertedValue
+
+  @classmethod
+  def generateLatexType(cls):
+    """
+      Generates LaTeX representing this type's type
+      @ In, None
+      @ Out, msg, string, representation
+    """
+    return 'comma-separated list of comma separated integer tuples'
+
+IntegerTupleListType.createClass("integer_tuple_list", "xsd:string")
+#
+#
+#
+#
 class EnumBaseType(InputType):
   """
     A type that allows a set list of strings

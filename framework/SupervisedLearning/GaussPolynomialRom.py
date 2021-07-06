@@ -50,10 +50,137 @@ class GaussPolynomialRom(SupervisedLearning):
         specifying input of cls.
     """
     specs = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{}
+    specs.description = r"""The \xmlString{GaussPolynomialRom} is based on a
+                        characteristic Gaussian polynomial fitting scheme: generalized polynomial chaos
+                        expansion (gPC).
+                        In gPC, sets of polynomials orthogonal with respect to the distribution of uncertainty
+                        are used to represent the original model.  The method converges moments of the original
+                        model faster than Monte Carlo for small-dimension uncertainty spaces ($N<15$).
+                        In order to use this ROM, the \xmlNode{ROM} attribute \xmlAttr{subType} needs to
+                        be \xmlString{GaussPolynomialRom}.
+                        The GaussPolynomialRom is dependent on specific sampling; thus, this ROM cannot be trained unless a
+                        SparseGridCollocation or similar Sampler specifies this ROM in its input and is sampled in a MultiRun step.
+                        %
+                        \begin{table}[htb]
+                          \centering
+                          \begin{tabular}{c | c c}
+                            Unc. Distribution & Default Quadrature & Default Polynomials \\ \hline
+                            Uniform & Legendre & Legendre \\
+                            Normal & Hermite & Hermite \\ \hline
+                            Gamma & Laguerre & Laguerre \\
+                            Beta & Jacobi & Jacobi \\ \hline
+                            Other & Legendre* & Legendre*
+                          \end{tabular}
+                          \caption{GaussPolynomialRom defaults}
+                          \label{tab:gpcCompatible}
+                        \end{table}
+                        %
+                        \nb This ROM type must be trained from a collocation quadrature set.
+                        %
+                        Thus, it can only be trained from the outcomes of a SparseGridCollocation sampler.
+                        Also, this ROM must be referenced in the SparseGridCollocation sampler in order to
+                        accurately produce the necessary sparse grid points to train this ROM.
+                        \zNormalizationNotPerformed{GaussPolynomialRom}
+
+                        \textbf{Example:}
+                        {\footnotesize
+                        \begin{lstlisting}[style=XML,morekeywords={name,subType}]
+                        <Simulation>
+                          ...
+                          <Samplers>
+                            ...
+                            <SparseGridCollocation name="mySG" parallel="0">
+                              <variable name="x1">
+                                <distribution>myDist1</distribution>
+                              </variable>
+                              <variable name="x2">
+                                <distribution>myDist2</distribution>
+                              </variable>
+                              <ROM class = 'Models' type = 'ROM' >myROM</ROM>
+                            </SparseGridCollocation>
+                            ...
+                          </Samplers>
+                          ...
+                          <Models>
+                            ...
+                            <ROM name='myRom' subType='GaussPolynomialRom'>
+                              <Target>ans</Target>
+                              <Features>x1,x2</Features>
+                              <IndexSet>TotalDegree</IndexSet>
+                              <PolynomialOrder>4</PolynomialOrder>
+                              <Interpolation quad='Legendre' poly='Legendre' weight='1'>x1</Interpolation>
+                              <Interpolation quad='ClenshawCurtis' poly='Jacobi' weight='2'>x2</Interpolation>
+                            </ROM>
+                            ...
+                          </Models>
+                          ...
+                        </Simulation>
+                        \end{lstlisting}
+                        }
+
+                        When Printing this ROM via a Print OutStream (see \ref{sec:printing}), the available metrics are:
+                        \begin{itemize}
+                          \item \xmlString{mean}, the mean value of the ROM output within the input space it was trained,
+                          \item \xmlString{variance}, the variance of the ROM output within the input space it was trained,
+                          \item \xmlString{samples}, the number of distinct model runs required to construct the ROM,
+                          \item \xmlString{indices}, the Sobol sensitivity indices (in percent), Sobol total indices, and partial variances,
+                          \item \xmlString{polyCoeffs}, the polynomial expansion coefficients (PCE moments) of the ROM.  These are
+                            listed by each polynomial combination, with the polynomial order tags listed in the order of the variables
+                            shown in the XML print.
+                        \end{itemize}
                         """
-    specs.addSub(InputData.parameterInputFactory("", contentType=InputTypes.Type,
-                                                 descr=r"""""", default=))
+    specs.addSub(InputData.parameterInputFactory("IndexSet", contentType=InputTypes.makeEnumType("IndexSet", "IndexSetType", ["TensorProduct", "TotalDegree", "HyperbolicCross", "Custom"]),
+                                                 descr=r"""specifies the rules by which to construct multidimensional polynomials.  The options are
+                                                 \xmlString{TensorProduct}, \xmlString{TotalDegree},\\
+                                                 \xmlString{HyperbolicCross}, and \xmlString{Custom}.
+                                                 %
+                                                 Total degree is efficient for
+                                                 uncertain inputs with a large degree of regularity, while hyperbolic cross is more efficient
+                                                 for low-regularity input spaces.
+                                                 %
+                                                 If \xmlString{Custom} is chosen, the \xmlNode{IndexPoints} is required."""))
+    specs.addSub(InputData.parameterInputFactory("PolynomialOrder", contentType=InputTypes.IntegerType,
+                                                 descr=r"""indicates the maximum polynomial order in any one dimension to use in the
+                                                 polynomial chaos expansion. \nb If non-equal importance weights are supplied in the optional
+                                                 \xmlNode{Interpolation} node, the actual polynomial order in dimensions with high
+                                                 importance might exceed this value; however, this value is still used to limit the
+                                                 relative overall order."""))
+    specs.addSub(InputData.parameterInputFactory("SparseGrid", contentType=InputTypes.makeEnumType("SparseGrid", "SparseGrid", ["smolyak", "tensor"]),
+                                                 descr=r"""allows specification of the multidimensional
+                                                   quadrature construction strategy.  Options are \xmlString{smolyak} and \xmlString{tensor}.""",
+                                                   default="smolyak"))
+    specs.addSub(InputData.parameterInputFactory("IndexPoints", contentType=InputTypes.IntegerTupleListType,
+                                                 descr=r"""used to specify the index set points in a \xmlString{Custom} index set.  The tuples are
+                                                 entered as comma-separated values between parenthesis, with each tuple separated by a comma.
+                                                 Any amount of whitespace is acceptable.  For example, \xmlNode{IndexPoints}\verb'(0,1),(0,2),(1,1),(4,0)'\xmlNode{/IndexPoints}
+                                                 \nb{Using custom index sets
+                                                 does not guarantee accurate convergence.}"""))
+    interpolationParam = InputData.parameterInputFactory("Interpolation", contentType=InputTypes.StringType,
+                                                 descr=r"""offers the option to specify quadrature, polynomials, and importance weights for the given
+                                                 variable name.  The ROM accepts any number of \xmlNode{Interpolation} nodes up to the
+                                                 dimensionality of the input space.""", default=None)
+    interpolationParam.addParam("quad", InputTypes.StringType, required=False,
+                  descr=r"""specifies the quadrature type to use for collocation in this dimension.  The default options
+                  depend on the uncertainty distribution of the input dimension, as shown in Table
+                  \ref{tab:gpcCompatible}. Additionally, Clenshaw Curtis quadrature can be used for any
+                  distribution that doesn't include an infinite bound.
+                  \default{see Table \ref{tab:gpcCompatible}.}
+                  \nb For an uncertain distribution aside from the four listed on Table
+                  \ref{tab:gpcCompatible}, this ROM
+                  makes use of the uniform-like range of the distribution's CDF to apply quadrature that is
+                  suited uniform uncertainty (Legendre).  It converges more slowly than the four listed, but are
+                  viable choices.  Choosing polynomial type Legendre for any non-uniform distribution will
+                  enable this formulation automatically.""")
+    interpolationParam.addParam("poly", InputTypes.StringType, required=False,
+                  descr=r"""specifies the interpolating polynomial family to use for the polynomial expansion in this
+                  dimension.  The default options depend on the quadrature type chosen, as shown in Table
+                  \ref{tab:gpcCompatible}.  Currently, no polynomials are available outside the
+                  default. \default{see Table \ref{tab:gpcCompatible}.}""")
+    interpolationParam.addParam("weight", InputTypes.FloatType, required=False,
+                  descr=r"""delineates the importance weighting of this dimension.  A larger importance weight will
+                  result in increased resolution for this dimension at the cost of resolution in lower-weighted
+                  dimensions.  The algorithm normalizes weights at run-time.\default{1}.""")
+    specs.addSub(interpolationParam)
     return specs
 
   def __confidenceLocal__(self,featureVals):
@@ -118,39 +245,33 @@ class GaussPolynomialRom(SupervisedLearning):
     self.sdx           = None
     self.partialVariances = None
     self.sparseGridType    = 'smolyak' #type of sparse quadrature to use,default smolyak
-    self.sparseQuadOptions = ['smolyak','tensor'] # choice of sparse quadrature construction methods
 
-    for key,val in kwargs.items():
-      if key=='IndexSet':
-        self.indexSetType = val
-      elif key=='IndexPoints':
-        self.indexSetVals=[]
-        strIndexPoints = val.strip()
-        strIndexPoints = strIndexPoints.replace(' ','').replace('\n','').strip('()')
-        strIndexPoints = strIndexPoints.split('),(')
-        self.raiseADebug(strIndexPoints)
-        for s in strIndexPoints:
-          self.indexSetVals.append(tuple(int(i) for i in s.split(',')))
-        self.raiseADebug('points',self.indexSetVals)
-      elif key=='PolynomialOrder':
-        self.maxPolyOrder = int(val)
-      elif key=='Interpolation':
-        for var,value in val.items():
-          self.itpDict[var]={'poly'  :'DEFAULT',
-                             'quad'  :'DEFAULT',
-                             'weight':'1'}
-          for atrName,atrVal in value.items():
-            if atrName in ['poly','quad','weight']:
-              self.itpDict[var][atrName]=atrVal
-            else:
-              self.raiseAnError(IOError,'Unrecognized option: '+atrName)
-      elif key == 'SparseGrid':
-        if val.lower() not in self.sparseQuadOptions:
-          self.raiseAnError(IOError,'No such sparse quadrature implemented: %s.  Options are %s.' %(val,str(self.sparseQuadOptions)))
-        self.sparseGridType = val
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    settings, notFound = paramInput.findNodesAndExtractValues(['IndexSet','IndexPoints', 'PolynomialOrder',
+                                                               'SparseGrid'])
+    # notFound must be empty
+    assert(not notFound)
+    self.indexSetType = settings.get('IndexSet')
+    self.indexSetVals = settings.get('IndexPoints')
+    self.raiseADebug('points',self.indexSetVals)
+    self.maxPolyOrder = settings.get('PolynomialOrder')
+    self.sparseGridType = settings.get('SparseGrid')
+    interpolationList = paramInput.findAll('Interpolation')
+    for elem in interpolationList:
+      var = elem.values
+      poly = elem.parameterValues.get('poly', 'DEFAULT')
+      quad = elem.parameterValues.get('quad', 'DEFAULT')
+      weight = elem.parameterValues.get('weight', 1.0)
+      self.itpDict[var]={'poly'  : poly,
+                         'quad'  : quad,
+                         'weight': weight}
 
-    if not self.indexSetType:
-      self.raiseAnError(IOError,'No IndexSet specified!')
     if self.indexSetType=='Custom':
       if len(self.indexSetVals)<1:
         self.raiseAnError(IOError,'If using CustomSet, must specify points in <IndexPoints> node!')
@@ -158,8 +279,6 @@ class GaussPolynomialRom(SupervisedLearning):
         for i in self.indexSetVals:
           if len(i)<len(self.features):
             self.raiseAnError(IOError,'CustomSet points',i,'is too small!')
-    if not self.maxPolyOrder:
-      self.raiseAnError(IOError,'No maxPolyOrder specified!')
     if self.maxPolyOrder < 1:
       self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
 
