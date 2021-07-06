@@ -221,61 +221,7 @@ class ROM(Dummy):
     InterpolationInput.addParam("poly", InputTypes.StringType, False)
     InterpolationInput.addParam("weight", InputTypes.FloatType, False)
     inputSpecification.addSub(InterpolationInput)
-    # ARMA
-    inputSpecification.addSub(InputData.parameterInputFactory('correlate', contentType=InputTypes.StringListType))
-    inputSpecification.addSub(InputData.parameterInputFactory("P", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Q", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("seed", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("reseedCopies", contentType=InputTypes.BoolType))
-    inputSpecification.addSub(InputData.parameterInputFactory("Fourier", contentType=InputTypes.FloatListType))
-    inputSpecification.addSub(InputData.parameterInputFactory("nyquistScalar", contentType=InputTypes.IntegerType))
-    inputSpecification.addSub(InputData.parameterInputFactory("preserveInputCDF", contentType=InputTypes.BoolType))
-    ### ARMA zero filter
-    zeroFilt = InputData.parameterInputFactory('ZeroFilter', contentType=InputTypes.StringType)
-    zeroFilt.addParam('tol', InputTypes.FloatType)
-    inputSpecification.addSub(zeroFilt)
-    ### ARMA out truncation
-    outTrunc = InputData.parameterInputFactory('outTruncation', contentType=InputTypes.StringListType)
-    domainEnumType = InputTypes.makeEnumType('domain', 'truncateDomainType', ['positive', 'negative'])
-    outTrunc.addParam('domain', domainEnumType, True)
-    inputSpecification.addSub(outTrunc)
-    ### ARMA specific fourier
-    specFourier = InputData.parameterInputFactory('SpecificFourier', strictMode=True)
-    specFourier.addParam("variables", InputTypes.StringListType, True)
-    specFourier.addSub(InputData.parameterInputFactory('periods', contentType=InputTypes.FloatListType))
-    inputSpecification.addSub(specFourier)
-    ### ARMA multicycle
-    multiYear = InputData.parameterInputFactory('Multicycle')
-    multiYear.addSub(InputData.parameterInputFactory('cycles', contentType=InputTypes.IntegerType))
-    growth = InputData.parameterInputFactory('growth', contentType=InputTypes.FloatType)
-    growth.addParam('targets', InputTypes.StringListType, True)
-    growth.addParam('start_index', InputTypes.IntegerType)
-    growth.addParam('end_index', InputTypes.IntegerType)
-    growthEnumType = InputTypes.makeEnumType('growth', 'armaGrowthType', ['exponential', 'linear'])
-    growth.addParam('mode', growthEnumType, True)
-    multiYear.addSub(growth)
-    inputSpecification.addSub(multiYear)
-    ### ARMA peaks
-    peaks = InputData.parameterInputFactory('Peaks')
-    nbin= InputData.parameterInputFactory('nbin',contentType=InputTypes.IntegerType)
-    window = InputData.parameterInputFactory('window',contentType=InputTypes.FloatListType)
-    window.addParam('width', InputTypes.FloatType, True)
-    peaks.addSub(window)
-    peaks.addSub(nbin)
-    peaks.addParam('threshold', InputTypes.FloatType)
-    peaks.addParam('target', InputTypes.StringType)
-    peaks.addParam('period', InputTypes.FloatType)
-    inputSpecification.addSub(peaks)
-    # inputs for neural_network
-    inputSpecification.addSub(InputData.parameterInputFactory("activation", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("batch_size", contentType=InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("learning_rate_init", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("momentum", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("nesterovs_momentum", contentType=InputTypes.StringType)) # bool
-    inputSpecification.addSub(InputData.parameterInputFactory("early_stopping", contentType=InputTypes.StringType)) # bool
-    inputSpecification.addSub(InputData.parameterInputFactory("validation_fraction", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta_1", contentType=InputTypes.FloatType))
-    inputSpecification.addSub(InputData.parameterInputFactory("beta_2", contentType=InputTypes.FloatType))
+
     # PolyExp
     inputSpecification.addSub(InputData.parameterInputFactory("maxNumberExpTerms", contentType=InputTypes.IntegerType))
     inputSpecification.addSub(InputData.parameterInputFactory("numberExpTerms", contentType=InputTypes.IntegerType))
