@@ -50,7 +50,7 @@ Note all install methods after "main" take
     <psutil/>
     <pip/>
     <importlib_metadata/>
-    <pyside2 source='forge'/>
+    <pyside2/>
     <nomkl os='linux' skip_check='True'/>
     <numexpr os='linux'/>
     <ray os="mac,linux" source="pip">1.0</ray>
