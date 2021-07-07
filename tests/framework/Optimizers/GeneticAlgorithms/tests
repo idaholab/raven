@@ -135,10 +135,10 @@
   
   [./GA_knapsackBaseTournament]
     type = 'RavenFramework'
-    input = 'GA_knapsackBaseTournament.xml'
+    input = 'discrete/unconstrained/GA_knapsackBaseTournament.xml'
     [./csv]
      type = OrderedCSV
-     output = 'simpleKnapsack/PrintOptOut_export_1.csv simpleKnapsack/PrintOptOut_1.csv'
+     output = 'discrete/unconstrained/simpleKnapsack/PrintOptOut_export_1.csv discrete/unconstrained/simpleKnapsack/PrintOptOut_1.csv'
      rel_err = 0.001
     [../]
   [../]
