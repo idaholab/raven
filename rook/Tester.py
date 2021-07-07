@@ -179,7 +179,7 @@ class Differ:
   def __init__(self, _name, params, test_dir):
     """
       Initializer for the class.
-      @ In, name, string, name of class
+      @ In, _name, string, name of class (currently unused)
       @ In, params, dictionary, dictionary of parameters
       @ In, test_dir, string, path to test directory
       @ Out, None
@@ -369,7 +369,7 @@ class Tester:
   def __init__(self, _name, params):
     """
       Initializer for the class.  Takes a String name and a dictionary params
-      @ In, name, string, name of the class
+      @ In, _name, string, name of the class (currently unused)
       @ In, params, dictionary, the parameters for this class to use.
       @ Out, None
     """
