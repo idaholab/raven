@@ -168,9 +168,7 @@ class KerasRegression(KerasBase):
     """
     featureVals = self._preprocessInputs(featureVals)
     prediction = {}
-    with self.graph.as_default():
-      tf.keras.backend.set_session(self._session)
-      outcome = self._ROM.predict(featureVals)
+    outcome = self._ROM.predict(featureVals)
     for i, target in enumerate(self.target):
       prediction[target] = self._invertScaleToNormal(outcome[0, :, i], target)
     return prediction

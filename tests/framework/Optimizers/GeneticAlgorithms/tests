@@ -132,6 +132,16 @@
      rel_err = 0.001
     [../]
   [../]
+  
+  [./GA_knapsackBaseTournament]
+    type = 'RavenFramework'
+    input = 'GA_knapsackBaseTournament.xml'
+    [./csv]
+     type = OrderedCSV
+     output = 'simpleKnapsack/PrintOptOut_export_1.csv simpleKnapsack/PrintOptOut_1.csv'
+     rel_err = 0.001
+    [../]
+  [../]
 
   [./GA_knapsackBaseUnifXover]
     type = 'RavenFramework'
