@@ -404,12 +404,12 @@ class GeneticAlgorithm(RavenSampled):
 
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    offSpringFitness = self._fitnessInstance(rlz, 
-                                             objVar=self._objectiveVar, 
-                                             a=self._objCoeff, 
-                                             b=self._penaltyCoeff, 
+    offSpringFitness = self._fitnessInstance(rlz,
+                                             objVar=self._objectiveVar,
+                                             a=self._objCoeff,
+                                             b=self._penaltyCoeff,
                                              penalty=None)
-    
+
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
 
     offSprings = self._datasetToDataArray(rlz)
