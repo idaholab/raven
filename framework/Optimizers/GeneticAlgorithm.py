@@ -216,7 +216,7 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented fitness functions.
-                  This includes: a.    invLinear: $fitness = fitness = -a \\times obj - b \\times \\Sum_{j=1}^{nConstraint} max(0,-penalty_j)$.
+                  This includes: a.    invLinear: $fitness = -a \\times obj - b \\times \\Sum_{j=1}^{nConstraint} max(0,-penalty_j)$.
                                  b.    logistic: $fitness = \\frac{1}{1+e^{a \\times (obj-b)}}$.
                                  c.    feasibleFirst: $fitness = \[ \\begin{cases}
                                                                       -obj & g_j(x)\\geq 0 \\forall j \\
