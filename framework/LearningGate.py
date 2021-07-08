@@ -16,20 +16,15 @@ Created on December 6, 2016
 
 @author: alfoa
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
-import inspect
 import abc
 import copy
-import collections
 import numpy as np
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from BaseClasses import BaseInterface, MessageUser
+from BaseClasses import BaseInterface
 from utils import mathUtils
 from utils import utils
 import SupervisedLearning
@@ -40,7 +35,7 @@ from EntityFactoryBase import EntityFactory
 #
 #
 #
-class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseInterface), MessageUser):
+class SupervisedLearningGate(BaseInterface):
   """
     This class represents an interface with all the supervised learning algorithms
     It is a utility class needed to hide the discernment between time-dependent and static
@@ -85,12 +80,14 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseInterface),
     self.supervisedContainer = [modelInstance]
     self.historySteps = []
 
-    nameToClass = {'segment': 'Segments',
-                   'cluster': 'Clusters',
-                   'interpolate': 'Interpolated'}
+
+    ### FIXME: Segment is not fully converted to use new ROM API
     ### ROMCollection ###
     # if the ROM targeted by this gate is a cluster, create the cluster now!
     if 'Segment' in self.initializationOptions:
+      nameToClass = {'segment': 'Segments',
+                     'cluster': 'Clusters',
+                     'interpolate': 'Interpolated'}
       # read from specs directly
       segSpecs = self.initializationOptions['paramInput'].findFirst('Segment')
       # determine type of segment to load -> limited by InputData to specific options
@@ -282,10 +279,10 @@ class supervisedLearningGate(utils.metaclass_insert(abc.ABCMeta, BaseInterface),
       self.raiseAnError(RuntimeError, "ROM "+self.initializationOptions['name']+" has not been trained yet and, consequentially, can not be evaluated!")
     resultsDict = {}
     if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
-      resultsDict = self.supervisedContainer[0].evaluate(request)
+      resultsDict = self.supervisedContainer[0].run(request)
     else:
       for rom in self.supervisedContainer:
-        sliceEvaluation = rom.evaluate(request)
+        sliceEvaluation = rom.run(request)
         if len(list(resultsDict.keys())) == 0:
           resultsDict.update(sliceEvaluation)
         else:
@@ -309,5 +306,5 @@ class LearningGateFactory(EntityFactory):
     instance = cls(romClass, **kwargs)
     return instance
 
-factory = LearningGateFactory('supervisedGate')
-factory.registerType('SupervisedGate', supervisedLearningGate)
+factory = LearningGateFactory('SupervisedGate')
+factory.registerType('SupervisedGate', SupervisedLearningGate)

@@ -21,7 +21,7 @@ from EntityFactoryBase import EntityFactory
 ################################################################################
 
 from .SupervisedLearning import SupervisedLearning
-from .ARMA               import ARMA
+
 from .GaussPolynomialRom import GaussPolynomialRom
 from .HDMRRom            import HDMRRom
 from .MSR                import MSR
@@ -32,7 +32,14 @@ from .SyntheticHistory   import SyntheticHistory
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
 from .DynamicModeDecomposition import DynamicModeDecomposition
-from .ROMCollection      import Collection, Segments, Clusters, Interpolated
+
+## FIXME: convert the following ROM to use new ROM API
+# from .ARMA               import ARMA
+# from .ROMCollection      import Collection, Segments, Clusters, Interpolated
+
+## Tensorflow-Keras Neural Network Models
+from .KerasBase import KerasBase
+from .KerasRegression import KerasREgression
 from .KerasClassifier import KerasClassifier
 from .KerasMLPClassifier import KerasMLPClassifier
 from .KerasConvNetClassifier import KerasConvNetClassifier

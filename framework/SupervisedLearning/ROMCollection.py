@@ -41,10 +41,26 @@ class Collection(SupervisedLearning):
   """
     A container that handles collections of ROMs in a particular way.
   """
+  @classmethod
+  def getInputSpecification(cls):
+    """
+      Method to get a reference to a class that specifies the input data for
+      class cls.
+      @ In, cls, the class for which we are retrieving the specification
+      @ Out, inputSpecification, InputData.ParameterInput, class to use for
+        specifying input of cls.
+    """
+    spec = super().getInputSpecification()
+    specs.description = r"""To be added"""
+    spec.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
+    spec.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
+    spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType))
+    return spec
+
   def __init__(self):
     """
       Constructor.
-      @ In, kwargs, dict, options and initialization settings (from XML)
+      @ In, None
       @ Out, None
     """
     super().__init__()
@@ -53,6 +69,16 @@ class Collection(SupervisedLearning):
     self._templateROM = kwargs['modelInstance']   # example of a ROM that will be used in this grouping, set by setTemplateROM
     self._roms = []                               # ROMs that belong to this grouping.
     self._romInitAdditionalParams = {}            # used for deserialization, empty by default
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
+    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target'])
+    assert(not notFound)
 
   def __getstate__(self):
     """

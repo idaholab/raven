@@ -16,22 +16,18 @@ Module where the base class and the specialization of different type of Model ar
 """
 #External Modules------------------------------------------------------------------------------------
 import copy
-import inspect
 import itertools
 import numpy as np
-import functools
 import os
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
 from .Dummy import Dummy
 import Decorators
-import SupervisedLearning
-from utils import utils
-from utils import xmlUtils
+from SupervisedLearning import factory
+from utils import utils, xmlUtils
 from utils import InputData, InputTypes
 from Decorators.Parallelization import Parallel
-import Files
 import LearningGate
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -42,6 +38,7 @@ class ROM(Dummy):
   """
     ROM stands for Reduced Order Model. All the models here, first learn than predict the outcome
   """
+  interfaceFactory = factory
 
   @classmethod
   def getInputSpecification(cls):
@@ -52,61 +49,66 @@ class ROM(Dummy):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    inputSpecification = super(ROM, cls).getInputSpecification()
-
-    # CriterionInputType = InputTypes.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
-    ###########
-    # general #
-    ###########
-    inputSpecification.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
-    inputSpecification.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
-
+    inputSpecification = super().getInputSpecification()
+    inputSpecification.addParam('subType', required=True, param_type=InputTypes.StringType)
+    cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType)
+    cvInput.addParam("class", InputTypes.StringType)
+    cvInput.addParam("type", InputTypes.StringType)
+    inputSpecification.addSub(cvInput)
     ######################
     # dynamically loaded #
     ######################
-    for typ in SupervisedLearning.factory.knownTypes():
-      obj = SupervisedLearning.factory.returnClass(typ)
-      if hasattr(obj, 'getInputSpecifications'):
-        subspecs = obj.getInputSpecifications()
-        print('Known:', typ)
-        print(subspecs)
-        inputSpecification.mergeSub(subspecs)
+    validClass = interfaceFactory.returnClass(self.subType)
+    validSpec = validClass.getInputSpecification()
+    inputSpecification.mergeSub(validSpec)
 
-    ####################
-    # manually entered #
-    ####################
-    # segmenting and clustering
-    segment = InputData.parameterInputFactory("Segment", strictMode=True)
-    segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
-    segment.addParam('grouping', segmentGroups)
-    subspace = InputData.parameterInputFactory('subspace', contentType=InputTypes.StringType)
-    subspace.addParam('divisions', InputTypes.IntegerType, False)
-    subspace.addParam('pivotLength', InputTypes.FloatType, False)
-    subspace.addParam('shift', InputTypes.StringType, False)
-    segment.addSub(subspace)
-    clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
-    segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum))
-    segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
-    ## clusterFeatures
-    segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
-    ## max cycles (for Interpolated ROMCollection)
-    segment.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType))
-    ## classifier
-    clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType)
-    clsfr.addParam('class', InputTypes.StringType, True)
-    clsfr.addParam('type', InputTypes.StringType, True)
-    segment.addSub(clsfr)
-    ## metric
-    metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputTypes.StringType)
-    metric.addParam('class', InputTypes.StringType, True)
-    metric.addParam('type', InputTypes.StringType, True)
-    segment.addSub(metric)
-    segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType))
-    inputSpecification.addSub(segment)
-    ##### END ROMCollection
-    # pickledROM
-    inputSpecification.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum))
-    inputSpecification.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType)) # for Interpolated ROMCollection
+    ## wangc: I think we should avoid loading all inputSpecifications
+    # for typ in SupervisedLearning.factory.knownTypes():
+    #   obj = SupervisedLearning.factory.returnClass(typ)
+    #   if hasattr(obj, 'getInputSpecifications'):
+    #     subspecs = obj.getInputSpecifications()
+    #     inputSpecification.mergeSub(subspecs)
+
+    ## TODO: remove
+    # CriterionInputType = InputTypes.makeEnumType("criterion", "criterionType", ["bic","aic","gini","entropy","mse"])
+
+
+    ### TODO: Move to ROMCollection Class
+    # ####################
+    # # manually entered #
+    # ####################
+    # # segmenting and clustering
+    # segment = InputData.parameterInputFactory("Segment", strictMode=True)
+    # segmentGroups = InputTypes.makeEnumType('segmentGroup', 'sesgmentGroupType', ['segment', 'cluster', 'interpolate'])
+    # segment.addParam('grouping', segmentGroups)
+    # subspace = InputData.parameterInputFactory('subspace', contentType=InputTypes.StringType)
+    # subspace.addParam('divisions', InputTypes.IntegerType, False)
+    # subspace.addParam('pivotLength', InputTypes.FloatType, False)
+    # subspace.addParam('shift', InputTypes.StringType, False)
+    # segment.addSub(subspace)
+    # clusterEvalModeEnum = InputTypes.makeEnumType('clusterEvalModeEnum', 'clusterEvalModeType', ['clustered', 'truncated', 'full'])
+    # segment.addSub(InputData.parameterInputFactory('evalMode', strictMode=True, contentType=clusterEvalModeEnum))
+    # segment.addSub(InputData.parameterInputFactory('evaluationClusterChoice', strictMode=True, contentType=InputTypes.makeEnumType('choiceGroup', 'choiceGroupType', ['first', 'random', 'centroid'])))
+    # ## clusterFeatures
+    # segment.addSub(InputData.parameterInputFactory('clusterFeatures', contentType=InputTypes.StringListType))
+    # ## max cycles (for Interpolated ROMCollection)
+    # segment.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType))
+    # ## classifier
+    # clsfr = InputData.parameterInputFactory('Classifier', strictMode=True, contentType=InputTypes.StringType)
+    # clsfr.addParam('class', InputTypes.StringType, True)
+    # clsfr.addParam('type', InputTypes.StringType, True)
+    # segment.addSub(clsfr)
+    # ## metric
+    # metric = InputData.parameterInputFactory('Metric', strictMode=True, contentType=InputTypes.StringType)
+    # metric.addParam('class', InputTypes.StringType, True)
+    # metric.addParam('type', InputTypes.StringType, True)
+    # segment.addSub(metric)
+    # segment.addSub(InputData.parameterInputFactory('macroParameter', contentType=InputTypes.StringType))
+    # inputSpecification.addSub(segment)
+    # ##### END ROMCollection
+    #
+    # inputSpecification.addSub(InputData.parameterInputFactory('clusterEvalMode', contentType=clusterEvalModeEnum))
+    # inputSpecification.addSub(InputData.parameterInputFactory('maxCycles', contentType=InputTypes.IntegerType)) # for Interpolated ROMCollection
 
     return inputSpecification
 
@@ -134,6 +136,7 @@ class ROM(Dummy):
     self.supervisedEngine = None          # dict of ROM instances (== number of targets => keys are the targets)
     self.printTag = 'ROM MODEL'           # label
     self.cvInstance = None                # Instance of provided cross validation
+    self._interfaceROM = None             # Instance of provided ROM
     # for Clustered ROM
     self.addAssemblerObject('Classifier', InputData.Quantity.zero_to_one)
     self.addAssemblerObject('Metric', InputData.Quantity.zero_to_infinity)
@@ -149,8 +152,6 @@ class ROM(Dummy):
     # NOTE assemblerDict isn't needed if ROM already trained, but it can create an infinite recursion
     ## for the ROMCollection if left in, so remove it on getstate.
     del d['assemblerDict']
-    # input params isn't picklable (right now)
-    d['initializationOptionDict'].pop('paramInput', None)
     return d
 
   def __setstate__(self, d):
@@ -179,33 +180,27 @@ class ROM(Dummy):
       @ In, xmlNode, xml.etree.ElementTree.Element, Xml element node
       @ Out, None
     """
-    Dummy._readMoreXML(self, xmlNode)
-    self.initializationOptionDict['name'] = self.name
+    super()._readMoreXML(xmlNode)
     paramInput = ROM.getInputSpecification()()
     paramInput.parseNode(xmlNode)
+    cvNode = paramInput.findFirst('CV')
+    self.cvInstance = cvNode.values
+    ##
+    self._interfaceROM = self.interfaceFactory.returnInstance(self.subType)
+    self._interfaceROM._readMoreXML(xmlNode)
+    ## TODO: how to handle 'estimator' node?
 
-    for child in paramInput.subparts:
-      if child.getName() == 'CV':
-        self.cvInstance = child.value.strip()
-        continue
-      if len(child.parameterValues) > 0:
-        if child.getName() == 'alias':
-          continue
-        if child.getName() not in self.initializationOptionDict.keys():
-          self.initializationOptionDict[child.getName()]={}
-        # "tuple" here allows values to be listed, probably not great but works
-        key = child.value if not isinstance(child.value,list) else tuple(child.value)
-        self.initializationOptionDict[child.getName()][key]=child.parameterValues
-      else:
-        if child.getName() in ['estimator', 'optimizerSetting']:
-          self.initializationOptionDict[child.getName()] = {}
-          for node in child.subparts:
-            self.initializationOptionDict[child.getName()][node.getName()] = node.value
-        else:
-          self.initializationOptionDict[child.getName()] = child.value
+    self.initializationOptionDict['name'] = self.name
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
       self.initializationOptionDict['pickled'] = True
+
+    pivot = paramInput.findFirst('pivotParameter')
+    if pivot is not None:
+      self.initializationOptionDict['pivotParameter'] = pivot
+    else:
+      self.initializationOptionDict['pivotParameter'] = 'time'
+
     self._initializeSupervisedGate(**self.initializationOptionDict)
     #the ROM is instanced and initialized
 
@@ -316,7 +311,7 @@ class ROM(Dummy):
       @ Out, outputEvaluation, dict, the dict containing the outputs for each target ({'target1':np.array(size 1 or n_ts),'target2':np.array(...)}
     """
     inputToROM       = self._inputToInternal(request)
-    outputEvaluation = self.supervisedEngine.evaluate(inputToROM)
+    outputEvaluation = self.supervisedEngine.run(inputToROM)
     # assure numpy array formatting # TODO can this be done in the supervised engine instead?
     for k,v in outputEvaluation.items():
       outputEvaluation[k] = np.atleast_1d(v)
