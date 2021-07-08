@@ -25,11 +25,11 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class MultiTaskLassoCV(SciktLearnBase):
+class MultiTaskLassoCV(ScikitLearnBase):
   """
     Cross-Validated Multi-task Lasso model trained with L1/L2 mixed-norm as regularizer.
   """

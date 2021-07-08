@@ -131,7 +131,7 @@ class SupervisedLearning(BaseInterface):
     self.features = nodes['Features']
     self.target = nodes['Target']
     dups = set(self.target).intersection(set(self.features))
-    if len(dups) != 0
+    if len(dups) != 0:
       self.raiseAnError(IOError, 'The target(s) "{}" is/are also among the given features!'.format(', '.join(dups)))
 
   def __getstate__(self):

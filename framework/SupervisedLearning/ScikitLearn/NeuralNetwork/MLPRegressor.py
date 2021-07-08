@@ -25,11 +25,11 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class MLPRegressor(SciktLearnBase):
+class MLPRegressor(ScikitLearnBase):
   """
     Multi-layer Perceptron regressor.
   """

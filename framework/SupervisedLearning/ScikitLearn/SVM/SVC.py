@@ -25,11 +25,11 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class SVC(SciktLearnBase):
+class SVC(ScikitLearnBase):
   """
     Support Vector Classifier
   """

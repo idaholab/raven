@@ -26,11 +26,11 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class DecisionTreeRegressor(SciktLearnBase):
+class DecisionTreeRegressor(ScikitLearnBase):
   """
     DecisionTreeRegressor
     A decision tree regressor.

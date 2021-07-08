@@ -39,7 +39,7 @@ from .DynamicModeDecomposition import DynamicModeDecomposition
 
 ## Tensorflow-Keras Neural Network Models
 from .KerasBase import KerasBase
-from .KerasRegression import KerasREgression
+from .KerasRegression import KerasRegression
 from .KerasClassifier import KerasClassifier
 from .KerasMLPClassifier import KerasMLPClassifier
 from .KerasConvNetClassifier import KerasConvNetClassifier
@@ -47,7 +47,7 @@ from .KerasLSTMClassifier import KerasLSTMClassifier
 from .KerasLSTMRegression import KerasLSTMRegression
 
 # import ScikitLearn models
-from .ScikitLearn.SciktLearnBase import SciktLearnBase
+from .ScikitLearn.ScikitLearnBase import ScikitLearnBase
 from .ScikitLearn.DiscriminantAnalysis import LinearDiscriminantAnalysis
 from .ScikitLearn.DiscriminantAnalysis import QuadraticDiscriminantAnalysis
 

@@ -19,9 +19,4 @@
   @author: alfoa
 """
 # These lines ensure that we do not have to do something like:
-# 'from Samplers.Sampler import Sampler' outside of this submodule
-from .SciktLearnBase import SciktLearnBase
-# Factory methods
-#from .Factory import knownTypes
-#from .Factory import returnInstance
-#from .Factory import returnClass
+from .ScikitLearnBase import ScikitLearnBase

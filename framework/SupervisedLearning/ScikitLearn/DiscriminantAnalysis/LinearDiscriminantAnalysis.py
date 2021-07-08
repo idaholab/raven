@@ -26,11 +26,12 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+#from .. import ScikitLearnBase
+from .. import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class LinearDiscriminantAnalysisClassifier(SciktLearnBase):
+class LinearDiscriminantAnalysisClassifier(ScikitLearnBase):
   """
     KNeighborsClassifier
     Classifier implementing the k-nearest neighbors vote.

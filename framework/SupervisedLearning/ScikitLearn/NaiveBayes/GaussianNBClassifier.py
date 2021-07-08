@@ -26,11 +26,11 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class GaussianNBClassifier(SciktLearnBase):
+class GaussianNBClassifier(ScikitLearnBase):
   """
     GaussianNBClassifier
     Gaussian Naive Bayes (GaussianNB) classifier

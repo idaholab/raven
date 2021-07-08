@@ -24,11 +24,11 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class OneVsRestClassifier(SciktLearnBase):
+class OneVsRestClassifier(ScikitLearnBase):
   """
     One-vs-the-rest (OvR) multiclass strategy classifer
   """

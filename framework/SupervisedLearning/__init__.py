@@ -16,9 +16,9 @@
 """
 
 from .SupervisedLearning import SupervisedLearning
-from .ScikitLearn.SciktLearnBase import SciktLearnBase
+from .ScikitLearn.ScikitLearnBase import ScikitLearnBase
 from .KerasBase import KerasBase
-from .KerasRegression import KerasREgression
+from .KerasRegression import KerasRegression
 from .KerasClassifier import KerasClassifier
 
 from .Factory import factory

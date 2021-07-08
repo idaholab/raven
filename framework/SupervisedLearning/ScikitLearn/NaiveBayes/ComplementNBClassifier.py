@@ -26,11 +26,11 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class ComplementNBClassifier(SciktLearnBase):
+class ComplementNBClassifier(ScikitLearnBase):
   """
     GaussianNBClassifier
     Complement Naive Bayes classifier described in Rennie et al. (2003).

@@ -14,19 +14,4 @@
 """
   The ScikitLearn folder includes different types of ScikitLearn based ROMs
   that are available via RAVEN
-
-  Created on Jan 21, 2020
-  @author: alfoa
 """
-# These lines ensure that we do not have to do something like:
-# 'from Samplers.Sampler import Sampler' outside of this submodule
-from .SVR import SVR
-from .SVC import SVC
-from .NuSVC import NuSVC
-from .NuSVR import NuSVR
-from .LinearSVC import LinearSVC
-from .LinearSVR import LinearSVR
-# Factory methods
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass

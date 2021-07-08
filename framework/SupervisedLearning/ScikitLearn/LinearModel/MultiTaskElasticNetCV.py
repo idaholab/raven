@@ -25,11 +25,11 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class MultiTaskElasticNetCV(SciktLearnBase):
+class MultiTaskElasticNetCV(ScikitLearnBase):
   """
     Multi-task L1/L2 ElasticNet with built-in cross-validation.
   """

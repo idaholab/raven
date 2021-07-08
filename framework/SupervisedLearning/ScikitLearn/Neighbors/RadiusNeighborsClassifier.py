@@ -26,11 +26,11 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class RadiusNeighborsClassifier(SciktLearnBase):
+class RadiusNeighborsClassifier(ScikitLearnBase):
   """
     RadiusNeighborsClassifier
     Classifier implementing a vote among neighbors within a given radius

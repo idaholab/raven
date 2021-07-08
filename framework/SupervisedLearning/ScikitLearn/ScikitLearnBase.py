@@ -32,7 +32,7 @@ from ..SupervisedLearning import SupervisedLearning
 from utils import utils
 #Internal Modules End--------------------------------------------------------------------------------
 
-class SciktLearnBase(SupervisedLearning):
+class ScikitLearnBase(SupervisedLearning):
   """
     Base Class for Scikitlearn-based surrogate models (classifiers and regressors)
   """

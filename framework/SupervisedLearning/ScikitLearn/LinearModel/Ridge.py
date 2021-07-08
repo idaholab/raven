@@ -26,11 +26,11 @@ from numpy import finfo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class Ridge(SciktLearnBase):
+class Ridge(ScikitLearnBase):
   """
    Ridge Regressor
   """

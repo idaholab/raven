@@ -25,11 +25,11 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class LassoLarsIC(SciktLearnBase):
+class LassoLarsIC(ScikitLearnBase):
   """
     Lasso model fit with Lars using BIC or AIC for model selection
   """

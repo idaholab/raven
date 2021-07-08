@@ -28,12 +28,12 @@ import ast
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import utils
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class SVR(SciktLearnBase):
+class SVR(ScikitLearnBase):
   """
     Support Vector Regressor
   """

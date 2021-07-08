@@ -26,11 +26,11 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class ExtraTreeRegressor(SciktLearnBase):
+class ExtraTreeRegressor(ScikitLearnBase):
   """
     ExtraTreeRegressor
     An extremely randomized tree regressor.

@@ -25,11 +25,11 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import SciktLearnBase
+from .ScikitLearnBase import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class MultinomialNBClassifier(SciktLearnBase):
+class MultinomialNBClassifier(ScikitLearnBase):
   """
     GaussianNBClassifier
     Naive Bayes classifier for multinomial models

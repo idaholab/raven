@@ -14,18 +14,4 @@
 """
   The ScikitLearn folder includes different types of Scikitlearn naive bayes based ROMs
   that are available via RAVEN
-
-  Created on Jan 21, 2020
-  @author: alfoa
 """
-# These lines ensure that we do not have to do something like:
-# 'from Samplers.Sampler import Sampler' outside of this submodule
-from .GaussianNBClassifier import GaussianNBClassifier
-from .MultinomialNBClassifier import MultinomialNBClassifier
-from .BernoulliNBClassifier import BernoulliNBClassifier
-from .ComplementNBClassifier import ComplementNBClassifier
-from .CategoricalNBClassifier import CategoricalNBClassifier
-# Factory methods
-from .Factory import knownTypes
-from .Factory import returnInstance
-from .Factory import returnClass
