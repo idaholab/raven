@@ -404,7 +404,12 @@ class GeneticAlgorithm(RavenSampled):
 
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    offSpringFitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff, penalty=None)
+    offSpringFitness = self._fitnessInstance(rlz, 
+                                             objVar=self._objectiveVar, 
+                                             a=self._objCoeff, 
+                                             b=self._penaltyCoeff, 
+                                             penalty=None)
+    
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
 
     offSprings = self._datasetToDataArray(rlz)
@@ -417,11 +422,11 @@ class GeneticAlgorithm(RavenSampled):
       # update population container given obtained children
       if self.counter > 1:
         self.population,self.fitness,age = self._survivorSelectionInstance(age = self.popAge,
-                                                                      variables = list(self.toBeSampled),
-                                                                      population = self.population,
-                                                                      fitness = self.fitness,
-                                                                      newRlz = rlz,
-                                                                      offSpringsFitness = offSpringFitness)
+                                                                           variables = list(self.toBeSampled),
+                                                                           population = self.population,
+                                                                           fitness = self.fitness,
+                                                                           newRlz = rlz,
+                                                                           offSpringsFitness = offSpringFitness)
         self.popAge = age
 
       else:
