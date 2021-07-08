@@ -392,7 +392,7 @@ class GeneticAlgorithm(RavenSampled):
     # The whole skeleton should be here, this should be calling all classes and _private methods.
     traj = info['traj']
     for t in self._activeTraj[1:]:
-      self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory',0)#, None
+      self._closeTrajectory(t, 'cancel', 'Currently GA is single trajectory',0)
     self.incrementIteration(traj)
     info['step'] = self.counter
 
@@ -404,36 +404,53 @@ class GeneticAlgorithm(RavenSampled):
 
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    fitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff, penalty=None)
+    offSpringFitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff, penalty=None)
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
-    acceptable = 'first' if self.counter==1 else 'accepted'
-    population = self._datasetToDataArray(rlz) # TODO: rename
-    self._collectOptPoint(population,fitness,objectiveVal)
-    self._resolveNewGeneration(traj, rlz, objectiveVal, fitness, info)
+
+    offSprings = self._datasetToDataArray(rlz)
+
+    self._collectOptPoint(offSprings,offSpringFitness,objectiveVal)
+    self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, info)
 
     if self._activeTraj:
       # 5.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
       if self.counter > 1:
-        population,fitness,age = self._survivorSelectionInstance(age=self.popAge, variables=list(self.toBeSampled), population=self.population, fitness=self.fitness, newRlz=rlz,offSpringsFitness=fitness)
+        self.population,self.fitness,age = self._survivorSelectionInstance(age = self.popAge,
+                                                                      variables = list(self.toBeSampled),
+                                                                      population = self.population,
+                                                                      fitness = self.fitness,
+                                                                      newRlz = rlz,
+                                                                      offSpringsFitness = offSpringFitness)
         self.popAge = age
-        self.population = population
+
       else:
-        self.population = population
+        self.population = offSprings
+        self.fitness = offSpringFitness
+
       self.objectiveVal = rlz[self._objectiveVar].data
-      self.fitness = fitness
 
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
-      parents = self._parentSelectionInstance(population,variables=list(self.toBeSampled),fitness=fitness,nParents=self._nParents)
+      parents = self._parentSelectionInstance(self.population,
+                                              variables = list(self.toBeSampled),
+                                              fitness = self.fitness,
+                                              nParents = self._nParents)
 
       # 2 @ n: Crossover from set of parents
       # create childrenCoordinates (x1,...,xM)
-      childrenXover = self._crossoverInstance(parents=parents,variables=list(self.toBeSampled),crossoverProb=self._crossoverProb,points=self._crossoverPoints)
+      childrenXover = self._crossoverInstance(parents = parents,
+                                              variables = list(self.toBeSampled),
+                                              crossoverProb = self._crossoverProb,
+                                              points = self._crossoverPoints)
 
       # 3 @ n: Mutation
       # perform random directly on childrenCoordinates
-      childrenMutated = self._mutationInstance(offSprings=childrenXover, distDict = self.distDict,locs = self._mutationLocs, mutationProb=self._mutationProb,variables=list(self.toBeSampled))
+      childrenMutated = self._mutationInstance(offSprings = childrenXover,
+                                               distDict = self.distDict,
+                                               locs = self._mutationLocs,
+                                               mutationProb = self._mutationProb,
+                                               variables = list(self.toBeSampled))
 
       # 4 @ n: repair/replacement
       # repair should only happen if multiple genes in a single chromosome have the same values (),
@@ -456,9 +473,9 @@ class GeneticAlgorithm(RavenSampled):
       while flag and counter < self._populationSize:
         counter += 1
         repeated =[]
-        for i in range(np.shape(population.data)[0]):
+        for i in range(np.shape(self.population.data)[0]):
           for j in range(i,np.shape(children.data)[0]):
-            if all(population.data[i,:]==children.data[j,:]):
+            if all(self.population.data[i,:]==children.data[j,:]):
               repeated.append(j)
         repeated = list(set(repeated))
         if repeated:
