@@ -41,14 +41,14 @@ def invLinear(rlz,**kwargs):
 
     .. math::
 
-    fitness = \\frac{1}{a * obj + b * penalty}
+    fitness = -a * obj - b * \Sum_{j=1}^{nConstraint} max(0,-penalty_j)
     @ In, rlz, xr.Dataset, containing the evaluation of a certain
               set of individuals (can be the initial population for the very first iteration,
               or a population of offsprings)
     @ In, kwargs, dict, dictionary of parameters for this fitness method:
           objVar, string, the name of the objective variable
           a, float, linear coefficient for the objective function (default = 1.0)
-          b, float, linear coefficient for the penalty measure. (default = 1.0)
+          b, float, linear coefficient for the penalty measure. (default = 10.0)
           ConstraintFunction, xr.DataArray, measuring the severity of the constraint violation. The higher positive value the individual  has,
           the farthest from violating the constraint it is, The highest negative value it have the largest the violation is.
     @ Out, fitness, xr.DataArray, the fitness function of the given objective corresponding to a specific chromosome.
