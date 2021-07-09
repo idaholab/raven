@@ -11,12 +11,11 @@
       The objective variable is ans.
       The problem is constrained.
       It is a minimization problem, and the sampling is from continuous variables.
-      The fitness function used the feasibile first parameterless fitness.
+      The fitness function used the feasible first parameterless fitness.
     </description>
     <analytic>
       This test uses Simionescu function.
     </analytic>
-    </description>
     <analytic>
       This test uses townsend function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
