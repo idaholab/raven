@@ -405,35 +405,36 @@ class GeneticAlgorithm(RavenSampled):
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
     offSpringFitness = self._fitnessInstance(rlz,
-                                             objVar=self._objectiveVar,
-                                             a=self._objCoeff,
-                                             b=self._penaltyCoeff,
-                                             penalty=None)
+                                             objVar = self._objectiveVar,
+                                             a = self._objCoeff,
+                                             b = self._penaltyCoeff,
+                                             penalty = None)
 
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
 
     offSprings = self._datasetToDataArray(rlz)
 
-    self._collectOptPoint(offSprings,offSpringFitness,objectiveVal)
+    self._collectOptPoint(offSprings, offSpringFitness, objectiveVal)
+
     self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, info)
 
     if self._activeTraj:
       # 5.2@ n-1: Survivor selection(rlz)
       # update population container given obtained children
       if self.counter > 1:
-        self.population,self.fitness,age = self._survivorSelectionInstance(age = self.popAge,
-                                                                           variables = list(self.toBeSampled),
-                                                                           population = self.population,
-                                                                           fitness = self.fitness,
-                                                                           newRlz = rlz,
-                                                                           offSpringsFitness = offSpringFitness)
+        self.population,self.fitness,age,self.objectiveVal = self._survivorSelectionInstance(age = self.popAge,
+                                                                                             variables = list(self.toBeSampled),
+                                                                                             population = self.population,
+                                                                                             fitness = self.fitness,
+                                                                                             newRlz = rlz,
+                                                                                             offSpringsFitness = offSpringFitness,
+                                                                                             popObjectiveVal = self.objectiveVal)
         self.popAge = age
 
       else:
         self.population = offSprings
         self.fitness = offSpringFitness
-
-      self.objectiveVal = rlz[self._objectiveVar].data
+        self.objectiveVal = rlz[self._objectiveVar].data
 
       # 1 @ n: Parent selection from population
       # pair parents together by indexes
