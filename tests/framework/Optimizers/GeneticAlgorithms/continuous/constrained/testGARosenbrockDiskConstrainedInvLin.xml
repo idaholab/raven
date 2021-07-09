@@ -9,10 +9,12 @@
       This test assesses the Genetic algorithm on the Rosenbrock function.
       The nominal dimensionality of the problem is 2.
       The objective variable is ans.
+      The problem is constrained.
+      It is a minimization problem, and the sampling is from continuous variables.
+      The fitness function used the inverse linear fitness.
     </description>
     <analytic>
-      This test uses Rosenbrock function, which is documented in the analytic tests documentation under
-      the Optimizer functions section.
+      This test uses Rosenbrock function.
     </analytic>
   </TestInfo>
 

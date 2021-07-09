@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
-    <name>framework/Optimizers/GA.MishraBirdConstrainedInvLin</name>
+    <name>framework/Optimizers/GA.mishraBirdConstrainedInvLin</name>
     <author>MohammadAbdo</author>
     <created>2020-05-16</created>
     <classesTested>GeneticAlgorithm</classesTested>
@@ -9,10 +9,12 @@
       This test assesses the Genetic algorithm on the Mishra function.
       The nominal dimensionality of the problem is 2.
       The objective variable is ans.
+      The problem is constrained.
+      It is a minimization problem, and the sampling is from continuous variables.
+      The fitness function used the Linear Inverse.
     </description>
     <analytic>
-      This test uses Mishra function, which is documented in the analytic tests documentation under
-      the Optimizer functions section.
+      This test uses Mishra function.
     </analytic>
   </TestInfo>
 

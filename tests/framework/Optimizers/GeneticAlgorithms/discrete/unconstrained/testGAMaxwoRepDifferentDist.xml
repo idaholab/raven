@@ -6,13 +6,13 @@
     <created>2021-05-13</created>
     <classesTested>GeneticAlgorithm</classesTested>
     <description>
-      This test assesses the Genetic algorithm using on the myLocalSum function.
-      The nominal dimensionality of the problem is 5.
-      The objective variable is ans.
+      This test assesses the Genetic algorithm using the weighted sum found in myLocalSum.py function.
+      The nominal dimensionality of the test problem is 3.
+      The objective variable is ans. The problem in unconstrained, it is a maximization problem, and the sampling is from discrete variables without replacement.
+      Each variable/gene belongs to a different distribution.
     </description>
     <analytic>
-      This test uses myLocalSum's function, which is documented in the analytic tests documentation under
-      the Optimizer functions section.
+      This test uses myLocalSum's analytic objective function.
     </analytic>
   </TestInfo>
 

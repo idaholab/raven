@@ -132,7 +132,7 @@
      rel_err = 0.001
     [../]
   [../]
-  
+
   [./GA_knapsackBaseTournament]
     type = 'RavenFramework'
     input = 'discrete/unconstrained/GA_knapsackBaseTournament.xml'

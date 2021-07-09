@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Simulation verbosity="debug" profile="jobs">
   <TestInfo>
-    <name>framework/Optimizers/GA.SimionescuConstrainedInvLin</name>
+    <name>framework/Optimizers/GA.simionescuConstrainedInvLin</name>
     <author>MohammadAbdo</author>
     <created>2020-05-16</created>
     <classesTested>GeneticAlgorithm</classesTested>
@@ -9,18 +9,18 @@
       This test assesses the Genetic algorithm on the Simionescu function.
       The nominal dimensionality of the problem is 2.
       The objective variable is ans.
+      The problem is constrained.
+      It is a minimization problem, and the sampling is from continuous variables.
+      The fitness function used the inverse linear fitness.
     </description>
     <analytic>
-      This test uses Simionescu function, which is documented in the analytic tests documentation under
-      the Optimizer functions section.
+      This test uses Simionescu function.
     </analytic>
   </TestInfo>
 
   <RunInfo>
     <WorkingDir>simionescuConstrainedInvLin</WorkingDir>
     <Sequence>optimize, print</Sequence>
-    <!-- <batchSize>8</batchSize>
-    <internalParallel>True</internalParallel> -->
   </RunInfo>
 
   <Steps>
