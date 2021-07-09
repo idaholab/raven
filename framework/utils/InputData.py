@@ -491,12 +491,13 @@ class ParameterInput(object):
     notFound = []
     found = []
     for sub in self.subparts:
-      if sub.getName() in names:
-        values[name] = sub.values
+      name = sub.getName()
+      if name in names:
+        values[name] = sub.value
         found.append(name)
     # check if defualt for the one not found
-    for n in list(set(names) - set(found)):
-      default = self.returnDefault(n)
+    for name in list(set(names) - set(found)):
+      default = self.returnDefault(name)
       values[name] = default
       if default == 'no-default':
         notFound.append(name)
