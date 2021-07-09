@@ -26,7 +26,8 @@
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from .ScikitLearnBase import ScikitLearnBase
+from SupervisedLearning.ScikitLearn import ScikitLearnBase
+#from .. import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
