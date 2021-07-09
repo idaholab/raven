@@ -47,6 +47,7 @@ class ScikitLearnBase(SupervisedLearning):
     super().__init__()
     self.uniqueVals = None
     self.settings = None
+    self.model = None
 
   def initializeModel(self, settings):
     """
@@ -117,6 +118,14 @@ class ScikitLearnBase(SupervisedLearning):
     """
     params = self.model.get_params()
     return params
+
+  def __returnCurrentSettingLocal__(self):
+    """
+      Returns a dictionary with the parameters and their current values
+      @ In, None
+      @ Out, params, dict, dictionary of parameter names and current values
+    """
+    pass
 
   def _localNormalizeData(self,values,names,feat):
     """
