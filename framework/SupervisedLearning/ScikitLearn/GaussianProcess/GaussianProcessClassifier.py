@@ -31,13 +31,13 @@ from utils import utils
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class GaussianProcessRegressor(ScikitLearnBase):
+class GaussianProcessClassifier(ScikitLearnBase):
   """
     Gaussian process regression (GPR)
   """
   info = {'problemtype':'classification', 'normalize':False}
 
-  def __init__(self,messageHandler,**kwargs):
+  def __init__(self):
     """
       Constructor that will appropriately initialize a supervised learning object
       @ In, None
@@ -47,8 +47,8 @@ class GaussianProcessRegressor(ScikitLearnBase):
     import sklearn
     import sklearn.gaussian_process
     import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.gaussian_process.GaussianProcessRegressor)
+    # we wrap the model with the multi output classifier (for multitarget)
+    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.gaussian_process.GaussianProcessClassifier)
 
   @classmethod
   def getInputSpecification(cls):

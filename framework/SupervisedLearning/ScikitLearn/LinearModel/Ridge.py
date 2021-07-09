@@ -34,7 +34,7 @@ class Ridge(ScikitLearnBase):
   """
    Ridge Regressor
   """
-  info = {'problemtype':'regression 'normalize':False}
+  info = {'problemtype':'regression', 'normalize':False}
 
   def __init__(self):
     """

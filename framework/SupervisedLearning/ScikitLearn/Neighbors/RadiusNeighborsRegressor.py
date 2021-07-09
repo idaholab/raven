@@ -30,7 +30,7 @@ from SupervisedLearning.ScikitLearn import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class RadiusNeighborsClassifier(ScikitLearnBase):
+class RadiusNeighborsRegressor(ScikitLearnBase):
   """
     RadiusNeighborsRegressor
     Regressor implementing a vote among neighbors within a given radius
@@ -47,8 +47,8 @@ class RadiusNeighborsClassifier(ScikitLearnBase):
     import sklearn
     import sklearn.neighbors
     import sklearn.multioutput
-    # we wrap the model with the multi output classifier (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputClassifier(sklearn.neighbors.RadiusNeighborsRegressor)
+    # we wrap the model with the multi output regressor (for multitarget)
+    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.neighbors.RadiusNeighborsRegressor)
 
   @classmethod
   def getInputSpecification(cls):

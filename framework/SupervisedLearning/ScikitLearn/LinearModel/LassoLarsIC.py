@@ -22,6 +22,7 @@
 #Internal Modules (Lazy Importer) End----------------------------------------------------------------
 
 #External Modules------------------------------------------------------------------------------------
+from numpy import finfo
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
@@ -80,7 +81,7 @@ class LassoLarsIC(ScikitLearnBase):
                                                  descr=r"""The maximum number of iterations.""", default=500))
     specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
-                                                 For sparse input this option is always True to preserve sparsity.""", default='auto')
+                                                 For sparse input this option is always True to preserve sparsity.""", default='auto'))
     specs.addSub(InputData.parameterInputFactory("eps", contentType=InputTypes.FloatType,
                                                  descr=r"""The machine-precision regularization in the computation of the Cholesky
                                                  diagonal factors. Increase this for very ill-conditioned systems. Unlike the tol

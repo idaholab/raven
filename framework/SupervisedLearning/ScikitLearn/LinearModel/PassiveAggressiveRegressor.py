@@ -33,7 +33,7 @@ class PassiveAggressiveRegressor(ScikitLearnBase):
   """
     Passive Aggressive Regressor
   """
-  info = {'problemtype':'regression 'normalize':True}
+  info = {'problemtype':'regression', 'normalize':True}
 
   def __init__(self):
     """

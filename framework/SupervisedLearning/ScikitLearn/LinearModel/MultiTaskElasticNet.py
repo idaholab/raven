@@ -86,7 +86,7 @@ class MultiTaskElasticNet(ScikitLearnBase):
                                                   the data is assumed to be already centered.""", default=True))
     specs.addSub(InputData.parameterInputFactory("precompute", contentType=InputTypes.BoolType,
                                                  descr=r"""Whether to use a precomputed Gram matrix to speed up calculations.
-                                                 For sparse input this option is always True to preserve sparsity.""", default=False)
+                                                 For sparse input this option is always True to preserve sparsity.""", default=False))
     specs.addSub(InputData.parameterInputFactory("max_iter", contentType=InputTypes.IntegerType,
                                                  descr=r"""The maximum number of iterations.""", default=1000))
     specs.addSub(InputData.parameterInputFactory("positive", contentType=InputTypes.BoolType,

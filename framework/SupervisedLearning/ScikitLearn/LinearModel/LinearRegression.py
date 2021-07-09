@@ -29,7 +29,7 @@ from SupervisedLearning.ScikitLearn import ScikitLearnBase
 from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
-class LinearRegressor(ScikitLearnBase):
+class LinearRegression(ScikitLearnBase):
   """
     Ordinary least squares Linear Regression.
   """
@@ -57,8 +57,8 @@ class LinearRegressor(ScikitLearnBase):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(LinearRegressor, cls).getInputSpecification()
-    specs.description = r"""The \\xmlNode{LinearRegressor}
+    specs = super().getInputSpecification()
+    specs.description = r"""The \\xmlNode{LinearRegression}
                         is an Ordinary least squares Linear Regression.
                         LinearRegression fits a linear model with coefficients $w = (w1, …, wp)$ to
                         minimize the residual sum of squares between the observed targets in the

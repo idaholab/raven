@@ -33,7 +33,7 @@ class RidgeCV(ScikitLearnBase):
   """
    Ridge Regressor with cross-validation
   """
-  info = {'problemtype':'regression 'normalize':False}
+  info = {'problemtype':'regression', 'normalize':False}
 
   def __init__(self):
     """
