@@ -14,9 +14,6 @@
       The fitness function used the feasible first parameterless fitness.
     </description>
     <analytic>
-      This test uses Simionescu function.
-    </analytic>
-    <analytic>
       This test uses townsend function, which is documented in the analytic tests documentation under
       the Optimizer functions section.
     </analytic>
