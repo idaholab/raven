@@ -70,7 +70,10 @@ class SupervisedLearningGate(BaseInterface):
     # check if pivotParameter is specified and in case store it
     self.pivotParameterId = self.initializationOptions.get("pivotParameter", 'time')
     # return instance of the ROMclass
-    modelInstance = SupervisedLearning.factory.returnInstance(ROMclass)
+    # modelInstance = SupervisedLearning.factory.returnInstance(ROMclass)
+
+    ## modelInstance is initialized in ROM class
+    modelInstance = self.initializationOptions['modelInstance']
     # check if the model can autonomously handle the time-dependency
     # (if not and time-dep data are passed in, a list of ROMs are constructed)
     self.canHandleDynamicData = modelInstance.isDynamic()
@@ -158,7 +161,8 @@ class SupervisedLearningGate(BaseInterface):
       @ Out, paramDict, dict, dictionary containing the parameter names as keys
         and each parameter's initial value as the dictionary values
     """
-    paramDict = self.supervisedContainer[-1].returnInitialParameters()
+    # paramDict = self.supervisedContainer[-1].returnInitialParameters()
+    paramDict = {}
     return paramDict
 
   def provideExpectedMetaKeys(self):
@@ -190,7 +194,8 @@ class SupervisedLearningGate(BaseInterface):
     self.supervisedContainer[0].setAssembledObjects(assembledObjects)
 
     # if training using ROMCollection, special treatment
-    if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
+    # if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
+    if 'Segment' in self.initializationOptions:
       self.supervisedContainer[0].train(trainingSet)
     else:
       # not a collection # TODO move time-dependent snapshots to collection!
@@ -278,7 +283,8 @@ class SupervisedLearningGate(BaseInterface):
     if not self.amITrained:
       self.raiseAnError(RuntimeError, "ROM "+self.initializationOptions['name']+" has not been trained yet and, consequentially, can not be evaluated!")
     resultsDict = {}
-    if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
+    # if isinstance(self.supervisedContainer[0], SupervisedLearning.Collection):
+    if 'Segment' in self.initializationOptions:
       resultsDict = self.supervisedContainer[0].run(request)
     else:
       for rom in self.supervisedContainer:

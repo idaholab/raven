@@ -41,11 +41,7 @@ class ARDRegression(ScikitLearnBase):
       @ In, None
       @ Out, None
     """
-    import sklearn
-    import sklearn.linear_model
-    import sklearn.multioutput
-    # we wrap the model with the multi output regressor (for multitarget)
-    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.ARDRegression)
+    super().__init__()
 
   @classmethod
   def getInputSpecification(cls):
@@ -56,7 +52,7 @@ class ARDRegression(ScikitLearnBase):
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
-    specs = super(LogisticRegression, cls).getInputSpecification()
+    specs = super().getInputSpecification()
     specs.description = r"""The \xmlNode{ARDRegression} is Bayesian ARD regression.
                             Fit the weights of a regression model, using an ARD prior. The weights of the
                             regression model are assumed to be in Gaussian distributions. Also estimate the
@@ -93,6 +89,8 @@ class ARDRegression(ScikitLearnBase):
                                                  descr=r"""This parameter is ignored when fit_intercept is set to False. If True,
                                                  the regressors X will be normalized before regression by subtracting the mean and
                                                  dividing by the l2-norm.""", default=True))
+    specs.addSub(InputData.parameterInputFactory("verbose", contentType=InputTypes.BoolType,
+                                                 descr=r"""Verbose mode when fitting the model.""", default=False))
     return specs
 
   def _handleInput(self, paramInput):
@@ -104,7 +102,21 @@ class ARDRegression(ScikitLearnBase):
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['tol', 'alpha_1','alpha_2','lambda_1','lambda_2',
                                                                'compute_score', 'threshold_lambda', 'fit_intercept',
-                                                               'n_iter', 'normalize'])
+                                                               'n_iter', 'normalize', 'verbose'])
     # notFound must be empty
     assert(not notFound)
     self.initializeModel(settings)
+
+  def initializeModel(self, settings):
+    """
+      Method to initialize the surrogate model with a settings dictionary
+      @ In, settings, dict, the dictionary containin the parameters/settings to instanciate the model
+      @ Out, None
+    """
+    self.settings = settings
+    import sklearn
+    import sklearn.linear_model
+    import sklearn.multioutput
+    # we wrap the model with the multi output regressor (for multitarget)
+    self.model = sklearn.multioutput.MultiOutputRegressor(sklearn.linear_model.ARDRegression(**settings))
+    # self.model.set_params(**settings)

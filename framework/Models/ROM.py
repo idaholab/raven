@@ -58,7 +58,9 @@ class ROM(Dummy):
     ######################
     # dynamically loaded #
     ######################
-    validClass = interfaceFactory.returnClass(self.subType)
+
+    # validClass = cls.interfaceFactory.returnClass(cls.subType)
+    validClass = cls.interfaceFactory.returnClass('ARDRegression')
     validSpec = validClass.getInputSpecification()
     inputSpecification.mergeSub(validSpec)
 
@@ -184,13 +186,14 @@ class ROM(Dummy):
     paramInput = ROM.getInputSpecification()()
     paramInput.parseNode(xmlNode)
     cvNode = paramInput.findFirst('CV')
-    self.cvInstance = cvNode.values
+    self.cvInstance = cvNode.values if cvNode is not None else None
     ##
     self._interfaceROM = self.interfaceFactory.returnInstance(self.subType)
     self._interfaceROM._readMoreXML(xmlNode)
     ## TODO: how to handle 'estimator' node?
 
     self.initializationOptionDict['name'] = self.name
+    self.initializationOptionDict['modelInstance'] = self._interfaceROM
     # if working with a pickled ROM, send along that information
     if self.subType == 'pickledROM':
       self.initializationOptionDict['pickled'] = True

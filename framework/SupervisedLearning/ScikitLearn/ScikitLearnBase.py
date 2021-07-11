@@ -135,7 +135,7 @@ class ScikitLearnBase(SupervisedLearning):
       @ In, feat, string, feature to (not) normalize
       @ Out, None
     """
-    if not self.model.info['normalize']:
+    if not self.info['normalize']:
       self.muAndSigmaFeatures[feat] = (0.0,1.0)
     else:
       super()._localNormalizeData(values,names,feat)
