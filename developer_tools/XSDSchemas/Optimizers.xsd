@@ -175,9 +175,9 @@
                 <xsd:attribute name="type" type="xsd:string" />
               </xsd:complexType>
             </xsd:element>
-            <xsd:element name="Constraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="ImplicitConstraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="Sampler"          type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Constraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="ImplicitConstraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Restart"          type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="restartTolerance" type="xsd:float"           minOccurs="0" maxOccurs="1"/>
             <xsd:element name="variableTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="1"/>
@@ -211,8 +211,8 @@
 
     <xsd:complexType name="fitnessType">
       <xsd:all>
-        <xsd:element name="a"     type="xsd:float" />
-        <xsd:element name="b"     type="xsd:float"/>
+        <xsd:element name="a"     type="xsd:float" minOccurs="0" maxOccurs='1'/>
+        <xsd:element name="b"     type="xsd:float" minOccurs="0" maxOccurs='1'/>
       </xsd:all>
       <xsd:attribute name="type" type="xsd:string" />
     </xsd:complexType>
@@ -243,9 +243,9 @@
                 <xsd:attribute name="type" type="xsd:string" />
               </xsd:complexType>
             </xsd:element>
-            <xsd:element name="Constraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="ImplicitConstraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="Sampler"          type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="Constraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="ImplicitConstraint"       type="AssemblerObjectType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="Restart"          type="AssemblerObjectType" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="restartTolerance" type="xsd:float"           minOccurs="0" maxOccurs="1"/>
             <xsd:element name="variableTransformation" type="variablesTransformationType" minOccurs="0" maxOccurs="1"/>

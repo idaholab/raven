@@ -1,0 +1,146 @@
+<?xml version="1.0" ?>
+<Simulation verbosity="debug" profile="jobs">
+  <TestInfo>
+    <name>framework/Optimizers/GA.RosenbrockDiskConstrainedInvLin</name>
+    <author>MohammadAbdo</author>
+    <created>2020-05-16</created>
+    <classesTested>GeneticAlgorithm</classesTested>
+    <description>
+      This test assesses the Genetic algorithm on the Rosenbrock function.
+      The nominal dimensionality of the problem is 2.
+      The objective variable is ans.
+      The problem is constrained.
+      It is a minimization problem, and the sampling is from continuous variables.
+      The fitness function used the inverse linear fitness.
+    </description>
+    <analytic>
+      This test uses Rosenbrock function.
+    </analytic>
+  </TestInfo>
+
+  <RunInfo>
+    <WorkingDir>rosenbrockDiskConstrainedInvLin</WorkingDir>
+    <Sequence>optimize, print</Sequence>
+    <batchSize>1</batchSize>
+  </RunInfo>
+
+  <Steps>
+    <MultiRun name="optimize" >
+      <Input class="DataObjects" type="PointSet">placeholder</Input>
+      <Model class="Models" type="ExternalModel">rosenbrock</Model>
+      <Optimizer class="Optimizers" type="GeneticAlgorithm">GAopt</Optimizer>
+      <SolutionExport class="DataObjects" type="PointSet">opt_export</SolutionExport>
+      <Output class="DataObjects" type="PointSet">optOut</Output>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+    </MultiRun>
+    <IOStep name="print">
+      <Input class="DataObjects" type="PointSet">opt_export</Input>
+      <Input class="DataObjects" type="PointSet">optOut</Input>
+      <Output class="OutStreams" type="Print">opt_export</Output>
+      <Output class="OutStreams" type="Print">optOut</Output>
+    </IOStep>
+  </Steps>
+
+  <Distributions>
+    <Uniform name='rosenbrock_dist_x'>
+      <lowerBound>-1.5</lowerBound>
+      <upperBound>1.5</upperBound>
+    </Uniform>
+    <Uniform name='rosenbrock_dist_y'>
+      <lowerBound>-1.5</lowerBound>
+      <upperBound>1.5</upperBound>
+    </Uniform>
+  </Distributions>
+
+  <Optimizers>
+    <GeneticAlgorithm name="GAopt">
+      <samplerInit>
+        <limit>5</limit>
+        <initialSeed>42</initialSeed>
+        <writeSteps>every</writeSteps>
+      </samplerInit>
+
+      <GAparams>
+        <populationSize>30</populationSize>
+        <parentSelection>rouletteWheel</parentSelection>
+        <reproduction nParents="20">
+          <crossover type="onePointCrossover">
+            <crossoverProb>0.8</crossoverProb>
+          </crossover>
+          <mutation type="swapMutator">
+            <mutationProb>0.9</mutationProb>
+          </mutation>
+        </reproduction>
+        <fitness type="invLinear"></fitness>
+        <survivorSelection>fitnessBased</survivorSelection>
+      </GAparams>
+
+      <convergence>
+        <AHDp>0.0</AHDp>
+      </convergence>
+
+      <variable name="x">
+        <distribution>rosenbrock_dist_x</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>rosenbrock_dist_y</distribution>
+      </variable>
+
+      <objective>ans</objective>
+      <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
+    <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    <Constraint class='Functions' type='External'>constraint1</Constraint>
+    </GeneticAlgorithm>
+  </Optimizers>
+
+  <Samplers>
+    <MonteCarlo name="MC_samp">
+      <samplerInit>
+        <limit>30</limit>
+        <initialSeed>20021986</initialSeed>
+      </samplerInit>
+      <variable name="x">
+        <distribution>rosenbrock_dist_x</distribution>
+      </variable>
+      <variable name="y">
+        <distribution>rosenbrock_dist_y</distribution>
+      </variable>
+    </MonteCarlo>
+  </Samplers>
+
+  <Models>
+    <ExternalModel ModuleToLoad="../../../../../AnalyticModels/optimizing/rosenbrockDiskConstrained.py" name="rosenbrock" subType="">
+      <variables>x,y,ans</variables>
+    </ExternalModel>
+  </Models>
+
+  <Functions>
+    <External file="../../../../../AnalyticModels/optimizing/rosenbrockDiskConstrained.py" name="constraint1">
+      <variables>x,y</variables>
+    </External>
+  </Functions>
+
+    <DataObjects>
+      <PointSet name="placeholder"/>
+      <PointSet name="optOut">
+        <Input>x,y</Input>
+        <Output>ans</Output>
+      </PointSet>
+      <PointSet name="opt_export">
+        <Input>trajID</Input>
+        <Output>x,y,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
+      </PointSet>
+    </DataObjects>
+
+    <OutStreams>
+      <Print name="optOut">
+        <type>csv</type>
+        <source>optOut</source>
+      </Print>
+      <Print name="opt_export">
+        <type>csv</type>
+        <source>opt_export</source>
+        <clusterLabel>trajID</clusterLabel>
+      </Print>
+    </OutStreams>
+</Simulation>
