@@ -25,7 +25,7 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from SupervisedLearning import SupervisedLearning
-from SupervisedLearning import NDsplineRom
+from SupervisedLearning import NDspline
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -253,7 +253,7 @@ class PolyExponential(SupervisedLearning):
         # construct spline
         numbTerms = self.polyExpParams['expTerms']
         targets   = ["a_"+str(cnt+1) if cnt < numbTerms else "b_"+str((cnt-numbTerms)+1) for cnt in range(numbTerms*2)]
-        self.model[target] = NDsplineRom(**{'Features':self.features, 'Target':targets})
+        self.model[target] = NDspline(**{'Features':self.features, 'Target':targets})
         self.model[target].__class__.__trainLocal__(self.model[target],featureVals,expTermCoeff)
     self.featureVals = featureVals
 

@@ -16,7 +16,7 @@
 
   @author: talbpaul
   Originally from SupervisedLearning.py, split in PR #650 in July 2018
-  Specific ROM implementation for NDsplineRom
+  Specific ROM implementation for NDspline
 """
 #External Modules------------------------------------------------------------------------------------
 import math
@@ -31,11 +31,11 @@ interpolationND = utils.findCrowModule("interpolationND")
 from .NDinterpolatorRom import NDinterpolatorRom
 #Internal Modules End--------------------------------------------------------------------------------
 
-class NDsplineRom(NDinterpolatorRom):
+class NDspline(NDinterpolatorRom):
   """
     An N-dimensional Spline model
   """
-  ROMtype         = 'NDsplineRom'
+  ROMtype         = 'NDspline'
   info = {'problemtype':'regression', 'normalize':True}
 
   @classmethod
@@ -71,8 +71,16 @@ class NDsplineRom(NDinterpolatorRom):
       @ In, None
       @ Out, None
     """
-    super().__init__(self)
+    super().__init__()
     self.printTag = 'ND-SPLINE ROM'
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
     for _ in range(len(self.target)):
       self.interpolator.append(interpolationND.NDSpline())
 

@@ -27,7 +27,7 @@ from .HDMRRom            import HDMRRom
 from .MSR                import MSR
 from .NDinterpolatorRom  import NDinterpolatorRom
 from .NDinvDistWeight    import NDinvDistWeight
-from .NDsplineRom        import NDsplineRom
+from .NDspline           import NDspline
 from .SyntheticHistory   import SyntheticHistory
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential

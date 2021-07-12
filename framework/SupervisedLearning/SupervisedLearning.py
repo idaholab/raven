@@ -110,15 +110,6 @@ class SupervisedLearning(BaseInterface):
     self.metadataKeys = set()      # keys that can be passed to DataObject as meta information
     self.metadataParams = {}       # indexMap for metadataKeys to pass to a DataObject as meta dimensionality
 
-    # TODO: Remove
-    self.initOptionDict = None     # construction variables
-    self.kerasROMDict = None       # dictionary for ROM builded by Keras
-    self.numThreads = None         # threading for run
-    self.verbosity = None          # printing verbosity
-    ## ToDO: move to KerasROM
-    # self.kerasROMDict = self.initOptionDict.pop('KerasROMDict', None)
-
-
   def _handleInput(self, paramInput):
     """
       Function to handle the common parts of the model parameter input.
