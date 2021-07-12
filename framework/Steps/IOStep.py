@@ -215,7 +215,7 @@ class IOStep(Step):
           self.raiseAnError(RuntimeError,'Pickled rom "%s" was not trained!  Train it before pickling and unpickling using a RomTrainer step.' %inDictionary['Input'][i].name)
         fileobj = outputs[i]
         fileobj.open(mode='wb+')
-        cloudpickle.dump(inDictionary['Input'][i],fileobj)
+        cloudpickle.dump(inDictionary['Input'][i], fileobj, protocol=pickle.HIGHEST_PROTOCOL)
         fileobj.flush()
         fileobj.close()
       elif self.actionType[i] == 'FILES-ROM':
