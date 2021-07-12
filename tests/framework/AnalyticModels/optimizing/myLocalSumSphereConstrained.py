@@ -34,8 +34,8 @@ def constraint(self):
   """
     Evaluates the constraint function @ a given point ($\vec(x)$)
     @ In, self, object, RAVEN container
-    @ Out, g(x1,x2), float, $g(\vec(x)) = 8.5 - 0.5 * x_1 - x_2$
-    because the original constraint was x2 < 8.5 - 0.5 * x1
+    @ Out, g(x1,x2), float, $g(\vec(x)) = 72 - (x1^2 + x2^2)$
+    because the original constraint was x1^2 + x2^2 < 72
             the way the constraint is designed is that
             the constraint function has to be >= 0,
             so if:
@@ -44,15 +44,15 @@ def constraint(self):
             3) f(x,y) <= b then g = b - f
             4) f(x,y)  = c then g = 0.001 - (f(x,y) - c)
   """
-  g = 6.75 - 0.25* self.x1 - self.x2
+  g = 72 - self.x1**2 - self.x2**2
   return g
 
 def impConstraint(self):
   """
     Evaluates the constraint function @ a given point ($\vec(x)$)
     @ In, self, object, RAVEN container
-    @ Out, g(x1,x2), float, $g(\vec(x)) = x1 + x2 + objective - 9$
-    because the original constraint was x1 + x2 + objective > 9
+    @ Out, g(x1,x2), float, $g(\vec(x)) = x1 + x2 - 9$
+    because the original constraint was x1 + x2 > 9
             the way the constraint is designed is that
             the constraint function has to be >= 0,
             so if:
