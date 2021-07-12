@@ -28,11 +28,12 @@ from scipy import spatial
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils
+from utils import InputData, InputTypes
 from SupervisedLearning import SupervisedLearning
 #Internal Modules End--------------------------------------------------------------------------------
 
 
-class DynamicModeDecomposition(SupervisedLearning):
+class DMD(SupervisedLearning):
   """
     This surrogate is aimed to construct a "time-dep" surrogate based on
     Dynamic Mode Decomposition method.
@@ -99,7 +100,7 @@ class DynamicModeDecomposition(SupervisedLearning):
       @ In, None
       @ Out, None
     """
-    super().__init__(self)
+    super().__init__()
     self.dmdParams                   = {}                                   # dmd settings container
     self.printTag                    = 'DMD'                                # print tag
     self._dynamicHandling            = True                                 # This ROM is able to manage the time-series on its own. No need for special treatment outside
@@ -262,7 +263,7 @@ class DynamicModeDecomposition(SupervisedLearning):
       @ Out, None
     """
     # add description
-    supervisedLearning.writeXMLPreamble(self, writeTo, targets)
+    super().writeXMLPreamble(writeTo, targets)
     description  = ' This XML file contains the main information of the DMD ROM.'
     description += ' If "modes" (dynamic modes), "eigs" (eigenvalues), "amplitudes" (mode amplitudes)'
     description += ' and "dmdTimeScale" (internal dmd time scale) are dumped, the method'

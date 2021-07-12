@@ -31,7 +31,7 @@ from .NDspline           import NDspline
 from .SyntheticHistory   import SyntheticHistory
 from .pickledROM         import pickledROM
 from .PolyExponential    import PolyExponential
-from .DynamicModeDecomposition import DynamicModeDecomposition
+from .DynamicModeDecomposition import DMD
 
 ## FIXME: convert the following ROM to use new ROM API
 # from .ARMA               import ARMA
