@@ -1287,7 +1287,7 @@ class KerasBase(SupervisedLearning):
       @ In, None
       @ Out, state, dict, it contains all the information needed by the ROM to be initialized
     """
-    state = supervisedLearning.__getstate__(self)
+    state = SupervisedLearning.__getstate__(self)
     tf.keras.models.save_model(self._ROM, KerasBase.tempModelFile, save_format='h5')
     # another method to save the TensorFlow model
     # self._ROM.save(KerasBase.tempModelFile)

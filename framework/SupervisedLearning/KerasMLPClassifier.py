@@ -50,3 +50,11 @@ class KerasMLPClassifier(KerasClassifier):
     super().__init__()
     self.printTag = 'KerasMLPClassifier'
     self.allowedLayers = self.basicLayers
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)

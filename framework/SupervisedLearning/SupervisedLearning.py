@@ -61,7 +61,7 @@ class SupervisedLearning(BaseInterface):
     spec.addParam("subType", InputTypes.StringType, True)
     spec.addSub(InputData.parameterInputFactory('Features',contentType=InputTypes.StringListType))
     spec.addSub(InputData.parameterInputFactory('Target',contentType=InputTypes.StringListType))
-    spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType))
+    spec.addSub(InputData.parameterInputFactory('pivotParameter',contentType=InputTypes.StringType, default='time'))
     return spec
 
   @staticmethod
@@ -126,10 +126,11 @@ class SupervisedLearning(BaseInterface):
       @ Out, None
     """
     super()._handleInput(paramInput)
-    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target'])
+    nodes, notFound = paramInput.findNodesAndExtractValues(['Features', 'Target', 'pivotParameter'])
     assert(not notFound)
     self.features = nodes['Features']
     self.target = nodes['Target']
+    self.pivotID = nodes['pivotParameter']
     dups = set(self.target).intersection(set(self.features))
     if len(dups) != 0:
       self.raiseAnError(IOError, 'The target(s) "{}" is/are also among the given features!'.format(', '.join(dups)))

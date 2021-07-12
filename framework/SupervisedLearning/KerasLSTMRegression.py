@@ -53,7 +53,15 @@ class KerasLSTMRegression(KerasRegression):
     """
     super().__init__()
     self.printTag = 'KerasLSTMRegression'
-    self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasRcurrentLayersList']
+    self.allowedLayers = self.basicLayers + self.kerasDict['kerasRcurrentLayersList']
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
 
   def _checkLayers(self):
     """

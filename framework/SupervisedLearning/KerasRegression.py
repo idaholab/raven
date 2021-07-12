@@ -155,7 +155,7 @@ class KerasRegression(KerasBase):
     featureValues = np.stack(featureValues, axis=-1)
 
     result = self.__evaluateLocal__(featureValues)
-    pivotParameter = self.initDict['pivotParameter']
+    pivotParameter = self.pivotID
     if type(edict[pivotParameter]) == type([]):
       #XXX this should not be needed since sampler should just provide the numpy array.
       #Currently the CustomSampler provides all the pivot parameter values instead of the current one.

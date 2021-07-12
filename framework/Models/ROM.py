@@ -202,9 +202,9 @@ class ROM(Dummy):
     if self.subType == 'pickledROM':
       self.initializationOptionDict['pickled'] = True
 
-    pivot = paramInput.findFirst('pivotParameter').value
+    pivot = paramInput.findFirst('pivotParameter')
     if pivot is not None:
-      self.initializationOptionDict['pivotParameter'] = pivot
+      self.initializationOptionDict['pivotParameter'] = pivot.value
     else:
       self.initializationOptionDict['pivotParameter'] = 'time'
 
@@ -444,7 +444,7 @@ class ROM(Dummy):
     pivotParameterId = self.supervisedEngine.pivotParameterId
     # find some general settings needed for either dynamic or static handling
     ## get all the targets the ROMs have
-    ROMtargets = self.supervisedEngine.initializationOptions['Target']
+    ROMtargets = self.supervisedEngine.supervisedContainer[0].target
     ## establish requested targets
     targets = ROMtargets if what=='all' else what.split(',')
     ## establish sets of engines to work from
