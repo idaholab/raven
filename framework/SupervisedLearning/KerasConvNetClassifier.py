@@ -16,9 +16,6 @@
   @author: wangc
   module for Convolutional neural network (CNN)
 """
-#for future compatibility with Python 3--------------------------------------------------------------
-from __future__ import division, print_function, unicode_literals, absolute_import
-#End compatibility block for Python 3----------------------------------------------------------------
 #External Modules------------------------------------------------------------------------------------
 import numpy as np
 ######
@@ -54,7 +51,15 @@ class KerasConvNetClassifier(KerasClassifier):
     """
     super().__init__()
     self.printTag = 'KerasConvNetClassifier'
-    self.allowedLayers = self.basicLayers + self.kerasROMDict['kerasConvNetLayersList'] + self.kerasROMDict['kerasPoolingLayersList']
+    self.allowedLayers = self.basicLayers + self.kerasDict['kerasConvNetLayersList'] + self.kerasDict['kerasPoolingLayersList']
+
+  def _handleInput(self, paramInput):
+    """
+      Function to handle the common parts of the model parameter input.
+      @ In, paramInput, InputData.ParameterInput, the already parsed input.
+      @ Out, None
+    """
+    super()._handleInput(paramInput)
 
   def _preprocessInputs(self,featureVals):
     """

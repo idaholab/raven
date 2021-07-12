@@ -28,6 +28,7 @@ import functools
 from scipy import stats
 import os
 import utils.importerUtils
+from utils import InputData, InputTypes
 tf = utils.importerUtils.importModuleLazyRenamed("tf", globals(), "tensorflow")
 #External Modules End--------------------------------------------------------------------------------
 
@@ -76,9 +77,7 @@ class KerasBase(SupervisedLearning):
     """
     inputSpecification = super().getInputSpecification()
     inputSpecification.description = r"""TensorFlow-Keras Deep Neural Networks."""
-    # for deep learning neural network
-    #inputSpecification.addSub(InputData.parameterInputFactory("DNN", InputTypes.StringType))
-    inputSpecification.addSub(InputData.parameterInputFactory("hidden_layer_sizes", contentType=InputTypes.IntegerTupleType)) # list of integer
+    # general xml nodes
     inputSpecification.addSub(InputData.parameterInputFactory("metrics", contentType=InputTypes.StringListType, default='accuracy')) #list of metrics
     inputSpecification.addSub(InputData.parameterInputFactory("batch_size", contentType=InputTypes.IntegerType, default=20))
     inputSpecification.addSub(InputData.parameterInputFactory("epochs", contentType=InputTypes.IntegerType, default=20))
@@ -960,7 +959,7 @@ class KerasBase(SupervisedLearning):
     cvInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(cvInput)
 
-    return specs
+    return inputSpecification
 
   def __init__(self):
     """
@@ -1046,7 +1045,6 @@ class KerasBase(SupervisedLearning):
     self.kerasDict['kerasNoiseLayersList'] = ['gaussiannoise',
                                  'gaussiandropout',
                                  'alphadropout']
-    self.initializationOptionDict['KerasROMDict'] = self.kerasDict
 
     self.kerasLayersList = functools.reduce(lambda x,y: x+y, list(self.kerasDict.values()))
 
@@ -1184,9 +1182,9 @@ class KerasBase(SupervisedLearning):
     # This ROM is able to manage the time-series on its own. No need for special treatment outside
     self._dynamicHandling = True
     # Basic Layers
-    self.basicLayers = self.kerasROMDict['kerasCoreLayersList'] + self.kerasROMDict['kerasEmbeddingLayersList'] + \
-                       self.kerasROMDict['kerasAdvancedActivationLayersList'] + self.kerasROMDict['kerasNormalizationLayersList'] + \
-                       self.kerasROMDict['kerasNoiseLayersList']
+    self.basicLayers = self.kerasDict['kerasCoreLayersList'] + self.kerasDict['kerasEmbeddingLayersList'] + \
+                       self.kerasDict['kerasAdvancedActivationLayersList'] + self.kerasDict['kerasNormalizationLayersList'] + \
+                       self.kerasDict['kerasNoiseLayersList']
     # LabelEncoder can be used to normalize labels
     from sklearn import preprocessing
     self.labelEncoder = preprocessing.LabelEncoder()
@@ -1212,7 +1210,7 @@ class KerasBase(SupervisedLearning):
     super()._handleInput(paramInput)
     nodes, notFound = paramInput.findNodesAndExtractValues(['random_seed', 'num_classes', 'validation_split', 'plot_model',
                                                             'output_layer_activation', 'loss', 'metrics', 'batch_size',
-                                                            'layer_layout'])
+                                                            'layer_layout', 'epochs'])
     assert(not notFound)
     randomSeed = nodes.get('random_seed')
     # Set the seed for random number generation to obtain reproducible results
@@ -1254,14 +1252,14 @@ class KerasBase(SupervisedLearning):
     if optNode is None:
       optimizerSetting = {'optimizer':'adam'}
     else:
-      for sub in optNode:
-        optimizerSetting[sub.getName()] = sub.values
+      for sub in optNode.subparts:
+        optimizerSetting[sub.getName()] = sub.value
     optimizerName = optimizerSetting.pop('optimizer').lower()
     # set up optimizer
     self.optimizer = self.__class__.availOptimizer[optimizerName](**optimizerSetting)
     # check layer layout, this is always required node, used to build the DNNs
     self.layerLayout = nodes.get('layer_layout')
-    for sub in paramInput:
+    for sub in paramInput.subparts:
       if sub.getName().lower() in self.kerasLayersList:
         layerName = sub.parameterValues['name']
         self.initOptionDict[layerName] = {}

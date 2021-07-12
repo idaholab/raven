@@ -202,7 +202,7 @@ class ROM(Dummy):
     if self.subType == 'pickledROM':
       self.initializationOptionDict['pickled'] = True
 
-    pivot = paramInput.findFirst('pivotParameter')
+    pivot = paramInput.findFirst('pivotParameter').value
     if pivot is not None:
       self.initializationOptionDict['pivotParameter'] = pivot
     else:
