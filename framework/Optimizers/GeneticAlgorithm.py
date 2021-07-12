@@ -421,7 +421,7 @@ class GeneticAlgorithm(RavenSampled):
     # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
     # and all x's (individuals) in the population
     g0 = np.zeros((np.shape(offSprings)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
-    
+
     g = xr.DataArray(g0,
                      dims=['chromosome','Constraint'],
                      coords={'chromosome':np.arange(np.shape(offSprings)[0]),
@@ -438,7 +438,7 @@ class GeneticAlgorithm(RavenSampled):
           g.data[index, constIndex] = self._handleExplicitConstraints(newOpt,constraint)
         else:
           g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt,constraint)
-    
+
     offSpringFitness = self._fitnessInstance(rlz,
                                              objVar = self._objectiveVar,
                                              a = self._objCoeff,
@@ -446,9 +446,9 @@ class GeneticAlgorithm(RavenSampled):
                                              penalty = None,
                                              constraintFunction=g,
                                              type=self._minMax)
-    
+
     acceptable = 'first' if self.counter==1 else 'accepted'
-    
+
     self._collectOptPoint(offSprings, offSpringFitness, objectiveVal)
     self._resolveNewGeneration(traj, rlz, objectiveVal, offSpringFitness, info)
 
