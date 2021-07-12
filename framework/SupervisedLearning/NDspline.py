@@ -84,6 +84,16 @@ class NDspline(NDinterpolatorRom):
     for _ in range(len(self.target)):
       self.interpolator.append(interpolationND.NDSpline())
 
+  def initializeFromDict(self, inputDict):
+    """
+      Function which initializes the ROM given a the information contained in inputDict
+      @ In, inputDict, dict, dictionary containing the values required to initialize the ROM
+      @ Out, None
+    """
+    super().initializeFromDict(inputDict)
+    for _ in range(len(self.target)):
+      self.interpolator.append(interpolationND.NDSpline())
+
   def __trainLocal__(self,featureVals,targetVals):
     """
       Perform training on samples. This is a specialization of the

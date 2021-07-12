@@ -25,7 +25,8 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from SupervisedLearning import SupervisedLearning
-from SupervisedLearning import NDspline
+from SupervisedLearning.NDspline import NDspline
+from utils import InputTypes, InputData
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -50,7 +51,7 @@ class PolyExponential(SupervisedLearning):
         specifying input of cls.
     """
     spec = super().getInputSpecification()
-    specs.description = r"""The \xmlNode{PolyExponential} contains a single ROM type, aimed to construct a
+    spec.description = r"""The \xmlNode{PolyExponential} contains a single ROM type, aimed to construct a
     time-dependent (or any other monotonic variable) surrogate model based on polynomial sum of exponential term.
     This surrogate have the form:
     \begin{equation}
@@ -87,7 +88,7 @@ class PolyExponential(SupervisedLearning):
     spec.addSub(InputData.parameterInputFactory('tol',contentType=InputTypes.FloatType,
                                                 descr=r"""relative tolerance of the optimization problem (differential evolution optimizer)""",
                                                 default=1e-3))
-    spec.addSub(InputData.parameterInputFactory('maxNumberIter',contentType=InputTypes.IntegerType,
+    spec.addSub(InputData.parameterInputFactory('max_iter',contentType=InputTypes.IntegerType,
                                                 descr=r"""maximum number of iterations (generations) for the
                                                 optimization problem  (differential evolution optimizer)""", default=5000))
     return spec
@@ -115,7 +116,7 @@ class PolyExponential(SupervisedLearning):
     """
     super()._handleInput(paramInput)
     settings, notFound = paramInput.findNodesAndExtractValues(['pivotParameter','numberExpTerms', 'coeffRegressor',
-                                                               'polyOrder','tol','maxNumberIter'])
+                                                               'polyOrder','tol','max_iter'])
     # notFound must be empty
     assert(not notFound)
     self.pivotParameterID                   = settings.get("pivotParameter")           # Pivot parameter ID
@@ -123,7 +124,7 @@ class PolyExponential(SupervisedLearning):
     self.polyExpParams['coeffRegressor']    = settings.get('coeffRegressor') # which regressor to use for interpolating the coefficient
     self.polyExpParams['polyOrder']         = settings.get('polyOrder')                # the polynomial order
     self.polyExpParams['tol']               = settings.get('tol')                # optimization tolerance
-    self.polyExpParams['maxNumberIter']     = settings.get('maxNumberIter')         # maximum number of iterations in optimization
+    self.polyExpParams['maxNumberIter']     = settings.get('max_iter')         # maximum number of iterations in optimization
     # check if the pivotParameter is among the targetValues
     if self.pivotParameterID not in self.target:
       self.raiseAnError(IOError,"The pivotParameter "+self.pivotParameterID+" must be part of the Target space!")
@@ -253,7 +254,9 @@ class PolyExponential(SupervisedLearning):
         # construct spline
         numbTerms = self.polyExpParams['expTerms']
         targets   = ["a_"+str(cnt+1) if cnt < numbTerms else "b_"+str((cnt-numbTerms)+1) for cnt in range(numbTerms*2)]
-        self.model[target] = NDspline(**{'Features':self.features, 'Target':targets})
+        self.model[target] = NDspline()
+        inputDict = {'Features':self.features, 'Target':targets}
+        self.model[target].initializeFromDict(inputDict)
         self.model[target].__class__.__trainLocal__(self.model[target],featureVals,expTermCoeff)
     self.featureVals = featureVals
 

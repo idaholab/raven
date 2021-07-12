@@ -18,7 +18,6 @@ Created on 2016-Jan-26
 
 This a library for defining the data used and for reading it in.
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
 import re
 from collections import OrderedDict
 from enum import Enum
@@ -511,8 +510,9 @@ class ParameterInput(object):
       @ In, name, string, the name of the node to search for
       @ Out, default, object, the default value if found
     """
-    if name in self.parameters:
-      return self.parameters[name]["default"]
+    sub = self.getSub(name)
+    if sub is not None:
+      return sub.default
     return None
 
   def findAll(self, name):
@@ -662,7 +662,7 @@ class ParameterInput(object):
                                                                                    r=req,
                                                                                    d=desc,
                                                                                    de=default)
-                                                                                   
+
     msg += '\n{i}\\end{{itemize}}\n'.format(i=doDent(recDepth))
     return msg
 

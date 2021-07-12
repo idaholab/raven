@@ -126,6 +126,17 @@ class SupervisedLearning(BaseInterface):
     if len(dups) != 0:
       self.raiseAnError(IOError, 'The target(s) "{}" is/are also among the given features!'.format(', '.join(dups)))
 
+  ## This method is used when the SupervisedLearning ROM is directly initiated within another module
+  def initializeFromDict(self, inputDict):
+    """
+      Function which initializes the ROM given a the information contained in inputDict
+      @ In, inputDict, dict, dictionary containing the values required to initialize the ROM
+      @ Out, None
+    """
+    self.features = inputDict.get('Features', None)
+    self.target = inputDict.get('Target', None)
+    self.verbosity = inputDict.get('verbosity', None)
+
   def __getstate__(self):
     """
       This function return the state of the ROM
