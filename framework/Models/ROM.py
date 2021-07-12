@@ -41,28 +41,32 @@ class ROM(Dummy):
   interfaceFactory = factory
 
   @classmethod
-  def getInputSpecification(cls):
+  def getInputSpecification(cls, xml=None):
     """
       Method to get a reference to a class that specifies the input data for
       class cls. This one seems a bit excessive, are all of these for this class?
       @ In, cls, the class for which we are retrieving the specification
+      @ In, xml, xml.etree.ElementTree.Element, optional, if given then only get specs for
+          corresponding subType requested by the node
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
     """
     inputSpecification = super().getInputSpecification()
     inputSpecification.addParam('subType', required=True, param_type=InputTypes.StringType)
+    ######################
+    # dynamically loaded #
+    ######################
+    assert xml is not None
+    subType = xml.attrib.get('subType')
+    validClass = cls.interfaceFactory.returnClass(subType)
+    validSpec = validClass.getInputSpecification()
+    inputSpecification.mergeSub(validSpec)
+
     cvInput = InputData.parameterInputFactory("CV", contentType=InputTypes.StringType)
     cvInput.addParam("class", InputTypes.StringType)
     cvInput.addParam("type", InputTypes.StringType)
     inputSpecification.addSub(cvInput)
-    ######################
-    # dynamically loaded #
-    ######################
 
-    # validClass = cls.interfaceFactory.returnClass(cls.subType)
-    validClass = cls.interfaceFactory.returnClass('ARDRegression')
-    validSpec = validClass.getInputSpecification()
-    inputSpecification.mergeSub(validSpec)
 
     ## wangc: I think we should avoid loading all inputSpecifications
     # for typ in SupervisedLearning.factory.knownTypes():
@@ -183,7 +187,7 @@ class ROM(Dummy):
       @ Out, None
     """
     super()._readMoreXML(xmlNode)
-    paramInput = ROM.getInputSpecification()()
+    paramInput = self.getInputSpecification(xml=xmlNode)()
     paramInput.parseNode(xmlNode)
     cvNode = paramInput.findFirst('CV')
     self.cvInstance = cvNode.values if cvNode is not None else None
