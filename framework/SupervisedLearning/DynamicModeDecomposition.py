@@ -78,7 +78,7 @@ class DMD(SupervisedLearning):
                                                  \item \textit{-1}, no truncation is performed
                                                  \item \textit{0}, optimal rank is internally computed
                                                  \item \textit{>1}, this rank is going to be used for the truncation
-                                               \end{itemize}""", default=-1))
+                                               \end{itemize}""", default=None))
     specs.addSub(InputData.parameterInputFactory("energyRankSVD", contentType=InputTypes.FloatType,
                                                  descr=r"""energy level ($0.0 < float < 1.0$) used to compute the rank such
                                                    as computed rank is the number of the biggest singular values needed to reach the energy identified by
@@ -91,7 +91,7 @@ class DMD(SupervisedLearning):
                                                  eigenvectors),   otherwise the projected ones (using the left-singular matrix after SVD).""", default=True))
     specs.addSub(InputData.parameterInputFactory("optimized", contentType=InputTypes.FloatType,
                                                  descr=r"""True if the amplitudes need to be computed minimizing the error
-                                                  between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=True))
+                                                  between the modes and all the time-steps or False, if only the 1st timestep only needs to be considered""", default=False))
     return specs
 
   def __init__(self):
