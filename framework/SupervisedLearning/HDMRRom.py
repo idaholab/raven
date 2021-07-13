@@ -25,6 +25,7 @@ import numpy as np
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils
+from utils import InputData, InputTypes
 from .GaussPolynomialRom import GaussPolynomialRom
 #Internal Modules End--------------------------------------------------------------------------------
 
@@ -140,9 +141,9 @@ class HDMRRom(GaussPolynomialRom):
       @ In, None
       @ Out, None
     """
-    super().__init__(self)
+    super().__init__()
     self.initialized   = False #true only when self.initialize has been called
-    self.printTag      = 'HDMR_ROM('+'-'.join(self.target)+')'
+    self.printTag      = 'HDMR_ROM'
     self.sobolOrder    = None #depth of HDMR/Sobol expansion
     self.ROMs          = {}   #dict of GaussPolyROM objects keyed by combination of vars that make them up
     self.sdx           = None #dict of sobol sensitivity coeffs, keyed on order and tuple(varnames)

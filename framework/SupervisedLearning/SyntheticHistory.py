@@ -57,7 +57,7 @@ class SyntheticHistory(SupervisedLearning):
       @ In, kwargs: an arbitrary dictionary of keywords and values
     """
     # general infrastructure
-    supervisedLearning.__init__(self)
+    super().__init__()
     self.printTag = 'SyntheticHistoryROM'
     self._dynamicHandling = True # This ROM is able to manage the time-series on its own.
     # training storage

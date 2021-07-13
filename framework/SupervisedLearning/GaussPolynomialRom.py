@@ -29,6 +29,7 @@ from scipy import spatial
 
 #Internal Modules------------------------------------------------------------------------------------
 from .SupervisedLearning import SupervisedLearning
+from utils import InputData, InputTypes
 #Internal Modules End--------------------------------------------------------------------------------
 
 
@@ -154,7 +155,7 @@ class GaussPolynomialRom(SupervisedLearning):
                                                  entered as comma-separated values between parenthesis, with each tuple separated by a comma.
                                                  Any amount of whitespace is acceptable.  For example, \xmlNode{IndexPoints}\verb'(0,1),(0,2),(1,1),(4,0)'\xmlNode{/IndexPoints}
                                                  \nb{Using custom index sets
-                                                 does not guarantee accurate convergence.}"""))
+                                                 does not guarantee accurate convergence.}""", default=None))
     interpolationParam = InputData.parameterInputFactory("Interpolation", contentType=InputTypes.StringType,
                                                  descr=r"""offers the option to specify quadrature, polynomials, and importance weights for the given
                                                  variable name.  The ROM accepts any number of \xmlNode{Interpolation} nodes up to the
@@ -226,7 +227,7 @@ class GaussPolynomialRom(SupervisedLearning):
     super().__init__()
     self.initialized   = False #only True once self.initialize has been called
     self.interpolator  = None #FIXME what's this?
-    self.printTag      = 'GAUSSgpcROM('+'-'.join(self.target)+')'
+    self.printTag      = 'GAUSSgpcROM'
     self.indexSetType  = None #string of index set type, TensorProduct or TotalDegree or HyperbolicCross
     self.indexSetVals  = []   #list of tuples, custom index set to use if CustomSet is the index set type
     self.maxPolyOrder  = None #integer of relative maximum polynomial order to use in any one dimension
@@ -283,6 +284,57 @@ class GaussPolynomialRom(SupervisedLearning):
             self.raiseAnError(IOError,'CustomSet points',i,'is too small!')
     if self.maxPolyOrder < 1:
       self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
+
+  def initializeFromDict(self, kwargs):
+    """
+      Function which initializes the ROM given a the information contained in inputDict
+      @ In, kwargs, dict, dictionary containing the values required to initialize the ROM
+      @ Out, None
+    """
+    super().initializeFromDict(kwargs)
+    for key,val in kwargs.items():
+      if key=='IndexSet':
+        self.indexSetType = val
+      elif key=='IndexPoints':
+        self.indexSetVals=[]
+        strIndexPoints = val.strip()
+        strIndexPoints = strIndexPoints.replace(' ','').replace('\n','').strip('()')
+        strIndexPoints = strIndexPoints.split('),(')
+        self.raiseADebug(strIndexPoints)
+        for s in strIndexPoints:
+          self.indexSetVals.append(tuple(int(i) for i in s.split(',')))
+        self.raiseADebug('points',self.indexSetVals)
+      elif key=='PolynomialOrder':
+        self.maxPolyOrder = int(val)
+      elif key=='Interpolation':
+        for var,value in val.items():
+          self.itpDict[var]={'poly'  :'DEFAULT',
+                             'quad'  :'DEFAULT',
+                             'weight':'1'}
+          for atrName,atrVal in value.items():
+            if atrName in ['poly','quad','weight']:
+              self.itpDict[var][atrName]=atrVal
+            else:
+              self.raiseAnError(IOError,'Unrecognized option: '+atrName)
+      elif key == 'SparseGrid':
+        if val.lower() not in ['smolyak','tensor']:
+          self.raiseAnError(IOError,'No such sparse quadrature implemented: %s.  Options are %s.' %(val,str(['smolyak','tensor'])))
+        self.sparseGridType = val
+
+    if not self.indexSetType:
+      self.raiseAnError(IOError,'No IndexSet specified!')
+    if self.indexSetType=='Custom':
+      if len(self.indexSetVals)<1:
+        self.raiseAnError(IOError,'If using CustomSet, must specify points in <IndexPoints> node!')
+      else:
+        for i in self.indexSetVals:
+          if len(i)<len(self.features):
+            self.raiseAnError(IOError,'CustomSet points',i,'is too small!')
+    if not self.maxPolyOrder:
+      self.raiseAnError(IOError,'No maxPolyOrder specified!')
+    if self.maxPolyOrder < 1:
+      self.raiseAnError(IOError,'Polynomial order cannot be less than 1 currently.')
+
 
   def writeXML(self, writeTo, requests = None, skip = None):
     """

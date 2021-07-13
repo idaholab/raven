@@ -742,7 +742,8 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
                 'Interpolation'  : SVL.itpDict,
                 'Features'       : list(subset),
                 'Target'         : self.targets}
-    self.ROMs[subset] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom', **initDict)
+    self.ROMs[subset] = SupervisedLearning.factory.returnInstance('GaussPolynomialRom')
+    self.ROMs[subset].initializeFromDict(initDict)
     initializeDict = {'SG'       : self.SQs[subset],
                       'dists'    : distDict,
                       'quads'    : quadDict,
@@ -759,9 +760,10 @@ class AdaptiveSobol(Sobol, AdaptiveSparseGrid):
     self.romShell[subset].initializationOptionDict['Features']= list(subset)
     self.romShell[subset].initializationOptionDict['IndexSet']='TotalDegree'
     self.romShell[subset].initializationOptionDict['PolynomialOrder']='1'
+    self.romShell[subset].initializationOptionDict['modelInstance'] = self.ROMs[subset]
     self.romShell[subset]._initializeSupervisedGate(**self.romShell[subset].initializationOptionDict)
     #coordinate SVLs
-    self.romShell[subset].supervisedEngine.supervisedContainer = [self.ROMs[subset]]
+    # self.romShell[subset].supervisedEngine.supervisedContainer = [self.ROMs[subset]]
     #instantiate the adaptive sparse grid sampler for this rom
     samp = factory.returnInstance('AdaptiveSparseGrid')
     samp.verbosity      = verbosity

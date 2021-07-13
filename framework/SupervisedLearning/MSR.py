@@ -155,7 +155,7 @@ class MSR(NDinterpolatorRom):
       @ Out, None
     """
     self.printTag = 'MSR ROM'
-    super().__init__(self)
+    super().__init__()
     self.acceptedGraphParam = ['approximate knn', 'delaunay', 'beta skeleton', \
                                'relaxed beta skeleton']
     self.acceptedPersistenceParam = ['difference','probability','count','area']
