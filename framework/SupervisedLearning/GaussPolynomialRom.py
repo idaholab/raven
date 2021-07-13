@@ -267,7 +267,7 @@ class GaussPolynomialRom(SupervisedLearning):
     self.sparseGridType = settings.get('SparseGrid')
     interpolationList = paramInput.findAll('Interpolation')
     for elem in interpolationList:
-      var = elem.values
+      var = elem.value
       poly = elem.parameterValues.get('poly', 'DEFAULT')
       quad = elem.parameterValues.get('quad', 'DEFAULT')
       weight = elem.parameterValues.get('weight', 1.0)
