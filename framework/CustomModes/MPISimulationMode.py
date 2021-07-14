@@ -139,12 +139,12 @@ class MPISimulationMode(Simulation.SimulationMode):
     #  newRunInfo['precommand'] = "_specialSyntax_" + runInfoDict["MPIExec"]+" "+nodeCommand+" "+runInfoDict['precommand']
 
     if runInfoDict['NumThreads'] > 1 and not magicSyntax:
+      newRunInfo['threadParameter'] = runInfoDict['threadParameter']
       #add number of threads to the post command.
-      newRunInfo['postcommand'] = " --n-threads=%NUM_CPUS% "+runInfoDict['postcommand']
+      newRunInfo['postcommand'] =" {} {}".format(newRunInfo['threadParameter'],runInfoDict['postcommand'])
     else:
       if self.__inPbs and magicSyntax:
         newRunInfo['NumMPI'] = -1*runInfoDict['NumMPI']
-
     self.raiseAMessage("precommand: "+newRunInfo['precommand']+", postcommand: "+newRunInfo.get('postcommand',runInfoDict['postcommand']))
     return newRunInfo
 

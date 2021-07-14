@@ -100,7 +100,7 @@ class EntityFactory(MessageUser):
       if obj is None:
         # otherwise, error
         msg = f'"{self.name}" module does not recognize type "{Type}"; '
-        msg += f'known types are: {self.knownTypes()}'
+        msg += f'known types are: {", ".join(list(self.knownTypes()))}'
         self.raiseAnError(NameError, msg)
       else:
         return obj
@@ -126,6 +126,21 @@ class EntityFactory(MessageUser):
       cls = self.returnClass(name, None)
       if isinstance(cls, InputDataUser):
         base.addSub(cls.getInputSpecifications())
+
+  def instanceFromXML(self, xml):
+    """
+      Using the provided XML, return the required instance
+      @ In, xml, xml.etree.ElementTree.Element, head element for instance
+      @ In, runInfo, dict, info from runInfo
+      @ Out, kind, str, name of type of entity
+      @ Out, name, str, identifying name of entity
+      @ Out, entity, instance, object from factory
+    """
+    kind = xml.tag
+    name = xml.attrib['name']
+    entity = self.returnInstance(kind)
+    return kind, name, entity
+
 
   #############
   # UTILITIES

@@ -33,9 +33,9 @@
         <Input class="DataObjects" type="PointSet">inputThermalConductivity</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">thermalConductivityComputationContainer</TargetEvaluation>
       </Model>
-      <Model class="Models"  type="ExternalModel">
+      <Model class="Models" type="ExternalModel">
           heatTransfer
-          <Input class="DataObjects" type="PointSet">inputHeatTransfer</Input>
+        <Input class="DataObjects" type="PointSet">inputHeatTransfer</Input>
         <TargetEvaluation class="DataObjects" type="PointSet">heatTransferContainer</TargetEvaluation>
       </Model>
     </EnsembleModel>
@@ -87,7 +87,7 @@
       <type>csv</type>
       <source>metaModelOutputTest</source>
     </Print>
-    <Plot   name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
+    <Plot name="metaModelOutputTestSolution" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>
@@ -115,7 +115,7 @@
         </title>
       </actions>
     </Plot>
-    <Plot   name="metaModelOutputTestK" overwrite="false" verbosity="debug">
+    <Plot name="metaModelOutputTestK" overwrite="false" verbosity="debug">
       <plotSettings>
         <plot>
           <type>scatter</type>

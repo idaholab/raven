@@ -15,7 +15,7 @@
 def evaluate(inputs):
   """
     Evaluates a weighted sum function.
-    $sum = \Sigma_{i=0} (i+1)*x_{i}$
+    $summ = \Sigma_{i=0} (i+1)*x_{i}$
 
     min with replacement = n*(n-1)/2*lb occurs at x_{i} = lb (i.e., lower bound of the discrete variables)
     max with replacement = n*(n-1)/2*ub occurs at x_{i} = ub (i.e., upper bound of the discrete variables)
@@ -23,17 +23,72 @@ def evaluate(inputs):
     max w/o replacement  = $\Sigma_{i=0}^{n-1} (ub-n+1+i)(i+1)$ occurs at x_{i} = ub-n+1+i
 
     @ In, inputs, dictionary of variables
-    @ Out, sum, value at inputs
+    @ Out, summ, value at inputs
   """
   summ = 0
   for ind,var in enumerate(inputs.keys()):
     summ += (ind+1) * inputs[var]
   return summ[:]
 
+def constraint(self):
+  """
+    Evaluates the constraint function @ a given point ($\vec(x)$)
+    @ In, self, object, RAVEN container
+    @ Out, g(x1,x2), float, $g(\vec(x)) = 8.5 - 0.5 * x_1 - x_2$
+    because the original constraint was x2 < 8.5 - 0.5 * x1
+            the way the constraint is designed is that
+            the constraint function has to be >= 0,
+            so if:
+            1) f(x,y) >= 0 then g = f
+            2) f(x,y) >= a then g = f - a
+            3) f(x,y) <= b then g = b - f
+            4) f(x,y)  = c then g = 0.001 - (f(x,y) - c)
+  """
+  g = 6.75 - 0.25* self.x1 - self.x2
+  return g
+
+def impConstraint(self):
+  """
+    Evaluates the constraint function @ a given point ($\vec(x)$)
+    @ In, self, object, RAVEN container
+    @ Out, g(x1,x2), float, $g(\vec(x)) = x1 + x2 + objective - 9$
+    because the original constraint was x1 + x2 + objective > 9
+            the way the constraint is designed is that
+            the constraint function has to be >= 0,
+            so if:
+            1) f(x,y) >= 0 then g = f
+            2) f(x,y) >= a then g = f - a
+            3) f(x,y) <= b then g = b - f
+            4) f(x,y)  = c then g = 0.001 - (f(x,y) - c)
+  """
+  g = self.x1 + self.x2 + self.ans- 9
+  return g
+
 def run(self,Inputs):
   """
-    Function to calculate the average of the sampled six variables. This is used to check distribution for large number of samples.
-    @ In, Input, ParameterInput, RAVEN sampled params.
+    RAVEN API
+    @ In, self, object, RAVEN container
+    @ In, Inputs, dict, additional inputs
     @ Out, None
   """
   self.ans = evaluate(Inputs)
+
+def constrain(self):
+  """
+    Constrain calls the constraint function.
+    @ In, self, object, RAVEN container
+    @ Out, explicitConstrain, float, positive if the constraint is satisfied
+           and negative if violated.
+  """
+  explicitConstrain = constraint(self)
+  return explicitConstrain
+
+def impConstrain(self):
+  """
+    Constrain calls the constraint function.
+    @ In, self, object, RAVEN container
+    @ Out, explicitConstrain, float, positive if the constraint is satisfied
+           and negative if violated.
+  """
+  implicitConstrain = impConstraint(self)
+  return implicitConstrain

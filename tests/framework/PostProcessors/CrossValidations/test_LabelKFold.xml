@@ -36,14 +36,14 @@
         <labels>0,0,0,1,1,1,1,2,2,2</labels>
         <n_splits>3</n_splits>
       </SciKitLearn>
-      <Metric class="Metrics" type="SKL">m1</Metric>
+      <Metric class="Metrics" type="Metric">m1</Metric>
     </PostProcessor>
   </Models>
 
   <Metrics>
-      <SKL name="m1">
-          <metricType>regression|mean_absolute_error</metricType>
-      </SKL>
+    <Metric name="m1" subType="SKL">
+      <metricType>regression|mean_absolute_error</metricType>
+    </Metric>
   </Metrics>
 
   <Distributions>
@@ -97,7 +97,7 @@
       <Output>ans,ans2</Output>
     </PointSet>
     <PointSet name="pp1_cv">
-        <Output>cv_m1_ans, RAVEN_CV_ID</Output>
+      <Output>cv_m1_ans, RAVEN_CV_ID</Output>
     </PointSet>
   </DataObjects>
 

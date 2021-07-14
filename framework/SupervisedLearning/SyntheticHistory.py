@@ -134,6 +134,8 @@ class SyntheticHistory(supervisedLearning):
       targets = settings['target']
       indices = tuple(self.target.index(t) for t in targets)
       params = self.trainedParams[algo]
+      if not algo.canGenerate():
+        self.raiseAnError(IOError, "This TSA algorithm cannot generate synthetic histories.")
       signal = algo.generate(params, pivots, settings)
       result[:, indices] += signal
     # RAVEN realization construction

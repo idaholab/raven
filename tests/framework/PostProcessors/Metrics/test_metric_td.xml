@@ -9,7 +9,7 @@
       This test checks the Metric PostProcessor to handle time-dependent data
     </description>
     <revisions>
-      <revision author='talbpaul' date='2019-01-09'>no writing directly to files from postprocessors</revision>
+      <revision author="talbpaul" date="2019-01-09">no writing directly to files from postprocessors</revision>
     </revisions>
   </TestInfo>
 
@@ -28,10 +28,10 @@
       <Targets type="variable">y0, y, z</Targets>
       <multiOutput>raw_values</multiOutput>
       <pivotParameter>time</pivotParameter>
-      <Metric class="Metrics" type="SKL">EVC</Metric>
-      <Metric class="Metrics" type="SKL">MAE</Metric>
-      <Metric class="Metrics" type="SKL">R2</Metric>
-      <Metric class="Metrics" type="SKL">MSE</Metric>
+      <Metric class="Metrics" type="Metric">EVC</Metric>
+      <Metric class="Metrics" type="Metric">MAE</Metric>
+      <Metric class="Metrics" type="Metric">R2</Metric>
+      <Metric class="Metrics" type="Metric">MSE</Metric>
     </PostProcessor>
   </Models>
 
@@ -72,18 +72,18 @@
   </OutStreams>
 
   <Metrics>
-    <SKL name="EVC">
+    <Metric name="EVC" subType="SKL">
       <metricType>regression|explained_variance_score</metricType>
-    </SKL>
-    <SKL name="MAE">
+    </Metric>
+    <Metric name="MAE" subType="SKL">
       <metricType>regression|mean_absolute_error</metricType>
-    </SKL>
-    <SKL name="R2">
+    </Metric>
+    <Metric name="R2" subType="SKL">
       <metricType>regression|r2_score</metricType>
-    </SKL>
-    <SKL name="MSE">
+    </Metric>
+    <Metric name="MSE" subType="SKL">
       <metricType>regression|mean_squared_error</metricType>
-    </SKL>
+    </Metric>
   </Metrics>
 
   <Distributions>

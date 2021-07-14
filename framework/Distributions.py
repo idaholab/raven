@@ -1607,15 +1607,14 @@ DistributionsCollection.addSub(Geometric.getInputSpecification())
 
 class Categorical(Distribution):
   """
-    Class for the categorical distribution also called " generalized Bernoulli distribution"
+    Class for the categorical distribution also called "generalized Bernoulli distribution"
     Note: this distribution can have only numerical (float) outcome; in the future we might want to include also the possibility to give symbolic outcome
   """
 
   @classmethod
   def getInputSpecification(cls):
     """
-      Method to get a reference to a class that specifies the input data for
-      class cls.
+      Method to get a reference to a class that specifies the input data for class cls.
       @ In, cls, the class for which we are retrieving the specification
       @ Out, inputSpecification, InputData.ParameterInput, class to use for
         specifying input of cls.
@@ -1664,16 +1663,6 @@ class Categorical(Distribution):
         self.raiseAnError(IOError,'Invalid xml node for Categorical distribution; only "state" is allowed')
     self.initializeDistribution()
 
-  def initializeFromDict(self, inputDict):
-    """
-      Function that initializes the distribution provided a dictionary
-      @ In, inputDict, dict, dictionary containing the np.arrays for state and outcome
-      @ Out, None
-    """
-    for idx, val in enumerate(inputDict['state']):
-      self.mapping[val] = inputDict['outcome'][idx]
-      self.values.add(val)
-
   def getInitParams(self):
     """
       Function to get the initial values of the input parameters that belong to
@@ -1693,26 +1682,44 @@ class Categorical(Distribution):
       @ In, inputDict, dict, dictionary containing the np.arrays for xAxis and pAxis
       @ Out, None
     """
-    for idx, val in enumerate(inputDict['xAxis']):
-      self.mapping[val] = inputDict['pAxis'][idx]
+    for idx, val in enumerate(inputDict['outcome']):
+      self.mapping[val] = inputDict['state'][idx]
       self.values.add(val)
+
+    self.checkDistParams()
 
   def initializeDistribution(self):
     """
-      Function that initializes the distribution and checks that the sum of all state probabilities is equal to 1
+      Function that initializes the distribution
       @ In, None
       @ Out, None
     """
-    totPsum = 0.0
-    for element in self.mapping:
-      if self.mapping[element] < 0:
-        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
-      totPsum += self.mapping[element]
-    if not mathUtils.compareFloats(totPsum,1.0):
-      self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
-                         repr(totPsum), ', not 1.0!', 'Please re-normalize it to 1!')
+    self.checkDistParams()
+
     self.lowerBound = min(self.mapping.keys())
     self.upperBound = max(self.mapping.keys())
+
+  def checkDistParams(self):
+    """
+      Function that checks that the sum of all state probabilities is equal to 1 and perform pdf value normalization
+      @ In, None
+      @ Out, None
+    """
+    # check all probability values are between 0.0 and 1.0
+    for element in self.mapping:
+      if self.mapping[element] < 0.0:
+        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with negative probabilities')
+      if self.mapping[element] > 1.0:
+        self.raiseAnError(IOError,'Categorical distribution cannot be initialized with probabilities greater than 1')
+
+    localSum = sum(self.mapping.values())
+    if not mathUtils.compareFloats(localSum,1.0):
+      self.raiseAnError('Categorical distribution cannot be initialized: sum of probabilities is ',
+                         repr(localSum), ', not 1.0!', 'Please re-normalize it to 1!')
+
+    # Probability values normalization
+    for key in self.mapping.keys():
+      self.mapping[key] = self.mapping[key]/localSum
 
   def pdf(self,x):
     """
@@ -1721,7 +1728,7 @@ class Categorical(Distribution):
       @ Out, pdfValue, float, requested pdf
     """
     if x in self.values:
-      pdfValue =  self.mapping[x]
+      pdfValue = self.mapping[x]
     else:
       self.raiseAnError(IOError,'Categorical distribution cannot calculate pdf for ' + str(x))
     return pdfValue
@@ -1733,6 +1740,8 @@ class Categorical(Distribution):
       @ Out, cumulative, float, requested cdf
     """
     sortedMapping = sorted(self.mapping.items(), key=operator.itemgetter(0))
+    if x == sortedMapping[-1][0]:
+      return 1.0
     if x in self.values:
       cumulative=0.0
       for element in sortedMapping:
@@ -1871,10 +1880,11 @@ class UniformDiscrete(Distribution):
     else:
       self.xArray   = np.linspace(self.lowerBound,self.upperBound,self.nPoints)
 
-    self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
+    # Here the actual calculation of discrete distribution parameters is performed
+    self.pdfArray = 1.0/self.xArray.size * np.ones(self.xArray.size)
     paramsDict={}
-    paramsDict['xAxis'] = self.xArray
-    paramsDict['pAxis'] = self.pdfArray
+    paramsDict['outcome'] = self.xArray
+    paramsDict['state'] = self.pdfArray
 
     self.categoricalDist = Categorical()
     self.categoricalDist.initializeFromDict(paramsDict)
@@ -1890,7 +1900,7 @@ class UniformDiscrete(Distribution):
     self.strategy = inputDict['strategy']
     self.categoricalDist = Categorical()
     self.categoricalDist.initializeFromDict(inputDict)
-    initialPerm = randomUtils.randomPermutation(inputDict['xAxis'].tolist(),self)
+    initialPerm = randomUtils.randomPermutation(inputDict['outcome'].tolist(),self)
     self.pot = np.asarray(initialPerm)
 
   def pdf(self,x):
@@ -1949,8 +1959,8 @@ class UniformDiscrete(Distribution):
 
     self.pdfArray = 1/self.xArray.size * np.ones(self.xArray.size)
     paramsDict={}
-    paramsDict['xAxis'] = self.xArray
-    paramsDict['pAxis'] = self.pdfArray
+    paramsDict['outcome'] = self.xArray
+    paramsDict['state'] = self.pdfArray
     paramsDict['strategy'] = self.strategy
 
     self.tempUniformDiscrete = UniformDiscrete()
