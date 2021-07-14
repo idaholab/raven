@@ -3,7 +3,7 @@
   <TestInfo>
     <name>framework/Optimizers/GeneticAlgorithms/knapsackMultipleDist</name>
     <author>mandd</author>
-    <created>2021-7-14</created>
+    <created>2021-07-14</created>
     <classesTested>GeneticAlgorithm</classesTested>
     <description>
       This test is designed to find the optimal solution of a heterogenous knapsack problem.
