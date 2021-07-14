@@ -1107,7 +1107,7 @@ checkAnswer("Custom1D cdf(1.9)",Custom1D.cdf(1.9), 0.971283153684)
 checkAnswer("Custom1D ppf(0.0139034475135)",Custom1D.ppf(0.0139034475135),-2.19999191499)
 checkAnswer("Custom1D ppf(00.971283440184)",Custom1D.ppf(0.971283440184),1.90000436617)
 
-#Test UniformDiscrete 
+#Test UniformDiscrete
 
 UniformDiscreteElement = ET.Element("UniformDiscrete",{"name":"test"})
 UniformDiscreteElement.append(createElement("lowerBound", text="3"))
