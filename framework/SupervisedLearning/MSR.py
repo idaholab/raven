@@ -56,7 +56,7 @@ class MSR(NDinterpolatorRom):
                             linear patches to the identified monotonic regions of the input space. Query
                             points have estimated probabilities that they belong to each cluster. These
                             probabilities can eitehr be used to give a smooth, weighted prediction based on
-                            the associated linear models, or a hard classification to a particular local
+                            the associated linear models, or a hard categorization  to a particular local
                             linear model which is then used for prediction. Currently, the probability
                             prediction can be done using kernel density estimation (KDE) or through a
                             one-versus-one support vector machine (SVM).
@@ -112,7 +112,7 @@ class MSR(NDinterpolatorRom):
                                                  whether the regression models should be probability weighted.""", default=False))
     specs.addSub(InputData.parameterInputFactory("partitionPredictor", contentType=InputTypes.StringType,
                                                  descr=r"""a flag that
-                                                 specifies how the predictions for query point classification should be
+                                                 specifies how the predictions for query point categorization  should be
                                                  performed. Available options are:
                                                  \begin{itemize}
                                                    \item \texttt{kde}
@@ -121,7 +121,7 @@ class MSR(NDinterpolatorRom):
     specs.addSub(InputData.parameterInputFactory("smooth", contentType=InputTypes.BoolType,
                                                  descr=r"""if this node is present, the ROM will blend the
                                                  estimates of all of the local linear models weighted by the probability the
-                                                 query point is classified as belonging to that partition of the input space.""", default=False))
+                                                 query point is categorized as belonging to that partition of the input space.""", default=False))
     specs.addSub(InputData.parameterInputFactory("kernel", contentType=InputTypes.StringType,
                                                  descr=r"""this option is only
                                                  used when the \xmlNode{partitionPredictor} is set to \texttt{kde} and
