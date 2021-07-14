@@ -16,8 +16,6 @@ Created on Sept 10, 2017
 
 @author: alfoa
 """
-from __future__ import division, print_function, unicode_literals, absolute_import
-
 import os
 import numpy as np
 from sys import platform
@@ -316,19 +314,6 @@ class RAVEN(CodeInterfaceBase):
     if not os.path.isfile(toCheck):
       print(f'RAVENInterface WARNING: Could not find {toCheck}, assuming failed RAVEN run.')
       return True
-    ### OLD read-the-output-stream method
-    # try:
-    #   print('DEBUGG workdir:', workingDir)
-    #   print('DEBUGG output:', output)
-    #   outputToRead = open(os.path.join(workingDir,output),"r")
-    # except IOError:
-    #   print(self.printTag+' ERROR: The RAVEN SLAVE log file  "'+str(os.path.join(workingDir,output))+'" does not exist!')
-    #   return True
-    # # check for completed run
-    # readLines = outputToRead.readlines()
-    # if not any("Run complete" in x for x in readLines[-min(200,len(readLines)):]):
-    #   del readLines
-    #   return True
     # check for output CSV (and data)
     if not failure:
       for filename in self.linkedDataObjectOutStreamsNames:
@@ -400,5 +385,3 @@ class RAVEN(CodeInterfaceBase):
       db.loadIntoData(data)
       dataObjectsToReturn[dbName] = data
     return dataObjectsToReturn
-
-
