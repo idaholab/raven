@@ -22,18 +22,31 @@ import os
 import struct
 import numpy as np
 
+def getFileContent(fn):
+  """
+    get the content from the file
+    @ In, fn, str, file name
+    @ Out, getFileContent, None or Str, the content of the file, None if the file does not exist
+  """
+  content = None
+  if not os.path.exists(fn):
+    print("Can not open file " + fn)
+  else:
+    with open(fn, "rb") as f:
+      content = f.readlines()
+  return content
+
 def parseFieldAll(fn):
   """
     parse internal field, extract data to numpy.array
     @ In, fn, str, file name
     @ Out, parseFieldAll, np.array, numpy array of internal field and boundary
   """
-  if not os.path.exists(fn):
-    print("Can not open file " + fn)
-    return None
-  with open(fn, "rb") as f:
-    content = f.readlines()
+  content = getFileContent(fn)
+  if content is not None:
     return parseInternalFieldContent(content), parseBoundaryContent(content)
+  else:
+    return None
 
 def parseInternalField(fn):
   """
@@ -41,12 +54,11 @@ def parseInternalField(fn):
     @ In, fn, str, file name
     @ Out, parseInternalField, np.array, numpy array of internal field
   """
-  if not os.path.exists(fn):
-    print("Can not open file " + fn)
-    return None
-  with open(fn, "rb") as f:
-    content = f.readlines()
+  content = getFileContent(fn)
+  if content is not None:
     return parseInternalFieldContent(content)
+  else:
+    return None
 
 def parseInternalFieldContent(content):
   """
@@ -70,12 +82,11 @@ def parseBoundaryField(fn):
     @ In, fn, str, file name
     @ Out, parseBoundaryField, np.array, numpy array of boundary field
   """
-  if not os.path.exists(fn):
-    print("Can not open file " + fn)
-    return None
-  with open(fn, "rb") as f:
-    content = f.readlines()
+  content = getFileContent(fn)
+  if content is not None:
     return parseBoundaryContent(content)
+  else:
+    return None
 
 def parseBoundaryContent(content):
   """
@@ -203,7 +214,6 @@ def splitBoundaryContent(content):
         print('error, boundaryField not end with }')
       break
   return bd
-
 
 def isBinaryFormat(content, maxline=20):
   """
